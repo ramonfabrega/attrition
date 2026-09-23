@@ -382,12 +382,13 @@ impl Sim {
         self.invalid_loc(u, p.tile(), false, true, true, true, false) == loc::VALID
     }
 
-    /// `PathFinder::valid_ucoord` — the 48-grid's probe, memoised per
-    /// search in the original's `validlist`. Its second half is
+    /// `PathFinder::valid_ucoord` — the 48-grid's probe, memoised in the
+    /// pathfinder's `validlist`, [`Sim::path_memo`], which outlives the
+    /// search that fills it (`docs/PATHFINDER.md` §24.5). Its second half is
     /// `detect_unit_collision` in its quick form, which is what makes the
     /// recovery path go **around** the units in the way rather than
     /// through them (`docs/COLLISION.md` §4.2).
-    fn valid_ucoord(&self, u: usize, p: Pos, metric: i64, memo: &mut BTreeMap<i64, bool>) -> bool {
+    fn valid_ucoord(&mut self, u: usize, p: Pos, metric: i64) -> bool {
         let w = &self.world;
         if p.x < 0
             || p.y < 0
@@ -396,13 +397,13 @@ impl Sim {
         {
             return false;
         }
-        if let Some(&v) = memo.get(&metric) {
+        if let Some(&v) = self.path_memo.get(&metric) {
             return v;
         }
         let v = self.invalid_loc(u, p.tile(), false, true, false, true, false) == loc::VALID
             && !self.detect_quick(u, p, true)
             && !self.probe_refuses(u, p);
-        memo.insert(metric, v);
+        self.path_memo.insert(metric, v);
         v
     }
 
@@ -410,7 +411,7 @@ impl Sim {
     /// the validity memo emptied. Every finder calls it right after its
     /// `astar_*` returns — `find_upath@00682f30:330`, `find_wpath@00688fc0:261`,
     /// `find_tpath@006897d0:182`, `find_road@00688a40:46` — and on none of
-    /// their early returns (§24.6).
+    /// their early returns (§24.5).
     pub(crate) fn kill_lists(&mut self) {
         self.path_memo.clear();
     }
@@ -791,12 +792,11 @@ impl Sim {
         // list is non-empty by construction, because the suspend re-inserted
         // the node it stopped on.
         #[allow(clippy::type_complexity)]
-        let (mut nodes, mut open, mut open_by_metric, mut closed, mut valid_memo, mut seq): (
+        let (mut nodes, mut open, mut open_by_metric, mut closed, mut seq): (
             Vec<Node>,
             BTreeMap<(i32, std::cmp::Reverse<u64>), u32>,
             BTreeMap<i64, (u64, i32, u32)>,
             BTreeMap<i64, u32>,
-            BTreeMap<i64, bool>,
             u64,
         );
         let (tol, pref, goal, start_dist, traversed, avoid_land, avoid_sea);
@@ -811,8 +811,7 @@ impl Sim {
             closed = sus.closed;
             // The resume closes the pathfinder's memo and takes the
             // unit's (`00683770:235`-`288`).
-            valid_memo = sus.valid_memo;
-            self.path_memo.clear();
+            self.path_memo = sus.valid_memo;
             seq = sus.seq;
             tol = sus.tol;
             pref = sus.pref;
@@ -847,8 +846,7 @@ impl Sim {
             // pathfinder's holds: `astar_path@00683770`'s fresh arm resets
             // `valid_hit` (`+0x90`) and nothing else, so a goal pre-walk
             // that returned early without `kill_lists` hands its verdicts
-            // on (§24.6).
-            valid_memo = std::mem::take(&mut self.path_memo);
+            // on (§24.5).
             seq = 0;
             let root = Node {
                 x: start.x,
@@ -918,7 +916,9 @@ impl Sim {
                         open,
                         open_by_metric,
                         closed,
-                        valid_memo,
+                        // The suspend hands the memo to the unit and pops
+                        // an empty one (`00683770:505`).
+                        valid_memo: std::mem::take(&mut self.path_memo),
                         seq,
                         tol,
                         pref,
@@ -1006,7 +1006,7 @@ impl Sim {
                         // Big units re-check every sub-step on diagonals;
                         // with stride 1 the single probe is the whole
                         // check.
-                        self.valid_ucoord(u, p, metric, &mut valid_memo)
+                        self.valid_ucoord(u, p, metric)
                     }
                 };
                 if !valid {
@@ -1569,11 +1569,11 @@ impl Sim {
             return self.units[u].path.len() as i32;
         }
         let mut goal = goal_e.to;
-        // The pathfinder's memo, not a local one (§24.6): the pre-walk's
+        // The pathfinder's memo, not a local one (§24.5): the pre-walk's
         // verdicts stay in it on every return below, none of which reaches
         // `kill_lists`, and a search — this one's or the next unit's —
         // reads them back.
-        let mut memo = std::mem::take(&mut self.path_memo);
+
         // **The pre-walk is gated, and the gate is not `find_wpath`'s**
         // (item 301). `00683095` tests the type's domain `+0x218 < 2` and
         // `UnitData::can_transport@0046f960` — a **conjunction with no
@@ -1600,14 +1600,13 @@ impl Sim {
                 let gg = g48(goal);
                 let metric = i64::from(gg.x) + i64::from(gg.y) * i64::from(self.world.width()) * 16;
                 if self.world.tregion_alt(goal.tile()) == self.world.tregion_alt(here.tile())
-                    && self.valid_ucoord(u, goal, metric, &mut memo)
+                    && self.valid_ucoord(u, goal, metric)
                 {
                     break;
                 }
                 let (dx, dy) = (here.x - goal.x, here.y - goal.y);
                 if dx.abs() < 0x18 && dy.abs() < 0x18 {
                     if goal_e.flags & path_flag::FINAL == 0 {
-                        self.path_memo = memo;
                         return 0;
                     }
                     break;
@@ -1621,7 +1620,6 @@ impl Sim {
                 goal_e.to = goal;
                 if g48(goal) == hg {
                     self.units[u].path.push(goal_e);
-                    self.path_memo = memo;
                     return self.units[u].path.len() as i32;
                 }
                 if sx == 0 && cy == 0 {
@@ -1633,7 +1631,6 @@ impl Sim {
         let md = (hg.x - gg.x).abs() + (hg.y - gg.y).abs();
         if md < 2 {
             self.units[u].path.push(goal_e);
-            self.path_memo = memo;
             return self.units[u].path.len() as i32;
         }
         self.units[u].path.push(goal_e);
@@ -1648,7 +1645,6 @@ impl Sim {
             tolerance: 0,
             flags: 0,
         });
-        self.path_memo = memo;
         self.upath_search(u, anti, limit, false)
     }
 

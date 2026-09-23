@@ -1114,7 +1114,7 @@ pub struct Sim {
     #[doc(hidden)]
     pub probe_refuse: Option<path::RefuseProbe>,
     /// **`PathFinder +0x50`, the validity memo — the pathfinder's, not a
-    /// search's** (`docs/PATHFINDER.md` §24.6). `valid_ucoord` caches each
+    /// search's** (`docs/PATHFINDER.md` §24.5). `valid_ucoord` caches each
     /// 48-cell's verdict here under its metric, and only
     /// `PathFinder::kill_lists@00687ae0` empties it. Every finder calls that
     /// **after** its `astar_*` returns and on none of its early returns, so
