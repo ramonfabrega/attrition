@@ -4356,6 +4356,15 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
     assert_eq!(other, Vec::<String>::new(), "a building or city row parts");
+    // **run132's first parting is 301**, the Temple's frame, and it is the
+    // sweep's: 30 cells this crate owns a sweep early. The chapter's word,
+    // 1277, is in run133's window; this is the border window's own.
+    let first_parting = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f != FIRST)
+        .map(|(_, (f, _))| *f)
+        .min();
+    assert_eq!(first_parting, Some(301), "run132's first parting moved");
     assert_eq!(
         firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
         14,
@@ -4371,9 +4380,19 @@ fn chapter_four_holds_to_the_golden_word() {
     let Some(w) = walk_chapter("ch4u", 4, 8, 1500) else {
         return;
     };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FOUR,
+        "chapter four's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FOUR}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FOUR,
+        "chapter four's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §8"
+    );
     eprintln!(
-        "chapter four: word {}, sequence {}, values {:?}",
-        w.word, w.sequence, w.value
+        "chapter four: sequence {}, values {:?}",
+        w.sequence, w.value
     );
 }
 
@@ -4436,6 +4455,26 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                 }
             }
         }
+        // **Both sides printed once on the word's two blocks** (DECISIONS
+        // 43), for player 1's staged units: the record the draw is spent
+        // in, before any quiet row is trusted.
+        if (GOLDEN_WORD_CHAPTER_FOUR..=GOLDEN_WORD_CHAPTER_FOUR + 1).contains(&n) {
+            for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
+                let mine = u8::try_from(them.who)
+                    .ok()
+                    .zip(i16::try_from(them.o).ok())
+                    .and_then(|(w, o)| s.built.sim.unit_by_o(w, o))
+                    .map(|u| &s.built.sim.units[u]);
+                eprintln!("  block {n} 1/{} theirs {them:?}", them.o);
+                match mine {
+                    Some(u) => eprintln!(
+                        "  block {n} 1/{} ours pos {:?} heading {:?} orders {:?} guys {:?}",
+                        them.o, u.pos, u.movement.heading, u.orders, u.guys
+                    ),
+                    None => eprintln!("  block {n} 1/{} ours: absent", them.o),
+                }
+            }
+        }
         // The bleed's own timeline: player 1's staged units, `o` 6 and up.
         let w = &s.built.sim.world;
         for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
@@ -4482,7 +4521,8 @@ fn chapter_four_s_word_frame_is_widened_whole() {
             .push(format!("{w}/{o} {what}: {row}"));
     }
     for (f, rows) in &by_block {
-        if rows.len() <= 12 {
+        if rows.len() <= 12 || (GOLDEN_WORD_CHAPTER_FOUR..=GOLDEN_WORD_CHAPTER_FOUR + 1).contains(f)
+        {
             for r in rows {
                 eprintln!("  f{f} {r}");
             }
@@ -4497,4 +4537,107 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         firsts.len(),
         missing.len()
     );
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize - 1,
+        "run133's dump no longer carries every frame of [{FIRST}, {LAST}) \
+         but 1500, the block its `!quit` replaces"
+    );
+    assert_eq!(
+        leader_rows,
+        2 * 88 * blocks,
+        "the leader rows LEADERS=2 prints (88 a player) are not compared on \
+         every block"
+    );
+    // **The standing rows of run133's first block**, chapter five's three
+    // families and nothing of this chapter's: `build:extra` (the end
+    // detail prints no `BUILDDATA`), the unmodelled `form`, and two
+    // `filled_gather_slots`.
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let at_floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == FIRST)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 27,
+        "the standing rows on run133's first block moved: {at_floor:?}"
+    );
+    // **The bleed agrees, tick for tick, to past the word** (item 552).
+    // Every hoplite figure's period, every 6/16 and every whole point of
+    // `damage` from block 601 to 1337, the scout's and the wagon's zero,
+    // and the supply mark: the first row of the namesake's record is on
+    // 1338, after the word has walked `1/7` onto unowned ground in this
+    // crate. It took two fixes: `Leader::calc_attrition` wired to the tech
+    // tree (the period was 0 on every figure, `docs/ATTRITION.md`
+    // "Strength") and `curr_uber_size` counted rather than stored (each
+    // tick took 16/16, not 6/16). Made to fail once with the second
+    // reverted: `1/8 damage_frac` parts on 617.
+    let bleed = |what: &str| {
+        matches!(
+            what,
+            "attrition" | "sheltered" | "damage_frac" | "hits_left" | "myhits"
+        ) || what.starts_with("hits:")
+    };
+    let first_bleed = firsts
+        .iter()
+        .filter(|((_, _, what), _)| bleed(what))
+        .map(|((w, o, what), (f, row))| (*f, format!("{w}/{o} {what}: {row}")))
+        .min();
+    assert_eq!(
+        first_bleed,
+        Some((1338, "1/7 attrition: ours 0 theirs 48".to_string())),
+        "the namesake's record parts somewhere new"
+    );
+    // **What parts under the word**, none of it a draw: the scout's
+    // explore-order `facing` (the declared non-scoring formation mirror,
+    // parked 275, as chapter five's `1/0` on 847); the squad's group id
+    // (`1020001` against `1026401`, a numbering, on 1021); the wagon's
+    // birth path one leg short and its walk from 1102, which is where the
+    // wagon's following the squad starts; and the scout's second figure
+    // three units off on 1172. Pinned by key and block so none of them can
+    // stand in for anything else.
+    let under: Vec<String> = firsts
+        .iter()
+        .filter(|((_, _, what), (f, _))| {
+            *f > FIRST && *f < GOLDEN_WORD_CHAPTER_FOUR && !standing(what)
+        })
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    let want: Vec<&str> = vec![
+        "767 1/9 order:move.facing",
+        "1021 1/6 order:group.id",
+        "1021 1/7 order:group.id",
+        "1021 1/8 order:group.id",
+        "1102 1/10 g.angle[0]",
+        "1102 1/10 g.angle[1]",
+        "1102 1/10 g.angle[2]",
+        "1102 1/10 g.x[0]",
+        "1102 1/10 g.x[1]",
+        "1102 1/10 g.x[2]",
+        "1102 1/10 g.y[0]",
+        "1102 1/10 g.y[1]",
+        "1102 1/10 g.y[2]",
+        "1102 1/10 heading",
+        "1132 1/10 order:move.dest",
+        "1102 1/10 order:move.dest_y",
+        "1133 1/10 order:move.dest_x",
+        "1101 1/10 path:length",
+        "1101 1/10 path[3].to",
+        "1101 1/10 path[4].to",
+        "1101 1/10 path[5].to",
+        "1101 1/10 path[6].to",
+        "1101 1/10 path[7].to",
+        "1102 1/10 pos",
+        "1172 1/9 g.x[1]",
+        "1172 1/9 g.y[1]",
+        "1173 1/9 g.angle[1]",
+    ];
+    let mut under_sorted = under.clone();
+    under_sorted.sort();
+    let mut want_sorted: Vec<String> = want.iter().map(|s| s.to_string()).collect();
+    want_sorted.sort();
+    assert_eq!(under_sorted, want_sorted, "what parts under the word moved");
 }

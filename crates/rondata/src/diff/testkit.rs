@@ -2218,6 +2218,34 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// both airs and all 506 of the capture's rounds agree on every field.
 pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 
+/// **Chapter four's golden word** — the border and the bleed
+/// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
+/// in run133's window. The two captures are one game, draw for draw on
+/// all 1501 frames (`chapter_four_s_two_captures_are_one_game`), so the
+/// walk reads either; the border window's own first parting is 301, the
+/// budgeted sweep (`chapter_four_s_border_is_widened_cell_for_cell`).
+///
+/// **What the first walk met, and the four fixes before it was pinned.**
+/// The interpreter's building arm ordered an unstarted site rather than
+/// placing and activating one; the temple border level was a constant 1;
+/// `set_leader_epoch` skipped `gain_tech`'s tail, so `civic` never
+/// re-read the border; and on the bleed, `Leader::calc_attrition` was
+/// never wired to the tech tree (every period 0) and `curr_uber_size` was
+/// a stored 1 (16/16 a tick for 6/16). The first three were in before the
+/// first walk; the last two were measured and moved no draw — the walk read
+/// 1277 with them out and in. They are the widening's rows, and with
+/// them the border agrees cell for cell once each lever's sweep settles
+/// and the bleed tick for tick to 1337.
+///
+/// **The block**, from [`WIDENING_CHAPTER_FOUR`]'s test: on 1277 this
+/// crate spends `Guy::set_anim+0x97a < Guy::move+0x19f` where the original
+/// spends the farm's (5 draws against 4). On block 1277 the original's
+/// hoplite squad `1/6..1/8` holds a `GUARDORDER` and a move back to
+/// (8376, 32136), beside its Supply Wagon `1/10` at (8227, 32323), with a
+/// `timer` of 419; this crate's squad keeps the `AttackTo` it had marched
+/// under since 1021. That is the next item's frame, and no mechanism.
+pub(crate) const GOLDEN_WORD_CHAPTER_FOUR: i64 = 1277;
+
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
 /// §46.3, and the `Drop` of [`crate::diff::Built`] that holds every replay
@@ -2569,5 +2597,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_five_s_word_frame_is_widened_whole"),
         535,
         Some(WIDENING_CHAPTER_FIVE),
+    ),
+    (
+        "GOLDEN_WORD_CHAPTER_FOUR",
+        GOLDEN_WORD_CHAPTER_FOUR,
+        Some("chapter_four_s_word_frame_is_widened_whole"),
+        552,
+        Some(WIDENING_CHAPTER_FOUR),
     ),
 ];

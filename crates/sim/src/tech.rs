@@ -362,6 +362,12 @@ pub struct Roles {
     /// city and fort limit steps (`docs/ATTRITION.md`, "The cost").
     pub temple_borders_preq: [Option<TypeId>; 3],
     pub fort_borders_preq: [Option<TypeId>; 3],
+    /// `ATTRITION1..4`, bonuses 49–52 (`0x2dd..0x2e0`): Allegiance, Oath of
+    /// Fealty, Patriotism and Nationalism in the shipped file.
+    /// `Leader::calc_attrition@006cdea0` counts the **leading run** held —
+    /// it breaks at the first `has_preq` that fails — and that count
+    /// indexes `ATTRITION_IMPROVED` (`docs/ATTRITION.md`, "Strength").
+    pub attrition_preq: [Option<TypeId>; 4],
     pub airbase: Option<TypeId>,
     pub market: Option<TypeId>,
     pub knowledge: Option<TypeId>,

@@ -2562,6 +2562,22 @@ impl Sim {
     }
 
     /// The squad a captain heads, captain first — `o_down` walked.
+    /// `UnitData::curr_uber_size`: the figures in `i`'s squad now — up
+    /// the `o_up` links to the captain, then the captain's chain. A dead
+    /// figure is relinked out of the chain, so the count is the living.
+    pub fn curr_uber_size(&self, i: usize) -> i32 {
+        let mut head = i;
+        let mut guard = 0;
+        while let Some(up) = self.units[head].o_up {
+            head = up;
+            guard += 1;
+            if guard > 16 {
+                break;
+            }
+        }
+        self.squad_members(head).len() as i32
+    }
+
     pub fn squad_members(&self, captain: usize) -> Vec<usize> {
         let mut out = vec![captain];
         let mut cur = self.units[captain].o_down;
@@ -2908,6 +2924,7 @@ impl Sim {
     /// hits.
     fn apply_gained(&mut self, who: Player) {
         self.wall_stats_dirty[who as usize] = true;
+        self.calc_attrition(who);
         self.sync_researched();
         self.sync_goods_available(who);
         let level = self.tech[who as usize].military_level();
@@ -2922,6 +2939,41 @@ impl Sim {
         if self.borders[who as usize] != self.player_borders(who) {
             self.sync_territory();
         }
+    }
+
+    /// `Leader::calc_attrition@006cdea0`: the attrition this player's
+    /// territory inflicts, from the leading run of `ATTRITION1..4` held
+    /// ([`tech::Roles::attrition_preq`]) and the Russian scaling. The
+    /// original calls it from `gain_tech`, `calc_unit_stats` and
+    /// `Leader::init`; here it runs from [`Sim::apply_gained`], which both
+    /// tech paths reach.
+    ///
+    /// **Unwired until item 552.** Phase 1 built [`attrition::strength`]
+    /// and tested it against hand-set [`attrition::PlayerState`]s, and
+    /// nothing ever wrote `strength` from the tech tree, so every war-zone
+    /// refresh came out at the sentinel 0. Golden chapter four's Allegiance
+    /// at 550 gave the original's squad a period of 48 on block 601 and
+    /// this crate's 0. The Colosseum and Kremlin arms stay false: this
+    /// crate holds no wonder a player owns.
+    pub(crate) fn calc_attrition(&mut self, who: Player) {
+        let w = who as usize;
+        if w >= self.players.len() {
+            return;
+        }
+        let steps = self
+            .tech_tree
+            .roles
+            .attrition_preq
+            .iter()
+            .take_while(|row| {
+                row.is_some_and(|t| self.tech_tree.has_tech(&self.setup, &self.tech[w], t))
+            })
+            .count();
+        let mods = attrition::StrengthMods {
+            russian: self.nation.get(w).is_some_and(|n| n.russians),
+            ..attrition::StrengthMods::default()
+        };
+        self.players[w].strength = attrition::strength(&self.tuning, steps, &mods);
     }
 
     /// Which of the six basic resources this player may spend, and which they
@@ -3772,16 +3824,23 @@ impl Sim {
             && unit.kind.shelterable()
             && self.supplied_at(unit.owner, unit.pos);
 
-        let unit = &mut self.units[i];
         if sheltered {
-            unit.sheltered = true;
+            self.units[i].sheltered = true;
             return None;
         }
         // The damage is sixteenths of a hit point per figure, carried through
         // a fractional accumulator the way `Object::take_damage` carries it,
         // so a lone figure loses one whole point a tick and a figure in a
         // squad of four loses one every fourth tick.
-        let sixteenths = attrition::damage(unit.squad_size);
+        //
+        // **The squad is counted, not stored** (item 552):
+        // `Unit::suffer_attrition` asks `curr_uber_size`, which walks up to
+        // the captain and counts down the chain. [`Unit::squad_size`] is a
+        // field nothing maintains — 1 on every unit `init_unit` makes — so
+        // chapter four's hoplites took a whole point a tick against the
+        // original's 6/16 until this read the chain.
+        let sixteenths = attrition::damage(self.curr_uber_size(i));
+        let unit = &mut self.units[i];
         let (lost, frac) = attrition::take_damage(unit.damage_frac, sixteenths);
         unit.damage_frac = frac;
         unit.health -= lost;

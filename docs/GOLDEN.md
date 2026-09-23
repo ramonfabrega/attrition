@@ -423,6 +423,38 @@ site, the lever is `finish`, which is in the chat half of the vocabulary and
 **not** in the interpreter's set. That is a takes-chain the first run will
 price, not a reason to delay it.
 
+**Run, 2026-09-23 (item 552): run132 the border, run133 the bleed, and
+none of the five falsifiers fired.** The two captures are one game, draw
+for draw on all 1501 frames. The border window is `[295, 545)`, not
+`[295, 345)`: the narrow one sees the Temple and neither other lever, and
+`LeaderData::territory` is printed only from `LEADERS=8`, so the `WORLD`
+cell count is the only cheap reading.
+
+- **The Temple lands finished**: `(int)construct_hits 1200` = `myhits`, on
+  cell (7, 40), block 301. `run_cmd` calls `Build::activate(0, 1, 0)`
+  after `init_build` for a line without `NEW`, so `finish` is not owed.
+  Napata's `city_flags` gains `0x80` on the same block.
+- **Every lever moves the border.** Owner-0 cells go 266 → 296 (Temple),
+  → 327 (Religion) and → 445 (Civic 3). Each change starts five blocks
+  after its line and spreads over five blocks, the budgeted sweep.
+- **The squad bleeds at 48**, 6/16 per figure per tick, on the 48-grid
+  from its first refresh. The **scout** and the **wagon** read 0 on every
+  block.
+- **The wagon shelters, but only once it is in reach.** The squad did not
+  stand where it was placed. By 1101 it had marched about 30 tiles east,
+  still on player 0's ground, and the wagon trailed after it. Every tick
+  with the wagon 23 tiles or more away landed (1145 … 1337). Every tick
+  due with it at 11–13 tiles was vetoed, with `unit_masks2`'s `0x40000` on
+  that figure's own tick frame (1385 on). The prediction's condition,
+  "with the wagon within 14 tiles", was not met until then, so the
+  falsifier stayed quiet, and the radius is bracketed rather than hit.
+
+**What the harness met**, five defects, each a widening row:
+`docs/RUNS.md` run132 and run133, and `GOLDEN_WORD_CHAPTER_FOUR`. The
+chapter's word is **1277 of 1501**. On it the original gives the squad a
+`GUARDORDER` and a move back beside the wagon, and this crate's squad
+keeps marching.
+
 ## 9. Chapter five — the water
 
 **Premise.** No capture on disk has ever carried a ship. run16's coverage
@@ -654,8 +686,8 @@ Reserved for this design: **run112–run119**.
 |---|---|---|---|
 | 112 | two, the ranged line | `[605, 900)` | **run 2026-09-19, word 616**; the cheapest chapter that adds a record the tree has never dumped (`AMMO`) |
 | ~~113~~ 127 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock — **run 2026-09-22 as run127 (item 535), word 621; no falsifier fired** |
-| 114 | four, the border | `[295, 345)` | the namesake; `WORLD=6` narrow |
-| 115 | four, the bleed | `[595, 1500)` | the same script, a second window |
+| ~~114~~ 132 | four, the border | ~~`[295, 345)`~~ `[295, 545)` | the namesake; `WORLD=6` narrow — **run 2026-09-23 as run132 (item 552), 830 MB, 2178 s; no falsifier fired** |
+| ~~115~~ 133 | four, the bleed | `[595, 1500)` | the same script, a second window — **run133, 120 MB, 372 s; word 1277** |
 | 116 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on |
 | 117 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing |
 | 118 | three, the mounted and siege lines | `[605, 900)` | |
@@ -702,7 +734,8 @@ of chapter one itself.
   measurement, and chapters two, six, seven and eight rest on it. The first
   of them to run settles it, and the check is one `LEADERDATA` line:
   `ages_get()` beside `epochs_get()`.
-- **Whether a cheat-placed building is finished or a site.** §8.
+- ~~**Whether a cheat-placed building is finished or a site.** §8.~~
+  Finished: run132's Temple (§8, item 552).
 - **Whether `find_nearby_spot` filters by domain.** §9 — the whole of
   chapter five turns on it, and nothing on disk answers it.
 - **Where `bird` lands.** §10. `ConsoleWin`'s initial `mouse_coord_x/y` was

@@ -1475,6 +1475,8 @@ pub fn load_tables(
     // border levels `compute_reg_territory` reads (item 552).
     tree.roles.temple_borders_preq = [bonus_at(28), bonus_at(29), bonus_at(30)];
     tree.roles.fort_borders_preq = [bonus_at(37), bonus_at(38), bonus_at(39)];
+    // `ATTRITION1..4` (`0x2dd`): the steps `Leader::calc_attrition` counts.
+    tree.roles.attrition_preq = [bonus_at(49), bonus_at(50), bonus_at(51), bonus_at(52)];
     ai_load::compute_ai_values(
         &mut tree,
         &tech::Setup::STANDARD,
