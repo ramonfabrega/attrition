@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 566, 2026-09-23 — the memo's twin
+
+(572) **The pathfinder's copy tree (`+0x4c`) has the memo's lifetime and
+is still a seam** (`docs/PATHFINDER.md` §24.5). 566 carried the validity
+memo (`+0x50`) across searches until `kill_lists`; the copy tree lives
+the same way and this crate still rebuilds it per search. Not 12038's
+cause; beside (546), the region gate's `nocoll` arm that reads it.
+
 ## Parked by item 552, 2026-09-23 — the namesake's unwired edges
 
 (568) **The budgeted border sweep.** `GameDaemon::check_borders` spends 256

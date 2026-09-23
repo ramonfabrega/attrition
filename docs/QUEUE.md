@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-22, nine landings under an Opus 5 commander, stopped at Ramon's
-word for a Claude Code update. Great Lakes **10277 → 10834**, golden
-chapter two **683 → 725** — both headline words moved.*
+*2026-09-23, twenty landings under an Opus 5.5 commander, workers on
+Opus 5.5 throughout; stopped at twenty. Great Lakes **10834 → 12038**;
+golden chapters one, two and five **closed at 900**, chapter four (the
+namesake) **pinned at 1277**. East Indies did not move from 9711.*
 
-- **Two of the nine moved no word on purpose and were the more
-  valuable**: 496 landed the comparator, 510 the `GUY` block chapter
-  two's widening had **never opened** — eleven items blind to the
-  record its word is spent in.
-- **Five instrument defects of one family, the tranche's real
-  finding**: a comparator reading an empty side as agreement
-  (`compare_orders`, third time — 462, 496, 502); coverage keys nothing
-  parses; run118's truncation readable as emptiness; `ledger::DIFF`
-  missing `diff/golden.rs`, so the **whole rules track** read as
-  uncompared. All five **report health they have not measured**, and in
-  each the instrument's *scope* is hand-maintained and unchecked.
-- **The briefed mechanism was wrong eight times of eight**; the frame
-  was right every time. COMBAT §44.2.1 is the rule it produced.
-- **495 promoted, 477 closed**, both by measured takes-chains rather
-  than argument. 495 is the first hard-constraint item.
-- **Disk at 99%, 15 GiB free**; `ccc spawn` refuses under 10. **Stops
-  the loop, not slows it.** Coverage pin 239 → 232 keys.
+- **The namesake met its oracle and was half unwired** (552): the
+  building arm, the temple level, `set_epoch`'s tail, `calc_attrition`
+  (never called, so item 382's zero-outcome survey was **vacuous**) and
+  `curr_uber_size`. Fixed, border cell for cell, bleed tick for tick to
+  1337. **Every Phase 1 claim resting on a reading deserves this test.**
+- **The frame was right and the briefed mechanism mostly wrong again**
+  (518, 523, 530, 539, 566); **three register pairs the decompiler
+  dropped** (495, 523 twice) — the trap is in `tools/ghidra/README.md`.
+- **Steering questions**: East Indies (9711) sits 2,300 frames under
+  Great Lakes and took no item — is "lower map first" the frame or the
+  map? And the `Golden:` guard reads a closed chapter's 900 as the
+  lowest word (528).
+- **A timed-out capture writes no receipt** (565, 1.5 h lost).
 - **Fable backlog: 11 Loop items** (313, 503, 507, 508, 509, 513, 517, 526, 527, 528, 565).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9711 of 24,000 · GreatLakes w11903 of 24,000
+Long captures: EastIndies w9711 of 24,000 · GreatLakes w12038 of 24,000
 Golden: w900 of 901 (ch1) · ch2 w900 · ch5 w900 · ch4 w1277 of 1501 · 567 next
-Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 58 off, 0 unlinked
+Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 42 off, 4 unlinked
 
-**Opener: an Opus 5.5 commander is live; 566 in flight on att-566 (AI), 567
-next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: nothing in flight, every lane reaped, tree pushed. The steering
+pass is due (twenty landings). After it, a fresh Opus 5.5 commander takes
+571 on the AI track and 567 on the rules track; workers spawn with
+`claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -51,13 +50,13 @@ the AI, lower map first — Great Lakes. Take the first unstarted on either
 track unless a better order is obvious, and say so. Numbers are stable;
 the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-566. **Why the original's `valid_ucoord` refuses unit cell (810, 441)
-    to `1/62` on 11901** (563 widened 11903 on run136; refusing that one
-    cell reproduces the original's plan entry for entry and would move
-    the word 11903 → 12038, a test-only probe). PATHFINDER §23.5. The
-    instrument, a `RON_COLLIDE_PROBE` capture over 11900..11902, first
-    needs the probe tracer to load under free Wine: run137 page-faulted
-    at load. `callfn.py` on `valid_ucoord` is the capture-free route.
+571. **Army 1's squad stops on block 11922 in the original and walks on
+    here** (566 moved the word 11903 → 12038 by carrying the pathfinder's
+    validity memo across searches, PATHFINDER §24). Nine figures,
+    `1/37`–`1/42` and `1/62`–`1/64`: `stopped 1`, speeds 0 against
+    walking; positions agree, no draw — 29 rows pinned in run136's
+    widening. Then 12038's capture and widening past run136's end
+    (11959): ours 4 draws against 5, `move_step+0x823`. No mechanism.
 
 567. **Golden chapter four's word is 1277: the squad's `GUARDORDER`
     beside its wagon** (552 captured run132/run133 and pinned the chapter;
