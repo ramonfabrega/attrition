@@ -1298,6 +1298,26 @@ impl Sim {
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
             }
         }
+        if build::is_dock(&self.build_types, ty) {
+            self.mask_dock_water(b, on);
+            if !on {
+                // `Docks::remask_docks@00740c90`: every other live dock,
+                // every player's, lays its margin again, so an overlap
+                // survives the unmask.
+                for o in 0..self.buildings.len() {
+                    let other = &self.buildings[o];
+                    if o != b
+                        && other.alive
+                        && other.started
+                        && other
+                            .ty
+                            .is_some_and(|t| build::is_dock(&self.build_types, t))
+                    {
+                        self.mask_dock_water(o, true);
+                    }
+                }
+            }
+        }
         if build::is_city(&self.build_types, ty) {
             let r = match self.buildings[b].city {
                 Some(c) if self.cities[c].alive => self.radius_of(c),
@@ -1318,6 +1338,34 @@ impl Sim {
                     if self.cities[o].alive && o != self.buildings[b].city.unwrap_or(usize::MAX) {
                         self.mask_city(o, true);
                     }
+                }
+            }
+        }
+    }
+
+    /// **A dock marks the water around it bad** — `BuildType::mask_me@
+    /// 006312a0`'s `is(DOCK)` arm, after the footprint walk: every
+    /// **ocean** tile (`mask & 0x30 == 0x20`) of the footprint grown by
+    /// three tiles on every side takes [`tile::BAD_PATH`] through
+    /// `World::set_bad_path`, and loses it on the unmask. A warship may not
+    /// be placed on such a tile (`find_nearby_spot`'s `0x2400` test), so a
+    /// dock's own warships are born at least three tiles out: East Indies'
+    /// Trireme `1/32` lands due east of Dock `1/2010`, the first bearing of
+    /// its ring that clears the margin (`docs/ORDERS.md` §25).
+    fn mask_dock_water(&mut self, b: usize, on: bool) {
+        let Some(ty) = self.buildings[b].ty else {
+            return;
+        };
+        let corner = self.tile_corner(ty, self.buildings[b].pos);
+        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
+        for dx in -3..xs + 3 {
+            for dy in -3..ys + 3 {
+                let t = Pos::new(corner.x + dx, corner.y + dy);
+                if !self.world.tile_in_bounds(t) {
+                    continue;
+                }
+                if self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN {
+                    self.world.set_bad_path(t, on);
                 }
             }
         }

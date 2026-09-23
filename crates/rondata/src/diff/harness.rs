@@ -11683,18 +11683,28 @@ mod tests {
         // record as the five before them; every Citizen's `myhits` and
         // `hits_left` 40 against the original's 50, and `mylos` 2 against
         // 4, on 10165; and `1/32`, born on 10187 at (44184, 42888) against
-        // (45192, 41880), in group 68 against 66 from 10188.
+        // (45192, 41880), in group 68 against 66 from 10188. **Item 579
+        // took five of them**: `1/32` is born on the original's point, and
+        // its group is −1 against 66 (the birth block below).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 219, "the floor under the word");
+        assert_eq!(under, 214, "the floor under the word");
         // **The birth under the word, 10187..10188** (item 579): the first
-        // block any of `1/32`'s inputs parts on is its own birth. Warship
-        // `1/32` (type 340) is trained at Dock `1/2010`, (44160, 41856),
-        // on the same frame on both sides, from a queue that agrees on
-        // every block, with no unit within fourteen tiles of the ring:
-        // the original puts it on `come_out`'s ring 1008 due **east**,
-        // (45192, 41880), and this crate due **south**, (44184, 42888).
-        // The ring agrees and the bearing does not. `RON_STANDING=
-        // 10185-10188` prints nothing else new on these blocks.
+        // block any of `1/32`'s inputs parts on is its own birth. Trireme
+        // `1/32` (type 340) is trained at Dock `1/2010`, (44160, 41856), on
+        // the same frame on both sides, from a queue that agrees on every
+        // block. `come_out`'s ring is 1008 on both, and the original put it
+        // due **east**, (45192, 41880), where this crate put it due
+        // **south**, (44184, 42888). Two things were missing, and both are
+        // in now (`docs/ORDERS.md` §25): `find_nearby_spot`'s warship
+        // clause, which refuses a `0x2400` tile to a sea type with an
+        // attack, and `BuildType::mask_me`'s `is(DOCK)` arm, which marks
+        // every ocean tile within three of a dock's footprint `BAD_PATH`.
+        // The first alone put it on the ring's third bearing, (44568,
+        // 42792); with the margin it is the original's point, and the
+        // position, the figure's and its `des` agree from the birth on.
+        // What is left is the order point (the Dock's own, here), `form`,
+        // and the army: the original's ship joins group 66 on 10188 and
+        // this crate's none.
         let birth: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (BIRTH_BLOCK..=BIRTH_BLOCK + 1).contains(f))
@@ -11704,16 +11714,25 @@ mod tests {
             birth,
             [
                 "10187 1/32 form: ours -1 theirs 0",
-                "10187 1/32 g.des_x[0]: ours 44184 theirs 45192",
-                "10187 1/32 g.des_y[0]: ours 42888 theirs 41880",
-                "10187 1/32 g.x[0]: ours 44184 theirs 45192",
-                "10187 1/32 g.y[0]: ours 42888 theirs 41880",
-                "10188 1/32 group: ours 68 theirs 66",
+                "10188 1/32 group: ours -1 theirs 66",
                 "10187 1/32 orders_x: ours 44160 theirs 45192",
                 "10187 1/32 orders_y: ours 41856 theirs 41880",
-                "10187 1/32 pos: ours (44184,42888) theirs (45192,41880)",
             ],
             "the warship's birth"
+        );
+        let placed: Vec<&String> = firsts
+            .keys()
+            .filter(|(w, o, what)| {
+                (*w, *o) == (1, 32)
+                    && ["pos", "g.x[0]", "g.y[0]", "g.des_x[0]", "g.des_y[0]"]
+                        .contains(&what.as_str())
+            })
+            .map(|(_, _, what)| what)
+            .collect();
+        assert_eq!(
+            placed,
+            Vec::<&String>::new(),
+            "1/32 is born on (45192, 41880)"
         );
         // **Who changes animation, both sides** (`docs/COMBAT.md`
         // §44.2.1): on the word's blocks, 10231..10234, five figures change

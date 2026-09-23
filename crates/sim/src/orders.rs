@@ -639,6 +639,12 @@ pub const SITE_GUARD_DEAD: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x926";
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
+/// The tile bits a warship's spot may not carry
+/// (`find_nearby_spot@0061de70`, `uVar7 & 0x2400`): [`tile::BAD_PATH`]
+/// and the `0x400` this crate has no name for. `UnitData::invalid_loc`
+/// answers 3 on the same pair (`docs/ORDERS.md` §10).
+pub const WARSHIP_REFUSES: u16 = tile::BAD_PATH | 0x400;
+
 const BEARINGS: [i32; 31] = [
     0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8, 9, -9, 10, -10, 11, -11, 12, -12,
     13, -13, 14, -14, 15, -15,
@@ -4511,6 +4517,20 @@ impl Sim {
         )
     }
 
+    /// `is(AIRCRAFTCARRIER, 1)` on a unit type — strict, so the type
+    /// itself or its graft, never a lineage by `from`. A type the tree
+    /// does not carry answers no.
+    fn is_aircraft_carrier(&self, ty: usize) -> bool {
+        let Some(t) = self.unit_types.get(ty).and_then(|u| u.tree) else {
+            return false;
+        };
+        self.tech_tree
+            .types
+            .iter()
+            .position(|d| d.kind.is_unit() && d.name.eq_ignore_ascii_case("Aircraft Carrier"))
+            .is_some_and(|root| self.tech_tree.is(t, root, true))
+    }
+
     #[allow(clippy::too_many_arguments)] // as `find_nearby_spot_coll`
     fn spot_sweep(
         &self,
@@ -4563,6 +4583,21 @@ impl Sim {
         let farm_ok = footprint_of.is_some_and(|b| self.building_ident(b) == Ident::Farm)
             && matches!(who, Seeker::Unit(u) if self.worker_of(u) == Worker::Citizen);
         let air = matches!(p.domain, crate::attrition::Domain::Air);
+        // **A warship keeps off the `0x2400` tiles** (`61df8b`–`61dfaf`,
+        // the test at `61e3a1`): a sea type whose `attack` (`ObjectTypeData
+        // +0x1e8`, the type record's name) is non-zero, or that strictly
+        // `is(AIRCRAFTCARRIER)` (`0x15f`, `TypeIndex`), refuses an ocean
+        // tile carrying either bit. East Indies' Trireme `1/32` is born
+        // due east of Dock `1/2010` because the channel south of it is
+        // `0x0420` (`docs/ORDERS.md` §25).
+        let warship = matches!(p.domain, crate::attrition::Domain::Sea)
+            && (p.attack != 0 || {
+                let ty = match who {
+                    Seeker::Unit(u) => self.units[u].ty,
+                    Seeker::Type(t) => Some(t),
+                };
+                ty.is_some_and(|t| self.is_aircraft_carrier(t))
+            });
         let mut r = min;
         loop {
             let ks: &[i32] = if r == 0 { &[0] } else { &BEARINGS };
@@ -4613,15 +4648,16 @@ impl Sim {
                 // (`docs/ORDERS.md` §10, "The ocean the ring could stand
                 // in").
                 //
-                // SEAM: the warship clause. A sea type with `+0x1e8` or
-                // `is(0x15f, 1)` also needs `!(mask & 0x2400)`; neither
-                // input is loaded here, so it is taken as false — a warship
-                // may stand on a bad-path ocean tile that the original
-                // would refuse.
+                // And the warship clause: a sea type that can fight also
+                // needs `!(mask & 0x2400)` — `BAD_PATH` and the unnamed
+                // `0x400` (`warship` above).
                 if !air {
-                    let ocean =
-                        self.world.tile_mask(c.tile()) & tile::SURFACE == tile::SURFACE_OCEAN;
+                    let mask = self.world.tile_mask(c.tile());
+                    let ocean = mask & tile::SURFACE == tile::SURFACE_OCEAN;
                     if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
+                        continue;
+                    }
+                    if warship && mask & WARSHIP_REFUSES != 0 {
                         continue;
                     }
                 }
