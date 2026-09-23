@@ -9,7 +9,7 @@ or park; none of these branches is a whole-merge recommendation.
 | [PR #5](https://github.com/ramonfabrega/attrition/pull/5), draft | Native-verified retained-call replay and limit counterfactual | Retain as counterfactual evidence; not a whole-frame state oracle. |
 | [PR #6](https://github.com/ramonfabrega/attrition/pull/6), draft | Native-verified saved-search graph comparison | Frozen checkpoint; continuation parks at L87, with L88 handoff on its existing branch. |
 | [PR #7](https://github.com/ramonfabrega/attrition/pull/7), draft | [Typed-state acquisition and scalar bridge](TYPED-STATE-REVIEW.md) | Pilot. Same-frame scalar agreement and exact height bits are useful; whole-frame parity, liveness and initial height reconstruction remain unproven. |
-| `codex/typed-leader-bridge`, follows #7 | [Leader arrays and projection inventory](2026-09-22-leader-bridge.md) | Continue offline; no new acquisition. Candidate equalities are explicitly separate from validated coverage. |
+| `codex/typed-leader-bridge`, follows #7 | [Leader arrays](2026-09-22-leader-bridge.md) and [world-grid reproduction](2026-09-22-world-grid-bridge.md) | Pilot broad scalar comparison: 505,425 matching occurrences / 174,111 distinct storage references. No new acquisition; whole-frame parity remains open. |
 
 PR #8 was also open when checked, but belongs to the separate recomp spike;
 this index neither reviews nor speaks for that work. Older Jev exploration is
