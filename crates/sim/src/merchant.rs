@@ -224,7 +224,7 @@ impl Sim {
     /// `was_really_seen` — the bare line-of-sight accumulation, with none
     /// of `was_seen`'s ally-territory shortcut. [`crate::goody`] reads the
     /// same field of an item the same way and says why.
-    fn good_ever_seen(&self, at: Pos, who: Player) -> bool {
+    pub fn good_ever_seen(&self, at: Pos, who: Player) -> bool {
         let t = at.tile();
         self.was_really_seen_fog(t.x >> 1, t.y >> 1, who)
     }

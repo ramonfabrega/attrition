@@ -20,8 +20,8 @@ walked in the harness and pinned. High for the map facts in §4, which are a
 dump's own fields. ~~**Chapters two to eight are a design and nothing more**~~
 **Chapters two, four and five are captured and pinned** (run112, run132/133
 and run127; items 415, 552 and 535), and none of their falsifiers fired;
-**chapter seven is captured (run141/run142, item 578) and its premise did
-not survive** (§11); **three, six and eight are a design and nothing more** — no capture
+**chapter seven is captured (run141/run142, item 578), closed at 1200, and
+its premise did not survive** (§11); **three, six and eight are a design and nothing more** — no capture
 has been run for any of them, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
@@ -62,7 +62,9 @@ pinned at 774 of 901 (item 445)~~ ~~Both chapters that are captured agree to
 their traces' end, 900: chapter one on item 530, chapter two on item 523.~~
 Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
 549); ~~chapter four is pinned at 1277, then 1416, of 1501 (items 552, 567)~~
-chapter four agrees to its trace's end, 1500 (items 552, 567, 569). **A chapter whose
+chapter four agrees to its trace's end, 1500 (items 552, 567, 569); chapter
+seven agrees to its end, 1200, on its first walk and on its control's (item
+578). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -602,6 +604,20 @@ show a hull needs a Dock.
 
 ## 11. Chapter seven — the civilians, and what AI-off takes away
 
+**The premise below was falsified by its own capture, and the chapter is
+closed at 1200 on what it does measure** (item 578, run141 and run142).
+`ai off` takes nothing from a human's civilians: the citizen takes the same
+`GATHERORDER` on the same block with the cheat on and off, from
+`think_peasant` above the cheat's block, and the other four stand in both
+(`docs/INPUT.md` §11.9). So this chapter measures **a human's idle civilian
+behaviour** — a gather issued at `think_peasant`'s wait, walked and
+delivered, and four units that take no order — **not the gate**. That
+record agrees with the original to the end of both captures:
+`GOLDEN_WORD_CHAPTER_SEVEN`, `chapter_seven_holds_to_the_golden_word` and
+`chapter_seven_s_control_holds_to_the_golden_word`, widened whole by
+`chapter_seven_s_word_frame_is_widened_whole`. The design as written
+follows, unchanged, because its falsifier is what fired.
+
 **Premise, which is a prediction and not a setup.** `Unit::think@005f6e40`'s
 tail is gated by `if ((leader_flags & 4) != 0 || ai_off != 0)`, and for a
 human leader with the cheat on, the block's one unconditional statement
@@ -638,8 +654,9 @@ identical block for block. For who=0 the block is entered whether the
 cheat is on or not, because the human carries `leader_flags & 4` (item
 437), so `ai off` takes nothing from a human's civilians
 (`docs/INPUT.md` §11.9). The second falsifier did not fire. The harness
-agrees with both captures to their end, 1200. What the chapter should
-measure instead is the commander's to rule; it is not rewritten here.
+agrees with both captures to their end, 1200, and the commander ruled it
+pinned closed as it stands; restaging it on the computer's civilians, where
+`ai off` does bite, is parked for the steering pass.
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 
@@ -733,7 +750,7 @@ below without a run take their number at booking (the eleventh pass).
 | ~~113~~ 127 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock — **run 2026-09-22 as run127 (item 535), word 621; no falsifier fired** |
 | ~~114~~ 132 | four, the border | ~~`[295, 345)`~~ `[295, 545)` | the namesake; `WORLD=6` narrow — **run 2026-09-23 as run132 (item 552), 830 MB, 2178 s; no falsifier fired** |
 | ~~115~~ 133 | four, the bleed | `[595, 1500)` | the same script, a second window — **run133, 120 MB, 372 s; word 1277**, closed at 1500 by item 569 |
-| ~~116~~ 141 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on — **run 2026-09-23 as run141 (item 578), 112 MB, 281 s; the first falsifier fired** |
+| ~~116~~ 141 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on — **run 2026-09-23 as run141 (item 578), 112 MB, 281 s; the first falsifier fired; closed at 1200** |
 | ~~117~~ 142 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing — **run142, 112 MB, 331 s; the five act exactly as in run141** |
 | 118 | three, the mounted and siege lines | `[605, 900)` | |
 | 119 | six, the air and the bird | `[605, 900)` | the one new order class |
@@ -750,7 +767,9 @@ that would otherwise be done on top of it.
 three readers and its cost from frame 1; `add`'s unit arm, its count, its
 three figures and its seating; the tile arm of `parse_coord`; the bare
 diplomacy form's inertness; and the claim that two launches of one script
-are one game at any detail.
+are one game at any detail. And by chapter seven's pair (item 578): that
+`ai off` leaves a human's civilians exactly as it finds them, and that the
+two scripts are one game through frame 0 and part on frame 1.
 
 **Held by a test rather than a capture**: that every file in
 `tools/gamelog/golden/` parses, that every line is on the right half of
