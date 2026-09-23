@@ -1253,7 +1253,7 @@ impl Sim {
     /// 4. else `NONE`. Having an attack decides nothing on its own.
     ///
     /// `Profile::packs` is `unit_flags2 & 4` for a type from the install.
-    fn unit_stance_type(&self, u: usize) -> StanceType {
+    pub(crate) fn unit_stance_type(&self, u: usize) -> StanceType {
         let Some(t) = self.units[u].ty else {
             return StanceType::None;
         };

@@ -391,11 +391,16 @@ holds: three separate Chariots on 611. But the catapult is **born packed**
 without moving, and no hoplite comes within 3 tiles of the catapult. The
 minimum-range and speed falsifiers are **untested** by run145, not held.
 
-**The word is 621**, the catapult's birth frame. This crate orders the
+~~**The word is 621**, the catapult's birth frame. This crate orders the
 packed catapult to attack and spends `Unit::fight+0x9b0`'s re-search draw,
-7 against the original's 6; values part on 622
-(`GOLDEN_WORD_CHAPTER_THREE`, `chapter_three_s_word_frame_is_widened_whole`,
-which widens run145 whole and adds the `GUY` record's position and facing).
+7 against the original's 6; values part on 622.~~ Item 590 took
+`Unit::think_attack`'s packed-unit arm (`docs/COMBAT.md` §51): a human's
+packed siege engine returns before the target search and unpacks at `idle
+7` on the auto-attack's 32-frame phase. The catapult now agrees with the
+dump on every row of run145. **The word is 633**, 8 draws against 9, and
+values part on 634 (`GOLDEN_WORD_CHAPTER_THREE`,
+`chapter_three_s_word_frame_is_widened_whole`, which widens run145 whole
+and adds the `GUY` record's position and facing).
 
 **Restaged, run146 (`chapter3b.cmd`, the same item): all three reachable,
 none fired.** The same three unit types go into two arenas. A catapult born
@@ -405,10 +410,17 @@ hoplites have to walk. The catapult fires once at eight tiles, then
 refuses the hoplites inside three for 173 blocks, dropping each attack
 order the block after it takes it. The chariots walk at up to 33.2 units a
 block against the hoplites' 29.1 (`chapter_three_s_falsifiers_are_the_dump_s`).
-run146's first parting is **633**, the chase's first frame: the
-original's chariot starts its walk animation where this crate re-searches
-(`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`). **The chapter's word is 621**, the
-lower of the two, which is where the rules headline reads first.
+run146's first parting is **633** (`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`).
+~~The chase's first frame: the original's chariot starts its walk
+animation where this crate re-searches.~~ Since item 590, run145 parts on
+633 in the same shape: the chariot `0/8`'s one `Unit::fight+0x9b0`, then
+two `Guy::set_anim+0xf2f` in the original and a second re-search here.
+In neither capture does the dump's `0/8` move or turn from 630 to 720.
+Its figure takes `ox 8 whom 1` and its reload starts (`recharging 25`) on
+634, and this crate's `0/8` has turned by then. So the pair is an attack
+swing started without a turn, not a walk (`docs/COMBAT.md` §51.3). ~~**The
+chapter's word is 621**, the lower of the two.~~ Both captures' words are
+633.
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 
