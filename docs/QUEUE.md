@@ -29,19 +29,19 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
   carries the first use. Nothing booked on the merge.
 - **566's booking gate was red and its verdict arrived after the
   handoff** — the endpoint read 41 against a pin of 42 (574). Re-pinned.
-- **Fable backlog: 4 Loop items** (313, 527, 574, 575).
+- **Fable backlog: 5 Loop items** (313, 527, 574, 575, 583).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w9983 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w10232 of 24,000 · GreatLakes w12038 of 24,000
 Golden: none pinned · ch1 closed · ch2 closed · ch4 closed · ch5 closed · 578 next, chapter seven
-Endpoint 24001: EastIndies 69 off, 2 unlinked · GreatLakes 41 off, 4 unlinked
+Endpoint 24001: EastIndies 45 off, 22 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 3 landings since the eleventh pass: 573 (East Indies 9711 →
-9983), 567 (chapter four 1277 → 1416) and 569 (chapter four closed at
-1500). att-576 is live on the AI track with run139–140. A commander takes
-578 on the rules track, then 571; workers spawn with
-`claude-opus-5-5[1m]`. The count is by the log from the pass and stops at
-twenty.**
+**Opener: 4 landings since the eleventh pass: 573 (East Indies 9711 →
+9983), 567 (chapter four → 1416), 569 (chapter four closed at 1500) and
+576 (East Indies → 10232). att-578 is live on the rules track with
+run141–142. A commander takes 579 on the AI track, then 571; workers spawn
+with `claude-opus-5-5[1m]`. The count is by the log from the pass and
+stops at twenty.**
 
 ## The queue
 
@@ -51,14 +51,13 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-576. **East Indies' word is 9983: a `make_stuff` that buys different
-    things** (573 moved it 9711 → 9983 with the caravan's Commerce epoch,
-    CARAVAN §9). On block 9984 the original queues units (`1/2010` ×2,
-    `1/2014`, `1/2005`); ours places building `1/2017` and sends `1/6`.
-    Ours 212 draws against 15, parting at index 5, `produce_building+0xc99`
-    against `make_stuff+0x63d`. 27 rows pinned. The make list on 9982/9983
-    is on no disk: run99 has no `LEADERS=9`. Capture run139 over the word;
-    run140 spare. No mechanism.
+579. **East Indies' word is 10232: `1/32` is born elsewhere on 10187**
+    (576 moved it 9983 → 10232: `create_units`' dock is a `find_building`
+    search around the city, not the city's chain, AI §57). Ours 33 draws
+    against 34, missing `Unit::do_move+0xe84`. Block 10233 pins three rows,
+    all `1/32`, in run99's widening, whose window still straddles the
+    word. No `LEADERS=9` capture reaches it: run139 ends at 9999. Walk
+    back from 10187 on run99 first. No mechanism.
 
 571. **Army 1's squad stops on block 11922 in the original and walks on
     here** (566 moved the word 11903 → 12038 by carrying the pathfinder's

@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 576, 2026-09-23 — under East Indies' word
+
+(580) **The Citizens' hit points and line of sight on 10165**: 40 against
+50, and 2 against 4. Under the word; spends no draw on 10232.
+
+(581) **`gather_stamp` on run139's 9992**: ours 9991, the original's 9719.
+A stamp that is written on a gather and never cleared, so it asserts a
+change and not a value (QUEUE's upkeep rules). Under the word.
+
+(582) **`dock_sea_region` walks cells where the original walks tiles**
+(`docs/AI.md` §57.4). 576's fix does not depend on it.
+
 ## Parked by item 573, 2026-09-23 — the player nobody compares
 
 (577) **`compare` never reads gaia's units.** It walks players
@@ -512,6 +524,15 @@ waited on before the handoff is written — the harness re-invokes the
 session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
+
+(583) **The ladder's shared-extras guard dies by success.** Filed by item
+576, 2026-09-23: each move of East Indies' word lowers the extras the
+endpoint's rungs share, and the guard's threshold is lowered with the
+number, as its comment asks. It is at one now, from six, and all but
+vacuous. What still says the rungs are one game is
+`the_ladder_s_borrowed_setup_is_the_endpoint_s`, at 6,000 frames. **What
+it wants**: a check that the rungs share a game which does not shrink as
+the port improves. Same family as (449): a row gone stale by success.
 
 (575) **The pass that made the lower map a guard booked its capture
 without grepping the disk.** Filed by the commander at 573's spawn,
