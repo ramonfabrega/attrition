@@ -290,14 +290,17 @@ mod tests {
     /// said what the day should have brought. The phrase and the map stay
     /// on one line, so this can read them.
     #[test]
-    fn the_queue_s_default_map_is_the_lower_word() {
+    fn the_handoff_s_default_map_is_the_lower_word() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
         let phrase = "lower map first \u{2014}";
+        // The maintenance section quotes the template (`<map>`); the
+        // preamble carries the map, on one line — its first gate run found
+        // the phrase wrapped and read the template instead.
         let line = q
             .lines()
-            .find(|l| l.contains(phrase))
-            .expect("docs/QUEUE.md names no `lower map first — <map>` line");
+            .find(|l| l.contains(phrase) && !l.contains('<'))
+            .expect("docs/QUEUE.md names no `lower map first — <map>` line, unwrapped");
         let named = line.split(phrase).nth(1).unwrap().trim_start();
         let lower = if LONG_WORD_EAST_INDIES <= LONG_WORD_GREAT_LAKES {
             "East Indies"

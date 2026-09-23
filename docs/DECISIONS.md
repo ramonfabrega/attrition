@@ -2675,7 +2675,7 @@ written to prevent.
 
 **The decisions.**
 
-1. **The lower map is a guard.** `the_queue_s_default_map_is_the_lower_word`
+1. **The lower map is a guard.** `the_handoff_s_default_map_is_the_lower_word`
    reads the queue's `lower map first — <map>` line against
    `LONG_WORD_*`. Made to fail on the tip, which named Great Lakes, and
    the default flipped: item 573 is East Indies' widening at 9,711; 571,
@@ -2717,11 +2717,18 @@ written to prevent.
    score-neutral by their own account. #8's recompiled functions are a
    faster twin of `tools/emu/callfn.py` for a pure function, and this
    tranche's items turned on wiring and instruments, which no oracle of
-   a function reaches. What would earn a booking is #8's step 4: a native
-   frame on a captured packet answering what the original does from
-   *this crate's* state on frame F — the counterfactual the loop builds
-   by hand each time (`probe_refuse`, `SweepWatch`, 510's forced
-   facing). Merging is Ramon's call, on entry 38's terms.
+   a function reaches. ~~What would earn a booking is #8's step 4: a
+   native frame on a captured packet~~ *Amended the same day on lore's
+   read*: what earned 327's formula was a **function run on a packet
+   with its writes watched**, not a frame, and step 4 would only
+   reproduce what a capture yields on stubbed imports. What earns a
+   booking is that move inside a booked item — first **571**, a packet at
+   the frame *before* 11922 (a packet at N is after N−1's decision) and
+   the squad's move/stop path run on the nine guys under unicorn — with
+   the wall time stated against the 12038 capture. A packet is a second
+   run on the single capture lane, and #8's driver reads #7's decode, so
+   the two opt-ins land together or not at all. Merging is Ramon's call,
+   on entry 38's terms.
 
 **Not taken**: a guard on the commander's count (git inside a test);
 the estimate, with no rate to revise it by and a second map and two

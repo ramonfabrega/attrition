@@ -26,12 +26,14 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
   ledger's directory check and the both-sides lint (DECISIONS 47).
 - **Two lab PRs are open** (#7 typed state, #8 recomp): score-neutral,
   nothing books; the pass's verdict is in its audit.
-- **Fable backlog: 2 Loop items** (313, 527).
+- **566's booking gate was red and its verdict arrived after the
+  handoff** — the endpoint read 41 against a pin of 42 (574). Re-pinned.
+- **Fable backlog: 3 Loop items** (313, 527, 574).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w12038 of 24,000
 Golden: ch1 closed · ch2 closed · ch5 closed · ch4 w1277 of 1501 · 567 next
-Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 42 off, 4 unlinked
+Endpoint 24001: EastIndies 63 off, 8 unlinked · GreatLakes 41 off, 4 unlinked
 
 **Opener: nothing in flight, every lane reaped, tree pushed. A fresh
 Opus 5.5 commander takes 573 on the AI track and 567 on the rules track,
@@ -41,10 +43,10 @@ count is landings since this pass, by `git log`, and it stops at twenty.**
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
-41): the golden word for the rules, the long word for the AI, lower map
-first — East Indies (a guard reads this line). Take the first unstarted on
-either track unless a better order is obvious, and say so; the backlog is
-`docs/PARKED.md`, and an item returns only when a score names it.
+41): the golden word for the rules, the long word for the AI, and
+lower map first — East Indies (a guard reads this line). Take the first
+unstarted on either track unless a better order is obvious, and say so; the
+backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
 573. **East Indies' word, 9711, widened whole** — the lower map since
     09-21 and the AI headline by DECISIONS 41 §1, unbooked through forty
@@ -56,11 +58,12 @@ either track unless a better order is obvious, and say so; the backlog is
 
 571. **Army 1's squad stops on block 11922 in the original and walks on
     here** (566 moved the word 11903 → 12038 by carrying the pathfinder's
-    validity memo across searches, PATHFINDER §24). Nine figures,
-    `1/37`–`1/42` and `1/62`–`1/64`: `stopped 1`, speeds 0 against
-    walking; positions agree, no draw — 29 rows pinned in run136's
-    widening. Then 12038's capture and widening past run136's end
-    (11959): ours 4 draws against 5, `move_step+0x823`. No mechanism.
+    validity memo across searches, PATHFINDER §24). Nine figures, `1/37`–
+    `1/42` and `1/62`–`1/64`: `stopped 1`, speed 0 against walking;
+    positions agree, no draw; 29 rows pinned in run136's widening. Then
+    12038's capture and widening past 11959: ours 4 draws against 5,
+    `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
+    11921 with the nine guys' move path run on it is an optional second run.
 
 567. **Golden chapter four's word is 1277: the squad's `GUARDORDER`
     beside its wagon** (552 captured run132/run133 and pinned the chapter;

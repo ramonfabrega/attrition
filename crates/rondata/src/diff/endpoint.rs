@@ -1079,7 +1079,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // §24), which moves this map's word 11903 → 12038. The 24,000th
         // frame is 11,963 frames past the new word; the four unlinked are
         // player 1's `77`..`80`. DECISIONS 36: the number, not a trade.
-        off: 42,
+        // **42 → 41 off** on the eleventh Fable pass, with no change to
+        // the simulation: 566 measured 42 on its own branch, the merged
+        // tip reads 41, and the booking commit's gate said so in a task
+        // whose verdict arrived after the commander had written its
+        // handoff and stopped (parked 574). Re-pinned to what the tip
+        // measures. DECISIONS 36: the number, not a trade.
+        off: 41,
         unlinked: 4,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two

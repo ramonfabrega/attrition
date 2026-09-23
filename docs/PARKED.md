@@ -487,6 +487,19 @@ Filed by item 523: `o_up` was read only at stand-up and parted silently on
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
 
+(574) **A booking gate's verdict arrived after the handoff, and the
+handoff said "tree pushed".** Filed by the eleventh pass, 2026-09-23: the
+commander's gate on 566's booking commit (`2e74757`) was red — Great
+Lakes' endpoint read 41 off against 566's pin of 42, measured on the
+worker's own branch before the merge — and the task's notification landed
+after the commander had counted twenty, written the opener and stopped.
+The wrapper's exit was 0 (`…; echo exit $?`), so nothing outside the log
+said red. The pass re-pinned 41. **What it wants**: the chain's gate is
+waited on before the handoff is written — the harness re-invokes the
+session when the task exits, so the wait costs nothing — and the gate's
+wrapper propagates its exit rather than echoing it. Same family as (565):
+a receipt that is written but not read.
+
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
 (476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5
