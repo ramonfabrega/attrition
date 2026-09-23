@@ -450,7 +450,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // list now follows `Group::add`'s per-step `get_num` and `Group::sort`,
         // so the 24,000th frame reshuffles 14,290 past it: four positions
         // closer against five of the roster unlinked. DECISIONS 36.
-        off: 63,
+        // **63 → 69 off** on item 573, the caravan's one-off read at the
+        // Commerce level (`docs/CARAVAN.md` §9). The AI has twenty more
+        // wealth from 6512, buys its sixth Scholar on 9576, and this map's
+        // word moves 9711 → 9983; the 24,000th frame reshuffles 14,018
+        // past it: six positions out against six of the roster linked.
+        // DECISIONS 36.
+        off: 69,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -460,7 +466,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // this crate used to buy instead of Scholars. DECISIONS 36 asks for
         // the number rather than a trade; the number is on the headline.
         // **3 → 8 unlinked** on item 557, beside 67 → 63 off above.
-        unlinked: 8,
+        // **8 → 2 unlinked** on item 573, beside 63 → 69 off above.
+        unlinked: 2,
         extra: 0,
         build_unlinked: 1,
         build_diverged: 30,
@@ -1181,7 +1188,11 @@ pub const LADDER: [Endpoint; 2] = [
         // (`docs/GROUPS.md` §23): army lists follow `Group::add`'s per-step
         // `get_num` and `Group::sort` everywhere. 5,690 frames past this map's
         // word, which holds at 9711. DECISIONS 36.
-        off: 40,
+        // **40 → 43 off** on item 573, the caravan's one-off at the
+        // Commerce level (`docs/CARAVAN.md` §9): this map's word moves
+        // 9711 → 9983 and this rung reads 5,418 frames past it, three
+        // positions out. DECISIONS 36.
+        off: 43,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1301,7 +1312,8 @@ pub const LADDER: [Endpoint; 2] = [
         // 5,690 frames past this map's word. The number, not a trade.
         // **21 → 20 extra** on item 557 (`docs/GROUPS.md` §23), beside
         // 42 → 40 off above. DECISIONS 36.
-        extra: 20,
+        // **20 → 23 extra** on item 573, beside 40 → 43 off above.
+        extra: 23,
         build_unlinked: 10,
         build_diverged: 8,
         city_unlinked: 3,
@@ -1492,7 +1504,10 @@ pub const LADDER: [Endpoint; 2] = [
         // (`docs/GROUPS.md` §23): every army's list now follows `Group::add`'s
         // per-step `get_num` and `Group::sort`, on every map. 3,440 frames
         // past this map's word. DECISIONS 36.
-        extra: 16,
+        // **16 → 21 extra** on item 573, the caravan's one-off at the
+        // Commerce level (`docs/CARAVAN.md` §9): this map's word moves
+        // 9711 → 9983, 6,506 frames under this rung. DECISIONS 36.
+        extra: 21,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
