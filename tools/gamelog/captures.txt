@@ -4791,9 +4791,9 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # against the pre-swap hashes. Not retried, at the commander's word:
 # getting the probe build to run is a successor item.
 # run: 137
-tag: greatlakes-detourprobe
-item: 563
-why: Great Lakes' word 11903 is `1/62`'s flag-2 detour round `1/27`, planned on sim-frame 11901 from the same point on both sides, north in the original and south here — and no gamelog category carries a search's per-cell verdicts, so only the proxies can say which cell the original refused
+# tag: greatlakes-detourprobe
+# item: 563
+# why: Great Lakes' word 11903 is `1/62`'s flag-2 detour round `1/27`, planned on sim-frame 11901 from the same point on both sides, north in the original and south here — and no gamelog category carries a search's per-cell verdicts, so only the proxies can say which cell the original refused
 # **THE DISK WAS GREPPED FIRST.** run136 [11840, 11959] carries the word's
 # whole state at run135's line, and `run136_s_word_frame_is_widened_whole`
 # reads it whole: the first row is block 11902's `1/62` path (ours 6
@@ -4840,31 +4840,31 @@ why: Great Lakes' word 11903 is `1/62`'s flag-2 detour round `1/27`, planned on 
 # **What is expected to AGREE, and it is refusable**: every record in the
 # ten blocks against run136 at run136's own line, and run53's draw stream
 # frame for frame. A proxy that perturbs shows there first.
-frames: 11915
-mapstyle: 14
-end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# frames: 11915
+# mapstyle: 14
+# end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
 # **11896..11905, ten blocks**, inside run136's window: the word's run-up,
 # the detour's block 11902, and 11904.
-frame_window: 11896 11906
-cover: cover=0
-cover: callwin=11900-11902
-settle_min: 14000000
+# frame_window: 11896 11906
+# cover: cover=0
+# cover: callwin=11900-11902
+# settle_min: 14000000
 # ~2.2 MB a block for ten blocks; run80 reached 23,960 of this game in
 # forty seconds at `cover=0`. 90 polls is thirty minutes.
-poll_max: 90
+# poll_max: 90
 # Same game: the trace word for word against run53, this map's own 24k run.
-check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run137.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11905)}'
+# check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run137.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11905)}'
 # And the map, from the dump's own `GAME INFO`.
-check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run137-greatlakes-detourprobe.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run137-greatlakes-detourprobe.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
 # **The window landed whole** — ten blocks, 11896..11905, no gap.
-check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run137-greatlakes-detourprobe.txt" | awk '{v=$3+0; if(v>=11896&&v<11906) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==10 && lo==11896 && hi==11905)}'
+# check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run137-greatlakes-detourprobe.txt" | awk '{v=$3+0; if(v>=11896&&v<11906) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==10 && lo==11896 && hi==11905)}'
 # **The overlap with run136, and the count is the claim** — ten blocks,
 # the same line, nothing excluded: the perturbation check.
-check: python3 tools/gamelog/samegame.py gamelog-run136-greatlakes-detour.txt gamelog-run137-greatlakes-detourprobe.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run136 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(11896..11905)")}'
+# check: python3 tools/gamelog/samegame.py gamelog-run136-greatlakes-detour.txt gamelog-run137-greatlakes-detourprobe.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run136 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(11896..11905)")}'
 # **The build that wrote the log**, from its own PROXIED records: 13.
-check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==13)}'
+# check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==13)}'
 # **The search was recorded**: `1/62`'s probes on sim-frame 11901.
-check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" calls 11901 | awk '/detect_unit_collision/ && /this=1\/62 / && /quick=1/{n++} END{print "1/62 search probes on 11901: "n; exit !(n>=8)}'
+# check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" calls 11901 | awk '/detect_unit_collision/ && /this=1\/62 / && /quick=1/{n++} END{print "1/62 search probes on 11901: "n; exit !(n>=8)}'
 
 # ==== run138: run137's stanza, retaken with INFO 16 (item 566) ====
 #
