@@ -1748,6 +1748,87 @@ mod tests {
         assert_eq!(checked, 1, "run80's frame 23,999 has no mine 1/2021");
     }
 
+    /// **A mine's reach is measured to the nearest solid mountain cell**,
+    /// and run144's packet is the oracle (`docs/AI.md` §59).
+    ///
+    /// East Indies' word 10582 is `produce_building`'s spiral placing Mine
+    /// `1/2018` for city `1/2007`: twelve friendless candidates drew here
+    /// against the original's seven. `BuildTypeData::blocked_site` was run
+    /// on the packet (logger frame 10582, taken before the tick that
+    /// places) at every one of them. The five extras were all refused
+    /// `NoMountain` (12), because `MountainsData::find_nearest` measures
+    /// **1536** to the nearest `solid_mount` cell's centre, past the
+    /// `gather_radius · 0xc0 = 1152` reach, where this crate measured to
+    /// the nearest mountain *tile*, inside it.
+    ///
+    /// The eight rows are the packet's `find_nearest` distance at eight
+    /// mine sites, as world-unit centres. Measuring to cells closed
+    /// `(38784, 37248)`. **The last four rows are the residue, pinned as
+    /// they stand**: the packet's solid list for range 2 (loc `(43, 46)`)
+    /// is `(42,46) (43,46) (42,47)`, and this crate's membership rule, "the
+    /// centre tile is a mountain", also admits `(42, 45)` and `(41, 46)`.
+    /// The solid lists are the mountain templates' own, and no dump prints
+    /// them. A row that starts agreeing is the templates arriving; move it
+    /// up.
+    #[test]
+    fn east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            eprintln!("skipping: no run54/run38 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let built = build_sim(&loaded, &init, Tuning::RON);
+        let reach = sim::gather::MINE_RADIUS * sim::world::UNITS_PER_TILE;
+        let ours = |x: i32, y: i32| {
+            built
+                .sim
+                .nearest_mountain_cell(sim::Pos::new(x, y))
+                .map(|(d, c)| (d, (c.x, c.y)))
+        };
+        // (site, the packet's `find_nearest` distance)
+        let agree: [((i32, i32), i32); 4] = [
+            ((38784, 37248), 1536),
+            ((34176, 34944), 1152),
+            ((34176, 35136), 984),
+            ((32256, 36864), 576),
+        ];
+        for ((x, y), theirs) in agree {
+            let got = ours(x, y).map(|(d, _)| d);
+            let want = (theirs <= reach).then_some(theirs);
+            assert_eq!(got, want, "({x}, {y}): the packet measures {theirs}");
+        }
+        // The residue: the packet refuses all four at 1536; this crate
+        // reaches a cell no range lists as solid.
+        type Reached = (i32, (i32, i32));
+        let residue: [((i32, i32), i32, Reached); 4] = [
+            ((33408, 34176), 1536, (1152, (42, 45))),
+            ((32640, 34176), 1536, (768, (42, 45))),
+            ((31104, 35712), 1536, (768, (41, 46))),
+            ((31104, 36480), 1536, (1152, (41, 46))),
+        ];
+        for ((x, y), theirs, pinned) in residue {
+            assert!(theirs > reach);
+            assert_eq!(
+                ours(x, y),
+                Some(pinned),
+                "({x}, {y}): the packet measures {theirs}; pinned residue"
+            );
+        }
+    }
+
     /// **`Build::find_gather_tiles` re-derives the original's own list.**
     ///
     /// run39's two camps are pre-placed, so their `gather_from` comes

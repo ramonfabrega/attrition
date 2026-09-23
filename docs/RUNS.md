@@ -5292,6 +5292,49 @@ same eight rows run99's does, all the Bark's and the seated Scholar
 `1/24`'s, and the same three one-sided animation changes. Nothing else
 parts on 10397..10401. The leader record is whole on every block: 758,160
 rows, none unprinted.
+## run144 — East Indies 10582, the first packet on this map (2026-09-23, item 597)
+
+**What it is.** A `RON_STATE_FRAME=10582` packet on the click-free lane,
+with run143's dump detail over [10578, 10586). `!quit` is at 10590.
+`success: true`, exit 0, `MAP_STYLE 18` and seed 12345 read back, five
+settings files restored. It took **68 s launch to exit and 76 s in all**,
+with an 818,699,196-byte packet (174 ranges, 188 ms to copy) and 16 MB of
+dump. The lane lock was stale: pid 44969 was dead.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-23-run144 \
+    --map 18 --end-frame 10590 --timeout 2400 --log-window 10578 10586 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9 \
+    --tracer-def RON_STATE_FRAME=10582 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is the lab's Great Lakes plan, reused: it is PDB-bound and does
+not depend on the frame, and the image hash matches. It is copied to
+`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`. The first launch
+refused in a second, because the output directory already existed; the
+runner wants a fresh one.
+
+**Why 10582 and not 10581.** The word is a trace tick. Block N is the state
+after tick N−1, and the lab's packet read logger 11,186 after trace 11,185.
+Mine `1/2018` is first printed on run143's block 10583. So the packet
+before the placement is logger frame 10582, which is after trace tick 10581.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `frame_snapshot.py` against the plan | frame 10582, trace 10581, the logger return's roots unchanged |
+| `rngcmp.py` against `rontrace-run54.log` | **0 differing**, 10,591 identical |
+| `samegame.py` against run143 | 8 in common (10578..10585), **0 differ** |
+| `produce_building` on the packet | **7** `+0xc99` and **3** `+0x1805`, the original's own counts |
+
+**What it settled.** At each of the five extra spiral cells the original's
+`blocked_site` answers `NoMountain`, and `find_nearest` measures 1536 to a
+solid mountain cell (`docs/AI.md` §59). The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-23-run144/map-18`, and its readings at
+`~/ron-data/lab-experiments/2026-09-23-item-597/`.
+
 ## run145 — chapter three, the mounted and siege lines (2026-09-23, item 587)
 
 The golden record's third chapter (`docs/GOLDEN.md` §7), staged from

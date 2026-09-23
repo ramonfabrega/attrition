@@ -476,7 +476,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 592, the census counting a barge's rider through its container
         // (`docs/AI.md` §58); this map's word holds at 10582, 13,419
         // frames before this one. DECISIONS 36: the number, not a trade.
-        off: 64,
+        // **64 → 59 off, 0 → 3 unlinked** on item 597, a mine's reach
+        // measured to the nearest solid mountain cell (`docs/AI.md` §59);
+        // this map's word holds at 10582, 13,419 frames before this one.
+        // DECISIONS 36: the number, not a trade.
+        off: 59,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -491,7 +495,9 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **22 → 5 unlinked** on item 579, beside 45 → 57 off above.
         // **5 → 2** on item 588, beside `off` above: player 1's `81` and `82`.
         // **2 → 0** on item 592, beside `off` above.
-        unlinked: 0,
+        // **0 → 3** on item 597, beside `off` above: player 1's `77`, `81`
+        // and `82`.
+        unlinked: 3,
         extra: 0,
         // **1 → 2** on item 588, beside `off` above.
         build_unlinked: 2,
@@ -1118,15 +1124,23 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // whose verdict arrived after the commander had written its
         // handoff and stopped (parked 574). Re-pinned to what the tip
         // measures. DECISIONS 36: the number, not a trade.
-        off: 41,
-        unlinked: 4,
+        // **41 → 48 off, 4 → 0 unlinked, 0 → 1 extra, 9 → 8
+        // build_diverged** on item 597: a mine's reach measured to the
+        // nearest solid mountain cell (`docs/AI.md` §59). This map's word
+        // holds at 12038, 11,963 frames before this one; its mines past the
+        // word are sited by the new measure. The extra is a Merchant,
+        // `1/81`. DECISIONS 36: the number, not a trade.
+        off: 48,
+        unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
         // **2 → 0 extra** on item 566, beside 58 → 42 off above.
-        extra: 0,
+        // **0 → 1 extra** on item 597, beside 41 → 48 off above.
+        extra: 1,
         build_unlinked: 0,
-        build_diverged: 9,
+        // **9 → 8** on item 597, beside `off` above.
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1225,7 +1239,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **40 → 38** on item 579 (`docs/ORDERS.md` §25).
         // **38 → 41** on item 588; see `extra` below.
         // **41 → 40** on item 592; see `extra` below.
-        off: 40,
+        // **40 → 39** on item 597; see `extra` below.
+        off: 39,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1356,10 +1371,14 @@ pub const LADDER: [Endpoint; 2] = [
         // (`docs/COLLISION.md` §13), 4,819 frames past this map's new word.
         // **22 → 23 extra, 41 → 40 off** on item 592, the census counting
         // a barge's rider through its container (`docs/AI.md` §58).
-        extra: 23,
+        // **23 → 13 extra, 40 → 39 off, 5 → 4 build_diverged** on item 597,
+        // a mine's reach measured to the nearest solid mountain cell
+        // (`docs/AI.md` §59), 4,819 frames past this map's word.
+        extra: 13,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
-        build_diverged: 5,
+        // **5 → 4** on item 597, beside `extra` above.
+        build_diverged: 4,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1464,7 +1483,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **48 → 46** on item 579 (`docs/ORDERS.md` §25).
         // **46 → 51** on item 588; see `extra` below.
         // **51 → 49** on item 592; see `extra` below.
-        off: 49,
+        // **49 → 46** on item 597; see `extra` below.
+        off: 46,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1564,7 +1584,9 @@ pub const LADDER: [Endpoint; 2] = [
         //  (`docs/COLLISION.md` §13), 13,419 frames past this map's new word. DECISIONS 36: the number, not a trade.
         // **18 → 16 extra, 51 → 49 off** on item 592, the census counting
         // a barge's rider through its container (`docs/AI.md` §58).
-        extra: 16,
+        // **16 → 22 extra, 49 → 46 off** on item 597, a mine's reach
+        // measured to the nearest solid mountain cell (`docs/AI.md` §59).
+        extra: 22,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
