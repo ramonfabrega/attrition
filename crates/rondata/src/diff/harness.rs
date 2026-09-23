@@ -8179,6 +8179,8 @@ mod tests {
         const R125: i64 = 11_440;
         /// The block the word stood on when this widening was taken.
         const WORD_BLOCK: i64 = GREAT_LAKES_ARMY_BLOCK;
+        /// The block the word moved to on item 539: frame 11582 writes it.
+        const NEW_WORD_BLOCK: i64 = LONG_WORD_GREAT_LAKES + 1;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r123), Some(r125)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -8213,8 +8215,31 @@ mod tests {
         // squad, kept for the arrival and the word's printout.
         type Row = (i64, (i64, i64), (i64, i64), String, usize, String, String);
         let mut squad: BTreeMap<i64, Vec<Row>> = BTreeMap::new();
+        let sweep: Option<(i64, i32, i32)> = std::env::var("RON_SWEEP").ok().and_then(|v| {
+            let (f, u) = v.split_once(':')?;
+            let (w, o) = u.split_once('/')?;
+            Some((f.parse().ok()?, w.parse().ok()?, o.parse().ok()?))
+        });
         for f in 0..=TAIL {
+            if let Some((sf, w, o)) = sweep
+                && sf == f
+            {
+                built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+            }
             built.tick();
+            if let Some((sf, _, _)) = sweep
+                && sf == f
+            {
+                for l in built
+                    .sim
+                    .sweep_watch
+                    .take()
+                    .expect("the recorder")
+                    .rendered()
+                {
+                    eprintln!("  sweep {sf}: {l}");
+                }
+            }
             let n = f + 1;
             if n < FIRST {
                 continue;
@@ -8228,6 +8253,47 @@ mod tests {
             debug_watch(&built, n);
             let (_, rows) = widen_block(&built, &frame, players, n, &mut firsts);
             compared += rows;
+            // `RON_SOFT_AUDIT` — every block a squad member's soft flag
+            // parts, and whether the squad's unit cells agree on it.
+            if std::env::var("RON_SOFT_AUDIT").is_ok() {
+                let uc = |x: i64| x.div_euclid(48);
+                let mut cells_off = Vec::new();
+                let mut flags_off = Vec::new();
+                for t in frame
+                    .units
+                    .iter()
+                    .filter(|t| t.who == 1 && (31..=39).contains(&t.o))
+                {
+                    let Some(u) = built
+                        .sim
+                        .units
+                        .iter()
+                        .find(|u| u.alive() && u.owner == 1 && i64::from(u.index) == t.o)
+                    else {
+                        continue;
+                    };
+                    let (ox, oy) = (i64::from(u.pos.x), i64::from(u.pos.y));
+                    if (uc(t.pos.x), uc(t.pos.y)) != (uc(ox), uc(oy)) {
+                        cells_off
+                            .push(format!("{}:({},{})v({},{})", t.o, t.pos.x, t.pos.y, ox, oy));
+                    }
+                    let theirs = t.unit_masks.unwrap_or(0) & 0x100000 != 0;
+                    if theirs != u.half_step {
+                        flags_off.push(format!(
+                            "{}:{}",
+                            t.o,
+                            if theirs { "theirs" } else { "ours" }
+                        ));
+                    }
+                }
+                if !flags_off.is_empty() || !cells_off.is_empty() {
+                    eprintln!(
+                        "  soft {n}: flags [{}] cells [{}]",
+                        flags_off.join(" "),
+                        cells_off.join(" ")
+                    );
+                }
+            }
             for t in frame
                 .units
                 .iter()
@@ -8363,10 +8429,15 @@ mod tests {
         }
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
-        // **The word, as a value diff** (R1 of the stanza, taken): the
-        // first block each bowman stands at its orders point with no order
-        // left, both sides. `1/36` arrives together; `1/34` arrives **two
-        // blocks early** here, and its first idle roll is the word.
+        // **The move's value diff** (item 539). 533's word was `1/34`
+        // reaching its `ATTACK_TO` point on 11531 here and 11533 in the
+        // original, on a lag the squad's march had set. The march's
+        // partings were soft-collision flags, and the two that parted with
+        // every unit cell agreeing — `1/31` on 11305 and `1/35` on 11357 —
+        // were `collide_here`'s fast path stepping past an empty world
+        // cell where the original does not advance (`docs/COLLISION.md`
+        // §4.2). With it in, the squad walks the original's own points on
+        // every block of the window and both bowmen arrive with it.
         let arrival = |o: i64| -> (Option<i64>, Option<i64>) {
             let rows = squad.get(&o).map_or(&[][..], |v| v.as_slice());
             let at = |pick: &dyn Fn(&Row) -> bool| {
@@ -8379,86 +8450,81 @@ mod tests {
         };
         assert_eq!(
             (arrival(34), arrival(36)),
-            ((Some(11_533), Some(11_531)), (Some(11_530), Some(11_530))),
+            ((Some(11_533), Some(11_533)), (Some(11_530), Some(11_530))),
             "the two bowmen's arrivals, (theirs, ours)"
         );
-        // **And the lag it arrives on**: `1/34` is 37 behind on x on block
-        // 11528 and has walked 22/35 behind, alternating with the half
-        // steps, since block 11462 — set between 11446 and 11462, where
-        // both sides push a formation hop and turn in place on it a frame
-        // apart (ours stands 11456→11457, the original 11457→11458).
-        let gap = |o: i64, n: i64| -> (i64, i64) {
-            let r = squad[&o].iter().find(|r| r.0 == n).expect("block");
-            (r.1.0 - r.2.0, r.1.1 - r.2.1)
-        };
-        assert_eq!(
-            (
-                gap(34, 11_456),
-                gap(34, 11_457),
-                gap(34, 11_458),
-                gap(34, 11_528)
-            ),
-            ((37, 7), (12, 3), (46, -4), (37, 0)),
-            "1/34's lag behind this crate's, theirs minus ours"
+        let parted: Vec<(i64, i64)> = squad
+            .iter()
+            .flat_map(|(o, rows)| rows.iter().filter(|r| r.1 != r.2).map(move |r| (*o, r.0)))
+            .collect();
+        assert!(
+            parted.is_empty(),
+            "a squad member's position parts: {:?}",
+            &parted[..parted.len().min(12)]
         );
-        // Every key that first parts on the word's two blocks, the rows the
-        // stanza's readings were decided on. Nothing but `1/34`.
-        let on_word: Vec<String> = firsts
+        // The old word's two blocks, pinned **empty**: nothing first parts
+        // on 11531 or 11532 any more.
+        let on_old: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f == WORD_BLOCK || *f == WORD_BLOCK + 1)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(on_old, Vec::<String>::new(), "the old word's blocks part");
+        // **The new word's block** — 11582's frame writes block 11583 —
+        // every key that first parts there, both directions. Ours places a
+        // building the original does not (`1/2022`) and walks citizen
+        // `1/9` to it, where the original's `1/9` stands idle with a free
+        // peasant on the leader's books. The leader's `MAKE` slots 2 and 3
+        // already stand in the opposite order on 11580.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (NEW_WORD_BLOCK - 3..=NEW_WORD_BLOCK).contains(f))
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
         assert_eq!(
             on_word,
             // In the map's order, which is by key and not by block.
             [
-                "11532 1/34 g.cur_time[0]: ours 1 theirs 7",
-                "11532 1/34 g.last_time[0]: ours 0 theirs 6",
-                "11532 1/34 idle: ours 1 theirs 0",
-                "11531 1/34 order:length: Length { ours: 0, theirs: 1 }",
-                "11531 1/34 orders.len: ours 0 theirs 1",
+                "11580 1/-1 leader:MAKE[2].cat: ours 4 theirs 7",
+                "11580 1/-1 leader:MAKE[2].t: ours 560 theirs 66",
+                "11580 1/-1 leader:MAKE[2].val: ours 64000 theirs 209664",
+                "11580 1/-1 leader:MAKE[3].cat: ours 7 theirs 4",
+                "11580 1/-1 leader:MAKE[3].t: ours 66 theirs 560",
+                "11583 1/-1 leader:free_peasants: ours 0 theirs 1",
+                "11583 1/-1 leader:num_queued[83]: ours 0 theirs 1",
+                "11580 1/0 g.angle[1]: ours 615972864 theirs 531103744",
+                "11580 1/0 g.cur_anim[1]: ours 8 theirs 7",
+                "11583 1/9 dest_angle: ours 852099072 theirs -817758208",
+                "11583 1/9 g.angle[0]: ours 867696640 theirs -817758208",
+                "11583 1/9 g.avg_speed[0]: ours 6 theirs 0",
+                "11583 1/9 g.cur_anim[0]: ours 8 theirs 1",
+                "11583 1/9 g.cur_time[0]: ours 1 theirs 107",
+                "11583 1/9 g.des_angle[0]: ours 867696640 theirs -817758208",
+                "11583 1/9 g.des_x[0]: ours 41759 theirs 41736",
+                "11583 1/9 g.des_y[0]: ours 15473 theirs 15480",
+                "11583 1/9 g.end_time[0]: ours 15 theirs 232",
+                "11583 1/9 g.last_speed[0]: ours 24 theirs 0",
+                "11583 1/9 g.last_time[0]: ours 0 theirs 106",
+                "11583 1/9 g.stopped[0]: ours 0 theirs 1",
+                "11583 1/9 g.x[0]: ours 41759 theirs 41736",
+                "11583 1/9 g.y[0]: ours 15473 theirs 15480",
+                "11583 1/9 heading: ours 867696640 theirs -817758208",
+                "11583 1/9 idle: ours 0 theirs 211",
+                "11583 1/9 order:length: Length { ours: 2, theirs: 0 }",
+                "11583 1/9 orders.len: ours 2 theirs 0",
+                "11583 1/9 orders_x: ours 43896 theirs 41736",
+                "11583 1/9 orders_y: ours 13752 theirs 15480",
+                "11583 1/9 path:length: PathLength { ours: 3, theirs: 0 }",
+                "11583 1/9 pos: ours (41759,15473) theirs (41736,15480)",
+                "11583 1/9 tolerance: ours 384 theirs 0",
+                "11583 1/2000 city:filled: ours 48 theirs 47",
+                "11583 1/2000 city:free: ours 0 theirs 1",
+                "11583 1/2000 city:space[0]: ours 48 theirs 49",
+                "11583 1/2000 city:space[1]: ours 48 theirs 49",
+                "11583 1/2016 queue:queued: ours 0 theirs 1",
+                "11583 1/2022 build:extra: this crate holds it alone",
             ],
-            "the word's blocks part on a different set"
-        );
-        // **Backwards**: the squad `1/31..1/39` agrees on every record from
-        // 11250 until its group order is issued (11259, a `group.id` the
-        // two sides number differently), and the first row that is not an
-        // id is `1/31`'s soft-collision flag on 11305 — this crate's probe
-        // of sim-frame 11304 goes soft on `1/32` and the original's does
-        // not. Suppressing that one flag does **not** move the word: the
-        // squad re-parts on 11357 (`1/35`'s flag) and 1/34's own gap closes
-        // to zero on 11385–11411 before re-opening, so the lag the word
-        // arrives on is the 11446–11462 hop, not this one.
-        let squad_first: Vec<String> = firsts
-            .iter()
-            .filter(|((w, o, what), _)| {
-                *w == 1 && (31..=39).contains(o) && what != "order:group.id"
-            })
-            .filter(|(_, (f, _))| *f < 11_310)
-            .map(|((w, o, what), (f, row))| (*f, format!("{f} {w}/{o} {what}: {row}")))
-            .min()
-            .into_iter()
-            .map(|(_, r)| r)
-            .collect();
-        assert_eq!(
-            squad_first.first().map(String::as_str),
-            Some("11305 1/31 half_step: ours 1 theirs 0"),
-            "the squad's first parting under the march"
-        );
-        // **The group order leaves a frame early here**: the first trio's
-        // `GROUP_ATTACK_TO` (21) is a plain `ATTACK_TO` (2) in this crate
-        // on 11512 and in the original on 11513, and the second trio's on
-        // 11524–11525 the same way. It does not move `1/34`'s position.
-        let kinds: Vec<String> = firsts
-            .iter()
-            .filter(|((_, _, what), _)| what == "order:kind")
-            .filter(|((w, o, _), _)| *w == 1 && (31..=39).contains(o))
-            .map(|((_, o, _), (f, row))| format!("{f} 1/{o} {row}"))
-            .collect();
-        assert_eq!(
-            kinds.iter().filter(|k| k.starts_with("11512")).count(),
-            3,
-            "1/34, 1/35 and 1/36 leave the group order on 11512 here: {kinds:?}"
+            "the new word's blocks part on a different set"
         );
     }
 

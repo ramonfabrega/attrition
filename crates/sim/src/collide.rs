@@ -21,6 +21,41 @@ use crate::orders::{Body, MoveOrder, Order, PathData, index, path_flag};
 use crate::world::{Cell, Pos, UNITS_PER_CELL, tile};
 use crate::{Player, Sim};
 
+/// What `CollCheck::fill_slots@006820e0` leaves a probe able to read
+/// (`docs/COLLISION.md` §4.2): the world cells of the probe's 2×2 slots
+/// whose `WData::region` is the probe centre's own `get_tregion`, or all of
+/// them when that is none. A slot the gate refuses reads as empty.
+struct ProbeSlots {
+    /// The probe centre's `get_tregion`; `None` reads every world cell.
+    region: Option<u16>,
+}
+
+impl ProbeSlots {
+    /// The slot holding the unit cell `p` gave the probe a block at all.
+    fn readable(&self, sim: &Sim, p: Pos) -> bool {
+        let c = Cell::new(
+            p.x.div_euclid(UCELLS_PER_CELL),
+            p.y.div_euclid(UCELLS_PER_CELL),
+        );
+        self.region
+            .is_none_or(|r| sim.world.region_of(c) == Some(r))
+    }
+
+    fn get(&self, sim: &Sim, p: Pos) -> bool {
+        self.readable(sim, p) && sim.coll.get(p.x, p.y)
+    }
+
+    /// `local_30[slot] == 0`: the slot has a block, the region gate let
+    /// it through, and `BitMask<768>::empty` says it holds a bit.
+    fn live(&self, sim: &Sim, p: Pos) -> bool {
+        self.readable(sim, p)
+            && sim.coll.any_in_cell(
+                p.x.div_euclid(UCELLS_PER_CELL),
+                p.y.div_euclid(UCELLS_PER_CELL),
+            )
+    }
+}
+
 /// A unit cell, `0x30` position units — the grid the index is keyed on.
 pub const UNITS_PER_UCELL: i32 = 0x30;
 /// Unit cells to a world cell, each way.
@@ -242,6 +277,15 @@ impl CollGrid {
             return None;
         }
         Some((y as usize) * (self.w as usize) + (x as usize))
+    }
+
+    /// Whether any unit cell of the world cell `(cx, cy)` is occupied —
+    /// `BitMask<768>::empty@00479150`, negated. Off the map is empty.
+    pub fn any_in_cell(&self, cx: i32, cy: i32) -> bool {
+        (0..UCELLS_PER_CELL).any(|dy| {
+            (0..UCELLS_PER_CELL)
+                .any(|dx| self.get(cx * UCELLS_PER_CELL + dx, cy * UCELLS_PER_CELL + dy))
+        })
     }
 
     /// Whether a unit cell is occupied.
@@ -658,6 +702,7 @@ impl Sim {
             return None;
         }
         let mine = ucell(self.units[u].pos);
+        let slots = self.probe_slots(at);
         // **The fast path, and it is not an optimisation** (§4.2, item 183).
         // With `nocoll` clear and the proposal exactly one cell away on one
         // axis, the original sweeps the **leading edge** — the row or column
@@ -668,12 +713,14 @@ impl Sim {
             let (dx, dy) = (at.x - mine.x, at.y - mine.y);
             if dx == 0 || dy == 0 {
                 if dx.abs() == 1 {
-                    return self
-                        .leading_edge(size, |k| Pos::new(at.x + dx * size, at.y - size + k));
+                    return self.leading_edge(size, &slots, |k| {
+                        Pos::new(at.x + dx * size, at.y - size + k)
+                    });
                 }
                 if dy.abs() == 1 {
-                    return self
-                        .leading_edge(size, |k| Pos::new(at.x - size + k, at.y + dy * size));
+                    return self.leading_edge(size, &slots, |k| {
+                        Pos::new(at.x - size + k, at.y + dy * size)
+                    });
                 }
             }
         }
@@ -687,11 +734,29 @@ impl Sim {
             if on_map && (p.x - mine.x).abs() <= size && (p.y - mine.y).abs() <= size {
                 continue;
             }
-            if self.coll.get(p.x, p.y) {
+            if slots.get(self, p) {
                 return Some(p);
             }
         }
         None
+    }
+
+    /// `CollCheck::fill_slots@006820e0` — which world cells' bitmasks a
+    /// probe centred on the unit cell `at` may read at all.
+    ///
+    /// `nocoll` reads the same gate: its probes go through the
+    /// pathfinder's `+0x4c` tree of block copies, and a copy is taken from
+    /// the gated slot. SEAM: a copy outlives the probe that took it, so a
+    /// later `nocoll` probe from another region reads it ungated; this
+    /// crate gates every probe on its own centre.
+    fn probe_slots(&self, at: Pos) -> ProbeSlots {
+        // `get_tregion` of the probe centre's own tile: the world cell's
+        // `region`, or its `region2` when the tile is the water half of a
+        // coastal cell.
+        let tile = Pos::new(at.x.div_euclid(4), at.y.div_euclid(4));
+        ProbeSlots {
+            region: self.world.tregion_alt(tile),
+        }
     }
 
     /// The fast path's sweep: the `size + 1` cells of the leading edge its
@@ -699,10 +764,34 @@ impl Sim {
     /// The disc's own-block exemption is not asked and does not have to be
     /// — the edge is a cell beyond the caller's own block on every step
     /// that reaches here.
-    fn leading_edge(&self, size: i32, cell: impl Fn(i32) -> Pos) -> Option<Pos> {
-        (0..=size)
-            .map(|k| cell(k * 2))
-            .find(|p| self.coll.get(p.x, p.y))
+    fn leading_edge(
+        &self,
+        size: i32,
+        slots: &ProbeSlots,
+        cell: impl Fn(i32) -> Pos,
+    ) -> Option<Pos> {
+        // `00682540:71`-`116`, and `:126`-`174` for the other axis. The
+        // loop runs `2·size + 1` times; an odd pass advances the swept
+        // axis, and an even one tests the cell and advances it again on a
+        // miss — **but only when the cell's slot is live**. A cell whose
+        // world cell holds no bit (or which the region gate refused) is
+        // skipped *without* the advance, so the next cell tested is one
+        // step on, not two.
+        let mut at = 0;
+        for k in 0..=2 * size {
+            if k % 2 == 1 {
+                at += 1;
+                continue;
+            }
+            let p = cell(at);
+            if slots.live(self, p) {
+                if self.coll.get(p.x, p.y) {
+                    return Some(p);
+                }
+                at += 1;
+            }
+        }
+        None
     }
 
     /// `UnitData::is_here`: does this unit's block cover that unit cell?
@@ -3084,6 +3173,62 @@ mod tests {
             "corner to opposite corner: the two slip past"
         );
         assert_eq!(sim.units[big].collide_o, -1, "and nothing is recorded");
+    }
+
+    /// §4.2's fast path **does not advance past an empty slot** (item 539,
+    /// `00682540:71`-`116`). An even pass tests its cell and advances the
+    /// swept axis on a miss only when the cell's world cell holds a bit;
+    /// a cell in an empty world cell is skipped where it stands, so the
+    /// next cell tested is one step on, not two. Great Lakes' sim-frame
+    /// 11304 is the shape, rebuilt at the origin: a `coll_size 1` walker
+    /// stepping west from `(17, 16)` onto `(16, 16)` sweeps the column
+    /// `x = 15` from `y = 15`, which is the last row of world cell
+    /// `(0, 0)`, and a group-mate's block starts at `y = 17`, which is
+    /// world cell `(0, 1)`.
+    ///
+    /// Written to fail first: with the fixed two-step stride the sweep
+    /// tests `(15, 17)`, finds the neighbour, and the walker takes a half
+    /// step that the original does not take.
+    #[test]
+    fn the_leading_edge_does_not_step_past_an_empty_world_cell() {
+        let mut world = World::new(4, 4);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(3, 3));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = sim.add_unit_type(UnitType {
+            hits: 40,
+            moves: 25,
+            combat: crate::combat::Profile {
+                block_radius: 48,
+                big_radius: 48,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let put = |sim: &mut Sim, o: i16, cell: Pos| {
+            let mut u = Unit::new(0, o, ucell_centre(cell), 40);
+            u.ty = Some(ty);
+            sim.add_unit(u)
+        };
+        let walker = put(&mut sim, 0, Pos::new(17, 16));
+        // `(14..=16, 17..=19)`: world cells `(0, 1)` and `(1, 1)`.
+        put(&mut sim, 1, Pos::new(15, 18));
+        let at = Pos::new(16, 16);
+        assert!(!sim.coll.any_in_cell(0, 0), "world cell (0, 0) is empty");
+        assert_eq!(
+            sim.collide_here(walker, at, false),
+            None,
+            "(15, 15)'s slot is empty, so the sweep tests (15, 16) and misses"
+        );
+        // The control: one bit anywhere in world cell `(0, 0)` makes the
+        // slot live, and the stride is two again — `(15, 15)`, `(15, 17)`.
+        put(&mut sim, 2, Pos::new(3, 3));
+        assert!(sim.coll.any_in_cell(0, 0));
+        assert_eq!(
+            sim.collide_here(walker, at, false),
+            Some(Pos::new(15, 17)),
+            "a live slot advances past its miss"
+        );
     }
 
     /// §4.2: for a `coll_size 1` unit the parity filter leaves exactly the

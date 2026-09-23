@@ -1570,6 +1570,20 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **Item 533 took the capture, run125, and held the word**: its block is
 /// in `run125_s_word_frame_is_widened_whole`.
 ///
+/// ~~**11531 is `1/34`'s arrival, two frames early.**~~ **Item 539 moved
+/// it 11531 → 11582, and the mechanism was the collision probe, not the
+/// march.** The formation hop 533 named was the leader `1/37` reaching its
+/// waypoint a frame early, 22 units ahead on half steps it missed; each
+/// miss was a soft-collision flag, and the two flags that parted with
+/// every unit cell agreeing were `collide_here`'s fast path stepping two
+/// cells past an **empty** world cell, where the original does not
+/// advance at all (`docs/COLLISION.md` §4.2). The new word's delta: ours
+/// **948** draws and the original **9**, parting at index **5** — ours
+/// `Leader::produce_building+0xc99` against the original's
+/// `Guy::set_anim+0x104b`. **Its block is on disk**, inside run125, and
+/// `run125_s_word_frame_is_widened_whole` holds it; this is the delta, the
+/// widening is the block.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1581,7 +1595,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_531;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_582;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2216,9 +2230,10 @@ pub(crate) const GREAT_LAKES_MARKET_BLOCK: i64 = 11_185;
 /// the march would print them as standing residue with no first block.
 pub(crate) const WIDENING_GREAT_LAKES_ARMY: (i64, i64) = (11_250, 11_599);
 /// The block [`WIDENING_GREAT_LAKES_ARMY`] was taken to widen: the word
-/// 11531. The coverage driver reads run125 around it, keyed here rather
-/// than on the headline so the pin stays on a block the capture carries
-/// whatever the headline does next.
+/// 11531, where it stood until item 539 moved it to 11582. The coverage
+/// driver reads run125 around it, keyed here rather than on the headline
+/// so the pin stays on a block the capture carries whatever the headline
+/// does next; the widening pins it empty as the move's value diff.
 pub(crate) const GREAT_LAKES_ARMY_BLOCK: i64 = 11_531;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
@@ -2335,11 +2350,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // [`WIDENING_GREAT_LAKES_ARMY`]. The word's two blocks part on one unit,
     // `1/34`, which reaches its `ATTACK_TO` point on block 11531 here and
     // 11533 in the original (`docs/GROUPS.md` §20).
+    //
+    // **Item 539 moved the word to 11582, still inside run125**, and the
+    // same test holds the new word's block: every key first parting on
+    // 11580..=11583, both directions, with 11531's pinned empty as the
+    // move's value diff (`docs/GROUPS.md` §21).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run125_s_word_frame_is_widened_whole"),
-        533,
+        539,
         Some(WIDENING_GREAT_LAKES_ARMY),
     ),
     // Item 445 paid the widening chapter one had never had: the word
