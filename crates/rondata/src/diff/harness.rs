@@ -8658,7 +8658,8 @@ mod tests {
         });
         let mut placed: Option<(i64, i64)> = None;
         // Army 2's `(o, (theirs group, stance), ours)` on the order's block.
-        let mut regroup: Vec<(i64, (Option<i64>, Option<i64>), Option<(i64, i64)>)> = Vec::new();
+        type Regroup = (i64, (Option<i64>, Option<i64>), Option<(i64, i64)>);
+        let mut regroup: Vec<Regroup> = Vec::new();
         // `1/64`'s position on the detour's block, (theirs, ours).
         let mut neighbour: Option<((i64, i64), (i64, i64))> = None;
         for f in 0..=TAIL {
