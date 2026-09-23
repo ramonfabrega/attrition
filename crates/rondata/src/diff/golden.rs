@@ -360,6 +360,37 @@ fn chapter_two_holds_to_the_golden_word() {
     eprintln!("chapter two: sequence {}, values {:?}", w.sequence, w.value);
 }
 
+/// **Chapter five, pinned** — the water (`docs/GOLDEN.md` §9, item 535,
+/// run127). Four staged lines: `!ai off` and three hulls on sea region 70.
+///
+/// **What the capture established before this walk ran**, each written
+/// into `chapter5.cmd`'s header first (`docs/RUNS.md`, run127): six
+/// `INFO cmd` records each returning 1; 297 frame blocks; one `UNITDATA`
+/// per `add` on 611, 616 and 621; and none of §9's three falsifiers. Every
+/// hull is on an `OCEAN` cell and the triremes exchange 506 `AMMO` blocks.
+///
+/// `GOLDEN_WORD_CHAPTER_FIVE` carries what stands at the word.
+#[test]
+fn chapter_five_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch5", 5, 4, 900) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FIVE,
+        "chapter five's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FIVE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FIVE,
+        "chapter five's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §9"
+    );
+    eprintln!(
+        "chapter five: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter two's squads are seated exactly where the dump seats them,
 /// and the 140 units item 415 called a seating error are five frames of
 /// marching** (item 441's widening).
@@ -3722,5 +3753,280 @@ fn every_rolled_shot_comes_down_where_the_original_s_does() {
         rolled.iter().map(|r| (r.0, r.1)).collect::<Vec<_>>(),
         vec![(6, 11), (7, 10), (8, 9)],
         "run112's three rolled shots and their landing steps"
+    );
+}
+
+/// **Chapter five's word, widened whole, both directions** (item 535,
+/// `docs/DECISIONS.md` 43). Every record run127 carries on every block
+/// of [`WIDENING_CHAPTER_FIVE`]: [`crate::diff::harness::widen_block`] on
+/// every unit and figure, the leader record whole for both players
+/// ([`crate::diff::leader::rows`] against [`crate::diff::leader::theirs`]),
+/// and the **`AMMO` record**, which neither of the other two widenings
+/// compares. It is compared shot by shot: the live rounds (`flags & 2`)
+/// keyed on the shooter and the pool slot, against this crate's
+/// [`sim::combat::Projectile`]s. Each key's first parting block is kept
+/// with the value diff beside it.
+///
+/// The trace's frame `f` writes block `f + 1`, so the word 617 enters on
+/// block 617 and leaves on 618. Both blocks are printed once, both sides,
+/// for the ships, before any quiet row is trusted.
+#[test]
+fn chapter_five_s_word_frame_is_widened_whole() {
+    use std::collections::{BTreeMap, BTreeSet};
+    const FIRST: i64 = WIDENING_CHAPTER_FIVE.0;
+    const LAST: i64 = WIDENING_CHAPTER_FIVE.1;
+    /// run127's window is 605..899 and its `!quit` block is 901.
+    const RUN127_NO_BLOCK: i64 = 900;
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch5") else {
+        eprintln!("skipping: no golden capture ch5 (see docs/RUNS.md run127)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let players = built.sim.players.len();
+    let mut script = chapter(5);
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut missing: BTreeSet<String> = BTreeSet::new();
+    let (mut blocks, mut rows, mut leader_rows) = (0usize, 0usize, 0usize);
+    let (mut ammo_theirs, mut ammo_ours) = (0usize, 0usize);
+    let ship = |who: i64, o: i64| who < 2 && o >= 6;
+    for f in 0..LAST - 1 {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = ix.frame_state(at).unwrap();
+        blocks += 1;
+        let (_, k) = crate::diff::harness::widen_block(&built, &frame, players, n, &mut firsts);
+        rows += k;
+        let raw = ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = flog.leader_block(n, who as i64) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            for (k, v) in crate::diff::leader::rows(&loaded, &built, who) {
+                let Some(&y) = t.get(&k) else {
+                    missing.insert(k);
+                    continue;
+                };
+                leader_rows += 1;
+                if v != y {
+                    firsts
+                        .entry((who as i64, -1, format!("leader:{k}")))
+                        .or_insert((n, format!("ours {v} theirs {y}")));
+                }
+            }
+        }
+        // **The `AMMO` record, both directions.** A live round is keyed on
+        // its shooter and its pool slot, the order `Objects::inc_time`
+        // steps it in (`docs/COMBAT.md` §46.4).
+        let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0)
+            .map(|(a, _)| ((a.who, a.o, a.index), a))
+            .collect();
+        let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = built
+            .sim
+            .projectiles
+            .iter()
+            .filter_map(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => {
+                    let un = &built.sim.units[u];
+                    Some((
+                        (i64::from(un.owner), i64::from(un.index), i64::from(p.slot)),
+                        *p,
+                    ))
+                }
+                sim::combat::Obj::Building(_) => None,
+            })
+            .collect();
+        ammo_theirs += theirs.len();
+        ammo_ours += ours.len();
+        let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+        for key @ (who, o, slot) in keys {
+            let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                let side = if theirs.contains_key(&key) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                firsts
+                    .entry((who, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+                continue;
+            };
+            let target = p.target.map_or((-1, -1), |t| match t {
+                sim::combat::Obj::Unit(u) => {
+                    let tu = &built.sim.units[u];
+                    (i64::from(tu.owner), i64::from(tu.index))
+                }
+                sim::combat::Obj::Building(_) => (-2, -2),
+            });
+            for (name, mine, dumped) in [
+                ("cur_time", i64::from(p.cur_time), a.cur_time),
+                ("total_time", i64::from(p.total_time), a.total_time),
+                ("sx", i64::from(p.launch.x), a.sx),
+                ("sy", i64::from(p.launch.y), a.sy),
+                ("ex", i64::from(p.landing.x), a.ex),
+                ("ey", i64::from(p.landing.y), a.ey),
+                ("whom", target.0, a.whom),
+                ("ox", target.1, a.ox),
+                ("accuracy", i64::from(p.accuracy), a.accuracy),
+                ("splash_area", i64::from(p.splash_area), a.splash_area),
+                ("num_guys", i64::from(p.num_guys), a.num_guys),
+            ] {
+                if mine != dumped {
+                    firsts
+                        .entry((who, o, format!("ammo[{slot}].{name}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+        // **Both sides printed once on the word's two blocks**, for the
+        // three hulls: the record the draw is spent in, before any quiet
+        // row is trusted.
+        if (GOLDEN_WORD_CHAPTER_FIVE..=GOLDEN_WORD_CHAPTER_FIVE + 1).contains(&n) {
+            for them in frame.units.iter().filter(|u| ship(u.who, u.o)) {
+                let mine = u8::try_from(them.who)
+                    .ok()
+                    .zip(i16::try_from(them.o).ok())
+                    .and_then(|(w, o)| built.sim.unit_by_o(w, o))
+                    .map(|u| &built.sim.units[u]);
+                eprintln!("  block {n} {}/{} theirs {them:?}", them.who, them.o);
+                match mine {
+                    Some(u) => eprintln!(
+                        "  block {n} {}/{} ours pos {:?} heading {:?} facing {:?} \
+                         orders {:?} guys {:?}",
+                        them.who,
+                        them.o,
+                        u.pos,
+                        u.movement.heading,
+                        u.movement.facing,
+                        u.orders,
+                        u.guys
+                    ),
+                    None => eprintln!("  block {n} {}/{} ours: absent", them.who, them.o),
+                }
+            }
+        }
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        let near = (GOLDEN_WORD_CHAPTER_FIVE - 4..=GOLDEN_WORD_CHAPTER_FIVE + 2).contains(f);
+        if near || rows.len() <= 4 {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        } else {
+            eprintln!("  f{f}: {} keys", rows.len());
+        }
+    }
+    eprintln!(
+        "ch5 widening: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
+         {leader_rows} leader rows, ammo {ammo_theirs} theirs / {ammo_ours} ours, \
+         {} keys parted",
+        firsts.len()
+    );
+    // `LEADERS=2` prints the goods block and nothing after it, so the
+    // leader rows this capture can compare are the goods' own. The keys it
+    // does not print are absent rather than divergent, and what is pinned
+    // is that the goods rows were actually taken on every block.
+    eprintln!(
+        "ch5: {} leader keys not printed at LEADERS=2",
+        missing.len()
+    );
+    assert_eq!(
+        leader_rows,
+        2 * 88 * blocks,
+        "the leader rows LEADERS=2 prints (88 a player) are not compared on \
+         every block"
+    );
+    // **Anti-vacuity for the `AMMO` record**: run127's 506 live rounds
+    // are all read, and this crate's side is not empty.
+    assert_eq!(ammo_theirs, 506, "run127's live rounds are not all read");
+    assert!(ammo_ours > 0, "this crate fired no round in the window");
+    // **The map's shape.** Three standing families from the capture's
+    // first block, none of them the water's: `build:extra` (the end
+    // detail prints no `BUILDDATA`), the unmodelled `form`, and two
+    // `filled_gather_slots`. `form` is also every hull's birth row.
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let at_floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == FIRST)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
+        "the standing rows on run127's first block moved: {at_floor:?}"
+    );
+    // **Nothing else parts under the word's own block.** The trace's
+    // frame `f` writes block `f + 1`. Item 535's broadside (`docs/COMBAT.md`
+    // §49) closed the four `1/6` angle rows on block 617. What parts first
+    // now is the fisher `0/7` on its birth block 621 (trace frame 620):
+    // the original gives it two orders, a `CASTORDER` first, and this
+    // crate gives it none. That spends no draw. The word's own block, 622,
+    // is where the first round is in the original's air and not in this
+    // crate's.
+    let under: Vec<String> = firsts
+        .iter()
+        .filter(|((_, _, what), (f, _))| *f <= GOLDEN_WORD_CHAPTER_FIVE && !standing(what))
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    assert_eq!(
+        under,
+        [
+            "621 0/7 dest_angle",
+            "621 0/7 order:length",
+            "621 0/7 orders.len",
+            "621 0/7 orders_x",
+            "621 0/7 orders_y",
+        ],
+        "what parts at or under the word moved"
+    );
+    assert_eq!(
+        firsts
+            .get(&(1, 6, "ammo[0]".to_string()))
+            .map(|(f, row)| (*f, row.as_str())),
+        Some((GOLDEN_WORD_CHAPTER_FIVE + 1, "the dump holds it alone")),
+        "the word's draw is who=1's first round, launched on the word in the \
+         original and not in this crate"
+    );
+    let absent = usize::from((FIRST..LAST).contains(&RUN127_NO_BLOCK));
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize - absent,
+        "run127's dump no longer carries every frame of [{FIRST}, {LAST})"
     );
 }

@@ -4796,6 +4796,8 @@ Committed as `189925c` before the launch. All held:
 So chapter five is not the Dock chapter. `docs/GOLDEN.md` §9 carries what
 this means for the later naval chapters.
 
-### The word is 617
+### The word is 621
 
-See `GOLDEN_WORD_CHAPTER_FIVE` and `docs/journal/2026-09-22-item-535.md`.
+The first walk parted at 617, on who=1's trireme turning broadside
+(`docs/COMBAT.md` §49). Item 535 landed that rule and the word went to
+621, the first round's launch. See `GOLDEN_WORD_CHAPTER_FIVE`.

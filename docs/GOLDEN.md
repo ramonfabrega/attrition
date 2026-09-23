@@ -462,12 +462,11 @@ ground asked for a hull, because every asked point here was already water.
 The lines' "about five tiles apart" is 7.2 (dx 4, dy 6), still inside the
 nine-tile reach.
 
-**The word is 617** (`GOLDEN_WORD_CHAPTER_FIVE`), the frame after who=1's
-trireme is born. The original spends 8 draws there and this crate 6. The
-original's first draw is `Guy::set_anim+0xf2f < Guy::move+0x166`, and its
-trailing `Farms::inc_time+0x1de` is the value shift that one extra draw
-causes. On block 617 the original's `1/6` has turned on `0/6` (`whom 0 ox
-6`, `in_range 1`, `recharging 40`). The widening is
+**The word is 621** (`GOLDEN_WORD_CHAPTER_FIVE`). The first walk parted
+at 617, on who=1's trireme turning **broadside** to its target, and item
+535 landed the rule (`docs/COMBAT.md` §49). On 621 the original launches
+that trireme's first round, whose landing scatter is two draws (8 against
+6), a frame before this crate does. The widening is
 `chapter_five_s_word_frame_is_widened_whole`.
 
 ## 10. Chapter six — the air, and the one command that issues an order

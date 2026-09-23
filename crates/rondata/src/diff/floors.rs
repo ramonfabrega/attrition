@@ -203,7 +203,11 @@ mod tests {
             .split_whitespace()
             .filter_map(|w| w.strip_prefix('w').and_then(|d| d.parse::<i64>().ok()))
             .collect();
-        let chapters = [GOLDEN_WORD_CHAPTER_ONE, GOLDEN_WORD_CHAPTER_TWO];
+        let chapters = [
+            GOLDEN_WORD_CHAPTER_ONE,
+            GOLDEN_WORD_CHAPTER_TWO,
+            GOLDEN_WORD_CHAPTER_FIVE,
+        ];
         let lowest = *chapters.iter().min().unwrap();
         let said = *words
             .first()
