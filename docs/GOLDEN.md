@@ -631,7 +631,7 @@ Reserved for this design: **run112–run119**.
 | run | chapter | window | why this order |
 |---|---|---|---|
 | 112 | two, the ranged line | `[605, 900)` | **run 2026-09-19, word 616**; the cheapest chapter that adds a record the tree has never dumped (`AMMO`) |
-| 113 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock |
+| ~~113~~ 127 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock — **run 2026-09-22 as run127 (item 535), word 621; no falsifier fired** |
 | 114 | four, the border | `[295, 345)` | the namesake; `WORLD=6` narrow |
 | 115 | four, the bleed | `[595, 1500)` | the same script, a second window |
 | 116 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on |

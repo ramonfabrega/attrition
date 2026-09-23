@@ -37,11 +37,11 @@ chapter two **683 → 725** — both headline words moved.*
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w11531 of 24,000
-Golden: w900 of 901 (ch1) · ch2 w900 · 535 next
+Golden: w621 of 901 (ch5) · ch1 w900 · ch2 w900 · 542 next
 Endpoint 24001: EastIndies 64 off, 9 unlinked · GreatLakes 50 off, 1 unlinked
 
-**Opener: an Opus 5.5 commander is live; 535 in flight on att-535, 539
-next on the AI track. Workers spawn with `claude-opus-5-5[1m]`.**
+**Opener: an Opus 5.5 commander is live; 539 in flight on att-539, 542
+next on the rules track. Workers spawn with `claude-opus-5-5[1m]`.**
 
 ## The queue
 
@@ -59,13 +59,12 @@ the backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     Candidates, unread: the cap's 64-frame reset (§18, §19), the hop's
     distance test, the leader's position. GROUPS §20.4. No mechanism.
 
-535. **Golden chapter five, the water — the next unpinned chapter**
-    (530 closed chapter one at 900, 523 chapter two; `docs/GOLDEN.md`
-    §14's running order puts five next, the likeliest to fail and the
-    cheapest to run). `tools/gamelog/golden/chapter5.cmd` over `[605,
-    900)`, run127; §9's three falsifiers are the first result. Then pin
-    the word and its widening, as chapter two's were. No ship has ever
-    been in a capture.
+542. **Golden chapter five's word is 621: the trireme's first round**
+    (535 captured run127, the first ships on disk, and pinned the
+    chapter at 621 with its widening). The original launches the round
+    a frame earlier and from a release point off the hull; ours eight
+    draws against six, `Ammo::init+0xcd9`/`+0xd0b`. The rules headline,
+    lowest chapter first. No mechanism.
 
 ## How to maintain this file
 

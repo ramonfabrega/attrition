@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 535, 2026-09-22 — the first ships
+
+(543) **The fisher's birth orders.** On chapter five's block 621 the
+original gives the Fishermen a `CASTORDER` and a move; this crate gives
+none. No draw is spent; it is a row of chapter five's widening and
+promotes when a draw lands on it.
+
+(544) **`AMMO` in chapter two's widening.** `chapter_two_s_word_frame_is_widened_whole`
+does not compare the `AMMO` record, which chapter five's widening now
+does in a few lines. Chapter two is closed at 900, so it names no score;
+it is the instrument half of (525).
+
 ## Parked by item 533, 2026-09-22 — the army's march, beside the word
 
 (540) **The squad's group order dissolves a frame early.** On run123/125
