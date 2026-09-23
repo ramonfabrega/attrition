@@ -2522,6 +2522,12 @@ pub(crate) const EAST_INDIES_SCHOLAR_BLOCK: i64 = 9_712;
 /// The current word's block on run99: 9983's frame writes block 9984. The
 /// widening and the coverage driver read run99 around it.
 pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 9_984;
+/// `run139_s_word_frame_is_widened_whole`'s window (item 576): run139
+/// whole, 9960..9999, the one East Indies capture that prints the leader's
+/// make list over the word. The floor is the capture's first block for the
+/// reason [`WIDENING_CHAPTER_TWO`]'s is, and it is under the production
+/// cycle that fills the list the word's `make_stuff` spends (9975..9983).
+pub(crate) const WIDENING_EAST_INDIES_MAKE: (i64, i64) = (9_960, 9_999);
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,

@@ -5038,6 +5038,25 @@ settle_min: 20000000
 # ~41 minutes to 10400 dumping 1,620 blocks, so this is ~15. 120 polls is
 # 40 minutes.
 poll_max: 120
+# ==== TAKEN 2026-09-23, **WHOLE** ====
+#
+# 92,056,165 bytes of dump and 17,987,840 of trace, **40 blocks
+# 9960..9999**, a `MAKEOBJECT` on every one. About seven minutes launch to
+# archive (03:59 to 04:06), through `viadriver.sh` with no human at the
+# menu; the lane lock was att-566's from 01:41 and its holder was dead.
+# All six checks green: 10,011 frames identical to run54, `MAP_STYLE 18`,
+# 40 blocks shared with run99 and 0 differing, and a coverage set on all
+# 13 frames 9974..9986. 2.0 MB a block net of the start dump, as sized.
+#
+# **The readings, decided**: **R4 is dead** — both lists are empty on
+# block 9979 and the steps agree block for block. **R3 is dead** — the
+# stockpile agrees but for one metal on 9966 and one food on 9981, and
+# the lists differ. **R1 is dead** — the Units step (block 9981) agrees
+# slot for slot. **R2 holds, and it is not the Mine**: the lists part on
+# block **9982**, the Buildings step, where the original offers three
+# ships at the Dock — types 340, 334 and 323, `val 9999999`, cat 6 — and
+# this crate offers none. The Mine enters ours on 9983 in the slot the
+# original's ships hold. `run139_s_word_frame_is_widened_whole`.
 # Same game: the trace word for word against run54, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run139.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10000)}'
 # And the map, from the dump's own `GAME INFO`.

@@ -11702,6 +11702,137 @@ mod tests {
         );
     }
 
+    /// **run139 — East Indies 9983's make list, widened whole** (item
+    /// 576).
+    ///
+    /// run99 carries the word's units and buildings at `LEADERS=1`, whose
+    /// stub prints no list, no stockpile and no step; run139 is the same
+    /// game at `LEADERS=9` over [`WIDENING_EAST_INDIES_MAKE`], wholly
+    /// inside run99's window and byte for byte on every record but the
+    /// leader's own kinds. This walks it **both ways**: every record
+    /// [`widen_block`] reads on every unit and building of every player,
+    /// and every key of [`crate::diff::leader::rows`] for both leaders —
+    /// the stockpile, the step, the census, the per-type muster, the sites
+    /// and the eleven `MAKEOBJECT` slots. Each key's first parting block is
+    /// kept with the value diff beside it.
+    ///
+    /// `RON_MAKE_SLOTS=<lo>-<hi>` prints player 1's two lists slot for
+    /// slot on each block of the window.
+    #[test]
+    fn run139_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_MAKE.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_MAKE.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_WORD_BLOCK;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r139)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run139-eastindies-makelist.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run139 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r139).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            let (_, rows) = widen_block(&built, &frame, players, n, &mut firsts);
+            compared += rows;
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                let slots = site_window_named("RON_MAKE_SLOTS")
+                    .is_some_and(|(a, b)| who == 1 && (a..=b).contains(&n));
+                if slots {
+                    let o: BTreeMap<&str, i64> =
+                        mine.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+                    eprintln!(
+                        "  block {n}, leader 1: step ours {:?} theirs {:?}",
+                        o.get("production_step"),
+                        t.get("production_step")
+                    );
+                    for i in 0..11 {
+                        let g = |k: &str| {
+                            let key = format!("MAKE[{i}].{k}");
+                            (o.get(key.as_str()).copied(), t.get(&key).copied())
+                        };
+                        let (ot, tt) = g("t");
+                        let (ov, tv) = g("val");
+                        let (oc, tc) = g("city");
+                        let (on, tn) = g("num");
+                        let (ok, tk) = g("cat");
+                        eprintln!(
+                            "    {i:>2}  ours t {ot:?} val {ov:?} city {oc:?} num {on:?} cat {ok:?}   \
+                             theirs t {tt:?} val {tv:?} city {tc:?} num {tn:?} cat {tk:?}"
+                        );
+                    }
+                }
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        firsts
+                            .entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run139 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {leader_rows} leader rows, {} keys parted, {} keys unprinted",
+            firsts.len(),
+            missing.len()
+        );
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        for (f, rows) in &by_block {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        }
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert!(leader_rows > 0, "run139 prints the leader record");
+        let _ = WORD_BLOCK;
+    }
+
     #[test]
     fn run73_s_window_clocks_are_the_original_s() {
         let Some(inst) = install() else { return };
