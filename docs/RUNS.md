@@ -4831,3 +4831,37 @@ this means for the later naval chapters.
 The first walk parted at 617, on who=1's trireme turning broadside
 (`docs/COMBAT.md` §49). Item 535 landed that rule and the word went to
 621, the first round's launch. See `GOLDEN_WORD_CHAPTER_FIVE`.
+
+## run130 — Great Lakes' word 11757, army 2's march (2026-09-22, item 554)
+
+**What it is.** run125's Great Lakes game at run125's detail,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9`, over
+`[11560, 11800)`, plus `rontrace.cfg` `cover=1` and
+`window=11750-11762` over the word. `!quit` at 11810. **480,987,532
+bytes of dump and 17.6 MB of trace, about 18 minutes** from launch at
+21:27 to archive at 21:45. It was launched through `viadriver.sh` with no
+human at the menu, once att-552's chapter-four capture had released the
+driver. The dump ran at ~15 blocks a minute, 2.0 MB a block, as sized
+from run125.
+
+**Why it was owed.** Item 545 moved Great Lakes' word to 11757, and
+run125, the highest dump at any detail below run80's endpoint window,
+ends on block 11599.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,811 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **240 blocks, 11560..11799, no gap** |
+| overlap with run125, no `--exclude` | **40 in common (11560..11599), 0 differ** |
+| the coverage window | a set on all 13 frames 11750..11762 |
+
+**What it settled.** The word is army 2's `1/62` stopping against `1/23`
+on 11758 in the original and a frame later here. It walks a collision
+detour planned on 11689 around `1/64`, which stands 21/20 behind the
+original's. That lag opens on 11514, the block after army 2's group order
+of frame 11512 leaves the original's `1/64` in no pool group.
+`docs/GROUPS.md` §22; `run130_s_word_frame_is_widened_whole` and
+`run130_s_word_is_1_64_s_lag`.

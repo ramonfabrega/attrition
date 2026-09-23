@@ -8568,6 +8568,572 @@ mod tests {
         );
     }
 
+    /// **run130 — Great Lakes' word 11757, widened whole, both directions**
+    /// (item 554). run130 is run125's game at run125's detail over
+    /// `[11560, 11799]`, forty blocks shared with run125 and the only dump
+    /// that reaches the word. The walk runs **backwards across three
+    /// captures** — run123 from [`WIDENING_GREAT_LAKES_ARMY_TWO`]'s floor,
+    /// 11400, under army 2's first parting, run125 from its own first block,
+    /// and run130 from 11560 — so a cause that spends no draw on the march is
+    /// still a row here. Every record [`widen_block`] reads on every unit,
+    /// and the leader record whole for both players, on every block; each
+    /// key's first parting block is kept, with the value diff beside it.
+    ///
+    /// The word's frame enters on block **11757** and leaves on **11758**
+    /// (the trace's frame `f` writes block `f + 1`).
+    ///
+    /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
+    /// block the set changes — the first-parting map keeps a key's first
+    /// block only, and cannot say whether it re-agreed.
+    #[test]
+    fn run130_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_GREAT_LAKES_ARMY_TWO.0;
+        const TAIL: i64 = WIDENING_GREAT_LAKES_ARMY_TWO.1;
+        /// run125's and run130's own first blocks; below each the walk
+        /// reads the capture before it.
+        const R125: i64 = 11_440;
+        const R130: i64 = 11_560;
+        /// The block the word stood on when this widening was taken.
+        const WORD_BLOCK: i64 = GREAT_LAKES_ARMY_TWO_BLOCK;
+        /// The block `1/62`'s collision detour is planned on — frame 11688
+        /// writes it — and the first its path parts on.
+        const DETOUR_BLOCK: i64 = 11_689;
+        /// The block army 2's group attack-to of frame 11512 is first seen
+        /// on.
+        const ORDER_BLOCK: i64 = 11_513;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r123), Some(r125), Some(r130)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run123-greatlakes-marketword.txt"),
+            dump("gamelog-run125-greatlakes-armyidle.txt"),
+            dump("gamelog-run130-greatlakes-armytwo.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run123/run125/run130 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix123 = crate::capture::indexed::IndexedCapture::open(&r123).unwrap();
+        let mut ix125 = crate::capture::indexed::IndexedCapture::open(&r125).unwrap();
+        let mut ix130 = crate::capture::indexed::IndexedCapture::open(&r130).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
+            .map(|w| {
+                w.split(',')
+                    .filter_map(|u| {
+                        let (a, b) = u.split_once('/')?;
+                        Some((a.trim().parse().ok()?, b.trim().parse().ok()?))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut walked: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        // `(who, o) -> (theirs cur_anim, ours anim)` of guy 0 on the block
+        // before, so a figure's animation change is seen on either side.
+        let mut anims: BTreeMap<(i64, i64), (Option<i64>, Option<i64>)> = BTreeMap::new();
+        // Player 1's positions either side on the word's blocks, for the
+        // value diff the pin below reads.
+        let mut changed: Vec<String> = Vec::new();
+        // `RON_PROBE_PLACE=<frame>:<o>` — a payoff probe: before `frame`
+        // ticks, player 1's unit `o` is seated where the original's dump
+        // has it on the block that frame starts from.
+        let probe: Option<(i64, i64)> = std::env::var("RON_PROBE_PLACE").ok().and_then(|v| {
+            let (f, o) = v.split_once(':')?;
+            Some((f.parse().ok()?, o.parse().ok()?))
+        });
+        let mut placed: Option<(i64, i64)> = None;
+        // Army 2's `(o, (theirs group, stance), ours)` on the order's block.
+        type Regroup = (i64, (Option<i64>, Option<i64>), Option<(i64, i64)>);
+        let mut regroup: Vec<Regroup> = Vec::new();
+        // `1/64`'s position on the detour's block, (theirs, ours).
+        let mut neighbour: Option<((i64, i64), (i64, i64))> = None;
+        for f in 0..=TAIL {
+            if let Some((pf, po)) = probe
+                && pf == f
+            {
+                let (px, py) = placed.expect("the probe's block was read");
+                let u = built.sim.unit_by_o(1, po as i16).expect("the probed unit");
+                let ok = built
+                    .sim
+                    .probe_relocate(u, sim::Pos::new(px as i32, py as i32));
+                eprintln!("  probe {f}: 1/{po} seated at ({px},{py}): {ok}");
+            }
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let ix = if n < R125 {
+                &mut ix123
+            } else if n < R130 {
+                &mut ix125
+            } else {
+                &mut ix130
+            };
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            if let Some((pf, po)) = probe
+                && pf == n
+            {
+                placed = frame
+                    .units
+                    .iter()
+                    .find(|t| t.who == 1 && t.o == po)
+                    .map(|t| (t.pos.x, t.pos.y));
+            }
+            debug_watch(&built, n);
+            if n == ORDER_BLOCK {
+                regroup = frame
+                    .units
+                    .iter()
+                    .filter(|t| t.who == 1 && (60..=65).contains(&t.o))
+                    .map(|t| {
+                        let ours = built.sim.unit_by_o(1, t.o as i16).map(|u| {
+                            (
+                                built.sim.pool_group_of(u),
+                                i64::from(built.sim.units[u].stance),
+                            )
+                        });
+                        (t.o, (t.group, t.stance), ours)
+                    })
+                    .collect();
+            }
+            if n == DETOUR_BLOCK {
+                let theirs = frame
+                    .units
+                    .iter()
+                    .find(|t| t.who == 1 && t.o == 64)
+                    .map(|t| (t.pos.x, t.pos.y));
+                let ours = built.sim.unit_by_o(1, 64).map(|u| {
+                    (
+                        i64::from(built.sim.units[u].pos.x),
+                        i64::from(built.sim.units[u].pos.y),
+                    )
+                });
+                neighbour = theirs.zip(ours);
+            }
+            let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+            let (_, rows) = widen_block(&built, &frame, players, n, &mut here);
+            compared += rows;
+            for &(w, o) in &row_walk {
+                let now: Vec<String> = here
+                    .iter()
+                    .filter(|((hw, ho, _), _)| (*hw, *ho) == (w, o))
+                    .map(|((_, _, what), (_, row))| format!("{what}: {row}"))
+                    .collect();
+                let e = walked.entry((w, o)).or_default();
+                if *e != now {
+                    eprintln!("  row walk {n} {w}/{o}: [{}]", now.join(" · "));
+                    *e = now;
+                }
+            }
+            for (k, v) in here {
+                firsts.entry(k).or_insert(v);
+            }
+            // `RON_PATH_UNIT=<o>` with `RON_DEBUG_ROWS=<lo>-<hi>` — player
+            // 1's unit `o`: both path stacks, positions and current order.
+            if let Some(o) = std::env::var("RON_PATH_UNIT")
+                .ok()
+                .and_then(|v| v.parse::<i64>().ok())
+                && site_window_named("RON_DEBUG_ROWS")
+                    .is_some_and(|(lo, hi)| (lo..=hi).contains(&n))
+                && let Some(t) = frame.units.iter().find(|t| t.who == 1 && t.o == o)
+                && let Some(u) = i16::try_from(o)
+                    .ok()
+                    .and_then(|o| built.sim.unit_by_o(1, o))
+            {
+                let un = &built.sim.units[u];
+                eprintln!(
+                    "  path 1/{o} {n}: theirs ({},{}) {:?} {:?}\n    ours ({},{}) {:?} {:?}",
+                    t.pos.x,
+                    t.pos.y,
+                    t.path,
+                    t.current_order(),
+                    un.pos.x,
+                    un.pos.y,
+                    un.path,
+                    un.orders.back(),
+                );
+                // Its neighbours within 480, both sides: a detour search
+                // reads the unit grid, so a neighbour elsewhere is a cause.
+                for t2 in frame.units.iter().filter(|t2| {
+                    (t2.who, t2.o) != (1, o)
+                        && (t2.pos.x - t.pos.x).abs() <= 480
+                        && (t2.pos.y - t.pos.y).abs() <= 480
+                }) {
+                    let ours2 = u8::try_from(t2.who)
+                        .ok()
+                        .zip(i16::try_from(t2.o).ok())
+                        .and_then(|(w, o2)| built.sim.unit_by_o(w, o2))
+                        .map(|u2| {
+                            let v = &built.sim.units[u2];
+                            (v.pos.x, v.pos.y, v.orders.len(), v.path.len())
+                        });
+                    eprintln!(
+                        "    near {}/{}: theirs ({},{}) orders {} path {} | ours {:?}",
+                        t2.who,
+                        t2.o,
+                        t2.pos.x,
+                        t2.pos.y,
+                        t2.orders.len(),
+                        t2.path.len(),
+                        ours2
+                    );
+                }
+            }
+            // `RON_UNIT_TABLE=<lo>-<hi>` with `RON_DEBUG_ROWS` — player 1's
+            // units `lo..=hi`: group, stance, form, order and position,
+            // both sides, on every block of the window.
+            if let Some((lo, hi)) = site_window_named("RON_UNIT_TABLE")
+                && site_window_named("RON_DEBUG_ROWS").is_some_and(|(a, b)| (a..=b).contains(&n))
+            {
+                for t in frame
+                    .units
+                    .iter()
+                    .filter(|t| t.who == 1 && (lo..=hi).contains(&t.o))
+                {
+                    let ours = i16::try_from(t.o)
+                        .ok()
+                        .and_then(|o| built.sim.unit_by_o(1, o))
+                        .map(|u| {
+                            let un = &built.sim.units[u];
+                            format!(
+                                "g{} s{} f{} ({},{}) {:?}",
+                                built.sim.pool_group_of(u),
+                                un.stance,
+                                un.form,
+                                un.pos.x,
+                                un.pos.y,
+                                un.orders.back().map(|o| {
+                                    let s = format!("{:?}", o.body);
+                                    s.chars().take(120).collect::<String>()
+                                })
+                            )
+                        });
+                    eprintln!(
+                        "  table {n} 1/{}: theirs g{:?} s{:?} f{:?} ({},{}) {:?} | ours {}",
+                        t.o,
+                        t.group,
+                        t.stance,
+                        t.form,
+                        t.pos.x,
+                        t.pos.y,
+                        t.current_order().map(|o| (
+                            o.kind.clone(),
+                            o.x,
+                            o.y,
+                            o.group_id,
+                            o.form_id,
+                            o.in_group
+                        )),
+                        ours.unwrap_or_else(|| "absent".into())
+                    );
+                }
+            }
+            // **Who changes animation, both sides** (`docs/COMBAT.md`
+            // §44.2.1: the `theirs` side printed before a quiet row is
+            // trusted), on the word's blocks: every player-1 figure whose
+            // guy 0 `cur_anim` changes on either side, with its position,
+            // current order and group.
+            for t in frame.units.iter().filter(|t| t.who == 1) {
+                let Ok(o16) = i16::try_from(t.o) else {
+                    continue;
+                };
+                let ours = built.sim.unit_by_o(1, o16);
+                let ta = t.guys.first().and_then(|g| g.cur_anim);
+                let oa =
+                    ours.and_then(|u| built.sim.units[u].guys.first().map(|g| i64::from(g.anim)));
+                let before = anims.insert((1, t.o), (ta, oa));
+                if !(WORD_BLOCK - 3..=WORD_BLOCK + 2).contains(&n) {
+                    continue;
+                }
+                let Some((pt, po)) = before else { continue };
+                if pt == ta && po == oa {
+                    continue;
+                }
+                let tg = t.guys.first().map_or_else(String::new, |g| {
+                    format!(
+                        "a{:?}->{:?} t{}/{}",
+                        pt,
+                        g.cur_anim,
+                        g.cur_time.unwrap_or(-9),
+                        g.end_time.unwrap_or(-9)
+                    )
+                });
+                let og = ours.map_or_else(
+                    || "absent".to_string(),
+                    |u| {
+                        let un = &built.sim.units[u];
+                        format!(
+                            "({},{}) group {} {:?} [{}]",
+                            un.pos.x,
+                            un.pos.y,
+                            built.sim.pool_group_of(u),
+                            un.orders.back().map(|o| {
+                                let s = format!("{:?}", o.body);
+                                s.chars().take(40).collect::<String>()
+                            }),
+                            un.guys.first().map_or_else(String::new, |g| format!(
+                                "a{:?}->{} t{}/{}",
+                                po, g.anim, g.cur_time, g.end_time
+                            )),
+                        )
+                    },
+                );
+                let line = format!(
+                    "{n} 1/{}: theirs ({},{}) group {:?} {:?} [{tg}] | ours {og}",
+                    t.o,
+                    t.pos.x,
+                    t.pos.y,
+                    t.group,
+                    t.current_order().map(|o| o.kind.clone()),
+                );
+                eprintln!("  anim {line}");
+                changed.push(line);
+            }
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        firsts
+                            .entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run130 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {leader_rows} leader rows, {} keys parted",
+            firsts.len()
+        );
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        for (f, rows) in &by_block {
+            let near = (WORD_BLOCK - 3..=WORD_BLOCK + 2).contains(f);
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if near || window {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        let _ = changed;
+        if probe.is_some() {
+            // A payoff probe changes the frames under test; the pins below
+            // are the unprobed run's.
+            return;
+        }
+        let first = |who: i64, o: i64, what: &str| firsts.get(&(who, o, what.to_string())).cloned();
+        // **The word's blocks** (`docs/GROUPS.md` §22). On 11758 the
+        // original's `1/62` stops against `1/23` (`collide_o 23`) and goes
+        // to its stand (`cur_anim` 8 → 0); this crate's is still walking,
+        // 60/45 behind, and stops on 11759. `1/34`'s idle pick is the
+        // draw stream one frame on, and moves with it.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_word,
+            [
+                "11758 1/34 g.cur_anim[0]: ours 0 theirs 2",
+                "11758 1/34 g.end_time[0]: ours 31 theirs 62",
+                "11758 1/62 collide_o: ours -1 theirs 23",
+                "11758 1/62 collide_who: ours -1 theirs 1",
+                "11758 1/62 g.cur_time[0]: ours 9 theirs 1",
+                "11758 1/62 g.end_time[0]: ours 15 theirs 33",
+                "11758 1/62 g.last_time[0]: ours 8 theirs 0",
+                "11758 1/62 order:coll: Coll { ours: Some((42272, 23027)), theirs: (41378, 22078) }",
+            ],
+            "the word's blocks part on a different set"
+        );
+        // **The chain, backwards.** `1/62`'s position first parts on 11702,
+        // under a detour planned on 11689 whose middle takes another route
+        // (the path's first parting), and the only neighbour standing
+        // elsewhere on that block is `1/64` — 21/20 behind, one unit cell
+        // over on y.
+        assert_eq!(
+            first(1, 62, "path:length"),
+            Some((DETOUR_BLOCK, "PathLength { ours: 15, theirs: 14 }".into())),
+            "1/62's detour"
+        );
+        assert_eq!(
+            first(1, 62, "pos").map(|r| r.0),
+            Some(11_702),
+            "1/62's position"
+        );
+        assert_eq!(
+            neighbour,
+            Some(((42_117, 22_691), (42_138, 22_711))),
+            "1/64 on the detour's block, (theirs, ours)"
+        );
+        // `1/64`'s lag opens on 11514: a half step here (`last_speed` 12)
+        // against the original's full 25, the block after army 2's group
+        // order of frame 11512 leaves the original's `1/64` in no pool
+        // group and its `1/62` and `1/63` at stance 0.
+        assert_eq!(
+            first(1, 64, "pos").map(|r| r.0),
+            Some(11_514),
+            "1/64's position"
+        );
+        assert_eq!(
+            first(1, 64, "g.last_speed[0]"),
+            Some((11_514, "ours 12 theirs 25".into())),
+            "1/64's first step after the order"
+        );
+        // The pool pointers had parted once before, on 11424, when the
+        // original's `1/62`..`1/64` arrived in pool group 69 and this
+        // crate's in none; they agreed again from 11425 to 11512.
+        assert_eq!(
+            first(1, 64, "group"),
+            Some((11_424, "ours -1 theirs 69".into())),
+            "army 2's first pool parting"
+        );
+        // **The order's block, both sides whole** (`docs/COMBAT.md`
+        // §44.2.1): the original's stance reaches `1/60`, `1/61`, `1/64`
+        // and `1/65` and not `1/62` or `1/63`, and its `1/64` is left in
+        // no pool group; this crate's reaches all six and keeps them in 66.
+        assert_eq!(
+            regroup,
+            [
+                (60, (Some(66), Some(1)), Some((66, 1))),
+                (61, (Some(66), Some(1)), Some((66, 1))),
+                (62, (Some(66), Some(0)), Some((66, 1))),
+                (63, (Some(66), Some(0)), Some((66, 1))),
+                (64, (Some(-1), Some(1)), Some((66, 1))),
+                (65, (Some(66), Some(1)), Some((66, 1))),
+            ],
+            "army 2 on the order's block, (o, theirs group/stance, ours)"
+        );
+    }
+
+    /// **The payoff probe of `run130_s_word_frame_is_widened_whole`, as an
+    /// assertion** (item 554, `docs/GROUPS.md` §22.3). Seat this
+    /// crate's `1/64` on the original's point before frame 11688, the frame
+    /// `1/62` plans its collision detour on, and nothing else: the detour
+    /// is then the original's cell for cell, and `1/62` stops on the word's
+    /// frame at the original's point with the original's clock. So the
+    /// word is `1/64`'s lag, and the detour search is not.
+    #[test]
+    fn run130_s_word_is_1_64_s_lag() {
+        /// The frame the detour is planned on, and the block before it.
+        const DETOUR: i64 = 11_688;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r130)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run130-greatlakes-armytwo.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run130 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r130).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut block = |n: i64| {
+            let at = ix
+                .frames()
+                .iter()
+                .position(|x| x.number == n)
+                .expect("run130 carries the block");
+            ix.frame_state(at).unwrap()
+        };
+        let unit = |f: &Frame, o: i64| f.units.iter().find(|t| t.who == 1 && t.o == o).cloned();
+        let seat = unit(&block(DETOUR), 64).expect("1/64 on the block").pos;
+        for _ in 0..DETOUR {
+            built.tick();
+        }
+        let u64 = built.sim.unit_by_o(1, 64).expect("1/64");
+        assert!(
+            built
+                .sim
+                .probe_relocate(u64, sim::Pos::new(seat.x as i32, seat.y as i32))
+        );
+        built.tick();
+        let theirs = unit(&block(DETOUR + 1), 62).expect("1/62");
+        let u62 = built.sim.unit_by_o(1, 62).expect("1/62");
+        let ours: Vec<(i64, i64)> = built.sim.units[u62]
+            .path
+            .iter()
+            .map(|p| (i64::from(p.to.x), i64::from(p.to.y)))
+            .collect();
+        let want: Vec<(i64, i64)> = theirs.path.iter().map(|p| (p.to.0, p.to.1)).collect();
+        assert_eq!(
+            ours, want,
+            "1/62's detour with 1/64 on the original's point"
+        );
+        while built.sim.frame < GREAT_LAKES_ARMY_TWO_BLOCK {
+            built.tick();
+        }
+        let theirs = unit(&block(GREAT_LAKES_ARMY_TWO_BLOCK), 62).expect("1/62");
+        let u = &built.sim.units[u62];
+        let g = u.guys.first().expect("a figure");
+        assert_eq!(
+            (
+                (i64::from(u.pos.x), i64::from(u.pos.y)),
+                i64::from(g.anim),
+                i64::from(g.cur_time)
+            ),
+            (
+                (theirs.pos.x, theirs.pos.y),
+                theirs.guys[0].cur_anim.unwrap(),
+                theirs.guys[0].cur_time.unwrap()
+            ),
+            "1/62 on the word's block, with 1/64 seated"
+        );
+    }
+
     #[test]
     fn run100_s_word_block_is_every_record_the_dump_carries() {
         /// run100's first complete block — [`WIDENING_GREAT_LAKES`], the

@@ -36,7 +36,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::gamelog::{Block, Log, reads};
 
-use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ARMY_BLOCK, WIDENING_CHAPTER_TWO};
+use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ARMY_TWO_BLOCK, WIDENING_CHAPTER_TWO};
 
 /// Record paths read by a parser of their own, outside `Block` — the
 /// module that reads each is named, and this guard leaves them alone.
@@ -357,9 +357,9 @@ fn the_recorder_tells_one_object_block_from_another() {
 #[test]
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
-    let r125 = crate::testenv::dump("gamelog-run125-greatlakes-armyidle.txt");
-    if ch2.is_none() && r125.is_none() {
-        eprintln!("skipping: neither the ch2 golden capture nor run125 is on disk");
+    let r130 = crate::testenv::dump("gamelog-run130-greatlakes-armytwo.txt");
+    if ch2.is_none() && r130.is_none() {
+        eprintln!("skipping: neither the ch2 golden capture nor run130 is on disk");
         return;
     }
     let mut paths = Paths::new();
@@ -382,8 +382,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // item 533's run125 reaches it at run123's detail, so the window is
     // the word's own blocks again — keyed on the block run125 was taken to
     // widen, which stays on the capture whatever the headline does next.
-    let gl = GREAT_LAKES_ARMY_BLOCK;
-    if let Some(p) = &r125 {
+    // Item 545 moved the headline to 11757, past run125's last block, and
+    // item 554's run130 reaches it at run125's detail, so the window moved
+    // to the word's own blocks again the same way.
+    let gl = GREAT_LAKES_ARMY_TWO_BLOCK;
+    if let Some(p) = &r130 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
     }
     assert!(frames > 0, "no frame of either window was found");

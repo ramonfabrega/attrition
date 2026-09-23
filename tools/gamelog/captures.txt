@@ -4391,3 +4391,98 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: python3 tools/gamelog/samegame.py gamelog-run123-greatlakes-marketword.txt gamelog-run125-greatlakes-armyidle.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run123 overlap: common="n" "r" differ="d; exit !(n==20 && d==0 && r=="(11440..11459)")}'
 # **The coverage window landed**: every frame 11524..11536 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run125.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11524&&f<=11536&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==13)}'
+
+run: 130
+tag: greatlakes-armytwo
+item: 554
+why: Great Lakes' long word is 11757, a walking frame — the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823` at index 0 where ours spends it on 11758 — and no dump on disk reaches it: run125 ends on block 11599
+# **THE DISK WAS GREPPED FIRST.** run125 [11440, 11599] is the highest
+# Great Lakes block at any detail below run80's endpoint window
+# [23960, 24000); nothing between 11600 and 23959 carries a block.
+#
+# **The frame, from this crate's side** (`RON_DEBUG_SITES=11750-11760`
+# and `RON_DEBUG_UNIT=1/62@11700-11760` on the run53 test). Ours spends
+# the `move_step+0x823` draw on **11758**, from **`1/62`**, a type-82
+# unit of army 2 on an `AttackTo` to (36552, 23448) through waypoint
+# (41160, 21912): it stands on 11758 at (41458, 22138) and re-paths on
+# 11759, where `1/23` spends three more `move_step` draws the original
+# does not.
+#
+# **And backwards, from run125's own widening**
+# (`RON_DEBUG_ROWS=11250-11599`, which keeps each key's *first* parting
+# only): army 2 parts from **11424**, where `1/62`..`1/64` hold `group
+# 69`, `form 0` and a slotted orders point in the original and no pool
+# group (`-1`), `form -1` and one shared point here. Then `1/65`'s `form`
+# and point on 11507, `1/62` and `1/63`'s `stance` (ours 1, theirs 0) on
+# 11513, and `1/64`'s position on 11514. On block 11599 the original's
+# `1/62` stands at (44046, 24250) in `group 66`, `form 0`, `stance 0`,
+# orders point (36552, 23448).
+#
+# **The readings, each with what kills it**, on blocks 11754..11760,
+# player 1, the dump's own keys:
+#
+# - **R1 — the same unit, a frame early.** The original's `1/62` stops
+#   or turns on 11757 where ours does on 11758. **Killed if** its
+#   `x_internal`/`y_internal` and `GUY` `cur_anim` equal ours on
+#   11756..11759.
+# - **R2 — another unit.** The original's `move_step` draw is not
+#   `1/62`'s (another member of army 2, or elsewhere). **Killed if** the
+#   only player-1 guy whose `cur_anim` changes on block 11758 while it
+#   moves is `1/62`'s.
+# - **R3 — the march's lag.** Army 2's positions part before the word
+#   (`1/64` since 11514), so the stop lands on another frame because the
+#   unit is somewhere else. **Killed if** every army-2 position agrees on
+#   11740..11757.
+# - **R4 — the group.** The original marches army 2 as a pool group
+#   (speed cap, formation slot) and this crate as loose units, so the
+#   stop is the group's and not the unit's. **Killed if** the original's
+#   `1/62` holds `group -1` on 11755..11758, as ours.
+#
+# **Backwards too**: army 2's first partings are inside run125, so the
+# overlap is 40 blocks, 11560..11599, at run125's detail, and the check
+# needs no `--exclude`.
+frames: 11810
+mapstyle: 14
+# **run125's detail exactly.** The subject is the units and their guys
+# (`UNITS=3`, `GUYS=4`); `LEADERS=9` is kept because army 2's order is
+# the AI's and because the overlap with run125 is then byte for byte.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+frame_window: 11560 11800
+# **Per-frame coverage over the word**, 11750..11762: the stop, the
+# re-path and the frames either side.
+cover: cover=1
+cover: window=11750-11762
+settle_min: 14000000
+# **Sized from run125**: 2.0 MB a block, so 240 blocks is ~490 MB; its
+# run-up to 11560 at `cover=1` and ~14 minutes of dumping. 180 polls is 60
+# minutes, sized high because the give-up truncates.
+poll_max: 180
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 480,987,532 bytes, **240 blocks 11560..11799**, no gap; 17.6 MB of
+# trace. About 18 minutes launch to archive, all five checks green: 11,811
+# frames identical to run53, `MAP_STYLE 14`, 40 blocks shared with run125
+# and 0 differing, and a coverage set on all 13 window frames. The first
+# launch at 21:16 was swallowed: att-552's capture held RonDriver, which is
+# single-instance, so `open -a` only activated it. The second waited for it.
+#
+# **The readings, decided on blocks 11513..11758**: **R1 holds.** The
+# original's `1/62` stops against `1/23` on 11758 at (41398, 22093), and
+# this crate's a frame later, 60/45 behind. R2 is dead: `1/62` is the only
+# player-1 figure that changes animation while moving on the block.
+# **R3 holds**: the detour `1/62` plans on 11689 goes around `1/64`, which
+# stands 21/20 behind. R4, as framed, is dead: `1/62`'s group agrees on the
+# word's blocks. The membership parting is `1/64`'s own, on 11513.
+# `docs/GROUPS.md` §22.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run130.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11800)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run130-greatlakes-armytwo.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 240 blocks, 11560..11799, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run130-greatlakes-armytwo.txt" | awk '{v=$3+0; if(v>=11560&&v<11800) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==240 && lo==11560 && hi==11799)}'
+# **The overlap with run125, and the count is the claim** — `samegame.py`
+# exits 0 when nothing is in common. Forty blocks, no `--exclude`: the
+# detail is run125's.
+check: python3 tools/gamelog/samegame.py gamelog-run125-greatlakes-armyidle.txt gamelog-run130-greatlakes-armytwo.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run125 overlap: common="n" "r" differ="d; exit !(n==40 && d==0 && r=="(11560..11599)")}'
+# **The coverage window landed**: every frame 11750..11762 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run130.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11750&&f<=11762&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==13)}'
