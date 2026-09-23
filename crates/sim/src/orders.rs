@@ -6614,15 +6614,36 @@ impl Sim {
         // stance and the chase. It is how run146's catapult loses its
         // attack on 864, the frame its ground order ends: the hoplites
         // have walked inside the three-tile minimum (§57.3).
-        if self.units[u]
+        let packs = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].combat.packs)
-            && !self.units[u].combat.packed
-            && a.ever_in_range
-        {
+            .is_some_and(|t| self.unit_types[t].combat.packs);
+        if packs && !self.units[u].combat.packed && a.ever_in_range {
             self.kill_current_order(u);
             return;
         }
+        // **A packer re-searches before it chases** (`fight:1051`,
+        // `docs/COMBAT.md` §60.3): `find_new_target(this, &who, 0)`
+        // kills the attack and runs the idle search, which adds the
+        // order it finds, and the tail goes on only with a target in
+        // hand. An unpacked packer's search refuses what it cannot
+        // reach (`find_nearby_target`'s `local_24`), so a catapult whose
+        // attacker stands inside its minimum drops the attack and stays
+        // put: run146's `0/6` on 868, 870 and 871.
+        let target = if packs {
+            self.kill_current_order(u);
+            let Some(t) = self.find_melee_target(u, -1) else {
+                return;
+            };
+            let pos = if state.stance == combat::Stance::Defensive {
+                QueuePos::First
+            } else {
+                QueuePos::New
+            };
+            self.add_attack_order(u, t, pos, false, false);
+            t
+        } else {
+            target
+        };
         if state.stance == combat::Stance::StandGround {
             return;
         }

@@ -2151,7 +2151,15 @@ impl Sim {
             rings += 1;
         }
         let rings = rings.min(32);
-        let anything = match attacker {
+        // **`local_24`: the searchers that must reach what they take**
+        // (`docs/COMBAT.md` §60, the listing `64911b`–`64918d`). A unit in
+        // STAND_GROUND, an entrenched one without `unit_masks2 & 0x20000`,
+        // and an **unpacked packer**. The gate below tests their
+        // candidates with `is_in_range` and skips any it fails, so an
+        // unpacked catapult's idle search never takes a target inside its
+        // minimum range. This crate had the flag read the other way round,
+        // as "takes anything".
+        let must_reach = match attacker {
             Obj::Unit(i) => {
                 let c = self.units[i].combat;
                 c.stance == Stance::StandGround || c.entrenched || (ap.packs && !c.packed)
@@ -2240,11 +2248,19 @@ impl Sim {
                         if max_dist > 0 && dist > max_dist {
                             continue;
                         }
-                        // The range gate: a unit takes anything, a building
-                        // needs the target in range or worth waiting for.
-                        let in_range = if anything
-                            || matches!(attacker, Obj::Unit(_))
-                            || self.is_in_range(attacker, o)
+                        // The range gate (`006495c2`–`0064963b`). A unit
+                        // that need not reach is deemed in range untested.
+                        // One that must is tested, and a candidate out of
+                        // range is skipped: `local_5c`, the one exception,
+                        // is a computer's packed siege engine, which this
+                        // crate does not flag (§60.4). A building needs the
+                        // target in range or worth waiting for.
+                        let in_range = if must_reach {
+                            if !self.is_in_range(attacker, o) {
+                                continue;
+                            }
+                            false
+                        } else if matches!(attacker, Obj::Unit(_)) || self.is_in_range(attacker, o)
                         {
                             true
                         } else if is_unit || self.attack_of(o) != 0 {
@@ -3491,6 +3507,91 @@ mod tests {
             }
         }
         assert_eq!(pushes, 1, "the ready frame re-entered work and fired again");
+    }
+
+    /// **An unpacked packer takes only what it can reach, and a hit from
+    /// inside its minimum is dropped without a chase**
+    /// (`Object::find_nearby_target@00648da0`'s `local_24`, the listing
+    /// `64918d` and `6495c2`; `Unit::fight@005fd4d0:1051`'s packer
+    /// re-search; `docs/COMBAT.md` §60). run146's catapult `0/6` is the
+    /// diff: its idle search on 864 finds nothing inside three tiles, and
+    /// each hoplite that hits it after is attacked for one frame and let
+    /// go.
+    ///
+    /// Made to fail on purpose, both ways: with the range gate read back
+    /// as "takes anything" the search names the foe inside the minimum;
+    /// with the packer re-search off the retaliation walks away to get
+    /// its range.
+    #[test]
+    fn an_unpacked_packer_takes_only_what_it_can_reach() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                min_range: 3,
+                recharge: 30,
+                uber_size: 1,
+                obj_masks: mask::SIEGE,
+                siege: true,
+                packs: true,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let foe_ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                uber_size: 1,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let here = Pos::new(0x4000 + 24, 0x4000 + 24);
+        let me = put(&mut sim, 0, ty, here);
+        sim.units[me].combat.packed = false;
+        let near = put(
+            &mut sim,
+            1,
+            foe_ty,
+            Pos::new(0x4000 + 2 * 192 + 24, 0x4000 + 24),
+        );
+        assert_eq!(
+            sim.find_melee_target(me, -1),
+            None,
+            "an unpacked packer's search took a foe inside its minimum"
+        );
+        // Packed, the same engine need not reach, and it names the foe.
+        sim.units[me].combat.packed = true;
+        assert_eq!(sim.find_melee_target(me, -1), Some(Obj::Unit(near)));
+        sim.units[me].combat.packed = false;
+        // The hit: an attack on the hitter, then on the engine's next
+        // frame the attack is gone and the engine has not moved.
+        sim.do_damage(
+            Obj::Unit(near),
+            Obj::Unit(me),
+            crate::movement::Angle(0),
+            false,
+            1,
+            false,
+            false,
+            10,
+        );
+        assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(near)));
+        sim.tick();
+        assert!(
+            sim.units[me].orders.is_empty(),
+            "the engine kept an order: {:?}",
+            sim.units[me].orders
+        );
+        assert!(
+            sim.units[me].path.is_empty() && sim.units[me].movement.dest.is_none(),
+            "the engine walked for its range"
+        );
     }
 
     /// The flee arm's `else`: a **combat** unit still retaliates, which

@@ -500,10 +500,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // restage's word, whose catapult holds the first
     // `ATTACKGROUNDORDER` on a headline frame. No window here had one,
     // so the record's four keys could arrive unread and read as quiet.
-    let rw = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
+    //
+    // **Item 627 closed the restage at the capture's end**, so the window
+    // is the one the ground order and its aftermath print on: its last
+    // hold, 863, the ready block, and the catapult's one-block
+    // retaliations on 868, 870 and 871 (`docs/COMBAT.md` §60).
+    assert_eq!(GOLDEN_WORD_CHAPTER_THREE_RESTAGE, 1000, "run146 reopened");
     if let Some(p) = &ch3b {
-        let n = drive_capture(p, rw - 2, rw + 2, &mut paths);
-        assert_eq!(n, 5, "run146 carries the word's five blocks");
+        let n = drive_capture(p, 863, 872, &mut paths);
+        assert_eq!(n, 10, "run146 carries the ground order's ten blocks");
         frames += n;
     }
     // **And the clock the restage's word is read on, on run44** (item
