@@ -4592,3 +4592,76 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run125-greatlakes-armyidle.txt gamelog-run134-greatlakes-armypool.txt --exclude WORLD --exclude GROUPDATA --drop last_group | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run125 overlap: common="n" "r" differ="d; exit !(n==80 && d==0 && r=="(11440..11519)")}'
 # **The coverage window landed**: every frame 11420..11514 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run134.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11420&&f<=11514&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==95)}'
+
+run: 135
+tag: greatlakes-crossing
+item: 560
+why: Great Lakes' long word is 11806, a collision frame — ours spends two `Guy::set_anim+0x97a < Unit::move_step+0x823` before `1/64`'s `Unit::resolve_unit_collision+0xb52` pause roll where the original spends one — and no dump on disk reaches it: run130 ends on block 11799
+# **THE DISK WAS GREPPED FIRST.** run130 [11560, 11799] is the highest
+# Great Lakes block at any detail below run80's endpoint window
+# [23960, 24000); nothing between 11800 and 23959 carries a block, and no
+# trace on this map has a coverage window above 11762.
+#
+# **The frame, from this crate's side** (`RON_DEBUG_SITES=11800-11810`,
+# `RON_DEBUG_UNIT=1/*@11800-11808` on the run53 test). Draws agree to
+# 11805. On sim-frame 11806 (block 11807) ours spends `move_step+0x823`
+# from **`1/31`** and then from **`1/37`**, both of army 1 on its
+# `AttackTo` east, then `1/64`'s pause roll (`pause 7`, snapped to
+# (40152, 21096)). The original spends one `move_step` stop, then the
+# roll. Army 1 and army 2 cross at about (40000..40200, 20960..21150).
+# Ours `1/31` walks on 11805 in its group move (`in_group`, leader 97),
+# stands at (40008, 21144) on 11806 with `coll (40033, 21154)` and **no
+# group move**; ours `1/37` stopped on 11804 at (40186, 20962), stepped
+# to (40194, 20971) on 11805 and stopped again on 11806.
+#
+# **The readings, each with what kills it**, on blocks 11800..11808,
+# player 1, the dump's own keys:
+#
+# - **R1 — `1/31` does not stop on 11806.** The extra draw is `1/31`'s.
+#   **Killed if** the original's `1/31` stands at (40008, 21144) on block
+#   11807 with its `GUY` `cur_anim` changing on that block, as ours.
+# - **R2 — `1/37` does not stop on 11806.** The extra draw is `1/37`'s:
+#   its stop–step–stop of 11804..11806 is ours alone. **Killed if** the
+#   original's `1/37` holds (40186, 20962) → (40194, 20971) → (40194,
+#   20971) on blocks 11805..11807, as ours.
+# - **R3 — a lag, not a stop.** The crossing's positions part before the
+#   word, so a stop lands on another frame because a unit is somewhere
+#   else. **Killed if** every player-1 position agrees on blocks
+#   11790..11806.
+# - **R4 — the group move.** Ours `1/31` leaves its group move on the
+#   collision and stops; the original keeps it in formation. **Killed
+#   if** the original's `1/31` shows the same `group`/`form` as ours on
+#   blocks 11806..11807.
+#
+# **Backwards too**: 40 blocks overlap run130, 11760..11799.
+frames: 11870
+mapstyle: 14
+# **run134's line**: run125's detail with `GROUPS=1` and without `DEATHS`
+# (run92's trap: `dump_deaths` leaves the log's type at `WORLD=0` and
+# `GroupData::log_data` sets none, so with `DEATHS` on the pool is dropped
+# silently). Army 1's group move is one reading's subject, and the pool
+# costs ~0.13 MB a block.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 11760 11860
+# **Per-frame coverage over the word**, 11796..11816: ten frames of
+# approach, the word, and the re-path after it.
+cover: cover=1
+cover: window=11796-11816
+settle_min: 14000000
+# Sized from run134: 2.2 MB a block, 100 blocks ~220 MB; ~12 minutes of
+# dumping. 180 polls is 60 minutes.
+poll_max: 180
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run135.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11860)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run135-greatlakes-crossing.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 100 blocks, 11760..11859, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run135-greatlakes-crossing.txt" | awk '{v=$3+0; if(v>=11760&&v<11860) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==100 && lo==11760 && hi==11859)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run135-greatlakes-crossing.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=11760&&v<11860)n++} print "blocks with a GROUPDATA: "n; exit !(n==100)}'
+# **The overlap with run130, and the count is the claim** — forty blocks,
+# with the two records this line changes excluded: `WORLD` (what `DEATHS`
+# printed) and `GROUPDATA` with its `last_group` lines (added).
+check: python3 tools/gamelog/samegame.py gamelog-run130-greatlakes-armytwo.txt gamelog-run135-greatlakes-crossing.txt --exclude WORLD --exclude GROUPDATA --drop last_group | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run130 overlap: common="n" "r" differ="d; exit !(n==40 && d==0 && r=="(11760..11799)")}'
+# **The coverage window landed**: every frame 11796..11816 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run135.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11796&&f<=11816&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==21)}'
