@@ -162,6 +162,18 @@ pub struct DeathDivergence {
     pub theirs: i64,
 }
 
+/// One unit-frame whose **outermost container** disagreed — the building
+/// or unit `ObjectData::get_inside` walks `inside_up` to, or `-1` for a
+/// unit on the map (parked 598, item 620).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InsideDivergence {
+    pub frame: i64,
+    pub who: i64,
+    pub o: i64,
+    pub ours: i64,
+    pub theirs: i64,
+}
+
 /// One unit-frame where `ObjectData::visible` (`+0x40`) disagreed —
 /// `docs/VISION.md` §7.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
