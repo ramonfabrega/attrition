@@ -4546,6 +4546,24 @@ why: Great Lakes' long word 11757 is `1/64`'s lag, and the lag is army 2's group
 # pool inherits the unit dump's type. No `DEATHOBJ` block appears on any
 # block of run130, so what `DEATHS=1` printed here was the two `WORLD`
 # blocks and nothing else.
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 230,346,455 bytes, **104 blocks 11416..11519**, a `GROUPDATA` on every
+# one; 18.9 MB of trace. Eleven minutes launch to archive, all six checks
+# green: 11,531 frames identical to run53, `MAP_STYLE 14`, 80 blocks
+# shared with run125 and 0 differing outside the two changed records,
+# and a coverage set on all 95 window frames.
+#
+# **The readings, decided on 11423..11513**: on 11512 no `push_group`,
+# `get_open_slot`, `set_group` or `Army::add_unit` runs, so **R1, R3's
+# eviction and R4 are dead**. R2 is dead by arithmetic (slot 56, not 2).
+# What runs is `action_stance`, then `Form::categorize` →
+# **`Group::sort`** → `Group::kill` / `normalize` / `add`: R3's `kill`,
+# from a caller no reading named. Its input was set on 11424: the pool
+# shows group 66 as `{60, 61, 64}` from 11425, the squad's tail alone,
+# because `Group::add`'s `get_num` normalizes a group of fewer than four.
+# And 11423 has the `come_out` push (group 69) the stanza expected.
+# `docs/GROUPS.md` §23.
 frames: 11530
 mapstyle: 14
 end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1

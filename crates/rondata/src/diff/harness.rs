@@ -4681,13 +4681,18 @@ mod tests {
         // headline: the word went 11582 → 11757 and **11582**, the old word,
         // came under it — a `use_market` sell on both sides, the frame's
         // first draw either way (`docs/AI.md` §56).
+        //
+        // **Seventeen → eighteen on item 557**, the literal following the
+        // headline: the word went 11757 → 11806 and **11782**'s rotation
+        // came under it (`docs/GROUPS.md` §23). The streams above agree
+        // through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382, 11_582
+                10_782, 10_982, 11_185, 11_382, 11_582, 11_782
             ],
-            "below the word Great Lakes takes exactly seventeen market \
+            "below the word Great Lakes takes exactly eighteen market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -8964,11 +8969,13 @@ mod tests {
             return;
         }
         let first = |who: i64, o: i64, what: &str| firsts.get(&(who, o, what.to_string())).cloned();
-        // **The word's blocks** (`docs/GROUPS.md` §22). On 11758 the
-        // original's `1/62` stops against `1/23` (`collide_o 23`) and goes
-        // to its stand (`cur_anim` 8 → 0); this crate's is still walking,
-        // 60/45 behind, and stops on 11759. `1/34`'s idle pick is the
-        // draw stream one frame on, and moves with it.
+        // **The word's blocks, empty: the value diff of item 557's move**
+        // (`docs/GROUPS.md` §22, §23). Until 557 the original's `1/62`
+        // stopped against `1/23` on 11758 and this crate's a frame later,
+        // 60/45 behind, on a detour around a lagging `1/64`; eight rows
+        // parted here. With the back-pointer carried, `1/64` leaves the
+        // pool on 11512 as the original's does, walks uncapped, and the
+        // whole chain closes — the word moved to 11806, past this window.
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
@@ -8976,50 +8983,24 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            [
-                "11758 1/34 g.cur_anim[0]: ours 0 theirs 2",
-                "11758 1/34 g.end_time[0]: ours 31 theirs 62",
-                "11758 1/62 collide_o: ours -1 theirs 23",
-                "11758 1/62 collide_who: ours -1 theirs 1",
-                "11758 1/62 g.cur_time[0]: ours 9 theirs 1",
-                "11758 1/62 g.end_time[0]: ours 15 theirs 33",
-                "11758 1/62 g.last_time[0]: ours 8 theirs 0",
-                "11758 1/62 order:coll: Coll { ours: Some((42272, 23027)), theirs: (41378, 22078) }",
-            ],
-            "the word's blocks part on a different set"
+            Vec::<String>::new(),
+            "the old word's blocks part again"
         );
-        // **The chain, backwards.** `1/62`'s position first parts on 11702,
-        // under a detour planned on 11689 whose middle takes another route
-        // (the path's first parting), and the only neighbour standing
-        // elsewhere on that block is `1/64` — 21/20 behind, one unit cell
-        // over on y.
-        assert_eq!(
-            first(1, 62, "path:length"),
-            Some((DETOUR_BLOCK, "PathLength { ours: 15, theirs: 14 }".into())),
-            "1/62's detour"
-        );
-        assert_eq!(
-            first(1, 62, "pos").map(|r| r.0),
-            Some(11_702),
-            "1/62's position"
-        );
+        // **The chain, backwards, closed.** `1/62`'s detour of 11689 and
+        // its position of 11702 no longer part, `1/64` stands on the
+        // original's point on the detour's block, and `1/64`'s first step
+        // after the order — 12 here against 25 until 557 — agrees.
+        assert_eq!(first(1, 62, "path:length"), None, "1/62's detour");
+        assert_eq!(first(1, 62, "pos"), None, "1/62's position");
         assert_eq!(
             neighbour,
-            Some(((42_117, 22_691), (42_138, 22_711))),
+            Some(((42_117, 22_691), (42_117, 22_691))),
             "1/64 on the detour's block, (theirs, ours)"
         );
-        // `1/64`'s lag opens on 11514: a half step here (`last_speed` 12)
-        // against the original's full 25, the block after army 2's group
-        // order of frame 11512 leaves the original's `1/64` in no pool
-        // group and its `1/62` and `1/63` at stance 0.
-        assert_eq!(
-            first(1, 64, "pos").map(|r| r.0),
-            Some(11_514),
-            "1/64's position"
-        );
+        assert_eq!(first(1, 64, "pos"), None, "1/64's position");
         assert_eq!(
             first(1, 64, "g.last_speed[0]"),
-            Some((11_514, "ours 12 theirs 25".into())),
+            None,
             "1/64's first step after the order"
         );
         // The pool pointers had parted once before, on 11424, when the
@@ -9031,20 +9012,159 @@ mod tests {
             "army 2's first pool parting"
         );
         // **The order's block, both sides whole** (`docs/COMBAT.md`
-        // §44.2.1): the original's stance reaches `1/60`, `1/61`, `1/64`
-        // and `1/65` and not `1/62` or `1/63`, and its `1/64` is left in
-        // no pool group; this crate's reaches all six and keeps them in 66.
+        // §44.2.1): the stance reaches `1/60`, `1/61`, `1/64` and `1/65`
+        // and not `1/62` or `1/63`, and `1/64` is left naming no pool
+        // group — on both sides since item 557 (`docs/GROUPS.md` §23),
+        // where until then this crate reached all six and kept them in 66.
         assert_eq!(
             regroup,
             [
                 (60, (Some(66), Some(1)), Some((66, 1))),
                 (61, (Some(66), Some(1)), Some((66, 1))),
-                (62, (Some(66), Some(0)), Some((66, 1))),
-                (63, (Some(66), Some(0)), Some((66, 1))),
-                (64, (Some(-1), Some(1)), Some((66, 1))),
+                (62, (Some(66), Some(0)), Some((66, 0))),
+                (63, (Some(66), Some(0)), Some((66, 0))),
+                (64, (Some(-1), Some(1)), Some((-1, 1))),
                 (65, (Some(66), Some(1)), Some((66, 1))),
             ],
             "army 2 on the order's block, (o, theirs group/stance, ours)"
+        );
+    }
+
+    /// **run134 — army 2's pool list, block for block** (item 557,
+    /// `docs/GROUPS.md` §23). run134 is run125's game with `GROUPS=1` over
+    /// [11416, 11519], the first dump on this map above run92's 7689 to
+    /// print the pool's own lists, and the widening beside it had only
+    /// each unit's back-pointer. Every block compares group 66's member
+    /// list — the original's `GROUPDATA id 66`, this crate's
+    /// [`sim::Sim::pool_list`] — and the pointer of each of army 2's six
+    /// units, both directions.
+    ///
+    /// The two frames the chain turns on are pinned by value: on 11425 the
+    /// list is `{60, 61, 64}`, because `Group::add`'s own `get_num`
+    /// normalizes the squad's head and middle out as it adds the next
+    /// figure; and on 11513 it is `{60, 61, 65, 62, 63, 64}` with `1/64`
+    /// naming nothing, because `Group::sort` killed the stray follower and
+    /// re-added its squad whole. **Made to fail on purpose** twice: with
+    /// `Group::add`'s per-step normalize removed (the list is the whole
+    /// squad from 11425) and with the sort removed (11513's list is the
+    /// old order and `1/64` still names 66).
+    #[test]
+    fn run134_s_pool_list_is_the_original_s() {
+        const FIRST: i64 = 11_416;
+        const TAIL: i64 = 11_519;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(r134)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            dump("gamelog-run134-greatlakes-armypool.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run134 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r134).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // `(block, what, ours, theirs)` for every disagreement.
+        let mut parted: Vec<(i64, String, String, String)> = Vec::new();
+        let mut lists: std::collections::BTreeMap<i64, (Vec<i64>, Vec<i64>)> =
+            std::collections::BTreeMap::new();
+        let mut blocks = 0usize;
+        for f in 0..TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            blocks += 1;
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) else {
+                continue;
+            };
+            let theirs: Vec<i64> = crate::gamelog::groups(block)
+                .into_iter()
+                .find(|g| g.id == 66)
+                .map(|g| g.members.iter().map(|m| m.o).collect())
+                .unwrap_or_default();
+            let ours: Vec<i64> = built
+                .sim
+                .pool_list(1, 2)
+                .into_iter()
+                .map(i64::from)
+                .collect();
+            if ours != theirs {
+                parted.push((
+                    n,
+                    "list 66".into(),
+                    format!("{ours:?}"),
+                    format!("{theirs:?}"),
+                ));
+            }
+            lists.insert(n, (ours, theirs));
+            let (units, _, _) = crate::gamelog::records(block, false);
+            for t in units
+                .iter()
+                .filter(|t| t.who == 1 && (60..=65).contains(&t.o))
+            {
+                let ours = built
+                    .sim
+                    .unit_by_o(1, t.o as i16)
+                    .map(|u| built.sim.pool_group_of(u));
+                if ours != t.group {
+                    parted.push((
+                        n,
+                        format!("1/{} group", t.o),
+                        format!("{ours:?}"),
+                        format!("{:?}", t.group),
+                    ));
+                }
+            }
+        }
+        for p in &parted {
+            eprintln!("  {} {}: ours {} theirs {}", p.0, p.1, p.2, p.3);
+        }
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        let list = |n: i64| lists.get(&n).cloned();
+        assert_eq!(
+            list(11_425),
+            Some((vec![60, 61, 64], vec![60, 61, 64])),
+            "11424's add leaves the squad's tail alone in the list"
+        );
+        assert_eq!(
+            list(11_513),
+            Some((vec![60, 61, 65, 62, 63, 64], vec![60, 61, 65, 62, 63, 64])),
+            "11512's sort re-seats the squad whole at the end"
+        );
+        let rows: Vec<String> = parted
+            .iter()
+            .map(|(n, what, o, t)| format!("{n} {what}: ours {o} theirs {t}"))
+            .collect();
+        // The one residue: on 11424 the original's `1/62`..`1/64` stand in
+        // their `come_out` group 69 for one block (`Unit::come_out`'s own
+        // push on frame 11423 — run134's coverage), which this crate does
+        // not make. A pointer that names **any** other group at 11424's add
+        // leaves the same list, so the residue moves nothing.
+        assert_eq!(
+            rows,
+            [
+                "11424 1/62 group: ours Some(-1) theirs Some(69)",
+                "11424 1/63 group: ours Some(-1) theirs Some(69)",
+                "11424 1/64 group: ours Some(-1) theirs Some(69)",
+            ],
+            "run134's pool parts"
         );
     }
 
@@ -9055,6 +9175,11 @@ mod tests {
     /// is then the original's cell for cell, and `1/62` stops on the word's
     /// frame at the original's point with the original's clock. So the
     /// word is `1/64`'s lag, and the detour search is not.
+    ///
+    /// **Since item 557 the probe seats `1/64` where it already stands**
+    /// (`docs/GROUPS.md` §23): the lag was the back-pointer, and with it
+    /// carried `1/64` reaches 11688 on the original's point unaided. The
+    /// test asserts that first, and keeps the counterfactual behind it.
     #[test]
     fn run130_s_word_is_1_64_s_lag() {
         /// The frame the detour is planned on, and the block before it.
@@ -9095,6 +9220,14 @@ mod tests {
             built.tick();
         }
         let u64 = built.sim.unit_by_o(1, 64).expect("1/64");
+        assert_eq!(
+            (
+                i64::from(built.sim.units[u64].pos.x),
+                i64::from(built.sim.units[u64].pos.y)
+            ),
+            (seat.x, seat.y),
+            "1/64 on the original's point before the detour, unprobed"
+        );
         assert!(
             built
                 .sim

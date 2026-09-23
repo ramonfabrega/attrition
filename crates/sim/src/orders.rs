@@ -2764,10 +2764,9 @@ impl Sim {
             return;
         };
         let Some(gm) = mo.group else { return };
-        // `if (this->group == -1) ungroup` (`5e79f0`). This crate's group
-        // membership **is** the army's (`docs/GROUPS.md` §1): a unit with
-        // no army is in no group, and its group order degrades on the
-        // spot.
+        // `if (this->group == -1) ungroup` (`5e79f0`): the back-pointer
+        // ([`crate::Unit::group_ptr`], `docs/GROUPS.md` §23) names no seat,
+        // and the group order degrades on the spot.
         let Some(g) = self.group_of(u) else {
             self.ungroup_move_order(u, gm.id);
             return;
@@ -2842,14 +2841,18 @@ impl Sim {
         // 1. The leader has to still be usable: alive, on the map, in my
         //    group, and holding a group order with **my** `id` — or a
         //    `CHANGE_FORM`, which this crate does not model.
+        //    "In my group" is the two back-pointers agreeing
+        //    (`5e7c8c`: `leader.+0x80 != this.+0x80`), not a list.
         let lost = !(self.units[l].alive()
             && self.units[l].on_map
-            && self.army_of(l) == g.army
+            && self.units[l].group_ptr == self.units[u].group_ptr
             && self.still_group_move(l, gm.id));
         // 2. `form_id` is rewritten from the list on every frame that
         //    reaches here (`5e7ea0`). A member the list no longer holds
-        //    loses its group outright.
+        //    loses its group outright — `+0x80 = −1` (`5e7ed8`), then the
+        //    ungroup (`docs/GROUPS.md` §23).
         let Some(i) = g.list.iter().position(|&m| m == u) else {
+            self.units[u].group_ptr = None;
             self.ungroup_move_order(u, gm.id);
             return;
         };

@@ -309,6 +309,20 @@ pub struct Unit {
     /// `Group::add` pulls in behind its captain with `keep_captain = 1`.
     /// A three-figure squad is a captain, its `o_down`, and that one's.
     pub o_down: Option<usize>,
+    /// `UnitData +0x80` — the pool slot this unit's **group back-pointer**
+    /// names, `0..64` within its owner's block, or `None` for −1
+    /// (`docs/GROUPS.md` §23). The dump prints it as `group`, `who·64 +
+    /// slot`.
+    ///
+    /// It is its own state, not a view of any list: `Unit::set_group`,
+    /// `Groups::push_group` and `get_open_slot`'s eviction write it,
+    /// `Group::kill` and `do_group_move` clear it, and `Group::add` does
+    /// not touch it at all. So a unit can name a group that does not
+    /// list it and be listed by one it does not name, and every reader
+    /// the original has goes through the pointer: the cap
+    /// (`groups[+0x80].speed`), `do_group_move`'s first line,
+    /// `Object::get_army` and `Group::normalize`'s prune.
+    pub group_ptr: Option<u8>,
     /// `ObjectData::near_o`/`near_who` (+0x34/+0x36) — the **nearest**
     /// candidate the last search saw, which is not the one it chose
     /// (`docs/COMBAT.md` §37.1).
@@ -782,6 +796,7 @@ impl Unit {
             captain: true,
             o_up: None,
             o_down: None,
+            group_ptr: None,
             near: None,
             auto_transport: false,
             never_transport: false,

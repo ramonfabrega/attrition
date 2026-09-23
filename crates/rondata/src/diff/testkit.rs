@@ -1603,6 +1603,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// **Item 554 took the capture, run130, and held the word**: its block is
 /// in `run130_s_word_frame_is_widened_whole`.
 ///
+/// ~~**11757 is army 2's `1/62` stopping a frame late.**~~ **Item 557
+/// moved it 11757 → 11806, and the mechanism was the back-pointer**
+/// (`docs/GROUPS.md` §23). `UnitData +0x80` is its own state in the
+/// original: `Group::add` normalizes a small group at every step, so the
+/// squad `1/62`–`1/64` joined army 2 on 11424 as `1/64` alone, and
+/// `Group::sort` on 11512 killed that stray follower — clearing its
+/// pointer — and re-added the squad without writing one. `1/64` then
+/// walked uncapped and `1/62`'s detour of 11688 went around it where the
+/// original's does. The new word's delta: ours **7** draws and the
+/// original **6**, parting at index **1** — ours
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
+/// `Unit::resolve_unit_collision+0xb52`. **Past every dump on disk**:
+/// run130 ends on block 11799, so the word's block is owed a capture
+/// ([`WIDENINGS`]); 11758 stays in `run130_s_word_frame_is_widened_whole`,
+/// pinned empty, as the move's value diff, and
+/// `run134_s_pool_list_is_the_original_s` holds the pool lists the move
+/// rests on.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1614,7 +1632,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_757;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_806;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2497,12 +2515,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // walks a detour planned around `1/64`, and `1/64` stands 21/20 behind
     // the original's from army 2's group order of frame 11512
     // (`docs/GROUPS.md` §22).
+    //
+    // **Item 557 moved it 11757 → 11806, past run130's last block
+    // (11799)**, so the widening is owed a capture again and this row names
+    // the item that owes it and no test. The same test keeps 11758 pinned
+    // empty as the move's value diff (`docs/GROUPS.md` §23), on its own
+    // `GREAT_LAKES_ARMY_TWO_BLOCK` rather than on the headline. **557 is
+    // the placeholder**: the commander re-points this row at the item that
+    // books the capture before 557 leaves the queue, or the guard goes red.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run130_s_word_frame_is_widened_whole"),
-        554,
-        Some(WIDENING_GREAT_LAKES_ARMY_TWO),
+        None,
+        557,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
