@@ -5271,3 +5271,557 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         );
     }
 }
+
+/// **Chapter three, walked** — the mounted and siege lines (`docs/GOLDEN.md`
+/// §7, item 587, run145). Six staged lines: `!ai off`, `age who=N 2` for
+/// both players (the Classical age), `add 3 chariot`, the hoplite squad and
+/// `add catapult`.
+///
+/// **What the capture established before this walk ran**, each written
+/// into `chapter3.cmd`'s header first (`docs/RUNS.md`, run145): eight `INFO
+/// cmd` records each returning 1; 297 blocks, 605..899 with no gap; three
+/// separate one-unit Chariots `0/6..0/8` on 611 — §7's leading-count
+/// falsifier does not fire — the hoplites `1/6..1/8` on 616 and the
+/// catapult `0/9` on 621. The other two falsifiers **could not fire**: the
+/// catapult is born packed and never launches (its unpack, `spell 652`,
+/// starts on 696), and the chariots shoot the hoplites dead without moving.
+///
+/// The word is the catapult's: this crate puts `0/9` into `Unit::fight` on
+/// sim frame 621, the frame after its birth, and spends the one-in-five
+/// re-search draw (`Unit::fight+0x9b0`) that the original, whose packed
+/// catapult takes no attack order, does not.
+#[test]
+fn chapter_three_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch3", 3, 6, 900) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_THREE,
+            GOLDEN_WORD_CHAPTER_THREE,
+            Some(GOLDEN_WORD_CHAPTER_THREE + 1)
+        ),
+        "chapter three's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §7"
+    );
+}
+
+/// **Chapter three's word, widened whole, both directions** (item 587,
+/// `docs/DECISIONS.md` 43). Every record run145 carries on every block of
+/// [`WIDENING_CHAPTER_THREE`], the whole capture:
+/// [`crate::diff::harness::widen_block`] on every unit, figure, building
+/// and city; the leader record whole for both players at `LEADERS=2`; the
+/// **`AMMO` record** shot by shot, both directions, as chapter five's
+/// widening reads it; and the **`GUY` record** at `GUYS=2` — each figure's
+/// position and facing — which `compare` does not carry.
+///
+/// The word's two blocks, 621 and 622, print the catapult `0/9` once, both
+/// sides, before any quiet row is trusted.
+#[allow(
+    non_snake_case,
+    reason = "the window's names as the other widenings spell them"
+)]
+fn widen_chapter_three(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+    word: i64,
+    catapult: i64,
+) -> Option<ChapterThreeWidening> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let (FIRST, LAST, WORD) = (first, last, word);
+    // The window's one absent block: the capture's last frame, whose
+    // `!quit` block is written one past it.
+    let no_block = LAST - 1;
+    let mut s = stage_script(run, stem)?;
+    let players = s.built.sim.players.len();
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut missing: BTreeSet<String> = BTreeSet::new();
+    let (mut blocks, mut rows, mut leader_rows, mut guy_rows) = (0usize, 0usize, 0usize, 0usize);
+    let (mut ammo_theirs, mut ammo_ours) = (0usize, 0usize);
+    for f in 0..LAST - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < FIRST {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        blocks += 1;
+        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        rows += k;
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        for who in 0..2usize {
+            let Some(block) = flog.leader_block(n, who as i64) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            for (k, v) in crate::diff::leader::rows(&s.loaded, &s.built, who) {
+                let Some(&y) = t.get(&k) else {
+                    missing.insert(k);
+                    continue;
+                };
+                leader_rows += 1;
+                if v != y {
+                    firsts
+                        .entry((who as i64, -1, format!("leader:{k}")))
+                        .or_insert((n, format!("ours {v} theirs {y}")));
+                }
+            }
+        }
+        // **The `AMMO` record, both directions**, keyed on the shooter and
+        // the pool slot (chapter five's reading, `docs/COMBAT.md` §46.4).
+        let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0)
+            .map(|(a, _)| ((a.who, a.o, a.index), a))
+            .collect();
+        let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = s
+            .built
+            .sim
+            .projectiles
+            .iter()
+            .filter_map(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => {
+                    let un = &s.built.sim.units[u];
+                    Some((
+                        (i64::from(un.owner), i64::from(un.index), i64::from(p.slot)),
+                        *p,
+                    ))
+                }
+                sim::combat::Obj::Building(_) => None,
+            })
+            .collect();
+        ammo_theirs += theirs.len();
+        ammo_ours += ours.len();
+        let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+        for key @ (who, o, slot) in keys {
+            let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                let side = if theirs.contains_key(&key) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                firsts
+                    .entry((who, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+                continue;
+            };
+            let target = p.target.map_or((-1, -1), |t| match t {
+                sim::combat::Obj::Unit(u) => {
+                    let tu = &s.built.sim.units[u];
+                    (i64::from(tu.owner), i64::from(tu.index))
+                }
+                sim::combat::Obj::Building(_) => (-2, -2),
+            });
+            for (name, mine, dumped) in [
+                ("cur_time", i64::from(p.cur_time), a.cur_time),
+                ("total_time", i64::from(p.total_time), a.total_time),
+                ("sx", i64::from(p.launch.x), a.sx),
+                ("sy", i64::from(p.launch.y), a.sy),
+                ("ex", i64::from(p.landing.x), a.ex),
+                ("ey", i64::from(p.landing.y), a.ey),
+                ("whom", target.0, a.whom),
+                ("ox", target.1, a.ox),
+                ("accuracy", i64::from(p.accuracy), a.accuracy),
+                ("splash_area", i64::from(p.splash_area), a.splash_area),
+                ("num_guys", i64::from(p.num_guys), a.num_guys),
+                ("sz", i64::from(p.sz), a.sz),
+                ("ez", i64::from(p.ez), a.ez),
+                ("angle", i64::from(p.angle.0), a.angle),
+                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+                ("rolling", i64::from(p.rolling), a.rolling),
+            ] {
+                if mine != dumped {
+                    firsts
+                        .entry((who, o, format!("ammo[{slot}].{name}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+        // **The `GUY` record at `GUYS=2`**: each figure's position and
+        // facing, on every staged unit and every other the block prints.
+        // `compare` carries no guy row; chapter two's widening is where
+        // this reading comes from.
+        for them in &frame.units {
+            if !(0..players as i64).contains(&them.who) {
+                continue;
+            }
+            let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = s.built.sim.unit_by_o(who, o) else {
+                continue;
+            };
+            let un = &s.built.sim.units[u];
+            if them.guys.len() != un.guys.len() {
+                firsts
+                    .entry((them.who, them.o, "guys:count".to_string()))
+                    .or_insert((
+                        n,
+                        format!("ours {} theirs {}", un.guys.len(), them.guys.len()),
+                    ));
+            }
+            for (k, g) in them.guys.iter().enumerate() {
+                let Some(og) = un.guys.get(k).copied() else {
+                    continue;
+                };
+                let (body, facing) = match og.follow {
+                    Some(b) => (b.body, b.facing),
+                    None => (un.movement.body, un.movement.facing),
+                };
+                for (name, mine, dumped) in [
+                    ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
+                    ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
+                    ("g.angle", i64::from(facing.0), g.angle),
+                ] {
+                    let Some(dumped) = dumped else { continue };
+                    guy_rows += 1;
+                    if mine != dumped {
+                        firsts
+                            .entry((them.who, them.o, format!("{name}[{k}]")))
+                            .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                    }
+                }
+            }
+        }
+        // **Both sides printed once on the word's two blocks**, for the
+        // catapult: the record the draw is spent in.
+        if (WORD..=WORD + 1).contains(&n) {
+            for them in frame.units.iter().filter(|u| u.who == 0 && u.o == catapult) {
+                eprintln!("  {run} block {n} 0/{catapult} theirs {them:?}");
+                let o = i16::try_from(catapult).expect("an o");
+                match s.built.sim.unit_by_o(0, o).map(|u| &s.built.sim.units[u]) {
+                    Some(u) => eprintln!(
+                        "  {run} block {n} 0/{catapult} ours pos {:?} idle {} packed {} orders {:?} guys {:?}",
+                        u.pos, u.idle, u.combat.packed, u.orders, u.guys
+                    ),
+                    None => eprintln!("  {run} block {n} 0/{catapult} ours: absent"),
+                }
+            }
+        }
+    }
+    let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+    for ((w, o, what), (f, row)) in &firsts {
+        by_block
+            .entry(*f)
+            .or_default()
+            .push(format!("{w}/{o} {what}: {row}"));
+    }
+    for (f, rows) in &by_block {
+        if *f <= WORD + 2 || rows.len() <= 6 {
+            for r in rows {
+                eprintln!("  f{f} {r}");
+            }
+        } else {
+            eprintln!("  f{f}: {} keys, first {}", rows.len(), rows[0]);
+        }
+    }
+    eprintln!(
+        "ch3 widening {run}: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
+         {leader_rows} leader rows, {guy_rows} guy rows, ammo {ammo_theirs} theirs / \
+         {ammo_ours} ours, {} keys parted; {} leader keys not printed at LEADERS=2",
+        firsts.len(),
+        missing.len()
+    );
+    let absent = usize::from((FIRST..LAST).contains(&no_block));
+    assert_eq!(
+        blocks,
+        (LAST - FIRST) as usize - absent,
+        "{run}'s dump no longer carries every frame of [{FIRST}, {LAST})"
+    );
+    assert_eq!(
+        leader_rows,
+        2 * 88 * blocks,
+        "the leader rows LEADERS=2 prints are not compared on every block"
+    );
+    assert!(guy_rows > 0, "the GUY record is not read");
+    Some(ChapterThreeWidening {
+        firsts,
+        ammo_theirs,
+        ammo_ours,
+    })
+}
+
+/// What [`widen_chapter_three`] found: every key's first parting block
+/// with the value diff beside it, and the `AMMO` tallies both sides.
+struct ChapterThreeWidening {
+    firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    ammo_theirs: usize,
+    ammo_ours: usize,
+}
+
+/// **Chapter three's word, widened whole, both directions** (item 587,
+/// `docs/DECISIONS.md` 43), on run145. The walk is [`widen_chapter_three`],
+/// which run146 shares.
+#[test]
+fn chapter_three_s_word_frame_is_widened_whole() {
+    const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
+    const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
+    let Some(w) = widen_chapter_three("ch3", "chapter3", WIDENING_CHAPTER_THREE, WORD, 9) else {
+        return;
+    };
+    let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
+    // **Anti-vacuity for the `AMMO` record**: run145's live rounds are all
+    // read — the chariots' from 651 — and this crate's side is not empty.
+    assert_eq!(ammo_theirs, 89, "run145's live rounds are not all read");
+    assert!(ammo_ours > 0, "this crate fired no round in the window");
+    // **The standing families on the capture's first block**, none of
+    // them the chapter's: the unmodelled `form` (also every staged unit's
+    // birth row), `build:extra` (the end detail prints no `BUILDDATA`),
+    // player 0's two `filled_gather_slots`, and — new with this chapter —
+    // `leader:bucket` 3 and 4, knowledge and metal, 0 against the dump's
+    // 100 for both players from 605: the residue of `age who=N 2`, which
+    // is staged before the window opens and which chapter two's `library`
+    // arm does not leave. Pinned by name so it cannot stand in for
+    // anything else; not chased here.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what == "leader:bucket[3:knowledge]"
+            || what == "leader:bucket[4:metal]"
+    };
+    let at_floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == FIRST)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
+        "the standing rows on run145's first block moved: {at_floor:?}"
+    );
+    // **What parts at and one block past the word, whole**: only the
+    // catapult. On 621 this crate's `0/9` holds an attack order the dump's
+    // does not; on 622 it has turned to its target and started its reload.
+    let under: Vec<String> = firsts
+        .iter()
+        .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+        .collect();
+    assert_eq!(
+        under,
+        vec![
+            "622 0/9 angle:Facing: ours 1312351573 theirs 1431655765",
+            "622 0/9 angle:Heading: ours 923402240 theirs 1431655765",
+            "622 0/9 g.angle[0]: ours 1312351573 theirs 1431655765",
+            "622 0/9 g.angle[1]: ours -1789569707 theirs 1431655765",
+            "622 0/9 g.angle[2]: ours -2082471936 theirs 1431655765",
+            "622 0/9 g.x[1]: ours 838 theirs 852",
+            "622 0/9 g.x[2]: ours 564 theirs 567",
+            "622 0/9 g.y[1]: ours 8215 theirs 8223",
+            "622 0/9 g.y[2]: ours 8307 theirs 8281",
+            "622 0/9 heading: ours 923402240 theirs 1431655765",
+            "622 0/9 idle: ours 0 theirs 2",
+            "621 0/9 order:length: Length { ours: 1, theirs: 0 }",
+            "621 0/9 orders.len: ours 1 theirs 0",
+            "622 0/9 recharging: ours 82 theirs 0",
+        ],
+        "what parts at or one block past chapter three's word moved"
+    );
+}
+
+/// **Chapter three's restage, walked** — `chapter3b.cmd`, run146 (item
+/// 587, `docs/GOLDEN.md` §7): the same three unit types in two arenas, so
+/// that §7's minimum-range and speed falsifiers can fire. Seven staged
+/// lines. Neither fires: the unpacked catapult launches once at eight
+/// tiles and then refuses the hoplites inside three for 173 blocks, and
+/// the chasing chariots walk at up to 33 units a block against the
+/// hoplites' 28–29.
+///
+/// The word is the chase's first frame: on 633 the original's chariot
+/// `0/8` spends one `Unit::fight+0x9b0` and then starts its walk, two
+/// `Guy::set_anim+0xf2f` draws for its two figures; this crate spends a
+/// second re-search and starts the walk on 634.
+#[test]
+fn chapter_three_s_restage_holds_to_its_word() {
+    let Some(w) = walk_script("ch3b", "chapter3b", 3, 7, 1000) else {
+        return;
+    };
+    assert_eq!(
+        (w.word, w.sequence, w.value),
+        (
+            GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
+            GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
+            Some(GOLDEN_WORD_CHAPTER_THREE_RESTAGE + 1)
+        ),
+        "run146's word moved; re-pin it here and say so in docs/GOLDEN.md §7"
+    );
+}
+
+/// **run146's word, widened whole, both directions** (item 587,
+/// `docs/DECISIONS.md` 43): [`widen_chapter_three`] over
+/// [`WIDENING_CHAPTER_THREE_RESTAGE`], the whole capture, printing the
+/// catapult `0/6` both sides on the word's two blocks.
+#[test]
+fn chapter_three_s_restage_is_widened_whole() {
+    const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
+    let Some(w) = widen_chapter_three("ch3b", "chapter3b", WIDENING_CHAPTER_THREE_RESTAGE, WORD, 6)
+    else {
+        return;
+    };
+    let firsts = w.firsts;
+    assert_eq!(w.ammo_theirs, 89, "run146's live rounds are not all read");
+    assert!(w.ammo_ours > 0, "this crate fired no round in the window");
+    // The standing families on the first block are run145's, the same 30.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what == "leader:bucket[3:knowledge]"
+            || what == "leader:bucket[4:metal]"
+    };
+    let at_floor = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THREE_RESTAGE.0)
+        .map(|((_, _, what), _)| what)
+        .collect::<Vec<_>>();
+    assert!(
+        at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
+        "the standing rows on run146's first block moved: {at_floor:?}"
+    );
+    // **At and one block past the word, only the chasing chariot**: this
+    // crate's `0/8` has turned on 634 where the dump's still faces the
+    // way it was born.
+    let under: Vec<String> = firsts
+        .iter()
+        .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+        .collect();
+    assert_eq!(
+        under,
+        vec![
+            "634 0/8 angle:Facing: ours 998768640 theirs 1431655765",
+            "634 0/8 angle:Heading: ours 998768640 theirs 1431655765",
+            "634 0/8 g.angle[0]: ours 998768640 theirs 1431655765",
+            "634 0/8 g.angle[1]: ours 998768640 theirs 1431655765",
+            "634 0/8 heading: ours 998768640 theirs 1431655765",
+        ],
+        "what parts at or one block past run146's word moved"
+    );
+}
+
+/// **§7's three falsifiers, as the dumps print them** (item 587). Each was
+/// a `check:` in a `.cmd` header before its run; this is the same reading
+/// made an assertion, so a re-take that changed any of them would fail
+/// here rather than in a journal.
+///
+/// - **The leading count**, both captures: `add 3 chariot` is three
+///   separate one-unit Chariots (`o_up`/`o_down` −1, type 195) on 611.
+/// - **The minimum range**, run146: the catapult `0/6` launches exactly
+///   one round, and on its launch block no live hoplite of arena A stands
+///   within `3 × 192 − 6` of it — while on 173 blocks one does, with the
+///   catapult alive, which is what makes the refusal a measurement.
+/// - **The speed**, run146: a chariot walks on three or more blocks, and
+///   its largest one-block step is longer than any of arena B's hoplites'
+///   (compared squared: this reads the dump, and does no float arithmetic).
+#[test]
+fn chapter_three_s_falsifiers_are_the_dump_s() {
+    use std::collections::BTreeMap;
+    let alive = |u: &crate::gamelog::UnitDump| u.myhits.is_some_and(|h| h > 1);
+    for run in ["ch3", "ch3b"] {
+        let Some((dump, _)) = golden(run) else {
+            eprintln!("skipping: no golden capture {run} (docs/RUNS.md run145, run146)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+        let at = ix.frames().iter().position(|x| x.number == 611).unwrap();
+        let f = ix.frame_state(at).unwrap();
+        let chariots: Vec<_> = f
+            .units
+            .iter()
+            .filter(|u| u.who == 0 && u.guys.first().and_then(|g| g.kind) == Some(195))
+            .map(|u| (u.o, u.o_up, u.o_down))
+            .collect();
+        assert_eq!(
+            chariots.len(),
+            3,
+            "{run}: `add 3 chariot` is not three units"
+        );
+        assert!(
+            chariots.iter().all(|c| c.1 == Some(-1) && c.2 == Some(-1)),
+            "{run}: the chariots are threaded as a squad: {chariots:?}"
+        );
+    }
+    let Some((dump, _)) = golden("ch3b") else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let d2 =
+        |a: &crate::gamelog::Pos, b: &crate::gamelog::Pos| (a.x - b.x).pow(2) + (a.y - b.y).pow(2);
+    const DEAD_ZONE: i64 = 3 * 192 - 6;
+    let (mut launches, mut close_launches, mut inside) = (0usize, 0usize, 0usize);
+    let mut last: BTreeMap<(i64, i64), crate::gamelog::Pos> = BTreeMap::new();
+    let mut steps: BTreeMap<(i64, i64), (usize, i64)> = BTreeMap::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let f = ix.frame_state(at).unwrap();
+        let raw = ix.read_frame(at).unwrap();
+        let live: BTreeMap<(i64, i64), &crate::gamelog::UnitDump> = f
+            .units
+            .iter()
+            .filter(|u| alive(u))
+            .map(|u| ((u.who, u.o), u))
+            .collect();
+        let nearest = live.get(&(0, 6)).and_then(|c| {
+            (9..=11)
+                .filter_map(|o| live.get(&(1, o)))
+                .map(|h| d2(&c.pos, &h.pos))
+                .min()
+        });
+        if nearest.is_some_and(|d| d < DEAD_ZONE * DEAD_ZONE) {
+            inside += 1;
+        }
+        for (a, _) in super::ammo::blocks(&raw) {
+            if (a.who, a.o, a.cur_time) == (0, 6, 1) {
+                launches += 1;
+                if nearest.is_none_or(|d| d < DEAD_ZONE * DEAD_ZONE) {
+                    close_launches += 1;
+                }
+            }
+        }
+        for (k, u) in &live {
+            if let Some(p) = last.get(k) {
+                let s = d2(p, &u.pos);
+                if s > 0 {
+                    let e = steps.entry(*k).or_insert((0, 0));
+                    e.0 += 1;
+                    e.1 = e.1.max(s);
+                }
+            }
+        }
+        last = live.iter().map(|(k, u)| (*k, u.pos)).collect();
+        let _ = n;
+    }
+    eprintln!(
+        "run146: {launches} catapult launch(es), {close_launches} inside the dead zone, \
+         {inside} blocks a hoplite stands inside it; steps {steps:?}"
+    );
+    assert_eq!(
+        (launches, close_launches, inside),
+        (1, 0, 173),
+        "§7's minimum-range falsifier: the catapult's launches, those inside \
+         three tiles, and the blocks that make the refusal a measurement"
+    );
+    let chariot = (7..=9)
+        .filter_map(|o| steps.get(&(0, o)))
+        .filter(|s| s.0 >= 3)
+        .map(|s| s.1)
+        .max()
+        .expect("no chariot walks three blocks in run146");
+    let hoplite = (6..=8)
+        .filter_map(|o| steps.get(&(1, o)))
+        .map(|s| s.1)
+        .max()
+        .expect("arena B's hoplites never walk");
+    assert!(
+        chariot > hoplite,
+        "§7's speed falsifier fires: a chariot's longest step² {chariot} is not \
+         longer than a hoplite's {hoplite}"
+    );
+}

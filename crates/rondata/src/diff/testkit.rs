@@ -2438,6 +2438,42 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
 /// [`WIDENING_CHAPTER_TWO`]'s is.
 pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
 
+/// **Chapter three's golden word** — the mounted and siege lines, run145,
+/// item 587 (`docs/GOLDEN.md` §7). The draw stream parts on **621**, ours
+/// 7 draws against the original's 6: the extra is `Unit::fight+0x9b0`, the
+/// one-in-five re-search, on the catapult `0/9` the frame after its birth.
+/// The original's catapult is born packed (`unit_masks 0x80000`), takes no
+/// attack order, and starts its unpack (`CASTORDER spell 652`) on block
+/// 696; this crate sends it to fight packed. The first value word parts on
+/// 622. No mechanism is named here.
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE: i64 = 621;
+
+/// `chapter_three_s_word_frame_is_widened_whole`'s window: **run145
+/// whole**, 605..899 and the `!quit` block at 901. The floor is the
+/// capture's own first block, for the reason [`WIDENING_CHAPTER_TWO`]'s
+/// is; the ceiling is the end, because the chariots' first rounds (651)
+/// are after the word and an `AMMO` reader over a window without a round
+/// in it would agree by not looking.
+pub(crate) const WIDENING_CHAPTER_THREE: (i64, i64) = (605, 901);
+
+/// **Chapter three's restage** — `chapter3b.cmd`, run146, item 587: the
+/// same three unit types in two arenas, staged so that §7's minimum-range
+/// and speed falsifiers can fire (neither does). The draw stream parts on
+/// **633**, ours 8 draws against the original's 9. The original's chasing
+/// chariot `0/8` spends one `Unit::fight+0x9b0` and then two
+/// `Guy::set_anim+0xf2f`, the walk starting on its two figures; this crate
+/// spends a second re-search and starts the walk on 634. Values part on
+/// 634. No mechanism is named here.
+///
+/// **The chapter's word is [`GOLDEN_WORD_CHAPTER_THREE`], 621**, the lower
+/// of the two, as the rules headline reads lowest first; this one is
+/// pinned beside it so the restage cannot fall unseen.
+pub(crate) const GOLDEN_WORD_CHAPTER_THREE_RESTAGE: i64 = 633;
+
+/// `chapter_three_s_restage_is_widened_whole`'s window: run146 whole,
+/// 605..999 and the `!quit` block at 1001.
+pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
+
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
 /// §46.3, and the `Drop` of [`crate::diff::Built`] that holds every replay
@@ -2931,6 +2967,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_four_s_word_frame_is_widened_whole"),
         567,
         Some(WIDENING_CHAPTER_FOUR),
+    ),
+    // Item 587: run145, the catapult's birth frame.
+    (
+        "GOLDEN_WORD_CHAPTER_THREE",
+        GOLDEN_WORD_CHAPTER_THREE,
+        Some("chapter_three_s_word_frame_is_widened_whole"),
+        587,
+        Some(WIDENING_CHAPTER_THREE),
+    ),
+    // Item 587: run146, chapter three's restage, the chariots' chase.
+    (
+        "GOLDEN_WORD_CHAPTER_THREE_RESTAGE",
+        GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
+        Some("chapter_three_s_restage_is_widened_whole"),
+        587,
+        Some(WIDENING_CHAPTER_THREE_RESTAGE),
     ),
     // Item 578: closed at its first walk, on both run141 and its control.
     (
