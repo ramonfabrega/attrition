@@ -1,14 +1,15 @@
-# Static recompilation of the original: step 1 measured, step 3 counted
+# Static recompilation of the original: steps 1 and 2 measured, step 3 counted
 
-**Status: step 1 done and diff-verified; step 3's mechanical share counted;
-steps 2 and 4 not started. 2026-09-22.** The spike ran on the charter lore
-sent on 2026-09-22 (worktree `recomp-spike`, independent of the commander's
-loop, score-neutral). The charter asked: can `riseofnations.exe` be statically
-recompiled, one function at a time, into native arm64 code, using the PDB for
-function boundaries, so that an original function runs in the same process as
-this crate's port? Step 0 (prior art) and the image findings were an Opus 5.5
-session's; it stopped while writing the lifter. Fable 5.1 wrote the lifter,
-the runtime and the harness, ran step 1, and counted step 3, in one session.
+**Status: steps 1 and 2 done and diff-verified; step 3's mechanical share
+counted at 91 %; step 4 not started. 2026-09-22.** The spike ran on the
+charter lore sent on 2026-09-22 (worktree `recomp-spike`, independent of the
+commander's loop, score-neutral). The charter asked: can `riseofnations.exe`
+be statically recompiled, one function at a time, into native arm64 code,
+using the PDB for function boundaries, so that an original function runs in
+the same process as this crate's port? Step 0 (prior art) and the image
+findings were an Opus 5.5 session's; it stopped while writing the lifter.
+Fable 5.1 wrote the lifter, the runtime and the harness, ran steps 1 and 2,
+and counted step 3, in one session, with lore's read on the order.
 
 ## Step 1: two functions, natively, against the emulator rung
 
@@ -16,17 +17,17 @@ the runtime and the harness, ran step 1, and counted step 3, in one session.
 (`void f_<va>(cpu_t *c)`: registers in C locals, the guest's memory a flat
 4 GiB reservation, `goto` per branch, a direct C call per direct `call`,
 flags computed eagerly and left to the C compiler to drop);
-`tools/recomp/rt/runtime.c` maps the guest space and turns a trap into a
-message; `tools/recomp/difftest.py` drives `tools/emu/callfn.py`'s **own**
-sweep — the same `sweep_calls` generator, so the same 3,516 calls in the
-same order — through unicorn and through the native build, and compares
+`tools/recomp/rt/runtime.c` reserves the guest space and turns a trap into a
+message; `tools/recomp/difftest.py diff` drives `tools/emu/callfn.py`'s
+**own** sweep — the same `sweep_calls` generator, so the same 3,516 calls in
+the same order — through unicorn and through the native build, and compares
 every row.
 
 | measurement | value | how |
 |---|---|---|
 | Rows agreeing, `vector_dist@0046cff0` and `get_estimate@00688310` | **3,516 of 3,516** | `uv run tools/recomp/difftest.py <exe> diff` after `uv run tools/recomp/lift.py <exe> 0046cff0 00688310` |
 | The diff can fail | yes: one constant of the lifted C changed (`0xea60` → `0xea61`, the 60,000 guard) gave **18 disagreeing rows** and exit 1 | the same command on the altered build |
-| Time for the 3,516 calls, excluding process start | native **5–7 ms**, unicorn **22–40 ms** | printed by `difftest.py`; both are dwarfed by `uv`'s six seconds |
+| Time for the 3,516 calls, excluding process start | native **5–9 ms**, unicorn **22–43 ms** | printed by `difftest.py`; both are dwarfed by `uv`'s six seconds |
 | `callfn.py`'s table after the refactor that exposed `sweep_calls` | byte-identical (`md5 9c0f7dd7…`), and `crates/sim`'s `the_emulated_original_agrees_on_every_row` passes in release against the install | `uv run tools/emu/callfn.py <exe> sweep`, before and after |
 
 Both functions are integer-only (`vector_dist` is the hypotenuse, `get_estimate`
@@ -34,41 +35,72 @@ the A\* heuristic with a `ret 0x24`), so step 1 verifies the integer subset,
 the call/return protocol through the guest stack, `div`/`idiv` and the
 flags a `jle`/`jb`/`jne` reads. It verifies nothing about floats.
 
+## Step 2: a function that reads the object graph, on a real frame, three ways
+
+The charter's step 2 is `GuyData::turn_speed@005de340` on laid-out or typed
+state. Lore's read (2026-09-22) was to take the lab's **typed end-frame
+snapshot** rather than lay the ~12 fields out by hand: the end-frame
+collector on `codex/typed-state-oracle` took one packet of the Great Lakes
+market run at logger frame 11,186 (trace tick 11,185) — 177 ranges,
+843,001,856 bytes of the process's private data and main-image data at the
+addresses the game had them, 127 units marked active by the lab's decode.
+`tools/recomp/snapshot.py` reads that stream's range table;
+`difftest.py frame` maps every range into both machines beside the image
+and calls `turn_speed` on **every guy of every active unit, in both modes**.
+
+| measurement | value | how |
+|---|---|---|
+| Units, guys, calls | 127 units, 134 guys, **268 calls** (two modes) | `uv run tools/recomp/difftest.py <exe> frame <frame-snapshot.bin> <typed-state.json> --table …` |
+| Native against unicorn, on the same memory | **268 of 268 agree, 0 traps** | the same command |
+| The crate's port against the original's answers | **264 of 264 modelled rows agree**; the other 4 are guys past their squad with no track offset, a shape the port has no function for — counted, not asserted | `RON_TURN_TABLE=… cargo test -p sim the_original_on_a_real_frame_agrees_on_every_guy` (`crates/sim/src/movement.rs`; skips with a message when the table is absent) |
+| That test can fail | yes: one answer altered in a copy of the table fails it on that line | the same test on the altered copy |
+| Loading 843 MB | natively **0.08 s** (`mprotect` and `memmove`), into unicorn 0.09 s | printed by `difftest.py` |
+| The rows' spread | 17 distinct answers; 204 of 268 are the instant-turn `0x80000000` (250 guys carry the flag, 224 are stopped), 12 are the crew quarter turn, the rest the divided rate; no packed unit on this frame | `awk` over the table |
+
+Three readers, two independent of the port: the lifted C and unicorn agree
+on the original's answer, and the port agrees with both. The self-checks the
+driver runs on the way — each unit's `units` band slot points back at it,
+and each guy's `who`/`o` are its unit's — passed on all 127 and 134.
+
+**Provenance.** The snapshot, its decode (`typed-state.json`, which names
+the active units) and the collector are the Codex lab's artifacts, on
+`codex/typed-state-oracle` and its successor branch, not on `main`; the
+packet is non-atomic across threads (the lab says so) and the lab has not
+established full logger parity for it. Neither matters for a per-guy getter,
+and the numbers above are on that packet only. The table the third reader
+asserts is written to `~/ron-data/lab-experiments/2026-09-22-typed-state-market/recomp/`,
+outside git like everything derived from the original.
+
 ## Step 3: what share of the cited functions lifts mechanically
 
 `tools/recomp/scan.py --docs docs` takes every `name@<8 hex>` citation in
 the top-level `docs/*.md` (as the paperwork guard reads them), lifts each
 function on its own — callees named, not followed — and compiles each
-lift to an object. Seven seconds.
+lift to an object. Eight seconds.
 
-| | count |
-|---|---|
-| addresses cited, in `.text` | 771 (of 779 cited) |
-| **lifted and compiled** | **555 (72 %)** |
-| stopped at `fs:` — all 149 are the SEH prologue's `mov eax, fs:[0]` | 149 |
-| stopped at an SSE instruction | 39 |
-| stopped at `bt`/`bts`/`btr` (19), `rol` (4), a string op — `rep stosd`, `movsd es:[edi]` (5) | 28 |
-| x87, undecodable, ran into the next function, discovery looping | 0 each |
+| | first subset | after `bt`/`bts`/`btr`/`btc`, `rol`/`ror`, `rep stos`/`movs`, `fs:` as a guest TIB |
+|---|---|---|
+| addresses cited, in `.text` | 771 (of 779 cited) | 771 |
+| **lifted and compiled** | 555 (72 %) | **698 (91 %)** |
+| stopped at `fs:` — the SEH prologue's `mov eax, fs:[0]` | 149 | 0 |
+| stopped at an SSE instruction | 39 | 70 |
+| stopped at `bt`/`bts`/`btr`, `rol`, a string op | 28 | 0 |
+| stopped at a `lock` prefix (interlocked ops) | — | 3 |
+| x87, undecodable, ran into the next function, discovery looping | 0 each | 0 each |
 
-Two readings of the table. **The subset is small and the residue is
-shallow**: the 28 integer stops are five instructions, an hour's work, and
-the 149 SEH stops are one addressing mode (`fs:` → a guest TIB at
-`c->fs_base`, three memory operations in the prologue and epilogue) — for
-*lifting*; running a function that then throws is a different matter. **A
-share of the 39 SSE stops are data moves, not arithmetic**: `xorps xmm0,
-xmm0` and `movaps`/`movups` of sixteen bytes are how this compiler zeroes
-and copies structs (`PathFinder::find_wpath`, `PathFinder::init`,
-`Army::init`); the count of the ones that do float arithmetic was not taken.
-
-"Lifted and compiled" is not "runs correctly": only the two functions of
-step 1 are diff-verified. The per-function rows are in
-`target/recomp/scan.tsv` after a run.
+The residue is now one thing: **SSE, 70 functions**, and a share of those
+are data moves, not arithmetic — `xorps xmm0, xmm0` and `movaps`/`movups`
+of sixteen bytes are how this compiler zeroes and copies structs
+(`PathFinder::find_wpath`, `PathFinder::init`, `Army::init`); the count of
+the ones that do float arithmetic was not taken. "Lifted and compiled" is
+not "runs correctly": three functions are diff-verified. The per-function
+rows are in `target/recomp/scan.tsv` after a run.
 
 ## What changed our understanding (the image findings, kept and corrected)
 
 | Finding | Evidence | What it does not establish |
 |---|---|---|
-| The game's floating point is SSE2, not x87. | A mnemonic histogram over the whole `.text` (`llvm-objdump`): about 12.5k `movss`, 3.9k `mulss`, 2.4k `addss`, against about 700 x87 hits in total, many of them data decoded as code by the linear sweep. No `ldmxcsr` in `.text`. **And the scan above: zero x87 among the 771 cited functions.** | Which functions hold the real x87 hits. The executable also imports `_set_SSE2_enable` and `_except1` from `api-ms-win-crt-math`, so the C runtime's own maths can take an x87 path at run time; MXCSR as set by DLLs was not read. |
+| The game's floating point is SSE2, not x87. | A mnemonic histogram over the whole `.text` (`llvm-objdump`): about 12.5k `movss`, 3.9k `mulss`, 2.4k `addss`, against about 700 x87 hits in total, many of them data decoded as code by the linear sweep. No `ldmxcsr` in `.text`. **And the scan: zero x87 among the 771 cited functions.** | Which functions hold the real x87 hits. The executable also imports `_set_SSE2_enable` and `_except1` from `api-ms-win-crt-math`, so the C runtime's own maths can take an x87 path at run time; MXCSR as set by DLLs was not read. |
 | So bit-exactness is mostly SSE edge cases, not 80-bit precision. | SSE add, sub, mul, div and sqrt are exactly specified IEEE operations on both x86 and AArch64. The differences to handle are the NaN a result carries, the `minss`/`maxss` operand order, out-of-range truncation (`0x80000000`), and FMA contraction (`-ffp-contract=off`). `rt/recomp.h`'s helpers say each in x86's terms, and 17 edge cases of them were checked against the SDM's answers on this machine. | No float instruction has been lifted; the helpers have no caller yet. |
 | Internal functions use link-time custom conventions. | `Vector<float>::norm@00420870` passes a float in `xmm0` to `sqrtf@0041e6f0` — a `sqrtf` built into the executable — and gets its result back in `xmm0`, with no x87 return. | A machine-level recompiler keeps the XMM registers in its context, so this is transparent to it. A Rust caller still needs each function's convention, as `tools/emu/callfn.py` already records. |
 | The transcendentals are not in the executable. | The import directory (read by `tools/recomp/image.py`): `_libm_sse2_{acos,asin,atan,cos,pow,sin,sqrt,tan}_precise` from `api-ms-win-crt-math-l1-1-0.dll`. | Under the captures, Wine's ucrtbase answers these calls, not Microsoft's. Neither implementation was read. |
@@ -81,26 +113,34 @@ The charter asked whether an existing emulator gives the same in-process
 oracle more cheaply. Unicorn is the emulator rung (`docs/EMULATOR.md`),
 reached through `tools/emu/callfn.py` out of process; linking it in-process
 would add a GPL-2 crate to an MIT/Apache repository, and Ramon declined that
-pivot. Step 1 now puts a number on the difference: the native build answers
-the sweep in 5–7 ms against unicorn's 22–40 ms, and both are hidden behind
-`uv`'s six-second start. **For a fixture of a few thousand calls the two are
-equivalent**; the native build's case is the in-process one — a Rust test
-calling the original directly, with no subprocess — and that is not built.
+pivot. Steps 1 and 2 put numbers on the difference: the native build answers
+the sweep in 5–9 ms against unicorn's 22–43 ms, and the frame's 268 calls in
+1 ms against 2 ms; both are hidden behind `uv`'s six-second start. **For a
+fixture of a few thousand calls the two are equivalent**; the native build's
+case is the in-process one — a Rust test calling the original directly,
+with no subprocess — and that is not built. What step 2 adds to the
+question: the snapshot loads in 0.08 s either way, so a per-function
+differential test on real frames is cheap on both machines.
 
 ## What exists on the branch
 
 - `tools/recomp/lift.py` — the lifter: capstone (declared inline, like
-  `callfn.py`'s unicorn), the integer subset, an error naming the address and
-  instruction of anything outside it. Emits `lifted.c` and builds
-  `librecomp.dylib` with clang under `target/recomp/`.
+  `callfn.py`'s unicorn), the integer subset, `fs:` as the guest TIB, an
+  error naming the address and instruction of anything outside it. Emits
+  `lifted.c` and builds `librecomp.dylib` with clang under `target/recomp/`.
 - `tools/recomp/rt/recomp.h`, `rt/runtime.c` — the guest context, memory
-  and SSE helpers; the reservation, `rc_call`, and a trap that comes back as
-  a message.
-- `tools/recomp/difftest.py` — `callfn.py`'s sweep through both machines;
-  `sweep` alone prints the native table in `callfn.py`'s format, so
-  `RON_EMU_TABLE` can point at it.
+  and SSE helpers; a `PROT_NONE` reservation with `rc_map` to open the
+  ranges a harness lays out, `rc_call`, and a trap or a fault that comes
+  back as a message naming the guest address.
+- `tools/recomp/snapshot.py` — the lab's `frame-snapshot-v1` stream as
+  guest memory: the range table and where each range's bytes sit.
+- `tools/recomp/difftest.py` — `callfn.py`'s sweep through both machines
+  (`diff`, `sweep`), and the frame driver (`frame`, `--table`).
 - `tools/recomp/scan.py` — the step-3 count.
 - `tools/recomp/image.py` — the PE, its imports, the function table.
+- `crates/sim/src/movement.rs` — the one touch outside `tools/` and
+  `docs/lab/`: the `RON_TURN_TABLE` test, which skips when the table is
+  absent and changes nothing else.
 - Nothing from the install, and nothing generated from it, is committed.
 
 ## What is not established
@@ -108,33 +148,43 @@ calling the original directly, with no subprocess — and that is not built.
 - Any float behaviour: no SSE instruction is lifted; the helpers are untested
   against a real function. The first float function through `difftest.py`
   is what would test them, and unicorn's SSE (QEMU softfloat) is the
-  reference — not Rosetta's, which runs the captures.
+  reference — not Rosetta's, which runs the captures. The frame supplies
+  real float states (`bank`, `pitch`, `last_norm` on every guy) for it.
 - `af` after a logic instruction is left as it was, and the flags after a
   shift by zero are left as they were, which is x86's rule; `of` after a
   multi-bit shift is emitted as if the count were one (x86 leaves it
-  undefined). Nothing in the sweep reads any of these.
-- Sub-32-bit `mul`, `div`, `push` and `pop`, `fs:` addressing, indirect
-  jumps and the string instructions stop the lift by design.
-- The guest space is all mapped: a wild read returns zeros instead of
-  faulting, where unicorn names the address. A function that reads a
-  singleton this harness did not lay out is therefore wrong quietly here and
-  loudly there — step 2 needs the fault back (a `PROT_NONE` reservation with
-  the sections and the stack mapped over it).
-- Step 2 (`GuyData::turn_speed@005de340` on laid-out state) and step 4 (how
-  far a frame runs) were not attempted.
+  undefined); `rol`/`ror` by a count that is a multiple of the width leave
+  `cf` as it was, where x86 sets it. Nothing verified reads any of these.
+- Sub-32-bit `mul`, `div`, `push` and `pop`, `lock`, `repe`/`repne`,
+  indirect jumps and any SSE or x87 instruction stop the lift by design.
+- The fault's granularity is the host page, 16 KiB on Apple Silicon
+  against the guest's 4 KiB: a read within the same 16 KiB as a mapped range
+  does not fault. A function that lifts because its SEH prologue now writes
+  the guest TIB runs wrong if it then throws.
+- The harness's stack (`0x7ff00000`, `callfn.py`'s constant) sits inside a
+  range the snapshot also holds (`0x7fde0000+0x200000`, a thread's stack);
+  the native machine maps the snapshot over it and the harness's frame
+  overwrites a few hundred bytes of it per call, unicorn refuses the two
+  overlapping ranges. Harmless for `turn_speed`; a function that reads that
+  stack needs the harness's stack moved.
+- The active-unit list comes from the lab's decode, not from the packet's
+  `units` bands; the driver checks each unit against its band but does not
+  enumerate the bands itself.
+- Step 4 (how far a frame runs with imports stubbed) was not attempted.
 - The scan counts functions the specification cites, not the executable's
   22,199; the share over all of `.text` is not known.
 
 ## Adoption
 
-**Pilot-ready as a lab tool; nothing for the main loop yet.** It moves no
-score and touches no queue file. What it is good for now: the same fixture
-rung as `callfn.py`, faster, and a C rendering of any integer function that
-is sometimes easier to read than the decompile (every instruction is
-commented with its address). What would make it worth more than that, in
-order of cost: the five integer instructions and the `fs:` prologue (an hour,
-unlocks 177 of the 216 stops for lifting); the first float function through
-the diff (tests the header's helpers, which is the whole bit-exactness
-question); a `PROT_NONE` reservation so a missing singleton faults; then step
-2. The per-function differential testing the lab has queued needs none of
-this — it runs on either machine.
+**Pilot-ready as a lab tool; one candidate for the main loop.** It moves no
+score and touches no queue file. What it is good for now: a fixture rung on
+real frames — an original function called on every object of a captured
+frame in a millisecond, natively or under unicorn, with the port asserted
+beside it — which is the per-function differential testing the lab has
+queued, built and run once. The candidate: `RON_TURN_TABLE`'s test is the
+shape every such function would get. What would make the tool worth more,
+in order of cost: the first float function through the frame (tests the
+header's helpers, which is the whole bit-exactness question; the 70 SSE
+stops minus the struct-zeroing ones are the list); enumerating the `units`
+bands from the packet so the driver needs no decode; the harness's stack
+moved off the snapshot; then step 4.

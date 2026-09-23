@@ -57,7 +57,8 @@ static inline void st128(uint8_t *m, uint32_t a, x128 v) { memcpy(m + a, &v, 16)
 static inline uint32_t parity8(uint32_t v) { return !__builtin_parity(v & 0xff); }
 
 /* ---- the runtime's entry points (runtime.c) ---- */
-uint8_t *rc_reserve(void);                         /* the 4 GiB guest space, or NULL */
+uint8_t *rc_reserve(void);                         /* the 4 GiB guest space, no access yet, or NULL */
+int rc_map(uint8_t *mem, uint32_t base, uint32_t size);  /* open a range read-write; 0 on success */
 int rc_call(cpu_t *c, uint32_t entry);             /* 0, or 1 and rc_trap_message() says why */
 const char *rc_trap_message(void);
 _Noreturn void rc_trap(cpu_t *c, uint32_t at, const char *why);

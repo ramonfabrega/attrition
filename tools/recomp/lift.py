@@ -38,7 +38,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 RT = os.path.join(HERE, "rt")
 
 REG32 = ("eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi")
-FLAGS = ("cf", "pf", "af", "zf", "sf", "of")
+FLAGS = ("cf", "pf", "af", "zf", "sf", "of", "df")
+STRING = {"stosb": 1, "stosw": 2, "stosd": 4, "movsb": 1, "movsw": 2, "movsd": 4}
 SUBREG = {}
 for _r in REG32:
     _w = _r[1:]  # ax, cx, dx, bx, sp, bp, si, di
@@ -53,11 +54,11 @@ COND = {
     "o": "of", "no": "!of",
     "b": "cf", "c": "cf", "nae": "cf", "ae": "!cf", "nb": "!cf", "nc": "!cf",
     "e": "zf", "z": "zf", "ne": "!zf", "nz": "!zf",
-    "be": "(cf || zf)", "na": "(cf || zf)", "a": "(!cf && !zf)", "nbe": "(!cf && !zf)",
+    "be": "cf || zf", "na": "cf || zf", "a": "!cf && !zf", "nbe": "!cf && !zf",
     "s": "sf", "ns": "!sf", "p": "pf", "pe": "pf", "np": "!pf", "po": "!pf",
-    "l": "(sf != of)", "nge": "(sf != of)", "ge": "(sf == of)", "nl": "(sf == of)",
-    "le": "(zf || sf != of)", "ng": "(zf || sf != of)", "g": "(!zf && sf == of)", "nle": "(!zf && sf == of)",
-}
+    "l": "sf != of", "nge": "sf != of", "ge": "sf == of", "nl": "sf == of",
+    "le": "zf || sf != of", "ng": "zf || sf != of", "g": "!zf && sf == of", "nle": "!zf && sf == of",
+}  # each is used whole inside `if (…)`; a `cmov`/`set` wraps it itself
 TERMINATORS = ("ret", "int3", "hlt", "ud2")
 
 SAVE = "; ".join(f"c->{r} = {r}" for r in REG32 + FLAGS) + ";"
@@ -139,9 +140,13 @@ class Lifter:
 
     def addr(self, i, o):
         m = o.mem
-        if m.segment:
-            raise LiftError(f"{i.address:08x}: {i.mnemonic} {i.op_str} — segment-relative addressing ({i.reg_name(m.segment)})")
         parts = []
+        if m.segment:
+            seg = i.reg_name(m.segment)
+            if seg == "fs":
+                parts.append("c->fs_base")  # the guest TIB: SEH registration, TLS
+            elif seg not in ("es", "ds", "ss", "cs"):  # the flat segments
+                raise LiftError(f"{i.address:08x}: {i.mnemonic} {i.op_str} — segment-relative addressing ({seg})")
         if m.base:
             parts.append(self.reg_read(i.reg_name(m.base)))
         if m.index:
@@ -270,6 +275,43 @@ class Lifter:
             out.append(f"b = {self.rd(i, ops[0])}; sw = (int64_t)(((uint64_t)edx << 32) | eax);")
             out.append(f'if (b == 0 || (sw == INT64_MIN && (int32_t)b == -1) || sw / (int32_t)b != (int32_t)(sw / (int32_t)b)) rc_trap(c, {i.address:#010x}u, "idiv: #DE");')
             out.append("eax = (uint32_t)(sw / (int32_t)b); edx = (uint32_t)(sw % (int32_t)b);")
+        elif mn in ("bt", "bts", "btr", "btc"):
+            # a register offset is signed and, on memory, addresses past the operand; an immediate is modulo the width
+            if ops[1].type == X86_OP_IMM:
+                out.append(f"n = {self.rd(i, ops[1])} & {bits - 1}; t = {self.addr(i, ops[0]) if ops[0].type == X86_OP_MEM else '0'};")
+            else:
+                out.append(f"b = {self.rd(i, ops[1])}; n = b & {bits - 1};")
+                adj = f" + (uint32_t)(((int32_t)b >> {bits.bit_length() - 1}) * {bits // 8})" if ops[0].type == X86_OP_MEM else ""
+                out.append(f"t = {self.addr(i, ops[0]) if ops[0].type == X86_OP_MEM else '0'}{adj};")
+            out.append(f"a = {f'ld{bits}(m, t)' if ops[0].type == X86_OP_MEM else self.rd(i, ops[0])}; cf = (a >> n) & 1;")
+            if mn != "bt":
+                r = {"bts": "a | (1u << n)", "btr": "a & ~(1u << n)", "btc": "a ^ (1u << n)"}[mn]
+                out.append(f"st{bits}(m, t, {r});" if ops[0].type == X86_OP_MEM else self.wr(i, ops[0], r))
+        elif mn in ("rol", "ror"):
+            out.append(f"a = {self.rd(i, ops[0])}; n = ({self.rd(i, ops[1])} & 31) % {bits};")
+            out.append("if (n) {")
+            if mn == "rol":
+                out.append(f"  r = ((a << n) | (a >> ({bits} - n))) & {mask:#x}u; cf = r & 1; of = ((r >> {bits - 1}) & 1) ^ cf;")
+            else:
+                out.append(f"  r = ((a >> n) | (a << ({bits} - n))) & {mask:#x}u; cf = (r >> {bits - 1}) & 1; of = cf ^ ((r >> {bits - 2}) & 1);")
+            out.append("  " + self.wr(i, ops[0], "r"))
+            out.append("}")
+        elif mn.split()[-1] in STRING and (not mn.endswith("movsd") or (ops[0].type == X86_OP_MEM and ops[1].type == X86_OP_MEM)):
+            rep, _, base = mn.rpartition(" ")
+            size = STRING[base]
+            step = f"(df ? (uint32_t)-{size} : {size}u)"
+            if base.startswith("stos"):
+                body = f"st{8 * size}(m, edi, eax & {(1 << (8 * size)) - 1:#x}u); edi += {step};"
+            else:
+                body = f"st{8 * size}(m, edi, ld{8 * size}(m, esi)); esi += {step}; edi += {step};"
+            if rep:
+                if rep != "rep":
+                    unsupported(f"{rep} prefix")
+                out.append(f"while (ecx) {{ {body} ecx--; }}")
+            else:
+                out.append(body)
+        elif mn in ("cld", "std"):
+            out.append(f"df = {int(mn == 'std')};")
         elif mn == "cdq":
             out.append("edx = (uint32_t)((int32_t)eax >> 31);")
         elif mn == "cwde":
@@ -311,7 +353,7 @@ class Lifter:
         elif mn.startswith("cmov") and mn[4:] in COND:
             out.append(f"if ({COND[mn[4:]]}) {self.wr(i, ops[0], self.rd(i, ops[1]))}")
         elif mn.startswith("set") and mn[3:] in COND:
-            out.append(self.wr(i, ops[0], f"(uint32_t){COND[mn[3:]]}"))
+            out.append(self.wr(i, ops[0], f"(uint32_t)({COND[mn[3:]]})"))
         elif mn in TERMINATORS:
             out.append(f'rc_trap(c, {i.address:#010x}u, "{mn}");')
         else:
