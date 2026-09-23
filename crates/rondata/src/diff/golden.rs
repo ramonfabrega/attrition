@@ -5681,10 +5681,10 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     // the chariots' first rounds on 651, which leave from each unit's own
     // square and height where the dump's leave from the archer's release
     // node (`docs/COMBAT.md` §52.4, item 602's 651 on run146). `rolling`
-    // parts with them. On the word's blocks it is `0/8`, which turns to
-    // `1/7` here and holds its heading in the dump (item 603), and `1/4`,
-    // a player-1 unit far from the arena whose move offsets follow the
-    // draws that parted on 684.
+    // parts with them. No key parts first on the word's blocks (item
+    // 603): `0/8` holds its heading on 685 as the dump's does, its pivot
+    // bearing from its node, and `1/4`'s move offsets, which followed
+    // 684's draws, agree until 804.
     let rows_on = |lo: i64, hi: i64| -> Vec<String> {
         firsts
             .iter()
@@ -5717,31 +5717,21 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     );
     assert_eq!(
         rows_on(WORD, WORD + 1),
-        vec![
-            "685 0/8 angle:Facing: ours 834011136 theirs 1431655765",
-            "685 0/8 angle:Heading: ours 834011136 theirs 1431655765",
-            "685 0/8 g.angle[0]: ours 834011136 theirs 1431655765",
-            "685 0/8 g.angle[1]: ours 834011136 theirs 1431655765",
-            "685 0/8 heading: ours 834011136 theirs 1431655765",
-            "685 1/4 dest_angle: ours -541917184 theirs -1891500032",
-            "685 1/4 order:move.angle: Move { field: \"angle\", ours: -541917184, theirs: -1891500032 }",
-            "685 1/4 order:move.off_x: Move { field: \"off_x\", ours: 312, theirs: 120 }",
-            "685 1/4 order:move.off_y: Move { field: \"off_y\", ours: 120, theirs: 696 }",
-            "685 1/4 order:move.x: Move { field: \"x\", ours: 41016, theirs: 40824 }",
-            "685 1/4 order:move.y: Move { field: \"y\", ours: 17016, theirs: 17592 }",
-            "685 1/4 orders_x: ours 41016 theirs 40824",
-            "685 1/4 orders_y: ours 17016 theirs 17592",
-        ],
-        "what parts at or one block past chapter three's word moved"
+        Vec::<String>::new(),
+        "what parts first at or one block past chapter three's word moved"
     );
     // **The word's two blocks, whole** (item 603): every row they part
     // on, first or not, so a key that parted earlier is still read here.
-    // Past the standing families: `0/6`'s third round in flight, launched
-    // from the unit's square where the dump's leaves from the release node
-    // (`857, 7763`, 651's shape and item 602's); `0/8`'s turn on 685; and
-    // `1/4`. `0/8`'s release node is not its pivot node: the pivot's
-    // vector at its facing is `(−102, −59)` (run147, `MISC=10`), where the
-    // release node's is `(−31, −37)`.
+    // Past the standing families, only rounds part on 706 and 707:
+    // `0/6`'s second, launched on 703 from the unit's square where the
+    // dump's leaves from the release node (`856, 7754`), and `rolling` 1
+    // against 0 (651's shape, item 602's), its target cleared here on
+    // `1/7`'s death where the dump's keeps `ox 7` to its landing; and
+    // `0/7`'s round of 703 in pool slot 2 here and 3 in the dump. The
+    // word's own draws, `Ammo::do_damage+0xc59`/`+0xc7e`, are the dump's
+    // round with no live target scattering its landing ±20; this crate
+    // spends none. On 684 and 685, before item 603, `0/8`'s turn parted
+    // here too: its pivot bears from its node now (§54).
     let at_word: Vec<&String> = w
         .at_word
         .iter()
@@ -5754,33 +5744,25 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     assert_eq!(
         at_word,
         vec![
-            "684 0/6 ammo[2].angle: ours 1369702400 theirs 1388707840",
-            "684 0/6 ammo[2].rolling: ours 1 theirs 0",
-            "684 0/6 ammo[2].sx: ours 888 theirs 857",
-            "684 0/6 ammo[2].sy: ours 7800 theirs 7763",
-            "684 0/6 ammo[2].sz: ours 281 theirs 489",
-            "684 0/6 ammo[2].total_time: ours 6 theirs 7",
-            "684 0/6 ammo[2].v1z: ours 37462502 theirs 12134822",
-            "685 0/6 ammo[2].angle: ours 1369702400 theirs 1388707840",
-            "685 0/6 ammo[2].rolling: ours 1 theirs 0",
-            "685 0/6 ammo[2].sx: ours 888 theirs 857",
-            "685 0/6 ammo[2].sy: ours 7800 theirs 7763",
-            "685 0/6 ammo[2].sz: ours 281 theirs 489",
-            "685 0/6 ammo[2].total_time: ours 6 theirs 7",
-            "685 0/6 ammo[2].v1z: ours 37462502 theirs 12134822",
-            "685 0/8 angle:Facing: ours 834011136 theirs 1431655765",
-            "685 0/8 angle:Heading: ours 834011136 theirs 1431655765",
-            "685 0/8 g.angle[0]: ours 834011136 theirs 1431655765",
-            "685 0/8 g.angle[1]: ours 834011136 theirs 1431655765",
-            "685 0/8 heading: ours 834011136 theirs 1431655765",
-            "685 1/4 dest_angle: ours -541917184 theirs -1891500032",
-            "685 1/4 order:move.angle: Move { field: \"angle\", ours: -541917184, theirs: -1891500032 }",
-            "685 1/4 order:move.off_x: Move { field: \"off_x\", ours: 312, theirs: 120 }",
-            "685 1/4 order:move.off_y: Move { field: \"off_y\", ours: 120, theirs: 696 }",
-            "685 1/4 order:move.x: Move { field: \"x\", ours: 41016, theirs: 40824 }",
-            "685 1/4 order:move.y: Move { field: \"y\", ours: 17016, theirs: 17592 }",
-            "685 1/4 orders_x: ours 41016 theirs 40824",
-            "685 1/4 orders_y: ours 17016 theirs 17592",
+            "706 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
+            "706 0/6 ammo[1].ox: ours -1 theirs 7",
+            "706 0/6 ammo[1].rolling: ours 1 theirs 0",
+            "706 0/6 ammo[1].sx: ours 888 theirs 856",
+            "706 0/6 ammo[1].sy: ours 7800 theirs 7754",
+            "706 0/6 ammo[1].sz: ours 281 theirs 477",
+            "706 0/6 ammo[1].v1z: ours 40295834 theirs 7629168",
+            "706 0/6 ammo[1].whom: ours -1 theirs 1",
+            "706 0/7 ammo[2]: this crate holds it alone",
+            "706 0/7 ammo[3]: the dump holds it alone",
+            "707 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
+            "707 0/6 ammo[1].ox: ours -1 theirs 7",
+            "707 0/6 ammo[1].rolling: ours 1 theirs 0",
+            "707 0/6 ammo[1].sx: ours 888 theirs 856",
+            "707 0/6 ammo[1].sy: ours 7800 theirs 7754",
+            "707 0/6 ammo[1].sz: ours 281 theirs 477",
+            "707 0/6 ammo[1].v1z: ours 40295834 theirs 7629168",
+            "707 0/6 ammo[1].whom: ours -1 theirs 1",
+            "707 0/7 ammo[2]: this crate holds it alone",
         ],
         "a row on chapter three's word blocks moved"
     );

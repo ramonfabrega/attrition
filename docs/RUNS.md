@@ -5442,3 +5442,50 @@ per figure as its walk starts. This crate spends a second re-search and
 starts the walk on 634. Values part on 634. Pinned as
 `GOLDEN_WORD_CHAPTER_THREE_RESTAGE` with
 `chapter_three_s_restage_is_widened_whole`.
+
+## run147 — chapter three's pivot node, a packet at 684 (2026-09-23, item 603)
+
+**What it is.** A `RON_STATE_FRAME=684` packet on chapter three's staging
+(`chapter3.cmd`, run145's), with `misc:MISC=10` so that
+`Guy::set_all_pivots` says the pivot node's vector, and `GUYS=4` for the
+figures' turret fields. `!quit` is at 690. `success: true`, exit 0, 691
+frames, `MAP_STYLE 14` and seed 12345 read back, five settings files
+restored. **48 s launch to exit, 56 s in all**, with an 818,895,728-byte
+packet and 13 MB of dump. The lane lock was stale (pid 332 dead).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-23-run147 \
+    --map 14 --end-frame 690 --log-window 680 690 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1,MISC=10 \
+    --cmd-file tools/gamelog/golden/chapter3.cmd \
+    --tracer-def RON_STATE_FRAME=684 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is run144's (`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+The first launch refused before the game started: `live_session.py` took
+single-digit detail levels only, and the say is at 10. `GameLog::details`
+is a byte, so the runner now takes up to 255.
+
+**What the disk could not answer.** No dump prints the pivot node. `AMMO`'s
+`sx, sy` is the release node. Both earlier packets (run144, and the lab's
+Great Lakes one) hold the Chariot's pieces loaded but with no `AttachPos`.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `frame_snapshot.py` against the plan | logger frame 684, the logger return's roots unchanged, receipt checked |
+| `rngcmp.py` against run145's `rontrace.log` | **0 differing**, 691 identical |
+| blocks 680–689 against run145 | every line run145 prints is there and equal; run147 only adds `GUYS=4` fields and the say lines |
+
+**What it settled** (`docs/COMBAT.md` §54). The say line is `GUY
+get_positiong -180 180 -102 -59 1512 7944` during tick 684: the Chariot's
+node vector at 120°, against `1/7`. The packet's piece 145 holds node 4 at
+`(0.0, 24.64, 11.55)`, and `guy_scale` is 4.8. `Unit::set_attack(0/8, 7,
+1)` on the packet answers 1. `des_turret_angles[0]` reads `−496063829`
+on 685. The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-23-run147/map-14`, and the oracle script and
+its tables at `~/ron-data/lab-experiments/2026-09-23-item-603/`.

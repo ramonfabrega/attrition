@@ -794,10 +794,12 @@ impl Sim {
     /// **`Guy::set_all_pivots@005d8bc0`** — can every restricted node of
     /// figure `g` bear on `target` from where the unit stands?
     ///
-    /// The bearing is measured from the **unit's** position (`+0x10`/
-    /// `+0x14` of `objects[who][o]`, read through the figure's own `who`
-    /// and `o`), to the target's, and taken against the **figure's**
-    /// facing (`GuyData +0x18`) in whole degrees by
+    /// The bearing is measured per node, from the **unit's** position
+    /// (`+0x10`/`+0x14` of `objects[who][o]`, read through the figure's
+    /// own `who` and `o`) **plus the node's own vector**
+    /// ([`crate::pivot::offset`], `docs/COMBAT.md` §54), to the target's,
+    /// and taken against the **figure's** facing (`GuyData +0x18`) in
+    /// whole degrees by
     /// [`crate::movement::angle_to_degrees`], folded to −180..180. The
     /// answer is 0 as soon as that is past ±45° (the executable's own
     /// `float`s at `00b69674` and `00b697bc`), or outside any node's
@@ -812,13 +814,8 @@ impl Sim {
     /// bits `+0x96`/`+0x98`) is not carried: nothing in the simulation
     /// reads it, and `GUYS=2` does not print it.
     ///
-    /// SEAM: the pivot node's own offset. `GraphicPieces::get_position
-    /// @0090b750` rotates the node's model-space point by the figure's
-    /// facing and the bearing starts there, truncated; this crate starts
-    /// it at the unit's point. A chariot's archer stands a few units off
-    /// the unit's point, which moves the bearing by well under a degree
-    /// at shooting range, and only a bearing within that of ±45° could
-    /// answer differently.
+    /// SEAM: the node's vector is pinned for the Chariot's figure only
+    /// (`pivot::NODES`); any other piece bears from the unit's point.
     fn set_all_pivots(
         &self,
         i: usize,
@@ -827,17 +824,24 @@ impl Sim {
         nodes: &std::collections::BTreeMap<i32, (i32, i32)>,
     ) -> bool {
         let (from, to) = (self.units[i].pos, self.pos_of(target));
-        let bearing = find_angle(to.x - from.x, to.y - from.y);
-        let facing = match self.units[i].guys.get(g).and_then(|x| x.follow) {
+        let guy = self.units[i].guys.get(g).copied();
+        let facing = match guy.and_then(|x| x.follow) {
             Some(f) => f.facing,
             None => self.units[i].movement.facing,
         };
-        let mut deg = crate::movement::angle_to_degrees(Angle(bearing.0.wrapping_sub(facing.0)));
-        if deg > 180 {
-            deg -= 360;
-        }
-        let mut can = (-45..=45).contains(&deg);
+        let piece = guy.map_or(-1, |x| x.gpiece);
+        let mut can = true;
         for node in 4..4 + nodes.len() as i32 {
+            // `005d8e0a`–`005d8e35`: the target less the unit's point less
+            // the node's truncated vector, each component on its own.
+            let (vx, vy) = crate::pivot::offset(piece, node, facing);
+            let bearing = find_angle(to.x - from.x - vx, to.y - from.y - vy);
+            let mut deg =
+                crate::movement::angle_to_degrees(Angle(bearing.0.wrapping_sub(facing.0)));
+            if deg > 180 {
+                deg -= 360;
+            }
+            can &= (-45..=45).contains(&deg);
             let (lo, hi) = nodes.get(&node).copied().unwrap_or((0, 0));
             let inside = if lo < hi {
                 lo <= deg && deg <= hi
@@ -2818,6 +2822,61 @@ mod tests {
             .pivots
             .insert(CHARIOT, [(4, (-45, -30))].into_iter().collect());
         assert_eq!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
+    }
+
+    /// **The pivot bears from its node, not the unit's square**
+    /// (`docs/COMBAT.md` §54). run145's `0/8` on 684: at `984, 8136`,
+    /// facing 120°, its target `1/7` at `1512, 7944` bears 69.9°, 50° off
+    /// the heading from the square. The Chariot's figure (piece 145) has
+    /// its node at `(−102, −59)` from the square at that facing, and from
+    /// there `1/7` is 42° off, so the original shoots without turning:
+    /// run147's packet answers `Unit::set_attack(0/8, 7, 1)` with 1, and
+    /// `(6, 1)`, `1/6` at `1608, 7800` (51° off from the node), with 0.
+    ///
+    /// Made to fail first: with `pivot::offset` answering `(0, 0)` the
+    /// first assertion reads the bearing, `834011136` — the widening's
+    /// 685 row.
+    #[test]
+    fn a_pivot_bears_from_its_node() {
+        let (mut sim, ty) = at_war();
+        const CHARIOT: i32 = 195;
+        let chariot = {
+            let mut t = sim.unit_types[ty].clone();
+            t.type_index = CHARIOT;
+            t.combat.max_range = 8;
+            sim.add_unit_type(t)
+        };
+        sim.art
+            .pivots
+            .insert(CHARIOT, [(4, (-180, 180))].into_iter().collect());
+        let here = Pos::new(984, 8136);
+        let heading = Angle(0x5555_5555);
+        let shoot = |sim: &mut Sim, piece: i32, at: Pos| -> Angle {
+            let me = put(sim, 0, chariot, here);
+            sim.units[me].guys = vec![anim::Guy::fresh(piece), anim::Guy::fresh(12817)];
+            sim.units[me].movement.heading = heading;
+            sim.units[me].movement.facing = heading;
+            let foe = put(sim, 1, ty, at);
+            sim.fight_pub(me, Obj::Unit(foe), 684);
+            sim.units[me].movement.heading
+        };
+        let seven = Pos::new(1512, 7944);
+        let off = |from: Pos| {
+            let b = find_angle(seven.x - from.x, seven.y - from.y);
+            crate::movement::angle_to_degrees(Angle(heading.0.wrapping_sub(b.0)))
+        };
+        assert_eq!(
+            (off(here), off(Pos::new(here.x - 102, here.y - 59))),
+            (50, 42),
+            "the geometry is the capture's"
+        );
+        assert_eq!(shoot(&mut sim, 145, seven), heading, "from the node");
+        assert_ne!(shoot(&mut sim, -1, seven), heading, "a piece with no node");
+        assert_ne!(
+            shoot(&mut sim, 145, Pos::new(1608, 7800)),
+            heading,
+            "1/6 is past 45° from the node too"
+        );
     }
 
     /// `ObjectData::valid_target_const@006472c0`'s first line, `7 < who`,
