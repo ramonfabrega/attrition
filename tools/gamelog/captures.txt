@@ -5146,3 +5146,76 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 check: python3 tools/gamelog/samegame.py --exclude LEADERDATA --exclude DIPLOMACY --exclude GOOD --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE gamelog-run99-eastindies-valuewindow2.txt gamelog-run143-eastindies-bark.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run99 overlap: common="n" "r" differ="d; exit !(n==20 && d==0 && r=="(10380..10399)")}'
 # **The coverage window landed**: every frame 10394..10402 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run143.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=10394&&f<=10402&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+
+run: 149
+tag: eastindies-animal
+item: 608
+why: East Indies' long word is 10782 (item 604), a frame where ours spends 10 draws against 11 and parts at index 5 — ours `Animal::do_idle+0x83`, theirs `Leader::make_stuff+0x63d` — and run143, the only capture past 10399, ends on block 10739, so the word's frame is on no disk
+# **THE DISK WAS GREPPED FIRST.** Of every `MAP_STYLE 18` dump in `Logs\`,
+# none carries a block in [10740, 10900]: run143's window ends on 10739
+# and its next block is the `!quit` stub on 10761; run54, run96 and the
+# 24k runs print only their end frames. **What the disk cannot answer**:
+# every record on block 10783 (the word 10782's) and around it, both
+# sides, and the leader record there — the make list the original's draw
+# is spent in, and gaia's animals (`who 8`) the ours draw is spent in.
+#
+# **Why `LEADERS=9`.** The original's parting draw is
+# `Leader::make_stuff+0x63d`: the make list is on the word.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run143's game past 10739.** Killed if the overlap with
+#   run143 on 10730..10739 differs, or counts other than ten blocks.
+# - **R2 — the parting is one stream shifted, not two mechanisms.**
+#   Killed if the widening on block 10783 shows a make-list row *and* an
+#   animal row both parting first on 10781..10783 with the draw counts
+#   explaining neither alone.
+# - **R3 — something under the word already parts on run143's last
+#   blocks.** 604 measured 194 standing rows on each of 10735..10739,
+#   identical on both trees; killed if the widening on 10740..10782 adds no
+#   new first-parting key before the word's block.
+frames: 10900
+mapstyle: 18
+# **run143's line**, the same lobby (no `cfg:`) and the same `end:`, so the
+# overlap is byte for byte.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+# **10730..10879, 150 blocks**: ten shared with run143 (10730..10739), the
+# 43 blocks up to the word, its block 10783, and 96 of runway above it.
+frame_window: 10730 10880
+# **Per-frame coverage over the word**, 10778..10786.
+cover: cover=1
+cover: window=10778-10786
+settle_min: 20000000
+# **Sized from run143**: 2.06 MB a block net of the 11 MB start dump, so
+# 150 blocks is ~320 MB, 0.4% of the 79 GB free. run143 took 27 minutes
+# for a 10380-frame run-up and 360 blocks; this is ~15 to 20. 120 polls is
+# forty minutes.
+poll_max: 120
+# ==== TAKEN 2026-09-23, **WHOLE** ====
+#
+# 321,162,982 bytes of dump and 18,694,976 of trace, **150 blocks
+# 10730..10879**, a `MAKEOBJECT` on every one. 12 minutes launch to
+# archive (09:00 to 09:12), through `viadriver.sh` with no human at the
+# menu; the lane lock's holder (pid 21551) was dead. All six checks green:
+# 10,901 frames identical to run54, `MAP_STYLE 18`, 10 blocks shared with
+# run143 (10730..10739) and 0 differing, and a coverage set on all 9
+# frames 10778..10786. 2.07 MB a block net of the start dump, as sized.
+# **R1 holds. R2 holds**: one stream shifted — both sides spend
+# `make_stuff+0x63d` at index 4 and the original a second at 5, and the
+# animal `8/3` parts only from 10783. **R3 is dead**: two keys first part
+# under the word, on 10776 (`reg_gather_slots[11]` 17 against 20, and
+# `SITE[7].val`), the census that sizes the Citizen's `num` on 10781.
+# `run149_s_word_frame_is_widened_whole`.
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run149.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10850)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run149-eastindies-animal.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 150 blocks, 10730..10879, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run149-eastindies-animal.txt" | awk '{v=$3+0; if(v>=10730&&v<10880) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==150 && lo==10730 && hi==10879)}'
+# **The raised category is there**: a `MAKEOBJECT` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run149-eastindies-animal.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=10730&&v<10880)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==150)}'
+# **The overlap with run143, and the count is the claim** — ten blocks,
+# 10730..10739, every kind compared: both are `LEADERS=9`.
+check: python3 tools/gamelog/samegame.py gamelog-run143-eastindies-bark.txt gamelog-run149-eastindies-animal.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run143 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(10730..10739)")}'
+# **The coverage window landed**: every frame 10778..10786 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run149.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=10778&&f<=10786&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'

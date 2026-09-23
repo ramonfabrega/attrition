@@ -37,8 +37,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
-    EAST_INDIES_BARK_BLOCK, EAST_INDIES_MAKE_BLOCK, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_BARK_BLOCK, EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MERCS_BLOCK,
+    GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -378,6 +378,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
+    let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
         return;
@@ -427,6 +428,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r143 {
         let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
         assert_eq!(n, 5, "run143 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 604 moved the word to 10782, past run143's last block, and item
+    // 608's run149 is run143's line from 10730 to 10879, so the window is
+    // the word's own blocks again, on the capture taken to widen it.
+    let ew = EAST_INDIES_MERCS_BLOCK;
+    if let Some(p) = &r149 {
+        let n = drive_capture(p, ew - 2, ew + 2, &mut paths);
+        assert_eq!(n, 5, "run149 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

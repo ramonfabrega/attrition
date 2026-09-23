@@ -5442,3 +5442,40 @@ per figure as its walk starts. This crate spends a second re-search and
 starts the walk on 634. Values part on 634. Pinned as
 `GOLDEN_WORD_CHAPTER_THREE_RESTAGE` with
 `chapter_three_s_restage_is_widened_whole`.
+
+## run149 — East Indies' word 10782, past run143's last block (2026-09-23, item 608)
+
+**What it is.** run143's game and line past its last block:
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9` over
+`[10730, 10880)`, plus `rontrace.cfg` `cover=1` and `window=10778-10786`
+over the word. `!quit` at 10900. **321,162,982 bytes of dump and
+18,694,976 of trace, 12 minutes** from launch at 09:00 to archive at 09:12.
+It ran through `viadriver.sh` with no human at the menu. The lane lock was
+stale: its holder, pid 21551, was dead. That is 2.07 MB a block net of the
+11 MB start dump, against run143's 2.06.
+
+**Why it was owed.** The word 10782 writes block 10783. No `MAP_STYLE 18`
+dump on this disk carries a block in [10740, 10900]: run143's window ends
+on 10739, and its next block is the `!quit` stub on 10761. `LEADERS=9`
+was taken because the original's parting draw is `make_stuff+0x63d`, so
+the make list is on the word.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 10,901 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **150 blocks, 10730..10879, no gap** |
+| a `MAKEOBJECT` on every window block | **150** |
+| overlap with run143, every kind compared | **10 in common (10730..10739), 0 differ** |
+| the coverage window | a set on all 9 frames 10778..10786 |
+
+**What it settled.** The draw streams are one stream shifted. Both
+sides spend `make_stuff+0x63d` at index 4, the original a second at 5,
+and the same `Animal::do_idle+0x83` comes after. The widening
+(`run149_s_word_frame_is_widened_whole`) names the make list on 10781.
+The original offers the Citizen with `num 4`, and this crate with 1. That
+count is sized by a census that parts on 10776: `reg_gather_slots` of
+player 1's home region, 17 against 20, on the first census after the Mine
+`1/2018` starts building. `docs/AI.md` §61.
