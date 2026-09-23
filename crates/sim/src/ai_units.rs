@@ -2656,7 +2656,7 @@ mod tests {
             ident: Ident::Dock,
             ..crate::build::BuildType::default()
         });
-        let mut add = |sim: &mut Sim, who: Player, tiles: (i32, i32)| {
+        let add = |sim: &mut Sim, who: Player, tiles: (i32, i32)| {
             let b = sim.add_building(
                 who,
                 Pos::new(tiles.0 * UNITS_PER_TILE, tiles.1 * UNITS_PER_TILE),
@@ -2687,7 +2687,11 @@ mod tests {
         let beyond = add(&mut sim, 0, (40 + 9 * UNITS_PER_CELL / UNITS_PER_TILE, 40));
         assert_eq!(sim.find_dock_near(0, city), None);
         sim.buildings[beyond].pos.x -= UNITS_PER_CELL;
-        assert_eq!(sim.find_dock_near(0, city), Some(beyond), "eight cells is in");
+        assert_eq!(
+            sim.find_dock_near(0, city),
+            Some(beyond),
+            "eight cells is in"
+        );
     }
 
     /// One leader with one city whose building is a Barracks — a military

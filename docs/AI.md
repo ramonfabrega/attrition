@@ -7090,6 +7090,17 @@ become 0.
 | run139 keys parted, [9960, 9999] | 312 | **187** |
 | run99's rows on 9982..9984 | 27 | **0** |
 | run99's floor under the word | 141 | 219 (the word moved 249 frames) |
+| East Indies endpoint off / unlinked | 69 / 2 | **45 / 22** |
+| East Indies endpoint build unlinked / diverged | 1 / 30 | **5 / 18** |
+| East Indies ladder C off / extra / build diverged | 43 / 23 / 8 | **40 / 7 / 4** |
+| East Indies ladder B extra | 21 | **1** |
+| Great Lakes' word, golden chapters | 12038; 900, 900, 900, 1416 | held |
+
+The endpoints are 13,769 frames past the new word and are the number, not
+a trade (DECISIONS 36). The ladder's shared-extras guard fell from six to
+one: the sixteen and twenty spurious units the rungs shed took most of the
+overlap it cross-checks. It is lowered with the number, as its comment
+asks, and is now all but vacuous.
 
 **The new word**: 10232, ours 33 draws against the original's 34, parting
 at index 30. Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` and

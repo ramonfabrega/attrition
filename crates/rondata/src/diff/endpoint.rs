@@ -456,7 +456,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // word moves 9711 → 9983; the 24,000th frame reshuffles 14,018
         // past it: six positions out against six of the roster linked.
         // DECISIONS 36.
-        off: 69,
+        // **69 → 45 off, 2 → 22 unlinked, 1 → 5 build_unlinked and 30 → 18
+        // build_diverged** on item 576, the sea branch's dock (`docs/AI.md`
+        // §57): the AI offers ships at a Dock that belongs to no city from
+        // 9981, and this map's word moves 9983 → 10232. The 24,000th frame
+        // reshuffles 13,769 past it: twenty-four positions closer, twenty
+        // of the roster unlinked (`1/61`..`1/82`). DECISIONS 36: the
+        // number, not a trade.
+        off: 45,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -467,10 +474,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // the number rather than a trade; the number is on the headline.
         // **3 → 8 unlinked** on item 557, beside 67 → 63 off above.
         // **8 → 2 unlinked** on item 573, beside 63 → 69 off above.
-        unlinked: 2,
+        // **2 → 22 unlinked** on item 576, beside 69 → 45 off above.
+        unlinked: 22,
         extra: 0,
-        build_unlinked: 1,
-        build_diverged: 30,
+        build_unlinked: 5,
+        build_diverged: 18,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1192,7 +1200,11 @@ pub const LADDER: [Endpoint; 2] = [
         // Commerce level (`docs/CARAVAN.md` §9): this map's word moves
         // 9711 → 9983 and this rung reads 5,418 frames past it, three
         // positions out. DECISIONS 36.
-        off: 43,
+        // **43 → 40 off** on item 576, the sea branch's dock (`docs/AI.md`
+        // §57): the AI offers ships at a Dock of no city from 9981, and
+        // this map's word moves 9983 → 10232. This rung reads 5,169 frames
+        // past it. DECISIONS 36.
+        off: 40,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1313,9 +1325,12 @@ pub const LADDER: [Endpoint; 2] = [
         // **21 → 20 extra** on item 557 (`docs/GROUPS.md` §23), beside
         // 42 → 40 off above. DECISIONS 36.
         // **20 → 23 extra** on item 573, beside 40 → 43 off above.
-        extra: 23,
+        // **23 → 7 extra, 8 → 4 build_diverged** on item 576, beside
+        // 43 → 40 off above: sixteen units this crate held and the
+        // original did not are gone.
+        extra: 7,
         build_unlinked: 10,
-        build_diverged: 8,
+        build_diverged: 4,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1507,7 +1522,12 @@ pub const LADDER: [Endpoint; 2] = [
         // **16 → 21 extra** on item 573, the caravan's one-off at the
         // Commerce level (`docs/CARAVAN.md` §9): this map's word moves
         // 9711 → 9983, 6,506 frames under this rung. DECISIONS 36.
-        extra: 21,
+        // **21 → 1 extra** on item 576, the sea branch's dock
+        // (`docs/AI.md` §57): this map's word moves 9983 → 10232, 6,257
+        // frames under this rung, and twenty units this crate held and the
+        // original did not are gone; `off` and every other field hold.
+        // DECISIONS 36.
+        extra: 1,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -2062,12 +2082,18 @@ mod tests {
         // rosters 9,000 frames later, and four of the shared numbers go
         // with them. The six that remain still agree on type, which is
         // the thing this guard is for.
+        //
+        // **Six → one on item 576**, the sea branch's dock (`docs/AI.md`
+        // §57): the AI offers ships at a Dock that belongs to no city, from
+        // 9981 on, and both rungs' rosters are a different set 5,400 frames
+        // later. One shared number is left, and it agrees on type. At one
+        // the check is all but vacuous; what still says the rungs are one
+        // game is `the_ladder_s_borrowed_setup_is_the_endpoint_s`, at 6,000.
         assert!(
-            shared.len() >= 6,
-            "only {} object numbers are `extra` on both rungs; the check is \
-             vacuous below six and the two rungs may have stopped being \
-             one simulation",
-            shared.len()
+            !shared.is_empty(),
+            "no object number is `extra` on both rungs; the check is \
+             vacuous and the two rungs may have stopped being one \
+             simulation"
         );
         // **An upgrade re-types a standing unit** (item 545). Researching a
         // unit's upgrade converts every one standing (`Unit::set_type`,
