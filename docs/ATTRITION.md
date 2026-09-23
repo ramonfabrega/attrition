@@ -40,14 +40,31 @@ matched a C++ method at all. A lookup that finds nothing reads exactly like a
 symbol with no callers. Both functions have one caller and it is ordinary
 code.
 
-**Which territory claims a diff backs.** Two, and they are named where
-they are made. `run40_and_run41_s_sites_and_territory_are_the_original_s`
+**Which territory claims a diff backs.** ~~Two~~ Three, and they are
+named where they are made. `run40_and_run41_s_sites_and_territory_are_the_original_s`
 pins `LeaderData::territory` for both players over two early windows of a
 ticked game; `run80_s_gem_widens_the_ai_s_border_by_forty_three_cells` pins
 it at the far end of a 24,000-frame capture from a seeded state, and is
-what carries the gem term. Everything else under "Territory" — the
-contraction, the tie-break, the temple, fort, Colosseum, Eiffel and
-handicap arms — rests on the reading and the 2026-08-20 audit alone.
+what carries the gem term. **And `chapter_four_s_border_is_widened_cell_for_cell`
+(item 552, run132, golden chapter four) pins every cell's `who` and `who2`
+across three staged levers**: a Temple beside the capital (266 → 296
+cells), Religion (temple border level 2, → 327) and Civic 3 (→ 445). So
+the **temple arm** (a city whose `city_flags` carry `0x80` adds
+`TEMPLE_UPGRADE_TERR[level]` and `level × TERRITORY_LIMIT_CITY`), the
+**temple level** (`1` plus the highest `TEMPLEBORDERS2..4` held) and the
+**civic term** at level 3 are diff-backed now, cell for cell, and with them
+the contraction and the tie-break on every cell those three moved. Still
+reading-only: the fort, Colosseum, Eiffel and handicap arms, Tikal's
+scaling, and the temple levels above 2.
+
+**The budgeted recompute is observed, and this crate does not model it.**
+run132 shows each lever's change land **five blocks after its line and
+over five blocks** (306–310, 406–411, 505–511), which is
+`GameDaemon::check_borders`' 256 cells a frame working through the
+invalidated regions. This crate recomputes wholesale on the line's own
+frame, so the two part on those blocks and agree on every block after
+them. What sets the five-block delay before the first cell changes is not
+read.
 
 **Where the implementation is.** `crates/sim`, in three modules that follow
 this document's three sections: `world` for the grid and its units of length,
