@@ -286,9 +286,7 @@ impl Sim {
         }
         let (anchor_tile, anchor_cell) = self.gather_anchor(ty, corner);
         if good == Resource::Metal.index() {
-            return self
-                .mine_slots(self.footprint_centre(ty, corner), who, from)
-                .max(0);
+            return self.mine_slots(self.footprint_centre(ty, corner), who, from);
         }
         let radius = if good == Resource::Timber.index() {
             WOODCUTTER_RADIUS
@@ -608,10 +606,34 @@ impl Sim {
     /// `@0089d170`, `CliffsData::gather_size@008a8f80` — the same shape).
     ///
     /// The range itself is [`Sim::mountain_range`]'s reconstruction.
+    ///
+    /// **A range another building already mines is taken** (`calc_gather
+    /// @00639e40`'s mountain arm, `docs/AI.md` §62). On the survey — a
+    /// site, not a standing building's own list — the arm walks the range's
+    /// tiles in the template's order, skipping a tree, a tile that is not a
+    /// mountain and one in an enemy's cell, and answers **−1** at the first
+    /// that is `is_gathered_from`. `blocked_location` reads that as
+    /// `MountainTaken`, so a second Mine on the range is refused.
     fn mine_slots(&self, centre: Pos, who: Player, from: &Source) -> i32 {
         let Some(range) = self.mountain_range(centre) else {
             return 0;
         };
+        if matches!(from, Source::Survey) {
+            for &t in &range.tiles {
+                if self.gather_tile_kind(t, true) || !self.gather_tile_kind(t, false) {
+                    continue;
+                }
+                if let Some(o) = self.world.owner(World::cell_of_tile(t)).player()
+                    && o != who
+                    && !self.is_ally(who, o)
+                {
+                    continue;
+                }
+                if self.world.tile_mask(t) & GATHERED_FROM != 0 {
+                    return -1;
+                }
+            }
+        }
         let tiles = i32::try_from(range.tiles.len()).unwrap_or(i32::MAX);
         let mut total = 0;
         let mut usable = 0;
@@ -910,7 +932,7 @@ mod tests {
     use super::*;
     use crate::build::{BuildType, Ident};
     use crate::tuning::Tuning;
-    use crate::world::{Terrain, UNITS_PER_TILE};
+    use crate::world::{Owner, Terrain, UNITS_PER_TILE};
 
     fn tile_pos(tx: i32, ty: i32) -> Pos {
         Pos::new(
@@ -1228,6 +1250,37 @@ mod tests {
         let r = s.mountain_range(centre(Cell::new(6, 6))).unwrap();
         assert_eq!(r.tiles, vec![Pos::new(20, 20)]);
         assert_eq!(r.cells, vec![Cell::new(6, 5)]);
+    }
+
+    /// **A range another building already mines is taken** (`docs/AI.md`
+    /// §62). The survey walks the range's tiles and answers −1 at the
+    /// first that is gathered from, which `blocked_location` reads as
+    /// `MountainTaken`; a tile in an enemy's cell does not count, and a
+    /// standing building's own list is never asked.
+    #[test]
+    fn a_range_already_mined_is_taken_on_the_survey() {
+        let mut s = sim();
+        let ty = s.add_build_type(bt(Ident::Mine, 2, 2));
+        mountain_cell(&mut s, Cell::new(5, 5));
+        mountain_cell(&mut s, Cell::new(6, 5));
+        let t = MountainTemplate {
+            tiles: (0..4).flat_map(|v| (0..8).map(move |u| (u, v))).collect(),
+            solid: vec![(0, 0)],
+        };
+        s.place_mountains(&[(Cell::new(5, 5), 0)], &[t]);
+        // A 2×2 footprint at tile (17, 21) is centred in cell (4, 5), one
+        // cell from the solid cell.
+        let corner = Pos::new(17, 21);
+        let free = s.site_gather_count(ty, 0, corner, None);
+        assert!(free > 0, "an unmined range pays: {free}");
+        s.world.set_tile_bits(Pos::new(25, 22), GATHERED_FROM);
+        assert_eq!(s.site_gather_count(ty, 0, corner, None), -1);
+        assert_eq!(s.max_gatherers_at(ty, 0, corner), 0, "the clamp");
+        // The gathered tile's cell belongs to an enemy: it is skipped, and
+        // no other tile is taken.
+        s.world
+            .set_owner(Cell::new(6, 5), Owner::Player(1), Owner::None);
+        assert_eq!(s.site_gather_count(ty, 0, corner, None), free);
     }
 
     /// A tie goes to the **first placed** range: `find_nearest` replaces

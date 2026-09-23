@@ -220,6 +220,12 @@ impl Counts {
 pub struct Modifiers {
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
+    /// Horses' and then Rubber's percentage off a Stable or Auto Plant
+    /// unit, each applied as its own `(100 − x) × cost / 100` right after
+    /// [`Modifiers::discount`], so each truncates where the original's does
+    /// (`get_cost`'s pre-ramp tail, before the research arm and the ramp;
+    /// `docs/AI.md` §62). Zero is the identity.
+    pub stable_rares: [i32; 2],
     /// Percentage off the whole price, after the ramp. `MILITARY_UNIT_DISCOUNT`,
     /// Monarchy on stable units, Socialism on siege, air and dock units, Salmon
     /// on ships, then Sugar, Coal, Gold, Iron and Gypsum by resource, and — in
@@ -318,6 +324,9 @@ pub fn scholar_surcharge(count: i32) -> i32 {
 pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modifiers) -> i32 {
     let scaled = price.base[r.index()] * price.kind.factor(t);
     let mut cost = scaled * (100 - m.discount) / 100;
+    for pct in m.stable_rares {
+        cost = (100 - pct) * cost / 100;
+    }
     // `LeaderData::calc_science_discount`, where the original calls it: after
     // the factor and the nation tail, before the age-behind discount and the
     // final-tech ramp, and **inside** the per-resource computation, so the
@@ -1005,6 +1014,33 @@ mod tests {
             ..Modifiers::default()
         };
         assert_eq!(cost_of(&T, &c, Resource::Food, owned(500), &m), 10 + 100);
+    }
+
+    /// **Horses, then Rubber, each truncating** (`docs/AI.md` §62). The
+    /// Light Horse, 60 food and 40 timber, costs 51 and 34 to a Horses
+    /// holder — East Indies 10980's price, which makes two affordable on
+    /// 53 food and 70 timber. With Rubber as well the second 15% is taken
+    /// off 51, not folded into 30% off 60: 43, not 42.
+    #[test]
+    fn horses_and_rubber_each_take_their_own_percentage() {
+        let lh = Price {
+            class: RampClass::Military,
+            pop: 1,
+            ..Price::free()
+                .with_base(Resource::Food, 6)
+                .with_base(Resource::Timber, 4)
+        };
+        let at = |r, pcts| {
+            let m = Modifiers {
+                stable_rares: pcts,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &lh, r, Counts::default(), &m)
+        };
+        assert_eq!(at(Resource::Food, [0, 0]), 60);
+        assert_eq!(at(Resource::Food, [15, 0]), 51);
+        assert_eq!(at(Resource::Timber, [15, 0]), 34);
+        assert_eq!(at(Resource::Food, [15, 15]), 43);
     }
 
     #[test]

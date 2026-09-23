@@ -11991,7 +11991,9 @@ mod tests {
     /// 103 up to the word, its block, and 56 past it, which no capture had
     /// printed. [`widen_east_indies`] with gaia's animals.
     ///
-    /// The word's frame, 10982, writes block **10983**.
+    /// The word's frame, 10982, writes block **10983**. The same item moved
+    /// the word to 11069, past the window; the test keeps the move's value
+    /// diff (`docs/AI.md` §62).
     #[test]
     fn run152_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_GATHER.0;
@@ -12029,14 +12031,17 @@ mod tests {
             format!("{f} {w}/{o} {what}: {row}")
         };
         // **The leader record under the word and on it**, both leaders,
-        // both directions. The make list parts first on 10981,
-        // `create_units`' frame: the Light Horse (t209, `num 2`) is offered
-        // at `val 9999999` here against 6945568. `offer_value`'s product
-        // wrapped negative here, 64 × 40,500,000, and the original's is
-        // 256 × 40,500,000, which wraps to 1,778,065,408. `check_income`
-        // answered 0x40 here and 0x100 there. On 10982 the original sorts
-        // the Barracks above the Light Horse, so `use_market`'s `need`
-        // (the first two slots) differs and it spends a third draw.
+        // both directions — and the move's value diff (item 613). Until the
+        // fix 13 make-list rows parted from 10981, `create_units`' frame:
+        // the Light Horse (t209, `num 2`) offered at `val 9999999` here
+        // against 6945568. `offer_value`'s product wrapped negative here,
+        // 64 × 40,500,000, where the original's is 256 × 40,500,000, which
+        // wraps to 1,778,065,408: `check_income` answered 0x40 because the
+        // price was 60/40 against 53 food, where `get_cost` takes Horses'
+        // 15% off a Stable unit — 51/34, two affordable. On 10982 the
+        // original then sorted the Barracks above the Light Horse, so
+        // `use_market`'s `need` differed and it spent a third draw. Two
+        // rows stand: §52.2's `city` shift and the Mine's value.
         let leader: Vec<String> = firsts
             .iter()
             .filter(|((_, o, _), (f, _))| *o == -1 && (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -12045,19 +12050,8 @@ mod tests {
         assert_eq!(
             leader,
             [
-                "10983 1/-1 leader:MAKE[0].t: ours -1 theirs 573",
-                "10982 1/-1 leader:MAKE[1].cat: ours 6 theirs 7",
-                "10982 1/-1 leader:MAKE[1].num: ours 2 theirs 1",
-                "10982 1/-1 leader:MAKE[1].t: ours 209 theirs 427",
-                "10981 1/-1 leader:MAKE[1].val: ours 9999999 theirs 6945568",
-                "10982 1/-1 leader:MAKE[2].t: ours 427 theirs -1",
-                "10982 1/-1 leader:MAKE[3].cat: ours 7 theirs 6",
-                "10982 1/-1 leader:MAKE[3].num: ours 1 theirs 2",
-                "10982 1/-1 leader:MAKE[3].t: ours -1 theirs 209",
-                "10982 1/-1 leader:MAKE[3].val: ours 7222784 theirs 6945568",
                 "10982 1/-1 leader:MAKE[4].val: ours 316800 theirs 310400",
                 "10981 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
-                "10981 1/-1 leader:MAKE[6].val: ours 9999999 theirs 6945568",
                 "10976 1/-1 leader:SITE[2].wx: ours 51 theirs 0",
                 "10976 1/-1 leader:SITE[2].wy: ours 58 theirs 0",
                 "10976 1/-1 leader:SITE[3].dist: ours 288 theirs 0",
@@ -12079,27 +12073,34 @@ mod tests {
             "the leader record"
         );
         // **Who changes animation, both sides** (`docs/COMBAT.md`
-        // §44.2.1): the citizen `1/11` turns on 10983 in the original only.
+        // §44.2.1). Until the fix the citizen `1/11` turned on 10983 in the
+        // original only, sent to the original's Mine.
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.3 != c.4).copied().collect();
         assert_eq!(
             one_sided,
-            [(10_983, 1, 11, true, false)],
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
             "a figure moves on one side only"
         );
-        // **The word's own block, every unit.** The Mine `1/2019` stands on
-        // another site with no gather list here, and the citizens `1/11`
-        // and `1/36` take other orders.
+        // **The word's own block, every unit.** Until the fix 21 rows parted
+        // here: the Mine `1/2019` stood on (33408, 37248), on range 2 that
+        // `1/2018` already mines, with no gather list, against the
+        // original's (36480, 35136) on range 0 with 170 tiles; and the
+        // citizens `1/11` and `1/36` took other orders. `calc_gather`'s
+        // survey refuses a range whose tiles are gathered from.
         let on_word = firsts
             .iter()
             .filter(|((_, o, _), (f, _))| *o != -1 && (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
             .count();
-        assert_eq!(on_word, 21, "the unit rows on the word's blocks");
+        assert_eq!(on_word, 0, "the unit rows on the word's blocks");
         // **The floor**: 278 keys standing on the window's first block
-        // (run149's residue on its last), 409 before the word, 616 in all.
+        // (run149's residue on its last), 409 before the word — the food and
+        // metal a unit off from 10881 and 10900, `peasants` and `1/36` from
+        // 10956, `1/2018`'s list order from 10959, the SITE list on 10976 —
+        // and 412 in all. Before the fix the floor was 278/409/616.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (278, 409, 616), "the floor");
+        assert_eq!((first, under, firsts.len()), (278, 409, 412), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**

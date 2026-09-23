@@ -679,7 +679,24 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// (`Build::find_gather_tiles+0x10a` × 680), and it scores the spiral
 /// `produce_building` 4 `+0xc99` and 4 `+0x1805` against this crate's 7
 /// and 1. `docs/AI.md` §61.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 10_982;
+///
+/// **10982 → 11069 on item 613, and the frame was two mechanics under
+/// it.** run152 (`LEADERS=9` over [10870, 11039]) showed the make list
+/// parting on 10981: `create_units` offered the Light Horse at 9999999
+/// here against 6945568, because `check_income` answered 0x40 against
+/// 0x100 — this crate priced it at 60/40 against 53 food, where
+/// `TypeData::get_cost` takes `HORSES_STABLE_COST`, 15%, off a Stable unit
+/// when the player holds Horses (51/34, two affordable). With the price
+/// in, the frame's spiral still scored seven friendless sites against
+/// four: `calc_gather`'s survey refuses a range another Mine already
+/// gathers from, and range 2 is `1/2018`'s. The move's value diff is
+/// run152's widening: 13 make-list rows → 2 from 10981, 21 unit rows → 0
+/// on 10983 (the Mine `1/2019` on the original's site with its 170
+/// tiles), and the floor 278/409/616 → 278/409/412
+/// (`run152_s_word_frame_is_widened_whole`). 11069 is past run152's last
+/// block: ours 5 draws against 6, parting at index 0, ours
+/// `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84`. `docs/AI.md` §62.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_069;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2877,12 +2894,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 613 paid it: **run152** is run149's line over [10870, 11039],
     // and `run152_s_word_frame_is_widened_whole` is a sibling through the
     // same walk, gaia included, on 170 blocks ten of which run149 shares.
+    // The same item moved the word to **11069**, past run152's last block
+    // (11039). run152's test keeps the move's value diff on 10981..10983.
+    // Item 620 owes the new word's widening.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run152_s_word_frame_is_widened_whole"),
-        613,
-        Some(WIDENING_EAST_INDIES_GATHER),
+        None,
+        620,
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

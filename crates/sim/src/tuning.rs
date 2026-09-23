@@ -349,6 +349,12 @@ pub struct Tuning {
     pub military_unit_discount: i32,
     /// The same, when researching the upgrade rather than building the unit.
     pub military_upgrade_discount: i32,
+    /// Percentage off a Stable or Auto Plant unit when the player holds
+    /// Horses, and the same when it holds Rubber — `get_cost`'s pre-ramp
+    /// tail tests both on **both** kinds, whatever the names say
+    /// (`docs/AI.md` §62).
+    pub horses_stable_cost: i32,
+    pub rubber_autoplant_cost: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -875,6 +881,8 @@ impl Tuning {
         tech_color_behind_knowledge_discount: 20,
         military_unit_discount: 5,
         military_upgrade_discount: 10,
+        horses_stable_cost: 15,
+        rubber_autoplant_cost: 15,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1065,7 +1073,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 295] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 297] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1290,6 +1298,11 @@ impl Tuning {
             (
                 "MILITARY_UPGRADE_DISCOUNT",
                 Slot::Value(T.military_upgrade_discount),
+            ),
+            ("HORSES_STABLE_COST", Slot::Value(T.horses_stable_cost)),
+            (
+                "RUBBER_AUTOPLANT_COST",
+                Slot::Value(T.rubber_autoplant_cost),
             ),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
