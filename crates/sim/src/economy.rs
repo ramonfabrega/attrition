@@ -138,6 +138,13 @@ pub const FISH: usize = 6;
 /// second of the two `LeaderData::calc_rare` treats as a **fisherman's**
 /// rather than a merchant's.
 pub const WHALES: usize = 31;
+/// `TypeIndex::HORSES` — the rare `TypeData::get_cost@00664090` reads for
+/// a Stable or Auto Plant unit: `rare.ptr[1] & 1` (or `rare_conquest`'s),
+/// byte 1 bit 0, which is bit `14 - `[`BASE_RARE`]` = 8`;
+/// `resourcerules.xml`'s fifteenth `RESOURCE` is Horses (`docs/AI.md` §62).
+pub const HORSES: usize = 14;
+/// `TypeIndex::RUBBER` — the same arm's second rare, byte 1 bit 1.
+pub const RUBBER: usize = 15;
 /// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
 ///
 /// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &

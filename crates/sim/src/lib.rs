@@ -1766,17 +1766,54 @@ impl Sim {
     /// to produce it. Until then it is the undiscounted price, which is
     /// exactly what a stock game with no bonuses charges.
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
+        let stable_rares = self.stable_rare_discounts(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
+                stable_rares,
                 ..cost::Modifiers::default()
             },
             None => cost::Modifiers {
                 late_discount: self.military_unit_discount(who, ty),
+                stable_rares,
                 ..cost::Modifiers::default()
             },
         };
         self.price_with(who, ty, &m)
+    }
+
+    /// `TypeData::get_cost@00664090`'s Horses and Rubber arm, in the
+    /// pre-ramp tail after the nations and Terra Cotta: a unit whose
+    /// trainer (`UnitTypeData +0x40`, this crate's `where_`) is **exactly**
+    /// the Stable (`0x1ac`) or the Auto Plant (`0x1ad`) takes
+    /// `HORSES_STABLE_COST` off when the player holds Horses, then
+    /// `RUBBER_AUTOPLANT_COST` when it holds Rubber — both rares on both
+    /// kinds, as the listing tests them. [`Sim::has_rare`] is the union of
+    /// `rare` and `rare_conquest` the arm reads. `docs/AI.md` §62.
+    pub fn stable_rare_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
+        let trainer = self.unit_types[ty]
+            .tree
+            .and_then(|t| self.tech_tree.types[t].where_)
+            .and_then(|w| self.build_types.iter().find(|b| b.tree == Some(w)))
+            .map(|b| b.ident);
+        if !matches!(
+            trainer,
+            Some(build::Ident::Stable | build::Ident::AutoPlant)
+        ) {
+            return [0, 0];
+        }
+        [
+            if self.has_rare(who, economy::HORSES) {
+                self.tuning.horses_stable_cost
+            } else {
+                0
+            },
+            if self.has_rare(who, economy::RUBBER) {
+                self.tuning.rubber_autoplant_cost
+            } else {
+                0
+            },
+        ]
     }
 
     /// `TypeData::get_cost@00664090`'s fork on the `leader + 0x6c18` bit —
