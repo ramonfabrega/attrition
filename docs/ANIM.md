@@ -511,7 +511,8 @@ unit on open ground reaches, in the order the function tests them:
    `DEFAULT` (`:546–554`).
 3. **The attack roll** (`:575–587`, the address `+0xf2f`), category 12 with
    the third argument: one draw, `p < 30 → ATTACK1`, `p > 70 → ATTACK3`,
-   else `ATTACK2`. **Nothing reaches it from the swing** — an attack asked
+   else `ATTACK2`. A rolled slot the packet does not name becomes
+   `ATTACK2` (§4.13). **Nothing reaches it from the swing** — an attack asked
    of a guy still walking or still turning is deferred into `GuyData +0x9e`
    above these arms and paid by `Guy::move` on a later frame, which is
    where every attack roll on disk comes from: §6.2.
@@ -1184,6 +1185,85 @@ block since it was taken.
   to §9's list. `unit_masks2` is **0** on `1/51` throughout, which rules
   out `inc_time`'s zero-step arm here from the dump's side as well as
   from the sign of the draw.
+
+## 4.13 An attack slot the packet lacks plays `CHAR_ATTACK2` (item 549, 2026-09-22)
+
+Golden chapter five's word stood at **739** (`docs/GOLDEN.md` §9). On 739
+this crate spent `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, 7 draws
+against 6. No record parted on 739 or 740; the first dumped difference was
+`1/6 ammo[0]`, which the dump held alone on 742.
+
+**The site.** `Guy::inc_time+0x1ed` is the attack-category arm of §5's
+wrap loop: a guy whose slot is in category 12 and whose `cur_time` has
+reached `end_time` asks for `set_anim(CHAR_DEFAULT, 0, 0)`. That lands on
+§4's idle roll, `+0x97a`. Its inputs are the category of `cur_anim`, the
+step, and `end_time`. `set_anim`'s tail writes `end_time`: the packet's
+frame count for the slot, or **3** when the packet has no id for it
+(§3.2's [`anim::MISSING`]). This crate's `1/6` was in `CHAR_ATTACK3`
+(`anim 13`) with `end_time 3`. It rolled on 737 and ran out on 739.
+
+**The reading, and what would have killed it.** The Trireme's
+`unit_graphics.xml` packet names `CHAR_ATTACK1` and `CHAR_ATTACK2`, both
+`Trireme Attack1`, and no `CHAR_ATTACK3`. Three things could have killed
+the reading that the original never plays a missing attack slot. The
+original's round on 742 could have been off a full-length swing's release
+frame: it is 737 + 5, `Trireme Attack1`'s first `<RELEASEEVENT>` at
+`400 / 67` (`docs/COMBAT.md` §50.1). The fix could have left a draw parted
+on 739, which would mean the slot mattered for more than its length. Or it
+could have moved a record under the old word. None of the three happened.
+
+**The rule** is the listing's, at `0x5db25f`–`0x5db279`, after the roll:
+
+```text
+5db262  push esi                    ; the slot: rolled, or the request when p3 == 0
+5db263  call AnimationPacket::get_animobj@00918be0
+5db274  mov  ecx, 0xc
+5db279  cmove edx, ecx              ; no AnimObj → CHAR_ATTACK2
+```
+
+`get_animobj(slot)` is null when the slot is at or past the packet's
+count, its id is negative, or the id is at or past `animmgr`'s. Those are
+§5's index tests, which [`Sim::packet_has`] already carries. The fallback
+covers the request as well as the roll. A `p3 == 0` request for a missing
+attack slot also plays `CHAR_ATTACK2`. The middle band's `ATTACK2` is the
+*category* `set_anim` wrote into its second argument's stack slot at
+`0x5da637`, not the caller's slot. This crate already had it that way.
+
+The two other arms already had their fallbacks: the idle roll's to
+`CHAR_DEFAULT` (`:546–554`) and the walk's to `CHAR_WALK` (`:596`). The
+attack arm had none until now. `Sim::guy_set_anim`'s attack arm is the
+rule, and `a_rolled_attack_the_packet_lacks_plays_attack2` pins it. The
+test failed first without the fallback, with `(ATTACK3, 3)`.
+
+**What moved.** The word went **739 → 900**, run127's trace end. No draw
+parts on any frame of chapter five. The widening's map went from 224 keys
+to 30. Those are the 29 standing rows on the capture's first blocks
+(`form`, `build:extra`, the gather slots), plus `1/0`'s explore-order
+`facing` on 847. That field is declared non-scoring
+(`OrderMismatch::scores`, parked 275), and Great Lakes' `1/0` carries the
+same row on 8002. **The value diff on 742**: `1/6 ammo[0]` is in both airs,
+`sx, sy` (12445, 35807), `ex, ey` (11673, 34704), `total_time` 13, `sz`
+88, `v1z` 61.399521. All 506 of run127's live rounds agree on every
+compared field. With the fallback removed the word falls back to 739.
+
+**How it was established.** Listing-backed (the `cmove`) and diff-backed
+(the word, the 742 round and the 506 rounds). The length is art this crate
+already reads: `Art::piece_lengths` names the packet's slots, so no new
+data entered the sim.
+
+**What is not established.**
+
+- **A unit whose packet lacks `CHAR_ATTACK2` too.** It gets `0xc`, which
+  the tail then finds missing, so `end_time` is 3. No shipped attacker is
+  known to be in that state, and no capture reaches one.
+- **An unknown piece.** A piece neither the install nor a dump describes
+  reads as lacking every slot, so its attack roll now plays `CHAR_ATTACK2`
+  with an [`anim::UNKNOWN`] length. That is the idle arm's precedent. It
+  matters only for a unit whose piece this crate cannot name, and §3.4
+  says that no longer happens for a player's unit.
+- **Which attackers this reaches.** Every packet that names fewer than
+  three attack slots. The Trireme is the first on this disk. No census
+  of the others has been taken.
 
 ## 5. `Guy::inc_time@005d9e10` — the step and the wrap
 

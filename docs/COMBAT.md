@@ -8613,8 +8613,11 @@ facing no stern bearing reproduces the last two rows' integers, so each
 row is the solution nearest the keel, 1.3° off it. `sim::launch`'s table
 carries piece 290's rows, and `run127_trireme_rounds_leave_from_the_keel`
 holds all six launches. `CHAR_ATTACK2` plays the same file with the same
-events and takes the same rows. Which slot the original swings is not
-printed at `GUYS=2`.
+events and takes the same rows. ~~Which slot the original swings is not
+printed at `GUYS=2`.~~ Whichever slot the roll gives, the swing plays
+`Trireme Attack1`: the packet names no `CHAR_ATTACK3`, and `Guy::set_anim`
+plays `CHAR_ATTACK2` in place of a slot the packet lacks (`docs/ANIM.md`
+§4.13, item 549).
 
 ### 50.3 A sea figure stands on the water, not the lake bed
 
