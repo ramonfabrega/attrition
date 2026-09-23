@@ -4517,10 +4517,23 @@ impl Sim {
         )
     }
 
+    /// A unit the `0x2400` tiles refuse: sea domain, and an `attack`
+    /// (`ObjectTypeData +0x1e8`) or strictly `is(AIRCRAFTCARRIER)` — the
+    /// test `find_nearby_spot@0061de70` and `UnitData::invalid_loc@
+    /// 00607c30` both make (`docs/ORDERS.md` §25).
+    pub(crate) fn is_warship(&self, u: usize) -> bool {
+        let p = self.profile(Obj::Unit(u));
+        matches!(p.domain, crate::attrition::Domain::Sea)
+            && (p.attack != 0
+                || self.units[u]
+                    .ty
+                    .is_some_and(|t| self.is_aircraft_carrier(t)))
+    }
+
     /// `is(AIRCRAFTCARRIER, 1)` on a unit type — strict, so the type
     /// itself or its graft, never a lineage by `from`. A type the tree
     /// does not carry answers no.
-    fn is_aircraft_carrier(&self, ty: usize) -> bool {
+    pub(crate) fn is_aircraft_carrier(&self, ty: usize) -> bool {
         let Some(t) = self.unit_types.get(ty).and_then(|u| u.tree) else {
             return false;
         };

@@ -7124,17 +7124,20 @@ a draw:
 - **The other dock readers.** `create_buildings`' dock value (§2.19 item 2)
   and the transport code may look for a dock the same way. Only this call
   was checked against its listing.
-- **`dock_sea_region` walks cells, and the original walks tiles.** The
+- ~~**`dock_sea_region` walks cells, and the original walks tiles.** The
   original walks `WallData::tile_corner` over the footprint's `x_size ×
   y_size` **tiles**, testing the surface bits `& 0x30 == 0x20`, then
   `get_tregion`. This crate's walk starts at `pos.cell()`. It found the same
-  sea here. It is not read further.
+  sea here. It is not read further.~~ Item 579 walks the tiles
+  (`dock_sea_tile`); the tile is the navy's point (`docs/ORDERS.md` §25.3).
 - **The tie order.** No capture puts two docks at one distance. The walk
   order is the circle's, with building index order inside a cell standing in
   for the object chain's order.
-- **`Armies::init_navy`** runs on the original's 9981 (run139's coverage).
+- ~~**`Armies::init_navy`** runs on the original's 9981 (run139's coverage).
   This crate's sea branch still seeds no navy (`ai_census.rs`). Nothing in
-  run139's window reads it.
+  run139's window reads it.~~ Item 579 seeds it, and it was the word 10232:
+  the navy's first order is what the original's Trireme gave up
+  (`docs/ORDERS.md` §25.3).
 - **10165's hit points**: a Citizen upgrade or an age effect the original
   applies and this crate does not. It is below the word and spends no draw.
 - **`gather_stamp` on 9992**: ours 9991 against the original's 9719. This

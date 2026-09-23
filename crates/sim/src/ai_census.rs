@@ -86,7 +86,7 @@ const OBJ_MASK_MISSILE: u32 = 0x800_0000;
 /// `BuildTypeData::is_dock_tile` is `Sim::is_dock_tile`; `carry` and
 /// `unit_flags2 & 4` come from the type's columns.
 /// | region flags `& 8` | clear | step 15's two-landmass expand probe never fires. |
-/// | `Armies::init_navy` | never seeded | step 16 is `Sim::census_seed_army` (`docs/ARMY.md`); the sea branch of `create_units` still seeds nothing. |
+/// | `Armies::init_navy` | seeded by `create_units`' sea branch | step 16 is `Sim::census_seed_army` (`docs/ARMY.md`); the sea branch seeds the navy since item 579 (`docs/ORDERS.md` §25.3). |
 /// | `check_explore`'s visibility | every region cell counts | no fog: the leader has seen the map. |
 ///
 /// `home_reg`, `pop`, `control` and `scouts` are *not* seams: the sweep

@@ -414,9 +414,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // read. run99 is run98's detail — `DEATHS=1` and `LEADERS=1`, where the
     // Great Lakes line has `GROUPS=1` and `LEADERS=9`.
     // Item 576 moved the word to 10232, and run99 carries its blocks too.
+    // Item 579 moved it to 10398, whose block is run99's last, so the five
+    // blocks end on it rather than straddle it.
     let ei = EAST_INDIES_WORD_BLOCK;
     if let Some(p) = &r99 {
-        let n = drive_capture(p, ei - 2, ei + 2, &mut paths);
+        let n = drive_capture(p, ei - 4, ei, &mut paths);
         assert_eq!(n, 5, "run99 carries the word's five blocks");
         frames += n;
     }

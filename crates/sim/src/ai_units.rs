@@ -259,7 +259,8 @@ impl Sim {
 
     /// `Armies::find_army(who, city.x, city.y, −1, ·, −1)` — the slot of
     /// the nearest army in the city's region, or −1 (`docs/ARMY.md` §15).
-    /// `init_navy` on the sea branch is still a seam.
+    /// The sea branch's `init_navy` asks its own `find_army` around the
+    /// dock's sea tile ([`Sim::sea_value`]).
     fn army_at(&self, who: Player, city: usize) -> i32 {
         self.find_army(who, self.cities[city].pos, -1, None)
             .map_or(-1, |(s, _)| s as i32)
@@ -1199,7 +1200,7 @@ impl Sim {
         // The dock: the nearest of mine around the city's centre, whichever
         // city it belongs to (§57).
         let dock = self.find_dock_near(who, self.cities[c].pos)?;
-        let sea_reg = self.dock_sea_region(dock)?;
+        let (sea_reg, sea_tile) = self.dock_sea_tile(dock)?;
         if self.world.cells_in(sea_reg).count() <= 19 {
             return None;
         }
@@ -1265,6 +1266,26 @@ impl Sim {
         let avg_e = if count == 0 { 0 } else { sum / count };
         if reg_combat > avg_e + 5 || reg_combat > max_e + 3 {
             return None;
+        }
+        // **`Armies::init_navy`** (`create_units@006c40a0:823`, listing
+        // `6c5a52`–`6c5aa3`): around the centre of the tile the sea was
+        // read on, no army of mine in its region (`find_army(who, x, y, −1,
+        // ·, −1)`) and a city of mine found → a new army at that city with
+        // `navy = 1` and `reg = the sea`. It is what the dock's first
+        // warship joins when it comes out (`Unit::add_to_army`'s sea arm),
+        // and on East Indies it is run139's 9981 (`docs/ORDERS.md` §25).
+        let half = crate::world::UNITS_PER_TILE / 2;
+        let at = crate::world::Pos::new(
+            sea_tile.x * crate::world::UNITS_PER_TILE + half,
+            sea_tile.y * crate::world::UNITS_PER_TILE + half,
+        );
+        if self.find_army(who, at, -1, None).is_none()
+            && let Some(city) = self.navy_city(who, at)
+        {
+            let s = self.init_army(who, Some(city));
+            let a = &mut self.armies[w].list[s];
+            a.navy = true;
+            a.reg = Some(sea_reg);
         }
         let carrier = self.named_is(t, "Aircraft Carrier");
         let attacked = self.buildings[dock].under_attack != 0;
@@ -1343,26 +1364,56 @@ impl Sim {
         best.map(|(_, b)| b)
     }
 
-    /// The dock's sea region — the original walks the footprint for the first
-    /// water tile whose region is a sea region. This walks the same
-    /// footprint over the region grid.
-    fn dock_sea_region(&self, dock: usize) -> Option<u16> {
+    /// The dock's sea region and the tile it was read on —
+    /// `create_units@006c40a0:627`'s footprint walk. `WallData::tile_corner`,
+    /// then the footprint's **tiles**, `x` outer and `y` inner: the first
+    /// ocean tile of a column (`mask & 0x30 == 0x20`) answers
+    /// `WorldData::get_tregion`, with the coastal `region2` refinement, and
+    /// ends that column; a sea region ends the walk. The tile is the point
+    /// the navy's army and city are looked for around (`docs/ORDERS.md`
+    /// §25). This walked the region grid from the centre cell until item
+    /// 579.
+    fn dock_sea_tile(&self, dock: usize) -> Option<(u16, crate::world::Pos)> {
         let bd = &self.buildings[dock];
-        let (xs, ys) = bd.ty.map_or((1, 1), |rec| {
-            (self.build_types[rec].x_size, self.build_types[rec].y_size)
-        });
-        let base = bd.pos.cell();
-        for dy in 0..ys.max(1) {
-            for dx in 0..xs.max(1) {
-                let cell = crate::world::Cell::new(base.x + dx, base.y + dy);
-                if let Some(reg) = self.world.region_of(cell)
-                    && self.world.terrain(reg) == Terrain::Sea
+        let rec = bd.ty?;
+        let corner = self.tile_corner(rec, bd.pos);
+        let (xs, ys) = (self.build_types[rec].x_size, self.build_types[rec].y_size);
+        let sea = |r: u16| self.world.terrain(r) == Terrain::Sea;
+        let mut found: Option<(u16, crate::world::Pos)> = None;
+        for tx in corner.x..corner.x + xs {
+            for ty in corner.y..corner.y + ys {
+                let t = crate::world::Pos::new(tx, ty);
+                if self.world.tile_mask(t) & crate::world::tile::SURFACE
+                    == crate::world::tile::SURFACE_OCEAN
                 {
-                    return Some(reg);
+                    found = self.world.tregion_alt(t).map(|r| (r, t));
+                    break;
                 }
             }
+            if found.is_some_and(|(r, _)| sea(r)) {
+                break;
+            }
         }
-        None
+        found.filter(|&(r, _)| sea(r))
+    }
+
+    /// `ObjectsData::find_city(x, y, SEARCH_FRIENDLY, who, ·, 0, FILTER_ALL,
+    /// 0, 0)@0065ba90` — the navy's city: the nearest live city of `who`,
+    /// **anywhere**. The flag word is 0, so the region filter (`0x200`) is
+    /// off, and the fifth argument is whatever `ecx` held after
+    /// `find_army` returned (listing `6c5a83`); `find_city` never reads it.
+    /// The distance starts at 99,999,999 and the test is `<=`, so a tie
+    /// goes to the later city.
+    fn navy_city(&self, who: Player, at: crate::world::Pos) -> Option<usize> {
+        let mut best: Option<(usize, i32)> = None;
+        for c in self.cities_of(who) {
+            let p = self.cities[c].pos;
+            let d = crate::world::vector_dist(p.x - at.x, p.y - at.y);
+            if best.is_none_or(|(_, bd)| d <= bd) {
+                best = Some((c, d));
+            }
+        }
+        best.map(|(c, _)| c)
     }
 
     /// §2.3 — the land civilians: merchant, caravan, citizen, scholar, spy

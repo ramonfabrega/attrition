@@ -1352,7 +1352,7 @@ impl Sim {
     /// dock's own warships are born at least three tiles out: East Indies'
     /// Trireme `1/32` lands due east of Dock `1/2010`, the first bearing of
     /// its ring that clears the margin (`docs/ORDERS.md` §25).
-    fn mask_dock_water(&mut self, b: usize, on: bool) {
+    pub(crate) fn mask_dock_water(&mut self, b: usize, on: bool) {
         let Some(ty) = self.buildings[b].ty else {
             return;
         };

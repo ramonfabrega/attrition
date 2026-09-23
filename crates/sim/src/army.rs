@@ -2598,7 +2598,10 @@ impl Sim {
         unit: Option<usize>,
     ) -> Option<(usize, i32)> {
         let w = who as usize;
-        let reg = self.world.tregion(p.tile());
+        // `WorldData::get_tregion`, with the coastal `region2` refinement
+        // (`find_army@006f34f0`'s first call): a ship on the ocean tile of
+        // a coastal cell is in the sea, not the land the cell belongs to.
+        let reg = self.world.tregion_alt(p.tile());
         let mut best: Option<(usize, i32)> = None;
         for (s, a) in self.armies[w].valid() {
             if a.reg != reg {
