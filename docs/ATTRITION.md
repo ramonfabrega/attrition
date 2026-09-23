@@ -987,7 +987,9 @@ squad parts from the original's at 1277, so the veto cannot be compared
 yet.~~ Item 567 built the escort the squad takes on 1277 (`docs/ORDERS.md`
 §24), and with it every bleed row — `attrition`, `damage_frac`, the hit
 points and `sheltered` (`unit_masks2 & 0x40000`) — agrees on every block
-from 601 to 1500. The veto is compared, and it agrees; the bracket is not
-narrowed, because the wagon's positions still differ.
+from 601 to 1500. The veto is compared, and it agrees. ~~the bracket is not
+narrowed, because the wagon's positions still differ.~~ Since item 569 the
+wagon's positions agree too (`docs/PATHFINDER.md` §25, `docs/ORDERS.md`
+§24.9). The bracket is the capture's own and is not narrowed.
 `docs/SUPPLY.md` has the shelter's half.
 

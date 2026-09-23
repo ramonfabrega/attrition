@@ -1763,14 +1763,20 @@ impl Sim {
     /// start: the original reads `world.cells[unit.pos]` flags `& 0x100`
     /// ([`cell::HALFLAND`]) off the obfuscated position fields.
     ///
-    /// SEAM: the `is_supply` arm of the first term — `type.attack == 0`
-    /// still takes the mode when the unit's `is_supply` virtual answers
-    /// yes (`unit_flags2 & 0x40` for the base class). No supply unit in
-    /// the corpus plans a `find_wpath`.
+    /// **The first term has an `is_supply` arm** (item 569,
+    /// `docs/PATHFINDER.md` §25): `type.attack == 0` still takes the mode
+    /// when the unit's `is_supply` virtual answers yes (`00689680`–
+    /// `006896a9`). Every unit vtable's `+0xcc` is the base
+    /// `UnitData::is_supply@0046ce80`, `unit_flags2 & 0x40`, so the arm is
+    /// the raw bit — without [`Sim::is_supply_unit`]'s hero exclusion,
+    /// which no hero reaches here, being armed. A Supply Wagon plans as an
+    /// army and pays `base << 5` for every `0x200` cell; golden chapter
+    /// four's wagon `1/10` is the first `find_wpath` of one in the corpus.
     fn army_mode(&self, u: usize) -> bool {
-        let armed = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].combat.attack > 0);
+        let armed = self.units[u].ty.is_some_and(|t| {
+            let ty = &self.unit_types[t];
+            ty.combat.attack > 0 || ty.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+        });
         let worker = self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].worker != Worker::None);
@@ -1792,6 +1798,29 @@ mod tests {
     use super::*;
     use crate::world::{Cell, Terrain};
     use crate::{Tuning, Unit, World};
+
+    /// `find_wpath`'s army mode takes an unarmed unit whose `is_supply`
+    /// answers yes, `unit_flags2 & 0x40` (`docs/PATHFINDER.md` §25).
+    /// Golden chapter four's Supply Wagon is the first in the corpus to
+    /// plan a world path, and without the arm it cut through the `0x200`
+    /// cells an army pays thirty-two times the base for.
+    #[test]
+    fn a_supply_wagon_plans_as_an_army_and_an_unarmed_plain_unit_does_not() {
+        let mut sim = flat_sim(8);
+        let wagon = sim.add_unit_type(crate::UnitType {
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: crate::ai_load::uflags2::SUPPLY_OR_HERO,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let plain = sim.add_unit_type(crate::UnitType::default());
+        let u = walker(&mut sim, Pos::new(0x480, 0x480));
+        sim.units[u].ty = Some(wagon);
+        assert!(sim.army_mode(u), "attack 0, and still an army: is_supply");
+        sim.units[u].ty = Some(plain);
+        assert!(!sim.army_mode(u), "attack 0 and not supply: no army mode");
+    }
 
     fn flat_sim(cells: i32) -> Sim {
         let mut world = World::new(cells, cells);

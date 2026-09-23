@@ -2345,7 +2345,38 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 /// away, so the escort's posts differ from the first block. No mechanism
 /// is named for 1416; the wagon is the frame's first suspect because the
 /// widening says so, not because a reading does.
-pub(crate) const GOLDEN_WORD_CHAPTER_FOUR: i64 = 1416;
+///
+/// **Item 569 moved it 1416 → 1500, +84, and 1500 is run133's trace end:
+/// chapter four is closed.** No draw, no site and no dumped value parts on
+/// any later frame. Two seams in the original's own wagon code, both
+/// named in this crate and both reached for the first time by this
+/// chapter's Supply Wagon, which is the one unarmed attack-mover in the
+/// corpus:
+///
+/// - **`find_wpath`'s army mode has an `is_supply` arm**
+///   (`docs/PATHFINDER.md` §25). An AI unit with type attack 0 still plans
+///   as an army when `unit_flags2 & 0x40` is set, and an army pays
+///   `base << 5` for every `0x200` cell. The wagon's first route on 1101
+///   went (7, 43) north-east through them. The original's went (7, 45)
+///   south-east round them, one leg longer. That was the 1101 parting
+///   under the old word, and the 700 units on 1277.
+/// - **`do_attack_to`'s unarmed arm is `do_attack_to_pause`**
+///   (`docs/ORDERS.md` §24.9). Every fifteen frames, a wagon whose group
+///   has an armed captain within `0x600` of it, and no more than half of
+///   those fighting, sets its `pause` to 15. `do_move` then stands it out
+///   with one `set_anim(CHAR_DEFAULT)` a figure per frame.
+///
+/// **The delta at 1416**: +1, 32 draws against 31. The original spent
+/// three `Guy::set_anim+0x97a < Unit::do_move+0x11cf` stands on `1/10`
+/// that this crate did not. Now 31 against 31, site for site, once the
+/// stand and `do_guard`'s three stands were named on both sides (the trace
+/// printed them as a bare `5dac7a`, and this crate as `unit 1/10` and
+/// `unit 1/7`). **The value diff on the frame it moved**: the wagon on
+/// block 1416 at (9610, 29508) with `pause` 15, and on 1417 at the same
+/// point with `pause` 14, on both sides. Before, this crate's wagon held 0
+/// and stepped to (9625, 29489). The widening's block for the move is in
+/// [`WIDENING_CHAPTER_FOUR`]'s test.
+pub(crate) const GOLDEN_WORD_CHAPTER_FOUR: i64 = 1500;
 
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`

@@ -60,7 +60,8 @@ and diverges only in what its own script stages.
 pinned at 774 of 901 (item 445)~~ ~~Both chapters that are captured agree to
 their traces' end, 900: chapter one on item 530, chapter two on item 523.~~
 Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
-549); chapter four is pinned at ~~1277~~ **1416** of 1501 (items 552, 567). **A chapter whose
+549); ~~chapter four is pinned at 1277, then 1416, of 1501 (items 552, 567)~~
+chapter four agrees to its trace's end, 1500 (items 552, 567, 569). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -471,6 +472,20 @@ frame: the original's wagon holds `pause 15`, a collision wait with the
 escort at its heels, and this crate's wagon, which has walked its own line
 since 1102, holds 0. The delta is +1, 32 draws against 31.
 
+**Item 569 moved it 1416 → 1500, and chapter four is closed.** Both
+causes were the wagon's own. This chapter's Supply Wagon is the first
+unarmed attack-mover in the corpus, and it reached two seams this crate
+had named and never built. Its `find_wpath` plans as an army through
+`is_supply`, which put its route round the `0x200` cells, one leg longer
+(`docs/PATHFINDER.md` §25). Every fifteen frames `do_attack_to_pause`
+stops it for fifteen frames when its escort's captain is within `0x600`,
+and it stands each waiting frame out (`docs/ORDERS.md` §24.9). The draw
+count, the site sequence and every dumped value agree on every block to
+1500. The only rows left are the capture's standing ones and three
+residues under 1174, none of which spends a draw: the scout's explore
+`facing` (parked 275), the group id's numbering, and the scout's second
+figure on 1172.
+
 ## 9. Chapter five — the water
 
 **Premise.** No capture on disk has ever carried a ship. run16's coverage
@@ -705,7 +720,7 @@ below without a run take their number at booking (the eleventh pass).
 | 112 | two, the ranged line | `[605, 900)` | **run 2026-09-19, word 616**; the cheapest chapter that adds a record the tree has never dumped (`AMMO`) |
 | ~~113~~ 127 | five, the water | `[605, 900)` | the likeliest to fail, 24 s to find out, and it gates any work on a Dock — **run 2026-09-22 as run127 (item 535), word 621; no falsifier fired** |
 | ~~114~~ 132 | four, the border | ~~`[295, 345)`~~ `[295, 545)` | the namesake; `WORLD=6` narrow — **run 2026-09-23 as run132 (item 552), 830 MB, 2178 s; no falsifier fired** |
-| ~~115~~ 133 | four, the bleed | `[595, 1500)` | the same script, a second window — **run133, 120 MB, 372 s; word 1277** |
+| ~~115~~ 133 | four, the bleed | `[595, 1500)` | the same script, a second window — **run133, 120 MB, 372 s; word 1277**, closed at 1500 by item 569 |
 | 116 | seven, the civilians | `[605, 1200)` | tests the premise every other chapter stands on |
 | 117 | seven, the control | `[605, 1200)` | `!ai off` deleted; without it 116 measures nothing |
 | 118 | three, the mounted and siege lines | `[605, 900)` | |

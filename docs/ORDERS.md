@@ -2966,7 +2966,7 @@ order and `(o + frame) % 15 == 0`: an armed non-supply unit →
 `QUEUE_FIRST` above the attack-move when it finds one (`docs/COMBAT.md`
 §12.4); under an army flag a unit more than 6 units from its slot skips the
 search. Unarmed/supply → `do_attack_to_pause`: a group member whose group
-`is_attacking_near` sets `pause = 15`. The attack-move is a move that looks
+`is_attacking_near` sets `pause = 15` (built, §24.9). The attack-move is a move that looks
 around every 15 frames; the engagement is an ordinary `AttackOrder` stacked on
 top, and when that dies the attack-move resumes.
 
@@ -5741,7 +5741,8 @@ spends a draw in the capture.
   `is_attacking_to`. Neither is implemented, and a marching army group
   still never looks. Nothing on the golden record reaches it now. The
   long captures have not been read for it.
-- `do_attack_to_pause`, the unarmed arm. `find_melee_target`'s `flags`
+- ~~`do_attack_to_pause`, the unarmed arm.~~ Built by item 569 (§24.9).
+  `find_melee_target`'s `flags`
   argument, from the type's vslots `+0x10c`/`+0x110`. The naval refusal
   in the add arm. And `Unit::move_step`'s cavalry-archer write of the
   guy's aim.
@@ -5893,7 +5894,9 @@ block the original's hoplite squad `1/6..1/8` holds a `GUARDORDER` on its
 Supply Wagon `1/10` over an `ATTACKTOORDER` to a point beside it. This
 crate's squad kept the `AttackTo` it had marched under since 1021. `GUARD`
 was on §1.7's list of kinds this crate cannot spell. It is built now, and
-the word is **1416**.
+the word ~~is **1416**~~ went to 1416. Item 569 took it to **1500**, the
+capture's end, which closes chapter four: the wagon's own two seams
+(§24.9, `docs/PATHFINDER.md` §25).
 
 ### 24.1 What the dump said, before any reading
 
@@ -6019,13 +6022,18 @@ this crate's squad marching off owned ground. The escort keeps it beside
 its wagon, as the original's is kept.
 
 **1416** is +1, 32 draws against 31. The original's wagon holds `pause
-15` on block 1416, a collision wait with the escort at its heels, and on
+15` on block 1416, ~~a collision wait~~ with the escort at its heels, and on
 the next frame spends three `do_move+0x11cf` stands (three guys). This
 crate's wagon holds 0 and spends none, and the gaia bird `9/6` spends five
-bird coins where the original spends one. No mechanism is named.
+bird coins where the original spends one. ~~No mechanism is named.~~ The
+pause is `do_attack_to_pause`'s, not a collision's (§24.9), and the bird's
+coins were downstream of the missing stands: with the stands spent, the
+coins agree draw for draw.
 
 ### 24.7 What is not established
 
+- ~~**The wagon's own walk**~~, which §24.6 left 700 units apart: it was
+  `find_wpath`'s `is_supply` arm (`docs/PATHFINDER.md` §25).
 - **The building-target arm** of `action_guard` and `do_guard`
   (`attack_dist ≤ 0x600`, the captain's one-unit `move_near`). Nothing
   here guards a building, and the arm returns.
@@ -6054,3 +6062,78 @@ bird coins where the original spends one. No mechanism is named.
 - **Reading only**: the review's sixty-four-frame arm; the cycle break;
   the `retry` roll; the on-post turn and `idle` count beside a still
   target; the `invalid_loc` fallbacks; and everything in §24.7.
+
+### 24.9 The wagon waits for its escort: `do_attack_to_pause` (item 569)
+
+After §24 the word was 1416. On that block the original's wagon holds
+`pause 15` and ours 0. Every position on the block agrees, so this is a
+decision on the same input. No draw marks where the pause is written, so
+the write is a constant. The one writer of `MoveOrder +0x18 = 0xf` in
+the export is `Unit::do_attack_to_pause@005f22a0` (`5f2303`). §7.4
+already named it as `do_attack_to`'s unarmed arm, and this crate carried
+it as a seam.
+
+**The gate**, `do_attack_to@005f2320`: once `do_move` has run, if the
+head is still this order and `(o + frame) % 15 == 0`, an armed unit whose
+raw `is_supply` (`unit_flags2 & 0x40`) is clear looks for a fight (§22).
+Every other unit takes `do_attack_to_pause`. The wagon, `o` 10, is on
+that phase on frame 1415, and block 1416 carries the pause.
+
+**`do_attack_to_pause`**: the unit's group (`+0x80`) must hold it,
+active: `GroupData::member(o, who, 1)@0070f8f0`. Then
+`Group::is_attacking_near(x, y)@00710e40` at the unit's position sets
+`pause = 15`. The decompile prints `unaff_EDI/ESI` for the `vector_dist`
+pair and for the order type, so this was read from the listing,
+`710e40`–`711061`:
+
+    normalize()
+    for each member: active, on the map, is_captain, type attack ≠ 0,
+                     not is_supply (& 0x40), not is_hero (& 0x20):
+        if vector_dist(|x − ux|, |y − uy|) <= 0x600:
+            near += 1
+            t = order_type()            # the head's type
+            if !is_move(t) && t ≠ 0 && t ≠ GUARD: attacking += 1
+    return near ≠ 0 && attacking >= near / 2
+
+`is_move@0046f050` is 1–4, `0x12`, `0x13` and `0x15`, and it leaves
+`ecx` holding the type, which is what the two tests after it read.
+**One armed captain near and none fighting is a yes**, because `1 / 2`
+is 0. Two near and neither fighting is a no. So a wagon with a single
+escort squad's captain inside `0x600` waits fifteen frames on every
+phase. On 1415 the escort's captain `1/6` is at its heels.
+
+**The stand**, `do_move@005f7b30:734`–`741`: while `pause` counts down,
+a unit whose order type is `ATTACK_TO` or `GROUP_ATTACK_TO` and whose
+type's attack is 0 is given `set_anim(CHAR_DEFAULT, 0, 1)`
+(`5f8cfa`, pushes 1, 0, 0). That is one `Guy::set_anim+0x97a` draw per
+figure per frame, `SITE_PAUSE_STAND`. These are the original's three
+draws on 1416.
+
+**Named on both sides.** The trace printed the stand bare as `5dac7a`,
+and this crate spent it unmarked (`unit 1/10`), so a site sequence could
+not compare them. `do_guard`'s three stands had the same problem (`unit
+1/7` against `5dac7a` on 1464). Their return addresses are `5e6464`
+(`+0x7f4`, the idle on the post), `5e6550` (`+0x8e0`, before the `retry`
+roll) and `5e6596` (`+0x926`, a dead target's). All four are in
+`rondata::trace`'s chain table and marked in the simulation.
+
+**What it moved**: with `docs/PATHFINDER.md` §25, **1416 → 1500**, the
+trace's end. The draw count, the site sequence and every dumped value
+agree on every block of run133. The value diff on 1416: the wagon at
+(9610, 29508) with `pause` 15, and on 1417 at the same point with 14,
+on both sides. Before, this crate's wagon stepped on to (9625, 29489).
+
+**Not established.** The `QUEUE_FIRST` attack a nearby captain's fight
+would raise. No captain fights in run133, so `attacking` is never
+non-zero here, and the `≥ near / 2` side is backed only by the unit test
+`an_unarmed_attack_mover_waits_on_its_phase_for_a_captain_at_its_heels`.
+`GroupData::member`'s flag test (`objects +0x8 & 1`) is taken as
+`alive()`. The packer's arm on the post (`idle ≥ 0x1e`/`0x46` with
+`unit_masks & 0x80000` → `add_cast_order(0x28c)`, `5e63df`–`5e6449`) is
+read and not built. Hoplites never take it.
+
+**Coverage.** Diff-backed by `chapter_four_s_word_frame_is_widened_whole`,
+which fails with the pause write reverted (`1416 1/10 order:move.pause`
+returns), and by `chapter_four_holds_to_the_golden_word`, whose
+sequence parts at 1416 and then 1464 without the site names.
+Listing-backed: `is_attacking_near`'s arithmetic and the four sites.

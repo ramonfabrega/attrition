@@ -184,6 +184,15 @@ pub const SITE_CAST: &str = "Guy::set_anim+0x97a < do_cast";
 /// own mark (`docs/CARAVAN.md` §7.1).
 pub const SITE_TRADE: &str = "Guy::set_anim+0x97a < do_trade";
 
+/// `Guy::set_anim+0x97a` under `Unit::do_move+0x11cf` — **an unarmed
+/// attack-move standing out its pause**, `do_move@005f7b30`'s
+/// `set_anim(CHAR_DEFAULT, 0, 1)` at `5f8cfa` (pushes 1, 0, 0). One draw a
+/// figure, every frame the pause counts down, for an order whose type is
+/// `ATTACK_TO` or `GROUP_ATTACK_TO` on a type whose attack is 0. Golden
+/// chapter four's Supply Wagon spends three of them a frame while it waits
+/// for its escort (`docs/ORDERS.md` §24.9).
+pub const SITE_PAUSE_STAND: &str = "Guy::set_anim+0x97a < Unit::do_move+0x11cf";
+
 /// `Guy::set_anim+0x97a` under `Unit::go_inside+0x280` — the **scholar's
 /// seating**, the last statement but one of `Unit::go_inside@0061a2e0` and
 /// the fourteenth caller of this address (`docs/CITIES.md` §6.5.2). A unit

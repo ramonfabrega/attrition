@@ -4458,7 +4458,9 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         // **Both sides printed once on the word's two blocks** (DECISIONS
         // 43), for player 1's staged units: the record the draw is spent
         // in, before any quiet row is trusted.
-        if (GOLDEN_WORD_CHAPTER_FOUR..=GOLDEN_WORD_CHAPTER_FOUR + 1).contains(&n) {
+        if (GOLDEN_WORD_CHAPTER_FOUR..=GOLDEN_WORD_CHAPTER_FOUR + 1).contains(&n)
+            || (1416..=1417).contains(&n)
+        {
             for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
                 let mine = u8::try_from(them.who)
                     .ok()
@@ -4485,6 +4487,12 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         // (7, 45), then the diagonal, then north along x = 12 — every cell
         // of it clear of the `0x200` flag, which an army pays `base << 5`
         // for (`docs/PATHFINDER.md` §5). Printed both sides by cell.
+        //
+        // **And this crate's is the same route since item 569**: the
+        // wagon's `find_wpath` takes the army mode through `is_supply`'s
+        // arm (`docs/PATHFINDER.md` §25). Without that arm it went (7, 43)
+        // north-east through the `0x200` cells, one leg shorter, and
+        // walked apart from the original's from 1102 on.
         if n == 1101 {
             let cells = |v: Vec<(i64, i64)>| -> Vec<(i64, i64)> {
                 v.into_iter()
@@ -4532,6 +4540,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                 ],
                 "run133's wagon route on 1101"
             );
+            assert_eq!(ours, theirs, "this crate's wagon route on 1101");
         }
         // **The escort's own row on the block it is issued** (item 567,
         // `docs/ORDERS.md` §24), read off both sides by name rather than
@@ -4692,14 +4701,20 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         first_bleed, None,
         "the namesake's record parts somewhere new"
     );
-    // **What parts under the word**, none of it a draw: the scout's
-    // explore-order `facing` (the declared non-scoring formation mirror,
-    // parked 275, as chapter five's `1/0` on 847); the squad's group id
-    // (`1020001` against `1026401`, a numbering, on 1021); the wagon's
-    // birth path one leg short and its walk from 1102, which is where the
-    // wagon's following the squad starts; and the scout's second figure
-    // three units off on 1172. Pinned by key and block so none of them can
-    // stand in for anything else.
+    // **What parts under the word**, none of it a draw, and the word is
+    // the capture's end: the scout's explore-order `facing` (the declared
+    // non-scoring formation mirror, parked 275, as chapter five's `1/0` on
+    // 847); the squad's group id (`1020001` against `1026401`, a
+    // numbering, on 1021); and the scout's second figure three units off
+    // on 1172. Pinned by key and block so none of them can stand in for
+    // anything else.
+    //
+    // **Item 569 took eighty-nine rows off this list.** Twenty were the
+    // wagon's first route on 1101, one leg short, and its walk from 1102.
+    // The other sixty-nine were the escort's posts from 1277: the post is
+    // the wagon's position plus the slot offset (`docs/ORDERS.md` §24.6),
+    // so it could not agree until the wagon's walk did. Both were
+    // `find_wpath`'s missing `is_supply` arm (`docs/PATHFINDER.md` §25).
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| {
@@ -4707,119 +4722,37 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         })
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
-    let want: Vec<&str> = vec![
+    let mut want: Vec<String> = [
         "767 1/9 order:move.facing",
         "1021 1/6 order:group.id",
         "1021 1/7 order:group.id",
         "1021 1/8 order:group.id",
-        "1102 1/10 g.angle[0]",
-        "1102 1/10 g.angle[1]",
-        "1102 1/10 g.angle[2]",
-        "1102 1/10 g.x[0]",
-        "1102 1/10 g.x[1]",
-        "1102 1/10 g.x[2]",
-        "1102 1/10 g.y[0]",
-        "1102 1/10 g.y[1]",
-        "1102 1/10 g.y[2]",
-        "1102 1/10 heading",
-        "1132 1/10 order:move.dest",
-        "1102 1/10 order:move.dest_y",
-        "1133 1/10 order:move.dest_x",
-        "1101 1/10 path:length",
-        "1101 1/10 path[3].to",
-        "1101 1/10 path[4].to",
-        "1101 1/10 path[5].to",
-        "1101 1/10 path[6].to",
-        "1101 1/10 path[7].to",
-        "1102 1/10 pos",
         "1172 1/9 g.x[1]",
         "1172 1/9 g.y[1]",
         "1173 1/9 g.angle[1]",
-        // **The escort, from 1277** (item 567, `docs/ORDERS.md` §24). The
-        // squad takes its `GUARDORDER` on the wagon on the army's tick on
-        // both sides now, and the guard's own row agrees on every block:
-        // no `order:kind`, `order:length`, `order:action`, `guard.dx`,
-        // `guard.dy`, `guard.idle` or `guard.retry` row parts anywhere
-        // under the word. What parts is the **post** — the wagon's
-        // position plus the slot offset — and everything downstream of
-        // it: the reposition leg's point, angle and path, the walk, and
-        // two of the three timers (`1/6`'s 419 agrees). The wagon stands
-        // 700 units from the original's on 1277 (the 1102 rows above),
-        // so the post cannot agree until its walk does.
-        "1277 1/10 path[47].to",
-        "1277 1/6 path[7].to",
-        "1278 1/6 g.angle[0]",
-        "1278 1/6 g.x[0]",
-        "1278 1/6 g.y[0]",
-        "1278 1/6 pos",
-        "1281 1/6 half_step",
-        "1296 1/6 order:move.dest",
-        "1296 1/6 path:length",
-        "1339 1/6 order:move.timer",
-        "1410 1/6 tolerance",
-        "1277 1/7 order:move.timer",
-        "1277 1/7 path:length",
-        "1278 1/7 angle:Facing",
-        "1278 1/7 g.angle[0]",
-        "1281 1/7 g.x[0]",
-        "1282 1/7 g.y[0]",
-        "1281 1/7 half_step",
-        "1281 1/7 pos",
-        "1306 1/7 order:move.dest",
-        "1402 1/7 tolerance",
-        "1277 1/8 order:move.timer",
-        "1277 1/8 path:length",
-        "1278 1/8 g.angle[0]",
-        "1278 1/8 g.x[0]",
-        "1278 1/8 g.y[0]",
-        "1278 1/8 pos",
-        "1301 1/8 order:move.dest",
-        "1401 1/8 tolerance",
-    ];
-    // The family every escort carries on 1277, and the three figures'
-    // first seven path legs: the post and the leg to it.
-    let post = [
-        "angle:Heading",
-        "dest_angle",
-        "heading",
-        "order:guard.guard_x",
-        "order:guard.guard_y",
-        "order:move.angle",
-        "order:move.dest_x",
-        "order:move.dest_y",
-        "order:move.off_x",
-        "order:move.off_y",
-        "order:move.x",
-        "order:move.y",
-        "orders_x",
-        "orders_y",
-    ];
-    let mut want: Vec<String> = want.iter().map(|s| s.to_string()).collect();
-    for o in 6..=8 {
-        want.extend(post.iter().map(|k| format!("1277 1/{o} {k}")));
-        want.extend((0..7).map(|i| format!("1277 1/{o} path[{i}].to")));
-    }
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
     let mut under_sorted = under.clone();
     under_sorted.sort();
     want.sort();
     assert_eq!(under_sorted, want, "what parts under the word moved");
-    // **The word's own block, 1416** (item 567): the wagon's `pause` —
-    // the original's wagon holds `pause 15` and this crate's 0 — and
-    // `1/8`'s half step. On the next frame the original's wagon spends
-    // three `Unit::do_move+0x11cf` stands where this crate's does not;
-    // that is the word's draw delta, in `GOLDEN_WORD_CHAPTER_FOUR`'s
-    // comment. No mechanism: the wagon is the one the 1102 rows name.
-    let at_word: Vec<String> = firsts
+    // **The move's block, 1416** (item 569; its delta is in
+    // `GOLDEN_WORD_CHAPTER_FOUR`'s comment). Item 567 left two rows here:
+    // the wagon's `pause`, 15 in the original and 0 here, and `1/8`'s half
+    // step. The pause is `do_attack_to_pause`'s (`docs/ORDERS.md` §24.9):
+    // on (1415 + 10) % 15 == 0 the wagon has the escort's captain within
+    // `0x600`, and it waits. Now every record agrees on 1416 and on every
+    // block above the scout's 1173, to the end of the capture.
+    let above: Vec<String> = firsts
         .iter()
-        .filter(|(_, (f, _))| *f == GOLDEN_WORD_CHAPTER_FOUR)
-        .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+        .filter(|(_, (f, _))| *f > 1173)
+        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
     assert_eq!(
-        at_word,
-        vec![
-            "1/8 half_step: ours 1 theirs 0".to_string(),
-            "1/10 order:move.pause: Move { field: \"pause\", ours: 0, theirs: 15 }".to_string(),
-        ],
-        "the word's block moved"
+        above,
+        Vec::<String>::new(),
+        "a row parts above 1173, where run133 agrees to its end"
     );
 }

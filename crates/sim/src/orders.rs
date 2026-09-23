@@ -16,6 +16,7 @@
 //! verifier, and the three grid planners live in `path.rs`
 //! (`docs/PATHFINDER.md`).
 
+use crate::ai_load::uflags2;
 use crate::anim;
 use crate::build::{self, Ident, flags as bflags};
 use crate::combat::{self, Obj};
@@ -624,6 +625,17 @@ pub const SITE_MOVE_GRID: &str = "Unit::do_move+0xe84";
 /// `Unit::do_guard@005e5c70+0x8fb` — the `retry` roll after a reposition
 /// whose leg ended on the frame it was issued (`docs/ORDERS.md` §24).
 pub const SITE_GUARD_RETRY: &str = "Unit::do_guard+0x8fb";
+
+/// `do_guard`'s three stands, each `set_anim(CHAR_DEFAULT, 0, 1)` through
+/// `Unit::set_anim`, one draw a figure, named by their return addresses in
+/// the listing (item 569): `5e6464` the **idle stand on the post**,
+/// `5e6550` the stand before the `retry` roll when a reposition leg ended
+/// the frame it was issued, and `5e6596` the stand before a dead target's
+/// order is killed. Item 567 built all three unmarked, and golden chapter
+/// four's escort spends the first from 1464.
+pub const SITE_GUARD_IDLE: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x7f4";
+pub const SITE_GUARD_STAND: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x8e0";
+pub const SITE_GUARD_DEAD: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x926";
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
@@ -1558,7 +1570,12 @@ impl Sim {
     /// search is only reached when the captain's target is no longer a
     /// valid one.
     ///
-    /// SEAM: `do_attack_to_pause`, the unarmed arm. The search's `flags`
+    /// **The unarmed arm is [`Self::do_attack_to_pause`]** (item 569):
+    /// the listing's test is the type's attack **and** the raw
+    /// `is_supply`, `unit_flags2 & 0x40`, so a Supply Wagon and every
+    /// unarmed unit wait for their group instead of looking.
+    ///
+    /// SEAM: the search's `flags`
     /// argument, which `find_melee_target` derives from the type's vslots
     /// `+0x10c`/`+0x110` for an attack-move. `find_nearby_target`'s naval
     /// refusal (`+0x218 == 2`). And the siege-on-a-city `mandatory` arm.
@@ -1575,7 +1592,11 @@ impl Sim {
             return;
         }
         let me = Obj::Unit(u);
-        if self.profile(me).attack == 0 || self.is_supply_unit(u) {
+        let supply = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO));
+        if self.profile(me).attack == 0 || supply {
+            self.do_attack_to_pause(u);
             return;
         }
         let who = self.units[u].owner;
@@ -1609,6 +1630,72 @@ impl Sim {
         }
         if let Some(t) = self.find_melee_target(u, -1) {
             self.add_attack_order(u, t, QueuePos::First, false, false);
+        }
+    }
+
+    /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an
+    /// unarmed unit on an attack-move **waits for its group** when the
+    /// group is fighting beside it — or, as it is written, when no more
+    /// than half of the armed captains near it are still walking.
+    ///
+    /// The unit's group (`+0x80`) must hold it, active
+    /// (`GroupData::member(o, who, 1)@0070f8f0`); then
+    /// `Group::is_attacking_near(x, y)@00710e40`, read off the listing at
+    /// `710e40`–`711061` because the decompile prints `unaff_EDI/ESI` for
+    /// both the `vector_dist` pair and the order type:
+    ///
+    /// - `normalize` the group first;
+    /// - over every member that is active, on the map, **a captain**,
+    ///   armed (type `+0x1e8`), and neither `is_supply` (`& 0x40`) nor
+    ///   `is_hero` (`& 0x20`) in `unit_flags2`: `near += 1` when
+    ///   `vector_dist(|x − ux|, |y − uy|) ≤ 0x600`, and then `attacking
+    ///   += 1` when its head order's type is not a move (`is_move@0046f050`:
+    ///   1–4, `0x12`, `0x13`, `0x15`), not `NONE` and not `GUARD`;
+    /// - yes when `near ≠ 0 && attacking ≥ near / 2`.
+    ///
+    /// **One armed captain near and none fighting is a yes** — `1 / 2` is
+    /// 0 — so a Supply Wagon with its escort's captain inside `0x600`
+    /// stops. The order's `pause` becomes 15, and `do_move` stands it out.
+    fn do_attack_to_pause(&mut self, u: usize) {
+        let Some(seat) = self.seat_of(u) else { return };
+        if !self.units[u].alive() || !self.seat_list(seat).contains(&u) {
+            return;
+        }
+        self.seat_normalize(seat);
+        let at = self.units[u].pos;
+        let (mut near, mut attacking) = (0, 0);
+        for m in self.seat_list(seat).clone() {
+            let unit = &self.units[m];
+            if !unit.alive() || !unit.on_map || !unit.captain {
+                continue;
+            }
+            if self.profile(Obj::Unit(m)).attack == 0 {
+                continue;
+            }
+            let special = unit.ty.is_some_and(|t| {
+                let c = self.unit_types[t].cols;
+                c.flag2(uflags2::SUPPLY_OR_HERO) || c.flag2(uflags2::GENERAL)
+            });
+            if special {
+                continue;
+            }
+            let (dx, dy) = ((at.x - unit.pos.x).abs(), (at.y - unit.pos.y).abs());
+            if vector_dist(dx, dy) > 0x600 {
+                continue;
+            }
+            near += 1;
+            let t = self.current_order(m).map_or(index::NONE, Order::index);
+            let moving = matches!(t, 1..=4 | 0x12 | 0x13 | 0x15);
+            if !moving && t != index::NONE && t != index::GUARD {
+                attacking += 1;
+            }
+        }
+        if near != 0
+            && attacking >= near / 2
+            && let Some(front) = self.units[u].orders.front_mut()
+            && let Some(m) = front.move_mut()
+        {
+            m.pause = 15;
         }
     }
 
@@ -2304,6 +2391,7 @@ impl Sim {
         let t = g.target;
         // `ObjectData::flags & 1` — the target's slot is still an object.
         if !self.units[t].alive() {
+            self.mark(SITE_GUARD_DEAD);
             self.set_anim(u, anim::DEFAULT, false, true);
             self.kill_current_order(u);
             return;
@@ -2405,6 +2493,7 @@ impl Sim {
             if self.order_type(u) != index::GUARD {
                 return;
             }
+            self.mark(SITE_GUARD_STAND);
             self.set_anim(u, anim::DEFAULT, false, true);
             self.mark(SITE_GUARD_RETRY);
             let r = self.rng.roll();
@@ -2418,6 +2507,7 @@ impl Sim {
         }
         g.idle += 1;
         store(self, 0, g);
+        self.mark(SITE_GUARD_IDLE);
         self.set_anim(u, anim::DEFAULT, false, true);
     }
 
@@ -2986,6 +3076,24 @@ impl Sim {
         if !straight_to_step && mo.pause != 0 {
             mo.pause -= 1;
             self.store_move(u, mo, flags);
+            // **An unarmed attack-move stands out its pause**
+            // (`do_move@005f7b30:734`–`741`): with the order's own type
+            // `ATTACK_TO` or `GROUP_ATTACK_TO` and the type's attack 0, the
+            // waiting frame is a `set_anim(CHAR_DEFAULT, 0, 1)` — one stand
+            // per guy, each a draw (`Guy::set_anim+0x97a < Unit::set_anim <
+            // Unit::do_move+0x11cf`). The pause it stands out is
+            // `do_attack_to_pause`'s fifteen (`docs/ORDERS.md` §24.9).
+            let t = Order {
+                flags,
+                body: Body::Move(mo),
+            }
+            .index();
+            if matches!(t, index::ATTACK_TO | index::GROUP_ATTACK_TO)
+                && self.profile(crate::combat::Obj::Unit(u)).attack == 0
+            {
+                self.mark(anim::SITE_PAUSE_STAND);
+                self.set_default_anim(u);
+            }
             return Did::Something;
         }
         self.unit_step(u, mo, speed)

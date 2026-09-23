@@ -254,6 +254,33 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x0061_a560), // `Unit::go_inside+0x280`, through `Unit::set_anim`
         sim::anim::SITE_GO_INSIDE,
     ),
+    // `Unit::do_move@005f7b30+0x11cf` — an unarmed attack-move standing
+    // out its pause, through `Unit::set_anim`; the trace printed it bare as
+    // `5dac7a` on golden chapter four's 1416 until item 569
+    // (`docs/ORDERS.md` §24.9).
+    (
+        0x005d_ac7a,
+        Some(0x005f_8cff), // `Unit::do_move+0x11cf`, through `Unit::set_anim`
+        sim::anim::SITE_PAUSE_STAND,
+    ),
+    // `Unit::do_guard@005e5c70`'s three stands (item 569, `docs/ORDERS.md`
+    // §24.4): the idle on the post, the stand before the `retry` roll, and
+    // a dead target's.
+    (
+        0x005d_ac7a,
+        Some(0x005e_6464), // `Unit::do_guard+0x7f4`
+        sim::orders::SITE_GUARD_IDLE,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005e_6550), // `Unit::do_guard+0x8e0`
+        sim::orders::SITE_GUARD_STAND,
+    ),
+    (
+        0x005d_ac7a,
+        Some(0x005e_6596), // `Unit::do_guard+0x926`
+        sim::orders::SITE_GUARD_DEAD,
+    ),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of
