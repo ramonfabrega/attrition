@@ -680,6 +680,15 @@ and skips the restage and `ch7b` parts, so it passed with the queue at
 `restage w792` and the constant at 865. The two words the rules lane is
 actually on are the two the guard cannot see.
 
+(639) **A worker's gate that is red on the queue's line never reaches
+clippy.** Filed by the commander on 2026-09-23: 617 reported "red only on
+your queue line", and its gate had stopped at the paperwork guard before
+the survey and before `cargo clippy --all-targets`. The commander's
+booking gate then failed on a `collapsible_if` in 617's own code, fixed as
+fc85132. A lane's "red only on your lines" is true of what ran, not of the
+gate. Either the gate runs clippy before the paperwork guard, or it reports
+what it did not reach.
+
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth
 pass restaged chapter seven as seven-b for who=1, "where the cheat's block
