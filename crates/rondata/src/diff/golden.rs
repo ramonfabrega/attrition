@@ -4547,8 +4547,9 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         // through `compare`'s labels: each hoplite's `GUARDORDER` is on the
         // wagon `1/10`, and its offset and both counters are the
         // original's — (0, 264), (144, 264), (−144, 264), `idle` and
-        // `retry` 0. Only the post, which is the wagon's position plus
-        // the offset, differs, and that is the 1102 rows' residue.
+        // `retry` 0. The post, which is the wagon's position plus the
+        // offset, differed until item 569 walked the wagon on the
+        // original's line (`docs/PATHFINDER.md` §25); it agrees now.
         if n == 1277 {
             for (o, dx) in [(6, 0), (7, 144), (8, -144)] {
                 let them = frame
@@ -4565,6 +4566,10 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                     them.guard_retry,
                 );
                 assert_eq!(theirs, (Some(10), Some(dx), Some(264), Some(0), Some(0)));
+                // **And the post itself since item 569**: the wagon walks
+                // the original's line, so the wagon's position plus the
+                // offset is the original's point on all three figures.
+                let post = them.guard_x.zip(them.guard_y);
                 let u = s.built.sim.unit_by_o(1, i16::try_from(o).unwrap()).unwrap();
                 let g = s.built.sim.units[u]
                     .orders
@@ -4582,6 +4587,11 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                     Some(i64::from(g.retry)),
                 );
                 assert_eq!(ours, theirs, "1/{o}'s guard row");
+                assert_eq!(
+                    Some((i64::from(g.guard.x), i64::from(g.guard.y))),
+                    post,
+                    "1/{o}'s post on 1277"
+                );
             }
         }
         // The bleed's own timeline: player 1's staged units, `o` 6 and up.
