@@ -2194,3 +2194,131 @@ landed**: §23.4, `run136_s_word_is_one_cell_of_1_62_s_search`.
 **Listing-backed**: §23.3's argument chain, `llvm-objdump` of
 `0x687cec..0x687d40` and `0x617141..0x6171b0`. **Measured once, not
 landed**: §23.3's table (a scratch print) and §23.4's 12038.
+
+## 24. Why S is refused: the rules read clean, so the index is measured (item 566, 2026-09-23)
+
+§23.5 left one question: why the original's `valid_ucoord` refuses unit
+cell (810, 441) to `1/62` on sim-frame 11901. This section says what
+the capture-free route settled and what it could not, and it books the
+capture (run138) that measures the original's index directly.
+
+### 24.1 The capture-free route, and why it stops short of the answer
+
+The brief's first route was to call `PathFinder::valid_ucoord@00687c80`
+under `tools/emu/callfn.py` on synthesized state. That answers one
+question only: what the original's *function* says given the index we
+build. It cannot say what the original's index *holds*. So the route is
+worth exactly as much as a disagreement in the function, and every
+function on the path was read against this crate's port:
+
+- `valid_ucoord`: bounds, then the memo, then `invalid_loc(tile, 0, 1, 0,
+  1, 0)`, then `detect_unit_collision(x, y, 1, 1, _, 1, 0)`. The push order
+  was read again off the listing (`00687cec..00687d34`): `nocoll` is 1
+  and `top_only` is 0.
+- `Unit::detect_unit_collision@00617060` with `nocoll` set never takes the
+  boat arm. With `quick` set it returns on `collide_here`'s answer alone.
+- `CollCheck::collide_here@00682540`: the disc, the parity filter, and the
+  asker's own block taken from its `x_internal`. `1/62`'s cell is (810,
+  440) both before and after the snap on 11901.
+- `CollCheck::move_unit@00682ad0`, including its one-block fast path;
+  `WorldData::get_coll_block@006b5350`.
+- `UnitData::invalid_loc@00607c30` and `WorldData::is_cliff_at@0046f8c0`.
+  S lies on `1/62`'s own tile (202, 110), so the blocked-tile arm is
+  exempted by the tile the unit stands on. Only a terrain refusal of the
+  tile could refuse S, and the crate's tile answers valid.
+- `PathFinder::calc_cost@00684e50` on the unit grid is a flat 32 or 40,
+  unless a transport arm fires, so it cannot price S out.
+
+Every one of them agrees. The emulator would therefore return this
+crate's own verdict on this crate's state. The route was not run, and
+this is the reason.
+
+### 24.2 The readings, and what killed each
+
+The stanza wrote five readings before any measurement. Each is listed with
+what killed it.
+
+- **A resumed search.** A resume carries its memo and its copy tree from
+  an earlier frame. Dead: `1/62`'s `start_dist` is 0 on every block up to
+  11905, and it is the suspend's permanent stamp (§18.2).
+- **A stale copy of the block.** `CollCheck::fill_slots@006820e0` does not
+  read the live block for a `nocoll` probe. It reads the pathfinder's copy
+  tree (`pathfinder +0x4c`, keyed `cy · xs + cx`,
+  `Tree<CollBlock*,int>::seek@00479220`, an exact match) and inserts a copy
+  on a miss. **The copy outlives the probe.** Only
+  `PathFinder::kill_lists@00687ae0` clears the tree, and
+  `Unit::resolve_unit_collision@005f9d30`'s own unwind probe (`nocoll`
+  1) inserts copies outside any search. run136's coverage has
+  `kill_lists` on 11896 and 11901 and on no frame between, and
+  `resolve_unit_collision` on every frame from 11898 to 11901. So on 11901
+  `1/62` can read a block up to five frames old. That is a real mechanism,
+  and this crate does not model it (COLLISION §4.2's SEAM). It is not this
+  refusal, though: no object in the dump puts a bit on (809, 442) or (811,
+  442) at any moment in that window (next reading).
+- **A bit that some unit leaves behind.** On block 11901 only five objects
+  stand within 20 × 16 unit cells of S, and all five are units: `1/27`
+  (807, 441), `1/28` (813, 443), `1/62`, `1/63` (816, 446) and `1/64`
+  (813, 439). None of their radius-1 discs reaches either cell. No unit
+  leaves the dump anywhere in 11760..11905. This crate's own index history
+  over the whole run (a scratch watch, not landed) agrees with the dump's
+  positions. (811, 442) was set on sim-frame 11861 and cleared on 11862,
+  both by `1/28` stepping (812, 444) → (812, 443) → (813, 443), each a
+  single cell on the fast path. (809, 442) was last cleared on 8630.
+- **Another cell of the search.** The payoff probe, repeated with other
+  cells: refusing (810, 442) or (810, 443) makes the search give up (a
+  three-entry stack, with no detour at all). Refusing (809, 442), (811,
+  442), (811, 440), (811, 441) or (809, 443) changes nothing, because the
+  search does not probe them. **S is the only single cell whose refusal
+  gives the original's plan.**
+- **The instrument perturbs the search** (§23.3). Dead, and the
+  `nocoll = 0` it rested on was the reader's. `report.py calls` built each
+  record's eighth argument as a literal `[0]`. The proxy never logs
+  argument 7: `on_call` carries 0..3, and `on_ret` carries 4..6 plus the
+  byte behind 7 where a site names one. It pushes all eight arguments to
+  the original from its own frame. So the argument was never passed wrong,
+  and run116's collide evidence stands. `report.py` now prints `nocoll=?`.
+
+So under the rules as read, nothing puts a bit on either cell, yet the
+original refuses S. Either a rule is wrong in a way no reading has found,
+or a writer exists that no reading has named. Only the original's own
+index can tell which.
+
+### 24.3 The instrument: INFO 16
+
+`RON_COLLIDE_PROBE` gains one record (`tools/trace/tracer.c`,
+`I_COLLBLOCK`). At every `collide_here` call inside the `callwin`, it
+prints the 256 bits of the probe centre's world cell twice:
+
+- the **live** block, `World +0x134`, stride 0x1c, `+0x18`;
+- the **copy** the pathfinder's tree holds for that cell, if it holds one.
+
+It is read-only: two pointer chains, plus the tree walk `seek` takes. The
+two globals are the PDB's `GameAccess::world` (`0xc06188`) and
+`pathfinder` (`0xe85e40`). Both are confirmed by `fill_slots`' own
+listing at `006821c3` and `00682275`. The build has no `popad` and no
+`popfd`, and its `.funcs` and patched exe are byte-identical to the plain
+build's. `report.py calls` prints each record as the unit cells set in it,
+indented under the call it precedes.
+
+### 24.4 What is not established
+
+- **Which bit refuses S, and whether it is live or a copy.** run138 is
+  booked for exactly this (`tools/gamelog/captures.txt`).
+- **Whether run137's fault was the probe build's.** `tracer.c` is unchanged
+  since run116's working build (`e3c0efe`). `wine137.log` dies after
+  DXVK's `VkInstance`, not at the DLL's attach. The lab measured the same
+  `0x7bf21139` fault on 2 of 19 plain autostart launches
+  (`docs/lab/2026-09-09-startup-cohort.md`). Probably the intermittent
+  startup fault, then, but not shown.
+- **The copy tree's persistence is not modelled here** (COLLISION §4.2's
+  SEAM). §24.2 shows it is not this word, not that it is harmless.
+
+### 24.5 Coverage
+
+**Listing-backed**: §24.1's push order, and §24.3's two globals.
+**Diff-backed**: §24.2's positions, from run136's blocks 11886..11905 and
+run135's 11760..11871. **Measured, not landed**: this crate's index
+history (a scratch watch) and the other single-cell probes (the payoff
+test with `RON_REFUSE`, reverted). **Reading only**: the claims in §24.1
+that each function matches its port, and the copy tree's lifetime in
+§24.2.
