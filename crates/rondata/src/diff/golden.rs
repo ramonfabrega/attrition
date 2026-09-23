@@ -4475,6 +4475,48 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                 }
             }
         }
+        // **The escort's own row on the block it is issued** (item 567,
+        // `docs/ORDERS.md` §24), read off both sides by name rather than
+        // through `compare`'s labels: each hoplite's `GUARDORDER` is on the
+        // wagon `1/10`, and its offset and both counters are the
+        // original's — (0, 264), (144, 264), (−144, 264), `idle` and
+        // `retry` 0. Only the post, which is the wagon's position plus
+        // the offset, differs, and that is the 1102 rows' residue.
+        if n == 1277 {
+            for (o, dx) in [(6, 0), (7, 144), (8, -144)] {
+                let them = frame
+                    .units
+                    .iter()
+                    .find(|u| u.who == 1 && u.o == o)
+                    .and_then(|u| u.orders.iter().find(|x| x.index == 12))
+                    .expect("the original's escort holds a GUARDORDER on 1277");
+                let theirs = (
+                    them.ox,
+                    them.guard_dx,
+                    them.guard_dy,
+                    them.guard_idle,
+                    them.guard_retry,
+                );
+                assert_eq!(theirs, (Some(10), Some(dx), Some(264), Some(0), Some(0)));
+                let u = s.built.sim.unit_by_o(1, i16::try_from(o).unwrap()).unwrap();
+                let g = s.built.sim.units[u]
+                    .orders
+                    .iter()
+                    .find_map(|x| match x.body {
+                        sim::orders::Body::Guard(g) => Some(g),
+                        _ => None,
+                    })
+                    .expect("this crate's escort holds a GUARD on 1277");
+                let ours = (
+                    s.built.unit_ids(g.target).map(|(_, o)| o),
+                    Some(i64::from(g.dx)),
+                    Some(i64::from(g.dy)),
+                    Some(i64::from(g.idle)),
+                    Some(i64::from(g.retry)),
+                );
+                assert_eq!(ours, theirs, "1/{o}'s guard row");
+            }
+        }
         // The bleed's own timeline: player 1's staged units, `o` 6 and up.
         let w = &s.built.sim.world;
         for them in frame.units.iter().filter(|u| u.who == 1 && u.o >= 6) {
