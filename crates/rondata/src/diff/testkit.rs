@@ -2801,6 +2801,15 @@ pub(crate) const WIDENING_EAST_INDIES_MERCS: (i64, i64) = (10_730, 10_879);
 /// keeps the move's value diff on this block, and the coverage driver reads
 /// run149 around it.
 pub(crate) const EAST_INDIES_MERCS_BLOCK: i64 = 10_783;
+/// `run152_s_word_frame_is_widened_whole`'s window (item 613): run152
+/// whole, 10870..11039 — run149's line past its last block, overlapping it
+/// on 10870..10879, then the word 10982 and 56 blocks past it. The floor is
+/// the capture's first block for the reason [`WIDENING_CHAPTER_TWO`]'s is.
+pub(crate) const WIDENING_EAST_INDIES_GATHER: (i64, i64) = (10_870, 11_039);
+/// The word 10982's block on run152: its frame, player 1's `make_stuff`
+/// placing a building, writes block 10983. The coverage driver reads
+/// run152 around it.
+pub(crate) const EAST_INDIES_GATHER_BLOCK: i64 = 10_983;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -2863,14 +2872,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // blocks, 10781..10783 (the Citizen's `num`), and the census under
     // them on 10776. The same item moved the word to **10982**, past
     // run149's last block (10879). run149's test keeps the move's value
-    // diff on 10776 and 10781..10783. Item 613 owes the new word's
-    // widening, on run152.
+    // diff on 10776 and 10781..10783.
+    //
+    // Item 613 paid it: **run152** is run149's line over [10870, 11039],
+    // and `run152_s_word_frame_is_widened_whole` is a sibling through the
+    // same walk, gaia included, on 170 blocks ten of which run149 shares.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run152_s_word_frame_is_widened_whole"),
         613,
-        None,
+        Some(WIDENING_EAST_INDIES_GATHER),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

@@ -5266,6 +5266,20 @@ settle_min: 20000000
 # for a 10730-frame run-up and 150 blocks; this is ~14. 120 polls is
 # forty minutes.
 poll_max: 120
+# ==== TAKEN 2026-09-23, **WHOLE** ====
+#
+# 362,519,989 bytes of dump and 18,841,632 of trace, **170 blocks
+# 10870..11039**, a `MAKEOBJECT` on every one. 14 minutes launch to
+# archive (09:51 to 10:06), through `viadriver.sh` with no human at the
+# menu; the lane lock's holder (pid 18366) was dead. All six checks green:
+# 11,061 frames identical to run54, `MAP_STYLE 18`, 10 blocks shared with
+# run149 (10870..10879) and 0 differing, and a coverage set on all 9
+# frames 10978..10986. 2.07 MB a block net of the start dump, as sized.
+# **R1 holds. R2 holds**, one step removed: `use_market`'s `need` parts
+# because the make list parts on 10981, `create_units`' Light Horse
+# offer (`check_income` 0x40 here, 0x100 there). **R3 holds**: the
+# original places a second Mine, `1/2019`, from slot 4 on 10982.
+# `run152_s_word_frame_is_widened_whole`.
 # Same game: the trace word for word against run54, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run152.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11040)}'
 # And the map, from the dump's own `GAME INFO`.
