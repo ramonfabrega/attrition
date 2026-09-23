@@ -185,6 +185,11 @@ enum {
     I_COVER = 13, /* the coverage stubs are built: a = region, b = stubs, c = table entries excluded */
     I_DROPPED = 14, /* records lost to a full buffer since the last flush: a = count */
     I_UNITID = 15, /* RON_COLLIDE_PROBE: a = site, b = UnitData*, c = o, d = who */
+    I_COLLBLOCK = 16, /* RON_COLLIDE_PROBE: a = cx | cy << 8 | src << 16 | part << 24,
+                       * b..e = four dwords of the block's 256 bits (part 0: 0..3,
+                       * part 1: 4..7). src 0 = the world's live block, 1 = the
+                       * pathfinder's copy (`fill_slots`); src 2 = no live block,
+                       * b = the pointer WData holds (0 or ~0), one record only. */
 };
 
 typedef struct {
@@ -878,6 +883,60 @@ static void collide_name(u32 site, u32 self) {
 }
 #endif
 
+#ifdef RON_COLLIDE_PROBE
+/*
+ * The occupancy block a probe reads, as the probe is entered (item 566).
+ * `collide_here(o, who, ucx, ucy, …)` reads the bitmask of the world cells
+ * its disc reaches; this prints the **centre's** world cell, twice where
+ * it can: the live `WData::block` (`World +0x134`, stride 0x1c, `+0x18`),
+ * and the copy a `nocoll` probe reads instead when the pathfinder's tree
+ * (`pathfinder +0x4c`, keyed `cy * xs + cx`) holds one
+ * (`CollCheck::fill_slots@006820e0`). The copy outlives the probe that
+ * took it until `PathFinder::kill_lists` runs, so the two can differ, and
+ * which one a refusal's bit is in is the question these records answer.
+ * Read-only: two pointer chains and a tree walk, the same one
+ * `Tree<CollBlock*,int>::seek@00479220` takes. The globals are the PDB's
+ * `GameAccess::world` (0xc06188) and `pathfinder` (0xe85e40), both
+ * confirmed by `fill_slots`' own listing (`006821c3`, `00682275`).
+ */
+static void collide_block_emit(u32 hdr, const u8 *bits) {
+    const u32 *w = (const u32 *)bits;
+    emit(K_INFO, I_COLLBLOCK, hdr, w[0], w[1], w[2], w[3]);
+    emit(K_INFO, I_COLLBLOCK, hdr | (1u << 24), w[4], w[5], w[6], w[7]);
+}
+
+static void collide_blocks(u32 ucx, u32 ucy) {
+    const u8 *world = *(const u8 *const *)(g_base + (0xc06188u - 0x400000u));
+    if ((u32)world < 0x10000u) return;
+    i32 xs = *(const i32 *)world, ys = *(const i32 *)(world + 4);
+    i32 cx = (i32)ucx >> 4, cy = (i32)ucy >> 4;
+    if (cx < 0 || cy < 0 || cx >= xs || cy >= ys || cx > 255 || cy > 255) return;
+    u32 hdr = (u32)cx | ((u32)cy << 8);
+    const u8 *wdata = *(const u8 *const *)(world + 0x134);
+    u32 block = *(const u32 *)(wdata + (u32)(cy * xs + cx) * 0x1c + 0x18);
+    if (block < 0x10000u || block == 0xffffffffu)
+        emit(K_INFO, I_COLLBLOCK, hdr | (2u << 16), block, 0, 0, 0);
+    else
+        collide_block_emit(hdr, (const u8 *)block + 0xc);
+    const u8 *tree = *(const u8 *const *)(g_base + (0xe85e8cu - 0x400000u));
+    if ((u32)tree < 0x10000u) return;
+    const u8 *node = *(const u8 *const *)(tree + 0xc);
+    i32 key = cy * xs + cx;
+    while ((u32)node >= 0x10000u) {
+        i32 m = *(const i32 *)(node + 0x10);
+        if (key < m) {
+            node = *(const u8 *const *)node;
+        } else if (key <= m) {
+            u32 copy = *(const u32 *)(node + 0xc);
+            if (copy >= 0x10000u) collide_block_emit(hdr | (1u << 16), (const u8 *)copy + 0xc);
+            return;
+        } else {
+            node = *(const u8 *const *)(node + 4);
+        }
+    }
+}
+#endif
+
 static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) {
     if (g_frame < g_cw_lo || g_frame > g_cw_hi) return;
     emit(K_CALL, site, self, a0, a1, a2, a3);
@@ -886,6 +945,8 @@ static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) 
      * (the candidates). 9 and 10 are the asker again and carry no new
      * pointer. */
     if (site == 8 || site == 11 || site == 12) collide_name(site, self);
+    /* 9 collide_here(o, who, ucx, ucy, ...): the block it is about to read. */
+    if (site == 9) collide_blocks(a2, a3);
 #endif
 #ifdef RON_TURN_PROBE
     if (site == 8) probe_turn(self);

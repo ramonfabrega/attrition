@@ -1637,6 +1637,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run135_s_word_frame_is_widened_whole`, pinned empty with every block
 /// after it, as the move's value diff.
 ///
+/// ~~**11903 is `1/62`'s detour round `1/27` going south where the
+/// original's goes north.**~~ **Item 566 moved it 11903 → 12038, and the
+/// mechanism was the pathfinder's validity memo** (`docs/PATHFINDER.md`
+/// §24.6). `valid_ucoord` caches its verdicts in `PathFinder +0x50`, and
+/// only `kill_lists` empties it. Every finder calls that after its search
+/// and on none of its early returns. So `1/27`'s `find_upath` on 11901,
+/// whose goal pre-walk probed row 441 and returned early, left its refused
+/// verdicts for `1/62`'s search, which never probed S (run138). This crate
+/// gave each pre-walk and each search a fresh memo. The new word's delta:
+/// ours **4** draws and the original **5**, parting at index **4** — ours
+/// nothing against the original's `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`. **Past every dump on disk**: run136 ends on
+/// block 11959, so the word's block is owed a capture ([`WIDENINGS`],
+/// item 571). The value diff is nearer than the word: run136 agrees on
+/// every record from 11902 through 11921 and parts on **11922**, army 1's
+/// squad stopping in the original, and `run136_s_word_frame_is_widened_whole`
+/// pins both.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1648,7 +1666,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_903;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_038;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2623,12 +2641,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `1/62`'s path on 11902: its flag-2 detour round `1/27` goes north in
     // the original and south here, and `1/64` waits on it there and steps
     // and stops here (`docs/PATHFINDER.md` §23).
+    //
+    // **Item 566 moved it 11903 → 12038, past run136's last block
+    // (11959)**, so the widening is owed a capture again and this row
+    // names the item that owes it (571) and no test.
+    // `run136_s_word_frame_is_widened_whole` keeps 11902..11921 pinned
+    // empty as the move's value diff, and pins block 11922's 29 rows —
+    // army 1's squad stopping in the original and walking here, which
+    // spends no draw — as the nearest parting (`docs/PATHFINDER.md` §24.6).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run136_s_word_frame_is_widened_whole"),
-        563,
-        Some(WIDENING_GREAT_LAKES_DETOUR),
+        None,
+        571,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

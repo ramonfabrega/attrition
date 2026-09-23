@@ -4708,13 +4708,17 @@ mod tests {
         // headline: the word went 11757 → 11806 and **11782**'s rotation
         // came under it (`docs/GROUPS.md` §23). The streams above agree
         // through it.
+        //
+        // **Eighteen → nineteen on item 566**, the literal following the
+        // headline: the word went 11903 → 12038 and **11982**'s rotation
+        // came under it (`docs/PATHFINDER.md` §24.6).
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382, 11_582, 11_782
+                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982
             ],
-            "below the word Great Lakes takes exactly eighteen market \
+            "below the word Great Lakes takes exactly nineteen market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -9546,6 +9550,8 @@ mod tests {
         const FROM: [i64; 5] = [FIRST, 11_440, 11_560, 11_800, 11_860];
         const POOLS: i64 = 11_800;
         const WORD_BLOCK: i64 = GREAT_LAKES_DETOUR_BLOCK;
+        /// The first block anything parts on past the word, since item 566.
+        const GREAT_LAKES_SQUAD_HALT_BLOCK: i64 = 11_922;
         let Some(inst) = install() else { return };
         let names = [
             "gamelog-run123-greatlakes-marketword.txt",
@@ -9799,63 +9805,74 @@ mod tests {
         }
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
-        // **The word's blocks, both directions** (`docs/PATHFINDER.md`
-        // §23). Frame 11901 writes block 11902: `1/62`, stopped on `1/27`
-        // (`collide_o 27` on both sides), re-plans its flag-2 detour to
-        // (38232, 21864) from the same point, and the two plans go round
-        // `1/27` on opposite sides — the original's north, by (38904,
-        // 21096), ours south, by (38904, 21192). On 11902 the original's
-        // `1/62` walks north into `1/64`, which waits on it hard
-        // (`collide_o 62`); ours walks south, so `1/64` steps to (39004,
-        // 21112) and stops on 11903 against the next cell — the extra
-        // `move_step+0x823` draw. 11904's `0/0` rows are the draw stream
-        // one draw on.
+        // **The word's blocks, both directions — and since item 566 they
+        // agree** (`docs/PATHFINDER.md` §23, §24.6). Frame 11901 writes
+        // block 11902: `1/62`, stopped on `1/27`, re-plans its flag-2
+        // detour from the same point on both sides. Until item 566 the two
+        // plans went round `1/27` on opposite sides, 36 rows over blocks
+        // 11902..11904: ours 6 entries south by (38904, 21192), the
+        // original's 8 north by (38904, 21096), and `1/64` stepping and
+        // stopping here where it waits there. The original's search reads
+        // `1/27`'s refused pre-walk verdicts for row 441 out of the
+        // pathfinder's memo, which no `kill_lists` had cleared; with the
+        // memo carried, every one of the 36 agrees. This is the move's
+        // value diff, pinned empty.
+        //
+        // **And the next parting is 11922, which spends no draw**: on
+        // sim-frame 11921 army 1's whole squad — `1/37`..`1/42` and
+        // `1/62`..`1/64`, nine figures — stops in the original
+        // (`stopped 1`, `last_speed 0`) and walks on here. Positions agree
+        // on that block; the draw word runs on to 12038 because a stop is
+        // not a draw. Pinned as the value diff beside the moved word.
         let on_word: Vec<String> = firsts
             .iter()
-            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..GREAT_LAKES_SQUAD_HALT_BLOCK).contains(f))
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
         assert_eq!(
             on_word,
+            Vec::<String>::new(),
+            "the word's blocks, and every block after them to the squad's halt"
+        );
+        let halt: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == GREAT_LAKES_SQUAD_HALT_BLOCK)
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            halt,
             [
-                "11904 0/0 g.cur_anim[0]: ours 0 theirs 2",
-                "11904 0/0 g.cur_anim[1]: ours 0 theirs 2",
-                "11904 0/0 g.end_time[0]: ours 61 theirs 41",
-                "11903 1/62 g.angle[0]: ours -2147483648 theirs 0",
-                "11903 1/62 g.des_angle[0]: ours -2147483648 theirs 0",
-                "11903 1/62 g.des_y[0]: ours 21169 theirs 21119",
-                "11903 1/62 g.y[0]: ours 21169 theirs 21119",
-                "11903 1/62 heading: ours -2147483648 theirs 0",
-                "11903 1/62 order:move.dest_y: Move { field: \"dest_y\", ours: 21192, theirs: 21096 }",
-                "11902 1/62 path:length: PathLength { ours: 6, theirs: 8 }",
-                "11902 1/62 path[3].to: PathTo { slot: 3, ours: (38280, 21912), theirs: (38088, 21672) }",
-                "11902 1/62 path[4].to: PathTo { slot: 4, ours: (38904, 21288), theirs: (38088, 21624) }",
-                "11902 1/62 path[5].to: PathTo { slot: 5, ours: (38904, 21192), theirs: (38664, 21048) }",
-                "11903 1/62 pos: ours (38904,21169) theirs (38904,21119)",
-                "11903 1/64 collide: ours 4 theirs 5",
-                "11903 1/64 collide_o: ours -1 theirs 62",
-                "11903 1/64 collide_who: ours -1 theirs 1",
-                "11904 1/64 g.angle[0]: ours -1517355008 theirs -1517748224",
-                "11903 1/64 g.avg_speed[0]: ours 11 theirs 4",
-                "11903 1/64 g.cur_anim[0]: ours 7 theirs 0",
-                "11903 1/64 g.cur_time[0]: ours 1 theirs 5",
-                "11904 1/64 g.des_angle[0]: ours -1517355008 theirs -1517748224",
-                "11903 1/64 g.des_x[0]: ours 39004 theirs 39024",
-                "11903 1/64 g.des_y[0]: ours 21112 theirs 21096",
-                "11903 1/64 g.end_time[0]: ours 15 theirs 33",
-                "11903 1/64 g.last_speed[0]: ours 26 theirs 0",
-                "11903 1/64 g.last_time[0]: ours 0 theirs 4",
-                "11903 1/64 g.stopped[0]: ours 0 theirs 1",
-                "11903 1/64 g.x[0]: ours 39004 theirs 39024",
-                "11903 1/64 g.y[0]: ours 21112 theirs 21096",
-                "11904 1/64 heading: ours -1517355008 theirs -1517748224",
-                "11904 1/64 order:coll: Coll { ours: Some((38984, 21128)), theirs: (39004, 21112) }",
-                "11904 1/64 order:move.dest_x: Move { field: \"dest_x\", ours: 39048, theirs: 38136 }",
-                "11904 1/64 order:move.dest_y: Move { field: \"dest_y\", ours: 21144, theirs: 21768 }",
-                "11904 1/64 path:length: PathLength { ours: 4, theirs: 3 }",
-                "11903 1/64 pos: ours (39004,21112) theirs (39024,21096)",
+                "1/37 g.avg_speed[0]: ours 23 theirs 0",
+                "1/37 g.last_speed[0]: ours 25 theirs 0",
+                "1/37 g.stopped[0]: ours 0 theirs 1",
+                "1/38 g.avg_speed[0]: ours 19 theirs 0",
+                "1/38 g.last_speed[0]: ours 24 theirs 0",
+                "1/38 g.stopped[0]: ours 0 theirs 1",
+                "1/39 g.avg_speed[0]: ours 23 theirs 0",
+                "1/39 g.last_speed[0]: ours 25 theirs 0",
+                "1/39 g.stopped[0]: ours 0 theirs 1",
+                "1/40 g.avg_speed[0]: ours 23 theirs 0",
+                "1/40 g.last_speed[0]: ours 25 theirs 0",
+                "1/40 g.stopped[0]: ours 0 theirs 1",
+                "1/41 g.avg_speed[0]: ours 21 theirs 0",
+                "1/41 g.cur_anim[0]: ours 1 theirs 2",
+                "1/41 g.end_time[0]: ours 64 theirs 48",
+                "1/41 g.last_speed[0]: ours 24 theirs 0",
+                "1/41 g.stopped[0]: ours 0 theirs 1",
+                "1/42 g.avg_speed[0]: ours 23 theirs 0",
+                "1/42 g.last_speed[0]: ours 25 theirs 0",
+                "1/42 g.stopped[0]: ours 0 theirs 1",
+                "1/62 g.avg_speed[0]: ours 14 theirs 0",
+                "1/62 g.last_speed[0]: ours 12 theirs 0",
+                "1/62 g.stopped[0]: ours 0 theirs 1",
+                "1/63 g.avg_speed[0]: ours 24 theirs 0",
+                "1/63 g.last_speed[0]: ours 27 theirs 0",
+                "1/63 g.stopped[0]: ours 0 theirs 1",
+                "1/64 g.avg_speed[0]: ours 24 theirs 0",
+                "1/64 g.last_speed[0]: ours 27 theirs 0",
+                "1/64 g.stopped[0]: ours 0 theirs 1",
             ],
-            "the word's blocks"
+            "the squad's halt, block 11922"
         );
         // **Backwards**: the 284 keys under the word are run135's standing
         // floor exactly — nothing new parts on 11860..11901 — and of
@@ -9884,34 +9901,27 @@ mod tests {
             ],
             "1/62 and 1/64 under the word"
         );
-        // **Who stops, both sides**: on the word's blocks only `1/64`'s
-        // figure changes animation on one side alone — ours, walking on
-        // 11903, idle on 11904, walking on 11905; the original's stands
-        // idle throughout.
+        // **Who stops, both sides**: until item 566, `1/64`'s figure alone
+        // changed animation on one side only on 11903..11905, ours walking
+        // and stopping where the original's stood. With the memo carried,
+        // no figure does on either side.
         let stops: Vec<(i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.2 != c.3).copied().collect();
-        assert_eq!(
-            stops,
-            [
-                (11_903, 64, false, true),
-                (11_904, 64, false, true),
-                (11_905, 64, false, true),
-            ],
-            "1/64's stop"
-        );
+        assert_eq!(stops, [], "1/64's stop is gone");
     }
 
-    /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, as an
-    /// assertion** (item 563, `docs/PATHFINDER.md` §23.4). Refuse one unit
-    /// cell, (810, 441), to `1/62`'s searches on sim-frame 11901 and
-    /// change nothing else: its flag-2 detour round `1/27` is then the
-    /// original's entry for entry (north by (38904, 21096), eight entries),
-    /// `1/64` waits on it as the original's does, and no record of any unit
-    /// first parts on blocks 11897..11905. So the word is that one cell's
-    /// verdict in `valid_ucoord`, and the search around it is right. What
-    /// makes the original refuse the cell is not established; this
-    /// crate's index holds no bit on either of the disc's two cells that
-    /// could (§23.3).
+    /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
+    /// since item 566 no probe at all** (`docs/PATHFINDER.md` §23.4,
+    /// §24.6). Item 563 refused one unit cell, (810, 441), to `1/62`'s
+    /// search on sim-frame 11901 by hand, and the detour round `1/27` came
+    /// out the original's entry for entry: north by (38904, 21096), eight
+    /// entries. run138 then showed what refuses it. `1/27`'s `find_upath`
+    /// on the same frame pre-walks its goal along row 441, and every cell is
+    /// refused by `1/62`'s block. It returns early without `kill_lists`, and
+    /// `1/62`'s search reads those verdicts out of the pathfinder's memo.
+    /// With the memo carried ([`sim::Sim::path_memo`]), the plan is the
+    /// original's with nothing placed, `1/64` waits as the original's does,
+    /// and no record of any unit first parts on blocks 11897..11905.
     #[test]
     fn run136_s_word_is_one_cell_of_1_62_s_search() {
         const FIRST: i64 = 11_896;
@@ -9938,11 +9948,6 @@ mod tests {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
-        built.sim.probe_refuse = Some(sim::path::RefuseProbe {
-            frame: 11_901,
-            unit: (1, 62),
-            cell: sim::world::Pos::new(810, 441),
-        });
         let players = built.sim.players.len();
         let mut firsts = std::collections::BTreeMap::new();
         /// `(ours, theirs)`: `1/62`'s path stack on block 11902.
@@ -9995,7 +10000,7 @@ mod tests {
                 (38856, 21048, 2),
                 (38904, 21096, 2),
             ],
-            "1/62's plan with (810, 441) refused"
+            "1/62's plan, with 1/27's pre-walk verdicts in the memo"
         );
         let ours_points: Vec<(i64, i64)> = ours
             .iter()

@@ -2165,8 +2165,10 @@ around it (§4–§7) is right on this frame.
 
 ### 23.5 What this has *not* established
 
-- **Why the original refuses (810, 441).** Three candidates, none
-  measured: a bit at (809, 442) or (811, 442) that the original's index
+- ~~**Why the original refuses (810, 441).**~~ It never probes it: the
+  verdict is `1/27`'s, left in the pathfinder's memo by a `find_upath`
+  that returned before `kill_lists` (§24.4, item 566). Three candidates
+  were named, and none was the answer: a bit at (809, 442) or (811, 442) that the original's index
   holds and this crate's does not (a mark §2.2's repaint or §2.3's
   crossing puts there, or a clear this crate makes and the original does
   not); `1/62`'s own block computed on a point other than its unit cell
@@ -2194,3 +2196,169 @@ landed**: §23.4, `run136_s_word_is_one_cell_of_1_62_s_search`.
 **Listing-backed**: §23.3's argument chain, `llvm-objdump` of
 `0x687cec..0x687d40` and `0x617141..0x6171b0`. **Measured once, not
 landed**: §23.3's table (a scratch print) and §23.4's 12038.
+
+## 24. Why S is refused: the pathfinder's memo outlives the search that filled it (item 566, 2026-09-23)
+
+§23.5 left one question: why the original's `valid_ucoord` refuses unit
+cell (810, 441), S, to `1/62` on sim-frame 11901. **It does not refuse
+it: it never asks.** The verdict is already in the pathfinder's validity
+memo, put there by another unit's `find_upath` earlier on the same frame,
+and nothing cleared it. With the memo carried, Great Lakes' word moves
+**11903 → 12038**, and the pieces are measured by run138.
+
+### 24.1 The capture-free route, and why it was not the answer
+
+The brief's first route was to call `PathFinder::valid_ucoord@00687c80`
+under `tools/emu/callfn.py` on synthesized state. That answers what the
+original's *function* says given state we build. So I read every function
+on the path against this crate's port first:
+
+- `valid_ucoord`, with the push order re-read off the listing
+  (`00687cec..00687d34`: `nocoll` 1, `top_only` 0);
+- `Unit::detect_unit_collision@00617060`;
+- `CollCheck::collide_here@00682540` and `CollCheck::fill_slots@006820e0`;
+- `CollCheck::move_unit@00682ad0` and `WorldData::get_coll_block@006b5350`;
+- `UnitData::invalid_loc@00607c30` and `WorldData::is_cliff_at@0046f8c0`;
+- the unit-grid arm of `PathFinder::calc_cost@00684e50`.
+
+All of them agree. Emulating them would have returned this crate's own
+verdict. What was different was never inside a function. It was *which
+state one call inherits from another*, and only a capture sees that.
+
+### 24.2 The readings, and what killed each
+
+Five readings, each with what killed it:
+
+- **A resumed search**, carrying an old memo. Dead: `1/62`'s `start_dist`
+  is 0 on every block up to 11905 (§18.2).
+- **A bit the index holds and this crate does not.** Dead twice over.
+  From the dump: on block 11901 only five objects stand near S, all
+  units, and no disc reaches (809, 442) or (811, 442). No unit leaves the
+  dump in 11760..11905. From run138: its live block (50, 27) at every
+  probe of 11901 holds neither bit (§24.4).
+- **A stale copy of the block.** `fill_slots` answers a `nocoll` probe
+  from the pathfinder's copy tree (`pathfinder +0x4c`), which also
+  outlives the probe that filled it. It is real (§24.5), but run138's copy
+  of (50, 27) is the live block, bit for bit.
+- **Another cell of the search.** Refusing (810, 442) or (810, 443) by
+  hand makes the search give up. Refusing any other cell changes nothing.
+  Only S reproduces the original's plan.
+- **The instrument perturbs what it records** (§23.3). Dead, and it was
+  the reader's fault. `report.py calls` printed a literal `0` for every
+  record's eighth argument, which the proxy never logs. The proxy pushes
+  all eight to the original from its own frame. run116's collide evidence
+  stands; `report.py` now prints `nocoll=?`.
+
+### 24.3 The instrument: INFO 16
+
+`RON_COLLIDE_PROBE` gains one record (`tools/trace/tracer.c`,
+`I_COLLBLOCK`). At every `collide_here` call inside the `callwin`, it
+prints the 256 bits of the probe centre's world cell twice:
+
+- the **live** block (`World +0x134`, stride 0x1c, `+0x18`);
+- the pathfinder's **copy** of that cell, when its tree holds one.
+
+It is read-only. The two globals are the PDB's `GameAccess::world`
+(`0xc06188`) and `pathfinder` (`0xe85e40`), both confirmed in
+`fill_slots`' own listing (`006821c3`, `00682275`). The build has no
+`popad` and no `popfd`, and its `.funcs` and patched exe are
+byte-identical to the plain build's. run137's fault was not this build's:
+run138 launched clean on the first try, with the same source (§24.7).
+
+### 24.4 run138: S is never probed
+
+`docs/RUNS.md`, run138. `1/62`'s search on 11901 expands its root at
+(810, 440) with the wheel from W, and the record has W, NW, N, NE and E:
+five `detect_unit_collision` brackets with their hit cells. It has **no
+record at all for SE, S or SW**. Its second node, E (811, 440), does the
+same: W, NW, then (memo) N, NE and E, and nothing for SE, S or SW. Its
+third, N (810, 439), gets all eight. The six silent cells are exactly row
+441 from x 809 to 812. A silent refusal in this loop can come from only
+one place: `valid_ucoord`'s memo hit, which logs nothing.
+`BRTree<int,unsigned long>::seek@00479b90` is an exact match, so those
+entries are real entries for those cells.
+
+**Who wrote them** is in the same frame's record, before `1/62` moves.
+`1/27`, stopped on `1/62`, re-plans:
+
+1. It pops its path and snaps to (38760, 21192).
+2. Its `find_upath` pre-walks its goal (39000, 21192) back toward itself,
+   `0x18` a step along row 441.
+3. That makes five `valid_ucoord`-shaped probes (`quick 1`, `nocoll 1`) of
+   (812, 441), (811, 441), (810, 441), (809, 441) and (808, 441). Each is
+   refused, the hit cells in `1/62`'s own block.
+4. The pre-walk reaches `1/27`'s own cell and returns
+   (`find_upath@00682f30:103`).
+
+That return is **before** `astar_path`, so it never reaches the
+`kill_lists` at `:330`. The five verdicts stay in `pathfinder +0x50`, and
+`1/62`'s search, three units later, starts on that memo.
+
+### 24.5 The rule, and what this crate carries
+
+`PathFinder +0x50` is the pathfinder's memo, not a search's:
+
+- `valid_ucoord` caches each 48-cell's verdict there under its metric
+  (`gx + gy · 16 · xs`, the same key in the pre-walk and in the search).
+- Only `PathFinder::kill_lists@00687ae0` empties it.
+- Every finder calls that right after its `astar_*` returns, and on none
+  of its early returns: `find_upath:330`, `find_wpath@00688fc0:261`,
+  `find_tpath@006897d0:182`, `find_road@00688a40:46`.
+- A fresh `astar_path@00683770` resets `valid_hit` and nothing else.
+- A suspend hands the memo to the unit and pops an empty one; a resume
+  closes the current one and takes the unit's.
+
+`crates/sim`: `Sim::path_memo`, used by the pre-walk and a fresh search,
+and emptied by `Sim::kill_lists` after each of the four finders' searches.
+The suspend and resume arms were already there (`Search::valid_memo`).
+
+**The copy tree has the same lifetime and is still not modelled**
+(COLLISION §4.2's SEAM). `fill_slots` inserts copies on a miss, and
+`resolve_unit_collision`'s unwind probe makes them outside any search, so
+a copy can be frames old. run136's coverage has `kill_lists` only on 11896
+and 11901 across 11896..11910. It is not this word: run138's copy equals
+the live block.
+
+### 24.6 What it moved
+
+With no probe, run53's Great Lakes word moves **11903 → 12038**
+(`LONG_WORD_GREAT_LAKES`). The delta at 12038: ours 4 draws, the
+original's 5, parting at index 4, where the original has `Guy::set_anim
++0x97a < Unit::move_step+0x823`. That is past run136's last block, so its
+widening is owed (item 571).
+
+The value diff is nearer than the draw word.
+`run136_s_word_frame_is_widened_whole` now finds **every record agreeing
+from 11902 through 11921**. The 36 rows that parted on 11902..11904 are
+gone, and `1/64`'s stop with them. On **11922** army 1's squad (`1/37`..`1/42`,
+`1/62`..`1/64`) stands `stopped` with `last_speed 0` and `avg_speed 0` in
+the original, and walks on here. Those 29 rows are pinned. Positions
+agree on that block, and a stop spends no draw.
+`run136_s_word_is_one_cell_of_1_62_s_search` asserts the original's plan
+with nothing placed by hand.
+
+### 24.7 What is not established
+
+- **Why the squad stops on 11922.** That is item 571's.
+- **The copy tree's persistence** (§24.5), and whether any word turns on it.
+- **run137's fault.** run138 ran the same source clean, which makes the
+  lab's intermittent startup fault (2 of 19 plain launches,
+  `docs/lab/2026-09-09-startup-cohort.md`) the likely cause, but one
+  clean launch does not prove it.
+- `astar_river`'s `kill_lists` has no runtime caller in any trace. It is
+  not modelled.
+
+### 24.8 Coverage
+
+**Diff-backed**:
+- §24.4's silent cells and `1/27`'s pre-walk, from run138's trace
+  (`report.py calls 11901`);
+- §24.6, from `run136_s_word_frame_is_widened_whole` and
+  `run136_s_word_is_one_cell_of_1_62_s_search`;
+- the word, from `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Listing-backed**: §24.1's push order and §24.3's globals.
+
+**Reading only**: §24.5's list of `kill_lists` sites and the resume and
+suspend swaps. `find_upath`'s early returns are the ones this word
+measured.

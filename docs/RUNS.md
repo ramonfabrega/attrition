@@ -5114,3 +5114,41 @@ chapter four"): the strength was never written from the tech tree (period
 both fixed, the bleed agrees tick for tick to 1337. The word is **1277**:
 the original's squad takes a `GUARDORDER` and a move back beside its
 wagon, and this crate's keeps its `AttackTo`.
+
+## run138 — Great Lakes 11901, the search read from inside, with its blocks (2026-09-23, item 566)
+
+**What it is.** run137's stanza, retaken: run136's line over
+`[11896, 11905]`, with `cover=0` and `callwin=11900-11902`, on a
+`RON_COLLIDE_PROBE` tracer that adds **INFO 16**, the live and copied
+`CollBlock` of each probe's world cell. Only `rontrace.dll` was swapped.
+The plain bytes were saved and hashed first, and were restored and passed
+`shasum -c` after. It launched through `viadriver.sh` at 01:41 and was
+archived by 01:44 (31,880,756 bytes of dump, 17,335,520 of trace). A
+startup watchdog stood by for run137's fault, and it did not recur.
+
+**Why it was owed.** Item 563 showed the word 11903 was `1/62`'s search
+taking S, (810, 441), where the original's did not. No reading of the
+functions on the path found a difference (`docs/PATHFINDER.md` §24.1).
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 11,916 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **10 blocks, 11896..11905** |
+| overlap with run136, nothing excluded | **10 in common, 0 differ** |
+| proxied sites | 13 |
+| `1/62`'s search probes on 11901 | 90 |
+| INFO 16 block records on 11901 | 207, 94 of them copies |
+
+**What it settled.** The original never probes S. Its memo already
+refuses it:
+- `1/27`'s `find_upath` pre-walked row 441 earlier on the same frame and
+  returned before `kill_lists`;
+- its five verdicts, refused by `1/62`'s own block, stayed in the
+  pathfinder's memo;
+- `1/62`'s search read them silently, for six cells of row 441.
+
+The live block and the copy both agree with this crate's index.
+`docs/PATHFINDER.md` §24; `run136_s_word_is_one_cell_of_1_62_s_search`.

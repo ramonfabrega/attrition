@@ -1074,12 +1074,18 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // sweep that ends soft (`docs/COLLISION.md` §12), which moves this
         // map's word 11806 → 11903. The 24,000th frame is 12,098 frames
         // past the new word. DECISIONS 36: the number, not a trade.
-        off: 58,
-        unlinked: 0,
+        // **58 → 42 off, 0 → 4 unlinked** on item 566, the pathfinder's
+        // validity memo carried across searches (`docs/PATHFINDER.md`
+        // §24), which moves this map's word 11903 → 12038. The 24,000th
+        // frame is 11,963 frames past the new word; the four unlinked are
+        // player 1's `77`..`80`. DECISIONS 36: the number, not a trade.
+        off: 42,
+        unlinked: 4,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
-        extra: 2,
+        // **2 → 0 extra** on item 566, beside 58 → 42 off above.
+        extra: 0,
         build_unlinked: 0,
         build_diverged: 9,
         city_unlinked: 3,

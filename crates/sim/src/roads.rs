@@ -293,7 +293,9 @@ impl Sim {
         let Some(mut st) = self.start_road(from, to) else {
             return Vec::new();
         };
-        match self.step_road(&mut st, (from, to), false, false) {
+        let plan = self.step_road(&mut st, (from, to), false, false);
+        self.kill_lists();
+        match plan {
             RoadPlan::Road(r) => r,
             _ => Vec::new(),
         }
@@ -544,7 +546,11 @@ impl Sim {
         ends: (usize, usize),
         can_transport: bool,
     ) -> RoadPlan {
-        self.step_road(st, ends, true, can_transport)
+        let plan = self.step_road(st, ends, true, can_transport);
+        // `find_road@00688a40:46`: `kill_lists` after the caravan search,
+        // parked or not.
+        self.kill_lists();
+        plan
     }
 
     /// `PathFinderData::valid_roadcoord@00688740`: the tile test, and then
