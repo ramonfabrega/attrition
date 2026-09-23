@@ -1,7 +1,8 @@
 # Static recompilation of the original: steps 1 and 2 measured, the first float function exact, step 3 counted
 
-**Status: steps 1 and 2 done and diff-verified; the first float function
-bit-exact against unicorn on 1,088 chosen vectors; step 3's mechanical
+**Status: steps 1 and 2 done and diff-verified; two float functions
+bit-exact against unicorn — 1,088 chosen vectors through `norm`, 5,715
+chosen banks through `air_turn_speed`'s truncation; step 3's mechanical
 share counted at 91 %; step 4 not started. 2026-09-22.** The spike ran on
 the charter lore sent on 2026-09-22 (worktree `recomp-spike`, independent of
 the commander's loop, score-neutral). The charter asked: can
@@ -95,22 +96,27 @@ so the diff tests the lifted code around the import and never the import.
 | On the frame's own 134 `last_norm` vectors | 134 of 134 agree — but every one is an axis unit vector, so all take the early exit; this row verifies the loads, the sum and the compare idiom, not the tail | `difftest.py frame`, the `norm` rows |
 | **On 1,088 chosen vectors** — every triple from {±0, ±1, 0.5, 3, 1e-20, 1e-38, 1.5e-45, 1e20, 3e38, ±inf, NaN} × {0, 1, 1e20} × the same, plus 500 seeded random vectors with magnitudes from 1e-30 to 1e30 | **1,088 of 1,088 agree, bit for bit, 0 traps** | the `normv` rows: the vector is written to a scratch slot on both machines before each call, the row is the twelve bytes after it |
 | The float diff can fail | yes: the lifted `divss` turned into a multiply gives **882 disagreeing rows** of 1,088 (the 206 that still agree are the early exits) and exit 1 | the same command on the altered build |
-| Time | 1,490 calls (both families and the sweep) in 4 ms natively, 37 ms under unicorn | printed by `difftest.py` |
+| **The truncating conversion**: `Unit::air_turn_speed@005ea390` — one `cvttss2si` on the first guy's `bank`, then integer arithmetic — on every unit with the `bank` chosen from 22 values (±0, fractions either side of a half, `0.99999994`, `2^24`, the largest float below 2³¹, ±2³¹ and just past, ±3e9, a denormal, ±inf, NaN), both signs of the direction argument, plus the integer path once | **5,715 of 5,715 agree, 0 traps**; the `bank` is written before each call because the frame has no aircraft and every real bank is zero | the `airturn` rows |
+| That diff can fail | yes: truncation swapped for rounding (`cvtt_ss` → `cvt_ss`) gives **379 disagreeing rows** and exit 1 | the same command on the altered build |
+| Time | 7,205 calls (the four families) in 17 ms natively, 165 ms under unicorn | printed by `difftest.py` |
 
 So on the scalar single-precision path — `mulss`, `addss`, `divss`,
-`ucomiss` (ordered, unordered), `cvtss2sd`, `cvtsd2ss`, the NaN a result
-carries, overflow to infinity and the reciprocal of infinity, denormal
-inputs (`1.5e-45`, `1e-38`) — the C the lifter emits, compiled with
-`-ffp-contract=off` and `rt/recomp.h`'s fix-ups, is bit-identical to
-unicorn's x86 model (QEMU 5.0.1 softfloat) on this machine. That is the
-answer to "where does x87 extended precision make bit-exactness hard":
-nowhere on this path, because the path has no x87.
+`ucomiss` (ordered, unordered), `cvtss2sd`, `cvtsd2ss`, `cvttss2si`, the
+NaN a result carries, overflow to infinity and the reciprocal of infinity,
+denormal inputs (`1.5e-45`, `1e-38`, `1e-40`), and the integer indefinite
+`0x80000000` for a NaN, an infinity or a magnitude past 2³¹ — the C the
+lifter emits, compiled with `-ffp-contract=off` and `rt/recomp.h`'s
+fix-ups, is bit-identical to unicorn's x86 model (QEMU 5.0.1 softfloat) on
+this machine. Of the four places the header names where x86 and AArch64
+disagree, three are now exercised by a verified function (the NaN carried,
+no FMA contraction, the truncation); `minss`/`maxss` operand order is the
+one with no caller yet. That is the answer to "where does x87 extended
+precision make bit-exactness hard": nowhere on these paths, because they
+have no x87.
 
-Two candidates were read and not taken: `Unit::bank_aircraft@005e9520`
+One candidate was read and not taken: `Unit::bank_aircraft@005e9520`
 (lore's suggestion — SSE only, but it makes two virtual calls, which the
-lifter turns into run-time dispatch to functions it has not lifted), and
-`Unit::air_turn_speed@005ea390` (one `cvttss2si` on the first guy's `bank`
-and integer arithmetic otherwise; a cheap second, not run). Lore's reading
+lifter turns into run-time dispatch to functions it has not lifted). Lore's reading
 of the callers, not checked here: the CRT's transcendental imports are
 reached only through the `sinf`/`cosf`/`tanf`/`acosf`/`atanf`/`powf`
 wrappers, whose callers are the `fast_*_to_sine/cosine` table fills (once,
@@ -186,9 +192,9 @@ differential test on real frames is cheap on both machines.
   guest memory: the range table and where each range's bytes sit.
 - `tools/recomp/difftest.py` — `callfn.py`'s sweep through both machines
   (`diff`, `sweep`), and the frame driver (`frame`, `--table`): `turn_speed`
-  on every guy, `norm` on every guy's vector, and `norm` on the chosen
-  vectors; the unicorn machine with the imports stubbed and the registers
-  zeroed per call.
+  on every guy, `norm` on every guy's vector and on the chosen vectors,
+  `air_turn_speed` on every unit with the chosen banks; the unicorn machine
+  with the imports stubbed and the registers zeroed per call.
 - `tools/recomp/scan.py` — the step-3 count.
 - `tools/recomp/image.py` — the PE, its imports, the function table.
 - `crates/sim/src/movement.rs` — the one touch outside `tools/` and
@@ -198,10 +204,11 @@ differential test on real frames is cheap on both machines.
 
 ## What is not established
 
-- Float behaviour beyond `norm`'s path: the double-precision arithmetic,
-  `minss`/`maxss`, the truncating and rounding conversions and the packed
-  bitwise ops are lifted but unexercised by a verified function; packed
-  arithmetic (`addps` and kin), `shufps`, `cmpss` and x87 stop the lift.
+- Float behaviour beyond `norm`'s and `air_turn_speed`'s paths: the
+  double-precision arithmetic, `minss`/`maxss`, the rounding conversions
+  and the packed bitwise ops are lifted but unexercised by a verified
+  function; packed arithmetic (`addps` and kin), `shufps`, `cmpss` and x87
+  stop the lift.
   MXCSR is assumed at its default (round to nearest, no FTZ/DAZ) on both
   machines; the game's own MXCSR at the capture boundary was not read.
 - The reference for floats is unicorn's x86 model (QEMU 5.0.1 softfloat),
@@ -245,9 +252,8 @@ queued, built and run once; and, for floats, a place where the C a lifter
 emits and QEMU's x86 model can be put side by side on chosen inputs, which
 is what settles a float residue without a capture. The candidate:
 `RON_TURN_TABLE`'s test is the shape every such function would get. What
-would make the tool worth more, in order of cost: a second float function
-whose path has `minss`/`maxss`, a truncation or double arithmetic
-(`air_turn_speed` is a cheap start); enumerating the `units` bands from the
+would make the tool worth more, in order of cost: a float function whose
+path has `minss`/`maxss` or double arithmetic; enumerating the `units` bands from the
 packet so the driver needs no decode; the harness's stack moved off the
 snapshot; lifting a vtable's targets so a virtual call dispatches; then
 step 4.

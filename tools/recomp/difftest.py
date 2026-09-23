@@ -48,6 +48,10 @@ from snapshot import Snapshot  # noqa: E402
 
 TURN_SPEED = 0x005DE340
 NORM = 0x00420870  # Vector<float>::norm, in place, through sqrtf and the CRT's sqrt import
+AIR_TURN = 0x005EA390  # Unit::air_turn_speed(this, dir, body): one cvttss2si on the first guy's bank
+BANKS = [0.0, -0.0, 0.5, -0.5, 1.5, -1.5, 0.99999994, 2.5, -2.5, 100.25, -100.75, 16777216.0,
+         2147483520.0, -2147483648.0, 2147483648.0, -2147483904.0, 3e9, -3e9, 1e-40,
+         float("inf"), float("-inf"), float("nan")]
 UNITS = 0x00C0AEB0  # `units`: ten 0x1c-byte bands, `length` at +4 and `list` at +0x10
 STUBS = 0x7E00_0000  # a page of `ret`s the unicorn machine points the IAT at
 
@@ -250,6 +254,17 @@ def frame_calls(snap, units):
             v = guy + 0xA4
             before = snap.read(v, 12).hex()
             yield f"norm guy={guy:08x} v={v:08x} before={before}", NORM, (), v, 0, None, (v, 12), None
+        # Unit::air_turn_speed on the unit, its first guy's `bank` chosen —
+        # the frame has no aircraft, so every real bank is zero — for the
+        # truncating conversion's edge cases; and once down the integer path.
+        if n:
+            guy0 = snap.u32(lst)
+            yield f"airturn unit={unit:08x} body", AIR_TURN, (1, 1), unit, 0, None, None, None
+            for bank in BANKS:
+                raw = struct.pack("<f", bank)
+                for direction in (1, -1):
+                    yield (f"airturn unit={unit:08x} bank={raw.hex()} dir={direction}", AIR_TURN, (direction, 0),
+                           unit, 0, None, None, (guy0 + 0x44, raw))
 
 
 SCRATCH = STACK_BASE + 0x1000  # a slot the chosen vectors are written to, on both machines
