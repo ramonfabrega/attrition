@@ -165,7 +165,11 @@ impl Sim {
     }
 
     /// `City::count_gather_slots@00737dc0`: over the city's chain, each
-    /// finished gather building's `gather_max` per good, how much of it is
+    /// gather building's `gather_max` per good — **finished or not**: the
+    /// walk tests the type (`+0x90`) and nothing else, so a site that is
+    /// placed and not yet started counts its slots from placement, and
+    /// run150's packet reads the unstarted Mine `1/2018` holding
+    /// `gather_max 3` in the chain (`docs/AI.md` §61) — how much of it is
     /// unfilled, and the total **excluding knowledge** (good 3 — the
     /// original skips it when accumulating its return while still writing
     /// it into the per-good array). Returns `(total, slots, open)`.
@@ -178,7 +182,7 @@ impl Sim {
         let mut total = 0;
         for b in self.city_chain(c) {
             let bd = &self.buildings[b];
-            if !bd.alive || !bd.active {
+            if !bd.alive {
                 continue;
             }
             let Some(rec) = bd.ty else { continue };

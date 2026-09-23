@@ -5443,6 +5443,22 @@ starts the walk on 634. Values part on 634. Pinned as
 `GOLDEN_WORD_CHAPTER_THREE_RESTAGE` with
 `chapter_three_s_restage_is_widened_whole`.
 
+## run149 — East Indies' word 10782, past run143's last block (2026-09-23, item 608)
+
+**What it is.** run143's game and line past its last block:
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9` over
+`[10730, 10880)`, plus `rontrace.cfg` `cover=1` and `window=10778-10786`
+over the word. `!quit` at 10900. **321,162,982 bytes of dump and
+18,694,976 of trace, 12 minutes** from launch at 09:00 to archive at 09:12.
+It ran through `viadriver.sh` with no human at the menu. The lane lock was
+stale: its holder, pid 21551, was dead. That is 2.07 MB a block net of the
+11 MB start dump, against run143's 2.06.
+
+**Why it was owed.** The word 10782 writes block 10783. No `MAP_STYLE 18`
+dump on this disk carries a block in [10740, 10900]: run143's window ends
+on 10739, and its next block is the `!quit` stub on 10761. `LEADERS=9`
+was taken because the original's parting draw is `make_stuff+0x63d`, so
+the make list is on the word.
 ## run147 — chapter three's pivot node, a packet at 684 (2026-09-23, item 603)
 
 **What it is.** A `RON_STATE_FRAME=684` packet on chapter three's staging
@@ -5477,6 +5493,53 @@ Great Lakes one) hold the Chariot's pieces loaded but with no `AttachPos`.
 
 | check | result |
 |---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 10,901 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **150 blocks, 10730..10879, no gap** |
+| a `MAKEOBJECT` on every window block | **150** |
+| overlap with run143, every kind compared | **10 in common (10730..10739), 0 differ** |
+| the coverage window | a set on all 9 frames 10778..10786 |
+
+**What it settled.** The draw streams are one stream shifted. Both
+sides spend `make_stuff+0x63d` at index 4, the original a second at 5,
+and the same `Animal::do_idle+0x83` comes after. The widening
+(`run149_s_word_frame_is_widened_whole`) names the make list on 10781.
+The original offers the Citizen with `num 4`, and this crate with 1. That
+count is sized by a census that parts on 10776: `reg_gather_slots` of
+player 1's home region, 17 against 20, on the first census after the Mine
+`1/2018` starts building. `docs/AI.md` §61.
+
+With `count_gather_slots` counting unfinished buildings, the word moves to
+10982, past this window. The widening keeps the move's value diff on
+10776 and 10781..10783.
+
+## run150 — the Mine's `gather_max` before it starts, a packet (2026-09-23, item 608)
+
+**What it is.** A `RON_STATE_FRAME=10765` packet on the click-free lane,
+with run149's dump detail over [10761, 10769). `!quit` is at 10775.
+`success: true`, exit 0, `MAP_STYLE 18` and seed 12345 read back, five
+settings files restored. **67 s launch to exit, 79 s in all.** The lane
+lock was stale: its holder, pid 69563 (run149's), was dead. The plan is
+597's, reused.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-23-run150 \
+    --map 18 --end-frame 10775 --timeout 2400 --log-window 10761 10769 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9 \
+    --tracer-def RON_STATE_FRAME=10765 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+**Why 10765.** The Mine `1/2018` is placed on 10583 and `Wall::start`
+runs on 10766 (`frame_started`). 10765 is after its placement and before
+its start. The census counted it on the sweep that writes block 10776.
+
+**What it settled.** The unstarted Mine (`flags 1`, `frame_started -1`)
+holds **`gather_max 3`** and a 46-tile list, and it is city 1's chain's
+tail. Leader 1's `reg_gather_slots[11]` reads 17, the previous sweep's. So
+`count_gather_slots` counts it with no completion test (`docs/AI.md` §61).
+The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-23-run150/map-18`.
 | `frame_snapshot.py` against the plan | logger frame 684, the logger return's roots unchanged, receipt checked |
 | `rngcmp.py` against run145's `rontrace.log` | **0 differing**, 691 identical |
 | blocks 680–689 against run145 | every line run145 prints is there and equal; run147 only adds `GUYS=4` fields and the say lines |

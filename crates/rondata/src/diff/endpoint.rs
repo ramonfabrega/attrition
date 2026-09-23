@@ -485,7 +485,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // solid cells (`docs/AI.md` §60); this map's word moves 10582 →
         // 10782, 13,219 frames before this one. DECISIONS 36: the number,
         // not a trade.
-        off: 56,
+        // **56 → 64 off, 6 → 0 unlinked, 0 → 1 extra, 25 → 24
+        // build_diverged** on item 608, a city counting an unfinished
+        // gather building's slots (`docs/AI.md` §61); this map's word moves
+        // 10782 → 10982, 13,019 frames before this one. The extra is a
+        // Bowmen, `1/83`. DECISIONS 36: the number, not a trade.
+        off: 64,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -503,14 +508,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 3** on item 597, beside `off` above: player 1's `77`, `81`
         // and `82`.
         // **3 → 6** on item 604, beside `off` above: player 1's `77`..`82`.
-        unlinked: 6,
-        extra: 0,
+        // **6 → 0** on item 608, beside `off` above.
+        unlinked: 0,
+        // **0 → 1** on item 608, beside `off` above.
+        extra: 1,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         build_unlinked: 1,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
-        build_diverged: 25,
+        // **25 → 24** on item 608, beside `off` above.
+        build_diverged: 24,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1138,17 +1146,25 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // holds at 12038, 11,963 frames before this one; its mines past the
         // word are sited by the new measure. The extra is a Merchant,
         // `1/81`. DECISIONS 36: the number, not a trade.
-        off: 48,
+        // **48 → 45 off, 1 → 0 extra, 8 → 9 build_diverged** on item 608,
+        // a city counting an unfinished gather building's slots
+        // (`docs/AI.md` §61). This map's word holds at 12038, 11,963 frames
+        // before this one; every AI city counts its gather sites from
+        // placement now, on both maps. DECISIONS 36: the number, not a
+        // trade.
+        off: 45,
         unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
         // **2 → 0 extra** on item 566, beside 58 → 42 off above.
         // **0 → 1 extra** on item 597, beside 41 → 48 off above.
-        extra: 1,
+        // **1 → 0 extra** on item 608, beside 48 → 45 off above.
+        extra: 0,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
-        build_diverged: 8,
+        // **8 → 9** on item 608, beside `off` above.
+        build_diverged: 9,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1386,7 +1402,11 @@ pub const LADDER: [Endpoint; 2] = [
         // solid cells (`docs/AI.md` §60), 4,619 frames past this map's new
         // word 10782: three Citizens, two Scholars, a Cataphract and a
         // Transport Barge.
-        extra: 7,
+        // **7 → 13 extra** on item 608, a city counting an unfinished
+        // gather building's slots (`docs/AI.md` §61), 4,419 frames past
+        // this map's new word 10982: five Citizens, two Scholars, two
+        // Horse Archers, two Cataphracts and two Light Horse.
+        extra: 13,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         // **5 → 4** on item 597, beside `extra` above.
@@ -1496,7 +1516,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **46 → 51** on item 588; see `extra` below.
         // **51 → 49** on item 592; see `extra` below.
         // **49 → 46** on item 597; see `extra` below.
-        off: 46,
+        // **46 → 47** on item 608; see `extra` below.
+        off: 47,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1601,7 +1622,12 @@ pub const LADDER: [Endpoint; 2] = [
         // **22 → 13 extra** on item 604, the placed mountain templates'
         // solid cells (`docs/AI.md` §60); `off` and every other field hold.
         // It was hidden behind rung C's panic until C's re-pin.
-        extra: 13,
+        // **13 → 9 extra, 46 → 47 off** on item 608, a city counting an
+        // unfinished gather building's slots (`docs/AI.md` §61), 5,507
+        // frames past this map's new word 10982. It too was hidden behind
+        // rung C's panic until C's re-pin. DECISIONS 36: the number, not a
+        // trade.
+        extra: 9,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

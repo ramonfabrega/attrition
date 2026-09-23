@@ -11985,41 +11985,154 @@ mod tests {
         );
     }
 
-    /// **run143 — East Indies' word 10398, widened whole, both directions**
-    /// (item 588). run99's line with `LEADERS` raised to 9 over
-    /// [`WIDENING_EAST_INDIES_BARK`]: twenty blocks shared with run99, the
-    /// word's block — run99's last — and 340 past it, which no capture had
-    /// printed. A sibling of run99's and run139's walks, not an extension:
-    /// every record [`widen_block`] reads on every unit and building of
-    /// every player, every key of [`crate::diff::leader::rows`] for both
-    /// leaders, and every figure whose animation changes on either side
-    /// (`docs/COMBAT.md` §44.2.1). Each key's first parting block is kept
-    /// with the value diff beside it.
+    /// **run149 — East Indies' word 10782, widened whole, both directions**
+    /// (item 608). run143's line past its last block, over
+    /// [`WIDENING_EAST_INDIES_MERCS`]: ten blocks shared with run143, the 43
+    /// up to the word, its block, and 96 past it, which no capture had
+    /// printed. [`widen_east_indies`] with gaia's animals, because the
+    /// word's frame parts on an animal's draw here.
     ///
-    /// The word's frame, 10398, writes block **10399**.
+    /// The word's frame, 10782, writes block **10783**. The same item moved
+    /// the word to 10982, past the window; the test keeps the move's value
+    /// diff.
+    #[test]
+    fn run149_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_MERCS.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_MERCS.1;
+        /// The block run149 was taken to widen, the word 10782's.
+        const WORD_BLOCK: i64 = EAST_INDIES_MERCS_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+        }) = widen_east_indies(
+            "run149",
+            "gamelog-run149-eastindies-animal.txt",
+            WIDENING_EAST_INDIES_MERCS,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
+            "150 blocks x 2 leaders x (1,053 + 1,531) keys"
+        );
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // **Under the word, 10776: the census, and the move's value diff**
+        // (item 608). Until the fix player 1's `reg_gather_slots` of its
+        // home region (11 in the dump's numbering) parted here, 17 against
+        // 20, on the first census sweep after the Mine `1/2018` was placed
+        // on 10583 — no sweep runs between, on either side. The original's
+        // `City::count_gather_slots@00737dc0` walks the city's chain and
+        // sums every gather building's `gather_max`, finished or not: run150's
+        // packet at 10765 reads the unstarted Mine (`flags 1`) holding
+        // `gather_max 3` in city 1's chain. This crate skipped a building
+        // that was not `active`. Now the row is gone; `SITE[7]`'s value,
+        // which parted on the same sweep before the fix and spends no
+        // draw, stays (`docs/AI.md` §61).
+        let census: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (10_734..WORD_BLOCK - 2).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            census,
+            ["10776 1/-1 leader:SITE[7].val: ours 26 theirs 13"],
+            "the census under the word"
+        );
+        // **The word's blocks, 10781..10783, both directions.** Until the
+        // fix 20 rows parted here: on 10781, `create_units`' frame, the
+        // original offered the Citizen (type 50) with `num 4` at `val
+        // 3291428` — the value squares the count — so it ranked in slot 1
+        // over the Dromon and the Galley and duplicated into slot 5, where
+        // this crate offered `num 1` at 205714 third. The count is the
+        // city's gatherer deficit bounded by its open slots, the Mine's
+        // three among them. On 10782 `make_stuff` bought the four and, with
+        // two Citizen slots to expire, spent two `make_stuff+0x63d` against
+        // this crate's one: 10 draws against 11, parting at index 5, ours
+        // `Animal::do_idle+0x83` a place early, and city `1/2007` queued 4
+        // against 1. Now one row stands, §52.2's `city` shift.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            on_word,
+            ["10782 1/-1 leader:MAKE[3].city: ours 2 theirs 1"],
+            "the make list"
+        );
+        // **Who changes animation, both sides** (`docs/COMBAT.md`
+        // §44.2.1). Until the fix gaia's `8/3` turned on 10783 and 10784 in
+        // the original only: the animal whose `do_idle` roll this crate spent
+        // from the original's `make_stuff` draw. Now it turns on both.
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        assert_eq!(
+            one_sided,
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
+            "a figure moves on one side only"
+        );
+        // **The floor**: 280 keys standing on the window's first block —
+        // run143's residue on its last blocks (the human's city record,
+        // `form`, the hit counts of the first citizens, the scout `1/0`'s
+        // group, `1/19` and `1/20` a unit off) — and two more before the
+        // word: a unit of food on 10733, and `SITE[7]` on 10776. Past it
+        // the gather clock (10784), the human's `production_step` (10801)
+        // and the transport rider `1/31`'s order (10875). Before the fix
+        // the floor was 280/283/506.
+        let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, under, firsts.len()), (280, 282, 291), "the floor");
+    }
+
+    /// One of East Indies' `LEADERS=9` windows walked whole, both
+    /// directions — the walk run143's test was, made a helper when run149
+    /// needed the same one (item 608). `capture` over `window`, from run54's
+    /// start with run38's `DUMP_ALL` head: every record [`widen_block`]
+    /// reads on every unit and building of every player, every unit's
+    /// outermost container, every key of [`crate::diff::leader::rows`] and
+    /// the per-region arrays for both leaders, and — with `gaia` — gaia's
+    /// animals, which `compare` never reads (parked 577). Each key's first
+    /// parting block is kept with the value diff beside it; every figure
+    /// whose animation changes on either side within two blocks of a `near`
+    /// block is listed (`docs/COMBAT.md` §44.2.1).
     ///
     /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
     /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
-    /// each block of the window.
-    #[test]
-    fn run143_s_word_frame_is_widened_whole() {
-        const FIRST: i64 = WIDENING_EAST_INDIES_BARK.0;
-        const TAIL: i64 = WIDENING_EAST_INDIES_BARK.1;
-        /// The block run143 was taken to widen, the word 10398's; item 588
-        /// moved the word past it.
-        const BARK_BLOCK: i64 = EAST_INDIES_BARK_BLOCK;
-        /// The word's block: its frame writes the next one.
-        const WORD_BLOCK: i64 = EAST_INDIES_MINE_BLOCK;
-        let Some(inst) = install() else { return };
+    /// each block of the window, the leaders' included; `RON_CITIZENS=<lo>-
+    /// <hi>` player 1's census and citizens.
+    fn widen_east_indies(
+        name: &str,
+        capture: &str,
+        window: (i64, i64),
+        near: &[i64],
+        gaia: bool,
+    ) -> Option<Widened> {
+        let inst = install()?;
         let (Some(path), Some(sib), Some(tr), Some(r143)) = (
             dump("gamelog-run54-islands-24k-trace.txt"),
             dump("gamelog-run38-islands-start.txt"),
             trace("rontrace-run54.log"),
-            dump("gamelog-run143-eastindies-bark.txt"),
+            dump(capture),
         ) else {
-            eprintln!("skipping: no run54/run143 capture (set RON_GAMELOG_DIR)");
-            return;
+            eprintln!("skipping: no run54/{name} capture (set RON_GAMELOG_DIR)");
+            return None;
         };
+        let (first_block, tail) = window;
         let mut ix = crate::capture::indexed::IndexedCapture::open(&r143).unwrap();
         let loaded = crate::load::load(&inst).unwrap();
         let text = crate::capture::read(&path);
@@ -12051,10 +12164,10 @@ mod tests {
         // Every figure whose animation changes on either side on the
         // word's blocks: `(block, who, o, theirs changed, ours changed)`.
         let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
-        for f in 0..=TAIL {
+        for f in 0..=tail {
             built.tick();
             let n = f + 1;
-            if n < FIRST {
+            if n < first_block {
                 continue;
             }
             let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
@@ -12148,6 +12261,82 @@ mod tests {
                         .or_insert((n, format!("ours {ours} theirs {up}")));
                 }
             }
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let mut t = crate::diff::leader::theirs(&block);
+                t.extend(crate::diff::leader::region_theirs(&block));
+                let mut mine = crate::diff::leader::rows(&loaded, &built, who);
+                mine.extend(crate::diff::leader::region_rows(&built, who));
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        here.entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+            // **Gaia's animals** (parked 577: `compare` walks `0..players`
+            // and never reads `who 8`). Each animal's position and its first
+            // figure's clock, `cur_anim` and `cur_time`, against this
+            // crate's animal of the same number.
+            if gaia {
+                for t in frame.units.iter().filter(|t| t.who >= players as i64) {
+                    let ours = u8::try_from(t.who)
+                        .ok()
+                        .zip(i16::try_from(t.o).ok())
+                        .and_then(|(w, o)| built.sim.unit_by_o(w, o));
+                    let Some(u) = ours else {
+                        here.entry((t.who, t.o, "gaia:alive".into()))
+                            .or_insert((n, "ours none theirs alive".into()));
+                        continue;
+                    };
+                    let x = &built.sim.units[u];
+                    let g = x.guys.first();
+                    let tg = t.guys.first();
+                    let rows = [
+                        (
+                            "gaia:pos",
+                            (i64::from(x.pos.x), i64::from(x.pos.y)) == (t.pos.x, t.pos.y),
+                            format!(
+                                "ours ({},{}) theirs ({},{})",
+                                x.pos.x, x.pos.y, t.pos.x, t.pos.y
+                            ),
+                        ),
+                        (
+                            "gaia:cur_anim",
+                            g.map(|g| i64::from(g.anim)) == tg.and_then(|g| g.cur_anim),
+                            format!(
+                                "ours {:?} theirs {:?}",
+                                g.map(|g| g.anim),
+                                tg.and_then(|g| g.cur_anim)
+                            ),
+                        ),
+                        (
+                            "gaia:cur_time",
+                            g.map(|g| i64::from(g.cur_time)) == tg.and_then(|g| g.cur_time),
+                            format!(
+                                "ours {:?} theirs {:?}",
+                                g.map(|g| g.cur_time),
+                                tg.and_then(|g| g.cur_time)
+                            ),
+                        ),
+                    ];
+                    for (what, same, row) in rows {
+                        compared += 1;
+                        if !same {
+                            here.entry((t.who, t.o, what.into())).or_insert((n, row));
+                        }
+                    }
+                }
+            }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
                     .iter()
@@ -12179,9 +12368,7 @@ mod tests {
                 let oa =
                     ours.and_then(|u| built.sim.units[u].guys.first().map(|g| i64::from(g.anim)));
                 let before = anims.insert((t.who, t.o), (ta, oa));
-                if !(BARK_BLOCK - 2..=BARK_BLOCK + 2).contains(&n)
-                    && !(WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&n)
-                {
+                if !near.iter().any(|b| (b - 2..=b + 2).contains(&n)) {
                     continue;
                 }
                 let Some((pt, po)) = before else { continue };
@@ -12202,32 +12389,9 @@ mod tests {
                 );
                 changed.push((n, t.who, t.o, pt != ta, po != oa));
             }
-            let raw = ix.read_frame(at).unwrap();
-            let flog = Log::parse(&raw);
-            for who in 0..2usize {
-                let Some(block) = flog.leader_block(n, who as i64) else {
-                    continue;
-                };
-                let mut t = crate::diff::leader::theirs(&block);
-                t.extend(crate::diff::leader::region_theirs(&block));
-                let mut mine = crate::diff::leader::rows(&loaded, &built, who);
-                mine.extend(crate::diff::leader::region_rows(&built, who));
-                for (k, v) in &mine {
-                    let Some(&y) = t.get(k) else {
-                        missing.insert(k.clone());
-                        continue;
-                    };
-                    leader_rows += 1;
-                    if *v != y {
-                        firsts
-                            .entry((who as i64, -1, format!("leader:{k}")))
-                            .or_insert((n, format!("ours {v} theirs {y}")));
-                    }
-                }
-            }
         }
         eprintln!(
-            "run143 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+            "{name} widening: {blocks} blocks [{first_block}, {tail}], {compared} record rows, \
              {leader_rows} leader rows, {} keys parted, {} keys unprinted",
             firsts.len(),
             missing.len()
@@ -12240,7 +12404,7 @@ mod tests {
                 .push(format!("{w}/{o} {what}: {row}"));
         }
         for (f, rows) in &by_block {
-            let near = *f > FIRST;
+            let near = *f > first_block;
             let window =
                 site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
             if near || window {
@@ -12251,6 +12415,67 @@ mod tests {
                 eprintln!("  f{f}: {} keys", rows.len());
             }
         }
+        Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+        })
+    }
+
+    /// What [`widen_east_indies`] found.
+    struct Widened {
+        firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+        missing: std::collections::BTreeSet<String>,
+        blocks: usize,
+        leader_rows: usize,
+        /// `(block, who, o, theirs changed, ours changed)`.
+        changed: Vec<(i64, i64, i64, bool, bool)>,
+    }
+
+    /// **run143 — East Indies' word 10398, widened whole, both directions**
+    /// (item 588). run99's line with `LEADERS` raised to 9 over
+    /// [`WIDENING_EAST_INDIES_BARK`]: twenty blocks shared with run99, the
+    /// word's block — run99's last — and 340 past it, which no capture had
+    /// printed. A sibling of run99's and run139's walks, not an extension:
+    /// every record [`widen_block`] reads on every unit and building of
+    /// every player, every key of [`crate::diff::leader::rows`] for both
+    /// leaders, and every figure whose animation changes on either side
+    /// (`docs/COMBAT.md` §44.2.1). Each key's first parting block is kept
+    /// with the value diff beside it.
+    ///
+    /// The word's frame, 10398, writes block **10399**.
+    ///
+    /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
+    /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
+    /// each block of the window.
+    #[test]
+    fn run143_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_BARK.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_BARK.1;
+        /// The block run143 was taken to widen, the word 10398's; item 588
+        /// moved the word past it.
+        const BARK_BLOCK: i64 = EAST_INDIES_BARK_BLOCK;
+        /// The word's block: its frame writes the next one.
+        const WORD_BLOCK: i64 = EAST_INDIES_MINE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+        }) = widen_east_indies(
+            "run143",
+            "gamelog-run143-eastindies-bark.txt",
+            WIDENING_EAST_INDIES_BARK,
+            &[BARK_BLOCK, WORD_BLOCK],
+            false,
+        )
+        else {
+            return;
+        };
+        use std::collections::BTreeSet;
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
         // on run143's record, both leaders, all 360 blocks — and, since item

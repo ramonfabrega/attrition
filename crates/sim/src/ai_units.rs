@@ -353,8 +353,8 @@ impl Sim {
         (m.by_type[rec], m.queued_by_type[rec])
     }
 
-    /// `City::count_gather_slots(city, max[6], free[6])`: the city's finished
-    /// gather buildings' slots per good, and how many are free. The
+    /// `City::count_gather_slots(city, max[6], free[6])`: the city's gather
+    /// buildings' slots per good, finished or not, and how many are free. The
     /// University's slots land in `[KNOWLEDGE]` but are **excluded** from the
     /// returned total, as the original excludes them.
     fn gather_slot_picture(&self, c: usize) -> (i32, [i32; RESOURCES], [i32; RESOURCES]) {

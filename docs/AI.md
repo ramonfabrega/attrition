@@ -7597,3 +7597,116 @@ Diff-backed:
 Reading-only: the XML-to-slot order in `Mountains::init` (the first
 `<MOUNTAIN>` child is the image `init` reads). The packet's type indices
 13, 14 and 15 confirm the positional index on three templates.
+
+## 61. A city counts an unfinished gather building's slots, and the word moves to 10982 (2026-09-23, item 608)
+
+East Indies' word **10782** was past every capture. run149 is run143's
+line over [10730, 10879] at `LEADERS=9` (`docs/RUNS.md`), and its
+widening, `run149_s_word_frame_is_widened_whole`, walks every record of
+every unit, both leaders, and gaia's animals.
+
+### 61.1 The frame
+
+On 10782 this crate spent 10 draws against 11, parting at index 5: ours
+`Animal::do_idle+0x83`, theirs `Leader::make_stuff+0x63d`. The streams are
+**one stream shifted**. Both sides spend `make_stuff+0x63d` at index 4, the
+original a second one at index 5, and the same animal roll follows. Gaia's
+`8/3` then turns on 10783 in the original only. It is downstream, not the
+cause.
+
+The widening names the make list on block 10781, `create_units`' frame.
+The original offers the Citizen (type 50) with **`num 4`** at `val
+3291428`, and this crate with `num 1` at 205714. The value squares the
+count (§52), so the original ranks the Citizen in slot 1, above the Dromon
+and the Galley, and duplicates it into slot 5. `make_stuff` on 10782 buys
+the four, then expires two Citizen slots (two `+0x63d`) where this crate
+expires one. City `1/2007` queues 4 against 1.
+
+### 61.2 What sized the count
+
+`num` is the city's gatherer deficit, bounded by the room its caps leave
+(§53). The deficit is taken against the city's gather slots. Only two
+keys first part before the word, both on block 10776:
+
+- player 1's `reg_gather_slots` of its home region (11 in the dump's
+  numbering), 17 here against 20;
+- `SITE[7].val`, 26 against 13, which spends no draw (below).
+
+10776 is the first census sweep after the Mine `1/2018` was placed on
+10583. No sweep runs between, on either side, so the region's count
+stayed 17 on both until then. The per-good `gather_slots` do not move on
+10776 on either side. They are the census's own building walk, and why
+that walk leaves the Mine out is not established here.
+
+`City::count_gather_slots@00737dc0` walks the city's chain from `City+0x8`
+along `BuildData::city_down` (`+0x74`). For each building it asks the type
+`+0x90` ("is a gather building"), maps the type index to a good, and adds
+`gather_max` (`+0x80`). The listing (`737e50`–`737f28`) has nothing else:
+**no completion test**. This crate skipped a building that was not
+`active`, and it has done so since the function was first ported
+(`2857f10`, no evidence cited).
+
+### 61.3 The packet
+
+The decompile alone left one question: whether `+0x80` is zero until a
+building starts. `Build::init` and `find_gather_tiles` both write it at
+placement, but a region flag this crate does not model can rewrite it
+(`Build::process`, ECONOMY "The mine's range"). **run150** answers it: a
+`RON_STATE_FRAME=10765` packet, after the Mine's placement and before
+`Wall::start` runs on 10766.
+
+- The Mine reads `flags 1` (placed, not started), `frame_started -1`,
+  **`gather_max 3`**, and a 46-tile `gather_from` list.
+- City 1's chain is 2007 → 2009 → 2011 → 2012 → 2014 → 2015 → 2017 → 2018.
+  Its gather slots are 4, 1, 1, 7 (the University, knowledge, excluded)
+  and the Mine's 3.
+- Leader 1's `reg_gather_slots[11]` is 17, the value of a sweep that ran
+  before the placement.
+
+So the original counts the unstarted Mine as soon as a sweep runs, and
+this crate never did until the Mine was finished.
+
+### 61.4 What it moved
+
+- **The word: 10782 → 10982.** On 10982 this crate spends 14 draws
+  against 695, parting at index 2. The original places a gather building
+  and shuffles a 170-tile list (`Build::find_gather_tiles+0x10a` × 680). It
+  scores the spiral `produce_building` 4 `+0xc99` and 4 `+0x1805` against
+  this crate's 7 and 1. No mechanism is named. Item 613 owes its widening
+  (run152).
+- **The value diff on the frame that moved**, run149's blocks 10781..10783:
+  **20 rows → 1**. The row left is §52.2's `city` shift (`MAKE[3].city` 2
+  against 1 on 10782). `reg_gather_slots` is gone from 10776, and gaia's
+  `8/3` turns on both sides. The widening's floor goes 280/283/506 →
+  **280/282/291**.
+- **On run149's last block, 10879**: 427 standing rows → **280**. The fix
+  removes 148: 84 of player 1's (the four Citizens, the leader and city
+  `1/2007`), 31 of the human's `0/3` and `0/4`, and 33 of gaia's animals.
+  It adds one, the same `city` shift. The other 279 are the same rows,
+  value for value.
+
+### 61.5 What this has *not* established
+
+- **`SITE[7].val` on 10776**, 26 against 13, stands. It parted on the same
+  sweep before the fix and spends no draw through 10879.
+- **`open`'s clamp.** The original writes `param_2[g] += gather_max −
+  num_gatherers` with no floor. This crate floors each building's share at
+  0. No run has reached an over-full building.
+- **Great Lakes' mines** go through the same walk. Its word holds (the
+  gate, below), which says nothing about a site that has not yet been
+  placed there.
+
+### 61.6 Coverage
+
+Diff-backed:
+
+- `run149_s_word_frame_is_widened_whole`: the census on 10776, the word's
+  blocks, the one-sided animation changes, and the floor.
+- The long word `run54_s_24000_frames_are_where_the_second_map_s_word_now_parts`:
+  10982.
+
+Packet-backed and not a test: run150's `gather_max 3` on the unstarted
+Mine. The packet stays outside git.
+
+Reading-only: that `count_gather_slots` has no other gate. The listing
+settles it for this function, and no second reading has been booked.
