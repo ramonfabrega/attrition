@@ -21,8 +21,11 @@ dump's own fields. ~~**Chapters two to eight are a design and nothing more**~~
 **Chapters two, four and five are captured and pinned** (run112, run132/133
 and run127; items 415, 552 and 535), and none of their falsifiers fired;
 **chapter seven is captured (run141/run142, item 578), closed at 1200, and
-its premise did not survive** (§11); **three, six and eight are a design and nothing more** — no capture
-has been run for any of them, and each one's own falsifier section is written
+its premise did not survive** (§11); ~~**three, six and eight are a design
+and nothing more**~~ **chapter three is captured (run145, closed at 900;
+its restage run146, open) and seven-b too (run156/run157, item 628, its
+premise killed by construction and pinned open as measured, §11); six and
+eight are a design and nothing more** — no capture has been run for either, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
 (`every_chapter_stages_what_it_says_it_stages`).
@@ -989,7 +992,8 @@ of chapter one itself.
   design was wrong, and on the evidence of the last two months the honest
   expectation is that two or three of them will.~~ Chapters one to five
   and seven have run and closed (§14); one premise fell (§11) and one
-  staging was restaged (§7). Six, eight and seven-b have not run.
+  staging was restaged (§7). Six and eight have not run; seven-b ran as
+  run156/run157 (item 628, §11).
 - **Whether the cheat's block closes a computer civilian's tail**, and
   whether this crate's one-term stand-in does the same — §11's restage,
   chapter seven-b (item 628). The human pair could not measure it.

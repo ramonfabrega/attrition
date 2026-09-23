@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 628, 2026-09-23 — the cheat's two terms
+
+(633) **`library who=1 N` leaves who=1's `resource_cap` unraised here**:
+1392 against the original's 2992 from 605 on run156/run157. who=0's is
+raised and agrees (chapter seven). Standing, off the draw stream, pinned
+in seven-b's widening.
+
+(634) **The `ai_off` stand-in's corrected predicate is `!ai_driven(owner)`**
+(`docs/INPUT.md` §11.10): `orders.rs`'s `ai_off && !ai_driven(owner)` was
+derived on the retired reading of bit 4. For who=1 the two agree, which is
+why neither capture parts there. For who=0 without the cheat, ours opens
+`Unit::think`'s tail where the original closes it (§11.9's seam). The fix is
+one term, and it wants its own gate against the long captures, whose who=0
+is the human. Returns when a word names who=0's tail.
+
 ## Parked by item 621, 2026-09-23 — past the restage's word
 
 (626) **The catapult's round leaves the unit's square**: `sim::launch` has
