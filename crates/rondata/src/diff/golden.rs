@@ -5516,6 +5516,10 @@ fn widen_chapter_three(
             // order comparison reads the kind and the target and none of
             // these, so "in range on the same frame" was a quiet field
             // until this row (`docs/COMBAT.md` §44.2.1).
+            // both sides: a head order on one side only, or of another
+            // kind, is a real disagreement and is not quiet — it is
+            // `widen_block`'s own `order:length`/`order:kind` row on this
+            // block; this row reads only the fields past the kind.
             if let (Some(od), Some(front)) = (them.orders_front_first().next(), un.orders.front())
                 && let sim::orders::Body::Attack(a) = front.body
                 && od.index == i64::from(sim::orders::index::ATTACK)
