@@ -149,6 +149,18 @@ pub const SITE_ATTACK_TURN: &str = "Guy::set_anim+0xf2f < Guy::move+0xe3";
 pub const SITE_ATTACK_WRAP: &str = "Guy::set_anim+0xf2f < Guy::inc_time+0x271";
 pub const SITE_ATTACK_INC: &str = "Guy::set_anim+0xf2f < Guy::inc_time+0x357";
 
+/// **And the swing itself, when nothing defers it** — the attack roll
+/// under `Unit::set_anim@00616f40`'s two loops, both called from
+/// `Unit::fight+0x19f6`: `+0x56` for figures `0 .. guy_mark`, `+0xb6` for
+/// the crew past them. The note above was true of every unit that turns
+/// to shoot, because its figure is still turning when the swing is asked
+/// for. A unit whose pivot bears (`docs/COMBAT.md` §52) does not turn, so
+/// its request plays and rolls on the frame `fight` makes it. run145's
+/// chariot `0/8` on 633 is the first capture of it: one roll per figure,
+/// the archer's and the horse's.
+pub const SITE_ATTACK_FIGHT: &str = "Guy::set_anim+0xf2f < Unit::set_anim+0x56";
+pub const SITE_ATTACK_FIGHT_CREW: &str = "Guy::set_anim+0xf2f < Unit::set_anim+0xb6";
+
 /// The **idle** an attack falls to when the packet does not loop it, and
 /// it is not [`SITE_WRAP`]: `Guy::inc_time`'s wrap has two call sites, not
 /// one. `+0x271` is the shared tail every looping restart and every queued
@@ -453,6 +465,16 @@ pub struct Art {
     /// Empty when the install was not read, and a piece absent from it
     /// does not shoot through this path at all.
     pub releases: BTreeMap<i32, BTreeMap<i8, Vec<u32>>>,
+    /// `TypeIndex → (node → (minangle, maxangle))` — the unit types whose
+    /// figure carries a **pivot**, read from `unit_graphics.xml`'s
+    /// `<RESTRICTION>` rows (`rondata::artdata::pivot_restrictions`,
+    /// `docs/COMBAT.md` §52). `Unit::set_attack` asks each restricted
+    /// node whether it can bear on the target, and when every one can,
+    /// `Unit::fight` shoots without turning the unit.
+    ///
+    /// Empty when the install was not read, which leaves every type
+    /// turning to face its target, as it did before the table existed.
+    pub pivots: BTreeMap<i32, BTreeMap<i32, (i32, i32)>>,
 }
 
 impl Art {
@@ -939,6 +961,17 @@ impl Sim {
             let lead = self.units[u].guys.first().map_or(DEFAULT, |g| g.anim);
             if category(lead) != 12 {
                 self.units[u].guys[g].pending_attack = 0;
+            }
+            // The roll this pass may take is named by the loop it is in:
+            // `0 .. guy_mark` and then the crew ([`SITE_ATTACK_FIGHT`]).
+            // Only an attack asked with `p3` rolls, and the one caller
+            // that asks for one is `Unit::fight`'s swing.
+            if category(anim) == 12 && p3 {
+                self.mark(if g < SQUAD_SIZE {
+                    SITE_ATTACK_FIGHT
+                } else {
+                    SITE_ATTACK_FIGHT_CREW
+                });
             }
             self.guy_set_anim(u, g, anim, force, p3);
         }

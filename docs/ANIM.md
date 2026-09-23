@@ -1629,7 +1629,10 @@ capture, with `CITIES=5` and `UNITS=3` over the window.
 Item 379, from the listing and the golden record's own trace. The whole of
 what `docs/QUEUE.md` called "the variant roll `set_anim` takes when the
 animation is `0xc`": the roll is §4.3's, but **`Unit::fight` never spends
-it**. All thirteen of the golden record's attack rolls, and all 196 of
+it** ~~for any unit~~ — for any unit that turns to shoot. A unit whose
+pivot bears does not turn, and its swing rolls in `fight`'s own frame
+under `Unit::set_anim+0x56` and `+0xb6` (item 595, `docs/COMBAT.md` §52;
+run145's chariot on 633). All thirteen of the golden record's attack rolls, and all 196 of
 run53's, come from `Guy::move` or `Guy::inc_time`.
 
 **The address.** The attack roll is `Guy::set_anim@005da300+0xf2f`

@@ -359,6 +359,58 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 /// clock has just crossed.
 pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<u32>>>;
 
+/// `TypeIndex → (node → (minangle, maxangle))`: `unit_graphics.xml`'s
+/// `<RESTRICTION>` rows, `GraphicPieces::pivot_restrictions` as
+/// `GraphicPieces::init_pivot_restrictions@008ebfe0` builds it.
+pub type PivotRestrictions = BTreeMap<i32, BTreeMap<i32, (i32, i32)>>;
+
+/// **Which unit types aim a pivot instead of turning** — the
+/// `<RESTRICTION name node minangle maxangle>` rows at the foot of
+/// `unit_graphics.xml` (81 of them; `docs/COMBAT.md` §52).
+///
+/// `GraphicPieces::init_pivot_restrictions@008ebfe0` walks every unit
+/// type, names it with `set_unit_graph_name` — the record's `GRAPH` column
+/// — and files each row whose `name` is that string under the type. The
+/// comparison is `String::operator==@00a1f140`, which is `_wcsicmp`: case
+/// does not matter, so `Cruiser` and `Mameluke` bind to `CRUISER` and
+/// `MAMELUKE`. The angles are read as floats and handed back truncated by
+/// `GraphicPieces::get_restrictions@0090b680`; every shipped one is a
+/// whole number of degrees. A type absent from the map has no pivot and
+/// turns to face what it shoots.
+pub fn pivot_restrictions(install: &Install, graphs: &[String]) -> PivotRestrictions {
+    let upath = install.data("unit_graphics.xml");
+    let Ok(utext) = crate::read(&upath) else {
+        return PivotRestrictions::new();
+    };
+    let Ok(udoc) = crate::parse(&upath, &utext) else {
+        return PivotRestrictions::new();
+    };
+    let mut out = PivotRestrictions::new();
+    for r in udoc.descendants().filter(|n| n.has_tag_name("RESTRICTION")) {
+        let (Some(name), Some(node), Some(lo), Some(hi)) = (
+            r.attribute("name"),
+            r.attribute("node")
+                .and_then(|v| v.trim().parse::<i32>().ok()),
+            r.attribute("minangle")
+                .and_then(|v| v.trim().parse::<i32>().ok()),
+            r.attribute("maxangle")
+                .and_then(|v| v.trim().parse::<i32>().ok()),
+        ) else {
+            continue;
+        };
+        for (i, g) in graphs.iter().enumerate() {
+            let ty = 0x32 + i as i32;
+            if ty >= 0x192 {
+                break;
+            }
+            if g.trim().eq_ignore_ascii_case(name.trim()) {
+                out.entry(ty).or_default().insert(node, (lo, hi));
+            }
+        }
+    }
+    out
+}
+
 /// A `<RELEASEEVENT starttime=>`'s millisecond stamp as the **game frame**
 /// the event list holds it at: `starttime / 67`, truncated, and never
 /// below 1.
@@ -738,6 +790,49 @@ mod tests {
             "run127's three rounds"
         );
         assert_eq!([0, 10, 66, 67].map(release_frame), [1, 1, 1, 1]);
+    }
+
+    /// **`<RESTRICTION>` binds by `GRAPH`, case aside** (item 595,
+    /// `docs/COMBAT.md` §52). The Chariot (`TypeIndex` 195, `GRAPH
+    /// CHARIOT`) has one node, 4, over −180..180, the row run145's `0/8`
+    /// shoots through. `Mameluke` names a record whose `GRAPH` is
+    /// `MAMELUKE`: `String::operator==@00a1f140` is `_wcsicmp`, so it binds,
+    /// and a case-sensitive match would have lost it. `SuperBattleship`
+    /// names no `GRAPH` at all and binds to nothing. Made to fail first
+    /// with `==` in place of `eq_ignore_ascii_case`.
+    #[test]
+    fn a_pivot_restriction_binds_by_graph_whatever_its_case() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let units = inst.units().expect("unitrules.xml");
+        let graphs: Vec<String> = units
+            .records
+            .iter()
+            .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+            .collect();
+        let pivots = pivot_restrictions(&inst, &graphs);
+        assert_eq!(
+            pivots.get(&195),
+            Some(&[(4, (-180, 180))].into_iter().collect())
+        );
+        let mameluke = graphs
+            .iter()
+            .position(|g| g.eq_ignore_ascii_case("Mameluke"))
+            .expect("a Mameluke graph");
+        assert_ne!(graphs[mameluke], "Mameluke", "the case differs in the file");
+        assert_eq!(
+            pivots.get(&(0x32 + mameluke as i32)),
+            Some(&[(4, (-150, 150))].into_iter().collect())
+        );
+        assert!(
+            !graphs
+                .iter()
+                .any(|g| g.eq_ignore_ascii_case("SuperBattleship"))
+        );
+        let rows: usize = pivots.values().map(|n| n.len()).sum();
+        assert!(rows > 60, "most of the 81 rows bind: {rows}");
     }
 
     /// The `<UNIT>` name grammar, and the piece each coordinate lands on.

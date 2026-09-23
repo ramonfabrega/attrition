@@ -5344,6 +5344,7 @@ fn widen_chapter_three(
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut guy_rows) = (0usize, 0usize, 0usize, 0usize);
     let (mut ammo_theirs, mut ammo_ours) = (0usize, 0usize);
+    let mut attack_rows = 0usize;
     for f in 0..LAST - 1 {
         s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
         s.built.tick();
@@ -5479,16 +5480,66 @@ fn widen_chapter_three(
                     Some(b) => (b.body, b.facing),
                     None => (un.movement.body, un.movement.facing),
                 };
+                // **What the figure is aimed at** (`GuyData +0x8e`/`+0x9f`,
+                // printed `ox`/`whom`), item 595: `Unit::set_attack` writes
+                // it for the unit's own `guy_mark` figures and not for its
+                // crew, so a chariot's horse stays at `−1` while its archer
+                // names the target. Position and facing alone read the two
+                // figures as one.
+                let aim = match og.aim {
+                    None => (-1, -1),
+                    Some(sim::combat::Obj::Unit(t)) => {
+                        let tu = &s.built.sim.units[t];
+                        (i64::from(tu.owner), i64::from(tu.index))
+                    }
+                    Some(sim::combat::Obj::Building(b)) => s.built.build_ids(b).unwrap_or((-2, -2)),
+                };
                 for (name, mine, dumped) in [
                     ("g.x", i64::from(body.pos.x), g.pos.map(|p| p.x)),
                     ("g.y", i64::from(body.pos.y), g.pos.map(|p| p.y)),
                     ("g.angle", i64::from(facing.0), g.angle),
+                    ("g.whom", aim.0, g.whom),
+                    ("g.ox", aim.1, g.ox),
                 ] {
                     let Some(dumped) = dumped else { continue };
                     guy_rows += 1;
                     if mine != dumped {
                         firsts
                             .entry((them.who, them.o, format!("{name}[{k}]")))
+                            .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                    }
+                }
+            }
+            // **The `ATTACKORDER`'s own row** (item 595): `mandatory`,
+            // `defensive`, `in_range`, `ever_in_range` and `new_ord`, on
+            // the head order when both sides hold an attack there. The
+            // order comparison reads the kind and the target and none of
+            // these, so "in range on the same frame" was a quiet field
+            // until this row (`docs/COMBAT.md` §44.2.1).
+            // both sides: a head order on one side only, or of another
+            // kind, is a real disagreement and is not quiet — it is
+            // `widen_block`'s own `order:length`/`order:kind` row on this
+            // block; this row reads only the fields past the kind.
+            if let (Some(od), Some(front)) = (them.orders_front_first().next(), un.orders.front())
+                && let sim::orders::Body::Attack(a) = front.body
+                && od.index == i64::from(sim::orders::index::ATTACK)
+            {
+                for (name, mine, dumped) in [
+                    ("mandatory", i64::from(un.combat.mandatory), od.mandatory),
+                    ("defensive", i64::from(a.defensive), od.defensive),
+                    ("in_range", i64::from(a.in_range), od.in_range),
+                    (
+                        "ever_in_range",
+                        i64::from(a.ever_in_range),
+                        od.ever_in_range,
+                    ),
+                    ("new_ord", i64::from(a.new_ord), od.new_ord),
+                ] {
+                    let Some(dumped) = dumped else { continue };
+                    attack_rows += 1;
+                    if mine != dumped {
+                        firsts
+                            .entry((them.who, them.o, format!("attack.{name}")))
                             .or_insert((n, format!("ours {mine} theirs {dumped}")));
                     }
                 }
@@ -5528,7 +5579,7 @@ fn widen_chapter_three(
     }
     eprintln!(
         "ch3 widening {run}: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
-         {leader_rows} leader rows, {guy_rows} guy rows, ammo {ammo_theirs} theirs / \
+         {leader_rows} leader rows, {guy_rows} guy rows, {attack_rows} attack rows, ammo {ammo_theirs} theirs / \
          {ammo_ours} ours, {} keys parted; {} leader keys not printed at LEADERS=2",
         firsts.len(),
         missing.len()
@@ -5545,6 +5596,7 @@ fn widen_chapter_three(
         "the leader rows LEADERS=2 prints are not compared on every block"
     );
     assert!(guy_rows > 0, "the GUY record is not read");
+    assert!(attack_rows > 0, "the ATTACKORDER row is not read");
     Some(ChapterThreeWidening {
         firsts,
         ammo_theirs,
@@ -5600,27 +5652,37 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
         "the standing rows on run145's first block moved: {at_floor:?}"
     );
-    // **What parts at and one block past the word, whole** (item 590's
-    // block; the delta is in `GOLDEN_WORD_CHAPTER_THREE`'s comment): only
-    // the chariot `0/8`, and only its facing. Both sides hold the same
-    // `ATTACKORDER` on `1/8` on 633 and the same reload (`recharging 25`)
-    // on 634; this crate's `0/8` has turned on 634 where the dump's still
-    // faces the way it was born. It is run146's block row for row, to the
-    // angle's last few bits. The catapult `0/9`, 587's word, parts on no
-    // row of the capture but its standing `form`.
-    let under: Vec<String> = firsts
+    // **What parts first, and what parts on the word's own two blocks**
+    // (item 595; the delta is in `GOLDEN_WORD_CHAPTER_THREE`'s comment).
+    // Before the pivot the word was 633 and nothing parted before it; now
+    // the values part fifty blocks ahead of the draws. The first row past
+    // the standing families is the chariot `0/6`'s first target on 635,
+    // and on the word's blocks it is the hoplite `1/7`, dead here on 682
+    // and in the dump on 704. Nothing parts on 633 or 634: `0/8` keeps its
+    // heading and its crew figure is not aimed, as in the dump.
+    let rows_on = |lo: i64, hi: i64| -> Vec<String> {
+        firsts
+            .iter()
+            .filter(|((_, _, what), (f, _))| (lo..=hi).contains(f) && !standing(what))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect()
+    };
+    let first = firsts
         .iter()
-        .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
-        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
-        .collect();
+        .filter(|((_, _, what), _)| !standing(what))
+        .map(|(_, (f, _))| *f)
+        .min();
+    assert_eq!(first, Some(635), "run145's first value parting moved");
     assert_eq!(
-        under,
+        rows_on(635, 635),
+        vec!["635 0/6 order:target: Target { ours: Some((1, 7)), theirs: Some((1, 8)) }"],
+        "run145's first value parting moved"
+    );
+    assert_eq!(
+        rows_on(WORD, WORD + 1),
         vec![
-            "634 0/8 angle:Facing: ours 991232000 theirs 1431655765",
-            "634 0/8 angle:Heading: ours 991232000 theirs 1431655765",
-            "634 0/8 g.angle[0]: ours 991232000 theirs 1431655765",
-            "634 0/8 g.angle[1]: ours 991232000 theirs 1431655765",
-            "634 0/8 heading: ours 991232000 theirs 1431655765",
+            "683 1/7 death:extra: ours 1 theirs 0",
+            "683 1/7 unlinked: the dump holds it alone",
         ],
         "what parts at or one block past chapter three's word moved"
     );
@@ -5812,24 +5874,44 @@ fn chapter_three_s_restage_is_widened_whole() {
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 30,
         "the standing rows on run146's first block moved: {at_floor:?}"
     );
-    // **At and one block past the word, only the chasing chariot**: this
-    // crate's `0/8` has turned on 634 where the dump's still faces the
-    // way it was born.
-    let under: Vec<String> = firsts
+    // **What parts first, and on the word's own two blocks** (item 595;
+    // the delta is in `GOLDEN_WORD_CHAPTER_THREE_RESTAGE`'s comment). The
+    // first row past the standing families is `0/8`'s first arrow on 651,
+    // which now leaves on the dump's frame from the wrong point: the
+    // unit's own square and height, where the dump's leaves from the
+    // archer's release node. **Nothing parts on the word's blocks**, 664
+    // and 665: the draw is the crew figure's swing, and `GUYS=2` prints no
+    // figure's clock. That is a blind row, named so that an empty list is
+    // not read as agreement.
+    let rows_on = |lo: i64, hi: i64| -> Vec<String> {
+        firsts
+            .iter()
+            .filter(|((_, _, what), (f, _))| (lo..=hi).contains(f) && !standing(what))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect()
+    };
+    let first = firsts
         .iter()
-        .filter(|((_, _, what), (f, _))| *f <= WORD + 1 && !standing(what))
-        .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
-        .collect();
+        .filter(|((_, _, what), _)| !standing(what))
+        .map(|(_, (f, _))| *f)
+        .min();
+    assert_eq!(first, Some(651), "run146's first value parting moved");
     assert_eq!(
-        under,
+        rows_on(651, 651),
         vec![
-            "634 0/8 angle:Facing: ours 998768640 theirs 1431655765",
-            "634 0/8 angle:Heading: ours 998768640 theirs 1431655765",
-            "634 0/8 g.angle[0]: ours 998768640 theirs 1431655765",
-            "634 0/8 g.angle[1]: ours 998768640 theirs 1431655765",
-            "634 0/8 heading: ours 998768640 theirs 1431655765",
+            "651 0/8 ammo[0].angle: ours 949551104 theirs 988741632",
+            "651 0/8 ammo[0].rolling: ours 1 theirs 0",
+            "651 0/8 ammo[0].sx: ours 792 theirs 764",
+            "651 0/8 ammo[0].sy: ours 13368 theirs 13303",
+            "651 0/8 ammo[0].sz: ours 198 theirs 406",
+            "651 0/8 ammo[0].v1z: ours 78925003 theirs 61591671",
         ],
-        "what parts at or one block past run146's word moved"
+        "run146's first value parting moved"
+    );
+    assert!(
+        rows_on(WORD, WORD + 1).is_empty(),
+        "what parts at or one block past run146's word moved: {:?}",
+        rows_on(WORD, WORD + 1)
     );
 }
 

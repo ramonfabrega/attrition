@@ -698,7 +698,17 @@ impl Sim {
         // sideways, a quarter turn off it (`docs/COMBAT.md` §49).
         let (from, to) = (self.units[i].pos, self.pos_of(target));
         let direct = find_angle(to.x - from.x, to.y - from.y);
-        let angle = self.attack_angle(i, target, direct);
+        // `Unit::set_attack@005fce70`, from `fight:591`, before the angle
+        // is chosen: the unit's own figures are aimed, and a type with a
+        // pivot asks it whether it can bear. When it can, `fight:722`
+        // keeps `this->angle` and the unit shoots **without turning**
+        // (`docs/COMBAT.md` §52).
+        let pivoted = self.set_attack(i, target);
+        let angle = if pivoted {
+            self.units[i].movement.heading
+        } else {
+            self.attack_angle(i, target, direct)
+        };
         // `Unit::fight@005fd4d0:724`: `Unit::set_angle(angle, …, 0)` when
         // the angle is new, and that is the setter with the turn-around
         // test in it — a group's leader swinging round past 90° toggles
@@ -708,11 +718,6 @@ impl Sim {
         // army asked for afterwards was mirrored (`docs/ORDERS.md` §22).
         if angle != self.units[i].movement.heading {
             self.unit_set_angle(i, angle);
-        }
-        // `Unit::set_attack@005fce70`, from `fight:591` on the strike:
-        // every guy is aimed at the target (`GuyData +0x8e`/`+0x9f`).
-        for g in &mut self.units[i].guys {
-            g.aim = Some(target);
         }
         self.swing_anim(i, direct);
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
@@ -749,6 +754,99 @@ impl Sim {
         };
         let r = combat::recharge(p.recharge, out, p.is(role::BOMBARD));
         self.units[i].combat.recharging = r as u8;
+    }
+
+    /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
+    /// `target`, and answer whether its pivot can shoot without the unit
+    /// turning (`docs/COMBAT.md` §52).
+    ///
+    /// The aim (`GuyData +0x8e`/`+0x9f`) goes into figures `0 ..
+    /// guy_mark` only, and `guy_mark` is [`anim::SQUAD_SIZE`]: a crew
+    /// figure — a chariot's horse — is never aimed. run145 prints it,
+    /// `ox −1 whom −1` on `0/8`'s second figure from 634.
+    ///
+    /// The answer is `Guy::set_all_pivots` of the **last** of those
+    /// figures ([`Sim::set_all_pivots`]), asked only when the type has
+    /// `<RESTRICTION>` rows ([`anim::Art::pivots`]), a `max_range`
+    /// (`UnitType +0x1fc`), and a target that is a live unit or a
+    /// building. Anything else answers 0, and the unit turns.
+    pub(crate) fn set_attack(&mut self, i: usize, target: Obj) -> bool {
+        let n = self.units[i].guys.len().min(anim::SQUAD_SIZE);
+        for g in &mut self.units[i].guys[..n] {
+            g.aim = Some(target);
+        }
+        let Some(ty) = self.units[i].ty else {
+            return false;
+        };
+        let Some(nodes) = self.art.pivots.get(&self.unit_types[ty].type_index) else {
+            return false;
+        };
+        let live = match target {
+            Obj::Unit(t) => self.units[t].alive(),
+            Obj::Building(_) => true,
+        };
+        if nodes.is_empty() || self.profile(Obj::Unit(i)).max_range == 0 || !live || n == 0 {
+            return false;
+        }
+        self.set_all_pivots(i, n - 1, target, nodes)
+    }
+
+    /// **`Guy::set_all_pivots@005d8bc0`** — can every restricted node of
+    /// figure `g` bear on `target` from where the unit stands?
+    ///
+    /// The bearing is measured from the **unit's** position (`+0x10`/
+    /// `+0x14` of `objects[who][o]`, read through the figure's own `who`
+    /// and `o`), to the target's, and taken against the **figure's**
+    /// facing (`GuyData +0x18`) in whole degrees by
+    /// [`crate::movement::angle_to_degrees`], folded to −180..180. The
+    /// answer is 0 as soon as that is past ±45° (the executable's own
+    /// `float`s at `00b69674` and `00b697bc`), or outside any node's
+    /// `minangle..maxangle` — read wrapped when `minangle ≥ maxangle`, so
+    /// a range like the Dreadnought's `45..−45` is the rear arc. Nodes
+    /// run from 4 for as many rows as the type has; a node with no row
+    /// reads `(0, 0)`, as `GraphicPieces::get_restrictions@0090b680`
+    /// leaves it.
+    ///
+    /// Every comparison is on integer degrees, so the `float`s change
+    /// nothing. The turret angle it also writes (`+0x30`, and the node
+    /// bits `+0x96`/`+0x98`) is not carried: nothing in the simulation
+    /// reads it, and `GUYS=2` does not print it.
+    ///
+    /// SEAM: the pivot node's own offset. `GraphicPieces::get_position
+    /// @0090b750` rotates the node's model-space point by the figure's
+    /// facing and the bearing starts there, truncated; this crate starts
+    /// it at the unit's point. A chariot's archer stands a few units off
+    /// the unit's point, which moves the bearing by well under a degree
+    /// at shooting range, and only a bearing within that of ±45° could
+    /// answer differently.
+    fn set_all_pivots(
+        &self,
+        i: usize,
+        g: usize,
+        target: Obj,
+        nodes: &std::collections::BTreeMap<i32, (i32, i32)>,
+    ) -> bool {
+        let (from, to) = (self.units[i].pos, self.pos_of(target));
+        let bearing = find_angle(to.x - from.x, to.y - from.y);
+        let facing = match self.units[i].guys.get(g).and_then(|x| x.follow) {
+            Some(f) => f.facing,
+            None => self.units[i].movement.facing,
+        };
+        let mut deg = crate::movement::angle_to_degrees(Angle(bearing.0.wrapping_sub(facing.0)));
+        if deg > 180 {
+            deg -= 360;
+        }
+        let mut can = (-45..=45).contains(&deg);
+        for node in 4..4 + nodes.len() as i32 {
+            let (lo, hi) = nodes.get(&node).copied().unwrap_or((0, 0));
+            let inside = if lo < hi {
+                lo <= deg && deg <= hi
+            } else {
+                deg >= lo || deg <= hi
+            };
+            can &= inside;
+        }
+        can
     }
 
     /// **The angle a unit attacks on** — `Unit::fight@005fd4d0:698–714`
@@ -2649,6 +2747,73 @@ mod tests {
             direct,
             "a Patrol Boat does not broadside a ship"
         );
+    }
+
+    /// **A type whose pivot bears shoots on its own heading** —
+    /// `Unit::set_attack@005fce70` and `Guy::set_all_pivots@005d8bc0`
+    /// (`docs/COMBAT.md` §52). run145's chariot `0/8`: born facing
+    /// `0x5555_5555` (120°), its target 36.9° off that, and the dump's
+    /// `angle` still `1431655765` on 634, after the shot. The same unit
+    /// with the target 60° off turns, a type with no `<RESTRICTION>` turns
+    /// at 37°, and a node whose own range does not cover the bearing turns
+    /// too, both for a plain range (a Katyusha's −20..20) and for a
+    /// wrapped one (a Dreadnought's `45..−45`, the rear arc). The crew
+    /// figure is never aimed.
+    ///
+    /// Made to fail first: with `set_attack` answering 0, the first
+    /// assertion reads the bearing, `993918976` — the golden widening's
+    /// 634 row in shape (the capture's own bearing is `991232000`; this
+    /// geometry is the capture's to within a degree).
+    #[test]
+    fn a_pivot_that_bears_shoots_without_turning() {
+        let (mut sim, ty) = at_war();
+        const CHARIOT: i32 = 195;
+        let chariot = {
+            let mut t = sim.unit_types[ty].clone();
+            t.type_index = CHARIOT;
+            t.combat.max_range = 8;
+            sim.add_unit_type(t)
+        };
+        sim.art
+            .pivots
+            .insert(CHARIOT, [(4, (-180, 180))].into_iter().collect());
+        let here = Pos::new(984, 8136);
+        let shoot = |sim: &mut Sim, ty: usize, at: Pos| -> (Angle, Option<Obj>) {
+            let me = put(sim, 0, ty, here);
+            sim.units[me].guys = vec![anim::Guy::fresh(-1), anim::Guy::fresh(-1)];
+            sim.units[me].movement.heading = Angle(0x5555_5555);
+            sim.units[me].movement.facing = Angle(0x5555_5555);
+            let foe = put(sim, 1, ty, at);
+            sim.fight_pub(me, Obj::Unit(foe), 633);
+            let aim = sim.units[me].guys[0].aim;
+            assert_eq!(aim, Some(Obj::Unit(foe)), "figure 0 is aimed");
+            assert_eq!(sim.units[me].guys[1].aim, None, "the crew is not");
+            (sim.units[me].movement.heading, aim)
+        };
+        // run145's `0/8` and a target on the dump's bearing, 36.9° off.
+        let near = Pos::new(here.x + 1536, here.y - 192);
+        let bearing = find_angle(1536, -192);
+        let off = crate::movement::angle_to_degrees(Angle(bearing.0.wrapping_sub(0x5555_5555)));
+        assert_eq!(off - 360, -37, "the geometry is the capture's");
+        assert_eq!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
+        // Due south, 60° off: past the ±45° every pivot is held to.
+        let far = Pos::new(here.x, here.y + 1536);
+        assert_ne!(shoot(&mut sim, chariot, far).0, Angle(0x5555_5555));
+        // No `<RESTRICTION>`: the plain type turns at 37°.
+        assert_ne!(shoot(&mut sim, ty, near).0, Angle(0x5555_5555));
+        // A node that cannot reach 37°, plain and wrapped.
+        sim.art
+            .pivots
+            .insert(CHARIOT, [(4, (-20, 20))].into_iter().collect());
+        assert_ne!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
+        sim.art
+            .pivots
+            .insert(CHARIOT, [(4, (45, -45))].into_iter().collect());
+        assert_ne!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
+        sim.art
+            .pivots
+            .insert(CHARIOT, [(4, (-45, -30))].into_iter().collect());
+        assert_eq!(shoot(&mut sim, chariot, near).0, Angle(0x5555_5555));
     }
 
     /// `ObjectData::valid_target_const@006472c0`'s first line, `7 < who`,

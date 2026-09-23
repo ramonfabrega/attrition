@@ -397,10 +397,19 @@ packed catapult to attack and spends `Unit::fight+0x9b0`'s re-search draw,
 `Unit::think_attack`'s packed-unit arm (`docs/COMBAT.md` §51): a human's
 packed siege engine returns before the target search and unpacks at `idle
 7` on the auto-attack's 32-frame phase. The catapult now agrees with the
-dump on every row of run145. **The word is 633**, 8 draws against 9, and
-values part on 634 (`GOLDEN_WORD_CHAPTER_THREE`,
+dump on every row of run145. ~~**The word is 633**, 8 draws against 9, and
+values part on 634~~ (`GOLDEN_WORD_CHAPTER_THREE`,
 `chapter_three_s_word_frame_is_widened_whole`, which widens run145 whole
-and adds the `GUY` record's position and facing).
+and adds the `GUY` record's position and facing). Item 595 took the
+chariot's pivot (`docs/COMBAT.md` §52): a type whose `<RESTRICTION>`
+pivot bears within ±45° shoots on its own heading, and its swing rolls in
+`fight`'s frame. `0/8` now agrees on every row of 633 and 634. **The word
+is 682**, 8 draws against 7: this crate kills the hoplite `1/7` there,
+where the dump's dies on 704. It is downstream of the first value
+parting, **635**, where the chariot `0/6` targets `1/7` here and `1/8` in
+the dump. No mechanism is named for 635. The widening now also compares
+each figure's aim and the `ATTACKORDER`'s own row (`in_range`,
+`new_ord` and the rest).
 
 **Restaged, run146 (`chapter3b.cmd`, the same item): all three reachable,
 none fired.** The same three unit types go into two arenas. A catapult born
@@ -419,8 +428,15 @@ In neither capture does the dump's `0/8` move or turn from 630 to 720.
 Its figure takes `ox 8 whom 1` and its reload starts (`recharging 25`) on
 634, and this crate's `0/8` has turned by then. So the pair is an attack
 swing started without a turn, not a walk (`docs/COMBAT.md` §51.3). ~~**The
-chapter's word is 621**, the lower of the two.~~ Both captures' words are
-633.
+chapter's word is 621**, the lower of the two.~~ ~~Both captures' words are
+633.~~ Item 595's pivot moved run146 to **664**
+(`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`), 31 draws against 30. The chariot
+`0/9`'s horse rolls a fresh swing where the original's rolls nothing,
+because this crate's crew figure has stood on a walk slot since its first
+swing. The first value parting is **651**: `0/8`'s first arrow leaves
+from the unit's square, not the archer's release node. The two words have
+moved apart. run145 is at 682 and run146 at 664, the lower
+(`docs/COMBAT.md` §52.4).
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 

@@ -29,13 +29,14 @@ track closed chapters four (1500) and seven (1200) and pinned three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10582 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch3 w633 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 595 next
+Golden: ch3 w682 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 601 next
 Endpoint 24001: EastIndies 64 off, 0 unlinked · GreatLakes 41 off, 4 unlinked
 
-**Opener: 10 landings since the eleventh pass (573 to 592 by the log).
-att-595 is live on the rules track. A commander takes 597 on the AI
-track, then 571; workers spawn with `claude-opus-5-5[1m]`. The count is
-by the log from the pass and stops at twenty.**
+**Opener: 11 landings since the eleventh pass (573 to 595 by the log).
+att-597 is live on the AI track with run144's packet. A commander takes
+601 on the rules track, then 602 and 571; workers spawn with
+`claude-opus-5-5[1m]`. The count is by the log from the pass and stops
+at twenty.**
 
 ## The queue
 
@@ -62,13 +63,19 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-595. **Golden chapter three's word is 633, and both captures part there**
-    (590 moved it 621 → 633: a human's packed siege engine returns before
-    the target search and unpacks at `idle` ≥ 7, COMBAT §51). On 633 the
-    original's chariot `0/8` starts an attack swing without turning (two
-    `Guy::set_anim+0xf2f`); ours turns and re-searches. run145 and run146
-    part in the same shape. 587's "walk" reading is contradicted: `0/8`
-    neither moves nor turns in 630–720 on either side. No mechanism.
+601. **Golden chapter three's word is 682, on a target chosen at 635**
+    (595 moved run145 633 → 682 and run146 633 → 664 with `set_attack`'s
+    pivot verdict, COMBAT §52). On run145's 635 the chariot `0/6` targets
+    `1/7` where the dump has `1/8`, a value parting that predates 595 and
+    that 682 follows from (the takes-chain). Walk forward from 635. No
+    mechanism.
+
+602. **The restage's word is 664: a crew figure rolls a fresh attack**
+    (`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`, run146, the lower of the two).
+    After a deferred swing the crew figure sits on figure 0's slog slot,
+    `inc_time`'s mirror, where the original's does not. Under it, 651: the
+    chariot's arrow leaves from the unit's square, not the release node.
+    595's reading of both. No mechanism.
 
 ## How to maintain this file
 
