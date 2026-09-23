@@ -2644,10 +2644,10 @@ pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 /// built on 1076, and run157's proxied `calc_cost` priced nine of its
 /// steps apart, every one into cell (48,31) or (47,31): 304/312 there,
 /// 1/9 here. Those are the south half of the Small City `1/2007`'s
-/// footprint, which the script placed on 1069, twenty tiles from anything
-/// of who=1's and out of its line of sight. `Wall::start@0063e810` ors the
-/// owner's bit into `seen2` over the footprint, and this crate skipped it,
-/// so its scout priced the city as unseen ground and cut across it
+/// footprint, which the AI placed on 1069 out of its own line of sight.
+/// `Wall::start@0063e810` ors the owner's bit into `seen2` over the
+/// footprint, and this crate skipped it, so its scout priced the city as
+/// unseen ground and cut across it
 /// (`docs/SCOUT.md` §14, `docs/VISION.md` §6.1). With the write the
 /// search is 945 of 945 steps, each priced as the original's. **The value
 /// diff on the moved frames, in run157's own coordinates**: on 1077 `1/0`

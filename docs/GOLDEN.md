@@ -858,7 +858,7 @@ original both leave who=1's tail open.
   on the same unit's crew turn, where the trace could not name the
   original's chain. Item 628 named it (`docs/ANIM.md` §4.14), and the
   sequence moved to the word.
-- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = ~~1036~~ ~~1176~~ 1187
+- **run157, `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` = ~~1036~~ ~~1176~~ ~~1187~~ 1200
   (items 632 and 644, below)**: 8 draws against
   7 at draw 2. who=1's own `1/1` takes an idle roll here where the
   original's walks. From 990 the original holds it in group 65 with three
@@ -927,7 +927,29 @@ mechanism is named for 1176.
   Nothing new parts on 1177..1188.
 - **The word.** It is now **1187**: the scout `1/0`, ours 10 draws against
   9, parting at draw 0 on `Unit::do_move+0xe84`. The scout's explore path
-  has parted since 1077, value only. No mechanism is named for 1187.
+  has parted since 1077, value only. ~~No mechanism is named for 1187.~~
+  Named and built on item 647, below.
+
+**The control closed at 1200 on item 647: the fog under a city its owner
+placed out of sight.** The scout's path was built on frame 1076, and
+run157's own `rontrace.cfg` proxies `calc_cost` across the whole capture.
+So the search that built it was on disk, and no capture was needed. Nine
+of the steps both sides priced answered differently, every one into the
+south half of the Small City `1/2007`'s footprint: 304/312 in the
+original, which is seen ground carrying its blocked tiles, and 1/9 here,
+which is unseen ground to a scout. `Wall::start` ors the owner's bit into
+`seen2` over the footprint, and this crate did not, because the owner's
+line of sight was assumed to cover it. The AI placed this city on 1069
+out of its own sight. With the write, the search is 945 steps on both
+sides and every one is priced alike. **The value diff**: on 1077 `1/0`
+holds 48 path nodes on both sides, `path[41]` (35832, 24312) through
+`path[47]` (40440, 25080). On 1116 it stands at (39984, 25092) with
+`dest_y` 25080, and on 1138 its `dest_x` is 38136, both sides each
+time. **run157 agrees draw for draw and value for value to the end of
+its trace, and that closes the last open golden chapter.** Under the
+widening, only `1/1`'s group id on 990 stands (`docs/GROUPS.md` §24).
+`docs/SCOUT.md` §14 has the readings and what killed each, and
+`docs/VISION.md` §6.1 has the write.
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 

@@ -967,6 +967,82 @@ The checks:
   went 413 → **576**.
 - `crate::no_float` and `crate::soak` as everywhere else.
 
+## 14. The explore path through a city its owner has not seen (item 647, 2026-09-23)
+
+*run157, chapter seven-b's control (`docs/GOLDEN.md` §11). Opus 5.5.*
+
+**The word.** On 1187 the AI scout `1/0` spends 10 draws against 9. Its
+explore path, built on frame 1076, parts on block 1077: 47 nodes against
+48. Both paths agree from the goal to `path[40]`, cell (46,30). From
+there the original's walks south to (46,31) and east along row 32. This
+crate's cut diagonally to (47,31) and east along row 31. The target
+agrees (`orders_x/y` 45816, 10488 on both sides), and so does the
+scout's own position until 1116. So the choice of target in §3–§9 was
+never in question; the path was.
+
+**What would have killed each reading**, written before the code was
+read (`docs/GOLDEN.md` §3, point 5):
+
+- *The same target, pathed differently*: dies if the target parts on
+  or before 1077 (block 1077, `orders_x/y` and `path[0]`). It does not.
+- *Different targets*: dies if the targets agree through 1137. They do,
+  so this reading is dead.
+- *A blocker or a tile state differs under the path*: dies if every
+  step the 1076 search priced answers the same on both sides. It fires
+  on the first shared `calc_cost` key that answers differently.
+
+**The instrument was already on disk.** run157's `rontrace.cfg` carries
+`callwin=0-1200`, so the original's `astar_path` and `calc_cost` are
+proxied across the whole capture (`docs/PATHFINDER.md` §17's harness).
+On 1076 the original priced 945 steps and this crate 969. They share
+587, and **nine are priced apart**. Every one of the nine steps into cell
+(48,31) or (47,31). The original's answer is 304 straight and 312
+diagonal: 128 for seen ground to a scout, 20 × 9 for blocked tiles, − 4
+for own ground, and + 8 for a diagonal. This crate's answer is 1 and 9,
+the price of *unseen* ground to a scout (`docs/PATHFINDER.md` §5). The
+step into (48,30) is 304/312 on both sides.
+
+**Whose ground.** The two cells are the south half of the Small City
+`1/2007`'s footprint: 7 × 7 at (36960, 23904), tiles 189–195 × 121–127,
+half-cells 94–97 × 60–63. The AI placed it on 1069, and it is
+unfinished (`mylos 0`). Every `mylos` and every position of who=1's
+agrees with the dump up to 1116, and this crate's discs still left those
+half-cells dark. So no line of sight of who=1's covered them, and
+something other than a disc lit the footprint in the original's
+`seen2`.
+
+**The writer is `Wall::start@0063e810`.** Between `mask_me` and
+`check_ever_seen` it walks the footprint, `x_size × y_size` (not grown,
+as `update_local_seen`'s rectangle is), and for every tile on the map
+ors `1 << who` (the `SubObject`'s own `who` byte, `+0x9`) into `seen2`
+at `(tile >> 1)` and into the cell's `WData +0x14`. It is a raw byte
+write, not `set_seen`, so no rare's reveal or contact follows from it.
+`docs/VISION.md` §6.1 had carried it as a seam, on the reading that the
+ground is the owner's own and its line of sight covers it. That holds
+for a building a citizen stands beside. It does not hold for one the AI
+places out of its own sight, which is what this capture reaches.
+
+**With the write**, the 1076 search is 945 steps on both sides, all 945
+shared and every one priced alike. The path is 48 nodes, and
+`GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL` goes **1187 → 1200**, the capture's
+end, with no value parting. The scout's eighteen rows under the old word
+go, and only `1/1`'s group id on 990 stands (§11's own row, not this
+mechanic's).
+
+**What checks it**:
+
+- `chapter_seven_b_s_control_scout_search_is_priced_as_the_original`:
+  the search, key for key, against the proxy. Its floor commit
+  (`33952d3`) pinned the nine keys before the fix was judged.
+- `chapter_seven_b_s_word_frame_is_widened_whole`, over the capture
+  whole.
+- `chapter_seven_b_s_control_holds_to_the_golden_word`.
+
+**Not parked 635.** The scout `facing` row on run146's 847, which stands
+in run156 and as run157's first-block `order:move.facing`, is untouched.
+It is an order field on the explore move, and this is the fog under the
+path.
+
 ## 13. What is not established
 
 1. ~~**The region fallback's cell walk** (§11). It needs `Region.coords` in

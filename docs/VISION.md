@@ -417,9 +417,14 @@ agrees on all 28 buildings, and this map's word went **8031 → 8186**.
   next check — the bit is taken on the first check either way.
 - ~~`Leader::meet` itself is not modelled; only its flag, which is the
   gate.~~ **Closed by item 385** — §6.2 below.
-- `Wall::start`'s own direct `seen2` write over its footprint (the owner's
+- ~~`Wall::start`'s own direct `seen2` write over its footprint (the owner's
   bit) is not made; it is the owner's own bit over ground the owner's own
-  line of sight covers.
+  line of sight covers.~~ **Made since item 647** (`Sim::start_building`).
+  The premise held only for a building placed beside its builder. The AI
+  places a city out of its own sight, and on run157 its scout then priced
+  that footprint as unseen ground and cut across it. The write is the
+  footprint, `x_size × y_size` and not grown, at `tile >> 1`, and it
+  sets `seen2` alone. `docs/SCOUT.md` §14 has the capture.
 
 ## 6.2 First contact: the met bit hangs off this mechanic (2026-09-18)
 
