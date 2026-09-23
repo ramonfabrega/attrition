@@ -2637,11 +2637,30 @@ pub(crate) const WIDENING_CHAPTER_SEVEN_B: (i64, i64) = (605, 1201);
 /// 605 (2992). The word is now **1187**, the scout `1/0`: ours 10 draws
 /// against 9, parting at draw 0 on `Unit::do_move+0xe84`. Its explore
 /// path has parted since 1077, value only.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1187;
+///
+/// **Item 647 moved it 1187 → 1200, closed**, and this comment carries the
+/// delta (the widening's block for it is in
+/// `chapter_seven_b_s_word_frame_is_widened_whole`). The scout's path was
+/// built on 1076, and run157's proxied `calc_cost` priced nine of its
+/// steps apart, every one into cell (48,31) or (47,31): 304/312 there,
+/// 1/9 here. Those are the south half of the Small City `1/2007`'s
+/// footprint, which the script placed on 1069, twenty tiles from anything
+/// of who=1's and out of its line of sight. `Wall::start@0063e810` ors the
+/// owner's bit into `seen2` over the footprint, and this crate skipped it,
+/// so its scout priced the city as unseen ground and cut across it
+/// (`docs/SCOUT.md` §14, `docs/VISION.md` §6.1). With the write the
+/// search is 945 of 945 steps, each priced as the original's. **The value
+/// diff on the moved frames, in run157's own coordinates**: on 1077 `1/0`
+/// holds 48 path nodes on both sides, `path[41]` (35832, 24312) to
+/// `path[47]` (40440, 25080); on 1116 it stands at (39984, 25092) with
+/// `dest_y` 25080 on both, and on 1138 its `dest_x` is 38136 on both.
+/// run157 agrees draw for draw and value for value to the end of its
+/// trace: **the last open golden chapter is closed.**
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1200;
 
-/// The control's widening window, its first block to the word's block and
-/// the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1189);
+/// The control's widening window: **the capture whole**, 605..1199, since
+/// the word is the capture's end (item 647), chapter seven-b's shape.
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1201);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and

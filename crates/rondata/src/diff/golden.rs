@@ -5129,12 +5129,14 @@ fn chapter_seven_b_s_control_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch7bc", "chapter7b_control", 7, 6, 1200) else {
         return;
     };
+    // Closed at the trace's end since item 647: no value parts either
+    // (`GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL`).
     assert_eq!(
         (w.word, w.sequence, w.value),
         (
             GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
             GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
-            Some(GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL + 1)
+            None
         ),
         "chapter seven-b's control's word moved"
     );
@@ -5481,7 +5483,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             "ch7bc",
             "chapter7b_control",
             WIDENING_CHAPTER_SEVEN_B_CONTROL,
-            (1187, 1188),
+            (1199, 1200),
         ),
     ] {
         let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
@@ -5542,6 +5544,14 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // `BUILDORDER` to the word, as the original's does: on 1177 both
         // sides hold explore-to (40248, 23160) and the `BUILDORDER` on
         // `1/2009`, at (40271, 18360). Nothing new parts on 1177..1188.
+        // **Item 647's block** (the delta is in the constant's comment):
+        // the scout `1/0`'s eighteen rows are gone — its path from 1077
+        // (47 nodes against 48, `path[41..46].to`), its position, figures
+        // and `dest_y` from 1116, and its `dest`/`dest_x` from 1137. The
+        // path was built across the Small City `1/2007`'s footprint, which
+        // this crate's who=1 had not seen: `Wall::start` now writes the
+        // owner's bit over it (`docs/SCOUT.md` §14). The window is the
+        // capture whole, and only the group id on 990 stands.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
@@ -5551,27 +5561,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         let want: &[&str] = if run == "ch7b" {
             &["847 1/0 order:move.facing"]
         } else {
-            &[
-                "1077 1/0 path:length",
-                "1077 1/0 path[41].to",
-                "1077 1/0 path[42].to",
-                "1077 1/0 path[43].to",
-                "1077 1/0 path[44].to",
-                "1077 1/0 path[45].to",
-                "1077 1/0 path[46].to",
-                "1116 1/0 g.angle[0]",
-                "1116 1/0 g.angle[1]",
-                "1116 1/0 g.x[1]",
-                "1116 1/0 g.y[0]",
-                "1116 1/0 g.y[1]",
-                "1116 1/0 heading",
-                "1116 1/0 order:move.dest_y",
-                "1116 1/0 pos",
-                "1120 1/0 g.x[0]",
-                "1137 1/0 order:move.dest",
-                "1138 1/0 order:move.dest_x",
-                "990 1/1 group",
-            ]
+            &["990 1/1 group"]
         };
         assert_eq!(got, want, "{run}: what parts under the word moved");
         assert!(
@@ -7535,30 +7525,23 @@ fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original() {
     for w in &wrong {
         eprintln!("  {w}");
     }
-    assert!(
-        shared >= 500,
-        "run157 f{SEARCH}: {shared} shared steps; the searches did not start alike"
-    );
-    // **The floor, before any fix** (item 647): nine steps, every one into
-    // cell (48,31) or (47,31), the south half of the Small City `1/2007`'s
-    // footprint (started on 1069, `mylos 0`). The original prices them
+    // **The floor, before the fix** (item 647, `33952d3`): 969 steps here
+    // against 945, 587 shared, and nine priced apart, every one into cell
+    // (48,31) or (47,31), the south half of the Small City `1/2007`'s
+    // footprint (started on 1069, `mylos 0`). The original priced them
     // seen — 128 base, 20 × 9 of blocked tiles, − 4 own ground, + 8 on a
-    // diagonal — and this crate prices them as unseen scouting ground, 1
-    // and 9 (`docs/PATHFINDER.md` §5). The step into (48,30), the same
-    // footprint's north half, is 304/312 on both sides.
-    let want: &[&str] = &[
-        "(49,30)->(48,31) depth 5: ours 9 theirs 312",
-        "(49,31)->(48,31) depth 5: ours 1 theirs 304",
-        "(49,32)->(48,31) depth 5: ours 9 theirs 312",
-        "(48,32)->(48,31) depth 6: ours 1 theirs 304",
-        "(48,32)->(47,31) depth 6: ours 9 theirs 312",
-        "(47,32)->(47,31) depth 7: ours 1 theirs 304",
-        "(47,32)->(48,31) depth 7: ours 9 theirs 312",
-        "(46,31)->(47,31) depth 8: ours 1 theirs 304",
-        "(46,32)->(47,31) depth 8: ours 9 theirs 312",
-    ];
+    // diagonal, so 304 and 312 — and this crate as unseen scouting ground,
+    // 1 and 9 (`docs/PATHFINDER.md` §5). `Wall::start`'s write of the
+    // owner's bit over the footprint is what lights them (`docs/SCOUT.md`
+    // §14): with it the two searches are one, step for step.
     assert_eq!(
-        wrong, want,
-        "run157 f{SEARCH}: the steps priced apart moved"
+        (ours.len(), theirs.len(), shared),
+        (945, 945, 945),
+        "run157 f{SEARCH}: the search's steps moved"
+    );
+    assert_eq!(
+        wrong,
+        Vec::<String>::new(),
+        "run157 f{SEARCH}: steps priced apart"
     );
 }

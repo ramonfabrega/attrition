@@ -547,11 +547,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Item 629 closed run156 at 1200, the capture's end, so its window
     // stays on the block run156 was taken to widen — the old word 1148,
     // the fur trapper's turn — as the East Indies windows stay on theirs.
-    let _ = GOLDEN_WORD_CHAPTER_SEVEN_B;
-    for (p, word) in [
-        (&ch7b, 1_148),
-        (&ch7bc, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL),
-    ] {
+    // Item 647 closed run157 at 1200 too, and its window stays on 1187,
+    // the scout's word it was widened on.
+    let _ = (
+        GOLDEN_WORD_CHAPTER_SEVEN_B,
+        GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+    );
+    for (p, word) in [(&ch7b, 1_148), (&ch7bc, 1_187)] {
         if let Some(p) = p {
             let n = drive_capture(p, word - 2, word + 2, &mut paths);
             assert_eq!(n, 5, "chapter seven-b carries the word's five blocks");
