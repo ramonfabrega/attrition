@@ -577,9 +577,13 @@ impl Sim {
     /// partner.
     ///
     /// `traded_with[who]` is a bit per partner city, so the bonus is paid
-    /// once per (city, leader, partner). The amount is the leader's Civic
-    /// level plus one, times ten — times **twenty** when the leader is not
-    /// this city's owner — and it lands in wealth.
+    /// once per (city, leader, partner). The amount is the leader's
+    /// **Commerce** level plus one, times ten — times **twenty** when the
+    /// leader is not this city's owner — and it lands in wealth.
+    ///
+    /// Commerce, not Civic: `00739799`–`0073979f` load
+    /// `LeaderDataEncrypt +0xf0`, and `epoch` opens at `+0xe8`, so the
+    /// level is `epoch[2]` (`docs/CARAVAN.md` §7.3, item 573).
     ///
     /// SEAM: the feedback line and its sound are the console player's only.
     fn city_new_caravan(&mut self, city: usize, who: Player, partner: usize) {
@@ -592,7 +596,7 @@ impl Sim {
             return;
         }
         self.cities[city].traded_with[w] |= mask;
-        let level = self.tech[w].epoch[crate::tech::Line::Civic.index()] + 1;
+        let level = self.tech[w].epoch[crate::tech::Line::Commerce.index()] + 1;
         let pay = if who == self.cities[city].owner {
             level * 10
         } else {
@@ -1019,8 +1023,10 @@ mod tests {
     }
 
     /// §7.3: the one-off is paid once per (city, leader, partner), and it
-    /// is `(epoch[1] + 1) · 10` — twenty when the payee is not the city's
-    /// own owner.
+    /// is `(epoch[2] + 1) · 10` — **Commerce**, `LeaderDataEncrypt +0xf0`
+    /// — twenty when the payee is not the city's own owner. The Civic
+    /// level is set to something else on purpose: until item 573 this
+    /// crate read it, and this test set only it.
     #[test]
     fn the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner() {
         let mut sim = bare();
@@ -1055,8 +1061,10 @@ mod tests {
         for l in &mut sim.ledgers {
             l.bucket[wealth] = 0;
         }
-        sim.tech[0].epoch[crate::tech::Line::Civic.index()] = 2;
-        sim.tech[1].epoch[crate::tech::Line::Civic.index()] = 2;
+        for p in 0..2 {
+            sim.tech[p].epoch[crate::tech::Line::Commerce.index()] = 2;
+            sim.tech[p].epoch[crate::tech::Line::Civic.index()] = 5;
+        }
 
         sim.city_new_caravan(0, 0, 5);
         assert_eq!(

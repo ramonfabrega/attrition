@@ -573,7 +573,20 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// Guy::inc_time+0x271` short. `sim::anim::Sim::seated_scholar` and
 /// `docs/ANIM.md` §5.1. One change moved both maps for the second item
 /// running, and again neither map's brief named the other.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 9_711;
+///
+/// **9711 → 9983 on item 573, and the frame was a purchase 135 frames
+/// under it.** 9711's two extra draws are the sixth seated Scholar's
+/// birth; its purchase is sim-frame 9576, where the economic script buys a
+/// Scholar at 130 wealth, and this crate's player 1 held 114. It had been
+/// twenty short since the caravan's first homecoming around 6512:
+/// `City::new_caravan@00739750` pays `(epoch[2] + 1) · 10` — `+0xf0` of
+/// `LeaderDataEncrypt`, **Commerce** — and this crate read Civic. run82's
+/// `LEADERS=9` window read `bucket[2]` 226 against 246 on 6860 and reads
+/// 246 on both sides now (`run82_s_leader_record_is_the_original_s_wealth`,
+/// `docs/CARAVAN.md` §9). The widening's block for the move is 9712
+/// ([`EAST_INDIES_SCHOLAR_BLOCK`]); 9983 is a `make_stuff` that buys a
+/// building here and units in the original, 212 draws against 15.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 9_983;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2485,8 +2498,13 @@ pub(crate) const GREAT_LAKES_DETOUR_BLOCK: i64 = 11_904;
 /// row.
 pub(crate) const WIDENING_EAST_INDIES: (i64, i64) = (7_880, 10_399);
 /// The block [`WIDENING_EAST_INDIES`] was taken to widen: the word 9711's
-/// frame writes block 9712.
-pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 9_712;
+/// frame writes block 9712, the sixth seated Scholar's birth. Item 573
+/// moved the word past it; `run99_s_word_frame_is_widened_whole` holds the
+/// move's value diff on it.
+pub(crate) const EAST_INDIES_SCHOLAR_BLOCK: i64 = 9_712;
+/// The current word's block on run99: 9983's frame writes block 9984. The
+/// widening and the coverage driver read run99 around it.
+pub(crate) const EAST_INDIES_WORD_BLOCK: i64 = 9_984;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,

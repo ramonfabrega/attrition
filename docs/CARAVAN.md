@@ -403,9 +403,11 @@ caravan reaches the home city.
 
 `traded_with[who]` (`CityData +0x2c`, `int[8]`) is a bit per partner city.
 The first time a leader's caravan reaches this city from a given partner
-the bit is set and the leader is paid, into **wealth**, `(epoch[1] + 1) ·
+the bit is set and the leader is paid, into **wealth**, `(epoch[2] + 1) ·
 10` — times **twenty** instead when the leader is not this city's owner.
-`epoch[1]` is the Civic library level. Nothing is paid the second time.
+~~`epoch[1]` is the Civic library level~~ — **`epoch[2]`, the Commerce
+level**: `0073979f` loads `LeaderDataEncrypt +0xf0`, and `epoch` opens at
+`+0xe8` (§9, item 573). Nothing is paid the second time.
 
 ## 8. Coverage
 
@@ -495,9 +497,10 @@ original_s_node_for_node`, and its Great Lakes sibling on run73):
   on the loop alone. A route between two coasts of one region would show
   them; East Indies' caravan has `can_transport` and its search prices
   ocean, so a capture of a longer route on the same map would do it.
+- ~~`new_caravan`'s `(epoch[1] + 1) · 10`~~ — **diff-backed since item
+  573, and the index was wrong** (§9).
 - §7's **arithmetic past the word**. The arrival box, the `loaded`
-  turnover, `compute_trade`'s `× 16 / 2` and `new_caravan`'s
-  `(epoch[1] + 1) · 10` are all reachable in run54 — the caravan loads at
+  turnover and `compute_trade`'s `× 16 / 2` are all reachable in run54 — the caravan loads at
   the far city around frame 6511 and unloads at home around 6766 — but the
   word parts at 6207, so no assertion reaches them. The `LEADERS=9` census
   over `[6760, 6790)` is the capture: it prints `bucket` and `income` per
@@ -544,3 +547,55 @@ window are the original's now (`docs/DANGER.md` §6, `crate::danger`).
 arrival, the legs, `loaded`, the income and the one-off are §7; the word
 went **6198 → 6207**, and the two things that carried it were a `set_anim`
 at the head of a function and a `.tile()` that was never there.
+
+## 9. The one-off's level is Commerce, and it cost East Indies a Scholar (item 573, 2026-09-23)
+
+**How it was found.** East Indies' long word stood at 9711 for forty
+landings. Its widening on run99 (`rondata::diff::tests::run99_s_word_
+frame_is_widened_whole`) put one row on the word's block: the original's
+sixth seated Scholar, `1/28`, born at University `1/2015`, and none here.
+Walked backwards, the only row between it and the window's floor was the
+purchase, block 9577: the original queues the Scholar on sim-frame 9576
+and this crate queues nothing. The buyer is `economic.bhs`'s opening
+script, `if (at_least_type(who, 130, "Wealth")) train_unit_with_cost(who,
+1, "Scholar")`, and this crate's player 1 held **114** wealth there.
+
+run98 and run99 print `LEADERS=1`'s stub, so the stockpile on 9576 is on
+no disk. run82 is the same game at `LEADERS=9` over [6860, 6930), and its
+first block read player 1's `bucket[2]` **226 against 246**, every other
+good and `resources`, `income`, `rate` agreeing. run59's [5150, 5400]
+agrees to the unit, so the twenty was lost in between. This crate's
+wealth moves in lumps on nine frames of that span, and two of them are
+the caravan's first arrivals at each end of the London–Norwich route,
++20 on 6512 and +20 on 6767: this section's one-off at a level of 1.
+
+**What it is.** The type record puts `LeaderDataEncrypt::epoch` at
+`+0xe8`, so `+0xf0` is `epoch[2]`, and the listing is
+`movl 0xf0(%ecx), %eax; xorl $0x63187, %eax; incl %eax` at
+`0073979f`–`007397aa`. This crate read `epoch[Line::Civic]`, index 1.
+Player 1's Commerce level stood one above its Civic, so each arrival paid
+30 in the original against 20 here, and the difference is the whole
+twenty.
+
+**What it moved.** With Commerce read, run82's stockpile agrees on all 70
+blocks (`run82_s_leader_record_is_the_original_s_wealth`, 420 rows; made
+to fail on purpose by reading Civic again). The Scholar is bought on
+9576 and born on 9712, and East Indies' word moves **9711 → 9983**. Great
+Lakes (12038) and the golden chapters (900, 900, 900, 1277) hold.
+
+**What is not established.**
+
+- The wealth on 9576 itself. The nearest dumped value is run82's 6860,
+  2,700 frames earlier. That the twenty is the only difference between
+  6860 and 9576 is inferred from the word, not read.
+- Which of Civic and Commerce the other `epoch[]` readers in this crate
+  mean. Only this one was checked against its listing.
+- 9983 itself. It is a `make_stuff` on both sides, and they buy
+  different things (the widening's rows on block 9984). The make list
+  that decides it is on no disk: run99 prints the stub.
+
+**Coverage.** Diff-backed: the level, by run82's wealth on 70 blocks and
+by the word. Reading-backed and pinned by
+`sim::caravan::tests::the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner`,
+which now sets Commerce and Civic to different levels: the once-per-bit
+rule and the foreign doubling.
