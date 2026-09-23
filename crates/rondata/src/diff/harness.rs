@@ -12103,6 +12103,7 @@ mod tests {
             leader_rows,
             changed,
             housed,
+            ..
         }) = widen_east_indies(
             "run155",
             "gamelog-run155-eastindies-longword.txt",
@@ -12203,13 +12204,18 @@ mod tests {
     /// The word's frame, 11590, writes block **11591**. The same item moved
     /// the word to 11747, inside the window (block 11748): a deployed
     /// Merchant's four tiles, `SpellType::cast_unpack`'s merchant arm
-    /// (`docs/MERCHANT.md` §3.2).
+    /// (`docs/MERCHANT.md` §3.2). Item 642 widened 11747's blocks and moved
+    /// the word to 13640, past the window: `go_here` reads the human's
+    /// city count (`docs/TRANSPORT.md` §9.4). The test keeps both moves'
+    /// value diffs.
     #[test]
     fn run159_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_IDLE.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_IDLE.1;
         /// The block run159 was taken to widen, the word 11590's.
         const WORD_BLOCK: i64 = EAST_INDIES_IDLE_BLOCK;
+        /// The block of the word 629 moved to, 11747's (item 642).
+        const CAST_BLOCK: i64 = EAST_INDIES_CAST_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -12217,11 +12223,12 @@ mod tests {
             leader_rows,
             changed,
             housed,
+            standing,
         }) = widen_east_indies(
             "run159",
             "gamelog-run159-eastindies-idleword.txt",
             WIDENING_EAST_INDIES_IDLE,
-            &[WORD_BLOCK],
+            &[WORD_BLOCK, CAST_BLOCK],
             true,
         )
         else {
@@ -12246,14 +12253,10 @@ mod tests {
         // the fix 613's food and metal a unit off stood here too, from
         // 11272 and 11275, and the sheep's three rows on 11578..11591. `1/41`, `1/42` and `1/43` are citizens born under the
         // window with 40 hit points against 50 (parked 622's `1/36`), and
-        // `form` −1 against 9 beside them. The scout `1/0` re-plans its
-        // explore on 11550 to another target and spends no draw on it
-        // before the word; its rows are counted, not listed.
+        // `form` −1 against 9 beside them.
         let under: Vec<String> = firsts
             .iter()
-            .filter(|((w, o, _), (f, _))| {
-                (FIRST + 1..=WORD_BLOCK).contains(f) && (*w, *o) != (1, 0)
-            })
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
             .map(row)
             .collect();
         assert_eq!(
@@ -12295,11 +12298,16 @@ mod tests {
             }
             by.into_iter().collect()
         };
-        assert_eq!(
-            scout,
-            [(11550, 47), (11578, 17), (11579, 3)],
-            "the scout's rows"
-        );
+        // **The scout's island** (item 642). Until the fix the scout `1/0`
+        // re-planned on 11550 for another target, 47 rows and then 20 more
+        // on 11578..11579. Out of land on 11549, it asks
+        // `think_civilian_transport` for an unscouted island. The original
+        // sends it to cell (19, 13), on the human's home island: `go_here`
+        // answers bit 2 there, because the human holds a city in the region
+        // and this AI does not. This crate read the human's count from a
+        // census it never runs, so it saw 0, and it sent the scout to (25,
+        // 43) instead.
+        assert_eq!(scout, [], "the scout's rows");
         // **The word was the sheep `8/1`'s arrival** (W1). Both sides roll
         // the same wander on 11576, from (28872, 23880) to (28680, 23736).
         // This crate walks it straight in 13 frames; the original plans
@@ -12308,8 +12316,11 @@ mod tests {
         // `DEFAULT` on 11598 and 11599, the pair this crate spends on 11590
         // and 11591. Until the fix that was the one-sided list, 11591 and
         // 11592; now nobody changes animation on one side only.
-        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
-            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
         assert_eq!(
             one_sided,
             Vec::<(i64, i64, i64, bool, bool)>::new(),
@@ -12334,23 +12345,83 @@ mod tests {
             ["11270 1/20 form: ours -1 theirs 0"],
             "the Merchant's seat"
         );
-        // **The outermost container** (parked 598): one row, past the
-        // word and downstream of the scout's 11550 re-plan — `1/0` inside
-        // `1/44` here from 11748, on the map there.
-        let inside: Vec<String> = firsts
+        // **The word 11747's own blocks, every row, both directions**
+        // (item 642). `firsts` keeps a key's first parting, so a key that
+        // parted before the word is silent about the word's frame; these
+        // are the rows standing on 11747 and 11748 that did not stand on
+        // 11746, the block before the frame.
+        let before = standing.get(&(CAST_BLOCK - 2)).cloned().unwrap_or_default();
+        let on_word: Vec<String> = (CAST_BLOCK - 1..=CAST_BLOCK)
+            .flat_map(|b| {
+                let before = &before;
+                standing
+                    .get(&b)
+                    .into_iter()
+                    .flatten()
+                    .filter(move |(k, _)| !before.contains_key(*k))
+                    .map(move |((w, o, what), row)| format!("{b} {w}/{o} {what}: {row}"))
+            })
+            .collect();
+        // Before the fix (committed as the floor, `6a86aeb`), 16 rows:
+        // the scout `1/0` stopped on 11747 and took a cast order (kind 14,
+        // two orders against one). On 11748 it was inside `1/44`, a boat
+        // only this crate held, with its order list and path empty and its
+        // figures' clocks reset. The original's scout was still walking a
+        // 28-waypoint path. Now nothing is new on the frame.
+        assert_eq!(
+            on_word,
+            Vec::<String>::new(),
+            "the rows new on the word's blocks"
+        );
+        let one_sided_cast: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
-            .filter(|((_, _, what), _)| what == "inside")
+            .filter(|c| c.3 != c.4 && (CAST_BLOCK - 2..=CAST_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        // Before the fix: the scout's boarding on 11748, and past it the
+        // wraps of `1/28` and `1/27`, each moved a frame by the frame's
+        // three extra draws.
+        assert_eq!(
+            one_sided_cast,
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
+            "a figure moves on one side only on the word's blocks"
+        );
+        // **The outermost container** (parked 598). Until item 642 there
+        // was one row, `1/0` inside `1/44` here from 11748 and on the map
+        // there. Now both sides board it on the same frame.
+        assert!(
+            !firsts.keys().any(|(_, _, what)| what == "inside"),
+            "a unit in another container"
+        );
+        // **What the boarding leaves** (item 642): the boat `1/44` is born
+        // on both sides for block 11793. Its `form` is −1 here against 0
+        // there, as the Merchant's is. Its order's `facing` is the scout's
+        // own, which parted on the window's first block. The scout's
+        // `avg_speed` and its second figure's `stopped` part on the same
+        // block. None of them spends a draw before the word.
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
             .map(row)
             .collect();
         assert_eq!(
-            inside,
-            ["11748 1/0 inside: ours 44 theirs -1"],
-            "a unit in another container"
+            past,
+            [
+                "11793 1/0 g.avg_speed[0]: ours 25 theirs 18",
+                "11793 1/0 g.avg_speed[1]: ours 24 theirs 18",
+                "11793 1/0 g.stopped[1]: ours 0 theirs 1",
+                "11793 1/44 form: ours -1 theirs 0",
+                "11793 1/44 order:move.facing: Move { field: \"facing\", ours: 0, theirs: 1 }",
+            ],
+            "the rows past the old word"
         );
         assert_eq!(housed, 8_204, "housed unit-blocks the row compared");
-        // **The floor**: 270 keys standing on the window's first block
-        // (run155's residue on its last), 361 before the word, 806 in all.
-        // Before the fix it was 297/391/920: the two Merchants' 22 seat
+        // **The floor**: 267 keys standing on the window's first block
+        // (run155's residue on its last), 291 before the word, 296 in all.
+        // Item 642 took it 267/358/803 → 267/291/296: the scout's 67 rows
+        // under the old word, and 440 of the 445 past it, which the unfixed
+        // boarding parted.
+        // Before item 629 it was 297/391/920: the two Merchants' 22 seat
         // rows, city `1/2007`'s `filled` and `space[2]`, the leader's
         // `reg_land[11]` and `leftover` food and metal on 11270, the
         // buckets, the sheep, and past the word everything the unfixed
@@ -12362,7 +12433,7 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under_n, firsts.len()), (267, 358, 803), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (267, 291, 296), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
@@ -12683,6 +12754,7 @@ mod tests {
         // Every figure whose animation changes on either side on the
         // word's blocks: `(block, who, o, theirs changed, ours changed)`.
         let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
+        let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
         for f in 0..=tail {
             built.tick();
             let n = f + 1;
@@ -12862,6 +12934,14 @@ mod tests {
                     eprintln!("  standing {n} {w}/{o} {what}: {row}");
                 }
             }
+            if near.iter().any(|b| (b - 2..=b + 2).contains(&n)) {
+                standing.insert(
+                    n,
+                    here.iter()
+                        .map(|(k, (_, row))| (k.clone(), row.clone()))
+                        .collect(),
+                );
+            }
             for (k, v) in here {
                 firsts.entry(k).or_insert(v);
             }
@@ -12930,6 +13010,7 @@ mod tests {
             leader_rows,
             changed,
             housed,
+            standing,
         })
     }
 
@@ -12944,6 +13025,11 @@ mod tests {
         /// Unit-blocks `compare`'s container row read on a housed unit
         /// (parked 598): what says the row saw a garrison at all.
         housed: usize,
+        /// Every row parting on each block within two of a `near` block,
+        /// keyed as `firsts` is: what a key that parted earlier says on
+        /// the word's own frame, which `firsts` cannot (item 642).
+        standing:
+            std::collections::BTreeMap<i64, std::collections::BTreeMap<(i64, i64, String), String>>,
     }
 
     /// **run143 — East Indies' word 10398, widened whole, both directions**

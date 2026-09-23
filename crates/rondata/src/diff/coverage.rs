@@ -37,9 +37,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
-    EAST_INDIES_BARK_BLOCK, EAST_INDIES_EXPLORE_BLOCK, EAST_INDIES_GATHER_BLOCK,
-    EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MERCS_BLOCK,
-    GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+    EAST_INDIES_BARK_BLOCK, EAST_INDIES_CAST_BLOCK, EAST_INDIES_EXPLORE_BLOCK,
+    EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
+    EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK,
     WIDENING_CHAPTER_TWO,
 };
@@ -495,6 +495,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r159 {
         let n = drive_capture(p, ei2 - 2, ei2 + 2, &mut paths);
         assert_eq!(n, 5, "run159 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 629 moved the word to 11747, inside run159, so the word's own
+    // blocks are read there too (item 642).
+    let ec = EAST_INDIES_CAST_BLOCK;
+    if let Some(p) = &r159 {
+        let n = drive_capture(p, ec - 2, ec + 2, &mut paths);
+        assert_eq!(n, 5, "run159 carries the cast word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

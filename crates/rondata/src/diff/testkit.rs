@@ -737,7 +737,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 11747 is inside run159's window: ours 10 draws against 7, parting at
 /// index 3, ours `Guy::set_anim+0x97a < do_cast`, theirs
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 11_747;
+///
+/// **11747 → 13640 on item 642, and the frame was the scout's island,
+/// chosen 198 frames under it.** The extra `do_cast` was the AI scout
+/// `1/0` boarding: a boat `1/44` was born with it inside, and the
+/// original's scout was still walking. Its target parted on 11549. Out of
+/// land, it asks `think_civilian_transport` for an unscouted island, and
+/// both sides spend the same `think_scout+0x941`. The original sends it to
+/// cell (19, 13), on the human's home island, because `Region::go_here`
+/// answers bit 2 where an enemy holds a city. This crate read the human's
+/// `reg_cities` from a census it never runs (`docs/AI.md` §23.1), saw 0,
+/// and sent it to (25, 43). `go_here` now reads other leaders through
+/// `Sim::leader_reg_cities`'s recount (`docs/TRANSPORT.md` §9.4). **The
+/// move's value diff (the word's delta, here; its block is the
+/// widening's):** run159's scout rows go, 47 on 11550 and 20 on
+/// 11578..11579. So do the 16 rows new on 11747..11748 and the three
+/// one-sided animations there. Both sides board `1/44` for block 11793.
+/// The floor goes 267/358/803 → 267/291/296
+/// (`run159_s_word_frame_is_widened_whole`). 13640 is past run159's last
+/// block and past every East Indies dump on disk. There, ours spends 34
+/// draws against 33, parting at index 33: ours has one more
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` after the frame's
+/// thirty `Animal::think_bird` draws, and theirs has none.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 13_640;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -3026,6 +3048,10 @@ pub(crate) const WIDENING_EAST_INDIES_IDLE: (i64, i64) = (11_270, 11_899);
 /// arrival idle, writes block 11591. The coverage driver reads run159
 /// around it.
 pub(crate) const EAST_INDIES_IDLE_BLOCK: i64 = 11_591;
+/// The word 11747's block on run159 (item 642): its frame, the AI scout
+/// `1/0`'s boarding cast, writes block 11748. The coverage driver reads
+/// run159 around it.
+pub(crate) const EAST_INDIES_CAST_BLOCK: i64 = 11_748;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -3112,12 +3138,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // wander straight here and round a waypoint there, eight frames
     // longer, past the Merchant `1/20` standing (24, 24) off its tile
     // corner since 7663.
+    //
+    // Item 642 widened 11747's blocks on run159 (the scout's boat), and
+    // moved the word to **13640**, past run159's last block (11899) and
+    // past every East Indies dump on disk. Item 643 owes the capture and
+    // its widening; run159's test keeps the move's value diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run159_s_word_frame_is_widened_whole"),
-        629,
-        Some(WIDENING_EAST_INDIES_IDLE),
+        None,
+        643,
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

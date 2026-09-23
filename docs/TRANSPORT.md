@@ -912,6 +912,36 @@ Then over every other active leader `i` at war with me on either side
 enemy holds it and I do not, or not strongly", bit 4 "an enemy holds it
 and so do I, and I am not the weaker".
 
+**Every `reg_cities` read here is `LeaderData +0x125e`, the leader's
+own, and a human's is live** (item 642, 2026-09-23). The loops index
+`leaders.list[i].field_0x125e` for every slot. The original's census
+runs for a human leader too (`docs/AI.md` §23.1), so the human's count
+is there to read. This crate's census does not run for the human, so
+until item 642 the human's `census.reg_cities` was all zero, and bits 1
+and 2 never counted the human's cities. `Sim::go_here` now reads every
+*other* leader through `Sim::leader_reg_cities`, the recount by region of
+the four city types that the census's step 8 writes, and it falls back to
+that recount only for a leader whose census has never run. The asker's
+own count is its census, as before.
+
+**What it cost, and the diff** (run159,
+`run159_s_word_frame_is_widened_whole`). East Indies' AI scout `1/0` runs
+out of land on 11549. Both sides spend `think_scout+0x941` and no
+`+0xaba`, and the tail asks §7 with `colonise = 0`. The human's home
+island, region 2 here (`flags 0xa4`, unscouted by leader 1), is a
+candidate only through bit 2. The original sends the scout to cell
+(19, 13) there, and block 11550's order is (15000, 10392). This crate
+answered `g = 0` for region 2 and sent the scout to (25, 43), region 11,
+score 45, where (19, 13) scores 36. It boarded a boat on 11747, 45
+frames before the original, which is the long word 11747. With the read,
+the order, the path and the boarding agree: both sides hold `1/44` from
+block 11793, and the word is **13640**.
+
+**Not established**: the recount answers at once where the census
+answers at its next sweep. A human city founded or lost within 200
+frames of a `go_here` call would read differently here. No capture has
+put one there.
+
 `Region::num_coasts(r)@00680760` counts the sea regions `0x41..=0x7d` in
 `r.coast`. Sea index `0x40` is never assigned — `Regions::find_all` seeds
 the sea counter at `0x40` and pre-increments, so the first sea region is
