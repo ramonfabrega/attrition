@@ -16,6 +16,7 @@
 #include <setjmp.h>
 #include <signal.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -87,3 +88,21 @@ _Noreturn void rc_badret(cpu_t *c, uint32_t at, uint32_t want) {
 }
 
 void rc_cpuid(cpu_t *c) { rc_trap(c, 0, "cpuid"); }
+
+/* The imports a lifted function may reach, by the name the import
+ * directory gives, each with the same semantics `tools/recomp/difftest.py`
+ * installs in unicorn — so a diff between the machines tests the lifted
+ * code around the import and never the import itself. Each stub then
+ * performs the import's `ret` (cdecl: the caller cleans its arguments). */
+void rc_import(cpu_t *c, const char *name) {
+    if (strcmp(name, "_libm_sse2_sqrt_precise") == 0) {
+        /* double in xmm0, double out; a negative gives x86's indefinite NaN */
+        double d = f64(lane64(c->xmm[0], 0));
+        setlane64(&c->xmm[0], 0, (d < 0 || d != d) ? 0xfff8000000000000ull : u64d(__builtin_sqrt(d)));
+    } else {
+        snprintf(rc_msg, sizeof rc_msg, "import not stubbed: %s", name);
+        siglongjmp(rc_jb, 1);
+    }
+    c->eip = ld32(c->mem, c->esp);
+    c->esp += 4;
+}

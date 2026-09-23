@@ -1,15 +1,17 @@
-# Static recompilation of the original: steps 1 and 2 measured, step 3 counted
+# Static recompilation of the original: steps 1 and 2 measured, the first float function exact, step 3 counted
 
-**Status: steps 1 and 2 done and diff-verified; step 3's mechanical share
-counted at 91 %; step 4 not started. 2026-09-22.** The spike ran on the
-charter lore sent on 2026-09-22 (worktree `recomp-spike`, independent of the
-commander's loop, score-neutral). The charter asked: can `riseofnations.exe`
-be statically recompiled, one function at a time, into native arm64 code,
-using the PDB for function boundaries, so that an original function runs in
-the same process as this crate's port? Step 0 (prior art) and the image
-findings were an Opus 5.5 session's; it stopped while writing the lifter.
-Fable 5.1 wrote the lifter, the runtime and the harness, ran steps 1 and 2,
-and counted step 3, in one session, with lore's read on the order.
+**Status: steps 1 and 2 done and diff-verified; the first float function
+bit-exact against unicorn on 1,088 chosen vectors; step 3's mechanical
+share counted at 91 %; step 4 not started. 2026-09-22.** The spike ran on
+the charter lore sent on 2026-09-22 (worktree `recomp-spike`, independent of
+the commander's loop, score-neutral). The charter asked: can
+`riseofnations.exe` be statically recompiled, one function at a time, into
+native arm64 code, using the PDB for function boundaries, so that an
+original function runs in the same process as this crate's port — with
+floats bit-exact? Step 0 (prior art) and the image findings were an Opus 5.5
+session's; it stopped while writing the lifter. Fable 5.1 wrote the lifter,
+the runtime and the harness, ran steps 1 and 2 and the float function, and
+counted step 3, in one session, with lore's read on the order.
 
 ## Step 1: two functions, natively, against the emulator rung
 
@@ -71,6 +73,52 @@ and the numbers above are on that packet only. The table the third reader
 asserts is written to `~/ron-data/lab-experiments/2026-09-22-typed-state-market/recomp/`,
 outside git like everything derived from the original.
 
+## The float question: `Vector<float>::norm`, bit for bit
+
+The charter's hard constraint was that floats be bit-exact. The first float
+function through the diff is `Vector<float>::norm@00420870` — in-place
+normalisation: `mulss`/`addss` for the sum of squares, `ucomiss` against 0
+and 1.0 through the `lahf; test ah, 0x44; jnp` idiom, then `sqrtf@0041e6f0`
+(which is **not** in-image arithmetic: `cvtss2sd`, a `call` to the thunk
+`0x00a571b0`, which is `jmp dword ptr [0xac5530]`, the IAT slot of
+`_libm_sse2_sqrt_precise`, then `cvtsd2ss`), a `divss` and three `mulss`
+stores. The lifter gained the scalar-SSE subset and the 128-bit moves (the
+XMM registers live in the context, not in locals), `lahf`/`sahf`, and
+**import stubs**: a `call` or `jmp` through an IAT slot becomes
+`rc_import(c, name)`, and the unicorn machine points every IAT slot at a
+page of `ret`s with a code hook — both give `_libm_sse2_sqrt_precise` the
+same semantics (host IEEE double sqrt, x86's indefinite NaN for a negative),
+so the diff tests the lifted code around the import and never the import.
+
+| measurement | value | how |
+|---|---|---|
+| On the frame's own 134 `last_norm` vectors | 134 of 134 agree — but every one is an axis unit vector, so all take the early exit; this row verifies the loads, the sum and the compare idiom, not the tail | `difftest.py frame`, the `norm` rows |
+| **On 1,088 chosen vectors** — every triple from {±0, ±1, 0.5, 3, 1e-20, 1e-38, 1.5e-45, 1e20, 3e38, ±inf, NaN} × {0, 1, 1e20} × the same, plus 500 seeded random vectors with magnitudes from 1e-30 to 1e30 | **1,088 of 1,088 agree, bit for bit, 0 traps** | the `normv` rows: the vector is written to a scratch slot on both machines before each call, the row is the twelve bytes after it |
+| The float diff can fail | yes: the lifted `divss` turned into a multiply gives **882 disagreeing rows** of 1,088 (the 206 that still agree are the early exits) and exit 1 | the same command on the altered build |
+| Time | 1,490 calls (both families and the sweep) in 4 ms natively, 37 ms under unicorn | printed by `difftest.py` |
+
+So on the scalar single-precision path — `mulss`, `addss`, `divss`,
+`ucomiss` (ordered, unordered), `cvtss2sd`, `cvtsd2ss`, the NaN a result
+carries, overflow to infinity and the reciprocal of infinity, denormal
+inputs (`1.5e-45`, `1e-38`) — the C the lifter emits, compiled with
+`-ffp-contract=off` and `rt/recomp.h`'s fix-ups, is bit-identical to
+unicorn's x86 model (QEMU 5.0.1 softfloat) on this machine. That is the
+answer to "where does x87 extended precision make bit-exactness hard":
+nowhere on this path, because the path has no x87.
+
+Two candidates were read and not taken: `Unit::bank_aircraft@005e9520`
+(lore's suggestion — SSE only, but it makes two virtual calls, which the
+lifter turns into run-time dispatch to functions it has not lifted), and
+`Unit::air_turn_speed@005ea390` (one `cvttss2si` on the first guy's `bank`
+and integer arithmetic otherwise; a cheap second, not run). Lore's reading
+of the callers, not checked here: the CRT's transcendental imports are
+reached only through the `sinf`/`cosf`/`tanf`/`acosf`/`atanf`/`powf`
+wrappers, whose callers are the `fast_*_to_sine/cosine` table fills (once,
+at init; the tables are main-image data the snapshot holds), the script
+VM's `^`, and rendering — so a gameplay function that reaches a DLL
+mid-frame was not found, and `Ammo::init@0067bbf0`'s half-angle quaternion
+is the one gameplay-adjacent user of the DLL-built sine table.
+
 ## Step 3: what share of the cited functions lifts mechanically
 
 `tools/recomp/scan.py --docs docs` takes every `name@<8 hex>` citation in
@@ -101,8 +149,8 @@ rows are in `target/recomp/scan.tsv` after a run.
 | Finding | Evidence | What it does not establish |
 |---|---|---|
 | The game's floating point is SSE2, not x87. | A mnemonic histogram over the whole `.text` (`llvm-objdump`): about 12.5k `movss`, 3.9k `mulss`, 2.4k `addss`, against about 700 x87 hits in total, many of them data decoded as code by the linear sweep. No `ldmxcsr` in `.text`. **And the scan: zero x87 among the 771 cited functions.** | Which functions hold the real x87 hits. The executable also imports `_set_SSE2_enable` and `_except1` from `api-ms-win-crt-math`, so the C runtime's own maths can take an x87 path at run time; MXCSR as set by DLLs was not read. |
-| So bit-exactness is mostly SSE edge cases, not 80-bit precision. | SSE add, sub, mul, div and sqrt are exactly specified IEEE operations on both x86 and AArch64. The differences to handle are the NaN a result carries, the `minss`/`maxss` operand order, out-of-range truncation (`0x80000000`), and FMA contraction (`-ffp-contract=off`). `rt/recomp.h`'s helpers say each in x86's terms, and 17 edge cases of them were checked against the SDM's answers on this machine. | No float instruction has been lifted; the helpers have no caller yet. |
-| Internal functions use link-time custom conventions. | `Vector<float>::norm@00420870` passes a float in `xmm0` to `sqrtf@0041e6f0` — a `sqrtf` built into the executable — and gets its result back in `xmm0`, with no x87 return. | A machine-level recompiler keeps the XMM registers in its context, so this is transparent to it. A Rust caller still needs each function's convention, as `tools/emu/callfn.py` already records. |
+| So bit-exactness is mostly SSE edge cases, not 80-bit precision. | SSE add, sub, mul, div and sqrt are exactly specified IEEE operations on both x86 and AArch64. The differences to handle are the NaN a result carries, the `minss`/`maxss` operand order, out-of-range truncation (`0x80000000`), and FMA contraction (`-ffp-contract=off`). `rt/recomp.h`'s helpers say each in x86's terms; 17 edge cases of them were checked against the SDM's answers, and **the section above puts `norm`'s path through them on 1,088 vectors against unicorn**. | `minss`/`maxss`, the truncations and the double-precision arithmetic are lifted but no verified function uses them yet. |
+| Internal functions use link-time custom conventions. | `Vector<float>::norm@00420870` passes a float in `xmm0` to `sqrtf@0041e6f0` and gets its result back in `xmm0`, with no x87 return. `sqrtf` itself widens to double and calls the CRT's `_libm_sse2_sqrt_precise` through the thunk at `0x00a571b0`; it is not in-image `sqrtss`. | A machine-level recompiler keeps the XMM registers in its context, so this is transparent to it. A Rust caller still needs each function's convention, as `tools/emu/callfn.py` already records. |
 | The transcendentals are not in the executable. | The import directory (read by `tools/recomp/image.py`): `_libm_sse2_{acos,asin,atan,cos,pow,sin,sqrt,tan}_precise` from `api-ms-win-crt-math-l1-1-0.dll`. | Under the captures, Wine's ucrtbase answers these calls, not Microsoft's. Neither implementation was read. |
 | No existing 32-bit x86 PE recompiler is worth building on. | [Prior-art survey](2026-09-22-recomp-prior-art.md), 17 projects with URLs — read with its header note: its x87 premise is the one the first row overturns, and the build is Visual Studio 2015 or later (`.gfids`, `ucrtbase`), not MSVC 7.1. | The survey read sources and READMEs; it built none of them. |
 | The linker map is the function table the lifter needs. | 63,427 `f` symbols in `sbl/rise_z.map`, every one inside `.text`; the lifter bounds discovery by the next symbol and stops on a tail `jmp` into another symbol. The PDB's 22,199 `S_*PROC32` records with code sizes are read only on request (`Functions(…, cache_dir)`), since `llvm-pdbutil`'s dump is slow and large. | Jump tables (`jmp [reg*4+table]`) stop discovery at the indirect jump; none of the 771 needed one to reach its `ret`s, but a `switch` lowered that way would lift its dispatch as a run-time trap. |
@@ -125,17 +173,22 @@ differential test on real frames is cheap on both machines.
 ## What exists on the branch
 
 - `tools/recomp/lift.py` — the lifter: capstone (declared inline, like
-  `callfn.py`'s unicorn), the integer subset, `fs:` as the guest TIB, an
-  error naming the address and instruction of anything outside it. Emits
-  `lifted.c` and builds `librecomp.dylib` with clang under `target/recomp/`.
+  `callfn.py`'s unicorn), the integer subset, the scalar-SSE subset and
+  the 128-bit moves, `fs:` as the guest TIB, imports through the IAT as
+  `rc_import`, an error naming the address and instruction of anything
+  outside it. Emits `lifted.c` and builds `librecomp.dylib` with clang
+  under `target/recomp/`.
 - `tools/recomp/rt/recomp.h`, `rt/runtime.c` — the guest context, memory
   and SSE helpers; a `PROT_NONE` reservation with `rc_map` to open the
-  ranges a harness lays out, `rc_call`, and a trap or a fault that comes
-  back as a message naming the guest address.
+  ranges a harness lays out, `rc_call`, the import stubs, and a trap or a
+  fault that comes back as a message naming the guest address.
 - `tools/recomp/snapshot.py` — the lab's `frame-snapshot-v1` stream as
   guest memory: the range table and where each range's bytes sit.
 - `tools/recomp/difftest.py` — `callfn.py`'s sweep through both machines
-  (`diff`, `sweep`), and the frame driver (`frame`, `--table`).
+  (`diff`, `sweep`), and the frame driver (`frame`, `--table`): `turn_speed`
+  on every guy, `norm` on every guy's vector, and `norm` on the chosen
+  vectors; the unicorn machine with the imports stubbed and the registers
+  zeroed per call.
 - `tools/recomp/scan.py` — the step-3 count.
 - `tools/recomp/image.py` — the PE, its imports, the function table.
 - `crates/sim/src/movement.rs` — the one touch outside `tools/` and
@@ -145,18 +198,24 @@ differential test on real frames is cheap on both machines.
 
 ## What is not established
 
-- Any float behaviour: no SSE instruction is lifted; the helpers are untested
-  against a real function. The first float function through `difftest.py`
-  is what would test them, and unicorn's SSE (QEMU softfloat) is the
-  reference — not Rosetta's, which runs the captures. The frame supplies
-  real float states (`bank`, `pitch`, `last_norm` on every guy) for it.
+- Float behaviour beyond `norm`'s path: the double-precision arithmetic,
+  `minss`/`maxss`, the truncating and rounding conversions and the packed
+  bitwise ops are lifted but unexercised by a verified function; packed
+  arithmetic (`addps` and kin), `shufps`, `cmpss` and x87 stop the lift.
+  MXCSR is assumed at its default (round to nearest, no FTZ/DAZ) on both
+  machines; the game's own MXCSR at the capture boundary was not read.
+- The reference for floats is unicorn's x86 model (QEMU 5.0.1 softfloat),
+  not silicon and not Rosetta, which runs the captures. The two machines
+  give the sqrt import identical semantics by construction, so the CRT's
+  own `sqrt` (Wine's under the captures) is outside the diff.
 - `af` after a logic instruction is left as it was, and the flags after a
   shift by zero are left as they were, which is x86's rule; `of` after a
   multi-bit shift is emitted as if the count were one (x86 leaves it
   undefined); `rol`/`ror` by a count that is a multiple of the width leave
   `cf` as it was, where x86 sets it. Nothing verified reads any of these.
-- Sub-32-bit `mul`, `div`, `push` and `pop`, `lock`, `repe`/`repne`,
-  indirect jumps and any SSE or x87 instruction stop the lift by design.
+- Sub-32-bit `mul`, `div`, `push` and `pop`, `lock`, `repe`/`repne` and
+  indirect jumps stop the lift by design; an indirect `call` (a vtable) is
+  dispatched at run time and traps unless its target was lifted.
 - The fault's granularity is the host page, 16 KiB on Apple Silicon
   against the guest's 4 KiB: a read within the same 16 KiB as a mapped range
   does not fault. A function that lifts because its SEH prologue now writes
@@ -176,15 +235,19 @@ differential test on real frames is cheap on both machines.
 
 ## Adoption
 
-**Pilot-ready as a lab tool; one candidate for the main loop.** It moves no
+**Pilot-ready as a lab tool; one candidate for the main loop; the
+charter's float question answered on its first function.** It moves no
 score and touches no queue file. What it is good for now: a fixture rung on
 real frames — an original function called on every object of a captured
 frame in a millisecond, natively or under unicorn, with the port asserted
 beside it — which is the per-function differential testing the lab has
-queued, built and run once. The candidate: `RON_TURN_TABLE`'s test is the
-shape every such function would get. What would make the tool worth more,
-in order of cost: the first float function through the frame (tests the
-header's helpers, which is the whole bit-exactness question; the 70 SSE
-stops minus the struct-zeroing ones are the list); enumerating the `units`
-bands from the packet so the driver needs no decode; the harness's stack
-moved off the snapshot; then step 4.
+queued, built and run once; and, for floats, a place where the C a lifter
+emits and QEMU's x86 model can be put side by side on chosen inputs, which
+is what settles a float residue without a capture. The candidate:
+`RON_TURN_TABLE`'s test is the shape every such function would get. What
+would make the tool worth more, in order of cost: a second float function
+whose path has `minss`/`maxss`, a truncation or double arithmetic
+(`air_turn_speed` is a cheap start); enumerating the `units` bands from the
+packet so the driver needs no decode; the harness's stack moved off the
+snapshot; lifting a vtable's targets so a virtual call dispatches; then
+step 4.

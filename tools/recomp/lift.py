@@ -69,12 +69,43 @@ class LiftError(Exception):
     pass
 
 
+XMM = {f"xmm{i}": i for i in range(8)}
+SSE_SS = {"addss": "ss_add", "subss": "ss_sub", "mulss": "ss_mul", "divss": "ss_div", "minss": "ss_min", "maxss": "ss_max"}
+SSE_SD = {"addsd": "sd_add", "subsd": "sd_sub", "mulsd": "sd_mul", "divsd": "sd_div", "minsd": "sd_min", "maxsd": "sd_max"}
+BITWISE = {"xorps": "^", "xorpd": "^", "pxor": "^", "andps": "&", "andpd": "&", "pand": "&", "orps": "|", "orpd": "|", "por": "|",
+           "andnps": "&~", "andnpd": "&~", "pandn": "&~"}
+MOV128 = ("movaps", "movups", "movapd", "movupd", "movdqa", "movdqu")
+
+
 class Lifter:
     def __init__(self, image, funcs):
         self.image, self.funcs = image, funcs
+        self.imports = {iat: name for iat, _, name in image.imports()}  # IAT slot -> import name
         self.md = Cs(CS_ARCH_X86, CS_MODE_32)
         self.md.detail = True
         self.lifted = {}  # entry -> C text
+
+    def import_slot(self, i, o):
+        """The import an absolute `[slot]` operand names, or None."""
+        if o.type == X86_OP_MEM and not o.mem.base and not o.mem.index:
+            return self.imports.get(o.mem.disp & 0xFFFFFFFF)
+        return None
+
+    # ---- XMM operands: the registers live in `c`, not in locals ----
+
+    def xmm(self, i, o):
+        return f"c->xmm[{XMM[i.reg_name(o.reg)]}]"
+
+    def x128(self, i, o):
+        return self.xmm(i, o) if o.type == X86_OP_REG else f"ld128(m, {self.addr(i, o)})"
+
+    def x32(self, i, o):
+        if o.type == X86_OP_REG:
+            return f"{self.xmm(i, o)}.d[0]" if i.reg_name(o.reg) in XMM else self.reg_read(i.reg_name(o.reg))
+        return f"ld32(m, {self.addr(i, o)})"
+
+    def x64(self, i, o):
+        return f"lane64({self.xmm(i, o)}, 0)" if o.type == X86_OP_REG else f"ld64(m, {self.addr(i, o)})"
 
     # ---- discovery: one function's instructions, by following its branches ----
 
@@ -332,6 +363,8 @@ class Lifter:
             out.append(f"esp -= 4; st32(m, esp, {nxt:#010x}u);")
             if o.type == X86_OP_IMM:
                 out.append(f"{SAVE} f_{o.imm & 0xFFFFFFFF:08x}(c); {LOAD}")
+            elif self.import_slot(i, o):
+                out.append(f'{SAVE} rc_import(c, "{self.import_slot(i, o)}"); {LOAD}')
             else:
                 out.append(f"t = {self.rd(i, o)}; {SAVE} rc_dispatch(c, t); {LOAD}")
             out.append(f"if (c->eip != {nxt:#010x}u) rc_badret(c, {i.address:#010x}u, {nxt:#010x}u);")
@@ -346,6 +379,8 @@ class Lifter:
                     out.append(f"goto L_{t:08x};")
                 else:
                     out.append(f"{SAVE} f_{t:08x}(c); return;")  # a tail call
+            elif self.import_slot(i, o):
+                out.append(f'{SAVE} rc_import(c, "{self.import_slot(i, o)}"); return;')  # an import thunk
             else:
                 out.append(f"t = {self.rd(i, o)}; {SAVE} rc_dispatch(c, t); return;")
         elif mn[0] == "j" and mn[1:] in COND:
@@ -356,6 +391,75 @@ class Lifter:
             out.append(self.wr(i, ops[0], f"(uint32_t)({COND[mn[3:]]})"))
         elif mn in TERMINATORS:
             out.append(f'rc_trap(c, {i.address:#010x}u, "{mn}");')
+        # ---- SSE, scalar and the 128-bit moves; the registers live in c->xmm ----
+        elif mn in ("movss", "movsd"):
+            d, s = ops
+            if d.type == X86_OP_MEM:
+                out.append(f"st32(m, {self.addr(i, d)}, {self.x32(i, s)});" if mn == "movss" else f"st64(m, {self.addr(i, d)}, {self.x64(i, s)});")
+            elif s.type == X86_OP_MEM:  # a load zeroes the upper lanes
+                if mn == "movss":
+                    out.append(f"{self.xmm(i, d)}.d[0] = {self.x32(i, s)}; {self.xmm(i, d)}.d[1] = {self.xmm(i, d)}.d[2] = {self.xmm(i, d)}.d[3] = 0;")
+                else:
+                    out.append(f"setlane64(&{self.xmm(i, d)}, 0, {self.x64(i, s)}); setlane64(&{self.xmm(i, d)}, 1, 0);")
+            else:  # register to register keeps them
+                out.append(f"{self.xmm(i, d)}.d[0] = {self.x32(i, s)};" if mn == "movss" else f"setlane64(&{self.xmm(i, d)}, 0, {self.x64(i, s)});")
+        elif mn in MOV128:
+            d, s = ops
+            out.append(f"{self.xmm(i, d)} = {self.x128(i, s)};" if d.type == X86_OP_REG else f"st128(m, {self.addr(i, d)}, {self.x128(i, s)});")
+        elif mn == "movd":
+            d, s = ops
+            if d.type == X86_OP_REG and i.reg_name(d.reg) in XMM:
+                out.append(f"{self.xmm(i, d)}.d[0] = {self.rd(i, s)}; {self.xmm(i, d)}.d[1] = {self.xmm(i, d)}.d[2] = {self.xmm(i, d)}.d[3] = 0;")
+            else:
+                out.append(self.wr(i, d, f"{self.xmm(i, s)}.d[0]"))
+        elif mn == "movq":
+            d, s = ops
+            if d.type == X86_OP_REG:
+                out.append(f"setlane64(&{self.xmm(i, d)}, 0, {self.x64(i, s)}); setlane64(&{self.xmm(i, d)}, 1, 0);")
+            else:
+                out.append(f"st64(m, {self.addr(i, d)}, {self.x64(i, s)});")
+        elif mn in SSE_SS:
+            d, s = ops
+            out.append(f"{self.xmm(i, d)}.d[0] = {SSE_SS[mn]}({self.xmm(i, d)}.d[0], {self.x32(i, s)});")
+        elif mn in SSE_SD:
+            d, s = ops
+            out.append(f"setlane64(&{self.xmm(i, d)}, 0, {SSE_SD[mn]}(lane64({self.xmm(i, d)}, 0), {self.x64(i, s)}));")
+        elif mn == "sqrtss":
+            d, s = ops
+            out.append(f"{self.xmm(i, d)}.d[0] = ss_sqrt({self.x32(i, s)});")
+        elif mn == "sqrtsd":
+            d, s = ops
+            out.append(f"setlane64(&{self.xmm(i, d)}, 0, sd_sqrt({self.x64(i, s)}));")
+        elif mn in BITWISE:
+            d, s = ops
+            op = BITWISE[mn]
+            out.append(f"xs = {self.x128(i, s)};")
+            out.append(" ".join(f"{self.xmm(i, d)}.d[{j}] = {'~' if op == '&~' else ''}{self.xmm(i, d)}.d[{j}] {op[0]} xs.d[{j}];" for j in range(4)))
+        elif mn in ("ucomiss", "comiss", "ucomisd", "comisd"):
+            d, s = ops
+            cmp = f"ucom32({self.x32(i, d)}, {self.x32(i, s)})" if mn.endswith("ss") else f"ucom64({self.x64(i, d)}, {self.x64(i, s)})"
+            out.append(f"t = {cmp}; cf = t & 1; pf = (t >> 2) & 1; zf = (t >> 6) & 1; of = sf = af = 0;")
+        elif mn in ("cvttss2si", "cvtss2si", "cvttsd2si", "cvtsd2si"):
+            d, s = ops
+            fn = {"cvttss2si": "cvtt_ss", "cvtss2si": "cvt_ss", "cvttsd2si": "cvtt_sd", "cvtsd2si": "cvt_sd"}[mn]
+            src = self.x32(i, s) if mn.endswith("ss2si") else self.x64(i, s)
+            out.append(self.wr(i, d, f"{fn}({src})"))
+        elif mn == "cvtsi2ss":
+            d, s = ops
+            out.append(f"{self.xmm(i, d)}.d[0] = cvt_si_ss({self.rd(i, s)});")
+        elif mn == "cvtsi2sd":
+            d, s = ops
+            out.append(f"setlane64(&{self.xmm(i, d)}, 0, cvt_si_sd({self.rd(i, s)}));")
+        elif mn == "cvtss2sd":
+            d, s = ops
+            out.append(f"setlane64(&{self.xmm(i, d)}, 0, cvt_ss_sd({self.x32(i, s)}));")
+        elif mn == "cvtsd2ss":
+            d, s = ops
+            out.append(f"{self.xmm(i, d)}.d[0] = cvt_sd_ss({self.x64(i, s)});")
+        elif mn == "lahf":
+            out.append("eax = (eax & 0xffff00ffu) | (((sf << 7) | (zf << 6) | (af << 4) | (pf << 2) | 2 | cf) << 8);")
+        elif mn == "sahf":
+            out.append("t = (eax >> 8) & 0xff; sf = (t >> 7) & 1; zf = (t >> 6) & 1; af = (t >> 4) & 1; pf = (t >> 2) & 1; cf = t & 1;")
         else:
             unsupported()
         return out
@@ -365,7 +469,7 @@ class Lifter:
     def lift(self, entry):
         insns, targets, callees = self.discover(entry)
         lines = [f"/* {self.funcs.name(entry)} */", f"void f_{entry:08x}(cpu_t *c) {{"]
-        lines.append("    uint8_t *m = c->mem; uint32_t a, b, r, t, n; uint64_t w; int64_t sw;")
+        lines.append("    uint8_t *m = c->mem; uint32_t a, b, r, t, n; uint64_t w; int64_t sw; x128 xs; (void)xs;")
         lines.append("    " + "; ".join(f"uint32_t {r} = c->{r}" for r in REG32) + ";")
         lines.append("    " + "; ".join(f"uint32_t {r} = c->{r}" for r in FLAGS) + ";")
         lines.append("    (void)a; (void)b; (void)r; (void)t; (void)n; (void)w; (void)sw; (void)m;")

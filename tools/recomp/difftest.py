@@ -43,10 +43,27 @@ sys.path.insert(0, os.path.join(HERE, "..", "emu"))
 sys.path.insert(0, HERE)
 import callfn  # noqa: E402
 from callfn import SENTINEL, STACK_BASE, STACK_SIZE, align, signed  # noqa: E402
+from image import Image as PEImage  # noqa: E402  (the import directory; callfn's Image maps sections only)
 from snapshot import Snapshot  # noqa: E402
 
 TURN_SPEED = 0x005DE340
+NORM = 0x00420870  # Vector<float>::norm, in place, through sqrtf and the CRT's sqrt import
 UNITS = 0x00C0AEB0  # `units`: ten 0x1c-byte bands, `length` at +4 and `list` at +0x10
+STUBS = 0x7E00_0000  # a page of `ret`s the unicorn machine points the IAT at
+
+
+def stub_sqrt(x):
+    """`_libm_sse2_sqrt_precise`: double in xmm0's low lane, double out — the
+    same semantics rt/runtime.c gives it, so the two machines agree on the
+    import by construction and a diff tests the code around it."""
+    import math
+    lo = x & 0xFFFF_FFFF_FFFF_FFFF
+    d = struct.unpack("<d", struct.pack("<Q", lo))[0]
+    r = 0xFFF8_0000_0000_0000 if (d < 0 or d != d) else struct.unpack("<Q", struct.pack("<d", math.sqrt(d)))[0]
+    return (x & ~0xFFFF_FFFF_FFFF_FFFF) | r
+
+
+IMPORT_STUBS = {"_libm_sse2_sqrt_precise": stub_sqrt}
 
 
 class X128(ctypes.Structure):
@@ -91,6 +108,9 @@ class NativeMachine:
             self.map(base, size)
         snap.load(self.write)
 
+    def read(self, va, n):
+        return ctypes.string_at(self.mem + va, n)
+
     def call(self, entry, stack_args=(), ecx=0, edx=0):
         esp = STACK_BASE + STACK_SIZE - 0x100
         frame = struct.pack("<I", SENTINEL) + b"".join(struct.pack("<i", a) for a in stack_args)
@@ -104,6 +124,58 @@ class NativeMachine:
         if c.eip != SENTINEL:
             raise RuntimeError(f"{entry:08x}: returned to {c.eip:08x}, not the sentinel")
         return c.eax
+
+
+class EmuMachine(callfn.Machine):
+    """`callfn.Machine` with the imports stubbed and the registers a call
+    could leave behind zeroed, so a row depends on its inputs alone."""
+
+    def __init__(self, image, imports):
+        super().__init__(image)
+        from unicorn import UC_HOOK_CODE
+        from unicorn.x86_const import UC_X86_REG_XMM0
+        self.uc.mem_map(STUBS, 0x1000)
+        self.uc.mem_write(STUBS, b"\xc3" * 0x1000)
+        self.imports = list(imports)
+        self.stubs = {STUBS + k: name for k, (_, _, name) in enumerate(self.imports)}
+        self.patch_iat()
+        self.unstubbed = None
+
+        def on_stub(uc, address, size, _):
+            name = self.stubs.get(address, "?")
+            fn = IMPORT_STUBS.get(name)
+            if fn is None:
+                self.unstubbed = name
+                uc.emu_stop()
+                return
+            uc.reg_write(UC_X86_REG_XMM0, fn(uc.reg_read(UC_X86_REG_XMM0)))
+
+        self.uc.hook_add(UC_HOOK_CODE, on_stub, begin=STUBS, end=STUBS + 0xFFF)
+
+    def patch_iat(self):
+        """Point every IAT slot at its stub — again after a snapshot is
+        loaded, since the snapshot's `.rdata` carries the DLLs' real addresses."""
+        for k, (iat, _, _) in enumerate(self.imports):
+            self.uc.mem_write(iat, struct.pack("<I", STUBS + k))
+
+    def read(self, va, n):
+        return bytes(self.uc.mem_read(va, n))
+
+    def write(self, va, data):
+        self.uc.mem_write(va, data)
+
+    def call(self, entry, stack_args=(), ecx=0, edx=0, max_insns=100_000):
+        from unicorn.x86_const import UC_X86_REG_EAX, UC_X86_REG_XMM0
+        self.uc.reg_write(UC_X86_REG_EAX, 0)
+        for k in range(8):
+            self.uc.reg_write(UC_X86_REG_XMM0 + k, 0)
+        self.unstubbed = None
+        try:
+            return super().call(entry, stack_args, ecx, edx, max_insns)
+        except RuntimeError:
+            if self.unstubbed:
+                raise RuntimeError(f"{entry:08x}: import not stubbed: {self.unstubbed}") from None
+            raise
 
 
 def load_into_unicorn(m, image, snap):
@@ -125,11 +197,19 @@ def load_into_unicorn(m, image, snap):
     return skipped
 
 
-def answer(m, entry, args, ecx, edx):
+def answer(m, entry, args, ecx, edx, result=None, setup=None):
+    """`eax`, signed — or, with `result = (va, n)`, the bytes there after the
+    call; `setup = (va, bytes)` is written first, so both machines start
+    the call on the same chosen memory."""
     try:
-        return signed(m.call(entry, args, ecx=ecx, edx=edx))
+        if setup:
+            m.write(*setup)
+        eax = m.call(entry, args, ecx=ecx, edx=edx)
     except RuntimeError as e:
         return f"trap({e})"
+    if result:
+        return m.read(*result).hex()
+    return signed(eax)
 
 
 def active_units(typed_state):
@@ -162,7 +242,34 @@ def frame_calls(snap, units):
             )
             for mode in (0, 1):
                 label = f"turn_speed unit={unit:08x} guy={guy:08x} who={who} o={o} k={k} mode={mode}"
-                yield label, TURN_SPEED, (mode,), guy, 0, inputs
+                yield label, TURN_SPEED, (mode,), guy, 0, inputs, None, None
+            # Vector<float>::norm on the guy's last_norm, in place: the row is
+            # the three floats after the call, and the label carries the
+            # three before it. (On the frame captured so far every last_norm
+            # is an axis unit vector, so these take the early exit.)
+            v = guy + 0xA4
+            before = snap.read(v, 12).hex()
+            yield f"norm guy={guy:08x} v={v:08x} before={before}", NORM, (), v, 0, None, (v, 12), None
+
+
+SCRATCH = STACK_BASE + 0x1000  # a slot the chosen vectors are written to, on both machines
+
+
+def norm_sweep_calls(seed=424242, n=500):
+    """`norm` on vectors *we* choose — the emulator rung's sweep shape, on a
+    float function: the SSE edge cases (±0, tiny, huge, ±inf, NaN; sums
+    that overflow; a reciprocal of inf) and seeded random magnitudes."""
+    import math
+    import random
+    rng = random.Random(seed)
+    edges = [0.0, -0.0, 1.0, -1.0, 0.5, 3.0, 1e-20, 1e-38, 1.5e-45, 1e20, 3e38, math.inf, -math.inf, math.nan]
+    vectors = [(a, b, c) for a in edges for b in (0.0, 1.0, 1e20) for c in edges]
+    for _ in range(n):
+        mag = 10.0 ** rng.uniform(-30, 30)
+        vectors.append(tuple(rng.uniform(-1, 1) * mag for _ in range(3)))
+    for v in vectors:
+        raw = struct.pack("<3f", *v)
+        yield f"normv {raw.hex()}", NORM, (), SCRATCH, 0, None, (SCRATCH, 12), (SCRATCH, raw)
 
 
 def run_frame(exe, snap_path, typed_state, lib, table):
@@ -172,32 +279,39 @@ def run_frame(exe, snap_path, typed_state, lib, table):
     t0 = time.perf_counter()
     native.load(snap)
     t1 = time.perf_counter()
-    emu = callfn.Machine(image)
+    emu = EmuMachine(image, PEImage(exe).imports())
     skipped = load_into_unicorn(emu, image, snap)
+    emu.patch_iat()
     t2 = time.perf_counter()
     print(f"snapshot: frame {snap.frame} (trace {snap.trace_frame}), {len(snap.ranges)} ranges, "
           f"{sum(r[1] for r in snap.ranges)} bytes; loaded natively in {t1 - t0:.2f}s, into unicorn in {t2 - t1:.2f}s")
     for base, size, why in skipped:
         print(f"  unicorn could not map {base:08x}+{size:x}: {why}")
     units = active_units(typed_state)
-    calls = list(frame_calls(snap, units))
+    calls = list(frame_calls(snap, units)) + list(norm_sweep_calls())
     t0 = time.perf_counter()
-    ref = [answer(emu, e, a, x, d) for _, e, a, x, d, _ in calls]
+    ref = [answer(emu, e, a, x, d, res, setup) for _, e, a, x, d, _, res, setup in calls]
     t1 = time.perf_counter()
-    got = [answer(native, e, a, x, d) for _, e, a, x, d, _ in calls]
+    got = [answer(native, e, a, x, d, res, setup) for _, e, a, x, d, _, res, setup in calls]
     t2 = time.perf_counter()
-    bad = 0
+    bad, per = 0, {}
     for (label, *_), r, g in zip(calls, ref, got):
+        fam = label.split()[0]
+        n, agree, traps = per.get(fam, (0, 0, 0))
+        trapped = isinstance(r, str) and r.startswith("trap(")
+        per[fam] = (n + 1, agree + (r == g), traps + trapped)
         if r != g:
             bad += 1
             print(f"{label}: unicorn -> {r}  native -> {g}")
-    traps = sum(1 for r in ref if isinstance(r, str))
+    traps = sum(t for _, _, t in per.values())
     if table:
+        turn = [(c, r) for c, r in zip(calls, ref) if c[1] == TURN_SPEED and not isinstance(r, str)]
         with open(table, "w") as f:
-            for (label, _, (mode,), guy, _, inp), r in zip(calls, ref):
-                if not isinstance(r, str):
-                    f.write(f"turn_speed {mode} " + " ".join(str(v) for v in inp.values()) + f" -> {r}\n")
-        print(f"table: {table} ({len(calls) - traps} rows, columns: mode {' '.join(calls[0][5])} -> answer)")
+            for (_, _, (mode,), _, _, inp, _, _), r in turn:
+                f.write(f"turn_speed {mode} " + " ".join(str(v) for v in inp.values()) + f" -> {r}\n")
+        print(f"table: {table} ({len(turn)} rows, columns: mode {' '.join(turn[0][0][5])} -> answer)")
+    for fam, (n, agree, t) in per.items():
+        print(f"  {fam}: rows={n} agree={agree} traps={t}")
     print(f"units={len(units)} rows={len(calls)} agree={len(calls) - bad} disagree={bad} traps={traps}  "
           f"unicorn {t1 - t0:.3f}s  native {t2 - t1:.3f}s")
     return 1 if bad else 0
@@ -230,7 +344,7 @@ def main(argv):
     if args[1] == "sweep":
         callfn.sweep(native, seed, n)
         return 0
-    emu = callfn.Machine(image)
+    emu = EmuMachine(image, PEImage(args[0]).imports())
     calls = list(callfn.sweep_calls(seed, n))
     t0 = time.perf_counter()
     ref = [answer(emu, e, a, x, d) for _, e, a, x, d in calls]
