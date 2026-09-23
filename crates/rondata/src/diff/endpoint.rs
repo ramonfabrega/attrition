@@ -1036,11 +1036,21 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`docs/AI.md` §55), which moves this map's word 11185 → 11531: the
         // AI buys the original's Merchants, and seven positions, three units
         // and a building come back, 12,500 frames past the word.
-        off: 50,
-        unlinked: 1,
-        extra: 0,
+        // **50 → 46 off, 1 → 0 unlinked, 0 → 3 extra and 9 → 10
+        // build_diverged** on item 539, the collision fast path's stride
+        // over an empty world cell (`docs/COLLISION.md` §4.2), which moves
+        // this map's word 11531 → 11582. Every marching squad's soft flags
+        // change with it, so the roster reshuffles 12,418 frames past the
+        // word: four positions and a unit closer, three spurious units
+        // (two Bowmen, a Citizen) and a building field-row further. The
+        // value diff the move is booked on is run125's `[11250, 11599]`,
+        // where no squad position parts. DECISIONS 36 asks for the number
+        // rather than a trade.
+        off: 46,
+        unlinked: 0,
+        extra: 3,
         build_unlinked: 0,
-        build_diverged: 9,
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },

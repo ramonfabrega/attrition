@@ -6248,9 +6248,14 @@ mod tests {
         let mut units: Vec<(i64, i64)> = scoring.iter().map(|d| (d.who, d.o)).collect();
         units.sort_unstable();
         units.dedup();
+        //
+        // **Item 539 took `1/33` off it**, the bowman whose soft flags
+        // the fast path's stride over an empty world cell had parted
+        // (`docs/COLLISION.md` §4.2); the word moved up on the same item,
+        // which only adds rows below it, so the fall is the fix's.
         assert_eq!(
             units,
-            vec![(1, 23), (1, 33), (1, 40)],
+            vec![(1, 23), (1, 40)],
             "run97's order residue reached a unit item 368 did not leave it on"
         );
         // The count is floored beneath the set, so a known unit growing
@@ -7666,8 +7671,14 @@ mod tests {
             // **Six → four on item 518**: `1/27` and `1/28` leave it,
             // the raiders `Groups::process`'s reset put back on the
             // original's pace (`docs/GROUPS.md` §19).
-            vec![(1, 24), (1, 25), (1, 26), (1, 35)],
-            "the window's standing position residue is not the four it is"
+            //
+            // **Four → three on item 539**: `1/35` leaves it, a Longbowman
+            // of the squad whose soft flags the fast path's stride over an
+            // empty world cell had parted (`docs/COLLISION.md` §4.2). The
+            // word moved *up* on the same item, which can only add keys
+            // below it, so the fall is the fix's.
+            vec![(1, 24), (1, 25), (1, 26)],
+            "the window's standing position residue is not the three it is"
         );
         // **Counted below the word**, not over the whole map: the word's
         // own row joined this set when the headline moved past 10232, and
@@ -9445,13 +9456,16 @@ mod tests {
         // assertion below says by naming the two rows rather than
         // counting them: a count would have hidden which frames they are
         // on, and the frames are the whole point.
+        //
+        // **Item 539 closed those two**: `1/35`'s walk now keeps the
+        // original's step, because the soft flag that halved it came from
+        // the fast path's stride over an empty world cell
+        // (`docs/COLLISION.md` §4.2). The band is empty over the whole
+        // window below the word again.
         assert_eq!(
             walkw,
-            vec![
-                "frame 9338: 1/35 guy 0 cur_anim ours 8 theirs 7".to_string(),
-                "frame 9339: 1/35 guy 0 cur_anim ours 8 theirs 7".to_string(),
-            ],
-            "run97's walk-slot band is not the two rows item 385 left it on, \
+            Vec::<String>::new(),
+            "run97's walk-slot band is not the empty set item 539 left it, \
              over the {} frames below the word",
             LONG_WORD_GREAT_LAKES - 8_443
         );

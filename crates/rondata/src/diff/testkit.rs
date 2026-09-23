@@ -1651,7 +1651,12 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_582;
 /// because the group's one plan is made from *its* slot, and what is left
 /// of it is the pathfinder's tie-break — same start, same end, same `x`,
 /// a `y` one or two cells south over three stretches that re-converge.
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 28_222;
+///
+/// **28,222 → 28,220 on item 539**: `1/33`'s two rows leave, with `1/33`
+/// itself leaving the set. It is a bowman of the squad whose soft flags
+/// the collision probe's stride over an empty world cell had parted
+/// (`docs/COLLISION.md` §4.2).
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 28_220;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

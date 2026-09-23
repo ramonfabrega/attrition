@@ -2936,6 +2936,10 @@ re-parted on 11357, which is the same clause.
 | squad blocks with a soft-flag or unit-cell parting | 193 | **0** |
 | squad positions parting, any block of the window | `1/34` from 11364, and the rest | **none** |
 | `1/34` arrives, theirs / ours | 11533 / 11531 | **11533 / 11533** |
+| run100 standing position residue | four units | **three**: `1/35` leaves |
+| run97 walk-slot band below the word | two rows, `1/35` | **none** |
+| run97 order residue, set / rows | three units / 28,222 | **two** / **28,220**: `1/33` leaves |
+| Great Lakes endpoint `off` / `unlinked` / `extra` / `build_diverged` | 50 / 1 / 0 / 9 | **46** / **0** / **3** / **10** |
 
 The new word, **11582**, is a building placement. Ours spends 948 draws
 against 9 on that frame, parting at index 5: ours
