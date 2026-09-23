@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 557, 2026-09-22 — the pool's other writers
+
+(561) **`Unit::come_out`'s own push of its squad** (group 69 on 11423),
+the only residue of run134's pool dump; the list it leaves at 11424's
+add is the same either way. Pinned in `run134_s_pool_list_is_the_original_s`.
+
+(562) **Five unmodelled writers of `+0x80 = −1`**: `do_build`,
+`build_done`, `do_attack`, `do_non_flat_gather` and `think_peasant`. They
+could renumber the early-game pool (`docs/GROUPS.md` §19.4, run69's
+scout slot churn). No score names them.
+
 ## Parked by item 554, 2026-09-22 — the group order's identity
 
 (558) **The group order's `id` carries the army slot, not the pool
@@ -29,11 +40,6 @@ index**: 2 here against 66 in the original. `group_id`'s comment says it
 is compared nowhere, but `order:group.id` parts on run130's widening from
 11513 (`1/60`). A value row with no draw; promote it with 557 if the
 pool membership fix reaches it.
-
-(559) **The step of 12 as the group speed cap.** 554's hypothesis that
-army 2's step of 12 is §18's cap and a unit outside the pool walks at 25
-was not probed (`docs/GROUPS.md` §22.4). It becomes 557's first check if
-`1/64`'s pool exit is confirmed.
 
 ## Parked by item 545, 2026-09-22 — `get_cost`'s unbuilt corners
 
