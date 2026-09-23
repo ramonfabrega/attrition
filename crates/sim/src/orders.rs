@@ -2857,7 +2857,19 @@ impl Sim {
             // action set and runs a region check just above (a
             // turn-in-place before a leg that ends in another terrain
             // region); neither is modelled — `docs/ORDERS.md` §4.4.
-            if let Some(other) = self.detect_unit_collision(u, mo.waypoint) {
+            //
+            // **And a ship never asks.** The call is `(x, y, 0, 0, 0, 0, 0)`
+            // on the listing (`5f86f9`–`5f8707`); with `boats` zero the
+            // second arm returns 0 at `61782b`, before any scan and past the
+            // exit bookkeeping (`docs/COLLISION.md` §13). East Indies' Bark
+            // `1/34` took a soft hit here from Trireme `1/32` beside the
+            // navy's muster and walked its first step at half speed.
+            let hit = if self.takes_boat_arm(u) {
+                None
+            } else {
+                self.detect_unit_collision(u, mo.waypoint)
+            };
+            if let Some(other) = hit {
                 let action = self.action_of(u).map(|a| self.units[u].orders[a].index());
                 if top.flags & path_flag::FINAL != 0
                     && matches!(
@@ -4102,7 +4114,14 @@ impl Sim {
         // goes to `resolve_unit_collision`.
         let top = self.units[u].path.last().copied();
         let mut target = step.pos;
-        let hit = self.detect_unit_collision(u, target);
+        // `move_step`'s probe is `(x, y, 0, 1, 0, 0, 0)`: a ship takes the
+        // second arm, and a push that handles the point answers no
+        // collision before the land scan (`docs/COLLISION.md` §13.2).
+        let hit = if self.takes_boat_arm(u) && self.detect_boat_collision(u, target, true) {
+            None
+        } else {
+            self.detect_unit_collision(u, target)
+        };
         // `detect_unit_collision` writes `coll_x`/`coll_y` **into the
         // order**, and the original walks `move_step` on a pointer to it,
         // so every later write of the move's own fields keeps the pair.

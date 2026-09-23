@@ -6237,9 +6237,11 @@ position) and added 28: `1/33`'s seated birth record and `1/34`'s walk.
 
 ### 25.5 What this has *not* established
 
-- **`1/34`'s first step.** `avg_speed` is 5 against 10 on 10325, and
+- ~~**`1/34`'s first step.** `avg_speed` is 5 against 10 on 10325, and
   its path is 11 legs against 10 on 10327. It may be the Bark's own
-  birth or the navy's group move. This is the next item's frame.
+  birth or the navy's group move. This is the next item's frame.~~
+  Neither: `do_move`'s waypoint probe raised the one-shot half step, and
+  the original never scans for a ship there (`docs/COLLISION.md` §13).
 - **The aircraft-carrier half** of the warship predicate is implemented
   strictly (`is(0x15f, 1)`, the graft) and no capture has a carrier.
 - **`SEARCH_FRIENDLY` in the navy's `find_city`** is taken as own

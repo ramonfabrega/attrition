@@ -270,6 +270,13 @@ pub struct Profile {
     /// `BLOCK_RADIUS × UNIT_BLOCK_RADIUS` and `big_radius`, position units.
     pub block_radius: i32,
     pub big_radius: i32,
+    /// `UnitTypeData +0x2f8 push_size` and `+0x2fc push_circles`, by the
+    /// type record: a pushing unit's collision profile, `push_circles`
+    /// circles of radius `push_size / push_circles` strung along its
+    /// facing (`Unit::detect_boat_collision`, `docs/COLLISION.md` §13).
+    /// Position units; zero for a building.
+    pub push_size: i32,
+    pub push_circles: i32,
     /// `role & 0x10000` — a combat unit, for the target ranking and `on_duty`.
     pub combat_role: bool,
     /// `is(HOPLITES)` — the heavy-infantry lineage, precomputed the way

@@ -468,7 +468,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // margin, the warship clause and the navy, and this map's word
         // moves 10232 → 10398. The 24,000th frame reshuffles 13,603 past
         // it. DECISIONS 36: the number, not a trade.
-        off: 57,
+        // **57 → 62 off, 5 → 2 unlinked, 1 → 2 build_unlinked** on item 588,
+        // the sea half of `detect_unit_collision`'s second arm
+        // (`docs/COLLISION.md` §13), 13,419 frames past this map's new word
+        // 10582. DECISIONS 36: the number, not a trade.
+        off: 62,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -481,9 +485,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **8 → 2 unlinked** on item 573, beside 63 → 69 off above.
         // **2 → 22 unlinked** on item 576, beside 69 → 45 off above.
         // **22 → 5 unlinked** on item 579, beside 45 → 57 off above.
-        unlinked: 5,
+        // **5 → 2** on item 588, beside `off` above: player 1's `81` and `82`.
+        unlinked: 2,
         extra: 0,
-        build_unlinked: 1,
+        // **1 → 2** on item 588, beside `off` above.
+        build_unlinked: 2,
         build_diverged: 25,
         city_unlinked: 3,
         city_diverged: 0,
@@ -1211,7 +1217,8 @@ pub const LADDER: [Endpoint; 2] = [
         // this map's word moves 9983 → 10232. This rung reads 5,169 frames
         // past it. DECISIONS 36.
         // **40 → 38** on item 579 (`docs/ORDERS.md` §25).
-        off: 38,
+        // **38 → 41** on item 588; see `extra` below.
+        off: 41,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1337,9 +1344,13 @@ pub const LADDER: [Endpoint; 2] = [
         // original did not are gone.
         // **7 → 19 extra** on item 579, beside 40 → 38 off above: the navy
         // and the dock's margin, 5,003 frames past this map's word.
-        extra: 19,
+        // **19 → 22 extra, 38 → 41 off, 4 → 5 build_diverged** on item 588,
+        // the sea half of `detect_unit_collision`'s second arm
+        // (`docs/COLLISION.md` §13), 4,819 frames past this map's new word.
+        extra: 22,
         build_unlinked: 10,
-        build_diverged: 4,
+        // **4 → 5** on item 588, beside `extra` above.
+        build_diverged: 5,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1442,7 +1453,8 @@ pub const LADDER: [Endpoint; 2] = [
         // one position closer and three more units, the Javelineers this
         // crate's first unit upgrade makes of rung C's Slingers. DECISIONS 36.
         // **48 → 46** on item 579 (`docs/ORDERS.md` §25).
-        off: 46,
+        // **46 → 51** on item 588; see `extra` below.
+        off: 51,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1538,7 +1550,9 @@ pub const LADDER: [Endpoint; 2] = [
         // original did not are gone; `off` and every other field hold.
         // DECISIONS 36.
         // **1 → 12 extra** on item 579, beside 48 → 46 off above.
-        extra: 12,
+        // **12 → 18 extra, 46 → 51 off** on item 588, the sea half of `detect_unit_collision`'s second arm
+        //  (`docs/COLLISION.md` §13), 13,419 frames past this map's new word. DECISIONS 36: the number, not a trade.
+        extra: 18,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

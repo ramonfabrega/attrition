@@ -1112,6 +1112,8 @@ pub fn load_tables(
             // always zero and `big_radius` is `block_radius` for every unit
             // type. Nothing else in the export writes `+0x244`.
             big_radius: c.block_radius,
+            push_size: c.push_size,
+            push_circles: c.push_circles,
             // `role & 0x10000`, exactly — the `CIVILIAN` mask was the first
             // reading's stand-in and disagrees on two of the 364 (the Armed
             // Supply Wagon, which the `Civilian` *category* refuses, and
@@ -1321,6 +1323,8 @@ pub fn load_tables(
             most_shots: c.most_shots,
             block_radius: 0,
             big_radius: 0,
+            push_size: 0,
+            push_circles: 0,
             hoplites: false,
             combat_role: false,
             cost: c.cost.iter().sum::<i32>() * 10,
@@ -1923,6 +1927,14 @@ struct UnitCols {
     /// it to 10 and writes `+0x234` and `+0x238` with the same value.
     circle_radius: i32,
     block_radius: i32,
+    /// `PUSH_SIZE` and `PUSH_CIRCLES` as `UnitType::init@0061ab50:664`-`691`
+    /// stores them: the circles clamped to `[1, 100]`; the size clamped
+    /// the same way, **replaced by `BLOCK_RADIUS` when there is one
+    /// circle**, and then times `UNIT_BLOCK_RADIUS`. Checked against the
+    /// start dump's own `push_size`/`push_circles` for every type
+    /// (`every_unit_type_s_push_profile_is_the_original_s`).
+    push_size: i32,
+    push_circles: i32,
     x_spacing: i32,
     y_spacing: i32,
     guy_spacing: i32,
@@ -2032,6 +2044,12 @@ impl UnitCols {
             // that does not gets the single centre point instead.
             circle_radius: int(l, "CIRCLE_RADIUS").unwrap_or(0).clamp(0, 10),
             block_radius: int(l, "BLOCK_RADIUS").unwrap_or(0) * UNIT_BLOCK_RADIUS,
+            push_circles: int(l, "PUSH_CIRCLES").unwrap_or(-1).clamp(1, 100),
+            push_size: if int(l, "PUSH_CIRCLES").unwrap_or(-1).clamp(1, 100) == 1 {
+                int(l, "BLOCK_RADIUS").unwrap_or(-1)
+            } else {
+                int(l, "PUSH_SIZE").unwrap_or(-1).clamp(1, 100)
+            } * UNIT_BLOCK_RADIUS,
             x_spacing: int(l, "X_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
             y_spacing: int(l, "Y_SPACING").unwrap_or(0) * UNIT_FORMATION_SPACING,
             guy_spacing: int(l, "GUY_SPACING").unwrap_or(0) * UNIT_GUY_SPACING,
