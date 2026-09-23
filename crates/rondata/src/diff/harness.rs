@@ -9446,66 +9446,45 @@ mod tests {
         }
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
-        // **The word's blocks, whole** (`docs/COLLISION.md` §12). Every key
-        // first parting on 11805..=11807, both directions. It is one unit,
-        // `1/37`, and its first row is the soft one-shot on 11805: the
-        // original's `1/37` waits on `1/64` from 11803 to 11809 (a hard
-        // collision every frame, `collide` 4 → 10), and this crate's
-        // carries `unit_masks & 0x100000` out of frame 11804's sweep,
-        // spends it on 11805 to step to (40194, 20971) and stops there on
-        // 11806 — the extra `move_step+0x823` draw. `1/9`, `1/49` and
-        // `1/64`'s `pause` are the draw stream one frame on.
-        let mut on_word: Vec<String> = firsts
+        // **The word's blocks, empty: the value diff of item 560's move**
+        // (`docs/COLLISION.md` §12). Until 560 they parted on one unit,
+        // `1/37`, 25 rows from `half_step` on 11805: the original's `1/37`
+        // waits on `1/64` from 11803 to 11809 (a hard collision every
+        // frame, `collide` 4 → 10), and this crate's carried `unit_masks &
+        // 0x100000` out of frame 11804's sweep — a soft group-mate seen on
+        // the way to `1/64` hard — spent it on 11805 to step to (40194,
+        // 20971) and stopped there on 11806, the extra `move_step+0x823`
+        // draw. With the one-shot set only when the walk ends without a
+        // hard hit, the word moved to 11903, past this window, and the
+        // keys parted on it fell 635 → 284: every row from 11805 to the
+        // capture's last block, gone.
+        let on_word: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
-        on_word.sort();
         assert_eq!(
             on_word,
-            [
-                "11805 1/37 half_step: ours 1 theirs 0",
-                "11806 1/37 collide: ours 6 theirs 7",
-                "11806 1/37 collide_o: ours -1 theirs 64",
-                "11806 1/37 collide_who: ours -1 theirs 1",
-                "11806 1/37 g.avg_speed[0]: ours 7 theirs 4",
-                "11806 1/37 g.cur_anim[0]: ours 7 theirs 0",
-                "11806 1/37 g.cur_time[0]: ours 1 theirs 4",
-                "11806 1/37 g.des_x[0]: ours 40194 theirs 40186",
-                "11806 1/37 g.des_y[0]: ours 20971 theirs 20962",
-                "11806 1/37 g.end_time[0]: ours 15 theirs 33",
-                "11806 1/37 g.last_speed[0]: ours 12 theirs 0",
-                "11806 1/37 g.last_time[0]: ours 0 theirs 3",
-                "11806 1/37 g.stopped[0]: ours 0 theirs 1",
-                "11806 1/37 g.x[0]: ours 40194 theirs 40186",
-                "11806 1/37 g.y[0]: ours 20971 theirs 20962",
-                "11806 1/37 pos: ours (40194,20971) theirs (40186,20962)",
-                "11807 1/37 g.angle[0]: ours 1582432256 theirs 1583284224",
-                "11807 1/37 g.des_angle[0]: ours 1582432256 theirs 1583284224",
-                "11807 1/37 heading: ours 1582432256 theirs 1583284224",
-                "11807 1/37 order:coll: Coll { ours: Some((40212, 20988)), theirs: (40204, 20980) }",
-                "11807 1/49 g.cur_anim[0]: ours 29 theirs 31",
-                "11807 1/49 g.end_time[0]: ours 30 theirs 80",
-                "11807 1/64 order:move.pause: Move { field: \"pause\", ours: 7, theirs: 8 }",
-                "11807 1/9 g.cur_anim[0]: ours 2 theirs 0",
-                "11807 1/9 g.end_time[0]: ours 86 theirs 33",
-            ],
-            "the word's blocks part on a different set"
+            Vec::<String>::new(),
+            "the old word's blocks part again"
         );
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f >= WORD_BLOCK - 2)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(past, Vec::<String>::new(), "run135 parts past 11804");
         // **Who stops, both sides**: `1/37`'s figure changes animation on
-        // 11806 and 11807 in this crate and on neither in the original.
+        // neither side on the word's blocks — until 560, on 11806 and 11807
+        // in this crate alone.
         let stops: Vec<(i64, bool, bool)> = changed
             .iter()
             .filter(|c| c.1 == 37)
             .map(|c| (c.0, c.2, c.3))
             .collect();
-        assert_eq!(
-            stops,
-            [(11_806, false, true), (11_807, false, true)],
-            "1/37's stop, (block, theirs changed, ours changed)"
-        );
+        assert_eq!(stops, Vec::<(i64, bool, bool)>::new(), "1/37's stop");
         // **Backwards**: nothing of `1/37` parts under the word but
-        // (558)'s group-order ids, so the one-shot is where it starts.
+        // (558)'s group-order ids.
         let under: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {

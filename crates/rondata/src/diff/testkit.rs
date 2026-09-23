@@ -1621,6 +1621,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run134_s_pool_list_is_the_original_s` holds the pool lists the move
 /// rests on.
 ///
+/// ~~**11806 is `1/37` stepping where the original's waits.**~~ **Item
+/// 560 moved it 11806 → 11903, and the mechanism was where the soft
+/// one-shot is set** (`docs/COLLISION.md` §12). `detect_unit_collision`
+/// raises `unit_masks & 0x100000` only when its nine-cell walk ends
+/// without a hard hit; this crate raised it on any soft candidate, so
+/// `1/37`'s sweep of frame 11804 — a group-mate soft, then `1/64` hard —
+/// left a half step the original never has, and `1/37` stepped on 11805
+/// where the original's waited to 11809. The new word's delta: ours
+/// **5** draws and the original **4**, parting at index **1** — ours
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/64`'s stop) against
+/// the original's `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **Past
+/// every dump on disk**: run135 ends on block 11859, so the word's block
+/// is owed a capture ([`WIDENINGS`]); 11807 stays in
+/// `run135_s_word_frame_is_widened_whole`, pinned empty with every block
+/// after it, as the move's value diff.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1632,7 +1648,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_806;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_903;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2540,12 +2556,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // The word's block parts on `1/37` alone: it carries the soft
     // one-shot out of a sweep that also found `1/64` hard, and steps
     // where the original's waits (`docs/COLLISION.md` §12).
+    //
+    // **And item 560 moved it 11806 → 11903, past run135's last block
+    // (11859)**, so the widening is owed a capture again and this row
+    // names the item that owes it and no test. The same test keeps 11807
+    // pinned empty, with every block after it, as the move's value diff,
+    // on its own `GREAT_LAKES_CROSSING_BLOCK`. **560 is the placeholder**:
+    // the commander re-points this row at the item that books the
+    // capture before 560 leaves the queue, or the guard goes red.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run135_s_word_frame_is_widened_whole"),
+        None,
         560,
-        Some(WIDENING_GREAT_LAKES_CROSSING),
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
