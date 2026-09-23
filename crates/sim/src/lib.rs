@@ -4121,6 +4121,20 @@ impl Sim {
                 self.process_follower(i, g);
             }
         }
+        // `Guy::process@005e0230:30–56`, right after `Guy::move`: a pivot
+        // figure (`guy_flags & 0x100`, its type has `<RESTRICTION>` rows)
+        // turns each turret toward where `set_all_pivots` last told it,
+        // 15° a frame, snapping inside 15°, and sets the node's bit once
+        // there (`docs/COMBAT.md` §55.3).
+        if self.units[i]
+            .ty
+            .and_then(|t| self.art.pivots.get(&self.unit_types[t].type_index))
+            .is_some_and(|n| !n.is_empty())
+        {
+            for g in &mut self.units[i].guys {
+                g.turret.step();
+            }
+        }
         // `Guy::process`'s own tail: the sixty-fourth-frame repaint of the
         // collision block (`docs/COLLISION.md` §2.2). It reads the body as
         // `Guy::move` has just left it, which for guy 0 is the unit's own

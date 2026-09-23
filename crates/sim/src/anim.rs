@@ -338,6 +338,60 @@ pub struct Guy {
     /// it, so it has none either (`Guy::do_turn@005d97a0:37` recurses only
     /// into the trackless crew).
     pub follow: Option<Follow>,
+    /// A pivot figure's turret (`docs/COMBAT.md` §55): zero on every
+    /// figure whose piece has no `<RESTRICTION>` row.
+    pub turret: Turret,
+}
+
+/// **A pivot figure's turret** — `GuyData +0x20 turret_angles[4]`, `+0x30
+/// des_turret_angles[4]` and `+0x96 node_flags`, all zero from
+/// `Guy::clear@005db590`.
+///
+/// `Guy::set_all_pivots@005d8bc0` writes `des[k]`, the node's bearing on
+/// the target less the figure's angle, for every node whose range holds
+/// it; `Guy::process@005e0230:30–56` turns each `angles[k]` toward its
+/// `des[k]` by 15° (`0xaaa_aaaa`) a frame, snapping inside 15°, and sets
+/// node bit `k` once they meet. A release on node `n` of a pivot piece
+/// fires only with bit `n & 3` set (`execute_game_events`' gate), and
+/// leaves at the turret's angle ([`crate::pivot::release_offset`]).
+/// `GUYS=4` prints all three.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Turret {
+    /// `turret_angles`: where each pivot points, relative to the figure.
+    pub angles: [i32; 4],
+    /// `des_turret_angles`: where `set_all_pivots` last told it to point.
+    pub des: [i32; 4],
+    /// `node_flags`: bit `k` once `angles[k]` has reached `des[k]`.
+    pub node_flags: u16,
+}
+
+impl Turret {
+    /// `Guy::clear`'s.
+    pub const ZERO: Turret = Turret {
+        angles: [0; 4],
+        des: [0; 4],
+        node_flags: 0,
+    };
+
+    /// `Guy::process@005e0230:30–56`, one frame: each turret on its
+    /// desired angle sets its bit; one within 15° (`0xaaa_aaaa`, the
+    /// difference folded by `~` past a half turn) snaps there and sets it;
+    /// any other turns 15° toward it, down while `angle − des` is below a
+    /// half turn as unsigned and up otherwise. A bit is never cleared
+    /// here — only `set_all_pivots` and `Guy::clear` do.
+    pub fn step(&mut self) {
+        for k in 0..4 {
+            let (a, d) = (self.angles[k], self.des[k]);
+            if a == d || crate::fight::turret_near(a, d) {
+                self.angles[k] = d;
+                self.node_flags |= 1 << k;
+            } else if (a.wrapping_sub(d) as u32) < 0x8000_0000 {
+                self.angles[k] = a.wrapping_sub(0x0aaa_aaaa);
+            } else {
+                self.angles[k] = a.wrapping_add(0x0aaa_aaaa);
+            }
+        }
+    }
 }
 
 /// A crew guy's own body — `GuyData`'s second half, for the guys
@@ -394,6 +448,7 @@ impl Guy {
             queued_attack: 0,
             aim: None,
             follow: None,
+            turret: Turret::ZERO,
         }
     }
 }
@@ -1510,6 +1565,28 @@ impl Sim {
                 let start = t;
                 let t = i64::from(t);
                 if i64::from(last) < t && t <= cur {
+                    // **A pivot piece releases through its turret**
+                    // (`docs/COMBAT.md` §55): the event fires only once
+                    // the pivot's node bit is set (`execute_game_events`'
+                    // gate: `has_restrictions(gpiece) == 0`, or `node & 3`
+                    // past the count, or the bit), and the round leaves
+                    // from `get_position`'s pivot branch — the pivot node
+                    // at the figure's facing plus the release node at the
+                    // facing **and the turret's angle**.
+                    let pivot = crate::pivot::release(guy.gpiece, guy.anim, start);
+                    let pivots = self.units[u]
+                        .ty
+                        .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))
+                        .map_or(0, |n| n.len());
+                    if let Some(r) = pivot {
+                        let k = (r.node & 3) as usize;
+                        if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
+                            continue;
+                        }
+                    }
+                    let facing = guy
+                        .follow
+                        .map_or(self.units[u].movement.facing, |f| f.facing);
                     // **The shot leaves the bow hand, not the unit's own
                     // square** (§22): `execute_game_events` adds
                     // `GraphicPieces::get_position`'s per-(piece, node,
@@ -1517,21 +1594,32 @@ impl Sim {
                     // and the aim is then taken from *that* point —
                     // `find_angle(T − launch)`, which is what run108's
                     // `ex, ey` reproduce.
-                    let from = crate::launch::launch_point(
-                        self.units[u].pos,
-                        self.units[u].movement.facing,
-                        guy.gpiece,
-                        guy.anim,
-                        start,
-                    );
-                    // And it leaves from the node's height over the
-                    // figure's own `z` (`docs/COMBAT.md` §46.1). That is
-                    // `Guy::update_z@005d9950`'s: `find_data_z` for a
-                    // figure of any domain but sea, and **0** for a sea
-                    // one, the water's surface rather than the lake bed
-                    // under it (§50.3, run127's trireme rounds at `sz` 88
-                    // over a bed at −273).
-                    let dz = crate::launch::node(guy.gpiece, guy.anim, start).map_or(0, |n| n.dz);
+                    let (from, dz) = match pivot.filter(|r| ((r.node & 3) as usize) < pivots) {
+                        Some(r) => {
+                            let turret = guy.turret.angles[(r.node & 3) as usize];
+                            let (x, y, z) = crate::pivot::release_offset(&r, facing, turret);
+                            let at = self.units[u].pos;
+                            (Pos::new(at.x + x, at.y + y), z)
+                        }
+                        None => (
+                            crate::launch::launch_point(
+                                self.units[u].pos,
+                                self.units[u].movement.facing,
+                                guy.gpiece,
+                                guy.anim,
+                                start,
+                            ),
+                            // And it leaves from the node's height over
+                            // the figure's own `z` (`docs/COMBAT.md`
+                            // §46.1). That is `Guy::update_z@005d9950`'s:
+                            // `find_data_z` for a figure of any domain but
+                            // sea, and **0** for a sea one, the water's
+                            // surface rather than the lake bed under it
+                            // (§50.3, run127's trireme rounds at `sz` 88
+                            // over a bed at −273).
+                            crate::launch::node(guy.gpiece, guy.anim, start).map_or(0, |n| n.dz),
+                        ),
+                    };
                     let z = if self.unit_domain_of(u) == crate::attrition::Domain::Sea {
                         0
                     } else {
@@ -1656,6 +1744,28 @@ impl Sim {
             } else {
                 self.mark(SITE_ATTACK_INC);
                 self.guy_set_anim(u, g, ATTACK1, false, true);
+            }
+        }
+        // **The crew swings with its leader** — `Guy::inc_time`'s foot,
+        // the `GUYS=4` say `0x7c9` (`docs/ANIM.md` §5.1, item 602). Figure
+        // 0 (`guy_num == 0`) that its own step leaves in the attack
+        // category puts every crew figure, `squad_size` up to the unit's
+        // guy count, on its own destination
+        // (`Guy::set_new_location(des, 1)`: the body, and not the facing)
+        // and on figure 0's slot and clock. The crew's own mirror (the
+        // `else` arm above) copies only a crew figure that is not
+        // walking, so without this a crew that fell to the walk category
+        // while figure 0's swing was deferred stayed there, stepped its
+        // own clock and rolled a fresh attack on the next swing — golden
+        // chapter three's restage, 664.
+        if g == 0 && category(self.units[u].guys[0].anim) == 12 {
+            let lead = self.units[u].guys[0];
+            for crew in self.units[u].guys.iter_mut().skip(SQUAD_SIZE) {
+                if let Some(f) = &mut crew.follow {
+                    f.body.pos = f.des;
+                }
+                crew.anim = lead.anim;
+                crew.cur_time = lead.cur_time;
             }
         }
     }
@@ -1814,6 +1924,10 @@ impl Sim {
                         self.mark(SITE_ATTACK_STAND);
                         self.guy_set_anim(u, g, ATTACK1, false, true);
                     }
+                    // `Guy::move:71`: the swing re-aims its turret on the
+                    // figure's own aim (`docs/COMBAT.md` §55.3).
+                    let aim = self.units[u].guys[g].aim;
+                    self.set_all_pivots(u, g, aim);
                     self.units[u].guys[g].pending_attack = 0;
                     self.units[u].guys[g].stopped = true;
                     return;
@@ -1863,6 +1977,10 @@ impl Sim {
                         self.guy_set_anim(u, g, ATTACK1, false, true);
                     }
                 }
+                // `Guy::move:95` and `:102`: re-aimed on both arms, a turn
+                // slot or not.
+                let aim = self.units[u].guys[g].aim;
+                self.set_all_pivots(u, g, aim);
                 self.units[u].guys[g].stopped = false;
                 return;
             }
@@ -2058,6 +2176,7 @@ mod tests {
             queued_attack: 0,
             aim: None,
             follow: None,
+            turret: Turret::ZERO,
         }];
         s.add_unit(u)
     }
@@ -2485,6 +2604,7 @@ mod tests {
             queued_attack: 0,
             aim: None,
             follow: None,
+            turret: Turret::ZERO,
         });
         s.frame = 101;
         s.guys_inc_time();
@@ -2566,6 +2686,7 @@ mod tests {
                 queued_attack: 0,
                 aim: None,
                 follow: None,
+                turret: Turret::ZERO,
             }];
             let a = s.add_unit(u);
             if let Some(p) = blocker {
@@ -2645,6 +2766,7 @@ mod tests {
                 queued_attack: 0,
                 aim: None,
                 follow: None,
+                turret: Turret::ZERO,
             }];
             let u = s.add_unit(u);
             s.buildings[uni].garrison.push(u);

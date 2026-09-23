@@ -788,7 +788,13 @@ impl Sim {
         if nodes.is_empty() || self.profile(Obj::Unit(i)).max_range == 0 || !live || n == 0 {
             return false;
         }
-        self.set_all_pivots(i, n - 1, target, nodes)
+        // Every aimed figure's own `set_all_pivots`, and the answer is the
+        // last one's (`005fce70`); each writes its own turret.
+        let mut can = false;
+        for g in 0..n {
+            can = self.set_all_pivots(i, g, Some(target));
+        }
+        can
     }
 
     /// **`Guy::set_all_pivots@005d8bc0`** — can every restricted node of
@@ -810,19 +816,35 @@ impl Sim {
     /// leaves it.
     ///
     /// Every comparison is on integer degrees, so the `float`s change
-    /// nothing. The turret angle it also writes (`+0x30`, and the node
-    /// bits `+0x96`/`+0x98`) is not carried: nothing in the simulation
-    /// reads it, and `GUYS=2` does not print it.
+    /// nothing.
+    ///
+    /// **And it aims the turret** (`docs/COMBAT.md` §55.3): the call first
+    /// clears `node_flags` (`*(u32 *)(+0x96) = 0`, the bits and their
+    /// desired twin), and a target that is gone answers 1 there and writes
+    /// nothing more. Each node whose range holds the bearing then takes
+    /// `des_turret_angles[node − 4] = bearing − the figure's angle`, and
+    /// its bit when that is already within 15° of the turret
+    /// (`005d8ed7`–`005d8f02`: the unsigned difference, `~` past a half
+    /// turn, below `0xaaa_aaaa`). The ±45° test does not gate the write.
     ///
     /// SEAM: the node's vector is pinned for the Chariot's figure only
     /// (`pivot::NODES`); any other piece bears from the unit's point.
-    fn set_all_pivots(
-        &self,
-        i: usize,
-        g: usize,
-        target: Obj,
-        nodes: &std::collections::BTreeMap<i32, (i32, i32)>,
-    ) -> bool {
+    /// SEAM: an `ATTACK_GROUND` order with no aim bears on the order's
+    /// point in the original; this crate writes nothing for it.
+    pub(crate) fn set_all_pivots(&mut self, i: usize, g: usize, target: Option<Obj>) -> bool {
+        let Some(ty) = self.units[i].ty else {
+            return false;
+        };
+        let Some(nodes) = self.art.pivots.get(&self.unit_types[ty].type_index).cloned() else {
+            return false;
+        };
+        if nodes.is_empty() || g >= self.units[i].guys.len() {
+            return false;
+        }
+        self.units[i].guys[g].turret.node_flags = 0;
+        let Some(target) = target.filter(|&t| self.active(t)) else {
+            return true;
+        };
         let (from, to) = (self.units[i].pos, self.pos_of(target));
         let guy = self.units[i].guys.get(g).copied();
         let facing = match guy.and_then(|x| x.follow) {
@@ -849,6 +871,13 @@ impl Sim {
                 deg >= lo || deg <= hi
             };
             can &= inside;
+            if inside && let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
+                let t = &mut self.units[i].guys[g].turret;
+                t.des[k] = bearing.0.wrapping_sub(facing.0);
+                if turret_near(t.des[k], t.angles[k]) {
+                    t.node_flags |= 1 << k;
+                }
+            }
         }
         can
     }
@@ -2664,6 +2693,16 @@ impl Sim {
 /// `Object::take_damage` on a site: `whole × 50` off the progress.
 const fn combat_progress_lost(whole: i32) -> i32 {
     crate::build::progress_lost(whole)
+}
+
+/// **Within a turret's step of each other**: `(a − b)` as unsigned, folded
+/// by `~` past a half turn, below 15° (`0xaaa_aaaa`) — the test
+/// `Guy::set_all_pivots` and `Guy::process` both make (`005d8ed7`,
+/// `005e0263`).
+pub(crate) const fn turret_near(a: i32, b: i32) -> bool {
+    let d = a.wrapping_sub(b) as u32;
+    let d = if d > 0x8000_0000 { !d } else { d };
+    d < 0x0aaa_aaaa
 }
 
 #[cfg(test)]

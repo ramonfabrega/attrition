@@ -153,6 +153,134 @@ pub fn offset_at(piece: i32, node_index: i32, d: i32) -> (i32, i32) {
     )
 }
 
+// ------------------------------------------------------------------
+// The release on a pivot piece (`docs/COMBAT.md` §55)
+// ------------------------------------------------------------------
+
+/// One release event on a pivot piece: the event's node, and the two
+/// `AttachPos` entries `get_position`'s pivot branch reads for it, the
+/// pivot node's `((node & 3) + 4, anim, time)` and the release node's own
+/// `(node, anim, time)`, each `(x, y, z)` in **millionths** of a model
+/// unit (the float's value, rounded; the nearest is 1.2·10⁻⁷ away).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Release {
+    /// The event's `node` (`GraphicEvent +0x23`).
+    pub node: i32,
+    /// The pivot node's entry at the event's anim and time.
+    pub pivot: [i64; 3],
+    /// The release node's entry.
+    pub at: [i64; 3],
+}
+
+/// `(piece, anim, starttime frame) → release`. **Measured, not derived**:
+/// run147's packet holds piece 145's nine `AttachPos` entries, the
+/// `(4, 0, 0)` [`NODES`] reads and, for each of the Chariot's four
+/// `<RELEASEEVENT>`s (node 0; 1232 ms on `CHAR_ATTACK1`, `CHAR_ATTACK3`
+/// and `CHAR_ATTACKWALK`, 1166 on `CHAR_ATTACK2`: frames 18 and 17), the
+/// pivot node's and the release node's own. `GraphicEvents::init_unit_events
+/// @008e2520:833–841` fills exactly these when the piece's events are
+/// built. The bit patterns are in `docs/COMBAT.md` §55.2.
+///
+/// SEAM: every other pivot piece that releases (the horse archers, the
+/// camel archers, the Mameluke's line, the machine-gun ships). A packet
+/// from a game that fields the type reads each row in a minute.
+const RELEASES: &[(i32, i8, u32, Release)] = &[
+    (
+        145,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            node: 0,
+            pivot: [369_230, 24_640_001, 12_299_541],
+            at: [2_249_614, -15_437_737, 30_873_745],
+        },
+    ),
+    (
+        145,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            node: 0,
+            pivot: [0, 24_640_001, 11_550_000],
+            at: [-101_367, -15_533_024, 31_973_480],
+        },
+    ),
+    (
+        145,
+        crate::anim::ATTACK2,
+        17,
+        Release {
+            node: 0,
+            pivot: [0, 25_720_001, 11_550_000],
+            at: [1_031_301, -15_774_166, 29_316_223],
+        },
+    ),
+    (
+        145,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            node: 0,
+            pivot: [0, 24_640_001, 11_550_000],
+            at: [49_376, -15_435_911, 31_925_163],
+        },
+    ),
+];
+
+/// The release row for `(piece, anim, starttime frame)`, if the piece
+/// pivots and its row is measured.
+pub fn release(piece: i32, anim: i8, time: u32) -> Option<Release> {
+    RELEASES
+        .iter()
+        .find(|(p, a, t, _)| (*p, *a, *t) == (piece, anim, time))
+        .map(|&(_, _, _, r)| r)
+}
+
+/// **`fast_angle_to_degrees@00a28f70`**: a 256-entry table of
+/// `(float)angle_to_degrees(i << 24)`, built at first use and indexed by
+/// the angle's top byte (`a28ffe`: `sar 0x18`, `movzbl`). So a turret
+/// angle is read to its 1.40625° step and then rounded to a whole degree
+/// by [`angle_to_degrees`]'s own steps.
+pub const fn fast_degrees(a: i32) -> i32 {
+    angle_to_degrees(Angle(((a as u32) & 0xff00_0000) as i32))
+}
+
+/// **Where a round leaves a pivot piece**: `GraphicPieces::get_position
+/// @0090b750`'s pivot branch, as `GraphicEvents::execute_game_events
+/// @008e48e0` calls it for a release (listing `008e4a8a`–`008e4ac8`), the
+/// vector the event adds to the figure's `x, y, z` (`cvttss2si`,
+/// `008e4acd`–`008e4ae7`).
+///
+/// - `param_5` is `(float)angle_to_degrees(angle − 0x8000_0000)`, the
+///   [`rotation`] `set_all_pivots` takes; `param_6` is the package's
+///   `pivot_angles`, `fast_angle_to_degrees` of each `turret_angles[k]`
+///   (`Guy::execute_events@005d99c0`, `005d9a2e`–`005d9a6d`).
+/// - With `node & 3` below the piece's restriction count and `param_6`
+///   set, the branch first takes the **pivot node's** own vector at the
+///   event's anim and time (`90b882`–`90b8a6`: node `(node & 3) + 4`,
+///   `param_4` from `0x14(%ebp)`) at `param_5` degrees, then rotates the
+///   release node's entry by `cvttss2si(pivot_angles[node & 3] +
+///   param_5)` (`90b916`–`90b926`) and adds the two.
+///
+/// Both degrees are whole numbers, so, as for [`offset`], the result is a
+/// function of integers: `v = s·(R(d₁)·P + R(d₂)·E)` with y negated, `d₁` the
+/// facing's degree and `d₂ = d₁ + fast_degrees(turret)`, each component
+/// truncated once. `z` is `s·(P_z + E_z)`: the rotation is about z.
+pub fn release_offset(r: &Release, facing: Angle, turret: i32) -> (i32, i32, i32) {
+    let d1 = rotation(facing);
+    let d2 = d1 + fast_degrees(turret);
+    let (c1, s1) = (i128::from(cos_deg(d1)), i128::from(sin_deg(d1)));
+    let (c2, s2) = (i128::from(cos_deg(d2)), i128::from(sin_deg(d2)));
+    let [px, py, pz] = r.pivot.map(i128::from);
+    let [ex, ey, ez] = r.at.map(i128::from);
+    let (num, den) = (i128::from(SCALE.0), i128::from(SCALE.1) * 1_000_000);
+    let one = i128::from(ONE);
+    let x = num * (px * c1 + py * s1 + ex * c2 + ey * s2) / (den * one);
+    let y = num * (px * s1 - py * c1 + ex * s2 - ey * c2) / (den * one);
+    let z = num * (pz + ez) / den;
+    (x as i32, y as i32, z as i32)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

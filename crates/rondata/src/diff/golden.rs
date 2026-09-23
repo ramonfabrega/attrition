@@ -5424,6 +5424,10 @@ fn widen_chapter_three(
             }
             for (k, p) in &ours {
                 eprintln!("  {run} block {n} ours   {k:?} {p:?}");
+                if let sim::combat::Obj::Unit(u) = p.shooter {
+                    let un = &s.built.sim.units[u];
+                    eprintln!("  {run} block {n} ours   {k:?} facing {:?} turret {:?}", un.movement.facing, un.guys[0].turret);
+                }
             }
         }
         let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
@@ -5689,7 +5693,7 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         WIDENING_CHAPTER_THREE,
         WORD,
         8,
-        &[651, 652, WORD, WORD + 1],
+        &[651, 652, 729, 730, 753, 754, WORD, WORD + 1],
     ) else {
         return;
     };
