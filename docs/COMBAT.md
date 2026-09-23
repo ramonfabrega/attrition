@@ -4195,13 +4195,15 @@ these units do not have), and the loop's distance test sits below the
    world cell byte `+0xf` `!= -1` && !poor_target(...)`. *Killed by*:
    `Object::poor_target@0064a270` needing the target to be **moving**
    (`is_move` on its order) on its main arm, which the bowmen are not —
-   that arm is already dead, so only its type-record arm (`UnitTypeData
-   +0x9a`, bit 6) and the cell byte survive — and the cell byte is read
+   that arm is already dead, so only its ~~type-record arm (`UnitTypeData
+   +0x9a`, bit 6)~~ **plane arm** (the target's first figure's `guy_flags &
+   0x40`, which only a plane's figures carry, §61.3) and the cell byte
+   survive — and the cell byte is read
    from the *same cell* in both rows of the table above, which kills it
    too.
 
-Written out, that leaves `valid_target` and `poor_target`'s type-record
-arm, and this section stops there rather than choosing: §26.2, §26.4,
+Written out, that leaves `valid_target` and `poor_target`'s ~~type-record~~
+plane arm (dead for a bowman, §61.3), and this section stops there rather than choosing: §26.2, §26.4,
 §27.1 and §29.2 were each a mechanism named one fetch too early, and the
 pattern is the reason `docs/DECISIONS.md` 42 exists.
 
@@ -4215,7 +4217,10 @@ No capture was taken for this item. **Nothing on disk answers *that arm*;
 something on disk answered the question** — §31.3:
 `ObjectData::visible` (`+0x40`) is the *other* survivor's own input and
 the dump has printed it at `UNITS=3` all along. The `+0x9a` capture stays
-unbooked and run113 unspent.
+unbooked and run113 unspent. **It is not needed**
+(item 650, §61.3): the byte is the first figure's `guy_flags`, which
+`Guy::init_real` sets for a plane alone, so a bowman's and a slinger's
+read alike.
 
 ### 30.6 Coverage
 
@@ -4440,12 +4445,16 @@ which no run on disk executes.
 
 - **§30.5's survivor 2 is not killed — it is no longer needed.**
   `find_nearby_target` calls `check_target` with `param_6 = 1`, so
-  `Object::poor_target@0064a270` is reached, and its type-record arm
-  (`UnitTypeData +0x9a`, bit 6) is not excluded by anything here. What
+  `Object::poor_target@0064a270` is reached, and its ~~type-record arm
+  (`UnitTypeData +0x9a`, bit 6)~~ **plane arm** reads the first figure's
+  `guy_flags & 0x40`, set on a plane's figures only (§61.3), so it cannot
+  fire on a bowman. What
   changed is that it can no longer move chapter two's word: the frame it
-  would explain now agrees. The capture §30.5 named — `UnitTypeData
+  would explain now agrees. ~~The capture §30.5 named — `UnitTypeData
   +0x9a` per unit over `[614, 640)` — remains unbooked and unspent, and
-  it is the only way to settle that arm on its own terms.
+  it is the only way to settle that arm on its own terms.~~ The arm is
+  settled by the type record and the listing (`0064a2c2`–`0064a2ca`),
+  and no capture is owed.
 - ~~**`ObjectData::visible` is not modelled**~~ — **answered 2026-09-21 by
   item 457, `docs/VISION.md` §9.** `Unit::set_attacking`'s `visible |= 1 <<
   victim_who`, its 32-frame clear and `Unit::update_local_seen` are all
@@ -5691,10 +5700,12 @@ That ordering is why the function is worth having exactly rather than
 stubbed: stubbed `true` it kills §37.2 outright, stubbed `false` it
 accepts every chase the original refuses.
 
-**SEAM**, both above conjunct 1: a candidate whose first `Guy` carries
+**SEAM**, both above conjunct 1: ~~a candidate whose first `Guy` carries
 `guy_flags & 0x40` takes a different arm entirely
 (`has_objmask(0x80000000)` and then the reach floor), and this crate
-has no such guy flag; `role & 0x400` is unloaded, this crate's
+has no such guy flag~~ **built by item 650, §61.3**: the flag marks a
+plane, and the arm refuses one to a searcher without `ANTI_AIR` or out
+of its reach; `role & 0x400` is unloaded, this crate's
 `combat::role` word being its own synthesis, so the floor is always the
 tile.
 
@@ -10254,3 +10265,153 @@ minimum. With the re-search off, the retaliation keeps its order.
   (`64911b`–`64918d`, `6495c2`–`64963b`).
 - **Reading only**: `find_new_target`'s kill-then-search and the tail's
   packer test (`fight:1051`), and every arm §60.5 lists.
+
+## 61. An aircraft takes no aircraft it cannot reach (item 650, 2026-09-23)
+
+Golden chapter six (run168, `docs/GOLDEN.md` §10) stood at **616**. Ours
+spent 25 draws against 24, parting at draw 18 on a `Unit::fight+0x9b0` of
+the Bomber `1/6`'s. Ours' idle search had taken the Fighter `0/6` on the
+Bomber's birth tick, and the dump's Bomber holds no order from birth to
+899. The item was booked with no mechanism. The kill conditions for three
+readings are in `docs/journal/2026-09-23-item-650.md`, written before the
+build: the searcher refused, the target refused, and §60.2's reach gate.
+
+### 61.1 The floor
+
+`chapter_six_s_word_frame_is_widened_whole` already read every record on
+616 and 617 both ways, and the coverage pin held on 614–618. No field the
+dump prints was unread, so no widening came before the reading. The
+aircraft's rows on the dump are `idle` 1 on 616 and 2 on 617, `orders_x`
+at their own seats and `air_alt` 0, both sides. The Bomber's rules row
+is `FLY_HIGH 0`, `FLY_LOW 10%`, `OBJ_MASK BSX3T` (no `6`, no `ANTI_AIR`)
+and `RANGE 1-3`. The Fighter's is `FLY_HIGH 0`, `FLY_LOW 25%`, `63TG`
+(`ANTI_AIR`) and `2-7`. Their seats are 1536 apart, eight tiles.
+
+### 61.2 `ObjectData::valid_target_const@006472c0`'s air ladder
+
+For an air target (`domain` 2), below the searcher's `max_range != 0`,
+the listing `006474c3`–`0064771c` reads, for a target that is not a
+helicopter (`unit_flags & 0x20`):
+
+```text
+if T.is(0x132) && S.domain != AIR && !can_carry(S, AIR):   refuse
+if S.has_objmask(ANTI_AIR) && S.domain == AIR:             → missile tests
+if S.fly_high == 0 && S.fly_low == 0:                      refuse
+if !S.has_objmask(ANTI_AIR):                               # the target's own
+    if T.fly_high == 0:
+        if T.fly_low == 0 or is_flying_high(T):            refuse
+    elif T.fly_low == 0 and is_flying_low(T):              refuse
+if S.fly_high == 0:  if is_flying_high(T):                 refuse
+elif S.fly_low == 0: if is_flying_low(T):                  refuse
+missile tests: T or S obj_masks & 0x8000000 →             refuse
+```
+
+`fly_high`/`fly_low` are `ObjectTypeData +0x250/+0x254`, the `FLY_HIGH`
+and `FLY_LOW` columns, read by `UnitType::init@0061ab50:628`–`635` and
+`BuildType::init@00632340:319`–`326` as `get_text_num(…, -1)`. Nothing
+else writes them. The searcher's type is read through `objects[who][o]`
+(`0xc0ab84`) and the target's through `units[who][o]` (`0xc0aec0`). The
+decompiler has both right.
+
+**`UnitData::is_flying_low@0060a140`** is 0 unless the unit is a fixed-wing,
+non-missile aircraft on the map holding an order. Then it is 1 on a
+`STRAFE` or `AIR_ATTACK_GROUND` within `0x900` of its point, or on an order
+whose slot `0xfc` hands back a live target within `0x900`. Slot `0xfc` is
+`AirOrder::get_air_order` on `AirOrder`, `AirPatrolOrder` and
+`AirAttackGroundOrder`, and `Window::get_button`, a folded `return 0`, on
+every other class. **`is_flying_high@0060a310`** is the same three type
+tests, on the map, and not low. So an aircraft is high unless an air order
+is bringing it down to its target. This crate gives no player's unit an
+air order, so every plane on the map is high.
+
+The Bomber (`FLY_HIGH` 0, not `ANTI_AIR`) is therefore refused the Fighter
+twice: on the target's own row (`T.fly_high == 0`, and high), and on its
+own (`S.fly_high == 0`, and high). The Fighter, an `ANTI_AIR` aircraft,
+passes straight to the missile tests.
+
+### 61.3 `Object::poor_target@0064a270`'s plane arm
+
+The Fighter may take the Bomber, and the original's never does. Its
+periodic think runs on tick 634, `(o + frame) & 31 == 0`, and ours took
+the Bomber there once §61.2 stood (the word went to 635). What refuses is
+`check_target@00649e00`'s tail, which `find_nearby_target` calls with
+`use_poor` 1 and which falls through to `poor_target`. Its first test is
+at `0064a2c2`–`0064a2ca`:
+
+```text
+guy = units[who][o]->guys.list[0]           # Unit +0xf4: PtrArray<Guy> +0xe4, list +0x10
+if guy->guy_flags & 0x40:
+    if !this->has_objmask(ANTI_AIR):  return 1
+    return attack_dist(this, o, who) > this->max_range() * 0xc0
+... the move arm (§37.3)
+```
+
+`guy_flags & 0x40` is set in `Guy::init_real@005db6b0` on every figure of
+a unit `UnitData::is_plane` accepts, an air-domain type without
+`unit_flags & 0x20`. `Guy::clear` and `init_real`'s own reset zero the
+word, and nothing else clears the bit. So the arm is the target
+type's: **a plane is a futile target** for anything without `ANTI_AIR`,
+and for an `ANTI_AIR` searcher beyond its own reach. The Fighter's reach
+is seven tiles and the Bomber is eight away, so it never takes it.
+~~§30.5 read this byte as `UnitTypeData +0x9a`~~: it is the first figure's
+`guy_flags`, which the type record (`UnitData +0xe4 guys`) settles.
+
+`check_target`'s tail comes before `find_nearby_target`'s `near_o`
+write, so a refused plane never becomes `near_o` either.
+
+### 61.4 The build, and what moved
+
+- `Profile::fly_high`/`fly_low`, loaded for units and buildings with the
+  `-1` default.
+- `Sim::valid_target`: the ladder above, for a target `Sim::is_plane`
+  accepts. `is_flying_low` is false, which is exact for the orders this
+  crate carries, and `is_flying_high` is "not a missile".
+- `Sim::poor_target`: the plane arm, which was a stated seam (§37.3).
+- `Sim::find_nearby_target`: `poor_target` after `valid_target` and above
+  `near`, as `check_target`'s tail. **This also puts §37.3's move arm into
+  the ring search**, where the original has it and this crate did not.
+
+| | before | ladder only | plane arm only | both |
+|---|---|---|---|---|
+| chapter six, run168 | 616 | 635 | 700 | **700** |
+
+`bird` is `CHAPTER_DEBT` (parked 652), and 700 is its frame. There the
+original's draw 0 is the bird's `Guy::init_real+0x52`, and on 701 the AI
+scout `1/0`'s `think_scout` roll lands one draw early. Block 700 agrees on
+every record, and every block from 606 to 700 past the aircraft's `form`.
+The two long words and the closed chapters are in the item's journal.
+
+**The value diff** is `chapter_six_s_word_frame_is_widened_whole` over
+(605, 702). Neither aircraft holds an order on any block to 700 on either
+side, `orders_x/y` stay at their seats, and `idle` climbs alike, 8 on
+700. The unit test `an_aircraft_takes_no_aircraft_it_cannot_reach` was
+made to fail both ways: with the ladder read back the Bomber's
+`valid_target` is true, and with the plane arm off the Fighter's search
+names the Bomber at eight tiles.
+
+### 61.5 What is not established
+
+- **The helicopter arm** (`006474ee`): a helicopter target refuses a
+  searcher by two type vtable slots (`+0x10c`, `+0x110`), a missile, and
+  `is(0x130, 0)`. This crate keeps "ranged and not a missile" for it.
+- **`is(0x132, 0)`**: a non-air searcher that cannot carry aircraft is
+  refused such a target. The id is 306 by the dump's type numbering
+  (Fighter 289 and Bomber 304 are XML rows 239 and 254), which would be
+  the Stealth Bomber. Not built.
+- **An aircraft under an air order** is low, and the ladder's
+  `is_flying_low` arms then matter. This crate has no player air orders.
+- **The Bomber's own refusal is over-determined** on run168. The ladder
+  and the plane arm each refuse it, so this capture cannot tell them
+  apart.
+- **`check_target`'s other gates** in the ring search are still not built:
+  the region test and the DEFENSIVE-with-an-order test (§12.2).
+
+### 61.6 Coverage
+
+- **Diff-backed** (run168, 605–702): neither aircraft takes the other.
+  For the Fighter this backs `poor_target`'s plane arm and its reach floor
+  alone. For the Bomber it backs "one of the two gates".
+- **Listing-backed**: the ladder (`006474c3`–`0064771c`); `is_flying_low`'s
+  slot `0xfc` (`0060a27d`) and the classes that override it; the plane
+  arm's read of `guys.list[0]->guy_flags` (`0064a2c2`–`0064a2ca`).
+- **Reading only**: every §61.5 arm.

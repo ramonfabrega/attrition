@@ -227,6 +227,14 @@ pub struct Profile {
     pub target_size: i32,
     pub guy_radius: i32,
     pub domain: Domain,
+    /// `ObjectTypeData +0x250 fly_high` and `+0x254 fly_low`: the
+    /// `FLY_HIGH` and `FLY_LOW` columns, read by `UnitType::init` and
+    /// `BuildType::init` as `get_text_num(…, -1)`, so a written `25%` is 25
+    /// and a missing column is −1. Nothing writes either afterwards. The
+    /// one reader this crate has is `valid_target`'s air ladder, which asks
+    /// only whether each is zero (`docs/COMBAT.md` §61).
+    pub fly_high: i32,
+    pub fly_low: i32,
     pub siege: bool,
     pub packs: bool,
     /// The type's age, for the combat table's age bonus.
