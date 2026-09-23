@@ -314,7 +314,7 @@ Three arms mention a merchant, and only one of them fires for an AI:
 | where | gate | reached |
 |---|---|---|
 | the auto-attack block, `think:146` | `is(MERCHANTDUTCH 0x3e, 1)` and packed | the Dutch merchant only — it is the merchant with an attack |
-| the rare-collector arm, `think:169`–`179` | `is_rare_collector` **and `leader_flags & 4`** and packed, on `idle == 1` or every 32 | **a human's** merchant or fishing boat: `do_gather(search)` and then `unpack_merchant(this, 4)` |
+| the rare-collector arm, `think:169`–`179` | `is_rare_collector` **and `leader_flags & 4`** and packed, on `idle == 1` or every 32 | **a human's** merchant or fishing boat: `do_gather(search)` and then `unpack_merchant(this, 4)`. Landed by item 543 and diff-backed on run127's fisher (`docs/ORDERS.md` §23) |
 | step 5's own, `think:283` (`LAB_005f7515`) | `is_merchant`, on `idle == 1` or every **128** | every merchant, and this is the AI's |
 
 **`leader_flags & 4` is *human*** — the same bit `Leader::new_rare@006d9e70`

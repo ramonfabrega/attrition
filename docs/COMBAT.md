@@ -8518,10 +8518,12 @@ node, and a sea figure's `z`. The word went to 664.
 
 ### 49.5 What is not established
 
-- The fisher `0/7`. On its birth block, 621, the original gives it two
+- ~~The fisher `0/7`. On its birth block, 621, the original gives it two
   orders, a `CASTORDER` first (order index 14, `uid 65535`), and walks it
   about 130 units from 622. This crate gives it none. It spends no draw
-  under the word. Which spell the Fishermen cast at birth is not read.
+  under the word. Which spell the Fishermen cast at birth is not read.~~
+  Settled by item 543 (`docs/ORDERS.md` §23): the Fishermen's unpack
+  `0x292`, issued by `Unit::think`'s human rare-collector arm.
 - ~~The trireme's launch. The release point off the hull, the frame, and
   `AMMO_PER_ATT 3`, a three-round volley whose second round is on block
   626.~~ Settled by item 542 (§50): three `<RELEASEEVENT>`s on frames 5, 9
@@ -8651,7 +8653,8 @@ orders, cleared `unit_masks`' packed bit (`0x80000`) and raised `mylos`
 4 → 6. Its birth `CASTORDER` has run out, and an animation ended with it.
 This crate gave the fisher no orders on 621 (§49.5, parked 543), so its
 fisher never casts. Both hulls agree on every compared field on 664 and
-665. The word is now 543's, and no mechanism is named here.
+665. The word is now 543's, and no mechanism is named here. **Item 543
+closed it** (`docs/ORDERS.md` §23), and the word went to 739.
 
 The widening was made to fail twice. With `× 3 / 200` restored, the word
 falls to 621 and `1/6 ammo[0]` returns on 622. With the lake bed's `z`

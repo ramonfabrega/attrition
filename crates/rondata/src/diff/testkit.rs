@@ -2177,7 +2177,29 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 /// `mylos` is 4 → 6: the cast it was given at birth has ended. This crate
 /// gave it no orders on 621 (parked 543), and nothing else parts under
 /// the word. The window is run127 whole, so the ceiling does not move.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 664;
+///
+/// **Item 543 moved it 664 → 739, +75** (`docs/ORDERS.md` §23). The
+/// **delta**: the fisher's cast was its **deploy**, the Fishermen's own
+/// unpack `0x292` with `JOB_TIME` 40, and what issues it for a *human's*
+/// boat is `Unit::think@005f6e40:163`–`199`, the rare-collector arm
+/// between the caravan and the computer block. It is gated on
+/// `leader_flags & 4` (human) and the packed bit, and it sits above `ai
+/// off`'s exit, where this crate's only deploy, `think_fish`, sits below
+/// it. The arm asks `calc_gather` and then `unpack_merchant(this, 4)`:
+/// `[MOVE_TO, CAST]` on 621, arrival on 625, `spell_time` 1…39 over
+/// 626–664, and on block 665 the orders gone, `packed` cleared and `mylos`
+/// 4 → 6. All of it is the dump's own, and the leader's food and wealth
+/// rows from 673 with it.
+///
+/// **The block**, from [`WIDENING_CHAPTER_FIVE`]'s test on the new word:
+/// on 739 this crate spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`,
+/// an attack running out, and the original spends none (7 draws against
+/// 6). No dumped record parts on 739 or 740. This crate's `1/6` is in
+/// `CHAR_ATTACK3` (`anim 13`) with `end_time 3` on 739, where every swing
+/// before it was `CHAR_ATTACK2`'s forty. The first row is `1/6 ammo[0]`,
+/// which the dump holds alone on 742 (737 + 5, a full-length swing's first
+/// release). That is the next item's hypothesis and no more. The window is run127 whole; the ceiling does not move.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 739;
 
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`

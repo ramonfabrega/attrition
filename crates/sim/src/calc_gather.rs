@@ -98,8 +98,9 @@ impl Sim {
     /// or anything in the `FISHERMEN` lineage — `is_merchant`'s own three
     /// tests with `is(0x13d)` behind them instead of nothing.
     ///
-    /// The one caller this crate reaches is `Unit::do_cast`'s unpack arm,
-    /// where it gates the re-seat (`crate::Sim::do_cast`, step 2).
+    /// Two callers here: `Unit::do_cast`'s unpack arm, where it gates the
+    /// re-seat (`crate::Sim::do_cast`, step 2), and `Unit::think`'s human
+    /// rare-collector arm (`docs/ORDERS.md` §23).
     pub(crate) fn is_rare_collector(&self, u: usize) -> bool {
         self.unit_tree(u).is_some_and(|t| {
             MERCHANTS.contains(&t) || self.tech_tree.is(t, crate::fish::FISHERMEN, false)

@@ -4000,52 +4000,38 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run127's first block moved: {at_floor:?}"
     );
-    // **Nothing else parts under the word's own block.** The trace's
-    // frame `f` writes block `f + 1`. Item 535's broadside (`docs/COMBAT.md`
-    // §49) closed the four `1/6` angle rows on block 617, and item 542's
-    // release frame and keel nodes (§50) closed the first round on 622.
-    // What stands under the word is the fisher `0/7` alone, from its
-    // birth block 621: the original gives it two orders, a `CASTORDER`
-    // first, and walks it from 622, and this crate gives it none. Neither
-    // spends a draw until the word.
+    // **Nothing parts under the word's own block.** The trace's frame
+    // `f` writes block `f + 1`. Item 535's broadside (`docs/COMBAT.md`
+    // §49) closed the four `1/6` angle rows on block 617, item 542's
+    // release frame and keel nodes (§50) the first round on 622, and item
+    // 543's human rare-collector arm (`docs/ORDERS.md` §23) the fisher
+    // `0/7`'s: its birth `[MOVE_TO, CAST 0x292]` on 621, the walk from
+    // 622, and the deploy on 665 with `packed` and `mylos` 4 → 6. Made to
+    // fail once with the arm removed: the word fell back to 664, all
+    // fifteen of the fisher's rows came back, and so did its leader's
+    // food and wealth rows from 673, the deployed boat's pay.
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| *f <= GOLDEN_WORD_CHAPTER_FIVE && !standing(what))
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
-    assert_eq!(
-        under,
-        [
-            "621 0/7 dest_angle",
-            "622 0/7 g.angle[0]",
-            "622 0/7 g.x[0]",
-            "622 0/7 g.y[0]",
-            "622 0/7 heading",
-            "622 0/7 idle",
-            "621 0/7 order:length",
-            "621 0/7 orders.len",
-            "621 0/7 orders_x",
-            "621 0/7 orders_y",
-            "622 0/7 path:length",
-            "622 0/7 path_recursion",
-            "622 0/7 pos",
-        ],
-        "what parts at or under the word moved"
+    assert!(
+        under.is_empty(),
+        "what parts at or under the word moved: {under:?}"
     );
-    // **The word's block is the fisher's** (item 542). On block 665 the
-    // original's `0/7` has dropped its orders, cleared `unit_masks`'
-    // packed bit and raised `mylos` 4 → 6. That is the cast ending, and
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` is the draw spent in
-    // it. Both hulls agree on every compared field there.
+    // **The word's block parts nothing** (item 543). On 739 this crate
+    // spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, an attack
+    // running out, and the original spends none (7 draws against 6). No
+    // dumped record parts on 739 or 740; the first row is `1/6 ammo[0]`,
+    // held by the dump alone on 742.
     let at_word: Vec<String> = firsts
         .iter()
-        .filter(|(_, (f, _))| *f == GOLDEN_WORD_CHAPTER_FIVE + 1)
+        .filter(|(_, (f, _))| (GOLDEN_WORD_CHAPTER_FIVE..=GOLDEN_WORD_CHAPTER_FIVE + 1).contains(f))
         .map(|((w, o, what), _)| format!("{w}/{o} {what}"))
         .collect();
-    assert_eq!(
-        at_word,
-        ["0/7 mylos", "0/7 packed"],
-        "the word's block is no longer the fisher's alone"
+    assert!(
+        at_word.is_empty(),
+        "the word's blocks now part a record: {at_word:?}"
     );
     // **Every round launched under the word agrees whole** (item 542):
     // the first two volleys of both ships and `1/6`'s first of the third,
