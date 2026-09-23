@@ -22,6 +22,19 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 542, 2026-09-22 — the keel, and the other releases
+
+(547) **The trireme's keel nodes at a second facing.** 542 measured the
+release point as node 0 on the keel from three rows of run127, all on
+one bearing. A trireme engagement on a different bearing (`AMMO=5`) is
+what would confirm the node rotates with the hull rather than fitting
+one facing. No score names it.
+
+(548) **The other 355 separating events.** `GraphicEvents::init_unit_events`'
+release frame is `starttime/67` floored at 1 (542, `docs/COMBAT.md`
+§50); only the trireme's is measured. Crossbowmen first, when a capture
+reaches them.
+
 ## Parked by item 539, 2026-09-22 — a seam only a second region shows
 
 (546) **The probe-side region gate's `nocoll` arm** in `collide.rs` reads
@@ -31,11 +44,6 @@ score names it; promote it when an East Indies word lands on a
 collision probe that crosses a region line. `docs/COLLISION.md` §4.2.
 
 ## Parked by item 535, 2026-09-22 — the first ships
-
-(543) **The fisher's birth orders.** On chapter five's block 621 the
-original gives the Fishermen a `CASTORDER` and a move; this crate gives
-none. No draw is spent; it is a row of chapter five's widening and
-promotes when a draw lands on it.
 
 (544) **`AMMO` in chapter two's widening.** `chapter_two_s_word_frame_is_widened_whole`
 does not compare the `AMMO` record, which chapter five's widening now
