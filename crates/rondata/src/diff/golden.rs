@@ -6956,6 +6956,183 @@ fn chapter_three_s_restage_is_widened_whole() {
     );
 }
 
+/// **run146's object numbers, both directions** (item 617): every birth
+/// and death of a unit, every `DEATH_OBJS` record's arrival and leaving,
+/// and every round's pool slot, over the whole capture. The widening links
+/// a unit on `(who, o)`, so a unit numbered differently is `extra` on one
+/// side and `unlinked` on the other and none of its fields is compared;
+/// this links a birth on its frame, owner and point instead, and says
+/// which numbers the two sides handed out.
+///
+/// A row is one event. `birth` pairs on `(frame, who, x, y)`; `death` on
+/// the unit's number; `death_obj` on `(who, o, first_frame)`; `ammo` on
+/// `(frame, shooter, slot)`. Anything on one side only is its own row.
+#[test]
+fn chapter_three_s_restage_numbers_its_objects() {
+    use std::collections::{BTreeMap, BTreeSet};
+    let (first, last) = WIDENING_CHAPTER_THREE_RESTAGE;
+    let Some(mut s) = stage_script("ch3b", "chapter3b") else {
+        return;
+    };
+    type Units = BTreeMap<(i64, i64), (i64, i64)>;
+    let (mut ours_prev, mut theirs_prev): (Units, Units) = Default::default();
+    let (mut ours_do, mut theirs_do) = (BTreeSet::new(), BTreeSet::new());
+    let (mut ours_ammo, mut theirs_ammo) = (BTreeSet::new(), BTreeSet::new());
+    let mut rows: Vec<String> = Vec::new();
+    let mut events = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        let sim = &s.built.sim;
+        let ours: Units = sim
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.owner < 8)
+            .map(|u| {
+                (
+                    (i64::from(u.owner), i64::from(u.index)),
+                    (i64::from(u.pos.x), i64::from(u.pos.y)),
+                )
+            })
+            .collect();
+        let theirs: Units = frame
+            .units
+            .iter()
+            .filter(|u| (0..8).contains(&u.who))
+            .map(|u| ((u.who, u.o), (u.pos.x, u.pos.y)))
+            .collect();
+        let raw = s.ix.read_frame(at).unwrap();
+        let o_do: BTreeSet<(i64, i64, i64)> = sim
+            .deaths
+            .iter()
+            .map(|d| (i64::from(d.who), i64::from(d.o), d.first_frame))
+            .collect();
+        let t_do: BTreeSet<(i64, i64, i64)> = frame
+            .deaths
+            .iter()
+            .filter(|d| d.valid == Some(1))
+            .filter_map(|d| Some((d.who?, d.o?, d.first_frame?)))
+            .collect();
+        let o_ammo: BTreeSet<(i64, i64, i64)> = sim
+            .projectiles
+            .iter()
+            .filter_map(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => {
+                    let un = &sim.units[u];
+                    Some((i64::from(un.owner), i64::from(un.index), i64::from(p.slot)))
+                }
+                sim::combat::Obj::Building(_) => None,
+            })
+            .collect();
+        let t_ammo: BTreeSet<(i64, i64, i64)> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0 && a.who < 8)
+            .map(|(a, _)| (a.who, a.o, a.index))
+            .collect();
+        // The window's first block seeds both sides: block 1 before it
+        // prints no unit, so everything on 605 would read as born.
+        if n > first {
+            // Births, paired on the frame, the owner and the point.
+            let born = |now: &Units, prev: &Units| -> BTreeMap<(i64, i64, i64), i64> {
+                now.iter()
+                    .filter(|(k, _)| !prev.contains_key(k))
+                    .map(|(&(who, o), &(x, y))| ((who, x, y), o))
+                    .collect()
+            };
+            let (ob, tb) = (born(&ours, &ours_prev), born(&theirs, &theirs_prev));
+            for k in ob.keys().chain(tb.keys()).collect::<BTreeSet<_>>() {
+                events += 1;
+                let (who, x, y) = *k;
+                match (ob.get(k), tb.get(k)) {
+                    (Some(a), Some(b)) if a == b => {}
+                    (a, b) => rows.push(format!(
+                        "{n} birth {who} at ({x}, {y}): ours {a:?} theirs {b:?}"
+                    )),
+                }
+            }
+            // Deaths, on the number.
+            let died = |now: &Units, prev: &Units| -> BTreeSet<(i64, i64)> {
+                prev.keys()
+                    .filter(|k| !now.contains_key(k))
+                    .copied()
+                    .collect()
+            };
+            let (od, td) = (died(&ours, &ours_prev), died(&theirs, &theirs_prev));
+            for k in od.symmetric_difference(&td) {
+                rows.push(format!(
+                    "{n} death {}/{}: {} alone",
+                    k.0,
+                    k.1,
+                    if od.contains(k) { "ours" } else { "the dump's" }
+                ));
+            }
+            events += od.union(&td).count();
+            // The death-object list and the rounds, arrivals and leavings.
+            for (what, o_prev, t_prev, o_now, t_now) in [
+                ("death_obj", &ours_do, &theirs_do, &o_do, &t_do),
+                ("ammo", &ours_ammo, &theirs_ammo, &o_ammo, &t_ammo),
+            ] {
+                for (dir, o_set, t_set) in [
+                    ("arrives", o_now - o_prev, t_now - t_prev),
+                    ("leaves", o_prev - o_now, t_prev - t_now),
+                ] {
+                    events += o_set.union(&t_set).count();
+                    for k in o_set.symmetric_difference(&t_set) {
+                        rows.push(format!(
+                            "{n} {what} {dir} {k:?}: {} alone",
+                            if o_set.contains(k) {
+                                "ours"
+                            } else {
+                                "the dump's"
+                            }
+                        ));
+                    }
+                }
+            }
+        }
+        (ours_prev, theirs_prev) = (ours, theirs);
+        (ours_do, theirs_do) = (o_do, t_do);
+        (ours_ammo, theirs_ammo) = (o_ammo, t_ammo);
+    }
+    for r in &rows {
+        eprintln!("  numbering: {r}");
+    }
+    assert!(events > 0, "run146's numbering walk read no event");
+    // **The floor, before any reading (item 617).** Every death agrees
+    // (`1/6` on 680, `1/7` on 728, `1/8` on 736), and so does the whole
+    // death-object list: the three records arrive on those blocks on both
+    // sides and **none leaves** before the capture ends. So nothing is
+    // culled on 771 or anywhere else in the window. The first parting is
+    // the births on 771: arena A's three hoplites, born on the same
+    // points, take the dump's 9–11 and ours' 6–8, the numbers of the dead
+    // whose death objects both sides still hold.
+    //
+    // The rounds' pool slot is a second family, run145's (`docs/COMBAT.md`
+    // §55.5): the catapult's one round takes slot 1 in the dump and 0
+    // here on 798, and ours fires again on 960 (621's park, 865's fresh
+    // attack), both past the word.
+    assert_eq!(
+        rows,
+        vec![
+            "771 birth 1 at (2424, 7992): ours Some(6) theirs Some(9)",
+            "771 birth 1 at (2472, 8136): ours Some(8) theirs Some(11)",
+            "771 birth 1 at (2568, 7992): ours Some(7) theirs Some(10)",
+            "798 ammo arrives (0, 6, 0): ours alone",
+            "798 ammo arrives (0, 6, 1): the dump's alone",
+            "830 ammo leaves (0, 6, 0): ours alone",
+            "830 ammo leaves (0, 6, 1): the dump's alone",
+            "960 ammo arrives (0, 6, 0): ours alone",
+            "992 ammo leaves (0, 6, 0): ours alone",
+        ],
+        "run146's numbering moved"
+    );
+}
+
 /// **§7's three falsifiers, as the dumps print them** (item 587). Each was
 /// a `check:` in a `.cmd` header before its run; this is the same reading
 /// made an assertion, so a re-take that changed any of them would fail
