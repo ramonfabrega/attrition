@@ -6,6 +6,8 @@ Survey date 2026-09-22. Dates are the last commit on the default branch (or `pus
 Spike context: Rise of Nations `riseofnations.exe` (PE32, MSVC, 2003, full private PDB giving function bounds, types and vtables).
 Goal: run one original function at a time as native arm64 code on macOS, in-process beside Rust, with floats bit-exact to the original (x87 80-bit plus the precision-control word, and possibly SSE).
 
+> **Read with [RECOMP-REVIEW.md](RECOMP-REVIEW.md), which overturns two of this survey's premises** (2026-09-22, after the survey). The executable's own floating point is SSE2, not x87 — so the 80-bit softfloat, the precision-control word and the Direct3D `FPU_PRESERVE` question in the Answer below do not apply to it, and the x87 column of the table matters only for the C runtime's own paths. And the Extended Edition build is not MSVC 7.1: it has a `.gfids` section and imports `ucrtbase`, which is Visual Studio 2015 or later, so the "matching decomp with the original compiler" alternative would need that toolchain. The rest of the survey — discovery, indirect calls, jump tables, licences, and which projects exist — stands.
+
 ## 1. N64Recomp (MIPS -> C) and Zelda64Recomp (Majora's Mask)
 
 - Repo: https://github.com/N64Recomp/N64Recomp. MIT, last commit 2026-05-27, about 8.1k stars, active.

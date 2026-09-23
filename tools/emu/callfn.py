@@ -112,7 +112,10 @@ def signed(v):
     return v - (1 << 32) if v & 0x8000_0000 else v
 
 
-def sweep(m, seed, n):
+def sweep_calls(seed, n):
+    """The sweep's calls in order, `(label, entry, stack_args, ecx, edx)` —
+    the same sequence whichever machine answers them, so a second machine
+    (`tools/recomp/difftest.py`) is diffed against this one row for row."""
     rng = random.Random(seed)
     edges = [0, 1, 2, 3, 59_999, 60_000, 60_001, 46_340, 46_341, 65_535, 65_536, 100_000, 153_600, 200_000]
     pairs = [(a, b) for a in edges for b in edges]
@@ -121,14 +124,17 @@ def sweep(m, seed, n):
         lim = 3_000 if r < 0.4 else 200_000 if r < 0.9 else 2_000_000
         pairs.append((rng.randint(-lim, lim), rng.randint(-lim, lim)))
     for dx, dy in pairs:
-        d = m.call(VECTOR_DIST, ecx=dx, edx=dy)
-        print(f"vector_dist {dx} {dy} -> {signed(d)}")
+        yield f"vector_dist {dx} {dy}", VECTOR_DIST, (), dx, dy
     for dx, dy in pairs[:: max(1, len(pairs) // 400)]:
         for step in STEPS:
             x1, y1 = rng.randint(-100_000, 100_000), rng.randint(-100_000, 100_000)
             args = (x1, y1, 0, 0, x1 - dx, y1 - dy, 0, 0, step)
-            e = m.call(GET_ESTIMATE, args, ecx=0)
-            print(f"get_estimate {x1} {y1} {x1 - dx} {y1 - dy} {step} -> {signed(e)}")
+            yield f"get_estimate {x1} {y1} {x1 - dx} {y1 - dy} {step}", GET_ESTIMATE, args, 0, 0
+
+
+def sweep(m, seed, n):
+    for label, entry, args, ecx, edx in sweep_calls(seed, n):
+        print(f"{label} -> {signed(m.call(entry, args, ecx=ecx, edx=edx))}")
 
 
 def main(argv):

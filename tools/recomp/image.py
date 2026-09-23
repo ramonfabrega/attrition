@@ -1,11 +1,12 @@
 """image.py — the executable, its imports, and its function table.
 
 Everything here is read from the user's install on demand; nothing it
-produces enters the repository. The function table is the union of the
-linker map's `f` symbols (every function, with its decorated name) and the
-PDB's procedure records (the ones with private symbols, with their code size),
-which is the boundary the charter names. `llvm-pdbutil` is run once per
-install and its dump cached beside the generated output.
+produces enters the repository. The function table is the linker map's `f`
+symbols (every function, with its decorated name), and — when a `cache_dir`
+is given — the PDB's procedure records too (the ones with private symbols,
+with their code size). `llvm-pdbutil` is run once per install and its dump
+cached in that directory, which the caller keeps out of git: `lift.py`'s
+default is `target/recomp/`.
 """
 import os
 import re
@@ -102,7 +103,7 @@ THUNK = re.compile(r"S_THUNK32 \[size = \d+\] `(.*)`\s*\n.*\n\s*kind = \w+, size
 class Functions:
     """Entry VA -> (name, size or None)."""
 
-    def __init__(self, image, install, cache_dir):
+    def __init__(self, image, install, cache_dir=None):
         self.by_va = {}
         mp = os.path.join(install, "sbl", "rise_z.map")
         if os.path.exists(mp):
@@ -112,12 +113,13 @@ class Functions:
                     va = int(m.group(2), 16)
                     if image.is_code(va):
                         self.by_va.setdefault(va, [m.group(1), None])
-        dump = os.path.join(cache_dir, "pdb-symbols.txt")
+        dump = os.path.join(cache_dir, "pdb-symbols.txt") if cache_dir else None
         pdb = os.path.join(install, "sbl", "rise.pdb")
-        if not os.path.exists(dump) and os.path.exists(pdb) and os.path.exists(PDBUTIL):
+        if dump and not os.path.exists(dump) and os.path.exists(pdb) and os.path.exists(PDBUTIL):
+            os.makedirs(cache_dir, exist_ok=True)
             with open(dump, "w") as f:
                 subprocess.run([PDBUTIL, "dump", "--symbols", pdb], stdout=f, check=True)
-        if os.path.exists(dump):
+        if dump and os.path.exists(dump):
             text = open(dump, encoding="latin-1").read()
             secs = {i + 1: s[1] for i, s in enumerate(image.sections)}
             for m in PROC.finditer(text):
