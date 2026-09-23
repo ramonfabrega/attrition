@@ -5340,6 +5340,16 @@ settle_min: 20000000
 # for an 10870-frame run-up and 170 blocks, run143 27 for 360; this is
 # ~20. 150 polls is fifty minutes.
 poll_max: 150
+# ==== TAKEN 2026-09-23, **WHOLE** ====
+#
+# 529,523,354 bytes of dump and 19,032,928 of trace, **250 blocks
+# 11030..11279**, a `MAKEOBJECT` on every one. 20 minutes launch to
+# archive (12:43 to 13:03), through `viadriver.sh` with no human at the
+# menu; the lane lock was free. All six checks green: 11,301 frames
+# identical to run54, `MAP_STYLE 18`, 10 blocks shared with run152
+# (11030..11039) and 0 differing, and a coverage set on all 9 frames
+# 11065..11073. 2.07 MB a block net of the start dump, as sized.
+# `run155_s_word_frame_is_widened_whole`.
 # Same game: the trace word for word against run54, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run155.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11280)}'
 # And the map, from the dump's own `GAME INFO`.
