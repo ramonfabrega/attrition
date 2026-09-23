@@ -12009,7 +12009,7 @@ mod tests {
         /// moved the word past it.
         const BARK_BLOCK: i64 = EAST_INDIES_BARK_BLOCK;
         /// The word's block: its frame writes the next one.
-        const WORD_BLOCK: i64 = LONG_WORD_EAST_INDIES + 1;
+        const WORD_BLOCK: i64 = EAST_INDIES_MINE_BLOCK;
         let Some(inst) = install() else { return };
         let (Some(path), Some(sib), Some(tr), Some(r143)) = (
             dump("gamelog-run54-islands-24k-trace.txt"),

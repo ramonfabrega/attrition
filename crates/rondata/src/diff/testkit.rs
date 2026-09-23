@@ -2754,6 +2754,10 @@ pub(crate) const WIDENING_EAST_INDIES_BARK: (i64, i64) = (10_380, 10_739);
 /// moving here. Item 588 moved the word past it; the coverage driver reads
 /// run143 around it.
 pub(crate) const EAST_INDIES_BARK_BLOCK: i64 = 10_399;
+/// The word 10582's block on run143: its frame, the Mine `1/2018`'s
+/// placement, writes block 10583. Item 604 moved the word past run143; its
+/// widening keeps the move's value diff on this block.
+pub(crate) const EAST_INDIES_MINE_BLOCK: i64 = 10_583;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,

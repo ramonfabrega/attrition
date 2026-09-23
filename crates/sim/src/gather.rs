@@ -754,7 +754,6 @@ impl Sim {
                 let t = templates.get(template);
                 PlacedMountain {
                     loc,
-                    template,
                     tiles: t.map_or_else(Vec::new, |t| {
                         t.tiles
                             .iter()
@@ -888,7 +887,6 @@ pub struct MountainTemplate {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PlacedMountain {
     pub loc: Cell,
-    pub template: usize,
     /// The template's tiles, in world tiles.
     pub tiles: Vec<Pos>,
     /// The template's solid cells, in world cells.
