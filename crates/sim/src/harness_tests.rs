@@ -174,10 +174,20 @@ fn attrition_kills() {
 #[test]
 fn a_bigger_squad_bleeds_slower_per_figure() {
     let mut sim = skirmish(1);
-    let mut four = Unit::new(0, 0, centre_of(Cell::new(15, 0)), 100);
-    four.squad_size = 4;
-    sim.units.push(four);
-    let ticks = run(&mut sim, 48 * 4);
+    // A squad of four **linked** figures, captain first: the damage counts
+    // the `o_up`/`o_down` chain the way `curr_uber_size` does (item 552),
+    // not a stored size.
+    for k in 0..4 {
+        let mut u = Unit::new(0, k, centre_of(Cell::new(15, 0)), 100);
+        u.o_up = (k > 0).then(|| k as usize - 1);
+        u.o_down = (k < 3).then(|| k as usize + 1);
+        sim.units.push(u);
+    }
+    assert_eq!(sim.curr_uber_size(2), 4);
+    let ticks: Vec<_> = run(&mut sim, 48 * 4)
+        .into_iter()
+        .filter(|t| t.unit == 0)
+        .collect();
     // Four ticks at four sixteenths rather than four at sixteen: one whole
     // point over the run, landing on the fourth tick, nothing carried over.
     assert_eq!(ticks.iter().map(|t| t.sixteenths).sum::<i32>(), 16);
