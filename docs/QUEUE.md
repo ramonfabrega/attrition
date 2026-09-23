@@ -25,16 +25,17 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 6 Loop items** (313, 527, 630, 638, 639, 645); the `FABLE:` batch was empty.
+- **Fable backlog: 7 Loop items** (313, 527, 630, 638, 639, 645, 649); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control w1187 of 1200 · 647 next
+Golden: none pinned, every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 648 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 41 off, 0 unlinked
 
-**Opener: nine landings since the twelfth pass's commit. 571 has the AI
-lane (Great Lakes, the lower map); spawn 647 on the rules lane
-(seven-b's control, 1187). 643 follows 571. Stop at twenty.**
+**Opener: ten landings since the twelfth pass's commit, and every golden
+chapter is closed. 571 has the AI lane (Great Lakes, the lower map);
+spawn 648 on the rules lane (chapter six's capture). 643 follows 571.
+Stop at twenty.**
 
 ## The queue
 
@@ -53,13 +54,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     against 5, `move_step+0x823`. No mechanism. Optional second run if a
     lane is free: a packet at 11922 with the nine guys' move path on it.
 
-647. **Chapter seven-b's control word is 1187: the scout `1/0`** (644
-    moved it 1176 → 1187: `library` raises levels through `gain_tech`'s
-    tail and the caps read Commerce live, INPUT §11.11; parked 633). On
-    1187 ours 10 draws against 9 at draw 0, `Unit::do_move+0xe84`. The
-    scout's explore path parts from 1077 (`path[41..46].to`, 47 nodes
-    against 48) and its `dest` from 1137. Widened on (605, 1189). No
-    mechanism. Takes the rules lane next.
+648. **Chapter six, the air and the bird: no capture yet** (every golden
+    chapter closed on 647's `Wall::start` footprint write, VISION §6.1;
+    GOLDEN §14 books the next uncaptured chapter). Capture **run168**
+    over `[605, 900)` with `chapter6.cmd` (run119 was spent on chapter
+    two). Before the run, check each falsifier in GOLDEN §10 names the
+    frame and record it could first fire on, and grep the writers of the
+    premise's `bird` case (parked 630's lesson). Then pin the word.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
