@@ -2308,14 +2308,31 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 /// them the border agrees cell for cell once each lever's sweep settles
 /// and the bleed tick for tick to 1337.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_FOUR`]'s test: on 1277 this
-/// crate spends `Guy::set_anim+0x97a < Guy::move+0x19f` where the original
-/// spends the farm's (5 draws against 4). On block 1277 the original's
-/// hoplite squad `1/6..1/8` holds a `GUARDORDER` and a move back to
-/// (8376, 32136), beside its Supply Wagon `1/10` at (8227, 32323), with a
-/// `timer` of 419; this crate's squad keeps the `AttackTo` it had marched
-/// under since 1021. That is the next item's frame, and no mechanism.
-pub(crate) const GOLDEN_WORD_CHAPTER_FOUR: i64 = 1277;
+/// **Item 567 moved it 1277 → 1416: the escort.** On 1277 the original's
+/// hoplite squad `1/6..1/8` took a `GUARDORDER` on its Supply Wagon `1/10`
+/// and this crate's kept its `AttackTo`. The frame is the army's own tick
+/// (765, 1021, 1277, 256 apart), and the call is `Army::process` →
+/// `Group::action_siege_attack_to`, whose wagon anchor this crate reached
+/// and whose closing `action_guard` it did not have: GUARD was on
+/// `docs/ORDERS.md`'s not-implemented list. It is built now —
+/// `Group::action_guard`, `add_guard_order`, `do_guard`, and the review's
+/// sixty-four-frame arm (`docs/ORDERS.md` §24). The old delta was +1:
+/// `Guy::set_anim+0x97a < Guy::move+0x19f`, 5 draws against the farm's 4.
+///
+/// **The delta at 1416 is +1 again, 32 draws against 31**, and it is the
+/// wagon's: the original spends three `Guy::set_anim+0x97a < Unit::
+/// set_anim < Unit::do_move+0x11cf` stands on `1/10` (three guys) and one
+/// bird coin from `Guy::inc_time`'s wrap, where this crate spends five
+/// bird coins (`Guy::set_anim+0x104b`) on the gaia bird `9/6` and no
+/// stand. The block, from [`WIDENING_CHAPTER_FOUR`]'s test: on 1416 the
+/// original's wagon holds `pause 15` — a collision wait, with the escort
+/// now at its heels — and this crate's holds 0. This crate's wagon has
+/// stood apart from the original's since 1102 (its birth path, one leg
+/// short on 1101: parked since item 552), and on 1277 it is 700 units
+/// away, so the escort's posts differ from the first block. No mechanism
+/// is named for 1416; the wagon is the frame's first suspect because the
+/// widening says so, not because a reading does.
+pub(crate) const GOLDEN_WORD_CHAPTER_FOUR: i64 = 1416;
 
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
@@ -2761,7 +2778,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "GOLDEN_WORD_CHAPTER_FOUR",
         GOLDEN_WORD_CHAPTER_FOUR,
         Some("chapter_four_s_word_frame_is_widened_whole"),
-        552,
+        567,
         Some(WIDENING_CHAPTER_FOUR),
     ),
 ];

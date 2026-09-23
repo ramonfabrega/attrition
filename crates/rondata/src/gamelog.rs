@@ -1612,6 +1612,16 @@ pub struct OrderDump {
     pub new_ord: Option<i64>,
     pub def_x: Option<i64>,
     pub def_y: Option<i64>,
+    /// `GUARDORDER`'s own row past the `TARGETORDER` base,
+    /// `GuardOrder::log_data@004865a0`: `dx dy guard_x guard_y idle retry`
+    /// (`docs/ORDERS.md` §7.5, §24). Named with a `guard_` prefix because
+    /// `retry` is also a `MOVEORDER` field and `idle` a `UNITDATA` one.
+    pub guard_dx: Option<i64>,
+    pub guard_dy: Option<i64>,
+    pub guard_x: Option<i64>,
+    pub guard_y: Option<i64>,
+    pub guard_idle: Option<i64>,
+    pub guard_retry: Option<i64>,
 }
 
 impl OrderDump {
@@ -2735,6 +2745,8 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
             let mv = base("MOVEORDER");
             let atk = base("ATTACKORDER");
             let grp = base("GROUPORDER");
+            let grd = base("GUARDORDER");
+            let grd_int = |k: &str| grd.and_then(|g| g.int(k));
             let mv_int = |k: &str| mv.and_then(|m| m.int(k));
             let atk_int = |k: &str| atk.and_then(|a| a.int(k));
             let grp_int = |k: &str| grp.and_then(|g| g.int(k));
@@ -2796,6 +2808,12 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 new_ord: atk_int("new_ord"),
                 def_x: atk_int("def_x"),
                 def_y: atk_int("def_y"),
+                guard_dx: grd_int("dx"),
+                guard_dy: grd_int("dy"),
+                guard_x: grd_int("guard_x"),
+                guard_y: grd_int("guard_y"),
+                guard_idle: grd_int("idle"),
+                guard_retry: grd_int("retry"),
             }
         })
         .collect()

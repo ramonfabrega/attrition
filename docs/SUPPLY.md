@@ -589,7 +589,12 @@ behaviour this document does not describe. This crate's wagon takes a
 path one leg shorter on its birth block (1101) and walks a slightly
 different line from 1102.
 
-**Not diff-backed.** The squads part at 1277 (`docs/GOLDEN.md` §8), before
+~~**Not diff-backed.** The squads part at 1277 (`docs/GOLDEN.md` §8), before
 the wagon comes within reach, so this crate's veto is never compared in
-this capture.
+this capture.~~ **Diff-backed since item 567**: with the escort built
+(`docs/ORDERS.md` §24) the squads stay together, and `sheltered` agrees on
+every block to 1500 — every veto from 1385 on, and every landed tick
+before it. What stays unobserved is the edge: this crate's wagon still
+walks its own line, so the distance the veto was decided at is not the
+original's, and the 13–23 tile bracket stands.
 

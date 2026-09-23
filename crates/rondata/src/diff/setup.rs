@@ -1581,6 +1581,9 @@ impl Built {
             Body::Trade(_) => None,
             // A `CastOrder` for the transport spell is untargeted
             // (`docs/TRANSPORT.md` §6): its `(o, who)` are `(-1, -1)`.
+            // A `GuardOrder`'s `(o, who)` is the escorted unit, always a
+            // squad's captain (`docs/ORDERS.md` §24).
+            Body::Guard(g) => self.unit_ids_dead_or_alive(g.target),
             Body::Move(_) | Body::Cast(_) | Body::Think => None,
         }
     }

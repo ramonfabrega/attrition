@@ -369,10 +369,11 @@ collision), and `UnitData::get_action@00608450`, whose walk is `is_move() &&
 !(flags & 4)`, **or** `get_type() == CHANGE_FORM` whatever the flags.
 
 **What the crate cannot spell.** `index::is_modelled` is the domain of
-`Order::index()`: `{0, 1, 2, 3, 4, 6, 7, 10, 13, 14, 15, 19, 21, 26, 27}`.
-Everything else in §1.2's table is an order the simulation has no
+`Order::index()`: `{0, 1, 2, 3, 4, 6, 7, 10, 12, 13, 14, 15, 19, 21, 26,
+27}`. Everything else in §1.2's table is an order the simulation has no
 representation for, and the fifty captures the suite reads hold exactly two
-of them — `GUARDORDER` (12; run17's 2,987 and run80's 280) and
+of them — ~~`GUARDORDER` (12; run17's 2,987 and run80's 280)~~, spelt
+since item 567 as `Body::Guard` (§24), and
 `ATTACKGROUNDORDER` (23; run44's 94). `FORMORDER` (18) is in none. It is
 the one that also matters *inside* a predicate, because it is in the move
 family: every `is_move_family` test here is six-sevenths of the original's.
@@ -788,7 +789,7 @@ invariant — 17 of the 79 carry a blocker's position, which is
 | `tolerance` | **never written** except by `clear`/`operator=`; `UnitData::tolerance (+0x60)` is the live one. Logged 0 throughout. |
 | `pause` | frames to stand still: `resolve_unit_collision` sets `Random::get(0,0xffff) % 9 + 1` on a mutual collision; `do_attack_to_pause` sets 15; `do_move` decrements and does not step while non-zero. |
 | `retry`, `attempts` | the modern-infantry pack/entrench wait: every 128 frames (phase `o*0x11 + frame`) a modern-infantry unit with no general sets `retry = guy0+0x78`, `attempts = −3`; each later frame `retry--`, at 0 `attempts += 3`; `attempts` then counts down one a frame. While `retry != 0` the unit does not step. Zero for everything else. |
-| `timer` | a self-destruct: `do_move` decrements it and at 1 kills the order and re-runs `work` the same frame. Set by `do_guard` on its reposition move (`0x1e × max(1, tile Manhattan)`); zero in every logged plain move. |
+| `timer` | a self-destruct: `do_move` decrements it and at 1 kills the order and re-runs `work` the same frame. Set by `do_guard`'s reposition leg (`0x1e × max(1, Manhattan in 768s)`, §24.4); else zero. |
 | `facing` | the caller's (−1 from `add_move_order`; the formation's `reverse` from `action_move_near`); read by `kill_current_order` (§3.2). Not used by the step. |
 | `dest_x, dest_y` | **the current waypoint — what `move_step` walks toward.** Initialised to `x, y`; rewritten from the stack top each time `dest` goes 0 → 1; moved by `find_path`'s pull-back and by `resolve_unit_collision`'s side-step. |
 | `last_x, last_y` | the position at which the last straight-line plan was made (`find_path` after a successful detour); −1 when a fresh target is taken; a stack top equal to `last` (and not final) is popped before re-planning. |
@@ -2971,6 +2972,9 @@ top, and when that dies the attack-move resumes.
 
 ### 7.5 `GUARD` — `do_guard@005e5c70`
 
+*Built by item 567 (§24), which reads the post's arithmetic off the listing
+and corrects one clause below: the timer's unit is the world cell, 768.*
+
 Created by `add_guard_order@005e3e40(ox, whom, dx, dy, queue, …)`: target and
 `uid`, `guard_x/guard_y` = the target's position now, `dx/dy` = the offset
 asked (`Group::action_guard` passes −1, −1 for a player's click — every
@@ -2988,7 +2992,7 @@ else `find_nearby_spot(0xc0..0x180, 0x60)` or the target's cell; `guard_x/y`
 updated; facing = the target's when it moves, else `find_angle` to it. **Not
 on that quarter-tile** → `idle = 0`, `add_move_facing_order(quarter-tile,
 facing, ATTACK_TO kind, QUEUE_FIRST, 0)`, the new move's `timer = 0x1e ×
-max(1, tile Manhattan)`, then **`do_move` this same frame**; if still guarding
+max(1, ~~tile~~ world-cell Manhattan)` (§24.4), then **`do_move` this same frame**; if still guarding
 afterwards, idle animation and `retry = Random::get % 3 + 6` — **one
 sync-stream draw per reposition**. On the tile: turn if needed, `idle += 1`; a
 packed packer with auto-stance unpacks after `idle ≥ 0x1e`/`0x46`. An inactive
@@ -3935,7 +3939,8 @@ what is listed as an input is stated as such in the code):
   `!human && group.army >= 0` and then on the army's `hurry`, read in
   `docs/GROUPS.md` §6.5.
 - **Not implemented** (documented above, stated here):
-  ~~`ATTACK_TO` as an order kind of its own~~, `GUARD`, `FOLLOW`,
+  ~~`ATTACK_TO` as an order kind of its own~~, ~~`GUARD`~~ (§24, item
+  567), `FOLLOW`,
   `PATROL`, `ATTACK_GROUND`, ~~`GroupMoveOrder` (§8.3, §8.4)~~,
   board/await-board, ~~cast~~, ~~trade~~, strafe, air, special-anim,
   `CHANGE_FORM`/`FormOrder`
@@ -5880,3 +5885,172 @@ full-length swing. GUYS=2 does not print the original's slot.
   rows from 673.
 - **Reading only**: the cadence's one-in-thirty-two branch; the
   `0x100`/`is_merchant` conjunct; and `idle += 1`.
+
+## 24. An army's wagon is escorted: `GUARD`, built (item 567, 2026-09-23)
+
+Golden chapter four's word was 1277 (`docs/GOLDEN.md` §8, run133). On that
+block the original's hoplite squad `1/6..1/8` holds a `GUARDORDER` on its
+Supply Wagon `1/10` over an `ATTACKTOORDER` to a point beside it. This
+crate's squad kept the `AttackTo` it had marched under since 1021. `GUARD`
+was on §1.7's list of kinds this crate cannot spell. It is built now, and
+the word is **1416**.
+
+### 24.1 What the dump said, before any reading
+
+- **The switch is on 1277 itself**, all three figures in one block. The
+  squad's earlier changes are on 765 and 1021, so all three are 256 frames
+  apart: the army's cadence (`docs/ARMY.md` §5).
+- **The target is the wagon**: `ox 10 whom 1 uid 16`, in the squad's own
+  group (`group 64`). On the same block the wagon's own order becomes an
+  `ATTACKTOORDER` on the army's target (38664, 13320), the squad's old
+  destination, and that half already agreed in this crate.
+- `dx`/`dy` are (0, 264), (144, 264) and (−144, 264): one rank of three,
+  behind a reserved rank. `guard_x`/`guard_y` equal the `ATTACKTO`'s
+  point. `timer` is 419, 389, 419: 30 × 14 − 1 and 30 × 13 − 1, a leg
+  already stepped once.
+
+The candidates the brief named, each killed by the disk: a dead or
+departed target (the old order is on a point, nothing dies);
+invalidation under the border or bleed rules (it would switch each figure
+on its own grid, not three in one block); an expired timer (the old one is
+0). The fourth, "a wagon rule recalls the squad", is right in outline and
+wrong in owner: it is the army's rule.
+
+### 24.2 The chain
+
+`Army::process` → `Army::do_forming`/`march_to_target` →
+`Group::action_siege_attack_to@0070d830` (`docs/GROUPS.md` §9). An AI
+army with no siege takes its **first supply wagon** as the sub-group and
+the anchor, sends it on with `ATTACK_TO`, and gives the rest
+**`Group::action_guard(anchor, who, QUEUE_NEW, 1)@006fcd30`**. This crate
+stopped at that call. The guard runs through `Unit::add_guard_order@005e3e40`
+and then, in the same frame's unit loop, `Unit::do_guard@005e5c70`.
+
+### 24.3 `Group::action_guard`, for a unit target
+
+- `action_begin`, the scenario filter, and `GroupData::form = −1`
+  (`+0x10`).
+- **The target becomes its squad's captain.** Vslot `+0x18` on an object
+  is `return 1` for a unit (COMDAT-folded onto `Buffer::is_pending_load`)
+  and 0 for a building. A unit takes `get_captain` (`+0xe4`). A building
+  gives every member `add_guard_order(o, who, −1, −1)` instead.
+- **The escort** is a stack group of the members that are active, on the
+  map, not a plane (`+0xc0`), and of the target's domain. A helicopter
+  (`unit_flags & 0x20`) is admitted anyway, and so is a sea transport
+  (`& 0x10`) beside a land target. The call's last argument drops siege
+  (`ptype +0x10c`), and the target itself is left out. A human leader
+  also sweeps its other units already guarding the target into the
+  escort.
+- **A guard cycle is broken** on patch versions above 3: if the target
+  holds a `GUARD` on any member, its orders are cleared.
+- **The layout is `compute_form` at the target**: formation
+  `leader_flags >> 2 & 1` (0 for an AI), width `0x32`, `set_angle` 1 with
+  angle 0, and the guard flag, which injects the phantom artillery rank
+  (`docs/GROUPS.md` §6.4) and suppresses the reverse negation. Each
+  member's `Form +0x914/+0xb14` (`off_x/off_y`, unquantised) is its guard
+  `dx/dy`: rewritten in place on a `GUARD` it already holds on this
+  target (`update_guard_order@005e3220`), else a fresh
+  `add_guard_order(target, who, dx, dy, queue)`.
+
+`add_guard_order` is the generic `QUEUE_NEW` clear. It zeroes `UnitData
++0xc0`, which is the path stack's `length`, and clears `unit_masks &
+0x4000000`, which this crate does not carry. It then records the target,
+the post at the target's position, `idle = retry = 0` and the action bit.
+
+### 24.4 `Unit::do_guard`, one frame
+
+In order: a target whose slot is free → idle stand and kill. `retry` > 0
+counts down and returns. Beside a target that is not moving
+(`is_active && is_on_map && is_moving`), `(o + frame + 8) % 16 == 0`
+looks for a fight and `(o + frame) % 16 == 0` counts `idle`, each
+returning. Then **the post**, from the listing's fastcall pairs
+(`5e6022`–`5e6061`; the decompile prints `unaff_EDI/ESI`):
+
+    gx = tx + sinx(a, dy) + cosx(a, dx)      a = the target's heading
+    gy = ty − cosx(a, dy) + sinx(a, dx)      dx negated if its unit_masks & 2
+
+The result is snapped to its 48-unit cell centre. An `invalid_loc` cell
+searches `find_nearby_spot` around it (`0xc0`–`0x180` step `0x60`), then
+around the target (`|d|` to `|d| + 0x180`), then falls back to the unit's
+own position. A sea transport off water skips the search. The **facing**
+is the target's heading when it moves, else `find_angle(post − target)`
+(`5e626f`). A guard beside a still target faces **outward**. An AI-driven
+siege engine, wagon or hero faces the target's heading either way.
+
+Off the post's cell: `idle = 0`, and `add_move_facing_order(post,
+facing, ATTACK_TO, QUEUE_FIRST, action 0)`. The leg's **`timer` is 0x1e ×
+max(1, Manhattan distance in world cells)**, the cells being
+`div_3_table[v >> 8]`, 768 units. Then `do_move` **this frame**. If the
+leg ended at once and the head is `GUARD` again: idle stand and
+`retry = Random::get % 3 + 6`, the one draw (`Unit::do_guard+0x8fb`). On
+the post: turn to the facing if the target is still, `idle += 1`, the
+packer's unpack after `0x1e`/`0x46`, and the idle stand.
+
+### 24.5 The review's sixty-four-frame arm
+
+`Unit::work`'s sixteen-frame review (`0060d4a0`) has a `GUARD` branch of
+its own. If the action is a `GUARD` and `(frame + o) % 64 == 0`, it
+`repath`s and jumps to the head re-read. The leg goes, and `do_guard`
+issues a fresh one that frame.
+
+### 24.6 What it moved
+
+The word went **1277 → 1416**. The value diff on 1277, the squad's
+order against the original's:
+
+| figure | kind, `dx/dy` | ours: post, `timer` | the original's |
+|---|---|---|---|
+| `1/6` | `GUARD` on `1/10` over `ATTACK_TO`, (0, 264): **agree** | (8184, 31560), 419 | (8376, 32136), 419 |
+| `1/7` | the same, (144, 264): **agree** | (8184, 31704), 419 | (8520, 32232), 389 |
+| `1/8` | the same, (−144, 264): **agree** | (8136, 31416), 389 | (8280, 32040), 419 |
+
+The post is the wagon's position plus the offset, and **this crate's wagon
+is 700 units from the original's on 1277**. It has stood apart since 1102
+(its birth path, parked since item 552). Given the original's own wagon
+(block 1276: (8211, 32341), heading 535429120), the model gives all three
+posts, the angle and all three timers exactly
+(`a_guard_off_its_post_walks_to_it_on_a_timed_leg_the_same_frame`). No
+`guard.dx`, `dy`, `idle` or `retry`, `order:kind`, `length` or `action`
+row parts anywhere under 1416.
+
+**The bleed and the shelter now agree on every block of run133**,
+601–1500. Item 552's first bleed row, `1/7 attrition` on 1338, came from
+this crate's squad marching off owned ground. The escort keeps it beside
+its wagon, as the original's is kept.
+
+**1416** is +1, 32 draws against 31. The original's wagon holds `pause
+15` on block 1416, a collision wait with the escort at its heels, and on
+the next frame spends three `do_move+0x11cf` stands (three guys). This
+crate's wagon holds 0 and spends none, and the gaia bird `9/6` spends five
+bird coins where the original spends one. No mechanism is named.
+
+### 24.7 What is not established
+
+- **The building-target arm** of `action_guard` and `do_guard`
+  (`attack_dist ≤ 0x600`, the captain's one-unit `move_near`). Nothing
+  here guards a building, and the arm returns.
+- **`QUEUE_FIRST`'s insert dance** in `action_guard`, taken as `QUEUE_NEW`.
+- **The human leader's sweep** over the player's other guards.
+- **`Group::sort` inside `Form::compute`** on the stack group. A no-op on a
+  list `group_add` has just built captain-first, and not run.
+- **The target's `unit_masks & 2`** mirror of `dx`. Not carried: run133's
+  wagon has the bit clear.
+- **The idle-target engagement**, `find_melee_target(−1, 0, 0, 1, 0)`. It
+  is stood in for by `find_melee_target`'s idle radius and a
+  `QUEUE_FIRST` attack. The original's own guard range
+  (`unit_guard_respond_range` of the post) is not read. Run133's wagon
+  is always moving, so the arm is never reached.
+- **The packer's unpack** on the post.
+
+### 24.8 Coverage
+
+- **Diff-backed** by run133 (`chapter_four_s_word_frame_is_widened_whole`,
+  every block): the frame and the cadence; the target and its captain;
+  the escort's membership; the offsets from `compute_form` with the guard
+  flag; the order stack `[ATTACK_TO leg, GUARD]` and its flags; `idle` and
+  `retry` at 0 through 1416; `1/6`'s timer. The arithmetic of the post and
+  timer is backed by the original's own numbers in the unit test above,
+  and live on the capture once the wagon agrees.
+- **Reading only**: the review's sixty-four-frame arm; the cycle break;
+  the `retry` roll; the on-post turn and `idle` count beside a still
+  target; the `invalid_loc` fallbacks; and everything in §24.7.
