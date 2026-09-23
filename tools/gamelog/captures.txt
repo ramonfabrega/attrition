@@ -4968,3 +4968,88 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run138.log" calls 11901 | awk '/detect_unit_collision/ && /this=1\/62 / && /quick=1/{n++} END{print "1/62 search probes on 11901: "n; exit !(n>=8)}'
 # **INFO 16 landed**: block records on 11901, live and copy both counted.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run138.log" calls 11901 | awk '/ block \(/{n++} / copy: /{c++} END{print "block records on 11901: "n", copies: "c; exit !(n>=8)}'
+
+run: 139
+tag: eastindies-makelist
+item: 576
+why: East Indies' long word is 9983, a `make_stuff` that queues units in the original (`1/2010` two, `1/2014` one, `1/2005` one) and places a Mine here — and the make list that decided it is on no disk: run99 [8780, 10399] carries the word at `LEADERS=1`, whose seven-key stub prints no list, no stockpile and no step
+# **THE DISK WAS GREPPED FIRST.** Every East Indies (`MAP_STYLE 18`)
+# stanza: the `LEADERS=9` captures are run59 [5150, 5400], run82
+# [6860, 6930) and run96 [23960, 24000); run77, run78, run81, run85,
+# run86, run88, run90, run98 and run99 are `LEADERS=1`. The older
+# `islands` dumps stop at 5401 or are stream-only. **Nothing prints
+# player 1's `MAKEOBJECT`s, stockpile or step on any frame in
+# [6930, 23960)**, and run99, which carries the word's units and
+# buildings, cannot answer what the list held.
+#
+# **What the disk does say, and it is the reason for this window.** On
+# block 9984 the original's queues gained: University `1/2016` two
+# Scholars (ours too), Library `1/2005` Divine Right, Dock `1/2010` a
+# Trireme and a Bark, and `1/2014` (type 439) a Militia. Ours gained two
+# at `1/2005` and placed Mine `1/2017`.
+#
+# **This crate's side, measured before the run** (`RON_DEBUG_LEADER=
+# 9960-9984` on the run54 test). The list is empty to 9974; one cycle
+# fills it: Script 9975, Setup 9976, Cities 9977, Research 9978,
+# Upgrades 9979, Units 9980, Buildings 9981, `make_stuff` on 9983. On
+# 9982 the list is Scholar c1 ×2 (v9999999), Scholar c2 ×2, Mercenaries
+# (v4344000), **Mine c2 (v824000, cat 4)**, Scholar c1, Citizen c1
+# (v1764), -, Militia (v167424), Mathematics (v6600000), Feudalism
+# (v4800), Mercenaries; stockpile `bucket` [451, 333, 125, 243, 127, 0].
+# No Trireme, no Bark on it at any step.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — the lists part at the unit step.** The original's
+#   `create_units` on 9980 offers the Trireme and the Bark that ours
+#   never offers. **Killed if** no `MAKEOBJECT` of type 340 or 323
+#   stands in the original's list on blocks 9981..9983.
+# - **R2 — the lists part at the building step.** The original's
+#   Buildings step on 9981 offers no Mine at city 2. **Killed if** a
+#   Mine (419) with ours' val stands in the original's list on block
+#   9983.
+# - **R3 — the lists agree and the purse does not.** **Killed if** the
+#   original's `bucket` on block 9983 is ours to the unit, or if its list
+#   differs from ours anywhere.
+# - **R4 — the cycle is on another frame.** **Killed if** the original's
+#   list is empty on block 9975 and filled by block 9982, as ours.
+#
+# **Backwards too**: the window sits wholly inside run99, so every block
+# of it is an overlap block against run99's line.
+frames: 10010
+mapstyle: 18
+# **run99's line with `LEADERS` raised to 9**, so the overlap is byte for
+# byte on everything but the leader's own kinds. No `cfg:`, so the lobby
+# is the profile's — run54's, run98's and run99's game.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9
+# **9960..9999, forty blocks**: fourteen quiet blocks where both lists
+# should be empty, the whole cycle 9975..9983, the word, the second
+# `make_stuff` of the pass, and a margin.
+frame_window: 9960 10000
+# **Per-frame coverage over the cycle**, 9974..9986: which producer
+# steps run on which frame, and `make_stuff`'s own callees on 9983.
+cover: cover=1
+cover: window=9974-9986
+settle_min: 20000000
+# **Sized from run82**, the last East Indies `LEADERS=9` block: 2.0 MB a
+# block at 6900 (GOODS=3 included). run99's own blocks grew from 551 to
+# 575 KB between 8789 and 9984, so call it 2.3 MB: forty blocks ~92 MB
+# plus the 11 MB start dump. The game must still reach 9960; run99 took
+# ~41 minutes to 10400 dumping 1,620 blocks, so this is ~15. 120 polls is
+# 40 minutes.
+poll_max: 120
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run139.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=10000)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run139-eastindies-makelist.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 40 blocks, 9960..9999, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run139-eastindies-makelist.txt" | awk '{v=$3+0; if(v>=9960&&v<10000) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==40 && lo==9960 && hi==9999)}'
+# **The raised category is there**: a `MAKEOBJECT` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run139-eastindies-makelist.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=9960&&v<10000)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==40)}'
+# **The overlap with run99, and the count is the claim.** The window lies
+# inside run99's, so every one of its forty blocks is shared; the leader's
+# own kinds are excluded because run99 prints them at `LEADERS=1`
+# (run86's list).
+check: python3 tools/gamelog/samegame.py --exclude LEADERDATA --exclude DIPLOMACY --exclude GOOD --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE gamelog-run99-eastindies-valuewindow2.txt gamelog-run139-eastindies-makelist.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run99 overlap: common="n" "r" differ="d; exit !(n==40 && d==0 && r=="(9960..9999)")}'
+# **The coverage window landed**: every frame 9974..9986 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run139.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=9974&&f<=9986&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==13)}'

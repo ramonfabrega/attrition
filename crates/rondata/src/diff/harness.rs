@@ -6776,6 +6776,10 @@ mod tests {
             });
         for f in 0..last {
             built.tick();
+            // `RON_DEBUG_LEADER=<lo>-<hi>`: East Indies' word 9983 is a
+            // `make_stuff` (item 576), and the list it spends is printed
+            // here or nowhere on this crate's side.
+            debug_leader(&built, f);
             // `RON_DEBUG_FOLD=<lo>-<hi>` prints [`Built::phase_fold`] over
             // a window: the frame's draws attributed to the mark that was
             // standing when each was spent. It answers a question the site
