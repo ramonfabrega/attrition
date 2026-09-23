@@ -5748,3 +5748,135 @@ spends a draw in the capture.
 - The army group's `speed`/`new_speed`, 0 against 25 from 616. That is
   `Group::add`'s `compute_speed` for a group with an id. It spends no
   draw here.
+
+## 23. A human's fishing boat deploys itself, above `ai off` (item 543, 2026-09-22)
+
+Golden chapter five's word stood at **664** (`docs/COMBAT.md` §50.4). On
+664 the original spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`, 28
+draws against 27, and block 665's only rows are the fisher `0/7`'s: its
+orders gone, the packed bit cleared, `mylos` 4 → 6. On its birth block,
+621, the original gives it two orders and this crate none (§49.5 there).
+**The cast is an order**, the deploy of §6.9, so it is written here. It is
+the gather system's deploy, not its economy, and the economy it opens
+onto (`calc_gather`, `crate::rares`, `calc_rare`) was already modelled
+and run54/run58-backed for the computer's boats.
+
+**The hypothesis, and what would have killed it.** "The missing birth
+`CASTORDER` is the cause." Killed if the original's fisher reached 664's
+animation end by idling without the cast, or if the cast's length did not
+account for 621 → 664. Neither: the draw on 664 is the unpack ending, and
+the length is exact (below).
+
+### 23.1 What the dump prints
+
+`0/7` on block 621 prints `idle 1`, `unit_masks 524288` (`0x80000`,
+packed, from `Unit::init:376`), `rare 6`, `good_obj 67`, and the order
+list `CASTORDER` (`spell 658` = `0x292`, the Fishermen's unpack, `uid
+65535`, untargeted) then `MOVEORDER` to (11736, 35352), `angle
+−541917184`. The print order is the reverse of the run order
+(`docs/MERCHANT.md` §3.1), so it runs `[MOVE_TO, CAST]`. Then:
+
+| blocks | `0/7` |
+|---|---|
+| 622–624 | walking, `unit_masks` 524298 |
+| 625 | at (11736, 35352), `spell_time 0` |
+| 626–664 | `spell_time` 1 … 39 |
+| 665 | no orders, `spell_time 0`, `unit_masks 10`, `mylos 6` |
+
+Four frames of walk and forty of cast, which is the Fishermen `Deploy`'s
+`JOB_TIME` of 40 in `craftrules.xml`, the same forty run58's AI boat
+spends (§6.9). `mylos` 4 → 6 is the packed clamp lifting
+(`crate::vision`, run58's frame 4989). The draw on 664 is the deploy's
+animation ending.
+
+### 23.2 Who issues it: `Unit::think@005f6e40:163`–`199`
+
+Not `think_fish`. That sits in the tail, below the computer block's exit
+at `:206`–`264`, which a human's unit without `unit_masks & 0x40000`
+never passes when `ai off` is on (`docs/INPUT.md` §11). The order comes
+from the arm between `think_caravan` and that block:
+
+```text
+if is_rare_collector(this) && (leader_flags & 4) && (unit_masks & 0x80000):
+    if idle != 1 && ((o + frame) & 31) != 0: skip
+    if (unit_masks & 0x100) == 0 || is_merchant(this):
+        if do_gather(this, rates, 0, 0, 1, 1, -1, -1):
+            if unpack_merchant(this, 4): return
+            (console's own unit, idle == 1: a message and S_INVALID_ORDER)
+        idle += 1
+```
+
+`leader_flags & 4` is **human** (`docs/MERCHANT.md` §4). So a human's
+packed merchant or fishing boat deploys itself where it can. A
+computer's never enters this arm; its boats deploy through `think_fish`
+and its merchants through `think_merchant`. `Unit::do_gather@005fce20` is
+`UnitData::calc_gather` with `param_7`/`param_8` set and a write of
+`unit_masks & 0x20` from its answer. That is [`Sim::calc_gather`], the
+form `think_fish`'s head already asks. `unpack_merchant(4)` is
+`crate::merchant` §3's, at ring 4 (81 tiles) where `think_merchant` asks
+ring 3. For the fisher it answers the tile two west and two north of the
+one it stands on, and the move is to that tile's snapped centre.
+
+`Sim::think` carries the arm in the original's place, and the rest was
+already in the crate: `unpack_merchant`, `do_cast`'s rare-collector
+re-seat, `cast_unpack`, and the packed clamp.
+
+### 23.3 What moved
+
+| | before | after |
+|---|---|---|
+| golden chapter five, **word** / sequence | 664 | **739** |
+| values | 665 | 740 |
+| rows at or under the word, standing families aside | 13, all `0/7`'s | **0** |
+| rows on the word's blocks | `0/7 mylos`, `0/7 packed` | **none** |
+
+**The value diff on the frame it moved.** Block 621: `0/7`'s
+`orders_x/y` (11736, 35352), `dest_angle −541917184` and two orders, on
+both sides. Block 625: the arrival at (11736, 35352). Block 665: no
+orders, `packed` clear, `mylos 6`, on both sides. The leader's food and
+wealth rows, which part from 673 without the arm (the deployed boat's
+pay), agree through the word.
+
+The widening (`chapter_five_s_word_frame_is_widened_whole`) was made to
+fail once with the arm switched off. The word fell to 664, all fifteen of
+the fisher's rows came back, and so did the leader rows from 673. The unit
+tests `a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off` and
+`a_human_s_packed_boat_with_no_fish_bumps_its_idle` fail the same way.
+
+**The new word, 739.** This crate spends `Guy::set_anim+0x97a <
+Guy::inc_time+0x1ed`, an attack running out, and the original spends none
+(7 draws against 6). No dumped record parts on 739 or 740. This crate's
+`1/6` is in `CHAR_ATTACK3` (`anim 13`) with `end_time 3`, where every
+swing before it played `CHAR_ATTACK2` (`anim 12`) for forty frames. The
+first row is `1/6 ammo[0]`, which the dump holds alone on 742. That is
+737 + 5, the first release of a full-length swing (`docs/COMBAT.md`
+§50.1). **Hypothesis only**: the variant roll gave this crate's Trireme
+an `ATTACK3` slot that is three frames long here, and the original a
+full-length swing. GUYS=2 does not print the original's slot.
+
+### 23.4 What is not established
+
+- **`unit_masks & 0x100`**, "ordered recently" (`docs/MERCHANT.md` §7).
+  This crate does not keep it, so a boat is always taken as not recently
+  ordered. A human who has just moved a packed boat by hand would skip the
+  arm in the original and not here. No capture issues a human move to a
+  boat.
+- **The arm's `idle += 1`** when nothing deploys. It is the listing's, and
+  it is modelled, but run127's fisher deploys on its first idle frame, so
+  no capture has exercised this path.
+- **A human's merchant.** The same arm with `is_merchant`, and the
+  merchant's own `cast_unpack` arm (the four-tile footprint, `0x2000000`)
+  is still a SEAM (`crate::transport`). No capture has a human merchant.
+- **`leader_flags & 4` is taken as `nation.human`.** An AI-driven human
+  (`& 8`) and auto-manage are not distinguished, as elsewhere
+  (`crate::scout`'s `ai_driven`).
+
+### 23.5 Coverage
+
+- **Diff-backed** by run127: the arm's reach for a human's packed boat
+  under `ai off` on its birth frame; `unpack_merchant(4)`'s spot, move
+  point and angle; the `[MOVE_TO, CAST]` order; the forty-frame deploy;
+  `packed` and `mylos` on 665; and the deployed boat's pay in the leader
+  rows from 673.
+- **Reading only**: the cadence's one-in-thirty-two branch; the
+  `0x100`/`is_merchant` conjunct; and `idle += 1`.

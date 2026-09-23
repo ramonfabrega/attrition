@@ -474,6 +474,75 @@ mod tests {
         assert_eq!(s.rng.seed, seed, "and the whole deploy spends no draw");
     }
 
+    /// **A human's boat deploys through `think`'s rare-collector arm, above
+    /// `ai off`** (`docs/ORDERS.md` §23, item 543). run127's fisher `0/7`
+    /// is born under a human leader with the cheat on, so `think_fish` —
+    /// the tail's, behind the computer block — is never reached; the arm
+    /// at `think@005f6e40:163` is, and it asks `calc_gather` and then
+    /// `unpack_merchant(this, 4)`. The two orders are `[MOVE_TO, CAST]`,
+    /// the walk in front, with the Fisherman's own `0x292`: the dump's
+    /// block 621 prints them as `CASTORDER spell 658`, then `MOVEORDER`.
+    #[test]
+    fn a_human_s_packed_boat_on_its_fish_walks_and_casts_with_ai_off() {
+        let (mut s, u) = fish_sim();
+        s.nation[1].human = true;
+        s.ai_off = true;
+        let at = s.units[u].pos;
+        s.world.add_good(crate::world::Good {
+            pos: at,
+            ty: A_GOOD,
+            alive: true,
+        });
+        let t = at.tile();
+        let m = s.world.tile_mask(t);
+        s.world
+            .set_tile_mask(t, m | crate::world::tile::AS_BUILDING);
+        s.work(u, 0);
+        let bodies: Vec<Body> = s.units[u].orders.iter().map(|o| o.body).collect();
+        assert!(
+            matches!(bodies.as_slice(), [Body::Move(_), Body::Cast(c)] if c.spell == UNPACK_FISHERMEN),
+            "the walk in front of the Fisherman's unpack: {bodies:?}"
+        );
+        // And without the arm nothing would have: a human's boat under
+        // `ai off` loses the tail, `think_fish` with it.
+        let (mut s, u) = fish_sim();
+        s.nation[1].human = true;
+        s.ai_off = true;
+        s.units[u].combat.packed = false;
+        s.work(u, 0);
+        assert!(
+            s.units[u].orders.is_empty(),
+            "an unpacked human boat takes nothing"
+        );
+    }
+
+    /// The arm's other exit: a human's packed boat with nothing to gather
+    /// where it stands takes no order, and `think:196` bumps `idle` a
+    /// second time on the way past.
+    #[test]
+    fn a_human_s_packed_boat_with_no_fish_bumps_its_idle() {
+        let (mut s, u) = fish_sim();
+        s.nation[1].human = true;
+        s.ai_off = true;
+        s.units[u].idle = 0;
+        s.work(u, 0);
+        assert!(s.units[u].orders.is_empty(), "no deploy without a good");
+        let once = {
+            let (mut s2, u2) = fish_sim();
+            s2.nation[1].human = true;
+            s2.ai_off = true;
+            s2.units[u2].combat.packed = false;
+            s2.units[u2].idle = 0;
+            s2.work(u2, 0);
+            s2.units[u2].idle
+        };
+        assert_eq!(
+            s.units[u].idle,
+            once + 1,
+            "the arm's `idle++` on top of `do_idle`'s own"
+        );
+    }
+
     /// The other half of the same frame: a `JOB_TIME` the table does not
     /// carry is **0**, and a cast with one lands on its first step. That is
     /// the transport craft's own number, and it is why the fixtures that

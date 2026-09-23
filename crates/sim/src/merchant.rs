@@ -238,8 +238,9 @@ impl Sim {
     ///
     /// `think_merchant` asks with ring 3; `Unit::think`'s own
     /// rare-collector arm — **human-only**, `leader_flags & 4`
-    /// (`docs/MERCHANT.md` §4) — asks with ring 4 and no capture reaches
-    /// it.
+    /// (`docs/MERCHANT.md` §4) — asks with ring 4, and run127's human
+    /// fishing boat is the capture that reaches it (`docs/ORDERS.md`
+    /// §23).
     pub(crate) fn unpack_merchant(&mut self, u: usize, ring: usize) -> bool {
         let Some(t) = self.find_merchant_spot(u, ring) else {
             return false;

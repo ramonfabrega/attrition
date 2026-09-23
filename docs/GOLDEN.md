@@ -473,9 +473,16 @@ that trireme's first round, whose landing scatter is two draws (8 against
 frame was the release event's divisor, `starttime / 67` and not `× 3 /
 200`. Its point was node 0 on the keel, and the widening, now comparing
 the whole `AMMO` record, found its height: a sea figure stands at `z` 0.
-The first two volleys of both ships now agree on every field. On 664 the
+The first two volleys of both ships now agree on every field. ~~On 664 the
 original spends a `Guy::set_anim` for the fisher `0/7`, whose birth cast
-ends there. This crate never gave it the cast.
+ends there. This crate never gave it the cast.~~
+
+**The word is 739** since item 543 (`docs/ORDERS.md` §23). The fisher's
+cast was its deploy, and a *human's* boat is given it by `Unit::think`'s
+rare-collector arm, which sits above `ai off`'s exit. The birth orders,
+the walk, the forty-frame cast and the deploy on 665 now agree, and
+nothing under the word parts. On 739 this crate ends an attack the
+original does not: `1/6`'s `CHAR_ATTACK3` runs three frames.
 
 ## 10. Chapter six — the air, and the one command that issues an order
 
