@@ -12281,15 +12281,20 @@ mod tests {
             "the Bark arrives with the original's"
         );
         // **The word's blocks, 10581..10583, both directions.** Sim-frame
-        // 10582 is player 1's `make_stuff`, and it buys differently. The
-        // make list parts on 10581: the original holds a Citizen (type 50,
-        // cat 5, `val 1714`) in slots 3 and 5, where this crate holds two
-        // Scholars (type 52) at `val 0` in slot 3 and nothing in 5. On
-        // 10582 the vals of slots 1, 2, 4 and 7 part with it. On 10583 the
-        // building `1/2018` is placed a tile off, (·, 34944) against
-        // (·, 35136), with its gather ring, and the Citizen `1/6` walks to
-        // it on a different path. The census under it parts on 10576
-        // (`free_peasants` 2 against 1).
+        // 10582 is player 1's `make_stuff`, and it places its Mine `1/2018`
+        // a tile off: on 10583 at (·, 34944) against (·, 35136), with its
+        // gather ring, and the Citizen `1/6` walks to it on a different
+        // path. Until item 592 the make list parted under it on 10581 —
+        // the original's Citizen (type 50, cat 5, `val 1714`) in slots 3
+        // and 5 against this crate's two Scholars at `val 0` in slot 3,
+        // and on 10582 the vals of slots 1, 2, 4 and 7 — because the
+        // census counted the barge rider `1/31` free (below). Now the lists
+        // agree but for §52.2's `city` shift and the Mine's own value, slot
+        // 4's `val` on 10582, `create_buildings`' frame: 1,616,000 against
+        // 1,584,000. That is city `1/2007`'s `open` one high here —
+        // `filled` 33 against 34 since run99's 7976 — and a payoff probe
+        // that set the city's picture to the original's from 7975 closed
+        // the row and moved no draw (`docs/AI.md` §58.4).
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(k, (f, _))| (WORD_BLOCK - 2..WORD_BLOCK).contains(f) && k.1 == -1)
@@ -12298,21 +12303,10 @@ mod tests {
         assert_eq!(
             on_word,
             [
-                "10582 1/-1 leader:MAKE[1].val: ours 5722784 theirs 7222784",
-                "10582 1/-1 leader:MAKE[2].city: ours -1 theirs 0",
-                "10582 1/-1 leader:MAKE[2].t: ours 324 theirs -1",
-                "10582 1/-1 leader:MAKE[2].val: ours 5369856 theirs 7222784",
-                "10581 1/-1 leader:MAKE[3].cat: ours 4 theirs 5",
-                "10581 1/-1 leader:MAKE[3].city: ours 2 theirs 0",
-                "10581 1/-1 leader:MAKE[3].num: ours 2 theirs 1",
-                "10581 1/-1 leader:MAKE[3].t: ours 52 theirs 50",
-                "10581 1/-1 leader:MAKE[3].val: ours 0 theirs 1714",
-                "10582 1/-1 leader:MAKE[4].val: ours 1515000 theirs 1584000",
-                "10581 1/-1 leader:MAKE[5].cat: ours 0 theirs 5",
-                "10581 1/-1 leader:MAKE[5].city: ours -1 theirs 0",
-                "10581 1/-1 leader:MAKE[5].t: ours -1 theirs 50",
-                "10581 1/-1 leader:MAKE[5].val: ours -1 theirs 1714",
-                "10582 1/-1 leader:MAKE[7].val: ours 5722784 theirs 7222784",
+                "10582 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
+                "10581 1/-1 leader:MAKE[3].city: ours 1 theirs 0",
+                "10582 1/-1 leader:MAKE[4].val: ours 1616000 theirs 1584000",
+                "10581 1/-1 leader:MAKE[5].city: ours 1 theirs 0",
             ],
             "the make list"
         );
@@ -12337,7 +12331,7 @@ mod tests {
             .collect();
         assert_eq!(
             per_block,
-            [(10581, 9), (10582, 6), (10583, 98)],
+            [(10581, 2), (10582, 2), (10583, 98)],
             "the word's blocks, counted"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
@@ -12353,36 +12347,28 @@ mod tests {
             [(10585, 0, 4, false, true)],
             "a figure moves on one side only"
         );
-        // **The census under the word, 10576, both directions** (item 592).
-        // Player 1's sweep runs on sim-frame 10575, and it counts one
-        // citizen differently: `1/31`, which boarded the transport barge
-        // `1/36` on 10486 on both sides and rides it to (40344, 22680). The
-        // original counts a citizen off the map through its container: the
-        // barge's tile gives its region (5 in the dump's numbering), and a
-        // sea-domain container whose order is a move makes it an `xport`
-        // peasant in the region of the move's point — never a free one.
-        // This crate counted it on the map where it boarded: free, in
-        // region 11, the home region. No unit's container parts anywhere in
-        // the window (`inside`, the outermost container both sides).
+        // **The census under the word, 10576, both directions** (item 592),
+        // and the move's value diff. Player 1's sweep runs on sim-frame
+        // 10575 and counted one citizen differently: `1/31`, which boarded
+        // the transport barge `1/36` on 10486 on both sides and rides it to
+        // (40344, 22680). The original counts a citizen off the map through
+        // its container: a sea-domain container whose order is a move makes
+        // it an `xport` peasant in the region of the move's point, 5 in the
+        // dump's numbering, and the `reg_active` family counts it there too.
+        // Until the fix this crate counted it on the map where it boarded,
+        // free, in the home region 11 — eight rows here: `free_peasants`
+        // 2/1, `xport_peasants` 1/2, `reg_peasants[11]` 14/13,
+        // `reg_free_peasants[11]` 1/0, `reg_active[11]` 27/26,
+        // `reg_active[5]` 0/1, `reg_xport_peasants[5]` 0/1 and city
+        // `1/2000`'s `free` 1/0 (`docs/AI.md` §58). No unit's container
+        // parts anywhere in the window (`inside`, the outermost container
+        // both sides).
         let census: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f == WORD_BLOCK - 7)
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
-        assert_eq!(
-            census,
-            [
-                "10576 1/-1 leader:free_peasants: ours 2 theirs 1",
-                "10576 1/-1 leader:reg_active[11]: ours 27 theirs 26",
-                "10576 1/-1 leader:reg_active[5]: ours 0 theirs 1",
-                "10576 1/-1 leader:reg_free_peasants[11]: ours 1 theirs 0",
-                "10576 1/-1 leader:reg_peasants[11]: ours 14 theirs 13",
-                "10576 1/-1 leader:reg_xport_peasants[5]: ours 0 theirs 1",
-                "10576 1/-1 leader:xport_peasants: ours 1 theirs 2",
-                "10576 1/2000 city:free: ours 1 theirs 0",
-            ],
-            "the peasant census"
-        );
+        assert_eq!(census, Vec::<String>::new(), "the peasant census");
         assert!(
             !firsts.keys().any(|k| k.2 == "inside"),
             "every unit's container agrees"
@@ -12391,25 +12377,27 @@ mod tests {
         // first block (the human leader's census, the site list, the make
         // list's `city` shift, the seated Scholars' birth records and the
         // navy's group numbers, among the record rows run99 carries whole),
-        // and 31 more before the word: the make list's `city` and a unit of
+        // and 28 more before the word: the make list's `city` and a unit of
         // metal and food on 10381/10382; the scout `1/0` a unit off on
         // 10383..10407; the human's `production_step` on 10401; the seated
         // Scholars `1/29` (10437) and `1/37` (10548) with their four-row
-        // birth records; the Bark `1/35`'s group number on 10466; `1/31`'s
-        // speed and `1/36`'s form and a path flag on 10486; and the
-        // peasant census on 10576. Until item 588 the Bark `1/34`'s walk
-        // stood here too, and the floor was 269/284/830.
+        // birth records; the Bark `1/35`'s group number on 10466; and
+        // `1/31`'s speed and `1/36`'s form and a path flag on 10486. Until
+        // item 592 the peasant census on 10576 stood here too, and until
+        // item 588 the Bark `1/34`'s walk, when the floor was 269/284/830.
         //
-        // Item 592's widening added 24: on the first block the human
+        // Item 592's widening added 19 on the first block: the human
         // leader's per-region census (18 rows: `reg_active`, `reg_cities`,
         // `reg_gather_slots`, `reg_gatherers`, `reg_land` and `reg_peasants`
         // of its home region, and `strategy` over twelve regions — this
         // crate keeps no census for the human) and player 1's `reg_land`
-        // of its home region, 91 against 90; and the five region rows of
-        // the census parting on 10576, below.
+        // of its home region, 91 against 90, which is city `1/2007`'s
+        // `filled` (§58.4). Its fix took the census's eight rows off 10576
+        // and the make list's thirteen off the word; the floor was
+        // 273/309/772 with the widening and before the fix.
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under, firsts.len()), (273, 309, 772), "the floor");
+        assert_eq!((first, under, firsts.len()), (273, 301, 753), "the floor");
     }
 
     #[test]

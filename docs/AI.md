@@ -167,8 +167,8 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
    owner is an enemy, `reg_known_rares[tregion]++`.
 10. **The unit census** — every captain of mine (`is_captain`, vslot
     `+0xe8`) that is alive and whose type has `control_cost != 0`:
-    - its region: the unit's tile, or when garrisoned, the containing
-      building's — the building's footprint (`x_size`/`y_size`, centred
+    - its region: the unit's tile, or its outermost container's (§58)
+      — the building's footprint (`x_size`/`y_size`, centred
       by parity) is scanned column by column for the first cell whose
       terrain byte (`world+0x138`) has `& 0x30 == 0x20`, **water**, and
       that tile's *alternate* region (the record's short at `+6`, the sea
@@ -200,9 +200,9 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
     - **citizens** (`0x32/0x33`): `peasants++`; the nearest friendly city
       (`ObjectsData::find_city`, its distance in `objects+0x1fc`) — where
       **`0x200` is a *flag*, "same region as the point", not a radius, so
-      the search has no distance limit**. Garrisoned: inside a `0x1a6` → `filled_gather_slots
-      [5]++`; inside a sea-domain building with a building-targeting order
-      → `reg_xport_peasants[r]++`, `xport_peasants++`. On the map:
+      the search has no distance limit**. Off the map: inside a `0x1a6` → `filled_gather_slots[5]++`;
+      in a sea *unit* that is moving → `xport` in the move point's
+      region, which `reg_active` reads (§58). On the map:
       `reg_peasants[r]++`; if `reg_cities[r] == 0` and the action is not
       BUILD → `reg_xport_peasants[r]++`, `xport_peasants++`; then by the
       **action kind** (`get_action`, vslot `+0x10`; kinds per
@@ -7164,3 +7164,165 @@ Unit:
 Reading-only, and owed a blind second reading: §57.2's candidate filter
 (the two `is_active` vslots) and the bounded arm's cell walk. The listing
 settles the distance unit.
+
+## 58. A citizen on a barge is counted by its container (2026-09-23, item 592)
+
+Item 588 left East Indies' word on **10582**, player 1's `make_stuff`. The
+make list parted on 10581: the original held a Citizen (type 50, `val
+1714`) in slots 3 and 5, and this crate held two Scholars at `val 0` in
+slot 3. The peasant census parted under it on 10576. The word spends **209
+draws here against 207, parting at index 11**: ours
+`Leader::produce_building+0xc99`, theirs `+0x1805`. No mechanism was named.
+run143 (`LEADERS=9` over [10380, 10739]) answered everything, and no capture
+was taken.
+
+### 58.1 The census counts a rider through its container
+
+Player 1's full sweep runs on sim-frame 10575 (§2.2's phase), and block
+10576 is its census. Every citizen's order list, `peasants` 15, `gatherers`
+12 and `active` 37 agree. One citizen is counted differently: `1/31`, which
+boarded the transport barge `1/36` on 10486 on both sides. The dump shows
+`inside_up 36`, and this crate `inside_unit 36`, `on_map false`.
+
+`Leader::plan_strategy@006b9620`, the unit census (§2.3 step 10), read from
+the decompile:
+
+- **The region.** A unit with `inside_up ≥ 0` takes its region from
+  `ObjectData::get_inside@00651a80`. That walks `inside_up` while the
+  container `is_unit` (vslot `+0x18`) to the **outermost container**,
+  building or unit. A unit of `domain != 1` takes that container's tile,
+  with the coastal alternate-region rule. The dock scan of the footprint
+  is only for a sea unit in a building.
+- **The citizen branch, off the map.** The first arm is an oil platform
+  (`is(0x1a6)`) → `filled_gather_slots[5]++`. The second arm fires when
+  the container `is_unit`, its type's `domain` (`+0x218`) is **1**, its
+  order list is non-empty, and the current order answers vslot `+0x14`.
+  That vslot is `MoveOrder::is_move`, answered by every `MoveOrder` class:
+  Move, AttackTo, ExploreTo, FleeTo, GroupMove, GroupAttackTo and Form.
+  `get_move_order` (`+0xb8`) then gives `MoveOrder::x/y` (`+0x4/+0x8`).
+  The region of **the cell** under that point (`x >> 8` through
+  `div_3_table`, no `>> 2`) goes into the sweep's region local, and if it
+  is `≥ 0`, `reg_xport_peasants[r]++` and `xport_peasants++`.
+  **Neither arm counts the rider free, busy or in `reg_peasants`.**
+- **The local is shared.** The `reg_active`/`reg_combat`/`reg_attack`
+  block after the worker branch reads the same `WVar31` the second arm
+  wrote. So the rider is `active` in the region the boat is going to, not
+  the region it is in.
+
+run143 prints all three. Until this item this crate counted the rider on
+the map where it boarded: free, busy-less, in the home region 11. The rows
+on 10576 were:
+
+- `free_peasants` 2 against 1;
+- `xport_peasants` 1 against 2;
+- `reg_peasants[11]` 14 against 13;
+- `reg_free_peasants[11]` 1 against 0;
+- `reg_active[11]` 27 against 26;
+- `reg_active[5]` 0 against 1;
+- `reg_xport_peasants[5]` 0 against 1;
+- city `1/2000`'s `free` 1 against 0.
+
+Region 5 is the barge's destination, (40344, 22680). The barge's own tile
+is the ocean, 65, where a land unit is not active. So `reg_active[5]` is
+the shared local, printed.
+
+`Sim::census_unit_region` now takes a boat's tile. `census_citizen` sends a
+rider to the off-map arm, and `census_citizen_inside` returns the move
+point's region, which `census_units` carries into the `reg_active` family.
+
+### 58.2 The instruments this needed
+
+- **The census's 21 per-region arrays were unread.** They sat in
+  coverage's `UNREAD` pin, printed at `LEADERS=9` on every block and
+  compared nowhere. `diff::leader::REGION_ARRAYS` reads all of them, keyed
+  by the dump's own region through `Built::region_map`:
+  - the land arrays at width 64;
+  - `reg_active`, `reg_combat` and `reg_attack` at 127;
+  - `reg_naval` and `reg_transports` at 63, indexed by region `− 0x3f`.
+
+  `reg_terr` has no writer here and stays pinned.
+- **`inside_up` was parsed and compared nowhere.** run143's widening now
+  compares every unit's outermost container on both sides, and none parts
+  in [10380, 10739]. `compare` itself still does not read it.
+
+### 58.3 What it moved
+
+- **The census agrees whole on 10576.** Both make lists agree slot for slot
+  on 10581 and 10582, apart from §52.2's `city` shift and slot 4's `val`.
+  The rows on the word's blocks go 9/6/98 → 2/2/98, and run143's floor goes
+  273/309/772 → 273/301/753.
+- **The word does not move.** 10582 still spends 209 draws against 207,
+  parting at index 11, and the site differs:
+  - both sides place a Mine (type 419, slot 4) and buy a Citizen;
+  - this crate's spiral scores **12** friendless FARM/MINE candidates at
+    `produce_building+0xc99` against the original's **7**;
+  - it tries **4** sub-positions at `+0x1805` against **3**;
+  - the Mine `1/2018` lands at y 34944 against 35136.
+
+### 58.4 What is under it: city `1/2007`'s site picture
+
+`1/2018` belongs to city `1/2007`, at (34656, 36192).
+
+- **`MAKE[4].val` on 10582** is the Mine's value from `create_buildings`
+  (§3.2's gather arm): 1,616,000 here against 1,584,000.
+- **City `1/2007`'s step-13 picture** has parted since run99:
+  - `space[0]` and `space[1]` are 59 against 60 from run99's first block,
+    7880;
+  - `filled` is 33 against 34 and `space[2]` 49 against 48 from **7976**,
+    the sweep of 7975;
+  - so `open`, and `reg_land[11]`, are one high here.
+- **A payoff probe**, not kept, set the city's `filled` and `space[2]` to
+  the original's from 7975:
+  - `MAKE[4].val` and `reg_land[11]` closed;
+  - **no draw moved.**
+
+So the count explains the value but not the site.
+
+**Hypothesis, not established:** one tile of `1/2007`'s circle is unfit
+for a 4×4 square in the original and fit here (`check_building_wcoord`),
+and the same tile admits this crate's extra spiral candidates. **What the
+disk cannot answer:** no dump prints a tile's occupancy or a
+`check_building_wcoord` result. A packet at 10581, with `produce_building`'s
+spiral or `check_building_wcoord` run over the city's circle, would name the
+tile, as would one at 7975 for the `filled` step. Nothing in the unit or
+building records parts on 7976.
+
+### 58.5 What this has *not* established
+
+- **The sea rider in a boat.** A unit with `domain == 1` asks its unit
+  container a folded vslot (`+0x108`) before the footprint scan. No such
+  rider exists here, and it takes the boat's tile.
+- **A move point with no region.** The original writes `−1` into the
+  shared local, and the `reg_active` block would index `−1`. This crate
+  keeps the container's region. No capture reaches it.
+- **The on-map `8`/`0xe` arm** (build or repair through a boarded
+  transport) writes the same local. It stays a seam.
+- **Only a plain `MoveTo` was diffed.** The other `is_move` classes are
+  read, and all are `Body::Move` here.
+
+### 58.6 Coverage
+
+Diff-backed:
+
+- `diff::harness::tests::run143_s_word_frame_is_widened_whole`:
+  - the census and its 21 region arrays, both leaders, every block;
+  - every unit's container;
+  - the move's value diff on 10576, now empty;
+  - the word's blocks, and the floor.
+- `diff::coverage::every_key_the_dump_prints_is_read_or_pinned`: the
+  region arrays leave the pin.
+
+Unit:
+
+- `ai_census::tests::a_rider_is_an_xport_peasant_where_its_boat_is_going`:
+  - a rider on a moving barge counts xport in the destination's region and
+    active there;
+  - on a barge at rest it counts in the sea and nowhere active.
+
+  It was made to fail on purpose by sending the rider down the on-map arm.
+
+Reading-only, and owed a blind second reading:
+
+- the `is_move` class list (only a plain `MoveTo` is diffed);
+- the cell (not tile) indexing of the move point. It agrees on run143's one
+  case, and one case does not separate the two.

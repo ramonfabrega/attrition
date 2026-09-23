@@ -248,8 +248,19 @@ impl Sim {
     /// building takes the first ocean tile of the container's footprint, so
     /// a ship in a dock counts in the sea region. The result must be a sea
     /// region (`> 0x3e`) or the scan is discarded.
+    ///
+    /// **A container is a unit too** (item 592): `ObjectData::get_inside`
+    /// walks `inside_up` to the outermost container, building or boat, and
+    /// a land unit takes that container's tile, `region2` rule and all. A
+    /// citizen riding a transport barge counts in the barge's region, not
+    /// where it boarded (`docs/AI.md` §58). A sea-domain unit inside a boat
+    /// asks the boat a vslot the export folds (`+0x108`); no such rider
+    /// exists here, and it takes the boat's tile too.
     fn census_unit_region(&self, u: usize) -> Option<u16> {
         let unit = &self.units[u];
+        if let Some(boat) = unit.inside_unit {
+            return self.world.tregion_alt(self.units[boat].pos.tile());
+        }
         let Some(b) = unit.inside else {
             return self.world.tregion_alt(unit.pos.tile());
         };
@@ -615,9 +626,24 @@ impl Sim {
                 inv[w] += 1;
             }
 
+            let mut reg = reg;
+            let mut land_reg = land_reg;
             match self.worker_of(u) {
                 Worker::Scholar => self.census_scholar(who, u),
-                Worker::Citizen => self.census_citizen(who, u, reg, land_reg),
+                Worker::Citizen => {
+                    // **The region is one local, and the rider's arm writes
+                    // it** (item 592): `plan_strategy`'s `xport` arm keeps
+                    // the move point's region in the variable the unit's
+                    // own region lives in, and the `reg_active` family
+                    // below reads it after. run143's 10576 prints the rider
+                    // `1/31` in `reg_active[5]`, the barge's destination,
+                    // and in no region of the barge's own tile
+                    // (`docs/AI.md` §58).
+                    if let Some(r) = self.census_citizen(who, u, reg, land_reg) {
+                        reg = r;
+                        land_reg = self.region_is_land(r);
+                    }
+                }
                 Worker::None => self.census_trader(who, u, reg),
             }
 
@@ -675,14 +701,18 @@ impl Sim {
 
     /// A citizen: the nearest friendly city, the per-region peasant counts,
     /// and then the split by the *action*'s kind.
-    fn census_citizen(&mut self, who: Player, u: usize, reg: u16, land_reg: bool) {
+    ///
+    /// Returns the region the `xport` arm left in the sweep's region local,
+    /// when it ran (see [`Sim::census_citizen_inside`]).
+    fn census_citizen(&mut self, who: Player, u: usize, reg: u16, land_reg: bool) -> Option<u16> {
         let w = who as usize;
         let found = self.census_find_city(who, self.units[u].pos);
         self.ai[w].census.peasants += 1;
 
-        if self.units[u].inside.is_some() {
-            self.census_citizen_inside(who, u);
-            return;
+        // `is_on_map`: the sign of `inside_up`, so a rider on a boat is
+        // off the map exactly as a garrison is (item 592).
+        if self.units[u].inside.is_some() || self.units[u].inside_unit.is_some() {
+            return self.census_citizen_inside(who, u);
         }
 
         let r = reg as usize;
@@ -708,7 +738,7 @@ impl Sim {
                 rec.free = rec.free.wrapping_add(1);
                 rec.peasant_dist = rec.peasant_dist.min(dist / CELL);
             }
-            return;
+            return None;
         }
 
         if let Some((c, _)) = found {
@@ -717,7 +747,7 @@ impl Sim {
         if kind != index::GATHER {
             // Kinds 8 and 0xe — build and repair from inside a transport —
             // are a seam; nothing else in the original's table counts here.
-            return;
+            return None;
         }
 
         let target = self
@@ -752,22 +782,51 @@ impl Sim {
         if land_reg {
             self.ai[w].census.reg_gatherers[r] += 1;
         }
+        None
     }
 
     /// A garrisoned citizen: the oil slot when it is inside an oil
     /// platform. The transport half — a citizen riding a ship with a
     /// building-targeting order — is a seam.
-    fn census_citizen_inside(&mut self, who: Player, u: usize) {
+    ///
+    /// Two arms, on the outermost container (`plan_strategy@006b9620`, the
+    /// citizen branch's `!is_on_map` half): an oil platform fills a slot of
+    /// oil; and **a sea-domain unit whose current order is a move** — vslot
+    /// `+0x14`, `is_move`, which every `MoveOrder` class answers — makes the
+    /// rider an `xport` peasant in the region of the move's point, the cell
+    /// under `MoveOrder::x/y` (`reg_xport_peasants[r]++`, `xport_peasants++`,
+    /// both only when that cell has a region). Neither arm counts it free,
+    /// busy or in `reg_peasants`: a rider is not on the map (`docs/AI.md`
+    /// §58).
+    fn census_citizen_inside(&mut self, who: Player, u: usize) -> Option<u16> {
         let w = who as usize;
-        let Some(b) = self.units[u].inside else {
-            return;
-        };
-        if self.buildings[b]
-            .ty
-            .is_some_and(|t| build::is(&self.build_types, t, build::Ident::OilPlatform))
-        {
-            self.ai[w].census.filled_gather_slots[5] += 1;
+        if let Some(b) = self.units[u].inside {
+            if self.buildings[b]
+                .ty
+                .is_some_and(|t| build::is(&self.build_types, t, build::Ident::OilPlatform))
+            {
+                self.ai[w].census.filled_gather_slots[5] += 1;
+            }
+            return None;
         }
+        let boat = self.units[u].inside_unit?;
+        if self.unit_domain(boat) != Domain::Sea {
+            return None;
+        }
+        let Some(crate::orders::Order {
+            body: crate::orders::Body::Move(m),
+            ..
+        }) = self.units[boat].orders.front()
+        else {
+            return None;
+        };
+        let r = self.world.region_of(m.dest.cell())?;
+        let cs = &mut self.ai[w].census;
+        if let Some(x) = cs.reg_xport_peasants.get_mut(usize::from(r)) {
+            *x += 1;
+        }
+        cs.xport_peasants += 1;
+        Some(r)
     }
 
     /// Step 11, the building census: the gather slots and the defensive
@@ -1375,6 +1434,102 @@ mod tests {
     /// scout — run8's shape. The free/busy split is by the **action**'s
     /// kind: no action or EXPLORE_TO is free, everything else is busy, and
     /// a GATHER moves the count on to the target building's city.
+    /// **A citizen on a barge is off the map** (item 592, `docs/AI.md` §58):
+    /// neither free nor busy nor in `reg_peasants`, and — while the barge's
+    /// order is a move — an `xport` peasant in the region of the move's
+    /// point, which is also where the `reg_active` family counts it, because
+    /// the original keeps that region in the local the unit's own region
+    /// lives in. run143's 10576 is the case: `1/31` rides `1/36` and the
+    /// original counts it in `reg_active[5]` and `reg_xport_peasants[5]`.
+    #[test]
+    fn a_rider_is_an_xport_peasant_where_its_boat_is_going() {
+        let mut f = fix();
+        // Two land regions: the boarding shore and the far shore.
+        let home = f.sim.world.region_of(Cell::new(2, 2)).unwrap();
+        let far = f
+            .sim
+            .world
+            .fill_region(Terrain::Land, Cell::new(0, 10), Cell::new(11, 15));
+        let sea = f.sim.world.region_of(Cell::new(13, 4)).unwrap();
+        // A city at home, so the citizen ashore is not in transport itself.
+        build(&mut f.sim, 1, f.village, 20, 20);
+        let mut barge = UnitType {
+            hits: 50,
+            ..UnitType::default()
+        };
+        barge.combat.domain = Domain::Sea;
+        let barge = f.sim.add_unit_type(barge);
+        let boat = spawn(
+            &mut f.sim,
+            1,
+            barge,
+            13 * TILES_PER_CELL,
+            4 * TILES_PER_CELL,
+        );
+        let rider = spawn(
+            &mut f.sim,
+            1,
+            f.citizen,
+            2 * TILES_PER_CELL,
+            2 * TILES_PER_CELL,
+        );
+        spawn(
+            &mut f.sim,
+            1,
+            f.citizen,
+            3 * TILES_PER_CELL,
+            3 * TILES_PER_CELL,
+        );
+        f.sim.units[rider].inside_unit = Some(boat);
+        f.sim.units[rider].on_map = false;
+        let sail = |dest: Pos| Order {
+            flags: crate::orders::flag::ACTION,
+            body: Body::Move(crate::orders::MoveOrder {
+                kind: crate::orders::MoveKind::MoveTo,
+                dest,
+                angle: crate::movement::Angle(0),
+                facing: None,
+                has_waypoint: false,
+                waypoint: dest,
+                last: None,
+                pause: 0,
+                retry: 0,
+                attempts: 0,
+                timer: 0,
+                coll: None,
+                group: None,
+            }),
+        };
+        f.sim.units[boat]
+            .orders
+            .push_back(sail(tile_pos(4 * TILES_PER_CELL, 12 * TILES_PER_CELL)));
+
+        f.sim.census(1);
+        let cs = &f.sim.ai[1].census;
+        let reg = |v: &[i32], r: u16| Census::reg(v, r);
+        assert_eq!(cs.peasants, 2, "the rider is a peasant");
+        assert_eq!(cs.free_peasants, 1, "only the one ashore is free");
+        assert_eq!(cs.xport_peasants, 1, "the rider is in transport");
+        assert_eq!(reg(&cs.reg_xport_peasants, far), 1, "where the boat goes");
+        assert_eq!(reg(&cs.reg_peasants, home), 1, "a rider is not on the map");
+        assert_eq!(reg(&cs.reg_free_peasants, home), 1);
+        assert_eq!(
+            (reg(&cs.reg_active, home), reg(&cs.reg_active, far)),
+            (1, 1),
+            "the rider's `reg_active` is the move point's region"
+        );
+
+        // A boat at rest carries no `xport`: the rider counts in the boat's
+        // own tile's region, the sea, where a land unit is not active.
+        f.sim.units[boat].orders.clear();
+        f.sim.census(1);
+        let cs = &f.sim.ai[1].census;
+        assert_eq!((cs.free_peasants, cs.xport_peasants), (1, 0));
+        assert_eq!(reg(&cs.reg_active, far), 0);
+        assert_eq!(reg(&cs.reg_active, sea), 0);
+        assert_eq!(reg(&cs.reg_active, home), 1, "only the one ashore");
+    }
+
     #[test]
     fn the_free_busy_split_follows_the_action_kind() {
         let mut f = fix();
