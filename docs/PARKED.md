@@ -32,11 +32,16 @@ attack and a chase, where the dump's holds nothing until 868.
 
 ## Parked by item 613, 2026-09-23 — under East Indies' 11069
 
-(622) **409 keys under the word on run152**, none on 11069's draw: food
-and metal a unit off from 10881/10900, the peasants and `1/36` from
-10956, `1/2018`'s list order from 10959, and `SITE` on 10976
-(`docs/journal/2026-09-23-item-613.md`). Returns when 620's widening
-names one.
+(622) **The keys under the word on run152**, none on 11590's draw: food
+and metal a unit off from 10881/10900 (on run155, 11064 and 11037), the
+peasants and `1/36` from 10956, and `SITE` on 10976
+(`docs/journal/2026-09-23-item-613.md`). `1/2018`'s list order from
+10959 was the tile pick, closed by 620's clamp (ORDERS §6.4).
+
+(631) **`inside_up_who` is unread** (598's second half, from item 620): the
+container chain walk stays within the unit's own player, so a unit housed
+by another player's container is never compared. 620 put the outermost
+container in `compare` and pinned it on run155. No draw names it.
 
 (623) **`MAKE[4].val` on 10982**, one make slot's value apart; no draw.
 
