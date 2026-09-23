@@ -24,8 +24,9 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
 - **The lower-map rule was prose and went unapplied for forty landings**;
   it is a guard now, beside the closed-chapter `Golden:` rule, the
   ledger's directory check and the both-sides lint (DECISIONS 47).
-- **Two lab PRs are open** (#7 typed state, #8 recomp): score-neutral,
-  nothing books; the pass's verdict is in its audit.
+- **PRs #7 and #8 merged** as opt-in rungs (CLAUDE.md Tooling, EMULATOR
+  §8): a packet before the divergence and a function run on it; 571
+  carries the first use. Nothing booked on the merge.
 - **566's booking gate was red and its verdict arrived after the
   handoff** — the endpoint read 41 against a pin of 42 (574). Re-pinned.
 - **Fable backlog: 3 Loop items** (313, 527, 574).
@@ -103,11 +104,11 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
   after 363, the click-free lane unless it needs the mouse. Overlap the
   neighbours: six blocks each end (run83); `samegame.py` exits 0 when
   nothing is in common, so assert the count, not the verdict; **a wait
-  keys on the runner's exit, never on a file** (565).
+  keys on the runner's exit, never on a file** (565). **A value question
+  takes a packet at the frame before, not a detail capture** (EMULATOR §8).
 - **Grep for the derived quantity, the SHAPE and the GATE**: a term zero in
   every dump is zero-valued or switched off (117, 178); **a never-cleared
   field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 4`**,
   to a file, never piped — a pipe launders the 137. A clear is free when
-  every landed branch is merged, gated, pushed and reaped and nothing is in
-  flight. **Before a blind fan-out**, grep `CLAUDE.md` and the memory index.
+  every landed branch is merged, gated, pushed and reaped and none is in flight.

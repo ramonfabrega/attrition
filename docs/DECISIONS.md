@@ -2727,8 +2727,13 @@ written to prevent.
    the squad's move/stop path run on the nine guys under unicorn — with
    the wall time stated against the 12038 capture. A packet is a second
    run on the single capture lane, and #8's driver reads #7's decode, so
-   the two opt-ins land together or not at all. Merging is Ramon's call,
-   on entry 38's terms.
+   the two opt-ins land together or not at all. ~~Merging is Ramon's
+   call, on entry 38's terms.~~ **Merged the same day on Ramon's word**,
+   `--no-ff`, on entry 38's terms — nothing books on the merge, nothing
+   enters the gate, packets and lifted C never enter git — with the
+   rungs named where a worker can find them: `CLAUDE.md`'s Tooling,
+   `docs/EMULATOR.md` §8 for the costs, `docs/ORACLE.md` for the lane's
+   rules, and 571's own entry for the first use.
 
 **Not taken**: a guard on the commander's count (git inside a test);
 the estimate, with no rate to revise it by and a second map and two

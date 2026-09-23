@@ -2824,3 +2824,18 @@ echoed into the run's `receipt.json` so a capture is read back from the run
 rather than from the command that asked for it, and a category the ini does not
 have is **refused** — the failure that guard catches is a correctly-numbered
 window whose blocks come back empty because `end:UNIT=3` was a typo.
+
+## A packet is a capture too (2026-09-23, the eleventh Fable pass)
+
+PR #7 merged the lab's `RON_STATE_FRAME` tracer build: two hooks, at
+`GameLog::end_frame` and at the `do_frame` continuation after it, copy the
+process's private data at one frame boundary into a `frame-snapshot-v1`
+stream beside the dump (`tools/explore/frame_snapshot.py` stages it and
+demands the receipt, both hooks and the logger-return check). Three
+rules for the lane: it is a **build variant**, mutually exclusive with the
+restore probe by `#error`, so a packet run is its own launch; it is a
+**second game on this lane**, holding the lane lock like any capture and
+serialized with the loop's own runs; and the frame it is taken on is
+**the one before the divergence**, because the packet at frame N is the
+state after tick N−1's decision. Costs and what a packet establishes are
+`docs/EMULATOR.md` §8; the evidence is `docs/lab/TYPED-STATE-REVIEW.md`.

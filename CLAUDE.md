@@ -551,6 +551,21 @@ and makes the eventual diff mechanical rather than a translation exercise.
   in the script) and enters a function with chosen arguments; a sweep is a
   `#[test]` in `crates/sim`. Free for a pure function, an hour of synthesized
   state for one that reads a singleton; `docs/EMULATOR.md` has the costs.
+- **And it can be called on the original's own state.** The lab's two
+  rungs (`docs/DECISIONS.md` entry 47; `docs/EMULATOR.md`'s last section
+  has the costs): a **packet** — `tools/explore/frame_snapshot.py`,
+  a `RON_STATE_FRAME` tracer build — copies the process's private data
+  at one frame boundary, and `tools/recomp/step4.py` runs a function on
+  it under unicorn with its writes watched; `tools/recomp/lift.py` is
+  the native twin for a pure function and the float oracle on chosen
+  inputs. Reach for them when the question is **a value the original
+  holds or computes** — a value row on a widening, a float residue, a
+  field no dump prints — before a reading and before a detail capture;
+  not for "why did it diverge", which is the draw stream's. **A packet
+  at frame N is after N−1's decision**, so it is taken at the frame
+  before the divergence; it is a second game on the single capture
+  lane, ~4 min and 843 MB; and lifted C is a reading tool exactly as the
+  decompiler is — never a source, never in git.
 - Constants are not all loaded in the representation the file writes. At least
   one rational arrives scaled to 8.8 fixed point. Read the consumer before
   believing the digits.

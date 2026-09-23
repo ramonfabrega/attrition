@@ -159,3 +159,57 @@ say it; the traces of the next targeted capture will). The dead list is
 neither: it is a fact about the image's bytes, re-derivable by
 `emu-dead-scan` and pinned nowhere yet — pinning it as the floor of counter
 2 is the queue item this document leaves for the main loop.
+
+## 8. The packet rung, and the native twin (2026-09-23)
+
+Two lab rungs merged on the eleventh Fable pass (`docs/DECISIONS.md` 47
+§8; the evidence is `docs/lab/TYPED-STATE-REVIEW.md` and
+`docs/lab/RECOMP-REVIEW.md`, and neither is re-derived here). They answer
+the hour of synthesized state §2 prices: instead of building a singleton's
+state by hand, take the original's.
+
+**The packet.** A `RON_STATE_FRAME` build of the tracer
+(`tools/trace/tracer.c`, mutually exclusive with the restore probe by
+`#error`) copies the process's private data and main-image data at one
+frame boundary — the logger's own `end_frame` and the `do_frame`
+continuation after it — through `tools/explore/frame_snapshot.py`, which
+demands the receipt, both hooks and the logger-return check.
+`tools/explore/frame_state.py` decodes it through the PDB and RTTI;
+`tools/recomp/snapshot.py` maps it as guest memory. Measured on the one
+packet taken (Great Lakes, logger frame 11,186): 221 s launch to restore
+on a narrow logging window, 843 MB, 177 ranges, 250 ms to copy, 5.5 s to
+decode warm; 516,369 of 602,211 printed occurrences agree with the logger,
+every observed `GUY` record whole, and the terrain's exact single bits.
+Not established by it: atomicity across threads, logger parity, live
+allocation coverage. **A packet at frame N is after tick N−1's
+decision**; the frame to take is the one before the divergence. It is a
+second game on the single capture lane, serialized with the loop's
+captures, and disk holds about a hundred of them.
+
+**A function on the packet.** `tools/recomp/step4.py` runs one function
+on the packet under unicorn — the capturing thread's TEB as `fs:`, the
+clock, heap and thread imports stubbed — and reports what it called,
+`--watch` who writes a range and `--find` the instruction that first
+produces a value. That is how item 327's formula was read: `create_units`
+to its return, 438k instructions, the `idiv` and the `sar` named, forty
+minutes from brief to formula. It is the move that earns the rung a
+booking, inside a booked item (571 first), never a frame.
+
+**The native twin.** `tools/recomp/lift.py` turns a function and its
+direct callees into C — the integer and scalar-SSE subsets, `fs:` as the
+guest TIB, imports through the IAT — and `difftest.py` diffs it row for
+row against unicorn on `callfn.py`'s own sweep and on every object of a
+packet. Verified: 3,516 sweep rows; `turn_speed` on 268 guys, asserted by
+`crates/sim/src/movement.rs`'s `RON_TURN_TABLE` test (skips without the
+table); `norm` bit-exact on 1,088 chosen vectors and `air_turn_speed`'s
+truncation on 5,715 banks; `create_units` and 264 callees reproducing the
+original's `LeaderData` byte for byte. 741 of 771 cited functions lift;
+packed SSE, `lock` and x87 stop it. Native is 5–9 ms against unicorn's
+22–43 ms on the sweep, both behind `uv`'s six-second start — the twin
+pays for a float residue on chosen inputs, not for speed.
+
+**What they are not.** Not the logger (24,000 packets would be 20 TB),
+not an answer to "why did it diverge" (the draw stream's), and not a
+source: lifted C and packets live under `target/` and `~/ron-data/`,
+generated from the user's install, and are read the way the decompiler
+is read.
