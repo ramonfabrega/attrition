@@ -6036,6 +6036,142 @@ fn chapter_three_s_unpacked_catapult_sees_its_hoplites() {
     assert_eq!(ours, theirs, "this crate's catapult parts from the dump's");
 }
 
+/// One unit's order list as the dump holds it, front first, for the
+/// ground order's floor: `(OrderIndex, att_x, att_y, accuracy,
+/// attack_unit, flags)` for an `ATTACKGROUNDORDER`, and `(OrderIndex,
+/// in_range, new_ord, -, -, flags)` for anything else.
+fn ground_rows(u: &crate::gamelog::UnitDump) -> Vec<[i64; 6]> {
+    u.orders_front_first()
+        .map(|o| match o.ag_att_x {
+            Some(x) => [
+                o.index,
+                x,
+                o.ag_att_y.unwrap_or(-1),
+                o.ag_accuracy.unwrap_or(-1),
+                o.ag_attack_unit.unwrap_or(-1),
+                o.flags,
+            ],
+            None => [
+                o.index,
+                o.in_range.unwrap_or(-1),
+                o.new_ord.unwrap_or(-1),
+                -1,
+                -1,
+                o.flags,
+            ],
+        })
+        .collect()
+}
+
+/// **The ground order's life, as the dump prints it** (item 621,
+/// `docs/COMBAT.md` §57) — the floor, read before any of it was built.
+///
+/// - **run146**, the restage's catapult `0/6`: the attack arrives on 780
+///   (`in_range 0`). On 781 an `ATTACKGROUNDORDER` sits over it at the
+///   hoplite's point, **already fired** (`attack_unit 1`, `flags 0x80`),
+///   with the attack beneath now `in_range 1` and still `new_ord 1`. The
+///   reload reads 83 and runs down one a block. On 864, the ready block,
+///   **both** orders are gone. No other unit of the capture ever holds one.
+/// - **run44**, where three siege engines of both players carry one: on
+///   each first block the order's point is **the position of the target
+///   the attack beneath names**, on that block, and not its cell. `1/6`'s
+///   (39421, 40762) is off every cell centre.
+#[test]
+fn the_ground_order_s_life_is_the_dump_s() {
+    const ATTACK: i64 = sim::orders::index::ATTACK as i64;
+    const GROUND: i64 = 23;
+    let Some((dump, _)) = golden("ch3b") else {
+        eprintln!("skipping: no golden capture ch3b (docs/RUNS.md run146)");
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut holders = std::collections::BTreeSet::new();
+    let mut life = Vec::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        let f = ix.frame_state(at).unwrap();
+        for u in &f.units {
+            if u.orders.iter().any(|o| o.index == GROUND) {
+                holders.insert((u.who, u.o));
+            }
+        }
+        if (779..=866).contains(&n) {
+            let u = f
+                .units
+                .iter()
+                .find(|u| u.who == 0 && u.o == 6)
+                .expect("the catapult");
+            life.push((n, ground_rows(u), u.recharging.expect("recharging")));
+        }
+    }
+    assert_eq!(
+        holders.into_iter().collect::<Vec<_>>(),
+        vec![(0, 6)],
+        "run146: only the catapult ever holds a ground order"
+    );
+    for (n, rows, rech) in &life {
+        let want: (Vec<[i64; 6]>, i64) = match n {
+            779 => (vec![], 0),
+            780 => (vec![[ATTACK, 0, 1, -1, -1, 0]], 0),
+            781..=863 => (
+                vec![[GROUND, 2472, 8136, 0, 1, -128], [ATTACK, 1, 1, -1, -1, 0]],
+                864 - n,
+            ),
+            _ => (vec![], 0),
+        };
+        assert_eq!((rows.clone(), *rech), want, "run146 block {n}");
+    }
+
+    let Some(r44) = crate::testenv::dump("gamelog-run44-islands-turners.txt") else {
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&r44).unwrap();
+    let mut firsts = std::collections::BTreeMap::new();
+    for at in 0..ix.frames().len() {
+        let n = ix.frames()[at].number;
+        if !(240..=410).contains(&n) {
+            continue;
+        }
+        let f = ix.frame_state(at).unwrap();
+        for u in &f.units {
+            let mut front = u.orders_front_first();
+            let (Some(head), Some(under)) = (front.next(), front.next()) else {
+                continue;
+            };
+            if head.index != GROUND || firsts.contains_key(&(u.who, u.o)) {
+                continue;
+            }
+            let (w, o) = (under.whom.unwrap(), under.ox.unwrap());
+            let t = f
+                .units
+                .iter()
+                .find(|t| t.who == w && t.o == o)
+                .expect("the attack's target");
+            firsts.insert(
+                (u.who, u.o),
+                (
+                    n,
+                    under.index,
+                    head.ag_att_x.unwrap(),
+                    head.ag_att_y.unwrap(),
+                    t.pos.x,
+                    t.pos.y,
+                ),
+            );
+        }
+    }
+    let firsts: Vec<_> = firsts.into_iter().collect();
+    assert_eq!(
+        firsts,
+        vec![
+            ((0, 15), (324, ATTACK, 39816, 39720, 39816, 39720)),
+            ((1, 6), (247, ATTACK, 39421, 40762, 39421, 40762)),
+            ((1, 7), (248, ATTACK, 40152, 41016, 40152, 41016)),
+        ],
+        "run44: a ground order's point is its attack's target where it stands"
+    );
+}
+
 /// **Chapter three's restage, walked** — `chapter3b.cmd`, run146 (item
 /// 587, `docs/GOLDEN.md` §7): the same three unit types in two arenas, so
 /// that §7's minimum-range and speed falsifiers can fire. Seven staged
