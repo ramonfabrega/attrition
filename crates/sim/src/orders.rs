@@ -1489,15 +1489,24 @@ impl Sim {
         {
             return;
         }
-        // Target liveness: a build, repair, garrison or gather whose target
-        // died (the `uid` test — indices are never reused here, so it is the
-        // alive bit) dies before its `do_*` ever runs.
+        // Target liveness: a build, repair, garrison or gather whose target's
+        // **slot was reused** dies before its `do_*` ever runs. It is the
+        // `uid` test (`Unit::work@0060d180:319`, the action's target uid
+        // against the object's `+0x30`), and a closed building keeps its
+        // uid until `Objects::find_free` hands its number to the next one.
+        // So a dead target alone is not enough: the order stands, the walk
+        // under it goes on, and `do_build`/`do_gather`'s own `exists`
+        // tests end it on arrival. run157's `1/7` keeps its `BUILDORDER`
+        // on the Woodcutter's Camp the script placed and destroyed on 1176
+        // to the end of the capture (item 644). This crate's handles are
+        // never reused, so "reused" is a later building carrying the same
+        // owner and number.
         if let Some(a) = self.action_of(u) {
             let dead = match self.units[u].orders[a].body {
                 Body::Build(b) | Body::Repair(b) | Body::Garrison { building: b, .. } => {
-                    !self.buildings.get(b).is_some_and(|bd| bd.alive)
+                    self.building_slot_reused(b)
                 }
-                Body::Gather(g) => !self.buildings.get(g.building).is_some_and(|bd| bd.alive),
+                Body::Gather(g) => self.building_slot_reused(g.building),
                 _ => false,
             };
             if dead {

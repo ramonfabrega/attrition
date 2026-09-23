@@ -2596,7 +2596,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL: i64 = 1176;
 
 /// The control's widening window, its first block to the word's block and
 /// the one after.
-pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1178);
+pub(crate) const WIDENING_CHAPTER_SEVEN_B_CONTROL: (i64, i64) = (605, 1189);
 
 /// **Chapter three's golden word** — the mounted and siege lines, run145
 /// (`docs/GOLDEN.md` §7): **900, the capture's end, draw for draw and

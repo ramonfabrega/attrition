@@ -1340,6 +1340,26 @@ pub(crate) fn widen_block(
                 .or_insert((n, "this crate holds it alone".into()));
         }
     }
+    // **And the dump's direction, by name** (item 644). `compare` counts a
+    // dump building it cannot link in `build_unlinked` and moves on, so a
+    // building the original placed and this crate did not was a count
+    // here and never a row: run157's `1/2008`, placed on 1176, stood in
+    // no widening for the item that named its frame.
+    for b in &frame.builds {
+        if !(0..players as i64).contains(&b.who) {
+            continue;
+        }
+        let held = built
+            .sim
+            .buildings
+            .iter()
+            .any(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o);
+        if !held {
+            firsts
+                .entry((b.who, b.o, "build:unlinked".into()))
+                .or_insert((n, "the dump holds it alone".into()));
+        }
+    }
     // **The death list, read directly** (item 491). `compare`
     // walks it above; this is the driver's own reading, for the
     // reason the hit-point pair has both — and on Great Lakes it

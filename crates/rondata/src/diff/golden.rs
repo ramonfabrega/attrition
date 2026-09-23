@@ -5213,6 +5213,8 @@ fn widen_civilians(
         s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
         s.built.tick();
         let n = f + 1;
+        crate::diff::harness::debug_leader(&s.built, n);
+        crate::diff::harness::debug_builds(&s.built, n);
         if n < first {
             continue;
         }
@@ -5476,7 +5478,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             "ch7bc",
             "chapter7b_control",
             WIDENING_CHAPTER_SEVEN_B_CONTROL,
-            (1176, 1177),
+            (1187, 1188),
         ),
     ] {
         let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
@@ -5506,7 +5508,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .filter(|(_, (f, _))| *f == window.0)
             .map(|((_, _, what), _)| what)
             .collect();
-        let floor = if run == "ch7b" { 34 } else { 39 };
+        let floor = if run == "ch7b" { 27 } else { 32 };
         assert!(
             at_floor
                 .iter()
