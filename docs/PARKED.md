@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 530, 2026-09-22 — chapter one closed, and what it left
+
+(536) **A marching army group never looks around.** `do_group_attack_to`'s
+look and `find_nearby_target`'s `Group::action_attack` arm for a
+`GROUP_ATTACK_TO` (`docs/ORDERS.md` §22.5) are unimplemented. 530 names it
+the likeliest of its three to surface on the long captures; the AI track
+should check it first when a word lands on an army's march.
+
+(537) **The army group's `speed`/`new_speed` at birth** (`Group::add` →
+`compute_speed`): 0 against 25 on chapter one's 616. A pinned row of the
+chapter's widening; spends no draw.
+
+(538) **The guy's aim at stand-up**, from the dump's `GUY ox/whom`: owed
+the day a capture opens mid-fight. No window on disk does.
+
 ## Parked by item 327, 2026-09-22 — the second writer
 
 (534) **`compute_reg_territory` is a second writer of `reg_known_rares`**,
