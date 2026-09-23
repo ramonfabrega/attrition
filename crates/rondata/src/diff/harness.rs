@@ -4676,13 +4676,18 @@ mod tests {
         // so `use_market`'s need is the original's and the frame is a
         // sell on both. The word went 11185 → 11531 and 11382's rotation
         // came under it too (`docs/AI.md` §55).
+        //
+        // **Sixteen → seventeen on item 545**, the literal following the
+        // headline: the word went 11582 → 11757 and **11582**, the old word,
+        // came under it — a `use_market` sell on both sides, the frame's
+        // first draw either way (`docs/AI.md` §56).
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382
+                10_782, 10_982, 11_185, 11_382, 11_582
             ],
-            "below the word Great Lakes takes exactly sixteen market \
+            "below the word Great Lakes takes exactly seventeen market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -7542,11 +7547,15 @@ mod tests {
             .filter(|(_, (f, _))| *f == STABLE_PRICE)
             .map(|(&(w, o), (f, s))| (w, o, *f, s.as_str()))
             .collect();
+        // ~~`1/2018`'s Horse Archers at 60 timber against the original's
+        // 57~~ — **closed by item 545**: 57/38 is 60/40 less
+        // `MILITARY_UNIT_DISCOUNT`'s 5% at `epoch[0]` 2 against the unit's
+        // level 1, which this crate loaded and never applied
+        // (`docs/AI.md` §56). The Stable's queue parts nowhere now.
         assert_eq!(
             on_stable,
-            vec![(1, 2_018, STABLE_PRICE, "queue[0].cost[0] ours 60 theirs 57")],
-            "the Stable's queue row is not item 506's price residue: \
-             {queues:?}"
+            Vec::new(),
+            "the Stable's queue parts on {STABLE_PRICE} again: {queues:?}"
         );
         // **Nothing else opens inside the window.** Every other
         // divergence was already standing on the window's first block —
@@ -8135,7 +8144,11 @@ mod tests {
                 pair(WORD_BLOCK, "MAKE[0].t"),
                 pair(WORD_BLOCK, "MAKE[1].t"),
             ),
-            ((2, 2), (11, 6), (1, 6), (44, 47), (430, 430), (-1, -1)),
+            // Timber 1/6 → 6/6 and metal 44/47 → 47/47 on item 545: the
+            // Hoplites 11183 buys cost the original's 61/42 here too, and
+            // the Horse Archers of 10782 its 57/38 (`MILITARY_UNIT_DISCOUNT`,
+            // `docs/AI.md` §56). The wealth is (514)'s income gap.
+            ((2, 2), (11, 6), (6, 6), (47, 47), (430, 430), (-1, -1)),
             "the word's inputs moved — 11185's `use_market` need is the \
              head and slot 1, and slot 1 agrees since item 327"
         );
@@ -8190,8 +8203,9 @@ mod tests {
         const R125: i64 = 11_440;
         /// The block the word stood on when this widening was taken.
         const WORD_BLOCK: i64 = GREAT_LAKES_ARMY_BLOCK;
-        /// The block the word moved to on item 539: frame 11582 writes it.
-        const NEW_WORD_BLOCK: i64 = LONG_WORD_GREAT_LAKES + 1;
+        /// The block the word moved to on item 539 — frame 11582 writes it —
+        /// and stood on until item 545 moved it to 11757, past this capture.
+        const NEW_WORD_BLOCK: i64 = 11_583;
         let Some(inst) = install() else { return };
         let (Some(path), Some(r123), Some(r125)) = (
             dump("gamelog-run53-greatlakes-24k-trace.txt"),
@@ -8226,6 +8240,10 @@ mod tests {
         // squad, kept for the arrival and the word's printout.
         type Row = (i64, (i64, i64), (i64, i64), String, usize, String, String);
         let mut squad: BTreeMap<i64, Vec<Row>> = BTreeMap::new();
+        let walk: Vec<String> = std::env::var("RON_LEADER_WALK")
+            .map(|w| w.split(',').map(str::to_owned).collect())
+            .unwrap_or_default();
+        let mut walked: BTreeMap<String, Vec<(i64, i64, i64)>> = BTreeMap::new();
         let sweep: Option<(i64, i32, i32)> = std::env::var("RON_SWEEP").ok().and_then(|v| {
             let (f, u) = v.split_once(':')?;
             let (w, o) = u.split_once('/')?;
@@ -8363,6 +8381,35 @@ mod tests {
                     og,
                 ));
             }
+            // `RON_PRICE=<t>,…` — player 1's price of each type and the
+            // count it can afford, on the `RON_DEBUG_ROWS` window.
+            if let Ok(ts) = std::env::var("RON_PRICE")
+                && site_window_named("RON_DEBUG_ROWS")
+                    .is_some_and(|(lo, hi)| (lo..=hi).contains(&n))
+            {
+                for t in ts.split(',').filter_map(|t| t.parse::<u16>().ok()) {
+                    let t = t as sim::tech::TypeId;
+                    eprintln!(
+                        "  preq {n} t{t}: {:?} level {} epoch {:?} researched {:?}",
+                        built.sim.tech_tree.types[t].preq,
+                        built.sim.tech_tree.military_level_of(t),
+                        built.sim.tech[1].epoch,
+                        built
+                            .sim
+                            .unit_types
+                            .iter()
+                            .position(|u| u.tree == Some(t))
+                            .map(|r| built.sim.muster[1].researched[r]),
+                    );
+                    eprintln!(
+                        "  price {n} 1/t{t} {}: {:?} affordable {} / {}",
+                        built.sim.tech_tree.types[t as usize].name,
+                        built.sim.type_price(1, t),
+                        built.sim.type_affordable(1, t, true),
+                        built.sim.type_affordable(1, t, false),
+                    );
+                }
+            }
             let raw = ix.read_frame(at).unwrap();
             let flog = Log::parse(&raw);
             for who in 0..2usize {
@@ -8377,6 +8424,12 @@ mod tests {
                         continue;
                     };
                     leader_rows += 1;
+                    if who == 1 && walk.iter().any(|w| k.starts_with(w.as_str())) {
+                        let e = walked.entry(k.clone()).or_default();
+                        if e.last().map(|l: &(i64, i64, i64)| (l.1, l.2)) != Some((*v, y)) {
+                            e.push((n, *v, y));
+                        }
+                    }
                     if *v != y {
                         firsts
                             .entry((who as i64, -1, format!("leader:{k}")))
@@ -8384,6 +8437,15 @@ mod tests {
                     }
                 }
             }
+        }
+        // `RON_LEADER_WALK=<prefix>,…` — every player-1 leader key under
+        // the prefixes, `ours/theirs` at each block either side changes.
+        for (k, ticks) in &walked {
+            let t: Vec<String> = ticks
+                .iter()
+                .map(|(n, o, y)| format!("{n}:{o}/{y}"))
+                .collect();
+            eprintln!("  walk {k}: {}", t.join(" "));
         }
         eprintln!(
             "run125 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
@@ -8481,12 +8543,16 @@ mod tests {
             .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
             .collect();
         assert_eq!(on_old, Vec::<String>::new(), "the old word's blocks part");
-        // **The new word's block** — 11582's frame writes block 11583 —
-        // every key that first parts there, both directions. Ours places a
-        // building the original does not (`1/2022`) and walks citizen
-        // `1/9` to it, where the original's `1/9` stands idle with a free
-        // peasant on the leader's books. The leader's `MAKE` slots 2 and 3
-        // already stand in the opposite order on 11580.
+        // **The old word's block, 11583, as the move's value diff** (item
+        // 545). 539 left the word on 11582's frame with 38 rows over
+        // 11580–11583: ours placed a Mine (`1/2022`) and walked `1/9` to it,
+        // the original queued the Phalanx research at `1/2016`. The cause
+        // was two missing arms of `get_cost` (`docs/AI.md` §56):
+        // `MILITARY_UNIT_DISCOUNT` left ours three metal short from 11183,
+        // so Militia read unaffordable on 11579 and sank below the Mine;
+        // and the research arm, with `produce_tech`'s unit route, is what
+        // lets ours queue the Phalanx for the original's 90 food and 54
+        // metal. What stays is `1/0`'s figure on 11580, which spends no draw.
         let on_word: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (NEW_WORD_BLOCK - 3..=NEW_WORD_BLOCK).contains(f))
@@ -8494,46 +8560,9 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            // In the map's order, which is by key and not by block.
             [
-                "11580 1/-1 leader:MAKE[2].cat: ours 4 theirs 7",
-                "11580 1/-1 leader:MAKE[2].t: ours 560 theirs 66",
-                "11580 1/-1 leader:MAKE[2].val: ours 64000 theirs 209664",
-                "11580 1/-1 leader:MAKE[3].cat: ours 7 theirs 4",
-                "11580 1/-1 leader:MAKE[3].t: ours 66 theirs 560",
-                "11583 1/-1 leader:free_peasants: ours 0 theirs 1",
-                "11583 1/-1 leader:num_queued[83]: ours 0 theirs 1",
                 "11580 1/0 g.angle[1]: ours 615972864 theirs 531103744",
                 "11580 1/0 g.cur_anim[1]: ours 8 theirs 7",
-                "11583 1/9 dest_angle: ours 852099072 theirs -817758208",
-                "11583 1/9 g.angle[0]: ours 867696640 theirs -817758208",
-                "11583 1/9 g.avg_speed[0]: ours 6 theirs 0",
-                "11583 1/9 g.cur_anim[0]: ours 8 theirs 1",
-                "11583 1/9 g.cur_time[0]: ours 1 theirs 107",
-                "11583 1/9 g.des_angle[0]: ours 867696640 theirs -817758208",
-                "11583 1/9 g.des_x[0]: ours 41759 theirs 41736",
-                "11583 1/9 g.des_y[0]: ours 15473 theirs 15480",
-                "11583 1/9 g.end_time[0]: ours 15 theirs 232",
-                "11583 1/9 g.last_speed[0]: ours 24 theirs 0",
-                "11583 1/9 g.last_time[0]: ours 0 theirs 106",
-                "11583 1/9 g.stopped[0]: ours 0 theirs 1",
-                "11583 1/9 g.x[0]: ours 41759 theirs 41736",
-                "11583 1/9 g.y[0]: ours 15473 theirs 15480",
-                "11583 1/9 heading: ours 867696640 theirs -817758208",
-                "11583 1/9 idle: ours 0 theirs 211",
-                "11583 1/9 order:length: Length { ours: 2, theirs: 0 }",
-                "11583 1/9 orders.len: ours 2 theirs 0",
-                "11583 1/9 orders_x: ours 43896 theirs 41736",
-                "11583 1/9 orders_y: ours 13752 theirs 15480",
-                "11583 1/9 path:length: PathLength { ours: 3, theirs: 0 }",
-                "11583 1/9 pos: ours (41759,15473) theirs (41736,15480)",
-                "11583 1/9 tolerance: ours 384 theirs 0",
-                "11583 1/2000 city:filled: ours 48 theirs 47",
-                "11583 1/2000 city:free: ours 0 theirs 1",
-                "11583 1/2000 city:space[0]: ours 48 theirs 49",
-                "11583 1/2000 city:space[1]: ours 48 theirs 49",
-                "11583 1/2016 queue:queued: ours 0 theirs 1",
-                "11583 1/2022 build:extra: this crate holds it alone",
             ],
             "the new word's blocks part on a different set"
         );

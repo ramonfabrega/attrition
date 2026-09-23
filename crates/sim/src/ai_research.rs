@@ -817,6 +817,17 @@ impl Sim {
         let Some((_, b)) = best else {
             return false;
         };
+        // `Build::queue_up(t, escrow)` (`produce_tech:262`) is the one queue
+        // for every kind, so a unit type's research — an upgrade the leader
+        // does not own yet — is the unit queue's research job, priced by
+        // `get_cost`'s research arm (`docs/AI.md` §56). `queue_tech` takes
+        // only a technology and refused it.
+        if self.tech_tree.kind(t).is_unit() {
+            let Some(rec) = self.unit_record(t) else {
+                return false;
+            };
+            return self.queue_up(b, rec).is_ok();
+        }
         self.queue_tech(b, t).is_ok()
     }
 
@@ -914,6 +925,9 @@ mod tests {
         fortification: TypeId,
         gov_a: TypeId,
         gov_b: TypeId,
+        /// A unit type at the Barracks that needs the Classical Age — an
+        /// upgrade the leader researches before it trains one.
+        phalanx: TypeId,
     }
 
     fn bt(ident: Ident, flag: &str) -> BuildType {
@@ -982,6 +996,7 @@ mod tests {
         }
         let (lib_id, temple_id, uni_id, senate_id, tower_id) =
             (ids[1], ids[2], ids[3], ids[4], ids[5]);
+        let barracks_id = ids[6];
 
         let age_names = [
             "Classical Age",
@@ -1021,6 +1036,11 @@ mod tests {
         {
             govs.push(tree.add(TypeDef::gov(name, (i / 2) as u8, (i % 2) as u8).at(senate_id)));
         }
+        let mut phalanx = TypeDef::unit("Phalanx", tech::UnitTraits::default())
+            .at(barracks_id)
+            .needs(0, ages[0]);
+        phalanx.tribe_mask = u32::MAX;
+        let phalanx = tree.add(phalanx);
 
         sim.set_tech_tree(tree);
         for (rec, id) in recs.iter().zip(ids.iter()) {
@@ -1045,6 +1065,7 @@ mod tests {
             fortification,
             gov_a: govs[0],
             gov_b: govs[1],
+            phalanx,
         };
         (sim, t)
     }
@@ -1598,6 +1619,30 @@ mod tests {
         );
         sim.ai[1].mil_trainers.push(bar);
         assert!(sim.produce_tech(1, t.military1, 1));
+        assert_eq!(sim.buildings[bar].queue.items.len(), 1);
+    }
+
+    #[test]
+    fn produce_tech_queues_a_unit_s_research_on_the_unit_queue() {
+        // `produce_tech:262` ends in `Build::queue_up(t, escrow)`, the one
+        // queue for every kind, so a unit type the leader does not own is
+        // researched as the unit queue's research job (`docs/AI.md` §56).
+        // `queue_tech` takes only a technology: this refused until item 545.
+        let (mut sim, t) = sim();
+        city(&mut sim, &t, 1, 5, 5);
+        let bar = building(&mut sim, 1, t.barracks, 12, 5);
+        let rec = sim.add_unit_type(crate::UnitType {
+            tree: Some(t.phalanx),
+            ..crate::UnitType::default()
+        });
+        assert_eq!(sim.type_avail(1, t.phalanx), tech::NOT_AVAILABLE);
+        sim.gain_tech(1, t.classical);
+        assert_eq!(sim.type_avail(1, t.phalanx), tech::RESEARCHABLE);
+        assert!(sim.produce_tech(1, t.phalanx, 1));
+        assert_eq!(sim.buildings[bar].queue.items.len(), 1);
+        assert_eq!(sim.muster[1].queued_by_type[rec], 1);
+        // Being researched: "queued", and nothing more.
+        assert!(sim.produce_tech(1, t.phalanx, 1));
         assert_eq!(sim.buildings[bar].queue.items.len(), 1);
     }
 }

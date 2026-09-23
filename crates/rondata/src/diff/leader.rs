@@ -2183,6 +2183,12 @@ mod tests {
     /// Citizens this crate used to buy instead of the Scholar. The
     /// `MAKE[*].city` rows that remain are the index shift §52.2 names,
     /// not a valuation.
+    ///
+    /// **93 → 89 on item 545** (`docs/AI.md` §56), four down and nothing
+    /// arriving: `MAKE[3]`'s `cat`, `t` and `val`, and `MAKE[7].val` — the
+    /// military offers, whose value takes `0x100` or `0x40` by
+    /// affordability and now reads the original's prices. Which of the
+    /// two arms each row needed is not separated.
     const PARTS_ON_RUN111: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2209,13 +2215,9 @@ mod tests {
         (0, "wars"),
         (1, "MAKE[1].city"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].t"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
         (1, "MAKE[5].city"),
-        (1, "MAKE[7].val"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
@@ -2288,6 +2290,10 @@ mod tests {
     /// `cat`, `t`, `val`, `num`. This window is 200 frames *before* the
     /// re-offer, so the scholar arm's correction reaches the list here
     /// too; the `MAKE[*].city` rows that remain are §52.2's index shift.
+    ///
+    /// **90 → 85 on item 545** (`docs/AI.md` §56), five down and nothing
+    /// arriving: `MAKE[1].val`, `MAKE[3]`'s `cat`, `t` and `val`, and
+    /// `MAKE[7].val` — the same military offers as run111's four.
     const PARTS_ON_RUN107: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2315,15 +2321,10 @@ mod tests {
         (0, "wars"),
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].val"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[3].cat"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].t"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
         (1, "MAKE[5].city"),
-        (1, "MAKE[7].val"),
         (1, "MAKE[8].city"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),

@@ -1437,6 +1437,148 @@ fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     assert_eq!(sim.muster[0].by_type[phalanx], 1);
 }
 
+#[test]
+fn a_military_unit_is_priced_by_its_research_until_owned_then_at_the_military_discount() {
+    // `docs/AI.md` §56, on Great Lakes' own numbers: the Phalanx whose
+    // research the original queues at `1/2016` on 11582 for 90 food and 54
+    // metal. Both lines cost 5f/3m, `RESEARCH_PREMIUM_COST` is 2, and the
+    // leader is two Military levels up. The Phalanx needs the Classical Age
+    // and the line's first library tech, so its own level is **1**; the
+    // Hoplites need neither, level 0, which the train arm floors at 1.
+    use crate::tech::{Line, TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let jumpable = UnitTraits {
+        jumpable: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let art_of_war = tree.add(TypeDef::epoch("The Art of War", Line::Military, 0));
+    let conscription = tree.add(TypeDef::epoch("Conscription", Line::Military, 1));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let hoplites_t = tree.add(TypeDef::unit("Hoplites", free).at(barracks));
+    let phalanx_t = tree.add(
+        TypeDef::unit("Phalanx", jumpable)
+            .at(barracks)
+            .from(hoplites_t)
+            .needs(0, classical)
+            .needs(1, art_of_war),
+    );
+    tree.types[hoplites_t].jump = Some(phalanx_t);
+    assert_eq!(tree.military_level_of(phalanx_t), 1);
+    assert_eq!(tree.military_level_of(hoplites_t), 0);
+
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let line = |t, metal| UnitType {
+        tree: Some(t),
+        price: cost::Price {
+            class: cost::RampClass::Military,
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(economy::Resource::Food, 5)
+                .with_base(economy::Resource::Metal, metal)
+                .with_support(economy::Resource::Food, 1)
+                .with_support(economy::Resource::Metal, 1)
+        },
+        cols: crate::ai_load::UnitCols {
+            role: crate::ai_load::role::MILITARY,
+            research_premium_cost: 512,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..citizen_type()
+    };
+    let hoplites = sim.add_unit_type(line(hoplites_t, 3));
+    let phalanx = sim.add_unit_type(line(phalanx_t, 3));
+    let (food, metal) = (
+        economy::Resource::Food.index(),
+        economy::Resource::Metal.index(),
+    );
+    let pair = |p: [i32; economy::RESOURCES]| (p[food], p[metal]);
+
+    // Military level 0: no discount on either arm, and the research is
+    // twice one unit.
+    assert_eq!(pair(sim.price_of(0, phalanx)), (100, 60));
+    assert_eq!(pair(sim.price_of(0, hoplites)), (50, 30));
+    sim.gain_tech(0, classical);
+    sim.gain_tech(0, art_of_war);
+    sim.gain_tech(0, conscription);
+    assert_eq!(sim.tech[0].epoch[Line::Military.index()], 2);
+    // Two levels up: the research 10% off (2 − 1), the Hoplites 5% (2 − 1).
+    assert_eq!(pair(sim.price_of(0, phalanx)), (90, 54));
+    assert_eq!(pair(sim.price_of(0, hoplites)), (47, 28));
+    // Owned, the Phalanx is a train job at the unit discount: the base,
+    // no ramp yet, less 5%.
+    sim.tech[0].tech[phalanx_t] = true;
+    assert_eq!(pair(sim.price_of(0, phalanx)), (47, 28));
+    // A Military level the unit is not below costs nothing extra: the
+    // discount never runs the other way.
+    sim.tech[0].epoch[Line::Military.index()] = 0;
+    assert_eq!(pair(sim.price_of(0, phalanx)), (50, 30));
+}
+
+#[test]
+fn a_research_is_charged_for_the_army_it_refits() {
+    // `get_cost:438`–`505`: researching a type charges for every unit of
+    // its own `FROM` (and of any type whose `JUMP` chain reaches it), per
+    // resource, `UNIT_COST_FACTOR × n × min(d, UNIT_REFIT_MAX_COST)` with
+    // `d` the base's difference — halved where the old unit costs nothing.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let old_t = tree.add(TypeDef::unit("Spearmen", UnitTraits::default()).at(barracks));
+    let new_t = tree.add(
+        TypeDef::unit("Pikemen", UnitTraits::default())
+            .at(barracks)
+            .from(old_t),
+    );
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let typ = |t, food, wealth| UnitType {
+        tree: Some(t),
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(economy::Resource::Food, food)
+                .with_base(economy::Resource::Wealth, wealth)
+        },
+        cols: crate::ai_load::UnitCols {
+            research_premium_cost: 512,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..citizen_type()
+    };
+    let old = sim.add_unit_type(typ(old_t, 4, 0));
+    let new = sim.add_unit_type(typ(new_t, 6, 3));
+    let (food, wealth) = (
+        economy::Resource::Food.index(),
+        economy::Resource::Wealth.index(),
+    );
+    // Nobody to refit: twice the base.
+    let p = sim.price_of(0, new);
+    assert_eq!((p[food], p[wealth]), (120, 60));
+    // Three Spearmen and one ordered: food `d = 2`, wealth `d = 3 / 2 = 1`.
+    sim.muster[0].by_type[old] = 3;
+    sim.muster[0].queued_by_type[old] = 1;
+    let p = sim.price_of(0, new);
+    assert_eq!((p[food], p[wealth]), (120 + 10 * 4 * 2, 60 + 10 * 4));
+    // The old line unowned is priced by its research — unless it carries
+    // `h`, which `get_cost:425` sends to the train arm regardless.
+    assert!(sim.research_modifiers(0, old).is_some());
+    sim.unit_types[old].cols.unit_flags = crate::ai_load::uflags::NO_RESEARCH_PRICE;
+    assert_eq!(sim.research_modifiers(0, old), None);
+    // And owned, a train job whatever its flags.
+    sim.unit_types[old].cols.unit_flags = 0;
+    sim.tech[0].tech[old_t] = true;
+    assert_eq!(sim.research_modifiers(0, old), None);
+}
+
 // ---------------------------------------------------------------------------
 // Combat — `docs/COMBAT.md`
 // ---------------------------------------------------------------------------

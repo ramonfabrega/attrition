@@ -1729,7 +1729,136 @@ impl Sim {
     /// to produce it. Until then it is the undiscounted price, which is
     /// exactly what a stock game with no bonuses charges.
     pub fn price_of(&self, who: Player, ty: usize) -> [i32; economy::RESOURCES] {
-        self.price_with(who, ty, &cost::Modifiers::default())
+        let m = match self.research_modifiers(who, ty) {
+            Some(r) => cost::Modifiers {
+                research: Some(r),
+                ..cost::Modifiers::default()
+            },
+            None => cost::Modifiers {
+                late_discount: self.military_unit_discount(who, ty),
+                ..cost::Modifiers::default()
+            },
+        };
+        self.price_with(who, ty, &m)
+    }
+
+    /// `TypeData::get_cost@00664090`'s fork on the `leader + 0x6c18` bit —
+    /// this crate's `PlayerTech::tech` — for a unit type in the tree: clear,
+    /// and what is priced is the type's **research** (`docs/AI.md` §56).
+    /// `None` when the bit is set, or the type is outside the tree, which is
+    /// the train arm.
+    ///
+    /// The refit surcharge (`get_cost:438`–`505`) walks every unit type `p`
+    /// below the gaia band and charges for it when `p` is **this type's own
+    /// `FROM`**, or when this type lies on `p`'s `JUMP` chain — each link
+    /// through `get_graft`, the nation's variant. Those are the units the
+    /// research upgrades. Per resource, `d = base − p.base`, halved when `p`
+    /// costs nothing in it, capped at `UNIT_REFIT_MAX_COST`, and charged
+    /// `UNIT_COST_FACTOR × (num_queued + num_units) × d`. `TypeIndex`
+    /// `0x42`–`0x44` (the Militia line) skip the walk.
+    ///
+    /// `MILITARY_UPGRADE_DISCOUNT` is the train arm's rule with the upgrade
+    /// constant and **no floor on the type's level** (`get_cost:507`–`525`
+    /// has none of `:639`'s `max(level, 1)` or its `max(pct, 1)`).
+    pub fn research_modifiers(&self, who: Player, ty: usize) -> Option<cost::Research> {
+        let unit = &self.unit_types[ty];
+        let t = unit.tree?;
+        let w = who as usize;
+        if self.tech[w].tech.get(t).copied().unwrap_or(true)
+            || unit.cols.flag(ai_load::uflags::NO_RESEARCH_PRICE)
+        {
+            return None;
+        }
+        let tree = &self.tech_tree;
+        let resolve = |x: Option<tech::TypeId>| tree.get_graft(&self.setup, &self.tech[w], x);
+        let factor = self.tuning.unit_cost_factor;
+        let mut refit = [0; economy::RESOURCES];
+        if !(0x42..=0x44).contains(&t) {
+            let from = resolve(tree.types[t].from);
+            for (prec, p) in self.unit_types.iter().enumerate() {
+                let Some(pt) = p.tree.filter(|_| !p.gaia) else {
+                    continue;
+                };
+                let mut hit = from == Some(pt);
+                let mut j = resolve(tree.types[pt].jump);
+                let mut guard = 0;
+                while !hit && let Some(x) = j {
+                    hit = x == t;
+                    j = resolve(tree.types[x].jump);
+                    guard += 1;
+                    if guard > 64 {
+                        break;
+                    }
+                }
+                if !hit {
+                    continue;
+                }
+                let n = self.muster[w].queued_by_type[prec] + self.muster[w].by_type[prec];
+                if n == 0 {
+                    continue;
+                }
+                for (r, out) in refit.iter_mut().enumerate() {
+                    let theirs = p.price.base[r];
+                    let mut d = unit.price.base[r] - theirs;
+                    if theirs == 0 {
+                        d /= 2;
+                    }
+                    if d > 0 {
+                        *out += factor * n * d.min(self.tuning.unit_refit_max_cost);
+                    }
+                }
+            }
+        }
+        let mut discount = 0;
+        if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
+            let ahead = self.tech[w].epoch[tech::Line::Military.index()]
+                - self.tech_tree.military_level_of(t);
+            if ahead > 0 {
+                discount = self.tuning.military_upgrade_discount * ahead;
+                let span = self.setup.ending - self.setup.starting_age + 1;
+                if span < 8 {
+                    discount = (span * discount + 7) / 8;
+                }
+            }
+        }
+        Some(cost::Research {
+            premium_cost: unit.cols.research_premium_cost,
+            refit,
+            discount,
+        })
+    }
+
+    /// `MILITARY_UNIT_DISCOUNT` — the percentage `TypeData::get_cost@00664090`
+    /// takes off a military unit's train price, **after** the ramp and before
+    /// Monarchy, Socialism and Salmon (`docs/COSTS.md`, "The discounts";
+    /// `docs/AI.md` §56).
+    ///
+    /// For a type whose `role & 0x10000` is set: `level` is the type's own
+    /// Military level ([`tech::TechTree::military_level_of`]) floored at 1,
+    /// and for every level of `epoch[0]` above it the price falls
+    /// `MILITARY_UNIT_DISCOUNT` percent. A scenario spanning fewer than
+    /// eight ages scales the percentage by `span / 8`, rounded up through
+    /// the `+ 7` and floored at 1. Zero for anything else. It is the only
+    /// late discount this crate applies, so the fold into
+    /// [`cost::Modifiers::late_discount`] is exact.
+    pub fn military_unit_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.role_word_of_rec(ty) & ai_load::role::MILITARY == 0 {
+            return 0;
+        }
+        let level = self.unit_types[ty]
+            .tree
+            .map_or(0, |t| self.tech_tree.military_level_of(t))
+            .max(1);
+        let ahead = self.tech[who as usize].epoch[tech::Line::Military.index()] - level;
+        if ahead <= 0 {
+            return 0;
+        }
+        let mut d = self.tuning.military_unit_discount * ahead;
+        let span = self.setup.ending - self.setup.starting_age + 1;
+        if span < 8 {
+            d = ((span * d + 7) / 8).max(1);
+        }
+        d
     }
 
     /// [`Sim::price_of`], with the discount tail supplied.

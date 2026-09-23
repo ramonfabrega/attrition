@@ -1584,6 +1584,23 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run125_s_word_frame_is_widened_whole` holds it; this is the delta, the
 /// widening is the block.
 ///
+/// ~~**11582 is a Mine the original does not place.**~~ **Item 545 moved
+/// it 11582 → 11757, and the mechanism was two arms of `get_cost`, not
+/// the make list's order** (`docs/AI.md` §56). `MILITARY_UNIT_DISCOUNT`
+/// was never applied, so from 11183 this crate held three metal fewer;
+/// on 11579 Militia (80 metal) read unaffordable, its offer took
+/// `0x40` for `0x100` and sank below the Mine. With the discount the
+/// lists agree, and the frame asked for the Phalanx's **research**, which
+/// needed `get_cost`'s research arm and `produce_tech`'s unit route: the
+/// original queues it at `1/2016` for 90 food and 54 metal, and so does
+/// this crate now. The new word's delta: ours **7** draws and the
+/// original **8**, parting at index **0** — ours
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` against the original's
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`. **Past every dump on
+/// disk**: run125 ends on block 11599, so the word's block is owed a
+/// capture ([`WIDENINGS`]); 11583 stays in
+/// `run125_s_word_frame_is_widened_whole` as the move's value diff.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1595,7 +1612,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_582;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 11_757;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2412,12 +2429,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // same test holds the new word's block: every key first parting on
     // 11580..=11583, both directions, with 11531's pinned empty as the
     // move's value diff (`docs/GROUPS.md` §21).
+    //
+    // **Item 545 moved it 11582 → 11757, past run125's last block
+    // (11599)**, so the widening is owed a capture and this row names the
+    // item that owes it and no test. The same test keeps 11583 as the
+    // move's value diff (`docs/AI.md` §56), on its own literal rather than
+    // on the headline.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run125_s_word_frame_is_widened_whole"),
-        539,
-        Some(WIDENING_GREAT_LAKES_ARMY),
+        None,
+        545,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
