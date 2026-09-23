@@ -1109,6 +1109,10 @@ pub struct Sim {
     /// the simulation fills a recorder as it runs and the test reads it
     /// afterwards.
     pub sweep_watch: Option<collide::SweepWatch>,
+    /// A unit cell `valid_ucoord` refuses to one unit on one frame
+    /// ([`path::RefuseProbe`]), and `None` in every run but a test's.
+    #[doc(hidden)]
+    pub probe_refuse: Option<path::RefuseProbe>,
     /// `WData::down` per world cell: the head of the object chain (§3).
     pub chain_heads: Vec<Option<usize>>,
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
@@ -1408,6 +1412,7 @@ impl Sim {
             ai_speed: 1,
             coll: collide::CollGrid::new(world.width(), world.height()),
             sweep_watch: None,
+            probe_refuse: None,
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
             tuning,

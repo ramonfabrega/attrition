@@ -2062,3 +2062,135 @@ taking the market draw and this crate a `make_stuff`. The market schedule
 below the word is the original's own on all four frames it holds
 (`8582, 8585, 8782, 8982`), so it is the *order within the leaders' tick*
 that has moved, not the gate.
+
+## 23. `1/62`'s detour round `1/27`, one cell's verdict — Great Lakes 11903, widened (item 563, 2026-09-23)
+
+Item 560 moved Great Lakes' long word to 11903: ours spends 5 draws
+against the original's 4, parting at index 1, with `1/64`'s
+`Guy::set_anim+0x97a < Unit::move_step+0x823` against the original's
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. No dump reached it (run135
+ends on block 11859), and no mechanism was named.
+
+### 23.1 run136, and the readings
+
+`docs/RUNS.md`, run136: run135's line over `[11840, 11959]`, 264,051,273
+bytes, all six checks green. The stanza (`tools/gamelog/captures.txt`)
+wrote four readings first. R1: the original's `1/64` does not stop on
+11903. R2: a lag. R3: another collider. R4: another clock.
+
+`run136_s_word_frame_is_widened_whole` walks run123 → run125 → run130 →
+run135 → run136 from 11400: 560 blocks, 1,905,261 record rows, 1,179,360
+leader rows and 645 pool lists.
+
+- **R2 is dead.** The 284 keys first parting under the word are run135's
+  standing floor exactly. Nothing new parts on 11860..11901, and on block
+  11902 no standing position lies within a thousand units of `1/62`.
+- **R4 is dead.** `1/64`'s wait on 11898..11902 agrees block for block.
+- **R1 holds, and R3 names why.** The word's first row is block 11902's
+  `1/62` `path:length`, ours 6 against the original's 8.
+
+### 23.2 What the dump says
+
+Sim-frame 11901 writes block 11902. Both sides' `1/62` stand at (38904,
+21144), unit cell (810, 440), stopped on `1/27` (`collide_o 27` on both,
+`coll` (38862, 21181) on both). Both re-plan the flag-2 detour to their
+waypoint (38088, 21912), and the two plans go round `1/27` on opposite
+sides:
+
+| | top entries of the stack, next first |
+| --- | --- |
+| original | (38904, 21096) → (38856, 21048) → (38664, 21048) → (38088, 21624) → (38088, 21672) |
+| this crate | (38904, 21192) → (38904, 21288) → (38280, 21912) |
+
+On block 11903 the original's `1/62` has walked north to (38904, 21119),
+into `1/64`'s way, and `1/64` waits on it hard (`collide 5`, `collide_o
+62`). This crate's has walked south to (38904, 21169), so `1/64` steps to
+(39004, 21112). On frame 11903 it plans its own detour and stops, which is
+the extra draw. `1/27` and `1/28` agree on both sides throughout, in
+position and in cell.
+
+### 23.3 This crate's search, measured
+
+A scratch print in `valid_ucoord` (§6), not landed, records every probe
+of `1/62`'s search on sim-frame 11901. From (810, 440) toward (793, 456),
+§4.1's preference is `pref = 7`, so the wheel starts at W:
+
+| dir | cell | verdict | hit cell |
+| --- | --- | --- | --- |
+| W | (809, 440) | refused | (808, 441), `1/27` |
+| NW | (809, 439) | refused | (808, 440), `1/27` |
+| N | (810, 439) | valid | — |
+| NE | (811, 439) | refused | (812, 438), `1/64` |
+| E | (811, 440) | valid | — |
+| SE | (811, 441) | refused | (812, 440), `1/64` |
+| **S** | **(810, 441)** | **valid** | — |
+| SW | (809, 441) | refused | (808, 440), `1/27` |
+
+S is nearer the goal than N, and the unit grid's heuristic is ten times
+`vector_dist` (§6), so the search takes S. For the original to go north,
+its `valid_ucoord` must refuse S. The disc's two cells outside `1/62`'s
+own block, for S, are (809, 442) and (811, 442). The collision index here
+holds a bit on neither. (Beside them it has two holes that §2.2's repaint
+has not yet filled: (812, 439) and (814, 442), inside `1/64`'s and
+`1/28`'s blocks.)
+
+**The probe's form is settled from the listing.** `valid_ucoord@00687c80`
+pushes `detect_unit_collision(x, y, 1, 1, ecx, 1, 0)` (`00687d22`–
+`00687d34`), and `detect_unit_collision@00617060` hands its sixth argument
+to `collide_here@00682540` as `nocoll` (`00617186 pushl 0x1c(%ebp)`). So
+the search's probe is the disc, as COLLISION §4.2 says, and not the
+leading edge. **The instrument disagrees:** run116's probe log shows
+every `collide_here` inside a `nocoll=1` search probe with `nocoll=0`.
+Either the proxy logs that argument wrong or it passes it wrong, and the
+second would perturb the searches it records. That is the probe build's
+question, not this section's. For S from (810, 440) the two forms test
+the same two cells anyway.
+
+### 23.4 The payoff probe
+
+`Sim::probe_refuse` (`path::RefuseProbe`, test-only) refuses one unit
+cell to one unit's searches on one sim-frame, and changes nothing else.
+Refuse (810, 441) to `1/62` on 11901, and its plan becomes the original's
+entry for entry, eight entries north by (38904, 21096). `1/64` then waits
+as the original's does, and **no record of any unit first parts on blocks
+11897..11905**. Landed as `run136_s_word_is_one_cell_of_1_62_s_search`,
+made to fail on purpose by moving the refused cell off the search's
+ground; it then fails on this crate's own southern plan. With the probe
+in, run53's word moves **11903 → 12038**. That was measured once on the
+run53 test and is not landed, because the probe is a hand-placed verdict
+and not a mechanism.
+
+So the word is **one cell's verdict in `valid_ucoord`**, and the search
+around it (§4–§7) is right on this frame.
+
+### 23.5 What this has *not* established
+
+- **Why the original refuses (810, 441).** Three candidates, none
+  measured: a bit at (809, 442) or (811, 442) that the original's index
+  holds and this crate's does not (a mark §2.2's repaint or §2.3's
+  crossing puts there, or a clear this crate makes and the original does
+  not); `1/62`'s own block computed on a point other than its unit cell
+  (dead for this frame: its figure stands on its unit point on every
+  block 11898..11903); or a refusal outside the index, from
+  `invalid_loc`, which this crate's answers 0 (valid) for the cell. `1/62`'s `safe` and its path top's
+  `flags & 8` gate the probe off entirely (COLLISION §4.1), so they cannot
+  refuse.
+- **The instrument that would settle it.** run137 was booked for it
+  (`tools/gamelog/captures.txt`): a `RON_COLLIDE_PROBE` build with
+  `callwin` over 11900..11902, which would record each of the original's
+  search probes with its hit cell. The build faulted at load under free
+  Wine: `7BF21139`, read of `0x00004ECD`, `docs/ORACLE.md`'s wow64 mode-
+  switch fault, which is layout-sensitive. run116's probe build did not
+  hit it on 2026-09-21. The stanza is retired, not taken.
+
+### 23.6 Coverage
+
+**Diff-backed**: §23.1 and §23.2, from `run136_s_word_frame_is_widened_whole`,
+which pins the word's 36 rows on blocks 11902..11904, the 284-key floor
+under it, `1/62`'s and `1/64`'s rows under the word, and `1/64`'s stop as
+the one animation change on either side alone. The word itself is
+`run53_s_24000_frames_put_the_ceiling_where_run33_did`. **Counterfactual,
+landed**: §23.4, `run136_s_word_is_one_cell_of_1_62_s_search`.
+**Listing-backed**: §23.3's argument chain, `llvm-objdump` of
+`0x687cec..0x687d40` and `0x617141..0x6171b0`. **Measured once, not
+landed**: §23.3's table (a scratch print) and §23.4's 12038.

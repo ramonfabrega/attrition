@@ -36,7 +36,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::gamelog::{Block, Log, reads};
 
-use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_CROSSING_BLOCK, WIDENING_CHAPTER_TWO};
+use super::testkit::{GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO};
 
 /// Record paths read by a parser of their own, outside `Block` — the
 /// module that reads each is named, and this guard leaves them alone.
@@ -146,15 +146,6 @@ const UNREAD: &[(&str, &str)] = &[
     (
         "GAME/FRAME/UNITDATA/GUY",
         "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
-    ),
-    // **Item 560 moved the Great Lakes window onto run135**, where army
-    // 2's grouped attack-move is on the word's blocks, and one path joins:
-    // the `GROUPORDER` base's own `UNITORDER`, whose `flags` is the same
-    // word `orders_of` already reads off the `MOVEORDER` base's — equal on
-    // all 484 group orders in run135. Owed by no item.
-    (
-        "GAME/FRAME/UNITDATA/GROUPATTACKTOORDER/GroupMoveOrder/GROUPORDER/UNITORDER",
-        "flags",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
@@ -366,9 +357,9 @@ fn the_recorder_tells_one_object_block_from_another() {
 #[test]
 fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch2 = golden_dump("ch2");
-    let r135 = crate::testenv::dump("gamelog-run135-greatlakes-crossing.txt");
-    if ch2.is_none() && r135.is_none() {
-        eprintln!("skipping: neither the ch2 golden capture nor run135 is on disk");
+    let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
+    if ch2.is_none() && r136.is_none() {
+        eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
         return;
     }
     let mut paths = Paths::new();
@@ -396,9 +387,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // to the word's own blocks again the same way. Item 557 moved it to
     // 11806, past run130's last block, and item 560's run135 reaches it at
     // run134's line — run125's detail with `GROUPS=1` and no `DEATHS` — so
-    // the window is the word's own blocks on run135.
-    let gl = GREAT_LAKES_CROSSING_BLOCK;
-    if let Some(p) = &r135 {
+    // the window is the word's own blocks on run135. Item 560 moved it to
+    // 11903, past run135's last block, and item 563's run136 reaches it
+    // at run135's line, so the window is the word's own blocks on run136.
+    let gl = GREAT_LAKES_DETOUR_BLOCK;
+    if let Some(p) = &r136 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
     }
     assert!(frames > 0, "no frame of either window was found");

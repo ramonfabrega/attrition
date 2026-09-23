@@ -40,6 +40,21 @@ use crate::orders::{self, Body, MoveKind, PathData, Worker, path_flag};
 use crate::world::{Owner, Pos, TILES_PER_CELL, UNITS_PER_CELL, cell, tile, vector_dist};
 use crate::{Sim, movement};
 
+/// **A payoff probe's hand**, not a mechanic (item 563,
+/// `docs/PATHFINDER.md` §23): one unit cell that `valid_ucoord` refuses to
+/// one unit's searches on one sim-frame, on top of whatever the index
+/// says. The diff harness uses it to ask whether a single verdict is the
+/// whole difference between two plans.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RefuseProbe {
+    /// The sim-frame the refusal holds on.
+    pub frame: i64,
+    /// The searching unit, `(who, o)`.
+    pub unit: (i32, i32),
+    /// The unit cell (48-unit grid) refused.
+    pub cell: Pos,
+}
+
 /// The three grids' steps, in position units.
 pub const STEP_WORLD: i32 = 0x300;
 pub const STEP_TILE: i32 = 0xc0;
@@ -385,9 +400,24 @@ impl Sim {
             return v;
         }
         let v = self.invalid_loc(u, p.tile(), false, true, false, true, false) == loc::VALID
-            && !self.detect_quick(u, p, true);
+            && !self.detect_quick(u, p, true)
+            && !self.probe_refuses(u, p);
         memo.insert(metric, v);
         v
+    }
+
+    /// Whether [`Sim::probe_refuse`] names this unit, this frame and the
+    /// unit cell `p` lies in. False in every run but a test's.
+    fn probe_refuses(&self, u: usize, p: Pos) -> bool {
+        self.probe_refuse.as_ref().is_some_and(|r| {
+            r.frame == self.frame
+                && r.unit
+                    == (
+                        i32::from(self.units[u].owner),
+                        i32::from(self.units[u].index),
+                    )
+                && crate::collide::ucell(p) == r.cell
+        })
     }
 
     // `UnitData::needs_transport` is `Sim::needs_transport` in `transport.rs`

@@ -4683,3 +4683,185 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run130-greatlakes-armytwo.txt gamelog-run135-greatlakes-crossing.txt --exclude WORLD --exclude GROUPDATA --drop last_group | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run130 overlap: common="n" "r" differ="d; exit !(n==40 && d==0 && r=="(11760..11799)")}'
 # **The coverage window landed**: every frame 11796..11816 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run135.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11796&&f<=11816&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==21)}'
+
+run: 136
+tag: greatlakes-detour
+item: 563
+why: Great Lakes' long word is 11903 — ours spends `Guy::set_anim+0x97a < Unit::move_step+0x823` from `1/64` at index 1 where the original spends `Guy::inc_time+0x271` (0/0's wrap, which ours spends a draw later) — and no dump on disk reaches it: run135 ends on block 11859
+# **THE DISK WAS GREPPED FIRST.** run135 [11760, 11859] is the highest
+# Great Lakes block at any detail below run80's endpoint window
+# [23960, 24000); nothing between 11860 and 23959 carries a block, and no
+# trace on this map has a coverage window above 11816.
+#
+# **The frame, from this crate's side** (`RON_DEBUG_SITES=11898-11906`,
+# `RON_DEBUG_UNIT=*/*@11900-11903` on the run53 test). Draws agree to
+# 11902. `1/64` (type 82, `army None` here, `AttackTo` (36600, 23304) on
+# its third waypoint (38136, 21768)) stops on 11898 at (39024, 21096) with
+# `coll (39004, 21112)`, waits 11899..11901, steps to (39004, 21112) on
+# 11902, and on 11903 takes a flag-2 detour to (39048, 21144) around
+# `coll (38984, 21128)` and stops: the extra draw. It walks again on
+# 11904 at (39024, 21127). Its nearest neighbours on 11903: `1/62`
+# (army 2) at (38904, 21192) walking south, `1/27` at (38760, 21192)
+# idling (and, with `1/28`, joining army 2 on 11903 here).
+#
+# **The readings, each with what kills it**, on the dump's own keys
+# (block = frame + 1, so the word's block is 11904):
+#
+# - **R1 — the original's `1/64` does not stop on 11903.** The detour and
+#   stop are ours alone. **Killed if** the original's `1/64` stands at
+#   (39004, 21112) on block 11904 with a flag-2 path entry and its `GUY`
+#   `cur_anim` going idle on that block, as ours.
+# - **R2 — a lag.** `1/64` or a neighbour is somewhere else before the
+#   word, so the probe hits here and misses there. **Killed if** every
+#   player-1 position agrees on blocks 11860..11903.
+# - **R3 — the collider.** Both stand in the same place and the sweep
+#   names another unit, or none (soft against hard: `1/64` has no army
+#   here, its neighbours are army 2's). **Killed if** the original's
+#   `1/64` shows ours `collide_o` on block 11904.
+# - **R4 — the clock.** The original's `1/64` stops too, on another
+#   frame: its 11898..11902 wait-and-step runs to another count.
+#   **Killed if** the original's `1/64` steps to (39004, 21112) on block
+#   11903 as ours.
+#
+# **Backwards too**: 20 blocks overlap run135, 11840..11859.
+frames: 11970
+mapstyle: 14
+# **run135's line, unchanged**: run125's detail with `GROUPS=1` and
+# without `DEATHS`. Leader detail stays at 9 because the overlap check is
+# then a plain `samegame` with nothing excluded, and at ~2.2 MB a block
+# it is not what costs here; army membership changes on the word's own
+# frame (`1/27`, `1/28` into army 2), so the pool stays on.
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 11840 11960
+# **Per-frame coverage over the word**, 11896..11910: `1/64`'s stop on
+# 11898, its wait, the step, the word, and the walk after it.
+cover: cover=1
+cover: window=11896-11910
+settle_min: 14000000
+# Sized from run135: 2.2 MB a block, 120 blocks ~265 MB; ~13 minutes of
+# dumping. 180 polls is 60 minutes.
+poll_max: 180
+# ==== TAKEN 2026-09-22, **WHOLE** ====
+#
+# 264,051,273 bytes, **120 blocks 11840..11959**, a `GROUPDATA` on every
+# one; 17.8 MB of trace. About twelve and a half minutes launch to archive
+# (23:42 to 23:55), after a background wait for att-552's capture to free
+# the lane. All six checks green: 11,971 frames identical to run53,
+# `MAP_STYLE 14`, 20 blocks shared with run135 and 0 differing, and a
+# coverage set on all 15 window frames.
+#
+# **The readings, decided on blocks 11860..11905**: **R2 is dead**: the
+# 284 keys under the word are run135's floor exactly, and nothing new
+# parts on 11860..11901. **R4 is dead**: `1/64`'s 11898..11902 wait
+# agrees, with the original's still waiting on block 11903. **R1 holds,
+# and R3 names why**: on block 11903 the original's `1/64` hard-collides
+# with `1/62` (`collide_o 62`) and stays stopped. Ours has `collide_o -1`
+# and steps, because `1/62` is elsewhere, and `1/62` is elsewhere
+# because its flag-2 detour round `1/27`, planned on frame 11901 from
+# the same point, goes north there and south here. The first row is
+# block 11902's `1/62` `path:length`, ours 6 against theirs 8.
+# `docs/PATHFINDER.md` §23.
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run136.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11960)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run136-greatlakes-detour.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 120 blocks, 11840..11959, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run136-greatlakes-detour.txt" | awk '{v=$3+0; if(v>=11840&&v<11960) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==120 && lo==11840 && hi==11959)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run136-greatlakes-detour.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=11840&&v<11960)n++} print "blocks with a GROUPDATA: "n; exit !(n==120)}'
+# **The overlap with run135, and the count is the claim** — twenty
+# blocks, and the line is run135's, so nothing is excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run135-greatlakes-crossing.txt gamelog-run136-greatlakes-detour.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run135 overlap: common="n" "r" differ="d; exit !(n==20 && d==0 && r=="(11840..11859)")}'
+# **The coverage window landed**: every frame 11896..11910 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run136.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=11896&&f<=11910&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==15)}'
+
+# ==== NOT TAKEN 2026-09-23, and RETIRED: the `run:` line is commented out
+# so a bare `runqueue.sh` skips this stanza. On the plain tracer it would
+# archive a run137 with no proxies in it. ====
+#
+# Launched 00:32 through `viadriver.sh`, with the install's `rontrace.dll`
+# swapped for a `RON_COLLIDE_PROBE` build (sha256 `640662b0…`). The game
+# died before its menu window existed: `wine: Unhandled page fault on read
+# access to 00004ECD at address 7BF21139`. That is `wow64cpu+0x1139`, the
+# free-Wine mode-switch fault `docs/ORACLE.md` ("What `7BF21139` actually
+# is") records as layout-sensitive. run116's probe build did not hit it on
+# 2026-09-21; this build, from today's `tracer.c`, did, on its first launch.
+# The game was killed, `wineserver -k` was run, and the plain DLL, `.funcs`
+# and patched exe were restored from byte copies, passing `shasum -c`
+# against the pre-swap hashes. Not retried, at the commander's word:
+# getting the probe build to run is a successor item.
+# run: 137
+tag: greatlakes-detourprobe
+item: 563
+why: Great Lakes' word 11903 is `1/62`'s flag-2 detour round `1/27`, planned on sim-frame 11901 from the same point on both sides, north in the original and south here — and no gamelog category carries a search's per-cell verdicts, so only the proxies can say which cell the original refused
+# **THE DISK WAS GREPPED FIRST.** run136 [11840, 11959] carries the word's
+# whole state at run135's line, and `run136_s_word_frame_is_widened_whole`
+# reads it whole: the first row is block 11902's `1/62` path (ours 6
+# entries, theirs 8), and nothing new parts on 11860..11901. No trace on
+# this map has a `callwin` above 10163. What no `gamelog.ini` line can put
+# on disk is **the inside of the search**. That is the only thing this
+# run adds.
+#
+# **The tracer in the install is swapped for a `RON_COLLIDE_PROBE` build**
+# (`TRACER_DEFS=-DRON_COLLIDE_PROBE zsh tools/trace/build.sh`, built in
+# scratch and copied over `rontrace.dll` only; `.funcs` and the patched exe
+# are byte-identical between the two builds) before this runs, and the
+# plain DLL is restored from a byte copy afterwards, hash-checked. Thirteen
+# proxies: the eight base, `astar_path` and `calc_cost` among them, and
+# run116's five over the collision sweep.
+#
+# **This crate's search, measured before the run** (a scratch print in
+# `valid_ucoord`, `RON_VU=11901`): `1/62` searches from (38904, 21144),
+# unit cell (810, 440), to (38088, 21912). Its wheel from `pref + 1 = 8`
+# (W): W (809, 440) refused on (808, 441); NW (809, 439) on (808, 440);
+# N (810, 439) valid; NE (811, 439) on (812, 438); E (811, 440) valid;
+# SE (811, 441) on (812, 440); **S (810, 441) valid**; SW (809, 441) on
+# (808, 440). It takes S and walks south. The bitmask here has holes at
+# (812, 439) and (814, 442), and **nothing at (809, 442) or (811, 442)**.
+#
+# ---- THE PREDICTIONS, written before the capture ran. Sim-frame 11901
+# writes block 11902.
+#
+# **P1 — THE FALSIFIER.** On sim-frame 11901 one `astar_path` bracket is
+# `1/62`'s, and inside it the probe of **(38904, 21192)** — S, unit cell
+# (810, 441) — **returns 1** (`detect_unit_collision … = 1`), with no
+# `calc_cost` row to it at depth 1. Its `will_be_corner` names the hit
+# cell, and the cell is (809, 442) or (811, 442).
+#   - **Killed if** S returns 0 and is priced at depth 1: the verdicts
+#     agree where this crate's search turned, and the difference is in the
+#     search's other inputs (the start, the goal, the heuristic's order),
+#     not the bitmask. That is the answer to report.
+#   - **Killed differently if** there is no `1/62` bracket on 11901: the
+#     plan is not a `find_upath` of that frame.
+# **P2 — every other verdict of the first expansion agrees** with the list
+# above (W, NW, NE, SE, SW refused on the same hit cells; N and E valid).
+# A second disagreement says the index differs in more than one bit.
+#
+# **What is expected to AGREE, and it is refusable**: every record in the
+# ten blocks against run136 at run136's own line, and run53's draw stream
+# frame for frame. A proxy that perturbs shows there first.
+frames: 11915
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **11896..11905, ten blocks**, inside run136's window: the word's run-up,
+# the detour's block 11902, and 11904.
+frame_window: 11896 11906
+cover: cover=0
+cover: callwin=11900-11902
+settle_min: 14000000
+# ~2.2 MB a block for ten blocks; run80 reached 23,960 of this game in
+# forty seconds at `cover=0`. 90 polls is thirty minutes.
+poll_max: 90
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run137.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=11905)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run137-greatlakes-detourprobe.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — ten blocks, 11896..11905, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run137-greatlakes-detourprobe.txt" | awk '{v=$3+0; if(v>=11896&&v<11906) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==10 && lo==11896 && hi==11905)}'
+# **The overlap with run136, and the count is the claim** — ten blocks,
+# the same line, nothing excluded: the perturbation check.
+check: python3 tools/gamelog/samegame.py gamelog-run136-greatlakes-detour.txt gamelog-run137-greatlakes-detourprobe.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run136 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(11896..11905)")}'
+# **The build that wrote the log**, from its own PROXIED records: 13.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" summary | tee /dev/stderr | awk '/INFO proxied/{n++} END{print "proxied sites: "n; exit !(n==13)}'
+# **The search was recorded**: `1/62`'s probes on sim-frame 11901.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run137.log" calls 11901 | awk '/detect_unit_collision/ && /this=1\/62 / && /quick=1/{n++} END{print "1/62 search probes on 11901: "n; exit !(n>=8)}'
