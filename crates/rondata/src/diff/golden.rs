@@ -5318,17 +5318,23 @@ fn chapter_three_holds_to_the_golden_word() {
 ///
 /// The word's two blocks, 621 and 622, print the catapult `0/9` once, both
 /// sides, before any quiet row is trusted.
-#[test]
-fn chapter_three_s_word_frame_is_widened_whole() {
+#[allow(
+    non_snake_case,
+    reason = "the window's names as the other widenings spell them"
+)]
+fn widen_chapter_three(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+    word: i64,
+    catapult: i64,
+) -> Option<ChapterThreeWidening> {
     use std::collections::{BTreeMap, BTreeSet};
-    const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
-    const LAST: i64 = WIDENING_CHAPTER_THREE.1;
-    /// run145's window is 605..899 and its `!quit` block is 901.
-    const RUN145_NO_BLOCK: i64 = 900;
-    const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
-    let Some(mut s) = stage_script("ch3", "chapter3") else {
-        return;
-    };
+    let (FIRST, LAST, WORD) = (first, last, word);
+    // The window's one absent block: the capture's last frame, whose
+    // `!quit` block is written one past it.
+    let no_block = LAST - 1;
+    let mut s = stage_script(run, stem)?;
     let players = s.built.sim.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
@@ -5487,14 +5493,15 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         // **Both sides printed once on the word's two blocks**, for the
         // catapult: the record the draw is spent in.
         if (WORD..=WORD + 1).contains(&n) {
-            for them in frame.units.iter().filter(|u| u.who == 0 && u.o == 9) {
-                eprintln!("  block {n} 0/9 theirs {them:?}");
-                match s.built.sim.unit_by_o(0, 9).map(|u| &s.built.sim.units[u]) {
+            for them in frame.units.iter().filter(|u| u.who == 0 && u.o == catapult) {
+                eprintln!("  {run} block {n} 0/{catapult} theirs {them:?}");
+                let o = i16::try_from(catapult).expect("an o");
+                match s.built.sim.unit_by_o(0, o).map(|u| &s.built.sim.units[u]) {
                     Some(u) => eprintln!(
-                        "  block {n} 0/9 ours pos {:?} idle {} packed {} orders {:?} guys {:?}",
+                        "  {run} block {n} 0/{catapult} ours pos {:?} idle {} packed {} orders {:?} guys {:?}",
                         u.pos, u.idle, u.combat.packed, u.orders, u.guys
                     ),
-                    None => eprintln!("  block {n} 0/9 ours: absent"),
+                    None => eprintln!("  {run} block {n} 0/{catapult} ours: absent"),
                 }
             }
         }
@@ -5516,17 +5523,17 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         }
     }
     eprintln!(
-        "ch3 widening: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
+        "ch3 widening {run}: {blocks} blocks [{FIRST}, {LAST}), {rows} record rows, \
          {leader_rows} leader rows, {guy_rows} guy rows, ammo {ammo_theirs} theirs / \
          {ammo_ours} ours, {} keys parted; {} leader keys not printed at LEADERS=2",
         firsts.len(),
         missing.len()
     );
-    let absent = usize::from((FIRST..LAST).contains(&RUN145_NO_BLOCK));
+    let absent = usize::from((FIRST..LAST).contains(&no_block));
     assert_eq!(
         blocks,
         (LAST - FIRST) as usize - absent,
-        "run145's dump no longer carries every frame of [{FIRST}, {LAST})"
+        "{run}'s dump no longer carries every frame of [{FIRST}, {LAST})"
     );
     assert_eq!(
         leader_rows,
@@ -5534,6 +5541,32 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         "the leader rows LEADERS=2 prints are not compared on every block"
     );
     assert!(guy_rows > 0, "the GUY record is not read");
+    Some(ChapterThreeWidening {
+        firsts,
+        ammo_theirs,
+        ammo_ours,
+    })
+}
+
+/// What [`widen_chapter_three`] found: every key's first parting block
+/// with the value diff beside it, and the `AMMO` tallies both sides.
+struct ChapterThreeWidening {
+    firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    ammo_theirs: usize,
+    ammo_ours: usize,
+}
+
+/// **Chapter three's word, widened whole, both directions** (item 587,
+/// `docs/DECISIONS.md` 43), on run145. The walk is [`widen_chapter_three`],
+/// which run146 shares.
+#[test]
+fn chapter_three_s_word_frame_is_widened_whole() {
+    const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
+    const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
+    let Some(w) = widen_chapter_three("ch3", "chapter3", WIDENING_CHAPTER_THREE, WORD, 9) else {
+        return;
+    };
+    let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
     // **Anti-vacuity for the `AMMO` record**: run145's live rounds are all
     // read — the chariots' from 651 — and this crate's side is not empty.
     assert_eq!(ammo_theirs, 89, "run145's live rounds are not all read");
