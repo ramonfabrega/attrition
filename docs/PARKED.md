@@ -22,6 +22,15 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 549, 2026-09-22 — the attack slots a packet lacks
+
+(553) **A census of graphic packets with fewer than three attack slots.**
+`set_anim`'s attack arm plays `CHAR_ATTACK2` when the packet lacks the
+rolled slot (`docs/ANIM.md` §4.13), so every such attacker swings
+`ATTACK2` on a third of its rolls; and a packet lacking `CHAR_ATTACK2`
+too gets 3 frames, which no capture has shown. A census over the
+install's packets would say which units are exposed; no score names it.
+
 ## Parked by item 543, 2026-09-22 — the rare-collector arm's other halves
 
 (550) **The human Merchant through `Unit::think`'s rare-collector arm.**
