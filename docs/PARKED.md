@@ -22,6 +22,25 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 648, 2026-09-23 — chapter six's other halves
+
+(651) **Chapter six-b: the air line from a base.** run168's second
+falsifier fired: an aircraft `add`ed outside a base never moves. The
+restage stages an `add airbase` for each side, then the aircraft; whether
+a cheat-placed Airbase launches anything on its own is its question. A run
+number is minted at booking. Returns when chapter six closes, or when the
+rules slot is empty (GOLDEN §14).
+
+(652) **`bird` in the harness.** The crate has the whole bird (`gaia.rs`,
+`air.rs`); the cheat is `spawn_bird` at the cursor with the patrol point
+on it. The cursor's value is the open question: a walk that builds `bird`
+at (0, 0) and agrees through the 750 edge coin settles it. While `bird` is
+`CHAPTER_DEBT`, the walk parts on 700 at the latest.
+
+(653) **Is `bird`'s cursor the same on every launch?** It is heap memory,
+so only a second take of run168 checks it. No other line of the chapter
+depends on it.
+
 ## Parked by item 642, 2026-09-23 — under East Indies' 13640
 
 (646) **run159's five rows from block 11793**, none spending a draw before
