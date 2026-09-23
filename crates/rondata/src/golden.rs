@@ -636,6 +636,8 @@ mod tests {
         ("chapter1.cmd", &["war"]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
+        // Chapter three restaged in two arenas (item 587, run146).
+        ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird` is the one console command that issues an order
