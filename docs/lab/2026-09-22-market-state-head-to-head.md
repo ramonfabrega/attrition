@@ -19,11 +19,13 @@ empty slots; none was discarded because its type sentinel was negative.
 | What is the resource state? | Buckets `[24,6,6,353,47,0]`; resources and income each `[1920,2400,992,1520,960,0]`; resource caps `[2992,2992,2992,15984,2992,2992,2992]`; support all zero. Wealth is index 2: bucket 6, income/resources 992. | Wrong getter mask, signedness, array shape or any logger mismatch. Do not confuse wealth index 2 with metal index 4, whose income is 960. |
 | Does the packet retain the re-offer value 227272? | Not as a current make-list offer. Slot 4 still contains `t=61,val=909090`; slots 0 and 7 have already become `t=-1,val=3945568,cat=7`. | A complete slot decode finds 227272. It did not. Residual bytes elsewhere would not establish an active offer. |
 
-**206/206 fields agree**: 110 make-list fields, 65 rare counters, 31 encrypted
+**206/206 fields agree with both the capture logger and run123 directly**: 110 make-list fields, 65 rare counters, 31 encrypted
 array values. This is a targeted experiment, not another expansion of the
 published 516,369-occurrence coverage checkpoint. Make coordinates are zero
 in this observation; this does not validate a general nonzero projection.
 PDB export and packet hashes were checked against the retained state manifest.
+Selected root stability does not establish atomicity for the make-list and
+encrypted-state referents; the logger agreement is the scoped observation.
 
 Controls change only a read wrapper, never the packet: one byte at the empty
 slot's `t` changes -1 to -2, at the regional counter changes 4 to 5, and at

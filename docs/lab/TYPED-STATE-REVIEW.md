@@ -178,9 +178,10 @@ PYTHONPATH=tools/explore python3 tools/explore/typed_height_precision.py EXTERNA
 snapshot when a concrete question needs hidden storage or exact float bits.
 **Park replacement:** complete logger coverage, full rooted liveness and a
 controlled live-item head-to-head remain prerequisites for that claim.
-Coverage expansion stops at this checkpoint. The next investigation is the
-charter step-4 state-side head-to-head on item 327: the Merchant offer at
-trace tick 11185, with an explicit one-hour bound and falsifiers. A retained `objects` root already exposes a typed `ammo_objs` array;
+Coverage expansion stops at this checkpoint. The [bounded item-327 result](2026-09-22-market-state-head-to-head.md)
+answers endpoint state, but cannot establish the earlier offer mechanism from
+this packet alone. Steering can compare that temporal contract with PR #8's
+independent function experiment. A retained `objects` root already exposes a typed `ammo_objs` array;
 it was not an acquisition anchor and is not counted as validated ammo membership.
 No further capture is needed for that work on this packet.
 
@@ -205,3 +206,19 @@ Detailed evidence: [leader projections](2026-09-22-leader-bridge.md),
 [complete observed GUY records](2026-09-22-guy-state-bridge.md). The additional
 124-output encrypted-leader probe remains unpromoted; it is not part of the
 reported coverage and is not the priority for this steering pass.
+
+### Rebased release verdict
+
+At `6151581` on main `d892281`, the full release run executes to completion:
+**1,285 passed, two failed, two ignored**. Both failures are inherited from
+unchanged main files: the queue's golden word is 626 while its constant is 774,
+and landed item 445 remains live in the queue. The run123 whole-frame widening
+passes. No queue, journal, constant or guard is changed to hide these failures.
+The overall release gate is **red**, not an adoption-ready green verdict.
+The 86 acquisition/oracle tests pass independently on the rebased code.
+
+Fixture audit: **896 requests, 142 unique fixtures, zero missing**. Install
+survey and offline tool tests pass. Clippy with warnings denied and formatting
+pass separately after the red release run; the final lab docs pass the other
+15 paperwork tests, with the known item-445 failure explicitly excluded.
+Both no-float checks pass. These separate checks do not turn the gate green.
