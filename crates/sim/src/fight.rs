@@ -2212,7 +2212,10 @@ impl Sim {
             // `get_damage` step 19 reads is the attacker's own, and two
             // otherwise equal candidates at different bearings rank apart.
             let (from, to) = (self.pos_of(attacker), self.pos_of(target));
-            combat::get_damage(
+            // `splash` and `check_overkill` both 0 (`0064ebce`–`0064ebdf`):
+            // the ranking never discounts a target another shooter has
+            // just hit (item 601, `docs/COMBAT.md` §53).
+            combat::get_damage_checked(
                 &self.tuning,
                 &ap,
                 at,
@@ -2222,6 +2225,7 @@ impl Sim {
                 self.armor_of(target),
                 pct,
                 find_angle(to.x - from.x, to.y - from.y),
+                false,
                 false,
                 self.frame,
                 &self.mods[self.owner_of(attacker) as usize],

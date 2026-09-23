@@ -5664,13 +5664,16 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         "the standing rows on run145's first block moved: {at_floor:?}"
     );
     // **What parts first, and what parts on the word's own two blocks**
-    // (item 595; the delta is in `GOLDEN_WORD_CHAPTER_THREE`'s comment).
-    // Before the pivot the word was 633 and nothing parted before it; now
-    // the values part fifty blocks ahead of the draws. The first row past
-    // the standing families is the chariot `0/6`'s first target on 635,
-    // and on the word's blocks it is the hoplite `1/7`, dead here on 682
-    // and in the dump on 704. Nothing parts on 633 or 634: `0/8` keeps its
-    // heading and its crew figure is not aimed, as in the dump.
+    // (item 601; the delta is in `GOLDEN_WORD_CHAPTER_THREE`'s comment).
+    // 635 is quiet now: `0/6` takes `1/8`, as the dump's does, once the
+    // flank reduction reads the target's mask. The first value parting is
+    // the chariots' first rounds on 651, which leave from each unit's own
+    // square and height where the dump's leave from the archer's release
+    // node (`docs/COMBAT.md` §52.4, item 602's 651 on run146). `rolling`
+    // parts with them. On the word's blocks it is `0/8`, which turns to
+    // `1/7` here and holds its heading in the dump (item 603), and `1/4`,
+    // a player-1 unit far from the arena whose move offsets follow the
+    // draws that parted on 684.
     let rows_on = |lo: i64, hi: i64| -> Vec<String> {
         firsts
             .iter()
@@ -5683,17 +5686,40 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         .filter(|((_, _, what), _)| !standing(what))
         .map(|(_, (f, _))| *f)
         .min();
-    assert_eq!(first, Some(635), "run145's first value parting moved");
+    assert_eq!(first, Some(651), "run145's first value parting moved");
     assert_eq!(
-        rows_on(635, 635),
-        vec!["635 0/6 order:target: Target { ours: Some((1, 7)), theirs: Some((1, 8)) }"],
+        rows_on(FIRST + 1, 650),
+        Vec::<String>::new(),
+        "635 parts again"
+    );
+    assert_eq!(
+        rows_on(651, 651),
+        vec![
+            "651 0/8 ammo[0].angle: ours 997130240 theirs 1038614528",
+            "651 0/8 ammo[0].rolling: ours 1 theirs 0",
+            "651 0/8 ammo[0].sx: ours 984 theirs 956",
+            "651 0/8 ammo[0].sy: ours 8136 theirs 8071",
+            "651 0/8 ammo[0].sz: ours 240 theirs 448",
+            "651 0/8 ammo[0].v1z: ours 58337502 theirs 37537498",
+        ],
         "run145's first value parting moved"
     );
     assert_eq!(
         rows_on(WORD, WORD + 1),
         vec![
-            "683 1/7 death:extra: ours 1 theirs 0",
-            "683 1/7 unlinked: the dump holds it alone",
+            "685 0/8 angle:Facing: ours 834011136 theirs 1431655765",
+            "685 0/8 angle:Heading: ours 834011136 theirs 1431655765",
+            "685 0/8 g.angle[0]: ours 834011136 theirs 1431655765",
+            "685 0/8 g.angle[1]: ours 834011136 theirs 1431655765",
+            "685 0/8 heading: ours 834011136 theirs 1431655765",
+            "685 1/4 dest_angle: ours -541917184 theirs -1891500032",
+            "685 1/4 order:move.angle: Move { field: \"angle\", ours: -541917184, theirs: -1891500032 }",
+            "685 1/4 order:move.off_x: Move { field: \"off_x\", ours: 312, theirs: 120 }",
+            "685 1/4 order:move.off_y: Move { field: \"off_y\", ours: 120, theirs: 696 }",
+            "685 1/4 order:move.x: Move { field: \"x\", ours: 41016, theirs: 40824 }",
+            "685 1/4 order:move.y: Move { field: \"y\", ours: 17016, theirs: 17592 }",
+            "685 1/4 orders_x: ours 41016 theirs 40824",
+            "685 1/4 orders_y: ours 17016 theirs 17592",
         ],
         "what parts at or one block past chapter three's word moved"
     );
