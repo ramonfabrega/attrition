@@ -1103,8 +1103,12 @@ total`, floored at 1 when anything is usable.
 ### The reconstruction, and what run97 and run80 say about it
 
 The original's ranges are map-generator objects: a placed mountain has a
-location and a template with a tile-offset list. Nothing in a gamelog dump
-carries them. `sim::Sim::mountain_range` stands one up as the **eight-
+location and a template with a tile-offset list. ~~Nothing in a gamelog dump
+carries them.~~ A `DUMP_ALL` head prints the placements
+(`GameLog::dump_mountains`), and the lists are the template image's alpha.
+Since item 604 `sim::Sim::mountain_range` returns the placed range
+(`docs/AI.md` §60, `docs/FORMATS.md`, "The mountain templates"). Without
+placements, it stands one up as the **eight-
 connected component of mountain tiles** containing the nearest one, and
 `solid_mount` as that component's cells whose centre tile is a mountain and
 whose cell is not a forest one.
@@ -1135,29 +1139,35 @@ mine lands at `(41088, 25920)`, which is the original's own position for
 ### What it does not establish
 
 - **The range index.** `mtn 6` is an index into the generator's placed-
-  mountain array. A component walk has no such order, so this crate does not
-  reproduce the number and does not store one; `MiningList::mtn`'s caching
+  mountain array. ~~A component walk has no such order, so this crate does not
+  reproduce the number and does not store one;~~ `find_nearest_mountain`
+  reproduces it for both of run80's mines (`docs/AI.md` §60), and this crate
+  does not store it. `MiningList::mtn`'s caching
   role is unmodelled with it. The falsifier is a capture where a mine's
   `calc_gather` is re-run after its list exists and the two answers differ.
-- **The pre-shuffle order**, and therefore the post-shuffle one. The original
+- ~~**The pre-shuffle order**, and therefore the post-shuffle one. The original
   walks the template's tile arrays; this crate walks rows. The **count** is
   what the sync stream sees and the count is right, and the set is right, but
   `Unit::do_non_flat_gather` ranks tiles by `i >> 2` — so *which* tile a
   miner works first is not the original's. The falsifier is a `GATHERORDER`
-  dump over a mine's citizens.
+  dump over a mine's citizens.~~ The template's tile arrays are in row order,
+  and with the placements this crate walks them (`docs/AI.md` §60). run143's
+  10583 gather list agrees on all 80 rows.
 - **The cliff arm.** `CliffsData::find_nearest` runs beside the mountain one
   and wins when a scary cliff is nearer, with its own `gather_size`. Neither
   scored map has a single `OBJECT_CLIFF` tile, so nothing here is refused by
   a capture; a mine beside a cliff still gets an empty list. The falsifier is
   a map with cliff tiles and a mine on one.
-- **The tie-break in `find_nearest`.** The original's order is the placed-
+- ~~**The tie-break in `find_nearest`.** The original's order is the placed-
   mountain array's and then each range's own tile order; this crate's is
   row-major. Two ranges the same distance away would seed different
-  components. No capture holds a tie.
-- **The region filter.** `find_nearest` takes the site's region and skips a
+  components. No capture holds a tie.~~ The placed order, strictly nearer
+  wins (`docs/AI.md` §60.3). It holds only with the placements.
+- ~~**The region filter.** `find_nearest` takes the site's region and skips a
   range whose location cell is elsewhere; this crate scans a box that cannot
   reach another landmass at six tiles, so the filter never bites and is not
-  written.
+  written.~~ It skips a range whose **first solid cell** is in another region
+  (§59.2), and is written (§60.3).
 
 ## The commerce cap
 

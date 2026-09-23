@@ -566,6 +566,28 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     // And which types aim a pivot rather than turn to shoot
     // (`docs/COMBAT.md` §52).
     sim.art.pivots = loaded.pivot_restrictions.clone();
+    // The generator's placed mountains, each laid out from its template
+    // (`docs/AI.md` §60): what a mine's reach and its gather list are
+    // measured on. A capture with neither a `DUMP_ALL` head nor such a
+    // sibling keeps the stand-in range.
+    if !init.mountains.is_empty() && !loaded.mountain_templates.is_empty() {
+        let placed: Vec<(sim::world::Cell, usize)> = init
+            .mountains
+            .iter()
+            .map(|m| {
+                (
+                    sim::world::Cell::new(m.x as i32, m.y as i32),
+                    usize::try_from(m.t).unwrap_or(usize::MAX),
+                )
+            })
+            .collect();
+        sim.place_mountains(&placed, &loaded.mountain_templates);
+        notes.push(format!(
+            "mountains: {} placed ranges, {} solid cells, from the templates",
+            placed.len(),
+            sim.mountains.iter().map(|m| m.solid.len()).sum::<usize>()
+        ));
+    }
     if !loaded.piece_releases.is_empty() {
         notes.push(format!(
             "anim: {} unit pieces' arrow-release frames from the install",
@@ -1627,6 +1649,17 @@ pub fn borrow_pasture(init: &mut Initial<'_>, tr: &crate::trace::Trace) {
     }
 }
 
+/// A `WORLD` block's leading scalars — `forest_size` through
+/// `colonized_territory_limit_city`, the fields `WorldData::log_data`
+/// writes at every detail — up to the first bare line.
+fn world_scalars<'w>(world: &'w [(&str, &str)]) -> &'w [(&'w str, &'w str)] {
+    let n = world
+        .iter()
+        .position(|(_, v)| v.is_empty())
+        .unwrap_or(world.len());
+    &world[..n]
+}
+
 pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Initial<'b>]) {
     if init.checksums.is_empty()
         && let Some(s) = siblings.iter().find(|s| !s.checksums.is_empty())
@@ -1704,6 +1737,21 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
         && let Some(s) = siblings.iter().find(|s| !s.goods.is_empty())
     {
         init.goods = s.goods.clone();
+    }
+    // The placed mountains are the map generator's, like the cells, and on
+    // the cells' terms: a sibling whose world block opens with the same
+    // scalars — the map seed, the extent, the generator's totals — placed
+    // the same ranges. The ranges are not the setup buildings', so the
+    // heights' stricter test is not theirs.
+    if init.mountains.is_empty()
+        && let Some(s) = siblings.iter().find(|s| {
+            !s.mountains.is_empty() && {
+                let (a, b) = (world_scalars(&init.world), world_scalars(&s.world));
+                !a.is_empty() && a == b
+            }
+        })
+    {
+        init.mountains = s.mountains.clone();
     }
     // The farm list is a `DUMP_ALL` block too, and it is the same map's
     // (`docs/SYNC.md` §3.6): which farm is the pasture does not depend on

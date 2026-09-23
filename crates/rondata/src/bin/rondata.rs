@@ -761,6 +761,42 @@ fn survey(install: &Install) -> Result<usize, rondata::Error> {
         ),
     );
 
+    // The mountain templates (`docs/FORMATS.md`, "The mountain templates"):
+    // sixteen `<MOUNTAIN>`s, each `TEMPLATE_TEX` a 256 x 256 run-length
+    // 32-bit TGA stored bottom row first, and the lists `MountainRange::init`
+    // derives from its alpha. The counts are the ones run144's packet and
+    // run97's range pin: s1, m10 and m8 carry 3, 13 and 14 solid cells, and
+    // m4 carries 244 tiles.
+    let files = rondata::mountains::template_files(install);
+    let images: Vec<_> = files
+        .iter()
+        .map(|f| rondata::mountains::template_image(install.root(), f))
+        .collect();
+    let shapes_ok = images.iter().all(|i| {
+        i.as_ref().is_some_and(|(t, kind, desc)| {
+            t.width == 256 && t.height == 256 && *kind == 10 && *desc == 0x08
+        })
+    });
+    let templates = rondata::mountains::templates(install);
+    let solid = |i: usize| templates.get(i).map(|t| t.solid.len());
+    let tiles = |i: usize| templates.get(i).map(|t| t.tiles.len());
+    failures += check(
+        "the mountain templates read from the install's art",
+        files.len() == 16
+            && shapes_ok
+            && (solid(15), solid(14), solid(13), tiles(9))
+                == (Some(3), Some(13), Some(14), Some(244)),
+        &format!(
+            "{} MOUNTAINs, every TEMPLATE_TEX 256x256 type 10 bottom-left: {shapes_ok}; \
+             solid s1 {:?} m10 {:?} m8 {:?} (3, 13, 14), m4 tiles {:?} (244)",
+            files.len(),
+            solid(15),
+            solid(14),
+            solid(13),
+            tiles(9)
+        ),
+    );
+
     // The claim that forces index-keyed loading. If this ever comes back
     // empty, name-keying would be safe and decision 9 deserves revisiting.
     let dups = rules.constants.duplicate_tags();

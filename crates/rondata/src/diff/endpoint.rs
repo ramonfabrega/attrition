@@ -480,7 +480,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // measured to the nearest solid mountain cell (`docs/AI.md` §59);
         // this map's word holds at 10582, 13,419 frames before this one.
         // DECISIONS 36: the number, not a trade.
-        off: 59,
+        // **59 → 56 off, 3 → 6 unlinked, 2 → 1 build_unlinked, 24 → 25
+        // build_diverged** on item 604, the placed mountain templates'
+        // solid cells (`docs/AI.md` §60); this map's word moves 10582 →
+        // 10782, 13,219 frames before this one. DECISIONS 36: the number,
+        // not a trade.
+        off: 56,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -497,12 +502,15 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 0** on item 592, beside `off` above.
         // **0 → 3** on item 597, beside `off` above: player 1's `77`, `81`
         // and `82`.
-        unlinked: 3,
+        // **3 → 6** on item 604, beside `off` above: player 1's `77`..`82`.
+        unlinked: 6,
         extra: 0,
         // **1 → 2** on item 588, beside `off` above.
-        build_unlinked: 2,
+        // **2 → 1** on item 604, beside `off` above.
+        build_unlinked: 1,
         // **25 → 24** on item 592, beside `off` above.
-        build_diverged: 24,
+        // **24 → 25** on item 604, beside `off` above.
+        build_diverged: 25,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1374,7 +1382,11 @@ pub const LADDER: [Endpoint; 2] = [
         // **23 → 13 extra, 40 → 39 off, 5 → 4 build_diverged** on item 597,
         // a mine's reach measured to the nearest solid mountain cell
         // (`docs/AI.md` §59), 4,819 frames past this map's word.
-        extra: 13,
+        // **13 → 7 extra** on item 604, the placed mountain templates'
+        // solid cells (`docs/AI.md` §60), 4,619 frames past this map's new
+        // word 10782: three Citizens, two Scholars, a Cataphract and a
+        // Transport Barge.
+        extra: 7,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         // **5 → 4** on item 597, beside `extra` above.
@@ -1586,7 +1598,10 @@ pub const LADDER: [Endpoint; 2] = [
         // a barge's rider through its container (`docs/AI.md` §58).
         // **16 → 22 extra, 49 → 46 off** on item 597, a mine's reach
         // measured to the nearest solid mountain cell (`docs/AI.md` §59).
-        extra: 22,
+        // **22 → 13 extra** on item 604, the placed mountain templates'
+        // solid cells (`docs/AI.md` §60); `off` and every other field hold.
+        // It was hidden behind rung C's panic until C's re-pin.
+        extra: 13,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

@@ -1090,6 +1090,12 @@ pub struct Sim {
     /// The animation art the clocks read — lengths and pieces, an input
     /// (`docs/ANIM.md` §3).
     pub art: anim::Art,
+    /// The map generator's placed mountains, in its own order
+    /// (`MountainsData::mountain_locs`/`_types`), each with its template's
+    /// tiles and solid cells laid at its location (`gather.rs`,
+    /// [`gather::PlacedMountain`]). Empty when nothing supplied them, and
+    /// then [`Sim::mountain_range`] stands a range up from the tiles.
+    pub mountains: Vec<gather::PlacedMountain>,
     /// `GameInfo::seed`, the lobby's map seed, which picks a gaia guy's
     /// piece by `(seed + o) % 3`.
     pub game_seed: i32,
@@ -1394,6 +1400,7 @@ impl Sim {
             market: market::Market::default(),
             gaia: gaia::Gaia::default(),
             art: anim::Art::default(),
+            mountains: Vec::new(),
             game_seed: 0,
             mods: vec![combat::Modifiers::default(); players],
             hits: Vec::new(),
