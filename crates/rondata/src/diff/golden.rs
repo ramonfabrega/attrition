@@ -7459,3 +7459,106 @@ fn chapter_three_s_catapult_after_its_reload() {
         "run146's catapult after its reload: {parted:#?}"
     );
 }
+
+/// **Chapter seven-b's control: the scout's search on 1076, priced step
+/// for step against the original's** (item 647, run157). The capture's
+/// `rontrace.cfg` proxies `PathFinder::astar_path` and `calc_cost` over
+/// the whole run, so the search that built `1/0`'s explore path (block
+/// 1077, 48 nodes against this crate's 47) is on disk call for call.
+/// Every step both sides price is compared on its whole argument list
+/// (`docs/PATHFINDER.md` §17's key); a key only one side priced is the
+/// search parting, and is counted, not compared.
+#[test]
+fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden("ch7bc") else {
+        eprintln!("skipping: no golden capture ch7bc (see docs/RUNS.md)");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    if refs.is_empty() {
+        eprintln!("skipping: no sibling dumps");
+        return;
+    }
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = script_named("chapter7b_control");
+    const SEARCH: i64 = 1076;
+    while built.sim.frame < SEARCH {
+        script.stage(built.sim.frame, &mut built, &loaded);
+        built.tick();
+    }
+    script.stage(built.sim.frame, &mut built, &loaded);
+    built.sim.trace_costs = true;
+    built.tick();
+    let ours = std::mem::take(&mut built.sim.cost_marks);
+    let theirs = trace.calls_in(SEARCH, crate::trace::call_site::CALC_COST);
+    let theirs_by_key: std::collections::BTreeMap<sim::path::CostKey, i32> = theirs
+        .iter()
+        .map(|c| (c.cost_key().expect("a calc_cost call"), c.ret))
+        .collect();
+    let mut shared = 0usize;
+    let mut wrong: Vec<String> = Vec::new();
+    for m in &ours {
+        let Some(&t) = theirs_by_key.get(&m.key()) else {
+            continue;
+        };
+        shared += 1;
+        if t != m.cost {
+            wrong.push(format!(
+                "({},{})->({},{}) depth {}: ours {} theirs {t}",
+                m.from.0 / m.step,
+                m.from.1 / m.step,
+                m.to.0 / m.step,
+                m.to.1 / m.step,
+                m.depth,
+                m.cost,
+            ));
+        }
+    }
+    eprintln!(
+        "run157 f{SEARCH}: ours {} steps, theirs {}, {shared} shared, {} priced apart",
+        ours.len(),
+        theirs.len(),
+        wrong.len()
+    );
+    for w in &wrong {
+        eprintln!("  {w}");
+    }
+    assert!(
+        shared >= 500,
+        "run157 f{SEARCH}: {shared} shared steps; the searches did not start alike"
+    );
+    // **The floor, before any fix** (item 647): nine steps, every one into
+    // cell (48,31) or (47,31), the south half of the Small City `1/2007`'s
+    // footprint (started on 1069, `mylos 0`). The original prices them
+    // seen — 128 base, 20 × 9 of blocked tiles, − 4 own ground, + 8 on a
+    // diagonal — and this crate prices them as unseen scouting ground, 1
+    // and 9 (`docs/PATHFINDER.md` §5). The step into (48,30), the same
+    // footprint's north half, is 304/312 on both sides.
+    let want: &[&str] = &[
+        "(49,30)->(48,31) depth 5: ours 9 theirs 312",
+        "(49,31)->(48,31) depth 5: ours 1 theirs 304",
+        "(49,32)->(48,31) depth 5: ours 9 theirs 312",
+        "(48,32)->(48,31) depth 6: ours 1 theirs 304",
+        "(48,32)->(47,31) depth 6: ours 9 theirs 312",
+        "(47,32)->(47,31) depth 7: ours 1 theirs 304",
+        "(47,32)->(48,31) depth 7: ours 9 theirs 312",
+        "(46,31)->(47,31) depth 8: ours 1 theirs 304",
+        "(46,32)->(47,31) depth 8: ours 9 theirs 312",
+    ];
+    assert_eq!(
+        wrong, want,
+        "run157 f{SEARCH}: the steps priced apart moved"
+    );
+}
