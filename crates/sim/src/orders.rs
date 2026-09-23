@@ -4951,6 +4951,48 @@ impl Sim {
         self.update_action(u);
     }
 
+    /// `Group::action_swarm_around`'s member arm at **`QUEUE_LAST`**
+    /// (`0070fbe0`, `docs/GROUPS.md` §24): the approach move appended, and
+    /// the build or repair order appended behind it, so both run after
+    /// whatever the member already holds.
+    ///
+    /// Three things differ from [`Self::swarm_around`]'s `QUEUE_FIRST`
+    /// shape. **Nothing is queued when the ring finds no spot**: the move
+    /// and the order are both inside the `find_nearby_spot == 0` arm. The
+    /// move's kind is the caller's (`local_40`). And the move is
+    /// **`QUEUE_NEW`** when the member's action is a gather and the
+    /// order carries the action bit (`00710487`), which clears the list
+    /// before the approach goes in.
+    pub(crate) fn swarm_around_last(
+        &mut self,
+        u: usize,
+        b: usize,
+        body: Body,
+        action: bool,
+        kind: MoveKind,
+    ) {
+        let building = matches!(body, Body::Build(_));
+        let Some((spot, facing)) = self.swarm_spot(u, b, building) else {
+            return;
+        };
+        let gathering = self
+            .action_of(u)
+            .is_some_and(|i| self.units[u].orders[i].index() == index::GATHER);
+        let pos = if gathering && action {
+            QueuePos::New
+        } else {
+            QueuePos::Last
+        };
+        self.add_move_facing_order(u, spot, kind, pos, false, facing, None, false);
+        // SEAM: `is_castable(0x293)` and its `add_cast_order` ahead of the
+        // order, and `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`.
+        // The spell is castable by no unit a capture on file stages.
+        match body {
+            Body::Repair(_) => self.add_repair_order(u, b, QueuePos::Last, action),
+            _ => self.add_build_order(u, b, QueuePos::Last, action),
+        }
+    }
+
     /// `Unit::do_build` (§5.2).
     fn do_build(&mut self, u: usize, frame: i64) {
         let Some(Order {

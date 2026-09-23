@@ -5474,7 +5474,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             "ch7bc",
             "chapter7b_control",
             WIDENING_CHAPTER_SEVEN_B_CONTROL,
-            (1036, 1037),
+            (1148, 1149),
         ),
     ] {
         let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print) else {
@@ -5518,11 +5518,16 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // `facing` from 847, as in chapter seven; the merchant `1/8` stands
         // 24 units off the original's when its cast ends on 1070; and the
         // fur trapper `1/10`'s move is handed another `dest_y` on 1091,
-        // 14408 against 14804, whose turn is the word. run157: the
-        // computer's own `1/1` is grouped differently from 990 — group 64
-        // against 65, one order against three, no `form_mod` against 50 —
-        // and idles on the word where the original's walks; and who=1's
-        // food bucket from 1018.
+        // 14408 against 14804, whose turn is the word. run157, **the
+        // control's block, item 632** (the delta is in
+        // `GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL`'s comment): `1/1` keeps its
+        // `BUILDORDER` behind the goody box's walk from 990, and only the
+        // group id stands there, 64 against 65, the two-slot permutation
+        // the scout's standing `group` row began (`docs/GROUPS.md` §24).
+        // After 1036 the control parts where run156 does: the merchant
+        // `1/11` from 1054, and the fur trapper `1/13`'s `dest_y` on 1091,
+        // whose turn is the word, 1148. The scout `1/0`'s explore path
+        // parts from 1077, value only, and who=1's food bucket from 1018.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > window.0 && what != "form")
@@ -5557,24 +5562,48 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             ]
         } else {
             &[
-                "1005 1/1 order:move.angle",
-                "1005 1/1 order:move.dest",
                 "1018 1/-1 leader:bucket[0:food]",
-                "1036 1/1 angle:Heading",
-                "1036 1/1 heading",
-                "1037 1/1 angle:Facing",
-                "1037 1/1 g.angle[0]",
-                "1037 1/1 idle",
-                "1037 1/1 order:action",
-                "1037 1/1 order:flags",
-                "1037 1/1 path:length",
-                "990 1/1 dest_angle",
-                "990 1/1 form_mod",
+                "1054 1/11 g.x[0]",
+                "1054 1/11 g.x[1]",
+                "1054 1/11 g.y[0]",
+                "1054 1/11 g.y[1]",
+                "1054 1/11 orders_x",
+                "1054 1/11 orders_y",
+                "1054 1/11 pos",
+                "1077 1/0 path:length",
+                "1077 1/0 path[41].to",
+                "1077 1/0 path[42].to",
+                "1077 1/0 path[43].to",
+                "1077 1/0 path[44].to",
+                "1077 1/0 path[45].to",
+                "1077 1/0 path[46].to",
+                "1091 1/13 angle:Heading",
+                "1091 1/13 heading",
+                "1091 1/13 order:move.dest_y",
+                "1091 1/13 path[0].to",
+                "1092 1/13 angle:Facing",
+                "1092 1/13 g.angle[0]",
+                "1092 1/13 g.angle[1]",
+                "1092 1/13 g.angle[2]",
+                "1092 1/13 g.x[1]",
+                "1093 1/13 g.y[1]",
+                "1095 1/13 g.x[0]",
+                "1095 1/13 g.x[2]",
+                "1095 1/13 pos",
+                "1116 1/0 g.angle[0]",
+                "1116 1/0 g.angle[1]",
+                "1116 1/0 g.x[1]",
+                "1116 1/0 g.y[0]",
+                "1116 1/0 g.y[1]",
+                "1116 1/0 heading",
+                "1116 1/0 order:move.dest_y",
+                "1116 1/0 pos",
+                "1120 1/0 g.x[0]",
+                "1137 1/0 order:move.dest",
+                "1138 1/0 order:move.dest_x",
+                "1149 1/13 g.y[0]",
+                "1149 1/13 g.y[2]",
                 "990 1/1 group",
-                "990 1/1 order:length",
-                "990 1/1 orders.len",
-                "990 1/1 orders_x",
-                "990 1/1 orders_y",
             ]
         };
         assert_eq!(got, want, "{run}: what parts under the word moved");
