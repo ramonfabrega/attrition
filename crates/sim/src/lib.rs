@@ -3806,10 +3806,10 @@ impl Sim {
                         self.units[i].hold_frames -= 1;
                     }
                     self.process_unit(i, frame, &mut events);
-                } else if let Some(&i) = dead[w].get(&o) {
-                    if self.units[i].hold_frames != 0 {
-                        self.units[i].hold_frames -= 1;
-                    }
+                } else if let Some(&i) = dead[w].get(&o)
+                    && self.units[i].hold_frames != 0
+                {
+                    self.units[i].hold_frames -= 1;
                 }
                 // The re-read: anything the step just created joins the
                 // walk, in its own owner's band and at its own slot.
