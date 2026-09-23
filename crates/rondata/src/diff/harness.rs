@@ -11274,6 +11274,430 @@ mod tests {
         );
     }
 
+    /// **run82's leader record, and the AI's wealth on it** (item 573).
+    /// run82 is run54's game with `LEADERS=9` over [6860, 6930) — the one
+    /// East Indies capture between run59's 5400 and run96's 23960 that
+    /// prints the stockpile, and the nearest to 9576, where the economic
+    /// script's `at_least_type(who, 130, "Wealth")` buys the sixth Scholar
+    /// in the original and did not here. run98 and run99 print only
+    /// `LEADERS=1`'s stub, so the wealth on 9576 itself is on no disk.
+    ///
+    /// **Player 1's wealth bucket read 226 against 246 on every block**,
+    /// twenty short, with its `resources`, `income` and `rate` agreeing;
+    /// run59's [5150, 5400] agrees to the unit, so the twenty was lost in
+    /// between. It is the caravan's two first-arrival bonuses, on 6512 and
+    /// 6767: `City::new_caravan@00739750` pays `(epoch[2] + 1) · 10`
+    /// (`0073979f`, `LeaderDataEncrypt +0xf0`, **Commerce**), and this crate
+    /// read Civic — 20 each against 30 (`docs/CARAVAN.md` §7.3, §9). Made to
+    /// fail on purpose by reading Civic again.
+    #[test]
+    fn run82_s_leader_record_is_the_original_s_wealth() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r82)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run82-islands-merchantcast.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run82 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r82).unwrap();
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        const GOODS: [&str; 6] = ["food", "timber", "wealth", "knowledge", "metal", "oil"];
+        let mut stock: Vec<(i64, [i64; 6], [i64; 6])> = Vec::new();
+        let mut rows = 0usize;
+        for f in 0..6_930 {
+            built.tick();
+            let n = f + 1;
+            if n < 6_860 {
+                continue;
+            }
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            let Some(block) = flog.leader_block(n, 1) else {
+                continue;
+            };
+            let t = crate::diff::leader::theirs(&block);
+            let mine = crate::diff::leader::rows(&loaded, &built, 1);
+            let mut o = [0i64; 6];
+            let mut y = [0i64; 6];
+            for (g, name) in GOODS.iter().enumerate() {
+                let k = format!("bucket[{g}:{name}]");
+                o[g] = mine
+                    .iter()
+                    .find(|(m, _)| *m == k)
+                    .map_or(i64::MIN, |(_, v)| *v);
+                y[g] = t.get(&k).copied().unwrap_or(i64::MAX);
+                rows += 1;
+            }
+            stock.push((n, o, y));
+        }
+        assert_eq!(stock.len(), 70, "run82's window is 6860..6929");
+        let parted: Vec<String> = stock
+            .iter()
+            .filter(|(_, o, y)| o != y)
+            .map(|(n, o, y)| format!("{n}: ours {o:?} theirs {y:?}"))
+            .collect();
+        assert_eq!(
+            parted,
+            Vec::<String>::new(),
+            "player 1's stockpile on run82, {rows} rows"
+        );
+        // The value itself, off the dump, on the window's first block.
+        assert_eq!(stock[0].2[2], 246, "run82's block 6860: wealth 246");
+    }
+
+    /// **run99 — East Indies' word 9711, widened whole, both directions**
+    /// (item 573). run99 is run98's line over `[8780, 10399]`, nine blocks
+    /// shared with run98 and the only dump that reaches the word; it was
+    /// taken on 2026-09-18 for this frontier and no item had walked it.
+    /// The walk runs **backwards across both captures** — run98 from
+    /// [`WIDENING_EAST_INDIES`]'s floor, then run99 from 8789 — so a cause
+    /// that spends no draw is still a row here. Every record
+    /// [`widen_block`] reads on every unit and building of every player,
+    /// and the leader record for both players; each key's first parting
+    /// block is kept, with the value diff beside it. Neither capture
+    /// carries `GROUPS`, so there is no pool list to compare.
+    ///
+    /// The word's frame enters on block **9711** and leaves on **9712**
+    /// (the trace's frame `f` writes block `f + 1`).
+    ///
+    /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
+    /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
+    /// each block of the window.
+    #[test]
+    fn run99_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES.1;
+        /// Each capture's first block the walk reads it from: run99 opens
+        /// on 8780, and the nine blocks it shares with run98 are the
+        /// stanza's overlap check, so the walk takes them from run98.
+        const FROM: [i64; 2] = [FIRST, 8_789];
+        const WORD_BLOCK: i64 = EAST_INDIES_WORD_BLOCK;
+        const SCHOLAR_BLOCK: i64 = EAST_INDIES_SCHOLAR_BLOCK;
+        /// The block the purchase behind the sixth Scholar lands on:
+        /// sim-frame 9576 writes block 9577.
+        const PURCHASE_BLOCK: i64 = 9_577;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr), Some(r98), Some(r99)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+            dump("gamelog-run98-eastindies-valuewindow.txt"),
+            dump("gamelog-run99-eastindies-valuewindow2.txt"),
+        ) else {
+            eprintln!("skipping: no run54/run98/run99 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ixs: Vec<crate::capture::indexed::IndexedCapture> = [&r98, &r99]
+            .iter()
+            .map(|p| crate::capture::indexed::IndexedCapture::open(p).unwrap())
+            .collect();
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows) = (0usize, 0usize, 0usize);
+        let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
+            .map(|w| {
+                w.split(',')
+                    .filter_map(|u| {
+                        let (a, b) = u.split_once('/')?;
+                        Some((a.trim().parse().ok()?, b.trim().parse().ok()?))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut walked: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        let mut anims: BTreeMap<(i64, i64), (Option<i64>, Option<i64>)> = BTreeMap::new();
+        // Every figure whose animation changes on either side on the
+        // word's blocks: `(block, who, o, theirs changed, ours changed)`.
+        let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
+        for f in 0..=TAIL {
+            built.tick();
+            let n = f + 1;
+            if n < FIRST {
+                continue;
+            }
+            let c = FROM.iter().rposition(|&lo| n >= lo).unwrap();
+            let ix = &mut ixs[c];
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            debug_watch(&built, n);
+            let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+            let (_, rows) = widen_block(&built, &frame, players, n, &mut here);
+            compared += rows;
+            for &(w, o) in &row_walk {
+                let now: Vec<String> = here
+                    .iter()
+                    .filter(|((hw, ho, _), _)| (*hw, *ho) == (w, o))
+                    .map(|((_, _, what), (_, row))| format!("{what}: {row}"))
+                    .collect();
+                let e = walked.entry((w, o)).or_default();
+                if *e != now {
+                    eprintln!("  row walk {n} {w}/{o}: [{}]", now.join(" · "));
+                    *e = now;
+                }
+            }
+            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                for ((w, o, what), (_, row)) in &here {
+                    eprintln!("  standing {n} {w}/{o} {what}: {row}");
+                }
+            }
+            for (k, v) in here {
+                firsts.entry(k).or_insert(v);
+            }
+            // `RON_MAKE_WALK=<lo>-<hi>`: this crate's player-1 make list,
+            // and the unit offers of the last `create_units`, on each block
+            // of the window — the half of the purchase run99's `LEADERS=1`
+            // record cannot print.
+            if site_window_named("RON_MAKE_WALK").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                let ai = &built.sim.ai[1];
+                eprintln!(
+                    "  make {n}: step {:?} script_step {} bucket {:?} offers@{} {:?}",
+                    ai.step,
+                    ai.script_step,
+                    built.sim.ledgers[1].bucket,
+                    ai.unit_offers_frame,
+                    ai.unit_offers
+                );
+                if ai.make_list.list.iter().any(|m| m.t >= 0) {
+                    for (k, m) in ai.make_list.list.iter().enumerate() {
+                        eprintln!("    MAKE[{k}] {m:?}");
+                    }
+                }
+            }
+            // **Who changes animation, both sides** (`docs/COMBAT.md`
+            // §44.2.1: the `theirs` side printed before a quiet row is
+            // trusted): every figure whose guy 0 `cur_anim` changes on
+            // either side on the word's blocks.
+            for t in &frame.units {
+                let Ok(o16) = i16::try_from(t.o) else {
+                    continue;
+                };
+                let ours = u8::try_from(t.who)
+                    .ok()
+                    .and_then(|w| built.sim.unit_by_o(w, o16));
+                let ta = t.guys.first().and_then(|g| g.cur_anim);
+                let oa =
+                    ours.and_then(|u| built.sim.units[u].guys.first().map(|g| i64::from(g.anim)));
+                let before = anims.insert((t.who, t.o), (ta, oa));
+                if !(WORD_BLOCK - 2..=WORD_BLOCK + 1).contains(&n) {
+                    continue;
+                }
+                let Some((pt, po)) = before else { continue };
+                if pt == ta && po == oa {
+                    continue;
+                }
+                eprintln!(
+                    "  anim {n} {}/{}: theirs ({},{}) a{:?}->{:?} | ours {:?} a{:?}->{:?}",
+                    t.who,
+                    t.o,
+                    t.pos.x,
+                    t.pos.y,
+                    pt,
+                    ta,
+                    ours.map(|u| (built.sim.units[u].pos.x, built.sim.units[u].pos.y)),
+                    po,
+                    oa
+                );
+                changed.push((n, t.who, t.o, pt != ta, po != oa));
+            }
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        firsts
+                            .entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+        }
+        eprintln!(
+            "run99 widening: {blocks} blocks [{FIRST}, {TAIL}], {compared} record rows, \
+             {leader_rows} leader rows, {} keys parted",
+            firsts.len()
+        );
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        for (f, rows) in &by_block {
+            let near = (WORD_BLOCK - 40..=WORD_BLOCK + 40).contains(f);
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if near || window {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        // **The leader half is blind, and that is a finding**: both
+        // captures print `LEADERS=1`'s seven-key stub — `who tribe
+        // defeated_by gov score leader_flags leader_flags2` — and not one
+        // key of `diff::leader::rows`. The make list, the stockpile and
+        // the sites are not on this disk anywhere in [7880, 10399].
+        assert_eq!(leader_rows, 0, "run98/run99's leader record is the stub");
+        assert!(missing.contains("bucket[2:wealth]"), "{missing:?}");
+        // **The old word's blocks, 9710..9712, and the move's value diff**
+        // (item 573). Until the fix they held one row, `1/28 unlinked`:
+        // the original's Scholar `1/28` (type 52) is born seated at
+        // University `1/2015`, (36000, 35808), on block 9712 —
+        // `Guy::init_real+0x52` and `Guy::set_anim+0x97a <
+        // Unit::go_inside+0x280`, the word's two extra draws — and this
+        // crate had no such unit. It is born now, and what is left is the
+        // birth record every seated Scholar in the window carries.
+        let scholar: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (SCHOLAR_BLOCK - 2..=SCHOLAR_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            scholar,
+            [
+                "9712 1/28 form: ours -1 theirs 9",
+                "9712 1/28 g.angle[0]: ours 1431655765 theirs 0",
+                "9712 1/28 orders_x: ours 36000 theirs 36024",
+                "9712 1/28 orders_y: ours 35808 theirs 35832",
+            ],
+            "the sixth Scholar's birth"
+        );
+        // **The purchase, block 9577**, 135 blocks under the birth: the
+        // original's University `1/2015` queues one Scholar on sim-frame
+        // 9576 (`queue[scan].type 52`, `cost[0] 42` wealth), through
+        // `economic.bhs`'s `at_least_type(who, 130, "Wealth")`. Until the
+        // fix this crate's queued nothing: its player 1 held **114**
+        // wealth, twenty short since the caravan's first homecoming, where
+        // `City::new_caravan` paid `(Civic + 1) · 10` for the original's
+        // `(Commerce + 1) · 10` (`docs/CARAVAN.md` §7.3, §9). A purchase
+        // spends no draw (`docs/AI.md` §47.3), so the stream agreed for the
+        // whole job. Nothing parts between it and the old word now.
+        let purchase: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (PURCHASE_BLOCK..SCHOLAR_BLOCK - 2).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(purchase, Vec::<String>::new(), "the purchase agrees");
+        // **The word's blocks, 9982..9984, both directions.** Sim-frame
+        // 9983 is a `make_stuff` on both sides, and they buy different
+        // things: the original queues units — `1/2010` two, `1/2014` one,
+        // `1/2005` one — and this crate queues two at `1/2005`, places a
+        // building, `1/2017`, and sends the citizen `1/6` to build it
+        // (`Leader::produce_building+0xc99` and the gather-tile search,
+        // ours 212 draws against 15). The make list that decided it is
+        // what run99's `LEADERS=1` stub cannot print.
+        let on_word: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK).contains(f))
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            on_word,
+            [
+                "9984 1/6 dest_angle: ours -852099072 theirs 1131216896",
+                "9984 1/6 g.angle[0]: ours -1295384576 theirs 1131216896",
+                "9984 1/6 g.avg_speed[0]: ours 6 theirs 0",
+                "9984 1/6 g.cur_anim[0]: ours 8 theirs 25",
+                "9984 1/6 g.cur_time[0]: ours 1 theirs 22",
+                "9984 1/6 g.des_angle[0]: ours -1295384576 theirs 1131216896",
+                "9984 1/6 g.des_x[0]: ours 38208 theirs 38232",
+                "9984 1/6 g.des_y[0]: ours 36560 theirs 36552",
+                "9984 1/6 g.end_time[0]: ours 15 theirs 33",
+                "9984 1/6 g.last_speed[0]: ours 25 theirs 0",
+                "9984 1/6 g.last_time[0]: ours 0 theirs 21",
+                "9984 1/6 g.stopped[0]: ours 0 theirs 1",
+                "9984 1/6 g.x[0]: ours 38208 theirs 38232",
+                "9984 1/6 g.y[0]: ours 36560 theirs 36552",
+                "9984 1/6 heading: ours -1295384576 theirs 1131216896",
+                "9984 1/6 order:kind: Kind { ours: 3, theirs: 7 }",
+                "9984 1/6 order:length: Length { ours: 2, theirs: 1 }",
+                "9984 1/6 orders.len: ours 2 theirs 1",
+                "9984 1/6 orders_x: ours 34440 theirs 38232",
+                "9984 1/6 orders_y: ours 35256 theirs 36552",
+                "9984 1/6 path:length: PathLength { ours: 5, theirs: 0 }",
+                "9984 1/6 pos: ours (38208,36560) theirs (38232,36552)",
+                "9984 1/6 tolerance: ours 384 theirs 0",
+                "9984 1/2005 queue:queued: ours 2 theirs 1",
+                "9984 1/2010 queue:queued: ours 0 theirs 2",
+                "9984 1/2014 queue:queued: ours 0 theirs 1",
+                "9984 1/2017 build:extra: this crate holds it alone",
+            ],
+            "the word's blocks: a make_stuff that buys a building here and units there"
+        );
+        // **And under it, the standing floor**: 132 keys under the
+        // purchase — 75 on the walk's first block (7880: `form -1`
+        // against 9 on every figure, the human city's census, `1/19`/
+        // `1/20`'s 24-unit offset), the scout `1/0`'s walk slot and step on
+        // 7969..8481, the census's gatherer count on 8576, and the seated
+        // Scholars' birth records, `1/22`..`1/27` on 8467, 8675, 8882,
+        // 9090, 9297 and 9505, each `orders` (+24, +24), `angle` 0 against
+        // 1431655765 and `form` 9 against -1, born on the original's frame
+        // at the original's University every time — then `1/28`'s four on
+        // 9712, and between the old word and the new only `1/0`'s clock on
+        // 9815/9878/9879 and the newborn `1/29`'s `form` and facing (9815,
+        // 9945). None of it spends a draw.
+        let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        assert_eq!(under, 141, "the floor under the word");
+        // **Who changes animation, both sides** (`docs/COMBAT.md`
+        // §44.2.1): on the word's blocks two figures change on this
+        // crate's side alone, both on 9984. `1/6` starts its walk to the
+        // building the original never placed (its rows are above). `8/0`
+        // is gaia's animal, standing at (29280, 24384) on both sides and
+        // `cur_anim` 0 → 2 here only — and it parts on **no row**, because
+        // `compare` walks players `0..players` and never gaia's units.
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        assert_eq!(
+            one_sided,
+            [(9_984, 1, 6, false, true), (9_984, 8, 0, false, true)],
+            "a figure moves on one side only"
+        );
+    }
+
     #[test]
     fn run73_s_window_clocks_are_the_original_s() {
         let Some(inst) = install() else { return };
