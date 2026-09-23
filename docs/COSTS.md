@@ -493,7 +493,9 @@ shape carries no information and the predicates do:
   and on scholars — where the Egyptian bonus does not discount at all but
   *swaps the resource index*, charging food where the file wrote wealth.
 - **Rare resources.** Horses, Rubber, Sulphur, Aluminium, Uranium, Wool,
-  Marble, Bison and Incense each cheapen one category; Sugar, Coal, Gold and
+  Marble, Bison and Incense each cheapen one category (Horses and Rubber
+  are built as of item 613, `docs/AI.md` §62: **both** take their 15% off
+  a Stable **or** an Auto Plant unit, whatever the constants' names say); Sugar, Coal, Gold and
   Iron each cheapen one *resource* across every category; Gypsum cheapens
   everything.
 - **Wonders.** The Terra Cotta Army on barracks and stables, Angkor Wat on

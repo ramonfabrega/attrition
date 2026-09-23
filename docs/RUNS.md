@@ -5552,3 +5552,45 @@ node vector at 120°, against `1/7`. The packet's piece 145 holds node 4 at
 on 685. The packet stays outside git at
 `~/ron-data/lab-captures/2026-09-23-run147/map-14`, and the oracle script and
 its tables at `~/ron-data/lab-experiments/2026-09-23-item-603/`.
+
+## run152 — East Indies' word 10982, past run149's last block (2026-09-23, item 613)
+
+**What it is.** run149's game and line past its last block:
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9` over
+`[10870, 11040)`, plus `rontrace.cfg` `cover=1` and `window=10978-10986`
+over the word. `!quit` at 11060. **362,519,989 bytes of dump and 18,841,632
+of trace, 14 minutes** from launch at 09:51 to archive at 10:06. It ran
+through `viadriver.sh` with no human at the menu. The lane lock was stale:
+its holder, pid 18366, was dead. That is 2.07 MB a block net of the 11 MB
+start dump, the same as run149.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 613
+```
+
+**Why it was owed.** The word 10982 writes block 10983. No `MAP_STYLE 18`
+dump on this disk carries a block in [10880, 11000]. run149's window ends
+on 10879 and its next block is the `!quit` stub on 10901. run78 starts at
+15700, run96 at 23960, and run54 and the 24k runs print only their end
+frames. `LEADERS=9` was taken because the original's frame is player 1's
+`make_stuff`.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 11,061 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **170 blocks, 10870..11039, no gap** |
+| a `MAKEOBJECT` on every window block | **170** |
+| overlap with run149, every kind compared | **10 in common (10870..10879), 0 differ** |
+| the coverage window | a set on all 9 frames 10978..10986 |
+
+**What it settled.** The make list parts first on 10981, the Light Horse's
+offer: `check_income` answered 0x40 here against 0x100, because this crate
+never took Horses' 15% off a Stable unit. With that in, the frame's spiral
+scored seven friendless sites against four, because a range another Mine
+gathers from is taken on the survey. `docs/AI.md` §62. The word moves to
+11069, past this window. The widening,
+`run152_s_word_frame_is_widened_whole`, keeps the move's value diff on
+10981..10983.

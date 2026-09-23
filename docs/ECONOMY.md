@@ -1057,8 +1057,16 @@ else:
     mtn, clf, mtn_d, clf_d = list.mtn, list.cliff, 0, 0
 if clf >= 0 and mtn >= 0 and clf_d < mtn_d:   mtn = -1      # the cliff is nearer
 if mtn >= 0 and reach < mtn_d:                mtn = -1      # and both may be too far
+if list is null:                                              # the survey only
+    for t in range(mtn).tiles:                                # the template's order
+        if not tree(t) and mountain(t) and not enemy(t) and gathered_from(t):
+            return -1                                         # MOUNTAIN_TAKEN
 count = MountainRangeData::gather_size(mtn, …)   # or CliffsData::gather_size
 ```
+
+The survey's walk (item 613, `docs/AI.md` §62) is what refuses a second
+mine on a range another building already mines. The cliff arm has the same
+walk over the cliff's tiles, and it is not built.
 
 `find_nearest@0089cd30` walks every placed mountain and ~~**every tile of
 its range**~~ its range's **solid cells** (`solid_mount_wx`/`_wy`), keeping

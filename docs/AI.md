@@ -7710,3 +7710,140 @@ Mine. The packet stays outside git.
 
 Reading-only: that `count_gather_slots` has no other gate. The listing
 settles it for this function, and no second reading has been booked.
+
+## 62. Horses cheapen the Light Horse, a mined range is taken, and the word moves to 11069 (2026-09-23, item 613)
+
+East Indies' word **10982** was past every capture. **run152** is run149's
+line over [10870, 11039] at `LEADERS=9` (`docs/RUNS.md`). Its widening,
+`run152_s_word_frame_is_widened_whole`, walks every record of every unit,
+both leaders and gaia's animals on 170 blocks. The floor, committed before
+any fix was judged, was 278/409/616.
+
+### 62.1 The frame, read backwards
+
+On 10982 the original spent 695 draws: `use_market` ×3, `make_stuff+0x221`
+×2, the spiral 4 `+0xc99` and 4 `+0x1805`, the shuffle of a 170-tile list
+(`find_gather_tiles+0x10a` ×680), then `make_stuff+0x63d`. This crate spent
+14 and parted at index 2, on `use_market`'s third draw.
+
+The widening (`RON_MAKE=<lo>-<hi>` prints both lists slot for slot) puts the
+first parting on block **10981**, `create_units`' tick 10980. Every other
+slot agrees, and the Light Horse (t209, `num 2`, cat 6) is offered at
+**`val 9999999`** here against **6945568**. On 10982 the original's
+`make_stuff` then sorts the Barracks (7222784) above the Light Horse, so
+`use_market`'s `need`, the first `max(1, epoch[Commerce])` = 2 slots,
+differs, and a third sale pass follows.
+
+### 62.2 The offer's tail: `check_income` 64 against 256
+
+`create_units`' land-military tail (`006c40a0:1554`–`1568`) is
+`out = check_income × (want × val / divisor) >> 8`, and `out < 0` becomes
+9999999. A temporary probe read this crate's terms on tick 10980:
+`fac 64, want 3, val 40,500,000, divisor 3`. 64 × 40,500,000 wraps
+negative. With the same terms, `fac 256` gives 256 × 40,500,000 =
+10,368,000,000 ≡ 1,778,065,408 (mod 2³²), and ÷256 is **6,945,568**, the
+dump's value exactly. So the original's `check_income` answered 0x100.
+
+`check_income(t, 0x400, local_74, escrow, −1, num, &afford)` with escrow on
+answers 0x40 only when `can_pay_cost < num`. `can_pay_cost@00667570` is the
+maximum over the goods of `bucket / price`, returning 0 at once when any
+quotient is 0 (`docs/COSTS.md`, "The affordability count takes the
+maximum"); this crate's `cost::affordable` agrees. Player 1 held 53 food and
+70 timber, and the Light Horse is 60/40 here. The original must have priced
+it at ≤ 53 food and ≤ 35 timber, a discount of at least 12.5%.
+
+`epoch` agrees on both sides, so `MILITARY_UNIT_DISCOUNT` gives nothing.
+The discount is `get_cost@00664090:320`–`331`, in the pre-ramp tail after
+the nations and Terra Cotta:
+
+- a unit whose trainer (`UnitTypeData +0x40`) is **exactly** the Stable
+  (`0x1ac`) or the Auto Plant (`0x1ad`);
+- `rare.ptr[1] & 1` or `rare_conquest.ptr[1] & 1`, bit 8, which is good 14,
+  **Horses**: `cost = (100 − HORSES_STABLE_COST) × cost / 100`;
+- then `& 2`, Rubber, `RUBBER_AUTOPLANT_COST`, **on both kinds too**.
+
+`rules.xml` ships both at **15%**: 60/40 → **51/34**, `max(53/51, 70/34)` =
+2, which is `num`. The dump's `rares_collected` (rewritten by every
+`calc_gather` sweep, so fresh on the frame) has player 1 on Fish, Horses,
+Citrus and Whales. This crate's `rare` mask is the same, `0x2100101`. This
+crate held Horses and applied neither arm: `price_of` set only the
+military discount.
+
+`Sim::stable_rare_discounts` gives the two percentages. They ride
+`cost::Modifiers::stable_rares`, each truncating on its own right after the
+pre-ramp `discount`, before the research arm and the ramp.
+
+### 62.3 The spiral: a range another Mine gathers from is taken
+
+With the price in, the make list agrees through 10983 and the frame parts at
+index 9. Both sides place the Mine `1/2019` from slot 4, and this crate's
+spiral scores **7** friendless candidates against the original's **4**. A
+temporary probe of each candidate's `find_nearest` put the seven on two
+ranges. Three and the anchor cell (43, 48), this crate's pick, reach
+**range 2**, which the Mine `1/2018` already mines (`mtn 2` in the dump);
+four reach range 0. The original's pick is (47, 45) on range 0, the
+best-scored survivor (one friend), jittered to (36480, 35136).
+
+`BuildTypeData::calc_gather@00639e40:569`–`760`, the mountain arm: for a
+survey (no `MiningList`), after the reach test it walks the range's tiles
+in the template's order. It skips a tree, a tile that is not a mountain,
+and one in a non-allied enemy's cell, and at the first that is
+`is_gathered_from` it sets `mtn = −2` and the count to **−1**.
+`blocked_location@006375b0:714` reads `< 0` as `MOUNTAIN_TAKEN 0xd`
+(`docs/CITIES.md` §2.6.7). This crate had the verdict mapped and never
+produced the −1. `gather_slots_raw` clamped `mine_slots` at zero, and
+`mine_slots` did not walk the tiles.
+
+### 62.4 What it moved
+
+- **The word: 10982 → 11069.** On 11069 this crate spends 5 draws against
+  6, parting at index 0: ours `Guy::set_anim+0x97a`, theirs
+  `Unit::do_move+0xe84`. No mechanism is named. Item 620 owes its widening.
+- **The value diff on the frame that moved**, run152's 10981..10983: the
+  make list's 13 rows → **2** (§52.2's `city` shift, and `MAKE[4].val`,
+  the Mine's value, 316800 against 310400, which spends no draw); the word's
+  block, **21** unit rows → **0** (the Mine `1/2019` on the original's site
+  with its 170 tiles, and the citizens `1/11` and `1/36` on the original's
+  orders). The one-sided turn of `1/11` on 10983 is gone. The floor goes
+  278/409/616 → **278/409/412**: nothing under the word moved.
+- **On run152's last block, 11039**: standing rows **521 → 370**. 163 go
+  (27 of `1/36`, 23 of `1/11`, 20 of the human's `0/5`, 17 leader rows,
+  and the rest spread over player 1's units and gaia). 12 come in:
+  `bucket[4:metal]` 54 against 55, `leftover[4:metal]`, two `city` shifts,
+  and eight rows of `1/11` a few units off (34089, 33604) against (34104,
+  33575). The other 358 are the same rows, value for value. Both trees
+  were measured.
+
+### 62.5 What this has *not* established
+
+- **Under the word, 409 keys stand**: `bucket[0:food]` a unit off from
+  10881 and `bucket[4:metal]` from 10900, `peasants` 15 against 16 and the
+  unit `1/36`'s hit points (40 against 50) from 10956, `1/2018`'s gather
+  list order and `1/11`'s tile from 10959, and the SITE list on 10976. None
+  spends a draw before 11069 on this tree.
+- **Rubber, and Horses on an Auto Plant unit.** No capture reaches either.
+- **The rest of the pre-ramp tail** (Salt, the nations, Terra Cotta, Angkor
+  Wat, Sulphur, Wool, Aluminium): still unbuilt, and each is a price that
+  moves a `check_income` the same way.
+- **`get_cost`'s context argument** (`local_74`) is still dropped. Nothing
+  on this frame needed it.
+- **The cliff arm's own taken walk** is not built, and neither is the cliff
+  arm (`docs/ECONOMY.md`, "The mine's range").
+
+### 62.6 Coverage
+
+Diff-backed:
+
+- `run152_s_word_frame_is_widened_whole`: the make list and the Mine on
+  10981..10983, both mechanics' value diff, and the floor.
+- The long word `run54_s_24000_frames_are_where_the_second_map_s_word_now_parts`:
+  11069, which needs both. The price alone moves the parting from index 2 to
+  index 9 and not the word.
+- `horses_and_rubber_each_take_their_own_percentage` (`sim::cost`) and
+  `a_range_already_mined_is_taken_on_the_survey` (`sim::gather`): the
+  arithmetic and the predicate, from this reading.
+
+Reading-only, and owed a blind second reading: the two arms' predicates
+beyond what 10980 and 10982 exercise, namely Rubber's, the Auto Plant's,
+the enemy-cell and tree skips in the taken walk, and the chain's order
+against the rest of the pre-ramp tail.
