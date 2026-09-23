@@ -12,10 +12,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-23, an Opus 5.5 commander after the eleventh pass: 10 landings,
-9 of them moved a word. East Indies **9711 → 10582** in four; the rules
-track closed chapters four (1500) and seven (1200) and pinned three
-(633). Great Lakes held at 12038 throughout.*
+*2026-09-23, an Opus 5.5 commander after the eleventh pass: 17 landings,
+15 of them moved a word. East Indies **9711 → 10982**; the rules track
+closed chapters four (1500), seven (1200) and three (900), and its
+restage stands at 782. Great Lakes held at 12038 throughout.*
 
 - **Two bookings were wrong about the disk or the design**: 573's capture
   was already run99 (Loop 575), and chapters seven and three were staged
@@ -29,11 +29,11 @@ track closed chapters four (1500) and seven (1200) and pinned three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w10982 of 24,000 · GreatLakes w12038 of 24,000
-Golden: ch3 w706 of 900 · ch1 closed · ch2 closed · ch4 closed · ch5 closed · ch7 closed · 602 next
+Golden: ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage w782 of 1000 · 621 next
 Endpoint 24001: EastIndies 64 off, 0 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: 16 landings since the eleventh pass (573 to 608 by the log).
-att-602 is live on the rules track. A commander takes 613 on the AI
+**Opener: 18 landings since the eleventh pass (573 to 616 by the log).
+att-613 is live on the AI track. A commander takes 621 on the rules
 track, then 571; workers spawn with `claude-opus-5-5[1m]`. The count is
 by the log from the pass and stops at twenty.**
 
@@ -62,13 +62,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `move_step+0x823`. No mechanism. If PRs #7/#8 land first, a packet at
     11921 with the nine guys' move path run on it is an optional second run.
 
-602. **Chapter three's words, 706 and 664, both run through the rounds
-    launched at 651** (603 moved run145 684 → 706 with the pivot node,
-    COMBAT §54). On 706 ours 18 draws against 20 at draw 12: the original
-    spends `Ammo::do_damage+0xc59`/`+0xc7e`, a round landing with no live
-    target. Those rounds carry 651's rows: the arrow leaves the unit's
-    square, not the release node, and `rolling` is 1 against 0 (COMBAT
-    §42.2). The restage's 664 is a crew figure's fresh roll. No mechanism.
+621. **Chapter three's restage word is 782: an `ATTACKGROUNDORDER`**
+    (616 moved run146 780 → 782: `SpellType::cast_unpack` lights the whole
+    fog disc, COMBAT §56). On 782 ours 7 draws against 5, parting at draw
+    0; values part on 781 on `0/6` alone. The original pushes an
+    `ATTACKGROUNDORDER` (`fight`'s siege arm and `do_attack_ground`,
+    §56.3), which this crate does not carry, and **the harness needs a
+    reader for that order first**. The rules headline. No mechanism.
 
 ## How to maintain this file
 

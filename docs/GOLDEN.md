@@ -64,7 +64,9 @@ Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
 549); ~~chapter four is pinned at 1277, then 1416, of 1501 (items 552, 567)~~
 chapter four agrees to its trace's end, 1500 (items 552, 567, 569); chapter
 seven agrees to its end, 1200, on its first walk and on its control's (item
-578); chapter three is pinned at ~~621~~ 633 of 901 (items 587, 590). **A chapter whose
+578); ~~chapter three is pinned at 621, then 633, of 901 (items 587, 590)~~
+chapter three agrees to its end, 900 (items 587–603, 602), and its
+restage (run146) is pinned at ~~780~~ 782 of 1001 (items 602, 616). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -416,12 +418,23 @@ takes the wounded `1/7` on 685. ~~**The word is 684**, 14 draws against
 on its heading. That reads as the pivot node's offset (item 603).~~ Item
 603 measured the node (`docs/COMBAT.md` §54): the pivot bears from the
 unit's point plus the node's vector, `(−102, −59)` for the Chariot at
-120°, and `1/7` is 42° off from there. **The word is 706**, 18 draws
+120°, and `1/7` is 42° off from there. ~~**The word is 706**, 18 draws
 against 20: a round landing with no live target, whose ±20 scatter
 (`Ammo::do_damage+0xc59`/`+0xc7e`) the original spends and this crate
 does not. Values part on 707 on rounds only. The first value parting is
 **651**, the chariots' first rounds leaving from the unit's square
-(item 602's shape), and 706's rounds carry it. The widening now also compares
+(item 602's shape), and 706's rounds carry it.~~ Item 602 found where a
+pivot piece's round leaves (`docs/COMBAT.md` §55): through
+`get_position`'s pivot branch, the release node carried by the pivot node
+and rotated by the facing **and the turret's angle**, which this crate
+now carries. **run145 holds to 900, the capture's end: word, sequence
+and values. Chapter three is closed on run145.** What the widening still
+parts on, with no draw after it, is three families of the `AMMO` record:
+a round's target, cleared here on its target's death where the original
+keeps it to its due frame; a round's pool slot; and one turned
+chariot's launch point, a unit off on 729 and 753 (§55.5). The
+`rolling` row 595 and 603 read at 651 was the instrument: it compared
+flag 4 with `AmmoData +0x5`, a byte `Ammo::init` zeroes (§55.1). The widening now also compares
 each figure's aim and the `ATTACKORDER`'s own row (`in_range`,
 `new_ord` and the rest).
 
@@ -450,7 +463,27 @@ because this crate's crew figure has stood on a walk slot since its first
 swing. The first value parting is **651**: `0/8`'s first arrow leaves
 from the unit's square, not the archer's release node. The two words have
 moved apart. run145 is at 682 and run146 at 664, the lower
-(`docs/COMBAT.md` §52.4).
+(`docs/COMBAT.md` §52.4). Item 602 moved run146 **664 → 780** with two
+things: the release through the turret, and the crew swinging with its
+leader (`docs/ANIM.md` §5.2): figure 0, stepping into the attack
+category, puts its crew on its own slot and clock, so a crew that fell to
+a walk slot while figure 0's swing waited for a turn does not stay there.
+~~**The word is 780**, 5 draws against 6: the catapult `0/6`, unpacked on
+779, takes an `ATTACKORDER` on 780 (`Unit::fight+0x9b0`) and turns to it
+on 781 in the original; this crate's stays idle. No mechanism is named.~~
+Item 616 found why (`docs/COMBAT.md` §56): `cast_unpack` lights the whole
+disc at the new line of sight, and this crate's kept the packed four-tile
+disc, so its 780 search could not see hoplites seven tiles off. The
+catapult now takes the same hoplite on 780 and turns on 781 as the dump's
+does. **The word is 782**, 7 draws against 5
+(`GOLDEN_WORD_CHAPTER_THREE_RESTAGE`). Values part on 781 on `0/6` alone:
+the original pushes an `ATTACKGROUNDORDER` over the attack at the
+target's point (`Unit::fight`'s siege arm and `Unit::do_attack_ground`,
+§56.3), which this crate does not carry. No mechanism is established for
+782.
+Before it, run146 parts on a round's target (736, run145's family) and,
+on 771, on the dump culling the dead hoplites' `DEATH_OBJS` as arena A's
+are born (`docs/COMBAT.md` §42.5's cull).
 
 ## 8. Chapter four — the Temple, the border, and the bleed
 
