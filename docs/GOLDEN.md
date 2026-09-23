@@ -411,11 +411,17 @@ the dump. No mechanism is named for 635.~~ Item 601 read two things in
 `get_damage` off the listing (`docs/COMBAT.md` §53). The flank reduction
 is keyed on the target's mask, so a chariot flanks hoplites at the whole
 bonus and `0/6` takes `1/8` on 635. The ranking skips overkill, so `0/7`
-takes the wounded `1/7` on 685. **The word is 684**, 14 draws against
+takes the wounded `1/7` on 685. ~~**The word is 684**, 14 draws against
 15. `0/8` turns to `1/7`, 50° off its heading, where the original swings
-on its heading. That reads as the pivot node's offset (item 603). The
-first value parting is **651**, the chariots' first rounds leaving from
-the unit's square (item 602's shape). The widening now also compares
+on its heading. That reads as the pivot node's offset (item 603).~~ Item
+603 measured the node (`docs/COMBAT.md` §54): the pivot bears from the
+unit's point plus the node's vector, `(−102, −59)` for the Chariot at
+120°, and `1/7` is 42° off from there. **The word is 706**, 18 draws
+against 20: a round landing with no live target, whose ±20 scatter
+(`Ammo::do_damage+0xc59`/`+0xc7e`) the original spends and this crate
+does not. Values part on 707 on rounds only. The first value parting is
+**651**, the chariots' first rounds leaving from the unit's square
+(item 602's shape), and 706's rounds carry it. The widening now also compares
 each figure's aim and the `ATTACKORDER`'s own row (`in_range`,
 `new_ord` and the rest).
 

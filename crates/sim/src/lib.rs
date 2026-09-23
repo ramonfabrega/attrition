@@ -82,6 +82,7 @@ pub mod movement;
 pub mod nations;
 pub mod orders;
 pub mod path;
+pub mod pivot;
 pub mod place;
 pub mod production;
 pub mod rares;

@@ -5341,6 +5341,7 @@ fn widen_chapter_three(
     let mut s = stage_script(run, stem)?;
     let players = s.built.sim.players.len();
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut at_word: Vec<String> = Vec::new();
     let mut missing: BTreeSet<String> = BTreeSet::new();
     let (mut blocks, mut rows, mut leader_rows, mut guy_rows) = (0usize, 0usize, 0usize, 0usize);
     let (mut ammo_theirs, mut ammo_ours) = (0usize, 0usize);
@@ -5357,7 +5358,12 @@ fn widen_chapter_three(
         };
         let frame = s.ix.frame_state(at).unwrap();
         blocks += 1;
-        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
+        // Every row this block parts on, first or not: merged into
+        // `firsts` at the block's end, and kept whole on the word's two
+        // blocks (item 603), where a key that parted earlier — the
+        // release point `ammo[k].sx`, first on 651 — is still the frame's.
+        let mut blk: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut blk);
         rows += k;
         let raw = s.ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
@@ -5373,8 +5379,7 @@ fn widen_chapter_three(
                 };
                 leader_rows += 1;
                 if v != y {
-                    firsts
-                        .entry((who as i64, -1, format!("leader:{k}")))
+                    blk.entry((who as i64, -1, format!("leader:{k}")))
                         .or_insert((n, format!("ours {v} theirs {y}")));
                 }
             }
@@ -5412,8 +5417,7 @@ fn widen_chapter_three(
                 } else {
                     "this crate"
                 };
-                firsts
-                    .entry((who, o, format!("ammo[{slot}]")))
+                blk.entry((who, o, format!("ammo[{slot}]")))
                     .or_insert((n, format!("{side} holds it alone")));
                 continue;
             };
@@ -5443,8 +5447,7 @@ fn widen_chapter_three(
                 ("rolling", i64::from(p.rolling), a.rolling),
             ] {
                 if mine != dumped {
-                    firsts
-                        .entry((who, o, format!("ammo[{slot}].{name}")))
+                    blk.entry((who, o, format!("ammo[{slot}].{name}")))
                         .or_insert((n, format!("ours {mine} theirs {dumped}")));
                 }
             }
@@ -5471,13 +5474,11 @@ fn widen_chapter_three(
             // this is the same reading on chapter three's every block.
             let z = i64::from(s.built.sim.world.tile_z(un.pos.tile()));
             if z != them.pos.z {
-                firsts
-                    .entry((them.who, them.o, "z".to_string()))
+                blk.entry((them.who, them.o, "z".to_string()))
                     .or_insert((n, format!("ours {z} theirs {}", them.pos.z)));
             }
             if them.guys.len() != un.guys.len() {
-                firsts
-                    .entry((them.who, them.o, "guys:count".to_string()))
+                blk.entry((them.who, them.o, "guys:count".to_string()))
                     .or_insert((
                         n,
                         format!("ours {} theirs {}", un.guys.len(), them.guys.len()),
@@ -5515,8 +5516,7 @@ fn widen_chapter_three(
                     let Some(dumped) = dumped else { continue };
                     guy_rows += 1;
                     if mine != dumped {
-                        firsts
-                            .entry((them.who, them.o, format!("{name}[{k}]")))
+                        blk.entry((them.who, them.o, format!("{name}[{k}]")))
                             .or_insert((n, format!("ours {mine} theirs {dumped}")));
                     }
                 }
@@ -5549,8 +5549,7 @@ fn widen_chapter_three(
                     let Some(dumped) = dumped else { continue };
                     attack_rows += 1;
                     if mine != dumped {
-                        firsts
-                            .entry((them.who, them.o, format!("attack.{name}")))
+                        blk.entry((them.who, them.o, format!("attack.{name}")))
                             .or_insert((n, format!("ours {mine} theirs {dumped}")));
                     }
                 }
@@ -5570,6 +5569,14 @@ fn widen_chapter_three(
                     None => eprintln!("  {run} block {n} 0/{catapult} ours: absent"),
                 }
             }
+        }
+        if (WORD..=WORD + 1).contains(&n) {
+            for ((w, o, what), (_, row)) in &blk {
+                at_word.push(format!("{n} {w}/{o} {what}: {row}"));
+            }
+        }
+        for (k, v) in blk {
+            firsts.entry(k).or_insert(v);
         }
     }
     let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
@@ -5610,6 +5617,7 @@ fn widen_chapter_three(
     assert!(attack_rows > 0, "the ATTACKORDER row is not read");
     Some(ChapterThreeWidening {
         firsts,
+        at_word,
         ammo_theirs,
         ammo_ours,
     })
@@ -5619,6 +5627,9 @@ fn widen_chapter_three(
 /// with the value diff beside it, and the `AMMO` tallies both sides.
 struct ChapterThreeWidening {
     firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    /// Every row the word's two blocks part on, first or not, as
+    /// `"block who/o key: ours … theirs …"` (item 603).
+    at_word: Vec<String>,
     ammo_theirs: usize,
     ammo_ours: usize,
 }
@@ -5670,10 +5681,10 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     // the chariots' first rounds on 651, which leave from each unit's own
     // square and height where the dump's leave from the archer's release
     // node (`docs/COMBAT.md` §52.4, item 602's 651 on run146). `rolling`
-    // parts with them. On the word's blocks it is `0/8`, which turns to
-    // `1/7` here and holds its heading in the dump (item 603), and `1/4`,
-    // a player-1 unit far from the arena whose move offsets follow the
-    // draws that parted on 684.
+    // parts with them. No key parts first on the word's blocks (item
+    // 603): `0/8` holds its heading on 685 as the dump's does, its pivot
+    // bearing from its node, and `1/4`'s move offsets, which followed
+    // 684's draws, agree until 804.
     let rows_on = |lo: i64, hi: i64| -> Vec<String> {
         firsts
             .iter()
@@ -5706,22 +5717,54 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     );
     assert_eq!(
         rows_on(WORD, WORD + 1),
+        Vec::<String>::new(),
+        "what parts first at or one block past chapter three's word moved"
+    );
+    // **The word's two blocks, whole** (item 603): every row they part
+    // on, first or not, so a key that parted earlier is still read here.
+    // Past the standing families, only rounds part on 706 and 707:
+    // `0/6`'s second, launched on 703 from the unit's square where the
+    // dump's leaves from the release node (`856, 7754`), and `rolling` 1
+    // against 0 (651's shape, item 602's), its target cleared here on
+    // `1/7`'s death where the dump's keeps `ox 7` to its landing; and
+    // `0/7`'s round of 703 in pool slot 2 here and 3 in the dump. The
+    // word's own draws, `Ammo::do_damage+0xc59`/`+0xc7e`, are the dump's
+    // round with no live target scattering its landing ±20; this crate
+    // spends none. On 684 and 685, before item 603, `0/8`'s turn parted
+    // here too: its pivot bears from its node now (§54).
+    let at_word: Vec<&String> = w
+        .at_word
+        .iter()
+        .filter(|r| {
+            !r.split(": ")
+                .next()
+                .is_some_and(|k| standing(k.rsplit(' ').next().unwrap_or("")))
+        })
+        .collect();
+    assert_eq!(
+        at_word,
         vec![
-            "685 0/8 angle:Facing: ours 834011136 theirs 1431655765",
-            "685 0/8 angle:Heading: ours 834011136 theirs 1431655765",
-            "685 0/8 g.angle[0]: ours 834011136 theirs 1431655765",
-            "685 0/8 g.angle[1]: ours 834011136 theirs 1431655765",
-            "685 0/8 heading: ours 834011136 theirs 1431655765",
-            "685 1/4 dest_angle: ours -541917184 theirs -1891500032",
-            "685 1/4 order:move.angle: Move { field: \"angle\", ours: -541917184, theirs: -1891500032 }",
-            "685 1/4 order:move.off_x: Move { field: \"off_x\", ours: 312, theirs: 120 }",
-            "685 1/4 order:move.off_y: Move { field: \"off_y\", ours: 120, theirs: 696 }",
-            "685 1/4 order:move.x: Move { field: \"x\", ours: 41016, theirs: 40824 }",
-            "685 1/4 order:move.y: Move { field: \"y\", ours: 17016, theirs: 17592 }",
-            "685 1/4 orders_x: ours 41016 theirs 40824",
-            "685 1/4 orders_y: ours 17016 theirs 17592",
+            "706 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
+            "706 0/6 ammo[1].ox: ours -1 theirs 7",
+            "706 0/6 ammo[1].rolling: ours 1 theirs 0",
+            "706 0/6 ammo[1].sx: ours 888 theirs 856",
+            "706 0/6 ammo[1].sy: ours 7800 theirs 7754",
+            "706 0/6 ammo[1].sz: ours 281 theirs 477",
+            "706 0/6 ammo[1].v1z: ours 40295834 theirs 7629168",
+            "706 0/6 ammo[1].whom: ours -1 theirs 1",
+            "706 0/7 ammo[2]: this crate holds it alone",
+            "706 0/7 ammo[3]: the dump holds it alone",
+            "707 0/6 ammo[1].angle: ours 1225588736 theirs 1267531776",
+            "707 0/6 ammo[1].ox: ours -1 theirs 7",
+            "707 0/6 ammo[1].rolling: ours 1 theirs 0",
+            "707 0/6 ammo[1].sx: ours 888 theirs 856",
+            "707 0/6 ammo[1].sy: ours 7800 theirs 7754",
+            "707 0/6 ammo[1].sz: ours 281 theirs 477",
+            "707 0/6 ammo[1].v1z: ours 40295834 theirs 7629168",
+            "707 0/6 ammo[1].whom: ours -1 theirs 1",
+            "707 0/7 ammo[2]: this crate holds it alone",
         ],
-        "what parts at or one block past chapter three's word moved"
+        "a row on chapter three's word blocks moved"
     );
     let catapult: Vec<String> = firsts
         .iter()

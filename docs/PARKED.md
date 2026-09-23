@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 603, 2026-09-23 — the other pivots
+
+(611) **Node offsets for every other pivot piece** (`docs/COMBAT.md`
+§54.5). 603 established the Chariot's (piece 145, node 4) on the packet
+and under unicorn; the rest are read, not run. Returns when another
+restricted type's verdict parts.
+
 ## Parked by item 604, 2026-09-23 — the templates' unchecked half
 
 (609) **The XML-order-to-slot mapping of the mountain templates** rests on
@@ -598,6 +605,13 @@ waited on before the handoff is written — the harness re-invokes the
 session when the task exits, so the wait costs nothing — and the gate's
 wrapper propagates its exit rather than echoing it. Same family as (565):
 a receipt that is written but not read.
+
+(612) **`tools/recomp/lift.py` refuses packed SSE.** Filed by item 603,
+2026-09-23: it could not lift `get_position` or `set_attack`, so the
+float oracle ran under unicorn on the packet instead (all 361 degrees
+agreed with `sim::pivot`, a 400× margin). The native twin is the rung
+CLAUDE.md names for a float residue; where it cannot run, the fallback
+wants writing into `docs/EMULATOR.md` §8.
 
 (605) **The packet rung's two lessons from its first use on East
 Indies.** Filed by item 597, 2026-09-23. First, "a packet at the frame
