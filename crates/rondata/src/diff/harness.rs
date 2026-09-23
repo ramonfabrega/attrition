@@ -4664,13 +4664,19 @@ mod tests {
         // **Thirteen → fourteen on item 518**, the literal following the
         // headline once more: the word went 10834 → 11185 and **10982**'s
         // rotation came under it. The streams above agree through it.
+        //
+        // **Fourteen → sixteen on item 327**, and **11185 is the old
+        // word itself**: the Merchant offer empties slot 1 on both sides,
+        // so `use_market`'s need is the original's and the frame is a
+        // sell on both. The word went 11185 → 11531 and 11382's rotation
+        // came under it too (`docs/AI.md` §55).
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982
+                10_782, 10_982, 11_185, 11_382
             ],
-            "below the word Great Lakes takes exactly fourteen market \
+            "below the word Great Lakes takes exactly sixteen market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
