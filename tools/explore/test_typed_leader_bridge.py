@@ -17,7 +17,7 @@ class LeaderBridgeTests(unittest.TestCase):
         return report,state,decoded
     def test_arrays_signed_projection_and_denominator(self):
         r,s,d=self.fixture();out=apply(r,s,lambda p:d)
-        self.assertEqual(out['matched_occurrences'],19)
+        self.assertEqual(out['matched_occurrences'],31)
         self.assertEqual(out['status_counts']['unmapped'],2)
         self.assertFalse(out['logger_parity_established']);self.assertFalse(out['leader_bridge']['referents_anchored'])
     def test_wrong_word_is_a_mismatch(self):
@@ -25,7 +25,7 @@ class LeaderBridgeTests(unittest.TestCase):
         self.assertEqual(apply(r,s,lambda p:d)['status_counts']['integer_mismatch'],1)
     def test_missing_pointer(self):
         r,s,d=self.fixture();s['roots']['leaders']['rows'][0]['value']=0
-        self.assertEqual(apply(r,s,lambda p:d)['status_counts']['leader_bridge_unresolved'],19)
+        self.assertEqual(apply(r,s,lambda p:d)['status_counts']['leader_bridge_unresolved'],31)
     def test_array_gaps_duplicates_and_short_prints_refuse(self):
         for case in ('gap','duplicate','short','unreadable'):
             with self.subTest(case=case):
@@ -35,7 +35,7 @@ class LeaderBridgeTests(unittest.TestCase):
                 if case=='short':del r['rows'][1];r['observable_occurrences']-=1
                 if case=='unreadable':d[0]['status']='unresolved'
                 out=apply(r,s,lambda p:d)
-                self.assertEqual(out['matched_occurrences'],13)
+                self.assertEqual(out['matched_occurrences'],25)
                 self.assertTrue(out['leader_bridge']['errors'])
     def test_duplicate_identity_and_absent_scope(self):
         r,s,d=self.fixture();extra=copy.deepcopy(r['rows'])

@@ -1,6 +1,6 @@
 """Offline LeaderDataEncrypted bridge; preserves the full logger denominator.
 
-The three masks are getter transformations, not inferred from equal values.
+The five masks are getter transformations, not inferred from equal values.
 Pointer reachability and agreement do not establish allocation liveness or
 coherence of unanchored referents across the snapshot copy.
 """
@@ -11,8 +11,8 @@ from typed_state import Payload,Types,require
 from typed_state_pilots import select
 
 # Owned getter readings: resources_get@0047da20, income_get@0046ee60,
-# resource_cap_get@0046ee80. Only formulas, never exported bodies, live here.
-MASKS={'resources':0x872,'income':0x90236,'resource_cap':0x1281}
+# resource_cap_get@0046ee80, bucket_get@0046f200, support_get@0047da00. Only formulas, never exported bodies, live here.
+MASKS={'resources':0x872,'income':0x90236,'resource_cap':0x1281,'bucket':0x8221,'support':0x26076}
 
 
 def array_rows(rows,field):
@@ -76,7 +76,7 @@ def apply(report,state,decode):
     require(sum(status.values())==before,'bridge lost an occurrence')
     report.update(status_counts=status,matched_occurrences=status.get('exact_integer_match',0)+status.get('logger_transform_match',0),
                   leader_bridge=dict(blocks=len(blocks),errors=errors,referents_anchored=False),logger_parity_established=False)
-    report['comparison_scope']+='; explicit LeaderDataEncrypted resources/income/resource_cap ordered arrays'
+    report['comparison_scope']+='; explicit LeaderDataEncrypted resources/income/resource_cap/bucket/support ordered arrays'
     return report
 
 
