@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 588, 2026-09-23 — the probe's other half
+
+(593) **The land half of the waypoint probe's second arm** (siege, hero,
+supply; `docs/COLLISION.md` §13.5), and **the pushed unit's guy turn**.
+588 built the sea half only; no word's frame reaches the land half yet.
+
+(594) **A blind second reading of `detect_boat_collision`.** 588's sea
+half rests on one reading and the listing; the parts no capture reaches
+are reading-only and owe a second reader under CLAUDE.md's audit rule.
+Returns with (593) or when a sea word's frame reaches them.
+
 ## Parked by item 587, 2026-09-23 — what `age` hands over
 
 (591) **`age`'s knowledge and metal buckets**: 100 in the original after
