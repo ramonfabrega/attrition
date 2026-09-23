@@ -64,7 +64,9 @@ Chapters one, two and five agree to their traces' end, 900 (items 530, 523,
 549); ~~chapter four is pinned at 1277, then 1416, of 1501 (items 552, 567)~~
 chapter four agrees to its trace's end, 1500 (items 552, 567, 569); chapter
 seven agrees to its end, 1200, on its first walk and on its control's (item
-578); chapter three is pinned at ~~621~~ 633 of 901 (items 587, 590). **A chapter whose
+578); ~~chapter three is pinned at 621, then 633, of 901 (items 587, 590)~~
+chapter three agrees to its end, 900 (items 587–603, 602), and its
+restage (run146) is pinned at 780 of 1001. **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line

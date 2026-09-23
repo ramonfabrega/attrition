@@ -22,6 +22,19 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 602, 2026-09-23 — under a closed chapter and its restage
+
+(617) **run146's 771: the dump culls the dead hoplites' `DEATH_OBJS`**
+(`docs/COMBAT.md` §42.5's cull). Under the restage's word; spends no
+draw.
+
+(618) **run145's 729/753: the turned chariot's turret.** The dump needs a
+1° step where the node bearing gives 0°. A `GUYS=4` capture over
+705–760 answers it. run145 is closed at 900, so it names no score.
+
+(619) **A round's target is cleared at death here, at the due frame in
+the original**, and the ammo pool's slots are one apart. Neither draws.
+
 ## Parked by item 608, 2026-09-23 — the slot count's edges
 
 (614) **`SITE[7].val` on 10776**: 26 here against 13 in the original. It
