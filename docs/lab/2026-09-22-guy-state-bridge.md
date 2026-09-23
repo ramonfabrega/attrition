@@ -71,8 +71,20 @@ occurrences visible. It never advertises whole-frame parity.
 
 No pointed figure records were acquisition anchors. Their agreement with both
 printed copies is evidence at those observation points, not atomicity or an
-all-thread freeze. The complete world checkpoint `cc0bc7e` passed the full
-release gate; the expanded figure/pin checkpoint is undergoing its own final
-validation. Fable still chooses adoption. The next technical frontier is the
+all-thread freeze. Both the world checkpoint `cc0bc7e` and expanded figure/pin checkpoint
+`b8e4d79` pass the full release gate: 1,278 release tests, 885 fixture requests
+with none missing, clippy, formatting and paperwork guards. All 86 focused
+acquisition/oracle tests pass. Synthetic byte-view corruption over the actual
+retained packet yields exactly three tile-mask mismatches and exactly two
+negative-zero GUY-word mismatches; the original packet is unchanged. Fable still chooses adoption. The next technical frontier is the
 remaining leader projections and container families, not another capture by
 default; item 520's mid-decision causality remains outside this boundary dump.
+
+
+The review checkpoint is [draft PR #9](https://github.com/ramonfabrega/attrition/pull/9),
+stacked on #7. Durable evidence lives under the typed-state-market experiment's
+`followup/wide-scalar-checkpoint/`, including the complete compressed comparison,
+coverage and pin reports, source hashes, gate logs and synthetic failure controls.
+An additional 124 encrypted leader outputs agree in an **unpromoted** probe
+(`typed-next-leader-pilot.py` and JSON); they are excluded from every total above.
+That is an offline next-pass opener, not a capture request or an adoption gate.
