@@ -29,7 +29,7 @@ been the lower map since 09-21 — so the AI track's default flips to it.*
   carries the first use. Nothing booked on the merge.
 - **566's booking gate was red and its verdict arrived after the
   handoff** — the endpoint read 41 against a pin of 42 (574). Re-pinned.
-- **Fable backlog: 3 Loop items** (313, 527, 574).
+- **Fable backlog: 4 Loop items** (313, 527, 574, 575).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w9711 of 24,000 · GreatLakes w12038 of 24,000
