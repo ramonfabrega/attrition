@@ -846,6 +846,16 @@ impl Sim {
     /// packed clamp lifting — [`Sim::unit_los`] recomputes on every read,
     /// so clearing the bit *is* the update.
     ///
+    /// **And then the disc is lit** (`docs/COMBAT.md` §56): the next call
+    /// is `update_seen(0)` (`+0x174`, `push $0x0` at `670b82`), the whole
+    /// disc at the new line of sight. Nothing else would light it: the
+    /// tail's `set_new_location` is to the unit's own position and crosses
+    /// no half-cell, so a siege engine that unpacks where it stands kept
+    /// its packed four-tile disc until the next `update_all_seen`. run146's
+    /// catapult `0/6` is the diff: unpacked on 779, it searches on 780 at
+    /// `idle 1` and takes arena A's hoplite seven tiles off, which the
+    /// four-tile disc hid.
+    ///
     /// `Unit::update_gpiece` follows the bit, and it is the second half of
     /// the deploy: the `-PACKED` art and the plain piece are two entries of
     /// `unit_graphics.xml` — one carrying `CHAR_UNPACK` and the other
@@ -861,6 +871,7 @@ impl Sim {
             return;
         }
         self.units[u].combat.packed = false;
+        self.update_seen(u, false);
         self.update_gpiece(u);
     }
 
