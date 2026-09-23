@@ -4409,12 +4409,14 @@ why: Great Lakes' long word is 11757, a walking frame — the original spends `G
 # does not.
 #
 # **And backwards, from run125's own widening**
-# (`RON_DEBUG_ROWS=11440-11599`): army 2 already parts inside run125.
-# `1/65`'s `form` (ours -1, theirs 0) and orders point on **11507**;
-# `1/62` and `1/63`'s `stance` (ours 1, theirs 0) on **11513**; `1/64`'s
-# position on **11514**. On block 11599 the original's `1/62` stands at
-# (44046, 24250) in `group 66`, `form 0`, `stance 0`, orders point
-# (36552, 23448), which matches ours.
+# (`RON_DEBUG_ROWS=11250-11599`, which keeps each key's *first* parting
+# only): army 2 parts from **11424**, where `1/62`..`1/64` hold `group
+# 69`, `form 0` and a slotted orders point in the original and no pool
+# group (`-1`), `form -1` and one shared point here. Then `1/65`'s `form`
+# and point on 11507, `1/62` and `1/63`'s `stance` (ours 1, theirs 0) on
+# 11513, and `1/64`'s position on 11514. On block 11599 the original's
+# `1/62` stands at (44046, 24250) in `group 66`, `form 0`, `stance 0`,
+# orders point (36552, 23448).
 #
 # **The readings, each with what kills it**, on blocks 11754..11760,
 # player 1, the dump's own keys:
@@ -4431,9 +4433,10 @@ why: Great Lakes' long word is 11757, a walking frame — the original spends `G
 #   (`1/64` since 11514), so the stop lands on another frame because the
 #   unit is somewhere else. **Killed if** every army-2 position agrees on
 #   11740..11757.
-# - **R4 — the order.** The group or stance parting changes the order
-#   `1/62` holds on the word's frame. **Killed if** its `UNITORDER`s and
-#   `group` agree with ours on 11755..11758.
+# - **R4 — the group.** The original marches army 2 as a pool group
+#   (speed cap, formation slot) and this crate as loose units, so the
+#   stop is the group's and not the unit's. **Killed if** the original's
+#   `1/62` holds `group -1` on 11755..11758, as ours.
 #
 # **Backwards too**: army 2's first partings are inside run125, so the
 # overlap is 40 blocks, 11560..11599, at run125's detail, and the check
