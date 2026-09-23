@@ -631,3 +631,74 @@ and wants its own gate against the long captures, whose human is who=0.
 (`docs/DECISIONS.md` 42). run156 parts at 1148: the fur trapper `1/10`'s
 turn, 13 draws against 14. run157 parts at 1036: who=1's own `1/1`, 8
 against 7. Neither is the seam (`docs/GOLDEN.md` §11).
+
+## 11.11 `library`, `age` and the epoch verbs raise levels through a whole `gain_tech` (2026-09-23, item 644)
+
+**The handler.** `ConsoleWin::run_cmd@007d6a70` case 0x3c, `library`, runs
+`Leader::set_epoch` on the four lines and then `Leader::set_age`. `age` is
+`set_age` alone, and the four epoch verbs are `set_epoch` alone. Both
+setters share one body (`006d25a0`, `006d26f0`):
+
+1. Lose every level of the row at or above the target, highest first.
+2. Raise each level below it that is not held, through **`Leader::gain_tech(t,
+   0, 0, ·, 1)`**. That is the whole call research makes, tail included.
+3. Lose any age, unit or building whose prerequisites no longer hold. Then
+   `reset_obs_flags`, `calc_unit_stats` and `calc_wall_stats`.
+
+This crate had step 2 as the tree's bit-and-cascade alone
+(`TechTree::set_age`/`set_epoch`). So none of `gain_tech`'s tail ran for a
+staged level:
+
+- the goods loop that pays a good's starting amount when its first
+  prerequisite arrives (`Sim::pay_arriving_goods`; the Classical age pays
+  knowledge and metal, 100 each);
+- the economy flag `0x2000000` (`gain_tech:319`);
+- the Science re-pricing, the unit upgrades and the age's snap.
+
+Item 552 had wired the border half on the epoch verbs, and `age` had
+none of it. **`Sim::set_leader_levels` now does all three steps**, with
+step 2 through `Sim::gain_tech`.
+
+**What it moved, diff-backed.**
+
+- **Chapter seven-b's control, run157, 1176 → 1187.** On 1018 a goody pile
+  of 75 (`docs/GOODY.md` §3) went to metal here, the good at 0, and to food
+  there. The lottery draws the same four times on both sides, and only its
+  inputs differed. On 1176 `place_woodcutter` could not afford its
+  Woodcutter's Camp, at 23 food against 70, where the original had 98.
+  (`docs/GOLDEN.md` §11.)
+- **The standing first-block rows of every chapter that stages a level
+  go.** That is knowledge and metal, 0 against 100:
+  - chapter seven's who=0 (`library who=0 2`), 29 → 27 and 34 → 32;
+  - chapter seven-b's who=1, together with the caps below, 34 → 27 and
+    39 → 32;
+  - chapter three's both players (`age who=N 2`), 30 → 26, and its
+    restage the same.
+
+**The caps read the Commerce level live** (parked 633).
+`Leader::gather@006ce280:58` calls `calc_resource_caps` on every frame,
+outside the reassembly gate, and `calc_resource_caps@006ce900` reads the
+level off `LeaderDataEncrypt + 0xf0` directly. This crate read
+`holdings.commerce`, which only a reassembly writes. So `library who=1 2`
+showed 1392 on run157's 605 where the original showed 2992. The income
+loop now writes the level into the holdings every frame before the caps
+are taken.
+
+- The five `resource_cap` rows on run157's and run156's first block go.
+- Off the golden record, Great Lakes' AI timber accumulator agrees where
+  it stood off by that lag:
+  - run136's `bucket[1:timber]` and `leftover[1:timber]`, 250 → 248 under
+    the word;
+  - `leftover[1:timber]` in the leader windows of run107, run111 and
+    run117.
+- Both long words hold (East Indies 13640 after item 642, Great Lakes 12038), and so does
+  every East Indies widening.
+
+**What is not established.**
+
+- The loss half (step 1) is unexercised: no staged line lowers a level.
+- The Greeks' re-grant arm and the oil grant (Industrial) are reached by no
+  capture.
+- The camp's own purchase is diff-backed only through the draw stream: its
+  180 shuffle draws and `1/7`'s orders, because the camp never reaches a
+  dump block.

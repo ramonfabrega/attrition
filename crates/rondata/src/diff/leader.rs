@@ -2280,6 +2280,10 @@ mod tests {
     /// military offers, whose value takes `0x100` or `0x40` by
     /// affordability and now reads the original's prices. Which of the
     /// two arms each row needed is not separated.
+    /// **Item 644 took `1/leftover[1:timber]` (89 → 88)**: the Commerce level is read live into the
+    /// caps (`Leader::gather@006ce280:58` runs `calc_resource_caps` every
+    /// frame), and `gain_tech` raises the economy flag. The AI's timber
+    /// accumulator stood off by a lag; it agrees now, and nothing arrives.
     const PARTS_ON_RUN111: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2359,7 +2363,6 @@ mod tests {
         (1, "bucket[2:wealth]"),
         (1, "gather_stamp"),
         (1, "income[2:wealth]"),
-        (1, "leftover[1:timber]"),
         (1, "leftover[2:wealth]"),
         (1, "rate[2:wealth]"),
         (1, "resources[2:wealth]"),
@@ -2385,6 +2388,10 @@ mod tests {
     /// **90 → 85 on item 545** (`docs/AI.md` §56), five down and nothing
     /// arriving: `MAKE[1].val`, `MAKE[3]`'s `cat`, `t` and `val`, and
     /// `MAKE[7].val` — the same military offers as run111's four.
+    /// **Item 644 took `1/bucket[1:timber]` and `1/leftover[1:timber]` (85 → 83)**: the Commerce level is read live into the
+    /// caps (`Leader::gather@006ce280:58` runs `calc_resource_caps` every
+    /// frame), and `gain_tech` raises the economy flag. The AI's timber
+    /// accumulator stood off by a lag; it agrees now, and nothing arrives.
     const PARTS_ON_RUN107: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2462,8 +2469,6 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "bucket[1:timber]"),
-        (1, "leftover[1:timber]"),
         (1, "scholars"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -2962,6 +2967,10 @@ mod tests {
     /// here now (`docs/AI.md` §55). 105 → 101.
     // Item 629 took `MAKE[3].val` and `MAKE[4].val`: the Merchants' seat (`docs/MERCHANT.md`
     // §3.2) brings the make list's values to the original's.
+    /// **Item 644 took `1/leftover[1:timber]` (99 → 98)**: the Commerce level is read live into the
+    /// caps (`Leader::gather@006ce280:58` runs `calc_resource_caps` every
+    /// frame), and `gain_tech` raises the economy flag. The AI's timber
+    /// accumulator stood off by a lag; it agrees now, and nothing arrives.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -3048,7 +3057,6 @@ mod tests {
         (1, "bucket[1:timber]"),
         (1, "bucket[2:wealth]"),
         (1, "income[2:wealth]"),
-        (1, "leftover[1:timber]"),
         (1, "leftover[2:wealth]"),
         (1, "peasants"),
         (1, "rate[2:wealth]"),

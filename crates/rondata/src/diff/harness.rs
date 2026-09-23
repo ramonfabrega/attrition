@@ -1340,6 +1340,26 @@ pub(crate) fn widen_block(
                 .or_insert((n, "this crate holds it alone".into()));
         }
     }
+    // **And the dump's direction, by name** (item 644). `compare` counts a
+    // dump building it cannot link in `build_unlinked` and moves on, so a
+    // building the original placed and this crate did not was a count
+    // here and never a row: run157's `1/2008`, placed on 1176, stood in
+    // no widening for the item that named its frame.
+    for b in &frame.builds {
+        if !(0..players as i64).contains(&b.who) {
+            continue;
+        }
+        let held = built
+            .sim
+            .buildings
+            .iter()
+            .any(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o);
+        if !held {
+            firsts
+                .entry((b.who, b.o, "build:unlinked".into()))
+                .or_insert((n, "the dump holds it alone".into()));
+        }
+    }
     // **The death list, read directly** (item 491). `compare`
     // walks it above; this is the driver's own reading, for the
     // reason the hit-point pair has both — and on Great Lakes it
@@ -9944,9 +9964,12 @@ mod tests {
         // re-agrees on 11425, and (558)'s group-order ids. Item 629 took
         // 34 of them (284 → 250): Great Lakes' Merchants on their tile
         // corners and what their footprints held off
-        // (`docs/MERCHANT.md` §3.2).
+        // (`docs/MERCHANT.md` §3.2). Item 644 took two more (250 → 248):
+        // who=1's `leader:bucket[1:timber]` and `leader:leftover[1:timber]`,
+        // standing from 11400, which agree once the caps read the Commerce
+        // level live (`Leader::gather@006ce280:58`).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 250, "the floor under the word");
+        assert_eq!(under, 248, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
