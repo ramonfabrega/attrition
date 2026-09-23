@@ -3107,10 +3107,17 @@ mod tests {
         // that would have refused the fix** — 7,932 frames and every
         // building the AI has started, cell for cell, and the bit agrees on
         // all 3,600.
+        //
+        // **12 → 1 on item 629**, and what went was every blocked/solid
+        // count: the "mark a finished building leaves" was the three
+        // Merchants' footprints — `cast_unpack`'s merchant arm blocks the
+        // two-by-two under each (`docs/MERCHANT.md` §3.2). What stands is
+        // cell (54, 28)'s flag `0x80` here against 0 there, which the arm
+        // does not write and which parted before it.
         assert_eq!(
             cell_bad.len(),
-            12,
-            "run93's block 7932 no longer parts on 12 cells — if the AI's \
+            1,
+            "run93's block 7932 no longer parts on 1 cell — if the AI's \
              base has been fixed this pin is the one to lower, and if it has \
              grown the landing that grew it is the bug: {:?}",
             &cell_bad[..cell_bad.len().min(8)]
@@ -3134,10 +3141,16 @@ mod tests {
             })
             .collect();
         eprintln!("run93 7932: {} tile masks part", tile_bad.len());
+        // **171 → 146 on item 629**: two Merchants' four-tile footprints,
+        // tiles (150–151, 79–80) and (167–168, 111–112) — `0x4000` and its
+        // `0x2000` halo there, nothing here — agree now, and the third's,
+        // (209–212, 74–77), agrees on both bits and keeps only the `0x4`
+        // the rest of this cluster lacks. No tile parts that did not
+        // before (`docs/MERCHANT.md` §3.2).
         assert_eq!(
             tile_bad.len(),
-            171,
-            "run93's block 7932 no longer parts on 171 tile masks — if the \
+            146,
+            "run93's block 7932 no longer parts on 146 tile masks — if the \
              cluster has been fixed this pin is the one to lower, and if it \
              has grown the landing that grew it is the bug"
         );

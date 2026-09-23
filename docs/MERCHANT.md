@@ -335,8 +335,13 @@ AI Merchant `1/20` finishes its 149-frame unpack on frame 7662: on block
 7663 its `CASTORDER` (`spell 656`) is gone, `unit_masks` loses `0x80000`,
 `mylos` goes 3 → 5 and `x_internal`, `y_internal`, `orders_x/y` and both
 figures move (28632, 24024) → (28608, 24000) — tile (149, 125)'s corner.
-Nothing prints `WorldData`'s tile masks, so the block is witnessed by what
-it does: on 11577 gaia's sheep `8/1` is ordered from (28872, 23880) to
+No East Indies dump prints the tile masks, so there the block is witnessed
+by what it does. **Great Lakes' run93 prints them**, on block 7932, and
+there the footprint is a value diff: two Merchants' squares, `0x4000` with
+its `0x2000` halo on the eight neighbours, agree tile for tile where they
+had been clear here, and the third's agrees on both bits — 171 parting
+masks → 146, none new (`run93_s_block_7932_is_this_crate_s_world_cell_for_cell`).
+Back on East Indies, on 11577 gaia's sheep `8/1` is ordered from (28872, 23880) to
 (28680, 23736), a diagonal through tile (150, 124) to (149, 123) that cuts
 the corner (149, 124), one of `1/20`'s four. The original plans two
 waypoints, south to (28884, 23724) and then west, and walks 21 frames; this
@@ -427,9 +432,10 @@ merchant's first turn.
 **Diff-backed on run159, since 2026-09-23** (§3.2): the seat is a value
 diff — both AI Merchants' `pos`, figures and `orders_x/y`, eleven rows each,
 agree on all 630 blocks of `[11270, 11899]` where they stood (24, 24) off —
-and the footprint is witnessed by its consequences, a sheep's two-waypoint
-walk, a city's `filled`, and a region's `reg_land`, since no dump prints
-the tile masks (`run159_s_word_frame_is_widened_whole`). The release on
+and the footprint is witnessed there by its consequences, a sheep's
+two-waypoint walk, a city's `filled`, and a region's `reg_land`
+(`run159_s_word_frame_is_widened_whole`); on Great Lakes it is a tile-mask
+diff, run93's block 7932 (§3.2). The release on
 death and on a re-pack is reading only: no capture has a deployed merchant
 die or pack.
 

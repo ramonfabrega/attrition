@@ -502,7 +502,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // word moves 11069 → 11590, 12,411 frames before this one. The
         // unlinked are player 1's `77`..`82`. DECISIONS 36: the number, not
         // a trade.
-        off: 52,
+        // **52 → 49 off, 6 → 8 unlinked, 1 → 2 build_unlinked, 24 → 22
+        // build_diverged** on item 629, a deployed Merchant seated on its
+        // tile corner with its square blocked (`docs/MERCHANT.md` §3.2);
+        // this map's word moves 11590 → 11747, 12,254 frames before this
+        // one. The unlinked are player 1's `75`..`82`. DECISIONS 36: the
+        // number, not a trade.
+        off: 49,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -523,7 +529,7 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **6 → 0** on item 608, beside `off` above.
         // **0 → 3** on item 613, beside `off` above.
         // **3 → 6** on item 620, beside `off` above.
-        unlinked: 6,
+        unlinked: 8,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         extra: 0,
@@ -531,13 +537,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
         // **2 → 1** on item 620, beside `off` above.
-        build_unlinked: 1,
+        build_unlinked: 2,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
         // **24 → 22** on item 613, beside `off` above.
         // **22 → 24** on item 620, beside `off` above.
-        build_diverged: 24,
+        build_diverged: 22,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1171,7 +1177,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // before this one; every AI city counts its gather sites from
         // placement now, on both maps. DECISIONS 36: the number, not a
         // trade.
-        off: 45,
+        // **45 → 41 off, 0 → 1 extra** on item 629, a deployed Merchant
+        // seated on its tile corner with its square blocked
+        // (`docs/MERCHANT.md` §3.2). This map's word holds at 12038, 11,963
+        // frames before this one; the extra is a Merchant, `1/81`.
+        // DECISIONS 36: the number, not a trade.
+        off: 41,
         unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
@@ -1179,7 +1190,7 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 0 extra** on item 566, beside 58 → 42 off above.
         // **0 → 1 extra** on item 597, beside 41 → 48 off above.
         // **1 → 0 extra** on item 608, beside 48 → 45 off above.
-        extra: 0,
+        extra: 1,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
@@ -1285,7 +1296,8 @@ pub const LADDER: [Endpoint; 2] = [
         // **40 → 39** on item 597; see `extra` below.
         // **39 → 35** on item 613; see `extra` below.
         // **35 → 31** on item 620; see `extra` below.
-        off: 31,
+        // **31 → 29** on item 629; see `extra` below.
+        off: 29,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1437,7 +1449,10 @@ pub const LADDER: [Endpoint; 2] = [
         // capped at 3 on a list under `MTN_TINY_SIZE` (`docs/ORDERS.md`
         // §6.4), 3,811 frames past this map's new word 11590. DECISIONS 36:
         // the number, not a trade.
-        extra: 26,
+        // **26 → 13** on item 629, a deployed Merchant seated on its tile
+        // corner with its square blocked (`docs/MERCHANT.md` §3.2); this
+        // map's word moves 11590 → 11747, 3,654 frames before this rung.
+        extra: 13,
         build_unlinked: 10,
         // **4 → 5** on item 588, beside `extra` above.
         // **5 → 4** on item 597, beside `extra` above.
@@ -1668,7 +1683,10 @@ pub const LADDER: [Endpoint; 2] = [
         // §62), 5,420 frames past this map's new word 11069. Hidden behind
         // rung C's panic again until C's re-pin. DECISIONS 36: the number,
         // not a trade.
-        extra: 20,
+        // **20 → 17** on item 629, a deployed Merchant seated on its tile
+        // corner with its square blocked (`docs/MERCHANT.md` §3.2); this
+        // map's word moves 11590 → 11747, 4,742 frames before this rung.
+        extra: 17,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -2253,7 +2271,13 @@ mod tests {
         // list under `MTN_TINY_SIZE` (`docs/ORDERS.md` §6.4): the late
         // roster reshuffles past East Indies' word, 11069 → 11590, and
         // one more extra number is shared, of one type on both rungs.
-        const SHARED_EXTRA_NUMBERS: usize = 19;
+        //
+        // **19 → 6 on item 629**, a deployed Merchant seated on its tile
+        // corner with its square blocked (`docs/MERCHANT.md` §3.2): the
+        // late roster reshuffles again past East Indies' word, 11590 →
+        // 11747, and six shared numbers remain, each of one type on both
+        // rungs.
+        const SHARED_EXTRA_NUMBERS: usize = 6;
         assert_eq!(
             shared.len(),
             SHARED_EXTRA_NUMBERS,
