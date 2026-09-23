@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 543, 2026-09-22 — the rare-collector arm's other halves
+
+(550) **The human Merchant through `Unit::think`'s rare-collector arm.**
+543 wired the arm for the Fishermen's deploy (`docs/ORDERS.md` §23);
+`cast_unpack`'s merchant arm is still a seam. No capture has a human
+merchant; no score names it.
+
+(551) **`unit_masks & 0x100`, "ordered recently", is not kept**, and the
+arm's `idle += 1` path, which no capture exercises. Both are the same
+arm's; promote with (550) or when a word lands on an idle human unit.
+
 ## Parked by item 542, 2026-09-22 — the keel, and the other releases
 
 (547) **The trireme's keel nodes at a second facing.** 542 measured the
