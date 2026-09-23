@@ -2946,6 +2946,17 @@ pub(crate) const WIDENING_GREAT_LAKES_DETOUR: (i64, i64) = (11_400, 11_959);
 /// 11903's frame writes block 11904. The coverage driver reads run136
 /// around it, keyed here rather than on the headline.
 pub(crate) const GREAT_LAKES_DETOUR_BLOCK: i64 = 11_904;
+/// `run163_s_word_frame_is_widened_whole`'s window (item 571): run123
+/// from **11400**, then run125, run130, run135, run136 and run163 to its
+/// last block, 12399. The floor is [`WIDENING_GREAT_LAKES_DETOUR`]'s, for
+/// the same reason: the partings under the word spend no draw, and a walk
+/// that opened above them would print them as standing residue with no
+/// first block.
+pub(crate) const WIDENING_GREAT_LAKES_UPGRADE: (i64, i64) = (11_400, 12_399);
+/// The block [`WIDENING_GREAT_LAKES_UPGRADE`] was taken to widen: the word
+/// 12038's frame writes block 12039. The coverage driver reads run163
+/// around it, keyed here rather than on the headline.
+pub(crate) const GREAT_LAKES_UPGRADE_BLOCK: i64 = 12_039;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason

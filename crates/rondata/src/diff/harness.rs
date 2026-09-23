@@ -9977,6 +9977,287 @@ mod tests {
         assert_eq!(stops, [], "1/64's stop is gone");
     }
 
+    /// One of Great Lakes' windows walked whole, both directions, across a
+    /// **chain of captures** — run136's walk, made a helper when run163
+    /// needed the same one (item 571). `chain` is each capture with the
+    /// first block the walk reads it from; below each, the walk reads the
+    /// capture before it. From run53's start with the siblings' heads:
+    /// every record [`widen_block`] reads on every unit and building of
+    /// every player, the leader record whole for both players, and from
+    /// `pools` on every player-1 pool list. Each key's first parting block
+    /// is kept with the value diff beside it; every row parting within two
+    /// blocks of a `near` block is kept whole in `standing`, and every
+    /// figure whose animation changes on either side there is listed
+    /// (`docs/COMBAT.md` §44.2.1).
+    ///
+    /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
+    /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
+    /// each block of the window.
+    fn widen_great_lakes(
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+    ) -> Option<Widened> {
+        let inst = install()?;
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        let paths: Vec<Option<String>> = chain.iter().map(|(n, _)| dump(n)).collect();
+        if paths.iter().any(Option::is_none) {
+            eprintln!("skipping: {name}'s chain is not all on disk");
+            return None;
+        }
+        let from: Vec<i64> = chain.iter().map(|(_, lo)| *lo).collect();
+        let mut ixs: Vec<crate::capture::indexed::IndexedCapture> = paths
+            .iter()
+            .flatten()
+            .map(|p| crate::capture::indexed::IndexedCapture::open(p).unwrap())
+            .collect();
+        let (first_block, tail) = window;
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows, mut pool_lists) =
+            (0usize, 0usize, 0usize, 0usize);
+        let mut housed = 0usize;
+        let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
+            .map(|w| {
+                w.split(',')
+                    .filter_map(|u| {
+                        let (a, b) = u.split_once('/')?;
+                        Some((a.trim().parse().ok()?, b.trim().parse().ok()?))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut walked: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        let mut anims: BTreeMap<(i64, i64), (Option<i64>, Option<i64>)> = BTreeMap::new();
+        let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
+        let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
+        let is_near = |n: i64| near.iter().any(|b| (b - 2..=b + 2).contains(&n));
+        for f in 0..=tail {
+            built.tick();
+            let n = f + 1;
+            if n < first_block {
+                continue;
+            }
+            let c = from.iter().rposition(|&lo| n >= lo).unwrap();
+            let ix = &mut ixs[c];
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            debug_watch(&built, n);
+            let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+            let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
+            compared += rows;
+            housed += fr.inside_housed;
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            if n >= pools
+                && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n)
+            {
+                let theirs: BTreeMap<i64, Vec<i64>> = crate::gamelog::groups(block)
+                    .into_iter()
+                    .filter(|g| g.who == 1 && !g.members.is_empty())
+                    .map(|g| (g.id - 64, g.members.iter().map(|m| m.o).collect()))
+                    .collect();
+                for s in 0..64u8 {
+                    let ours: Vec<i64> = built
+                        .sim
+                        .pool_list(1, s)
+                        .into_iter()
+                        .map(i64::from)
+                        .collect();
+                    let t = theirs.get(&i64::from(s)).cloned().unwrap_or_default();
+                    if ours.is_empty() && t.is_empty() {
+                        continue;
+                    }
+                    pool_lists += 1;
+                    if ours != t {
+                        here.entry((1, -2, format!("pool:{}", 64 + i64::from(s))))
+                            .or_insert((n, format!("ours {ours:?} theirs {t:?}")));
+                    }
+                }
+            }
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        here.entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+            for &(w, o) in &row_walk {
+                let now: Vec<String> = here
+                    .iter()
+                    .filter(|((hw, ho, _), _)| (*hw, *ho) == (w, o))
+                    .map(|((_, _, what), (_, row))| format!("{what}: {row}"))
+                    .collect();
+                let e = walked.entry((w, o)).or_default();
+                if *e != now {
+                    eprintln!("  row walk {n} {w}/{o}: [{}]", now.join(" · "));
+                    *e = now;
+                }
+            }
+            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                for ((w, o, what), (_, row)) in &here {
+                    eprintln!("  standing {n} {w}/{o} {what}: {row}");
+                }
+            }
+            if is_near(n) {
+                standing.insert(
+                    n,
+                    here.iter()
+                        .map(|(k, (_, row))| (k.clone(), row.clone()))
+                        .collect(),
+                );
+            }
+            for (k, v) in here {
+                firsts.entry(k).or_insert(v);
+            }
+            for t in &frame.units {
+                let Ok(o16) = i16::try_from(t.o) else {
+                    continue;
+                };
+                let ours = u8::try_from(t.who)
+                    .ok()
+                    .and_then(|w| built.sim.unit_by_o(w, o16));
+                let ta = t.guys.first().and_then(|g| g.cur_anim);
+                let oa =
+                    ours.and_then(|u| built.sim.units[u].guys.first().map(|g| i64::from(g.anim)));
+                let before = anims.insert((t.who, t.o), (ta, oa));
+                if !is_near(n) {
+                    continue;
+                }
+                let Some((pt, po)) = before else { continue };
+                if pt == ta && po == oa {
+                    continue;
+                }
+                eprintln!(
+                    "  anim {n} {}/{}: theirs ({},{}) a{:?}->{:?} | ours {:?} a{:?}->{:?}",
+                    t.who,
+                    t.o,
+                    t.pos.x,
+                    t.pos.y,
+                    pt,
+                    ta,
+                    ours.map(|u| (built.sim.units[u].pos.x, built.sim.units[u].pos.y)),
+                    po,
+                    oa
+                );
+                changed.push((n, t.who, t.o, pt != ta, po != oa));
+            }
+        }
+        eprintln!(
+            "{name} widening: {blocks} blocks [{first_block}, {tail}], {compared} record rows, \
+             {leader_rows} leader rows, {pool_lists} pool lists, {} keys parted, {} keys unprinted",
+            firsts.len(),
+            missing.len()
+        );
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        let last_from = from.last().copied().unwrap_or(first_block);
+        for (f, rows) in &by_block {
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if *f >= last_from - 100 || window {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        for (n, rows) in &standing {
+            eprintln!("  near {n}: {} rows", rows.len());
+        }
+        Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            housed,
+            standing,
+        })
+    }
+
+    /// **run163 — Great Lakes' word 12038, widened whole, both directions**
+    /// (item 571). run136's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_UPGRADE`]: ten blocks shared with run136, the
+    /// 79 up to the word, its block, and 360 past it, which no capture had
+    /// printed. [`widen_great_lakes`] from run123's 11400 across six
+    /// captures, with every player-1 pool list from run135's first block.
+    ///
+    /// The word's frame, 12038, writes block **12039**.
+    #[test]
+    fn run163_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_GREAT_LAKES_UPGRADE.0;
+        const TAIL: i64 = WIDENING_GREAT_LAKES_UPGRADE.1;
+        const WORD_BLOCK: i64 = GREAT_LAKES_UPGRADE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            changed,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run163",
+            &[
+                ("gamelog-run123-greatlakes-marketword.txt", FIRST),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+            ],
+            WIDENING_GREAT_LAKES_UPGRADE,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        let _ = (firsts, changed, standing);
+    }
+
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
     /// since item 566 no probe at all** (`docs/PATHFINDER.md` §23.4,
     /// §24.6). Item 563 refused one unit cell, (810, 441), to `1/62`'s
