@@ -642,6 +642,8 @@ mod tests {
         // (`docs/GOLDEN.md` §10); the interpreter does not model it.
         ("chapter6.cmd", &["bird"]),
         ("chapter7.cmd", &[]),
+        // Chapter seven's control, the same file less `0 !ai off` (item 578).
+        ("chapter7_control.cmd", &[]),
         ("chapter8.cmd", &[]),
     ];
 

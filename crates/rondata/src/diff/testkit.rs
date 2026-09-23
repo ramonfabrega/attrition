@@ -2394,6 +2394,31 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 /// [`WIDENING_CHAPTER_FOUR`]'s test.
 pub(crate) const GOLDEN_WORD_CHAPTER_FOUR: i64 = 1500;
 
+/// **Chapter seven's golden word** — the civilians (`docs/GOLDEN.md` §11,
+/// item 578, run141 and its control run142): **1200 of 1201, the trace's
+/// end, on both captures. Chapter seven is closed at its first walk.**
+///
+/// The chapter was designed to show `ai off` silencing a human's
+/// civilians, and it does not: the citizen takes the same `GATHERORDER` on
+/// block 763 at `idle 12` with the cheat on and off, from `think_peasant`
+/// above the cheat's block, and the other four take no order in either run
+/// (`docs/INPUT.md` §11.9). What is pinned is the record, not the premise:
+/// a human's five idle civilians, a gather issued, walked and delivered,
+/// and four that stand, agree with the original draw for draw and value
+/// for value to the end of both traces
+/// (`chapter_seven_holds_to_the_golden_word`,
+/// `chapter_seven_s_control_holds_to_the_golden_word`). There is no move
+/// to report a value diff for; the widening's block for the citizen's
+/// gather, 763–764, is printed both sides in
+/// `chapter_seven_s_word_frame_is_widened_whole`.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVEN: i64 = 1200;
+
+/// `chapter_seven_s_word_frame_is_widened_whole`'s window: **run141 and
+/// run142 whole**, 605..1199 and the `!quit` block at 1201. The word is the
+/// captures' end, so the floor is their own first block, for the reason
+/// [`WIDENING_CHAPTER_TWO`]'s is.
+pub(crate) const WIDENING_CHAPTER_SEVEN: (i64, i64) = (605, 1201);
+
 /// **How many height reads each replay may make on a corner this crate
 /// cannot pin to the original's single**, by test name — `docs/COMBAT.md`
 /// §46.3, and the `Drop` of [`crate::diff::Built`] that holds every replay
@@ -2879,5 +2904,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_four_s_word_frame_is_widened_whole"),
         567,
         Some(WIDENING_CHAPTER_FOUR),
+    ),
+    // Item 578: closed at its first walk, on both run141 and its control.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVEN",
+        GOLDEN_WORD_CHAPTER_SEVEN,
+        Some("chapter_seven_s_word_frame_is_widened_whole"),
+        578,
+        Some(WIDENING_CHAPTER_SEVEN),
     ),
 ];

@@ -212,11 +212,12 @@ mod tests {
         );
         // (chapter, word, widening window) — closed when the word is the
         // window's last block.
-        let chapters: [(u32, i64, (i64, i64)); 4] = [
+        let chapters: [(u32, i64, (i64, i64)); 5] = [
             (1, GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
             (2, GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
             (4, GOLDEN_WORD_CHAPTER_FOUR, WIDENING_CHAPTER_FOUR),
             (5, GOLDEN_WORD_CHAPTER_FIVE, WIDENING_CHAPTER_FIVE),
+            (7, GOLDEN_WORD_CHAPTER_SEVEN, WIDENING_CHAPTER_SEVEN),
         ];
         let mut said_closed = Vec::new();
         let mut said_open = Vec::new();
