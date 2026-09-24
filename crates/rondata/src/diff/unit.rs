@@ -544,6 +544,15 @@ mod tests {
         assert_eq!(scout.get(&sim::anim::IDLE1), Some(&76));
         assert_eq!(scout.get(&sim::anim::IDLE2), Some(&41));
         assert_eq!(scout.get(&sim::anim::IDLE3), Some(&190));
+        // **A name resolves case-folded** (item 643, `docs/ANIM.md` §12).
+        // The Galley — `TypeIndex` 341, piece 291 — cites "Galley Default"
+        // and `anim_graphics.xml` defines "Galley default";
+        // `GraphicPieces::decipher_animation@008face0` compares with
+        // `_wcsicmp`, and run166 prints the slot at 20 frames. A
+        // case-sensitive read left it out, and the missing slot's three
+        // frames were East Indies' word 13640.
+        let galley = &loaded.piece_lengths[&291];
+        assert_eq!(galley.get(&sim::anim::DEFAULT), Some(&20));
         // And no unit piece in the shipped file has a `CHAR_GROUP_IDLE2` —
         // so `set_anim`'s captain gate, the one frame in sixteen that
         // skips the idle roll, can never fire (§4.2). It was `Art::

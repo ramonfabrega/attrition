@@ -35,6 +35,16 @@ use crate::economy::{OverCap, RESOURCES};
 use crate::tech::{self, Kind, Line, TypeId};
 use crate::{Player, Sim};
 
+/// The Senate arm's two draws, named so the trace's sequence reads them
+/// (`crate::mark`, `rondata::trace::SITES`): the coin that picks which
+/// government column is dropped, taken only when `pers.raid == 0`, and the
+/// survivor's `% 100` scale. Both are `Random::get(0, 0xffff)`; the
+/// offsets are the return addresses of the two five-byte `call`s in the
+/// listing, `6c77af` and `6c7812`. East Indies spends the second on frame
+/// 15378 (item 643), where it read as a bare address until they were named.
+pub const SITE_GOV_COIN: &str = "Leader::research_techs+0xc0f";
+pub const SITE_GOV_ROLL: &str = "Leader::research_techs+0xc72";
+
 /// Knowledge's slot in every per-good array — the good `research_techs`
 /// prices a technology in.
 const KNOWLEDGE: usize = 3;
@@ -664,13 +674,18 @@ impl Sim {
             // which column of the three government pairs is thrown away;
             // whichever survives is then multiplied by a second draw.
             let raid = self.ai[w].pers.raid;
-            let drop_first = raid < 0 || (raid == 0 && (self.rng.roll() & 1) != 0);
+            let drop_first = raid < 0
+                || (raid == 0 && {
+                    self.mark(SITE_GOV_COIN);
+                    (self.rng.roll() & 1) != 0
+                });
             let dropped = u8::from(!drop_first);
             if let Kind::Gov { column, .. } = kind
                 && column == dropped
             {
                 return None;
             }
+            self.mark(SITE_GOV_ROLL);
             val = mul(val, self.rng.roll() % 100);
             if self.has_no_government(who) {
                 val = mul(val, 20);

@@ -519,7 +519,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // without the action bit (`docs/PATHFINDER.md` §21.6). This map's
         // word holds at 13640, 10,361 frames before this one. The unlinked
         // are player 1's `72`..`82`. DECISIONS 36: the number, not a trade.
-        off: 43,
+        // **43 → 46 off, 11 → 10 unlinked, 2 → 1 build_unlinked** on item
+        // 643: an animation's name is found case-folded, so the Galley's
+        // default plays 20 frames, not 3 (`docs/ANIM.md` §12). This map's
+        // word moves 13640 → 15782, 8,219 frames before this one. The
+        // unlinked are player 1's `73`..`82`. DECISIONS 36: the number, not
+        // a trade.
+        off: 46,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -542,7 +548,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **3 → 6** on item 620, beside `off` above.
         // **8 → 12** on item 642, beside `off` above.
         // **12 → 11** on item 673, beside `off` above.
-        unlinked: 11,
+        // **11 → 10** on item 643, beside `off` above.
+        unlinked: 10,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         extra: 0,
@@ -550,7 +557,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
         // **2 → 1** on item 620, beside `off` above.
-        build_unlinked: 2,
+        // **2 → 1** on item 643, beside `off` above.
+        build_unlinked: 1,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
@@ -1355,7 +1363,11 @@ pub const LADDER: [Endpoint; 2] = [
         // **35 → 31** on item 620; see `extra` below.
         // **31 → 29** on item 629; see `extra` below.
         // **29 → 28** on item 642; see `extra` below.
-        off: 28,
+        // **28 → 29** on item 643: an animation's name is found
+        // case-folded (`docs/ANIM.md` §12); this map's word moves 13640 →
+        // 15782, 381 frames past this rung. DECISIONS 36: the number, not
+        // a trade.
+        off: 29,
         unlinked: 17,
         // 20 → 21 on 2026-09-07, item 267's repaint: one spurious unit
         // back, 7,872 frames past the word, and nothing else on this rung
@@ -1751,7 +1763,10 @@ pub const LADDER: [Endpoint; 2] = [
         // **17 → 13** on item 642: `Region::go_here` reads the human's
         // city count (`docs/TRANSPORT.md` §9.4); this map's word moves
         // 11747 → 13640, 2,849 frames before this rung.
-        extra: 13,
+        // **13 → 4** on item 643: an animation's name is found case-folded
+        // (`docs/ANIM.md` §12); this map's word moves 13640 → 15782, 707
+        // frames before this rung.
+        extra: 4,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,
@@ -2348,7 +2363,12 @@ mod tests {
         // human's island and the word moves 11747 → 13640. Three shared
         // numbers remain, `1/12` Citizen, `1/56` Cataphract and `1/57`
         // Light Horse, each of one type on both rungs.
-        const SHARED_EXTRA_NUMBERS: usize = 3;
+        //
+        // **3 → 4 on item 643**, an animation's name found case-folded
+        // (`docs/ANIM.md` §12): the word moves 13640 → 15782 and four
+        // shared numbers remain — `1/12` Citizen, `1/56` Light Horse,
+        // `1/57` and `1/58` Cataphract — each of one type on both rungs.
+        const SHARED_EXTRA_NUMBERS: usize = 4;
         assert_eq!(
             shared.len(),
             SHARED_EXTRA_NUMBERS,

@@ -759,7 +759,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// draws against 33, parting at index 33: ours has one more
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271` after the frame's
 /// thirty `Animal::think_bird` draws, and theirs has none.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 13_640;
+///
+/// **13640 → 15782 on item 643, and the frame was an animation's name,
+/// cased differently in two files.** run166 over [13580, 13700) said whose
+/// wrap it was: the Galley `1/32`, a Trireme upgraded inside the window,
+/// entered `CHAR_DEFAULT` on 13637 with `end_time` 3 here and 20 there,
+/// and wrapped again on 13640. `unit_graphics.xml` cites "Galley Default"
+/// and `anim_graphics.xml` defines "Galley default". The original resolves
+/// the name with `GraphicPieces::decipher_animation@008face0`, a first-match
+/// `_wcsicmp`, and this crate's case-sensitive map read a missing slot —
+/// 46 of the names the install cites resolve only case-folded
+/// (`docs/ANIM.md` §12). **The move's value diff (the word's delta, here;
+/// its block is the widening's):** run166's four `1/32` rows and the sheep
+/// `8/1`'s go, and the 187 rows the extra draw parted past the word; the
+/// floor goes 295/308/495 → 295/307/307
+/// (`run166_s_word_frame_is_widened_whole`), nothing parting from the
+/// word to the window's end. On the way the sequence parted on 15378, a
+/// bare `6c7812` against ours' unnamed draw: the Senate arm's survivor
+/// roll in `research_techs`, the same draw, which this crate now names
+/// (`sim::ai_research::SITE_GOV_ROLL`). **15782** is past run166 and
+/// inside run78's [15700, 15900] (`LEADERS=1`): the original spends three
+/// `Guy::init_real+0x52` and a wrap before the bird, the birth of the
+/// three-figure unit `1/60` run78 counted, and ours births nothing.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 15_782;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -3349,6 +3371,16 @@ pub(crate) const EAST_INDIES_IDLE_BLOCK: i64 = 11_591;
 /// `1/0`'s boarding cast, writes block 11748. The coverage driver reads
 /// run159 around it.
 pub(crate) const EAST_INDIES_CAST_BLOCK: i64 = 11_748;
+/// `run166_s_word_frame_is_widened_whole`'s window (item 643): run166
+/// whole, 13580..13699 — a narrow window over the word 13640, sized to the
+/// word and not to the 1,741-block gap from run159's last block, so it
+/// shares no block with any other capture. The floor is the capture's
+/// first block, which carries every key that parted anywhere in the gap.
+pub(crate) const WIDENING_EAST_INDIES_WRAP: (i64, i64) = (13_580, 13_699);
+/// The word 13640's block on run166: its frame, three `Guy::inc_time`
+/// wraps in ours against two, writes block 13641. The coverage driver
+/// reads run166 around it.
+pub(crate) const EAST_INDIES_WRAP_BLOCK: i64 = 13_641;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -3438,13 +3470,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     //
     // Item 642 widened 11747's blocks on run159 (the scout's boat), and
     // moved the word to **13640**, past run159's last block (11899) and
-    // past every East Indies dump on disk. Item 643 owes the capture and
-    // its widening; run159's test keeps the move's value diff.
+    // past every East Indies dump on disk; run159's test keeps the move's
+    // value diff.
+    //
+    // Item 643 paid it: **run166** is run159's line with `GROUPS=1` over
+    // [13580, 13699], sized to the word rather than to the gap, and
+    // `run166_s_word_frame_is_widened_whole` is a sibling through the same
+    // walk, gaia and the pool included, on 120 blocks it shares with no
+    // other capture. The same item moved the word to **15782**, past
+    // run166's last block (13699) and inside run78's [15700, 15900],
+    // whose records no test has widened: item 694 owes it, and captures
+    // only what run78's `LEADERS=1` cannot answer. run166's test keeps
+    // the move's value diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        643,
+        694,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

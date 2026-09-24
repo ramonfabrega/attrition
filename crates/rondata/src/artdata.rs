@@ -197,7 +197,7 @@ pub fn gaia_lengths(install: &Install) -> GaiaLengths {
                 .or_else(|| units.get(&format!("{prefix}-TYPE0")));
             let Some(rows) = rows else { continue };
             for (slot, anim) in rows {
-                let Some((file, looping)) = files.get(anim) else {
+                let Some((file, looping)) = files.get(&anim_key(anim)) else {
                     continue;
                 };
                 let n = match frames.get(file) {
@@ -319,7 +319,7 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
         };
         let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
         for (slot, anim) in rows {
-            let Some((file, looping)) = files.get(anim) else {
+            let Some((file, looping)) = files.get(&anim_key(anim)) else {
                 continue;
             };
             let n = match frames.get(file.as_str()) {
@@ -624,6 +624,15 @@ pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
 /// with the two it has beyond the pair the name suggests.
 ///
 /// It is not a decoration: [`game_frames`] reads it (§3.1).
+///
+/// **The key is the name case-folded, and the first row wins**
+/// (`docs/ANIM.md` §12). A `<UNIT>`'s `file=` is resolved by
+/// `GraphicPieces::decipher_animation@008face0`: a walk of `anim_names` in
+/// load order that returns the first match under `_wcsicmp`. So `"Galley
+/// Default"` finds `"Galley default"` — 46 of the names `unit_graphics.xml`
+/// cites resolve only that way — and a case-sensitive map read each of them
+/// as a slot the packet lacks, three frames. Look names up through
+/// [`anim_key`].
 fn anim_files(doc: &roxmltree::Document<'_>) -> BTreeMap<String, (String, bool)> {
     let mut out = BTreeMap::new();
     for n in doc.descendants().filter(|n| n.has_tag_name("ANIM")) {
@@ -631,9 +640,16 @@ fn anim_files(doc: &roxmltree::Document<'_>) -> BTreeMap<String, (String, bool)>
             continue;
         };
         let looping = n.parent().is_some_and(|p| p.has_tag_name("LOOPING"));
-        out.insert(name.trim().to_string(), (file.trim().to_string(), looping));
+        out.entry(anim_key(name))
+            .or_insert((file.trim().to_string(), looping));
     }
     out
+}
+
+/// An animation name as [`anim_files`] keys it: trimmed and ASCII
+/// case-folded, `_wcsicmp`'s comparison on the names the install ships.
+fn anim_key(name: &str) -> String {
+    name.trim().to_ascii_lowercase()
 }
 
 /// `unit_graphics.xml`'s `<UNIT name="…"><ANIM name="CHAR_…" file="…"/>`:

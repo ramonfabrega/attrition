@@ -86,6 +86,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // and none on difficulty 2 (`docs/AI.md` §11).
     (0x006c_46e2, None, sim::ai_units::SITE_UNIT_BIAS),
     (0x006c_69d4, None, sim::ai_units::SITE_UPGRADE_BIAS),
+    // `Leader::research_techs@006c6ba0` — the Senate arm's coin and the
+    // survivor's scale; East Indies spends the second on 15378 (item 643).
+    (0x006c_77af, None, sim::ai_research::SITE_GOV_COIN),
+    (0x006c_7812, None, sim::ai_research::SITE_GOV_ROLL),
     // `Leader::create_buildings@006c1be0` — the wonder arm's pair.
     (0x006c_2bdb, None, sim::ai_build::SITE_WONDER_MOD),
     (0x006c_2bf7, None, sim::ai_build::SITE_WONDER_SCALE),
