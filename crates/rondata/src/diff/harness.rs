@@ -4866,14 +4866,18 @@ mod tests {
         // **13382**, **13385**, **13582**, **13782** and **13982** came
         // under it (`docs/PATHFINDER.md` §26). The streams above agree
         // through them.
+        //
+        // **Twenty-nine → thirty on item 688**: the word went 14382 →
+        // 14529 and **14385** came under it (`docs/AI.md` §67). The
+        // streams above agree through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385
             ],
-            "below the word Great Lakes takes exactly twenty-nine market \
+            "below the word Great Lakes takes exactly thirty market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );

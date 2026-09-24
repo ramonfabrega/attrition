@@ -8370,7 +8370,8 @@ post-`City::init`. `sim_at_frame` already restores its whole map.
   `SITE` rows each. run84 goes 81 → 87, the same sites at the original's
   values sitting in other slots.
 - **East Indies' word holds at 15782**, with the same delta. Every golden
-  chapter holds, and run53's ladder literals hold.
+  chapter holds. run53's market draws below the word go 29 → 30, since
+  14385 now falls under it; its scholar seatings hold.
 - **The endpoints at 24001**, pinned in no direction: Great Lakes `off`
   33 → 46, `extra` 1 → 0, `build_diverged` 4 → 2. East Indies `off`
   46 → 55, `unlinked` 10 → 0, `extra` 0 → 2, `build_unlinked` 1 → 2,
