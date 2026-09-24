@@ -22,6 +22,15 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 660, 2026-09-23 — chapter eight's other halves
+
+(665) **A fight across an alliance** needs a third live leader: in a
+two-player lobby `ally 1` is an allied victory (`set_diplo` counts
+leaders 0..7), and run171 ends on 901. A new lobby, not a restage.
+
+(666) **The rally armor's size**: one point here where `rules.xml` reads
+2. Read on the blow, past the word.
+
 ## Parked by item 657, 2026-09-23 — the army's other edges
 
 (662) **`go_to_unit`'s walk group 68 is freed on 12086 in the original**
@@ -758,6 +767,13 @@ check has to read the capture lane's lock. The lane's own account: it waited by
 grepping `runqueue-<ts>.log` for the banner "the queue, as it went",
 which `runqueue.sh` prints to stdout, that is to the viadriver log, so
 the grep could never match.
+
+(667) **A staging check that names a loop cites its bound.** Filed by
+item 660: its staging's one wrong reading was `set_diplo`'s loop over
+leaders, read as every player where the bound is 0..7, which
+`llvm-objdump` or the PDB settles in a minute. GOLDEN §3's fifth point
+could ask each falsifier's premise to cite the bound of any loop it rests
+on.
 
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth

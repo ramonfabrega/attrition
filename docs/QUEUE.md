@@ -25,17 +25,17 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 8 Loop items** (313, 527, 630, 638, 639, 645, 649, 656); the `FABLE:` batch was empty.
+- **Fable backlog: 9 Loop items** (313, 527, 630, 638, 639, 645, 649, 656, 667); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12184 of 24,000
-Golden: none pinned, every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 660 next
+Golden: ch8 w617 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 664 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 0 unlinked
 
-**Opener: fifteen landings since the twelfth pass's commit. Great Lakes
-12135 → 12184, still the lower map. 660 has the rules lane (chapter
-eight's capture); spawn 661 on the AI lane; 643 follows it. Stop at
-twenty.**
+**Opener: sixteen landings since the twelfth pass's commit. Chapter
+eight is captured and open at 617. 661 has the AI lane (Great Lakes
+12184); spawn 664 on the rules lane. 643 follows 661, and six-b (651)
+follows chapter eight. Stop at twenty.**
 
 ## The queue
 
@@ -53,13 +53,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `think_bird` arm sits beside it. Inside run163, widening on file; no
     capture owed. No mechanism. On the AI lane next.
 
-660. **Chapter eight, the commanders and a declared war: no capture yet**
-    (652 closed chapter six at 900: `bird` staged at the cursor run169's
-    packet read, (0, 6), SYNC §3.9; every golden chapter closed). GOLDEN
-    §14 takes the next uncaptured chapter. Capture **run171** over `[605,
-    1200)` with `chapter8.cmd`; before the run, check each §12 falsifier
-    can fire: the hoplites stand eight tiles apart. Then pin the word.
-    Chapter six-b follows (parked 651).
+664. **Chapter eight's word is 617: the Spy's birth frame** (660
+    captured run171; no falsifier fired; `ally 1` on 900 is an allied
+    victory, so the capture ends on 901). On 617 ours 9 draws against 80
+    at draw 3: ours `Farms::inc_time+0x1ae`, theirs `Unit::think_scout`.
+    On 618 the original's Spy `1/9` holds an `EXPLORETOORDER`, group 66,
+    `form_mod` 50; ours holds none. Hypothesis: `Unit::think`'s tail sends
+    an unarmied spy to `think_scout`. No mechanism. On the rules lane.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
