@@ -13714,6 +13714,74 @@ mod tests {
         assert_eq!((first, under_n, firsts.len()), (270, 282, 282), "the floor");
     }
 
+    /// **run78 — East Indies' old word 15782, the move's value diff**
+    /// (item 706). run78 is `LEADERS=1` over [15700, 15900], so the leader's
+    /// make list and personality are not printed (2,585 keys unprinted),
+    /// and no test had walked it. [`widen_east_indies`] with gaia's
+    /// animals, over the window.
+    ///
+    /// On tick 15782 who=1's Senate finishes Republic (`gov` −1 → 624 on
+    /// block 15783), and `Build::finished` trains its patriot, The Senator
+    /// `1/60` (`docs/TECH.md` §"The government patriot"). Before item 706
+    /// the dump held `1/60` alone on 15783. The extra `Guy::init_real`
+    /// draws were missing, so the sheep `8/2` parted on 15789, and 281
+    /// rows followed it from 15811 to the window's end: 726 keys in all.
+    /// Now `1/60` is born where the original's is. It parts on `form`
+    /// (parked 646) and on its order point, because the original's Senator
+    /// is still inside its Senate, as Great Lakes' Despot is on run192's
+    /// 14983. Its pool group parts on 15784 (parked 674). The scout `1/0`'s
+    /// order point on 15800 parts on both trees. It stands under East
+    /// Indies' new word, 15985, whose delta is `Unit::think_scout`.
+    #[test]
+    fn run78_s_old_word_keeps_its_value_diff() {
+        const FIRST: i64 = 15_700;
+        let Some(Widened {
+            firsts,
+            blocks,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run78",
+            "gamelog-run78-eastindies-threeborn.txt",
+            (FIRST, 15_900),
+            &[15_783],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, 200, "the walk is whole");
+        let after: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > FIRST)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            after,
+            [
+                "15800 1/0 dest_angle: ours -1740439552 theirs -1743650816",
+                "15800 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+                "15800 1/0 orders_x: ours 7320 theirs 8088",
+                "15800 1/0 orders_y: ours 21912 theirs 17976",
+                "15783 1/60 form: ours -1 theirs 0",
+                "15784 1/60 group: ours 69 theirs 70",
+                "15783 1/60 orders_x: ours 38016 theirs 38040",
+                "15783 1/60 orders_y: ours 41568 theirs 42408",
+            ],
+            "every key first parting past the window's first block"
+        );
+        assert_eq!(
+            standing.get(&15_783).map_or(0, |m| m.len()),
+            440,
+            "every row standing on the old word's block"
+        );
+        // **The floor**: 437 keys standing on the window's first block,
+        // everything that parted in the gap since run166, which no capture
+        // prints. 726 in all before item 706, 445 after it.
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, firsts.len()), (437, 445), "the floor");
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the

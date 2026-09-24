@@ -3626,11 +3626,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // whose records no test has widened: item 694 owes it, and captures
     // only what run78's `LEADERS=1` cannot answer. run166's test keeps
     // the move's value diff.
+    //
+    // **Item 706 moved it 15782 → 15985**, past run78's last block
+    // (15900): `1/60` was The Senator, a Senate's government patriot
+    // (`docs/TECH.md` §"The government patriot"), built for Great Lakes'
+    // Despot. `run78_s_old_word_keeps_its_value_diff` keeps the move's
+    // value diff on 15783. Item 708 owes the capture over the new word.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        694,
+        708,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
@@ -3845,12 +3851,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // [14894, 15039], and `run192_s_word_frame_is_widened_whole` walks it
     // from run123's 11400 across nine captures, so the window is
     // [`WIDENING_GREAT_LAKES_BIRTH`] and the test pins the word's block.
+    //
+    // **Item 706 moved it 14982 → 15175**, past run192's last block
+    // (15039): the nation graft table and the Senate's government patriot
+    // (`docs/TECH.md` §"The graft table", §"The government patriot").
+    // run192's test keeps the move's value diff on 14946 and 14983. Item
+    // 706 owes run196 over the new word.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run192_s_word_frame_is_widened_whole"),
-        698,
-        Some(WIDENING_GREAT_LAKES_BIRTH),
+        None,
+        706,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
