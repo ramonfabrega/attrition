@@ -94,6 +94,16 @@ BY_RVA.update({
     0x20a040: ("is_corner", ("hit_x", "hit_y", "self")),
 })
 
+# RON_GUARD_PROBE's six (ids 8-13 in that build): a unit's own step,
+# bracketed, `docs/GOLDEN.md` 19. detect_unit_collision is shared above.
+BY_RVA.update({
+    0x1e5c70: ("do_guard", ("order",)),
+    0x1f7b30: ("do_move", ("order",)),
+    0x1faf30: ("move_step", ("order", "step")),
+    0x1f9d30: ("resolve_unit_collision", ("x", "y")),
+    0x1fa8b0: ("detect_boat_collision", ("x", "y", "mates")),
+})
+
 
 def unit_names(recs):
     """UnitData* -> "who/o", from RON_COLLIDE_PROBE's INFO 15 records. The

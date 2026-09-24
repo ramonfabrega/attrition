@@ -470,6 +470,41 @@ fn chapter_six_b_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter eleven, pinned** — the guard line, an issuer the AI never
+/// uses from a command (`docs/GOLDEN.md` §19, item 696, run190). Eight
+/// staged lines: `!ai off`, a Chariot on 610, a Supply Wagon on 612, a
+/// Hoplite squad on 614, two `@guard` issuer lines on 620 and 640 (the
+/// chariot on the wagon, the squad on the building `0/2001`), a `@move` of
+/// the wagon on 720, and who=1's Chariot on 1000.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run190): all three issues appended (`INFO 17`, refusal 0) and processed
+/// on the next frame; one `GUARDORDER` on the wagon at (0, 372) on 622;
+/// the post re-read as the wagon walked; the guard's attack above its
+/// guard on 1011; no order on the building's squad. No falsifier fired.
+///
+/// `GOLDEN_WORD_CHAPTER_ELEVEN` carries what stands at the word.
+#[test]
+fn chapter_eleven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch11", "chapter11", 11, 8, 1250) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_ELEVEN,
+        "chapter eleven's golden word fell to {} from {GOLDEN_WORD_CHAPTER_ELEVEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_ELEVEN,
+        "chapter eleven's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §19"
+    );
+    eprintln!(
+        "chapter eleven: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -5843,6 +5878,105 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     .collect();
     want.sort();
     assert_eq!(got, want, "ch6b: what parts under the word moved");
+}
+
+/// **Chapter eleven's word, widened whole, both directions** (item 696).
+/// Every record run190 carries on every block of
+/// [`WIDENING_CHAPTER_ELEVEN`], by [`widen_civilians`]: every unit and
+/// figure — the Chariot `0/6` under its player guard, the wagon `0/7`,
+/// the squad `0/8`–`0/10` told to guard a building, and who=1's `1/6`
+/// among them — every building, both leaders at `LEADERS=2`. run190 dumps
+/// no `AMMO`.
+#[test]
+fn chapter_eleven_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch11",
+        "chapter11",
+        WIDENING_CHAPTER_ELEVEN,
+        1250,
+        0,
+        (730, 735),
+        false,
+        88,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch11 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_ELEVEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        "ch11: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_ELEVEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §19). Each staged unit's `form` on its birth block, the standing
+    // family. Everything of the guard's own agrees from 622 to 721: the
+    // `GUARDORDER` (`ox 7 whom 0`, offset (0, 372), post (3528, 8760)),
+    // its transit leg and `timer`, the walk to the post, and `idle`.
+    //
+    // **The first pin, word 724**: the value parted on 722, where the
+    // original's supply wagon `0/7`, on its first step under the player's
+    // move, pushed the guard `0/6` standing on its post (run191's brackets:
+    // `set_new_location(0/6)` inside the wagon's `detect_unit_collision`).
+    // This crate took `detect_boat_collision` only for a ship; item 696
+    // built its land half (`docs/COLLISION.md` §13.3, §13.5) → 726, where
+    // the wagon's scan named the walking guard hard. The original's scan
+    // (run191's third take) reaches `is_here` on the guard and never
+    // `is_corner`: §4.3's escort row, "its action is `GUARD` on me", is
+    // soft. Built → **734**.
+    //
+    // **On 734** the same pair parts one step further: on tick 733 the
+    // original's guard is blocked on its own step (its `coll` holds the
+    // refused point) and the wagon then pushes it (`collide_o 7`); this
+    // crate's guard steps, and the wagon's scan is soft and half-steps.
+    // No mechanism is named.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "615 0/8 form",
+        "615 0/9 form",
+        "615 0/10 form",
+        "734 0/6 collide",
+        "734 0/6 collide_o",
+        "734 0/6 collide_who",
+        "734 0/6 g.x[0]",
+        "734 0/6 g.x[1]",
+        "734 0/6 g.y[0]",
+        "734 0/6 g.y[1]",
+        "734 0/6 order:coll",
+        "734 0/6 pos",
+        "734 0/7 half_step",
+        "735 0/6 g.angle[0]",
+        "735 0/6 g.angle[1]",
+        "735 0/6 heading",
+        "735 0/7 g.x[0]",
+        "735 0/7 g.x[1]",
+        "735 0/7 g.x[2]",
+        "735 0/7 g.y[0]",
+        "735 0/7 g.y[1]",
+        "735 0/7 g.y[2]",
+        "735 0/7 pos",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch11: what parts under the word moved");
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).

@@ -282,7 +282,7 @@ impl Sim {
 
     /// `UnitData::is_unpacking@0060a4b0`: the order at the head of the list
     /// is a craft whose spell `TypeData::is_unpack` (`+0x54`) accepts.
-    fn is_unpacking(&self, u: usize) -> bool {
+    pub(crate) fn is_unpacking(&self, u: usize) -> bool {
         matches!(
             self.units[u].orders.front().map(|o| o.body),
             Some(orders::Body::Cast(c)) if orders::spell::is_unpack(c.spell)

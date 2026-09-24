@@ -1297,7 +1297,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860` | 6 |
 | AirOrder | `CommandManager::issue_flight@00941d40` | — |
 | AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0`; AttackGroundOrder also auto, `Unit::fight`'s siege arm (`docs/COMBAT.md` §57) | 3 (the restage) |
-| GuardOrder | `CommandManager::issue_guard@00941ed0` | — |
+| GuardOrder | `CommandManager::issue_guard@00941ed0`; also an army's escort (`docs/ORDERS.md` §24) | 4 (the AI's escort); 11, the guard line (§19) |
 | FollowOrder | `CommandManager::issue_follow@00941e70` | — |
 | FormOrder | `CommandManager::issue_form@00941580` | — |
 | GarrisonOrder | `CommandManager::issue_garrison@00941a70` | — |
@@ -1352,6 +1352,7 @@ below without a run take their number at booking (the eleventh pass).
 | 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
 | 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
+| 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -1834,3 +1835,240 @@ fails with `redo_patrol_order` switched off, and again with the member's
 own index in place of the leader's `form_id`. The coverage driver reads
 `PATROLORDER`'s arrays and `waypoint` now; each array's `size`,
 `increment` and `flags` stay pinned as unread.
+
+## 19. Chapter eleven — the guard line, an issuer the AI never uses (item 696)
+
+**Premise.** A player's guard command, issued through the original's own
+issuer on a **unit**, gives the guard one `GuardOrder` on its charge at an
+escort slot's offset. The guard takes that post, keeps it while the charge
+walks, and engages an enemy that comes into its respond radius while the
+charge stands, with the attack stacked above the guard. The AI issues
+`Group::action_guard` only for an army's wagon escort (`docs/ORDERS.md`
+§24), never from a command. So chapter four's escort is the only
+`GUARDORDER` on disk, and no dump prints `process_guard`.
+`tools/gamelog/golden/chapter11.cmd` has the reading with its citations.
+
+**The booked second half does not stand.** The booking asked for a squad
+guarding a building, and read it as entering `GuardOrder`. The reading
+says it enters nothing. `action_guard@006fcd30`'s first test on the charge
+is object vslot `+0x8` (`call *0x8(%eax)` at `006fce46`), then `+0xbc`.
+The PDB's `SubObjectData` method list names `+0x8` **`is_valid_unit`**:
+the export's folded name, `SubObjectData::is_active`, is the body's.
+`Build::vftable@00b42174` has `Window::get_button`, a folded `return 0`,
+there, so a building charge returns before any order. The emulator
+confirms it (below). The half is kept, staged as booked, as a test of
+that reading: its prediction is **no order**.
+
+**The issuer, under the emulator first.** Item 696's scratch scripts run
+on `tools/explore/command_oracle.py`'s fixture, widened to who=0's objects
+6–10 as live captains.
+
+- **`CommandManager::issue_guard@00941ed0(group, ox, whom, QUEUE_NEW)`
+  appends 18 bytes.** That is the 5-byte `group` (num 1, who 0, the one
+  object) and a 13-byte `guard`: type `0x1f`, then `[ox i32][whom
+  i32][queued i32]` (`docs/COMMANDS.md` §3).
+- **It writes** the package's size and data and the four selection caches
+  (`CommandPackage::last_who_sent`, `last_num_sent`, `last_objects_sent`
+  and `last_uids_sent`), and nothing else: no unit, no order, no draw.
+  The same selection again appends the 3-byte reuse; `queued` rides
+  through as passed; `use_mp_playback`, `semaphore & 0x10` and
+  `semaphore & 4` each append nothing.
+- **`Group::action_guard` entered on a building charge** (`Build::vftable`
+  at `0/2001`, the group `[0/8]`) runs `Group::clear`,
+  `Group::action_begin@00714100` and the folded `return 0`, then
+  returns. Its one write is the group's `disband`. A unit charge
+  (`Unit::vftable`) passes to `is_on_map`.
+- **What the emulator cannot reach**: the unit half's process time.
+  That is `CommandPackage::process_guard@009478a0` →
+  `action_guard(g, ox, whom, queued, 0)` → the escort and
+  `Group::compute_form@00707c80` → `Unit::add_guard_order@005e3e40`, and
+  each frame's `Unit::do_guard@005e5c70`.
+
+The DLL's `@guard <who> <ox> <whom> <o>…` is `@patrol`'s with this
+issuer: the same prologue (`sub esp, 0x10`), and QUEUE_NEW, which is
+what `Options::picked_spot@00721c40` passes through
+`GroupOut::issue_guard@007088e0` for an unmodified pick.
+
+**The reading, for a unit charge** (`docs/ORDERS.md` §7.5 and §24.3–24.5
+have it with its citations; this crate built it for the AI's escort).
+
+- **The order.** `action_guard` replaces the charge by its captain,
+  builds the escort, lays it out with `compute_form` at the charge
+  (formation `leader_flags >> 2 & 1`, 1 for a human, width `0x32`, the
+  guard flag), and gives each member `add_guard_order(charge, whom, dx,
+  dy, queued)`, `dx/dy` its slot's offset. The command passes siege
+  filter 0.
+- **The post, each frame** (`do_guard`). The post is the charge's
+  position plus `(dx, dy)` rotated by its heading, snapped to the 48-unit
+  cell. Off that cell, a transit `ATTACKTOORDER` goes on at QUEUE_FIRST
+  with `timer 0x1e × max(1, cells)`, and `do_move` runs the same frame.
+  If that leg ends at once, `retry = Random::get % 3 + 6`, the one draw.
+- **While the charge moves** (`is_moving`), both periodic arms are
+  skipped, and the post is re-read each frame the `retry` allows.
+- **While it stands**: on `(o + frame + 8) % 16 == 0` the guard calls
+  `Unit::find_melee_target@005ff9c0(−1, 0, 0, 1, 0)`. That is the
+  ordinary respond radius, `UNIT_RESPOND_RANGE` × `0xc0` for a human's
+  melee type, not `UNIT_GUARD_RESPOND_RANGE`. Its issue argument 1
+  stacks the attack at QUEUE_FIRST above a `GUARD`. On
+  `(o + frame) % 16 == 0` it counts `idle`.
+
+**Lines.**
+
+- `0 !ai off`.
+- `610 add chariot who=0 16,36`: the guard, `0/6`, on cell (4, 9).
+- `612 add supply who=0 16,44`: the charge, a Supply Wagon, `UBER_SIZE`
+  1 and no attack, `0/7`, on cell (4, 11).
+- `614 add hoplite who=0 36,152`: the squad `0/8`–`0/10`, on cell (9, 38),
+  four cells east of who=0's `0/2001` (orig type 418, at (4224, 28608)).
+- `620 @guard 0 7 0 6`: the chariot guards the wagon.
+- `640 @guard 0 2001 0 8`: the squad, by its captain, guards the
+  building.
+- `720 @move 0 3456 11904 7`: the charge walks to cell (4, 15)'s centre,
+  down the baseland column x 4, as in chapter ten.
+- `1000 add chariot who=1 17,70`: the enemy, who=1's next unit, `1/6`.
+  It is about 1,300 units south of the guard's second post, inside both
+  chariots' sight (`LOS` 9 tiles) and the guard's respond radius.
+
+A call on trace frame F is on block F+2, and the guard's first
+`do_guard` runs on tick F+1 (§17's convention).
+
+**The capture must dump** `end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2` and
+`misc:COMMANDMANAGER=1` over `[605, 1250)`, beside run105's `start:` set.
+The `GUARDORDER` record prints `ox`, `whom`, `uid`, `dx`, `dy`,
+`guard_x`, `guard_y`, `idle` and `retry` (run133).
+
+**The premise's killer, and its writers** (§3, point 5).
+
+- `check_accept_issue` and `process_group`'s player test are chapter
+  nine's, with the same writers (§17).
+- **`action_guard`'s early returns**, each ahead of any order:
+  - `GroupData::buildings` (`+0x49`), whose one writer is
+    `Group::add@00714350`; the DLL names only unit captains.
+  - The charge failing `is_valid_unit` or `is_on_map`. For the building
+    half this fires by construction. For the wagon it cannot: a cheat's
+    unit is on the map.
+  - `LeaderData::is_ally@006edb50(who, whom)`: 0 and 0.
+  - "Invalid order" (`ox < 2000` past `whom`'s unit count), an
+    `Error::report` that would stop the game. `0/7` is inside the count.
+  - An empty escort (`get_num_cap`). The chariot is active, on the
+    map, no plane, and of the wagon's domain.
+- **Nothing sweeps or breaks a cycle here.** The human sweep adds units
+  already guarding the charge (`update_guard_order@005e3220`), and at 620
+  there are none. The cycle break clears a charge that guards a member,
+  and the wagon has no order.
+- **The loops' bounds.** The member loop and the slot loop are bounded
+  by `group.num` (`+0xc`, below `0x80` in `Group::add`), here 1. The
+  sweep is bounded by who=0's unit count (`objects +0x15c`). `do_guard`
+  has no loop but `find_nearby_spot`'s, reached only on an invalid post.
+- **`do_guard`'s own kill**: a charge whose object slot is freed. The
+  enemy's target is the dump's to say. If it is the wagon (90 hits), the
+  guard's order ends with it, and that is a finding, not a falsifier.
+
+**The ground.** All of the unit half is on BASELAND of region 1, on the
+column x 3–5, y 9–18 (run184's start `WORLD`). That is west of chapter
+nine's sand, region 65, at x 7–11. The squad's cell (9, 38) is baseland
+with no feature. No goody box and no animal is within five cells of
+either.
+
+**What this crate predicts, walked before the run** from run184's frame
+0 (chapters share frames to 609):
+
+- **The guard.** On 622, `0/6` has a `GUARD` on the wagon with offset
+  (0, 372) under a transit leg. It is on its post, (3528, 8760), by
+  ~660.
+- **The walk.** The wagon's `MOVE_TO` is first on 722, and it arrives on
+  (3456, 11904) at ~915. The chariot re-posts on the way and stands on
+  (3480, 12264) from ~955.
+- **The fight.** `1/6` fires on the guard from 1004. The guard's
+  `ATTACK` on `1/6` sits above its `GUARD` from block 1011, its phase
+  tick 1010.
+- **The squad** holds nothing to 1249.
+
+**What would falsify it, and where each could first fire.**
+
+1. **The issuer does not reach the pump.** Trace frames 620, 640 and
+   720: an `INFO` 17 with a refusal. Or: no `COMMANDMANAGER`
+   `process_group` and guard text between blocks 621 and 622 (641 and
+   642), or no move text between 721 and 722.
+2. **The guard is not one `GuardOrder` on its charge.** Block 622,
+   `0/6`: no type-12 order; a `whom`/`ox` other than 0/7; or the action
+   bit clear. The offset is a value row, and it is not a falsifier:
+   (0, 372) is this crate's `compute_form`, never measured for a
+   one-unit escort.
+3. **The guard does not keep its post on a moving charge.** On the block
+   the wagon's stack empties (this crate: ~915), and on block 1000, it
+   fires if either holds:
+   - `0/6` no longer holds its `GUARD` on `0/7`;
+   - its `guard_x/guard_y` is more than one 48-unit cell from the wagon's
+     position plus the offset rotated by the wagon's heading, snapped to
+     its cell.
+
+   On 1000 it also fires if `0/6` is not on its post's cell.
+4. **The guard does not engage.** `1/6` is first on block 1001. It fires
+   if no `ATTACKORDER` on `1/6` sits above `0/6`'s `GUARDORDER` by block
+   1027 (the guard's phase ticks are 1010 and 1026), or if the `GUARD`
+   is gone from under it.
+5. **The building half gives an order.** Block 642 or any block to 1249:
+   any order on `0/8`–`0/10`.
+
+Predicted: none fires. **This crate can take the command.** The harness
+reads `@guard` through `rondata::input::group_guard`, which pushes the
+group as `process_group` forces. Then it runs
+`sim::Sim::group_action_guard` with the siege filter off for a unit
+charge, and does nothing for a charge that is no unit, which is the
+`is_valid_unit` exit. The AI's escort built the rest (item 567). Its
+named seams are the human sweep, the QUEUE_FIRST insert and the idle-arm
+engagement's own `find_melee_target` arguments; this staging reaches only
+the last.
+
+**Run 2026-09-24 as run190 (item 696): no falsifier fired.**
+
+- **All three commands reach the pump.** `INFO` 17 on 620, 640 and 720,
+  refusal 0, the package 10 → 28, 28 and 37 bytes. The dump prints
+  `process_group` and `process_guard <frame>` between blocks 621/622 and
+  641/642, and the move between 721/722.
+- **The guard, block 622**: one `GUARDORDER` on `0/7`, `flags 4`, offset
+  **(0, 372)**, post (3528, 8760), under a transit `ATTACKTOORDER`
+  (`timer 59`). This crate's value to the digit, and `idle 24` on 700 too.
+- **The walk.** The wagon's stack empties on 857, 58 blocks before this
+  crate's walk predicted. The guard's post steps behind it, one cell short
+  on 856, and it stands on (3480, 12264) from 890.
+- **The engagement.** An `ATTACKORDER` on `1/6` is above the `GUARD` on
+  **1011**, the phase tick 1010, as predicted.
+- **The building half.** No order on `0/8`–`0/10` on any block: the
+  `is_valid_unit` exit, measured.
+- **What the reading did not say: the fight.** `1/6` walks off on an army
+  `ATTACKTOORDER` on 1021, and the guard's `ATTACK` goes on 1037. `1/6`
+  comes back and shoots it from ~1,640 units, and the guard never
+  re-engages. It lands one hit, takes three, and is gone from 1141, and
+  the wagon stands unguarded.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_ELEVEN` = 724, then 734
+by the same item, open.** On 724 this crate spends 14 draws against 11,
+three extra `Guy::set_anim+0x97a < Unit::move_step+0x823`. The value parts
+on **722**: on tick 721, the first after the wagon's move, the original's
+guard steps (21, 1) off its post and names the wagon in `collide_o`, with
+no order added and no draw. `chapter_eleven_s_word_frame_is_widened_whole`
+pins it.
+
+**run191, three 17 s takes with the new `RON_GUARD_PROBE` brackets**
+(`do_guard`, `do_move`, `move_step`, `resolve_unit_collision`,
+`detect_unit_collision`, `detect_boat_collision`), each the same game as
+run190 frame for frame, named the two mechanisms:
+
+- **The wagon pushes its guard.** `set_new_location(0/6)` on tick 721 is
+  nested in the *wagon's* `detect_unit_collision(…, boats 1)`: a supply
+  wagon takes `detect_boat_collision`'s push as a ship does. This crate
+  carried only the sea half (`docs/COLLISION.md` §13.5). Built → **726**.
+- **An escort never blocks its charge.** On tick 726 both sides' push
+  refuses the walking guard and falls to the land scan. The original's
+  scan reaches `is_here` on the guard and never `is_corner`: §4.3's row
+  "its action is `GUARD` on me" is soft, and this crate had no such row.
+  Built → **734**.
+
+**On 734** the same pair parts one step further. On tick 733 the
+original's guard is blocked on its own step and then pushed by the wagon
+(`collide_o 7`), where this crate's guard steps and the wagon half-steps
+on a soft scan. No mechanism is named. It is the land push's second
+contact, and the next take of the same probe over 732–733 is where it
+starts.

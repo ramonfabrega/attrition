@@ -236,7 +236,11 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/GROUPORDER/UNITORDER",
         "flags",
     ),
-    ("GAME", "process_group, process_patrol"),
+    // **Item 696's run190 window at 622 adds `process_guard`**, the
+    // guard's line after block 621: the frame alone (the `ox`/`whom`/
+    // `queued` line is the sync logger's, not the dump's). The harness
+    // takes the command from the script, as for the patrol.
+    ("GAME", "process_group, process_guard process_patrol"),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
         "healing inside_down inside_down_who launch_frames near_o near_who",
@@ -458,6 +462,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch8 = golden_dump("ch8");
     let ch9 = golden_dump("ch9");
     let ch10 = golden_dump("ch10");
+    let ch11 = golden_dump("ch11");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -741,6 +746,21 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [640, 642] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter ten carries the word's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter eleven's word, on run190** (item 696): the first capture
+    // of a player's guard — a `GUARDORDER` a command gave, the
+    // `process_guard` text the turn pump prints, and a wagon walking under
+    // `MOVEORDER` with its escort re-posting beside it. The word's block
+    // with two on either side; 724, the first pin's, which holds 722, the
+    // block its value first parted on (the wagon's push); and 622, the
+    // guard's first block, with the `process_guard` text before it.
+    if let Some(p) = &ch11 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_ELEVEN;
+        for w in [622, 724, 734] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter eleven carries the window's five blocks");
             frames += n;
         }
     }
