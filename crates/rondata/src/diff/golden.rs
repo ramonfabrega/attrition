@@ -470,6 +470,36 @@ fn chapter_six_b_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
+/// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
+/// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
+/// issuer lines on 620 and 640, which the harness runs one frame later.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run184): both issues appended (`INFO 17`, refusal 0, 15 bytes each) and
+/// processed on the next frame; one `GroupPatrolOrder` a unit under the
+/// leader's attack-move leg; the chariot turning on 761, 903, 1043 and
+/// 1185, the squad on 812, 985 and 1155. No falsifier fired.
+///
+/// `GOLDEN_WORD_CHAPTER_TEN` carries what stands at the word.
+#[test]
+fn chapter_ten_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch10", "chapter10", 10, 5, 1250) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TEN,
+        "chapter ten's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TEN,
+        "chapter ten's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §18"
+    );
+    eprintln!("chapter ten: sequence {}, values {:?}", w.sequence, w.value);
+}
+
 /// **Chapter nine, pinned** — the move line, the first issuer chapter
 /// (`docs/GOLDEN.md` §17, item 676, run180). Five staged lines: `!ai off`,
 /// a Chariot on 610, a Hoplite squad on 612, and two `@move` issuer lines
@@ -5813,6 +5843,128 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     .collect();
     want.sort();
     assert_eq!(got, want, "ch6b: what parts under the word moved");
+}
+
+/// **Chapter ten's word, widened whole, both directions** (item 693).
+/// Every record run184 carries on every block of
+/// [`WIDENING_CHAPTER_TEN`], by [`widen_civilians`]: every unit and
+/// figure — the Chariot `0/6` and the squad `0/7`–`0/9` under their
+/// player patrols among them — every building, both leaders at
+/// `LEADERS=2`. run184 dumps no `AMMO`.
+#[test]
+fn chapter_ten_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch10",
+        "chapter10",
+        WIDENING_CHAPTER_TEN,
+        1250,
+        0,
+        (640, 641),
+        false,
+        88,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch10 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        "ch10: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §18). Each staged unit's `form` on its birth block, the standing
+    // family. Then **the patrols this crate does not take**: the harness
+    // skips both `@patrol` lines (the command has no entry into the
+    // simulation), so on 622 the chariot has no orders where run184's has
+    // two — the `GroupPatrolOrder` and the leg's `ATTACKTOORDER` — no
+    // group, no path and no heading, and from 623 it stands where the
+    // original's walks; the squad the same on 642. The draw stream parts
+    // on 640, two blocks before the squad's rows, on an idle animation
+    // draw the walking chariot does not spend.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "613 0/8 form",
+        "613 0/9 form",
+        "622 0/6 dest_angle",
+        "622 0/6 form_mod",
+        "622 0/6 group",
+        "622 0/6 idle",
+        "622 0/6 order:length",
+        "622 0/6 orders.len",
+        "622 0/6 orders_x",
+        "622 0/6 orders_y",
+        "622 0/6 path:length",
+        "623 0/6 g.angle[0]",
+        "623 0/6 g.angle[1]",
+        "623 0/6 g.x[0]",
+        "623 0/6 g.x[1]",
+        "623 0/6 g.y[0]",
+        "623 0/6 g.y[1]",
+        "623 0/6 heading",
+        "623 0/6 path_recursion",
+        "623 0/6 pos",
+        "623 0/6 tolerance",
+        "642 0/7 dest_angle",
+        "642 0/7 form_mod",
+        "642 0/7 group",
+        "642 0/7 idle",
+        "642 0/7 order:length",
+        "642 0/7 orders.len",
+        "642 0/7 orders_x",
+        "642 0/7 orders_y",
+        "642 0/7 path:length",
+        "642 0/8 dest_angle",
+        "642 0/8 form_mod",
+        "642 0/8 g.angle[0]",
+        "642 0/8 g.x[0]",
+        "642 0/8 g.y[0]",
+        "642 0/8 group",
+        "642 0/8 half_step",
+        "642 0/8 heading",
+        "642 0/8 idle",
+        "642 0/8 order:length",
+        "642 0/8 orders.len",
+        "642 0/8 orders_y",
+        "642 0/8 path:length",
+        "642 0/8 pos",
+        "642 0/9 dest_angle",
+        "642 0/9 form_mod",
+        "642 0/9 g.angle[0]",
+        "642 0/9 g.x[0]",
+        "642 0/9 g.y[0]",
+        "642 0/9 group",
+        "642 0/9 half_step",
+        "642 0/9 heading",
+        "642 0/9 idle",
+        "642 0/9 order:length",
+        "642 0/9 orders.len",
+        "642 0/9 orders_x",
+        "642 0/9 orders_y",
+        "642 0/9 path:length",
+        "642 0/9 pos",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch10: what parts under the word moved");
 }
 
 /// **Chapter nine's word, widened whole, both directions** (item 676).

@@ -1761,3 +1761,44 @@ no ground patrol at all — no `GroupPatrolOrder`, no `do_patrol`, and
 the capture agrees with the reading, the first landing is the patrol
 command's entry into the sim, built the way `crate::input::group_move_to`
 was.
+
+**Run 2026-09-24 as run184 (item 693): no falsifier fired.**
+
+- **Both commands reach the pump.** `INFO` 17 on 620 and 640, refusal 0,
+  the package 10 → 25 bytes. Between blocks 621 and 622 the dump prints
+  `process_group, new 0 1 621` and `process_patrol 3456 11136 2`, and the
+  same for the squad between 641 and 642.
+- **One `GroupPatrolOrder` a unit, as read.** On 622 the chariot's has
+  points (3192, 7032) and (3480, 11160), `waypoint 1`, id 621100 and
+  `oxx 6`. On 642 the squad's three have id 641000, `oxx 7`, points
+  (10872, 7800) and (11160, 11928), and **`form_id 0` on all three**:
+  `redo_patrol_order` has already rebuilt them with the leader's index,
+  on the leader's first `do_patrol`.
+- **The legs.** On 622 an `ATTACKTOORDER` sits above the chariot's patrol,
+  with `flags 1`: `do_patrol` passes action 0, so the leg carries no action
+  bit. On 642 three `GroupAttackToOrder`s sit above the squad's patrols,
+  id 641001, `form_id` 0–2.
+- **The turns.** The chariot's leg empties on 761, 903, 1043 and 1185,
+  exactly on its points. The captain's empties on 812, 985 and 1155. Each
+  turn spends one block with the patrol alone at the head, and the next
+  leg comes on the tick after. The squad's legs degrade to plain
+  `ATTACKTOORDER`s ~14 blocks short of each point (`ungroup_move_order`),
+  and `0/8` is still short of its slot when the captain turns: the halt
+  drops its leg.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TEN` = 640, open.** The
+harness skips both `@patrol` lines, because the command has no entry into
+this simulation. On 640 this crate spends 37 draws against 36, parting at
+draw 30: an extra `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the idle
+chariot's animation, where the original's chariot is walking.
+`chapter_ten_s_word_frame_is_widened_whole` covers (605, 642). Past the
+first block's 26 standing rows and the four births' `form`, it pins:
+
+- the chariot's missing patrol on 622 (`orders.len` 0 against 2, no
+  `group`, no path, `orders_x/y`, `dest_angle`);
+- its standing still from 623;
+- the squad's missing patrols on 642.
+
+The coverage driver takes 638..644. It pins `GroupPatrolOrder`'s
+`PATROLORDER` keys and the `process_patrol` text as unread, owed by this
+item's build.

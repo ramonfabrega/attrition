@@ -216,6 +216,25 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/UNITDATA/GroupMoveOrder/GROUPORDER/UNITORDER",
         "flags",
     ),
+    // **Item 693's run184 windows are the first to print a patrol.**
+    // `GroupPatrolOrder` writes `PATROLORDER` — the two point arrays as
+    // flat `SimpleArray<Coord>` lines and `waypoint` — then `GROUPORDER`,
+    // whose `UNITORDER` copy is the same unread second copy as the grouped
+    // moves' above. Owed by item 693: this crate has no ground patrol yet,
+    // so nothing parses the record, and the landing that builds the patrol
+    // reads `PATROLORDER` and leaves this pin. The turn pump's text for the
+    // squad's command, printed at `GAME` level after block 641, is the
+    // same kind of line as chapter nine's `process_move_to`, which no
+    // window here reached.
+    (
+        "GAME/FRAME/UNITDATA/GroupPatrolOrder/PATROLORDER",
+        "flags increment length list[scan] size waypoint",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/GroupPatrolOrder/GROUPORDER/UNITORDER",
+        "flags",
+    ),
+    ("GAME", "process_group, process_patrol"),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
         "healing inside_down inside_down_who launch_frames near_o near_who",
@@ -436,6 +455,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch6b = golden_dump("ch6b");
     let ch8 = golden_dump("ch8");
     let ch9 = golden_dump("ch9");
+    let ch10 = golden_dump("ch10");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -685,6 +705,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter nine carries the word's five blocks");
         frames += n;
+    }
+    // **Chapter ten's word, on run184** (item 693): the first capture of a
+    // patrol — `GroupPatrolOrder`'s `PATROLORDER` arrays and `waypoint`,
+    // the leader's `ATTACKTOORDER` and `GroupAttackToOrder` legs, and the
+    // `process_patrol` text the turn pump prints — whose records no other
+    // window here carries. The word's block with two on either side, and
+    // the squad's first patrol block, 642, with its neighbours.
+    if let Some(p) = &ch10 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TEN;
+        for w in [640, 642] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter ten carries the word's five blocks");
+            frames += n;
+        }
     }
     // **Chapter eight's word, on run171** (item 660): the first capture
     // with a General and a Spy in it, and the first golden capture at

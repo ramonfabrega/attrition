@@ -2641,6 +2641,28 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 /// pinned (605, 635) on the open word 632.
 pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
+/// **Chapter ten's golden word** — the patrol line, an issuer the AI
+/// never uses (`docs/GOLDEN.md` §18, run184): **640 of 1250, open**.
+///
+/// **The delta** (item 693, the first walk): on 640 this crate spends 37
+/// draws against the original's 36, parting at draw 30 on an extra
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends
+/// `Farms::inc_time+0x1ae`. The harness skips both `@patrol` lines — the
+/// patrol command has no entry into this simulation — so the Chariot
+/// `0/6` idles, animating, where run184's walks its first leg.
+///
+/// **The block**, from [`WIDENING_CHAPTER_TEN`]'s test over (605, 642):
+/// past the first block's 26 standing rows and the four births' `form`,
+/// the chariot's missing patrol on 622 — `orders.len` 0 against 2, no
+/// `group`, `orders_x/y`, path, `dest_angle` — and its standing still from
+/// 623; the squad's the same on 642.
+pub(crate) const GOLDEN_WORD_CHAPTER_TEN: i64 = 640;
+
+/// `chapter_ten_s_word_frame_is_widened_whole`'s window: the word's frame
+/// and the squad's first patrol block, (605, 642), pinned on the open
+/// word 640 (item 693).
+pub(crate) const WIDENING_CHAPTER_TEN: (i64, i64) = (605, 643);
+
 /// **Chapter nine's golden word** — the move line, the first issuer
 /// chapter (`docs/GOLDEN.md` §17, run180): **1100 of 1100, closed**. 1100
 /// is run180's trace end, and nothing parts on any frame of it: sequence
@@ -3782,6 +3804,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_nine_s_word_frame_is_widened_whole"),
         676,
         Some(WIDENING_CHAPTER_NINE),
+    ),
+    // Item 693: run184, chapter ten's first walk, on the chariot's idle
+    // animation where the original's walks its patrol's first leg.
+    (
+        "GOLDEN_WORD_CHAPTER_TEN",
+        GOLDEN_WORD_CHAPTER_TEN,
+        Some("chapter_ten_s_word_frame_is_widened_whole"),
+        693,
+        Some(WIDENING_CHAPTER_TEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
