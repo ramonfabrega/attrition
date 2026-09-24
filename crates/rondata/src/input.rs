@@ -202,6 +202,63 @@ pub fn group_patrol(built: &mut Built, who: i32, objects: &[i16], to: Pos, queue
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `guard` (0x1f) behind it, into the
+/// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
+/// `docs/GOLDEN.md` §19) — [`group_move_to`]'s group, then
+/// `CommandPackage::process_guard@009478a0`'s one call,
+/// `Group::action_guard(g, ox, whom, queued, 0)`.
+///
+/// The charge is `whom`'s object `ox`. `action_guard@006fcd30` asks it
+/// `is_valid_unit` (object vslot `+0x8`, named by the PDB's `SubObjectData`
+/// method list) before anything else, and that is a folded `return 0` on
+/// `Build::vftable`: a building charge returns having written only the
+/// group's `disband`. So a charge that is no unit of the simulation is
+/// that exit, and the group is still pushed, as `process_group` forces it.
+/// A unit charge is [`sim::Sim::group_action_guard`] with the siege filter
+/// off (the command passes 0).
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation. The same seams as [`group_move_to`]'s.
+pub fn group_guard(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    ox: i32,
+    whom: i32,
+    queued: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let charge = i16::try_from(ox).ok().and_then(|o| {
+        built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(whom) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(whom as sim::Player, o))
+    });
+    if let Some(t) = charge {
+        built
+            .sim
+            .group_action_guard(&g, t, queue_pos(queued), false);
+    }
+    g.list.len()
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {

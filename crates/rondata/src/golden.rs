@@ -276,18 +276,26 @@ pub enum Issued {
         to: Pos,
         objects: Vec<i16>,
     },
+    /// `@guard <who> <ox> <whom> <o> [<o> …]`: the charge's object id and
+    /// owner in place of the point, through
+    /// `CommandManager::issue_guard@00941ed0` (item 696).
+    Guard {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
-/// neither `move` nor `patrol`, a `who` outside `0..8`, fewer than three
-/// numbers, or no object.
+/// not `move`, `patrol` or `guard`, a `who` outside `0..8`, fewer than
+/// three numbers, or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
-    let patrol = match tok.next()? {
-        "move" => false,
-        "patrol" => true,
-        _ => return None,
-    };
+    let verb = tok.next()?;
+    if !matches!(verb, "move" | "patrol" | "guard") {
+        return None;
+    }
     let nums: Vec<i32> = tok.map_while(|t| t.parse::<i32>().ok()).collect();
     let [who, x, y, ref objects @ ..] = nums[..] else {
         return None;
@@ -301,10 +309,15 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
         return None;
     }
     let to = Pos::new(x, y);
-    Some(if patrol {
-        Issued::Patrol { who, to, objects }
-    } else {
-        Issued::Move { who, to, objects }
+    Some(match verb {
+        "patrol" => Issued::Patrol { who, to, objects },
+        "guard" => Issued::Guard {
+            who,
+            ox: x,
+            whom: y,
+            objects,
+        },
+        _ => Issued::Move { who, to, objects },
     })
 }
 
@@ -330,6 +343,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         Some(Issued::Patrol { who, to, objects }) => {
             crate::input::group_patrol(built, who, &objects, to, 2)
         }
+        // `@guard` is `issue_guard@00941ed0` with `QUEUE_NEW`, a `group`
+        // and a `guard`, whose entry is [`crate::input::group_guard`]
+        // (item 696).
+        Some(Issued::Guard {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_guard(built, who, &objects, ox, whom, 2),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -792,6 +814,9 @@ mod tests {
         // Chapter ten (sorted as the directory is): two `@patrol` issuer lines, the patrol line (item
         // 693, `docs/GOLDEN.md` §18).
         ("chapter10.cmd", &[]),
+        // Chapter eleven: two `@guard` issuer lines and a `@move`, the guard
+        // line (item 696, `docs/GOLDEN.md` §19).
+        ("chapter11.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -922,9 +947,19 @@ mod tests {
                 objects: vec![6],
             })
         );
+        assert_eq!(
+            parse_issuer("@guard 0 7 0 6"),
+            Some(Issued::Guard {
+                who: 0,
+                ox: 7,
+                whom: 0,
+                objects: vec![6],
+            })
+        );
         for bad in [
             "move 0 1 2 3",
-            "@guard 0 1 2 3",
+            "@follow 0 1 2 3",
+            "@guard 0 7 0",
             "@patrol 0 1 2",
             "@move 0 1 2",
             "@move 9 1 2 3",
