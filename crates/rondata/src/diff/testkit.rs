@@ -2522,6 +2522,35 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 900;
 /// on their birth blocks.
 pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 901);
 
+/// **Chapter eight's golden word** — the commanders and a declared war
+/// (`docs/GOLDEN.md` §12, item 660, run171): **617 of 901**, the Spy's
+/// birth frame, on its first walk. 9 draws against 80, parting at draw 3:
+/// ours `Farms::inc_time+0x1ae`, theirs `Unit::think_scout+0x941` and then
+/// `+0xaba`. No mechanism is named (`docs/DECISIONS.md` 42).
+///
+/// **The value diff**, run171's own coordinates: on block 618 the Spy
+/// `1/9` stands on its seat (2712, 8184) both sides; the original holds an
+/// `EXPLORETOORDER` to (4344, 10488), a two-slot path, group 66 and
+/// `form_mod` 50, and this crate holds no order, group −1 and `form_mod`
+/// −1. Frames 605–616 agree draw for draw, the four hoplite-and-commander
+/// births included.
+///
+/// The trace ends on 900: `ally 1` on 900 hands both leaders an allied
+/// victory and the game closes after block 901, so 901 is the chapter's
+/// length.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHT: i64 = 617;
+
+/// `chapter_eight_s_word_frame_is_widened_whole`'s window: run171's first
+/// block, 605, through the word's own two blocks, 617 and 618.
+pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 619);
+
+/// The leader keys run171's `LEADERS=5` record prints and
+/// [`crate::diff::leader::rows`] compares, per leader per block: 94, where
+/// `LEADERS=2` prints 88. The six are the `diplos[·]` and `treaties[·]`
+/// slots of this crate's three-player table, which `LEADERS=2` stops above
+/// (run168's widening finds 965 keys unprinted, run171's 959).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 94;
+
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
 /// in run133's window. The two captures are one game, draw for draw on
@@ -3504,6 +3533,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_six_s_word_frame_is_widened_whole"),
         652,
         Some(WIDENING_CHAPTER_SIX),
+    ),
+    // Item 660: run171, chapter eight's first walk, on the Spy's birth.
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHT",
+        GOLDEN_WORD_CHAPTER_EIGHT,
+        Some("chapter_eight_s_word_frame_is_widened_whole"),
+        660,
+        Some(WIDENING_CHAPTER_EIGHT),
     ),
     // Item 587: run145, the catapult's birth frame.
     (

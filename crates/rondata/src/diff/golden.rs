@@ -436,6 +436,42 @@ fn chapter_six_holds_to_the_golden_word() {
     eprintln!("chapter six: sequence {}, values {:?}", w.sequence, w.value);
 }
 
+/// **Chapter eight, pinned** — the commanders and a declared war
+/// (`docs/GOLDEN.md` §12, item 660, run171). Ten staged lines: `!ai off`,
+/// `library 2` for both players, a hoplite squad and a General for who=0, a
+/// hoplite squad and a Spy for who=1, then `peace 1`, `war 1` and `ally 1`
+/// on 700, 800 and 900.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run171): twelve `INFO cmd` records each returning 1; the diplomacy row
+/// moving on 701, 801 and 901, as `chapter8.cmd` predicted; and **`ally`
+/// ending the game** — both leaders carry the victory bit on 901, the dump
+/// closes after it and the trace's last frame is 900, because
+/// `Leader::set_diplo@006ec6a0`'s count of unallied leaders walks
+/// `leaders.list[0..8]` and gaia's leaders are 8 and 9.
+///
+/// `GOLDEN_WORD_CHAPTER_EIGHT` carries what stands at the word.
+#[test]
+fn chapter_eight_holds_to_the_golden_word() {
+    let Some(w) = walk_chapter("ch8", 8, 10, 900) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_EIGHT,
+        "chapter eight's golden word fell to {} from {GOLDEN_WORD_CHAPTER_EIGHT}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_EIGHT,
+        "chapter eight's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §12"
+    );
+    eprintln!(
+        "chapter eight: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter two's squads are seated exactly where the dump seats them,
 /// and the 140 units item 415 called a seating error are five frames of
 /// marching** (item 441's widening).
@@ -5243,6 +5279,7 @@ fn widen_civilians(
     who: i64,
     print: (i64, i64),
     ammo: bool,
+    leader_keys: usize,
 ) -> Option<std::collections::BTreeMap<(i64, i64, String), (i64, String)>> {
     use std::collections::{BTreeMap, BTreeSet};
     let mut s = stage_script(run, stem)?;
@@ -5425,7 +5462,7 @@ fn widen_civilians(
     eprintln!(
         "widening {run}: {blocks} blocks [{first}, {last}), {rows} record rows, \
          {leader_rows} leader rows, {good_rows} good rows ({unread_goods} unreadable), \
-         {ammo_rows} rounds, {} keys parted; {} leader keys not printed at LEADERS=2",
+         {ammo_rows} rounds, {} keys parted; {} leader keys the dump does not print",
         firsts.len(),
         missing.len()
     );
@@ -5437,8 +5474,9 @@ fn widen_civilians(
     );
     assert_eq!(
         leader_rows,
-        2 * 88 * blocks,
-        "{run}: the leader rows LEADERS=2 prints are not compared on every block"
+        2 * leader_keys * blocks,
+        "{run}: the leader rows the dump prints are not compared on every block \
+         ({leader_keys} a leader: 88 at LEADERS=2)"
     );
     assert!(
         good_rows > 0 || no_goods == blocks,
@@ -5476,7 +5514,7 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     let mut summaries = Vec::new();
     for (run, stem) in [("ch7", "chapter7"), ("ch7c", "chapter7_control")] {
         let Some(firsts) =
-            widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764), false)
+            widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764), false, 88)
         else {
             return;
         };
@@ -5578,6 +5616,7 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         1,
         (GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_SIX + 1),
         true,
+        88,
     ) else {
         return;
     };
@@ -5618,6 +5657,83 @@ fn chapter_six_s_word_frame_is_widened_whole() {
     assert_eq!(got, want, "ch6: what parts under the word moved");
 }
 
+/// **Chapter eight's word, widened whole, both directions** (item 660).
+/// Every record run171 carries on every block of
+/// [`WIDENING_CHAPTER_EIGHT`], by [`widen_civilians`] with the `AMMO`
+/// record on: every unit and figure, both leaders at `LEADERS=5` — whose
+/// `diplos[·]` row is what this chapter reads — and every live round. The
+/// eight staged units are printed both sides on the word's two blocks.
+#[test]
+fn chapter_eight_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch8",
+        "chapter8",
+        WIDENING_CHAPTER_EIGHT,
+        0,
+        1,
+        (GOLDEN_WORD_CHAPTER_EIGHT, GOLDEN_WORD_CHAPTER_EIGHT + 1),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch8 f{f} {w}/{o} {what}: {row}");
+    }
+    // **The standing rows of the first block**, chapter six's family:
+    // the unmodelled `form` on the eleven start units, two
+    // `filled_gather_slots`, and the thirteen start buildings as
+    // `build:extra`, which run171 prints no `BUILDS` for.
+    let standing = |what: &str| {
+        what == "form" || what.starts_with("leader:filled_gather_slots") || what == "build:extra"
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_EIGHT.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        "ch8: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    // **What parts under the word**, pinned by block and key
+    // (`docs/GOLDEN.md` §12). Each staged unit's `form` on its birth
+    // block, and on 618 the Spy `1/9`'s whole order: run171 holds an
+    // `EXPLORETOORDER` to (4344, 10488) with a two-slot path, group 66 and
+    // `form_mod` 50 on its birth block, and this crate holds no order. The
+    // leader record, `diplos[·]` included, agrees on every block.
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_EIGHT.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "611 0/7 form",
+        "611 0/8 form",
+        "613 0/9 form",
+        "616 1/6 form",
+        "616 1/7 form",
+        "616 1/8 form",
+        "618 1/9 dest_angle",
+        "618 1/9 form",
+        "618 1/9 form_mod",
+        "618 1/9 group",
+        "618 1/9 order:length",
+        "618 1/9 orders.len",
+        "618 1/9 orders_x",
+        "618 1/9 orders_y",
+        "618 1/9 path:length",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch8: what parts under the word moved");
+}
+
 /// **Chapter seven-b's words, widened whole, both directions, on both
 /// captures** (item 628). Every record run156 and run157 carry on every
 /// block of [`WIDENING_CHAPTER_SEVEN_B`], by [`widen_civilians`].
@@ -5632,7 +5748,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             (1199, 1200),
         ),
     ] {
-        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print, false) else {
+        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print, false, 88) else {
             return;
         };
         for ((w, o, what), (f, row)) in &firsts {

@@ -73,7 +73,10 @@
 #    `recalc_borders`. At `ally` it also counts live leaders allied to
 #    neither side and, at zero, calls `Leader::victory`: gaia's leaders 8 and
 #    9 are live (`leader_flags` 0x02000007) at war with both, so **no allied
-#    victory at 900** and the game runs on. The row prints in LEADERDATA at
+#    victory at 900** and the game runs on.
+#    WRONG (run171): the count's loop bound `0xe71af0` is eight `Leader`s
+#    past `leaders` (0xe3a390), so 8 and 9 are never counted. Both leaders
+#    win on 900, carry `0x20 | 0x80` on block 901, and the game closes. The row prints in LEADERDATA at
 #    detail 3 as `diplos[scan]`, eight per leader. A line at N shows on
 #    block N+1 (run168's 610 Fighter was born on block 611). Predicted:
 #    `diplos[1]` of who=0 and `diplos[0]` of who=1 read 0 through block 700,
@@ -97,17 +100,20 @@
 # 1. **`diplos[1]` unchanged in the block after 700, 800 or 900** — the
 #    targeted form does no more than the bare one. First fires on LEADERDATA
 #    0 and 1, blocks 701, 801 and 901. **Predicted NOT to fire** (check 3).
+#    run171: did not fire; 1 on 701, 0 on 801, 2 on 901.
 # 2. **Two squads still trading damage at frame 750, after the peace.**
 #    Fires on the hoplites' UNITDATA `damage` moving on either side in
 #    (701, 800]. Reachable only if check 1 holds: a fight by 700. This crate
 #    drops the attack orders by 730 and trades no blow after 698, and
 #    **predicts NOT**; the original's `Unit::fight` target test is the one
 #    being measured.
+#    run171: did not fire; orders gone by 731, last blow on 699.
 # 3. **A General whose presence moves no field on the squad beside it.**
 #    Restated by check 4: fires if the first blow on a who=0 hoplite inside
 #    six tiles of the General is the same size as the blows on who=1's.
 #    First reachable on the first who=0 `damage` step (this crate's 692).
 #    **Predicted NOT to fire**: a smaller blow on who=0, 1 against 3.
+#    run171: did not fire; a plain blow is 2 on who=0 against 3 on who=1.
 #
 # check: every staged line runs, twelve `INFO cmd` returning 1 (the ten here,
 #        `37 !ffwd`, `1200 !quit`); `MAP_STYLE 14`, seed 12345, and 597
