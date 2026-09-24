@@ -1072,7 +1072,13 @@ impl Sim {
         if (diff == 0 && n > 6) || (diff == 1 && n > 10) || (diff == 2 && n > 12) {
             return true;
         }
-        let age = self.tech[w].ages;
+        // **The Military library level, not the age** (`docs/ARMY.md`
+        // §7, item 657): `data_encrypted->epoch[0] ^ 0x63187`
+        // (`6f8997`, `6f89c3`). `ages` is `+0xdc`, under its own key
+        // `0x62766`. Great Lakes' army 2 on sim-frame 12024 reads age 1
+        // and Military 2: six standard stay mustering (`n >= 16`), and it
+        // is the army `1/68` joins on 12057.
+        let age = self.tech[w].military_level() as i32;
         let pers = &self.ai[w].pers;
         if pers.rush == -1 {
             return n >= 33;
@@ -1295,7 +1301,7 @@ impl Sim {
         if tw != who
             && self.is_enemy(who, tw)
             && hurry == 0
-            && self.tech[w].ages < 4
+            && (self.tech[w].military_level() as i32) < 4
             && self.army_count_siege(who, slot) == 0
         {
             self.army_set_stance(who, slot, Stance::Raid);
@@ -1679,7 +1685,9 @@ impl Sim {
     pub fn find_target(&mut self, who: Player, slot: usize) {
         let w = who as usize;
         let diff = self.ai_difficulty();
-        let age = self.tech[w].ages;
+        // `epoch[0] ^ 0x63187`, the Military library level, at every
+        // read below (§12); the forts pass's `ages ^ 0x62766` is a seam.
+        let age = self.tech[w].military_level() as i32;
         let team_style = self.lobby.team_style;
         let frame = self.frame;
         let (navy, my_reg, num_captains, num_standard) = {
@@ -3540,6 +3548,34 @@ mod tests {
         sim.armies[1].list[s].num_standard = 2;
         sim.cities[c].no_heal = true;
         assert!(sim.release_mustering(1, s));
+    }
+
+    /// **The rush rule reads the Military library level, not the age**
+    /// (`docs/ARMY.md` §20, item 657). `release_mustering`'s tail reads
+    /// `data_encrypted->epoch[0] ^ 0x63187` (`6f8997`, `6f89c3`); `ages`
+    /// is `+0xdc` and nothing in the function reads it. Great Lakes' who=1
+    /// on 12024 has age 1 and Military 2, and six standard stay.
+    #[test]
+    fn release_mustering_s_rush_rule_reads_the_military_level_not_the_age() {
+        let (mut sim, c) = sim_with_city();
+        let s = sim.init_army(1, Some(c));
+        // Every threshold above the personality's is out of reach: `pop_cap
+        // / 8 = 25 > 6`, `200 / 2 = 100 > 6`, difficulty 0 wants seven.
+        sim.muster[1].cap = 200;
+        sim.armies[1].list[s].num_standard = 6;
+        sim.ai[1].pers.rush = 1;
+        sim.tech[1].ages = 1;
+        sim.tech[1].epoch[crate::tech::Line::Military.index()] = 2;
+        assert!(
+            !sim.release_mustering(1, s),
+            "Military 2 wants sixteen, whatever the age"
+        );
+        sim.tech[1].epoch[crate::tech::Line::Military.index()] = 1;
+        sim.tech[1].ages = 3;
+        assert!(
+            sim.release_mustering(1, s),
+            "Military 1 releases at once, whatever the age"
+        );
     }
 
     // ---- the ring search (§13) ----
