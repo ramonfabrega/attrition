@@ -5441,6 +5441,44 @@ fn widen_civilians(
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
         rows += k;
         let raw = s.ix.read_frame(at).unwrap();
+        // **`near_o`/`near_who`, every unit, both directions** (item
+        // 707): the last search's footprint (`sim::Unit::near`,
+        // `docs/COMBAT.md` §37.1), which no parser carries, so the
+        // coverage pin listed it as unread on every window here. Chapter
+        // eleven's guard is the witness: its `near_o` goes 6 → −1 on
+        // the block its attack ends, the one record that says a search
+        // ran there and saw nothing.
+        let near = raw_near(&raw);
+        for them in &frame.units {
+            if !(0..players as i64).contains(&them.who) {
+                continue;
+            }
+            let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let (Some(u), Some(&(no, nw))) =
+                (s.built.sim.unit_by_o(w, o), near.get(&(them.who, them.o)))
+            else {
+                continue;
+            };
+            let ours = match s.built.sim.units[u].near {
+                Some(sim::combat::Obj::Unit(x)) => (
+                    i64::from(s.built.sim.units[x].index),
+                    i64::from(s.built.sim.units[x].owner),
+                ),
+                Some(sim::combat::Obj::Building(b)) => (
+                    i64::from(s.built.sim.buildings[b].index),
+                    i64::from(s.built.sim.buildings[b].owner),
+                ),
+                None => (-1, -1),
+            };
+            rows += 1;
+            if ours != (no, nw) {
+                firsts
+                    .entry((them.who, them.o, "near".into()))
+                    .or_insert((n, format!("ours {ours:?} theirs {:?}", (no, nw))));
+            }
+        }
         let flog = Log::parse(&raw);
         for who in 0..2usize {
             let Some(block) = flog.leader_block(n, who as i64) else {
@@ -5957,6 +5995,12 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // `ATTACK` above it and fires (`recharging 25`). `1/6` stands on
     // (3355, 14070), about 1,810 units from the guard. No mechanism is
     // named.
+    //
+    // **The `near` row** (item 707, the widening's first new row since
+    // 696): the guard's `near_o/near_who` goes (6, 1) → (−1, −1) on
+    // 1037 in the original, so a search ran on tick 1036 and saw no
+    // candidate; this crate's ran none. Every other block agrees on it,
+    // `1/6`'s own −1 from 1030 among them.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -5965,6 +6009,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         "615 0/10 form",
         "847 1/0 order:move.facing",
         "1001 1/6 form",
+        "1037 0/6 near",
         "1037 0/6 order:kind",
         "1037 0/6 order:length",
         "1037 0/6 orders.len",
