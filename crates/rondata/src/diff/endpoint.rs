@@ -538,7 +538,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // which move this map's word 15782 → 15985, 8,016 frames before
         // this one. Measured after item 703's merge. The unlinked are
         // player 1's `76`..`82`. DECISIONS 36: the number, not a trade.
-        off: 47,
+        // **47 → 52 off, 7 → 3 unlinked, 15 → 16 build_diverged** on item
+        // 711: a unit's own mirror, `unit_masks & 2`, which `do_guard`
+        // reads off its target (`docs/GROUPS.md` §25). This map's word
+        // holds at 15985. Measured on the tree before item 713's merge
+        // and again after it, with the same counts. The unlinked are
+        // player 1's `80`..`82`. DECISIONS 36: the number, not a trade.
+        off: 52,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -564,7 +570,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **11 → 10** on item 643, beside `off` above.
         // **10 → 0** on item 688, beside `off` above.
         // **0 → 7** on item 706, beside `off` above.
-        unlinked: 7,
+        // **7 → 3** on item 711, beside `off` above.
+        unlinked: 3,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -591,7 +598,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **22 → 18** on item 642, beside `off` above.
         // **18 → 16** on item 688, beside `off` above.
         // **16 → 15** on item 706, beside `off` above.
-        build_diverged: 15,
+        // **15 → 16** on item 711, beside `off` above.
+        build_diverged: 16,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1285,7 +1293,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 703's merge. The extra unit is `1/81`, a Merchant. The 24,000th
         // frame is 8,825 frames past the new word. DECISIONS 36: the
         // number, not a trade.
-        off: 47,
+        // **47 → 27 off, 1 → 2 extra, 2 → 0 build_diverged** on item 711:
+        // a unit's own mirror, `unit_masks & 2` (`docs/GROUPS.md` §25),
+        // which moves this map's word 15175 → 15383. Measured on the tree
+        // before item 713's merge and again after it, with the same counts.
+        // The extras are `1/81` and `1/82`, Merchants. The 24,000th frame
+        // is 8,617 frames past the new word. DECISIONS 36: the number, not
+        // a trade.
+        off: 27,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1303,7 +1318,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 1 extra** on item 669, beside `off` above: `1/81`.
         // **1 → 0 extra** on item 688, beside `off` above.
         // **0 → 1 extra** on item 706, beside `off` above: `1/81`.
-        extra: 1,
+        // **1 → 2** on item 711, beside `off` above.
+        extra: 2,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
@@ -1313,7 +1329,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **6 → 8** on item 673, beside `off` above.
         // **8 → 4** on item 678, beside `off` above.
         // **4 → 2** on item 688, beside `off` above.
-        build_diverged: 2,
+        // **2 → 0** on item 711, beside `off` above.
+        build_diverged: 0,
         city_unlinked: 3,
         city_diverged: 0,
     },

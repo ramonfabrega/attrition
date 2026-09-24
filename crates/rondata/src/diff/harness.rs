@@ -4874,14 +4874,19 @@ mod tests {
         // **Thirty → thirty-two on item 695**: the word went 14529 →
         // 14650 and **14582** and **14585** came under it (`docs/AI.md`
         // §68). The streams above agree through them.
+        //
+        // **Thirty-two → thirty-three on item 711**: the word went 15175 →
+        // 15383 and **15382** came under it (`docs/GROUPS.md` §25). The
+        // streams above agree through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385, 14_582, 14_585
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385, 14_582, 14_585,
+                15_382
             ],
-            "below the word Great Lakes takes exactly thirty-two market \
+            "below the word Great Lakes takes exactly thirty-three market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
