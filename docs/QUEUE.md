@@ -13,12 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**5 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-643 (East Indies) and att-693 (chapter ten) are live.*
+**6 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-688 (Great Lakes) and att-693 (chapter ten) are live.*
 
 - **Great Lakes 12536 → 14382 in two landings**: the retry gates on
   `is_move` (673), and a resumed search reads its blocks as suspended
-  (678, PATHFINDER §26, run178). **East Indies is the lower map again.**
+  (678, PATHFINDER §26, run178). **East Indies 13640 → 15782** (643):
+  animation names resolve case-folded, first match (ANIM §12, run166).
 - **Chapter six-b staged and closed** at 1250 (651, 680): each aircraft
   walks at the enemy Airbase, and a captain's attack on a building re-runs
   `find_new_target` every frame (COMBAT §62, run177's packet).
@@ -29,29 +30,21 @@ att-643 (East Indies) and att-693 (chapter ten) are live.*
   692 the census's order row); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w14382 of 24,000
+Long captures: EastIndies w15782 of 24,000 · GreatLakes w14382 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · 693 next
-Endpoint 24001: EastIndies 43 off, 11 unlinked · GreatLakes 33 off, 0 unlinked
+Endpoint 24001: EastIndies 46 off, 10 unlinked · GreatLakes 33 off, 0 unlinked
 
-**Opener: 693 is live on the rules lane and 643 on the AI lane (East
-Indies is the lower map); 688 follows 643. A detached capture waits on
+**Opener: 693 is live on the rules lane and 688 on the AI lane (Great
+Lakes is the lower map); 694 follows 688. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — East Indies (a guard reads this line). Take the first
+lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-643. **East Indies' word is 13640, past every capture** (642 moved it
-    11747 → 13640: `Region::go_here` reads the human's `reg_cities`
-    through `leader_reg_cities`' recount, TRANSPORT §9.4). On 13640 ours
-    34 draws against 33 at index 33: an extra `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271`. East Indies' windows end on run159's 11899; run78
-    starts at 15700. The `WIDENINGS` row names this item: capture
-    **run166** over the word, then widen it whole. No mechanism.
 
 688. **Great Lakes' word is 14382: who=1's building placement** (678 moved
     it 12897 → 14382: a resumed search reads its blocks as suspended,
@@ -60,6 +53,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     +0x1805`. On 14383 who=1 places `1/2025` at (39552, 17472), the
     original at (42624, 19776). The nearest input the dump prints is
     `SITE[1]`, parting on 12976. Inside run178 (to 14899). No mechanism.
+
+694. **East Indies' word is 15782: who=1's birth of `1/60`** (643 moved it
+    13640 → 15782: animation names resolve case-folded, first match, ANIM
+    §12). On 15782 the original spends three `Guy::init_real+0x52` and a
+    wrap before the bird's `set_anim+0x104b`; ours spends only the bird
+    and the farms. The three are one birth, `1/60` with three figures
+    (item 227). Inside run78 [15700, 15900], never widened: widen it
+    first, and ask whether `LEADERS=1` prints the make list. No mechanism.
 
 693. **Chapter ten, the patrol line — an issuer the AI never uses, no
     capture yet** (DECISIONS 49; GOLDEN §13; 676 closed chapter nine at
