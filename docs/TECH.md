@@ -591,7 +591,9 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
    Tech Race victory (`victory == 9`), outside Conquer the World, with `ages`
    now equal to `ending_technology`, is `victory(3)`** — the win. (Conquer
    the World's variant is in the epoch arm: all 28 epochs owned.)
-10. **Civic epoch**: `fix_all_borders`, walls re-masked around every city.
+10. **Civic epoch**: `fix_all_borders`, walls re-masked around every city,
+    and each city then runs `City::find_buildings` (`Sim::civic_epoch_sweep`,
+    item 661, `docs/AI.md` §63).
 11. **Buildings cascade.** For every building type `B` with `has_preq(B)` and
     some `get_preq(B, i, who) == t`: if `B.is(TOWN, 0)`, every city runs
     `City::check_upgrade`; and if `B.build_flags & 4` and

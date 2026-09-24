@@ -624,6 +624,32 @@ impl Sim {
         self.check_upgrade(c);
     }
 
+    /// `Leader::gain_tech@006dcb60:1324–1356`, the Civic library level's
+    /// arm: every live city of `who`, in slot order, is re-masked
+    /// (`Wall::mask_city` at `CityData::get_radius`) and then swept by
+    /// [`Sim::find_buildings`]. The gate is the gained type's
+    /// `is_epoch_type` (vslot `+0x38`) and `TechTypeData +0x14 == 1`, the
+    /// line the same function reads as `0` for Military's `calc_pop_cap`
+    /// and `3` for Science's library re-price.
+    ///
+    /// The radius itself does not read the Civic level
+    /// (`LeaderData::get_radius@006db790` is the city's level and the
+    /// Indian bonus), so what the arm buys is the **sweep**: placement's
+    /// `get_town` wants every footprint tile inside the city mask, and
+    /// `find_buildings` only the centre tile within the radius. A building
+    /// that straddled the mask's edge when it was placed stands cityless
+    /// until a sweep runs, and a Civic level is the sweep a settled
+    /// leader meets most. Great Lakes' who=1 Barracks and Stable stood
+    /// so from their placing until block 8734, when a Civic level swept
+    /// both into Norwich — and a trade route's worth is that chain's
+    /// length (`docs/AI.md` §63).
+    pub(crate) fn civic_epoch_sweep(&mut self, who: Player) {
+        for c in self.cities_of(who) {
+            self.mask_city(c, true);
+            self.find_buildings(c);
+        }
+    }
+
     /// `CityData::enough_kinds(n)`: at least `n` distinct completed building
     /// types on the chain, the city itself first.
     pub fn enough_kinds(&self, c: usize, n: i32) -> bool {

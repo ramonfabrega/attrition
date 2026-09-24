@@ -1872,6 +1872,23 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// pins the block's chain, which opens on who=1's production list on
 /// 12181.
 ///
+/// ~~**12184 is who=1's Scholar, bought a pass early.**~~ **Item 661 moved
+/// it 12184 → 12429, and the mechanism was a trade route's worth**
+/// (`docs/AI.md` §63). On sim-frame 12180 the original's purse held 55
+/// wealth against the Scholar's 56 and this crate's 57, so this crate
+/// bought it on 12182 and ran a second Units / Buildings / Make pass. The
+/// purse was parked 514's 32 income a frame: `trade_val` 160 against 176
+/// on both of who=1's cities, because `Leader::gain_tech`'s Civic arm —
+/// re-mask every city, then `City::find_buildings` — was missing, and the
+/// Barracks `1/2016` and Stable `1/2018` never joined Norwich, where the
+/// original seats them on block 8734. The new word's delta: ours **14**
+/// draws and the original **12**, parting at index **5**: ours spends
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original
+/// spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **Past run163**
+/// (block 12430 against its last, 12399): no dump on disk prints it, and
+/// item 669 owes the capture and its widening. run163's test pins the
+/// move's value diff: the rows on 12181–12185 are gone.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1883,7 +1900,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_184;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_429;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3412,12 +3429,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // not the age (`docs/ARMY.md` §20). The test pins 12136 empty for
     // `1/68` as the move's value diff, and the new word's chain from 12059
     // to its block.
+    //
+    // Item 661 moved it **12184 → 12429**, past run163's last block (12399)
+    // and past every Great Lakes dump on disk: a Civic level seats who=1's
+    // Barracks and Stable in Norwich (`docs/AI.md` §63). run163's test
+    // keeps the move's value diff, 12181–12185 empty. Item 669 owes the
+    // capture and its widening.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run163_s_word_frame_is_widened_whole"),
-        571,
-        Some(WIDENING_GREAT_LAKES_UPGRADE),
+        None,
+        669,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

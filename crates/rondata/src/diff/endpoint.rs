@@ -1200,8 +1200,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 12135 → 12184; `off` holds at 42 and `build_diverged` at 10. The
         // extras are the Merchants `1/81` and `1/82` again. DECISIONS 36:
         // the number, not a trade.
+        // **0 → 1 unlinked, 2 → 0 extra, 10 → 7 build_diverged** on item
+        // 661, the Civic level seating the Barracks and Stable in Norwich
+        // (`docs/AI.md` §63), which moves this map's word 12184 → 12429;
+        // `off` holds at 42. The 24,000th frame is 11,571 frames past the
+        // new word. DECISIONS 36: the number, not a trade.
         off: 42,
-        unlinked: 0,
+        // **0 → 1** on item 661, beside `off` above.
+        unlinked: 1,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
@@ -1210,12 +1216,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **1 → 0 extra** on item 608, beside 48 → 45 off above.
         // **1 → 0 extra** on item 571, beside 41 → 42 off above.
         // **0 → 2 extra** on item 657; `off` held at 42.
-        extra: 2,
+        // **2 → 0 extra** on item 661, beside `off` above.
+        extra: 0,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
         // **9 → 10** on item 571, beside `off` above.
-        build_diverged: 10,
+        // **10 → 7** on item 661, beside `off` above.
+        build_diverged: 7,
         city_unlinked: 3,
         city_diverged: 0,
     },

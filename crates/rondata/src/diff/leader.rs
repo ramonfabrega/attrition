@@ -2284,6 +2284,10 @@ mod tests {
     /// caps (`Leader::gather@006ce280:58` runs `calc_resource_caps` every
     /// frame), and `gain_tech` raises the economy flag. The AI's timber
     /// accumulator stood off by a lag; it agrees now, and nothing arrives.
+    /// **Item 661 took the wealth five (88 → 83)**: `bucket`, `income`,
+    /// `leftover`, `rate` and `resources` of `1/…[2:wealth]`. The income
+    /// was 32 short, the two trade routes' worth with the Barracks and
+    /// Stable outside Norwich, and nothing arrives (`docs/AI.md` §63).
     const PARTS_ON_RUN111: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2360,12 +2364,7 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "bucket[2:wealth]"),
         (1, "gather_stamp"),
-        (1, "income[2:wealth]"),
-        (1, "leftover[2:wealth]"),
-        (1, "rate[2:wealth]"),
-        (1, "resources[2:wealth]"),
         (1, "scholars"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -2943,8 +2942,8 @@ mod tests {
     /// 245 blocks across the market rotations at 10382 and 10582
     /// (`docs/ECONOMY.md` §13).
     ///
-    /// **`1/income[2:wealth]` is the one to read**, and it is the
-    /// successor: 960 here against the original's 992 on every block,
+    /// ~~**`1/income[2:wealth]` is the one to read**~~ — read, and closed
+    /// by item 661 (below). It was the successor: 960 here against the original's 992 on every block,
     /// with `resources[2:wealth]` and `rate[2:wealth]` saying the same
     /// thing twice. run107's thirty blocks at 9170–9199 carry **no**
     /// income row at all, so the 32 opens inside `(9199, 10375]` and
@@ -2971,6 +2970,12 @@ mod tests {
     /// caps (`Leader::gather@006ce280:58` runs `calc_resource_caps` every
     /// frame), and `gain_tech` raises the economy flag. The AI's timber
     /// accumulator stood off by a lag; it agrees now, and nothing arrives.
+    /// **Item 661 took ten (98 → 88), and the successor with them**:
+    /// the 32 was the two trade routes' worth, 160 against 176 with the
+    /// Barracks and Stable outside Norwich (`docs/AI.md` §63). The five
+    /// wealth rows and `worst_good` agree, and so does what the four wealth
+    /// decided: `bucket[0:food]` and `bucket[1:timber]` across the buy, and
+    /// the `MAKE[2].val` and `MAKE[9].val` it re-ranked. Nothing arrives.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -3002,12 +3007,10 @@ mod tests {
         (0, "wars"),
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[2].val"),
         (1, "MAKE[3].city"),
         (1, "MAKE[4].city"),
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
-        (1, "MAKE[9].val"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
@@ -3053,14 +3056,7 @@ mod tests {
         (1, "SITE[9].val"),
         (1, "SITE[9].wx"),
         (1, "SITE[9].wy"),
-        (1, "bucket[0:food]"),
-        (1, "bucket[1:timber]"),
-        (1, "bucket[2:wealth]"),
-        (1, "income[2:wealth]"),
-        (1, "leftover[2:wealth]"),
         (1, "peasants"),
-        (1, "rate[2:wealth]"),
-        (1, "resources[2:wealth]"),
         (1, "scholars"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -3069,7 +3065,6 @@ mod tests {
         (1, "tech_cat_frame[3]"),
         (1, "tech_frame"),
         (1, "treaties[0]"),
-        (1, "worst_good"),
     ];
 
     /// **run117's window — the leader record across two market
@@ -3160,7 +3155,12 @@ mod tests {
         };
         // Block 10577 is the state after sim-frame 10576, the rotation's
         // `Setup`: the original has bought a hundred food and emptied its
-        // purse, and both halves are in this one pair.
+        // purse, and both halves are in this one pair. **Since item 661
+        // this crate does the same**: its purse is 128 on 10576, the four
+        // wealth it was short were the trade route's 32 a frame, and the
+        // route is worth the original's since the Barracks and Stable
+        // joined Norwich on 8734 (`docs/AI.md` §63). Until then this crate
+        // bought timber at 94 with 124: `(94, 194)` and `(30, 0)`.
         assert_eq!(
             (
                 row(1, 10_576, "bucket[0:food]"),
@@ -3168,13 +3168,15 @@ mod tests {
                 row(1, 10_576, "bucket[2:wealth]"),
                 row(1, 10_577, "bucket[2:wealth]"),
             ),
-            ((93, 93), (94, 194), (124, 128), (30, 0)),
-            "run117's buy frame moved — the original buys a hundred food              for 128 on sim-frame 10576 and this crate buys timber at 94              with the four wealth it is short"
+            ((93, 93), (194, 194), (128, 128), (0, 0)),
+            "run117's buy frame moved — both sides buy a hundred food for 128 \
+             on sim-frame 10576 and empty the purse"
         );
         assert_eq!(
             row(1, 10_582, "income[2:wealth]"),
-            (960, 992),
-            "the wealth income residue moved — 32 is the successor              (`docs/ECONOMY.md` §13.4)"
+            (992, 992),
+            "the wealth income moved — 960 against 992 until item 661 \
+             (`docs/ECONOMY.md` §13.4, `docs/AI.md` §63)"
         );
         let parting: Vec<(usize, &str)> = residue.keys().map(|(w, k)| (*w, k.as_str())).collect();
         assert_eq!(

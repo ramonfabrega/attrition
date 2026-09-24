@@ -4844,13 +4844,18 @@ mod tests {
         // headline: the word went 12135 → 12184 and **12182**'s rotation
         // came under it (`docs/ARMY.md` §20). The streams above agree
         // through it.
+        //
+        // **Twenty → twenty-one on item 661**, the literal following the
+        // headline: the word went 12184 → 12429 and **12385**'s rotation
+        // came under it (`docs/AI.md` §63). The streams above agree
+        // through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182
+                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385
             ],
-            "below the word Great Lakes takes exactly twenty market \
+            "below the word Great Lakes takes exactly twenty-one market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -7910,11 +7915,12 @@ mod tests {
         // compared against a literal 0, and the sim's own linked caravan
         // agrees. `trade_val` stays, and now says what it is — 160 against
         // 176, the Barracks and Stable this crate never seats in Norwich
-        // (`docs/AI.md` §63).
+        // (`docs/AI.md` §63). **Nineteen → seventeen on the same item's
+        // fix**: both `trade_val` rows agree once the two join Norwich.
         assert_eq!(
             cities.len(),
-            19,
-            "the window's standing city residue is not nineteen fields: {cities:?}"
+            17,
+            "the window's standing city residue is not seventeen fields: {cities:?}"
         );
         assert!(
             cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),
@@ -8330,8 +8336,11 @@ mod tests {
             // Timber 1/6 → 6/6 and metal 44/47 → 47/47 on item 545: the
             // Hoplites 11183 buys cost the original's 61/42 here too, and
             // the Horse Archers of 10782 its 57/38 (`MILITARY_UNIT_DISCOUNT`,
-            // `docs/AI.md` §56). The wealth is (514)'s income gap.
-            ((2, 2), (11, 6), (6, 6), (47, 47), (430, 430), (-1, -1)),
+            // `docs/AI.md` §56). ~~The wealth is (514)'s income gap.~~
+            // Wealth 11/6 → 6/6 on item 661: the gap was the trade routes,
+            // worth 160 against 176 until the Barracks and Stable joined
+            // Norwich on 8734 (`docs/AI.md` §63).
+            ((2, 2), (6, 6), (6, 6), (47, 47), (430, 430), (-1, -1)),
             "the word's inputs moved — 11185's `use_market` need is the \
              head and slot 1, and slot 1 agrees since item 327"
         );
@@ -10021,8 +10030,12 @@ mod tests {
         // sim's own `vans.length` agree and leave, and the four that read
         // the BUILD record's `city` and `city_down` for the Barracks
         // `1/2016`, the Stable `1/2018` and the Mine `1/2021` arrive — this
-        // crate never seats the two in Norwich (`docs/AI.md` §63).
-        assert_eq!(under, 250, "the floor under the word");
+        // crate never seats the two in Norwich (`docs/AI.md` §63). **Its
+        // fix took twelve** (250 → 238), and nothing arrived: those four
+        // BUILD rows, both cities' `trade_val`, who=1's five wealth rows
+        // (`bucket`, `income`, `leftover`, `rate`, `resources`) and
+        // `worst_good`, which read the wealth.
+        assert_eq!(under, 238, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10422,52 +10435,45 @@ mod tests {
         // are gone, and so are `1/68`'s rows on 12136.
         assert_eq!(newborn, Vec::<String>::new(), "1/68 on 12135's block");
         assert_eq!(one_sided, [], "a figure changes animation on one side only");
-        // **The next word, 12184 (block 12185), and the rows under it.** Ours
-        // spends 47 draws against 95, parting at index 0. Ours spends six
+        // ~~**The next word, 12184 (block 12185), and the rows under it.**~~
+        // Ours spent 47 draws against 95, parting at index 0. Ours spent six
         // pairs of `Leader::create_buildings+0xffb`/`+0x1017`, and the
-        // original spends a bird's thirty-round `Animal::think_bird+0x2aa`/
-        // `+0x2d3` arm. who=1's production list parts first, on 12181. On
-        // 12183 ours has queued at `1/2019`, and the original has not.
-        // These rows stood before item 657 too. What else stands under the
-        // word is residue with no draw:
+        // original a bird's thirty-round `Animal::think_bird+0x2aa`/`+0x2d3`
+        // arm. who=1's production list parted on 12181: ours offered the
+        // Scholar at 6,585,365 for one and the original at 0 for three,
+        // because the original's purse held 55 wealth against a price of 56
+        // and ours held 57. Ours bought it on 12182 and ran a second Units /
+        // Buildings / Make pass the original never ran; that pass's
+        // `create_buildings` spent the extra draws.
+        //
+        // **Item 661 moved it 12184 → 12429, and the mechanism was a
+        // trade route's worth** (`docs/AI.md` §63). The wealth was parked
+        // 514's 32 income: `trade_val` 160 against 176 on both of who=1's
+        // cities, because this crate never seated the Barracks `1/2016` and
+        // the Stable `1/2018` in Norwich. The original does it on block
+        // 8734, through `Leader::gain_tech`'s Civic-level arm, which
+        // re-masks every city and runs `City::find_buildings`. **The move's
+        // value diff**: the thirteen leader rows on 12181–12184 and
+        // `1/2019`'s queue row on 12183 are gone, and nothing opens on the
+        // word's old blocks. What stands under the window is residue that
+        // spends no draw:
         // - `form` −1 against the 0 `Unit::init` writes, on both newborns;
         // - their birth-block `orders_x`, one block;
         // - group 68, the original's `go_to_unit` walk group, freed on
-        //   12086 there and kept here.
-        // No mechanism is named for the production list.
+        //   12086 there and kept here;
+        // - `MAKE[2].city` from 11982 and `SITE[4].val` from 11976.
         assert_eq!(
             chain,
             [
                 "12086 1/-2 pool:68: ours [68] theirs []",
-                "12181 1/-1 leader:MAKE[0].cat: ours 4 theirs 8",
-                "12181 1/-1 leader:MAKE[0].escrow: ours 0 theirs 1",
-                "12181 1/-1 leader:MAKE[0].t: ours 52 theirs 552",
-                "12181 1/-1 leader:MAKE[0].val: ours 6585365 theirs 1260000",
-                "12182 1/-1 leader:MAKE[1].t: ours 430 theirs 66",
-                "12182 1/-1 leader:MAKE[1].val: ours 3945568 theirs 209664",
                 "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
-                "12182 1/-1 leader:MAKE[2].escrow: ours 1 theirs 0",
-                "12182 1/-1 leader:MAKE[2].t: ours 437 theirs 438",
-                "12182 1/-1 leader:MAKE[2].val: ours 2499999 theirs 100000",
-                "12182 1/-1 leader:MAKE[3].cat: ours 7 theirs 4",
-                "12182 1/-1 leader:MAKE[3].t: ours 66 theirs 419",
-                "12182 1/-1 leader:MAKE[3].val: ours 209664 theirs 18750",
-                "12182 1/-1 leader:MAKE[4].escrow: ours 0 theirs 1",
-                "12181 1/-1 leader:MAKE[4].num: ours 1 theirs 3",
-                "12182 1/-1 leader:MAKE[4].t: ours 52 theirs 419",
-                "12181 1/-1 leader:MAKE[4].val: ours 6585365 theirs 0",
                 "11976 1/-1 leader:SITE[4].val: ours 54243 theirs 36750",
-                "12183 1/-1 leader:bucket[0:food]: ours 7 theirs 107",
-                "12184 1/-1 leader:effective_pop: ours 59 theirs 58",
-                "12183 1/-1 leader:num_queued[2]: ours 1 theirs 0",
-                "12183 1/-1 leader:production_step: ours 9 theirs 0",
                 "11993 1/67 form: ours -1 theirs 0",
                 "11993 1/67 orders_x: ours 43584 theirs 43848",
                 "11993 1/67 orders_y: ours 15744 theirs 16344",
                 "12057 1/68 form: ours -1 theirs 0",
                 "12057 1/68 orders_x: ours 45120 theirs 45144",
                 "12057 1/68 orders_y: ours 23424 theirs 24120",
-                "12183 1/2019 queue:queued: ours 1 theirs 0",
             ],
             "the rows under the next word"
         );
@@ -10479,8 +10485,12 @@ mod tests {
         // sim's own `vans.length` agree and leave, and the four that read
         // the BUILD record's `city` and `city_down` for the Barracks
         // `1/2016`, the Stable `1/2018` and the Mine `1/2021` arrive — this
-        // crate never seats the two in Norwich (`docs/AI.md` §63).
-        assert_eq!((under, firsts.len()), (250, 1_434), "the floor");
+        // crate never seats the two in Norwich (`docs/AI.md` §63). **Its
+        // fix took twelve under the conversion** (250 → 238): those four,
+        // both `trade_val`s, the five wealth rows and `worst_good`. Past the
+        // word's old block **1,434 → 275**: the second pass's purchases
+        // and everything downstream of them are gone.
+        assert_eq!((under, firsts.len()), (238, 275), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
