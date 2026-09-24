@@ -6200,3 +6200,67 @@ runs **straight along row 9**, every waypoint at `y 7320`, x 4248 to 11160,
 through the SANDY cells of region 65 that this crate's plan bends north
 round (§17's "ground"), and it arrives fifty frames later than this crate's
 longer route. See `docs/GOLDEN.md` §17.
+
+## run184 — chapter ten, the patrol line (2026-09-24, item 693)
+
+`docs/GOLDEN.md` §18, from `tools/gamelog/golden/chapter10.cmd`: `!ai
+off`, chapter nine's Chariot `0/6` on 610, a Hoplite squad `0/7`–`0/9` on
+612 east of the sand, and two **player patrols** through the original's
+`CommandManager::issue_patrol`, called from `rontrace.dll` by the new
+`@patrol` line — the chariot on 620, the squad by its captain on 640. The
+staging, the premise's killer and the falsifiers were committed before the
+run (`a4eed08`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch10 \
+    --map 14 --end-frame 1250 --log-window 605 1250 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter10.cmd
+```
+
+`success: true`, exit 0, 1,251 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take, **243 s launch to exit, 85 MB
+of dump and 10.7 MB of trace**. The lane lock was stale when it launched:
+its holder, pid 78882 (att-643's `longtrace.sh`), had exited. 647 blocks:
+1, 605..1250 and the `!quit` block 1251. The five `INFO cmd` records
+returned 1 (`cmdsran.py`). Waited on with `WAITRUN_RUNNER=unattended_capture.py
+waitrun.sh <viadriver log>`, which reports no banner on a golden lane by
+design; the receipt is the verdict. **The same game as run180 to frame
+693**: `rngcmp.py` finds 0..693 identical — the hoplites' new seat draws
+nothing — and 694, run180's chariot re-plan, first differing.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6`, uid 13, at (3192, 7032) |
+| 620 | `INFO 17` | line 4, refusal 0, package 10 → 25 bytes, one object |
+| 640 | `INFO 18` | `0/7`, uid 14, at (10872, 7800) |
+| 640 | `INFO 17` | line 5, refusal 0, package 10 → 25 bytes, one object |
+
+Each call adds the emulator's 15 bytes to the turn's 10-byte `camera`.
+
+### The processed command, and §18's falsifiers
+
+Between blocks 621 and 622 the dump prints `process_group, new 0 1 621` and
+`process_patrol 3456 11136 2` (`to_x`, `to_y`, `queued`), and the same for
+the squad between 641 and 642. **None of the four falsifiers fires.**
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the issue | appended and processed on the next frame | as predicted, on 621 and 641 |
+| the chariot's patrol, block 622 | one `GroupPatrolOrder`, points (3192, 7032) and (3480, 11160) | as predicted: flags 4, `waypoint 1`, id **621100**, `oxx 6`, `form_id 0` |
+| the chariot's leg, block 622 | an `ATTACKTOORDER` above the patrol | type 2, `flags 1` (no action bit: `do_patrol` passes action 0), to (3480, 11160) |
+| the squad's patrols, block 642 | three, one id, leader `0/7` | three, id **641000**, `oxx 7`, points (10872, 7800) and (11160, 11928), `waypoint 1` — and **`form_id 0` on all three**: `redo_patrol_order` has already rebuilt them with the leader's index |
+| the squad's leg, block 642 | three `GroupAttackToOrder`s, one id | type 21 ×3, id **641001**, `form_id` 0–2, slots x 11160 / 11016 / 11304 on y 11928 |
+| the turns | chariot near 770, 915, 1060, 1205; squad near 820, 1000, 1180 | chariot's leg empties on **761, 903, 1043, 1185** exactly on its points, and the next block holds the leg to the other point with `waypoint` stepped; the captain's on **812, 985, 1155**, new leg ids **812002, 985003, 1155004** |
+
+**Two things the reading did not say, both visible in the table.** A turn
+spends a block: on the block a leg empties, the patrol is alone at the
+head, and `do_patrol` issues the next leg on the tick after. And the
+squad's `GroupAttackToOrder`s degrade to plain `ATTACKTOORDER`s to their
+slots ~14 blocks short of the point (798, 970, 1141: `ungroup_move_order`).
+When the captain turns, `0/8` has not reached its slot yet: the halt drops
+its leg and the new group leg replaces it.

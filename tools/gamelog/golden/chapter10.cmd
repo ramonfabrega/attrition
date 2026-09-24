@@ -127,6 +127,16 @@
 #    ~4,100 and ~3,850): the chariot turns near 770, 915, 1060 and 1205, the
 #    squad near 820, 1000 and 1180.
 #
+# RUN 2026-09-24 as run184 (item 693; docs/RUNS.md): 243 s, 85 MB. NO
+# FALSIFIER FIRED. Both `INFO 17` records issued (package 10 -> 25); the dump
+# logs `process_group` and `process_patrol` between blocks 621/622 and
+# 641/642. Block 622: `0/6` a GroupPatrolOrder, points (3192, 7032) and
+# (3480, 11160), waypoint 1, id 621100, under an ATTACKTOORDER (flags 1).
+# Block 642: three GroupPatrolOrders, id 641000, leader 0/7, form_id 0 on
+# all three (the leader's, from redo_patrol_order), under three
+# GroupAttackToOrders id 641001. Turns: chariot 761/903/1043/1185, squad
+# 812/985/1155, each one block with the patrol alone at the head.
+#
 # check: `cmdsran.py` shows five `INFO cmd` returning 1 (the three cheats,
 #        `37 !ffwd`, `1250 !quit`); the two `@` lines are `INFO 17` records.
 # check: `MAP_STYLE 14`, seed 12345, blocks 1 and 605..1249 at least.
