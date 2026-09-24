@@ -8419,3 +8419,104 @@ No mechanism is named (DECISIONS 42).
 
 **Reading only**: the capture arm, which no run reaches. The rest of
 `fix_world_vals` is backed by the diffs above.
+
+## 68. The caravan verifies a road the sweep took, and the word moves to 14650 (2026-09-24, item 695)
+
+Item 688 left Great Lakes' word at **14529**. There, ours spent 7 draws
+against the original's 3,213, parting at index 0: ours `Guy::set_anim
++0x97a`, theirs `PathFinder::calc_road_cost+0x46`. On block 14529 the
+capital moves to Norwich in the original only. The hypothesis was CITIES
+§4's Senate arm with a road search after it.
+
+### 68.1 The readings, and what killed each
+
+Each was written with its killer before the reading:
+
+- **The old capital is lost or downgraded.** Killed if `1/2000` stands
+  whole on 14528 on both sides. **Killed**: London stands, and only
+  `0x10` leaves it (`city_flags` 18449 → 18433).
+- **A Senate or government building finishes in Norwich.** Killed if no
+  building in Norwich changes state on 14527–14529. **Holds**:
+  `1/2024`, type 438 (Senate, 414 + 24), goes `flags` 3 → 7 on block
+  14529. The capital's move follows from it, and it is drawless.
+- **The road search is the capital's consequence.** Killed if a road
+  search runs on 14528 too. **Killed**: 775 road draws on 14528, on
+  which both sides agree. The word's search is someone else's.
+
+The search: 3,206 draws on 14529 and 3,206 on 14530, which is the budget
+of 3,200 plus the pops that crossed it. A building's search stops at the
+budget. Only a caravan's carries on to the next frame (`docs/CARAVAN.md`
+§5.2). And the schedule `(frame + o) % 16` fires no Norwich building on
+14529. The caravan `1/23` (London ↔ Norwich) loses flag `0x20` on every
+path entry on block 14530. That is `Unit::do_move`'s road check
+(CARAVAN §10), and it fires only on a waypoint whose tile is no longer
+road. The tile, (220, 101), is under the Barracks `1/2025`. Here it was
+`0x190`: placed on, and road.
+
+### 68.2 What run189 showed
+
+run189 is a packet at logger 14529 with a `WORLD=6` dump beside it, and
+matches run53 draw for draw over 14,536 frames. In the original,
+(220, 101) is `0x180`, not road. Across the whole map the surface parted
+on **17 tiles and no others**, the trade road from (220, 98) south to
+(216, 115). That road was laid on 5573 and never re-planned. In the
+packet, (220, 97)'s element claims N alone, and the cells from (220, 100)
+south hold no elements at all. `Roads::scan_and_kill_stray_roads`, which
+`Game::do_frame` calls after `frame++`, took them: `docs/ROADS.md` §10.
+Its cursor, cell 903, is `14,529 × 7 mod 3,600`.
+
+### 68.3 What it moved
+
+With the sweep (ROADS §10), the check (CARAVAN §10) and the Senate arm
+(`docs/CITIES.md` §15):
+
+- **Great Lakes' word: 14529 → 14650**, inside run178 (block 14651 of
+  its 14899), measured on the tree after 693's merge. **The new delta:
+  ours 2 draws against the original's 3, parting at index 0.** Ours
+  spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original
+  spends `Unit::do_non_flat_gather+0x54b`.
+- **The sweep's kills here are the original's**: (216, 115) on 5905,
+  then one tile a visit to (220, 98) on 14100. By 14529 no tile's surface
+  parts from run189's (`run189_s_world_has_the_original_s_roads_at_14529`).
+- **run93's block 7932**, the only other mid-game world on Great Lakes,
+  loses its last parted cell. That is (54, 28)'s road flag, whose four
+  tiles the sweep had taken by 7448. The tile masks go 146 → 142.
+- **The value diff on run178**: nothing parts on 14528..14532. The two
+  capital rows, `1/23`'s 24 path rows and `1/28`'s figure are gone. The
+  walk's keys go 1,375 → 1,279.
+- **East Indies holds at 15782**, and every golden chapter holds.
+  run53's market draws below the word go 30 → 32 (14582, 14585).
+- **The endpoint at 24001**, pinned in no direction: Great Lakes `off`
+  46 → 30. East Indies holds.
+
+### 68.4 The new word's block, 14651
+
+- **Under it, on 14650**, `1/43`, who=1's gatherer, collides with `1/7`
+  here and `1/6` there, and takes a kind-1 move here against a kind-7
+  order there.
+- **On 14651** one record parts: the Woodcutter's Camp `1/2009`'s gather
+  list, 192 keys. The original's list is one entry along from this
+  crate's (`tx[1]` here is `tx[0]` there). 517 rows stand on the block.
+- **Also under it**: who=1's `known_rares` on 14536 (ours 4, theirs 0),
+  with or without the Senate arm. And who=0's `gather_stamp` on 14537,
+  re-stamped eight frames early because this crate recomputes territory
+  at once.
+
+No mechanism is named (DECISIONS 42).
+
+### 68.5 What this has *not* established
+
+- **`element_num`** is the render piece, and the sweep's "C4" exemption
+  reads it. It is taken here as `is_terrain_creation` alone (ROADS
+  §10.5).
+- **`TerrainOut::caravan_step`'s camel steps** are not moved into
+  `ref_count` here (CARAVAN §10.4). No kill reads either count.
+- **The lazy border recompute** after `fix_borders` (CITIES §15),
+  sixteen frames there against one here.
+- **A pushed group's formation.** `group_move_follower` read an army's
+  list with `army.unwrap_or(0)`. On a pushed group (no army) that indexed
+  out of bounds on Great Lakes 18333, past the new word. It now reads
+  `Sim::gstate`, and a missing slot stands at the leader's point. Before
+  this, a group with no army that reached the line panicked. So no
+  passing test ran it, chapters nine and ten included, and both pass on
+  the gate.

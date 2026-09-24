@@ -3200,10 +3200,15 @@ mod tests {
         // two-by-two under each (`docs/MERCHANT.md` §3.2). What stands is
         // cell (54, 28)'s flag `0x80` here against 0 there, which the arm
         // does not write and which parted before it.
+        //
+        // **1 → 0 on item 695**: (54, 28)'s `0x80` is the cell's road flag,
+        // and its four tiles of the trade road, (216, 112..115), are the
+        // first four the stray-road sweep takes, 5905 to 7448
+        // (`docs/ROADS.md` §10). All 3,600 cells agree.
         assert_eq!(
             cell_bad.len(),
-            1,
-            "run93's block 7932 no longer parts on 1 cell — if the AI's \
+            0,
+            "run93's block 7932 parts on a cell again — if the AI's \
              base has been fixed this pin is the one to lower, and if it has \
              grown the landing that grew it is the bug: {:?}",
             &cell_bad[..cell_bad.len().min(8)]
@@ -3233,10 +3238,20 @@ mod tests {
         // (209–212, 74–77), agrees on both bits and keeps only the `0x4`
         // the rest of this cluster lacks. No tile parts that did not
         // before (`docs/MERCHANT.md` §3.2).
+        //
+        // **146 → 142 on item 695**: the trade road's (216, 112..115),
+        // road here and plain there, which the stray-road sweep takes
+        // between 5905 and 7448 (`docs/ROADS.md` §10).
+        assert!(
+            tile_bad
+                .iter()
+                .all(|&(x, y, _, _)| !(x == 216 && (112..=115).contains(&y))),
+            "the sweep's four tiles part again at 7932"
+        );
         assert_eq!(
             tile_bad.len(),
-            146,
-            "run93's block 7932 no longer parts on 146 tile masks — if the \
+            142,
+            "run93's block 7932 no longer parts on 142 tile masks — if the \
              cluster has been fixed this pin is the one to lower, and if it \
              has grown the landing that grew it is the bug"
         );
