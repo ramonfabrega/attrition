@@ -12927,8 +12927,13 @@ mod tests {
         // captures print `LEADERS=1`'s seven-key stub — `who tribe
         // defeated_by gov score leader_flags leader_flags2` — and not one
         // key of `diff::leader::rows`. The make list, the stockpile and
-        // the sites are not on this disk anywhere in [7880, 10399].
-        assert_eq!(leader_rows, 0, "run98/run99's leader record is the stub");
+        // the sites are not on this disk anywhere in [7880, 10399]. Since
+        // item 706 the stub's `gov` is compared, one key a leader a block.
+        assert_eq!(
+            leader_rows,
+            2 * blocks,
+            "run98/run99's leader record is the stub, and `gov` is its one key read"
+        );
         assert!(missing.contains("bucket[2:wealth]"), "{missing:?}");
         // **The old word's blocks, 9710..9712, and the move's value diff**
         // (item 573). Until the fix they held one row, `1/28 unlinked`:
@@ -13262,7 +13267,7 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
         // on run139's record, both leaders, all forty blocks.
-        assert_eq!(leader_rows, 84_240, "40 blocks x 2 leaders x 1,053 keys");
+        assert_eq!(leader_rows, 84_400, "40 blocks x 2 leaders x 1,055 keys");
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -13379,8 +13384,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "250 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "250 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -13507,8 +13512,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "630 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "630 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -13761,8 +13766,8 @@ mod tests {
         };
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "120 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "120 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
         // are who=1's make list (`MAKE[].city`) and the human's
@@ -13954,8 +13959,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "170 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "170 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14082,8 +14087,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "150 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "150 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14567,7 +14572,7 @@ mod tests {
         // 1,531 keys a leader), which no widening had read.
         assert_eq!(
             leader_rows, 1_860_480,
-            "360 blocks x 2 leaders x (1,053 + 1,531) keys"
+            "360 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value

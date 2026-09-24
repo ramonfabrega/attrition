@@ -2874,7 +2874,12 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHT: i64 = 900;
 /// the leaders' `treaties[·]`, both on 660.
 pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 94;
+/// The leader keys chapter eight's dump prints and the leader diff reads:
+/// 94 until item 706 read `gov` (95).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 95;
+/// The leader keys `LEADERS=2` prints and the leader diff reads, a
+/// player: the goods block's 88, and `gov` since item 706.
+pub(crate) const LEADERS_TWO_KEYS: usize = 89;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
