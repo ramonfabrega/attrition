@@ -10999,7 +10999,9 @@ mod tests {
     /// from run123's 11400 across nine captures, with every player-1 pool
     /// list from run135's first block.
     ///
-    /// The word's frame, 14982, writes block **14983**.
+    /// The word's frame, 14982, writes block **14983**. Item 706 moved
+    /// the word past run192 to 15175; this keeps the move's value diff on
+    /// 14946 and 14983.
     #[test]
     fn run192_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -11064,67 +11066,190 @@ mod tests {
         }
         let standing_n = standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len);
         let under = firsts.values().filter(|(f, _)| *f <= RUN178_TAIL).count();
-        // **Under the word, on run192's own blocks: the free train.** On
-        // 14946 a who=1 Barracks' free units `1/76`–`1/78` are born on
-        // both sides at (42648, 20472), as type **120** here and **127**
-        // there: `free_train` runs the base through `current_upgrade`
-        // (`crates/sim/src/nations.rs`), and the two answer differently.
-        // Their `myhits` read 70 against 88 and their graphic piece 120
-        // against 127; the leader's `num_units` moves with them. Nothing
-        // parts from 14900 to 14945. On 14976 the leader's `attack` reads
-        // 167 against 170. No mechanism is named (DECISIONS 42).
+        // **Under the word, on run192's own blocks: the free train, built
+        // by item 706.** On 14946 a who=1 Barracks' free archers `1/76`–
+        // `1/78` are born on both sides at (42648, 20472). They were
+        // Bowmen (120) here and Longbowmen (127) there, `myhits` 70
+        // against 88, because this crate's `Tribe::graft` was the
+        // identity and the British `get_graft(Archers)` answered Archers
+        // (`docs/TECH.md` §"The graft table"). With the table the 15 rows
+        // of type, hits, piece and `num_units` are gone, and so is the
+        // leader's `attack` on 14976. What stands is parked 646's `form`.
+        //
+        // **The old word's block, 14983, built by item 706 too**: who=1's
+        // Senate finishes Despotism on tick 14982 and trains The Despot,
+        // `1/79` (`docs/TECH.md` §"The government patriot"). It is born
+        // where the original's is, and `gov` and `gov_hero_frame` agree.
+        // Its order point does not: the original's Despot is still inside
+        // the Senate (`visible 0`, `orders_x/y` its own point), and ours
+        // has come out onto its ring. That is the hypothesis for the new
+        // word, 15175, and it is not built here (DECISIONS 42).
         assert_eq!(
             own,
             [
-                "14983 1/-1 leader:active: ours 65 theirs 66",
-                "14976 1/-1 leader:attack: ours 167 theirs 170",
-                "14946 1/-1 leader:num_units[120]: ours 1 theirs 0",
-                "14946 1/-1 leader:num_units[127]: ours 3 theirs 4",
-                "14983 1/-1 leader:num_units[302]: ours 0 theirs 1",
-                "14983 1/62 g.cur_anim[0]: ours 0 theirs 1",
-                "14983 1/62 g.end_time[0]: ours 32 theirs 64",
                 "14946 1/76 form: ours -1 theirs 0",
-                "14946 1/76 g.gpiece[0]: ours 120 theirs 127",
-                "14946 1/76 hits:myhits: ours 70 theirs 88",
-                "14946 1/76 hits_left: ours 70 theirs 88",
-                "14946 1/76 myhits: ours 70 theirs 88",
                 "14946 1/77 form: ours -1 theirs 0",
-                "14946 1/77 g.gpiece[0]: ours 120 theirs 127",
-                "14946 1/77 hits:myhits: ours 70 theirs 88",
-                "14946 1/77 hits_left: ours 70 theirs 88",
-                "14946 1/77 myhits: ours 70 theirs 88",
                 "14946 1/78 form: ours -1 theirs 0",
-                "14946 1/78 g.gpiece[0]: ours 120 theirs 127",
-                "14946 1/78 hits:myhits: ours 70 theirs 88",
-                "14946 1/78 hits_left: ours 70 theirs 88",
-                "14946 1/78 myhits: ours 70 theirs 88",
-                "14983 1/79 unlinked: the dump holds it alone",
+                "14983 1/79 form: ours -1 theirs 0",
+                "14983 1/79 orders_x: ours 44160 theirs 44184",
+                "14983 1/79 orders_y: ours 23712 theirs 24552",
             ],
             "the rows on run192's own blocks, to the word's"
         );
-        // **The word, 14982 (block 14983).** The original spends three
-        // `Guy::init_real+0x52` where this crate spends none, then the
-        // frame's `Guy::inc_time` wraps: 15 draws against 11, parting at
-        // index 0. On the block `1/79` stands in the dump alone, three
-        // figures of guy type 352 at (44184, 24552) with `myhits` 109, the
-        // leader counts it (`active`, `num_units[302]`), and `1/62`'s
-        // figure wraps there alone. No mechanism is named (DECISIONS 42).
+        // **The old word, 14982 (block 14983).** The original spent three
+        // `Guy::init_real+0x52` where this crate spent none: the Despot's
+        // three figures. Since item 706 both sides birth it, the leader's
+        // `active` and `num_units[302]` agree, and `1/62`'s wrap agrees.
+        // `1/79` parts on three keys: `form` and the order point above.
         let words: Vec<(i64, i64, usize)> =
             word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
         assert_eq!(
             words,
-            [(1, -1, 2), (1, 62, 2), (1, 79, 1)],
+            [(1, 79, 3)],
             "who parts first on 14983, and on how many keys"
         );
-        assert_eq!(standing_n, 334, "every row standing on 14983");
+        assert_eq!(standing_n, 317, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
+        assert_eq!((under, own.len(), firsts.len()), (416, 6, 422), "the floor");
+    }
+
+    /// **run196 — Great Lakes' word 15175, widened whole, both directions**
+    /// (item 706). run192's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_PATRIOT`]: six blocks shared with run192, the
+    /// 136 up to the word, its block, and 56 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across ten captures, with every player-1 pool
+    /// list from run135's first block.
+    ///
+    /// The word's frame, 15175, writes block **15176**.
+    #[test]
+    fn run196_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_PATRIOT_BLOCK;
+        /// run192's last block: everything above it is run196's.
+        const RUN192_TAIL: i64 = WIDENING_GREAT_LAKES_BIRTH.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run196",
+            &[
+                (
+                    "gamelog-run123-greatlakes-marketword.txt",
+                    WIDENING_GREAT_LAKES_PATRIOT.0,
+                ),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
+                (
+                    "gamelog-run178-greatlakes-copyword.txt",
+                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
+                ),
+                (
+                    "gamelog-run192-greatlakes-birthword.txt",
+                    WIDENING_GREAT_LAKES_COPY.1 + 1,
+                ),
+                ("gamelog-run196-greatlakes-patriotword.txt", RUN192_TAIL + 1),
+            ],
+            WIDENING_GREAT_LAKES_PATRIOT,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            (under, own.len(), firsts.len()),
-            (416, 23, 668),
-            "the floor"
+            blocks,
+            (WIDENING_GREAT_LAKES_PATRIOT.1 - WIDENING_GREAT_LAKES_PATRIOT.0 + 1) as usize,
+            "the walk is whole"
         );
+        // **Under the word, on run196's own blocks: the three free
+        // Longbowmen, and nobody else.** The Barracks' free archers `1/76`–
+        // `1/78` (born on 14946, item 706's graft table) take guard orders
+        // on 15095, and the posts are handed out the other way round:
+        // `1/77` guards (42696, 22392) here and (42984, 22344) there, and
+        // `1/78` the other way round. From there their steps part, and on
+        // 15151–15152 their order kinds do too, 12 here against 2 there;
+        // `1/76` follows on 15180. The Despot `1/79` parts nowhere before
+        // 15208. So run196's R2 and R3, which named the Despot, are both
+        // killed. No mechanism is named (DECISIONS 42).
+        let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (RUN192_TAIL + 1..=WORD_BLOCK).contains(f) {
+                *own.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let own: Vec<(i64, i64, i64, usize)> =
+            own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        assert_eq!(
+            own,
+            [
+                (15_095, 1, 77, 28),
+                (15_095, 1, 78, 9),
+                (15_096, 1, 77, 3),
+                (15_096, 1, 78, 9),
+                (15_097, 1, 76, 1),
+                (15_097, 1, 78, 4),
+                (15_098, 1, 76, 9),
+                (15_099, 1, 76, 5),
+                (15_099, 1, 78, 1),
+                (15_106, 1, 78, 3),
+                (15_112, 1, 76, 1),
+                (15_117, 1, 76, 2),
+                (15_151, 1, 77, 4),
+                (15_152, 1, 77, 2),
+                (15_152, 1, 78, 5),
+                (15_153, 1, 78, 2),
+                (15_157, 1, 76, 1),
+            ],
+            "who parts first on run196's own blocks up to the word's, and on how many keys"
+        );
+        let posts: Vec<String> = firsts
+            .iter()
+            .filter(|((_, _, what), (f, _))| *f == 15_095 && what.starts_with("orders_"))
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert_eq!(
+            posts,
+            [
+                "15095 1/77 orders_x: ours 42696 theirs 42984",
+                "15095 1/77 orders_y: ours 22392 theirs 22344",
+                "15095 1/78 orders_x: ours 42984 theirs 42696",
+                "15095 1/78 orders_y: ours 22344 theirs 22392",
+            ],
+            "the two guard posts, handed out the other way round"
+        );
+        // **The word, 15175 (block 15176).** Ours spends one
+        // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` more than the
+        // original. Nothing first-parts on the block itself: the
+        // Longbowmen's guard rows stand from 15151.
+        assert!(
+            !firsts.values().any(|(f, _)| *f == WORD_BLOCK),
+            "nothing parts first on 15176"
+        );
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            376,
+            "every row standing on 15176"
+        );
+        // **The floor**: run192's 422 to its last block, exactly as
+        // `run192_s_word_frame_is_widened_whole` pins it (the chain is the
+        // same walk). Then run196's own rows up to the word's block, and
+        // every key to the window's end.
+        let under = firsts.values().filter(|(f, _)| *f <= RUN192_TAIL).count();
+        let mid = firsts
+            .values()
+            .filter(|(f, _)| (RUN192_TAIL + 1..=WORD_BLOCK).contains(f))
+            .count();
+        assert_eq!((under, mid, firsts.len()), (422, 89, 732), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
@@ -12802,8 +12927,13 @@ mod tests {
         // captures print `LEADERS=1`'s seven-key stub — `who tribe
         // defeated_by gov score leader_flags leader_flags2` — and not one
         // key of `diff::leader::rows`. The make list, the stockpile and
-        // the sites are not on this disk anywhere in [7880, 10399].
-        assert_eq!(leader_rows, 0, "run98/run99's leader record is the stub");
+        // the sites are not on this disk anywhere in [7880, 10399]. Since
+        // item 706 the stub's `gov` is compared, one key a leader a block.
+        assert_eq!(
+            leader_rows,
+            2 * blocks,
+            "run98/run99's leader record is the stub, and `gov` is its one key read"
+        );
         assert!(missing.contains("bucket[2:wealth]"), "{missing:?}");
         // **The old word's blocks, 9710..9712, and the move's value diff**
         // (item 573). Until the fix they held one row, `1/28 unlinked`:
@@ -13137,7 +13267,7 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
         // on run139's record, both leaders, all forty blocks.
-        assert_eq!(leader_rows, 84_240, "40 blocks x 2 leaders x 1,053 keys");
+        assert_eq!(leader_rows, 84_400, "40 blocks x 2 leaders x 1,055 keys");
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -13254,8 +13384,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "250 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "250 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -13382,8 +13512,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "630 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "630 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -13636,8 +13766,8 @@ mod tests {
         };
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "120 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "120 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
         // are who=1's make list (`MAKE[].city`) and the human's
@@ -13726,6 +13856,74 @@ mod tests {
         assert_eq!((first, under_n, firsts.len()), (270, 282, 282), "the floor");
     }
 
+    /// **run78 — East Indies' old word 15782, the move's value diff**
+    /// (item 706). run78 is `LEADERS=1` over [15700, 15900], so the leader's
+    /// make list and personality are not printed (2,585 keys unprinted),
+    /// and no test had walked it. [`widen_east_indies`] with gaia's
+    /// animals, over the window.
+    ///
+    /// On tick 15782 who=1's Senate finishes Republic (`gov` −1 → 624 on
+    /// block 15783), and `Build::finished` trains its patriot, The Senator
+    /// `1/60` (`docs/TECH.md` §"The government patriot"). Before item 706
+    /// the dump held `1/60` alone on 15783. The extra `Guy::init_real`
+    /// draws were missing, so the sheep `8/2` parted on 15789, and 281
+    /// rows followed it from 15811 to the window's end: 726 keys in all.
+    /// Now `1/60` is born where the original's is. It parts on `form`
+    /// (parked 646) and on its order point, because the original's Senator
+    /// is still inside its Senate, as Great Lakes' Despot is on run192's
+    /// 14983. Its pool group parts on 15784 (parked 674). The scout `1/0`'s
+    /// order point on 15800 parts on both trees. It stands under East
+    /// Indies' new word, 15985, whose delta is `Unit::think_scout`.
+    #[test]
+    fn run78_s_old_word_keeps_its_value_diff() {
+        const FIRST: i64 = 15_700;
+        let Some(Widened {
+            firsts,
+            blocks,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run78",
+            "gamelog-run78-eastindies-threeborn.txt",
+            (FIRST, 15_900),
+            &[15_783],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, 200, "the walk is whole");
+        let after: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > FIRST)
+            .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
+            .collect();
+        assert_eq!(
+            after,
+            [
+                "15800 1/0 dest_angle: ours -1740439552 theirs -1743650816",
+                "15800 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+                "15800 1/0 orders_x: ours 7320 theirs 8088",
+                "15800 1/0 orders_y: ours 21912 theirs 17976",
+                "15783 1/60 form: ours -1 theirs 0",
+                "15784 1/60 group: ours 69 theirs 70",
+                "15783 1/60 orders_x: ours 38016 theirs 38040",
+                "15783 1/60 orders_y: ours 41568 theirs 42408",
+            ],
+            "every key first parting past the window's first block"
+        );
+        assert_eq!(
+            standing.get(&15_783).map_or(0, |m| m.len()),
+            440,
+            "every row standing on the old word's block"
+        );
+        // **The floor**: 437 keys standing on the window's first block,
+        // everything that parted in the gap since run166, which no capture
+        // prints. 726 in all before item 706, 445 after it.
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, firsts.len()), (437, 445), "the floor");
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the
@@ -13761,8 +13959,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "170 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "170 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -13889,8 +14087,8 @@ mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_053 + 1_531),
-            "150 blocks x 2 leaders x (1,053 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "150 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14373,8 +14571,8 @@ mod tests {
         // 592, the census's 21 per-region arrays (`leader::REGION_ARRAYS`,
         // 1,531 keys a leader), which no widening had read.
         assert_eq!(
-            leader_rows, 1_860_480,
-            "360 blocks x 2 leaders x (1,053 + 1,531) keys"
+            leader_rows, 1_861_920,
+            "360 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value

@@ -5823,3 +5823,79 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run178-greatlakes-copyword.txt gamelog-run192-greatlakes-birthword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run178 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(14894..14899)")}'
 # **The coverage window landed**: every frame 14978..14986 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run192.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=14978&&f<=14986&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+
+run: 196
+tag: greatlakes-patriotword
+item: 706
+why: Great Lakes' long word is 15175 (item 706), where ours spends 4 draws against 3, parting at index 2 — ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` where the original spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` — and run192, the last capture on this map below 23960, ends on block 15039, so the word's block 15176 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-24, item 706): run192's last
+# block is 15039 and its `!quit` stub 15050; run80 starts at 23960; run53
+# prints only its draw stream. **What the disk could not answer**: every
+# record on the word's block 15176, and every block from 15040 to it —
+# where The Despot `1/79`, born on 14983 still inside its Senate
+# (`visible 0`, its own point as its order) and walking toward (42840,
+# 20424) from 14984 in the original, spends the frames ours spends one
+# `Unit::do_guard` draw more on.
+#
+# **Sized to the word, not to the gap** (Loop 687): the gap is 136
+# blocks (15040..15175), so the window is the gap, the six-block overlap
+# with run192 the widening's chain needs (15034..15039), the word's block
+# 15176, and 56 blocks of runway above it.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run192's game past 15039.** Killed if the trace
+#   differs from run53's on any frame, or if the overlap with run192 on
+#   15034..15039 differs or counts other than six blocks.
+# - **R2 — the parting is the Despot's.** The first unit to part in the
+#   window, other than a newborn's `form` (646) and group id (674), is
+#   `1/79`. Killed if another unit's position or order parts first.
+# - **R3 — it is the Despot's order, not its step.** `1/79`'s order
+#   stack parts (a `GUARD` here where the original holds another, or the
+#   other way round) before its position does. Killed if its position
+#   parts on a block where its orders agree.
+#
+# **run192's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the overlap is byte for byte and the pool lands (no `DEATHS`).
+frames: 15243
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **15034..15232, 199 blocks**: six shared with run192 (15034..15039),
+# the 136 up to the word, its block 15176, and 56 of runway above it.
+frame_window: 15034 15233
+# **Per-frame coverage over the word**, 15171..15179.
+cover: cover=1
+cover: window=15171-15179
+settle_min: 14000000
+# **Sized from run192**: 2.2 MB a block, so 199 blocks is ~0.45 GB. run192
+# took 14 minutes for 146 blocks from launch; this is ~17. 150 polls is
+# fifty minutes.
+poll_max: 150
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run196.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=15233)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run196-greatlakes-patriotword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 199 blocks, 15034..15232, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run196-greatlakes-patriotword.txt" | awk '{v=$3+0; if(v>=15034&&v<15233) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==199 && lo==15034 && hi==15232)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run196-greatlakes-patriotword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=15034&&v<15233)n++} print "blocks with a GROUPDATA: "n; exit !(n==199)}'
+# **The overlap with run192, and the count is the claim** — six blocks,
+# 15034..15039, the same line, nothing excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run192-greatlakes-birthword.txt gamelog-run196-greatlakes-patriotword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run192 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(15034..15039)")}'
+# **The coverage window landed**: every frame 15171..15179 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run196.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=15171&&f<=15179&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+# ==== TAKEN 2026-09-24, **WHOLE** ====
+#
+# 442,099,879 bytes of dump and 20,467,808 of trace, **199 blocks
+# 15034..15232**, a `GROUPDATA` on every one. Launched 17:03 through
+# `viadriver.sh` with no human at the menu and archived 17:21, about 17
+# minutes; the lane lock was stale (pid 76328, dead). All six checks
+# green: 15,244 frames identical to run53, `MAP_STYLE 14`, the window
+# whole, the pool, 6 blocks shared with run192 (15034..15039) and 0
+# differing, and a coverage set on all 9 frames 15171..15179.
+#
+# **The readings, decided on the walk**: **R1 holds**. **R2 is killed**:
+# the first parting is the three free Longbowmen `1/76`–`1/78`'s guard
+# posts on 15095, handed out the other way round, and not the Despot.
+# **R3 is killed with it**: `1/79` parts nowhere before 15208.
+# `run196_s_word_frame_is_widened_whole`.

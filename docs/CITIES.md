@@ -2368,7 +2368,10 @@ the wholesale recompute against the original's lazy one. Without the arm
 it was never re-stamped here (14545's row). The walk's keys went
 1,281 → 1,279.
 
-**Not modelled.** The government hero: run178 prints `gov_hero_frame`
-−1, and `Leader::gain_tech` sets it to 1 on a government. And
-`senates_built`, which the leader record prints (0 → 1 on block 14529)
-and no reader here carries.
+**Not modelled.** ~~The government hero: run178 prints `gov_hero_frame`
+−1, and `Leader::gain_tech` sets it to 1 on a government.~~ The field is
+carried and compared since item 706, and the patriot is trained when a Senate
+finishes a government (`docs/TECH.md` §"The government patriot"). This arm's
+head, which trains one from a newly built Senate, is still a seam. So is
+`senates_built`, which the leader record prints (0 → 1 on block 14529) and no
+reader here carries.

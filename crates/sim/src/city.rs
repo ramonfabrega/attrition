@@ -258,7 +258,7 @@ impl Sim {
             .map_or(Ident::Other, |t| self.build_types[t].ident)
     }
 
-    fn building_is(&self, b: usize, ident: Ident) -> bool {
+    pub(crate) fn building_is(&self, b: usize, ident: Ident) -> bool {
         self.buildings[b]
             .ty
             .is_some_and(|t| build::is(&self.build_types, t, ident))
@@ -1519,8 +1519,9 @@ impl Sim {
     /// London to Norwich on tick 14528 and spends nothing on it.
     ///
     /// SEAM: the arm's head — the government hero trained when
-    /// `gov_hero_frame` is set and none is near — and `senates_built`,
-    /// which no reader here carries; run178 prints `gov_hero_frame` −1.
+    /// `gov_hero_frame` is set and none is near (the field is carried since
+    /// item 706, `docs/TECH.md` §"The government patriot") — and
+    /// `senates_built`, which no reader here carries.
     fn senate_moves_capital(&mut self, b: usize) {
         let who = self.buildings[b].owner;
         let Some(c) = self.buildings[b].city.filter(|&c| self.cities[c].alive) else {

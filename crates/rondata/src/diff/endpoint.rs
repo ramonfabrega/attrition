@@ -531,7 +531,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`City::fix_world_vals`, `docs/AI.md` §67). This map's word holds
         // at 15782, 8,219 frames before this one. DECISIONS 36: the number,
         // not a trade.
-        off: 55,
+        // **55 → 47 off, 0 → 7 unlinked, 3 → 0 extra, 2 → 1
+        // build_unlinked, 16 → 15 build_diverged** on item 706: every
+        // nation's graft table and the Senate's government patriot
+        // (`docs/TECH.md` §"The graft table", §"The government patriot"),
+        // which move this map's word 15782 → 15985, 8,016 frames before
+        // this one. Measured after item 703's merge. The unlinked are
+        // player 1's `76`..`82`. DECISIONS 36: the number, not a trade.
+        off: 47,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -556,7 +563,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **12 → 11** on item 673, beside `off` above.
         // **11 → 10** on item 643, beside `off` above.
         // **10 → 0** on item 688, beside `off` above.
-        unlinked: 0,
+        // **0 → 7** on item 706, beside `off` above.
+        unlinked: 7,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -565,14 +573,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 15782, 8,219 frames before this one; `off` holds at 55. The
         // three are player 1's `83` Bowmen and `84`, `85` Transport
         // Barges. DECISIONS 36: the number, not a trade.
-        extra: 3,
+        // **3 → 0** on item 706, beside `off` above.
+        extra: 0,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
         // **2 → 1** on item 620, beside `off` above.
         // **2 → 1** on item 643, beside `off` above.
         // **1 → 2** on item 688, beside `off` above.
-        build_unlinked: 2,
+        // **2 → 1** on item 706, beside `off` above.
+        build_unlinked: 1,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
@@ -580,7 +590,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **22 → 24** on item 620, beside `off` above.
         // **22 → 18** on item 642, beside `off` above.
         // **18 → 16** on item 688, beside `off` above.
-        build_diverged: 16,
+        // **16 → 15** on item 706, beside `off` above.
+        build_diverged: 15,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1267,11 +1278,19 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 14982. Measured after item 696's merge. The unlinked unit is
         // `1/80`. The 24,000th frame is 9,018 frames past the new word.
         // DECISIONS 36: the number, not a trade.
-        off: 46,
+        // **46 → 47 off, 1 → 0 unlinked, 0 → 1 extra** on item 706: every
+        // nation's graft table and the Senate's government patriot
+        // (`docs/TECH.md` §"The graft table", §"The government patriot"),
+        // which move this map's word 14982 → 15175. Measured after item
+        // 703's merge. The extra unit is `1/81`, a Merchant. The 24,000th
+        // frame is 8,825 frames past the new word. DECISIONS 36: the
+        // number, not a trade.
+        off: 47,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
-        unlinked: 1,
+        // **1 → 0** on item 706, beside `off` above.
+        unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
@@ -1283,7 +1302,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 0 extra** on item 661, beside `off` above.
         // **0 → 1 extra** on item 669, beside `off` above: `1/81`.
         // **1 → 0 extra** on item 688, beside `off` above.
-        extra: 0,
+        // **0 → 1 extra** on item 706, beside `off` above: `1/81`.
+        extra: 1,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
@@ -1678,7 +1698,9 @@ pub const LADDER: [Endpoint; 2] = [
         // **39 → 36** on item 642; see `extra` below.
         // **36 → 37** on item 688 (`docs/AI.md` §67), 707 frames past this
         // map's word 15782. DECISIONS 36: the number, not a trade.
-        off: 37,
+        // **37 → 36** on item 706 (`docs/TECH.md` §"The government
+        // patriot"); see `extra` below.
+        off: 36,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1802,7 +1824,12 @@ pub const LADDER: [Endpoint; 2] = [
         // **13 → 4** on item 643: an animation's name is found case-folded
         // (`docs/ANIM.md` §12); this map's word moves 13640 → 15782, 707
         // frames before this rung.
-        extra: 4,
+        // **4 → 5** on item 706: every nation's graft table and the
+        // Senate's government patriot (`docs/TECH.md`); this map's word
+        // moves 15782 → 15985, 504 frames before this rung. The fifth is
+        // The Senator `1/60`, which this crate now trains and which this
+        // rung's dump does not hold.
+        extra: 5,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

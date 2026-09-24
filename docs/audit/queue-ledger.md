@@ -96,3 +96,11 @@ file; each one is a ten-minute read of the code the row names.
   ("wire when 304 closes"; "takes 224", since 2026-09-04) and never booked
   in any form. The ledger now fails on a number the queue *refers to* that
   no revision ever booked; both were booked the day the check landed.
+
+## Closed by another item's landing, 2026-09-24
+
+- **694** landed with item 706 — East Indies' 15782 was who=1's birth of
+  `1/60`, The Senator, which the Senate's patriot arm now trains
+  (`docs/TECH.md`, "The government patriot"). Its value diff is
+  `run78_s_old_word_keeps_its_value_diff`
+  (`docs/journal/2026-09-24-item-706.md`).

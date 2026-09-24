@@ -817,14 +817,27 @@ pub fn load_tables(
         let id = tree.add(d);
         debug_assert_eq!(id, tech_tree[i]);
     }
-    // The 24 nations. `Tribe::graft` is identity and `barbarian` is false:
-    // neither the graft tables nor the barbarian flags have a located source
-    // (`docs/TECH.md`, "What is not established"). `TechTree::new` seeds one
-    // default tribe; the roster replaces it.
+    // The 24 nations. `Tribe::graft` is `UnitType::init`'s passes 2 and 3
+    // over the unit records (`docs/TECH.md` §"The graft table", diffed
+    // against run3's `DUMP_ALL`); `barbarian` is false, since the flag has
+    // no located source (`docs/TECH.md`, "What is not established").
+    // `TechTree::new` seeds one default tribe; the roster replaces it.
+    let masks: Vec<u32> = units
+        .records
+        .iter()
+        .map(|r| mask_bits(r.text("TRIBE_MASK")))
+        .collect();
+    let tables = tribe_grafts(&masks, &unit_graft, rules.tribes.len());
     tree.tribes.clear();
-    for _ in 0..rules.tribes.len() {
+    for table in tables {
+        let mut graft = vec![None; g + unit_names.len()];
+        for (r, x) in table.into_iter().enumerate() {
+            if x != r {
+                graft[unit_tree[r]] = Some(unit_tree[x]);
+            }
+        }
         tree.add_tribe(tech::Tribe {
-            graft: vec![None; unit_names.len()],
+            graft,
             barbarian: false,
             name: String::new(),
             unit_continent: 0,
@@ -1479,6 +1492,28 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `LeaderData::get_gov@006d6a20` tests six government bonuses, in
+    // this order, and answers a government `TypeIndex` for each:
+    // `SOCIALISM_1` (`0x324`) → `0x273`, `CAPITALISM_1` (`0x325`) →
+    // `0x274`, `MONARCHY_1` (`0x320`) → `0x271`, `DEMOCRACY_1` (`0x322`) →
+    // `0x272`, `DESPOTISM_1` (`0x31a`) → `0x26f`, `REPUBLIC_1` (`0x31d`) →
+    // `0x270`. Bonuses sit at `0x2ac` + their `TECHBONUSES` row; techs at
+    // `BASE_TECHTYPES` + their record.
+    tree.roles.gov_bonuses = [
+        (0x324, 0x273),
+        (0x325, 0x274),
+        (0x320, 0x271),
+        (0x322, 0x272),
+        (0x31a, 0x26f),
+        (0x31d, 0x270),
+    ]
+    .iter()
+    .filter_map(|&(bonus, gov): &(usize, usize)| {
+        let preqs = *bonus_preqs.get(bonus - 0x2ac)?;
+        let gov = *tech_tree.get(gov - BASE_TECHTYPES as usize)?;
+        Some((preqs, gov))
+    })
+    .collect();
     tree.roles.fishermen_preq = [bonus_at(19), bonus_at(20), bonus_at(21)];
     tree.roles.merchants_preq = [bonus_at(99), bonus_at(100), bonus_at(101), bonus_at(102)];
     // And the five ladders `docs/ECONOMY.md` indexes by — `GRANARY2..5`,
@@ -1807,6 +1842,58 @@ fn tech_kind(i: usize) -> Kind {
 }
 
 /// `TRIBE_MASK` as the bit set the tree keeps: bit *i* is nation *i*.
+/// `Tribe::graft[352]` for every nation, in record space: entry `r` of
+/// table `i` is the record nation `i` trains when it is asked for `r`.
+///
+/// `Tribe::init@006f0230` lays each table down as the identity, and
+/// `UnitType::init@0061ab50` then fills it over two of its five passes,
+/// each pass over every record in order:
+///
+/// - **pass 2**: a record with a `GRAFT` writes itself
+///   into its graft's slot of **every nation in its own `TRIBE_MASK`** —
+///   whatever the graft's mask says. So the British Longbowmen, whose
+///   graft is Archers, make `graft[Archers]` the Longbowmen for the
+///   British.
+/// - **pass 3**: for each record `this` and each nation
+///   `i` with `graft[this] ≠ this` and `this` outside `i`'s mask, every
+///   **other** record `u` below `0x192 − 0x32` that is outside `i`'s mask
+///   and whose own `GRAFT` is `this` takes `graft[this]` too. One level
+///   per record, in record order — a chain resolves only as far as the
+///   order carries it, and that is the original's answer.
+///
+/// `Types::finalize_grafting` runs after both and rewrites masks, not
+/// these tables.
+fn tribe_grafts(masks: &[u32], grafts: &[Option<usize>], tribes: usize) -> Vec<Vec<usize>> {
+    /// `Tribe::graft` is 352 entries, `BASE_UNITTYPES` to `0x192`.
+    const SLOTS: usize = 0x192 - 0x32;
+    let n = masks.len();
+    let mut t: Vec<Vec<usize>> = (0..tribes).map(|_| (0..SLOTS).collect()).collect();
+    let bit = |i: usize| 1u32.checked_shl(i as u32).unwrap_or(0);
+    for r in 0..n {
+        let Some(gr) = grafts[r].filter(|&x| x < SLOTS) else {
+            continue;
+        };
+        for (i, table) in t.iter_mut().enumerate() {
+            if masks[r] & bit(i) != 0 {
+                table[gr] = r;
+            }
+        }
+    }
+    for this in 0..n.min(SLOTS) {
+        for (i, table) in t.iter_mut().enumerate() {
+            if table[this] == this || masks[this] & bit(i) != 0 {
+                continue;
+            }
+            for u in 0..n.min(SLOTS) {
+                if u != this && masks[u] & bit(i) == 0 && grafts[u] == Some(this) {
+                    table[u] = table[this];
+                }
+            }
+        }
+    }
+    t
+}
+
 fn mask_bits(text: Option<&str>) -> u32 {
     match text {
         None => u32::MAX,
@@ -2621,6 +2708,68 @@ mod tests {
             l.build_types[barracks].combat.unwrap().build_class,
             BuildClass::MilitaryTrainer
         );
+    }
+
+    /// **Every nation's graft table, against the original's own.** run3's
+    /// `DUMP_ALL` prints `Tribe::log_data`'s `graft[i]` for all 24
+    /// nations, 352 entries each, at the start of a game — after
+    /// `UnitType::init`'s passes and `Types::finalize_grafting`, which is
+    /// the table every `get_graft` reads. [`tribe_grafts`] must answer all
+    /// 8,448 entries. It was identity before item 706, and the British
+    /// free archer came out Bowmen where the original trains Longbowmen.
+    #[test]
+    fn every_nation_s_graft_table_is_run3_s() {
+        let Some(i) = install() else { return };
+        let Some(path) = crate::testenv::dump("gamelog-run3-fulldump-types.txt") else {
+            eprintln!("skipping: no gamelog-run3-fulldump-types.txt (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::read(std::path::Path::new(&path)).unwrap();
+        // `tribe N`, then the header's six scalars, then `graft[i] v` × 352.
+        let mut theirs: Vec<(i64, Vec<usize>)> = Vec::new();
+        let mut open: Option<(i64, Vec<usize>)> = None;
+        for line in text.lines() {
+            let l = line.trim();
+            if let Some(v) = l.strip_prefix("tribe ") {
+                if let Some(t) = open.take().filter(|t| t.1.len() == 352) {
+                    theirs.push(t);
+                }
+                open = v.parse().ok().map(|n| (n, Vec::new()));
+            } else if let Some(v) = l.strip_prefix("graft[i] ")
+                && let Some(t) = open.as_mut()
+            {
+                t.1.push(v.parse().unwrap());
+            }
+            if theirs.len() == 24 {
+                break;
+            }
+        }
+        if let Some(t) = open.filter(|t| t.1.len() == 352) {
+            theirs.push(t);
+        }
+        let theirs: Vec<Vec<usize>> = theirs.into_iter().take(24).map(|t| t.1).collect();
+        assert_eq!(theirs.len(), 24, "run3 prints all 24 nations' tables");
+
+        let l = load(&i).unwrap();
+        let mut off = Vec::new();
+        for (n, table) in theirs.iter().enumerate() {
+            for (k, &v) in table.iter().enumerate() {
+                let t = l.unit_tree[k];
+                let ours = l.tree.tribes[n].graft[t].unwrap_or(t);
+                if ours != v {
+                    off.push(format!("tribe {n} graft[{t}]: ours {ours} theirs {v}"));
+                }
+            }
+        }
+        assert!(
+            off.is_empty(),
+            "{} of 8448 entries part:\n{}",
+            off.len(),
+            off.join("\n")
+        );
+        // The entry item 706 turned on: the British (11) train Longbowmen
+        // (unit record 127) when asked for Archers (121).
+        assert_eq!(theirs[11][121], l.unit_tree[127]);
     }
 
     #[test]
