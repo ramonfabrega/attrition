@@ -1920,6 +1920,26 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run174_s_word_frame_is_widened_whole` pins `1/41`'s rows on the
 /// block and the move's value diff.
 ///
+/// ~~**12897 is `1/41` against `1/15`.**~~ **Item 678 moved it 12897 →
+/// 14382, and the mechanism was the pathfinder's copies of the collision
+/// blocks** (`docs/PATHFINDER.md` §26, `docs/AI.md` §66). A `nocoll`
+/// probe reads a world cell's copy from `pathfinder +0x4c` when the tree
+/// holds one, and copies what it read live when it does not
+/// (`CollCheck::fill_slots@006820e0`); only `kill_lists` empties the tree,
+/// and a suspend hands it to the unit with the memo. On 12623 `1/41`'s
+/// 48-grid search copied five world cells and suspended; on 12624 its
+/// resume read `1/66` and the rest where they had stood a frame before,
+/// and this crate read the live blocks. So `1/41`'s sidestep on 12626 was
+/// 23 entries against 20, it trailed the original's by three frames, the
+/// squad ungrouped on 12825 there and not here, and on 12897 the
+/// original's `1/41` met `1/15`. The new word's delta: ours **11** draws
+/// and the original **13**, parting at index **2**: ours spends
+/// `Leader::make_stuff+0x221` where the original spends
+/// `Leader::produce_building+0x1805`. **Past run174** (block 14383 against
+/// its last, 12899) and past every Great Lakes dump on disk below run80's
+/// 23960: item 678 owes run178 and its widening, and
+/// `run174_s_word_frame_is_widened_whole` keeps the move's value diff.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1931,7 +1951,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_897;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_382;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3538,12 +3558,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // spares an action-bit move too (`docs/PATHFINDER.md` §21.6). The
     // test pins 12537's value diff and `1/41`'s every row on 12898. The
     // next move past 12898 owes a capture.
+    //
+    // **Item 678 moved it 12897 → 14382**, past run174's last block and
+    // past every Great Lakes dump on disk below run80: the pathfinder's
+    // block copies (`docs/PATHFINDER.md` §26). run174's test keeps the
+    // move's value diff; item 678 owes run178 and its widening.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run174_s_word_frame_is_widened_whole"),
-        673,
-        Some(WIDENING_GREAT_LAKES_CIVIC),
+        None,
+        678,
+        None,
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

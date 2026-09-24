@@ -1128,6 +1128,18 @@ pub struct Sim {
     /// a `find_upath` that ends in its goal pre-walk leaves its verdicts for
     /// the next unit's search, on the same frame or a later one.
     pub path_memo: std::collections::BTreeMap<i64, bool>,
+    /// **`PathFinder +0x4c`, the `blocklist` — the pathfinder's copies of
+    /// world cells' collision blocks, with the memo's lifetime**
+    /// (`docs/PATHFINDER.md` §22 of item 678, `docs/COLLISION.md` §4.2). A
+    /// `nocoll` probe — `valid_ucoord`'s, and `resolve_unit_collision`'s
+    /// unwind — reads a world cell's copy when the tree holds one and
+    /// otherwise the live block, and copies each slot it read live
+    /// (`CollCheck::fill_slots@006820e0`). Only `kill_lists` empties it,
+    /// so a copy taken by a probe outside any search is what the next
+    /// search reads, however many frames later. Keyed on the world cell;
+    /// the value is its 16×16 unit cells, one row a word, as the probe's
+    /// region gate left them.
+    pub coll_copies: std::cell::RefCell<std::collections::BTreeMap<(i32, i32), [u16; 16]>>,
     /// `WData::down` per world cell: the head of the object chain (§3).
     pub chain_heads: Vec<Option<usize>>,
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
@@ -1437,6 +1449,7 @@ impl Sim {
             sweep_watch: None,
             probe_refuse: None,
             path_memo: std::collections::BTreeMap::new(),
+            coll_copies: std::cell::RefCell::default(),
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
             retargets: vec![0; players.max(10)],

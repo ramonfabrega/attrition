@@ -10623,14 +10623,12 @@ mod tests {
             Vec::<String>::new(),
             "the rows above run163, to 12430"
         );
-        // The one figure whose animation changes on one side only is the
+        // ~~The one figure whose animation changes on one side only is the
         // new word's own: the original's `1/41` stands on 12898 and wraps
-        // its idle on 12899, and this crate's walks on (item 673).
-        assert_eq!(
-            one_sided,
-            [(12_898, 1, 41, true, false), (12_899, 1, 41, true, false)],
-            "a figure changes animation on one side only"
-        );
+        // its idle on 12899, and this crate's walks on (item 673).~~ Item
+        // 678 took it: with the copy tree, `1/41` walks the original's
+        // sidestep from 12626 and never reaches `1/15` out of step.
+        assert_eq!(one_sided, [], "a figure changes animation on one side only");
         // ~~**The word 12536 (block 12537).**~~ On 12537 the squad
         // `1/27`–`1/29` took its orders. The original gave `1/28` and `1/29`
         // a kind-2 order with a ten-entry world plan at tolerance 384, and
@@ -10658,52 +10656,39 @@ mod tests {
             ],
             "the rows above run163, to the old word's block"
         );
-        // **The new word, 12897 (block 12898), `1/41`'s every standing
-        // row.** The original's `1/41` steps into `1/15` (`collide_o 15`),
-        // stops and stands (`Unit::move_step+0x823`, the third draw); this
-        // crate's walks on. On 12825 the original's squad `1/40`–`1/42`
-        // holds kind 2 where this crate's holds 21, the same shape as
-        // 12537's. The value chain under it starts
-        // at `1/41`'s plan on 12626 (23 entries against 20). No mechanism
-        // is named.
-        assert_eq!(
-            retry,
-            [
-                "collide: ours 0 theirs 1",
-                "collide_o: ours -1 theirs 15",
-                "collide_who: ours -1 theirs 1",
-                "g.angle[0]: ours 1543372800 theirs 1543897088",
-                "g.avg_speed[0]: ours 23 theirs 17",
-                "g.cur_anim[0]: ours 8 theirs 0",
-                "g.cur_time[0]: ours 8 theirs 1",
-                "g.des_angle[0]: ours 1543372800 theirs 1543897088",
-                "g.des_x[0]: ours 42455 theirs 42456",
-                "g.des_y[0]: ours 22484 theirs 22488",
-                "g.end_time[0]: ours 15 theirs 32",
-                "g.last_speed[0]: ours 25 theirs 0",
-                "g.last_time[0]: ours 7 theirs 0",
-                "g.stopped[0]: ours 0 theirs 1",
-                "g.x[0]: ours 42455 theirs 42456",
-                "g.y[0]: ours 22484 theirs 22488",
-                "heading: ours 1543372800 theirs 1543897088",
-                "order:coll: Coll { ours: None, theirs: (42486, 22509) }",
-                "order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "path:length: PathLength { ours: 3, theirs: 5 }",
-                "pos: ours (42455,22484) theirs (42456,22488)",
-            ],
-            "1/41 on the new word's block"
-        );
-        // Every key that first parts from 12538 to run174's last block: the
-        // value chain under the new word, the citizens' `myhits` 40 against
-        // 50 from 12564 (no draw), and the squad `1/40`–`1/42` from 12825.
-        assert_eq!(past, 209, "the keys first parting after 12537");
+        // ~~**The new word, 12897 (block 12898), `1/41`'s every standing
+        // row.**~~ The original's `1/41` stepped into `1/15` (`collide_o
+        // 15`), stopped and stood (`Unit::move_step+0x823`, the third
+        // draw), and this crate's walked on: 21 rows. On 12825 the
+        // original's squad `1/40`–`1/42` held kind 2 where this crate's
+        // held 21, and the chain started at `1/41`'s plan on 12626, 23
+        // entries against 20.
+        //
+        // **Item 678 moved it 12897 → 14382, past this capture**
+        // (`docs/PATHFINDER.md` §26, `docs/AI.md` §66). On 12623 `1/41`
+        // collides with `1/34`, and its 48-grid search copies five world
+        // cells' blocks into the pathfinder's tree, runs over its budget
+        // and suspends; the suspend hands the tree to the unit. On 12624
+        // the resume reads those copies, so the cells it first probes see
+        // `1/66` and the rest where they stood a frame before. This crate
+        // read the live blocks, and routed round `1/66` where the
+        // original walks row 21144. **The move's value diff**: `1/41`'s
+        // plan on 12626, its lag from 12662, the squad's ungroup on
+        // 12825, and `1/41`'s 21 rows here are gone — 74 keys, all on the
+        // three. Nothing on the squad parts through 12899.
+        assert_eq!(retry, Vec::<String>::new(), "1/41 on the old word's block");
+        // Every key that first parts from 12538 to run174's last block:
+        // the citizens' `myhits` 40 against 50 from 12564 (no draw, parked
+        // 679) and what stands with them. The squad's 74 left with item 678.
+        assert_eq!(past, 135, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
         // `1/68`'s plan. **Item 673 took 1,650 above run163** (2,120 →
         // 470): the 33 on 12537 and the cascade the squad's formation
-        // walk left behind it, and none under.
-        assert_eq!((under, firsts.len()), (259, 470), "the floor");
+        // walk left behind it, and none under. **Item 678 took 74 more**
+        // (470 → 396), `1/40`–`1/42`'s chain from 12626, and none under.
+        assert_eq!((under, firsts.len()), (259, 396), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
