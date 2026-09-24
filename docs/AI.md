@@ -8187,3 +8187,96 @@ Pinned capture-free: `a_walled_in_attack_move_buys_the_retry_and_keeps_its_order
 
 Reading-only: none. The slot is read at three named addresses, and the
 dump's `retry` 6 confirms its effect.
+
+## 66. A resumed search reads the blocks it copied, and the word moves to 14382 (2026-09-24, item 678)
+
+Item 673 left Great Lakes' word at **12897**. There, ours spent 8 draws
+against the original's 9, parting at index 2. On 12898 the original's
+`1/41` hard-collided with `1/15` and stood, and ours walked on. Above it
+the chain ran through 12626's plan and 12825's ungroup of `1/40`–`1/42`,
+and no mechanism was named. The word was inside run174, so no capture
+was owed to read it.
+
+### 66.1 The frame, read from the dump
+
+- **12626 is the first parting on the squad.** `1/41`'s path holds 23
+  entries here and 20 in the original. The eight world entries agree,
+  and only the 48-grid sidestep round `1/34` differs.
+- **The ungroup follows from the plan.** `1/41` trails the original's
+  by three frames from 12662. On 12825 the original's stands one frame
+  with no collider and `retry` 0, and its squad ungroups. Ours is 46
+  units further back and does not.
+- **12898's stand follows from the ungroup.** The two sides walk
+  different plans after it, and the original's meets `1/15`.
+
+The brief's three readings were each killed: a different world plan, by
+the agreeing world entries; 12537's mechanism by another caller, by
+`retry` 0; a collision predicate, by the fix. What held is that the
+search read the blocks differently. The mechanism is
+`docs/PATHFINDER.md` §26. `1/41`'s 48-grid search copied five world
+cells on 12623 and suspended. Its resume on 12624 read those copies,
+with `1/66` where it had stood a frame before. This crate read the live
+blocks.
+
+It is none of the parked items near it. The citizens' hit points (679),
+the group id (674) and the birds (675) never reach the search.
+
+### 66.2 What it moved
+
+- **Great Lakes' word: 12897 → 14382**, past run174. The new delta:
+  ours **11** draws against **13**, parting at index **2**. Ours spends
+  `Leader::make_stuff+0x221` where the original spends
+  `Leader::produce_building+0x1805`.
+- **The move's value diff**, on run174: 74 keys on `1/40`–`1/42` are
+  gone, and nothing on the squad parts through 12899. The floor fell
+  470 → 396, with none added anywhere in 11400..12899.
+- **run178** (`docs/RUNS.md`) is run174's line over [12894, 14899]. It
+  was widened whole from 11400 across eight captures. It carries run174's
+  396 to 12899 exactly, then 37 keys under the word, 60 on its block, and
+  1,552 to its last block.
+- **The ladder**: run53's scholar seatings under the word went 11 → 13
+  (13555 and 13736), and its market draws 23 → 29. Both passed their
+  comparison against the original's own streams unchanged.
+- **Great Lakes' endpoint at 24001**: `off` 34 → 33, `build_diverged`
+  8 → 4.
+- **East Indies is the lower map again**: 13640 against 14382.
+
+### 66.3 The new word's block, 14383
+
+who=1 places a building, and the two sides place it apart:
+
+- The new `1/2025` stands at (42624, 19776) in the original and at
+  (39552, 17472) here. Norwich's chain `1/2022 → 1/2025` exists only
+  here, and the make list's eighth slot holds type 427 there and nothing
+  here.
+- The citizens `1/6` and `1/7` trade roles. Each holds the other's order
+  kind, 3 against 7, and with it the other's path, heading and figure.
+- Under the word, the leader's `SITE` table parts on 12976 (`SITE[0]`
+  and `SITE[1]`'s rank, `SITE[1]`'s cell) and on 13176 (`SITE[4]`'s cell
+  and distance). The rest under it is the newborns' residue run174
+  already carried.
+
+**No mechanism is named.** The site table is the nearest input the dump
+prints, and it is where the next item starts.
+
+### 66.4 What this has *not* established
+
+- **Why `SITE[1]` parts on 12976.** It is 1,406 blocks under the word,
+  and run178 prints every block between.
+- **Whether a word turns on the unwind probe's copies.** They are carried
+  (`docs/PATHFINDER.md` §26.6), and no diff has isolated them.
+
+### 66.5 Coverage
+
+**Diff-backed**:
+
+- `run174_s_word_frame_is_widened_whole`: the move's value diff;
+- `run178_s_word_frame_is_widened_whole`: the new word's block, the rows
+  under it, and the floor;
+- the coverage driver, which reads run178 on 14381..14385;
+- the long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Pinned capture-free**: `a_nocoll_probe_reads_the_block_the_last_one_copied`
+(`sim`).
+
+**Reading only**: none. The rule is listing-backed (PATHFINDER §26.7).

@@ -127,8 +127,11 @@ impl CostMark {
 /// `avoid_sea` (`+0x138`/`+0x13c`), `endx`/`endy` (`+0x140`/`+0x144`) and
 /// `traversed` (`+0x148`).
 ///
-/// `blocklist` has no counterpart here — the unit search never fills it
-/// (`docs/PATHFINDER.md` §2) — and `valid_hit` is a counter nothing reads.
+/// ~~`blocklist` has no counterpart here — the unit search never fills
+/// it~~ `blocklist` (`+0x114`) is [`Search::block_copies`]: every
+/// `valid_ucoord` probe is a `nocoll` one and fills it
+/// (`docs/PATHFINDER.md` §26, item 678). `valid_hit` is a counter nothing
+/// reads.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Search {
     nodes: Vec<Node>,
@@ -136,6 +139,9 @@ pub struct Search {
     open_by_metric: BTreeMap<i64, (u64, i32, u32)>,
     closed: BTreeMap<i64, u32>,
     valid_memo: BTreeMap<i64, bool>,
+    /// `+0x114` — the `blocklist` the suspend handed over
+    /// ([`Sim::coll_copies`]).
+    block_copies: BTreeMap<(i32, i32), [u16; 16]>,
     seq: u64,
     /// `+0x128` — the *final* goal entry's tolerance, which is what
     /// `arrive` is built from and is not re-read from the stack on resume.
@@ -444,6 +450,8 @@ impl Sim {
     /// their early returns (§24.5).
     pub(crate) fn kill_lists(&mut self) {
         self.path_memo.clear();
+        // The `blocklist` goes with it (`00687ae0`, the `+0x4c` loop).
+        self.coll_copies.get_mut().clear();
     }
 
     /// Whether [`Sim::probe_refuse`] names this unit, this frame and the
@@ -842,6 +850,7 @@ impl Sim {
             // The resume closes the pathfinder's memo and takes the
             // unit's (`00683770:235`-`288`).
             self.path_memo = sus.valid_memo;
+            *self.coll_copies.get_mut() = sus.block_copies;
             seq = sus.seq;
             tol = sus.tol;
             pref = sus.pref;
@@ -949,6 +958,7 @@ impl Sim {
                         // The suspend hands the memo to the unit and pops
                         // an empty one (`00683770:505`).
                         valid_memo: std::mem::take(&mut self.path_memo),
+                        block_copies: std::mem::take(self.coll_copies.get_mut()),
                         seq,
                         tol,
                         pref,

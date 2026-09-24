@@ -5985,6 +5985,26 @@ original does not since 12422, because its tile plan on 12322 dropped the
 group move's exact formation point that the original keeps
 (`docs/AI.md` §64; `run174_s_word_frame_is_widened_whole`).
 
+## run178 — Great Lakes' word 14382, past run174's last block (2026-09-24, item 678)
+
+**What it is.** run174's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[12894, 14900)`, plus `rontrace.cfg` `cover=1` and `window=14378-14386`
+over the word. `!quit` at 14910, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 678
+```
+
+**Why it was owed.** Item 678 moved Great Lakes' word 12897 → 14382 (the
+pathfinder's block copies, `docs/PATHFINDER.md` §26). run174, the last
+capture on this map below run80's 23960, ends on block 12899, and no
+`gamelog-*greatlakes*` holds block 14382 or 14383 (grepped before booking,
+the pattern checked against run163's 12180). The window overlaps run174 by
+six blocks so the widening walks one chain from run123's 11400 to the
+word, and runs 516 blocks past it so a fix that moves the word is measured
+on the same capture.
 ## run175 — chapter six-b, the air line from a base (2026-09-23, item 651)
 
 `docs/GOLDEN.md` §10's restage, from `tools/gamelog/golden/chapter6b.cmd`:
@@ -6046,6 +6066,10 @@ This crate parts at **632**, the Fighter's arrival at its attack point,
 34 draws against 24: ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
 of `0/6`'s where the original drops the attack. See `docs/GOLDEN.md` §10.
 
+**4,297,129,978 bytes of dump and 19.9 MB of trace, 2 h 24 min** from
+launch at 09:27 to archive at 11:51. The lane lock was stale (its holder,
+pid 41127, was dead) and was taken over. The window ran ~14 blocks a
+minute, 2.0 MB a block.
 ## run177 — chapter six-b's word, a packet at logger frame 632 (2026-09-24, item 680)
 
 **What it is.** run175's game to 640 with a `RON_STATE_FRAME=632` packet:
@@ -6084,6 +6108,19 @@ none under `fight`.
 
 | check | result |
 |---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 14,911 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **2,006 blocks, 12894..14899, no gap** |
+| a `GROUPDATA` on every window block | **2,006** |
+| overlap with run174, nothing excluded | **6 in common (12894..12899), 0 differ** |
+| the coverage window | a set on all 9 frames 14378..14386 |
+
+**What it settled.** The word's block 14383 is who=1 placing a building
+apart. The new `1/2025` stands at (42624, 19776) in the original and at
+(39552, 17472) here, and the citizens `1/6` and `1/7` trade the build
+and walk orders between them. Under it, the leader's `SITE` table parts
+on 12976 and 13176 (`docs/AI.md` §66.3;
+`run178_s_word_frame_is_widened_whole`).
 | `frame_snapshot.py` against the plan | frame 632, trace 631, the roots unchanged |
 | `rngcmp.py` against run175's `rontrace.log` | **0 differing**, 641 identical |
 | `samegame.py` against run175 | 7 blocks in common (1, 630..635), **0 differ** |
