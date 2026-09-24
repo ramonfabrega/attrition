@@ -12,10 +12,10 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-23, the thirteenth Fable pass (Fable 5.1, the main thread; every
-worker of the tranche Opus 5.5 by transcript): **20 landings since
-6b46125, 17 moved a word, workers 437 USD, 21.8 a landing — the cheapest
-tranche measured.** Nothing is in flight; every lane is reaped.*
+*2026-09-23, the commander (Opus 5.5) after the thirteenth Fable pass:
+**1 landing since 29a46bd.** 673 moved Great Lakes 12536 → 12897
+(`astar_path`'s retry gates on `is_move`, PATHFINDER §21.6, AI §65).
+Lane att-651 is live on chapter six-b (run175 captured, word 632).*
 
 - **Both maps moved and every golden chapter closed.** East Indies
   11069 → 13640 at 0.034 USD a frame (1893 of them off the disk in one
@@ -31,12 +31,12 @@ tranche measured.** Nothing is in flight; every lane is reaped.*
   proxy); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w12536 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w12897 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · 651 next
-Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 53 off, 0 unlinked
+Endpoint 24001: EastIndies 43 off, 11 unlinked · GreatLakes 34 off, 0 unlinked
 
-**Opener: spawn 673 on the AI lane and 651 on the rules lane; 643
-follows 673 and 676 follows 651. A detached capture waits on
+**Opener: land 651 when it reports; 678 is live on the AI lane (lower
+map first, ahead of 643), and 676 follows 651. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -47,13 +47,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-673. **Great Lakes' word is 12536: squad `1/27`–`1/29`'s orders** (669
-    moved it 12429 → 12536: `do_move`'s tile arm pops a waypoint only on
-    a tolerance of 1..=0x60, unsigned, ORDERS §4.4, AI §64). On 12536
-    ours 93 draws against 94 at index 92: ours `Farms::inc_time+0x1ae`,
-    theirs `PathFinder::astar_path+0x1697`. On 12537 the squad takes kind
-    21 with one entry against the original's kind 2 with a ten-entry
-    world plan. Inside run174 (to 12899); no capture owed. No mechanism.
+678. **Great Lakes' word is 12897: `1/41` against `1/15` on 12898** (673
+    moved it 12536 → 12897: the retry roll gates on `is_move`, PATHFINDER
+    §21.6). On 12897 ours 8 draws against 9 at index 2: ours `Guy::set_anim
+    +0x97a < Guy::inc_time+0x271`, theirs `< Unit::move_step+0x823`. The
+    original's `1/41` stands on `1/15`; ours walks on. Above it: 12626's
+    plan (23 against 20), 12825's ungroup of `1/40`–`1/42` to kind 2.
+    Inside run174, its last but one; a move past 12898 owes run178.
 
 651. **Chapter six-b, the air line from a base: no capture yet** (668
     closed chapter eight at 900: `resolve_unit_collision`'s enemy-ladder
