@@ -2985,3 +2985,99 @@ add reads the same stance, so it is `QUEUE_NEW`. The defensive-post arm
 - **Reading only**: the follower branch, the captain-at-ten branch, the
   siege exemption, and `retargets`' increment and reset. No capture on
   disk is known to reach ten retargets in a frame.
+
+## 15. The suspended search's `GATHER` park: a gatherer near its point gives the walk up — Great Lakes 14650 → 14982 (item 698, 2026-09-24)
+
+Great Lakes' word was **14650**. The original spent 3 draws there and this
+crate spent 2, parting at index 0 on `Unit::do_non_flat_gather+0x54b`. On
+block 14651 only the Woodcutter's Camp `1/2009`'s gather-tile list parted,
+192 keys, one entry along. Under it, on block 14650, the citizen `1/43`
+parted on eight rows. The booking read `collide 7` against `6` as two
+collision partners, `1/7` and `1/6`. **`collide` is `UnitData +0x88`, the
+counter** (§6 step 5; `docs/ORDERS.md` §4.4 step 2). The partner is
+`collide_o`, and it is `18` on both sides from `collide_frame` 14643.
+
+### 15.1 The frame
+
+`1/43` walks to its tile under a `GATHERORDER` (camp `1/2009`, tile
+(228, 139)) with a transit `MOVEORDER` to (43704, 26856) in front. On 14643
+it steps into the standing `1/18`, a woodcutter at (43512, 26712), and
+stops at (43608, 26616) on both sides. Its 48-grid search suspends, and
+§6's step-2 block in `do_move` counts `collide` one a frame, 1 to 6 by
+block 14649, on both sides. Positions, `collide_o` and the orders all
+agree through 14649.
+
+On block 14650 the original's `1/43` holds the gather order alone. The
+tile is −1, `wait` −1 and `goto_build` 1, `orders_x/y` is its own position,
+the path is empty, and `collide` is still 6. This crate's still held the
+walk, with `collide` 7. On 14650 the original's `do_non_flat_gather` draws
+a tile afresh (the word's extra draw), and on 14651 the camp's list takes
+the new entry. On 14651 the original sends `1/43` towards the camp.
+
+### 15.2 The arm
+
+`Unit::do_move@005f7b30:90-128`, read off the listing at
+`005f7c84`–`005f7d8a`. It sits inside the suspended-search block
+(`openlist != 0`), ahead of the blocker probe and the `collide` increment.
+It fires when all three hold:
+
+- the action under the move (`get_action`, vslot `+0x10`) is `GATHER`, 7;
+- `elapsed = frame − collide_frame` is positive and `(elapsed + 2) &
+  0x80000007 == 0`, so on elapsed 6, 14, 22 and so on;
+- `vector_dist(|mo.x − x|, |mo.y − y|) < 0x120`. The pair is loaded into
+  `ecx`/`edx` at `005f7caa`–`005f7cd4` from the **move order's** `+0x4/+0x8`
+  and the unit's decoded position. The decompiler prints
+  `vector_dist(unaff_EDI, unaff_ESI)`, which is the fastcall trap in
+  `tools/ghidra/README.md`.
+
+Then `avoid_x/y` (`UnitData +0x120/+0x124`) takes **the move's `x/y`**
+(`005f7ce6`–`005f7cf4`). ORDERS §4.4 had written `pos` and is amended. The
+action's `GatherOrder` gets `+0x14 tx = −1`, `+0x18 ty = −1`, `+0x24
+goto_build = 1` and `+0x20 wait = −1`, each through
+`Unit::update_action@0060a870` and vslot `+0x6c`. A worker holding a
+doober at `+0x86` has it removed (`Doober::remove_hold_doobers@00846cd0`,
+which fades an icon, so it is presentation). Then `kill_current_order(0)`,
+and `return 0`.
+
+For `1/43` on 14649: elapsed 6, and `vector_dist(96, 240) = 240 + 96² /
+480 = 259 < 288`. The first frame the arm could fire, it did.
+
+`Sim::do_move`'s suspended block (`crates/sim/src/orders.rs`) carries it
+now, replacing the SEAM line that called it dormant. The `ATTACK` retarget
+above it is still a seam.
+
+### 15.3 What it moved
+
+- **Great Lakes 14650 → 14982.** On 14982 the original spends three
+  `Guy::init_real+0x52` before the frame's `Guy::inc_time` wraps, 15 draws
+  against this crate's 11. That is a three-figure birth this crate does not
+  make. It is **past run178's last block (14899)**, so run192 was captured
+  over it (`docs/RUNS.md`).
+- **The value diff, on block 14651** (`run178_s_word_frame_is_widened_whole`):
+  the eight rows of `1/43` on 14650 and the 192 on 14651 are gone, and
+  nothing parts on 14649..14653. The rows standing on 14651 went 517 →
+  317, and the keys first parting to run178's last block 1,279 → 416:
+  the 200 and 663 of the cascade above them, none under 14650.
+- `path::tests::a_gatherer_on_a_suspended_search_gives_its_walk_up_near_its_point`
+  covers the case and three controls: seven frames, a point 288 short
+  (`vector_dist` 304), and a walk with no gather under it. It was made to
+  fail with the arm taken out.
+
+### 15.4 What is not established
+
+- **The doober.** This crate models no hold doober at any of the four sites
+  that clear `+0x86` (`do_move`, `kill_current_order`,
+  `do_non_flat_gather`, `close`). It is taken as presentation on the
+  strength of `remove_hold_doobers`' body alone.
+- **Only elapsed 6 is diff-backed.** Elapsed 14, 22 and so on would need a
+  gatherer whose search stays suspended past the blocker probe.
+- A farmer (`FLAT`) is a `GATHER` action too. No capture has put one on a
+  suspended search.
+
+### 15.5 Coverage
+
+- **Diff-backed**: the arm on elapsed 6 inside `vector_dist < 0x120`, the
+  four gather fields, the kill, and `collide` not counted. All come from
+  run178's `1/43` on blocks 14650 and 14651.
+- **Reading only**: `avoid_x/y`'s value, since `UNITS=3` does not print it,
+  and every later elapsed.

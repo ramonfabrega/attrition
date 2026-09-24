@@ -2838,10 +2838,45 @@ impl Sim {
         // tick on every fourth `o + frame`.
         //
         // SEAM: the `ATTACK` retarget (`find_new_target` every 4 frames)
-        // and the `GATHER` park (`vector_dist < 0x120`) are the two arms
-        // above this one and are dormant; no capture has reached either.
+        // is the arm above this one and is dormant; no capture has reached
+        // it.
         if self.units[u].search.is_some() {
             let elapsed = frame - self.units[u].collide_frame;
+            // **The `GATHER` park** (`docs/COLLISION.md` §15, item 698):
+            // a gatherer whose search is suspended, on the frame
+            // `(elapsed + 2) & 7 == 0`, within `vector_dist < 0x120` of the
+            // move's own `x/y`, gives the walk up where it stands.
+            // `avoid` takes the move's point (`005f7ce6`, not the unit's),
+            // the gather order forgets its tile (`tx`/`ty`/`wait` −1,
+            // `goto_build` 1) and the move dies, so the next frame's
+            // `do_non_flat_gather` picks a tile afresh. `collide` is not
+            // counted: the arm returns above the increment. Run178's `1/43`
+            // on 14649, six frames after it met the standing `1/18`. The
+            // `hold_doobers` cleanup beside it is presentation.
+            let gathering = self
+                .action_of(u)
+                .is_some_and(|i| self.units[u].orders[i].index() == index::GATHER);
+            if gathering
+                && elapsed > 0
+                && (elapsed + 2) % 8 == 0
+                && vector_dist(
+                    mo.dest.x - self.units[u].pos.x,
+                    mo.dest.y - self.units[u].pos.y,
+                ) < 0x120
+            {
+                self.units[u].avoid = Some(mo.dest);
+                if let Some(mut g) = self.units[u].orders.iter().find_map(|o| match o.body {
+                    Body::Gather(g) => Some(g),
+                    _ => None,
+                }) {
+                    g.tile = None;
+                    g.wait = -1;
+                    g.goto_build = true;
+                    self.store_gather(u, g);
+                }
+                self.kill_current_order(u);
+                return Did::Nothing;
+            }
             let coll = mo.coll.unwrap_or(self.units[u].pos);
             if elapsed > 3
                 && (elapsed - 1) % 2 == 0

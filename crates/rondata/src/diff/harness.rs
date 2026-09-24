@@ -10786,6 +10786,11 @@ mod tests {
     /// (`docs/CARAVAN.md` §10, `docs/ROADS.md` §10): the caravan verifies a
     /// road the stray-road sweep eroded. The new word's frame writes block
     /// **14651**; the test keeps the move's value diff on 14530.
+    ///
+    /// **Item 698 moved it 14650 → 14982, past this window**
+    /// (`docs/COLLISION.md` §15): a gatherer whose search is suspended
+    /// gives its walk up six frames after it collides. The test keeps the
+    /// move's value diff on 14651; the new word is run192's.
     #[test]
     fn run178_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -10893,9 +10898,10 @@ mod tests {
         // (`docs/CITIES.md` §15). Its territory is recomputed at once here
         // and over sixteen frames there (`docs/ATTRITION.md`, "Territory"),
         // so who=0's `gather_stamp` is re-stamped on 14536 here and 14544
-        // there. `known_rares` on 14536 parts with or without it. And on
-        // 14650 `1/43`, the word's gatherer, collides with `1/7` here and
-        // `1/6` there.
+        // there. `known_rares` on 14536 parts with or without it.
+        // ~~And on 14650 `1/43`, the word's gatherer~~ — gone with item
+        // 698 (below): eight rows, `collide` 7 against 6 among them, which
+        // is the counter and not a partner.
         assert_eq!(
             mid,
             [
@@ -10912,14 +10918,6 @@ mod tests {
                 "12976 1/-1 leader:SITE[8].wy: ours 33 theirs 30",
                 "14536 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
-                "14650 1/43 collide: ours 7 theirs 6",
-                "14650 1/43 dest_angle: ours 1925840896 theirs 1923350528",
-                "14650 1/43 order:kind: Kind { ours: 1, theirs: 7 }",
-                "14650 1/43 order:length: Length { ours: 2, theirs: 1 }",
-                "14650 1/43 orders.len: ours 2 theirs 1",
-                "14650 1/43 orders_x: ours 43704 theirs 43608",
-                "14650 1/43 orders_y: ours 26856 theirs 26616",
-                "14650 1/43 path:length: PathLength { ours: 1, theirs: 0 }",
                 "13163 1/71 form: ours -1 theirs 9",
                 "13163 1/71 hits:myhits: ours 40 theirs 50",
                 "13163 1/71 hits_left: ours 40 theirs 50",
@@ -10955,46 +10953,41 @@ mod tests {
         // ~~**The word, 14529 (block 14530).**~~ Item 695 moved it: the
         // caravan's road check and the stray-road sweep (above).
         //
-        // **The word, 14650 (block 14651).** The original spends 3 draws
-        // where this crate spends 2, parting at index 0 on
-        // `Unit::do_non_flat_gather+0x54b`. On the block one record parts:
-        // the Woodcutter's Camp `1/2009`'s gather-tile list, 192 keys, the
-        // original's list one entry along from this crate's (`tx[1]` here
-        // is `tx[0]` there). No mechanism is named (DECISIONS 42).
-        let words: Vec<(i64, i64, usize)> =
-            word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
-        assert_eq!(
-            words,
-            [(1, 2009, 192)],
-            "who parts first on 14651, and on how many keys"
-        );
-        let head: Vec<String> = word
-            .get(&(1, 2009))
-            .map(|v| {
-                v.iter()
-                    .filter(|r| r.starts_with("gather:tx[0]") || r.starts_with("gather:tx[1]:"))
-                    .cloned()
-                    .collect()
-            })
-            .unwrap_or_default();
-        assert_eq!(
-            head,
-            [
-                "gather:tx[0]: ours 234 theirs 230",
-                "gather:tx[1]: ours 230 theirs 224",
-            ],
-            "1/2009's list, one entry along"
-        );
-        assert_eq!(standing_n, 517, "every row standing on 14651");
+        // ~~**The word, 14650 (block 14651).**~~ The original spent 3 draws
+        // where this crate spent 2, parting at index 0 on
+        // `Unit::do_non_flat_gather+0x54b`, and on the block the Woodcutter's
+        // Camp `1/2009`'s gather-tile list parted, 192 keys, one entry
+        // along. Under it, on block 14650, `1/43` held its walk here and
+        // had dropped it there: eight rows, `collide` 7 against 6.
+        //
+        // **Item 698's value diff, on 695's word's block 14651.** `1/43`
+        // met the standing `1/18` on 14643 on both sides, and its
+        // 48-grid search suspended. On 14649 the original's `do_move`
+        // took its `GATHER` park: six frames after the collision, `(6 + 2)
+        // & 7 == 0`, and `vector_dist(96, 240) = 259 < 0x120` to the
+        // move's point. The walk died above the `collide` increment, and
+        // the gather order forgot its tile, so 14650's
+        // `do_non_flat_gather` drew a tile afresh. With the arm
+        // (`docs/COLLISION.md` §15), the eight rows on 14650 and the 192
+        // on 14651 are gone, and nothing parts on these five blocks.
+        let road: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(road, Vec::<String>::new(), "695's word's five blocks");
+        assert!(word.is_empty(), "nothing parts first on 14651");
+        assert_eq!(standing_n, 317, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
         // blocks, and every key to run178's last block: 1,552 before item
-        // 688, 1,375 after it, and 1,279 after item 695, with 192 on the
-        // new word's block.
+        // 688, 1,375 after it, 1,279 after item 695, and 416 after item
+        // 698 — the eight on 14650, the 192 on 14651 and 663 of the cascade
+        // above it to 14899, and none under.
         assert_eq!(
             (under, mid.len(), firsts.len()),
-            (374, 50, 1_279),
+            (374, 42, 416),
             "the floor"
         );
     }

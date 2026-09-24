@@ -2006,7 +2006,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run178_s_word_frame_is_widened_whole` pins the word's block — the
 /// Woodcutter's Camp `1/2009`'s gather list — and the move's value diff on
 /// 14530.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_650;
+///
+/// ~~**14650 is the camp's gather list.**~~ **Item 698 moved it 14650 →
+/// 14982, and the mechanism was `do_move`'s `GATHER` park**
+/// (`docs/COLLISION.md` §15). The citizen `1/43`, stopped by the standing
+/// `1/18` on 14643 with its search suspended, gives its walk up on 14649,
+/// six frames on and 259 short of its point, and draws a tile afresh on
+/// 14650; this crate kept the walk. **The new word's delta: ours 11 draws
+/// and the original 15, parting at index 0**: the original spends three
+/// `Guy::init_real+0x52`, a three-figure birth, before the frame's
+/// `Guy::inc_time` wraps, and ours spends none. **Past run178** (block
+/// 14983 against its last, 14899), so item 698 took **run192**; the
+/// widening names the word's block, and
+/// `run178_s_word_frame_is_widened_whole` keeps the move's value diff on
+/// 14651.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_982;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
