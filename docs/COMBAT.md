@@ -10419,3 +10419,134 @@ names the Bomber at eight tiles.
   slot `0xfc` (`0060a27d`) and the classes that override it; the plane
   arm's read of `guys.list[0]->guy_flags` (`0064a2c2`–`0064a2ca`).
 - **Reading only**: every §61.5 arm.
+
+## 62. A captain's attack on a building re-searches every frame (item 680, 2026-09-24)
+
+Golden chapter six-b (run175, `docs/GOLDEN.md` §10) stood at **632**. Ours
+spent 34 draws against 24, parting at draw 18 on ten
+`Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` of the Fighter `0/6`'s,
+at its attack point (600, 7944) under an attack on who=1's Airbase `2006`
+at (2400, 6432). The original's stack is empty on block 633. Item 651
+booked it as "which exit of `find_attack_pos@00601280` answers 0", after
+`fight@005fd4d0:1059`, and named no mechanism. The kill conditions for
+four readings are in `docs/journal/2026-09-24-item-680.md`, committed
+before any function ran on the packet.
+
+### 62.1 The packet, and what it killed
+
+run177 is a `RON_STATE_FRAME=632` packet on run175's staging
+(`docs/RUNS.md`): the state after tick 631, with the Fighter at its point
+and `fight` still to run. Two calls on it under unicorn, with every block
+and call recorded (the scripts are outside git, under
+`~/ron-data/lab-experiments/2026-09-24-item-680/`):
+
+- **`find_attack_pos(0/6, 2006, 1, 0, &x, &y, 0)`** through the thunk
+  `@00602e60`, exactly `fight+0xcb4`'s call: it answers **1**, out (600,
+  7944), with **ten** `Random::get` returns at `+0xea9`, the ring walk this
+  crate spends. So no exit of it answers 0 here, and the booking's
+  premise dies: the original never makes this call on 632.
+- **`Unit::fight(0/6, 2006, 1, 0, 0, 0)`**, `Unit::do_attack@005f1b80`'s
+  arguments (the order's `mandatory` 0): it returns 0 with **no draw**,
+  never enters `find_attack_pos`, and calls `Unit::find_new_target@005ff6a0`
+  once, from `fight+0xa1f`.
+
+Reading 0 of the journal, "`find_attack_pos` is never called", survives.
+Readings 1–3 (an air-domain exit, a building footprint arm, a minimum
+range test) name exits of a function that is not reached, so none can fire
+on this frame.
+
+### 62.2 `fight`'s captain arm, `LAB_005fddf7`, from the listing
+
+The executed path is `005fdd5b` … `005fe012`:
+
+```text
+if mandatory == 0 && param_4 == 0 && recharging == 0          ; 5fdd5b-5fdd76
+  && is_captain()                                             ; 5fdd7c-5fdd9b, o_up >> 15
+  && (cavarch || !order.is_group() || order.group_leader == me)  ; 5fdda1-5fddf1
+  local_14 = 0
+  if target.is_unit():                                        ; vtable +0x18, 5fde1e
+      local_14 = the type test; roll; roll % 5 == 0 or flags & 0x10 → 0   ; §8.2 step 0, §47.1
+  if !target.is_unit() || local_14:                           ; 5fdeb1-5fdec0 → 5fdf50
+      t, who = find_new_target(this, &who, 0)                 ; 5fdee2-5fdeea (cavarch: find_melee_target)
+      if (t, who) != (o, whom):
+          t < 0 or who < 0          → return 0                ; LAB_005fe001
+          order_type != ATTACK      → return 0
+          recharging                → return 0
+          (t, who) == fight's own arguments → return 0        ; local_20/local_24
+          the order's target := (t, who, uid); unit_masks2 |= 0x10; return 0   ; 5fdf99-5fdfee
+      t < 0 or who < 0              → return 0
+      goto LAB_005fe01d            ; on to the range test and the chase, on the order the search added
+  elif poor_target(o, whom):       → the same search          ; 5fded5
+```
+
+**For a building target there is no roll and no `poor_target`**: the
+search runs on every frame the captain's attack runs, and it kills the
+order first (`find_new_target` is `repath`, `kill_current_order`, and
+`find_melee_target(-1)`, which adds what it finds; §60.3). Vtable `+0x18`
+is `Buffer::is_pending_load` after COMDAT folding, a `return 1` on the
+unit classes (§47.1).
+
+**Why 632 and not before.** `find_melee_target`'s radius for a human's
+ranged unit is `max((r + 1) × 0xc0 + 0x180, UNIT_RESPOND_RANGE × 0xc0)`,
+twelve tiles. From the Fighter's seat (888, 7800) the Airbase is ~10.6
+tiles off, and the search on its birth tick re-finds it, so the arm
+changes nothing there and the walk runs as in this crate: every block to
+631 agrees, the walk included. At the point it is ~12.2
+tiles off, the search finds nothing, and the attack is gone with nothing
+drawn. The Bomber `1/6` is AI-driven, so its search reaches 24 tiles
+(`× 0x180`). It re-finds who=0's Airbase every frame from (1992, 7704)
+and chases on: run175's alternating `ATTACK` and one-frame `MOVE` from 700.
+
+### 62.3 The build, and what moved
+
+`Sim::do_attack`, beside the one-in-five arm and under the same gate
+(`!mandatory`, the captain): for an `Obj::Building` target,
+`find_new_target(u, false)`. `None` returns. A different target marks
+`NOT_FIRING` when the current order is an attack and returns (the search
+already added the order the original rewrites). The same target re-reads
+the fresh order and goes on to the range test and the chase.
+
+| | before | after |
+|---|---|---|
+| chapter six-b, run175: word | 632, open | **1250**, sequence 1250, no value part: closed |
+| every closed chapter | closed | closed |
+| Great Lakes, East Indies long words | 12897, 13640 | 12897, 13640 |
+
+**The value diff** is `chapter_six_b_s_word_frame_is_widened_whole`, now
+over run175 whole (605 to 1249). The Fighter's 633/634 rows are gone (its
+`orders.len`, stack `length`, `dest_angle` and `idle`). Past the first
+block, only each aircraft's `form` and the harness's `order:target` on
+its birth block part, and the scout `1/0`'s non-scoring
+`order:move.facing` from 991 (parked 275). The Bomber agrees on every
+block. With the arm off, 633 parts again and the draw stream with it.
+The unit test `a_captains_attack_on_a_building_re_searches_every_frame`
+was made to fail both ways: with the arm off, a captain sixteen tiles from
+a building keeps its attack and chases; with the search's answer dropped,
+one eight tiles off loses its attack.
+
+### 62.4 What is not established
+
+- **The retarget arm's early return** on `fight`'s entry arguments
+  (`local_20`/`local_24`), which needs the target changed between entry
+  and the search. Nothing in this crate changes it there.
+- **The cavalry archer's variant** (`esi != 0`): `find_melee_target(-1,
+  &who, cavarch, 0, 0)` in place of `find_new_target`, which neither
+  kills the order nor adds one. This crate has no cavalry archer on this
+  arm.
+- **The unit target's `poor_target` search** (`005fded5`), and a unit
+  target whose `local_14` is set, which in the original is `find_new_target`
+  (a kill and a fresh order) where this crate retargets in place (§8.2).
+  Both were left as they stand; the closed chapters agree on them.
+- **The group test** (`vtable +0x2c`, `+0x94`), carried as this crate's
+  `combat.captain == index` (§47.1).
+- **Whether an aircraft on the ground strikes a building** (parked 683):
+  neither aircraft is in range of one anywhere in run175.
+
+### 62.5 Coverage
+
+- **Diff-backed** (run175, 605–1249): the Fighter's drawless kill on 632,
+  and the Bomber's every-frame re-find and stand from 700.
+- **Packet-backed** (run177): `find_attack_pos` answers 1 with ten draws;
+  `fight` answers 0, drawless, through `find_new_target` at `fight+0xa1f`.
+- **Listing-backed**: the arm's gates and branches (`005fdd5b`–`005fe01f`).
+- **Reading only**: every §62.4 arm.

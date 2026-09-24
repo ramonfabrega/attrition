@@ -6045,3 +6045,57 @@ lines spend no draw.
 This crate parts at **632**, the Fighter's arrival at its attack point,
 34 draws against 24: ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
 of `0/6`'s where the original drops the attack. See `docs/GOLDEN.md` §10.
+
+## run177 — chapter six-b's word, a packet at logger frame 632 (2026-09-24, item 680)
+
+**What it is.** run175's game to 640 with a `RON_STATE_FRAME=632` packet:
+the state after trace tick 631, with the Fighter `0/6` at its attack point
+and its `fight` still to run. The dump detail is run175's end set over
+[630, 636), with no `[Start Game]` set. `success: true`, exit 0,
+`MAP_STYLE 14` and seed 12345 read back, five settings files restored.
+**18 s launch to exit, 26 s in all**, with an 819,338,272-byte packet (173
+ranges, 259 ms to copy). The lane lock was stale: its holder, pid 62906
+(run175's), was dead.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-24-run177 \
+    --map 14 --end-frame 640 --timeout 2400 --log-window 630 636 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2,BUILDS=7 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <exp>/chapter6b-to640.cmd \
+    --tracer-def RON_STATE_FRAME=632 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is 597's (`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+`<exp>` is `~/ron-data/lab-experiments/2026-09-24-item-680/`, and its
+`chapter6b-to640.cmd` is `chapter6b.cmd` without its `700 bird` line. The
+runner refuses a line past `!quit`, and the bird comes after the packet.
+Two launches refused before the game started. The first refused on that
+line. The second refused because the first had left the empty output
+directory behind (`mkdir exist_ok=False`), which was removed.
+
+**Why a packet, and what the disk could not answer.** Which branch
+`fight` takes on tick 632 is a value the original computes, and no dump
+prints it. The trace names only the draws, and the original's 632 spends
+none under `fight`.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `frame_snapshot.py` against the plan | frame 632, trace 631, the roots unchanged |
+| `rngcmp.py` against run175's `rontrace.log` | **0 differing**, 641 identical |
+| `samegame.py` against run175 | 7 blocks in common (1, 630..635), **0 differ** |
+
+**What it settled** (`docs/COMBAT.md` §62). On the packet,
+`find_attack_pos` from `fight`'s own call answers 1 with this crate's ten
+`+0xea9` draws, so the word's booked arm is not the original's. `fight`
+itself returns 0 drawless through `find_new_target` at `fight+0xa1f`: a
+captain's attack on a building re-searches every frame, and at twelve
+tiles the Fighter's search finds nothing. `Game::do_frame` does not run on
+this packet: it stops at its nineteenth instruction on a stack read
+outside the plan's ranges (`0x7a84642c`). The calls were made one
+function at a time. The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-24-run177/map-14`, and the oracle
+scripts (`fap.py`, `fight.py`) at `<exp>`.
