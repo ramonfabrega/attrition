@@ -118,6 +118,15 @@
 #    (12672, 7296), a figure more than two cells from (4992, 16512) — or
 #    on 1099 if either is still walking. Predicted not to (points 5–7).
 #
+# RUN 2026-09-24 as run180 (item 676; docs/RUNS.md): 209 s, 66 MB. NO
+# FALSIFIER FIRED. Both `INFO 17` records issued (package 10 -> 37); the
+# dump logs `process_group` and `process_move_to` between blocks 621/622
+# and 641/642. Block 622: `0/6` one MOVEORDER, flags 5, an 11-entry plan —
+# but STRAIGHT along row 9 (y 7320) through the sand, not round it (point
+# 6's lake is no obstacle). Block 642: three GroupMoveOrders, id 641000,
+# leader 0/7. The squad's stacks empty on 938/939/941 on this crate's
+# points; the chariot's on 1040 on (12672, 7296).
+#
 # check: every staged line runs. `cmdsran.py` shows five `INFO cmd`
 #        returning 1 (the three cheats here, `37 !ffwd`, `1100 !quit`) —
 #        the two `@` lines are `INFO 17` records, not `INFO cmd`.
