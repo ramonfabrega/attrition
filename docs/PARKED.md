@@ -22,14 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 707, 2026-09-24 — the guard's listing-only arms
+
+(710) **The AI guard's roll at `fight+0x824`, `k` = 3, the captain
+shortcut, and the retaliation's `on_duty` return** (COMBAT §63.6): read
+from the listing, reached by no capture.
+
 ## Parked by item 696, 2026-09-24 — past chapter eleven's 734
 
 (704) **§4.3's first soft row, two caravans** (`TRADE_ROUTE` both ways,
 both moving), is still not carried in `sim::collide` (COLLISION §4.3).
-
-(705) **The guard never re-engages** an enemy shooting it from ~1,640
-units after its first attack ends (run190, 1050–1141); it dies on 1141.
-Past the word; no mechanism.
 
 ## Parked by item 695, 2026-09-24 — under Great Lakes' 14650
 
