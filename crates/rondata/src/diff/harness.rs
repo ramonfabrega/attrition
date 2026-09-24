@@ -4699,13 +4699,19 @@ mod tests {
         // slot's tie-break came right (`docs/ANIM.md` §4.12) — a
         // seating this crate was already spending on the original's own
         // frame, 279 frames below the word rather than above it.
+        //
+        // **Eleven → thirteen on item 678**, the same shape a third time:
+        // the comparison against the original's passed unchanged. The word
+        // walked past **13555** and **13736** when a resumed 48-grid search
+        // came to read the blocks it had copied (`docs/PATHFINDER.md` §26).
         assert_eq!(
             seatings,
             vec![
-                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306
+                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306,
+                13_555, 13_736
             ],
-            "below the word Great Lakes seats eleven scholars, on 8272, 8680, \
-             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140 and 10306"
+            "below the word Great Lakes seats thirteen scholars, on 8272, 8680, \
+             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306, 13555 and 13736"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
@@ -4854,14 +4860,20 @@ mod tests {
         // the headline: the word went 12536 → 12897 and **12582** and
         // **12782**'s rotations came under it (`docs/PATHFINDER.md`
         // §21.6). The streams above agree through them.
+        //
+        // **Twenty-three → twenty-nine on item 678**, the literal following
+        // the headline: the word went 12897 → 14382 and **12982**,
+        // **13382**, **13385**, **13582**, **13782** and **13982** came
+        // under it (`docs/PATHFINDER.md` §26). The streams above agree
+        // through them.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982
             ],
-            "below the word Great Lakes takes exactly twenty-three market \
+            "below the word Great Lakes takes exactly twenty-nine market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
