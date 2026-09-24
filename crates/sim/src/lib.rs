@@ -3994,6 +3994,9 @@ impl Sim {
         self.mark("end");
         self.refresh_site_hits();
         self.frame += 1;
+        // `Game::do_frame`, after the increment: the stray-road sweep
+        // (`crate::mesh`, `docs/ROADS.md` §10).
+        self.scan_and_kill_stray_roads();
         events
     }
 

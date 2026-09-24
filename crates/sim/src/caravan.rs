@@ -842,6 +842,51 @@ impl Sim {
         out
     }
 
+    /// **`Unit::do_move@005f7b30:437`–`478` — a caravan taking a waypoint
+    /// its road was laid on** (`docs/CARAVAN.md` §10). With the unit's
+    /// action a `TRADE_ROUTE` and the new waypoint flagged
+    /// [`path_flag::ROAD`], a tile that is no longer road (`mask & 0x30 !=
+    /// 0x10`) and is built on or blocked — `WorldData::is_built_at@0046f880`
+    /// is `(mask & 3) == 3 || mask & 0x80`, and `mask & 0x4000` beside it —
+    /// has the route **verified** and every waypoint of the unit's own path
+    /// loses the flag, so the walk asks once.
+    ///
+    /// SEAM: `TerrainOut::caravan_step`, called first on any tile that is
+    /// not open water, is the renderer's wheel ruts and nothing else.
+    pub(crate) fn caravan_road_step(&mut self, u: usize, at: Pos) {
+        use crate::world::tile;
+        let m = self.world.tile_mask(at.tile());
+        if m & tile::SURFACE == tile::SURFACE_ROAD {
+            return;
+        }
+        let built = m & tile::OBJECT == tile::OBJECT_BUILDING || m & tile::PLACED != 0;
+        if !built && m & tile::BLOCKED == 0 {
+            return;
+        }
+        if let Some(v) = self.units[u].caravan {
+            self.caravan_verify_road(self.units[u].owner, v);
+        }
+        for p in &mut self.units[u].path {
+            p.flags &= !path_flag::ROAD;
+        }
+    }
+
+    /// `Caravan::verify_road@0073d950`: the first tile of the route's own
+    /// road stack that is built on — `(mask & 3) == 3` or `mask & 0x80`,
+    /// `is_built_at`'s test read off the mask's low byte — starts the road
+    /// over (`build_road`, a fresh search: nothing is parked). A route
+    /// whose every tile is clear is left alone.
+    fn caravan_verify_road(&mut self, who: Player, v: usize) {
+        use crate::world::tile;
+        let hit = self.caravans[who as usize].slots[v].road.iter().any(|p| {
+            let m = self.world.tile_mask(p.to.tile());
+            m & tile::PLACED != 0 || m & tile::OBJECT == tile::OBJECT_BUILDING
+        });
+        if hit {
+            self.caravan_build_road(who, v);
+        }
+    }
+
     /// `Caravan::clear_temp_road@0073de80`: the parked search is freed and
     /// `making_road` cleared with it.
     fn clear_temp_road(&mut self, who: Player, v: usize) {
@@ -1082,6 +1127,64 @@ mod tests {
         assert_eq!(
             sim.ledgers[1].bucket[wealth], 60,
             "(2 + 1) × 20 for a leader who does not own the city"
+        );
+    }
+
+    /// **`do_move`'s road check** (§10): a waypoint the road was laid on
+    /// asks only when its tile is no longer road *and* is built on or
+    /// blocked. Then the route is verified — a built-on tile of the road
+    /// stack starts `build_road` over, which with no cities empties the
+    /// stack — and every waypoint of the walk loses the flag. Great Lakes'
+    /// `1/23` on 14529: (220, 101), placed on by the Barracks and eroded.
+    ///
+    /// Made to fail once with the surface test inverted: the road tile
+    /// verified too.
+    #[test]
+    fn a_road_waypoint_built_over_verifies_the_route_and_drops_the_flag() {
+        use crate::world::tile;
+        let mut sim = bare();
+        let u = sim.add_unit(crate::Unit::new(1, 0, Pos::new(960, 960), 10));
+        let v = sim.init_caravan(1, u).expect("a slot");
+        sim.units[u].caravan = Some(v);
+        let (road, built, open) = (
+            Pos::new(1056, 864),
+            Pos::new(1056, 1056),
+            Pos::new(1248, 1056),
+        );
+        let flagged = |p: Pos| PathData {
+            to: p,
+            tolerance: 0x60,
+            flags: path_flag::ROAD,
+        };
+        sim.units[u].path = vec![flagged(road), flagged(built)];
+        sim.caravans[1].slots[v].road = vec![flagged(road), flagged(built)];
+        let m = sim.world.tile_mask(road.tile());
+        sim.world.set_tile_mask(road.tile(), m | tile::SURFACE_ROAD);
+        let m = sim.world.tile_mask(built.tile());
+        sim.world.set_tile_mask(built.tile(), m | tile::PLACED);
+        // Still a road: nothing asked.
+        sim.caravan_road_step(u, road);
+        assert!(
+            sim.units[u]
+                .path
+                .iter()
+                .all(|p| p.flags & path_flag::ROAD != 0)
+        );
+        // Plain ground, nothing on it: nothing asked either.
+        sim.caravan_road_step(u, open);
+        assert_eq!(sim.caravans[1].slots[v].road.len(), 2);
+        // Built over and not road: verified, and the flag is gone.
+        sim.caravan_road_step(u, built);
+        assert!(
+            sim.units[u]
+                .path
+                .iter()
+                .all(|p| p.flags & path_flag::ROAD == 0),
+            "every waypoint loses the flag"
+        );
+        assert!(
+            sim.caravans[1].slots[v].road.is_empty(),
+            "the route is planned again"
         );
     }
 }

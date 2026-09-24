@@ -146,7 +146,28 @@ pub struct RoadMesh {
     blocked: [bool; 9],
     /// `road_cache` — a road.
     road: [bool; 9],
+    /// `road_cache2` (`RoadsData +0x5c8`) — the stray-road sweep's own
+    /// compass of roads. **It persists**: `scan_and_kill_stray_roads`
+    /// writes nothing to an off-map neighbour's entry (its off-map arm
+    /// zeroes `road_cache` instead), so an edge tile reads whatever the
+    /// previous tile left there.
+    sweep_road: [bool; 9],
 }
+
+/// `road_compass_flags@00af2570` — the bit a tile's element claims toward
+/// each compass neighbour, `[0]` the tile itself. Read out of the PE; it is
+/// [`dir`] in [`MOVE_X`]/[`MOVE_Y`] order.
+const COMPASS_FLAGS: [u32; 9] = [
+    0,
+    dir::NW,
+    dir::N,
+    dir::NE,
+    dir::E,
+    dir::SE,
+    dir::S,
+    dir::SW,
+    dir::W,
+];
 
 /// `x + width_in_tiles · y` — how the original packs a `RoadModification` and
 /// every `changed_roads` entry, `world->cell_width << 2` being the tile
@@ -404,6 +425,105 @@ impl RoadMesh {
 }
 
 impl Sim {
+    /// **`Roads::scan_and_kill_stray_roads@008956a0`** (`docs/ROADS.md`
+    /// §10): `Game::do_frame`'s last road step, right after `frame++`. A
+    /// cursor walks the map a cell at a time, `size / 500` cells a frame
+    /// — seven on a 60 × 60 map, the whole of it every 515 frames — and
+    /// every tile of each cell is asked whether its road should stand.
+    ///
+    /// The cursor (`curscan_x`/`curscan_y`) starts at cell 0 and is
+    /// stepped **before** each cell, so it is a function of the frame and
+    /// carried nowhere: run189's packet holds it at cell 903 after 14,529
+    /// frames, `14,529 × 7 mod 3,600`.
+    pub(crate) fn scan_and_kill_stray_roads(&mut self) {
+        let (xs, ys) = (self.world.width(), self.world.height());
+        let size = xs * ys;
+        let per = size / 500;
+        if per <= 0 {
+            return;
+        }
+        let done = i64::from(per) * (self.frame - 1);
+        for j in 1..=i64::from(per) {
+            let idx = ((done + j) % i64::from(size)) as i32;
+            let (cx, cy) = (idx % xs, idx / xs);
+            for i in 0..16 {
+                let t = Pos::new(cx * 4 + (i & 3), cy * 4 + (i >> 2));
+                self.scan_stray_tile(t);
+            }
+        }
+    }
+
+    /// One tile of the sweep: the four compasses, then
+    /// `scan_and_kill_bad_tcoord@0088e100` and — on a road —
+    /// `scan_and_kill_straggled_tcoord@0088e050`.
+    fn scan_stray_tile(&mut self, t: Pos) {
+        let (tw, th) = (self.world.width() * 4, self.world.height() * 4);
+        let elem = self.mesh.elem(&self.world, t);
+        let mut build = [false; 9];
+        let mut water = [false; 9];
+        let mut sup = [false; 9];
+        for k in 0..9 {
+            let (x, y) = (t.x + MOVE_X[k], t.y + MOVE_Y[k]);
+            if x < 0 || y < 0 || x >= tw || y >= th {
+                continue;
+            }
+            let m = self.world.tile_mask(Pos::new(x, y));
+            let road = m & tile::SURFACE == tile::SURFACE_ROAD;
+            self.mesh.sweep_road[k] = road;
+            build[k] = m & tile::OBJECT == tile::OBJECT_BUILDING;
+            water[k] = m & tile::RIVER != 0 || m & tile::SURFACE == tile::SURFACE_OCEAN;
+            // The **centre's** element, read at the centre's own slot: does
+            // the tile claim the direction whose neighbour is a road.
+            sup[k] = road && elem.is_some_and(|e| e.flags & COMPASS_FLAGS[k] != 0);
+        }
+        let road = self.mesh.sweep_road;
+        // `scan_and_kill_bad_tcoord`.
+        match elem {
+            // No element on the tile — `rotation == 10`, an empty slot: a
+            // road nothing in the mesh holds goes, and nothing is counted
+            // down, because nothing holds it.
+            None => {
+                if road[0] {
+                    self.world_set_road_at(t, false, 0, 0);
+                }
+            }
+            // The mesh's own tile (or the `element_C4` piece, which this
+            // crate does not pick): it stands while any of the nine is a
+            // road.
+            Some(e) if e.made => {
+                if !road.iter().any(|&r| r) {
+                    self.kill_stray(t);
+                }
+            }
+            Some(_) => {
+                // Every claimed direction has a road on the map there by
+                // construction of `sup`, so the arm kills a tile that
+                // claims none.
+                if !road[0] || !sup[1..].iter().any(|&s| s) {
+                    self.kill_stray(t);
+                }
+            }
+        }
+        // `scan_and_kill_straggled_tcoord`, on the cached centre: a road
+        // that claims exactly one neighbour, with no building and no water
+        // beside it, is a stub.
+        if road[0] {
+            let one = sup[1..].iter().filter(|&&s| s).count() == 1;
+            let near = build[1..].iter().any(|&b| b) || water[1..].iter().any(|&w| w);
+            if one && !near {
+                self.kill_stray(t);
+            }
+        }
+    }
+
+    /// The sweep's kill: `TerrainOut::road_changed(x, y, 0, 0, 1)`, one
+    /// reference down, then `World::set_road_at(x, y, 0, 0, 0)` through the
+    /// door, which queues the removal and trims the neighbours.
+    fn kill_stray(&mut self, t: Pos) {
+        self.mesh.road_changed(&self.world, t, false, 0, 1);
+        self.world_set_road_at(t, false, 0, 0);
+    }
+
     /// `World::set_road_at@006b43b0` — the one door into the mesh.
     ///
     /// `p4` is the original's fourth argument, which only decides whether the
@@ -946,5 +1066,98 @@ mod tests {
         }
         assert_eq!(roads, 5, "three elbow tiles, the new one, and the fill");
         assert_eq!(sim.mesh.len(), 5, "and no element outside them");
+    }
+
+    // ------------------------------------------------------------------
+    // The stray-road sweep (`docs/ROADS.md` §10)
+    // ------------------------------------------------------------------
+
+    /// A north–south road of six tiles on open ground, `(100, 40)` to
+    /// `(100, 45)`.
+    fn lane(sim: &mut Sim) {
+        let tiles: Vec<(i32, i32)> = (40..46).map(|y| (100, y)).collect();
+        lay(sim, &tiles);
+    }
+
+    /// **A road with nothing at its ends erodes from both, a tile a visit**
+    /// — Great Lakes' trade road from (216, 115), a stub on 5905, to
+    /// (220, 98) on 14100. Each end claims one neighbour, with no building
+    /// and no water beside it: `scan_and_kill_straggled_tcoord` takes it,
+    /// and the removal trims the next tile down to one claim of its own.
+    ///
+    /// Made to fail once with the straggler arm removed: the lane stood.
+    #[test]
+    fn a_lane_with_nothing_at_its_ends_erodes_a_tile_a_visit() {
+        let mut sim = bare();
+        lane(&mut sim);
+        sim.scan_stray_tile(Pos::new(100, 44));
+        assert!(is_road(&sim, 100, 44), "the middle claims two: it stands");
+        sim.scan_stray_tile(Pos::new(100, 45));
+        assert!(!is_road(&sim, 100, 45), "the south end is a stub");
+        assert!(sim.mesh.elem(&sim.world, Pos::new(100, 45)).is_none());
+        assert_eq!(
+            sim.mesh
+                .elem(&sim.world, Pos::new(100, 44))
+                .map(|e| e.flags),
+            Some(dir::N),
+            "the next tile is trimmed to its one claim"
+        );
+        for y in (40..45).rev() {
+            sim.scan_stray_tile(Pos::new(100, y));
+        }
+        assert!(
+            (40..46).all(|y| !is_road(&sim, 100, y)),
+            "and the lane is gone"
+        );
+    }
+
+    /// **A building beside the end keeps it** — the straggler test counts
+    /// `(mask & 3) == 3` neighbours, so a road that reaches a footprint is
+    /// not a stub. Great Lakes' (216, 116) stands beside the city.
+    #[test]
+    fn a_road_that_ends_at_a_building_is_not_a_stub() {
+        let mut sim = bare();
+        lane(&mut sim);
+        let foot = Pos::new(101, 46);
+        let m = sim.world.tile_mask(foot);
+        sim.world.set_tile_mask(foot, m | tile::OBJECT_BUILDING);
+        sim.scan_stray_tile(Pos::new(100, 45));
+        assert!(is_road(&sim, 100, 45), "a footprint beside it: it stands");
+    }
+
+    /// **A road tile with no element goes, and nothing is counted down** —
+    /// `scan_and_kill_bad_tcoord`'s first arm, `rotation == 10`.
+    #[test]
+    fn a_road_tile_the_mesh_does_not_hold_is_taken_away() {
+        let mut sim = bare();
+        let t = Pos::new(100, 40);
+        let m = sim.world.tile_mask(t);
+        sim.world.set_tile_mask(t, m | tile::SURFACE_ROAD);
+        assert!(sim.mesh.elem(&sim.world, t).is_none());
+        sim.scan_stray_tile(t);
+        assert!(!is_road(&sim, 100, 40));
+    }
+
+    /// **The cursor is the frame's**: seven cells a frame on a 60 × 60
+    /// map, stepped before each, so the frame that has just become 14,529
+    /// scans cells 897 to 903 — where run189's packet holds `curscan` —
+    /// and not 904.
+    #[test]
+    fn the_sweep_s_cursor_is_seven_cells_a_frame_from_cell_zero() {
+        let mut sim = bare();
+        let at = |c: i32| Pos::new((c % 60) * 4, (c / 60) * 4);
+        for c in [896, 897, 903, 904] {
+            let m = sim.world.tile_mask(at(c));
+            sim.world.set_tile_mask(at(c), m | tile::SURFACE_ROAD);
+        }
+        sim.frame = 14_529;
+        sim.scan_and_kill_stray_roads();
+        let road = |sim: &Sim, c: i32| is_road(sim, at(c).x, at(c).y);
+        assert!(road(&sim, 896), "cell 896 was the frame before's");
+        assert!(
+            !road(&sim, 897) && !road(&sim, 903),
+            "897..903 are this frame's"
+        );
+        assert!(road(&sim, 904), "904 is the next frame's");
     }
 }

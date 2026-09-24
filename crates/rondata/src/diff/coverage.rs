@@ -43,8 +43,8 @@ use super::testkit::{
     GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_CIVIC_BLOCK,
     GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_MAKE_BLOCK,
-    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
-    GREAT_LAKES_VALS_BLOCK, WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK,
+    GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -556,6 +556,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let gv = GREAT_LAKES_VALS_BLOCK;
         let n = drive_capture(p, gv - 2, gv + 2, &mut paths);
         assert_eq!(n, 5, "run178 carries the new word's five blocks");
+        frames += n;
+        // Item 695 moved it to 14650, inside run178 again (the caravan's
+        // road, verified over a stretch the stray-road sweep took).
+        let gd = GREAT_LAKES_ROAD_BLOCK;
+        let n = drive_capture(p, gd - 2, gd + 2, &mut paths);
+        assert_eq!(n, 5, "run178 carries item 695's word's five blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

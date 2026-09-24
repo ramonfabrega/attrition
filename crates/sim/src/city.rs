@@ -1505,6 +1505,51 @@ impl Sim {
         false
     }
 
+    /// **`Build::activate@00623e20`'s Senate arm** (`docs/CITIES.md` §15):
+    /// a Senate finished, not captured, in a live city of the owner's own
+    /// race, **moves the capital here** when the owner's capital
+    /// (`LeaderData::find_capital`'s first arm, the first live own city
+    /// with `0x10`) holds no finished Senate — `CityData::count_buildings(
+    /// SENATE, 0, 1)`. Every own live city loses `0x10` (with tribe bonus
+    /// `0x17`, only one that is not the founding capital, `0x4000`), this
+    /// one takes it and `founder = who`, and `Region::fix_borders` runs,
+    /// because a capital projects `CAPITAL_TERRITORY_BONUS`.
+    ///
+    /// Drawless: Great Lakes' Senate `1/2024` moves the capital from
+    /// London to Norwich on tick 14528 and spends nothing on it.
+    ///
+    /// SEAM: the arm's head — the government hero trained when
+    /// `gov_hero_frame` is set and none is near — and `senates_built`,
+    /// which no reader here carries; run178 prints `gov_hero_frame` −1.
+    fn senate_moves_capital(&mut self, b: usize) {
+        let who = self.buildings[b].owner;
+        let Some(c) = self.buildings[b].city.filter(|&c| self.cities[c].alive) else {
+            return;
+        };
+        if self.cities[c].race != Some(who) {
+            return;
+        }
+        let own = |k: usize, s: &Self| s.cities[k].alive && s.cities[k].owner == who;
+        let Some(cap) = (0..self.cities.len()).find(|&k| own(k, self) && self.cities[k].capital)
+        else {
+            return;
+        };
+        if self.count_buildings(cap, Ident::Senate, true) != 0 {
+            return;
+        }
+        let keeps_founding =
+            self.tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x17);
+        for k in 0..self.cities.len() {
+            if own(k, self) && !(keeps_founding && self.cities[k].founding_capital) {
+                self.cities[k].capital = false;
+            }
+        }
+        self.cities[c].capital = true;
+        self.cities[c].founder = who;
+        self.sync_territory();
+    }
+
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
     pub fn activate(&mut self, b: usize, captured: bool, counted: bool) {
         if !self.buildings[b].started {
@@ -1583,6 +1628,9 @@ impl Sim {
             }
             if build::is_fort(&self.build_types, ty) {
                 self.sync_territory();
+            }
+            if !captured && self.building_is(b, Ident::Senate) {
+                self.senate_moves_capital(b);
             }
         }
         self.update_hits(b);

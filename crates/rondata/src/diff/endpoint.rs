@@ -1251,7 +1251,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`City::fix_world_vals`, `docs/AI.md` §67), which moves this
         // map's word 14382 → 14529. The 24,000th frame is 9,471 frames
         // past the new word. DECISIONS 36: the number, not a trade.
-        off: 46,
+        // **46 → 30 off** on item 695: the stray-road sweep and the
+        // caravan's road check (`docs/ROADS.md` §10, `docs/CARAVAN.md`
+        // §10), which move this map's word 14529 → 14650. The 24,000th
+        // frame is 9,350 frames past the new word. DECISIONS 36: the
+        // number, not a trade.
+        off: 30,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         unlinked: 0,

@@ -599,3 +599,62 @@ by the word. Reading-backed and pinned by
 `sim::caravan::tests::the_arrival_bonus_is_paid_once_and_doubles_for_a_foreigner`,
 which now sets Commerce and Civic to different levels: the once-per-bit
 rule and the foreign doubling.
+
+## 10. A road-flagged waypoint asks whether the road is still there (2026-09-24, item 695)
+
+*Established from `Unit::do_move@005f7b30`, `Caravan::verify_road@0073d950`
+and `WorldData::is_built_at@0046f880`, and diff-backed by Great Lakes
+14529 (run178, run189).*
+
+~~`path_flag::ROAD` is written by `build_road` and nothing reads it
+back.~~ `Unit::do_move` reads it. The flag's doc comment used to say
+otherwise.
+
+### 10.1 The check — `do_move@005f7b30:437`–`478`
+
+When the move takes its next waypoint (`dest == 0`, the top of the path
+stack) and the unit's **action** is `TRADE_ROUTE` (type `0xf`, from
+`get_action`'s vslot `+0x10`), it asks whether the waypoint carries flag
+`0x20`:
+
+```
+tile = div3(to >> 6)
+if surface(tile) != ocean:  TerrainOut::caravan_step(tile, who)   ← camel steps (ROADS §10.5)
+if surface(tile) != road and (is_built_at(tile) or mask & 0x4000):
+    caravans[who][this.caravan].verify_road()
+    every entry of this unit's path: flags &= ~0x20
+```
+
+`is_built_at` is `(mask & 3) == 3 || mask & 0x80`. That covers a finished
+footprint, and a placed-but-unstarted one as well. The tile is the
+**waypoint's**, which is the offset position §7.1 wrote. The stripped
+flag means the walk asks once per leg.
+
+### 10.2 `Caravan::verify_road@0073d950`
+
+It walks the route's own road stack (`+0x10`, `+0x18` its length). The
+first tile that is built on, by the same low-byte test, calls
+`build_road`. The search is fresh: nothing is parked, so the three-way
+gate (§5) throws nothing away and starts again. A budget stop parks the
+search, and `Unit::work`'s block (§6) resumes it each frame. A route with
+every tile clear is left alone.
+
+### 10.3 What it moved
+
+On Great Lakes, `1/23` takes (42272, 19424) on tick 14529. That is tile
+(220, 101), under the Barracks `1/2025` (placed on 14382, not started),
+and the stray-road sweep had taken its road (`docs/ROADS.md` §10). So the
+route is verified: 3,206 road draws that frame, 3,206 the next, and on
+until 14533. On block 14530 all 24 of the walk's waypoints have lost
+`0x20`. This crate had neither half. Its tile was still road, and nothing
+asked. With both, Great Lakes' word moves **14529 → 14650**
+(`docs/AI.md` §68).
+
+### 10.4 What is not established
+
+- `TerrainOut::caravan_step` is not modelled. Its sound and ruts are the
+  renderer's, but its reference counts are the mesh's (`docs/ROADS.md`
+  §10.5).
+- `Caravans::new_danger@0073e0c0` restarts a route whose road passes
+  within `0x600` of a hit on a caravan (`Object::take_damage`). No traced
+  caravan has been hit, and it is not modelled.

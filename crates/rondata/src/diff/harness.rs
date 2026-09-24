@@ -4870,14 +4870,18 @@ mod tests {
         // **Twenty-nine → thirty on item 688**: the word went 14382 →
         // 14529 and **14385** came under it (`docs/AI.md` §67). The
         // streams above agree through it.
+        //
+        // **Thirty → thirty-two on item 695**: the word went 14529 →
+        // 14650 and **14582** and **14585** came under it (`docs/AI.md`
+        // §68). The streams above agree through them.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385, 14_582, 14_585
             ],
-            "below the word Great Lakes takes exactly thirty market \
+            "below the word Great Lakes takes exactly thirty-two market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -10777,15 +10781,23 @@ mod tests {
     /// Barracks on 14383 goes up on the original's cell. The new word's
     /// frame writes block **14530**; the test keeps the move's value diff
     /// on 14383 and pins the new word's block.
+    ///
+    /// **Item 695 moved it 14529 → 14650, inside this window again**
+    /// (`docs/CARAVAN.md` §10, `docs/ROADS.md` §10): the caravan verifies a
+    /// road the stray-road sweep eroded. The new word's frame writes block
+    /// **14651**; the test keeps the move's value diff on 14530.
     #[test]
     fn run178_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
         const FIRST: i64 = WIDENING_GREAT_LAKES_COPY.0;
         const TAIL: i64 = WIDENING_GREAT_LAKES_COPY.1;
-        const WORD_BLOCK: i64 = GREAT_LAKES_VALS_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_ROAD_BLOCK;
         /// The word item 678 left, and 688 moved: its block keeps the move's
         /// value diff.
         const OLD_BLOCK: i64 = GREAT_LAKES_COPY_BLOCK;
+        /// The word item 688 left, and 695 moved: its block keeps that
+        /// move's value diff.
+        const VALS_BLOCK: i64 = GREAT_LAKES_VALS_BLOCK;
         /// run174's last block: everything above it is run178's.
         const RUN174_TAIL: i64 = WIDENING_GREAT_LAKES_CIVIC.1;
         let Some(Widened {
@@ -10808,7 +10820,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_COPY,
             11_800,
-            &[OLD_BLOCK, WORD_BLOCK],
+            &[OLD_BLOCK, VALS_BLOCK, WORD_BLOCK],
         )
         else {
             return;
@@ -10850,6 +10862,21 @@ mod tests {
             .map(row)
             .collect();
         assert_eq!(old, Vec::<String>::new(), "the old word's five blocks");
+        // **Item 695's value diff, on 688's word's block 14530.** On it
+        // `1/23`'s 24 path entries carried the road flag `0x20` here and
+        // not there, and `1/28`'s figure turned here alone: the original's
+        // caravan had taken a waypoint whose road the stray-road sweep had
+        // eroded, verified its route (3,206 road draws a frame) and
+        // stripped the flag. With the sweep (`Sim::scan_and_kill_stray_roads`)
+        // and the check (`Sim::caravan_road_step`), the 17 road tiles
+        // (220, 98)..(216, 115) this crate kept are gone by 14529, as on
+        // run189's `WORLD` block, and nothing parts on these five blocks.
+        let vals: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (VALS_BLOCK - 2..=VALS_BLOCK + 2).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(vals, Vec::<String>::new(), "688's word's five blocks");
         // **Under the word, on run178's own blocks: the site list's slot
         // order and the newborns' residue.** The site values agree on
         // every block but three spans since item 688 (the table as a set:
@@ -10861,11 +10888,18 @@ mod tests {
         // against 50 and `mylos` 2 against 4 (parked 679), a birth-block
         // `orders_x/y`. The leader's scholar count on 13556 is the block
         // after the thirteenth seating, which both sides spend on 13555.
-        // And on 14529 the capital: `city_flags` bit `0x10` moves from
-        // `1/2000` to Norwich `1/2007` there and not here (below).
+        // ~~And on 14529 the capital~~ — gone with item 695: the Senate
+        // `1/2024` moves `0x10` from `1/2000` to Norwich `1/2007` here too
+        // (`docs/CITIES.md` §15). Its territory is recomputed at once here
+        // and over sixteen frames there (`docs/ATTRITION.md`, "Territory"),
+        // so who=0's `gather_stamp` is re-stamped on 14536 here and 14544
+        // there. `known_rares` on 14536 parts with or without it. And on
+        // 14650 `1/43`, the word's gatherer, collides with `1/7` here and
+        // `1/6` there.
         assert_eq!(
             mid,
             [
+                "14537 0/-1 leader:gather_stamp: ours 14536 theirs 14080",
                 "14176 1/-1 leader:SITE[4].dist: ours 968 theirs 2048",
                 "14176 1/-1 leader:SITE[4].rank: ours 6 theirs 4",
                 "14176 1/-1 leader:SITE[4].val: ours 95326 theirs 26656",
@@ -10876,7 +10910,16 @@ mod tests {
                 "12976 1/-1 leader:SITE[8].val: ours 95326 theirs 191650",
                 "12976 1/-1 leader:SITE[8].wx: ours 47 theirs 44",
                 "12976 1/-1 leader:SITE[8].wy: ours 33 theirs 30",
+                "14536 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
+                "14650 1/43 collide: ours 7 theirs 6",
+                "14650 1/43 dest_angle: ours 1925840896 theirs 1923350528",
+                "14650 1/43 order:kind: Kind { ours: 1, theirs: 7 }",
+                "14650 1/43 order:length: Length { ours: 2, theirs: 1 }",
+                "14650 1/43 orders.len: ours 2 theirs 1",
+                "14650 1/43 orders_x: ours 43704 theirs 43608",
+                "14650 1/43 orders_y: ours 26856 theirs 26616",
+                "14650 1/43 path:length: PathLength { ours: 1, theirs: 0 }",
                 "13163 1/71 form: ours -1 theirs 9",
                 "13163 1/71 hits:myhits: ours 40 theirs 50",
                 "13163 1/71 hits_left: ours 40 theirs 50",
@@ -10906,41 +10949,52 @@ mod tests {
                 "13737 1/75 g.angle[0]: ours 1431655765 theirs 0",
                 "13737 1/75 orders_x: ours 40416 theirs 40440",
                 "13737 1/75 orders_y: ours 25248 theirs 25272",
-                "14529 1/2000 city:city_flags[0x10]: ours 1 theirs 0",
-                "14529 1/2007 city:city_flags[0x10]: ours 0 theirs 1",
             ],
             "the rows under the word, on run178's own blocks"
         );
-        // **The word, 14529 (block 14530).** The original's capital moved
-        // to Norwich on 14528, and on 14529 it spends 3,213 draws under
-        // `PathFinder::calc_road_cost+0x46` where this crate spends 7.
-        // On the block, `1/23`'s path — 24 entries, every one — carries
-        // flag `0x20` here and not there, and `1/28`'s figure turns here
-        // alone. No mechanism is named (DECISIONS 42).
+        // ~~**The word, 14529 (block 14530).**~~ Item 695 moved it: the
+        // caravan's road check and the stray-road sweep (above).
+        //
+        // **The word, 14650 (block 14651).** The original spends 3 draws
+        // where this crate spends 2, parting at index 0 on
+        // `Unit::do_non_flat_gather+0x54b`. On the block one record parts:
+        // the Woodcutter's Camp `1/2009`'s gather-tile list, 192 keys, the
+        // original's list one entry along from this crate's (`tx[1]` here
+        // is `tx[0]` there). No mechanism is named (DECISIONS 42).
         let words: Vec<(i64, i64, usize)> =
             word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
         assert_eq!(
             words,
-            [(1, 23, 24), (1, 28, 2)],
-            "who parts first on 14530, and on how many keys"
+            [(1, 2009, 192)],
+            "who parts first on 14651, and on how many keys"
         );
+        let head: Vec<String> = word
+            .get(&(1, 2009))
+            .map(|v| {
+                v.iter()
+                    .filter(|r| r.starts_with("gather:tx[0]") || r.starts_with("gather:tx[1]:"))
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default();
         assert_eq!(
-            word.get(&(1, 28)).cloned().unwrap_or_default(),
+            head,
             [
-                "g.cur_anim[0]: ours 1 theirs 0",
-                "g.end_time[0]: ours 58 theirs 31",
+                "gather:tx[0]: ours 234 theirs 230",
+                "gather:tx[1]: ours 230 theirs 224",
             ],
-            "1/28 on 14530"
+            "1/2009's list, one entry along"
         );
-        assert_eq!(standing_n, 350, "every row standing on 14530");
+        assert_eq!(standing_n, 517, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
         // blocks, and every key to run178's last block: 1,552 before item
-        // 688, 1,375 after it, with 26 on the new word's block.
+        // 688, 1,375 after it, and 1,279 after item 695, with 192 on the
+        // new word's block.
         assert_eq!(
             (under, mid.len(), firsts.len()),
-            (374, 42, 1_375),
+            (374, 50, 1_279),
             "the floor"
         );
     }
