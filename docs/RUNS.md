@@ -6243,3 +6243,33 @@ runs **straight along row 9**, every waypoint at `y 7320`, x 4248 to 11160,
 through the SANDY cells of region 65 that this crate's plan bends north
 round (§17's "ground"), and it arrives fifty frames later than this crate's
 longer route. See `docs/GOLDEN.md` §17.
+
+## run189 — Great Lakes' word 14529, a packet at logger frame 14529 (2026-09-24, item 695)
+
+**What it is.** The long game on the click-free lane to 14535 with a
+`RON_STATE_FRAME=14529` packet — the state after trace tick 14528, with
+tick 14529's `Unit::do_move` for the caravan `1/23` still ahead of it —
+and a `WORLD=6` dump over [14528, 14531) beside run178's line, so the
+tile masks come through the parser the harness already has.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-24-run189 \
+    --map 14 --end-frame 14535 --timeout 3600 --log-window 14528 14531 \
+    --detail end:MISC,WORLD=6,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=14529 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is the lab's Great Lakes plan, reused as run144 reused it
+(`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+
+**Why a packet, and what the disk could not answer.** On tick 14529 the
+original's `1/23` takes the waypoint (42272, 19424), flagged road
+(`0x20`), and every entry of its path loses the flag: that is
+`Unit::do_move@005f7b30:437`–`478`, which verifies the route only when
+the tile is **not road** and is built on or blocked. Then 3,206 road
+draws. Here the tile, (220, 101), is `0x190` on the same tick: placed on
+by the Barracks `1/2025`, and **still road**. No capture on disk prints a
+tile mask on this map past run72 — run178's line has no `WORLD` — so
+whether the original's tile lost its road, and what took it, is a value
+only the original holds.
