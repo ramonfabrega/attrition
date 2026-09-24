@@ -970,7 +970,7 @@ if !(unit_masks & 8):
         r = find_wpath(&path, who, o)   (from the unit's position); wflag = 1
     else:
         top = peek; if !(top.flags & 1) and top == last_x/y: pop
-        if collide == 0: pop while !(top.flags & 0x21) and top.tolerance < 0x60;  r = find_tpath(&path, who, o)
+        if collide == 0: pop while !(top.flags & 0x21) and 1 <= top.tolerance <= 0x60 (unsigned);  r = find_tpath(&path, who, o)
         else:            r = find_upath(&path, who, o, 0)
         wflag = 0
     (r > 0 with the length unchanged counts as 0)
@@ -988,6 +988,17 @@ if !(unit_masks & 8):
         top = peek; dest_x/y = top; tolerance = top.tolerance; goto STEP_IF_MOVING
      KILL: kill_current_order(0); if the order beneath is ATTACK or BUILD_AT: kill it too; return 1
 ```
+
+~~`top.tolerance < 0x60`~~ **The pop takes a tolerance of 1 to `0x60`,
+unsigned, and keeps 0** (item 669, 2026-09-23). The decompiler prints the
+test as `0x5f < &pPVar12[-1].field_0xcb`, pointer arithmetic on a
+`PathFinder*` of size `0xcc`; the listing is `lea eax,[ecx-1]; cmp
+eax,0x5f; ja` at `0x5f8ad2`. So a tolerance-0 waypoint is an exact point
+and survives, and the tile search aims at it. A group move's formation
+waypoint is one (tolerance 0, flags 0, rewritten as the group walks).
+Reading the test as `< 0x60` popped that point on Great Lakes' `1/68` on
+block 12322 and re-aimed the tile plan at the final goal, `docs/AI.md`
+§64.
 
 Read as a rule: a goal farther than the drawn threshold (2, 5 or 8 world
 cells, Manhattan — **one `Random::get` from the sync stream on the first

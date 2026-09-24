@@ -10490,7 +10490,11 @@ mod tests {
         // both `trade_val`s, the five wealth rows and `worst_good`. Past the
         // word's old block **1,434 → 275**: the second pass's purchases
         // and everything downstream of them are gone.
-        assert_eq!((under, firsts.len()), (238, 275), "the floor");
+        // **Item 669 took sixteen more** (275 → 259), all of them past the
+        // conversion: `1/68`'s tile plan on 12322 and 12389, which kept the
+        // group's tolerance-0 formation point once the unwind read 1 to
+        // `0x60` (`docs/ORDERS.md` §4.4).
+        assert_eq!((under, firsts.len()), (238, 259), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -10510,6 +10514,8 @@ mod tests {
         const RUN163_TAIL: i64 = WIDENING_GREAT_LAKES_UPGRADE.1;
         /// The block `1/68`'s tile plan parts on.
         const PLAN_BLOCK: i64 = 12_322;
+        /// The block of the word item 669's fix moved to, 12536's.
+        const NEXT_BLOCK: i64 = 12_537;
         let Some(Widened {
             firsts,
             missing,
@@ -10530,7 +10536,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_CIVIC,
             11_800,
-            &[WORD_BLOCK],
+            &[WORD_BLOCK, NEXT_BLOCK],
         )
         else {
             return;
@@ -10563,114 +10569,96 @@ mod tests {
         let one_sided: Vec<(i64, i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.3 != c.4).copied().collect();
         let under = firsts.values().filter(|(f, _)| *f <= RUN163_TAIL).count();
-        // **`1/68`'s tile plan, block 12322** (item 669). On 12321 both
-        // sides hold `[goal, (36947, 23672)]`: the final point, and the
-        // group move's formation waypoint at tolerance 0. On 12322
-        // `do_move`'s tile arm unwinds the loose near waypoints and calls
-        // `find_tpath`. The original keeps the formation point and plans
-        // the tiles to it: 13 entries. This crate popped it (it read the
-        // unwind's test as `tolerance < 0x60`) and planned to the final
-        // goal: 17 (`docs/ORDERS.md` §4.4, `docs/AI.md` §64).
-        assert_eq!(
-            plan,
-            [
-                "12322 1/68 path:length: PathLength { ours: 17, theirs: 13 }",
-                "12322 1/68 path[10].to: PathTo { slot: 10, ours: (37944, 23064), theirs: (38712, 22296) }",
-                "12322 1/68 path[11].to: PathTo { slot: 11, ours: (38136, 22872), theirs: (38904, 22104) }",
-                "12322 1/68 path[12].to: PathTo { slot: 12, ours: (38328, 22680), theirs: (39096, 21912) }",
-                "12322 1/68 path[1].to: PathTo { slot: 1, ours: (36216, 24024), theirs: (36947, 23672) }",
-                "12322 1/68 path[1].tolerance: PathField { slot: 1, field: \"tolerance\", ours: 96, theirs: 0 }",
-                "12322 1/68 path[2].to: PathTo { slot: 2, ours: (36408, 24024), theirs: (37176, 23640) }",
-                "12322 1/68 path[3].to: PathTo { slot: 3, ours: (36600, 24024), theirs: (37368, 23640) }",
-                "12322 1/68 path[4].to: PathTo { slot: 4, ours: (36792, 23832), theirs: (37560, 23448) }",
-                "12322 1/68 path[5].to: PathTo { slot: 5, ours: (36984, 23832), theirs: (37752, 23256) }",
-                "12322 1/68 path[6].to: PathTo { slot: 6, ours: (37176, 23832), theirs: (37944, 23064) }",
-                "12322 1/68 path[7].to: PathTo { slot: 7, ours: (37368, 23640), theirs: (38136, 22872) }",
-                "12322 1/68 path[8].to: PathTo { slot: 8, ours: (37560, 23448), theirs: (38328, 22680) }",
-                "12322 1/68 path[9].to: PathTo { slot: 9, ours: (37752, 23256), theirs: (38520, 22488) }",
-            ],
-            "1/68's plan on 12322"
-        );
-        // **The word's block, 12430**: `1/68` has walked the re-aimed leg
-        // since 12422, and ours' `1/67` hard-collides with it and stops,
-        // the sixth draw (`Unit::move_step+0x823`). The original's walks on.
+        let mid: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (RUN163_TAIL + 1..=NEXT_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // ~~**`1/68`'s tile plan, block 12322.**~~ On 12321 both sides held
+        // `[goal, (36947, 23672)]`: the final point, and the group move's
+        // formation waypoint at tolerance 0. On 12322 `do_move`'s tile arm
+        // unwinds the loose near waypoints and calls `find_tpath`. The
+        // original keeps the formation point and plans the tiles to it,
+        // 13 entries. This crate popped it, because it read the unwind's test
+        // as `tolerance < 0x60`, and planned to the final goal: 17 entries,
+        // fourteen rows here and two more on 12389. From 12422 `1/68` walked
+        // a leg the original never walks. On the word's block, 12430, ours'
+        // `1/67` hard-collided with it (`collide_o 68`) and stopped, spending
+        // the sixth draw (`Unit::move_step+0x823`); the original's walked
+        // on. Those were eighteen rows of `1/67` and 36 above run163.
+        //
+        // **Item 669 moved it 12429 → 12536** (`docs/ORDERS.md` §4.4,
+        // `docs/AI.md` §64): the unwind takes a tolerance of 1 to `0x60`,
+        // unsigned, and keeps 0. **The move's value diff**: every one of
+        // those rows is gone, and so is every one-sided animation change.
+        assert_eq!(plan, Vec::<String>::new(), "1/68's plan on 12322");
+        // What stands of `1/67` on 12430 is parked 646's `form` residue,
+        // which spends no draw.
         assert_eq!(
             word,
-            [
-                "collide_o: ours 68 theirs -1",
-                "collide_who: ours 1 theirs -1",
-                "form: ours -1 theirs 0",
-                "g.angle[1]: ours -576454656 theirs -1024000000",
-                "g.avg_speed[0]: ours 13 theirs 19",
-                "g.cur_time[0]: ours 1 theirs 3",
-                "g.des_x[0]: ours 37345 theirs 37324",
-                "g.des_x[1]: ours 37200 theirs 37179",
-                "g.des_y[0]: ours 23938 theirs 23950",
-                "g.des_y[1]: ours 24074 theirs 24086",
-                "g.last_speed[0]: ours 0 theirs 24",
-                "g.last_time[0]: ours 0 theirs 2",
-                "g.x[0]: ours 37345 theirs 37324",
-                "g.x[1]: ours 37200 theirs 37186",
-                "g.y[0]: ours 23938 theirs 23950",
-                "g.y[1]: ours 24074 theirs 24087",
-                "order:coll: Coll { ours: Some((37324, 23950)), theirs: (40922, 20353) }",
-                "pos: ours (37345,23938) theirs (37324,23950)",
-            ],
-            "1/67 on the word's block"
+            ["form: ours -1 theirs 0"],
+            "1/67 on the old word's block"
         );
-        // Every key that first parts on run174's blocks up to the word's:
-        // `1/68` off its heading from 12422, `1/67` on 12430, and nothing
-        // else.
         assert_eq!(
             above,
-            [
-                "12430 1/67 collide_o: ours 68 theirs -1",
-                "12430 1/67 collide_who: ours 1 theirs -1",
-                "12430 1/67 g.angle[1]: ours -576454656 theirs -1024000000",
-                "12430 1/67 g.avg_speed[0]: ours 13 theirs 19",
-                "12430 1/67 g.cur_time[0]: ours 1 theirs 3",
-                "12430 1/67 g.des_x[0]: ours 37345 theirs 37324",
-                "12430 1/67 g.des_x[1]: ours 37200 theirs 37179",
-                "12430 1/67 g.des_y[0]: ours 23938 theirs 23950",
-                "12430 1/67 g.des_y[1]: ours 24074 theirs 24086",
-                "12430 1/67 g.last_speed[0]: ours 0 theirs 24",
-                "12430 1/67 g.last_time[0]: ours 0 theirs 2",
-                "12430 1/67 g.x[0]: ours 37345 theirs 37324",
-                "12430 1/67 g.x[1]: ours 37200 theirs 37186",
-                "12430 1/67 g.y[0]: ours 23938 theirs 23950",
-                "12430 1/67 g.y[1]: ours 24074 theirs 24087",
-                "12430 1/67 order:coll: Coll { ours: Some((37324, 23950)), theirs: (40922, 20353) }",
-                "12430 1/67 pos: ours (37345,23938) theirs (37324,23950)",
-                "12422 1/68 angle:Heading: ours -1639317504 theirs -1199636480",
-                "12423 1/68 g.angle[0]: ours -1634009088 theirs -1594083670",
-                "12424 1/68 g.avg_speed[0]: ours 27 theirs 19",
-                "12422 1/68 g.des_angle[0]: ours -1639317504 theirs -1199636480",
-                "12423 1/68 g.des_x[0]: ours 37348 theirs 37347",
-                "12423 1/68 g.des_y[0]: ours 23645 theirs 23644",
-                "12424 1/68 g.last_speed[0]: ours 32 theirs 0",
-                "12423 1/68 g.x[0]: ours 37348 theirs 37347",
-                "12423 1/68 g.y[0]: ours 23645 theirs 23644",
-                "12422 1/68 heading: ours -1639317504 theirs -1199636480",
-                "12427 1/68 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "12428 1/68 order:move.dest_x: Move { field: \"dest_x\", ours: 37176, theirs: 36947 }",
-                "12422 1/68 order:move.dest_y: Move { field: \"dest_y\", ours: 23832, theirs: 23640 }",
-                "12417 1/68 path[4].flags: PathField { slot: 4, field: \"flags\", ours: 0, theirs: 2 }",
-                "12417 1/68 path[4].tolerance: PathField { slot: 4, field: \"tolerance\", ours: 96, theirs: 0 }",
-                "12403 1/68 path[5].flags: PathField { slot: 5, field: \"flags\", ours: 0, theirs: 2 }",
-                "12403 1/68 path[5].tolerance: PathField { slot: 5, field: \"tolerance\", ours: 96, theirs: 0 }",
-                "12423 1/68 pos: ours (37348,23645) theirs (37347,23644)",
-                "12428 1/68 tolerance: ours 96 theirs 0",
-            ],
-            "the rows above run163, to the word"
+            Vec::<String>::new(),
+            "the rows above run163, to 12430"
         );
+        assert_eq!(one_sided, [], "a figure changes animation on one side only");
+        // **The new word, 12536 (block 12537), and every key that first
+        // parts above run163 up to it.** Nothing parts from 12400 to 12536.
+        // On 12537 the squad `1/27`–`1/29` takes its orders: the original
+        // gives `1/28` and `1/29` a kind-2 order and a ten-entry world plan
+        // (tolerance 384), and this crate gives them kind 21 with one
+        // entry. It also leaves `1/27` with no order at all. That is the
+        // next item's block. The group-id row on `1/61` and `1/66` is the
+        // same shape as 12281's on `1/40`–`1/42`, which spent no draw.
         assert_eq!(
-            one_sided,
-            [(12_431, 1, 67, false, true), (12_432, 1, 67, false, true)],
-            "a figure changes animation on one side only"
+            mid,
+            [
+                "12537 1/27 dest_angle: ours 1017446400 theirs -277413888",
+                "12537 1/27 order:length: Length { ours: 0, theirs: 1 }",
+                "12537 1/27 orders.len: ours 0 theirs 1",
+                "12537 1/27 orders_x: ours 36456 theirs 45000",
+                "12537 1/27 orders_y: ours 23352 theirs 22824",
+                "12537 1/28 g.angle[0]: ours 960561152 theirs 463011840",
+                "12537 1/28 g.avg_speed[0]: ours 3 theirs 6",
+                "12537 1/28 g.des_angle[0]: ours 960561152 theirs 463011840",
+                "12537 1/28 g.des_x[0]: ours 36612 theirs 36616",
+                "12537 1/28 g.des_y[0]: ours 23638 theirs 23620",
+                "12537 1/28 g.last_speed[0]: ours 12 theirs 26",
+                "12537 1/28 g.x[0]: ours 36612 theirs 36616",
+                "12537 1/28 g.y[0]: ours 23638 theirs 23620",
+                "12537 1/28 heading: ours 960561152 theirs 463011840",
+                "12537 1/28 order:kind: Kind { ours: 21, theirs: 2 }",
+                "12537 1/28 path:length: PathLength { ours: 1, theirs: 10 }",
+                "12537 1/28 path[0].to: PathTo { slot: 0, ours: (44874, 22902), theirs: (44856, 22920) }",
+                "12537 1/28 pos: ours (36612,23638) theirs (36616,23620)",
+                "12537 1/28 tolerance: ours 0 theirs 384",
+                "12537 1/29 g.angle[0]: ours 1022623744 theirs 610729984",
+                "12537 1/29 g.avg_speed[0]: ours 3 theirs 6",
+                "12537 1/29 g.des_angle[0]: ours 1022623744 theirs 610729984",
+                "12537 1/29 g.des_x[0]: ours 36756 theirs 36764",
+                "12537 1/29 g.des_y[0]: ours 23352 theirs 23336",
+                "12537 1/29 g.last_speed[0]: ours 12 theirs 26",
+                "12537 1/29 g.x[0]: ours 36756 theirs 36764",
+                "12537 1/29 g.y[0]: ours 23352 theirs 23336",
+                "12537 1/29 heading: ours 1022623744 theirs 610729984",
+                "12537 1/29 order:kind: Kind { ours: 21, theirs: 2 }",
+                "12537 1/29 path:length: PathLength { ours: 1, theirs: 10 }",
+                "12537 1/29 path[0].to: PathTo { slot: 0, ours: (45139, 22787), theirs: (45144, 22776) }",
+                "12537 1/29 pos: ours (36756,23352) theirs (36764,23336)",
+                "12537 1/29 tolerance: ours 0 theirs 384",
+                "12537 1/61 order:group.id: Group { field: \"id\", ours: 12536206, theirs: 12542607 }",
+                "12537 1/66 order:group.id: Group { field: \"id\", ours: 12536206, theirs: 12542607 }",
+            ],
+            "the rows above run163, to the new word's block"
         );
-        // **The floor**: 275 keys to run163's last block, run163's own
-        // floor as item 661 left it, and 2197 to run174's.
-        assert_eq!((under, firsts.len()), (275, 2197), "the floor");
+        // **The floor**: 259 keys to run163's last block, and 2,120 to
+        // run174's. The floor had been 275 to run163, as item 661 left it,
+        // and 2,197 to run174. The fix took sixteen under 12399, all
+        // `1/68`'s plan.
+        assert_eq!((under, firsts.len()), (259, 2120), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
