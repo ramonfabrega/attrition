@@ -266,6 +266,10 @@ typedef struct {
     (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || defined(RON_LEADER_PROBE))
 #error "RON_COLLIDE_PROBE claims call-site ids 8 through 12 too"
 #endif
+#if defined(RON_GUARD_PROBE) && (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || \
+                                 defined(RON_LEADER_PROBE) || defined(RON_COLLIDE_PROBE))
+#error "RON_GUARD_PROBE claims call-site ids 8 through 13 too"
+#endif
 
 static const CallSite CALLS[] = {
     /* PathFinder::astar_path@00683770(Stack<PathData>*, step, anti) — the
@@ -399,6 +403,35 @@ static const CallSite CALLS[] = {
      * `will_be_corner 0` says the collision was hard without one. `ret
      * 0xc`. push ebp; mov ebp,esp; sub esp,8 */
     {0x20a040, 6, 3, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
+#endif
+#ifdef RON_GUARD_PROBE
+    /* A unit's own step, bracketed (item 696, `docs/GOLDEN.md` §19): on
+     * run190's tick 721 the guard `0/6`, on its post with its `GUARD`
+     * reading on-post, takes one (21, 1) step and names the wagon in
+     * `collide_o`, with no order added and no draw. `set_new_location` (site
+     * 4) is always proxied; these six say which of the unit's functions it
+     * was nested in. Each `this` is named by an INFO 15. Argument counts are
+     * each function's own `ret <imm>` divided by four.
+     *
+     * Unit::do_guard@005e5c70(UnitOrder *) - `ret 4`.
+     * push ebp; mov ebp,esp; and esp,-8 */
+    {0x1e5c70, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
+    /* Unit::do_move@005f7b30(UnitOrder *) - `ret 4`.
+     * push ebp; mov ebp,esp; sub esp,0x40 */
+    {0x1f7b30, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x40, 0, 0, 0, 0}},
+    /* Unit::move_step@005faf30(MoveOrder *, step) - `ret 8`.
+     * push ebp; mov ebp,esp; sub esp,0xa2c */
+    {0x1faf30, 9, 2, 0, {0x55, 0x8b, 0xec, 0x81, 0xec, 0x2c, 0x0a, 0x00, 0x00, 0}},
+    /* Unit::resolve_unit_collision@005f9d30(x, y) - `ret 8`.
+     * push ebp; mov ebp,esp; push -1 */
+    {0x1f9d30, 5, 2, 0, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0, 0, 0, 0, 0}},
+    /* Unit::detect_unit_collision@00617060, as RON_COLLIDE_PROBE's site 8.
+     * `ret 0x1c`. push ebp; mov ebp,esp; sub esp,0x40 */
+    {0x217060, 6, 7, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x40, 0, 0, 0, 0}},
+    /* Unit::detect_boat_collision@005fa8b0(x, y, mates) - the push, whose
+     * answer is 1 "handled" or 0 "hand the step to the land scan". `ret
+     * 0xc`. push ebp; mov ebp,esp; and esp,-8 */
+    {0x1fa8b0, 6, 3, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
 #endif
 #ifdef RON_TURN_PROBE
     /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
@@ -1044,7 +1077,7 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 #include "../explore/live_restore_probe.h"
 #endif
 
-#ifdef RON_COLLIDE_PROBE
+#if defined(RON_COLLIDE_PROBE) || defined(RON_GUARD_PROBE)
 /*
  * Name the object behind a `this`. Three of the collision sites are
  * `__thiscall` on a `UnitData *` whose own pair is `+0xa` (o, a short) and
@@ -1124,6 +1157,10 @@ static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) 
     if (site == 8 || site == 11 || site == 12) collide_name(site, self);
     /* 9 collide_here(o, who, ucx, ucy, ...): the block it is about to read. */
     if (site == 9) collide_blocks(a2, a3);
+#endif
+#ifdef RON_GUARD_PROBE
+    /* Every guard-probe site is `__thiscall` on a unit. */
+    if (site >= 8 && site <= 13) collide_name(site, self);
 #endif
 #ifdef RON_TURN_PROBE
     if (site == 8) probe_turn(self);

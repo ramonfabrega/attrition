@@ -5895,7 +5895,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         WIDENING_CHAPTER_ELEVEN,
         1250,
         0,
-        (722, 725),
+        (730, 735),
         false,
         88,
     ) else {
@@ -5929,39 +5929,48 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // `GUARDORDER` (`ox 7 whom 0`, offset (0, 372), post (3528, 8760)),
     // its transit leg and `timer`, the walk to the post, and `idle`.
     //
-    // **The first value part is 722**, a block before the draw word: the
-    // wagon's move was processed before tick 721, and on that tick the
-    // original's guard `0/6` steps 21 units east, off its post, and
-    // records a collision with `0/7` (`collide_o 7`). This crate's guard
-    // stands. No order field parts on 722 or 723: the guard's `GUARD`, its
-    // post and the wagon's `MOVEORDER` agree. On 725 the wagon's own
-    // position parts, and it collides with the guard in this crate only.
+    // **The first pin, word 724**: the value parted on 722, where the
+    // original's supply wagon `0/7`, on its first step under the player's
+    // move, pushed the guard `0/6` standing on its post (run191's brackets:
+    // `set_new_location(0/6)` inside the wagon's `detect_unit_collision`).
+    // This crate took `detect_boat_collision` only for a ship; item 696
+    // built its land half (`docs/COLLISION.md` §13.3, §13.5) → 726, where
+    // the wagon's scan named the walking guard hard. The original's scan
+    // (run191's third take) reaches `is_here` on the guard and never
+    // `is_corner`: §4.3's escort row, "its action is `GUARD` on me", is
+    // soft. Built → **734**.
+    //
+    // **On 734** the same pair parts one step further: on tick 733 the
+    // original's guard is blocked on its own step (its `coll` holds the
+    // refused point) and the wagon then pushes it (`collide_o 7`); this
+    // crate's guard steps, and the wagon's scan is soft and half-steps.
+    // No mechanism is named.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
         "615 0/8 form",
         "615 0/9 form",
         "615 0/10 form",
-        "722 0/6 collide_o",
-        "722 0/6 collide_who",
-        "722 0/6 pos",
-        "723 0/6 g.angle[0]",
-        "723 0/6 g.angle[1]",
-        "723 0/6 g.x[0]",
-        "723 0/6 g.x[1]",
-        "723 0/6 heading",
-        "724 0/6 g.y[0]",
-        "724 0/6 g.y[1]",
-        "725 0/7 collide_guy",
-        "725 0/7 collide_o",
-        "725 0/7 collide_who",
-        "725 0/7 g.x[0]",
-        "725 0/7 g.x[1]",
-        "725 0/7 g.x[2]",
-        "725 0/7 g.y[0]",
-        "725 0/7 g.y[1]",
-        "725 0/7 g.y[2]",
-        "725 0/7 pos",
+        "734 0/6 collide",
+        "734 0/6 collide_o",
+        "734 0/6 collide_who",
+        "734 0/6 g.x[0]",
+        "734 0/6 g.x[1]",
+        "734 0/6 g.y[0]",
+        "734 0/6 g.y[1]",
+        "734 0/6 order:coll",
+        "734 0/6 pos",
+        "734 0/7 half_step",
+        "735 0/6 g.angle[0]",
+        "735 0/6 g.angle[1]",
+        "735 0/6 heading",
+        "735 0/7 g.x[0]",
+        "735 0/7 g.x[1]",
+        "735 0/7 g.x[2]",
+        "735 0/7 g.y[0]",
+        "735 0/7 g.y[1]",
+        "735 0/7 g.y[2]",
+        "735 0/7 pos",
     ]
     .iter()
     .map(|r| r.to_string())

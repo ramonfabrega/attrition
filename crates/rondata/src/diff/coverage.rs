@@ -747,12 +747,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // of a player's guard — a `GUARDORDER` a command gave, the
     // `process_guard` text the turn pump prints, and a wagon walking under
     // `MOVEORDER` with its escort re-posting beside it. The word's block
-    // with two on either side, which holds 722, the block its value parts;
-    // and 622, the guard's first block, with the `process_guard` text
-    // printed before it.
+    // with two on either side; 724, the first pin's, which holds 722, the
+    // block its value first parted on (the wagon's push); and 622, the
+    // guard's first block, with the `process_guard` text before it.
     if let Some(p) = &ch11 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ELEVEN;
-        for w in [622, 724] {
+        for w in [622, 724, 734] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter eleven carries the window's five blocks");
             frames += n;

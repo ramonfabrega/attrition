@@ -390,13 +390,18 @@ impl Sim {
     /// [`Self::detect_boat_collision`] answers non-zero, and runs the land
     /// scan when it answers 0.
     ///
-    /// SEAM: **only the sea half is taken.** A siege engine, a hero or a
-    /// supply wagon keeps the land scan it always had here. For them the
-    /// same arm searches *land* units of every player, gaia included, and
-    /// shoves them aside; no diff has reached that yet, and Great Lakes'
-    /// armies carry all three (§13.5).
+    /// ~~SEAM: **only the sea half is taken.**~~ Both halves are taken
+    /// (item 696, golden chapter eleven): a siege engine, a hero or a
+    /// supply wagon takes the arm too, and its push searches *land* units
+    /// of every player, gaia included, and shoves them aside (§13.3, the
+    /// land pusher's refusals). run190's wagon `0/7`, on its first step
+    /// under a player's move, pushes the guard standing on its post (21,
+    /// 1) and names itself in the guard's `collide_o` (run191's brackets).
     pub(crate) fn takes_boat_arm(&self, u: usize) -> bool {
         self.units[u].kind.domain == crate::attrition::Domain::Sea
+            || self.is_siege_unit(u)
+            || self.is_hero_unit(u)
+            || self.is_supply_unit(u)
     }
 
     /// `Unit::detect_boat_collision@005fa8b0` for a sea unit (§13.3): does
@@ -459,9 +464,12 @@ impl Sim {
         };
         let (mine0, mine_step) = line(at, facing, r_mine, circles);
         let my_group = self.pool_group_of(u);
+        let land = domain == crate::attrition::Domain::Land;
         for o in found {
             let other = &self.units[o];
-            if other.owner >= 8 || other.kind.domain != domain {
+            // `(local_54 == 0 || who < 8)`: a land pusher's candidates
+            // include gaia's.
+            if (!land && other.owner >= 8) || other.kind.domain != domain {
                 continue;
             }
             let mate = other.owner == who && self.pool_group_of(o) == my_group && my_group != -1;
@@ -507,6 +515,23 @@ impl Sim {
             if !self.is_ally(who, self.units[o].owner) {
                 return false;
             }
+            // A land pusher's own refusals (`5fac8b`-`5faccc`): a packer
+            // that is not packed or is unpacking, an entrenched unit
+            // (`unit_masks & 0x2000000`), and a tank (the type's vslot
+            // `+0x110`, `UnitTypeData::is_tank`).
+            if land {
+                let t = self.units[o].ty.map(|t| self.unit_types[t].cols);
+                if t.is_some_and(|c| c.flag2(crate::ai_load::uflags2::PACKS))
+                    && (!self.units[o].combat.packed || self.is_unpacking(o))
+                {
+                    return false;
+                }
+                if self.units[o].combat.entrenched
+                    || t.is_some_and(|c| c.flag(crate::ai_load::uflags::TANK))
+                {
+                    return false;
+                }
+            }
             let push = overlap.min(0x30);
             let there = self.units[o].pos;
             let mut bearing = find_angle(there.x - at.x, there.y - at.y);
@@ -528,7 +553,7 @@ impl Sim {
                 continue;
             }
             self.set_new_location(o, to, false);
-            if mates && ocircles == 1 {
+            if mates && (ocircles == 1 || land) {
                 self.units[o].collide_o = self.units[u].index;
                 self.units[o].collide_who = who as i8;
                 if self.units[o].orders.is_empty() {
@@ -1399,6 +1424,20 @@ impl Sim {
     fn soft_collision(&self, u: usize, o: usize, extra: i32) -> bool {
         let moving = |v: usize| self.current_order(v).is_some_and(Order::is_move);
         let acting = |v: usize| self.action_of(v).map(|a| self.units[v].orders[a].index());
+        // §4.3's second row (`00617546`-`0061757c`): its **action** is
+        // `GUARD` and that order's target is me — an escort never blocks
+        // its charge, whatever transit leg is at its head. golden chapter
+        // eleven's wagon steps through its walking guard on run190's tick
+        // 726, and run191's third take shows the original's scan reaching
+        // `is_here` on the guard and never `is_corner` (item 696). The
+        // first row, a caravan pair (`TRADE_ROUTE` both ways, both
+        // moving), is the else-if before it and is still not carried here.
+        if let Some(a) = self.action_of(o)
+            && let Body::Guard(g) = self.units[o].orders[a].body
+            && g.target == u
+        {
+            return true;
+        }
         let attackers = acting(u) == Some(index::ATTACK)
             && acting(o) == Some(index::ATTACK)
             && self.units[u].owner == self.units[o].owner
@@ -3483,6 +3522,112 @@ mod tests {
         sim.units[y].owner = 1;
         assert!(!sim.detect_boat_collision(x, a, true));
         assert_eq!(sim.units[y].pos, b);
+    }
+
+    /// A land convoy: a supply wagon of player 0 (`uflags2::SUPPLY_OR_HERO`,
+    /// two push circles of 144) at `a`, and a one-circle land unit of the
+    /// same player at `b`, standing; `other_flags` is its `unit_flags`.
+    fn convoy(a: Pos, b: Pos, other_flags: u32) -> (Sim, usize, usize) {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let profile = |push_size, push_circles| crate::combat::Profile {
+            block_radius: 96,
+            big_radius: 96,
+            uber_size: 1,
+            push_size,
+            push_circles,
+            ..crate::combat::Profile::default()
+        };
+        let wagon = sim.add_unit_type(UnitType {
+            hits: 90,
+            moves: 25,
+            combat: profile(288, 2),
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: crate::ai_load::uflags2::SUPPLY_OR_HERO,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..UnitType::default()
+        });
+        let other = sim.add_unit_type(UnitType {
+            hits: 65,
+            moves: 33,
+            combat: profile(72, 1),
+            cols: crate::ai_load::UnitCols {
+                unit_flags: other_flags,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..UnitType::default()
+        });
+        let make = |sim: &mut Sim, o: i16, at: Pos, ty| {
+            let mut u = Unit::new(0, o, at, 40);
+            u.ty = Some(ty);
+            let i = sim.add_unit(u);
+            sim.units[i].movement.facing = crate::movement::Angle::EAST;
+            i
+        };
+        let x = make(&mut sim, 7, a, wagon);
+        let y = make(&mut sim, 6, b, other);
+        (sim, x, y)
+    }
+
+    /// §13.3's **land half** (item 696): a supply wagon takes
+    /// `detect_unit_collision`'s second arm as a ship does, and pushes a
+    /// standing land unit of its own side aside, naming itself in the
+    /// pushed unit's `collide_o`; a tank it will not shove, and hands the
+    /// step to the land scan. run190's wagon pushes its guard (21, 1) on
+    /// its first step. Made to fail on purpose by answering the arm for a
+    /// ship alone, and by dropping the tank refusal.
+    #[test]
+    fn a_supply_wagon_pushes_a_standing_unit_and_not_a_tank() {
+        let a = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let b = Pos::new(a.x + 150, a.y);
+        let (mut sim, x, y) = convoy(a, b, 0);
+        assert!(sim.takes_boat_arm(x), "a supply wagon takes the arm");
+        assert!(!sim.takes_boat_arm(y), "a plain land unit does not");
+        sim.frame = 721;
+        assert!(sim.detect_boat_collision(x, a, true));
+        let moved = sim.units[y].pos;
+        assert_ne!(moved, b, "the standing unit is pushed");
+        let (dx, dy) = (moved.x - b.x, moved.y - b.y);
+        assert!(dx * dx + dy * dy <= 49 * 49, "by at most 48: ({dx}, {dy})");
+        assert_eq!(sim.units[y].collide_frame, 721);
+        assert_eq!(
+            (sim.units[y].collide_o, sim.units[y].collide_who),
+            (7, 0),
+            "a land pusher names itself on the pushed unit"
+        );
+        let (mut sim, x, y) = convoy(a, b, crate::ai_load::uflags::TANK);
+        assert!(!sim.detect_boat_collision(x, a, true), "a tank is refused");
+        assert_eq!(sim.units[y].pos, b);
+    }
+
+    /// §4.3's **escort row** (item 696): a collider whose *action* is a
+    /// `GUARD` on me is soft, whatever transit leg is at its head; the same
+    /// guard on another unit is not. The original's scan on run190's tick
+    /// 726 reaches `is_here` on the walking guard and never `is_corner`.
+    /// Made to fail on purpose by deleting the row.
+    #[test]
+    fn an_escort_never_blocks_its_charge() {
+        let a = Pos::new(20 * 0x30 + 0x18, 20 * 0x30 + 0x18);
+        let b = Pos::new(a.x + 150, a.y);
+        let (mut sim, wagon, guard) = convoy(a, b, 0);
+        sim.add_guard_order(guard, wagon, 0, 372, QueuePos::New);
+        sim.add_move_order(
+            guard,
+            Pos::new(b.x, b.y + 480),
+            crate::orders::MoveKind::AttackTo,
+            QueuePos::First,
+            false,
+        );
+        assert!(sim.soft_collision(wagon, guard, 0), "an escort is soft");
+        let (mut sim, wagon, guard) = convoy(a, b, 0);
+        let stranger = sim.add_unit(Unit::new(0, 8, Pos::new(a.x, a.y + 960), 40));
+        sim.add_guard_order(guard, stranger, 0, 372, QueuePos::New);
+        assert!(
+            !sim.soft_collision(wagon, guard, 0),
+            "another's escort is not"
+        );
     }
 
     #[test]

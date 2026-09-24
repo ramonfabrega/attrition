@@ -1352,7 +1352,7 @@ below without a run take their number at booking (the eleventh pass).
 | 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
 | 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
-| 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141** |
+| 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2020,3 +2020,55 @@ charge, and does nothing for a charge that is no unit, which is the
 named seams are the human sweep, the QUEUE_FIRST insert and the idle-arm
 engagement's own `find_melee_target` arguments; this staging reaches only
 the last.
+
+**Run 2026-09-24 as run190 (item 696): no falsifier fired.**
+
+- **All three commands reach the pump.** `INFO` 17 on 620, 640 and 720,
+  refusal 0, the package 10 → 28, 28 and 37 bytes. The dump prints
+  `process_group` and `process_guard <frame>` between blocks 621/622 and
+  641/642, and the move between 721/722.
+- **The guard, block 622**: one `GUARDORDER` on `0/7`, `flags 4`, offset
+  **(0, 372)**, post (3528, 8760), under a transit `ATTACKTOORDER`
+  (`timer 59`). This crate's value to the digit, and `idle 24` on 700 too.
+- **The walk.** The wagon's stack empties on 857, 58 blocks before this
+  crate's walk predicted. The guard's post steps behind it, one cell short
+  on 856, and it stands on (3480, 12264) from 890.
+- **The engagement.** An `ATTACKORDER` on `1/6` is above the `GUARD` on
+  **1011**, the phase tick 1010, as predicted.
+- **The building half.** No order on `0/8`–`0/10` on any block: the
+  `is_valid_unit` exit, measured.
+- **What the reading did not say: the fight.** `1/6` walks off on an army
+  `ATTACKTOORDER` on 1021, and the guard's `ATTACK` goes on 1037. `1/6`
+  comes back and shoots it from ~1,640 units, and the guard never
+  re-engages. It lands one hit, takes three, and is gone from 1141, and
+  the wagon stands unguarded.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_ELEVEN` = 724, then 734
+by the same item, open.** On 724 this crate spends 14 draws against 11,
+three extra `Guy::set_anim+0x97a < Unit::move_step+0x823`. The value parts
+on **722**: on tick 721, the first after the wagon's move, the original's
+guard steps (21, 1) off its post and names the wagon in `collide_o`, with
+no order added and no draw. `chapter_eleven_s_word_frame_is_widened_whole`
+pins it.
+
+**run191, three 17 s takes with the new `RON_GUARD_PROBE` brackets**
+(`do_guard`, `do_move`, `move_step`, `resolve_unit_collision`,
+`detect_unit_collision`, `detect_boat_collision`), each the same game as
+run190 frame for frame, named the two mechanisms:
+
+- **The wagon pushes its guard.** `set_new_location(0/6)` on tick 721 is
+  nested in the *wagon's* `detect_unit_collision(…, boats 1)`: a supply
+  wagon takes `detect_boat_collision`'s push as a ship does. This crate
+  carried only the sea half (`docs/COLLISION.md` §13.5). Built → **726**.
+- **An escort never blocks its charge.** On tick 726 both sides' push
+  refuses the walking guard and falls to the land scan. The original's
+  scan reaches `is_here` on the guard and never `is_corner`: §4.3's row
+  "its action is `GUARD` on me" is soft, and this crate had no such row.
+  Built → **734**.
+
+**On 734** the same pair parts one step further. On tick 733 the
+original's guard is blocked on its own step and then pushed by the wagon
+(`collide_o 7`), where this crate's guard steps and the wagon half-steps
+on a soft scan. No mechanism is named. It is the land push's second
+contact, and the next take of the same probe over 732–733 is where it
+starts.

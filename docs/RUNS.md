@@ -6406,3 +6406,37 @@ same appears between 641 and 642, and `process_move_to 3456 11904 2 0 0 1
   took 20 on 1032, 1091 and 1115. It is gone from block 1141, and its
   `GUARD` goes with it.
 - The wagon stands unguarded to 1249.
+
+## run191 — chapter eleven's word, three bracket takes (2026-09-24, item 696)
+
+**What it is.** run190's script cut at 730 (its `1000` line dropped: the
+runner refuses a line past `!quit`), kept at
+`~/ron-data/lab-experiments/2026-09-24-item-696/chapter11-to730.cmd`.
+There are three takes, each a narrow `callwin` and a dump window, and no
+`[Start Game]` set. Each is **the same game as run190**: `rngcmp.py` finds
+731 of 731 frames identical. Each took 16–17 s launch to exit,
+`success: true`, and each took the lane on a stale lock.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch11p \
+    --map 14 --end-frame 730 --log-window 719 726 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 --detail misc:COMMANDMANAGER=1 \
+    --callwin 719 723 --tracer-def RON_GUARD_PROBE \
+    --cmd-file ~/ron-data/lab-experiments/2026-09-24-item-696/chapter11-to730.cmd
+```
+
+| take | output | `callwin` | tracer | what it settled |
+| --- | --- | --- | --- | --- |
+| 1 | `~/ron-golden/ch11p` | 719–723 | `RON_GUARD_PROBE` (five brackets) | tick 721's `set_new_location(0/6)`, the guard's step off its post, is nested in the **wagon's** `detect_unit_collision(3200, 8577, quick 0, boats 1)`. The guard's own `do_guard` calls nothing proxied (on-post) |
+| 2 | `~/ron-golden/ch11p2` | 724–727 | the same, and `detect_boat_collision` as a sixth | the wagon's push answers **0** on ticks 725–727 (it refuses the walking guard), and its land scan then answers **0** too |
+| 3 | `~/ron-golden/ch11p3` | 726 | `RON_COLLIDE_PROBE` | the wagon's scan on 726: `collide_here` hits (69, 183), `will_be_corner 5`, `is_here(0/6) = 1`, and **no `is_corner`**: the guard is a soft collider |
+
+**Why a capture, and what the disk could not answer.** run190's dump
+shows the guard moving on 722 with no order change and no draw. Nothing
+it prints names the function that moved it, and the trace's proxy records
+carry no caller. The brackets' nesting is the caller.
+
+`RON_GUARD_PROBE` is new in `tools/trace/tracer.c`, sites 8–13, and each
+`this` is named by an `INFO 15` as `RON_COLLIDE_PROBE` names them. Every
+prologue and `ret` immediate was read off the listing. It refuses a build
+beside the other probes that claim 8–13.

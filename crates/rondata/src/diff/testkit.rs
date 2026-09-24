@@ -2679,28 +2679,29 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
 /// **Chapter eleven's golden word** — the guard line, an issuer the AI
-/// never uses from a command (`docs/GOLDEN.md` §19, run190): **724**, open.
+/// never uses from a command (`docs/GOLDEN.md` §19, run190): **734**, open.
 ///
-/// **The delta** (item 696): a new chapter, first walked at 724 with the
-/// guard command's entry built (`input::group_guard` →
-/// `Sim::group_action_guard`, siege filter off). On 724 this crate
-/// spends 14 draws against 11, parting at draw 4: three
-/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, the wagon's figures
-/// stepping, where the original's next draws are `Guy::inc_time+0x271`,
-/// `Guy::set_anim+0x104b` and `Farms::inc_time+0x1ae`. Everything from 605
-/// to 723 agrees in the draw stream: the guard's order, its leg, its walk
-/// to the post and its `idle`.
+/// **The delta** (item 696): a new chapter, first walked at **724** with
+/// the guard command's entry built (`input::group_guard` →
+/// `Sim::group_action_guard`, siege filter off): 14 draws against 11 on
+/// the wagon's figures, the value parting on 722 where the original's
+/// supply wagon pushes the guard standing on its post. 724 → 726: the
+/// land half of `detect_boat_collision` (`docs/COLLISION.md` §13.3,
+/// §13.5), which a siege engine, a hero or a supply wagon takes as a ship
+/// does. 726 → **734**: §4.3's escort row, a collider whose action is a
+/// `GUARD` on me is soft. Both read off run191's brackets on the
+/// original's own tick, not off a reading.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: past the
-/// births' `form`, the value parts first on **722**. On tick 721, the
-/// first after the wagon's `MOVE_TO` is processed, the original's guard
-/// `0/6` steps off its post and records a collision with the wagon
-/// (`collide_o 7`); this crate's stands. No order field parts there.
-pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 724;
+/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: on 734 the
+/// original's guard is blocked on its own step (tick 733) and then pushed
+/// by the wagon (`collide_o 7`), where this crate's guard steps and the
+/// wagon half-steps on a soft scan. No mechanism is named.
+pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 734;
 
 /// `chapter_eleven_s_word_frame_is_widened_whole`'s window: 605, run190's
-/// first block, through 725, the block after the word (item 696).
-pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 726);
+/// first block, through 735, the block after the word (item 696). The
+/// first pin was (605, 726) on the word 724.
+pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 736);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
@@ -3911,8 +3912,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         693,
         Some(WIDENING_CHAPTER_TEN),
     ),
-    // Item 696: run190, chapter eleven's first walk, on the wagon's first
-    // steps under a player's move, with its guard re-posting beside it.
+    // Item 696: run190, chapter eleven's first walk at 724, on the wagon's
+    // first steps under a player's move pushing its guard; 734 by the
+    // land push and the escort's soft row, the same pair one step on.
     (
         "GOLDEN_WORD_CHAPTER_ELEVEN",
         GOLDEN_WORD_CHAPTER_ELEVEN,

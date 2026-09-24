@@ -102,6 +102,11 @@ pub mod uflags {
     pub const NO_RESEARCH_PRICE: u32 = 0x80;
     /// `r` — `is_siege`.
     pub const SIEGE: u32 = 0x20000;
+    /// `t` — `unitrules.xml`'s own legend: "Unit is a tank".
+    /// `UnitTypeData::is_tank@00470450` reads it, the type's vslot `+0x110`
+    /// (the PDB's `ObjectTypeData` method list), and a land pusher will not
+    /// shove one (`docs/COLLISION.md` §13.3).
+    pub const TANK: u32 = 0x80000;
     /// `z` — `unitrules.xml`'s own legend: "Unit rocks left/right when it
     /// attacks (attack1 is left, attack2 is right)". The eighteen ship
     /// types carry it, and it is the one arm of `Unit::fight`'s swing
