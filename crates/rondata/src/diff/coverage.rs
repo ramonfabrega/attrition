@@ -767,9 +767,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // with two on either side; 724, the first pin's, which holds 722, the
     // block its value first parted on (the wagon's push); and 622, the
     // guard's first block, with the `process_guard` text before it.
+    // Item 703 moved the word 734 → 1036, the guard's attack on who=1's
+    // chariot ending; 734 stays, the block it was widened on.
     if let Some(p) = &ch11 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ELEVEN;
-        for w in [622, 724, 734] {
+        for w in [622, 724, 734, 1036] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter eleven carries the window's five blocks");
             frames += n;
