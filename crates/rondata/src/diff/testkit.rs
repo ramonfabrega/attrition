@@ -1991,7 +1991,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// run178** (block 14530 against its last, 14899);
 /// `run178_s_word_frame_is_widened_whole` pins the word's block — `1/23`'s
 /// path flags and `1/28`'s figure — and the move's value diff on 14383.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_529;
+///
+/// ~~**14529 is the capital's move.**~~ **Item 695 moved it 14529 →
+/// 14650, and the mechanism was the caravan's road** (`docs/CARAVAN.md`
+/// §10, `docs/ROADS.md` §10). The 3,206 draws were not the Senate's: the
+/// capital's move to Norwich is drawless. They are `1/23`'s route verified
+/// from `Unit::do_move`, because the tile under its next waypoint is no
+/// longer road — the stray-road sweep, `Roads::scan_and_kill_stray_roads`,
+/// had eroded 17 tiles of the trade road since 5905, which this crate kept
+/// (run189's packet and `WORLD` block). **The new word's delta: ours 2
+/// draws and the original 3, parting at index 0**: ours
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends
+/// `Unit::do_non_flat_gather+0x54b`. **Inside run178** (block 14651);
+/// `run178_s_word_frame_is_widened_whole` pins the word's block — the
+/// Woodcutter's Camp `1/2009`'s gather list — and the move's value diff on
+/// 14530.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_650;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3360,6 +3375,10 @@ pub(crate) const GREAT_LAKES_COPY_BLOCK: i64 = 14_383;
 /// 14530, inside run178 and so inside [`WIDENING_GREAT_LAKES_COPY`]. The
 /// coverage driver reads run178 around it too.
 pub(crate) const GREAT_LAKES_VALS_BLOCK: i64 = 14_530;
+/// The block of the word item 695 moved to: 14650's frame writes block
+/// 14651, inside run178 and so inside [`WIDENING_GREAT_LAKES_COPY`]. The
+/// coverage driver reads run178 around it too.
+pub(crate) const GREAT_LAKES_ROAD_BLOCK: i64 = 14_651;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3760,11 +3779,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 14530): a founded city wears the site values down
     // (`docs/AI.md` §67). The test pins the new word's block and keeps the
     // move's value diff on 14383.
+    //
+    // **Item 695 moved it 14529 → 14650**, inside the same window again
+    // (block 14651): the caravan verifies a road the stray-road sweep took
+    // (`docs/ROADS.md` §10). The test pins the new word's block and keeps
+    // the move's value diff on 14530.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run178_s_word_frame_is_widened_whole"),
-        688,
+        695,
         Some(WIDENING_GREAT_LAKES_COPY),
     ),
     // Item 445 paid the widening chapter one had never had: the word

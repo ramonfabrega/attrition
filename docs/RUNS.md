@@ -6244,6 +6244,57 @@ through the SANDY cells of region 65 that this crate's plan bends north
 round (§17's "ground"), and it arrives fifty frames later than this crate's
 longer route. See `docs/GOLDEN.md` §17.
 
+## run189 — Great Lakes' word 14529, a packet at logger frame 14529 (2026-09-24, item 695)
+
+**What it is.** The long game on the click-free lane to 14535 with a
+`RON_STATE_FRAME=14529` packet — the state after trace tick 14528, with
+tick 14529's `Unit::do_move` for the caravan `1/23` still ahead of it —
+and a `WORLD=6` dump over [14528, 14531) beside run178's line, so the
+tile masks come through the parser the harness already has.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-24-run189 \
+    --map 14 --end-frame 14535 --timeout 3600 --log-window 14528 14531 \
+    --detail end:MISC,WORLD=6,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=14529 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is the lab's Great Lakes plan, reused as run144 reused it
+(`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+
+**Why a packet, and what the disk could not answer.** On tick 14529 the
+original's `1/23` takes the waypoint (42272, 19424), flagged road
+(`0x20`), and every entry of its path loses the flag: that is
+`Unit::do_move@005f7b30:437`–`478`, which verifies the route only when
+the tile is **not road** and is built on or blocked. Then 3,206 road
+draws. Here the tile, (220, 101), is `0x190` on the same tick: placed on
+by the Barracks `1/2025`, and **still road**. No capture on disk prints a
+tile mask on this map past run72 — run178's line has no `WORLD` — so
+whether the original's tile lost its road, and what took it, is a value
+only the original holds.
+
+`success: true`, exit 0, `MAP_STYLE 14` and seed 12345 read back, five
+settings files restored. **85 s launch to exit, 122 s in all**, with an
+842,030,040-byte packet and 16 MB of dump. The lane lock was stale: pid
+83243 (att-693's run185) was dead. The dump is archived as
+`gamelog-run189-greatlakes-roadword.txt`, and the trace as
+`rontrace-run189.log`. The packet stays at
+`~/ron-data/lab-captures/2026-09-24-run189/map-14`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run53.log` | **0 differing**, 14,536 identical |
+| the window | `WORLD` on blocks 14528, 14529 and 14530, 57,600 tile masks each |
+| the packet's `curscan` | cell (3, 15) = 903 = 14,529 × 7 mod 3,600 |
+
+**What it settled** (`docs/ROADS.md` §10, `docs/AI.md` §68). (220, 101)
+is `0x180` there: placed on, and not road. On block 14529 the surface
+parted on 17 tiles and no others, the trade road (220, 98)..(216, 115).
+On the packet those cells hold no road elements, and (220, 97)'s claims
+N alone. That is `Roads::scan_and_kill_stray_roads`' erosion, and
+`rondata::diff::world::tests::run189_s_world_has_the_original_s_roads_at_14529`
+now pins the block with no surface residue.
 ## run184 — chapter ten, the patrol line (2026-09-24, item 693)
 
 `docs/GOLDEN.md` §18, from `tools/gamelog/golden/chapter10.cmd`: `!ai

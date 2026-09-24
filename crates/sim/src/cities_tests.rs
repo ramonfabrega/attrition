@@ -3008,3 +3008,43 @@ fn a_warship_keeps_off_its_dock_s_margin_and_a_fishing_boat_does_not() {
     sim.mask_dock_water(dock, false);
     assert!(!bad(&sim, 34, 30));
 }
+
+/// **A Senate finished in a city of the owner's own race moves the capital
+/// there** when the capital holds none (`docs/CITIES.md` §15,
+/// `Build::activate@00623e20`'s Senate arm). Great Lakes' Senate `1/2024`
+/// moves who=1's capital from London to Norwich on tick 14528, and a
+/// second Senate in the old capital does not move it back: the new
+/// capital holds one.
+///
+/// Made to fail once with the arm's call removed: the capital stays put.
+#[test]
+fn a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (_, a) = city_at(&mut sim, &t, 0, 32, 32);
+    sim.tech[0].epoch[tech::Line::Civic as usize] = 1;
+    let (_, b) = city_at(&mut sim, &t, 0, 57, 32);
+    assert!(sim.cities[a].capital && !sim.cities[b].capital);
+    let s = sim
+        .place_building(0, t.senate, tile_pos(57, 42))
+        .unwrap_or_else(|e| panic!("the senate should place: {e:?}"));
+    assert_eq!(sim.buildings[s].city, Some(b));
+    finish(&mut sim, s);
+    assert!(
+        sim.cities[b].capital,
+        "the capital moves to the Senate's city"
+    );
+    assert!(!sim.cities[a].capital, "and leaves the old one");
+    assert!(
+        sim.cities[a].founding_capital,
+        "the founding mark is the first city's for good"
+    );
+    let s2 = sim
+        .place_building(0, t.senate, tile_pos(32, 42))
+        .unwrap_or_else(|e| panic!("the second senate should place: {e:?}"));
+    finish(&mut sim, s2);
+    assert!(
+        sim.cities[b].capital && !sim.cities[a].capital,
+        "a capital that holds a Senate keeps the flag"
+    );
+}

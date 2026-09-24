@@ -1035,8 +1035,9 @@ under it is taken away when the farm starts. The residue is **32** now, bit
   unit test drives it directly and says so.
 - `Roads::scan_and_kill_stray_roads@008956a0`,
   `scan_and_kill_bad_tcoord@0088e100` and
-  `scan_and_kill_straggled_tcoord@0088e050` — three functions whose names
-  say they remove roads, none of them read.
+  `scan_and_kill_straggled_tcoord@0088e050` — ~~three functions whose
+  names say they remove roads, none of them read~~: read in §10, where the
+  sweep erodes a road with nothing at its ends (item 695).
 - `Roads::generate@00894350` does not derive anything: it clears the render
   helpers and calls `add_roads` if the queue is not empty. So the elements a
   **map's own** roads carry are built by `set_road_at` at load time, one
@@ -1111,3 +1112,103 @@ tile for tile the original's with it running, which says it lays nothing
 the original does not, but no tile on disk is one it laid. The teardown
 (`param_4 == 0`) is still unmodelled here — `mask_building(b, false)` does
 not run either arm, and `Build::close` is what would reach it.
+
+## 10. The stray-road sweep — `Roads::scan_and_kill_stray_roads@008956a0` (2026-09-24, item 695)
+
+*Established from the decompile and run189's packet and `WORLD` block on
+Great Lakes 14529. Confidence: **high** for the rules and the cursor,
+which the packet and the world diff both check. See "What is not
+established" below for the part that is only a reading.*
+
+~~§9.4: "three functions whose names say they remove roads, none of them
+read."~~ They are read here. **`Game::do_frame` calls the sweep every
+frame, right after `frame++`**, and it is how a road with nothing at its
+ends goes away. Great Lakes' trade road, laid on 5573, lost 17 tiles this
+way, (216, 115) on 5905 to (220, 98) on 14100. This crate kept them until
+item 695, and the caravan's road check (`docs/CARAVAN.md` §10) turned the
+missing road into the word at 14529.
+
+### 10.1 The cursor
+
+`RoadsData` sits at `Roads + 0x3c`, so the decompiler's `field_0x5fc` and
+`+0x600` are `curscan_x` and `curscan_y`, in cells. Each frame the sweep
+takes `world.size / 500` steps, which is seven on a 60 × 60 map, so the
+whole map every 515 frames. Each step advances the cursor **before** it
+scans: x first, wrapping into y, and y wrapping to 0. Nothing resets it,
+so it is a function of the frame. Step `j` of the frame that has just
+become `F` scans cell `(7·(F − 1) + j) mod 3600`. **run189's packet holds
+`curscan` (3, 15), cell 903, after 14,529 frames**, and
+`14,529 × 7 mod 3,600 = 903`.
+
+Within a cell the sixteen tiles go row by row: `x = 4·cx + (i & 3)` and
+`y = 4·cy + (i >> 2)`.
+
+### 10.2 The four compasses
+
+For each tile, over the nine compass entries (`[0]` the tile, then
+`move_x`/`move_y`'s NW, N, NE, E, SE, S, SW, W), the sweep fills:
+
+| cache | at | holds |
+|---|---|---|
+| `road_cache2` | `+0x5c8` of `RoadsData` | the neighbour's surface is road |
+| `build_cache` | `+0x5ec` | `(mask & 3) == 3`, a building's footprint |
+| `points_cache` | `+0x610` | the **centre's** element claims this direction — `road_compass_flags[k] & flags` — and the neighbour is road |
+| `aqua_cache` | `+0x634` | `mask & 0x800` (river) or ocean surface |
+
+`road_compass_flags@00af2570` is `[0, NW, N, NE, E, SE, S, SW, W]` in the
+mesh's own `dir` bits, read out of the PE. The element is read at the
+centre's slot of the centre cell's `roads_in_wcoord`. A slot whose
+`rotation` is 10 is empty and claims nothing. An **off-map** neighbour
+writes `road_cache` (the mesh's other cache) and not `road_cache2`, so an
+edge tile reads its predecessor's entry there. This crate carries the
+cache for that reason.
+
+### 10.3 `scan_and_kill_bad_tcoord@0088e100`
+
+"Kill" is `TerrainOut::road_changed(x, y, 0, 0, 1)`, one reference down,
+then `World::set_road_at(x, y, 0, 0, 0)` through the mesh's door (§9.1),
+which queues the removal and trims the neighbours. The branches:
+
+- **No element** (an empty slot, or a cell with no array): a road goes.
+  `set_road_at` alone runs, since nothing holds a reference.
+- **`is_terrain_creation`, or `element_num == element_C4`**: it stands
+  while any of the nine is a road, and is killed otherwise.
+- **Otherwise**: a tile that is not a road is killed (a no-op on the
+  surface), and so is a road whose element claims no direction toward a
+  road. The decompile tests each claimed direction against the
+  neighbour's road entry, and the claim already requires one. So the arm
+  reduces to "claims none".
+
+### 10.4 `scan_and_kill_straggled_tcoord@0088e050`
+
+This runs on every tile whose cached centre was a road, after §10.3. **A
+road that claims exactly one neighbour, with no building and no water
+among the eight, is a stub**, and is killed. That is the erosion: a road
+end in open country goes on its cell's visit. The removal trims the next
+tile to one claim (§9.2), and that tile goes on its own visit. Great
+Lakes' (216, 115) claimed N alone because (216, 116)'s element claimed SW
+toward the city and not N back. The first kill came on 5905, and the
+next seventeen visits walked up the road. (220, 97) stands because the
+chain stopped there at 14529. The packet shows its element trimmed to N,
+the same as here.
+
+### 10.5 What the diff backs, and what it does not
+
+- **Backed**: `rondata::diff::world::tests::run189_s_world_has_the_original_s_roads_at_14529`.
+  On block 14529 no tile's surface parts, and the remaining 203 mask
+  rows are bit `0x4` alone. Before the sweep there were 17 surface rows.
+  (220, 97) is N and (216, 116) is SW, as in the packet. Unit tests in
+  `crate::mesh`: a lane erodes a tile a visit, a footprint keeps its end,
+  a road with no element goes, and the cursor sits on cell 903 at 14,529.
+- **Not established: `element_num`.** It is the render piece `find_map`
+  picks from the element catalogue, with the terrain fractal and a float
+  choosing between candidates. This crate does not pick pieces. So the
+  "C4" exemption is `is_terrain_creation` alone here. On the packet, both
+  C4 elements near the road sit on tiles that are not road, where the arm
+  cannot kill a road anyway.
+- **Not established: `pending_camel_steps`.** `TerrainOut::caravan_step`,
+  from the same `do_move` block, moves one of a caravan-laid tile's
+  pending steps (and its eight neighbours') into `ref_count`. No kill
+  rule reads either count, but a removal lowers `pending_camel_steps`
+  first. A tile whose counts differ from the original's would outlive a
+  removal differently. None has parted yet.

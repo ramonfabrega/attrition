@@ -2195,6 +2195,92 @@ mod tests {
         assert!(wrong.is_empty(), "the danger map parted: {wrong:#?}");
     }
 
+    /// **run189 — the world on Great Lakes' block 14529, whole** (item 695,
+    /// `docs/ROADS.md` §10). The original's caravan `1/23` verifies its
+    /// route on tick 14529 because the tile under its next waypoint,
+    /// (220, 101), is no longer road; here it was `0x190`, placed on and
+    /// still road. run189 prints the `WORLD` block, and the only surface
+    /// residue at 14529 was **17 road tiles**, (220, 98) south to
+    /// (216, 115): the trade road laid on 5573, which the original's
+    /// stray-road sweep (`Roads::scan_and_kill_stray_roads@008956a0`) took
+    /// down one tile a visit from 5905 on — a stub at the south end first,
+    /// then each tile whose element claimed a road no longer there. With
+    /// the sweep, **no tile's surface parts**, and what remains is bit
+    /// `0x4` alone (`World::set_behind`, as run73's pin has it).
+    #[test]
+    fn run189_s_world_has_the_original_s_roads_at_14529() {
+        const BLOCK: i64 = 14_529;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(trace), Some(r189)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run189-greatlakes-roadword.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run189 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &trace);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Block N is the state after tick N − 1: 14,529 ticks.
+        for _ in 0..BLOCK {
+            built.tick();
+        }
+        let text189 = crate::capture::read(&r189);
+        let l189 = Log::parse(&text189);
+        let block = l189
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == BLOCK)
+            .map(|(_, b)| b)
+            .expect("run189 dumped block 14529");
+        let w = block.kid("WORLD").expect("a WORLD block");
+        let mut notes = Vec::new();
+        let heights = l189.frame_heights(BLOCK);
+        let (theirs, _) = world_from(&w.fields().to_vec(), &heights, &mut notes);
+        let (xs, ys) = (theirs.width(), theirs.height());
+        let mut surface = Vec::new();
+        let mut other = Vec::new();
+        let mut behind = 0;
+        for ty in 0..ys * 4 {
+            for tx in 0..xs * 4 {
+                let q = Pos::new(tx, ty);
+                let (om, tm) = (built.sim.world.tile_mask(q), theirs.tile_mask(q));
+                if om == tm {
+                    continue;
+                }
+                let row = format!("t({tx},{ty}) ours {om:#x} theirs {tm:#x}");
+                if (om ^ tm) & sim::world::tile::SURFACE != 0 {
+                    surface.push(row);
+                } else if om ^ tm == 0x4 {
+                    behind += 1;
+                } else {
+                    other.push(row);
+                }
+            }
+        }
+        assert_eq!(surface, Vec::<String>::new(), "a road parts on 14529");
+        assert_eq!(other, Vec::<String>::new(), "a mask parts on 14529");
+        assert_eq!(behind, 203, "the `0x4` residue on 14529");
+        // The two ends the sweep stopped at, element for element.
+        let n = |t| built.sim.mesh.elem(&built.sim.world, t).map(|e| e.flags);
+        assert_eq!(n(Pos::new(220, 97)), Some(sim::mesh::dir::N), "(220, 97)");
+        assert_eq!(n(Pos::new(220, 98)), None, "(220, 98)");
+        assert_eq!(
+            n(Pos::new(216, 116)),
+            Some(sim::mesh::dir::SW),
+            "(216, 116)"
+        );
+    }
+
     /// **run73 — the caravan's own road on Great Lakes, node for node, and
     /// the road a farm takes away** (2026-09-03, item 206).
     ///
@@ -3114,10 +3200,15 @@ mod tests {
         // two-by-two under each (`docs/MERCHANT.md` §3.2). What stands is
         // cell (54, 28)'s flag `0x80` here against 0 there, which the arm
         // does not write and which parted before it.
+        //
+        // **1 → 0 on item 695**: (54, 28)'s `0x80` is the cell's road flag,
+        // and its four tiles of the trade road, (216, 112..115), are the
+        // first four the stray-road sweep takes, 5905 to 7448
+        // (`docs/ROADS.md` §10). All 3,600 cells agree.
         assert_eq!(
             cell_bad.len(),
-            1,
-            "run93's block 7932 no longer parts on 1 cell — if the AI's \
+            0,
+            "run93's block 7932 parts on a cell again — if the AI's \
              base has been fixed this pin is the one to lower, and if it has \
              grown the landing that grew it is the bug: {:?}",
             &cell_bad[..cell_bad.len().min(8)]
@@ -3147,10 +3238,20 @@ mod tests {
         // (209–212, 74–77), agrees on both bits and keeps only the `0x4`
         // the rest of this cluster lacks. No tile parts that did not
         // before (`docs/MERCHANT.md` §3.2).
+        //
+        // **146 → 142 on item 695**: the trade road's (216, 112..115),
+        // road here and plain there, which the stray-road sweep takes
+        // between 5905 and 7448 (`docs/ROADS.md` §10).
+        assert!(
+            tile_bad
+                .iter()
+                .all(|&(x, y, _, _)| !(x == 216 && (112..=115).contains(&y))),
+            "the sweep's four tiles part again at 7932"
+        );
         assert_eq!(
             tile_bad.len(),
-            146,
-            "run93's block 7932 no longer parts on 146 tile masks — if the \
+            142,
+            "run93's block 7932 no longer parts on 142 tile masks — if the \
              cluster has been fixed this pin is the one to lower, and if it \
              has grown the landing that grew it is the bug"
         );

@@ -347,9 +347,11 @@ pub mod path_flag {
     pub const DETOUR: u8 = 0x8;
     /// **A road was laid on this waypoint's tile.** Only
     /// `Caravan::build_road@0073db10` writes it, on every node of a trade
-    /// route's plan that is not open water, and nothing in the executable
-    /// reads it back — the road stack carries it into the unit's own path
-    /// when a leg starts (`docs/CARAVAN.md` §5.3).
+    /// route's plan that is not open water, and the road stack carries it
+    /// into the unit's own path when a leg starts (`docs/CARAVAN.md` §5.3).
+    /// ~~Nothing in the executable reads it back.~~ `Unit::do_move@005f7b30`
+    /// does, on the waypoint a caravan takes: a road tile that has been
+    /// built over verifies the route (`docs/CARAVAN.md` §10, item 695).
     pub const ROAD: u8 = 0x20;
 }
 
@@ -3101,6 +3103,16 @@ impl Sim {
             self.units[u].line_ok = false;
             self.units[u].tolerance = top.tolerance;
             self.store_move(u, mo, flags);
+            // `do_move@005f7b30:437`: under a `TRADE_ROUTE` action, a
+            // waypoint the road was laid on asks whether the road is still
+            // there (`docs/CARAVAN.md` §10).
+            if top.flags & path_flag::ROAD != 0
+                && self
+                    .action_of(u)
+                    .is_some_and(|i| self.units[u].orders[i].index() == index::TRADE_ROUTE)
+            {
+                self.caravan_road_step(u, top.to);
+            }
 
             // **The waypoint's own collision test** (§4.4), the one call of
             // `detect_unit_collision` that is not `move_step`'s or
@@ -3590,9 +3602,16 @@ impl Sim {
             let lead = self.units[l].path.last().copied();
             match lead {
                 Some(w) if gm.in_group => {
-                    let off = self.armies[g.who as usize].list[g.army.unwrap_or(0)]
-                        .group
-                        .curr[i];
+                    // The group's own formation — an army's, or a pushed
+                    // group's ([`Sim::gstate`]). This read an army's list
+                    // with `unwrap_or(0)`, which a pushed group (no army)
+                    // indexed out of bounds: Great Lakes 18333, reached
+                    // once item 695 moved the word past 14529. A slot the
+                    // state does not hold stands at the leader's point.
+                    let off = self
+                        .gstate(g)
+                        .and_then(|st| st.curr.get(i).copied())
+                        .unwrap_or_default();
                     let to = Pos::new(w.to.x + off.x, w.to.y + off.y);
                     self.units[u].path.push(PathData {
                         to,

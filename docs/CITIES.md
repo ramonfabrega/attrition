@@ -853,7 +853,7 @@ gameplay ("G") rather than message/sound/AI:
 | GRANARY / LUMBERMILL in a city | `city_flags |= 0x200` / `0x400`; the enhancer percentage from its level table (`docs/ECONOMY.md`) |
 | TEMPLE in a city | `city_flags |= 0x80`; **`Region::fix_borders`** — the temple extends territory |
 | MARKET in a city | `city_flags |= 0x800` |
-| SENATE | not captured and no living government patriot → `train(get_gov_hero())`; in a city, not captured: `senates_built++`; **if the city is the capital's race and the capital has no senate, the capital flag moves here** (`0x10` cleared elsewhere, set here, `fix_borders`) |
+| SENATE | not captured and no living government patriot → `train(get_gov_hero())`; in a city, not captured: `senates_built++`; **if the city is the capital's race and the capital has no senate, the capital flag moves here** (`0x10` cleared elsewhere, set here, `fix_borders`) — whole in **§15**, implemented (item 695) |
 | any, in a city | `City::regen_roads` |
 | fort / dock / oil | `Forts::init_fort` (**a territory source**, `docs/ATTRITION.md`), `Docks::init_dock`, `OilWells::init_oil_well`; the unbuilt lists popped |
 | dock, MARKET, TEMPLE | a count and its high-water mark; a new high (frame > 0, built, counted) → `do_bonus(WEALTH, 30)` |
@@ -2313,3 +2313,62 @@ passes twice as many sites, which is Great Lakes' frame 8382: eighteen of
 `docs/ECONOMY.md`, "The mine's range", has the predicate, the mining list
 that follows it, the reconstruction of a mountain range and what none of it
 establishes. `docs/AI.md` §39 has what it moved (item 344).
+
+## 15. A Senate moves the capital (2026-09-24, item 695)
+
+*Established from `Build::activate@00623e20`'s Senate arm,
+`LeaderData::find_capital@006eb930` and `CityData::count_buildings@00739390`,
+and diff-backed by Great Lakes block 14529 (run178).*
+
+§4's table names the arm. This is what the arm does. The chain is
+`is(SENATE)` (type 438, 414 + 24) after `is(TEMPLE)` (437) and
+`is(MARKET)` (436):
+
+```
+if gov_hero_frame >= 0 and not captured
+   and no FILTER_GOV_HERO unit of mine within 0x20000
+   and gov_hero_frame <= frame and (h = get_gov_hero()) >= 0:
+    train(h)
+if in a city and not captured:
+    senates_built++
+    if city.race == who
+       and find_capital(&c, &p, −1, −1) gives p == who and c >= 0
+       and count_buildings(capital, SENATE, exact 0, active 1) == 0:
+        for i < city_mark, every live city of mine:
+            tribe bonus 0x17 ? clear 0x10 only where 0x10 is set and 0x4000 is not
+                             : clear 0x10
+        this city: city_flags |= 0x10;  founder (+0x60) = who
+        the building's cell has a region → Region::fix_borders
+        the "capital moved" message and sound
+```
+
+- **`find_capital`'s first arm** is the first live own city carrying
+  `0x10`. The second arm finds another player's city holding my
+  `was_capital_flags` bit, and it answers that player. So a capital held
+  by an enemy never moves this way.
+- **Tribe bonus `0x17` keeps the founding capital**, the city with
+  `0x4000`. That nation has two capitals from then on.
+- **`fix_borders` invalidates every region's borders**, all 64 of
+  `Region +0x2c`, not only this one. The recompute takes 256 cells a
+  frame (`docs/ATTRITION.md`, "Territory"), so the capital's
+  `CAPITAL_TERRITORY_BONUS` reaches the map over about sixteen frames.
+  This crate recomputes at once.
+- **It is drawless.** Great Lakes' `1/2024` finishes in Norwich on tick
+  14528. The capital moves from London `1/2000` (`city_flags` 18449 → 18433) to
+  Norwich `1/2007` (1 → 17), and the draw stream agrees through
+  that frame.
+
+`Sim::senate_moves_capital` is the arm. `a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one`
+is the test, made to fail once with the call removed.
+
+**Backed by the diff:** the two `city_flags[0x10]` rows on run178's
+block 14529 are gone. **What it costs, and was expected to:** who=0's
+`gather_stamp` is re-stamped on 14536 here and on 14544 there, which is
+the wholesale recompute against the original's lazy one. Without the arm
+it was never re-stamped here (14545's row). The walk's keys went
+1,281 → 1,279.
+
+**Not modelled.** The government hero: run178 prints `gov_hero_frame`
+−1, and `Leader::gain_tech` sets it to 1 on a government. And
+`senates_built`, which the leader record prints (0 → 1 on block 14529)
+and no reader here carries.
