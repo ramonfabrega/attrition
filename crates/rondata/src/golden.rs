@@ -128,6 +128,9 @@ impl Applied {
 pub struct Script {
     lines: Vec<Staged>,
     next: usize,
+    /// Issuer lines run on an earlier frame, each with the frame whose
+    /// tick first sees its command (see [`Script::apply`]).
+    pending: Vec<(i64, Staged)>,
 }
 
 impl Script {
@@ -161,7 +164,11 @@ impl Script {
                 text: text.to_string(),
             });
         }
-        Script { lines, next: 0 }
+        Script {
+            lines,
+            next: 0,
+            pending: Vec::new(),
+        }
     }
 
     pub fn read(path: &std::path::Path) -> std::io::Result<Script> {
@@ -211,8 +218,28 @@ impl Script {
     /// the package. Here it is flipped at the line's own frame. No capture
     /// can separate the two: the control run (`docs/RUNS.md` run104) has
     /// frame 0 identical either way and parts from frame 1's draws.
+    ///
+    /// **An issuer line (`@`) acts one frame later than it is written.**
+    /// `rontrace.dll` calls the issuer at the same point it runs a cheat,
+    /// but the issuer only appends to the local `CommandPackage`; the turn
+    /// pump walks the package after that frame's `do_frame` and before the
+    /// next one's (`docs/GOLDEN.md` §17; the lab's live probe measured
+    /// `process_group` on frame 21 for a call on 20). So a line on frame
+    /// `f` is run here before the tick of `f + 1`, ahead of any cheat line
+    /// staged on `f + 1`, as the pump runs ahead of `do_frame`'s entry.
     pub fn apply(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
         let mut done = Applied::default();
+        let (due, later): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending)
+            .into_iter()
+            .partition(|(f, _)| *f <= frame);
+        self.pending = later;
+        for (f, line) in due {
+            if f < frame {
+                done.skip(&command_word(&line.text), "the frame was stepped past");
+            } else {
+                issue(&line, built, &mut done);
+            }
+        }
         while self.next < self.lines.len() && self.lines[self.next].frame < frame {
             let word = command_word(&self.lines[self.next].text);
             done.skip(&word, "the frame was stepped past");
@@ -221,10 +248,79 @@ impl Script {
         while self.next < self.lines.len() && self.lines[self.next].frame == frame {
             let line = self.lines[self.next].clone();
             self.next += 1;
+            if line.text.starts_with('@') {
+                self.pending.push((frame + 1, line));
+                continue;
+            }
             run(&line, built, loaded, &mut done);
         }
         done
     }
+}
+
+/// An issuer line, parsed the way `tools/trace/tracer.c`'s `issue_line`
+/// reads it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Issued {
+    /// `@move <who> <x> <y> <o> [<o> …]`: internal coordinates, object ids,
+    /// at most 32 of them.
+    Move {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
+}
+
+/// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
+/// not `move`, a `who` outside `0..8`, fewer than three numbers, or no
+/// object.
+pub fn parse_issuer(text: &str) -> Option<Issued> {
+    let mut tok = text.strip_prefix('@')?.split_whitespace();
+    if tok.next()? != "move" {
+        return None;
+    }
+    let nums: Vec<i32> = tok.map_while(|t| t.parse::<i32>().ok()).collect();
+    let [who, x, y, ref objects @ ..] = nums[..] else {
+        return None;
+    };
+    let objects: Vec<i16> = objects
+        .iter()
+        .take(32)
+        .map(|&o| i16::try_from(o).ok())
+        .collect::<Option<_>>()?;
+    if objects.is_empty() || !(0..8).contains(&who) {
+        return None;
+    }
+    Some(Issued::Move {
+        who,
+        to: Pos::new(x, y),
+        objects,
+    })
+}
+
+/// An issuer line, `@move <who> <x> <y> <o> [<o> …]`, as the turn pump
+/// processes the command `rontrace.dll` issued for it (`docs/GOLDEN.md`
+/// §17).
+///
+/// The DLL calls `CommandManager::issue_move_to@00941720` with a plain
+/// right-click's arguments — `QUEUE_NEW`, no angle, `MOVE_TO`, form and
+/// width −1, no disembark (`WorldMap::on_right_up@008c7050:203`) — on a
+/// `GroupOut` listing the objects, and refuses by an INFO record, issuing
+/// nothing, when an object is not a live captain of `who`. So the command
+/// that reaches the pump is a `group` of exactly those captains and a
+/// `move_to`, and [`crate::input::group_move_to`] is its entry.
+fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
+    let word = command_word(&line.text);
+    let Some(Issued::Move { who, to, objects }) = parse_issuer(&line.text) else {
+        done.skip(&word, "not an issuer line the DLL runs");
+        return;
+    };
+    let n = crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 1);
+    if n == 0 {
+        done.skip(&word, "no named object is a live unit in the simulation");
+        return;
+    }
+    done.ran += 1;
 }
 
 fn command_word(text: &str) -> String {
@@ -692,6 +788,9 @@ mod tests {
         ("chapter7b.cmd", &[]),
         ("chapter7b_control.cmd", &[]),
         ("chapter8.cmd", &[]),
+        // Chapter nine: two `@move` issuer lines, the first player orders
+        // in the record (item 676, `docs/GOLDEN.md` §17).
+        ("chapter9.cmd", &[]),
     ];
 
     /// The chapter directory as the tree has it, sorted.
@@ -736,6 +835,16 @@ mod tests {
             assert!(!script.is_empty(), "{name} stages nothing");
             let mut debt: Vec<String> = Vec::new();
             for line in script.lines() {
+                // An issuer line never reaches `parse_cmd`: it only has to
+                // be one the DLL runs (item 676).
+                if line.text.starts_with('@') {
+                    assert!(
+                        !line.console && parse_issuer(&line.text).is_some(),
+                        "{name}: `{}` is not an issuer line rontrace.dll runs",
+                        line.text
+                    );
+                    continue;
+                }
                 let word = command_word(&line.text);
                 let console_only =
                     matches!(word.as_str(), "ai" | "quit" | "go" | "break" | "restart");
@@ -759,6 +868,43 @@ mod tests {
                  re-pin CHAPTER_DEBT and say so in docs/GOLDEN.md"
             );
         }
+    }
+
+    /// **An issuer line parses as the DLL reads it** (item 676): the verb,
+    /// `who`, the point in internal units, and the objects. The DLL
+    /// refuses each of the malformed forms below by its refusal 5, so
+    /// neither side may act on one.
+    #[test]
+    fn an_issuer_line_is_the_dll_s_move() {
+        assert_eq!(
+            parse_issuer("@move 0 12672 7296 6"),
+            Some(Issued::Move {
+                who: 0,
+                to: Pos::new(12672, 7296),
+                objects: vec![6],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@move 0 14208 11904 7 8"),
+            Some(Issued::Move {
+                who: 0,
+                to: Pos::new(14208, 11904),
+                objects: vec![7, 8],
+            })
+        );
+        for bad in [
+            "move 0 1 2 3",
+            "@patrol 0 1 2 3",
+            "@move 0 1 2",
+            "@move 9 1 2 3",
+            "@move 0 1",
+        ] {
+            assert_eq!(parse_issuer(bad), None, "{bad}");
+        }
+        let s = Script::parse("620 @move 0 12672 7296 6\n");
+        assert_eq!(s.lines().len(), 1);
+        assert!(!s.lines()[0].console);
+        assert_eq!(s.lines()[0].text, "@move 0 12672 7296 6");
     }
 
     /// `bird` takes no argument and is the chat half's (`run_cmd` case

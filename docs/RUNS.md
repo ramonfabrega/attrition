@@ -6136,3 +6136,67 @@ outside the plan's ranges (`0x7a84642c`). The calls were made one
 function at a time. The packet stays outside git at
 `~/ron-data/lab-captures/2026-09-24-run177/map-14`, and the oracle
 scripts (`fap.py`, `fight.py`) at `<exp>`.
+
+## run180 — chapter nine, the move line, the first issuer chapter (2026-09-24, item 676)
+
+`docs/GOLDEN.md` §17, from `tools/gamelog/golden/chapter9.cmd`: `!ai
+off`, a Chariot `0/6` on 610 and a Hoplite squad `0/7`–`0/9` on 612, and
+two **player orders** through the original's `CommandManager::issue_move_to`,
+called from `rontrace.dll` by the new `@move` line — the chariot on 620,
+the squad by its captain on 640. The staging, the premise's killer and the
+falsifiers were committed before the run (`909df26`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch9 \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter9.cmd
+```
+
+`success: true`, exit 0, 1,101 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take, **209 s launch to exit, 66 MB
+of dump and 10.3 MB of trace**. The lane lock was stale when it launched:
+its holder, pid 54101 (att-678's run178), had exited and its queue with it.
+497 blocks: 1, 605..1100 and the `!quit` block 1101. The five `INFO cmd`
+records returned 1 (`cmdsran.py`). Waited on with
+`WAITRUN_RUNNER=unattended_capture.py waitrun.sh <viadriver log>`, which
+exits 2 on a golden lane by design; the receipt is the verdict.
+
+**The same game as run175 to frame 610**: `rngcmp.py` finds 0..610
+identical and 611, the chariot's birth, first differing.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6`, uid 13, at (3192, 7032) — this crate's seat |
+| 620 | `INFO 17` | line 4, refusal 0, package 10 → 37 bytes, one object |
+| 640 | `INFO 18` | `0/7`, uid 14, at (3192, 10104) — this crate's seat |
+| 640 | `INFO 17` | line 5, refusal 0, package 10 → 37 bytes, one object |
+
+The package already holds 10 bytes when the issuer runs: the turn's own
+`camera` command. Each call adds the emulator's 27.
+
+### The processed command, and §17's falsifiers
+
+Between blocks 621 and 622 the dump prints `process_group, new 0 1 621`,
+`process_move_to 12672 7296 2 0 0 1 0` and `process_move_to_2 -1 -1`
+(`who`, `num`, frame; `to`, `queued`, `set_angle`, `angle`, `orders`,
+`disembark`; `form`, `width`), and the same for the squad between 641 and
+642. None of the four falsifiers fires.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the issue | appended and processed on the next frame | as predicted, on 621 and 641 |
+| the chariot, block 622 | one `MOVEORDER`, type 1, action bit, a plan of three or more | type 1, `flags 5`, an **11-entry** plan, `group 1`, `play 0` |
+| the squad, block 642 | three type-19 orders, one id, one leader | `GroupMoveOrder` ×3, id **641000**, `oxx 7`, `form_id` 0–2, a 7-entry plan on the leader; `group 0`, `play 0` on each |
+| the squad's arrival | this crate: blocks 938–941 on its slots | stacks empty on **938, 939, 941**, on (5112, 16488), (4992, 16512), (4872, 16536) — this crate's blocks and points |
+| the chariot's arrival | this crate: block 990 | stack empty on **1040**, on (12672, 7296) |
+
+**Where the chariot parts from this crate's reading.** The original's plan
+runs **straight along row 9**, every waypoint at `y 7320`, x 4248 to 11160,
+through the SANDY cells of region 65 that this crate's plan bends north
+round (§17's "ground"), and it arrives fifty frames later than this crate's
+longer route. See `docs/GOLDEN.md` §17.

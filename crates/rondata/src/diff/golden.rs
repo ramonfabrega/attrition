@@ -470,6 +470,40 @@ fn chapter_six_b_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter nine, pinned** — the move line, the first issuer chapter
+/// (`docs/GOLDEN.md` §17, item 676, run180). Five staged lines: `!ai off`,
+/// a Chariot on 610, a Hoplite squad on 612, and two `@move` issuer lines
+/// on 620 and 640, which the harness runs one frame later, as the turn
+/// pump does.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run180): both issues appended (`INFO 17`, refusal 0) and processed on
+/// the next frame; the chariot a plain `MOVEORDER` with an 11-entry plan,
+/// the squad three `GroupMoveOrder`s under one id; all four arrive. No
+/// falsifier fired.
+///
+/// `GOLDEN_WORD_CHAPTER_NINE` carries what stands at the word.
+#[test]
+fn chapter_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch9", "chapter9", 9, 5, 1100) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_NINE,
+        "chapter nine's golden word fell to {} from {GOLDEN_WORD_CHAPTER_NINE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_NINE,
+        "chapter nine's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §17"
+    );
+    eprintln!(
+        "chapter nine: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter eight, pinned** — the commanders and a declared war
 /// (`docs/GOLDEN.md` §12, item 660, run171). Ten staged lines: `!ai off`,
 /// `library 2` for both players, a hoplite squad and a General for who=0, a
@@ -5779,6 +5813,99 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     .collect();
     want.sort();
     assert_eq!(got, want, "ch6b: what parts under the word moved");
+}
+
+/// **Chapter nine's word, widened whole, both directions** (item 676).
+/// Every record run180 carries on every block of
+/// [`WIDENING_CHAPTER_NINE`], by [`widen_civilians`]: every unit and
+/// figure — the Chariot `0/6` and the squad `0/7`–`0/9` under their
+/// player orders among them — every building, both leaders at
+/// `LEADERS=2`. run180 dumps no `AMMO`. The four staged units are printed
+/// both sides on the word's blocks.
+#[test]
+fn chapter_nine_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch9",
+        "chapter9",
+        WIDENING_CHAPTER_NINE,
+        1100,
+        0,
+        (692, 694),
+        false,
+        88,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch9 f{f} {w}/{o} {what}: {row}");
+    }
+    // **The standing rows of the first block**: the unmodelled `form` on
+    // the eleven start units, two `filled_gather_slots`, and thirteen
+    // `build:extra` — chapter six's family, since run180 does not print
+    // `BUILDS` either.
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_NINE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 26,
+        "ch9: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §17). Each staged unit's `form` on its birth block, the standing
+    // family.
+    //
+    // **Item 676 took the word to the capture's end.** The 622 rows —
+    // the chariot's plan through the unseen sand, its heading and its
+    // position — went with `invalid_loc`'s human fog arm, and 648–649
+    // with them; the one-frame re-plan on 693 went with `find_wpath`'s
+    // human pop. The window is run180 whole, 605 to its last block,
+    // 1099; 1100 is the `!quit` frame and prints no block.
+    //
+    // **642, the squad's `GroupMoveOrder` id**, 641000 against 647600,
+    // stands: `(group.id + frame × 10) × 100 + order_num`, and the
+    // original's `group.id` is the pool slot, 0 here (the chariot's push
+    // took slot 1 on 621), where this crate's pushed group reads `64 +`
+    // its index in `Sim::pushed`. It is a value no step reads, and the
+    // fix reaches the AI's pushed groups on both long captures.
+    //
+    // One row stands that is neither order's: the explore order of
+    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
+    // the dump's 0 from 847, the row chapter five pins on 847 and six-b on
+    // 991; non-scoring (`OrderMismatch::scores`, parked 275), pinned by
+    // name and value.
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_NINE.0)
+        .map(|((w, o, what), (f, row))| {
+            if what == "order:move.facing" {
+                format!("{f} {w}/{o} {what}: {row}")
+            } else {
+                format!("{f} {w}/{o} {what}")
+            }
+        })
+        .collect();
+    got.sort();
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "613 0/8 form",
+        "613 0/9 form",
+        "642 0/7 order:group.id",
+        "642 0/8 order:group.id",
+        "642 0/9 order:group.id",
+        "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch9: what parts under the word moved");
 }
 
 /// **Chapter eight's word, widened whole, both directions** (item 660).
