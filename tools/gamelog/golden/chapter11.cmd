@@ -116,8 +116,20 @@
 # firing from 1004; the guard's ATTACK above its GUARD from 1011; the squad
 # with no order.
 #
-# check: `cmdsran.py` shows six `INFO cmd` returning 1 (the four cheats,
-#        `37 !ffwd`, `1250 !quit`); the three `@` lines are `INFO 17` records.
+# RUN 2026-09-24 as run190 (item 696; docs/RUNS.md): 254 s, 85 MB. NO
+# FALSIFIER FIRED. All three `INFO 17` records issued (package 10 -> 28, 28,
+# 37); the dump logs `process_group` and `process_guard` between blocks
+# 621/622 and 641/642. Block 622: `0/6` a GUARDORDER on 0/7, flags 4,
+# dx 0 dy 372, post (3528, 8760), under an ATTACKTOORDER leg (timer 59). The
+# wagon's stack empties on 857; the post re-read to (3480, 12264) by 890.
+# Block 1011: an ATTACKORDER on 1/6 above the GUARD. The squad: no order on
+# any block. Then 1/6 walks off on an army ATTACKTO (1021), the guard's
+# attack goes (1037), 1/6 returns and shoots it, the guard never re-engages
+# and is gone from 1141.
+#
+# check: `cmdsran.py` shows seven `INFO cmd` returning 1 (`0 !ai off`, the
+#        four cheats, `37 !ffwd`, `1250 !quit`); the three `@` lines are
+#        `INFO 17` records.
 # check: `MAP_STYLE 14`, seed 12345, blocks 1 and 605..1249 at least.
 # ---------------------------------------------------------------------------
 

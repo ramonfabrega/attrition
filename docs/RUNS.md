@@ -6324,3 +6324,85 @@ proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
 hour of the single lane was already spent.
+
+## run190 — chapter eleven, the guard line (2026-09-24, item 696)
+
+`docs/GOLDEN.md` §19, `tools/gamelog/golden/chapter11.cmd`. The cast:
+- chapter nine's Chariot `0/6` on 610;
+- a Supply Wagon `0/7` on 612, two cells south;
+- a Hoplite squad `0/8`–`0/10` on 614, on cell (9, 38) near who=0's
+  `0/2001`.
+
+Two **player guards** through `CommandManager::issue_guard`, called from
+`rontrace.dll` by the new `@guard` line: the chariot on the wagon on 620,
+and the squad on the building on 640. Then chapter nine's `@move` walks
+the wagon on 720, and `1000 add chariot who=1 17,70` puts an enemy in
+sight. The staging, the premise's killer and the falsifiers were
+committed before the run (`c7d8f5c`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch11 \
+    --map 14 --end-frame 1250 --log-window 605 1250 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter11.cmd
+```
+
+**The capture.** One take: **254 s launch to exit, 85 MB of dump and
+10.8 MB of trace**.
+- `success: true`, exit 0, 1,251 frames.
+- `MAP_STYLE 14` and seed 12345 read back, and five settings files
+  restored.
+- The seven `INFO cmd` records returned 1 (`cmdsran.py`).
+
+**The lane.** The lock was stale when it launched: its holder, pid 69380,
+had exited, and no game or driver was running. `waitrun.sh` exits 2 at
+once on a golden lane, because no `runqueue.sh` runs there. The wait was
+on RonDriver's own exit, and the receipt is the verdict.
+
+**The same game as run184 to frame 614**: `rngcmp.py` finds 0..614
+identical, and 615, the tick after the squad's birth, first differing.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6`, uid 13, at (3192, 7032) |
+| 620 | `INFO 17` | line 5, refusal 0, package 10 → 28 bytes, one object |
+| 640 | `INFO 18` | `0/8`, uid 15, at (7032, 29304) |
+| 640 | `INFO 17` | line 6, refusal 0, package 10 → 28 bytes, one object |
+| 720 | `INFO 18` | `0/7`, uid 14, at (3192, 8568) |
+| 720 | `INFO 17` | line 7, refusal 0, package 10 → 37 bytes, one object |
+
+Each guard adds the emulator's 18 bytes to the turn's 10-byte `camera`,
+and the move adds chapter nine's 27.
+
+### The processed commands, and §19's falsifiers
+
+Between blocks 621 and 622 the dump prints `process_group, new 0 1 621`
+and `process_guard 621`. The `Log::say` string carries the frame alone;
+the `ox`/`whom`/`queued` line is the sync logger's, not the dump's. The
+same appears between 641 and 642, and `process_move_to 3456 11904 2 0 0 1
+0` between 721 and 722. **None of the five falsifiers fires.**
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the issue | appended, processed on the next frame | as predicted, on 621, 641 and 721 |
+| the guard, block 622 | one `GUARDORDER` on `0/7`, the action bit, under a transit leg | type 12, `flags 4`, `ox 7 whom 0 uid 14`, **`dx 0 dy 372`**, post (3528, 8760), under an `ATTACKTOORDER` (`flags 1`, `timer 59`) to the post. This crate's value to the digit |
+| the post | taken by ~660 | on (3528, 8760) with `idle 24` on 700, this crate's `idle` too |
+| the moving charge | the post re-read as the wagon walks | the wagon's `MOVEORDER` from 722. Its stack empties on **857** on (3456, 11904); this crate said ~915. The guard's post steps (3288, 8952) → (3480, 9624) → … → (3480, 12216) on 856, one cell short, then (3480, 12264) on 890, where it stands from 900 |
+| the engagement | an `ATTACKORDER` on `1/6` above the `GUARD` by 1027 | on **1011** exactly, the phase tick 1010. `1/6` holds its own `ATTACK` on `0/6` from 1001 |
+| the building half | no order on `0/8`–`0/10` | none, on any of 635 blocks, and the three never move |
+
+**What the reading did not say.** The fight is the chapter's surprise.
+- **1021**: `1/6` takes an army `ATTACKTOORDER` and walks away.
+- **1037**: the guard's `ATTACK` goes, and the `GUARD` stands alone.
+- **~1050**: `1/6` comes back and shoots the guard from about 1,640
+  units.
+- **The guard never re-engages.** Its `idle` counts on every block, and
+  its sixteen-frame search finds nothing.
+- **The damage**: the guard landed one hit (`1/6` damage 21 on 1044) and
+  took 20 on 1032, 1091 and 1115. It is gone from block 1141, and its
+  `GUARD` goes with it.
+- The wagon stands unguarded to 1249.
