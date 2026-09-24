@@ -759,7 +759,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// draws against 33, parting at index 33: ours has one more
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271` after the frame's
 /// thirty `Animal::think_bird` draws, and theirs has none.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 13_640;
+///
+/// **13640 → 15782 on item 643, and the frame was an animation's name,
+/// cased differently in two files.** run166 over [13580, 13700) said whose
+/// wrap it was: the Galley `1/32`, a Trireme upgraded inside the window,
+/// entered `CHAR_DEFAULT` on 13637 with `end_time` 3 here and 20 there,
+/// and wrapped again on 13640. `unit_graphics.xml` cites "Galley Default"
+/// and `anim_graphics.xml` defines "Galley default". The original resolves
+/// the name with `GraphicPieces::decipher_animation@008face0`, a first-match
+/// `_wcsicmp`, and this crate's case-sensitive map read a missing slot —
+/// 46 of the names the install cites resolve only case-folded
+/// (`docs/ANIM.md` §12). **The move's value diff (the word's delta, here;
+/// its block is the widening's):** run166's four `1/32` rows and the sheep
+/// `8/1`'s go, and the 187 rows the extra draw parted past the word; the
+/// floor goes 295/308/495 → 295/307/307
+/// (`run166_s_word_frame_is_widened_whole`), nothing parting from the
+/// word to the window's end. On the way the sequence parted on 15378, a
+/// bare `6c7812` against ours' unnamed draw: the Senate arm's survivor
+/// roll in `research_techs`, the same draw, which this crate now names
+/// (`sim::ai_research::SITE_GOV_ROLL`). **15782** is past run166 and
+/// inside run78's [15700, 15900] (`LEADERS=1`): the original spends three
+/// `Guy::init_real+0x52` and a wrap before the bird, the birth of the
+/// three-figure unit `1/60` run78 counted, and ours births nothing.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 15_782;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -3422,13 +3444,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // [13580, 13699], sized to the word rather than to the gap, and
     // `run166_s_word_frame_is_widened_whole` is a sibling through the same
     // walk, gaia and the pool included, on 120 blocks it shares with no
-    // other capture.
+    // other capture. The same item moved the word to **15782**, past
+    // run166's last block (13699) and inside run78's [15700, 15900],
+    // whose records no test has widened: the next item owes it. run166's
+    // test keeps the move's value diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run166_s_word_frame_is_widened_whole"),
+        None,
         643,
-        Some(WIDENING_EAST_INDIES_WRAP),
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

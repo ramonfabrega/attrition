@@ -5717,7 +5717,7 @@ poll_max: 120
 # of the 11 MB start dump, as sized. Five of six checks green: 13,711
 # frames identical to run54, `MAP_STYLE 18`, the window whole, a
 # `MAKEOBJECT` on every block, and a coverage set on all 9 frames
-# 13636..13644. The sixth, the pool, is below. No overlap check: the
+# 13636..13644. The sixth, the pool, FAILED (below). No overlap check: the
 # window shares no block with run159.
 #
 # **The readings, decided on the walk**: **R1 holds**, the trace above.
@@ -5731,14 +5731,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run166.log | 
 check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
 # **The window landed whole** — 120 blocks, 13580..13699, no gap.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '{v=$3+0; if(v>=13580&&v<13700) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==120 && lo==13580 && hi==13699)}'
-# **The pool did NOT land** — its check read `blocks with a GROUPDATA: 0`
-# and is taken out rather than left to fail on every re-run. `DEATHS=1`
+# **The pool did NOT land — this check FAILED** (`blocks with a GROUPDATA:
+# 0`), and it stays, failing, as the record of it. `DEATHS=1`
 # under `[End Frame]` leaves the logger's type at `WORLD` (`dump_deaths`
 # ends in two `WorldData::log_data`), and `GroupData::log_data` sets no
 # type of its own, so with `WORLD=0` every pool line fails `check_accept`
 # silently: run30's trap, in `docs/ORACLE.md` and run31's section of
 # `docs/RUNS.md`. run178's line had dropped `DEATHS` for exactly that
 # reason; this stanza added `GROUPS=1` to run159's line and kept it.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=13580&&v<13700)n++} print "blocks with a GROUPDATA: "n; exit !(n==120)}'
 # **The raised category is there**: a `MAKEOBJECT` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=13580&&v<13700)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==120)}'
 # **The coverage window landed**: every frame 13636..13644 has a set.

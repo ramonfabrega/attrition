@@ -2206,3 +2206,53 @@ rows parted to 2, and the nine agree from 11923 to the word.
 fail without the reset. *Listing-backed*: the offsets, against the
 decompile of `init_real` and the §1 table, which names `+0x9d` and
 `+0x84`.
+
+## 12. An animation's name is found case-folded (item 643, 2026-09-24)
+
+A `<UNIT>`'s `<ANIM name="CHAR_…" file="…"/>` names its animation by the
+`name` of an `anim_graphics.xml` row, and the two files do not always
+agree on case. `GraphicPieces::decipher_animation@008face0` resolves the
+name. It walks `anim_names` in load order, the four sections of
+`init_anims_pool@008fca40` one after another, and returns the **first**
+entry that compares equal under **`_wcsicmp`**. A name that finds nothing
+returns −1, and the slot is the packet's missing slot: `MISSING`'s three
+frames (§3.1).
+
+`artdata::anim_files` used a case-sensitive map in which a later
+duplicate overwrote an earlier one. It now keys on the name trimmed and
+ASCII case-folded (`anim_key`), and the first row wins.
+
+**What it changes.** 46 of the 1,894 names `unit_graphics.xml` cites
+resolve only case-folded, and every one of them read as a missing slot:
+`Galley Default`, `Sloop Default`, `Transport default`, `Macemen Default`,
+the `longbow`, `balamob` and `bombvessel_*` sets, `Chicken Death`, `Pig
+Death`, and others. The file's one duplicate name, `Caravan3 Wagon Walk`,
+is byte-identical both times, so first-wins changes nothing today.
+
+**How it was established.** From run166's dump, before any reading. On
+block 13638 of East Indies, the Galley `1/32` enters `CHAR_DEFAULT` with
+`end_time` 20 there and 3 here. It is a Trireme, upgraded to TypeIndex
+341 / piece 291 inside the window on both sides. It wraps again on frame
+13640, and that was the long word's extra draw. The two XML rows then
+named the case, and the decompile named the comparison.
+
+**What it moved.** East Indies' long word, **13640 → 15782**. run166's
+floor goes 295/308/495 → 295/307/307, and nothing parts from the word to
+the window's end. On the way the draw sequence parted on 15378, on a
+research draw that was the same draw on both sides but unnamed in ours;
+it is now `ai_research::SITE_GOV_ROLL` (and the coin `SITE_GOV_COIN`).
+Great Lakes holds at 14382.
+
+**What is not established.**
+- **The other 45 names on a dump.** Only the Galley's slot is diff-backed.
+  The rest follow from the same comparison and the same reader, and no
+  capture has printed any of them.
+- **Non-ASCII case.** `_wcsicmp` folds by locale, and this crate folds
+  ASCII. No shipped name has a non-ASCII letter.
+
+**Coverage.** *Diff-backed*: piece 291's `CHAR_DEFAULT` at 20 frames,
+block 13638 (`run166_s_word_frame_is_widened_whole`), and the word, from
+run54. *Guard*: `the_install_s_piece_lengths_match_the_dumps` pins piece
+291's slot at 20, and it was made to fail against the case-sensitive
+key. *Listing-backed*: the first-match walk and `_wcsicmp`, from the
+decompile of `decipher_animation`.

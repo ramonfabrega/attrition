@@ -6169,9 +6169,9 @@ coverage on all 9 frames 13636..13644.
 repeated. `DEATHS=1` under `[End Frame]` leaves the logger's type at
 `WORLD`, and the pool's lines then fail `check_accept` silently
 (`docs/ORACLE.md`). run178's line had dropped `DEATHS` for that reason,
-and this stanza kept it while adding `GROUPS=1`. The check is taken out of
-the stanza and the widening reads no pool. The word does not need one: it
-parts on a figure clock.
+and this stanza kept it while adding `GROUPS=1`.
+The check stays in the stanza, recorded as failed, and the widening reads
+no pool.
 
 **What it answered.** The Galley `1/32` (the Trireme, upgraded inside the
 window on both sides) enters `CHAR_DEFAULT` on block 13638 with `end_time`

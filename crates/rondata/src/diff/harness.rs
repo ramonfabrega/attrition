@@ -13343,9 +13343,12 @@ mod tests {
     /// its first block carries everything that parted in the gap.
     /// [`widen_east_indies`] with gaia's animals.
     ///
-    /// The word's frame, 13640, writes block **13641**. There ours spends
+    /// The word's frame, 13640, writes block **13641**. There ours spent
     /// three `Guy::inc_time+0x271` wraps — `1/21`, `1/32` and the sheep
-    /// `8/1`, in that order — against the original's two.
+    /// `8/1`, in that order — against the original's two, until the same
+    /// item found the Galley's default by its name case-folded
+    /// (`docs/ANIM.md` §12) and moved the word to 15782, past the window.
+    /// The test keeps the move's value diff.
     #[test]
     fn run166_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_WRAP.0;
@@ -13405,25 +13408,27 @@ mod tests {
                 "13581 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
                 "13582 1/-1 leader:MAKE[7].city: ours 1 theirs 0",
                 "13582 1/-1 leader:MAKE[8].city: ours 1 theirs 0",
-                "13641 1/32 g.cur_anim[0]: ours 1 theirs 0",
-                "13641 1/32 g.cur_time[0]: ours 0 theirs 3",
-                "13638 1/32 g.end_time[0]: ours 3 theirs 20",
-                "13641 1/32 g.last_time[0]: ours -1 theirs 2",
                 "13593 1/53 form: ours -1 theirs 0",
                 "13594 1/53 group: ours 69 theirs 68",
                 "13593 1/53 orders_x: ours 34944 theirs 34488",
                 "13593 1/53 orders_y: ours 33408 theirs 33864",
-                "13641 8/1 gaia:cur_anim: ours Some(0) theirs Some(1)",
             ],
             "the rows under the word and on it"
         );
         // **The word's own blocks, every row new on them** (`standing`
         // keeps every row within two blocks of the word; these did not
-        // stand on 13639). The Galley `1/32` — a Trireme upgraded inside
-        // the window, on both sides — wraps a third time on frame 13640:
-        // its `CHAR_DEFAULT` is 3 frames here, 20 there (13638's
-        // `end_time`). The sheep `8/1`'s wrap follows it and rolls another
-        // idle, one draw later in the stream.
+        // stand on 13639). **The move's value diff, both halves (the
+        // word's delta is in `LONG_WORD_EAST_INDIES`' comment):** until
+        // the fix the Galley `1/32` — a Trireme upgraded inside the
+        // window, on both sides — entered `CHAR_DEFAULT` on 13638 with
+        // `end_time` 3 here and 20 there, and wrapped a third time on
+        // frame 13640. Four `1/32` rows stood here, `cur_anim`,
+        // `cur_time` and `last_time` on 13641 and `end_time` on 13638,
+        // and one of the sheep `8/1`'s: its wrap came one draw later in
+        // the stream and rolled `a0` for `a1`. `unit_graphics.xml` cites
+        // "Galley Default" and `anim_graphics.xml` defines "Galley
+        // default"; the original resolves it under `_wcsicmp`
+        // (`docs/ANIM.md` §12), and this crate read a missing slot.
         let before = standing.get(&(WORD_BLOCK - 2)).cloned().unwrap_or_default();
         let on_word: Vec<String> = (WORD_BLOCK - 1..=WORD_BLOCK)
             .flat_map(|b| {
@@ -13438,12 +13443,7 @@ mod tests {
             .collect();
         assert_eq!(
             on_word,
-            [
-                "13641 1/32 g.cur_anim[0]: ours 1 theirs 0",
-                "13641 1/32 g.cur_time[0]: ours 0 theirs 3",
-                "13641 1/32 g.last_time[0]: ours -1 theirs 2",
-                "13641 8/1 gaia:cur_anim: ours Some(0) theirs Some(1)",
-            ],
+            Vec::<String>::new(),
             "the rows new on the word's blocks"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
@@ -13451,18 +13451,24 @@ mod tests {
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
             .copied()
             .collect();
+        // Until the fix `1/32` and `8/1` changed animation on 13641 in
+        // ours alone.
         assert_eq!(
             one_sided,
-            [(13641, 1, 32, false, true), (13641, 8, 1, false, true)],
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
             "a figure moves on one side only"
         );
         assert_eq!(housed, 1_560, "housed unit-blocks the row compared");
         // **The floor**: 295 keys standing on the window's first block —
         // everything that parted in the 1,741 blocks since run159, which no
-        // capture prints — 308 before the word, 495 in all.
+        // capture prints — 307 before the word, 307 in all. It was
+        // 295/308/495 before the fix (`ad71c9b`): `1/32`'s `end_time` under
+        // the word, and 187 rows past it that the extra draw parted — `0/4`
+        // from 13677, the scout `1/0` from 13642, `1/1`, `1/9` and the rest.
+        // Nothing now parts past the word to the window's end.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (295, 308, 495), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (295, 307, 307), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
