@@ -3479,13 +3479,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // walk, gaia and the pool included, on 120 blocks it shares with no
     // other capture. The same item moved the word to **15782**, past
     // run166's last block (13699) and inside run78's [15700, 15900],
-    // whose records no test has widened: the next item owes it. run166's
-    // test keeps the move's value diff.
+    // whose records no test has widened: item 694 owes it, and captures
+    // only what run78's `LEADERS=1` cannot answer. run166's test keeps
+    // the move's value diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        643,
+        694,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
