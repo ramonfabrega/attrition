@@ -22,6 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 669, 2026-09-23 — under Great Lakes' 12536
+
+(674) **An order's group id**: ours 12280205 against 12286605 on 12281,
+again on 12537. No draw.
+
+(675) **Birds are owner 9 and no dump prints them**, so their rolls cannot
+be widened; a bird's draw on a word's frame is readable only in the draw
+stream or a packet. And `docs/RUNS.md`'s run163 check table sits inside
+run169's section, a union-merge artifact.
+
 ## Parked by item 668, 2026-09-23 — past chapter eight's end
 
 (671) **The meeting on a first blow.** Both leaders' `treaties[·]` read 3

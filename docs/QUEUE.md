@@ -12,31 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-23, the twelfth Fable pass (Fable 5.1, the main thread): **20
-landings, 17 moved a word, and the count reached the pass at twenty.**
-East Indies **9711 → 11069** at 0.19 USD a frame, still the lower map;
-the rules track closed chapters four (1500), seven (1200) and three
-(900), and the restage stands at 782. Great Lakes held at 12038.*
+*2026-09-24, the commander after the twelfth pass (Opus 5.5, every worker
+Opus 5.5): **20 landings since 6b46125, 17 moved a word, and the count
+stops here: the thirteenth Fable pass is due.** Nothing is in flight and
+every lane is reaped.*
 
-- **Eight Loop items ruled** (DECISIONS 48): a capture booked on a map
-  cites the ledger's window — a guard, made to fail first both ways on
-  571; a falsifier names where it fires (GOLDEN §3, point 5) and
-  **chapter seven-b is 628**; the one-line literal reads; the ladder
-  floor is a pin; a packet is taken at the word's own logger frame.
-- **598 rides in 620**: `inside_up`'s container row goes into `compare`
-  inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 10 Loop items** (313, 527, 630, 638, 639, 645, 649, 656, 667, 670); the `FABLE:` batch was empty.
+- **The AI track moved both maps.** East Indies **11069 → 13640** (620,
+  629, 642) and passed Great Lakes on 642, so **Great Lakes is the lower
+  map**, **12038 → 12536** (571, 657, 661, 669).
+- **Every golden chapter is closed.** The restage 782 → 1000 (625, 617,
+  627); seven-b and its control captured and closed at 1200 (628, 629,
+  632, 644, 647); chapters six and eight captured for the first time and
+  closed at 900 (648, 650, 652; 660, 664, 668). Three premises fell,
+  seven-b's to a reading before its capture (630). The rules slot now
+  holds six-b (651), a restage: **what the rules track is for once every
+  chapter closes is the pass's question.**
+- **The Great Lakes endpoint rose 42 → 53 off on 669** while its word
+  moved; recorded as the number (DECISIONS 36), not traded.
+- **A lane sat idle ninety minutes** after its detached capture finished
+  (656); the commander caught it off the runner's log.
+- **Fable backlog: 10 Loop items** (313, 527, 630, 638, 639, 645, 649, 656, 667, 670); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w12429 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w12536 of 24,000
 Golden: none pinned, every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · 651 next
-Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 1 unlinked
+Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 53 off, 0 unlinked
 
-**Opener: nineteen landings since the twelfth pass's commit, and every
-golden chapter is closed. Spawn 669 on the AI lane (Great Lakes 12429,
-the lower map) and leave the rules lane empty: the twentieth landing
-stops the count, and a lane spawned now would be in flight at the pass.
-651 (six-b) and 643 follow. Stop at twenty.**
+**Opener: the thirteenth Fable pass is due: twenty landings since the
+twelfth pass's commit, nothing in flight. After it, spawn 673 on the AI
+lane and 651 on the rules lane; 643 follows 673.**
 
 ## The queue
 
@@ -46,13 +50,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-669. **Great Lakes' word is 12429, past every capture** (661 moved it
-    12184 → 12429: `gain_tech`'s Civic arm re-masks every city and runs
-    `find_buildings`, seating who=1's Barracks and Stable in Norwich on
-    8734, AI §63; parked 514). On 12429 ours 14 draws against 12 at
-    index 5: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`. Great
-    Lakes' windows end on run163's 12399. Capture **run174** over the
-    word, overlapping run163, then widen it whole. No mechanism.
+673. **Great Lakes' word is 12536: squad `1/27`–`1/29`'s orders** (669
+    moved it 12429 → 12536: `do_move`'s tile arm pops a waypoint only on
+    a tolerance of 1..=0x60, unsigned, ORDERS §4.4, AI §64). On 12536
+    ours 93 draws against 94 at index 92: ours `Farms::inc_time+0x1ae`,
+    theirs `PathFinder::astar_path+0x1697`. On 12537 the squad takes kind
+    21 with one entry against the original's kind 2 with a ten-entry
+    world plan. Inside run174 (to 12899); no capture owed. No mechanism.
 
 651. **Chapter six-b, the air line from a base: no capture yet** (668
     closed chapter eight at 900: `resolve_unit_collision`'s enemy-ladder
