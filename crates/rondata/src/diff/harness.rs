@@ -4699,13 +4699,19 @@ mod tests {
         // slot's tie-break came right (`docs/ANIM.md` §4.12) — a
         // seating this crate was already spending on the original's own
         // frame, 279 frames below the word rather than above it.
+        //
+        // **Eleven → thirteen on item 678**, the same shape a third time:
+        // the comparison against the original's passed unchanged. The word
+        // walked past **13555** and **13736** when a resumed 48-grid search
+        // came to read the blocks it had copied (`docs/PATHFINDER.md` §26).
         assert_eq!(
             seatings,
             vec![
-                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306
+                8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306,
+                13_555, 13_736
             ],
-            "below the word Great Lakes seats eleven scholars, on 8272, 8680, \
-             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140 and 10306"
+            "below the word Great Lakes seats thirteen scholars, on 8272, 8680, \
+             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306, 13555 and 13736"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
@@ -4854,14 +4860,20 @@ mod tests {
         // the headline: the word went 12536 → 12897 and **12582** and
         // **12782**'s rotations came under it (`docs/PATHFINDER.md`
         // §21.6). The streams above agree through them.
+        //
+        // **Twenty-three → twenty-nine on item 678**, the literal following
+        // the headline: the word went 12897 → 14382 and **12982**,
+        // **13382**, **13385**, **13582**, **13782** and **13982** came
+        // under it (`docs/PATHFINDER.md` §26). The streams above agree
+        // through them.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982
             ],
-            "below the word Great Lakes takes exactly twenty-three market \
+            "below the word Great Lakes takes exactly twenty-nine market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -10623,14 +10635,12 @@ mod tests {
             Vec::<String>::new(),
             "the rows above run163, to 12430"
         );
-        // The one figure whose animation changes on one side only is the
+        // ~~The one figure whose animation changes on one side only is the
         // new word's own: the original's `1/41` stands on 12898 and wraps
-        // its idle on 12899, and this crate's walks on (item 673).
-        assert_eq!(
-            one_sided,
-            [(12_898, 1, 41, true, false), (12_899, 1, 41, true, false)],
-            "a figure changes animation on one side only"
-        );
+        // its idle on 12899, and this crate's walks on (item 673).~~ Item
+        // 678 took it: with the copy tree, `1/41` walks the original's
+        // sidestep from 12626 and never reaches `1/15` out of step.
+        assert_eq!(one_sided, [], "a figure changes animation on one side only");
         // ~~**The word 12536 (block 12537).**~~ On 12537 the squad
         // `1/27`–`1/29` took its orders. The original gave `1/28` and `1/29`
         // a kind-2 order with a ten-entry world plan at tolerance 384, and
@@ -10658,52 +10668,206 @@ mod tests {
             ],
             "the rows above run163, to the old word's block"
         );
-        // **The new word, 12897 (block 12898), `1/41`'s every standing
-        // row.** The original's `1/41` steps into `1/15` (`collide_o 15`),
-        // stops and stands (`Unit::move_step+0x823`, the third draw); this
-        // crate's walks on. On 12825 the original's squad `1/40`–`1/42`
-        // holds kind 2 where this crate's holds 21, the same shape as
-        // 12537's. The value chain under it starts
-        // at `1/41`'s plan on 12626 (23 entries against 20). No mechanism
-        // is named.
-        assert_eq!(
-            retry,
-            [
-                "collide: ours 0 theirs 1",
-                "collide_o: ours -1 theirs 15",
-                "collide_who: ours -1 theirs 1",
-                "g.angle[0]: ours 1543372800 theirs 1543897088",
-                "g.avg_speed[0]: ours 23 theirs 17",
-                "g.cur_anim[0]: ours 8 theirs 0",
-                "g.cur_time[0]: ours 8 theirs 1",
-                "g.des_angle[0]: ours 1543372800 theirs 1543897088",
-                "g.des_x[0]: ours 42455 theirs 42456",
-                "g.des_y[0]: ours 22484 theirs 22488",
-                "g.end_time[0]: ours 15 theirs 32",
-                "g.last_speed[0]: ours 25 theirs 0",
-                "g.last_time[0]: ours 7 theirs 0",
-                "g.stopped[0]: ours 0 theirs 1",
-                "g.x[0]: ours 42455 theirs 42456",
-                "g.y[0]: ours 22484 theirs 22488",
-                "heading: ours 1543372800 theirs 1543897088",
-                "order:coll: Coll { ours: None, theirs: (42486, 22509) }",
-                "order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "path:length: PathLength { ours: 3, theirs: 5 }",
-                "pos: ours (42455,22484) theirs (42456,22488)",
-            ],
-            "1/41 on the new word's block"
-        );
-        // Every key that first parts from 12538 to run174's last block: the
-        // value chain under the new word, the citizens' `myhits` 40 against
-        // 50 from 12564 (no draw), and the squad `1/40`–`1/42` from 12825.
-        assert_eq!(past, 209, "the keys first parting after 12537");
+        // ~~**The new word, 12897 (block 12898), `1/41`'s every standing
+        // row.**~~ The original's `1/41` stepped into `1/15` (`collide_o
+        // 15`), stopped and stood (`Unit::move_step+0x823`, the third
+        // draw), and this crate's walked on: 21 rows. On 12825 the
+        // original's squad `1/40`–`1/42` held kind 2 where this crate's
+        // held 21, and the chain started at `1/41`'s plan on 12626, 23
+        // entries against 20.
+        //
+        // **Item 678 moved it 12897 → 14382, past this capture**
+        // (`docs/PATHFINDER.md` §26, `docs/AI.md` §66). On 12623 `1/41`
+        // collides with `1/34`, and its 48-grid search copies five world
+        // cells' blocks into the pathfinder's tree, runs over its budget
+        // and suspends; the suspend hands the tree to the unit. On 12624
+        // the resume reads those copies, so the cells it first probes see
+        // `1/66` and the rest where they stood a frame before. This crate
+        // read the live blocks, and routed round `1/66` where the
+        // original walks row 21144. **The move's value diff**: `1/41`'s
+        // plan on 12626, its lag from 12662, the squad's ungroup on
+        // 12825, and `1/41`'s 21 rows here are gone — 74 keys, all on the
+        // three. Nothing on the squad parts through 12899.
+        assert_eq!(retry, Vec::<String>::new(), "1/41 on the old word's block");
+        // Every key that first parts from 12538 to run174's last block:
+        // the citizens' `myhits` 40 against 50 from 12564 (no draw, parked
+        // 679) and what stands with them. The squad's 74 left with item 678.
+        assert_eq!(past, 135, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
         // `1/68`'s plan. **Item 673 took 1,650 above run163** (2,120 →
         // 470): the 33 on 12537 and the cascade the squad's formation
-        // walk left behind it, and none under.
-        assert_eq!((under, firsts.len()), (259, 470), "the floor");
+        // walk left behind it, and none under. **Item 678 took 74 more**
+        // (470 → 396), `1/40`–`1/42`'s chain from 12626, and none under.
+        assert_eq!((under, firsts.len()), (259, 396), "the floor");
+    }
+
+    /// **run178 — Great Lakes' word 14382, widened whole, both directions**
+    /// (item 678). run174's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_COPY`]: six blocks shared with run174, the
+    /// 1,483 up to the word, its block, and 516 past it, which no capture had
+    /// printed. [`widen_great_lakes`] from run123's 11400 across eight
+    /// captures, with every player-1 pool list from run135's first block.
+    ///
+    /// The word's frame, 14382, writes block **14383**.
+    #[test]
+    fn run178_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const FIRST: i64 = WIDENING_GREAT_LAKES_COPY.0;
+        const TAIL: i64 = WIDENING_GREAT_LAKES_COPY.1;
+        const WORD_BLOCK: i64 = GREAT_LAKES_COPY_BLOCK;
+        /// run174's last block: everything above it is run178's.
+        const RUN174_TAIL: i64 = WIDENING_GREAT_LAKES_CIVIC.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run178",
+            &[
+                ("gamelog-run123-greatlakes-marketword.txt", FIRST),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
+                ("gamelog-run178-greatlakes-copyword.txt", RUN174_TAIL + 1),
+            ],
+            WIDENING_GREAT_LAKES_COPY,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // Every key that first parts on run178's own blocks under the word.
+        let mid: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (RUN174_TAIL + 1..WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // Every key that first parts on the word's own block, by unit.
+        let mut word: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, r)) in &firsts {
+            if *f == WORD_BLOCK {
+                word.entry((*w, *o))
+                    .or_default()
+                    .push(format!("{what}: {r}"));
+            }
+        }
+        let standing_n = standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len);
+        let under = firsts.values().filter(|(f, _)| *f <= RUN174_TAIL).count();
+        // **Under the word, on run178's own blocks: who=1's site table and
+        // the newborns' residue.** The leader's `SITE` rows part on 12976
+        // and 13176, and a site is where a building is placed — the word's
+        // block is a placement (below). The rest is what run174 already
+        // carried on every newborn: `form` −1 against 9 (parked 646's
+        // shape), `myhits` 40 against 50 and `mylos` 2 against 4 (parked
+        // 679), a birth-block `orders_x/y`. And the leader's scholar count
+        // on 13556, the block after the thirteenth seating, which both
+        // sides spend on 13555.
+        assert_eq!(
+            mid,
+            [
+                "12976 1/-1 leader:SITE[0].rank: ours 2 theirs 3",
+                "12976 1/-1 leader:SITE[1].rank: ours 2 theirs 3",
+                "12976 1/-1 leader:SITE[1].wx: ours 14 theirs 0",
+                "12976 1/-1 leader:SITE[1].wy: ours 59 theirs 0",
+                "13176 1/-1 leader:SITE[4].dist: ours 0 theirs 2888",
+                "13176 1/-1 leader:SITE[4].wx: ours 15 theirs 57",
+                "13176 1/-1 leader:SITE[4].wy: ours 59 theirs 45",
+                "13556 1/-1 leader:scholars: ours 11 theirs 12",
+                "13163 1/71 form: ours -1 theirs 9",
+                "13163 1/71 hits:myhits: ours 40 theirs 50",
+                "13163 1/71 hits_left: ours 40 theirs 50",
+                "13163 1/71 myhits: ours 40 theirs 50",
+                "13163 1/71 mylos: ours 2 theirs 4",
+                "13163 1/71 orders_x: ours 42336 theirs 42360",
+                "13163 1/71 orders_y: ours 16224 theirs 17208",
+                "13344 1/72 form: ours -1 theirs 9",
+                "13344 1/72 hits:myhits: ours 40 theirs 50",
+                "13344 1/72 hits_left: ours 40 theirs 50",
+                "13344 1/72 myhits: ours 40 theirs 50",
+                "13344 1/72 mylos: ours 2 theirs 4",
+                "13344 1/72 orders_x: ours 42336 theirs 42360",
+                "13344 1/72 orders_y: ours 16224 theirs 17208",
+                "13525 1/73 form: ours -1 theirs 9",
+                "13525 1/73 hits:myhits: ours 40 theirs 50",
+                "13525 1/73 hits_left: ours 40 theirs 50",
+                "13525 1/73 myhits: ours 40 theirs 50",
+                "13525 1/73 mylos: ours 2 theirs 4",
+                "13525 1/73 orders_x: ours 42336 theirs 42360",
+                "13525 1/73 orders_y: ours 16224 theirs 17208",
+                "13556 1/74 form: ours -1 theirs 9",
+                "13556 1/74 g.angle[0]: ours 1431655765 theirs 0",
+                "13556 1/74 orders_x: ours 40416 theirs 40440",
+                "13556 1/74 orders_y: ours 25248 theirs 25272",
+                "13737 1/75 form: ours -1 theirs 9",
+                "13737 1/75 g.angle[0]: ours 1431655765 theirs 0",
+                "13737 1/75 orders_x: ours 40416 theirs 40440",
+                "13737 1/75 orders_y: ours 25248 theirs 25272",
+            ],
+            "the rows under the word, on run178's own blocks"
+        );
+        // **The word, 14382 (block 14383): who=1 places a building.** The
+        // original's `Leader::produce_building+0x1805` is the draw this
+        // crate does not spend, and its product is here: the new building
+        // `1/2025` stands at (42624, 19776) there and (39552, 17472) here,
+        // Norwich's chain `1/2022 → 1/2025` exists only here, and the
+        // make list's eighth slot holds type 427 there and nothing here.
+        // The two citizens `1/6` and `1/7` trade roles: each holds the
+        // other's order kind (3 against 7), and so its path, heading and
+        // figure. `1/3` walks to a different point beside them, and
+        // `1/68`'s idle clock differs. No mechanism is named (DECISIONS 42).
+        let words: Vec<(i64, i64, usize)> =
+            word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
+        assert_eq!(
+            words,
+            [
+                (1, -1, 1),
+                (1, 3, 8),
+                (1, 6, 23),
+                (1, 7, 22),
+                (1, 68, 2),
+                (1, 2022, 1),
+                (1, 2025, 3)
+            ],
+            "who parts first on 14383, and on how many keys"
+        );
+        let placed: Vec<String> = [(1, -1), (1, 2022), (1, 2025)]
+            .iter()
+            .flat_map(|k| word.get(k).cloned().unwrap_or_default())
+            .collect();
+        assert_eq!(
+            placed,
+            [
+                "leader:MAKE[7].t: ours -1 theirs 427",
+                "build:city_down: ours 2025 theirs -1",
+                "build:city: ours 0 theirs -1",
+                "build:x_internal: ours 39552 theirs 42624",
+                "build:y_internal: ours 17472 theirs 19776",
+            ],
+            "the building on 14383"
+        );
+        assert_eq!(standing_n, 392, "every row standing on 14383");
+        // **The floor**: run174's 396 to its last block, exactly as
+        // `run174_s_word_frame_is_widened_whole` pins it — the chain is
+        // the same walk — then 37 under the word, 60 on it, and 1,552 in
+        // all to run178's last block.
+        assert_eq!(
+            (under, mid.len(), firsts.len()),
+            (396, 37, 1_552),
+            "the floor"
+        );
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

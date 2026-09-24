@@ -1223,7 +1223,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // map's word 12536 → 12897. The extra is still `1/81`. The 24,000th
         // frame is 11,103 frames past the new word. DECISIONS 36: the
         // number, not a trade.
-        off: 34,
+        // **34 → 33 off, 8 → 4 build_diverged** on item 678: a resumed
+        // 48-grid search reads the blocks it copied (`docs/PATHFINDER.md`
+        // §26, `docs/AI.md` §66), which moves this map's word 12897 →
+        // 14382. The extra is still `1/81`. The 24,000th frame is 9,618
+        // frames past the new word. DECISIONS 36: the number, not a trade.
+        off: 33,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         unlinked: 0,
@@ -1245,7 +1250,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **10 → 7** on item 661, beside `off` above.
         // **7 → 6** on item 669, beside `off` above.
         // **6 → 8** on item 673, beside `off` above.
-        build_diverged: 8,
+        // **8 → 4** on item 678, beside `off` above.
+        build_diverged: 4,
         city_unlinked: 3,
         city_diverged: 0,
     },

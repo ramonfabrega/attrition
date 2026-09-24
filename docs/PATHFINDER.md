@@ -74,7 +74,7 @@ function at `00683730` is four instructions and has zero callers, because
 | +0x00 | 0x40 | `openlist` | init/suspend | `Tree<PathNode*,int>` — the open list, keyed on `PathNode::value` |
 | +0x04 | 0x44 | `openlistrefs` | init/suspend | `BRTree<TreeNode*,ulong>` — open-list nodes by cell `metric` |
 | +0x08 | 0x48 | `closedlist` | init/suspend | `BRTree<PathNode*,ulong>` by `metric` |
-| +0x0c | 0x4c | `blocklist` | init/suspend | `Tree<CollBlock*,int>`; freed each teardown (not read by the unit search) |
+| +0x0c | 0x4c | `blocklist` | init/suspend | `Tree<CollBlock*,int>`: the copies `fill_slots` takes of world cells' collision blocks; ~~not read by the unit search~~ read by every `valid_ucoord` probe, emptied by `kill_lists`, handed to the unit on a suspend (§26) |
 | +0x10 | 0x50 | `validlist` | init/suspend | `BRTree<int,ulong>` — `valid_ucoord`'s memo, `metric → 0/1` |
 | +0x14 | 0x54 | `pathing_unit` | every wrapper | the unit |
 | +0x18/0x1c | 0x58/0x5c | `sx, sy` | every wrapper | the unit's **tile** (`div3[pos>>6]`) |
@@ -2352,8 +2352,8 @@ That return is **before** `astar_path`, so it never reaches the
 and emptied by `Sim::kill_lists` after each of the four finders' searches.
 The suspend and resume arms were already there (`Search::valid_memo`).
 
-**The copy tree has the same lifetime and is still not modelled**
-(COLLISION §4.2's SEAM). `fill_slots` inserts copies on a miss, and
+**The copy tree has the same lifetime and is ~~still not modelled~~
+modelled since item 678, §26** (COLLISION §4.2's SEAM). `fill_slots` inserts copies on a miss, and
 `resolve_unit_collision`'s unwind probe makes them outside any search, so
 a copy can be frames old. run136's coverage has `kill_lists` only on 11896
 and 11901 across 11896..11910. It is not this word: run138's copy equals
@@ -2380,7 +2380,7 @@ with nothing placed by hand.
 ### 24.7 What is not established
 
 - **Why the squad stops on 11922.** That is item 571's.
-- **The copy tree's persistence** (§24.5), and whether any word turns on it.
+- ~~**The copy tree's persistence** (§24.5), and whether any word turns on it.~~ Great Lakes 12897 did, through a suspended search's resume: §26.
 - **run137's fault.** run138 ran the same source clean, which makes the
   lab's intermittent startup fault (2 of 19 plain launches,
   `docs/lab/2026-09-09-startup-cohort.md`) the likely cause, but one
@@ -2467,3 +2467,146 @@ trace end. This section removed 89 of the widening's under-the-word rows:
 routes cell for cell, and it fails on the old route with the arm
 reverted. **Listing-backed**: the vtable census of `+0xcc`. **Unit
 test**: `a_supply_wagon_plans_as_an_army_and_an_unarmed_plain_unit_does_not`.
+
+## 26. A resumed search reads the blocks it copied: the pathfinder's `blocklist` (item 678, 2026-09-24)
+
+§24.5 found that `PathFinder +0x50`, the validity memo, outlives the
+search that filled it, and left the copy tree beside it unmodelled
+because run138's copy equalled the live block. Great Lakes 12897 is the
+first word that turns on the copy tree, and the turn is a **resume**.
+
+### 26.1 The frame, read from the dump
+
+`run174_s_word_frame_is_widened_whole`, rows on `1/40`–`1/42` and `1/15`,
+every block 12538..12899:
+
+- **12626 is the first parting on the squad.** `1/41`, blocked by `1/34`
+  since 12623 (`collide_o 34`, both sides), holds 23 path entries here and
+  20 in the original. The eight world entries agree. Every difference is
+  in the flag-2, tolerance-0 entries of the 48-grid sidestep. Both leave
+  (38040, 21624) west and north to (37464, 21384). From there the
+  original walks north up x 37464 and east along row 21144 to 38136. This
+  crate jogs east to x 37512 and up to row 21096, which routes round
+  (37560..37752, 21144), where `1/66` stands on this frame.
+- **The chain follows from it.** `1/41` trails the original's by three
+  frames from 12662 to 12824. On 12825 the original's `1/41` stands one
+  frame with no collider and `retry` 0, and the squad ungroups to kind 2
+  (`do_group_move`'s follower arm). This crate's is 46 units further back,
+  and it does not ungroup. After the ungroup the two sides walk different
+  plans, and on 12897 the original's `1/41` meets `1/15`.
+
+### 26.2 The readings, and what killed each
+
+Written from the dump, before the copy tree was read or built:
+
+- **R1 — the extra entries come from a different world plan.** Killed if
+  the world entries agree on 12626. **Killed**: slots 0..8 agree, and only
+  the 48-grid entries part.
+- **R2 — the ungroup is 12537's mechanism by another caller** (§21.6).
+  Killed if no `astar_path` failure is on 12825's path. **Killed**: the
+  original's `1/41` holds `retry` 0 and `collide` 0 on 12824..12826, so no
+  failure tail rolled.
+- **R3 — the stand on 12898 is a collision predicate, not the plan.**
+  Killed if the stand goes when the plan agrees. **Killed**: with the copy
+  tree, `1/41` never meets `1/15` out of step.
+- **R4 — the 48-grid search reads the collision blocks differently.** Every
+  unit near `1/41` agrees on position through 12625, so the difference
+  had to be in what the search reads rather than in who stands where.
+  §24.5 names one input the crate did not carry. Killed if modelling the
+  copy tree leaves 12626 as it was. **Held.**
+
+No loop bound carries a premise here.
+
+### 26.3 The rule
+
+`CollCheck::fill_slots@006820e0(x, y, size, nocoll)`, called at the top of
+`collide_here@00682540`:
+
+1. The slots are the world cells the probe box `(x ± size, y ± size)`
+   touches, in unit cells `>> 4`: the first always, the other three when
+   the box crosses into them, and none off the map.
+2. With `nocoll` set and the tree allocated, each slot the tree holds
+   (`Tree<CollBlock*,int>::seek` on `cy · xs + cx`) is read from its copy
+   and nothing else.
+3. Every other slot is read live, through §4.2's region gate
+   (`docs/COLLISION.md`).
+4. With `nocoll` set, each slot that was read live is copied, `0x300` bits,
+   empty when the gate refused it, and `ordered_insert`ed into the tree.
+
+`nocoll` is set by exactly two callers. One is `valid_ucoord@00687c80`,
+which calls `detect_unit_collision(x, y, quick 1, …, nocoll 1, 0)`, so
+every probe of a 48-grid search and of `find_upath`'s pre-walk reads the
+tree. The other is `resolve_unit_collision@005f9d30`'s stack unwind.
+
+**The tree's lifetime is the memo's** (§24.5), from the same functions:
+
+- `PathFinder::init@00689ec0` allocates it once;
+- `kill_lists@00687ae0` deletes every copy (its `+0x4c` loop);
+- `astar_path@00683770`'s suspend (`:506`–`508`) hands it to the unit at
+  `+0x114` and pops an empty one;
+- its resume (`:253`–`288`) deletes the current tree and takes the unit's.
+
+So a copy dies at the next `kill_lists`, which every finder calls after
+its search. A copy made where no search follows — an unwind probe, a
+pre-walk that returns early — is what the next search reads. **And a
+suspended search keeps the copies it made**, so its resume reads the
+blocks as they stood when it suspended.
+
+### 26.4 What happened on 12623..12625
+
+The trace below is from a debug print in this crate, now removed.
+
+- **Sim-frame 12623**: `1/41`'s `find_upath` copies five world cells,
+  (48..50, 27..28), runs over its `limit` and suspends. The tree goes to
+  the unit.
+- **Sim-frame 12624**: `do_move`'s suspended-search block resumes it. The
+  resume takes the unit's tree, and every `valid_ucoord` probe of a cell
+  not yet in the memo reads those copies. Cell (48, 27)'s copy holds `1/66`
+  on (782, 442..444) and (783, 444). The live block holds it on (783, 441):
+  it walks north-east about 30 units a frame. Cell (49, 28) differs in 19
+  unit cells the same way.
+- This crate read the live blocks, found `1/66` across row 440, and routed
+  round it. The original found row 440 open.
+
+The memo was already carried across the suspend (§24.5). The copies were
+not, and that was the whole difference.
+
+### 26.5 What this crate carries
+
+- `Sim::coll_copies`, keyed on the world cell. Each value is the gated
+  16 × 16 unit cells, one row per word.
+- `collide.rs`'s `ProbeSlots::copied`, filled by `probe_slots` for a
+  `nocoll` probe as steps 1–4 above describe.
+- `Sim::kill_lists` empties the tree.
+- `Search::block_copies` carries it across a suspend and back.
+
+**Pinned capture-free**: `collide::tests::a_nocoll_probe_reads_the_block_the_last_one_copied`.
+Against live-only reads it fails on "the copy still has it where it
+stood".
+
+### 26.6 What is not established
+
+- **The bits past 256.** A `CollBlock` is `0x300` bits (`fill_slots`' own
+  constructor), and this crate's block is 16 × 16. What the other 512 hold
+  is not read. No probe here reads past the first 256.
+- **A copy taken from another region.** The copy is the gated slot, and a
+  later probe from another region reads it ungated (COLLISION §4.2).
+  Great Lakes is one region, and no capture tests it.
+- **The unwind probe's copies.** `resolve_unit_collision`'s unwind fills
+  the tree outside any search. This crate does the same, but no diff has
+  yet isolated a word that turns on it.
+
+### 26.7 Coverage
+
+**Diff-backed**:
+
+- `run174_s_word_frame_is_widened_whole`: the move's value diff. 74 keys
+  on `1/40`–`1/42` from 12626 are gone, and nothing on the squad parts
+  through 12899.
+- The long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Listing-backed**: `fill_slots`' four steps; `valid_ucoord`'s
+`nocoll 1`; the suspend and resume swaps.
+
+**Reading only**: none that the diff does not reach. The unwind probe's
+copies are carried, and no diff has isolated them.

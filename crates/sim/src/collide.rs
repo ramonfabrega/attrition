@@ -46,6 +46,11 @@ use crate::{Player, Sim};
 struct ProbeSlots {
     /// The probe centre's `get_tregion`; `None` reads every world cell.
     region: Option<u16>,
+    /// A `nocoll` probe's slots, each the block it reads: the pathfinder's
+    /// copy when the tree held one, and otherwise the gated live block it
+    /// has just copied ([`Sim::coll_copies`]). Empty for a probe that
+    /// reads the live blocks.
+    copied: Vec<((i32, i32), [u16; 16])>,
 }
 
 impl ProbeSlots {
@@ -59,13 +64,33 @@ impl ProbeSlots {
             .is_none_or(|r| sim.world.region_of(c) == Some(r))
     }
 
+    /// The copy the probe reads for the world cell holding `p`, if it
+    /// reads one.
+    fn copy(&self, p: Pos) -> Option<&[u16; 16]> {
+        let c = (
+            p.x.div_euclid(UCELLS_PER_CELL),
+            p.y.div_euclid(UCELLS_PER_CELL),
+        );
+        self.copied.iter().find(|(k, _)| *k == c).map(|(_, b)| b)
+    }
+
     fn get(&self, sim: &Sim, p: Pos) -> bool {
+        if let Some(b) = self.copy(p) {
+            let (dx, dy) = (
+                p.x.rem_euclid(UCELLS_PER_CELL),
+                p.y.rem_euclid(UCELLS_PER_CELL),
+            );
+            return b[dy as usize] >> dx & 1 != 0;
+        }
         self.readable(sim, p) && sim.coll.get(p.x, p.y)
     }
 
     /// `local_30[slot] == 0`: the slot has a block, the region gate let
     /// it through, and `BitMask<768>::empty` says it holds a bit.
     fn live(&self, sim: &Sim, p: Pos) -> bool {
+        if let Some(b) = self.copy(p) {
+            return b.iter().any(|&r| r != 0);
+        }
         self.readable(sim, p)
             && sim.coll.any_in_cell(
                 p.x.div_euclid(UCELLS_PER_CELL),
@@ -944,7 +969,7 @@ impl Sim {
             return None;
         }
         let mine = ucell(self.units[u].pos);
-        let slots = self.probe_slots(at);
+        let slots = self.probe_slots(at, size, nocoll);
         // **The fast path, and it is not an optimisation** (§4.2, item 183).
         // With `nocoll` clear and the proposal exactly one cell away on one
         // axis, the original sweeps the **leading edge** — the row or column
@@ -991,14 +1016,64 @@ impl Sim {
     /// the gated slot. SEAM: a copy outlives the probe that took it, so a
     /// later `nocoll` probe from another region reads it ungated; this
     /// crate gates every probe on its own centre.
-    fn probe_slots(&self, at: Pos) -> ProbeSlots {
+    fn probe_slots(&self, at: Pos, size: i32, nocoll: bool) -> ProbeSlots {
         // `get_tregion` of the probe centre's own tile: the world cell's
         // `region`, or its `region2` when the tile is the water half of a
         // coastal cell.
         let tile = Pos::new(at.x.div_euclid(4), at.y.div_euclid(4));
-        ProbeSlots {
+        let mut slots = ProbeSlots {
             region: self.world.tregion_alt(tile),
+            copied: Vec::new(),
+        };
+        if !nocoll {
+            return slots;
         }
+        // **The copy tree** (`fill_slots:81`-`168`): the 2×2 world cells
+        // the probe's box `at ± size` touches, the first always and the
+        // others when the box crosses into them, and none off the map.
+        // Each is read from the pathfinder's copy when it holds one; each
+        // it does not hold is read live, through the region gate, and a
+        // copy of what was read goes into the tree for the next probe.
+        let (x0, y0) = (
+            (at.x - size).div_euclid(UCELLS_PER_CELL),
+            (at.y - size).div_euclid(UCELLS_PER_CELL),
+        );
+        let (x1, y1) = (
+            (at.x + size).div_euclid(UCELLS_PER_CELL),
+            (at.y + size).div_euclid(UCELLS_PER_CELL),
+        );
+        let mut corners = vec![(x0, y0)];
+        if y1 != y0 {
+            corners.push((x0, y1));
+        }
+        if x1 != x0 {
+            corners.push((x1, y0));
+            if y1 != y0 {
+                corners.push((x1, y1));
+            }
+        }
+        let mut copies = self.coll_copies.borrow_mut();
+        for (cx, cy) in corners {
+            if cx < 0 || cy < 0 || cx >= self.world.width() || cy >= self.world.height() {
+                continue;
+            }
+            let block = *copies.entry((cx, cy)).or_insert_with(|| {
+                let mut b = [0u16; 16];
+                let base = Pos::new(cx * UCELLS_PER_CELL, cy * UCELLS_PER_CELL);
+                if slots.readable(self, base) {
+                    for (dy, row) in b.iter_mut().enumerate() {
+                        for dx in 0..UCELLS_PER_CELL {
+                            if self.coll.get(base.x + dx, base.y + dy as i32) {
+                                *row |= 1 << dx;
+                            }
+                        }
+                    }
+                }
+                b
+            });
+            slots.copied.push(((cx, cy), block));
+        }
+        slots
     }
 
     /// The fast path's sweep: the `size + 1` cells of the leading edge its
@@ -3754,6 +3829,63 @@ mod tests {
     /// Written to fail first: with the whole disc the walker names the
     /// square neighbour and refuses the step, which is exactly what East
     /// Indies' word parted on.
+    /// **The pathfinder's copy of a block outlives the probe that took
+    /// it** (`CollCheck::fill_slots@006820e0`, `docs/PATHFINDER.md` §26).
+    /// A `nocoll` probe reads a world cell's copy when the tree holds one
+    /// and copies what it read live when it does not; only `kill_lists`
+    /// empties the tree. So once a probe has copied a neighbour's block, a
+    /// later `nocoll` probe still finds the neighbour where it stood,
+    /// while a probe of the live blocks finds it gone.
+    ///
+    /// Written to fail first: with the live blocks alone the second
+    /// `nocoll` probe finds nothing, which is what Great Lakes 12625's
+    /// resumed search for `1/41` read on every cell it first probed.
+    #[test]
+    fn a_nocoll_probe_reads_the_block_the_last_one_copied() {
+        let mut world = World::new(40, 40);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let t = sim.add_unit_type(UnitType {
+            hits: 40,
+            moves: 25,
+            combat: crate::combat::Profile {
+                block_radius: 48,
+                big_radius: 48,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let put = |sim: &mut Sim, o: i16, cell: Pos| {
+            let mut u = Unit::new(0, o, ucell_centre(cell), 40);
+            u.ty = Some(t);
+            sim.add_unit(u)
+        };
+        let prober = put(&mut sim, 0, Pos::new(20, 20));
+        let other = put(&mut sim, 1, Pos::new(24, 20));
+        let at = Pos::new(23, 20);
+        assert!(
+            sim.collide_here(prober, at, true).is_some(),
+            "the neighbour is there, and the probe copies its world cell"
+        );
+        assert!(sim.set_new_location(other, ucell_centre(Pos::new(30, 30)), true));
+        assert_eq!(
+            sim.collide_here(prober, at, false),
+            None,
+            "the live blocks have it gone"
+        );
+        assert!(
+            sim.collide_here(prober, at, true).is_some(),
+            "the copy still has it where it stood"
+        );
+        sim.kill_lists();
+        assert_eq!(
+            sim.collide_here(prober, at, true),
+            None,
+            "`kill_lists` empties the tree, and the next probe reads live"
+        );
+    }
+
     #[test]
     fn the_leading_edge_finds_the_corner_the_disc_walks_past() {
         let mut world = World::new(40, 40);

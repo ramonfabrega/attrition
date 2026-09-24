@@ -394,12 +394,15 @@ refused slot is empty in both senses above. This is the probe's half of
 §2's marking gate. Great Lakes is one region, so no measurement here
 tests it.
 
-`Sim::collide_here`, `ProbeSlots`, `CollGrid::any_in_cell`. **SEAM**: a
+`Sim::collide_here`, `ProbeSlots`, `CollGrid::any_in_cell`. ~~**SEAM**: a
 `nocoll` probe reads the pathfinder's `+0x4c` tree of block copies
-(`fill_slots:81`–`168`) rather than the live blocks. A copy is taken from
-the gated slot and outlives the probe that took it, so a later `nocoll`
-probe from another region reads it ungated. This crate gates every
-probe on its own centre.
+(`fill_slots:81`–`168`) rather than the live blocks.~~ Modelled since
+item 678 (`Sim::coll_copies`, `docs/PATHFINDER.md` §26): a `nocoll` probe
+reads a slot's copy when the tree holds one, and copies the gated live
+slot when it does not. **SEAM**, what stays: a copy is taken from the
+gated slot and outlives the probe that took it, so a later `nocoll` probe
+from another region reads it ungated. This crate does the same, and no
+capture has two regions to test it.
 
 **Coverage.** *Diff-backed*: `run125_s_word_frame_is_widened_whole`.
 Before the change, 193 blocks of army 1's squad march over `[11250,
