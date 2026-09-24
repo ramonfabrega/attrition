@@ -10999,7 +10999,9 @@ mod tests {
     /// from run123's 11400 across nine captures, with every player-1 pool
     /// list from run135's first block.
     ///
-    /// The word's frame, 14982, writes block **14983**.
+    /// The word's frame, 14982, writes block **14983**. Item 706 moved
+    /// the word past run192 to 15175; this keeps the move's value diff on
+    /// 14946 and 14983.
     #[test]
     fn run192_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -11064,67 +11066,53 @@ mod tests {
         }
         let standing_n = standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len);
         let under = firsts.values().filter(|(f, _)| *f <= RUN178_TAIL).count();
-        // **Under the word, on run192's own blocks: the free train.** On
-        // 14946 a who=1 Barracks' free units `1/76`–`1/78` are born on
-        // both sides at (42648, 20472), as type **120** here and **127**
-        // there: `free_train` runs the base through `current_upgrade`
-        // (`crates/sim/src/nations.rs`), and the two answer differently.
-        // Their `myhits` read 70 against 88 and their graphic piece 120
-        // against 127; the leader's `num_units` moves with them. Nothing
-        // parts from 14900 to 14945. On 14976 the leader's `attack` reads
-        // 167 against 170. No mechanism is named (DECISIONS 42).
+        // **Under the word, on run192's own blocks: the free train, built
+        // by item 706.** On 14946 a who=1 Barracks' free archers `1/76`–
+        // `1/78` are born on both sides at (42648, 20472). They were
+        // Bowmen (120) here and Longbowmen (127) there, `myhits` 70
+        // against 88, because this crate's `Tribe::graft` was the
+        // identity and the British `get_graft(Archers)` answered Archers
+        // (`docs/TECH.md` §"The graft table"). With the table the 15 rows
+        // of type, hits, piece and `num_units` are gone, and so is the
+        // leader's `attack` on 14976. What stands is parked 646's `form`.
+        //
+        // **The old word's block, 14983, built by item 706 too**: who=1's
+        // Senate finishes Despotism on tick 14982 and trains The Despot,
+        // `1/79` (`docs/TECH.md` §"The government patriot"). It is born
+        // where the original's is, and `gov` and `gov_hero_frame` agree.
+        // Its order point does not: the original's Despot is still inside
+        // the Senate (`visible 0`, `orders_x/y` its own point), and ours
+        // has come out onto its ring. That is the hypothesis for the new
+        // word, 15175, and it is not built here (DECISIONS 42).
         assert_eq!(
             own,
             [
-                "14983 1/-1 leader:active: ours 65 theirs 66",
-                "14976 1/-1 leader:attack: ours 167 theirs 170",
-                "14946 1/-1 leader:num_units[120]: ours 1 theirs 0",
-                "14946 1/-1 leader:num_units[127]: ours 3 theirs 4",
-                "14983 1/-1 leader:num_units[302]: ours 0 theirs 1",
-                "14983 1/62 g.cur_anim[0]: ours 0 theirs 1",
-                "14983 1/62 g.end_time[0]: ours 32 theirs 64",
                 "14946 1/76 form: ours -1 theirs 0",
-                "14946 1/76 g.gpiece[0]: ours 120 theirs 127",
-                "14946 1/76 hits:myhits: ours 70 theirs 88",
-                "14946 1/76 hits_left: ours 70 theirs 88",
-                "14946 1/76 myhits: ours 70 theirs 88",
                 "14946 1/77 form: ours -1 theirs 0",
-                "14946 1/77 g.gpiece[0]: ours 120 theirs 127",
-                "14946 1/77 hits:myhits: ours 70 theirs 88",
-                "14946 1/77 hits_left: ours 70 theirs 88",
-                "14946 1/77 myhits: ours 70 theirs 88",
                 "14946 1/78 form: ours -1 theirs 0",
-                "14946 1/78 g.gpiece[0]: ours 120 theirs 127",
-                "14946 1/78 hits:myhits: ours 70 theirs 88",
-                "14946 1/78 hits_left: ours 70 theirs 88",
-                "14946 1/78 myhits: ours 70 theirs 88",
-                "14983 1/79 unlinked: the dump holds it alone",
+                "14983 1/79 form: ours -1 theirs 0",
+                "14983 1/79 orders_x: ours 44160 theirs 44184",
+                "14983 1/79 orders_y: ours 23712 theirs 24552",
             ],
             "the rows on run192's own blocks, to the word's"
         );
-        // **The word, 14982 (block 14983).** The original spends three
-        // `Guy::init_real+0x52` where this crate spends none, then the
-        // frame's `Guy::inc_time` wraps: 15 draws against 11, parting at
-        // index 0. On the block `1/79` stands in the dump alone, three
-        // figures of guy type 352 at (44184, 24552) with `myhits` 109, the
-        // leader counts it (`active`, `num_units[302]`), and `1/62`'s
-        // figure wraps there alone. No mechanism is named (DECISIONS 42).
+        // **The old word, 14982 (block 14983).** The original spent three
+        // `Guy::init_real+0x52` where this crate spent none: the Despot's
+        // three figures. Since item 706 both sides birth it, the leader's
+        // `active` and `num_units[302]` agree, and `1/62`'s wrap agrees.
+        // `1/79` parts on three keys: `form` and the order point above.
         let words: Vec<(i64, i64, usize)> =
             word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
         assert_eq!(
             words,
-            [(1, -1, 2), (1, 62, 2), (1, 79, 1)],
+            [(1, 79, 3)],
             "who parts first on 14983, and on how many keys"
         );
-        assert_eq!(standing_n, 334, "every row standing on 14983");
+        assert_eq!(standing_n, 317, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
-        assert_eq!(
-            (under, own.len(), firsts.len()),
-            (416, 23, 668),
-            "the floor"
-        );
+        assert_eq!((under, own.len(), firsts.len()), (416, 6, 422), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

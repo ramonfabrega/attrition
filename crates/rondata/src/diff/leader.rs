@@ -40,7 +40,6 @@ pub(crate) type Row = (String, i64);
 /// than an omission. Every other scalar the record prints is in [`rows`].
 pub(crate) const UNMODELLED: &[(&str, &str)] = &[
     ("score", "no score is kept"),
-    ("gov", "governments are not modelled"),
     ("defeated_by", "no defeat path"),
     ("misery", "the misery counter is unread"),
     ("att", "the attrition score counters are unread"),
@@ -358,6 +357,22 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for (i, e) in built.sim.tech[who].epoch.iter().enumerate().take(4) {
         out.push((format!("epoch[{i}]"), i64::from(*e)));
     }
+    // **The government** (item 706): `LeaderData::gov`, the last one
+    // `gain_tech` step 9 wrote, as the dump's `TypeIndex`. It sat on
+    // [`UNMODELLED`] as "governments are not modelled" while
+    // `PlayerTech::gov` was written; Great Lakes' 14982 is the frame the
+    // original gains one.
+    let gov = built.sim.tech[who].gov;
+    out.push((
+        "gov".to_string(),
+        gov.map_or(-1, |t| i64::from(loaded.type_index(t))),
+    ));
+    // And the frame its patriot was born on (`Unit::init`'s stamp), which
+    // is what keeps a Senate from training a second one.
+    out.push((
+        "gov_hero_frame".to_string(),
+        built.sim.tech[who].gov_hero_frame,
+    ));
     out
 }
 
@@ -535,6 +550,8 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "effective_pop",
         "gather_stamp",
         "tech_frame",
+        "gov",
+        "gov_hero_frame",
         "frame_attacked",
         "attacked_by",
         "active",

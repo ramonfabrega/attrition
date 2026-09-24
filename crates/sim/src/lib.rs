@@ -2462,6 +2462,7 @@ impl Sim {
             self.tech[who as usize].queued[t] -= 1;
             self.gain_tech(who, t);
             self.economy_changed(who);
+            self.senate_gov_hero(at);
             return Advanced::Researched;
         }
         let ty = self.buildings[at].queue.items[slot].ty;
@@ -2491,6 +2492,7 @@ impl Sim {
                     self.gain_tech(who, id);
                 }
                 self.economy_changed(who);
+                self.senate_gov_hero(at);
                 Advanced::Researched
             }
             production::Handover::Trained => {
@@ -2502,6 +2504,36 @@ impl Sim {
                 self.track_tree_queued(who, ty, -1);
                 Advanced::Trained(self.build_train(at, ty))
             }
+        }
+    }
+
+    /// `Build::finished@00628490`'s tail, after its `gain_tech`: **a
+    /// Senate that finishes a research job trains the government's
+    /// patriot** when none has been born (`gov_hero_frame < 0`) —
+    /// `LeaderData::get_gov_hero`, then `Build::train`, with no queue and
+    /// no population test. Great Lakes' Despot `1/79` is this, on tick
+    /// 14982: who=1's Senate finishes Despotism (`docs/TECH.md` §"The
+    /// government patriot").
+    ///
+    /// SEAM: the other arm. With a patriot already born, the original
+    /// looks for one of its own within `0x20000` of the Senate
+    /// (`FILTER_GOV_HERO`) and `set_type`s it to the new government's —
+    /// a Despot becomes a Monarch. No capture reaches a second
+    /// government.
+    fn senate_gov_hero(&mut self, at: usize) {
+        if !self.building_is(at, build::Ident::Senate) {
+            return;
+        }
+        let who = self.buildings[at].owner;
+        let p = &self.tech[who as usize];
+        let Some(hero) = self.tech_tree.get_gov_hero(&self.setup, p) else {
+            return;
+        };
+        if p.gov_hero_frame >= 0 {
+            return;
+        }
+        if let Some(rec) = self.unit_record(hero) {
+            self.build_train(at, rec);
         }
     }
 
@@ -2612,6 +2644,15 @@ impl Sim {
             // (The unit's `ty` stays unset here, as it always has; the
             // piece lookup takes the type directly.)
             self.init_guys(u, Some(ty));
+            // `Unit::init@00612100:467`: a government patriot's birth is
+            // stamped on its leader, and that stamp is what keeps a
+            // Senate from training a second one.
+            if self.unit_types[ty]
+                .tree
+                .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
+            {
+                self.tech[who as usize].gov_hero_frame = self.frame;
+            }
             match (head, prev) {
                 (None, _) => {
                     head = Some(u);

@@ -781,7 +781,20 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// inside run78's [15700, 15900] (`LEADERS=1`): the original spends three
 /// `Guy::init_real+0x52` and a wrap before the bird, the birth of the
 /// three-figure unit `1/60` run78 counted, and ours births nothing.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 15_782;
+///
+/// ~~**15782 is `1/60`'s birth.**~~ **15782 → 15985 on item 706, and the
+/// birth was a government patriot.** run78 prints who=1's `gov` −1 → 624,
+/// Republic, on block 15783: its Senate finished the research on tick
+/// 15782, and `Build::finished` trains the government's patriot there
+/// (`docs/TECH.md` §"The government patriot") — The Senator, `1/60`. This
+/// crate gained the tech and trained nothing. The item was booked on
+/// Great Lakes, whose Despot is the same arm; this map moved with it and
+/// was not widened by it. **The new word's delta: ours 5 draws and the
+/// original 6, parting at index 4**: ours spends `Unit::think_scout
+/// +0x941` where the original spends `Leader::make_stuff+0x63d`. **Past
+/// run78** (block 15986 against its last, 15900) and past every East
+/// Indies dump on disk: no widening names its block yet.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 15_985;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -2020,7 +2033,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// widening names the word's block, and
 /// `run178_s_word_frame_is_widened_whole` keeps the move's value diff on
 /// 14651.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_982;
+///
+/// ~~**14982 is `1/79`'s birth.**~~ **Item 706 moved it 14982 → 15175,
+/// and the mechanism was a government patriot, reached through a graft
+/// table.** Two builds, one landing. Under the word, on 14946, who=1's
+/// free archers were Bowmen here and Longbowmen there: `Tribe::graft` was
+/// the identity, so the British `get_graft(Archers)` never answered
+/// Longbowmen (`docs/TECH.md` §"The graft table", every nation's table
+/// diffed against run3's `DUMP_ALL`). On the word, who=1's Senate finishes
+/// Despotism on tick 14982 and `Build::finished` trains The Despot, `1/79`
+/// (`docs/TECH.md` §"The government patriot"); this crate gained the tech
+/// and trained nothing. **The new word's delta: ours 4 draws and the
+/// original 3, parting at index 2**: ours spends `Guy::set_anim+0x97a <
+/// Unit::do_guard+0x7f4` where the original spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. **Past run192** (block 15176 against its last,
+/// 15039); `run192_s_word_frame_is_widened_whole` keeps the move's value
+/// diff on 14946 and 14983, and the widening that names 15176 is owed to
+/// run196.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_175;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records

@@ -418,9 +418,11 @@ style** — six of them, and one of the four coordinates
 `GraphicPieces::get_unit_gpiece` sums, so it decides which animation packet
 every unit of that nation plays and therefore how long every animation of
 theirs runs (`docs/ANIM.md` §3.4). `Install::tribe_defs` reads both.
-`graft[352]` and `barbarian` are still identity and false — and both are in
+~~`graft[352]` and `barbarian` are still identity and false~~ — and both are in
 every `DUMP_ALL` dump, under `Tribe::log_data@006f0d70`'s own names, beside
-`build_continent` and `text_substitute`.
+`build_continent` and `text_substitute`. **`graft[352]` is built since item
+706** and matches run3's tables entry for entry (§"The graft table");
+`barbarian` is still false.
 
 **The four finals** (`0x243–0x246`) ignore their data prerequisites: they
 require `INFORMATION_AGE`, `COMPUTERIZATION`, `GLOBALIZATION`,
@@ -976,6 +978,101 @@ captain — no capture converts to a smaller squad); and `set_type`'s tail
 (`is(0x165, 1)` and `update_ceo_position`, `is(0x77, 0)`,
 `update_gpiece`, the two vslots before `update_armor`/`update_speed`),
 none of which has state here.
+
+## The graft table — 2026-09-24
+
+*Item 706. Established from `Tribe::init@006f0230`, `UnitType::init@0061ab50`
+and `UnitTypeData::type_graft@0061d790`, and diff-backed by run3's
+`DUMP_ALL`: all 24 nations' 352 entries, 8,448 of 8,448.*
+
+`get_graft` (§"Nation variants") falls back to the tribe's own table when the
+nation cannot make a type. Until item 706 this crate's table was the
+identity, so a nation asked for a type outside its mask got that type back.
+For the British, `current_upgrade(Bowmen)` walks `jump` to Archers, and
+Archers is outside the British mask. The walk has to arrive at Longbowmen,
+and it arrived at Archers, which the player does not own. So the Barracks'
+free archers (`docs/CITIES.md` §4.3) came out Bowmen. The table is built at
+load, in three steps:
+
+1. **`Tribe::init`** writes each nation's table as the identity,
+   `graft[i] = 0x32 + i` over 352 slots.
+2. **`UnitType::init`'s pass 2.** Every unit record with a `GRAFT` writes
+   itself into its graft's slot of **every nation in its own `TRIBE_MASK`**.
+   It does not consult the graft's mask. The British Longbowmen, graft
+   Archers, set `graft[Archers] = Longbowmen` for the British.
+3. **Pass 3.** For each record `this` in index order, and each nation `i`
+   with `graft[this] ≠ this` and `this` outside `i`'s mask: every **other**
+   record `u` below `0x192` that is outside `i`'s mask and whose own `GRAFT`
+   is `this` takes `graft[this]`. It is one level per record, in record
+   order. Pass 3 alone accounts for 765 of the 8,448 entries: the test
+   fails on exactly those with the pass out.
+
+`Types::finalize_grafting` runs later, from `Game::init_data`, and rewrites
+masks rather than tables. `rondata::load::tribe_grafts` is the builder.
+`every_nation_s_graft_table_is_run3_s` is the diff, made to fail with pass 3
+removed.
+
+**What it moved.** Great Lakes' 14946 is the free train (run192). The 15 rows
+of type, hits, graphic piece and `num_units` on `1/76`–`1/78` are gone, and
+so is the leader's `attack` on 14976. The 70-against-88 was the two records'
+`HITS`, not a multiplier. Parked 679's citizens (40 against 50 from 12564)
+did not move: run192's floor under run178's tail holds at 416.
+
+## The government patriot — 2026-09-24
+
+*Item 706. Established from `Build::finished@00628490`,
+`LeaderData::get_gov_hero@006e0600`, `LeaderData::get_gov@006d6a20`,
+`Unit::init@00612100` and `Leader::gain_tech@006dcb60`. Diff-backed by
+run192's block 14983 (Great Lakes) and by both long words.*
+
+```
+Build::finished, after its gain_tech:
+  if the building is(SENATE) and (h = get_gov_hero()) >= 0:
+    if gov_hero_frame < 0: train(h)                  -- no queue, no pop test
+    else: the own FILTER_GOV_HERO unit within 0x20000 of the Senate
+          is set_type(h)                             -- SEAM
+get_gov_hero: none under leader_flags2 & 0x1000; else the first unit type
+  below 0x192 whose unit_flags carry 0x4000000 (FLAGS digit 1, the six
+  patriots) and one of whose three get_preq(i, −1) is get_gov()
+get_gov: the first held of SOCIALISM_1, CAPITALISM_1, MONARCHY_1,
+  DEMOCRACY_1, DESPOTISM_1, REPUBLIC_1 (has_preq on the bonus), as its
+  government — not LeaderData::gov, which is the last gained
+Unit::init: a gov hero born stamps gov_hero_frame = frame
+gain_tech:161: a government gained at frame 0 sets gov_hero_frame = 1
+```
+
+`gov_hero_frame` is `LeaderData +0xa48`. `Leader::init` sets it to −1.
+Every Senate research job reaches the tail, not only a government.
+Governments are researched at the Senate, which is how the patriot arrives
+with its government.
+
+**On the maps.** On tick 14982, who=1's Senate on Great Lakes finishes
+Despotism, and the original trains The Despot `1/79`: three figures, crew 2.
+On tick 15782 East Indies' who=1 finishes Republic (`gov` −1 → 624 on
+run78's block 15783), and its Senator is 694's `1/60`. This crate gained
+both techs and trained nothing. With the arm, `1/79` is born where the
+original's is, and the leader's `gov` and `gov_hero_frame` agree on 14983.
+Both rows are compared since this item: `gov` had sat on the leader diff's
+unmodelled list while `PlayerTech::gov` was written, and `gov_hero_frame`
+on the coverage pin. Great Lakes went 14982 → 15175 and East Indies
+15782 → 15985. `a_senate_that_finishes_a_government_trains_its_patriot_once`
+is the test. It fails with the Senate tail removed, and again with the
+stamp removed.
+
+**Not established, and each a seam in the code:**
+
+- **The `set_type` arm.** It turns a standing patriot into the new
+  government's patriot. No capture reaches a second government.
+- **The respawn.** `Unit::close@0060ee50` sets `gov_hero_frame = frame +
+  15 × GOV_HERO_RESPAWN` when a patriot dies. `Build::process@0061edf0`
+  trains one at a Senate on the frame before that.
+- **`Build::activate`'s Senate head** (`docs/CITIES.md` §15). Nothing here
+  trains a patriot from a newly built Senate.
+- **The Despot's exit.** On 14983 the original's `1/79` is still inside the
+  Senate (`visible 0`, `orders_x/y` its own point), and ours has come out
+  onto its ring. Great Lakes' new word, 15175, spends an extra `Unit::
+  do_guard` draw here. That is the new word's hypothesis and nothing more
+  (`docs/DECISIONS.md` 42).
 
 ## What is not established
 
