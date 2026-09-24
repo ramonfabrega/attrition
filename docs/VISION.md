@@ -411,10 +411,12 @@ agrees on all 28 buildings, and this map's word went **8031 → 8186**.
 - `ObjectData::visible` is still 0 here, so the mask's middle term is
   always zero.
 - `Leader::meet` itself is not modelled; only its flag, which is the gate.
-- `update_all_seen` still does not clear `seen`, so this crate's `seen` is
+- ~~`update_all_seen` still does not clear `seen`, so this crate's `seen` is
   monotone where the original's is rebuilt every hundredth frame. The two
   can only differ over the ≤ 8 frames between a sighting and the owner's
-  next check — the bit is taken on the first check either way.
+  next check — the bit is taken on the first check either way.~~ **Cleared
+  since item 709, §10**: the fog test in `valid_target` reads `seen` too,
+  and there the difference is not eight frames but a hundred.
 - ~~`Leader::meet` itself is not modelled; only its flag, which is the
   gate.~~ **Closed by item 385** — §6.2 below.
 - ~~`Wall::start`'s own direct `seen2` write over its footprint (the owner's
@@ -1061,3 +1063,127 @@ executes any of them.
   unit type, and it stays that way until something reads it.
 - **§9.6's five late and early arrivals are measured and not diagnosed.**
   They are the engagement's timing, and the frames are in the table.
+
+## 10. The resync forgets, and relights an attacker for its victims (item 709, 2026-09-24)
+
+Golden chapter eleven (run190, `docs/GOLDEN.md` §19) stood at **1133**.
+On block 1134 the original's `1/6`, who=1's chariot, has dropped its
+`ATTACK` on who=0's guard `0/6` with no draw, `recharging 0`; this crate's
+fired. The kill conditions for three readings are in
+`docs/journal/2026-09-24-item-709.md`, written before the build.
+
+### 10.1 The pass clears `seen`, and the whole disc relights `visible`
+
+`GameDaemon::update_all_seen@00732840` (§6) opens, when `reveal_map !=
+3`, with `World::clear_seen@006b2250`: a `memset` of `seen` (`+0x15c`)
+and of its cell twin `+0x168`, each lit cell queued for the fog's
+redraw first. Then it relights every active leader's objects. The unit
+arm is bounded by leaders to `0xe71af0` (eight) and by each leader's
+unit count (`objects +0x15c + 4·who`), and calls `update_seen(0)`
+(vslot `+0x174`) on what passes vslots `+0x8` and `+0xbc`.
+
+`Object::update_seen@00651b80`, once the line of sight is not 0:
+
+```text
+if param_1 == 0 && (visible != 0 || started_building):   ; local_18
+    this->vtable[0x164]()                                  ; update_local_seen
+```
+
+So the whole-disc call relights, before its own disc, the cells a unit
+has made visible to others (§9.2's `Unit::update_local_seen`, `visible`
+as the mask, both planes). `seen` is `valid_target`'s fog test
+(`docs/COMBAT.md` §31.2, `Sim::world_sees`). **What a resync decides**:
+a target's cell stays lit for an attacker's side only if some disc of
+that side covers it, or the target's own `visible` byte still carries
+the side's bit. Between resyncs `seen` only grows.
+
+This crate skipped the clear, on the ground that `seen` had no reader
+(§6.1's seam). Item 447 gave it one. It also never relit `visible`
+cells from the whole disc.
+
+### 10.2 Chapter eleven, 1033 and 1133
+
+- `1/6` has `mylos 9`, fog radius 4, and 4 is not below 4, so it sees
+  from its own half-cell (§3). It was born on (3384, 13560), half-cell
+  (8, 35), and the guard's post (3480, 12264) is (9, 31): dy 4, dx 1,
+  `vector_dist` 4, lit.
+- By 1033's resync `1/6` has walked to (3359, 13950), half-cell
+  (8, 36): dy 5, not in its disc. But the guard shot `1/6` on 1011, so
+  its `visible` carries who=1's bit (2) from 1012 to 1050. The resync
+  relights the guard's cell for who=1 through it.
+- The byte clears on 1051 (§9.3's slot). `seen` does not, until the next
+  resync, so `1/6` fires through the fog on ticks 1058, 1083 and 1108.
+- On 1133's resync the byte is 0 and `1/6` stands on (3384, 13896), half-
+  cell (8, 36). Nothing of who=1's covers (9, 31): its other units stand
+  past x 40,000. `valid_target` fails on tick 1133, the tick the reload
+  opens, and the invalid-target arm drops the attack without a draw.
+
+### 10.3 The build, and what moved
+
+`World::clear_seen`, called first in `Sim::update_all_seen`; in
+`Sim::update_seen`, `update_local_seen_unit` before the disc when the
+call is the whole disc and `visible` is not 0; and `Sim::build_is_seen`
+for a building target (§10.4).
+
+| build | chapter eleven | Great Lakes |
+| --- | --- | --- |
+| the clear alone | falls to ~1050: `1/6` walks off on 1051 where the original's fires on 1058 | — |
+| the clear and the relight | **1133 → 1139** | **falls 14982 → 9401** |
+| and a building target through `ever_seen` | 1139 | **14982**, exactly |
+
+The value diff beside it, from the widening (every record, both
+directions):
+
+| block | field | before | after |
+| --- | --- | --- | --- |
+| 1134 | `1/6` orders | `ATTACK`, `ATTACKTO` against `ATTACKTO` | `ATTACKTO`, both |
+| 1134 | `1/6` `recharging` | 25 against 0 | 0, both |
+| 1134 | `1/6` `orders_x/orders_y`, `dest_angle`, `order:length` | parted | agree |
+
+Every row from 736 to 1141 agrees. On **1139** the original's guard rolls
+its idle stand on the post (`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`)
+and this crate's does not. `GUYS=2` prints no animation state, so the
+roll's input is not on disk. The first value part past the word is
+`1/4`'s move on 1156, downstream of the draw.
+
+### 10.4 A building target is seen through its `ever_seen` byte
+
+`valid_target_const`'s test 5 is the **target's** vslot `+0x48`. For a
+unit that is `UnitData::is_seen` (`docs/COMBAT.md` §31.2). For a
+building (`Build::vftable@00b42174 +0x48`) it is
+`BuildData::is_seen@0062e1a0`: the `visible` bit, then infiltration,
+then `WallData::is_seen@00642bd0`. The owner sees it. Otherwise, if the
+building is started or the viewer's ally mask (`LeaderData +0x6929`)
+holds the owner, it is seen when `ever_seen & ally_mask` is not 0, or
+under `reveal_map == 3` or two leader arms. **No fog read.** This crate
+asked the fog plane for every target; while `seen` never forgot, the two
+answered alike.
+
+**The probe that found it** (scratch, not committed): the old monotone
+plane kept as a shadow, and every `world_sees` and `check_ever_seen`
+answer that differed from it printed on Great Lakes' 24,000 frames. One
+cell differed, from 8233's resync on: who=1 asking about (5, 81), lit in
+the shadow and dark after the clear. `check_ever_seen` never differed.
+With `Sim::build_is_seen` Great Lakes holds at 14982.
+
+### 10.5 What is not established, and coverage
+
+**Diff-backed**: the clear and the relight together, on chapter eleven's
+1134 rows and its every row to 1141; the building arm, on Great Lakes'
+word holding at 14982 under the clear. **Listing- and export-backed**: the
+unit arm's two vslot tests, taken here as `on_map` and alive; the
+buildings' arm, which this crate carried before and does not change.
+
+- `seen` at 1133 is inferred, not read: run190's `[End Frame]` set has no
+  `WORLD`. A packet at logger frame 1134 would print who=1's bit on
+  (9, 31); the build moving the word is the falsifier that ran instead.
+- `seen3` and the cell twin `+0x168` are still not kept. The scenario
+  reveal points and the frame-0 arm of `update_all_seen` are not carried;
+  no capture here has either.
+- A building's `visible` byte is still never set here (§9.1), so a
+  building's relight through it cannot fire, and nor can
+  `BuildData::is_seen`'s first arm. Infiltration, the two leader arms and
+  `WallData::is_seen`'s `flags & 0x20` arm are not carried; each can only
+  refuse further here.
+- Which who=0 building stands on (5, 81) is not named; the probe printed
+  the cell, and the diff is the word holding.

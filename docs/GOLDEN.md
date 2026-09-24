@@ -2044,7 +2044,8 @@ the last.
   the wagon stands unguarded.
 
 **Where this crate parted: `GOLDEN_WORD_CHAPTER_ELEVEN` = 724, then 734
-by the same item, then 1036 (item 703), then 1133 (item 707), open.** On 724 this crate spends 14 draws against 11,
+by the same item, then 1036 (item 703), then 1133 (item 707), then 1139
+(item 709), open.** On 724 this crate spends 14 draws against 11,
 three extra `Guy::set_anim+0x97a < Unit::move_step+0x823`. The value parts
 on **722**: on tick 721, the first after the wagon's move, the original's
 guard steps (21, 1) off its post and names the wagon in `collide_o`, with
@@ -2099,8 +2100,33 @@ post** (`docs/COMBAT.md` §63).
 
 Every row from 736 to 1133 agrees.
 
-**On 1133** ours spends `Unit::fight+0x9b0` and two `Guy::set_anim+0xf2f`
+**On 1133** ours spent `Unit::fight+0x9b0` and two `Guy::set_anim+0xf2f`
 for `1/6`, where the original spends only the farms. On block 1134 the
-original's `1/6` has dropped its `ATTACK` on the guard, `recharging 0`,
-and holds its army's `ATTACKTOORDER`. This crate's `1/6` fires. The
-guard's `visible` bit for who=1 is 0 from 1086 on. No mechanism is named.
+original's `1/6` had dropped its `ATTACK` on the guard, `recharging 0`,
+and held its army's `ATTACKTOORDER`. This crate's `1/6` fired. The
+guard's `visible` bit for who=1 is 0 from 1051 on (the brief's "from
+1086" was the window it was read over).
+
+**1133 → 1139 (item 709), open: the hundredth-frame resync forgets, and
+relights an attacker for its victims** (`docs/VISION.md` §10).
+- **The pass.** `update_all_seen` runs on `frame % 100 == 33` and clears
+  `seen` first; this crate skipped the clear. Its whole-disc
+  `update_seen(0)` relights a unit's `visible` cells; this crate did not.
+- **1033.** The guard's byte held who=1's bit from its shot on 1011, so
+  the resync kept its cell lit for who=1, and `1/6` fired through the fog
+  on 1058, 1083 and 1108 after the byte cleared on 1051.
+- **1133.** The byte is 0, and `1/6`'s disc, radius 4 from half-cell
+  (8, 36), stops a half-cell short of the guard's (9, 31). `valid_target`
+  fails on the tick the reload opens, and the attack drops drawless.
+- The clear alone fell to ~1050; the two together close every 1134 row.
+- **And a building target is seen through its `ever_seen` byte**
+  (`BuildData::is_seen`), not the fog plane. Without it the clear dropped
+  Great Lakes 14982 → 9401; with it both long words hold.
+
+Every row from 736 to 1141 agrees.
+
+**On 1139** the original's guard rolls its idle stand on the post,
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, and this crate's does not.
+No record parts on block 1140: `GUYS=2` prints no animation state. Both
+guards die on tick 1140. The first value part past the word is `1/4`'s
+move on 1156, downstream of the draw. No mechanism is named.

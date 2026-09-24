@@ -794,6 +794,15 @@ impl World {
         true
     }
 
+    /// `World::clear_seen@006b2250` on the plane this world keeps: `seen`
+    /// (`World +0x15c`) zeroed whole. The original also zeroes its cell
+    /// twin `+0x168`, which this world does not keep, and queues each lit
+    /// cell for the fog's redraw. `seen2` is untouched. `docs/VISION.md`
+    /// §10.
+    pub fn clear_seen(&mut self) {
+        self.fog_now.fill(0);
+    }
+
     /// `WorldData::seen[fy × fog_xs + fx]` — current line of sight.
     pub fn seen(&self, fx: i32, fy: i32) -> Option<u8> {
         self.fog_index(fx, fy).map(|i| self.fog_now[i])
