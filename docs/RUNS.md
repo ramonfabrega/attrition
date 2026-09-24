@@ -6375,6 +6375,49 @@ proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
 hour of the single lane was already spent.
+## run192 — Great Lakes' word 14982, past run178's last block (2026-09-24, item 698)
+
+**What it is.** run178's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[14894, 15040)`, plus `rontrace.cfg` `cover=1` and `window=14978-14986`
+over the word. `!quit` at 15050, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 698
+```
+
+**Why it was owed.** Item 698 moved Great Lakes' word 14650 → 14982 (the
+suspended search's `GATHER` park, `docs/COLLISION.md` §15). run178 ends on
+block 14899, and no `gamelog-*greatlakes*` holds block 14982 or 14983
+(grepped before booking, the pattern checked against run163's 12180). On
+14982 the original spends three `Guy::init_real+0x52` before the frame's
+wraps, a three-figure birth, and this crate spends none. **Sized to the
+word, not to the gap** (Loop 687): the 83 blocks up to it, six shared with
+run178 so the widening walks one chain, and 56 of runway above it.
+
+**Taken whole.** 326 MB of dump and 20.3 MB of trace, 146 blocks
+14894..15039. It took about 14 minutes from launch (15:33) to archive
+(15:47), with no human at the menu. The lane lock was stale (pid 66547,
+dead). Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 15,051 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **146 blocks, 14894..15039, no gap** |
+| a `GROUPDATA` on every window block | **146** |
+| overlap with run178, nothing excluded | **6 in common (14894..14899), 0 differ** |
+| the coverage window | a set on all 9 frames 14978..14986 |
+
+**What it settled.** The word's block 14983 holds a birth, `1/79`. It
+appears in the dump alone: three figures of guy type 352 at (44184,
+24552), `myhits` 109, counted by who=1's `active` and `num_units[302]`.
+Nothing parts on 14900..14945. The first parting under the word is on
+14946. A who=1 Barracks' free train, `1/76`–`1/78`, is born on both sides,
+as type 120 here and type 127 there, with `myhits` 70 against 88. No make
+list or queue parts under the word
+(`run192_s_word_frame_is_widened_whole`).
 
 ## run190 — chapter eleven, the guard line (2026-09-24, item 696)
 

@@ -2221,6 +2221,78 @@ mod tests {
         );
     }
 
+    /// **A gatherer stuck on a suspended search gives its walk up**
+    /// (`docs/COLLISION.md` §15, item 698). `do_move@005f7b30`'s suspended
+    /// block, ahead of the blocker probe: when the action under the move is
+    /// a `GATHER`, on the frame `(frame − collide_frame + 2) & 7 == 0`, and
+    /// within `vector_dist < 0x120` of the move's own point, `avoid` takes
+    /// that point, the gather order forgets its tile (`tx`/`ty`/`wait` −1,
+    /// `goto_build` 1), and the move dies without a `collide` count.
+    ///
+    /// run178's `1/43` is the case: six frames after it met the standing
+    /// `1/18`, 96 and 240 units short of its point, `vector_dist` 259.
+    /// Each control changes one input: seven frames, 288 units short
+    /// (`vector_dist` 304), and a plain walk with no gather under it. Made
+    /// to fail on purpose with the arm taken out: the walk is kept.
+    #[test]
+    fn a_gatherer_on_a_suspended_search_gives_its_walk_up_near_its_point() {
+        use crate::orders::{Body, MoveKind, QueuePos};
+        let run = |elapsed: i64, short: i32, gathering: bool| {
+            let mut sim = flat_sim(20);
+            let at = Pos::new(10 * 0x30 + 0x18, 10 * 0x30 + 0x18);
+            let u = walker(&mut sim, at);
+            let camp = sim.add_building(1, Pos::new(0x600, 0x600), 1);
+            if gathering {
+                sim.add_gather_order(u, camp, QueuePos::New, true);
+                if let Some(Body::Gather(g)) = sim.units[u].orders.front_mut().map(|o| &mut o.body)
+                {
+                    g.tile = Some(Pos::new(30, 30));
+                    g.wait = 408;
+                    g.goto_build = false;
+                }
+            }
+            let point = Pos::new(at.x + 96, at.y + short);
+            sim.add_move_order(u, point, MoveKind::MoveTo, QueuePos::First, false);
+            // The suspended 48-grid search, on a goal of its own.
+            push_goal(&mut sim, u, Pos::new(at.x + 40 * 0x30, at.y + 40 * 0x30));
+            assert_eq!(sim.upath(u, false, 10, false), -1, "the plan suspends");
+            sim.units[u].collide = 6;
+            sim.units[u].collide_frame = 1000;
+            sim.work(u, 1000 + elapsed);
+            let dest = match sim.units[u].orders.front().map(|o| o.body) {
+                Some(Body::Move(m)) => Some(m.dest),
+                _ => None,
+            };
+            (sim, u, dest)
+        };
+
+        let (sim, u, front) = run(6, 240, true);
+        assert_eq!(front, None, "the walk is gone");
+        let Some(Body::Gather(g)) = sim.units[u].orders.front().map(|o| o.body) else {
+            panic!(
+                "the gather order is the front order: {:?}",
+                sim.units[u].orders
+            );
+        };
+        assert_eq!(
+            (g.tile, g.wait, g.goto_build),
+            (None, -1, true),
+            "the gather order forgets its tile"
+        );
+        assert_eq!(sim.units[u].collide, 6, "no count: the arm is above it");
+        let (_, _, kept) = run(7, 240, true);
+        assert_eq!(sim.units[u].avoid, kept, "`avoid` takes the move's point");
+
+        for (elapsed, short, gathering, why) in [
+            (7, 240, true, "seven frames"),
+            (6, 288, true, "vector_dist 304"),
+            (6, 240, false, "no gather under the walk"),
+        ] {
+            let (_, _, front) = run(elapsed, short, gathering);
+            assert!(front.is_some(), "{why}: the walk is kept");
+        }
+    }
+
     /// **`kill_current_path` frees the stash, and an empty stack does
     /// not** (§18.4, item 304). `Unit::kill_current_path@005e31d0` pops
     /// the stack back through the current segment's final waypoint and

@@ -10786,6 +10786,11 @@ mod tests {
     /// (`docs/CARAVAN.md` §10, `docs/ROADS.md` §10): the caravan verifies a
     /// road the stray-road sweep eroded. The new word's frame writes block
     /// **14651**; the test keeps the move's value diff on 14530.
+    ///
+    /// **Item 698 moved it 14650 → 14982, past this window**
+    /// (`docs/COLLISION.md` §15): a gatherer whose search is suspended
+    /// gives its walk up six frames after it collides. The test keeps the
+    /// move's value diff on 14651; the new word is run192's.
     #[test]
     fn run178_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -10893,9 +10898,10 @@ mod tests {
         // (`docs/CITIES.md` §15). Its territory is recomputed at once here
         // and over sixteen frames there (`docs/ATTRITION.md`, "Territory"),
         // so who=0's `gather_stamp` is re-stamped on 14536 here and 14544
-        // there. `known_rares` on 14536 parts with or without it. And on
-        // 14650 `1/43`, the word's gatherer, collides with `1/7` here and
-        // `1/6` there.
+        // there. `known_rares` on 14536 parts with or without it.
+        // ~~And on 14650 `1/43`, the word's gatherer~~ — gone with item
+        // 698 (below): eight rows, `collide` 7 against 6 among them, which
+        // is the counter and not a partner.
         assert_eq!(
             mid,
             [
@@ -10912,14 +10918,6 @@ mod tests {
                 "12976 1/-1 leader:SITE[8].wy: ours 33 theirs 30",
                 "14536 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
-                "14650 1/43 collide: ours 7 theirs 6",
-                "14650 1/43 dest_angle: ours 1925840896 theirs 1923350528",
-                "14650 1/43 order:kind: Kind { ours: 1, theirs: 7 }",
-                "14650 1/43 order:length: Length { ours: 2, theirs: 1 }",
-                "14650 1/43 orders.len: ours 2 theirs 1",
-                "14650 1/43 orders_x: ours 43704 theirs 43608",
-                "14650 1/43 orders_y: ours 26856 theirs 26616",
-                "14650 1/43 path:length: PathLength { ours: 1, theirs: 0 }",
                 "13163 1/71 form: ours -1 theirs 9",
                 "13163 1/71 hits:myhits: ours 40 theirs 50",
                 "13163 1/71 hits_left: ours 40 theirs 50",
@@ -10955,46 +10953,176 @@ mod tests {
         // ~~**The word, 14529 (block 14530).**~~ Item 695 moved it: the
         // caravan's road check and the stray-road sweep (above).
         //
-        // **The word, 14650 (block 14651).** The original spends 3 draws
-        // where this crate spends 2, parting at index 0 on
-        // `Unit::do_non_flat_gather+0x54b`. On the block one record parts:
-        // the Woodcutter's Camp `1/2009`'s gather-tile list, 192 keys, the
-        // original's list one entry along from this crate's (`tx[1]` here
-        // is `tx[0]` there). No mechanism is named (DECISIONS 42).
-        let words: Vec<(i64, i64, usize)> =
-            word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
-        assert_eq!(
-            words,
-            [(1, 2009, 192)],
-            "who parts first on 14651, and on how many keys"
-        );
-        let head: Vec<String> = word
-            .get(&(1, 2009))
-            .map(|v| {
-                v.iter()
-                    .filter(|r| r.starts_with("gather:tx[0]") || r.starts_with("gather:tx[1]:"))
-                    .cloned()
-                    .collect()
-            })
-            .unwrap_or_default();
-        assert_eq!(
-            head,
-            [
-                "gather:tx[0]: ours 234 theirs 230",
-                "gather:tx[1]: ours 230 theirs 224",
-            ],
-            "1/2009's list, one entry along"
-        );
-        assert_eq!(standing_n, 517, "every row standing on 14651");
+        // ~~**The word, 14650 (block 14651).**~~ The original spent 3 draws
+        // where this crate spent 2, parting at index 0 on
+        // `Unit::do_non_flat_gather+0x54b`, and on the block the Woodcutter's
+        // Camp `1/2009`'s gather-tile list parted, 192 keys, one entry
+        // along. Under it, on block 14650, `1/43` held its walk here and
+        // had dropped it there: eight rows, `collide` 7 against 6.
+        //
+        // **Item 698's value diff, on 695's word's block 14651.** `1/43`
+        // met the standing `1/18` on 14643 on both sides, and its
+        // 48-grid search suspended. On 14649 the original's `do_move`
+        // took its `GATHER` park: six frames after the collision, `(6 + 2)
+        // & 7 == 0`, and `vector_dist(96, 240) = 259 < 0x120` to the
+        // move's point. The walk died above the `collide` increment, and
+        // the gather order forgot its tile, so 14650's
+        // `do_non_flat_gather` drew a tile afresh. With the arm
+        // (`docs/COLLISION.md` §15), the eight rows on 14650 and the 192
+        // on 14651 are gone, and nothing parts on these five blocks.
+        let road: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(road, Vec::<String>::new(), "695's word's five blocks");
+        assert!(word.is_empty(), "nothing parts first on 14651");
+        assert_eq!(standing_n, 317, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
         // blocks, and every key to run178's last block: 1,552 before item
-        // 688, 1,375 after it, and 1,279 after item 695, with 192 on the
-        // new word's block.
+        // 688, 1,375 after it, 1,279 after item 695, and 416 after item
+        // 698 — the eight on 14650, the 192 on 14651 and 663 of the cascade
+        // above it to 14899, and none under.
         assert_eq!(
             (under, mid.len(), firsts.len()),
-            (374, 50, 1_279),
+            (374, 42, 416),
+            "the floor"
+        );
+    }
+
+    /// **run192 — Great Lakes' word 14982, widened whole, both directions**
+    /// (item 698). run178's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_BIRTH`]: six blocks shared with run178, the 83
+    /// up to the word, its block, and 56 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across nine captures, with every player-1 pool
+    /// list from run135's first block.
+    ///
+    /// The word's frame, 14982, writes block **14983**.
+    #[test]
+    fn run192_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_BIRTH_BLOCK;
+        /// run178's last block: everything above it is run192's.
+        const RUN178_TAIL: i64 = WIDENING_GREAT_LAKES_COPY.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run192",
+            &[
+                (
+                    "gamelog-run123-greatlakes-marketword.txt",
+                    WIDENING_GREAT_LAKES_BIRTH.0,
+                ),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
+                (
+                    "gamelog-run178-greatlakes-copyword.txt",
+                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
+                ),
+                ("gamelog-run192-greatlakes-birthword.txt", RUN178_TAIL + 1),
+            ],
+            WIDENING_GREAT_LAKES_BIRTH,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (WIDENING_GREAT_LAKES_BIRTH.1 - WIDENING_GREAT_LAKES_BIRTH.0 + 1) as usize,
+            "the walk is whole"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // Every key that first parts on run192's own blocks up to the
+        // word's block.
+        let own: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (RUN178_TAIL + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        let mut word: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, r)) in &firsts {
+            if *f == WORD_BLOCK {
+                word.entry((*w, *o))
+                    .or_default()
+                    .push(format!("{what}: {r}"));
+            }
+        }
+        let standing_n = standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len);
+        let under = firsts.values().filter(|(f, _)| *f <= RUN178_TAIL).count();
+        // **Under the word, on run192's own blocks: the free train.** On
+        // 14946 a who=1 Barracks' free units `1/76`–`1/78` are born on
+        // both sides at (42648, 20472), as type **120** here and **127**
+        // there: `free_train` runs the base through `current_upgrade`
+        // (`crates/sim/src/nations.rs`), and the two answer differently.
+        // Their `myhits` read 70 against 88 and their graphic piece 120
+        // against 127; the leader's `num_units` moves with them. Nothing
+        // parts from 14900 to 14945. On 14976 the leader's `attack` reads
+        // 167 against 170. No mechanism is named (DECISIONS 42).
+        assert_eq!(
+            own,
+            [
+                "14983 1/-1 leader:active: ours 65 theirs 66",
+                "14976 1/-1 leader:attack: ours 167 theirs 170",
+                "14946 1/-1 leader:num_units[120]: ours 1 theirs 0",
+                "14946 1/-1 leader:num_units[127]: ours 3 theirs 4",
+                "14983 1/-1 leader:num_units[302]: ours 0 theirs 1",
+                "14983 1/62 g.cur_anim[0]: ours 0 theirs 1",
+                "14983 1/62 g.end_time[0]: ours 32 theirs 64",
+                "14946 1/76 form: ours -1 theirs 0",
+                "14946 1/76 g.gpiece[0]: ours 120 theirs 127",
+                "14946 1/76 hits:myhits: ours 70 theirs 88",
+                "14946 1/76 hits_left: ours 70 theirs 88",
+                "14946 1/76 myhits: ours 70 theirs 88",
+                "14946 1/77 form: ours -1 theirs 0",
+                "14946 1/77 g.gpiece[0]: ours 120 theirs 127",
+                "14946 1/77 hits:myhits: ours 70 theirs 88",
+                "14946 1/77 hits_left: ours 70 theirs 88",
+                "14946 1/77 myhits: ours 70 theirs 88",
+                "14946 1/78 form: ours -1 theirs 0",
+                "14946 1/78 g.gpiece[0]: ours 120 theirs 127",
+                "14946 1/78 hits:myhits: ours 70 theirs 88",
+                "14946 1/78 hits_left: ours 70 theirs 88",
+                "14946 1/78 myhits: ours 70 theirs 88",
+                "14983 1/79 unlinked: the dump holds it alone",
+            ],
+            "the rows on run192's own blocks, to the word's"
+        );
+        // **The word, 14982 (block 14983).** The original spends three
+        // `Guy::init_real+0x52` where this crate spends none, then the
+        // frame's `Guy::inc_time` wraps: 15 draws against 11, parting at
+        // index 0. On the block `1/79` stands in the dump alone, three
+        // figures of guy type 352 at (44184, 24552) with `myhits` 109, the
+        // leader counts it (`active`, `num_units[302]`), and `1/62`'s
+        // figure wraps there alone. No mechanism is named (DECISIONS 42).
+        let words: Vec<(i64, i64, usize)> =
+            word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
+        assert_eq!(
+            words,
+            [(1, -1, 2), (1, 62, 2), (1, 79, 1)],
+            "who parts first on 14983, and on how many keys"
+        );
+        assert_eq!(standing_n, 334, "every row standing on 14983");
+        // **The floor**: run178's 416 to its last block, exactly as
+        // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
+        // same walk — then run192's own, to the word's block and past it.
+        assert_eq!(
+            (under, own.len(), firsts.len()),
+            (416, 23, 668),
             "the floor"
         );
     }
