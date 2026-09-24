@@ -13,13 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-23, the commander (Opus 5.5) after the thirteenth Fable pass:
-**3 landings since 29a46bd.** 673 moved Great Lakes 12536 → 12897
-(`astar_path`'s retry gates on `is_move`, PATHFINDER §21.6, AI §65).
+**4 landings since 29a46bd.** Great Lakes 12536 → 12897 → 14382: the
+retry gates on `is_move` (673), a resumed search reads its suspended
+blocks (678, PATHFINDER §26). **East Indies is the lower map again.**
 651 staged chapter six-b and captured run175: the first falsifier fired,
 each aircraft walks at the enemy Airbase. 680 closed it 632 → 1250: a
 captain's attack on a building re-runs `find_new_target` every frame
-(COMBAT §62), found on run177's packet. Lane att-678 is capturing run178
-on Great Lakes.*
+(COMBAT §62), found on run177's packet. Lane att-676 is on chapter nine.*
 
 - **Both maps moved and every golden chapter closed.** East Indies
   11069 → 13640 at 0.034 USD a frame (1893 of them off the disk in one
@@ -35,29 +35,21 @@ on Great Lakes.*
   687 a capture's cost and levels); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w12897 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w14382 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · 676 next
-Endpoint 24001: EastIndies 43 off, 11 unlinked · GreatLakes 34 off, 0 unlinked
+Endpoint 24001: EastIndies 43 off, 11 unlinked · GreatLakes 33 off, 0 unlinked
 
-**Opener: 676 is live on the rules lane and 678 on the AI lane; 643
-follows 678. A detached capture waits on
+**Opener: 676 is live on the rules lane; spawn 643 on the AI lane (East
+Indies is the lower map), and 688 follows it. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — Great Lakes (a guard reads this line). Take the first
+lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-678. **Great Lakes' word is 12897: `1/41` against `1/15` on 12898** (673
-    moved it 12536 → 12897: the retry roll gates on `is_move`, PATHFINDER
-    §21.6). On 12897 ours 8 draws against 9 at index 2: ours `Guy::set_anim
-    +0x97a < Guy::inc_time+0x271`, theirs `< Unit::move_step+0x823`. The
-    original's `1/41` stands on `1/15`; ours walks on. Above it: 12626's
-    plan (23 against 20), 12825's ungroup of `1/40`–`1/42` to kind 2.
-    Inside run174, its last but one; a move past 12898 owes run178.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
@@ -66,6 +58,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     Guy::inc_time+0x271`. East Indies' windows end on run159's 11899; run78
     starts at 15700. The `WIDENINGS` row names this item: capture
     **run166** over the word, then widen it whole. No mechanism.
+
+688. **Great Lakes' word is 14382: who=1's building placement** (678 moved
+    it 12897 → 14382: a resumed search reads its blocks as suspended,
+    PATHFINDER §26, AI §66). On 14382 ours 11 draws against 13 at index 2:
+    ours `Leader::make_stuff+0x221`, theirs `Leader::produce_building
+    +0x1805`. On 14383 who=1 places `1/2025` at (39552, 17472), the
+    original at (42624, 19776). The nearest input the dump prints is
+    `SITE[1]`, parting on 12976. Inside run178 (to 14899). No mechanism.
 
 676. **Chapter nine, the move line — the first issuer chapter, no capture
     yet** (DECISIONS 49; GOLDEN §13). `CommandManager::issue_move_to
