@@ -2601,9 +2601,13 @@ impl Sim {
     /// (`5e6022`–`5e6061`), and the idle facing is `find_angle(post −
     /// target)` — outward, away from what is guarded (`5e626f`).
     ///
-    /// SEAM, none of them reached by a capture on file: the target's own
-    /// `unit_masks & 2` mirror of `dx` (not carried — run133's wagon has
-    /// it clear); the building-target arm (`action_guard`'s building arm
+    /// The target's own `unit_masks & 2` ([`crate::Movement::mirror`])
+    /// negates `dx` before the turn (`5e5fed`–`5e5ff6`): run196's Despot
+    /// carries it on 15095, and its escort's flanks stand on the other
+    /// side for it (`docs/GROUPS.md` §25).
+    ///
+    /// SEAM, none of them reached by a capture on file: the building-target
+    /// arm (`action_guard`'s building arm
     /// is itself a seam, so no building is ever a target here); the
     /// packer's unpack after `0x1e`/`0x46` frames on the post; and the
     /// sixteen-frame engagement, which asks [`Self::find_melee_target`]'s
@@ -2695,8 +2699,15 @@ impl Sim {
         }
         let a = self.units[t].movement.heading;
         let tp = self.units[t].pos;
-        let gx = tp.x + movement::sin_component(a, g.dy) + movement::cos_component(a, g.dx);
-        let gy = tp.y - movement::cos_component(a, g.dy) + movement::sin_component(a, g.dx);
+        // `5e5fed`: the target's own `unit_masks & 2` mirrors the offset
+        // (`docs/GROUPS.md` §25).
+        let dx = if self.units[t].movement.mirror {
+            -g.dx
+        } else {
+            g.dx
+        };
+        let gx = tp.x + movement::sin_component(a, g.dy) + movement::cos_component(a, dx);
+        let gy = tp.y - movement::cos_component(a, g.dy) + movement::sin_component(a, dx);
         // `div_3_table[v >> 4]`: the 48-unit cell, a floor divide.
         let q = |v: i32| (v >> 4).div_euclid(3);
         let (mut qx, mut qy) = (q(gx), q(gy));

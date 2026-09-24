@@ -4874,14 +4874,19 @@ mod tests {
         // **Thirty → thirty-two on item 695**: the word went 14529 →
         // 14650 and **14582** and **14585** came under it (`docs/AI.md`
         // §68). The streams above agree through them.
+        //
+        // **Thirty-two → thirty-three on item 711**: the word went 15175 →
+        // 15383 and **15382** came under it (`docs/GROUPS.md` §25). The
+        // streams above agree through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385, 14_582, 14_585
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385, 14_582, 14_585,
+                15_382
             ],
-            "below the word Great Lakes takes exactly thirty-two market \
+            "below the word Great Lakes takes exactly thirty-three market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -11171,16 +11176,15 @@ mod tests {
             (WIDENING_GREAT_LAKES_PATRIOT.1 - WIDENING_GREAT_LAKES_PATRIOT.0 + 1) as usize,
             "the walk is whole"
         );
-        // **Under the word, on run196's own blocks: the three free
-        // Longbowmen, and nobody else.** The Barracks' free archers `1/76`–
-        // `1/78` (born on 14946, item 706's graft table) take guard orders
-        // on 15095, and the posts are handed out the other way round:
-        // `1/77` guards (42696, 22392) here and (42984, 22344) there, and
-        // `1/78` the other way round. From there their steps part, and on
-        // 15151–15152 their order kinds do too, 12 here against 2 there;
-        // `1/76` follows on 15180. The Despot `1/79` parts nowhere before
-        // 15208. So run196's R2 and R3, which named the Despot, are both
-        // killed. No mechanism is named (DECISIONS 42).
+        // **Under the old word, on run196's own blocks: nothing, since item
+        // 711.** Until then the three free Longbowmen `1/76`–`1/78` parted
+        // here on 89 keys from 15095: their guard posts on The Despot
+        // `1/79` were handed out the other way round, `1/77` on (42696,
+        // 22392) here and (42984, 22344) there, and `1/78` the reverse.
+        // The Despot carries `unit_masks & 2`, its own mirror, and
+        // `Unit::do_guard` negates `dx` for it (`docs/GROUPS.md` §25).
+        // With the bit carried, the posts are the original's and no row
+        // of any unit first-parts on 15040..15176.
         let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
         for ((w, o, _), (f, _)) in &firsts {
             if (RUN192_TAIL + 1..=WORD_BLOCK).contains(f) {
@@ -11191,53 +11195,22 @@ mod tests {
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
         assert_eq!(
             own,
-            [
-                (15_095, 1, 77, 28),
-                (15_095, 1, 78, 9),
-                (15_096, 1, 77, 3),
-                (15_096, 1, 78, 9),
-                (15_097, 1, 76, 1),
-                (15_097, 1, 78, 4),
-                (15_098, 1, 76, 9),
-                (15_099, 1, 76, 5),
-                (15_099, 1, 78, 1),
-                (15_106, 1, 78, 3),
-                (15_112, 1, 76, 1),
-                (15_117, 1, 76, 2),
-                (15_151, 1, 77, 4),
-                (15_152, 1, 77, 2),
-                (15_152, 1, 78, 5),
-                (15_153, 1, 78, 2),
-                (15_157, 1, 76, 1),
-            ],
-            "who parts first on run196's own blocks up to the word's, and on how many keys"
+            [],
+            "who parts first on run196's own blocks up to the old word's, and on how many keys"
         );
-        let posts: Vec<String> = firsts
-            .iter()
-            .filter(|((_, _, what), (f, _))| *f == 15_095 && what.starts_with("orders_"))
-            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
-            .collect();
-        assert_eq!(
-            posts,
-            [
-                "15095 1/77 orders_x: ours 42696 theirs 42984",
-                "15095 1/77 orders_y: ours 22392 theirs 22344",
-                "15095 1/78 orders_x: ours 42984 theirs 42696",
-                "15095 1/78 orders_y: ours 22344 theirs 22392",
-            ],
-            "the two guard posts, handed out the other way round"
-        );
-        // **The word, 15175 (block 15176).** Ours spends one
-        // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` more than the
-        // original. Nothing first-parts on the block itself: the
-        // Longbowmen's guard rows stand from 15151.
+        // **The old word, 15175 (block 15176)**, and its value diff: the
+        // extra `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` is gone with
+        // the posts, and nothing parts on the block or under it.
         assert!(
             !firsts.values().any(|(f, _)| *f == WORD_BLOCK),
             "nothing parts first on 15176"
         );
+        // Nor above it: run196's runway, 15177..15232, parts nowhere.
+        // The 315 rows standing on 15176 are the floor's, parted under
+        // run192's tail (376 before item 711: the archers' 61 are gone).
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            376,
+            315,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -11249,7 +11222,125 @@ mod tests {
             .values()
             .filter(|(f, _)| (RUN192_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
-        assert_eq!((under, mid, firsts.len()), (422, 89, 732), "the floor");
+        // Item 711: run196's own 89 and the 221 above the old word are gone.
+        assert_eq!((under, mid, firsts.len()), (422, 0, 422), "the floor");
+    }
+
+    /// **run202 — Great Lakes' word 15383, widened whole, both directions**
+    /// (item 711). run196's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_MIRROR`]: six blocks shared with run196, the
+    /// 151 up to the word, its block, and 56 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across eleven captures, with every player-1
+    /// pool list from run135's first block.
+    ///
+    /// The word's frame, 15383, writes block **15384**.
+    #[test]
+    fn run202_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_MIRROR_BLOCK;
+        /// run196's last block: everything above it is run202's.
+        const RUN196_TAIL: i64 = WIDENING_GREAT_LAKES_PATRIOT.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run202",
+            &[
+                (
+                    "gamelog-run123-greatlakes-marketword.txt",
+                    WIDENING_GREAT_LAKES_MIRROR.0,
+                ),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
+                (
+                    "gamelog-run178-greatlakes-copyword.txt",
+                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
+                ),
+                (
+                    "gamelog-run192-greatlakes-birthword.txt",
+                    WIDENING_GREAT_LAKES_COPY.1 + 1,
+                ),
+                (
+                    "gamelog-run196-greatlakes-patriotword.txt",
+                    WIDENING_GREAT_LAKES_BIRTH.1 + 1,
+                ),
+                ("gamelog-run202-greatlakes-mirrorword.txt", RUN196_TAIL + 1),
+            ],
+            WIDENING_GREAT_LAKES_MIRROR,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (WIDENING_GREAT_LAKES_MIRROR.1 - WIDENING_GREAT_LAKES_MIRROR.0 + 1) as usize,
+            "the walk is whole"
+        );
+        let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (RUN196_TAIL + 1..=WORD_BLOCK).contains(f) {
+                *own.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let own: Vec<(i64, i64, i64, usize)> =
+            own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        // **Under the word, on run202's own blocks: three units and
+        // eleven keys.** The Despot `1/79`'s move order carries `facing`
+        // 1 here and 0 there from 15351: a value row that spends no draw.
+        // Then the word itself. On block 15383 the original's citizen
+        // `1/70` holds one order and ours holds none. On 15384 theirs is
+        // kind 3 and ours stands idle, which is the extra `Unit::do_idle`
+        // stand. Building `1/2022`'s gather list holds `1/70` here and
+        // `1/73` there. No mechanism is named (DECISIONS 42).
+        assert_eq!(
+            own,
+            [
+                (15_351, 1, 79, 1),
+                (15_383, 1, 70, 2),
+                (15_384, 1, 70, 7),
+                (15_384, 1, 2022, 1),
+            ],
+            "who parts first on run202's own blocks up to the word's, and on how many keys"
+        );
+        let under = firsts.values().filter(|(f, _)| *f <= RUN196_TAIL).count();
+        let mid = firsts
+            .values()
+            .filter(|(f, _)| (RUN196_TAIL + 1..=WORD_BLOCK).contains(f))
+            .count();
+        let word: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, what), (f, _))| {
+                *f == WORD_BLOCK - 1 && (*w, *o) == (1, 70) && what.starts_with("order")
+            })
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert_eq!(
+            word,
+            [
+                "15383 1/70 order:length: Length { ours: 0, theirs: 1 }",
+                "15383 1/70 orders.len: ours 0 theirs 1",
+            ],
+            "1/70 holds an order there and none here, on the word's own frame"
+        );
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            327,
+            "every row standing on 15384"
+        );
+        // **The floor**: run196's walk exactly — run192's 422, and nothing
+        // on run196's own blocks since item 711 — then run202's own
+        // eleven up to the word's block, and every key to the window's end.
+        assert_eq!((under, mid, firsts.len()), (422, 11, 840), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

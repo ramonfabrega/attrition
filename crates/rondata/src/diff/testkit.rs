@@ -2053,7 +2053,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// handed out the other way round — and
 /// `run192_s_word_frame_is_widened_whole` keeps the move's value diff on
 /// 14946 and 14983.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_175;
+///
+/// ~~**15175 is the free Longbowmen's guard posts.**~~ **Item 711 moved it
+/// 15175 → 15383, and the mechanism was a unit's own mirror,
+/// `unit_masks & 2`** (`docs/GROUPS.md` §25). On 15095 who=1's army sends
+/// The Despot `1/79` on and its three Longbowmen guard it. `Unit::do_guard`
+/// negates a guard's `dx` when its target carries the bit (`5e5fed`), and
+/// `Unit::set_angle` had set it on the Despot's first turn, 14985. This
+/// crate did not carry the bit, so `1/77` and `1/78` traded posts; the
+/// extra `Unit::do_guard` stand on 15175 was theirs (run196). **The
+/// new word's delta (this constant's comment): ours 4 draws and the
+/// original 3, parting at index 1**: ours spends `Guy::set_anim+0x97a <
+/// Unit::do_idle+0x7d` where the original spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. **Past run196** (block 15384 against its last,
+/// 15232), so item 711 took **run202**. The new word's block is in
+/// `run202_s_word_frame_is_widened_whole` (the widening test), and
+/// `run196_s_word_frame_is_widened_whole` keeps the move's value diff:
+/// nothing parts on run196's own blocks, 15040..15232.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_383;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3495,6 +3512,14 @@ pub(crate) const WIDENING_GREAT_LAKES_PATRIOT: (i64, i64) = (11_400, 15_232);
 /// 15175's frame writes block 15176, past run192. The coverage driver
 /// reads run196 around it.
 pub(crate) const GREAT_LAKES_PATRIOT_BLOCK: i64 = 15_176;
+/// `run202_s_word_frame_is_widened_whole`'s window (item 711):
+/// [`WIDENING_GREAT_LAKES_PATRIOT`]'s chain, then run202 from run196's last
+/// block to its own, 15440.
+pub(crate) const WIDENING_GREAT_LAKES_MIRROR: (i64, i64) = (11_400, 15_440);
+/// The block [`WIDENING_GREAT_LAKES_MIRROR`] was taken to widen: the word
+/// 15383's frame writes block 15384, past run196. The coverage driver
+/// reads run202 around it.
+pub(crate) const GREAT_LAKES_MIRROR_BLOCK: i64 = 15_384;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3923,12 +3948,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `run196_s_word_frame_is_widened_whole` walks it from run123's 11400
     // across ten captures, so the window is [`WIDENING_GREAT_LAKES_PATRIOT`]
     // and the test pins the word's block.
+    //
+    // **Item 711 moved it 15175 → 15383**, past run196's last block
+    // (15232): a unit's own mirror, `unit_masks & 2`, which `do_guard`
+    // reads off its target (`docs/GROUPS.md` §25). run196's test keeps
+    // the move's value diff on 15095. **Item 711 paid it**: run202 is
+    // run196's line over [15227, 15440], and
+    // `run202_s_word_frame_is_widened_whole` walks it from run123's 11400
+    // across eleven captures, so the window is
+    // [`WIDENING_GREAT_LAKES_MIRROR`] and the test pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run196_s_word_frame_is_widened_whole"),
-        706,
-        Some(WIDENING_GREAT_LAKES_PATRIOT),
+        Some("run202_s_word_frame_is_widened_whole"),
+        711,
+        Some(WIDENING_GREAT_LAKES_MIRROR),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

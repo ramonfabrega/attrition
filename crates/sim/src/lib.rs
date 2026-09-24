@@ -520,6 +520,16 @@ pub struct Movement {
     pub turning: movement::Turning,
     /// The body, standing on the unit until the unit moves.
     pub body: movement::Body,
+    /// **`UnitData::unit_masks & 2`** — the unit's own mirror, the per-unit
+    /// twin of `GroupData::facing` (`docs/GROUPS.md` §25). Two writers, by
+    /// the listing: `Unit::set_angle@00605400` flips it whenever the new
+    /// heading is `reversing` from the old (`605424`, for every unit, before
+    /// the leader test that flips the group), and
+    /// `Unit::kill_current_order@005e2cb0` writes a dying move's handed-back
+    /// mirror into it (`5e3087`/`5e308d`, again before the leader test).
+    /// One reader here: `Unit::do_guard@005e5c70` negates a guard's `dx`
+    /// when its **target** carries it.
+    pub mirror: bool,
 }
 
 impl Movement {
@@ -542,6 +552,16 @@ impl Movement {
                 wide_limit: false,
             },
             body: movement::Body::at(pos),
+            mirror: false,
+        }
+    }
+
+    /// `Unit::set_angle`'s mirror flip (`605410`–`605424`): the new
+    /// heading against the old `+0x50`, by `reversing`'s inclusive window.
+    const fn flip_mirror(&mut self, to: movement::Angle) {
+        let d = to.0.wrapping_sub(self.heading.0) as u32;
+        if d >= 0x4000_0000 && d <= 0xc000_0000 {
+            self.mirror = !self.mirror;
         }
     }
 
@@ -551,6 +571,7 @@ impl Movement {
     /// passes zero for that flag, so a step moves the heading and leaves the
     /// facing to the turn rate.
     pub const fn set_facing(&mut self, facing: movement::Angle) {
+        self.flip_mirror(facing);
         self.facing = facing;
         self.heading = facing;
         self.des_angle = facing;
@@ -578,6 +599,7 @@ impl Movement {
     /// `do_spec_anim` and the scenario loader, none of which this crate
     /// reaches yet.
     pub const fn set_heading(&mut self, heading: movement::Angle) {
+        self.flip_mirror(heading);
         self.heading = heading;
     }
 }
