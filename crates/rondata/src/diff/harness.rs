@@ -11200,18 +11200,12 @@ mod tests {
             !firsts.values().any(|(f, _)| *f == WORD_BLOCK),
             "nothing parts first on 15176"
         );
-        let past: Vec<String> = firsts
-            .iter()
-            .filter(|(_, (f, _))| *f > WORD_BLOCK)
-            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
-            .collect();
-        eprintln!("run196 past the old word: {} rows", past.len());
-        for r in &past {
-            eprintln!("  {r}");
-        }
+        // Nor above it: run196's runway, 15177..15232, parts nowhere.
+        // The 315 rows standing on 15176 are the floor's, parted under
+        // run192's tail (376 before item 711: the archers' 61 are gone).
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            0,
+            315,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -11223,7 +11217,102 @@ mod tests {
             .values()
             .filter(|(f, _)| (RUN192_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
-        assert_eq!((under, mid, firsts.len()), (422, 89, 732), "the floor");
+        // Item 711: run196's own 89 and the 221 above the old word are gone.
+        assert_eq!((under, mid, firsts.len()), (422, 0, 422), "the floor");
+    }
+
+    /// **run202 — Great Lakes' word 15383, widened whole, both directions**
+    /// (item 711). run196's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_MIRROR`]: six blocks shared with run196, the
+    /// 151 up to the word, its block, and 56 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across eleven captures, with every player-1
+    /// pool list from run135's first block.
+    ///
+    /// The word's frame, 15383, writes block **15384**.
+    #[test]
+    fn run202_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_MIRROR_BLOCK;
+        /// run196's last block: everything above it is run202's.
+        const RUN196_TAIL: i64 = WIDENING_GREAT_LAKES_PATRIOT.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run202",
+            &[
+                (
+                    "gamelog-run123-greatlakes-marketword.txt",
+                    WIDENING_GREAT_LAKES_MIRROR.0,
+                ),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
+                (
+                    "gamelog-run178-greatlakes-copyword.txt",
+                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
+                ),
+                (
+                    "gamelog-run192-greatlakes-birthword.txt",
+                    WIDENING_GREAT_LAKES_COPY.1 + 1,
+                ),
+                (
+                    "gamelog-run196-greatlakes-patriotword.txt",
+                    WIDENING_GREAT_LAKES_BIRTH.1 + 1,
+                ),
+                ("gamelog-run202-greatlakes-mirrorword.txt", RUN196_TAIL + 1),
+            ],
+            WIDENING_GREAT_LAKES_MIRROR,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (WIDENING_GREAT_LAKES_MIRROR.1 - WIDENING_GREAT_LAKES_MIRROR.0 + 1) as usize,
+            "the walk is whole"
+        );
+        let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (RUN196_TAIL + 1..=WORD_BLOCK).contains(f) {
+                *own.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let own: Vec<(i64, i64, i64, usize)> =
+            own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > RUN196_TAIL)
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        for r in &rows {
+            eprintln!("  {r}");
+        }
+        assert_eq!(
+            own,
+            [],
+            "who parts first on run202's own blocks up to the word's, and on how many keys"
+        );
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            0,
+            "every row standing on 15384"
+        );
+        let under = firsts.values().filter(|(f, _)| *f <= RUN196_TAIL).count();
+        let mid = firsts
+            .values()
+            .filter(|(f, _)| (RUN196_TAIL + 1..=WORD_BLOCK).contains(f))
+            .count();
+        assert_eq!((under, mid, firsts.len()), (422, 0, 0), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

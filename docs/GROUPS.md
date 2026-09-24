@@ -3405,3 +3405,88 @@ also backed by the seven East Indies widenings:
 
 **Reading-only**: the `QUEUE_NEW` gather arm, the `REPAIR` twin, and the
 two-pass domain order.
+
+## 25. A unit's own mirror, `unit_masks & 2` — Great Lakes 15175 → 15383 (item 711, 2026-09-24)
+
+*Established by the listing and by run196's dump. The arithmetic is
+diff-backed on block 15095; the bit's history rests on one dumped
+unit and the listing.*
+
+### 25.1 The frame
+
+On 15095 who=1's army 3 (group 67, list `[76, 77, 78, 79]`) takes the
+hero arm of `action_siege_attack_to` (§9). The Despot `1/79` walks on,
+and the three free Longbowmen get `action_guard` on it. Both sides lay
+out the same escort: `1/76` at `dx 0`, `1/77` at `−144`, `1/78` at
+`+144`, all at `dy 264`. A scratch probe of `group_action_guard` read
+ours' local list, leader, `facing` and slot table on 15094, and all of
+them are the original's. So the offsets agree, and the **posts** parted:
+`1/77` stood on (42696, 22392) here and (42984, 22344) there, and `1/78`
+the reverse. From that point the two archers walked to each other's
+posts, and on 15175 ours spent one `Unit::do_guard` stand more.
+
+### 25.2 The bit
+
+`Unit::do_guard@005e5c70` negates `dx` when the **target**'s
+`unit_masks & 2` is set (`5e5fed`–`5e5ff6`), before the heading turns
+the offset (`docs/ORDERS.md` §24). The dump prints the Despot's
+`unit_masks` as 0x4000A on 15094, so the bit is set.
+
+The whole executable has two writers of the bit. `llvm-objdump` finds
+them; the decompiler names neither as `unit_masks`:
+
+- **`Unit::set_angle@00605400`** XORs it (`605424`) whenever the new
+  angle is `reversing` from the old `+0x50`. This happens for every
+  unit, **before** the leader test that flips `GroupData::facing`
+  (§4.1). So the bit is the unit's own copy of the mirror its turns have
+  accumulated.
+- **`Unit::kill_current_order@005e2cb0`**'s move branch writes it
+  (`5e3087` sets, `5e308d` clears). It takes the same value it hands the
+  group, again before the leader test (§6.3).
+
+The Despot's history in run192 matches the first writer. It is born
+0x40000 on 14983. On 14985 its angle goes 0x55555555 → −756678656, a
+`reversing` turn, and the mask becomes 0x4000E (bit 2 set, along with
+`find_path`'s 8 and the army's 4).
+
+**Built**: [`sim::Movement::mirror`] carries the bit. Every port of
+`set_angle` flips it: `unit_set_angle`, `Movement::set_heading` and
+`Movement::set_facing`. `hand_back_facing` writes it before its leader
+test, and `do_guard` reads it off the target.
+
+### 25.3 What it moved
+
+**Great Lakes 15175 → 15383.** On 15383 ours spends 4 draws against 3,
+parting at index 1. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`
+where the original spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+That is past run196, so run202 was taken.
+
+**The value diff on 15095** (`run196_s_word_frame_is_widened_whole`):
+the four `orders_x`/`orders_y` rows are gone, along with all 89 rows
+run196's own blocks held up to the old word and the 221 above it.
+Nothing first-parts on 15040..15232. East Indies' word holds at 15985
+and chapter eleven's at 1139.
+
+### 25.4 What this has *not* established
+
+- **Two more readers are not wired.** `Unit::set_new_location` tests
+  the bit at `5f9290` and negates a pair of crew offsets under it.
+  `Guy::set_anim` tests `+0x68 & 2` of its argument at `5dafad`. No
+  capture has been compared on either.
+- `kill_current_order`'s three guards before the write (the order's
+  `+0x8`, and the game's `+0x558`/`+0x55c`) are the call site's as it
+  stood. This item did not re-read them.
+- Units a scenario or loader places with an angle: ours starts the bit
+  clear, which is `UnitData::UnitData`'s zero.
+
+### 25.5 Coverage
+
+**Diff-backed**:
+- the post arithmetic under the mirror. The unit test
+  `a_guard_s_offset_is_mirrored_by_its_target_s_own_flag` runs on
+  run196's own numbers, and run196's widening compares the posts block
+  for block.
+- the first writer, on the Despot's own history.
+
+**Reading-only**: the `kill_current_order` writer, and the two unwired
+readers.

@@ -5760,8 +5760,9 @@ spends a draw in the capture.
 - **The guy's aim at stand-up.** The dump prints it, but the stand-up
   has no slot map yet, so a capture opened mid-fight starts every guy
   un-aimed.
-- `unit_masks & 2`, `Unit::set_angle`'s own mirror bit, is not carried.
-  Only the group half of that write is.
+- ~~`unit_masks & 2`, `Unit::set_angle`'s own mirror bit, is not carried.
+  Only the group half of that write is.~~ Carried since item 711
+  (`sim::Movement::mirror`, `docs/GROUPS.md` §25).
 - The army group's `speed`/`new_speed`, 0 against 25 from 616. That is
   `Group::add`'s `compute_speed` for a group with an id. It spends no
   draw here.
@@ -6052,8 +6053,9 @@ coins agree draw for draw.
 - **The human leader's sweep** over the player's other guards.
 - **`Group::sort` inside `Form::compute`** on the stack group. A no-op on a
   list `group_add` has just built captain-first, and not run.
-- **The target's `unit_masks & 2`** mirror of `dx`. Not carried: run133's
-  wagon has the bit clear.
+- ~~**The target's `unit_masks & 2`** mirror of `dx`. Not carried: run133's
+  wagon has the bit clear.~~ Built by item 711: run196's Despot carries
+  it on 15095 (`docs/GROUPS.md` §25).
 - **The idle-target engagement**, `find_melee_target(−1, 0, 0, 1, 0)`. It
   is stood in for by `find_melee_target`'s idle radius and a
   `QUEUE_FIRST` attack. The original's own guard range
