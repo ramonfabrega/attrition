@@ -895,6 +895,31 @@ or a targetless air order is the base arm.
    disband arm needs `build_masks & 1`, written only by
    `Unit::resolve_block@005fccc0`). Predicted not.
 
+**Run 2026-09-23 as run175 (item 651): the first falsifier fired, on the
+target arm.**
+
+- **Each aircraft takes the enemy Airbase.** On its birth block the
+  Fighter `0/6` holds an `ATTACKORDER` on who=1's Airbase and the Bomber
+  `1/6` one on who=0's, and on the next each adds a `MOVEORDER` to an
+  attack point beside it. Both **walk there on the ground**, `air_alt` 0:
+  the Fighter reaches (600, 7944) on 632 and its stack is empty from 633;
+  the Bomber reaches (1992, 7704) on 700 and holds `ATTACK` with a
+  one-frame `MOVE` on every other frame to 1249, never moving again.
+  Neither Airbase takes a point of damage.
+- **The base link is dead, as read.** `inside_up` −1 and `air_alt` 0 on
+  every block of both; each Airbase's `inside_down` −1 and
+  `launch_frames` 0 throughout; no air order anywhere but the bird's.
+- **The second, third and fourth did not fire.** The seats are run168's;
+  `mana_burn` stops at 400 on 1010 and 600 on 1215 and nothing else
+  changes; no draw under `do_launch` or `attempt_launch`, no disband.
+
+**So the chapter measured an aircraft's ground attack on a building, not
+an air line.** An aircraft outside a base is not inert: it is a ground
+unit that its own idle search sends at the nearest enemy building it may
+take, and run168 simply had none in reach. What flies — an air order on a
+player's aircraft — still needs a writer the channel does not reach: a
+trained aircraft inside its base, or an issuer (§13).
+
 ## 11. Chapter seven — the civilians, and what AI-off takes away
 
 **The premise below was falsified by its own capture, and the chapter is
@@ -1272,7 +1297,7 @@ below without a run take their number at booking (the eleventh pass).
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
-| 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window (item 651) — **staged, not yet captured** |
+| 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the

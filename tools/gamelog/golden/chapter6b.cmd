@@ -135,6 +135,14 @@
 #    Airbase's `launch_frames` above 0, or who=1's Airbase leaving the dump
 #    (a disband). Predicted not to (points 2 and 9).
 #
+# RUN 2026-09-23 as run175 (item 651; docs/RUNS.md): 315 s, 112 MB. The
+# FIRST falsifier fired, on the target arm: each aircraft took an
+# ATTACKORDER on the ENEMY Airbase on its birth block and walked to it on
+# the ground at air_alt 0 (the Fighter to (600, 7944) by 632, then idle;
+# the Bomber to (1992, 7704) by 700, then stuck). inside_up -1, air_alt 0,
+# launch_frames 0 on every block: the base link is dead as read. The
+# second, third and fourth did not fire.
+#
 # check: every staged line runs. `cmdsran.py` shows ten `INFO cmd` returning
 #        1 (the eight here, `37 !ffwd`, `1250 !quit`).
 # check: `MAP_STYLE 14`, seed 12345, blocks 1 and 605..1249 at least.
