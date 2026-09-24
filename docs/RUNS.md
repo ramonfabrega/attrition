@@ -6397,6 +6397,35 @@ the gap** (Loop 687): six blocks shared with run196, the 151 up to the
 word, its block, and 56 of runway above it. The readings and their kills
 are in the stanza.
 
+**Taken whole.** 475 MB of dump and 20.6 MB of trace, 214 blocks
+15227..15440. About 20 minutes from launch (18:15) to archive (18:35),
+with no human at the menu. The lane lock was stale (pid 26953, run196's,
+dead). Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 15,452 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **214 blocks, 15227..15440, no gap** |
+| a `GROUPDATA` on every window block | **214** |
+| overlap with run196, nothing excluded | **6 in common (15227..15232), 0 differ** |
+| the coverage window | a set on all 9 frames 15379..15387 |
+
+**What it settled** (`run202_s_word_frame_is_widened_whole`).
+- **R1 holds**: the checks above.
+- **The word is a citizen's order.** On block 15383 the original's
+  citizen `1/70` holds one order and ours holds none. On 15384 theirs is
+  kind 3 and ours stands idle, which is the extra `Unit::do_idle` stand.
+  Building `1/2022`'s gather list holds `1/70` here and `1/73` there. So
+  **R3 holds**.
+- **R2 is false, though its killer did not fire.** The first row to part
+  is the escort's: The Despot `1/79`'s move `facing`, 1 here against 0
+  there, on 15351, a value row that spends no draw. But the idler is
+  `1/70`.
+- The floor is run196's walk (422, nothing on run196's own blocks since
+  item 711), then 11 keys on run202's own blocks up to the word, and 840
+  to the window's end.
+
 ## run196 — Great Lakes' word 15175, past run192's last block (2026-09-24, item 706)
 
 **What it is.** run192's line, unchanged,

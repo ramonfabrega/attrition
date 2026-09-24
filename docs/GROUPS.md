@@ -3459,7 +3459,11 @@ test, and `do_guard` reads it off the target.
 **Great Lakes 15175 → 15383.** On 15383 ours spends 4 draws against 3,
 parting at index 1. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`
 where the original spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-That is past run196, so run202 was taken.
+That is past run196, so run202 was taken. On its own blocks
+(`run202_s_word_frame_is_widened_whole`), the word is the citizen `1/70`.
+It holds one order in the original on 15383 and none here. The Despot's
+move order also parts on its `facing` from 15351, a value row with no
+draw.
 
 **The value diff on 15095** (`run196_s_word_frame_is_widened_whole`):
 the four `orders_x`/`orders_y` rows are gone, along with all 89 rows
