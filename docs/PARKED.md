@@ -178,8 +178,9 @@ no node for piece 265's release (COMBAT §22's seam, beside (611)).
 ## Parked by item 613, 2026-09-23 — under East Indies' 11069
 
 (622) **The keys under the word on run152**, none on 11747's draw: the
-peasants, `1/36`'s and `1/41`–`1/43`'s hit points, and `SITE` on 10976
-(`docs/journal/2026-09-23-item-613.md`). `1/2018`'s list order closed on
+peasants and `1/36`'s and `1/41`–`1/43`'s hit points
+(`docs/journal/2026-09-23-item-613.md`); `SITE` on 10976 closed on 688's
+halving (AI §67). `1/2018`'s list order closed on
 620's clamp, and food and metal a unit off on 629's Merchant seat.
 
 (624) **The rest of `get_cost`'s pre-ramp tail and its context
@@ -197,9 +198,6 @@ value rows off it; whether any of `get_cost` itself is left is unread.
 the original**, and the ammo pool's slots are one apart. Neither draws.
 
 ## Parked by item 608, 2026-09-23 — the slot count's edges
-
-(614) **`SITE[7].val` on 10776**: 26 here against 13 in the original. It
-stands through run149's last block, 10879, and spends no draw.
 
 (615) **`count_gather_slots`' `open` floor.** This crate floors each
 building's share at 0, and the original has no floor. No row shows it
@@ -1441,8 +1439,9 @@ coordinate argument did not calibrate the way the runbook says" closes.
 
 (383) **run107 opened two families never compared on Great Lakes.**
 Player 1's ten `SITE` slots part as a **re-ordering of the same ten
-sites** — our `SITE[3]` is their `SITE[1]` and so on, with `rank` in the
-residue on every slot — and `tech_frame`/`tech_cat_frame[0..3]` sit at
+sites** — our `SITE[3]` is their `SITE[1]` and so on; since 688 the values
+agree and only the slot order stands, with one low-value site in three
+spans (AI §67.5) — and `tech_frame`/`tech_cat_frame[0..3]` sit at
 nought against 8382/4976/8382/8182/6376. Both are inside
 `run107_s_window_is_the_leader_record_at_the_word`'s 109 fields, so they
 are floored and cannot regress silently; neither is on the word's frame,

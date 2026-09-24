@@ -13,12 +13,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**6 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-688 (Great Lakes) and att-693 (chapter ten) are live.*
+**7 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-695 (Great Lakes) and att-693 (chapter ten) are live.*
 
-- **Great Lakes 12536 → 14382 in two landings**: the retry gates on
-  `is_move` (673), and a resumed search reads its blocks as suspended
-  (678, PATHFINDER §26, run178). **East Indies 13640 → 15782** (643):
+- **Great Lakes 12536 → 14529 in three landings**: the retry gates on
+  `is_move` (673), a resumed search reads its blocks as suspended (678,
+  run178), and a founded city halves the site values round it (688). **East Indies 13640 → 15782** (643):
   animation names resolve case-folded, first match (ANIM §12, run166).
 - **Chapter six-b staged and closed** at 1250 (651, 680): each aircraft
   walks at the enemy Airbase, and a captain's attack on a building re-runs
@@ -30,12 +30,12 @@ att-688 (Great Lakes) and att-693 (chapter ten) are live.*
   692 the census's order row); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w15782 of 24,000 · GreatLakes w14382 of 24,000
+Long captures: EastIndies w15782 of 24,000 · GreatLakes w14529 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · 693 next
-Endpoint 24001: EastIndies 46 off, 10 unlinked · GreatLakes 33 off, 0 unlinked
+Endpoint 24001: EastIndies 55 off, 0 unlinked · GreatLakes 46 off, 0 unlinked
 
-**Opener: 693 is live on the rules lane and 688 on the AI lane (Great
-Lakes is the lower map); 694 follows 688. A detached capture waits on
+**Opener: 693 is live on the rules lane and 695 on the AI lane (Great
+Lakes is the lower map); 694 follows 695. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -46,13 +46,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-688. **Great Lakes' word is 14382: who=1's building placement** (678 moved
-    it 12897 → 14382: a resumed search reads its blocks as suspended,
-    PATHFINDER §26, AI §66). On 14382 ours 11 draws against 13 at index 2:
-    ours `Leader::make_stuff+0x221`, theirs `Leader::produce_building
-    +0x1805`. On 14383 who=1 places `1/2025` at (39552, 17472), the
-    original at (42624, 19776). The nearest input the dump prints is
-    `SITE[1]`, parting on 12976. Inside run178 (to 14899). No mechanism.
+695. **Great Lakes' word is 14529: the capital moves to Norwich** (688
+    moved it 14382 → 14529: `City::fix_world_vals` quarters and halves
+    `WData.val` round a founded city, AI §67). On 14529 ours 7 draws
+    against 3,213 at index 0: ours `Guy::set_anim+0x97a < Guy::inc_time
+    +0x271`, theirs `PathFinder::calc_road_cost+0x46`. On block 14529 the
+    capital flag (`city_flags 0x10`) moves `1/2000` → `1/2007` in the
+    original only. Inside run178. The hypothesis is CITIES §4's Senate arm.
 
 694. **East Indies' word is 15782: who=1's birth of `1/60`** (643 moved it
     13640 → 15782: animation names resolve case-folded, first match, ANIM
