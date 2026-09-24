@@ -51,6 +51,8 @@
 #    remnant. A large one indexes `div_3_table[p >> 4]` past its end in
 #    `Unit::init`, and the game may die on 700 with every earlier block
 #    already on disk (the reason `bird` is last).
+#    MEASURED (item 652, run169's packet at logger frame 701): (0, 6). The
+#    seat is (24, 24) as predicted; the patrol point is six units off it.
 # 3. **No dump prints owner 9** (gaia.rs, `BIRD_OWNER`; run127's dump has
 #    UNITDATA for owners 0, 1 and 8 and none for 9, with birds alive).
 #    So §10's first falsifier as written, "no AIRPATROLORDER block after 700",

@@ -5557,8 +5557,8 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     }
 }
 
-/// **Chapter six's word, widened whole, both directions** (items 648 and
-/// 650). Every
+/// **Chapter six's word, widened whole, both directions** (items 648, 650
+/// and 652; since 652, run168 whole). Every
 /// record run168 carries on every block of [`WIDENING_CHAPTER_SIX`], by
 /// [`widen_civilians`] with the `AMMO` record on: every unit and figure,
 /// both leaders at `LEADERS=2`, and every live round either side holds.
@@ -5601,36 +5601,20 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         floor.len()
     );
     // **What parts under the word**, pinned by block and key (`docs/GOLDEN.md`
-    // §10). Each aircraft's `form` on its birth block, the standing family.
-    // **The word's block**, 700, agrees on every record, and so does every
-    // block from 606 to 700 past those two. From item 650 neither aircraft
-    // takes an order here, as in the dump (`docs/COMBAT.md` §61). On 701
-    // the AI scout `1/0` walks for another point, its whole move order and
-    // path. The original spends the bird's birth draw on 700 and this
-    // crate, carrying `bird` as `CHAPTER_DEBT`, does not, so `think_scout`'s
-    // roll comes one draw early. No round is in either air.
+    // §10). Each aircraft's `form` on its birth block, the standing family,
+    // and nothing else on any block of run168. **Item 652 staged `bird`**
+    // at the channel's measured cursor, (0, 6), and the 701 rows went: the
+    // AI scout `1/0`'s move order and path, which parted because
+    // `think_scout`'s roll came one draw early without the bird's birth
+    // draw. The window is run168 whole now, 605 to its last block, 899,
+    // and no round is in either air.
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX.0)
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     got.sort();
-    let mut want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
-    want.extend(
-        [
-            "dest_angle",
-            "order:move.angle",
-            "order:move.x",
-            "order:move.y",
-            "orders_x",
-            "orders_y",
-            "path:length",
-        ]
-        .iter()
-        .map(|k| format!("701 1/0 {k}")),
-    );
-    want.extend((0..9).map(|i| format!("701 1/0 path[{i}].to")));
-    want.sort();
+    let want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
     assert_eq!(got, want, "ch6: what parts under the word moved");
 }
 

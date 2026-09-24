@@ -26,7 +26,7 @@ and nothing more**~~ **chapter three is captured (run145, closed at 900;
 its restage run146, open) and seven-b too (run156/run157, item 628, its
 premise killed by construction and pinned open as measured, §11); ~~six and
 eight are a design and nothing more~~ **six is captured too (run168, item
-648, its second falsifier fired, pinned open at ~~616~~ 700 since item 650, §10); eight is a design
+648, its second falsifier fired, pinned open at ~~616~~ ~~700~~ and closed at 900 by item 652, §10); eight is a design
 and nothing more** — no capture has been run for it, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
@@ -762,7 +762,14 @@ show a hull needs a Dock.
   (`System::init@00599700`). Its `mouse_coord_x/y` are written only by
   `parse_cmd` with `no_mouse` 0 and by `CommandPackage::process_console_cmd`,
   and the channel reaches neither. The prediction was zero, which puts the
-  bird at (24, 24) with its patrol point on the corner.
+  bird at (24, 24) with its patrol point on the corner. ~~zero~~ **Measured
+  (0, 6)** (item 652, run169's packet at logger frame 701): the
+  `ConsoleWin`'s own `mouse_coord_x/y`, and the one fresh
+  `AirPatrolOrder`'s waypoint, agree. The seat is (24, 24) as predicted,
+  since `Unit::init` snaps any cursor in the corner tile there. The patrol
+  point is six units down the west edge. A walk with the cursor at (0, 0)
+  lands the 750 and 791 edge coins and parts on 894, two frames before the
+  bird's third.
 - **The first falsifier fires on the trace's frame 700**, not in the dump.
 - **The second is an absence** on the aircraft's `UNITDATA`, 611 and 616
   to 899.
@@ -797,30 +804,34 @@ inert on this lobby, human's or computer's. What the chapter measures is
 which only the draw stream sees. It is pinned open as measured, as seven-b
 was, and an air line that moves needs a restage with a base.
 
-**Where this crate parts: `GOLDEN_WORD_CHAPTER_SIX` = ~~616~~ 700.**
-**Item 650 moved it 616 → 700**, `bird`'s frame. Neither aircraft's
-idle search takes the other in the original. `Object::poor_target`'s plane
-arm refuses a plane to a searcher without `ANTI_AIR`, and to one with it
-beyond its own `max_range`, which is the Fighter at eight tiles of its
-seven. `valid_target_const`'s air ladder refuses the Fighter to the
-Bomber as well: a `FLY_HIGH` 0 searcher cannot take a plane with no air
-order, because such a plane flies high (`docs/COMBAT.md` §61). Block 700
-agrees on every record. On 700 the original's draw 0 is the bird's birth,
-which this crate does not carry, and on 701 the AI scout `1/0`'s
-`think_scout` roll lands one draw early. What follows is 648's reading of
-616, kept as it stood: 616 was the Bomber's
-birth frame. It spends 25 draws against the original's 24, parting at draw
-18, on a `Unit::fight+0x9b0` of `1/6`'s. The original spends none. On
-block 616 both sides hold `1/6` at (2424, 7800) with `idle` 1 and group
-64, and ours holds one `ATTACK` order where the original's holds none. On
-617 ours walks at the Fighter, `orders_x` 888 against 2424. No mechanism
-is named. `chapter_six_s_word_frame_is_widened_whole` widens run168 whole
-to 617, `AMMO` included; past the first block's standing rows only the
-Bomber's five rows part. Both leaders agree on every `LEADERS=2` row of
-every block, so `library 6`'s `gain_tech` tail agrees through the Modern
-age (`docs/INPUT.md` §11.11). `bird` is still carried and not acted on by
-the harness (`CHAPTER_DEBT`), so a walk past 616 parts on 700 next at the
-latest.
+**Where this crate parts: `GOLDEN_WORD_CHAPTER_SIX` = ~~616~~ ~~700~~
+900, closed.** 900 is run168's trace end, and no draw parts on any frame.
+
+- **Item 652 moved it 700 → 900** by staging `bird`: `init_unit(9, BIRD)`
+  and the air patrol at the channel's cursor, through the sampling's own
+  entry point (`Sim::spawn_bird_at`, `docs/SYNC.md` §3.9). The cursor is
+  **(0, 6)**, measured on run169's packet (above). The bird's birth draw
+  on 700 puts the AI scout's `think_scout` roll back on the original's
+  draw. Its edge coins land on 750, 791 and 894, the three the capture
+  has. **At (0, 0) the walk parts on 894**, the third coin, two frames
+  early, and that is the check that can fail: the widening passes at
+  either cursor, because nothing prints owner 9. The value diff is run168
+  whole, 605 to 899: past the first block's standing rows only the two
+  aircraft's `form` on their birth blocks part, and the 701 rows (the
+  scout's move order and path) are gone.
+- **Item 650 moved it 616 → 700.** Neither aircraft's idle search takes
+  the other in the original. `Object::poor_target`'s plane arm refuses a
+  plane to a searcher without `ANTI_AIR`, and to one with it beyond its
+  own `max_range`. `valid_target_const`'s air ladder refuses a `FLY_HIGH`
+  0 searcher a plane with no air order (`docs/COMBAT.md` §61).
+- **616 was 648's word**, the Bomber's birth frame: a `Unit::fight+0x9b0`
+  the original does not spend, and an `ATTACK` order where the original
+  holds none (`docs/journal/2026-09-23-item-648.md`).
+
+Both leaders agree on every `LEADERS=2` row of every block, so `library
+6`'s `gain_tech` tail agrees through the Modern age (`docs/INPUT.md`
+§11.11). The chapter's premise stays killed: an air line that moves needs
+a based restage (parked 651).
 
 ## 11. Chapter seven — the civilians, and what AI-off takes away
 
@@ -1122,7 +1133,7 @@ below without a run take their number at booking (the eleventh pass).
 | 146 | three, restaged in two arenas | `[605, 1000)` | **run146 (item 587), 55 MB, 186 s; first parting 633; all three falsifiers reachable, none fired** |
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
-| ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ 700 (item 650)** |
+| ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
 
 Chapter eight and any further detail window need numbers beyond the
 reservation. The order above is by **what a failure would teach**, not by
@@ -1144,7 +1155,7 @@ two scripts are one game through frame 0 and part on frame 1.
 `tools/gamelog/golden/` parses, that every line is on the right half of
 `run_cmd`'s two switches, and that the verbs the interpreter will not act on
 are exactly the ones `CHAPTER_DEBT` names — currently chapter one's bare
-`war` and chapter six's `bird`. It fails when a new chapter reaches for a
+`war` ~~and chapter six's `bird`~~ (staged since item 652). It fails when a new chapter reaches for a
 verb the harness drops, which is the failure mode this design is most likely
 to produce.
 
@@ -1183,10 +1194,13 @@ of chapter one itself.
   never writes them, and the case applies no `WorldData::restrict`. run168
   confirms the bird is born, on 700, but no dump prints owner 9. The
   prediction of zero, the world's corner, is unconfirmed: the bird's edge
-  coins come on 750, 791 and 894, not in its first frames. Which heap value
-  it is, and whether it is the same on every launch, is not established.
-  The harness settles it when it builds `bird`, by the cursor whose draws
-  agree.
+  coins come on 750, 791 and 894, not in its first frames. ~~Which heap value
+  it is, and whether it is the same on every launch, is not established.~~
+  **(0, 6)**, read off run169's packet (item 652). The corner was right, and
+  the three coins are the staged bird's own, after a loop out and back.
+  **Still not established**: whether every launch leaves (0, 6). run168
+  and run169 are two launches that did, the first by its walk and the
+  second by its packet (parked 653).
 - **How the golden word composes across chapters.** §1 states the design's
   recommendation and says it is the commander's ruling. Until a second
   chapter pins, the handoff's `Golden:` line is chapter one's word and the

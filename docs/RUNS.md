@@ -5806,6 +5806,34 @@ of trace, 34 minutes** from launch at 16:47 to archive at 17:21, through
 only capture past 11859, ends on block 11959. The window runs 360 blocks
 past the word because this crate's fix for block 11922, measured before
 the run, moved the word to 12135.
+## run169 — chapter six's cursor, a packet at logger frame 701 (2026-09-23, item 652)
+
+**What it is.** run168's game to 712 with a `RON_STATE_FRAME=701` packet:
+the state after trace tick 700, whose entry runs `bird`. The dump detail is
+run168's over [699, 705), with no `[Start Game]` set, because nothing walks
+this capture. `success: true`, exit 0, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. **17 s launch to exit, 25 s in all**,
+with an 818,813,928-byte packet (173 ranges, 250 ms to copy). The lane
+lock was stale: its holder, pid 2339 (run168's), was dead.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-23-run169 \
+    --map 14 --end-frame 712 --timeout 2400 --log-window 699 705 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter6.cmd \
+    --tracer-def RON_STATE_FRAME=701 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is 597's (`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+It is PDB-bound and does not depend on the frame or the map.
+
+**Why this and not the draw stream.** run168's trace puts the bird in the
+corner and cannot say where in it. `Unit::init` snaps every cursor in
+[0, 48)² onto the same seat, (24, 24), and only the unsnapped patrol point
+differs. A walk with the cursor at (0, 0) agrees through the 750 and 791
+edge coins and parts on 894, the third coin, two frames early.
 
 **Every check passed:**
 
@@ -5827,3 +5855,27 @@ original's `Guy::init_real` stands each one. `docs/ANIM.md` §11;
 `run163_s_word_frame_is_widened_whole`. It is also the first window on
 this map to print a grouped attack-move (`GROUPATTACKTOORDER`); the
 coverage pin reads it.
+| `frame_snapshot.py` against the plan | frame 701, trace 700, the roots unchanged |
+| `rngcmp.py` against run168's `rontrace.log` | **0 differing**, 713 identical, 700–712 included |
+| `samegame.py` against run168 | 7 blocks in common (1, 699..704), **0 differ** |
+
+**What it settled.** Two reads, which agree:
+
+- `MiscAccess::console_win` → the `ConsoleWin` (`ConsoleWin::vftable`
+  `0xb51644` at +0, `coord_mode` 2). `mouse_coord_x/y` at +0x518/+0x51c
+  read **(0, 6)**.
+- Exactly one `AirPatrolOrder` is fresh: it has `cruising_alt` 0x640, as
+  `add_air_patrol_order` writes it, where the six older birds' read 1800,
+  the re-roll's. Its target is −1/−1 and it holds one waypoint, **(0, 6)**.
+  The patrol sub-object is at the order's +0x10, the waypoint through
+  `x_pos.data` at +0x24 and `y_pos.data` at +0x40.
+
+Bird `9/6`'s unit seat reads (24, 24), the snap of (0, 6). A unit's
+`+0x78` for a bird is its birth tile's centre and is not updated in flight
+(the six older birds read their hatch cells' centres plus 24). With the
+cursor at (0, 6), chapter six walks run168 to its end at 900 with no
+draw parting (`docs/GOLDEN.md` §10). Whether the heap leaves (0, 6) on
+every launch is parked 653; run169 is a second launch that left the same
+value. The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-23-run169/map-14`, and the scratch reader
+at `~/ron-data/lab-experiments/2026-09-23-item-652/pk.py`.

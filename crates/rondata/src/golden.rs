@@ -12,10 +12,12 @@
 //! `docs/INPUT.md` §8 argued the other way — capture ground truth without
 //! cheats, because a recording of a cheat-staged run cannot be replayed —
 //! and entry 41 reverses it for this track: the set is small, listed, and
-//! every member is a state poke with a named target. **No console command
-//! issues an order at all** (`docs/ORACLE.md`, "The channel's vocabulary"),
-//! so nothing here reaches `sim::orders`; the orders come from the `.rcx`
-//! through [`crate::input`], and the two halves never overlap.
+//! every member is a state poke with a named target. ~~No console command
+//! issues an order at all~~ — **one does**: `bird` hands gaia's new bird an
+//! air patrol (`docs/ORACLE.md`, "The channel's vocabulary"), and that
+//! order is the bird's own patrol point in `sim::gaia`, never
+//! `sim::orders`. The players' orders come from the `.rcx` through
+//! [`crate::input`], and the two halves never overlap.
 //!
 //! What this module is not: `ConsoleWin::parse_cmd`. It re-derives the
 //! argument grammar of the cases it implements and refuses everything else
@@ -73,6 +75,9 @@ pub enum Cheat {
     },
     /// `tech [who] [tech | all] [on | off]`.
     Tech { who: i32, name: String, on: bool },
+    /// `bird`, table case `0x52`: a Wild Bird for owner 9 at the console's
+    /// cursor, on an air patrol of the same point. It takes no argument.
+    Bird,
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -418,9 +423,28 @@ fn parse(text: &str) -> Cheat {
                 None => Cheat::Unmapped(word),
             }
         }
+        "bird" => Cheat::Bird,
         _ => Cheat::Unmapped(word),
     }
 }
+
+/// **The console's cursor on the staged channel**, `console_win +0x518/
+/// +0x51c` (`mouse_coord_x/y`) — the point `bird` reads.
+///
+/// Nothing on the channel writes it. Its two writers are `parse_cmd` with
+/// `no_mouse` 0 and `CommandPackage::process_console_cmd`, and the tracer
+/// reaches neither; `ConsoleWin::ConsoleWin@007e6370` and
+/// `ConsoleWin::init@007e6550` leave the field alone, and the object is a
+/// `malloc(0x558)` in `System::init@00599700`. So the value is what the heap
+/// left there, and it is **measured, not read**. run169's packet at logger
+/// frame 701 holds `(0, 6)` in the field, and the same point as the
+/// one fresh `AirPatrolOrder`'s waypoint (`docs/RUNS.md` run169). With it,
+/// chapter six walks run168 to its end. At `(0, 0)` the walk parts on 894,
+/// the bird's third edge coin, two frames early, because `Unit::init`
+/// snaps both points onto the same seat and only the patrol point differs
+/// (`docs/GOLDEN.md` §10). Whether every launch leaves the same value is
+/// parked 653; run168 and run169 are two that did.
+pub const STAGED_CURSOR: Pos = Pos { x: 0, y: 6 };
 
 fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
     let word = command_word(&line.text);
@@ -497,6 +521,22 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
             }
         }
         Cheat::Add { num, name, who, at } => add(&word, num, &name, who, at, built, loaded, done),
+        Cheat::Bird => {
+            // `run_cmd` case `0x52`: `Objects::init_unit(objects, 9,
+            // BASE_GAIATYPES, x, y, −1, −1, −1)` on the raw cursor — no
+            // `find_nearby_spot` and no `WorldData::restrict`, where `nuke`
+            // beside it has one — and `Unit::add_air_patrol_order` on the
+            // same point when the unit was made. The guard in front,
+            // `(semaphore & 4) == 0 || no_mouse != 0`, always passes on the
+            // channel, which calls with `no_mouse` 1. It is the sampling's
+            // own pair, so it is the sampling's entry point.
+            if built.sim.spawn_bird_at(STAGED_CURSOR).is_some() {
+                done.units += 1;
+                done.ran += 1;
+            } else {
+                done.skip(&word, "no bird type loaded");
+            }
+        }
         Cheat::Unmapped(w) => done.skip(&w, "not in the interpreter's cheat set"),
     }
 }
@@ -640,9 +680,9 @@ mod tests {
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
         ("chapter5.cmd", &[]),
-        // `bird` is the one console command that issues an order
-        // (`docs/GOLDEN.md` §10); the interpreter does not model it.
-        ("chapter6.cmd", &["bird"]),
+        // `bird`, the one console command that issues an order, is staged
+        // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
+        ("chapter6.cmd", &[]),
         ("chapter7.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),
@@ -717,6 +757,17 @@ mod tests {
                  re-pin CHAPTER_DEBT and say so in docs/GOLDEN.md"
             );
         }
+    }
+
+    /// `bird` takes no argument and is the chat half's (`run_cmd` case
+    /// `0x52`), so a staged `700 bird` parses to [`Cheat::Bird`] and is not
+    /// debt (item 652).
+    #[test]
+    fn bird_is_the_chat_half_s_argumentless_spawn() {
+        assert_eq!(parse("bird"), Cheat::Bird);
+        let s = Script::parse("700 bird\n");
+        assert_eq!(s.lines().len(), 1);
+        assert!(!s.lines()[0].console);
     }
 
     /// The script format, including the two rules a reader gets wrong:

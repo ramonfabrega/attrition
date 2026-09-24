@@ -1496,7 +1496,13 @@ it runs while paused; `no_mouse = 1`, so `add`/`move` without coordinates
 have ~~no cursor tile to fall back on~~ **a stale one** — `parse_cmd`
 refreshes `mouse_coord_x/y` only when `no_mouse == 0`, so an omitted
 coordinate silently uses whatever the last real cursor read left. Always
-give `x,y`.
+give `x,y`. **In an unattended launch nothing has read the cursor, and the
+field is heap.** Neither `ConsoleWin`'s constructor nor its `init` writes
+it. run169's packet reads **(0, 6)** (item 652), and run168's draw stream
+agrees with the same value. So a coordinate-less `add`, `move` or `bird`
+lands in the world's corner on the two launches measured. Whether every
+launch leaves it there is parked 653. `bird` has no `x,y` to give
+(`docs/GOLDEN.md` §10).
 
 ## The channel's vocabulary, and what it cannot do (2026-08-26)
 

@@ -586,8 +586,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // with an aircraft in it — a Fighter and a Bomber staged outside any
     // base — whose records no other window here carries. The window is
     // the word's block with two on either side, as seven-b's.
+    // Item 652 closed it at 900, the capture's end, so the window stays
+    // on 700, the block it was widened on, as seven-b's stay on theirs.
+    let _ = GOLDEN_WORD_CHAPTER_SIX;
     if let Some(p) = &ch6 {
-        let w = GOLDEN_WORD_CHAPTER_SIX;
+        let w = 700;
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter six carries the word's five blocks");
         frames += n;

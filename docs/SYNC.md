@@ -501,7 +501,9 @@ settles the type without one.
 
 A bird is what `Objects::process_all`'s sampling creates: `init_unit(who 9,
 BASE_GAIATYPES)` at the hit cell's centre (`cell·0x300 + 0x180` on each
-axis) and `add_air_patrol_order` on the same point. From that frame it is in
+axis) and `add_air_patrol_order` on the same point. The console's `bird`
+makes the same pair at its raw cursor, so both go through
+`Sim::spawn_bird_at` (item 652, `docs/GOLDEN.md` §10). From that frame it is in
 the unit loop's who-9 slot, and `do_job` runs `do_air_patrol`: the `+0x180`
 virtual (`think_bird`), then `Unit::do_air_physics`.
 
