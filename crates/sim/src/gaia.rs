@@ -187,11 +187,20 @@ impl Sim {
     /// — taken *inside* the sampling loop, between the third pair and the
     /// fourth, exactly where the hit fell.
     fn spawn_bird(&mut self, c: Cell) -> Option<usize> {
-        let ty = self.bird_type()?;
-        let pos = Pos::new(
+        self.spawn_bird_at(Pos::new(
             c.x * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
             c.y * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2,
-        );
+        ))
+    }
+
+    /// `init_unit(objects, 9, BASE_GAIATYPES, pos)` and
+    /// `add_air_patrol_order` on the same `pos` — the pair the sampling
+    /// makes at a cell centre, and the pair `ConsoleWin::run_cmd@007d6a70`'s
+    /// case `0x52` (`bird`) makes at the console's raw `mouse_coord_x/y`,
+    /// with no `WorldData::restrict` between (`docs/GOLDEN.md` §10). The
+    /// two callers differ only in the point they hand it.
+    pub fn spawn_bird_at(&mut self, pos: Pos) -> Option<usize> {
+        let ty = self.bird_type()?;
         // **`Unit::init@00612100` snaps a new unit onto its own tile.** The
         // first two lines of the constructor are
         // `div_3_table[p >> 4] · 0x30 + 0x18` on each axis — the centre of
@@ -571,6 +580,36 @@ mod tests {
         }
         s.sample_birds(0);
         assert_eq!(s.gaia.bird_spawns.len(), 10);
+    }
+
+    /// **The console's `bird` and the sampling are one pair of calls**,
+    /// differing only in the point (`docs/GOLDEN.md` §10, item 652).
+    /// `Unit::init`'s snap seats the bird on its 48-unit tile's centre and
+    /// the patrol order keeps the point it was handed, so a cursor of
+    /// `(0, 6)` seats it where `(0, 0)` would and patrols six units apart.
+    /// That is the whole of what run169's packet had to measure.
+    #[test]
+    fn a_staged_bird_is_seated_on_its_tile_and_patrols_the_raw_point() {
+        let mut s = sim_at(7);
+        s.add_unit_type(crate::UnitType {
+            hits: 1,
+            type_index: BIRD_TYPE_INDEX,
+            ..crate::UnitType::default()
+        });
+        let staged = s.spawn_bird_at(Pos::new(0, 6)).expect("a bird type");
+        assert_eq!(s.units[staged].owner, BIRD_OWNER);
+        assert_eq!(s.units[staged].pos, Pos::new(24, 24));
+        assert_eq!(s.bird_goal(staged), Pos::new(0, 6));
+        assert_eq!(s.live_birds(), 1);
+        // The sampling's own bird, on a cell centre, the same way.
+        let hatched = s.spawn_bird(Cell { x: 2, y: 3 }).expect("a bird type");
+        let centre = |c: i32| c * crate::world::UNITS_PER_CELL + crate::world::UNITS_PER_CELL / 2;
+        assert_eq!(s.bird_goal(hatched), Pos::new(centre(2), centre(3)));
+        assert_eq!(
+            s.units[hatched].pos,
+            Pos::new(centre(2) + 24, centre(3) + 24)
+        );
+        assert_eq!(s.live_birds(), 2);
     }
 
     /// **`AnimalData::get_speed@005d8380`, the animal's own** — the slot

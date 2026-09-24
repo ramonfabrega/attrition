@@ -2476,35 +2476,38 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWO: i64 = 900;
 pub(crate) const GOLDEN_WORD_CHAPTER_FIVE: i64 = 900;
 
 /// **Chapter six's golden word** — the air and the bird (`docs/GOLDEN.md`
-/// §10, run168): **700 of 901**, `bird`'s frame, which the harness carries
-/// as `CHAPTER_DEBT` (parked 652).
+/// §10, run168): **900 of 901, closed**. 900 is run168's trace end, and
+/// no draw parts on any frame of the chapter.
 ///
-/// **The delta** (item 650): 616 → 700. On 616 this crate spent 25 draws
-/// against the original's 24, a `Unit::fight+0x9b0` of the Bomber `1/6`'s,
-/// because its idle search took the Fighter `0/6`. Now neither aircraft's
-/// search takes the other (`docs/COMBAT.md` §61). `Object::poor_target`'s
-/// plane arm refuses a plane to a searcher without `ANTI_AIR`, and to one
-/// with it beyond its own `max_range`, and `find_nearby_target` now asks it.
-/// `valid_target_const`'s air ladder refuses the Fighter to the Bomber a
-/// second time. The ladder alone moved the word to 635, where the Fighter
-/// took the Bomber on its periodic think. On 700 the original's draw 0 is
-/// the bird's `Guy::init_real+0x52`, and this crate has no bird.
+/// **The delta** (item 652): 700 → 900, +200. `bird` is staged: `run_cmd`
+/// case `0x52`'s `init_unit(9, BIRD)` and air patrol, at the channel's
+/// cursor, through the sampling's own entry point
+/// ([`crate::golden::STAGED_CURSOR`], `sim::Sim::spawn_bird_at`). The
+/// cursor is **(0, 6)**, read off run169's packet at logger frame 701. The
+/// `ConsoleWin`'s `mouse_coord_x/y` and the fresh `AirPatrolOrder`'s
+/// waypoint agree. The bird's birth draw on 700 puts the AI scout's
+/// `think_scout` roll back on the original's draw. Its edge coins land on
+/// 750, 791 and 894 with the original's. At (0, 0) the walk parts on 894,
+/// two frames early: `Unit::init` seats both cursors on (24, 24), and only
+/// the patrol point moves.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_SIX`]'s test: block 700 agrees on
-/// every record. On 616 and 617 both sides hold `1/6` at (2424, 7800) with
-/// no order, `idle` 1 then 2, and `orders_x` 2424. Both aircraft hold their
-/// seats and no order to 700 on both sides. On 701 the AI scout `1/0`'s
-/// move order parts: `orders_x/y` (37368, 18936) against (45816, 12024),
-/// and a path of 33 against 9. `think_scout`'s roll is the draw after the
-/// bird's, which this crate does not spend.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 700;
+/// Item 650 moved it 616 → 700 (`docs/COMBAT.md` §61). Neither aircraft's
+/// idle search takes the other: `Object::poor_target`'s plane arm and
+/// `valid_target_const`'s air ladder.
+///
+/// **The block**, from [`WIDENING_CHAPTER_SIX`]'s test on run168 whole
+/// (605 to 899): the 701 rows are gone, the AI scout `1/0`'s move order
+/// and path. Past the first block's 26 standing rows only the two
+/// aircraft's `form` on their birth blocks part, 611 and 616. Both
+/// aircraft hold their seats and no order to 899 on both sides, and no
+/// round is in either air.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 900;
 
-/// `chapter_six_s_word_frame_is_widened_whole`'s window: run168 from its
-/// first block, 605, to two past the word, since the word's frame writes
-/// block 701, as [`WIDENING_CHAPTER_SEVEN_B`]'s does. Nothing before the
-/// word parts but the standing rows of the first block and the two
-/// aircraft's `form` on their birth blocks.
-pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 702);
+/// `chapter_six_s_word_frame_is_widened_whole`'s window: **run168 whole**,
+/// its first block, 605, to its last, 899 (item 652). Nothing parts
+/// but the standing rows of the first block and the two aircraft's `form`
+/// on their birth blocks.
+pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 901);
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
@@ -3459,11 +3462,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_FOUR),
     ),
     // Item 648: run168, chapter six's first walk, on the Bomber's birth.
+    // Item 652 closed it at 900 with `bird` staged, and widened run168 whole.
     (
         "GOLDEN_WORD_CHAPTER_SIX",
         GOLDEN_WORD_CHAPTER_SIX,
         Some("chapter_six_s_word_frame_is_widened_whole"),
-        648,
+        652,
         Some(WIDENING_CHAPTER_SIX),
     ),
     // Item 587: run145, the catapult's birth frame.
