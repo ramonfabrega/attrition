@@ -160,6 +160,8 @@ writes `+0xaa` as 9 for types `0x32`–`0x35` and 0 otherwise, and `+0xab`
 as −1; building it re-pins `form` rows across a dozen widenings. The human's census still does not run
 (`docs/AI.md` §23.1): the first-block `0/-1` leader and `0/2000` city rows
 stand.
+698 found the same shape on Great Lakes: three newborns' `form` −1
+against 0 on 14946 (`docs/journal/2026-09-24-item-698.md`).
 
 ## Parked by item 627, 2026-09-23 — the search gate's other arms
 
