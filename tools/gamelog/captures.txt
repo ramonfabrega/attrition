@@ -5656,3 +5656,67 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run174-greatlakes-civicword.txt gamelog-run178-greatlakes-copyword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run174 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(12894..12899)")}'
 # **The coverage window landed**: every frame 14378..14386 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run178.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=14378&&f<=14386&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+
+run: 166
+tag: eastindies-incword
+item: 643
+why: East Indies' long word is 13640 (item 642), where ours spends 34 draws against 33, parting at index 33 — an extra `Guy::set_anim+0x97a < Guy::inc_time+0x271` in ours after both sides' `Animal::do_idle+0x83` and thirty `Animal::think_bird` — and run159, the last capture on this map below run78's 15700, ends on block 11899, so the word's block 13641 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-24, item 643): every
+# `gamelog-*eastindies*` in `Logs\` for `BEGIN FRAME 13640`/`13641`,
+# and none holds either — the pattern checked first against run159's
+# 11591, which it finds. The block ranges on disk: run159 11270..11921
+# (its window to 11899, then its `!quit` stub), run155 to 11301, run152
+# to 11061; run78 starts at 15700 and run96 at 23960; run54 prints only
+# its draw stream. **What the disk cannot answer**: every record on the
+# word's own blocks 13640..13641 — whose `Guy::inc_time` asks ours for
+# the extra `set_anim`, and what the original's same unit's figure clock,
+# animation and order read there.
+#
+# **Sized to the word, not to the gap** (the brief; Loop 687): the gap
+# from 11899 is 1,741 blocks, two and a half hours on the single lane.
+# This is a narrow window, [13580, 13700), 60 blocks under the word and
+# 59 above it. A backward window (run182) is booked only if 13580 itself
+# already parts on a record the word's cause could come from, and it is
+# then sized to that record's first parting.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run54's game to 13710.** Killed if the trace differs
+#   from run54's on any frame. **No overlap check is possible**: the
+#   window shares no block with run159, so the draw stream is the only
+#   same-game evidence.
+# - **R2 — the extra is one unit's figure clock**, a guy both sides hold
+#   whose animation record (`GUY`) differs on 13640..13641 while its
+#   order agrees. Killed if no unit's `GUY` record differs on those
+#   blocks — then the extra is a unit the original does not hold, or a
+#   bird (owner 9, parked 675), which no dump prints.
+#
+# **run159's line plus `GROUPS=1`** (run178's pool, so the widening reads
+# every record a run on this box prints), no `cfg:`.
+frames: 13710
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9,GROUPS=1
+# **13580..13699, 120 blocks**: 60 under the word, its block 13641, and
+# 59 of runway above it for the word a fix moves it to.
+frame_window: 13580 13700
+# **Per-frame coverage over the word**, 13636..13644.
+cover: cover=1
+cover: window=13636-13644
+settle_min: 20000000
+# **Sized from run159 and run178**: 2.1 MB a block net of the 11 MB start
+# dump, so 120 blocks is ~0.26 GB, 0.4% of the 58 GB free. run178 ran
+# ~14 blocks a minute after a 90-second run-up, so this is ~10 minutes.
+# 120 polls is forty.
+poll_max: 120
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run166.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=13700)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 120 blocks, 13580..13699, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '{v=$3+0; if(v>=13580&&v<13700) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==120 && lo==13580 && hi==13699)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=13580&&v<13700)n++} print "blocks with a GROUPDATA: "n; exit !(n==120)}'
+# **The raised category is there**: a `MAKEOBJECT` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=13580&&v<13700)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==120)}'
+# **The coverage window landed**: every frame 13636..13644 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run166.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=13636&&f<=13644&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'

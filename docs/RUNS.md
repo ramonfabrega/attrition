@@ -6136,3 +6136,24 @@ outside the plan's ranges (`0x7a84642c`). The calls were made one
 function at a time. The packet stays outside git at
 `~/ron-data/lab-captures/2026-09-24-run177/map-14`, and the oracle
 scripts (`fap.py`, `fight.py`) at `<exp>`.
+## run166 — East Indies' word 13640, a narrow window over it (2026-09-24, item 643)
+
+**What it is.** run159's line plus run178's pool,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,DEATHS=1,LEADERS=9,GROUPS=1`, over
+`[13580, 13700)`, plus `rontrace.cfg` `cover=1` and `window=13636-13644`
+over the word. `!quit` at 13710, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 643
+```
+
+**Why it was owed.** Item 642 moved East Indies' word 11747 → 13640
+(`Region::go_here` through `leader_reg_cities`, `docs/TRANSPORT.md` §9.4).
+run159 ends on block 11899 and run78 starts at 15700, and no
+`gamelog-*eastindies*` holds block 13640 or 13641 (grepped before booking,
+the pattern checked against run159's 11591). **Sized to the word, not to
+the gap**: 60 blocks under the word and 59 above. It shares no block with
+run159, so its only same-game evidence is the draw stream against run54;
+a backward window is owed only if 13580 already parts on a record the
+word's cause could come from.
