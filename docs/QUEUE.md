@@ -31,8 +31,8 @@ on Great Lakes.*
   nine is the move line through `issue_move_to` (676).
 - **Nine Loop items ruled**, each a guard, a tool or a clause: 313, 630,
   638, 639, 645, 649, 656 (`tools/gamelog/waitrun.sh`), 667, 670.
-- **Fable backlog: 3 Loop items** (527 with a commitment, 677 the bird's
-  proxy, 685 `step4`'s whole frame); no `FABLE:` marker was filed.
+- **Fable backlog: 4 Loop items** (527, 677, 685 `step4`'s whole frame,
+  687 a capture's cost and levels); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12897 of 24,000

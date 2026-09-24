@@ -771,6 +771,20 @@ journals; not built.
 call on the packet was enough for 680; a question that spans a whole
 frame would not be (`docs/journal/2026-09-24-item-680.md`).
 
+(687) **A long capture's wall clock is its window, and nobody has priced
+the levels.** run178 (item 678) is 2,006 blocks, 12894..14899, at ~13 a
+minute and 2.1 MB a block (sized from run174: 510 blocks in 40 minutes,
+a 90-second run-up), so ~155 minutes and 4.2 GB, holding the single
+capture lane while a second lane waits. 1,483 blocks are the word's
+move, 516 are runway. Two questions for the pass, raised by the user
+2026-09-24: **does a lower level** (`LEADERS=9`, `GUYS=4`, `BUILDS=7`)
+cut the per-block cost without losing a field a widening reads —
+measured, not guessed, on one window at two levels — and **can the lab
+make captures cheaper** (a packet or `step4` over a sampled frame in
+place of a dumped block, a draw-stream-first split, a runway sized to
+the queue's history of word jumps). Neither is ruled; the rule that a
+moved word lands with its value diff stands until it is.
+
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
 (476) **f10234's three value rows**: `0/5 order:length` 2/1, `0/5
