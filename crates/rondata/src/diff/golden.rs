@@ -5699,10 +5699,14 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
     );
     // **What parts under the word**, pinned by block and key
     // (`docs/GOLDEN.md` §12). Each staged unit's `form` on its birth
-    // block, and on 618 the Spy `1/9`'s whole order: run171 holds an
-    // `EXPLORETOORDER` to (4344, 10488) with a two-slot path, group 66 and
-    // `form_mod` 50 on its birth block, and this crate holds no order. The
-    // leader record, `diplos[·]` included, agrees on every block.
+    // block, and the word's own two blocks. **Item 664** took the Spy
+    // `1/9`'s nine rows on 618: with `is(SPY, 0)` modelled, its birth
+    // think takes the region scan and it holds the original's explore
+    // order, group and path. **What stands now**: on 659 who=1's hoplite
+    // `1/6`, chasing the General `0/9`, has stopped at (1780, 7844) against
+    // `0/7` in run171 and stepped back to (1800, 7848) here, still walking;
+    // on 660 run171's targets `0/7` and lands the first blow on it, and
+    // both leaders' `treaties[·]` read 3 there and 0 here.
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_EIGHT.0)
@@ -5717,15 +5721,31 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         "616 1/6 form",
         "616 1/7 form",
         "616 1/8 form",
-        "618 1/9 dest_angle",
-        "618 1/9 form",
-        "618 1/9 form_mod",
-        "618 1/9 group",
-        "618 1/9 order:length",
-        "618 1/9 orders.len",
-        "618 1/9 orders_x",
-        "618 1/9 orders_y",
-        "618 1/9 path:length",
+        "659 1/6 collide",
+        "659 1/6 dest_angle",
+        "659 1/6 g.x[0]",
+        "659 1/6 g.y[0]",
+        "659 1/6 order:kind",
+        "659 1/6 order:length",
+        "659 1/6 orders.len",
+        "659 1/6 orders_x",
+        "659 1/6 orders_y",
+        "659 1/6 path:length",
+        "659 1/6 pos",
+        "660 0/-1 leader:treaties[1]",
+        "660 0/7 damage_frac",
+        "660 0/7 damage_frame",
+        "660 0/7 hits:damage",
+        "660 0/7 hits:damage_frac",
+        "660 0/7 hits_left",
+        "660 1/-1 leader:treaties[0]",
+        "660 1/6 collide_o",
+        "660 1/6 collide_who",
+        "660 1/6 g.angle[0]",
+        "660 1/6 heading",
+        "660 1/6 order:flags",
+        "660 1/6 order:target",
+        "660 1/6 recharging",
     ]
     .iter()
     .map(|r| r.to_string())
