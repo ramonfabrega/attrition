@@ -3122,6 +3122,15 @@ pub(crate) const GREAT_LAKES_UPGRADE_BLOCK: i64 = 12_039;
 /// 12185, inside [`WIDENING_GREAT_LAKES_UPGRADE`]. The coverage driver
 /// reads run163 around it too.
 pub(crate) const GREAT_LAKES_MAKE_BLOCK: i64 = 12_185;
+/// `run174_s_word_frame_is_widened_whole`'s window (item 669): run123
+/// from **11400**, then run125, run130, run135, run136, run163 and run174
+/// to its last block, 12899. The floor is [`WIDENING_GREAT_LAKES_UPGRADE`]'s,
+/// for the same reason.
+pub(crate) const WIDENING_GREAT_LAKES_CIVIC: (i64, i64) = (11_400, 12_899);
+/// The block [`WIDENING_GREAT_LAKES_CIVIC`] was taken to widen: the word
+/// 12429's frame writes block 12430. The coverage driver reads run174
+/// around it.
+pub(crate) const GREAT_LAKES_CIVIC_BLOCK: i64 = 12_430;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3472,12 +3481,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Barracks and Stable in Norwich (`docs/AI.md` §63). run163's test
     // keeps the move's value diff, 12181–12185 empty. Item 669 owes the
     // capture and its widening.
+    //
+    // **Item 669 paid it**: run174 is run163's line over [12390, 12899],
+    // and `run174_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across seven captures, so the window is
+    // [`WIDENING_GREAT_LAKES_CIVIC`]. The word's block parts on `1/67`,
+    // which hard-collides with `1/68` here and walks on in the original;
+    // `1/68` walks a leg the original does not, because its tile plan on
+    // 12322 dropped the exact point its world plan kept.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run174_s_word_frame_is_widened_whole"),
         669,
-        None,
+        Some(WIDENING_GREAT_LAKES_CIVIC),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
