@@ -889,6 +889,23 @@ impl Sim {
     /// `Unit::inc_time` and rolls again (§4.9). Run53's frame 6736 is
     /// three of each — three archer objects re-typed, three `init_real`
     /// and three extra `Guy::inc_time` rolls.
+    ///
+    /// **A kept guy also stands still.** Past the clock, `init_real`
+    /// writes `+0x9d`/`+0x9e` as the short 1 — `stopped` 1 and the owed
+    /// attack cleared — `+0xa0` (the queued attack) 0, and `+0x80`/`+0x84`
+    /// (`last_speed`, `avg_speed`) 0, and `set_type`'s `SET_TYPE_NORMAL`
+    /// tail (`Guy::set_new_location(guy, x, y, 1)`) writes only position
+    /// and height after it. So a figure converted while it walks reads
+    /// `stopped 1` and speed 0 for one block and walks on from the next,
+    /// its average restarting from zero: Great Lakes' nine type-82 figures
+    /// on block 11922, when who=1's barracks research lands (item 571,
+    /// `docs/ANIM.md` §11). A fresh guy ([`Guy::fresh`]) already carries
+    /// all of it; the kept arm did not.
+    ///
+    /// SEAM: `init_real`'s `+0x20..+0x3c` turret zeroing and its
+    /// `reset_pivots`, and its `+0x54`/`+0x58` track zeroing, which the
+    /// tail's `update_gpiece` may rewrite — no converted type here has a
+    /// pivot or a tracked crew.
     pub(crate) fn reinit_guys(&mut self, u: usize, ty: usize) {
         let unit = &self.units[u];
         let (who, o) = (unit.owner, unit.index);
@@ -911,6 +928,20 @@ impl Sim {
                     g.cur_time = 0;
                     g.end_time = 0;
                     g.last_time = -1;
+                    g.stopped = true;
+                    g.pending_attack = 0;
+                    g.queued_attack = 0;
+                    if let Some(f) = g.follow.as_mut() {
+                        f.body.last_speed = 0;
+                        f.body.avg_speed = 0;
+                    }
+                    if n == 0 {
+                        // Guy 0's body is the unit's own
+                        // (`Movement::body`).
+                        let body = &mut self.units[u].movement.body;
+                        body.last_speed = 0;
+                        body.avg_speed = 0;
+                    }
                 }
                 None => {
                     let mut g = Guy::fresh(piece);

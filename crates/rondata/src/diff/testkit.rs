@@ -1841,6 +1841,19 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// squad stopping in the original, and `run136_s_word_frame_is_widened_whole`
 /// pins both.
 ///
+/// ~~**12038 is `1/62`'s arrival stand against `1/64`.**~~ **Item 571
+/// moved it 12038 → 12135, and the mechanism was a converted figure's
+/// stand** (`docs/ANIM.md` §11). who=1's barracks research lands on
+/// sim-frame 11921 and converts the nine walking type-82 figures, and the
+/// original's `Guy::init_real(guy, 1)` stands each kept guy `stopped`
+/// with its speeds zeroed. This crate reset the clock alone, so `1/62` did
+/// not turn at once on 11922, parted by 11923, and walked past its stand
+/// on 12038. The new word's delta: ours **7** draws and the original **6**,
+/// parting at index **6**. Ours spends an extra `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` there, `1/68`'s idle wrap. **Inside run163**
+/// (block 12136); `run163_s_word_frame_is_widened_whole` pins the block
+/// and its chain back to `1/68`'s birth on 12057.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1852,7 +1865,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_038;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_135;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3019,6 +3032,17 @@ pub(crate) const WIDENING_GREAT_LAKES_DETOUR: (i64, i64) = (11_400, 11_959);
 /// 11903's frame writes block 11904. The coverage driver reads run136
 /// around it, keyed here rather than on the headline.
 pub(crate) const GREAT_LAKES_DETOUR_BLOCK: i64 = 11_904;
+/// `run163_s_word_frame_is_widened_whole`'s window (item 571): run123
+/// from **11400**, then run125, run130, run135, run136 and run163 to its
+/// last block, 12399. The floor is [`WIDENING_GREAT_LAKES_DETOUR`]'s, for
+/// the same reason: the partings under the word spend no draw, and a walk
+/// that opened above them would print them as standing residue with no
+/// first block.
+pub(crate) const WIDENING_GREAT_LAKES_UPGRADE: (i64, i64) = (11_400, 12_399);
+/// The block [`WIDENING_GREAT_LAKES_UPGRADE`] was taken to widen: the word
+/// 12038's frame writes block 12039. The coverage driver reads run163
+/// around it, keyed here rather than on the headline.
+pub(crate) const GREAT_LAKES_UPGRADE_BLOCK: i64 = 12_039;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3346,12 +3370,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // empty as the move's value diff, and pins block 11922's 29 rows —
     // army 1's squad stopping in the original and walking here, which
     // spends no draw — as the nearest parting (`docs/PATHFINDER.md` §24.6).
+    //
+    // **Item 571 paid it**: run163 is run136's line over [11950, 12399],
+    // and `run163_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across six captures, so the window is
+    // [`WIDENING_GREAT_LAKES_UPGRADE`]. The word's block parts on `1/62`,
+    // which stands against `1/64` in the original and walks here; the
+    // chain runs back to 11922, where who=1's barracks research converts
+    // the nine and the original's `Guy::init_real` stands them
+    // (`docs/ANIM.md` §11). With the stand, the word moved **12038 →
+    // 12135**, inside the same window (block 12136), and the test pins
+    // the move's value diff and the new word's block both.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run163_s_word_frame_is_widened_whole"),
         571,
-        None,
+        Some(WIDENING_GREAT_LAKES_UPGRADE),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

@@ -41,7 +41,7 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
     GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_DETOUR_BLOCK, WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -183,6 +183,17 @@ const UNREAD: &[(&str, &str)] = &[
     (
         "GAME/FRAME/UNITDATA/GUY",
         "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
+    ),
+    // **Item 571's run163 window is the first to print a grouped
+    // attack-move** (`GROUPATTACKTOORDER`; run136 has none). Its
+    // `GroupMoveOrder` writes both bases, so `UNITORDER` prints twice: once
+    // under `MOVEORDER`, which the order parser reads as `flags` and the
+    // widening compares, and once under `GROUPORDER`, which nothing reads.
+    // Both copies print 5 on the word's blocks. Nothing is owed on the
+    // second: no measured frame turns on it.
+    (
+        "GAME/FRAME/UNITDATA/GROUPATTACKTOORDER/GroupMoveOrder/GROUPORDER/UNITORDER",
+        "flags",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
@@ -402,6 +413,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch7bc = golden_dump("ch7bc");
     let ch6 = golden_dump("ch6");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
+    let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
@@ -444,6 +456,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let gl = GREAT_LAKES_DETOUR_BLOCK;
     if let Some(p) = &r136 {
         frames += drive_capture(p, gl - 2, gl + 2, &mut paths);
+    }
+    // Item 566 moved it to 12038, past run136's last block, and item 571's
+    // run163 is run136's line from 11950 to 12399, so the window is the
+    // word's own blocks again, on the capture taken to widen it.
+    let gu = GREAT_LAKES_UPGRADE_BLOCK;
+    if let Some(p) = &r163 {
+        let n = drive_capture(p, gu - 2, gu + 2, &mut paths);
+        assert_eq!(n, 5, "run163 carries the word's five blocks");
+        frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower
     // map's headline since 2026-09-21 and a window this guard had never

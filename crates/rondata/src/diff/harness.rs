@@ -9923,38 +9923,16 @@ mod tests {
             .filter(|(_, (f, _))| *f == GREAT_LAKES_SQUAD_HALT_BLOCK)
             .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
             .collect();
+        // **Item 571 named it**: who=1's barracks research converts the
+        // nine walking type-82 figures on sim-frame 11921, and the
+        // original's `Guy::init_real` stands each kept guy with its speeds
+        // zeroed (`docs/ANIM.md` §11). With `reinit_guys` doing the same,
+        // 27 of the 29 rows go. What stands is `1/41`'s idle variant.
         assert_eq!(
             halt,
             [
-                "1/37 g.avg_speed[0]: ours 23 theirs 0",
-                "1/37 g.last_speed[0]: ours 25 theirs 0",
-                "1/37 g.stopped[0]: ours 0 theirs 1",
-                "1/38 g.avg_speed[0]: ours 19 theirs 0",
-                "1/38 g.last_speed[0]: ours 24 theirs 0",
-                "1/38 g.stopped[0]: ours 0 theirs 1",
-                "1/39 g.avg_speed[0]: ours 23 theirs 0",
-                "1/39 g.last_speed[0]: ours 25 theirs 0",
-                "1/39 g.stopped[0]: ours 0 theirs 1",
-                "1/40 g.avg_speed[0]: ours 23 theirs 0",
-                "1/40 g.last_speed[0]: ours 25 theirs 0",
-                "1/40 g.stopped[0]: ours 0 theirs 1",
-                "1/41 g.avg_speed[0]: ours 21 theirs 0",
                 "1/41 g.cur_anim[0]: ours 1 theirs 2",
                 "1/41 g.end_time[0]: ours 64 theirs 48",
-                "1/41 g.last_speed[0]: ours 24 theirs 0",
-                "1/41 g.stopped[0]: ours 0 theirs 1",
-                "1/42 g.avg_speed[0]: ours 23 theirs 0",
-                "1/42 g.last_speed[0]: ours 25 theirs 0",
-                "1/42 g.stopped[0]: ours 0 theirs 1",
-                "1/62 g.avg_speed[0]: ours 14 theirs 0",
-                "1/62 g.last_speed[0]: ours 12 theirs 0",
-                "1/62 g.stopped[0]: ours 0 theirs 1",
-                "1/63 g.avg_speed[0]: ours 24 theirs 0",
-                "1/63 g.last_speed[0]: ours 27 theirs 0",
-                "1/63 g.stopped[0]: ours 0 theirs 1",
-                "1/64 g.avg_speed[0]: ours 24 theirs 0",
-                "1/64 g.last_speed[0]: ours 27 theirs 0",
-                "1/64 g.stopped[0]: ours 0 theirs 1",
             ],
             "the squad's halt, block 11922"
         );
@@ -9998,6 +9976,431 @@ mod tests {
         let stops: Vec<(i64, i64, bool, bool)> =
             changed.iter().filter(|c| c.2 != c.3).copied().collect();
         assert_eq!(stops, [], "1/64's stop is gone");
+    }
+
+    /// One of Great Lakes' windows walked whole, both directions, across a
+    /// **chain of captures** — run136's walk, made a helper when run163
+    /// needed the same one (item 571). `chain` is each capture with the
+    /// first block the walk reads it from; below each, the walk reads the
+    /// capture before it. From run53's start with the siblings' heads:
+    /// every record [`widen_block`] reads on every unit and building of
+    /// every player, the leader record whole for both players, and from
+    /// `pools` on every player-1 pool list. Each key's first parting block
+    /// is kept with the value diff beside it; every row parting within two
+    /// blocks of a `near` block is kept whole in `standing`, and every
+    /// figure whose animation changes on either side there is listed
+    /// (`docs/COMBAT.md` §44.2.1).
+    ///
+    /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
+    /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
+    /// each block of the window.
+    fn widen_great_lakes(
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+    ) -> Option<Widened> {
+        let inst = install()?;
+        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+            return None;
+        };
+        let paths: Vec<Option<String>> = chain.iter().map(|(n, _)| dump(n)).collect();
+        if paths.iter().any(Option::is_none) {
+            eprintln!("skipping: {name}'s chain is not all on disk");
+            return None;
+        }
+        let from: Vec<i64> = chain.iter().map(|(_, lo)| *lo).collect();
+        let mut ixs: Vec<crate::capture::indexed::IndexedCapture> = paths
+            .iter()
+            .flatten()
+            .map(|p| crate::capture::indexed::IndexedCapture::open(p).unwrap())
+            .collect();
+        let (first_block, tail) = window;
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        if let Some(t) = trace("rontrace-run53.log") {
+            borrow_pasture(&mut init, &t);
+        }
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let players = built.sim.players.len();
+        use std::collections::{BTreeMap, BTreeSet};
+        let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut missing: BTreeSet<String> = BTreeSet::new();
+        let (mut blocks, mut compared, mut leader_rows, mut pool_lists) =
+            (0usize, 0usize, 0usize, 0usize);
+        let mut housed = 0usize;
+        let row_walk: Vec<(i64, i64)> = std::env::var("RON_ROW_WALK")
+            .map(|w| {
+                w.split(',')
+                    .filter_map(|u| {
+                        let (a, b) = u.split_once('/')?;
+                        Some((a.trim().parse().ok()?, b.trim().parse().ok()?))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let mut walked: BTreeMap<(i64, i64), Vec<String>> = BTreeMap::new();
+        let mut anims: BTreeMap<(i64, i64), (Option<i64>, Option<i64>)> = BTreeMap::new();
+        let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
+        let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
+        let is_near = |n: i64| near.iter().any(|b| (b - 2..=b + 2).contains(&n));
+        for f in 0..=tail {
+            built.tick();
+            let n = f + 1;
+            if n < first_block {
+                continue;
+            }
+            let c = from.iter().rposition(|&lo| n >= lo).unwrap();
+            let ix = &mut ixs[c];
+            let Some(at) = ix.frames().iter().position(|x| x.number == n) else {
+                continue;
+            };
+            let frame = ix.frame_state(at).unwrap();
+            blocks += 1;
+            debug_watch(&built, n);
+            let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+            let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
+            compared += rows;
+            housed += fr.inside_housed;
+            let raw = ix.read_frame(at).unwrap();
+            let flog = Log::parse(&raw);
+            if n >= pools
+                && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n)
+            {
+                let theirs: BTreeMap<i64, Vec<i64>> = crate::gamelog::groups(block)
+                    .into_iter()
+                    .filter(|g| g.who == 1 && !g.members.is_empty())
+                    .map(|g| (g.id - 64, g.members.iter().map(|m| m.o).collect()))
+                    .collect();
+                for s in 0..64u8 {
+                    let ours: Vec<i64> = built
+                        .sim
+                        .pool_list(1, s)
+                        .into_iter()
+                        .map(i64::from)
+                        .collect();
+                    let t = theirs.get(&i64::from(s)).cloned().unwrap_or_default();
+                    if ours.is_empty() && t.is_empty() {
+                        continue;
+                    }
+                    pool_lists += 1;
+                    if ours != t {
+                        here.entry((1, -2, format!("pool:{}", 64 + i64::from(s))))
+                            .or_insert((n, format!("ours {ours:?} theirs {t:?}")));
+                    }
+                }
+            }
+            for who in 0..2usize {
+                let Some(block) = flog.leader_block(n, who as i64) else {
+                    continue;
+                };
+                let t = crate::diff::leader::theirs(&block);
+                let mine = crate::diff::leader::rows(&loaded, &built, who);
+                for (k, v) in &mine {
+                    let Some(&y) = t.get(k) else {
+                        missing.insert(k.clone());
+                        continue;
+                    };
+                    leader_rows += 1;
+                    if *v != y {
+                        here.entry((who as i64, -1, format!("leader:{k}")))
+                            .or_insert((n, format!("ours {v} theirs {y}")));
+                    }
+                }
+            }
+            for &(w, o) in &row_walk {
+                let now: Vec<String> = here
+                    .iter()
+                    .filter(|((hw, ho, _), _)| (*hw, *ho) == (w, o))
+                    .map(|((_, _, what), (_, row))| format!("{what}: {row}"))
+                    .collect();
+                let e = walked.entry((w, o)).or_default();
+                if *e != now {
+                    eprintln!("  row walk {n} {w}/{o}: [{}]", now.join(" · "));
+                    *e = now;
+                }
+            }
+            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+                for ((w, o, what), (_, row)) in &here {
+                    eprintln!("  standing {n} {w}/{o} {what}: {row}");
+                }
+            }
+            if is_near(n) {
+                standing.insert(
+                    n,
+                    here.iter()
+                        .map(|(k, (_, row))| (k.clone(), row.clone()))
+                        .collect(),
+                );
+            }
+            for (k, v) in here {
+                firsts.entry(k).or_insert(v);
+            }
+            for t in &frame.units {
+                let Ok(o16) = i16::try_from(t.o) else {
+                    continue;
+                };
+                let ours = u8::try_from(t.who)
+                    .ok()
+                    .and_then(|w| built.sim.unit_by_o(w, o16));
+                let ta = t.guys.first().and_then(|g| g.cur_anim);
+                let oa =
+                    ours.and_then(|u| built.sim.units[u].guys.first().map(|g| i64::from(g.anim)));
+                let before = anims.insert((t.who, t.o), (ta, oa));
+                if !is_near(n) {
+                    continue;
+                }
+                let Some((pt, po)) = before else { continue };
+                if pt == ta && po == oa {
+                    continue;
+                }
+                eprintln!(
+                    "  anim {n} {}/{}: theirs ({},{}) a{:?}->{:?} | ours {:?} a{:?}->{:?}",
+                    t.who,
+                    t.o,
+                    t.pos.x,
+                    t.pos.y,
+                    pt,
+                    ta,
+                    ours.map(|u| (built.sim.units[u].pos.x, built.sim.units[u].pos.y)),
+                    po,
+                    oa
+                );
+                changed.push((n, t.who, t.o, pt != ta, po != oa));
+            }
+        }
+        eprintln!(
+            "{name} widening: {blocks} blocks [{first_block}, {tail}], {compared} record rows, \
+             {leader_rows} leader rows, {pool_lists} pool lists, {} keys parted, {} keys unprinted",
+            firsts.len(),
+            missing.len()
+        );
+        let mut by_block: BTreeMap<i64, Vec<String>> = BTreeMap::new();
+        for ((w, o, what), (f, row)) in &firsts {
+            by_block
+                .entry(*f)
+                .or_default()
+                .push(format!("{w}/{o} {what}: {row}"));
+        }
+        let last_from = from.last().copied().unwrap_or(first_block);
+        for (f, rows) in &by_block {
+            let window =
+                site_window_named("RON_DEBUG_ROWS").is_some_and(|(lo, hi)| (lo..=hi).contains(f));
+            if *f >= last_from - 100 || window {
+                for r in rows {
+                    eprintln!("  f{f} {r}");
+                }
+            } else {
+                eprintln!("  f{f}: {} keys", rows.len());
+            }
+        }
+        for (n, rows) in &standing {
+            eprintln!("  near {n}: {} rows", rows.len());
+        }
+        Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            housed,
+            standing,
+        })
+    }
+
+    /// **run163 — Great Lakes' word 12038, widened whole, both directions**
+    /// (item 571). run136's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_UPGRADE`]: ten blocks shared with run136, the
+    /// 79 up to the word, its block, and 360 past it, which no capture had
+    /// printed. [`widen_great_lakes`] from run123's 11400 across six
+    /// captures, with every player-1 pool list from run135's first block.
+    ///
+    /// The word's frame, 12038, writes block **12039**.
+    #[test]
+    fn run163_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_GREAT_LAKES_UPGRADE.0;
+        const TAIL: i64 = WIDENING_GREAT_LAKES_UPGRADE.1;
+        const WORD_BLOCK: i64 = GREAT_LAKES_UPGRADE_BLOCK;
+        /// The block who=1's barracks research converts the nine on.
+        const SQUAD_HALT_BLOCK: i64 = 11_922;
+        /// `1/68`'s birth, the first block of the chain to the next word.
+        const NEWBORN_BLOCK: i64 = 12_057;
+        /// The block of the word the fix moved to, 12135's.
+        const NEXT_BLOCK: i64 = 12_136;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            changed,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run163",
+            &[
+                ("gamelog-run123-greatlakes-marketword.txt", FIRST),
+                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+                ("gamelog-run136-greatlakes-detour.txt", 11_860),
+                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+            ],
+            WIDENING_GREAT_LAKES_UPGRADE,
+            11_800,
+            &[WORD_BLOCK, NEXT_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let halt: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == SQUAD_HALT_BLOCK)
+            .map(row)
+            .collect();
+        let nine: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                *w == 1
+                    && ((37..=42).contains(o) || (62..=64).contains(o))
+                    && (SQUAD_HALT_BLOCK + 1..=WORD_BLOCK).contains(f)
+            })
+            .map(row)
+            .collect();
+        let word: Vec<String> = standing
+            .get(&WORD_BLOCK)
+            .into_iter()
+            .flatten()
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 62))
+            .map(|((_, _, what), row)| format!("{what}: {row}"))
+            .collect();
+        let chain: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (SQUAD_HALT_BLOCK + 1..=NEWBORN_BLOCK + 1).contains(f))
+            .map(row)
+            .collect();
+        let newborn: Vec<String> = standing
+            .get(&NEXT_BLOCK)
+            .into_iter()
+            .flatten()
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 68))
+            .map(|((_, _, what), row)| format!("{what}: {row}"))
+            .collect();
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
+        let under = firsts
+            .values()
+            .filter(|(f, _)| *f < SQUAD_HALT_BLOCK)
+            .count();
+        // **Block 11922, the conversion** (item 571). who=1's barracks
+        // research lands on sim-frame 11921, and `Unit::set_type` converts
+        // the nine walking type-82 figures (`1/37`..`1/42`, `1/62`..`1/64`).
+        // The original's `Guy::init_real(guy, 1)` stands each kept guy
+        // `stopped` with `last_speed` and `avg_speed` 0 (`docs/ANIM.md`
+        // §11). Until the fix this crate reset the clock alone, and the
+        // block parted on 29 rows: `stopped` and both speeds on all nine.
+        // What stands is `1/41`'s idle variant, on this block only. The
+        // draws agree, so the two sides gave it different rolls.
+        assert_eq!(
+            halt,
+            [
+                "11922 1/41 g.cur_anim[0]: ours 1 theirs 2",
+                "11922 1/41 g.end_time[0]: ours 64 theirs 48",
+            ],
+            "block 11922"
+        );
+        // **The move's value diff, both directions.** Until the fix,
+        // `1/62`'s position parted on 11923, a step of 12 against 27,
+        // because a body at speed 0 turns at once. On the word's block,
+        // 12039, the original's `1/62` hard-collided with `1/64` (`collide_o
+        // 64`) and went WALK → DEFAULT, the fifth draw (`Guy::set_anim+0x97a
+        // < Unit::move_step+0x823`). Ours walked on, 49 units off: 21 rows.
+        // Now none of the nine parts from 11923 to the word's block.
+        assert_eq!(nine, Vec::<String>::new(), "the nine after the conversion");
+        assert_eq!(word, Vec::<String>::new(), "1/62 on the old word's block");
+        // **The next word, 12135 (block 12136), and its chain back.** Ours
+        // spends 7 draws against 6. The extra is `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, `1/68`'s idle wrap: ours stands, and the
+        // original's walks. The newborns `1/67` (11993) and `1/68` (12057)
+        // are born with `form` −1 against 0 and another rally point. On 12058
+        // the original lists `1/68` in pool group 66 with a move order, and
+        // this crate gives it a group 68 of its own with none. No mechanism
+        // is named.
+        assert_eq!(
+            chain,
+            [
+                "12058 1/-2 pool:66: ours [60, 61, 65, 62, 63, 66, 27, 28, 29] theirs [60, 61, 65, 62, 63, 66, 27, 28, 29, 68]",
+                "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
+                "11976 1/-1 leader:SITE[4].val: ours 54243 theirs 36750",
+                "11993 1/67 form: ours -1 theirs 0",
+                "11993 1/67 orders_x: ours 43584 theirs 43848",
+                "11993 1/67 orders_y: ours 15744 theirs 16344",
+                "12058 1/68 dest_angle: ours 1431655765 theirs -1043398656",
+                "12057 1/68 form: ours -1 theirs 0",
+                "12058 1/68 form_mod: ours -1 theirs 50",
+                "12058 1/68 group: ours 68 theirs 66",
+                "12058 1/68 order:length: Length { ours: 0, theirs: 1 }",
+                "12058 1/68 orders.len: ours 0 theirs 1",
+                "12057 1/68 orders_x: ours 45120 theirs 45144",
+                "12057 1/68 orders_y: ours 23424 theirs 24120",
+                "12058 1/68 path:length: PathLength { ours: 0, theirs: 11 }",
+            ],
+            "the rows under the next word"
+        );
+        assert_eq!(
+            newborn,
+            [
+                "dest_angle: ours 1431655765 theirs -1043398656",
+                "form: ours -1 theirs 0",
+                "form_mod: ours -1 theirs 50",
+                "g.angle[0]: ours 1431655765 theirs -644874240",
+                "g.avg_speed[0]: ours 0 theirs 27",
+                "g.cur_anim[0]: ours 0 theirs 8",
+                "g.cur_time[0]: ours 0 theirs 12",
+                "g.des_angle[0]: ours 1431655765 theirs -644874240",
+                "g.des_x[0]: ours 45144 theirs 42936",
+                "g.des_y[0]: ours 24120 theirs 24071",
+                "g.end_time[0]: ours 31 theirs 22",
+                "g.last_speed[0]: ours 0 theirs 30",
+                "g.last_time[0]: ours -1 theirs 11",
+                "g.stopped[0]: ours 1 theirs 0",
+                "g.x[0]: ours 45144 theirs 42936",
+                "g.y[0]: ours 24120 theirs 24071",
+                "group: ours 68 theirs 66",
+                "heading: ours 1431655765 theirs -644874240",
+                "idle: ours 7 theirs 0",
+                "order:length: Length { ours: 0, theirs: 1 }",
+                "orders.len: ours 0 theirs 1",
+                "orders_x: ours 45144 theirs 36264",
+                "orders_y: ours 24120 theirs 23688",
+                "path:length: PathLength { ours: 0, theirs: 9 }",
+                "path_recursion: ours 0 theirs 1",
+                "pos: ours (45144,24120) theirs (42936,24071)",
+                "tolerance: ours 0 theirs 384",
+            ],
+            "1/68 on the next word's block"
+        );
+        assert_eq!(
+            one_sided,
+            [(NEXT_BLOCK, 1, 68, false, true)],
+            "a figure changes animation on one side only"
+        );
+        // **The floor**: 248 keys under the conversion — run136's standing
+        // residue under its word, as item 644 re-pinned it — and 1,884 in
+        // all, to the capture's last block. Before the fix: 248 and 2,044.
+        assert_eq!((under, firsts.len()), (248, 1_884), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
