@@ -71,7 +71,9 @@ chapter four agrees to its trace's end, 1500 (items 552, 567, 569); chapter
 seven agrees to its end, 1200, on its first walk and on its control's (item
 578); ~~chapter three is pinned at 621, then 633, of 901 (items 587, 590)~~
 chapter three agrees to its end, 900 (items 587–603, 602), and its
-restage (run146) is pinned at ~~780~~ 782 of 1001 (items 602, 616). **A chapter whose
+restage (run146) is pinned at ~~780~~ 782 of 1001 (items 602, 616);
+chapter eight is pinned at 617 of 901 on its first walk (item 660), its
+capture cut at 901 by the allied victory its own `ally` line causes (§12). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -1037,9 +1039,45 @@ widening, only `1/1`'s group id on 990 stands (`docs/GROUPS.md` §24).
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 
+**Captured as run171 (item 660), pinned open at 617 of 901; its third
+change ended the game.** The staging was read and committed first
+(`chapter8.cmd`'s header, `89e338e`), the capture's section is
+`docs/RUNS.md` run171, and no falsifier fired. What the chapter measured:
+
+- **The row moves on the block after each line**: `diplos[1]` of who=0 and
+  `diplos[0]` of who=1 read 1 on 701, 0 on 801 and 2 on 901, both sides
+  written by the one call.
+- **The peace stops the fight.** Both squads take their `ATTACKORDER` on
+  635 and trade blows from 660 to 699; every attack order is gone by 731
+  and no blow lands after 699. After `war 1` who=0's squad attacks again
+  on 827 and chases without a blow by 900.
+- **The General's aura shows in the blow**: a plain blow on a who=0
+  hoplite is 2 hits, on a who=1 hoplite 3; the 7-point blows match. No
+  dumped field carries the aura, which `UnitData::armor@00610160` computes
+  on read. The General itself never moves and is never struck.
+- **The Spy explores**: an `EXPLORETOORDER` on its birth block, 618, to
+  (4344, 10488), group 66 — `!ai off` leaves a computer's Spy its
+  `think_scout` (`docs/INPUT.md` §11.10's tail).
+- **`ally` in a two-player lobby is an allied victory.**
+  `Leader::set_diplo@006ec6a0` counts the live leaders allied to neither
+  side over `leaders.list[0..8]` — the bound `0xe71af0` is eight
+  `Leader`s past `leaders` — and gaia's leaders are 8 and 9, so the count
+  is zero and `Leader::victory` runs. Both leaders carry `0x20 | 0x80` on
+  901 and the game closes: the trace ends on 900. **The premise's third
+  change is dead**: a fight across an alliance needs a third live player,
+  which this lobby has not got. The staging read the loop as all ten
+  leaders and predicted the game would run on.
+
+**The word is 617**, the Spy's birth frame: 9 draws against 80, parting at
+draw 3 on the original's `Unit::think_scout+0x941`. On 618 run171 holds the
+Spy's explore order and this crate holds none. No mechanism is named
+(`docs/DECISIONS.md` 42); `GOLDEN_WORD_CHAPTER_EIGHT` carries the value
+diff and `chapter_eight_s_word_frame_is_widened_whole` the block.
+
 **Premise.** Chapter one's `war` is the bare form and changes nothing. This
 is the chapter that moves the diplomacy state, three times, with a fight
-running across each change: peace at 700, war at 800, alliance at 900. And
+running across each change: peace at 700, war at 800, ~~alliance at 900~~
+alliance at 900, which ends a two-player game (above). And
 it carries the Command line, which nothing has captured.
 
 **Lines** (`chapter8.cmd`): `!ai off` at 0; `library who=0 2` and
@@ -1062,7 +1100,10 @@ still trading damage at frame 750, after the peace — the fight does not read
 the diplomacy state on the frame it changes, which would be a finding about
 `Unit::fight`'s target validity rather than about the channel. A General
 whose presence moves no field on the squad beside it, which would say the
-aura is not modelled where this document assumes it is.
+aura is not modelled where this document assumes it is. ~~No field~~ The
+aura writes no field by construction, so the falsifier was restated before
+the run on the blow a who=0 hoplite takes inside six tiles of the General
+(`chapter8.cmd`, check 4), and run171 answers it: 2 against 3.
 
 ## 13. The order family, and what each chapter reaches
 
@@ -1134,9 +1175,11 @@ below without a run take their number at booking (the eleventh pass).
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
+| 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
-Chapter eight and any further detail window need numbers beyond the
-reservation. The order above is by **what a failure would teach**, not by
+~~Chapter eight and any further detail window need numbers beyond the
+reservation.~~ Any further detail window takes its number at booking.
+The order above is by **what a failure would teach**, not by
 chapter number: 113 and 116 are placed early because each can invalidate work
 that would otherwise be done on top of it.
 
@@ -1174,11 +1217,18 @@ of chapter one itself.
   expectation is that two or three of them will.~~ Chapters one to five
   and seven have run and closed (§14); one premise fell (§11) and one
   staging was restaged (§7). ~~Six and eight have not run~~ Six ran as
-  run168 (item 648) and its premise fell (§10); eight has not run; seven-b ran as
-  run156/run157 (item 628, §11).
+  run168 (item 648) and its premise fell (§10); ~~eight has not run~~ eight
+  ran as run171 (item 660) and its third change ended the game (§12);
+  seven-b ran as run156/run157 (item 628, §11).
 - **Whether the cheat's block closes a computer civilian's tail**, and
   whether this crate's one-term stand-in does the same — §11's restage,
   chapter seven-b (item 628). The human pair could not measure it.
+- **The rally armor's size.** run171's plain blow on a who=0 hoplite
+  beside the General is one hit smaller than on who=1's, where rules.xml's
+  `GENERAL_RALLY_ARMOR` reads 2 and `UnitData::armor` multiplies it by
+  `get_general_upgrade + 1`. Which term makes it one is not read (§12).
+- **A fight across an alliance.** `ally` ends a two-player Quick Battle
+  (§12); a chapter that wants one needs a third live player in the lobby.
 - **Whether `library <n>` moves the age as well as the epochs.** `age who=0 8`
   was measured to set the age and leave all four epochs Ancient; the inverse
   — that `library` carries both — is `docs/RUNS.md`'s note and not a

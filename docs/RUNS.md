@@ -5879,3 +5879,70 @@ every launch is parked 653; run169 is a second launch that left the same
 value. The packet stays outside git at
 `~/ron-data/lab-captures/2026-09-23-run169/map-14`, and the scratch reader
 at `~/ron-data/lab-experiments/2026-09-23-item-652/pk.py`.
+
+## run171 — chapter eight, the commanders and a declared war (2026-09-23, item 660)
+
+`docs/GOLDEN.md` §12's first capture, from `tools/gamelog/golden/chapter8.cmd`:
+`!ai off` at 0; `library who=0 2` and `library who=1 2` at 600 and 602; a
+hoplite squad at `4,40` and a General at `5,40` for who=0 on 610 and 612; a
+hoplite squad at `12,40` and a Spy at `12,41` for who=1 on 615 and 617;
+then `peace 1`, `war 1` and `ally 1` on 700, 800 and 900. The staging was
+read and committed before the run (`89e338e`). It is the first capture on
+this disk with a General or a Spy in it, and the first golden capture at
+`LEADERS=5`.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch8 \
+    --map 14 --end-frame 1200 --log-window 605 1200 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter8.cmd
+```
+
+One take, **168 s from launch to exit, 54 MB of dump and 10 MB of trace**.
+The lane lock named a pid that had exited, so the launch took it over.
+Eleven of the twelve `INFO cmd` records returned 1; `1200 !quit` never
+ran. **`ally 1` ended the game**: both leaders carry the victory bit on
+block 901 (`leader_flags` 7 → 167 and 19 → 179, `0x20 | 0x80`), the dump
+closes after that block with `GameInfo closing`, and the trace's last frame
+is 900. So the receipt says `success: false`, **"missing, repeated, or
+unexpected simulation frames"**, and it means a game that ended itself, not
+a lane that failed: 298 blocks, 1 and 605..901, all whole.
+
+**Why**, read after the run. `Leader::set_diplo@006ec6a0` at level 2 counts
+the live leaders allied to neither side and calls `Leader::victory` at
+zero. Its loop runs up to `0xe71af0`, which is `leaders` (`0xe3a390`, the
+PDB's `S_GDATA32` at `.data + 0x234390`) plus eight `Leader`s of `0x6eec`.
+Gaia's leaders are 8 and 9, outside it. The staging read the loop as all
+ten, and predicted the game would run on; it was wrong. **A two-player lobby
+cannot hold an alliance and a game at once.**
+
+### The predictions, committed before the run
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the squads' first orders | an `ATTACKORDER` on both by 636 | both on **635** |
+| blows before the peace | a `damage` step on both sides before 700 | 0/7 from 660, 1/8 from 661, last on 699 |
+| the General | stays inside six tiles of the fight | seated (1368, 7992); never moves, never struck |
+| the Spy | "the capture's to say" | an `EXPLORETOORDER` on its birth block, 618, to (4344, 10488); away by 752 |
+| `diplos[1]` of 0 and `diplos[0]` of 1 | 0 to 700, 1 on 701, 0 on 801, 2 on 901 | exactly so |
+| no allied victory at 900 | the game runs on | **wrong**: the game ends |
+| `ages_get()`/`epochs_get()` | 2 and 8 on both leaders | 2 and 8 |
+
+### §12's falsifiers
+
+- **The first does not fire**: the row moves on the block after each line.
+- **The second does not fire**: every attack order on both squads is gone
+  by 731, and no blow lands in (699, 901]. who=1's squad takes an
+  `ATTACKTOORDER` on 765, in the peace, and none lands. After `war 1`,
+  who=0's squad attacks on 827 and chases to x 3000 by 891 without a blow.
+- **The third does not fire**: a plain blow on a who=0 hoplite, a
+  General's 1.6 tiles off, is **2** (660, 663, 692, 695), and on a who=1
+  hoplite it is **3** (661, 667, 693, 699). The 7-point blows are the same
+  on both sides (665 and 697 on who=1, 672 on who=0). The rally armor
+  shows in the blow and nowhere else; its size, one point where rules.xml's
+  `GENERAL_RALLY_ARMOR` reads 2, is not established.
+
+This crate parts at **617**, the Spy's birth frame, 9 draws against 80, at
+draw 3: the original's `Unit::think_scout+0x941`. See `docs/GOLDEN.md` §12.

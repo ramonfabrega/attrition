@@ -413,6 +413,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch7b = golden_dump("ch7b");
     let ch7bc = golden_dump("ch7bc");
     let ch6 = golden_dump("ch6");
+    let ch8 = golden_dump("ch8");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
@@ -600,6 +601,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let w = 700;
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter six carries the word's five blocks");
+        frames += n;
+    }
+    // **Chapter eight's word, on run171** (item 660): the first capture
+    // with a General and a Spy in it, and the first golden capture at
+    // `LEADERS=5`, whose leader record prints the diplomacy row. The
+    // window is the word's block with two on either side, as six's.
+    if let Some(p) = &ch8 {
+        let w = super::testkit::GOLDEN_WORD_CHAPTER_EIGHT;
+        let n = drive_capture(p, w - 2, w + 2, &mut paths);
+        assert_eq!(n, 5, "chapter eight carries the word's five blocks");
         frames += n;
     }
     assert!(frames > 0, "no frame of either window was found");

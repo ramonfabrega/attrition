@@ -455,6 +455,17 @@ players were already at war from the lobby (`docs/ARMY.md` §16.3: "a Quick
 Battle already starts at war"). The squads engage on the frame they are born
 because of that, not because of the line.
 
+**The targeted form, measured** (run171, item 660, `docs/GOLDEN.md` §12).
+`peace 1`, `war 1` and `ally 1` move `diplos[1]` of who=0 and `diplos[0]`
+of who=1 together, on the block after the line: `Leader::set_diplo@006ec6a0`
+writes both slots. **`ally` with the lobby's only other player is an allied
+victory**: at level 2 the call counts the live leaders allied to neither
+side over `leaders.list[0..8]` (its bound `0xe71af0` is eight `Leader`s
+past `leaders`), gaia's leaders 8 and 9 are outside it, and at zero it calls
+`Leader::victory`, which ends the game. This crate's `Sim::set_diplo`
+writes the row and not the victory; nothing staged past a two-player `ally`
+has a frame to compare.
+
 ### 11.7 What the golden record's harness must refuse
 
 The golden record's `GAMEINFO` is **byte-identical to run11's** — map 14,
