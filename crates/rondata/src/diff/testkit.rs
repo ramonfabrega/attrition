@@ -1854,6 +1854,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// (block 12136); `run163_s_word_frame_is_widened_whole` pins the block
 /// and its chain back to `1/68`'s birth on 12057.
 ///
+/// ~~**12135 is `1/68`'s idle wrap.**~~ **Item 657 moved it 12135 →
+/// 12184, and the mechanism was which level `release_mustering` reads**
+/// (`docs/ARMY.md` §20). The original reads `data_encrypted->epoch[0]`,
+/// the Military library level, where this crate read `ages`. On sim-frame
+/// 12024 who=1 has age 1 and Military 2, so its `rush` rule keeps army 2's
+/// six standard mustering (`n >= 16`) where this crate released them to
+/// defend. On 12057 `find_local_army` then takes army 2, which is
+/// mustering, for the newborn `1/68`. This crate found only the empty army
+/// 0. So `1/68` now walks to army 2's first unit and is seated in pool
+/// group 66, as the original's is. The new word's delta: ours **47** draws
+/// and the original **95**, parting at index **0**. Ours spends six pairs
+/// of `Leader::create_buildings+0xffb`/`+0x1017` that the original does
+/// not. The original spends a bird's thirty-round `Animal::think_bird+0x2aa`/
+/// `+0x2d3` arm that ours does not. **Inside run163** (block 12185,
+/// [`GREAT_LAKES_MAKE_BLOCK`]); `run163_s_word_frame_is_widened_whole`
+/// pins the block's chain, which opens on who=1's production list on
+/// 12181.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1865,7 +1883,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_135;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_184;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3046,6 +3064,10 @@ pub(crate) const WIDENING_GREAT_LAKES_UPGRADE: (i64, i64) = (11_400, 12_399);
 /// 12038's frame writes block 12039. The coverage driver reads run163
 /// around it, keyed here rather than on the headline.
 pub(crate) const GREAT_LAKES_UPGRADE_BLOCK: i64 = 12_039;
+/// The block of the word item 657 moved to: 12184's frame writes block
+/// 12185, inside [`WIDENING_GREAT_LAKES_UPGRADE`]. The coverage driver
+/// reads run163 around it too.
+pub(crate) const GREAT_LAKES_MAKE_BLOCK: i64 = 12_185;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3384,6 +3406,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`docs/ANIM.md` §11). With the stand, the word moved **12038 →
     // 12135**, inside the same window (block 12136), and the test pins
     // the move's value diff and the new word's block both.
+    //
+    // **Item 657 moved it 12135 → 12184**, inside the same window again
+    // (block 12185): `release_mustering` reads the Military library level,
+    // not the age (`docs/ARMY.md` §20). The test pins 12136 empty for
+    // `1/68` as the move's value diff, and the new word's chain from 12059
+    // to its block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,

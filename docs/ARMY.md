@@ -42,7 +42,9 @@ angle is `docs/MOVEMENT.md`'s signed 32-bit binary angle, north 0, east
 (`docs/AI.md` §2.14: the lobby's in a solo game, `multi_diff` in a
 multiplayer one under the semaphore bits); it is inlined a dozen times in
 this family and written `diff` below. `age` is `data_encrypted->epoch[0]`
-XOR `0x63187`, the leader's current age; `diplos[a][b]` is `LeaderData
+XOR `0x63187`, ~~the leader's current age~~ **the Military library
+level, which is not the age** (§20: the age is `+0xdc ages` under
+`0x62766`, and only §12's forts pass reads it); `diplos[a][b]` is `LeaderData
 +0x74`, 0 war, 1 peace, 2 alliance, and "at war" means `diplos[a][b] == 0
 || diplos[b][a] == 0` (`LeaderData::is_enemy@006ebaa0`), "allied" means 2
 both ways or `a == b` (`is_ally@006edb50`).
@@ -708,6 +710,10 @@ elif pers.early_army != 0:
     if age < 3: return n >= 16
 return n >= 26
 ```
+
+`age` here is the Military level, `epoch[0]` (`6f8997`, `6f89c3`), as the
+glossary above says. The implementation read `ages` until item 657
+(§20).
 
 `num_armies(who, mask, reg)@006f3200` counts my valid armies with `status
 & mask` and, when `reg >= 0`, that region — here the mustering ones in
@@ -2040,3 +2046,109 @@ restriction to a city centre (`OBJECT_CITY = 32`, from the PDB's own
 They had been written without an adjudicator, which
 `docs/DECISIONS.md` entry 22 makes exactly the case a ratifying pass is
 for.
+
+## 20. The Military level, not the age — Great Lakes 12135 → 12184 (item 657, 2026-09-23)
+
+`release_mustering` (§7), the stance rule (§8.2, and so `engagement` and
+`march_to_target`) and `find_target` (§12) each read
+`data_encrypted->epoch[0] ^ 0x63187`. That is `LeaderDataEncrypt +0xe8
+epoch[4]`'s first entry, **the Military library level**. The type record
+names the field. `ages` is `+0xdc`, under its own key `0x62766`, and in
+this family only `find_target`'s forts pass reads it (`6f801a`,
+§12). The glossary's gloss "the leader's current age" led
+`army.rs` to read `tech.ages` at all three sites. The two fields differ
+from the moment a leader researches Military ahead of its age. Great
+Lakes' who=1 reads **`ages_get()` 1 and `epoch_get` 2** on its Military
+line from before this window: `LEADERS=9` prints both, and this crate's
+own leader rows agree on both.
+
+### 20.1 The chain, from the word backwards
+
+The word was 12135: ours spent 7 draws against the original's 6. The
+extra was `Guy::set_anim+0x97a < Guy::inc_time+0x271`, `1/68` wrapping
+its idle where the original's walks (`docs/ANIM.md` §11). Every step
+below is a row of run163's widening or a value this crate prints:
+
+1. **12058.** The original lists the newborn `1/68` in army 2's pool
+   group 66 (ten members), with a move order and an 11-entry path. It
+   also holds a one-member group 68 of `1/68`, with `order_num 4` and `o`
+   (36264, 23688). That is `Unit::go_to`'s walk group, from
+   `add_to_army`'s walk to the army's first unit (§4.3). This crate gave
+   `1/68` a group 68 of its own and no order.
+2. **12057, `add_to_army`.** This crate's `find_local_army` answered
+   **army 0**, a valid slot mustering with no units, at 90,000,000
+   (§15.2). It then seeded a stack group for it. Armies 1 and 2 stood at
+   the same point, 3,819 away. Army 1 was at status 0x12 and army 2 at
+   0x10, and `diff` is 0 (`GAME INFO`'s `DIFFICULTY 0`), so both failed
+   `diff > 2 || status & 1`. The original took army 2, and a mustering
+   army 2 is the only way it could have: the predicate is the one this
+   crate carries (`Armies::find_local_army@006f32e0`, read whole), and the
+   later equal wins.
+3. **12024, army 2's tick** (its phase puts it on 11512 + 256k).
+   This crate's `do_mustering` released it. `num_standard` 6,
+   `city_num` 2, `pop_cap` 75, `effective_pop` 58 and two mustering
+   armies put every threshold out of reach, and `pers.rush` is 1. So the
+   personality's ladder decided: this crate read age 1, `< 2`, go. The
+   weak-region arm then set 0x20, and `do_defending` left 0x10. The
+   original reads Military 2. `< 3` asks `n >= 16`, and six stay.
+
+No capture prints the army record on this line (`ARMY` is a full-dump
+record, §16.1), so step 3 is the arithmetic of steps 1 and 2 plus the
+listing. It is confirmed by what moved: with the one read changed, 12058
+and everything under it agrees.
+
+### 20.2 This crate
+
+`Sim::release_mustering`, `army_stance_rule` and `find_target` read
+`tech[w].military_level()`. The guard is
+`release_mustering_s_rush_rule_reads_the_military_level_not_the_age`. It
+was made to fail by putting `ages` back.
+
+### 20.3 What it moved
+
+| | before | after |
+| --- | --- | --- |
+| Great Lakes long word | 12135 | **12184** |
+| run163 widening [11400, 12399], keys parted | 1,884 | **1,432** |
+| 12058: pool group 66's list, `1/68`'s group, order, path, `form_mod` | parted | **agree** |
+| `1/68` on 12136, the old word's block | 27 rows | **none** |
+| a figure changing animation on one side only, near the words | 1 | **none** |
+
+The keys under 11922 hold at 248. East Indies' 13640 holds.
+
+**The new word, 12184** (block 12185, inside run163): ours spends 47 draws
+against the original's 95, parting at index 0. Ours spends six pairs of
+`Leader::create_buildings+0xffb`/`+0x1017`, and the original spends none.
+The original spends one bird's thirty-round `Animal::think_bird+0x2aa`/
+`+0x2d3` arm, and ours does not. The rows under it open on who=1's
+production list (`MAKE[0]`, `MAKE[4]`) on 12181. On 12183 ours has queued
+at `1/2019` and spent 100 food, and the original has not. Those rows
+stood before this item, unchanged. No mechanism is named.
+
+### 20.4 What this has *not* established
+
+- **The stance rule's and `find_target`'s reads** changed with
+  `release_mustering`'s. They are the same field, cited at
+  `do_forming@006f43c0`, `engagement@006f5160`,
+  `march_to_target@006f4d80` and `find_target@006f69b0`. No frame on the
+  measured words turns on them yet. They are listing-backed, not
+  diff-backed.
+- **`find_target`'s head test**, `2 < epoch[0] &&
+  type_avail(SUPPLYWAGON) && …`, joins its weak-army clause. This crate's
+  `weak_army` does not carry it. It is a seam, reached by no capture.
+- **Residue under the new word, no draw.** `1/67` and `1/68` are born
+  with `form` −1. The original's is 0, because `Unit::init@00612100`
+  writes `+0xaa` as 9 for the four citizen and scholar ids and 0 for
+  every other type, and `+0xab` as −1. This crate starts every unit at
+  −1. The same init value is behind the East Indies boat's row (parked
+  646). Their birth-block `orders_x` is one block off. The original's
+  walk group 68 is freed on 12086, and this crate keeps it.
+
+### 20.5 Coverage
+
+**Diff-backed**, in `run163_s_word_frame_is_widened_whole`: 12058's rows
+and the old word's block agree, and the new word's chain is pinned from
+12059 to its block. The coverage pin reads the new word's five blocks
+on run163. **Listing- and type-backed**: the field at `+0xe8`, the key,
+and the two reads in `release_mustering` (`6f8997`, `6f89c3`). **Inferred
+from the move**: army 2's status on 12024 (§20.1, step 3).
