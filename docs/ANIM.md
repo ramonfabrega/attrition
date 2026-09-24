@@ -2262,8 +2262,8 @@ decompile of `decipher_animation`.
 `guy_flags & 0x20` narrows §4's idle roll to `DEFAULT` or `IDLE1`, with
 everything above 69 collapsing to `IDLE1`. **Only guy 0 carries it.**
 
-- **One writer.** `orw $0x20, 0x9a(%eax)` at `5fd01e` is the only
-  instruction in the image that sets the bit. It sits inside
+- **One writer.** The `orw $0x20` onto a guy's `+0x9a` at `5fd01e` is
+  the only instruction in the image that sets the bit. It sits inside
   `Unit::set_in_danger@005fcfb0`, in a loop over figures `0 .. guy_mark`
   (`+0xb5`), which is 1 on every dumped unit (§3.5).
 - **The other bytes are not it.** Every other store to `+0x9a` either
