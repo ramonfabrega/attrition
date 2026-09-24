@@ -14571,7 +14571,7 @@ mod tests {
         // 592, the census's 21 per-region arrays (`leader::REGION_ARRAYS`,
         // 1,531 keys a leader), which no widening had read.
         assert_eq!(
-            leader_rows, 1_860_480,
+            leader_rows, 1_861_920,
             "360 blocks x 2 leaders x (1,055 + 1,531) keys"
         );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
