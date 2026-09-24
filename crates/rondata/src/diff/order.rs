@@ -558,6 +558,11 @@ pub(crate) fn compare_orders(
                 rows.push((Y[i], Some(i64::from(pt.y)), theirs.patrol_y.get(i).copied()));
             }
             for (field, mine, logged) in rows {
+                // both sides: `logged` None is a point past the dump's
+                // array — which the `length` rows above already report —
+                // or a detail level that prints no `waypoint`; `mine` None
+                // is a leader `unit_ids` cannot name, the `GROUPORDER`
+                // row's own quiet case above.
                 if let (Some(mine), Some(theirs)) = (mine, logged)
                     && mine != theirs
                 {
