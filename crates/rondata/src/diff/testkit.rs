@@ -2619,31 +2619,37 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
 /// **Chapter nine's golden word** — the move line, the first issuer
-/// chapter (`docs/GOLDEN.md` §17, run180): **693 of 1100, open**.
+/// chapter (`docs/GOLDEN.md` §17, run180): **1100 of 1100, closed**. 1100
+/// is run180's trace end, and nothing parts on any frame of it: sequence
+/// 1100, no value part.
 ///
-/// **The delta** (item 676, the first walk): pinned at 693. Both player
-/// orders are processed on the frame after their `@move` line, in the
-/// original and here, and neither spends a draw; the squad's
-/// `GroupMoveOrder`s walk to their slots and arrive on the original's
-/// blocks. On 693 the original spends one `Unit::do_move+0xe84` first in
-/// the frame and this crate none, 7 draws against 6: the Chariot `0/6`,
-/// walking a plan the original laid **straight through the unseen sand**
-/// of region 65, refuses its straight line as the sand comes into sight
-/// and re-plans round the lake. This crate laid the round-the-lake plan
-/// on 621 and has nothing to refuse. `invalid_loc@00607c30`'s fog arm —
-/// a human leader's probe is valid when all four fog half-cells of the
-/// tile's cell are unseen — is a seam in `Sim::invalid_loc`.
+/// **The delta** (item 676): 693 → 1100, +407. On 693 the original spent
+/// one `Unit::do_move+0xe84` first in the frame, 7 draws against 6: the
+/// Chariot `0/6`, walking a plan laid **straight through the unseen
+/// sand** of region 65, re-planned round the lake a cell short of it.
+/// Two human-only arms of the pathfinder were missing. `invalid_loc@
+/// 00607c30`'s fog arm makes a tile valid when its cell's four fog
+/// half-cells are unseen by a human leader; with it alone the plan ran
+/// straight and the re-plan came on 694, a frame late. `find_wpath@
+/// 00688fc0`'s human variant then pops the plan until an entry is in
+/// the start's region and seen — here the order's own goal — where the
+/// AI's pull-back walk had dragged the goal onto the shore and returned
+/// unchanged. With both, the chariot re-plans on 693, walks the lake's
+/// north end and arrives on 1040, and the squad on 938–941.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_NINE`]'s test: past the first
-/// block's 26 standing rows, the staged units' `form` on their birth
-/// blocks; the chariot's plan slots 2–10, `dest_y`, heading and position
-/// on 622 (and 648–649 a waypoint on); and the squad's `order:group.id`
-/// on 642, 641000 against 647600.
-pub(crate) const GOLDEN_WORD_CHAPTER_NINE: i64 = 693;
+/// **The block**, from [`WIDENING_CHAPTER_NINE`]'s test on run180 whole
+/// (605 to 1100): past the first block's 26 standing rows, the staged
+/// units' `form` on their birth blocks; the squad's `order:group.id` on
+/// 642, 641000 against 647600, a pushed group's id (this crate's `64 +`
+/// index against the original's pool slot); and the scout `1/0`'s
+/// non-scoring `order:move.facing` from 847 (parked 275). Item 676 pinned
+/// 693 on its first walk, with the plan's rows on 622.
+pub(crate) const GOLDEN_WORD_CHAPTER_NINE: i64 = 1100;
 
-/// `chapter_nine_s_word_frame_is_widened_whole`'s window: run180 from its
-/// first block, 605, to the word's block and two past it, 695 (item 676).
-pub(crate) const WIDENING_CHAPTER_NINE: (i64, i64) = (605, 696);
+/// `chapter_nine_s_word_frame_is_widened_whole`'s window: **run180
+/// whole**, its first block, 605, to its last, 1100 (item 676). The first
+/// pin was (605, 696) on the open word 693.
+pub(crate) const WIDENING_CHAPTER_NINE: (i64, i64) = (605, 1101);
 
 /// **Chapter eight's golden word** — the commanders and a declared war
 /// (`docs/GOLDEN.md` §12, run171): **900 of 901, closed**. The walk
@@ -3728,7 +3734,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_SIX_B),
     ),
     // Item 676: run180, chapter nine's first walk, on the Chariot's
-    // re-plan at the sand — the first issuer chapter.
+    // re-plan at the sand — the first issuer chapter; closed at 1100 by
+    // the same item (a human's fog arm and `find_wpath` pop).
     (
         "GOLDEN_WORD_CHAPTER_NINE",
         GOLDEN_WORD_CHAPTER_NINE,

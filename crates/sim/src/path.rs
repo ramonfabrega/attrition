@@ -243,18 +243,31 @@ impl Sim {
     /// refuses everything that is *not* water, unless the same pair holds,
     /// which is the disembark; **air** refuses nothing.
     ///
-    /// SEAM: fog_relax's flag-4-leader branch (stand in the unseen) is a
-    /// no-op with no fog model; the cliff and per-cell hazard layers do not
-    /// exist, so those refusals never fire; and the land arm's own cell
-    /// test — `WData.flags & 0x70` under `ignore_buildings && transport_a`
-    /// — is not modelled either.
+    /// **`fog_relax` is the human's walk into the unknown** (item 676,
+    /// `docs/GOLDEN.md` §17). With it set and the unit's leader human
+    /// (`leaders & 4`, the test `find_wpath` reads as `Nation::human`), a
+    /// tile is valid outright when its **cell's four fog half-cells** —
+    /// `(2cx, 2cy)`, `(2cx, 2cy+1)`, `(2cx+1, 2cy)`, `(2cx+1, 2cy+1)` —
+    /// are all unseen by the unit's owner, before the domain is read
+    /// (`00607c9e`–`00607d4c`). `valid_wcoord` passes it past a node's
+    /// second step, so a human's world plan runs straight through ground
+    /// the player has never seen, and is refused only when the unit comes
+    /// to see it. run180's chariot takes its plan through a sandy lake and
+    /// re-plans round it on 693. `was_seen` is [`Sim::was_seen_fog`], the
+    /// goody sweep's; with no fog grid installed it answers seen, and the
+    /// arm is silent.
+    ///
+    /// SEAM: the cliff and per-cell hazard layers do not exist, so those
+    /// refusals never fire; and the land arm's own cell test —
+    /// `WData.flags & 0x70` under `ignore_buildings && transport_a` — is
+    /// not modelled either.
     #[allow(clippy::too_many_arguments)] // the original's five flags, kept by name
     pub(crate) fn invalid_loc(
         &self,
         u: usize,
         t: Pos,
         ignore_buildings: bool,
-        _fog_relax: bool,
+        fog_relax: bool,
         enemy_builds_only: bool,
         transport_a: bool,
         transport_b: bool,
@@ -267,6 +280,19 @@ impl Sim {
                 .is_some_and(|p| p.flags & path_flag::TRANSPORT != 0);
         if !self.world.tile_in_bounds(t) {
             return loc::OFF_MAP;
+        }
+        let owner = self.units[u].owner;
+        if fog_relax && self.nation.get(owner as usize).is_some_and(|n| n.human) {
+            let (fx, fy) = (
+                t.x.div_euclid(TILES_PER_CELL) * 2,
+                t.y.div_euclid(TILES_PER_CELL) * 2,
+            );
+            let seen = [(0, 0), (0, 1), (1, 0), (1, 1)]
+                .iter()
+                .any(|&(dx, dy)| self.was_seen_fog(fx + dx, fy + dy, owner));
+            if !seen {
+                return loc::VALID;
+            }
         }
         let mask = self.world.tile_mask(t);
         let surface = mask & tile::SURFACE;
@@ -1329,8 +1355,56 @@ impl Sim {
         // 1, 0)` — that this crate does not make.
         let mut goal_e = goal_e;
         let mut goal = goal_e.to;
-        let walks = self.unit_domain_of(u) != crate::attrition::Domain::Air
-            && (!self.units[u].on_map || !self.unit_can_transport(u));
+        let boardless = !self.units[u].on_map || !self.unit_can_transport(u);
+        // **A human's leader takes the other variant first** (`leaders &
+        // 4`, `00689109`–`006892e4`; item 676, `docs/GOLDEN.md` §17): it
+        // does not drag the goal back toward the start, it **pops**. While
+        // the goal cell's centre tile is in another region from the start
+        // cell's, or its centre half-cell (`2c + 1`) has never been seen,
+        // the goal is dropped for the entry under it — stopping on a final
+        // entry or an empty stack. So a human's unit whose next world
+        // waypoint turns out to be water re-plans to the first waypoint
+        // past it it may still stand on, or to its order's own goal, and
+        // the search runs. Only a goal it **has** seen — or a sea unit —
+        // then goes on to the AI's walk. run180's chariot does this on 693,
+        // a cell short of the sand its first plan crossed unseen, and its
+        // new plan goes round the lake to the destination.
+        let human = self
+            .nation
+            .get(self.units[u].owner as usize)
+            .is_some_and(|n| n.human);
+        let sea = self.unit_domain_of(u) == crate::attrition::Domain::Sea;
+        let mut ai_walk = true;
+        if human {
+            let owner = self.units[u].owner;
+            let centre = |c: crate::world::Cell| {
+                Pos::new(c.x * TILES_PER_CELL + 2, c.y * TILES_PER_CELL + 2)
+            };
+            let seen =
+                |s: &Self, c: crate::world::Cell| s.was_seen_fog(2 * c.x + 1, 2 * c.y + 1, owner);
+            if boardless {
+                let start = self.world.tregion_alt(centre(here.cell()));
+                loop {
+                    let c = goal_e.to.cell();
+                    if self.world.tregion_alt(centre(c)) == start && seen(self, c) {
+                        break;
+                    }
+                    if goal_e.flags & crate::orders::path_flag::FINAL != 0
+                        || self.units[u].path.is_empty()
+                    {
+                        break;
+                    }
+                    goal_e = self.units[u].path.pop().expect("a non-empty stack");
+                    if !self.world.contains(goal_e.to.cell()) {
+                        self.units[u].path.clear();
+                        return -1;
+                    }
+                }
+                goal = goal_e.to;
+            }
+            ai_walk = seen(self, goal.cell()) || sea;
+        }
+        let walks = ai_walk && self.unit_domain_of(u) != crate::attrition::Domain::Air && boardless;
         while walks && self.world.tregion_alt(goal.tile()) != self.world.tregion_alt(here.tile()) {
             let (dx, dy) = (here.x - goal.x, here.y - goal.y);
             let far = dx.abs() + dy.abs() >= 0x300;
@@ -2464,6 +2538,109 @@ mod tests {
         let first_half = Pos::new(c.x * 0x300 + 0x80, 0x80);
         assert_eq!(first_half.cell(), c);
         assert_eq!(cost(&sim, &scout, first_half), 1, "the near half is dark");
+    }
+
+    /// A lake of sea cells at `x` in `2..=4`, rows `2..=7`, on a ten-cell
+    /// land map: region, `land` and every tile ocean, as run180's sand.
+    fn lake_sim() -> Sim {
+        let mut sim = flat_sim(10);
+        let sea = sim.world.add_region(Terrain::Sea);
+        for x in 2..=4 {
+            for y in 2..=7 {
+                let c = Cell::new(x, y);
+                sim.world.set_region(c, sea);
+                let mut d = sim.world.cell_data(c);
+                d.land = 1;
+                sim.world.set_cell_data(c, d);
+                for ty in 0..TILES_PER_CELL {
+                    for tx in 0..TILES_PER_CELL {
+                        let t = Pos::new(x * TILES_PER_CELL + tx, y * TILES_PER_CELL + ty);
+                        sim.world.set_tile_mask(t, tile::SURFACE_OCEAN);
+                    }
+                }
+            }
+        }
+        // All dark: `seen2` a byte a half-cell, `2 × width` across.
+        assert!(sim.world.set_fog(vec![0u8; 20 * 20]));
+        sim
+    }
+
+    /// **`invalid_loc`'s fog arm** (item 676, `00607c9e`–`00607d4c`): with
+    /// `fog_relax` set and a **human** leader, a tile whose cell's four
+    /// fog half-cells are all unseen is valid before its terrain is read.
+    /// Made to fail first on the seam it replaces, which refused the lake
+    /// tile whatever the fog.
+    #[test]
+    fn a_human_s_probe_takes_an_unseen_cell_as_valid() {
+        let mut sim = lake_sim();
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let t = Pos::new(3 * TILES_PER_CELL + 1, 4 * TILES_PER_CELL + 1);
+        sim.nation[0].human = true;
+        assert_eq!(
+            sim.invalid_loc(u, t, true, true, false, true, false),
+            loc::VALID
+        );
+        assert_eq!(
+            sim.invalid_loc(u, t, true, false, false, true, false),
+            loc::TERRAIN,
+            "without fog_relax the lake refuses"
+        );
+        sim.nation[0].human = false;
+        assert_eq!(
+            sim.invalid_loc(u, t, true, true, false, true, false),
+            loc::TERRAIN,
+            "a computer leader's probe reads the terrain"
+        );
+        // One of the four half-cells seen is enough to read the terrain.
+        sim.nation[0].human = true;
+        let mut fog = vec![0u8; 20 * 20];
+        fog[9 * 20 + 7] = 1; // (2·3 + 1, 2·4 + 1)
+        assert!(sim.world.set_fog(fog));
+        assert_eq!(
+            sim.invalid_loc(u, t, true, true, false, true, false),
+            loc::TERRAIN
+        );
+    }
+
+    /// **`find_wpath`'s human variant** (item 676, `00689109`–`006892e4`):
+    /// a human's goal in another region, or unseen, is **popped** for the
+    /// entry under it, down to the final one, and the search runs to it;
+    /// a computer's is dragged back toward the start until its region
+    /// matches, and returns without a search. run180's chariot, a cell
+    /// short of the sand, is the first case. Made to fail first with the
+    /// variant switched off, when the human's goal stopped on the shore.
+    #[test]
+    fn a_human_s_world_plan_pops_past_water_to_its_goal() {
+        let run = |human: bool| {
+            let mut sim = lake_sim();
+            sim.nation[0].human = human;
+            let u = walker(&mut sim, Pos::new(0x180, 4 * 0x300 + 0x180));
+            let goal = Pos::new(8 * 0x300 + 0x180, 4 * 0x300 + 0x180);
+            push_goal(&mut sim, u, goal);
+            // A world waypoint past the lake, then one in it, on top.
+            for x in [6, 3] {
+                sim.units[u].path.push(PathData {
+                    to: Pos::new(x * 0x300 + 0x180, 4 * 0x300 + 0x180),
+                    tolerance: 0x180,
+                    flags: 0,
+                });
+            }
+            let r = sim.find_wpath(u);
+            (r, sim.units[u].path.clone(), goal)
+        };
+        let (r, path, goal) = run(true);
+        // Both waypoints popped, the goal kept, and a chain of cell centres
+        // searched to it on top: more than the three entries it was given.
+        assert!(r > 3 && path.len() > 3, "the human's search ran: {path:?}");
+        assert_eq!(
+            path.first().map(|p| p.to),
+            Some(goal),
+            "the human's plan ends on the order's own goal"
+        );
+        let (r, path, _) = run(false);
+        let top = path.last().expect("a goal").to;
+        assert_eq!(r, 3, "the computer's walk returns without a search");
+        assert_eq!(top.cell().x, 1, "pulled back onto the shore: {top:?}");
     }
 
     /// §5's halfland multiplier — `base ×= 3` on a cell whose `flags` carry

@@ -5828,7 +5828,7 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         "ch9",
         "chapter9",
         WIDENING_CHAPTER_NINE,
-        0,
+        1100,
         0,
         (692, 694),
         false,
@@ -5860,26 +5860,35 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
     // §17). Each staged unit's `form` on its birth block, the standing
     // family.
     //
-    // **622, the chariot's plan.** The command is processed on 621 in both
-    // and both give `0/6` a plain `MOVE_TO` with eleven entries, but the
-    // original's runs straight along row 9 through the sand, where this
-    // crate's bends north round it: path slots 2–10, the waypoint's
-    // `dest_y`, and the heading and position that follow. The original's
-    // human search takes an **unseen** cell as valid — `invalid_loc@
-    // 00607c30`'s fog arm, which this crate carries as a seam. Its
-    // re-plan round the lake, when the sand comes into sight, is the
-    // word's draw on 693. 648 and 649 are the same walk a waypoint on.
+    // **Item 676 took the word to the capture's end.** The 622 rows —
+    // the chariot's plan through the unseen sand, its heading and its
+    // position — went with `invalid_loc`'s human fog arm, and 648–649
+    // with them; the one-frame re-plan on 693 went with `find_wpath`'s
+    // human pop. The window is run180 whole, 605 to its last block,
+    // 1099; 1100 is the `!quit` frame and prints no block.
     //
-    // **642, the squad's `GroupMoveOrder` id**, 641000 against 647600:
-    // `(group.id + frame × 10) × 100 + order_num`, and the original's
-    // `group.id` is the pool slot, 0 here, the chariot having taken slot
-    // 1 on 621; this crate's pushed group reads `64 + its index` in
-    // `Sim::pushed`. The squad's own walk agrees to the word: its
-    // positions, slots and plan part nowhere.
+    // **642, the squad's `GroupMoveOrder` id**, 641000 against 647600,
+    // stands: `(group.id + frame × 10) × 100 + order_num`, and the
+    // original's `group.id` is the pool slot, 0 here (the chariot's push
+    // took slot 1 on 621), where this crate's pushed group reads `64 +`
+    // its index in `Sim::pushed`. It is a value no step reads, and the
+    // fix reaches the AI's pushed groups on both long captures.
+    //
+    // One row stands that is neither order's: the explore order of
+    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
+    // the dump's 0 from 847, the row chapter five pins on 847 and six-b on
+    // 991; non-scoring (`OrderMismatch::scores`, parked 275), pinned by
+    // name and value.
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_NINE.0)
-        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .map(|((w, o, what), (f, row))| {
+            if what == "order:move.facing" {
+                format!("{f} {w}/{o} {what}: {row}")
+            } else {
+                format!("{f} {w}/{o} {what}")
+            }
+        })
         .collect();
     got.sort();
     let mut want: Vec<String> = [
@@ -5887,30 +5896,10 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         "613 0/7 form",
         "613 0/8 form",
         "613 0/9 form",
-        "622 0/6 g.angle[0]",
-        "622 0/6 g.angle[1]",
-        "622 0/6 g.x[0]",
-        "622 0/6 g.x[1]",
-        "622 0/6 g.y[0]",
-        "622 0/6 g.y[1]",
-        "622 0/6 heading",
-        "622 0/6 order:move.dest_y",
-        "622 0/6 path[10].to",
-        "622 0/6 path[2].to",
-        "622 0/6 path[3].to",
-        "622 0/6 path[4].to",
-        "622 0/6 path[5].to",
-        "622 0/6 path[6].to",
-        "622 0/6 path[7].to",
-        "622 0/6 path[8].to",
-        "622 0/6 path[9].to",
-        "622 0/6 pos",
         "642 0/7 order:group.id",
         "642 0/8 order:group.id",
         "642 0/9 order:group.id",
-        "648 0/6 order:move.dest",
-        "648 0/6 path:length",
-        "649 0/6 order:move.dest_x",
+        "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
     ]
     .iter()
     .map(|r| r.to_string())

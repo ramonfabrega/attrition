@@ -666,7 +666,9 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // a player's order — a `GroupMoveOrder` under a player's command, the
     // `COMMANDMANAGER` text the turn pump prints, and `play` set on each
     // commanded unit — whose records no other window here carries. The
-    // window is the word's block with two on either side, as six's.
+    // window is the word's block with two on either side, as six's. The
+    // same item closed it at 1100, so the window stays on 693, the block
+    // it was widened on, as six's stays on 700.
     if let Some(p) = &ch9 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINE;
         let w = 693;
