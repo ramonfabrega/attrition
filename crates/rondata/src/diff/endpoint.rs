@@ -1256,10 +1256,17 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // §10), which move this map's word 14529 → 14650. The 24,000th
         // frame is 9,350 frames past the new word. DECISIONS 36: the
         // number, not a trade.
-        off: 30,
+        // **30 → 46 off, 0 → 1 unlinked** on item 698: a gatherer on a
+        // suspended search gives its walk up near its point
+        // (`docs/COLLISION.md` §15), which moves this map's word 14650 →
+        // 14982. Measured after item 696's merge. The unlinked unit is
+        // `1/80`. The 24,000th frame is 9,018 frames past the new word.
+        // DECISIONS 36: the number, not a trade.
+        off: 46,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
-        unlinked: 0,
+        // **0 → 1** on item 698, beside `off` above.
+        unlinked: 1,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
