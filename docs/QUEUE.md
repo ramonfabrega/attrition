@@ -12,35 +12,29 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-23, the commander (Opus 5.5) after the thirteenth Fable pass:
-**4 landings since 29a46bd.** Great Lakes 12536 → 12897 → 14382: the
-retry gates on `is_move` (673), a resumed search reads its suspended
-blocks (678, PATHFINDER §26). **East Indies is the lower map again.**
-651 staged chapter six-b and captured run175: the first falsifier fired,
-each aircraft walks at the enemy Airbase. 680 closed it 632 → 1250: a
-captain's attack on a building re-runs `find_new_target` every frame
-(COMBAT §62), found on run177's packet. Lane att-676 is on chapter nine.*
+*2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
+**5 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-643 (East Indies) and att-693 (chapter ten) are live.*
 
-- **Both maps moved and every golden chapter closed.** East Indies
-  11069 → 13640 at 0.034 USD a frame (1893 of them off the disk in one
-  landing), Great Lakes 12038 → 12536 at 0.20; the restage, seven-b and
-  its control, six and eight all closed. **Great Lakes is the lower map.**
-- **The rules track's next axis is the issuer** (GOLDEN §13, DECISIONS
-  49): the chapters reached the order family by accident and the census's
-  order row has not moved in three passes. After six-b (651), chapter
-  nine is the move line through `issue_move_to` (676).
-- **Nine Loop items ruled**, each a guard, a tool or a clause: 313, 630,
-  638, 639, 645, 649, 656 (`tools/gamelog/waitrun.sh`), 667, 670.
-- **Fable backlog: 4 Loop items** (527, 677, 685 `step4`'s whole frame,
-  687 a capture's cost and levels); no `FABLE:` marker was filed.
+- **Great Lakes 12536 → 14382 in two landings**: the retry gates on
+  `is_move` (673), and a resumed search reads its blocks as suspended
+  (678, PATHFINDER §26, run178). **East Indies is the lower map again.**
+- **Chapter six-b staged and closed** at 1250 (651, 680): each aircraft
+  walks at the enemy Airbase, and a captain's attack on a building re-runs
+  `find_new_target` every frame (COMBAT §62, run177's packet).
+- **Chapter nine, the first issuer chapter, closed at 1100** (676, run180,
+  GOLDEN §17). The census's order row stayed 44 of 410 (692), so chapter
+  ten is patrol, an issuer the AI never uses.
+- **Fable backlog: 5 Loop items** (527, 677, 685, 687 a capture's cost,
+  692 the census's order row); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w14382 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · 676 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · 693 next
 Endpoint 24001: EastIndies 43 off, 11 unlinked · GreatLakes 33 off, 0 unlinked
 
-**Opener: 676 is live on the rules lane; spawn 643 on the AI lane (East
-Indies is the lower map), and 688 follows it. A detached capture waits on
+**Opener: 693 is live on the rules lane and 643 on the AI lane (East
+Indies is the lower map); 688 follows 643. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -67,13 +61,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     original at (42624, 19776). The nearest input the dump prints is
     `SITE[1]`, parting on 12976. Inside run178 (to 14899). No mechanism.
 
-676. **Chapter nine, the move line — the first issuer chapter, no capture
-    yet** (DECISIONS 49; GOLDEN §13). `CommandManager::issue_move_to
-    @00941720` from the tracer DLL on one unit and on a squad, over land
-    with a world plan, `!ai off`, the lab's L15 shape. The issuer runs
-    under the emulator first (`tools/emu/callfn.py`), then the pair; the
-    premise names its killer and the booking greps its writers (GOLDEN
-    §3, point 5). Takes GOLDEN §17; mints its run at spawn. Then pin.
+693. **Chapter ten, the patrol line — an issuer the AI never uses, no
+    capture yet** (DECISIONS 49; GOLDEN §13; 676 closed chapter nine at
+    1100 and the census's order row stayed 44 of 410, parked 692).
+    `CommandManager::issue_patrol@00941800` from the tracer DLL on one unit
+    and on a squad, 676's harness. The issuer under the emulator first,
+    then the pair; the premise names its killer. Takes GOLDEN §18; run184.
 
 ## How to maintain this file
 

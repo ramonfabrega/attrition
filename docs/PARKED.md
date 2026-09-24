@@ -22,6 +22,22 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 676, 2026-09-24 — chapter nine's other edges
+
+(689) **A pushed group's `GroupData::id`**: ours `64 +` its index in
+`Sim::pushed`, the original `who·64 +` the pool slot; run180 block 642
+reads 641000 against 647600. No step reads it, but the fix reaches the
+AI's pushed groups on both long captures, so it wants both words
+measured. Likely 674's cause (an order's group id).
+
+(690) **`input::Stream`'s recorded `MoveTo`** still gives each unit
+`add_move_order` and bypasses the group; `input::group_move_to` is the
+original's entry and the recorded stream should take it. run7's tests
+pin the stream's counts.
+
+(691) **`UnitData::play` (`+0xb6`) is printed and pinned unread.**
+`process_group` writes it on every commanded unit; run180 prints `play 0`.
+
 ## Parked by item 680, 2026-09-24 — chapter six-b's other arm
 
 (686) **§62.4's unit-target arm.** The original's `local_14` search is
@@ -784,6 +800,14 @@ make captures cheaper** (a packet or `step4` over a sampled frame in
 place of a dumped block, a draw-stream-first split, a runway sized to
 the queue's history of word jumps). Neither is ruled; the rule that a
 moved word lands with its value diff stands until it is.
+
+(692) **The census's order row cannot see an issuer chapter whose orders
+the AI already issues.** Chapter nine (676) drove `issue_move_to` and the
+row stayed 44 of 410: `MoveOrder` and `GroupMoveOrder` were already
+entered by the long captures. DECISIONS 49 expected the row to move. It
+will on the issuers the AI never uses (patrol, guard, follow, garrison),
+which is why 693 is patrol; whether the counter should also credit an
+issuer chapter is the pass's.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
