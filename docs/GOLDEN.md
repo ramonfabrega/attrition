@@ -762,7 +762,14 @@ show a hull needs a Dock.
   (`System::init@00599700`). Its `mouse_coord_x/y` are written only by
   `parse_cmd` with `no_mouse` 0 and by `CommandPackage::process_console_cmd`,
   and the channel reaches neither. The prediction was zero, which puts the
-  bird at (24, 24) with its patrol point on the corner.
+  bird at (24, 24) with its patrol point on the corner. ~~zero~~ **Measured
+  (0, 6)** (item 652, run169's packet at logger frame 701): the
+  `ConsoleWin`'s own `mouse_coord_x/y`, and the one fresh
+  `AirPatrolOrder`'s waypoint, agree. The seat is (24, 24) as predicted,
+  since `Unit::init` snaps any cursor in the corner tile there. The patrol
+  point is six units down the west edge. A walk with the cursor at (0, 0)
+  lands the 750 and 791 edge coins and parts on 894, two frames before the
+  bird's third.
 - **The first falsifier fires on the trace's frame 700**, not in the dump.
 - **The second is an absence** on the aircraft's `UNITDATA`, 611 and 616
   to 899.
