@@ -22,6 +22,11 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 571, 2026-09-23 — under Great Lakes' 12135
+
+(658) **`1/41`'s idle variant on 11922**: a roll assigned to another figure
+on one block; no draw.
+
 ## Parked by item 650, 2026-09-23 — the target checks' other arms
 
 (654) **`valid_target`'s helicopter and `is(0x132)` arms**, not carried
@@ -738,7 +743,10 @@ nothing re-invoked the lane, and the commander found it at 23:57 by
 reading the runner's log. `ccc watch`'s stall is 30 minutes on the job
 file, and it never fired here. A detached capture needs a wait the harness
 can see, keyed on the runner's exit (565), or the commander's roster
-check has to read the capture lane's lock.
+check has to read the capture lane's lock. The lane's own account: it waited by
+grepping `runqueue-<ts>.log` for the banner "the queue, as it went",
+which `runqueue.sh` prints to stdout, that is to the viadriver log, so
+the grep could never match.
 
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth

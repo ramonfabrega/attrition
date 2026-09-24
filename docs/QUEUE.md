@@ -28,14 +28,14 @@ the rules track closed chapters four (1500), seven (1200) and three
 - **Fable backlog: 8 Loop items** (313, 527, 630, 638, 639, 645, 649, 656); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w12038 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w12135 of 24,000
 Golden: ch6 w700 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 652 next
-Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 41 off, 0 unlinked
+Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 0 unlinked
 
-**Opener: twelve landings since the twelfth pass's commit. Chapter six
-is open at 700, `bird`'s frame. 571 has the AI lane (Great Lakes, the
-lower map); spawn 652 on the rules lane. 643 follows 571. Stop at
-twenty.**
+**Opener: thirteen landings since the twelfth pass's commit. Great
+Lakes 12038 → 12135, still the lower map. 652 has the rules lane
+(chapter six's `bird`); spawn 657 on the AI lane; 643 follows it. Stop
+at twenty.**
 
 ## The queue
 
@@ -45,14 +45,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-571. **Great Lakes: Army 1's squad stops on block 11922 in the original
-    and walks on here** (566 moved the word 11903 → 12038 by carrying the
-    pathfinder's validity memo across searches, PATHFINDER §24). Nine
-    figures, `1/37`–`1/42` and `1/62`–`1/64`: `stopped 1`, speed 0 against
-    walking; positions agree, no draw; 29 rows pinned in run136's
-    widening. Then 12038's capture and widening past 11959: ours 4 draws
-    against 5, `move_step+0x823`. No mechanism. Optional second run if a
-    lane is free: a packet at 11922 with the nine guys' move path on it.
+657. **Great Lakes' word is 12135: `1/68`'s idle wrap** (571 moved it
+    12038 → 12135: a figure the barracks research converts stands, as
+    `Guy::init_real` stands it, ANIM §11). Inside run163 (to 12399), no
+    capture owed. The chain: newborns `1/67` (11993) and `1/68` (12057)
+    carry `form` −1 against 0 and another rally point; on 12058 the
+    original seats `1/68` in pool group 66 with a move order, and ours
+    gives it group 68 and none. No mechanism. On the AI lane next.
 
 652. **Chapter six's word is 700: `bird`, which the harness does not
     stage** (650 moved it 616 → 700: `poor_target`'s plane arm and
