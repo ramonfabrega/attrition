@@ -39,10 +39,9 @@ use crate::gamelog::{Block, Log, reads};
 use super::testkit::{
     EAST_INDIES_BARK_BLOCK, EAST_INDIES_CAST_BLOCK, EAST_INDIES_EXPLORE_BLOCK,
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
-    EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_EIGHT, GOLDEN_WORD_CHAPTER_SEVEN_B,
-    GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
-    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_DETOUR_BLOCK,
-    GREAT_LAKES_UPGRADE_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+    GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -602,7 +601,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // `LEADERS=5`, whose leader record prints the diplomacy row. The
     // window is the word's block with two on either side, as six's.
     if let Some(p) = &ch8 {
-        let w = GOLDEN_WORD_CHAPTER_EIGHT;
+        let w = super::testkit::GOLDEN_WORD_CHAPTER_EIGHT;
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter eight carries the word's five blocks");
         frames += n;
