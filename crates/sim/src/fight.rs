@@ -747,12 +747,47 @@ impl Sim {
         if who >= 8 {
             return true;
         }
+        if let Obj::Building(b) = target {
+            return self.build_is_seen(b, who);
+        }
         if self.world_sees(self.pos_of(target), who) {
             return true;
         }
         // `return (visible >> who) & 1` — the fallback, and the whole of
         // item 457.
         self.visible_of(target) & Self::who_bit(who) != 0
+    }
+
+    /// **`BuildData::is_seen@0062e1a0`**, a building target's vslot
+    /// `+0x48`: not the fog plane but the building's own `ever_seen` byte
+    /// (`docs/VISION.md` §10.4).
+    ///
+    /// ```text
+    /// if visible & (1 << who):               return 1
+    /// if infiltrated by who:                 return 1
+    /// WallData::is_seen@00642bd0(who):
+    ///     if who == owner:                   return 1
+    ///     if (started || ally_mask[who] & (1 << owner))
+    ///        && (reveal_map == 3 || ever_seen & ally_mask[who]
+    ///            || leader_flags[who] & 0x800 || leader[who] +0x59e4):
+    ///                                        return 1
+    ///     return 0
+    /// ```
+    ///
+    /// `ally_mask` is `LeaderData +0x6929` ([`Sim::seen_ally_mask`]).
+    /// While `seen` never forgot, the fog plane under a building answered
+    /// as `ever_seen` does; the hundredth-frame clear (§10) parts them.
+    ///
+    /// SEAM: a building's `visible` byte is never set here (§9.1), and
+    /// infiltration, the two leader arms and the `flags & 0x20` arm under
+    /// the semaphore are not carried. Each can only *refuse* further here.
+    pub(crate) fn build_is_seen(&self, b: usize, who: crate::Player) -> bool {
+        let bd = &self.buildings[b];
+        if bd.owner == who {
+            return true;
+        }
+        let mask = self.seen_ally_mask(who);
+        (bd.started || mask & Self::who_bit(bd.owner) != 0) && bd.ever_seen & mask != 0
     }
 
     /// `WorldData::is_seen@006b55c0` at one object's position: does `who`'s

@@ -2044,7 +2044,8 @@ the last.
   the wagon stands unguarded.
 
 **Where this crate parted: `GOLDEN_WORD_CHAPTER_ELEVEN` = 724, then 734
-by the same item, then 1036 (item 703), then 1133 (item 707), open.** On 724 this crate spends 14 draws against 11,
+by the same item, then 1036 (item 703), then 1133 (item 707), then 1139
+(item 709), open.** On 724 this crate spends 14 draws against 11,
 three extra `Guy::set_anim+0x97a < Unit::move_step+0x823`. The value parts
 on **722**: on tick 721, the first after the wagon's move, the original's
 guard steps (21, 1) off its post and names the wagon in `collide_o`, with
@@ -2099,8 +2100,18 @@ post** (`docs/COMBAT.md` §63).
 
 Every row from 736 to 1133 agrees.
 
-**On 1133** ours spends `Unit::fight+0x9b0` and two `Guy::set_anim+0xf2f`
-for `1/6`, where the original spends only the farms. On block 1134 the
-original's `1/6` has dropped its `ATTACK` on the guard, `recharging 0`,
-and holds its army's `ATTACKTOORDER`. This crate's `1/6` fires. The
-guard's `visible` bit for who=1 is 0 from 1086 on. No mechanism is named.
+**On 1133** ours spent `Unit::fight+0x9b0` where the original spends
+only the farms: on block 1134 the original's `1/6` had dropped its
+`ATTACK` on the guard, drawlessly.
+
+**1133 → 1139 (item 709), open: the hundredth-frame resync forgets**
+(`docs/VISION.md` §10). `update_all_seen` on 1133 clears `seen`, and the
+guard's `visible` byte, 0 since 1051, no longer relights its cell for
+who=1, so `valid_target` fails. A building target is seen through its
+`ever_seen` byte, which keeps Great Lakes from falling. Every row from
+736 to 1141 agrees.
+
+**On 1139** the original's guard rolls its idle stand on the post,
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, and this crate's does not.
+No record parts on block 1140: `GUYS=2` prints no animation state. No
+mechanism is named.

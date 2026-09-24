@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**14 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-711 (Great Lakes) and att-709 (chapter eleven's word) are live.*
+**15 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-711 (Great Lakes) and att-713 (chapter eleven's word) are live.*
 
 - **Great Lakes 12536 → 15175 in six landings**: the retry's gate, a
   resumed search, a city's halving, the stray-road sweep, the gather park
@@ -25,17 +25,17 @@ att-711 (Great Lakes) and att-709 (chapter eleven's word) are live.*
   building re-runs `find_new_target` every frame (COMBAT §62).
 - **The issuer chapters**: nine (move) and ten (patrol, ORDERS §27)
   closed, and the census's order row moved for the first time, 44 → 47
-  cited of 410. Eleven, the guard, is open at 1133: four collision arms
-  and an attack leashed to its post (COMBAT §63).
+  cited of 410. Eleven, the guard, is open at 1139: four collision arms,
+  an attack leashed to its post (COMBAT §63), and vision's resync (§10).
 - **Fable backlog: 6 Loop items** (527, 677, 685, 687 a capture's cost,
   692 the census's row, 697 `cover=1` hangs); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w15985 of 24,000 · GreatLakes w15175 of 24,000
-Golden: ch11 w1133 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed
+Golden: ch11 w1139 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed
 Endpoint 24001: EastIndies 47 off, 7 unlinked · GreatLakes 47 off, 0 unlinked
 
-**Opener: 709 is live on the rules lane and 711 on the AI lane (Great
+**Opener: 713 is live on the rules lane and 711 on the AI lane (Great
 Lakes is the lower map); 708 follows 711. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
@@ -61,13 +61,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     names this item: capture over the word, sized to it, and widen whole.
     No mechanism.
 
-709. **Chapter eleven's word is 1133: `1/6`'s attack on the guard ends** (707
-    moved it 1036 → 1133: a guard's attack is leashed to its post, COMBAT
-    §63). On 1133 ours 6 draws against 3 at index 0: ours `Unit::fight
-    +0x9b0` and two `Guy::set_anim+0xf2f` for `1/6`, theirs the farms. On
-    1134 the original's `1/6` drops its `ATTACK`, drawlessly; ours fires.
-    The guard's `visible` bit for who=1 is 0 on 1086–1136: a vision
-    reading, the hypothesis. No mechanism.
+713. **Chapter eleven's word is 1139: the guard's idle stand** (709 moved
+    it 1133 → 1139: the hundredth-frame resync and the whole-disc relight
+    of `visible`, and a building seen through `ever_seen`, VISION §10). On
+    1139 ours 4 draws against 5 at index 0: the original's guard rolls
+    `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` and ours does not, the
+    site 711's word spends extra. `GUYS=2` prints no animation state: a
+    packet at logger 1139 (run200). No mechanism.
 
 ## How to maintain this file
 
