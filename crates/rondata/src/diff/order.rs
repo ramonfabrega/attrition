@@ -122,6 +122,14 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// One field of a `GroupPatrolOrder`'s own row — a point of either
+    /// array, the array's length, `waypoint`, and the `GROUPORDER` row's
+    /// `oxx whose id form_id` (item 693, `docs/ORDERS.md` §27).
+    Patrol {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// The path stack's depth.
     PathLength { ours: usize, theirs: usize },
     /// A path segment's goal, bottom-first.
@@ -188,6 +196,9 @@ impl OrderMismatch {
             // five fields of the same row do score and a surprise in
             // this one would say the stand-in had stopped being unique.
             Self::Group { field: "id", .. } => false,
+            // The patrol's `id` is the same `group.id`-based number, and
+            // the same stand-in (parked 689).
+            Self::Patrol { field: "id", .. } => false,
             Self::Move { field, .. } => !matches!(*field, "dest" | "facing" | "last_x" | "last_y"),
             _ => true,
         }
@@ -221,6 +232,7 @@ impl OrderMismatch {
             Self::Guard { field, .. } => format!("order:guard.{field}"),
             Self::Cast { field, .. } => format!("order:cast.{field}"),
             Self::Ground { field, .. } => format!("order:ground.{field}"),
+            Self::Patrol { field, .. } => format!("order:patrol.{field}"),
             Self::PathLength { .. } => "path:length".into(),
             Self::PathTo { slot, .. } => format!("path[{slot}].to"),
             Self::PathField { slot, field, .. } => format!("path[{slot}].{field}"),
@@ -244,6 +256,7 @@ impl OrderMismatch {
             Self::Guard { .. } => "guard",
             Self::Cast { .. } => "cast",
             Self::Ground { .. } => "ground",
+            Self::Patrol { .. } => "patrol",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
             Self::PathField { .. } => "path-field",
@@ -508,6 +521,54 @@ pub(crate) fn compare_orders(
                     at(
                         slot,
                         OrderMismatch::Group {
+                            field,
+                            ours: mine,
+                            theirs,
+                        },
+                    );
+                }
+            }
+        }
+        // **The patrol's own row**, field for field (item 693): both point
+        // arrays whole, their length, the step, and the `GROUPORDER` row.
+        if let sim::orders::Body::Patrol(p) = ours.body {
+            let leader = built.unit_ids(p.leader);
+            let len = p.points.len() as i64;
+            let mut rows: Vec<(&'static str, Option<i64>, Option<i64>)> = vec![
+                (
+                    "x_pos.length",
+                    Some(len),
+                    Some(theirs.patrol_x.len() as i64),
+                ),
+                (
+                    "y_pos.length",
+                    Some(len),
+                    Some(theirs.patrol_y.len() as i64),
+                ),
+                ("waypoint", Some(p.waypoint as i64), theirs.waypoint),
+                ("oxx", leader.map(|(_, o)| o), theirs.oxx),
+                ("whose", leader.map(|(w, _)| w), theirs.whose),
+                ("id", Some(p.id), theirs.group_id),
+                ("form_id", Some(p.form_id as i64), theirs.form_id),
+            ];
+            const X: [&str; 2] = ["x_pos[0]", "x_pos[1]"];
+            const Y: [&str; 2] = ["y_pos[0]", "y_pos[1]"];
+            for (i, pt) in p.points.iter().enumerate() {
+                rows.push((X[i], Some(i64::from(pt.x)), theirs.patrol_x.get(i).copied()));
+                rows.push((Y[i], Some(i64::from(pt.y)), theirs.patrol_y.get(i).copied()));
+            }
+            for (field, mine, logged) in rows {
+                // both sides: `logged` None is a point past the dump's
+                // array — which the `length` rows above already report —
+                // or a detail level that prints no `waypoint`; `mine` None
+                // is a leader `unit_ids` cannot name, the `GROUPORDER`
+                // row's own quiet case above.
+                if let (Some(mine), Some(theirs)) = (mine, logged)
+                    && mine != theirs
+                {
+                    at(
+                        slot,
+                        OrderMismatch::Patrol {
                             field,
                             ours: mine,
                             theirs,

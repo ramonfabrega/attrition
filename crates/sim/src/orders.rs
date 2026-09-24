@@ -57,6 +57,11 @@ pub mod index {
     pub const CHANGE_FORM: u8 = 18;
     pub const GROUP_MOVE: u8 = 19;
     pub const GROUP_ATTACK_TO: u8 = 21;
+    /// `GroupPatrolOrder` — [`super::Body::Patrol`]. `PATROL` (5) is a
+    /// class that is never constructed alone: `Unit::add_patrol_order@
+    /// 005e4560` asks `OrdersMemManager::get_obj` for `GROUP_PATROL` and
+    /// nothing else (`docs/ORDERS.md` §7.7, §27).
+    pub const GROUP_PATROL: u8 = 22;
     /// `AttackGroundOrder` — [`super::Body::AttackGround`], which this
     /// crate issues from one place: `Unit::fight`'s siege arm, an
     /// unpacked packer's shot at a unit (`docs/COMBAT.md` §57).
@@ -102,6 +107,7 @@ pub mod index {
                 | TRADE_ROUTE
                 | GROUP_MOVE
                 | GROUP_ATTACK_TO
+                | GROUP_PATROL
                 | ATTACK_GROUND
                 | GARRISON
                 | THINK
@@ -409,6 +415,31 @@ pub struct TradeOrder {
     pub loaded: bool,
 }
 
+/// The fields of `GroupPatrolOrder` (`docs/ORDERS.md` §27): the
+/// `PATROLORDER` base's two point arrays and `waypoint`, then the
+/// `GROUPORDER` row's leader, id and `form_id` — `add_patrol_order`'s
+/// `+0x44`, `+0x4c` and `+0x50`.
+///
+/// SEAM: the arrays are two points. `add_patrol_order` sets both lengths
+/// to exactly 2, and only a shift-click's `QUEUE_LAST` append in
+/// `Group::action_patrol` (and `redo_patrol_order`'s copy of it) makes a
+/// third; no capture issues one.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PatrolOrder {
+    /// `x_pos[i]`/`y_pos[i]`, each snapped to the 48-unit grid.
+    pub points: [Pos; 2],
+    /// `+0x3c` — the point the current leg walks to.
+    pub waypoint: usize,
+    /// `+0x44`/`+0x48` — the leader `Group::action_patrol` found; the one
+    /// member whose `do_patrol` issues the legs.
+    pub leader: usize,
+    /// `+0x4c` — `(group.id + frame × 10) × 100 + order_num`.
+    pub id: i64,
+    /// `+0x50` — the member's index when `action_patrol` issued it, the
+    /// **leader's** once `redo_patrol_order` has rebuilt it.
+    pub form_id: usize,
+}
+
 /// The fields of `GuardOrder` (`docs/ORDERS.md` §7.5, §24): the
 /// `TARGETORDER` base's object, then `dx dy guard_x guard_y idle retry` as
 /// the dump prints them.
@@ -471,6 +502,7 @@ pub enum Body {
     Cast(CastOrder),
     Guard(GuardOrder),
     AttackGround(AttackGroundOrder),
+    Patrol(PatrolOrder),
     Think,
 }
 
@@ -515,6 +547,7 @@ impl Order {
             Body::Cast(_) => index::CAST_SPELL,
             Body::Guard(_) => index::GUARD,
             Body::AttackGround(_) => index::ATTACK_GROUND,
+            Body::Patrol(_) => index::GROUP_PATROL,
             Body::Think => index::THINK,
         }
     }
@@ -1437,6 +1470,49 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
+    /// `Unit::add_patrol_order@005e4560(x1, y1, x2, y2, id, form_id,
+    /// leader, who, queue)` (`docs/ORDERS.md` §27): a `GroupPatrolOrder`
+    /// with the two points — each passed as `div_3_table[v >> 4]` and
+    /// stored `× 0x30 + 0x18`, the 48-unit grid's centre — `waypoint 0`,
+    /// and the action bit set unconditionally. The `QUEUE_NEW` head and
+    /// the `QUEUE_FIRST` rotation are [`Self::enqueue`]'s, as for the
+    /// guard.
+    pub fn add_patrol_order(
+        &mut self,
+        u: usize,
+        (from, to): (Pos, Pos),
+        id: i64,
+        form_id: usize,
+        leader: usize,
+        pos: QueuePos,
+    ) {
+        let snap = |v: i32| (v >> 4) / 3 * 0x30 + 0x18;
+        let order = Order {
+            flags: flag::ACTION,
+            body: Body::Patrol(PatrolOrder {
+                points: [
+                    Pos::new(snap(from.x), snap(from.y)),
+                    Pos::new(snap(to.x), snap(to.y)),
+                ],
+                waypoint: 0,
+                leader,
+                id,
+                form_id,
+            }),
+        };
+        self.enqueue(u, order, pos);
+    }
+
+    /// `Unit::update_patrol_order(id)@005e35e0` — the first
+    /// `GROUP_PATROL` in the list, front to back, with this `id` (`None`
+    /// for any): its position, for the caller to rewrite in place.
+    pub fn update_patrol_order(&self, u: usize, id: Option<i64>) -> Option<usize> {
+        self.units[u]
+            .orders
+            .iter()
+            .position(|o| matches!(o.body, Body::Patrol(p) if id.is_none_or(|i| p.id == i)))
+    }
+
     /// `Unit::update_guard_order(o, who)@005e3220` — the first `GUARD` in
     /// the list, front to back, whose target is `target`: its position in
     /// the list, for the caller to rewrite in place.
@@ -1601,6 +1677,7 @@ impl Sim {
             Some(Body::Cast(c)) => self.do_cast(u, c),
             Some(Body::Guard(_)) => self.do_guard(u, frame),
             Some(Body::AttackGround(_)) => self.do_attack_ground(u, frame),
+            Some(Body::Patrol(p)) => self.do_patrol(u, p),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }
@@ -2532,6 +2609,47 @@ impl Sim {
     /// sixteen-frame engagement, which asks [`Self::find_melee_target`]'s
     /// idle radius rather than `find_melee_target(−1, 0, 0, 1, 0)`'s own
     /// guard arm.
+    /// `Unit::do_patrol@005f1910` (`docs/ORDERS.md` §27) — a patrol at the
+    /// head of the list.
+    ///
+    /// - **The leader** (`order.leader` is this unit): step `waypoint`
+    ///   modulo the point count and hand the group the next leg,
+    ///   `Group::action_move_to(group, point, QUEUE_FIRST, 0, 0,
+    ///   ATTACK_TO, action 0, −1, −1, 0)`. A group's `QUEUE_FIRST` halts
+    ///   every member and re-issues the leader's action orders behind the
+    ///   leg — the patrol among them, through `redo_patrol_order`
+    ///   ([`Self::group_redo_patrol_order`]) — so the step is carried to
+    ///   every member's rebuilt patrol.
+    /// - **A follower**: `set_anim(CHAR_DEFAULT, 0, 1)`, and nothing else;
+    ///   its legs are the leader's group moves.
+    ///
+    /// SEAMS: the arm for a unit in no group (`+0x80 < 0`), which steps the
+    /// waypoint and pushes a bare `ATTACK_TO` of its own — no command
+    /// reaches it, because `process_group` forces the push even for one
+    /// unit; and the tail's `inside_down >= 0` scramble, a transport's.
+    pub(crate) fn do_patrol(&mut self, u: usize, p: PatrolOrder) {
+        let Some(g) = self.group_of(u) else {
+            return;
+        };
+        if p.leader != u {
+            self.set_default_anim(u);
+            return;
+        }
+        let waypoint = (p.waypoint + 1) % p.points.len();
+        if let Some(Body::Patrol(x)) = self.units[u].orders.front_mut().map(|o| &mut o.body) {
+            x.waypoint = waypoint;
+        }
+        self.group_action_move_to(
+            &g,
+            p.points[waypoint],
+            QueuePos::First,
+            false,
+            Angle(0),
+            MoveKind::AttackTo,
+            false,
+        );
+    }
+
     fn do_guard(&mut self, u: usize, frame: i64) {
         let Some(Order {
             body: Body::Guard(mut g),

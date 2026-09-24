@@ -1631,7 +1631,13 @@ impl Built {
             // An `AttackGroundOrder` is a `UnitOrder`, not a
             // `TargetOrder`: it holds a point, and the dump prints no
             // `ox/whom` for it (`docs/COMBAT.md` §57).
-            Body::Move(_) | Body::Cast(_) | Body::AttackGround(_) | Body::Think => None,
+            // A `GroupPatrolOrder` is a `UnitOrder` with two points and a
+            // `GROUPORDER` row; no `TARGETORDER` (`docs/ORDERS.md` §27).
+            Body::Move(_)
+            | Body::Cast(_)
+            | Body::AttackGround(_)
+            | Body::Patrol(_)
+            | Body::Think => None,
         }
     }
 }

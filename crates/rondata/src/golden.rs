@@ -269,16 +269,25 @@ pub enum Issued {
         to: Pos,
         objects: Vec<i16>,
     },
+    /// `@patrol <who> <x> <y> <o> [<o> …]`: the same fields, through
+    /// `CommandManager::issue_patrol@00941800` (item 693).
+    Patrol {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
-/// not `move`, a `who` outside `0..8`, fewer than three numbers, or no
-/// object.
+/// neither `move` nor `patrol`, a `who` outside `0..8`, fewer than three
+/// numbers, or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
-    if tok.next()? != "move" {
-        return None;
-    }
+    let patrol = match tok.next()? {
+        "move" => false,
+        "patrol" => true,
+        _ => return None,
+    };
     let nums: Vec<i32> = tok.map_while(|t| t.parse::<i32>().ok()).collect();
     let [who, x, y, ref objects @ ..] = nums[..] else {
         return None;
@@ -291,10 +300,11 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
     if objects.is_empty() || !(0..8).contains(&who) {
         return None;
     }
-    Some(Issued::Move {
-        who,
-        to: Pos::new(x, y),
-        objects,
+    let to = Pos::new(x, y);
+    Some(if patrol {
+        Issued::Patrol { who, to, objects }
+    } else {
+        Issued::Move { who, to, objects }
     })
 }
 
@@ -311,11 +321,20 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
 /// `move_to`, and [`crate::input::group_move_to`] is its entry.
 fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let word = command_word(&line.text);
-    let Some(Issued::Move { who, to, objects }) = parse_issuer(&line.text) else {
-        done.skip(&word, "not an issuer line the DLL runs");
-        return;
+    // `@patrol` is `issue_patrol@00941800` with `QUEUE_NEW`, a `group` and
+    // a `patrol`, whose entry is [`crate::input::group_patrol`] (item 693).
+    let n = match parse_issuer(&line.text) {
+        Some(Issued::Move { who, to, objects }) => {
+            crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 1)
+        }
+        Some(Issued::Patrol { who, to, objects }) => {
+            crate::input::group_patrol(built, who, &objects, to, 2)
+        }
+        None => {
+            done.skip(&word, "not an issuer line the DLL runs");
+            return;
+        }
     };
-    let n = crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 1);
     if n == 0 {
         done.skip(&word, "no named object is a live unit in the simulation");
         return;
@@ -770,6 +789,9 @@ mod tests {
         // The bare `war`: chapter one's squads engage because a Quick Battle
         // already starts at war, not because of the line (item 364).
         ("chapter1.cmd", &["war"]),
+        // Chapter ten (sorted as the directory is): two `@patrol` issuer lines, the patrol line (item
+        // 693, `docs/GOLDEN.md` §18).
+        ("chapter10.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -892,9 +914,18 @@ mod tests {
                 objects: vec![7, 8],
             })
         );
+        assert_eq!(
+            parse_issuer("@patrol 0 3456 11136 6"),
+            Some(Issued::Patrol {
+                who: 0,
+                to: Pos::new(3456, 11136),
+                objects: vec![6],
+            })
+        );
         for bad in [
             "move 0 1 2 3",
-            "@patrol 0 1 2 3",
+            "@guard 0 1 2 3",
+            "@patrol 0 1 2",
             "@move 0 1 2",
             "@move 9 1 2 3",
             "@move 0 1",

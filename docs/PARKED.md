@@ -26,7 +26,8 @@ here too, except the item cap — a parked item is not an open one.
 
 (689) **A pushed group's `GroupData::id`**: ours `64 +` its index in
 `Sim::pushed`, the original `who·64 +` the pool slot; run180 block 642
-reads 641000 against 647600. No step reads it, but the fix reaches the
+reads 641000 against 647600, and chapter ten's patrol ids the same
+(693). No step reads it, but the fix reaches the
 AI's pushed groups on both long captures, so it wants both words
 measured. Likely 674's cause (an order's group id).
 
@@ -806,6 +807,13 @@ entered by the long captures. DECISIONS 49 expected the row to move. It
 will on the issuers the AI never uses (patrol, guard, follow, garrison),
 which is why 693 is patrol; whether the counter should also credit an
 issuer chapter is the pass's.
+
+(697) **`cover=1` hangs the click-free golden lane before frame 0.**
+run185, chapter ten's coverage re-run (item 693), hung with the
+`callwin` proxies and the autostart build, and the runner's timeout held
+the single lane until 14:17, about an hour. run184 at `cover=0` ran on
+the same lane. Until a coverage capture runs there, no issuer chapter
+can move the census's *entered* column, only the cited one (692).
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
