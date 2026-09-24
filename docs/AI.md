@@ -8061,6 +8061,14 @@ the tile grid while walking to its formation point met this.
   one-sided animation change. Nothing parts from 12400 to 12536.
 - **The floors.** run174's: 275 → 259 under run163's last block, and
   2,197 → 2,120 in all. run163's: 275 → 259.
+- **Great Lakes' endpoint at 24001**: `off` 42 → 53, unlinked 1 → 0,
+  extra 0 → 1 (the Merchant `1/81`), `build_diverged` 7 → 6. East
+  Indies' word and every golden chapter hold.
+- **`collide_sends_the_re_plan_to_the_unit_grid_not_the_tile_grid`**
+  (`sim`) laid a tolerance-0 sidestep plan and asserted that the tile arm
+  dropped it. That was the misread test. It now lays a loose plan
+  (`0x30`), so the two arms still part, and asserts that a tolerance-0
+  plan survives the tile arm.
 
 ### 64.4 What this has *not* established
 
