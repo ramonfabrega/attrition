@@ -1983,6 +1983,15 @@ pub struct BuildDump {
     /// `BuildData::queued` (`+0x82`) — how many entries of the queue are
     /// live. Written from **`BUILDS=1`**; `None` below it.
     pub queued: Option<i64>,
+    /// `BuildData::city` and `city_down` — the slot, **in the owner's own
+    /// city array**, of the city this building belongs to (`−1` for none),
+    /// and the next building down that city's member chain by object
+    /// number. A city centre carries its own slot and the chain's head.
+    /// Printed at every detail level at `BUILDDATA`'s own indent, and read
+    /// by nothing until item 661 — where the original's Barracks and
+    /// Stable joined Norwich on block 8734 and this crate's never did.
+    pub city: Option<i64>,
+    pub city_down: Option<i64>,
     /// The production queue, capacity slots and all —
     /// `BuildQueue::log_data`'s `queue[scan]` run under `BEGIN BUILDQUEUE`,
     /// one nine-line group per slot, `queue_size` of them. Only the first
@@ -3045,6 +3054,8 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         ever_seen: wall.and_then(|w| w.int("ever_seen")),
         ever_seen_completed: wall.and_then(|w| w.int("ever_seen_completed")),
         queued: b.int("queued"),
+        city: b.int("city"),
+        city_down: b.int("city_down"),
         queue: b.kid("BUILDQUEUE").map(queue_of).unwrap_or_default(),
     })
 }

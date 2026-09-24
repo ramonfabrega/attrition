@@ -512,9 +512,11 @@ mod tests {
         // `build_masks & 0x100`, the replan flag, which the reader had
         // been taking off the wrong block and nothing had ever compared
         // (`docs/ROADS.md` §1.2). `bad` stays empty, so the flag's whole
-        // life agrees here as well as on Great Lakes.
+        // life agrees here as well as on Great Lakes. **186,804 → 279,430
+        // on item 661**: the `city` slot and the `city_down` link, and
+        // `bad` stays empty on both (`docs/AI.md` §63).
         assert_eq!(
-            seen, 186_804,
+            seen, 279_430,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

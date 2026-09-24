@@ -695,6 +695,48 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **And the city it belongs to, and the chain it sits on** (item
+        // 661). `city` is the slot in the owner's own city array and
+        // `city_down` the next member by object number, so both are
+        // compared on what they hold rather than on this crate's indices:
+        // the slot through `cities_of`, the chain through the city's
+        // `members`, which keep the original's append order. Neither was
+        // read before, and `CityData::num_buildings` — a trade route's
+        // worth — walks exactly this chain (`docs/AI.md` §63).
+        // both sides: both `Option`s are the dump's own, printed at every
+        // detail level; this crate's side is never absent — a building in
+        // no city answers −1, as the dump's does.
+        if let (Some(city), Some(down)) = (b.city, b.city_down) {
+            let slot = ours.city.map_or(-1, |ci| {
+                built
+                    .sim
+                    .cities_of(ours.owner)
+                    .iter()
+                    .position(|&i| i == ci)
+                    .map_or(-1, |i| i as i64)
+            });
+            let next = ours.city.map_or(-1, |ci| {
+                let chain = built.sim.city_chain(ci);
+                chain
+                    .iter()
+                    .position(|&m| m == handle)
+                    .and_then(|k| chain.get(k + 1))
+                    .map_or(-1, |&m| i64::from(built.sim.buildings[m].index))
+            });
+            for (field, mine, theirs) in [("city", slot, city), ("city_down", next, down)] {
+                r.build_compared += 1;
+                if mine != theirs {
+                    r.build_diverged.push(BuildDivergence {
+                        frame: frame.n,
+                        who: b.who,
+                        o: b.o,
+                        field,
+                        ours: mine,
+                        theirs,
+                    });
+                }
+            }
+        }
         // **The production queue, whole.** `BuildQueue::log_data` writes
         // it for every building on every frame from `BUILDS=1`, and until
         // this it was compared in one test against one capture — so a
@@ -922,23 +964,37 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         for (k, &theirs) in c.ter.iter().enumerate() {
             fields.push((format!("ter[{k}]"), i64::from(ai.ter[k]), theirs));
         }
-        // **The four fields nothing here holds**, asserted against the
+        // **The three fields nothing here holds**, asserted against the
         // zero this crate answers with rather than dropped: `raid_stamp`
         // and `reduce_stamp` are `Leader::raid`'s and the reduce order's
-        // clocks, `scouted` is the AI's "a scout has seen this city" mark
-        // and `trade_val` is `City::compute_trade`'s output. None has a
-        // writer in this crate, so each row is a claim that the original
-        // never writes one either on the captures on disk — a claim a
-        // capture can falsify, which is the point of leaving it in.
+        // clocks, and `scouted` is the AI's "a scout has seen this city"
+        // mark. None has a writer in this crate, so each row is a claim
+        // that the original never writes one either on the captures on
+        // disk — a claim a capture can falsify, which is the point of
+        // leaving it in.
         for (name, theirs) in [
             ("raid_stamp", c.raid_stamp),
             ("reduce_stamp", c.reduce_stamp),
             ("scouted", c.scouted),
-            ("trade_val", c.trade_val),
-            ("vans.length", c.vans.len() as i64),
         ] {
             fields.push((name.into(), 0, theirs));
         }
+        // **`trade_val` and `vans` are this crate's own since
+        // `docs/CARAVAN.md` §7.2**, and until item 661 the rows still read
+        // the zero written when neither had a writer — so a trade route
+        // worth 160 against 176 printed as `ours 0`, and parked 514's
+        // wealth-income gap sat beside its own cause for a month. `vans`
+        // is every caravan `do_trade` has linked with this city as an end,
+        // which is what `Array<CaravanLink>::add` records in the original.
+        let vans = built
+            .sim
+            .caravans
+            .iter()
+            .flat_map(|l| l.slots[..l.mark].iter())
+            .filter(|v| v.alive && v.linked && (v.city_a == Some(ci) || v.city_b == Some(ci)))
+            .count() as i64;
+        fields.push(("trade_val".into(), i64::from(ours.trade_val), c.trade_val));
+        fields.push(("vans.length".into(), vans, c.vans.len() as i64));
         for (field, ours, theirs) in fields {
             r.city_compared += 1;
             if ours != theirs {
@@ -2301,8 +2357,10 @@ mod tests {
         );
         // **197,932 → 263,095 on item 478** — the replan flag, one more
         // field on every linked building-frame (`docs/ROADS.md` §1.2).
+        // **263,095 → 393,421 on item 661** — the `city` slot and the
+        // `city_down` link, two more, none wrong (`docs/AI.md` §63).
         assert_eq!(
-            builds, 263_095,
+            builds, 393_421,
             "the site and the clock on every linked building-frame"
         );
         assert!(
@@ -7846,10 +7904,17 @@ mod tests {
         // compared because every earlier word stopped short of it
         // (`CITY_FREE`). The set is pinned by count here and by name in
         // the `opens` filter above, so a *new* city field fails both.
+        //
+        // **Twenty-one → nineteen on item 661**, and the two that left
+        // were never residue: `vans.length` on who=1's two cities was
+        // compared against a literal 0, and the sim's own linked caravan
+        // agrees. `trade_val` stays, and now says what it is — 160 against
+        // 176, the Barracks and Stable this crate never seats in Norwich
+        // (`docs/AI.md` §63).
         assert_eq!(
             cities.len(),
-            21,
-            "the window's standing city residue is not twenty-one fields: {cities:?}"
+            19,
+            "the window's standing city residue is not nineteen fields: {cities:?}"
         );
         assert!(
             cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),
@@ -9952,7 +10017,12 @@ mod tests {
         // standing from 11400, which agree once the caps read the Commerce
         // level live (`Leader::gather@006ce280:58`).
         let under = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
-        assert_eq!(under, 248, "the floor under the word");
+        // **Item 661 added two** (248 → 250): the rows that read the
+        // sim's own `vans.length` agree and leave, and the four that read
+        // the BUILD record's `city` and `city_down` for the Barracks
+        // `1/2016`, the Stable `1/2018` and the Mine `1/2021` arrive — this
+        // crate never seats the two in Norwich (`docs/AI.md` §63).
+        assert_eq!(under, 250, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10072,6 +10142,7 @@ mod tests {
             let frame = ix.frame_state(at).unwrap();
             blocks += 1;
             debug_watch(&built, n);
+            debug_leader(&built, n);
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
             compared += rows;
@@ -10404,7 +10475,12 @@ mod tests {
         // residue under its word, as item 644 re-pinned it — and 1,432 in
         // all, to the capture's last block. Before item 571's fix: 248 and
         // 2,044; before item 657's: 248 and 1,884.
-        assert_eq!((under, firsts.len()), (248, 1_432), "the floor");
+        // **Item 661 added two** (248 and 1,432 → 250 and 1,434): the rows that read the
+        // sim's own `vans.length` agree and leave, and the four that read
+        // the BUILD record's `city` and `city_down` for the Barracks
+        // `1/2016`, the Stable `1/2018` and the Mine `1/2021` arrive — this
+        // crate never seats the two in Norwich (`docs/AI.md` §63).
+        assert_eq!((under, firsts.len()), (250, 1_434), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
@@ -12219,7 +12295,11 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!(under, 194, "the floor under the word");
+        // **Item 661 took four** (194 → 190): who=1's two cities'
+        // `trade_val` and `vans.length`, which were compared against a
+        // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
+        // §63).
+        assert_eq!(under, 190, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -12432,7 +12512,10 @@ mod tests {
                 // computer citizens' `form_mod`, ours −1 against the
                 // original's 50, now agreeing: the width twin is written on
                 // every member, citizens too (`docs/GROUPS.md` §24).
-                (9960, 141),
+                // **Item 661: 141 → 137**, who=1's two cities' `trade_val`
+                // and `vans.length`, compared against a literal 0 until the
+                // rows read the sim's own, and agreeing (`docs/AI.md` §63).
+                (9960, 137),
                 (9976, 8),
                 (9982, 7),
                 (9992, 1),
@@ -12599,7 +12682,11 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under_n, firsts.len()), (258, 258, 274), "the floor");
+        // **Item 661 took four** (258/258/274 → 254/254/270): who=1's two cities'
+        // `trade_val` and `vans.length`, which were compared against a
+        // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
+        // §63).
+        assert_eq!((first, under_n, firsts.len()), (254, 254, 270), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -12840,7 +12927,11 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under_n, firsts.len()), (267, 291, 296), "the floor");
+        // **Item 661 took four** (267/291/296 → 263/287/292): who=1's two cities'
+        // `trade_val` and `vans.length`, which were compared against a
+        // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
+        // §63).
+        assert_eq!((first, under_n, firsts.len()), (263, 287, 292), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
@@ -12971,7 +13062,11 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under, firsts.len()), (248, 277, 279), "the floor");
+        // **Item 661 took four** (248/277/279 → 244/273/275): who=1's two cities'
+        // `trade_val` and `vans.length`, which were compared against a
+        // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
+        // §63).
+        assert_eq!((first, under, firsts.len()), (244, 273, 275), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -13092,7 +13187,11 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under, firsts.len()), (248, 249, 258), "the floor");
+        // **Item 661 took four** (248/249/258 → 244/245/254): who=1's two cities'
+        // `trade_val` and `vans.length`, which were compared against a
+        // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
+        // §63).
+        assert_eq!((first, under, firsts.len()), (244, 245, 254), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -13655,7 +13754,11 @@ mod tests {
         // citizens' `form_mod`, ours −1 against the original's 50 from the
         // first block, now agreeing. `action_move_near` writes the width
         // twin on every member, citizens too (`docs/GROUPS.md` §24).
-        assert_eq!((first, under, firsts.len()), (243, 269, 280), "the floor");
+        // **Item 661 took four** (243/269/280 → 239/265/276): who=1's two cities'
+        // `trade_val` and `vans.length`, which were compared against a
+        // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
+        // §63).
+        assert_eq!((first, under, firsts.len()), (239, 265, 276), "the floor");
     }
 
     #[test]
@@ -15104,7 +15207,10 @@ mod tests {
     /// unfinished. **270,173 → 359,336 on item 478**, which added the
     /// replan flag `build_masks & 0x100` (`docs/ROADS.md` §1.2); nothing
     /// here is wrong on it, so the flag's life agrees on this map too.
-    const RUN58_BUILD_FIELDS: usize = 359_336;
+    /// **359,336 → 537,662 on item 661**, which added the building's
+    /// `city` slot and `city_down` link (`docs/AI.md` §63); nothing here
+    /// is wrong on either, so every member chain agrees for 5,200 frames.
+    const RUN58_BUILD_FIELDS: usize = 537_662;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.
