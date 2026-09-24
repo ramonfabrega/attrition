@@ -5984,3 +5984,64 @@ the original's has no collider and walks on. `1/68` has walked a leg the
 original does not since 12422, because its tile plan on 12322 dropped the
 group move's exact formation point that the original keeps
 (`docs/AI.md` §64; `run174_s_word_frame_is_widened_whole`).
+
+## run175 — chapter six-b, the air line from a base (2026-09-23, item 651)
+
+`docs/GOLDEN.md` §10's restage, from `tools/gamelog/golden/chapter6b.cmd`:
+chapter six's lines with one lever added, `add airbase who=0 4,33` on 606
+and `add airbase who=1 12,33` on 608, and the window run to 1250 so that
+both tanks run dry inside it. The staging and the premise's killer were
+read and committed before the run (`b098e75`). It is the first capture on
+this disk with an Airbase in it.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch6b \
+    --map 14 --end-frame 1250 --log-window 605 1250 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2,BUILDS=7 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter6b.cmd
+```
+
+`success: true`, exit 0, 1,251 frames, `MAP_STYLE 14` and seed 12345 read
+back, five settings files restored. One take, **315 s from launch to exit,
+112 MB of dump and 10.8 MB of trace**. The lane lock was free. All ten
+`INFO cmd` records returned 1 (`cmdsran.py`). 647 blocks: 1, 605..1250
+and the `!quit` block 1251. Waited on with
+`WAITRUN_RUNNER=unattended_capture.py waitrun.sh <viadriver log>`, which
+exits 2 on a golden lane by design: `golden_capture.sh` prints no
+`runqueue.sh` banner, so the runner's exit is the signal and the receipt
+is the verdict.
+
+**The same game as run168 to frame 611**: `rngcmp.py` finds 612 frames
+identical, 0..611, and the first differing is 612. The two `add airbase`
+lines spend no draw.
+
+### The predictions, committed before the run
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the Airbases | a finished building each, on 607 and 609 | who=0 `2007` at (864, 6432) on 607, who=1 `2006` at (2400, 6432) on 609; `myhits` 2400, `build_masks` 4232 (`0x1000 \| 0x88`), both to 1249 |
+| the seats | run168's (888, 7800) and (2424, 7800) | exactly those, on 611 and 616 |
+| the base link | `inside_up` −1, no air order, `air_alt` 0 | `inside_up` −1 and `air_alt` 0 on every block; no air order on either aircraft |
+| an empty base | no draw under `do_launch`/`attempt_launch`, `launch_frames` 0 | none, 0, `inside_down` −1 throughout; no disband |
+| the target arm | open: whether an aircraft takes a building was not read | **both do, on their birth blocks** |
+| fuel | `mana_burn` stops at 400 on 1010 and at 600 on 1215 | exactly so, and nothing else changes; no `DEATH` block in the capture |
+
+### §10's six-b falsifiers
+
+- **The first fires, on the target arm.** On its birth block each aircraft
+  holds an `ATTACKORDER` on the **enemy Airbase** — the Fighter `0/6` on
+  who=1's `2006`, the Bomber `1/6` on who=0's `2007` — and on the next a
+  `MOVEORDER` to an attack point beside it. Both walk there on the ground
+  at `air_alt` 0: the Fighter from (888, 7800) to (600, 7944) by 632,
+  after which its stack empties on 633 and it stands to 1249; the Bomber
+  from (2424, 7800) to (1992, 7704) by 700, after which its stack
+  alternates `ATTACK` and `ATTACK`+`MOVE` every frame to 1249 and it never
+  moves again. No blow lands: both Airbases read `damage` 0 throughout.
+  The base-link half is dead as predicted.
+- **The second, third and fourth do not fire.**
+
+This crate parts at **632**, the Fighter's arrival at its attack point,
+34 draws against 24: ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
+of `0/6`'s where the original drops the attack. See `docs/GOLDEN.md` §10.
