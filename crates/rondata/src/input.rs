@@ -120,6 +120,10 @@ fn queue_pos(queued: i32) -> QueuePos {
 /// `num = 0` replay of the previous selection is the caller's; and
 /// `UnitData::play` (`+0xb6`), which `process_group` sets to the issuing
 /// player on every member, is not carried (`docs/GOLDEN.md` §17).
+#[expect(
+    clippy::too_many_arguments,
+    reason = "the group and the move_to command's own fields"
+)]
 pub fn group_move_to(
     built: &mut Built,
     who: i32,
