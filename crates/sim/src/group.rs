@@ -2725,6 +2725,10 @@ impl Sim {
             angle.0.wrapping_sub(self.units[u].movement.heading.0),
         ));
         self.units[u].movement.heading = angle;
+        // `605424`: the unit's own mirror flips before the leader test.
+        if turned {
+            self.units[u].movement.mirror = !self.units[u].movement.mirror;
+        }
         let from = self.units[u].movement.body.pos;
         self.crew_des(u, from, angle, false);
         if !turned {
@@ -2749,8 +2753,9 @@ impl Sim {
     /// angle. So `compute_form` never sees the flag the leader's marching
     /// left behind; it sees the last layout's own answer.
     ///
-    /// The original also mirrors the result into `unit_masks & 2`, and
-    /// skips the whole branch for an order type outside
+    /// The original also writes the result into `unit_masks & 2`
+    /// ([`crate::Movement::mirror`]) for every unit, before the leader
+    /// test, and skips the whole branch for an order type outside
     /// `{1, 2, 3, 4, 0x12, 0x13, 0x15}` — the move family, which is
     /// [`Body::Move`] here.
     pub(crate) fn hand_back_facing(&mut self, u: usize, order_facing: bool, order_angle: Angle) {
@@ -2758,6 +2763,8 @@ impl Sim {
             self.units[u].movement.heading.0.wrapping_sub(order_angle.0),
         ));
         let f = order_facing != turned;
+        // `5e3087`/`5e308d`: `unit_masks & 2` takes it, leader or not.
+        self.units[u].movement.mirror = f;
         let Some(g) = self.group_of(u) else { return };
         if self.is_group_leader(u, &g)
             && let Some(st) = self.gstate_mut(&g)
@@ -4551,6 +4558,92 @@ mod tests {
             };
             assert_eq!((g.guard, g.idle, g.retry), (post, 0, 0));
         }
+    }
+
+    /// **The target's own mirror, `unit_masks & 2`** (`docs/GROUPS.md`
+    /// §25): `do_guard` negates `dx` at `5e5fed` when the guarded unit
+    /// carries it. **Every number is run196's**: The Despot `1/79` on
+    /// block 15094 at (42855, 22630), heading −14221312 and `unit_masks`
+    /// 0x4000A, and the three Longbowmen's `action_guard` offsets. The posts
+    /// are the ones the original printed on block 15095. `1/78`'s 22392
+    /// comes from the heading's `sinx` on the negated `dx`. Without the
+    /// mirror, `1/77` and `1/78` trade posts, which is what this crate
+    /// printed before item 711.
+    #[test]
+    fn a_guard_s_offset_is_mirrored_by_its_target_s_own_flag() {
+        let posts = |mirror: bool| {
+            let mut s = sim();
+            let foot = fighter(&mut s);
+            let wagon = wagon_type(&mut s);
+            let w = spawn(&mut s, 1, wagon, Pos::new(42855, 22630));
+            s.units[w].movement.heading = Angle(-14_221_312);
+            s.units[w].movement.mirror = mirror;
+            s.add_move_order(
+                w,
+                Pos::new(39480, 20184),
+                MoveKind::AttackTo,
+                QueuePos::New,
+                true,
+            );
+            [0, -144, 144].map(|dx| {
+                let a = spawn(&mut s, 1, foot, Pos::new(42648, 20472));
+                s.add_guard_order(a, w, dx, 264, QueuePos::New);
+                let o = i64::from(s.units[a].index);
+                s.work(a, 1 - o);
+                let Body::Guard(g) = s.units[a].orders[1].body else {
+                    panic!("no leg: {:?}", s.units[a].orders);
+                };
+                (g.guard.x, g.guard.y)
+            })
+        };
+        assert_eq!(
+            posts(true),
+            [(42840, 22344), (42984, 22344), (42696, 22392)],
+            "run196's 1/76, 1/77 and 1/78 on block 15095"
+        );
+        assert_eq!(
+            posts(false),
+            [(42840, 22344), (42696, 22392), (42984, 22344)],
+            "unmirrored, the flanks trade posts"
+        );
+    }
+
+    /// `unit_masks & 2`'s two writers (`docs/GROUPS.md` §25), for a unit
+    /// that leads no group. `Unit::set_angle@00605400` flips it on a turn
+    /// `reversing` admits (`605424`) and leaves it on a smaller one, in
+    /// every port of `set_angle`. `Unit::kill_current_order`'s move branch
+    /// writes the handed-back mirror into it (`5e3087`/`5e308d`). Both
+    /// writes come **before** the leader test, so a lone unit takes them.
+    #[test]
+    fn a_unit_s_own_mirror_flips_on_a_reversing_turn_leader_or_not() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let a = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        s.units[a].movement.heading = Angle(0x5555_5555);
+        assert!(
+            !s.units[a].movement.mirror,
+            "born clear, as run192's 0x40000"
+        );
+        // run192's Despot on 14985: 0x55555555 → −756678656, reversing.
+        s.unit_set_angle(a, Angle(-756_678_656));
+        assert!(s.units[a].movement.mirror, "a reversing turn sets it");
+        s.unit_set_angle(a, Angle(-756_678_656 + 0x1000_0000));
+        assert!(s.units[a].movement.mirror, "a smaller one leaves it");
+        s.units[a].movement.set_heading(Angle(0x4000_0000));
+        assert!(
+            !s.units[a].movement.mirror,
+            "the ordinary path flips it too"
+        );
+        s.hand_back_facing(a, true, Angle(0x4000_0000));
+        assert!(
+            s.units[a].movement.mirror,
+            "a dying move hands its mirror back"
+        );
+        s.hand_back_facing(a, true, Angle(-0x4000_0000));
+        assert!(
+            !s.units[a].movement.mirror,
+            "inverted when the unit has turned"
+        );
     }
 
     /// On its post beside a target that stands, a guard faces **outward**
