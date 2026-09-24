@@ -41,7 +41,8 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
     GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -465,6 +466,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r163 {
         let n = drive_capture(p, gu - 2, gu + 2, &mut paths);
         assert_eq!(n, 5, "run163 carries the word's five blocks");
+        frames += n;
+        // Item 657 moved it to 12184, inside run163, so the new word's
+        // own blocks are read on the same capture.
+        let gm = GREAT_LAKES_MAKE_BLOCK;
+        let n = drive_capture(p, gm - 2, gm + 2, &mut paths);
+        assert_eq!(n, 5, "run163 carries the new word's five blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

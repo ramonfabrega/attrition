@@ -4781,13 +4781,18 @@ mod tests {
         // **Eighteen → nineteen on item 566**, the literal following the
         // headline: the word went 11903 → 12038 and **11982**'s rotation
         // came under it (`docs/PATHFINDER.md` §24.6).
+        //
+        // **Nineteen → twenty on item 657**, the literal following the
+        // headline: the word went 12135 → 12184 and **12182**'s rotation
+        // came under it (`docs/ARMY.md` §20). The streams above agree
+        // through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982
+                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182
             ],
-            "below the word Great Lakes takes exactly nineteen market \
+            "below the word Great Lakes takes exactly twenty market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -10224,7 +10229,9 @@ mod tests {
     /// printed. [`widen_great_lakes`] from run123's 11400 across six
     /// captures, with every player-1 pool list from run135's first block.
     ///
-    /// The word's frame, 12038, writes block **12039**.
+    /// The word's frame, 12038, writes block **12039**. The words item 571
+    /// and item 657 moved it to, 12135 and 12184, write blocks 12136 and
+    /// **12185**, and both are in the window.
     #[test]
     fn run163_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_GREAT_LAKES_UPGRADE.0;
@@ -10232,10 +10239,10 @@ mod tests {
         const WORD_BLOCK: i64 = GREAT_LAKES_UPGRADE_BLOCK;
         /// The block who=1's barracks research converts the nine on.
         const SQUAD_HALT_BLOCK: i64 = 11_922;
-        /// `1/68`'s birth, the first block of the chain to the next word.
-        const NEWBORN_BLOCK: i64 = 12_057;
-        /// The block of the word the fix moved to, 12135's.
+        /// The block of the word item 571's fix moved to, 12135's.
         const NEXT_BLOCK: i64 = 12_136;
+        /// The block of the word item 657's fix moved to, 12184's.
+        const MAKE_BLOCK: i64 = GREAT_LAKES_MAKE_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -10255,7 +10262,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_UPGRADE,
             11_800,
-            &[WORD_BLOCK, NEXT_BLOCK],
+            &[WORD_BLOCK, NEXT_BLOCK, MAKE_BLOCK],
         )
         else {
             return;
@@ -10288,7 +10295,7 @@ mod tests {
             .collect();
         let chain: Vec<String> = firsts
             .iter()
-            .filter(|(_, (f, _))| (SQUAD_HALT_BLOCK + 1..=NEWBORN_BLOCK + 1).contains(f))
+            .filter(|(_, (f, _))| (SQUAD_HALT_BLOCK + 1..=MAKE_BLOCK).contains(f))
             .map(row)
             .collect();
         let newborn: Vec<String> = standing
@@ -10330,77 +10337,74 @@ mod tests {
         // Now none of the nine parts from 11923 to the word's block.
         assert_eq!(nine, Vec::<String>::new(), "the nine after the conversion");
         assert_eq!(word, Vec::<String>::new(), "1/62 on the old word's block");
-        // **The next word, 12135 (block 12136), and its chain back.** Ours
-        // spends 7 draws against 6. The extra is `Guy::set_anim+0x97a <
-        // Guy::inc_time+0x271`, `1/68`'s idle wrap: ours stands, and the
-        // original's walks. The newborns `1/67` (11993) and `1/68` (12057)
-        // are born with `form` −1 against 0 and another rally point. On 12058
-        // the original lists `1/68` in pool group 66 with a move order, and
-        // this crate gives it a group 68 of its own with none. No mechanism
-        // is named.
+        // **12135 (block 12136) was `1/68`'s idle wrap, and item 657 moved
+        // it.** The newborn `1/68` was born with `form` −1 against 0, and
+        // on 12058 the original listed it in army 2's pool group 66 with a
+        // move order. This crate gave it a group 68 of its own and no order,
+        // and on 12136 ours stood and wrapped its idle while the original's
+        // walked: 27 rows. The cause was on 12024, army 2's tick.
+        // `release_mustering` reads the Military library level
+        // (`epoch[0]`), which is 2 here, and this crate read the age, 1. So
+        // this crate released army 2 to defend, and on 12057
+        // `find_local_army` found only the empty army 0 still mustering
+        // (`docs/ARMY.md` §20). **The move's value diff**: 12058's ten rows
+        // are gone, and so are `1/68`'s rows on 12136.
+        assert_eq!(newborn, Vec::<String>::new(), "1/68 on 12135's block");
+        assert_eq!(one_sided, [], "a figure changes animation on one side only");
+        // **The next word, 12184 (block 12185), and the rows under it.** Ours
+        // spends 47 draws against 95, parting at index 0. Ours spends six
+        // pairs of `Leader::create_buildings+0xffb`/`+0x1017`, and the
+        // original spends a bird's thirty-round `Animal::think_bird+0x2aa`/
+        // `+0x2d3` arm. who=1's production list parts first, on 12181. On
+        // 12183 ours has queued at `1/2019`, and the original has not.
+        // These rows stood before item 657 too. What else stands under the
+        // word is residue with no draw:
+        // - `form` −1 against the 0 `Unit::init` writes, on both newborns;
+        // - their birth-block `orders_x`, one block;
+        // - group 68, the original's `go_to_unit` walk group, freed on
+        //   12086 there and kept here.
+        // No mechanism is named for the production list.
         assert_eq!(
             chain,
             [
-                "12058 1/-2 pool:66: ours [60, 61, 65, 62, 63, 66, 27, 28, 29] theirs [60, 61, 65, 62, 63, 66, 27, 28, 29, 68]",
+                "12086 1/-2 pool:68: ours [68] theirs []",
+                "12181 1/-1 leader:MAKE[0].cat: ours 4 theirs 8",
+                "12181 1/-1 leader:MAKE[0].escrow: ours 0 theirs 1",
+                "12181 1/-1 leader:MAKE[0].t: ours 52 theirs 552",
+                "12181 1/-1 leader:MAKE[0].val: ours 6585365 theirs 1260000",
+                "12182 1/-1 leader:MAKE[1].t: ours 430 theirs 66",
+                "12182 1/-1 leader:MAKE[1].val: ours 3945568 theirs 209664",
                 "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
+                "12182 1/-1 leader:MAKE[2].escrow: ours 1 theirs 0",
+                "12182 1/-1 leader:MAKE[2].t: ours 437 theirs 438",
+                "12182 1/-1 leader:MAKE[2].val: ours 2499999 theirs 100000",
+                "12182 1/-1 leader:MAKE[3].cat: ours 7 theirs 4",
+                "12182 1/-1 leader:MAKE[3].t: ours 66 theirs 419",
+                "12182 1/-1 leader:MAKE[3].val: ours 209664 theirs 18750",
+                "12182 1/-1 leader:MAKE[4].escrow: ours 0 theirs 1",
+                "12181 1/-1 leader:MAKE[4].num: ours 1 theirs 3",
+                "12182 1/-1 leader:MAKE[4].t: ours 52 theirs 419",
+                "12181 1/-1 leader:MAKE[4].val: ours 6585365 theirs 0",
                 "11976 1/-1 leader:SITE[4].val: ours 54243 theirs 36750",
+                "12183 1/-1 leader:bucket[0:food]: ours 7 theirs 107",
+                "12184 1/-1 leader:effective_pop: ours 59 theirs 58",
+                "12183 1/-1 leader:num_queued[2]: ours 1 theirs 0",
+                "12183 1/-1 leader:production_step: ours 9 theirs 0",
                 "11993 1/67 form: ours -1 theirs 0",
                 "11993 1/67 orders_x: ours 43584 theirs 43848",
                 "11993 1/67 orders_y: ours 15744 theirs 16344",
-                "12058 1/68 dest_angle: ours 1431655765 theirs -1043398656",
                 "12057 1/68 form: ours -1 theirs 0",
-                "12058 1/68 form_mod: ours -1 theirs 50",
-                "12058 1/68 group: ours 68 theirs 66",
-                "12058 1/68 order:length: Length { ours: 0, theirs: 1 }",
-                "12058 1/68 orders.len: ours 0 theirs 1",
                 "12057 1/68 orders_x: ours 45120 theirs 45144",
                 "12057 1/68 orders_y: ours 23424 theirs 24120",
-                "12058 1/68 path:length: PathLength { ours: 0, theirs: 11 }",
+                "12183 1/2019 queue:queued: ours 1 theirs 0",
             ],
             "the rows under the next word"
         );
-        assert_eq!(
-            newborn,
-            [
-                "dest_angle: ours 1431655765 theirs -1043398656",
-                "form: ours -1 theirs 0",
-                "form_mod: ours -1 theirs 50",
-                "g.angle[0]: ours 1431655765 theirs -644874240",
-                "g.avg_speed[0]: ours 0 theirs 27",
-                "g.cur_anim[0]: ours 0 theirs 8",
-                "g.cur_time[0]: ours 0 theirs 12",
-                "g.des_angle[0]: ours 1431655765 theirs -644874240",
-                "g.des_x[0]: ours 45144 theirs 42936",
-                "g.des_y[0]: ours 24120 theirs 24071",
-                "g.end_time[0]: ours 31 theirs 22",
-                "g.last_speed[0]: ours 0 theirs 30",
-                "g.last_time[0]: ours -1 theirs 11",
-                "g.stopped[0]: ours 1 theirs 0",
-                "g.x[0]: ours 45144 theirs 42936",
-                "g.y[0]: ours 24120 theirs 24071",
-                "group: ours 68 theirs 66",
-                "heading: ours 1431655765 theirs -644874240",
-                "idle: ours 7 theirs 0",
-                "order:length: Length { ours: 0, theirs: 1 }",
-                "orders.len: ours 0 theirs 1",
-                "orders_x: ours 45144 theirs 36264",
-                "orders_y: ours 24120 theirs 23688",
-                "path:length: PathLength { ours: 0, theirs: 9 }",
-                "path_recursion: ours 0 theirs 1",
-                "pos: ours (45144,24120) theirs (42936,24071)",
-                "tolerance: ours 0 theirs 384",
-            ],
-            "1/68 on the next word's block"
-        );
-        assert_eq!(
-            one_sided,
-            [(NEXT_BLOCK, 1, 68, false, true)],
-            "a figure changes animation on one side only"
-        );
         // **The floor**: 248 keys under the conversion — run136's standing
-        // residue under its word, as item 644 re-pinned it — and 1,884 in
-        // all, to the capture's last block. Before the fix: 248 and 2,044.
-        assert_eq!((under, firsts.len()), (248, 1_884), "the floor");
+        // residue under its word, as item 644 re-pinned it — and 1,432 in
+        // all, to the capture's last block. Before item 571's fix: 248 and
+        // 2,044; before item 657's: 248 and 1,884.
+        assert_eq!((under, firsts.len()), (248, 1_432), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
