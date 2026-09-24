@@ -6375,3 +6375,23 @@ proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
 hour of the single lane was already spent.
+## run192 — Great Lakes' word 14982, past run178's last block (2026-09-24, item 698)
+
+**What it is.** run178's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[14894, 15040)`, plus `rontrace.cfg` `cover=1` and `window=14978-14986`
+over the word. `!quit` at 15050, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 698
+```
+
+**Why it was owed.** Item 698 moved Great Lakes' word 14650 → 14982 (the
+suspended search's `GATHER` park, `docs/COLLISION.md` §15). run178 ends on
+block 14899, and no `gamelog-*greatlakes*` holds block 14982 or 14983
+(grepped before booking, the pattern checked against run163's 12180). On
+14982 the original spends three `Guy::init_real+0x52` before the frame's
+wraps, a three-figure birth, and this crate spends none. **Sized to the
+word, not to the gap** (Loop 687): the 83 blocks up to it, six shared with
+run178 so the widening walks one chain, and 56 of runway above it.
