@@ -3048,3 +3048,93 @@ fn a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one() {
         "a capital that holds a Senate keeps the flag"
     );
 }
+
+/// **A Senate that finishes a government trains its patriot, once**
+/// (`Build::finished@00628490`'s tail, `docs/TECH.md` §"The government
+/// patriot"). `get_gov` reads the government bonus's prerequisite,
+/// `get_gov_hero` finds the patriot that names it, `Build::train` places it
+/// at the Senate with no queue, and `Unit::init` stamps `gov_hero_frame`,
+/// which is what stops the second government from training another — the
+/// original `set_type`s the standing one instead, a seam here. Great Lakes'
+/// Despot `1/79` on tick 14982 and East Indies' Senator `1/60` on 15782.
+#[test]
+fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
+    use crate::tech::{Preq, TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let senate_t = tree.add(TypeDef::building("Senate"));
+    let despotism = tree.add(TypeDef::gov("Despotism", 0, 0).at(senate_t));
+    let monarchy = tree.add(TypeDef::gov("Monarchy", 1, 0).at(senate_t));
+    let patriot = Traits {
+        patriot: true,
+        hero: true,
+        ..Traits::default()
+    };
+    let despot_t = tree.add(TypeDef::unit("The Despot", patriot).needs(0, despotism));
+    let monarch_t = tree.add(TypeDef::unit("The Monarch", patriot).needs(0, monarchy));
+    // `get_gov`'s own order: Monarchy is tested ahead of Despotism.
+    tree.roles.gov_bonuses = vec![
+        ([Preq::Of(monarchy), Preq::None, Preq::None], monarchy),
+        ([Preq::Of(despotism), Preq::None, Preq::None], despotism),
+    ];
+    sim.set_tech_tree(tree);
+    sim.build_types[t.senate].tree = Some(senate_t);
+    let hero = |tt| UnitType {
+        tree: Some(tt),
+        hits: 109,
+        ..UnitType::default()
+    };
+    let despot = sim.add_unit_type(hero(despot_t));
+    let monarch = sim.add_unit_type(hero(monarch_t));
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let senate = sim.init_build(0, t.senate, tile_pos(36, 32), false);
+    finish(&mut sim, senate);
+    assert_eq!(sim.tech[0].gov_hero_frame, -1);
+    // Off frame 0: a government held at frame 0 counts as its patriot
+    // born (`gain_tech:161`), and that is a different rule.
+    for _ in 0..5 {
+        sim.tick();
+    }
+    let despots = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| {
+                sim.units[u].alive()
+                    && matches!(sim.units[u].ty, Some(x) if x == despot || x == monarch)
+            })
+            .count()
+    };
+
+    assert_eq!(sim.queue_tech(senate, despotism), Ok(0));
+    let mut frames = 0;
+    while !sim.tech[0].tech[despotism] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 600);
+    }
+    assert_eq!(despots(&sim), 1, "the Senate trains the Despot");
+    assert_eq!(
+        sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]),
+        Some(despot_t)
+    );
+    assert!(sim.tech[0].gov_hero_frame >= 0, "and its birth is stamped");
+
+    assert_eq!(sim.queue_tech(senate, monarchy), Ok(0));
+    while !sim.tech[0].tech[monarchy] {
+        sim.tick();
+        frames += 1;
+        assert!(frames < 1200);
+    }
+    assert_eq!(
+        despots(&sim),
+        1,
+        "a patriot already born is not trained again"
+    );
+    assert_eq!(
+        sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]),
+        Some(monarch_t),
+        "get_gov answers the first bonus in its own order"
+    );
+    sim.tech[0].no_patriots = true;
+    assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
+}

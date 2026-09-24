@@ -318,6 +318,12 @@ pub struct Roles {
     /// (`docs/CITIES.md` §2.6.1). `None` leaves the bonus granted, the
     /// tree's rule for a role it does not know.
     pub colonize_preq: Option<TypeId>,
+    /// `LeaderData::get_gov@006d6a20`'s six tests, in its own order —
+    /// `SOCIALISM_1`, `CAPITALISM_1`, `MONARCHY_1`, `DEMOCRACY_1`,
+    /// `DESPOTISM_1`, `REPUBLIC_1` — each the bonus's three prerequisites
+    /// and the government it answers. `docs/TECH.md` §"The government
+    /// patriot".
+    pub gov_bonuses: Vec<([Preq; 3], TypeId)>,
     /// `FISHERMEN1`–`FISHERMEN3`' prerequisites, in level order — the
     /// twentieth, twenty-first and twenty-second of `rules.xml`'s
     /// `TECHBONUSES` (`0x2bf`–`0x2c1`; Agriculture, Crop Rotation and Food
@@ -531,6 +537,10 @@ pub struct PlayerTech {
     pub no_governments: bool,
     /// `LeaderData::gov`: the government last gained, if any.
     pub gov: Option<TypeId>,
+    /// `LeaderData +0xa48 gov_hero_frame`: −1 until a government patriot
+    /// is born (`Unit::init` stamps the frame), 1 for a government held
+    /// at frame 0. `docs/TECH.md` §"The government patriot".
+    pub gov_hero_frame: i64,
 }
 
 impl PlayerTech {
@@ -554,6 +564,7 @@ impl PlayerTech {
             no_patriots: false,
             no_governments: false,
             gov: None,
+            gov_hero_frame: -1,
         }
     }
 
@@ -1505,9 +1516,41 @@ impl TechTree {
         t: TypeId,
         frame: i64,
     ) -> Vec<Gained> {
+        // `Leader::gain_tech@006dcb60:161`, ahead of everything: a
+        // government held at frame 0 counts as its patriot already born.
+        if matches!(self.kind(t), Kind::Gov { .. }) && frame == 0 {
+            p.gov_hero_frame = 1;
+        }
         let mut out = Vec::new();
         self.gain(setup, p, t, frame, &mut out, 0);
         out
+    }
+
+    /// `LeaderData::get_gov@006d6a20`: the first of the six government
+    /// bonuses whose prerequisites the player holds, as its government —
+    /// not `LeaderData::gov`, which is the last one gained.
+    pub fn get_gov(&self, setup: &Setup, p: &PlayerTech) -> Option<TypeId> {
+        self.roles
+            .gov_bonuses
+            .iter()
+            .find(|(preqs, _)| preqs.iter().all(|&q| self.has_tech_p(setup, p, q)))
+            .map(|&(_, g)| g)
+    }
+
+    /// `LeaderData::get_gov_hero@006e0600`: the first unit type, in index
+    /// order below `0x192`, whose `unit_flags` carry the patriot bit
+    /// (`0x4000000`, `FLAGS` digit `1`) and one of whose three
+    /// prerequisites is [`Self::get_gov`]. None with `leader_flags2 &
+    /// 0x1000` (no patriots) or no government.
+    pub fn get_gov_hero(&self, setup: &Setup, p: &PlayerTech) -> Option<TypeId> {
+        if p.no_patriots {
+            return None;
+        }
+        let gov = self.get_gov(setup, p)?;
+        (0..self.types.len().min(0x192)).find(|&u| {
+            self.kind(u).unit().is_some_and(|x| x.patriot)
+                && (0..3).any(|i| self.get_preq(setup, None, u, i) == Preq::Of(gov))
+        })
     }
 
     fn gain(

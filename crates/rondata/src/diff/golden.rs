@@ -4209,8 +4209,8 @@ fn chapter_five_s_word_frame_is_widened_whole() {
     );
     assert_eq!(
         leader_rows,
-        2 * 88 * blocks,
-        "the leader rows LEADERS=2 prints (88 a player) are not compared on \
+        2 * LEADERS_TWO_KEYS * blocks,
+        "the leader rows LEADERS=2 prints ({LEADERS_TWO_KEYS} a player) are not compared on \
          every block"
     );
     // **Anti-vacuity for the `AMMO` record**: run127's 506 live rounds
@@ -4890,8 +4890,8 @@ fn chapter_four_s_word_frame_is_widened_whole() {
     );
     assert_eq!(
         leader_rows,
-        2 * 88 * blocks,
-        "the leader rows LEADERS=2 prints (88 a player) are not compared on \
+        2 * LEADERS_TWO_KEYS * blocks,
+        "the leader rows LEADERS=2 prints ({LEADERS_TWO_KEYS} a player) are not compared on \
          every block"
     );
     // **The standing rows of run133's first block**, chapter five's three
@@ -5647,7 +5647,7 @@ fn widen_civilians(
         leader_rows,
         2 * leader_keys * blocks,
         "{run}: the leader rows the dump prints are not compared on every block \
-         ({leader_keys} a leader: 88 at LEADERS=2)"
+         ({leader_keys} a leader: {LEADERS_TWO_KEYS} at LEADERS=2)"
     );
     assert!(
         good_rows > 0 || no_goods == blocks,
@@ -5684,9 +5684,16 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     const NO_BLOCK: i64 = 1200;
     let mut summaries = Vec::new();
     for (run, stem) in [("ch7", "chapter7"), ("ch7c", "chapter7_control")] {
-        let Some(firsts) =
-            widen_civilians(run, stem, (FIRST, LAST), NO_BLOCK, 0, (763, 764), false, 88)
-        else {
+        let Some(firsts) = widen_civilians(
+            run,
+            stem,
+            (FIRST, LAST),
+            NO_BLOCK,
+            0,
+            (763, 764),
+            false,
+            LEADERS_TWO_KEYS,
+        ) else {
             return;
         };
         summaries.push((run, firsts));
@@ -5787,7 +5794,7 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         1,
         (GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_SIX + 1),
         true,
-        88,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -5844,7 +5851,7 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         0,
         (632, 634),
         true,
-        88,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -5935,7 +5942,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         0,
         (730, 735),
         false,
-        88,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -6053,7 +6060,7 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         0,
         (1249, 1249),
         false,
-        88,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -6153,7 +6160,7 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         0,
         (692, 694),
         false,
-        88,
+        LEADERS_TWO_KEYS,
     ) else {
         return;
     };
@@ -6327,7 +6334,9 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             (1199, 1200),
         ),
     ] {
-        let Some(firsts) = widen_civilians(run, stem, window, 1200, 1, print, false, 88) else {
+        let Some(firsts) =
+            widen_civilians(run, stem, window, 1200, 1, print, false, LEADERS_TWO_KEYS)
+        else {
             return;
         };
         for ((w, o, what), (f, row)) in &firsts {
@@ -6769,7 +6778,7 @@ fn widen_chapter_three(
     );
     assert_eq!(
         leader_rows,
-        2 * 88 * blocks,
+        2 * LEADERS_TWO_KEYS * blocks,
         "the leader rows LEADERS=2 prints are not compared on every block"
     );
     assert!(guy_rows > 0, "the GUY record is not read");

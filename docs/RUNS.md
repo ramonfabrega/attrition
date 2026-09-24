@@ -6375,6 +6375,55 @@ proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
 hour of the single lane was already spent.
+## run196 — Great Lakes' word 15175, past run192's last block (2026-09-24, item 706)
+
+**What it is.** run192's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15034, 15233)`, plus `rontrace.cfg` `cover=1` and `window=15171-15179`
+over the word. `!quit` at 15243, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 706
+```
+
+**Why it was owed.** Item 706 moved Great Lakes' word 14982 → 15175:
+the nation graft table and the Senate's government patriot
+(`docs/TECH.md` §"The graft table", §"The government patriot"). run192
+ends on block 15039, so the word's block 15176 is on no disk. On 15175
+ours spends one `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` more than
+the original. **Sized to the word, not to the gap** (Loop 687): six
+blocks shared with run192, the 136 up to the word, its block, and 56 of
+runway above it. The readings and their kills are in the stanza.
+
+**Taken whole.** 442 MB of dump and 20.5 MB of trace, 199 blocks
+15034..15232. It took about 17 minutes from launch (17:03) to archive
+(17:21), with no human at the menu. The lane lock was stale (pid 76328,
+run192's, dead). Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 15,244 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **199 blocks, 15034..15232, no gap** |
+| a `GROUPDATA` on every window block | **199** |
+| overlap with run192, nothing excluded | **6 in common (15034..15039), 0 differ** |
+| the coverage window | a set on all 9 frames 15171..15179 |
+
+**What it settled** (`run196_s_word_frame_is_widened_whole`).
+- **R1 holds**: the checks above.
+- **R2 is killed.** The first parting on run196's own blocks is not the
+  Despot. On 15095 the three free Longbowmen `1/76`–`1/78` take guard
+  orders, and the posts are handed out the other way round: `1/77` guards
+  (42696, 22392) here and (42984, 22344) there, and `1/78` the reverse.
+  Their steps part from there. On 15151–15152 their order kinds part, 12
+  here against 2 there, and `1/76` follows on 15180.
+- **R3 is killed with it.** The Despot `1/79` parts nowhere before 15208.
+- Nothing first-parts on the word's block, 15176. Its extra `do_guard`
+  draw is the Longbowmen's.
+- The floor is run192's 422, then 89 rows on run196's own blocks up to
+  the word, all of them the three archers, and 732 keys to the window's end.
+
 ## run192 — Great Lakes' word 14982, past run178's last block (2026-09-24, item 698)
 
 **What it is.** run178's line, unchanged,

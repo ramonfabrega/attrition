@@ -1039,7 +1039,7 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// a constant read but not built — build it, spell an offset `+0x..`, or
 /// raise the pin on purpose with the reason beside it.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 19),
+    ("AI.md", 18),
     ("ANIM.md", 1),
     ("ARMY.md", 5),
     ("CITIES.md", 6),
@@ -1054,7 +1054,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("PRODUCTION.md", 4),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 6),
+    ("TECH.md", 5),
     ("TRANSPORT.md", 2),
     ("VISION.md", 2),
 ];
