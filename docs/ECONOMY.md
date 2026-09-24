@@ -2138,7 +2138,10 @@ pinned field by field. The word itself by
 
 **Not established:**
 
-- **Where the 32 of wealth income comes from.** run107's thirty blocks at
+- ~~**Where the 32 of wealth income comes from.**~~ **Answered by item 661
+  (`docs/AI.md` §63)**: the two trade routes, 160 against 176, because the
+  Barracks and Stable never joined Norwich; the `ours 0` below was the
+  harness comparing against a literal 0. The original text: run107's thirty blocks at
   9170–9199 carry no `income` row at all, so the gap opens inside
   `(9199, 10375]` and no capture covers it. The AI holds two caravans this
   crate does not model (`vans.length` 0 against 1 and `trade_val` 0 against

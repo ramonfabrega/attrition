@@ -7852,3 +7852,138 @@ Reading-only, and owed a blind second reading: the two arms' predicates
 beyond what 10980 and 10982 exercise, namely Rubber's, the Auto Plant's,
 the enemy-cell and tree skips in the taken walk, and the chain's order
 against the rest of the pre-ramp tail.
+
+## 63. A Civic level seats the Barracks in Norwich, and the word moves to 12429 (2026-09-23, item 661)
+
+Item 657 left Great Lakes' word at **12184**: ours 47 draws against 95,
+parting at index 0 on six pairs of `Leader::create_buildings+0xffb`/
+`+0x1017`. The production list parts first on 12181. **The item moved it
+to 12429.** The mechanism was a trade route's worth, four frames of
+reasoning upstream of the draws.
+
+### 63.1 The frame, read backwards
+
+- **12184's draws are a second pass.** The original's step machine goes
+  8 → 0 on 12183. Ours goes 8 → 9 and runs Units / Buildings / Make a
+  second time (`production_step` 9, 10, 11). The extra draws on 12184 are
+  that pass's `create_buildings`.
+- **The pass follows a purchase.** Ours buys a Scholar on 12182. The
+  original does not.
+- **The purchase is an offer's value.** On sim-frame 12180
+  `create_units` offers the Scholar with `k` 3 (14 knowledge slots, 11
+  filled) on both sides. `check_income@006cc800` writes
+  `can_pay_cost@00667570`'s answer to its out-parameter. `create_units`
+  re-asks at that count only when it is short **and non-zero**
+  (`006c40a0:1554–1561`; `BASE_GOODTYPES` is 0).
+  - The Scholar costs **56 wealth**.
+  - The original holds **55**. `can_pay_cost` answers 0 and the factor is
+    0, so the offer is `val 0`, `num 3`, and it takes only the category
+    slot.
+  - Ours holds **57**. It affords one, re-asks at 1, gets 256, offers
+    `val 6,585,365`, `num 1`, and takes the head.
+- **The wealth is parked 514's income.** `income[2:wealth]` is 960
+  against 992. That gap was standing from before every window on disk.
+  Ours is two wealth *richer* here because the original's market spent
+  more earlier. run117's 10576 buy (`docs/ECONOMY.md` §13.3) is where the
+  four-wealth gap first chose a different good.
+
+### 63.2 The 32 is two trade routes, and the instrument hid it
+
+`LeaderData::calc_city_resources` adds each city's `trade_val` to wealth
+first (`docs/CARAVAN.md` §7.2). This crate's who=1 cities each hold
+**160**, and the original's **176**. 2 × 16 is the 32.
+
+The harness had printed `trade_val: ours 0` on every capture, and
+`vans.length` the same. Both rows compared the dump against a literal 0,
+written when neither field had a writer here, and never re-pointed at the
+sim's own field when `compute_trade` landed. So the cause stood beside
+its own symptom for a month. **The floor (committed first) reads the
+sim's own fields.** On East Indies both routes then agree, 128 with one
+caravan each, and four standing keys leave every widening there.
+
+`trade_val` is `trade_value(other, me) · 8`, and `trade_value` is the sum
+of both cities' `num_buildings`. The original's Norwich chain on 12180 is
+twelve long: `2007 → 2009 → … → 2021 → 2016 → 2018`. This crate's is
+ten. The Barracks `1/2016` and the Stable `1/2018` are the two missing.
+
+### 63.3 `find_buildings` on a Civic level
+
+The BUILD record's `city` and `city_down` were printed on every capture
+and parsed by nothing. The floor compares them: the owner's city slot,
+and the next member by object number.
+
+- **run56–58 (East Indies, 5,200 frames): 0 wrong.**
+- On Great Lakes the Barracks and Stable are cityless in both games at
+  7514. Bisecting run97 puts their join at **block 8734** in the
+  original, both at once, appended after the Mine `1/2021`. This crate
+  never seats them.
+
+`Leader::gain_tech@006dcb60:1324–1356` has the arm this crate lacked. For
+a type with `is_epoch_type` (vslot `+0x38`) and `TechTypeData +0x14 == 1`,
+every live city of the leader is re-masked (`Wall::mask_city` at
+`CityData::get_radius@00738410`) and swept by `City::find_buildings@007384c0`.
+The same function reads `+0x14` as 0 for Military (`calc_pop_cap`) and 3
+for Science (the library re-price), so 1 is Civic.
+
+`docs/CITIES.md` had listed the gap ("`find_buildings` no Civic-tech
+trigger"). What it buys is the sweep, not a radius: `get_radius@006db790`
+does not read the Civic level. Placement's `get_town` wants every
+footprint tile inside the city mask, and `find_buildings` only the centre
+tile within the radius. A building that straddled the mask's edge when it
+was placed therefore waits for a sweep. `Sim::civic_epoch_sweep` is the
+arm, called from `Sim::gain_tech`.
+
+### 63.4 What it moved
+
+- **Great Lakes' word: 12184 → 12429**, past run163's last block (12399).
+  The new delta: ours **14** draws against **12**, parting at index **5**.
+  Ours spends `Guy::set_anim+0x97a < Unit::move_step+0x823` where the
+  original spends `… < Guy::inc_time+0x271`. No dump on disk prints block
+  12430; item 669 owes the capture.
+- **The value diff on the old word.** run163's thirteen leader rows on
+  12181–12184 and `1/2019`'s queue row on 12183 are gone. So is the
+  bird's thirty-round `think_bird+0x2aa`/`+0x2d3` arm: nothing parts on
+  12184 now, so the arm was downstream of the production pass and not a
+  bird mechanism of its own.
+- **Removed from the windows, with nothing new arriving:**
+  - under run163's conversion, 250 → 238 keys: both `trade_val`s, who=1's
+    five wealth rows, `worst_good`, and the four BUILD rows;
+  - past it, 1,434 → 275;
+  - run136's floor, 250 → 238;
+  - run111's leader residue, 88 → 83;
+  - run117's, 98 → 88, and its buy frame (10576) is now the original's to
+    the unit: food at 128 and an emptied purse;
+  - run123's wealth on 11185, 11/6 → 6/6.
+- **Great Lakes' endpoint at 24001**: unlinked 0 → 1, extra 2 → 0,
+  `build_diverged` 10 → 7; `off` holds at 42. **The market literal**,
+  twenty → twenty-one below the word (12385).
+- East Indies' word and every golden chapter hold.
+
+### 63.5 What this has *not* established
+
+- **Which Civic level lands on 8733.** The join is dated by the dump.
+  That this crate's Civic level lands on the same frame is shown by the
+  word, not asserted by a row.
+- **The arm's order against step 11's buildings cascade.** A Civic
+  level that also unlocks `TOWN` would run `check_upgrade` both ways, and
+  no capture has one.
+- **Every other `find_buildings` trigger's reach.** A sweep on the
+  human's side, and a capture, run through the same function and are
+  uncompared.
+
+### 63.6 Coverage
+
+Diff-backed:
+
+- `run163_s_word_frame_is_widened_whole`: the move's value diff on
+  12181–12185 and the floor.
+- run100, run111, run117, run123 and run136's widenings, re-pinned above.
+- The BUILD `city` and `city_down` rows in every window.
+- The long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+Pinned capture-free:
+`a_civic_level_sweeps_a_straddling_building_into_its_city` (`sim`). It
+was made to fail with the call removed from `Sim::gain_tech`.
+
+Reading-only: the gate's two predicates (`+0x38` and `+0x14 == 1`),
+settled against the function's own siblings and not by a second reader.

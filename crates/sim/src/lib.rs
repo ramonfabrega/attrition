@@ -2981,6 +2981,17 @@ impl Sim {
             }
         }
         self.apply_gained(who);
+        // Step 10's second half: a Civic level re-masks every city and
+        // sweeps the buildings its new reach covers into it.
+        if matches!(
+            self.tech_tree.kind(t),
+            tech::Kind::Epoch {
+                line: tech::Line::Civic,
+                ..
+            }
+        ) {
+            self.civic_epoch_sweep(who);
+        }
         // **An age re-places every one of the leader's units where it
         // already stands** — `Leader::gain_tech@006dcb60:2366`, gated on
         // `TypeData::is_age_type` (the type vtable's `+0x34`, `is_epoch_type`

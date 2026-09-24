@@ -375,6 +375,70 @@ fn a_library_needs_a_city_and_there_is_one_per_city() {
     let _ = c;
 }
 
+/// **A Civic level sweeps a building that straddled the city mask into
+/// its city** (item 661, `docs/AI.md` §63). Placement's `get_town` wants
+/// every footprint tile inside the mask; `City::find_buildings` wants only
+/// the centre tile within the radius, and `Leader::gain_tech`'s Civic arm
+/// runs it on every city. A Science level runs no sweep. Great Lakes'
+/// who=1 Barracks and Stable stood cityless until block 8734 in the
+/// original for exactly this, and their absence from Norwich's chain was
+/// 16 of each trade route's 176.
+///
+/// Made to fail once with the arm's call removed from `Sim::gain_tech`:
+/// the Barracks stays cityless.
+#[test]
+fn a_civic_level_sweeps_a_straddling_building_into_its_city() {
+    use crate::tech::{Line, TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let civic = tree.add(TypeDef::epoch("Civic 1", Line::Civic, 0));
+    let science = tree.add(TypeDef::epoch("Science 1", Line::Science, 0));
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let r = sim.radius_of(c);
+    let centre = sim.cities[c].pos.tile();
+    // The first site east of the city that places, joins no city, and
+    // whose centre tile the sweep's radius still reaches.
+    let b = (33..60)
+        .find_map(|tx| {
+            let p = tile_pos(tx, 32);
+            if sim.blocked_site(Some(0), t.barracks, p, None) != Blocked::Clear
+                || sim.get_town(0, t.barracks, p).is_some()
+            {
+                return None;
+            }
+            let b = sim.place_building(0, t.barracks, p).ok()?;
+            let bt = sim.buildings[b].pos.tile();
+            if sim.buildings[b].city.is_none()
+                && world::vector_dist(centre.x - bt.x, centre.y - bt.y) <= r
+            {
+                Some(b)
+            } else {
+                sim.close_building(b, false);
+                None
+            }
+        })
+        .expect("a Barracks site straddling the city mask");
+    finish(&mut sim, b);
+    assert_eq!(sim.buildings[b].city, None, "placement joins no city");
+    sim.gain_tech(0, science);
+    assert_eq!(
+        sim.buildings[b].city, None,
+        "a Science level sweeps nothing"
+    );
+    let before = sim.num_buildings(c);
+    sim.gain_tech(0, civic);
+    assert_eq!(sim.buildings[b].city, Some(c), "the Civic level seats it");
+    assert!(sim.cities[c].members.contains(&b));
+    assert_eq!(
+        sim.num_buildings(c),
+        before + 1,
+        "and a route's worth counts it"
+    );
+}
+
 #[test]
 fn the_farm_limit_and_the_one_per_city_redirect() {
     let mut sim = world_sim();
