@@ -6307,3 +6307,20 @@ squad's `GroupAttackToOrder`s degrade to plain `ATTACKTOORDER`s to their
 slots ~14 blocks short of the point (798, 970, 1141: `ungroup_move_order`).
 When the captain turns, `0/8` has not reached its slot yet: the halt drops
 its leg and the new group leg replaces it.
+
+## run185 — chapter ten under `cover=1`, hung before frame 0 (2026-09-24, item 693)
+
+run184's script re-run with `--cover cover=1`, a log window of (605, 606)
+and no `end:` detail, so that the census's entered column could see the
+patrol's functions (`docs/CENSUS.md`; parked 692 asks whether an issuer
+chapter should count). Launched at 13:17 through `golden_capture.sh`.
+**It never reached frame 0.** `rontrace.log` holds 96 KB: the five hooks,
+the eight `callwin` proxies, `INFO cover` (48,173 stubs built), `armed`,
+`attach`, 2,984 `HIT` records of startup, and no `FRAME` record. Nothing
+more was written, and the runner's 3,600 s timeout killed the game at
+14:17, which released the lane lock. `waitrun.sh` exited 2, with no
+banner. So **`cover=1` on the click-free golden lane**, with its `callwin`
+proxies, is not a combination any capture had run before, and it hangs at
+startup. run906's `cover=1` ran on the older lane with no proxies. Not
+retried: the census's entered column is the Loop's question (692), and an
+hour of the single lane was already spent.
