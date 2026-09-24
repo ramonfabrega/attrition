@@ -22,6 +22,20 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 695, 2026-09-24 — under Great Lakes' 14650
+
+(699) **who=1's `known_rares`**: ours 4 against 0 on 14536, with or
+without the Senate arm.
+
+(700) **`senates_built`**: the leader record prints it (0 → 1 on 14529)
+and nothing in this crate reads it.
+
+(701) **The lazy border recompute after `fix_borders`**: who=0's
+`gather_stamp` is 14536 here against 14544 in the original.
+
+(702) **`TerrainOut::caravan_step`'s camel steps and `element_num`**, the
+stray-road sweep's two unmodelled inputs (ROADS §10.5).
+
 ## Parked by item 676, 2026-09-24 — chapter nine's other edges
 
 (689) **A pushed group's `GroupData::id`**: ours `64 +` its index in
