@@ -22,6 +22,24 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 651, 2026-09-24 — past chapter six-b's 632
+
+(681) **`Built::build_ids` names no building placed after `BEGIN GAME`**,
+so a staged Airbase reads `None` as an attack's `order:target`: item
+462's shape one level over. A fallback to `(owner, index)` removes both
+rows and moves nothing else; it reaches the long captures' widenings.
+
+(682) **The Bomber's stuck attack from 700**: `ATTACK` and a one-frame
+`MOVE` alternating to 1249 with no blow. Past the word.
+
+(683) **Whether an aircraft on the ground may strike a building at all**:
+the Fighter is `ANTI_AIR`, and neither aircraft does in 640 frames.
+
+(684) **The air line that flies still has no staging.** A trained
+aircraft inside its base, or an issuer (`issue_launch_patrol`,
+`issue_flight`), is the only writer of a player's air order: the issuer
+axis (GOLDEN §13).
+
 ## Parked by item 673, 2026-09-23 — under Great Lakes' 12897
 
 (679) **who=1's citizens hold `myhits` 40 against 50 and `mylos` 2
