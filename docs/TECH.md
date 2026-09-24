@@ -1070,9 +1070,10 @@ stamp removed.
   trains a patriot from a newly built Senate.
 - **The Despot's exit.** On 14983 the original's `1/79` is still inside the
   Senate (`visible 0`, `orders_x/y` its own point), and ours has come out
-  onto its ring. Great Lakes' new word, 15175, spends an extra `Unit::
-  do_guard` draw here. That is the new word's hypothesis and nothing more
-  (`docs/DECISIONS.md` 42).
+  onto its ring. By 14984 the two agree, and run196 shows `1/79` parting
+  nowhere before 15208. ~~It is the new word's hypothesis~~: run196 killed
+  it. Great Lakes' new word, 15175, is the free Longbowmen's guard posts,
+  handed out the other way round on 15095 (`docs/RUNS.md` run196).
 
 ## What is not established
 

@@ -2047,9 +2047,12 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// original 3, parting at index 2**: ours spends `Guy::set_anim+0x97a <
 /// Unit::do_guard+0x7f4` where the original spends `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`. **Past run192** (block 15176 against its last,
-/// 15039); `run192_s_word_frame_is_widened_whole` keeps the move's value
-/// diff on 14946 and 14983, and the widening that names 15176 is owed to
-/// run196.
+/// 15039), so item 706 took **run196**; `run196_s_word_frame_is_widened_whole`
+/// names the word's block — nothing first-parts on it, and the nearest
+/// parting under it is the three free Longbowmen's guard posts on 15095,
+/// handed out the other way round — and
+/// `run192_s_word_frame_is_widened_whole` keeps the move's value diff on
+/// 14946 and 14983.
 pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_175;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
@@ -3445,6 +3448,14 @@ pub(crate) const WIDENING_GREAT_LAKES_BIRTH: (i64, i64) = (11_400, 15_039);
 /// 14982's frame writes block 14983, past run178. The coverage driver
 /// reads run192 around it.
 pub(crate) const GREAT_LAKES_BIRTH_BLOCK: i64 = 14_983;
+/// `run196_s_word_frame_is_widened_whole`'s window (item 706):
+/// [`WIDENING_GREAT_LAKES_BIRTH`]'s chain, then run196 from run192's last
+/// block to its own, 15232.
+pub(crate) const WIDENING_GREAT_LAKES_PATRIOT: (i64, i64) = (11_400, 15_232);
+/// The block [`WIDENING_GREAT_LAKES_PATRIOT`] was taken to widen: the word
+/// 15175's frame writes block 15176, past run192. The coverage driver
+/// reads run196 around it.
+pub(crate) const GREAT_LAKES_PATRIOT_BLOCK: i64 = 15_176;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3868,14 +3879,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **Item 706 moved it 14982 → 15175**, past run192's last block
     // (15039): the nation graft table and the Senate's government patriot
     // (`docs/TECH.md` §"The graft table", §"The government patriot").
-    // run192's test keeps the move's value diff on 14946 and 14983. Item
-    // 706 owes run196 over the new word.
+    // run192's test keeps the move's value diff on 14946 and 14983. **Item
+    // 706 paid it**: run196 is run192's line over [15034, 15232], and
+    // `run196_s_word_frame_is_widened_whole` walks it from run123's 11400
+    // across ten captures, so the window is [`WIDENING_GREAT_LAKES_PATRIOT`]
+    // and the test pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run196_s_word_frame_is_widened_whole"),
         706,
-        None,
+        Some(WIDENING_GREAT_LAKES_PATRIOT),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
