@@ -23,6 +23,18 @@ use crate::movement::{Angle, find_angle};
 use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE, vector_dist};
 use crate::{Player, Sim};
 
+/// What `check_target`'s guarding arm answers (`docs/COMBAT.md` §63.1).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Leash {
+    /// The captain is attacking this target: `check_target` answers 1 at
+    /// once, before its tail.
+    Captain,
+    /// Target and guard both inside the radius of the post.
+    In,
+    /// One of them is outside it: refused.
+    Out,
+}
+
 /// `Unit::find_attack_pos@00601280+0xea9` — the ring walk's one draw
 /// (`docs/COMBAT.md` §17), reached through the seven-argument overload
 /// `find_attack_pos@00602e60`, whose `+0x2d` is the return address the
@@ -44,6 +56,12 @@ pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fig
 /// bare phase mark; item 364's golden record is where that cost a
 /// comparison (`docs/INPUT.md` §11).
 pub const SITE_FIGHT_RESEARCH: &str = "Unit::fight+0x9b0";
+
+/// **The AI guard's charge roll** — `Unit::fight@005fd4d0`, the
+/// `Random::get` at `005fdcef` (`docs/COMBAT.md` §63.2): a captain whose
+/// activity is a `GUARD` and whose `unit_masks` carries `0x40000` spends
+/// it on every unrecharged `fight`, and an odd draw drops the attack.
+pub const SITE_FIGHT_GUARD_ROLL: &str = "Unit::fight+0x824";
 
 /// `Ammo::init@0067bbf0+0xcd9` — the landing scatter's **x** draw, the
 /// first of the two a shot spends (`docs/COMBAT.md` §9.1, §9.5).
@@ -418,6 +436,108 @@ impl Sim {
         match attacker {
             Obj::Unit(u) => self.unit_line_is(u, HOPLITES),
             Obj::Building(_) => false,
+        }
+    }
+
+    /// **`UnitData::get_activity@00608370`, asked whether it is a
+    /// `GUARD`** (`docs/COMBAT.md` §63.1): the first order that is neither
+    /// a move nor an attack (`UnitOrder::is_move_attack@0047ff00`, vslot
+    /// `+0x1c`). A list that is all moves and attacks answers its tail
+    /// only for `ATTACK_TO` or `0x15`, never a `GUARD`, so that arm is not
+    /// carried.
+    ///
+    /// SEAM: `is_attack` (vslot `+0x18`) is taken as the attack and
+    /// ground-attack orders; its overrides are folded in the export.
+    pub(crate) fn guard_activity(&self, u: usize) -> Option<crate::orders::GuardOrder> {
+        use crate::orders::Body;
+        let o = self.units[u].orders.iter().find(|o| {
+            !(o.is_move() || matches!(o.body, Body::Attack(_) | Body::AttackGround(_)))
+        })?;
+        match o.body {
+            Body::Guard(g) => Some(g),
+            _ => None,
+        }
+    }
+
+    /// **`Object::check_target@00649e00`'s guarding arm**, `0064a00d`–
+    /// `0064a190` (`docs/COMBAT.md` §63.1): may a unit guarding a post
+    /// take `target`?
+    ///
+    /// A follower whose captain's action is an `ATTACK` on `target` may,
+    /// and the whole of `check_target` answers 1 there (`0064a0eb`).
+    /// Otherwise the radius is `unit_guard_respond_range × k × 0x60`,
+    /// `k` 3 against a unit that is not a worker (`is_worker@0046fa10`,
+    /// type `0x32`–`0x35`) when the guard carries `unit_masks & 0x40000`
+    /// ([`Sim::ai_driven`], the one stand-in), else 2. Both the **target**
+    /// and **the guard itself** must stand within it of the post, the
+    /// order's `+0x1c/+0x20` (`0064a100`–`0064a186`, the listing: the
+    /// decompiler lost both `vector_dist`s' operands).
+    pub(crate) fn guard_leash(
+        &self,
+        u: usize,
+        g: &crate::orders::GuardOrder,
+        target: Obj,
+    ) -> Leash {
+        use crate::orders::Body;
+        if !self.units[u].captain {
+            let cap = self.squad_captain(u);
+            if let Some(a) = self.action_of(cap)
+                && matches!(self.units[cap].orders[a].body, Body::Attack(_))
+                && self.units[cap].combat.target == Some(target)
+            {
+                return Leash::Captain;
+            }
+        }
+        let worker = match target {
+            Obj::Unit(t) => self.units[t]
+                .ty
+                .is_some_and(|ty| (0x32..=0x35).contains(&self.unit_types[ty].type_index)),
+            Obj::Building(_) => true,
+        };
+        let k = if !worker && self.ai_driven(self.units[u].owner) {
+            3
+        } else {
+            2
+        };
+        let r = self.tuning.unit_guard_respond_range * k * 0x60;
+        let (to, me, post) = (self.pos_of(target), self.units[u].pos, g.guard);
+        if vector_dist(to.x - post.x, to.y - post.y) > r
+            || vector_dist(me.x - post.x, me.y - post.y) > r
+        {
+            Leash::Out
+        } else {
+            Leash::In
+        }
+    }
+
+    /// **`Object::check_target(o, who, 1, NULL, 1, use_poor, 0)`**, the
+    /// call `Unit::fight@005fd4d0` makes for a unit whose activity is a
+    /// `GUARD` (`005fdd0c`, `docs/COMBAT.md` §63.1): a target in another
+    /// `tregion` must be in range; then [`Sim::guard_leash`]; then, with
+    /// `use_poor`, not [`Sim::poor_target`].
+    ///
+    /// SEAM: the region test's AI exception (`unit_masks & 0x40000`,
+    /// `has_objmask(0x40000)` and a sea type) and the tail's building-cell
+    /// test are not carried; a guard here is on land and its target a
+    /// unit.
+    pub(crate) fn guard_check_target(
+        &self,
+        u: usize,
+        g: &crate::orders::GuardOrder,
+        target: Obj,
+        use_poor: bool,
+    ) -> bool {
+        let me = Obj::Unit(u);
+        let (here, there) = (self.units[u].pos, self.pos_of(target));
+        if self.world.tregion(here.tile()) != self.world.tregion(there.tile())
+            && !self.is_in_range(me, target)
+        {
+            return false;
+        }
+        match self.guard_leash(u, g, target) {
+            Leash::Captain => true,
+            Leash::Out => false,
+            Leash::In => !(use_poor && self.poor_target(me, target)),
         }
     }
 
@@ -2046,6 +2166,23 @@ impl Sim {
         if self.profile(me).attack == 0 {
             return;
         }
+        // **An action order holds a human's unit** (`LAB_00600877`,
+        // `docs/COMBAT.md` §63.4): the attack is added only when the
+        // action (`update_action`) is null or not flagged `ACTION`, when
+        // the unit carries `unit_masks & 0x40000` ([`Sim::ai_driven`]),
+        // or when the action is an `ATTACK_TO`, a `0x15` or a patrol
+        // (vslot `+0x34`). A player's guard under its `GUARD` never
+        // answers the hit: chapter eleven's `0/6` on 1091.
+        if !self.ai_driven(self.units[responder].owner)
+            && let Some(k) = self.action_of(responder)
+        {
+            let o = self.units[responder].orders[k];
+            let free = matches!(o.index(), crate::orders::index::ATTACK_TO | 0x15)
+                || matches!(o.body, crate::orders::Body::Patrol(_));
+            if o.has(crate::orders::flag::ACTION) && !free {
+                return;
+            }
+        }
         self.retarget(me, Some(attacker), false);
     }
 
@@ -2221,7 +2358,21 @@ impl Sim {
         };
         let minr = ap.min_range * 0xc0;
         let maxr = self.max_range_of(attacker) * 0xc0;
-        let centre = at.cell();
+        // **`local_2c`: a searcher whose activity is a `GUARD`**
+        // (`find_nearby_target@00648da0:176`–`184`, `docs/COMBAT.md`
+        // §63.3). It scans the rings round its **post**, the guard order's
+        // `+0x1c/+0x20` (`:240`–`250`), hands `check_target` its guarding
+        // argument, so every candidate is leashed to the post
+        // ([`Sim::guard_leash`]) before `near` is written, and it must
+        // reach a candidate that is unarmed (`:346`–`352`).
+        //
+        // SEAM: the cavalry archer's call (`param_4`) is never guarding;
+        // this crate's search has no such caller.
+        let guard = match attacker {
+            Obj::Unit(i) => self.guard_activity(i).map(|g| (i, g)),
+            Obj::Building(_) => None,
+        };
+        let centre = guard.map_or(at, |(_, g)| g.guard).cell();
         // **`local_40`, computed once before the rings** (`00648e6e`), off
         // the *searcher's* own leader and not the candidate's. It is
         // `compare_target`'s fourth argument and nothing else here reads
@@ -2288,11 +2439,19 @@ impl Sim {
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
+                        // `check_target`'s guarding arm, above its tail:
+                        // out of the leash is refused before `near_o` is
+                        // written, and the captain's own target answers 1
+                        // there, before `poor_target` is asked.
+                        let leash = guard.map(|(i, g)| self.guard_leash(i, &g, o));
+                        if leash == Some(Leash::Out) {
+                            continue;
+                        }
                         // **`check_target`'s tail**, `use_poor` 1
                         // (`00649e00`, `docs/COMBAT.md` §61): a futile
                         // chase is refused before `near_o` is written, and
                         // an unarmed plane's search of a plane is futile.
-                        if self.poor_target(attacker, o) {
+                        if leash != Some(Leash::Captain) && self.poor_target(attacker, o) {
                             continue;
                         }
                         let mut dist = self.attack_dist(attacker, o);
@@ -2315,7 +2474,14 @@ impl Sim {
                         // is a computer's packed siege engine, which this
                         // crate does not flag (§60.4). A building needs the
                         // target in range or worth waiting for.
-                        let in_range = if must_reach {
+                        // A guard deems in range only an armed candidate,
+                        // and under `unit_masks & 0x40000` only one without
+                        // `ANTI_AIR` (`:346`–`352`); the rest it must reach.
+                        let guard_reach = guard.is_some()
+                            && (self.attack_of(o) == 0
+                                || (self.ai_driven(self.owner_of(attacker))
+                                    && self.profile(o).has(mask::ANTI_AIR)));
+                        let in_range = if must_reach || guard_reach {
                             if !self.is_in_range(attacker, o) {
                                 continue;
                             }
@@ -4672,5 +4838,139 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// run190's guard, in miniature: a player's chariot-ranged unit on its
+    /// post (3480, 12264) guarding a standing wagon, with an attack on an
+    /// enemy stacked above its `GUARD`.
+    fn guard_on_post(enemy_at: Pos) -> (Sim, usize, usize) {
+        let (mut sim, ty) = at_war();
+        sim.nation[0].human = true;
+        sim.nation[1].human = true;
+        let mut t = sim.unit_types[ty].clone();
+        t.combat.max_range = 8;
+        let chariot = sim.add_unit_type(t);
+        let post = Pos::new(3480, 12264);
+        let wagon = put(&mut sim, 0, chariot, Pos::new(3456, 11904));
+        let guard = put(&mut sim, 0, chariot, post);
+        let enemy = put(&mut sim, 1, chariot, enemy_at);
+        sim.add_guard_order(guard, wagon, 0, 372, crate::orders::QueuePos::New);
+        if let crate::orders::Body::Guard(g) = &mut sim.units[guard].orders[0].body {
+            g.guard = post;
+        }
+        (sim, guard, enemy)
+    }
+
+    /// A frame off `do_guard`'s two sixteen-frame phases and the review's.
+    fn off_phase(sim: &Sim, u: usize) -> i64 {
+        let o = i64::from(sim.units[u].index);
+        (3 - o).rem_euclid(16) + 16
+    }
+
+    /// **A guard's attack is leashed to its post** (`Unit::fight@005fd4d0`
+    /// `005fdd0c`, `check_target@00649e00`'s guarding arm,
+    /// `docs/COMBAT.md` §63.1–§63.2). run190's own tick 1036: the enemy on
+    /// (3356, 14040) is ≈1,780 from the post, past `8 × 2 × 0x60` = 1,536,
+    /// so the unrecharged `fight` kills the attack with no draw, and the
+    /// guard's own search, leashed too, finds nothing and leaves `near`
+    /// empty. At 1,400 the attack stands.
+    ///
+    /// Made to fail first with the arm removed from `do_attack`: the
+    /// attack stood and fired, the chapter's 1037 rows.
+    #[test]
+    fn a_guard_drops_an_attack_whose_target_leaves_its_leash() {
+        let (mut sim, guard, enemy) = guard_on_post(Pos::new(3356, 14040));
+        sim.add_attack_order(
+            guard,
+            Obj::Unit(enemy),
+            crate::orders::QueuePos::First,
+            false,
+            false,
+        );
+        let seed = sim.rng.seed;
+        let f = off_phase(&sim, guard);
+        sim.work(guard, f);
+        assert_eq!(sim.order_type(guard), crate::orders::index::GUARD);
+        assert_eq!(
+            sim.units[guard].orders.len(),
+            1,
+            "{:?}",
+            sim.units[guard].orders
+        );
+        assert_eq!(
+            sim.units[guard].near, None,
+            "the leashed search saw nothing"
+        );
+        assert_eq!(sim.rng.seed, seed, "a human's guard spends no draw");
+
+        let (mut sim, guard, enemy) = guard_on_post(Pos::new(3480, 13664));
+        sim.add_attack_order(
+            guard,
+            Obj::Unit(enemy),
+            crate::orders::QueuePos::First,
+            false,
+            false,
+        );
+        let f = off_phase(&sim, guard);
+        sim.work(guard, f);
+        assert_eq!(
+            sim.units[guard].combat.target,
+            Some(Obj::Unit(enemy)),
+            "inside the leash the attack stands"
+        );
+    }
+
+    /// **The guard's search is leashed and centred on its post**
+    /// (`find_nearby_target@00648da0`'s `local_2c`, §63.3): the enemy at
+    /// ≈1,635 from the post is inside the search's radius, and an idle
+    /// unit on the same spot takes it; a guard does not, and its `near`
+    /// stays empty. Parked 705's non-re-engagement, in miniature.
+    ///
+    /// Made to fail first with the leash out of the candidate loop.
+    #[test]
+    fn a_guard_s_search_refuses_what_is_past_its_leash() {
+        let (mut sim, guard, enemy) = guard_on_post(Pos::new(3384, 13896));
+        assert_eq!(sim.find_melee_target(guard, -1), None);
+        assert_eq!(sim.units[guard].near, None);
+        sim.units[guard].orders.clear();
+        assert_eq!(
+            sim.find_melee_target(guard, -1),
+            Some(Obj::Unit(enemy)),
+            "unleashed, the same unit takes it"
+        );
+    }
+
+    /// **A human's action order holds its retaliation**
+    /// (`Unit::target_opportunity@005fffc0`, `LAB_00600877`, §63.4): a
+    /// player's guard under its `GUARD` (flags `ACTION`) does not answer a
+    /// hit; the same unit idle does, and so does an AI's guard
+    /// (`unit_masks & 0x40000`). run190's 1091.
+    ///
+    /// Made to fail first with the gate removed: the human guard took the
+    /// attack.
+    #[test]
+    fn a_human_guard_does_not_answer_a_hit() {
+        let (mut sim, guard, enemy) = guard_on_post(Pos::new(3384, 13896));
+        sim.target_opportunity(guard, Obj::Unit(enemy), 1091);
+        assert_eq!(sim.order_type(guard), crate::orders::index::GUARD);
+        assert_eq!(sim.units[guard].combat.target, None);
+
+        let (mut sim, guard, enemy) = guard_on_post(Pos::new(3384, 13896));
+        sim.nation[0].human = false;
+        sim.target_opportunity(guard, Obj::Unit(enemy), 1091);
+        assert_eq!(
+            sim.units[guard].combat.target,
+            Some(Obj::Unit(enemy)),
+            "an AI's guard"
+        );
+
+        let (mut sim, guard, enemy) = guard_on_post(Pos::new(3384, 13896));
+        sim.units[guard].orders.clear();
+        sim.target_opportunity(guard, Obj::Unit(enemy), 1091);
+        assert_eq!(
+            sim.units[guard].combat.target,
+            Some(Obj::Unit(enemy)),
+            "idle"
+        );
     }
 }

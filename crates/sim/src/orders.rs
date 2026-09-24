@@ -6806,6 +6806,45 @@ impl Sim {
             }
             return;
         }
+        // **A guard's attack is leashed to its post** (`docs/COMBAT.md`
+        // §63). `Unit::fight@005fd4d0`, `005fdc91`–`005fdd4f`, straight
+        // after `valid_target` passes and ahead of both captain arms below:
+        // when the unit's **activity** is a `GUARD` (`get_activity`, type
+        // `0xc`), it asks `check_target(o, who, 1, NULL, 1, use_poor, 0)`,
+        // whose guarding arm refuses a target — or a guard — further than
+        // `unit_guard_respond_range × 2 × 0x60` from the post. Refused, the
+        // attack is killed and `find_melee_target(−1, NULL, 0, 1, 0)` runs
+        // the guard's own search, which adds what it finds at QUEUE_FIRST;
+        // a unit left under an `ATTACK` and not recharging carries the
+        // frozen mark. A captain with `unit_masks & 0x40000` first rolls
+        // (`fight+0x824`) and drops the attack on an odd draw, and asks
+        // with `use_poor`.
+        //
+        // Chapter eleven is the witness (run190): the chariot `0/6` shot
+        // `1/6` from its post on 1011, `1/6` walked off on its army's
+        // order, and on tick 1036, its first unrecharged `fight`, `1/6`
+        // stood ≈1,780 from the post against a leash of 1,536. The guard
+        // drops the attack with no draw, and its search, leashed too,
+        // writes `near` −1.
+        if let Some(g) = self.guard_activity(u) {
+            let mut use_poor = false;
+            let mut drop = false;
+            if self.units[u].captain && self.ai_driven(self.units[u].owner) {
+                use_poor = true;
+                self.mark(crate::fight::SITE_FIGHT_GUARD_ROLL);
+                drop = self.rng.roll() & 1 != 0;
+            }
+            if drop || !self.guard_check_target(u, &g, target, use_poor) {
+                self.kill_current_order(u);
+                if let Some(t) = self.find_melee_target(u, -1) {
+                    self.add_attack_order(u, t, QueuePos::First, false, false);
+                }
+                if self.order_type(u) == index::ATTACK {
+                    self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+                }
+                return;
+            }
+        }
         // **A captain's attack on a building re-searches every frame**
         // (`docs/COMBAT.md` §62). The same captain arm as the one-in-five
         // below, `Unit::fight@005fd4d0`, `LAB_005fddf7`: when the target
