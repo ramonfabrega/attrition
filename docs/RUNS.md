@@ -6375,6 +6375,28 @@ proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
 hour of the single lane was already spent.
+## run202 — Great Lakes' word 15383, past run196's last block (2026-09-24, item 711)
+
+**What it is.** run196's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15227, 15441)`, plus `rontrace.cfg` `cover=1` and `window=15379-15387`
+over the word. `!quit` at 15451, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 711
+```
+
+**Why it was owed.** Item 711 moved Great Lakes' word 15175 → 15383:
+a unit's own mirror, `unit_masks & 2`, which `Unit::do_guard` reads off
+its target (`docs/GROUPS.md` §25). run196 ends on block 15232, so the
+word's block 15384 is on no disk. On 15383 ours spends one
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d` where the original spends
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. **Sized to the word, not to
+the gap** (Loop 687): six blocks shared with run196, the 151 up to the
+word, its block, and 56 of runway above it. The readings and their kills
+are in the stanza.
+
 ## run196 — Great Lakes' word 15175, past run192's last block (2026-09-24, item 706)
 
 **What it is.** run192's line, unchanged,

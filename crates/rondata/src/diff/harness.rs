@@ -11171,16 +11171,15 @@ mod tests {
             (WIDENING_GREAT_LAKES_PATRIOT.1 - WIDENING_GREAT_LAKES_PATRIOT.0 + 1) as usize,
             "the walk is whole"
         );
-        // **Under the word, on run196's own blocks: the three free
-        // Longbowmen, and nobody else.** The Barracks' free archers `1/76`–
-        // `1/78` (born on 14946, item 706's graft table) take guard orders
-        // on 15095, and the posts are handed out the other way round:
-        // `1/77` guards (42696, 22392) here and (42984, 22344) there, and
-        // `1/78` the other way round. From there their steps part, and on
-        // 15151–15152 their order kinds do too, 12 here against 2 there;
-        // `1/76` follows on 15180. The Despot `1/79` parts nowhere before
-        // 15208. So run196's R2 and R3, which named the Despot, are both
-        // killed. No mechanism is named (DECISIONS 42).
+        // **Under the old word, on run196's own blocks: nothing, since item
+        // 711.** Until then the three free Longbowmen `1/76`–`1/78` parted
+        // here on 89 keys from 15095: their guard posts on The Despot
+        // `1/79` were handed out the other way round, `1/77` on (42696,
+        // 22392) here and (42984, 22344) there, and `1/78` the reverse.
+        // The Despot carries `unit_masks & 2`, its own mirror, and
+        // `Unit::do_guard` negates `dx` for it (`docs/GROUPS.md` §25).
+        // With the bit carried, the posts are the original's and no row
+        // of any unit first-parts on 15040..15176.
         let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
         for ((w, o, _), (f, _)) in &firsts {
             if (RUN192_TAIL + 1..=WORD_BLOCK).contains(f) {
@@ -11191,53 +11190,28 @@ mod tests {
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
         assert_eq!(
             own,
-            [
-                (15_095, 1, 77, 28),
-                (15_095, 1, 78, 9),
-                (15_096, 1, 77, 3),
-                (15_096, 1, 78, 9),
-                (15_097, 1, 76, 1),
-                (15_097, 1, 78, 4),
-                (15_098, 1, 76, 9),
-                (15_099, 1, 76, 5),
-                (15_099, 1, 78, 1),
-                (15_106, 1, 78, 3),
-                (15_112, 1, 76, 1),
-                (15_117, 1, 76, 2),
-                (15_151, 1, 77, 4),
-                (15_152, 1, 77, 2),
-                (15_152, 1, 78, 5),
-                (15_153, 1, 78, 2),
-                (15_157, 1, 76, 1),
-            ],
-            "who parts first on run196's own blocks up to the word's, and on how many keys"
+            [],
+            "who parts first on run196's own blocks up to the old word's, and on how many keys"
         );
-        let posts: Vec<String> = firsts
-            .iter()
-            .filter(|((_, _, what), (f, _))| *f == 15_095 && what.starts_with("orders_"))
-            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
-            .collect();
-        assert_eq!(
-            posts,
-            [
-                "15095 1/77 orders_x: ours 42696 theirs 42984",
-                "15095 1/77 orders_y: ours 22392 theirs 22344",
-                "15095 1/78 orders_x: ours 42984 theirs 42696",
-                "15095 1/78 orders_y: ours 22344 theirs 22392",
-            ],
-            "the two guard posts, handed out the other way round"
-        );
-        // **The word, 15175 (block 15176).** Ours spends one
-        // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` more than the
-        // original. Nothing first-parts on the block itself: the
-        // Longbowmen's guard rows stand from 15151.
+        // **The old word, 15175 (block 15176)**, and its value diff: the
+        // extra `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` is gone with
+        // the posts, and nothing parts on the block or under it.
         assert!(
             !firsts.values().any(|(f, _)| *f == WORD_BLOCK),
             "nothing parts first on 15176"
         );
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        eprintln!("run196 past the old word: {} rows", past.len());
+        for r in &past {
+            eprintln!("  {r}");
+        }
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            376,
+            0,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
