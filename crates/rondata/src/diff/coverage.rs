@@ -607,11 +607,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // with a General and a Spy in it, and the first golden capture at
     // `LEADERS=5`, whose leader record prints the diplomacy row. The
     // window is the word's block with two on either side, as six's.
+    // Item 664 moved the word 617 → 659, and both windows are driven:
+    // 617's carries the Spy's explore order, the first on this lobby.
     if let Some(p) = &ch8 {
-        let w = super::testkit::GOLDEN_WORD_CHAPTER_EIGHT;
-        let n = drive_capture(p, w - 2, w + 2, &mut paths);
-        assert_eq!(n, 5, "chapter eight carries the word's five blocks");
-        frames += n;
+        for w in [617, super::testkit::GOLDEN_WORD_CHAPTER_EIGHT] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter eight carries the word's five blocks");
+            frames += n;
+        }
     }
     assert!(frames > 0, "no frame of either window was found");
     let _ = GOLDEN_WORD_CHAPTER_TWO;

@@ -1039,8 +1039,8 @@ widening, only `1/1`'s group id on 990 stands (`docs/GROUPS.md` §24).
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 
-**Captured as run171 (item 660), pinned open at 617 of 901; its third
-change ended the game.** The staging was read and committed first
+**Captured as run171 (item 660), pinned open at ~~617~~ **659** of 901
+(item 664); its third change ended the game.** The staging was read and committed first
 (`chapter8.cmd`'s header, `89e338e`), the capture's section is
 `docs/RUNS.md` run171, and no falsifier fired. What the chapter measured:
 
@@ -1057,7 +1057,9 @@ change ended the game.** The staging was read and committed first
   on read. The General itself never moves and is never struck.
 - **The Spy explores**: an `EXPLORETOORDER` on its birth block, 618, to
   (4344, 10488), group 66 — `!ai off` leaves a computer's Spy its
-  `think_scout` (`docs/INPUT.md` §11.10's tail).
+  `think_scout` (`docs/INPUT.md` §11.10's tail). It is the region scan,
+  one `+0x941` and seventy `+0xaba` on 617, and since item 664 this
+  crate draws them all (`docs/SCOUT.md` §15).
 - **`ally` in a two-player lobby is an allied victory.**
   `Leader::set_diplo@006ec6a0` counts the live leaders allied to neither
   side over `leaders.list[0..8]` — the bound `0xe71af0` is eight
@@ -1068,11 +1070,26 @@ change ended the game.** The staging was read and committed first
   which this lobby has not got. The staging read the loop as all ten
   leaders and predicted the game would run on.
 
-**The word is 617**, the Spy's birth frame: 9 draws against 80, parting at
-draw 3 on the original's `Unit::think_scout+0x941`. On 618 run171 holds the
-Spy's explore order and this crate holds none. No mechanism is named
+~~**The word is 617**, the Spy's birth frame: 9 draws against 80, parting at
+draw 3 on the original's `Unit::think_scout+0x941`.~~ **Item 664 moved it
+617 → 659**: `ObjectData::is(SPY, 0)` had been a seam answering false, so
+the Spy never reached `think_scout`. With the lineage test its birth
+think spends the original's 71 draws, and on 618 it holds the original's
+order, path, group and `form_mod` (`docs/SCOUT.md` §15).
+
+**The word is 659**, the first blow's frame: 9 draws against 10, parting
+at draw 2 on the original's `Unit::fight+0x9b0`, the one-in-five
+re-search roll. The value diff, in run171's own coordinates: who=1's
+hoplite `1/6` is chasing the General `0/9`, and on block 658 it stands at
+(1780, 7844) on both sides. On 659 the original's has stopped there,
+`collide_o 7` (who=0's hoplite `0/7`), with its move dropped and only its
+attack order left. This crate's has stepped back to (1800, 7848) with
+`collide 1` and still walks for the General. On 660 the original's
+targets `0/7` and lands the first blow, and both leaders' `treaties[·]`
+read 3 where this crate's read 0. No mechanism is named
 (`docs/DECISIONS.md` 42); `GOLDEN_WORD_CHAPTER_EIGHT` carries the value
-diff and `chapter_eight_s_word_frame_is_widened_whole` the block.
+diff and `chapter_eight_s_word_frame_is_widened_whole` the blocks, now
+605–660.
 
 **Premise.** Chapter one's `war` is the bare form and changes nothing. This
 is the chapter that moves the diplomacy state, three times, with a fight

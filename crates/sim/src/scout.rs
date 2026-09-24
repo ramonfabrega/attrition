@@ -23,6 +23,9 @@ use crate::orders::{MoveKind, QueuePos};
 use crate::world::{Cell, Pos, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Sim};
 
+/// `SPY` — the `TypeIndex` §2's gate and §3's branch test the lineage of.
+const SPY: crate::tech::TypeId = 0x3a;
+
 /// `TypeIndex::PEASANTS` and `PEASANTSKOREAN` — `UnitTypeData +0x4`, the two
 /// citizen ids `think_scout` sends down the region scan (§3).
 pub const PEASANTS: i32 = 0x32;
@@ -228,11 +231,14 @@ impl Sim {
             .is_some_and(|t| self.role_word(t, rec) & role::SCOUT != 0)
     }
 
-    /// **Seam** — `ObjectData::is(SPY, 0)`, the second half of §2's gate and
-    /// one of the three tests that route a unit to the region scan (§3). No
-    /// spy stands in any capture on disk and the lineage test is unmodelled.
-    pub(crate) fn unit_is_spy(&self, _u: usize) -> bool {
-        false
+    /// `ObjectData::is(SPY, 0)` — the type's own lineage test through its
+    /// vtable's `+0x60`, `SPY` being `0x3a`. The second half of §2's gate
+    /// (`005f75ea`) and one of the three tests that route a unit to the
+    /// region scan (§3, `005f688e`). A seam answering false until item 664:
+    /// run171's Spy `1/9` is the first spy on disk, and its birth frame, 617,
+    /// is the region scan whole (§15).
+    pub(crate) fn unit_is_spy(&self, u: usize) -> bool {
+        self.unit_line_is(u, SPY)
     }
 
     /// `UnitData::is_special@0046cea0`, which the vtable resolves to
@@ -329,7 +335,7 @@ impl Sim {
         // The head, and it comes before the region read: a land unit that
         // can see an untaken box walks to that instead of thinking, and
         // spends no draw doing it (`docs/GOODY.md` §7). `think_spellcaster`
-        // is still a seam (`docs/SCOUT.md` §13 item 8).
+        // is still a seam (`docs/SCOUT.md` §13 item 10).
         if domain == Domain::Land && self.find_goody_box(u) {
             return true;
         }
@@ -1047,6 +1053,65 @@ mod tests {
         u.ty = Some(plain);
         let other = s.add_unit(u);
         assert!(!s.scout_thinks(other), "no scout bit, no explore");
+    }
+
+    /// §2's gate and §3's branch on a **spy** (§15): `is(SPY, 0)` admits
+    /// the computer's spy to `think_scout` with no scout bit, and routes it
+    /// past the city loop to the region scan even with its own city in the
+    /// region — one `+0x941` and one `+0xaba` a cell, where a scout on the
+    /// same spot spends the city loop's ring draws. run171's Spy on 617.
+    #[test]
+    fn a_computers_spy_explores_by_the_region_scan() {
+        let (mut s, ai, human) = scout_sim(true);
+        let spy_type = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[spy_type].tree = Some(SPY);
+        let at = s.units[ai].pos;
+        let mut u = crate::Unit::new(1, s.units.len() as i16, at, 20);
+        u.ty = Some(spy_type);
+        let spy = s.add_unit(u);
+        s.units[human].ty = Some(spy_type);
+        assert!(s.unit_is_spy(spy) && !s.unit_is_scout(spy));
+        assert!(s.scout_thinks(spy), "the computer's spy");
+        assert!(!s.scout_thinks(human), "a human's spy does not");
+
+        let region = s.world.region_of(at.cell()).expect("a region");
+        let stride = (s.world.region_size(region) + 99) / 100;
+        let mut probe = crate::combat::Rng::new(s.rng.seed);
+        let start = probe.roll() % stride;
+        let walked = s.world.region_coords_strided(region, start, stride);
+        let taken = walked
+            .iter()
+            .filter(|&&c| {
+                s.invalid_loc(
+                    spy,
+                    Pos::new(c.x * 4 + 2, c.y * 4 + 2),
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                ) == 0
+            })
+            .count();
+        let before = s.rng.seed;
+        assert!(s.think_scout(spy), "an unseen region is all candidates");
+        let mut r = crate::combat::Rng::new(before);
+        let mut spent = 0;
+        while r.seed != s.rng.seed && spent < 256 {
+            r.roll();
+            spent += 1;
+        }
+        assert_eq!(spent, 1 + taken, "the region scan, not the city loop");
+        let order = *s.units[spy].orders.front().expect("an explore order");
+        let crate::orders::Body::Move(m) = order.body else {
+            panic!("not a move: {order:?}");
+        };
+        assert_eq!(m.kind, MoveKind::ExploreTo);
+        assert!(walked.contains(&m.dest.cell()), "{:?}", m.dest.cell());
     }
 
     /// §5: a leader with no city of its own walks nobody's rings — the

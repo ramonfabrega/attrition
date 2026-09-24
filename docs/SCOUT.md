@@ -1043,6 +1043,72 @@ in run156 and as run157's first-block `order:move.facing`, is untouched.
 It is an order field on the explore move, and this is the fog under the
 path.
 
+## 15. The spy, and the lineage test that was a seam (item 664, 2026-09-23)
+
+*run171, chapter eight (`docs/GOLDEN.md` §12). Opus 5.5.*
+
+**The word.** On 617, the Spy `1/9`'s birth frame, the original spends
+80 draws and this crate 9, parting at draw 3. The original's 71 are one
+`+0x941` and seventy `+0xaba`, all under the chain `Unit::think+0x7da <
+Unit::do_idle+0x94`: one region scan (§11). The Spy is guy type 58,
+which is `0x3a`, `SPY` itself. On 618 it holds an `EXPLORETOORDER` to
+(4344, 10488), which is tile (22, 54) = (4·5 + 2, 4·13 + 2): cell
+(5, 13)'s centre, the region scan's target shape. Group 66 is first held
+on 618, by the Spy alone.
+
+**What would have killed each reading**, written before the listing was
+read (`docs/journal/2026-09-23-item-664.md`):
+
+- *The tail routes the Spy to `think_scout`*: dies if the listing's
+  predicate does not test `is(0x3a, 0)`, or if the widening's first row
+  on 618 is another unit's. Neither fires.
+- *`think_scout` seats the Spy in group 66* (§9's `push_group(force =
+  1)`): dies if group 66 is held on 617 or before. It is not.
+- *The 71 are one search*: dies if `+0x941` is drawn twice on 617. It
+  is drawn once.
+
+**The listing.** The tail at `005f75dd`–`005f7615` tests `type->role &
+0x10` (`+0x2c8`), then pushes `0, 0x3a` and calls the type's own
+`is` through its vtable's `+0x60`, as `ObjectData::is@00653790` forwards.
+A non-zero answer, then `Object::get_army@00649d70 < 0`, calls
+`think_scout(this, 0)`. §3's branch at `005f688e` makes the same call,
+and a spy takes the region scan straight away with `best` untouched. So
+§2 and §3 were read right. **This crate carried the test as a seam
+answering false**, because no spy stood in any capture before run171.
+`Sim::unit_is_spy` is now `unit_line_is(u, SPY)`, the lineage test
+`army.rs`'s `come_out_join_army` already used.
+
+**The loop the count rests on.** The stride is computed at
+`005f68e3`–`005f6931`: `max(1, (Region +0x14 + 99) / 100)` plus
+`Game::frame % 8` (the signed `and 0x80000007` fold). The draw at `+0x941`
+is taken only when the stride is above 1 (`005f6937`). The loop steps
+`i += stride` at `005f6c4b` and runs while `i < Region +0x14`
+(`005f6c53`, `jl`). So one scan spends one `+0x941` and one `+0xaba` a
+cell it accepts. On 617, `617 % 8 = 1`.
+
+**With the test**, the Spy takes the scan on its birth frame and draws
+all 71 in the original's order. On 618 it holds the original's order,
+path, group and `form_mod` 50, and its nine rows under the old word are
+gone. `GOLDEN_WORD_CHAPTER_EIGHT` goes **617 → 659**. The new word is
+the first blow's frame, and no spy draws on it.
+
+**What checks it**:
+
+- `a_computers_spy_explores_by_the_region_scan`, in `sim::scout`: the
+  gate takes the computer's spy with no scout bit and refuses a human's.
+  The spy spends one offset draw and one per accepted cell, even with its
+  own city in the region. Made to fail twice: with the seam put back, and
+  with the spy dropped from §3's branch, which spends the city loop's 10
+  draws where the scan spends 101.
+- `chapter_eight_holds_to_the_golden_word` and
+  `chapter_eight_s_word_frame_is_widened_whole`, the second now over
+  605–660.
+
+**What 617 does not establish.** `think_spellcaster` is still a seam
+(§13 item 10). On 617 the Spy spends no draw before `+0x941`, and the head
+does not return. That is consistent with the seam, not a reading of it.
+A spy with a target in range would be the capture that reads it.
+
 ## 13. What is not established
 
 1. ~~**The region fallback's cell walk** (§11). It needs `Region.coords` in
