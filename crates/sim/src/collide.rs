@@ -2721,11 +2721,13 @@ mod tests {
     /// test).
     ///
     /// Past the `% 5` roll the original branches: a unit that has *not*
-    /// been colliding drops its loose near waypoints and plans on the
-    /// **tile** grid (`find_tpath`, waypoints at `tolerance 0x60`, no
-    /// flags); one that has keeps them and plans on the **48** grid
-    /// (`find_upath`, `tolerance 0`, `flags 2`) — the finer one, and the
-    /// only one that knows units are in the way.
+    /// been colliding drops its loose near waypoints (tolerance 1 to
+    /// `0x60`) and plans on the **tile** grid (`find_tpath`, waypoints at
+    /// `tolerance 0x60`, no flags); one that has keeps them and plans on
+    /// the **48** grid (`find_upath`, `flags 2`) — the finer one, and the
+    /// only one that knows units are in the way. The plan laid here is
+    /// loose (`0x30`) so the two arms part; a tolerance-0 plan survives
+    /// both.
     ///
     /// The state here is run53's `1/7` on frame 5502, hand-built: a unit
     /// standing **on** its own waypoint with the 48-grid plan
@@ -2738,7 +2740,7 @@ mod tests {
     fn collide_sends_the_re_plan_to_the_unit_grid_not_the_tile_grid() {
         let start = Pos::new(30 * 0x30 + 0x18, 30 * 0x30 + 0x18);
         let goal = Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18);
-        let plan = |collide: i16| {
+        let plan = |collide: i16, tolerance: i32| {
             let (mut sim, x, _y) = pair(start, Pos::new(10 * 0x30 + 0x18, 10 * 0x30 + 0x18));
             sim.order_move(x, goal);
             sim.tick();
@@ -2746,12 +2748,12 @@ mod tests {
             let here = sim.units[x].pos;
             sim.units[x].path.push(PathData {
                 to: Pos::new(here.x - 0x30, here.y),
-                tolerance: 0,
+                tolerance,
                 flags: path_flag::SIDESTEP,
             });
             sim.units[x].path.push(PathData {
                 to: here,
-                tolerance: 0,
+                tolerance,
                 flags: path_flag::SIDESTEP,
             });
             sim.units[x].line_ok = false;
@@ -2775,8 +2777,8 @@ mod tests {
             sim.units[x].path.clone()
         };
 
-        let tiles = plan(0);
-        let units = plan(1);
+        let tiles = plan(0, 0x30);
+        let units = plan(1, 0x30);
         assert!(
             tiles.iter().any(|p| p.tolerance == 0x60),
             "the tile grid's waypoints carry its half-tile tolerance: {tiles:?}"
@@ -2786,11 +2788,21 @@ mod tests {
             "and the loose plan under it was dropped: {tiles:?}"
         );
         assert!(
-            units
-                .iter()
-                .any(|p| p.flags & path_flag::SIDESTEP != 0 && p.tolerance == 0),
+            units.iter().any(|p| p.flags & path_flag::SIDESTEP != 0),
             "a unit that has been colliding keeps it and plans on the 48 \
              grid: {units:?}"
+        );
+        // **And a tolerance-0 plan is not loose** (item 669): the unwind
+        // pops 1 to `0x60`, unsigned (`0x5f8ad2`), so the tile arm keeps
+        // an exact point too. A fresh `find_upath` plan is the tolerance-0
+        // kind, and until item 669 this test laid one and asserted the
+        // tile arm dropped it — that was the misread `< 0x60`.
+        let exact = plan(0, 0);
+        assert!(
+            exact
+                .iter()
+                .any(|p| p.flags & path_flag::SIDESTEP != 0 && p.tolerance == 0),
+            "the tile arm keeps an exact point: {exact:?}"
         );
     }
 

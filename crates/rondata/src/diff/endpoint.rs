@@ -1205,9 +1205,16 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`docs/AI.md` §63), which moves this map's word 12184 → 12429;
         // `off` holds at 42. The 24,000th frame is 11,571 frames past the
         // new word. DECISIONS 36: the number, not a trade.
-        off: 42,
+        // **42 → 53 off, 1 → 0 unlinked, 0 → 1 extra, 7 → 6
+        // build_diverged** on item 669, `do_move`'s tile arm keeping a
+        // tolerance-0 formation waypoint (`docs/ORDERS.md` §4.4,
+        // `docs/AI.md` §64), which moves this map's word 12429 → 12536. The
+        // extra is the Merchant `1/81`. The 24,000th frame is 11,464 frames
+        // past the new word. DECISIONS 36: the number, not a trade.
+        off: 53,
         // **0 → 1** on item 661, beside `off` above.
-        unlinked: 1,
+        // **1 → 0** on item 669, beside `off` above.
+        unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
         // **1 → 2 extra** on item 560, beside 57 → 58 off above: two
         // Merchants, `1/81` and `1/82`.
@@ -1217,13 +1224,15 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **1 → 0 extra** on item 571, beside 41 → 42 off above.
         // **0 → 2 extra** on item 657; `off` held at 42.
         // **2 → 0 extra** on item 661, beside `off` above.
-        extra: 0,
+        // **0 → 1 extra** on item 669, beside `off` above: `1/81`.
+        extra: 1,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
         // **9 → 10** on item 571, beside `off` above.
         // **10 → 7** on item 661, beside `off` above.
-        build_diverged: 7,
+        // **7 → 6** on item 669, beside `off` above.
+        build_diverged: 6,
         city_unlinked: 3,
         city_diverged: 0,
     },

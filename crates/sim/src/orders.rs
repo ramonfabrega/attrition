@@ -747,6 +747,16 @@ impl Unit {
     }
 }
 
+/// A waypoint `do_move`'s tile arm unwinds before `find_tpath`: neither
+/// final nor `0x20`, with a tolerance of **1 to `0x60`**, unsigned —
+/// `lea eax,[ecx-1]; cmp eax,0x5f; ja` at `0x5f8ad2`. A tolerance-0
+/// waypoint is an exact point and is kept: a group move's formation
+/// waypoint is one, and popping it re-aims the tile search at the final
+/// goal (`docs/ORDERS.md` §4.4, item 669).
+fn is_loose(t: &PathData) -> bool {
+    t.flags & (path_flag::FINAL | 0x20) == 0 && (t.tolerance as u32).wrapping_sub(1) <= 0x5f
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // The list
@@ -3155,7 +3165,7 @@ impl Sim {
                         (self.find_upath(u, false), len_before, false)
                     } else {
                         while let Some(t) = self.units[u].path.last().copied() {
-                            if t.flags & (path_flag::FINAL | 0x20) == 0 && t.tolerance < 0x60 {
+                            if is_loose(&t) {
                                 self.units[u].path.pop();
                             } else {
                                 break;
@@ -6989,5 +6999,33 @@ impl Sim {
         let unit = &mut self.units[u];
         unit.combat.target = Some(t);
         unit.combat.mandatory = false;
+    }
+}
+
+#[cfg(test)]
+mod loose_tests {
+    use super::*;
+
+    fn at(tolerance: i32, flags: u8) -> PathData {
+        PathData {
+            to: Pos::new(0, 0),
+            tolerance,
+            flags,
+        }
+    }
+
+    /// The unwind's test, both ends of the range: a tolerance-0 point is
+    /// kept, `0x60` is unwound, and `0x61` and the world grid's `0x180`
+    /// are kept.
+    #[test]
+    fn a_tolerance_0_waypoint_is_not_loose_and_0x60_is() {
+        assert!(!is_loose(&at(0, 0)), "an exact point is kept");
+        assert!(is_loose(&at(1, 0)));
+        assert!(is_loose(&at(0x60, 0)), "half a tile is loose");
+        assert!(!is_loose(&at(0x61, 0)));
+        assert!(!is_loose(&at(0x180, 0)));
+        assert!(!is_loose(&at(0x60, path_flag::FINAL)), "a final is kept");
+        assert!(!is_loose(&at(0x60, 0x20)));
+        assert!(!is_loose(&at(-1, 0)), "unsigned: a negative is kept");
     }
 }

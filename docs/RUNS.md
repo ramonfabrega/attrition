@@ -5946,3 +5946,41 @@ cannot hold an alliance and a game at once.**
 
 This crate parts at **617**, the Spy's birth frame, 9 draws against 80, at
 draw 3: the original's `Unit::think_scout+0x941`. See `docs/GOLDEN.md` §12.
+
+## run174 — Great Lakes' word 12429, past run163's last block (2026-09-23, item 669)
+
+**What it is.** run163's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[12390, 12900)`, plus `rontrace.cfg` `cover=1` and `window=12425-12433`
+over the word. `!quit` at 12910. **1,095,614,920 bytes of dump and 18.3 MB
+of trace, 40 minutes** from launch at 21:14 to archive at 21:54, through
+`viadriver.sh` with no human at the menu. The lane lock was stale: its
+holder, pid 98400, was dead.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 669
+```
+
+**Why it was owed.** Item 661 moved Great Lakes' word to 12429. run163, the
+last capture on this map below run80's 23960, ends on block 12399, and no
+`gamelog-*greatlakes*` holds block 12429 or 12430 (grepped before booking).
+The window runs 469 blocks past the word so that a fix that moves it is
+measured on the same capture.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 12,911 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **510 blocks, 12390..12899, no gap** |
+| a `GROUPDATA` on every window block | **510** |
+| overlap with run163, nothing excluded | **10 in common (12390..12399), 0 differ** |
+| the coverage window | a set on all 9 frames 12425..12433 |
+
+**What it settled.** The word's sixth draw is `1/67`'s stop. On block
+12430 ours' `1/67` hard-collides with `1/68` (`collide_o 68`) and stops;
+the original's has no collider and walks on. `1/68` has walked a leg the
+original does not since 12422, because its tile plan on 12322 dropped the
+group move's exact formation point that the original keeps
+(`docs/AI.md` §64; `run174_s_word_frame_is_widened_whole`).

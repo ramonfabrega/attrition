@@ -7987,3 +7987,113 @@ was made to fail with the call removed from `Sim::gain_tech`.
 
 Reading-only: the gate's two predicates (`+0x38` and `+0x14 == 1`),
 settled against the function's own siblings and not by a second reader.
+
+## 64. A formation point is not a loose waypoint, and the word moves to 12536 (2026-09-23, item 669)
+
+Item 661 left Great Lakes' word at **12429**, past every capture: ours
+spent 14 draws against 12, parting at index 5 on
+`Guy::set_anim+0x97a < Unit::move_step+0x823`. Item 669 took **run174**
+(`docs/RUNS.md`), widened the word whole, and moved it **to 12536**. The
+mechanism was a misread predicate in `do_move`'s near arm, eleven
+blocks ahead of the collision it caused.
+
+### 64.1 The frame, read backwards
+
+- **12429's extra draw is `1/67` stopping.** On block 12430 ours' `1/67`
+  hard-collides with `1/68` (`collide_o 68`), goes WALK → DEFAULT and
+  spends `move_step+0x823`. The original's has no collider and walks on.
+  The second extra draw, a bird's `set_anim+0x104b`, is downstream of the
+  first: it goes with it.
+- **`1/68` is where the original's is not.** Its heading parts on 12422
+  and its position on 12423: ours turns onto a leg toward (37176, 23832),
+  and the original's walks to (36947, 23672).
+- **The leg is a plan.** `1/68`'s stack parts on **12322**: ours holds
+  17 entries, the original's 13. Nothing else about the unit parts in
+  between.
+
+### 64.2 The plan, and the unwind that re-aimed it
+
+On 12321 both sides hold `[(36017, 24010) final, (36947, 23672) tol 0]`.
+The second entry is group 12280205's formation waypoint: the group move
+wrote it on 12284 and moves it as the group walks. On 12322 `do_move`'s
+near arm (`docs/ORDERS.md` §4.4) unwinds the loose near waypoints, then
+calls `find_tpath` on what is left.
+
+- **The original keeps the formation point.** The tile search aims at
+  it, and the stack is the tiles to (37176, 23640), then the point, then
+  the goal.
+- **This crate popped it.** The tile search aimed at the final goal, and
+  the stack ran four tiles further, to (36216, 24024).
+
+The unwind's test, in the listing at `0x5f8ace`:
+
+```
+testb $0x21, %al ; jne keep     ; final, or 0x20
+leal  -0x1(%ecx), %eax          ; ecx = tolerance
+cmpl  $0x5f, %eax ; ja keep     ; unsigned
+call  Stack<PathData>::pop
+```
+
+A waypoint is loose when its tolerance is **1 to `0x60`**. A tolerance of
+0 is an exact point and is kept, and so is anything above half a tile.
+The decompiler prints the test as `0x5f < &pPVar12[-1].field_0xcb`, which
+is pointer arithmetic on a `PathFinder*` (size `0xcc`, `types.txt`), and
+`docs/ORDERS.md` §4.4's pseudocode had rendered it `tolerance < 0x60`.
+This crate followed the pseudocode. That test is wrong at both ends: it
+pops 0 and keeps `0x60`.
+
+`orders::is_loose` is the listing's test. The waypoints a group move
+writes are the tolerance-0 kind, so any group member that re-plans on
+the tile grid while walking to its formation point met this.
+
+### 64.3 What it moved
+
+- **Great Lakes' word: 12429 → 12536**, inside run174 (block 12537). The
+  new delta: ours **93** draws against **94**, parting at index **92**.
+  Ours spends `Farms::inc_time+0x1ae` where the original spends
+  `PathFinder::astar_path+0x1697`. On 12537 the squad `1/27`–`1/29` takes
+  its orders. The original gives `1/28` and `1/29` a kind-2 order with a
+  ten-entry world plan at tolerance 384. This crate gives them kind 21
+  with one entry, and leaves `1/27` with none. That is the next item's.
+- **The move's value diff.** `1/68`'s sixteen plan rows (12322, 12389)
+  are gone. So are `1/67`'s eighteen rows on 12430 (only parked 646's
+  `form` stands), the 36 rows above run163 to the word, and every
+  one-sided animation change. Nothing parts from 12400 to 12536.
+- **The floors.** run174's: 275 → 259 under run163's last block, and
+  2,197 → 2,120 in all. run163's: 275 → 259.
+- **Great Lakes' endpoint at 24001**: `off` 42 → 53, unlinked 1 → 0,
+  extra 0 → 1 (the Merchant `1/81`), `build_diverged` 7 → 6. East
+  Indies' word and every golden chapter hold.
+- **`collide_sends_the_re_plan_to_the_unit_grid_not_the_tile_grid`**
+  (`sim`) laid a tolerance-0 sidestep plan and asserted that the tile arm
+  dropped it. That was the misread test. It now lays a loose plan
+  (`0x30`), so the two arms still part, and asserts that a tolerance-0
+  plan survives the tile arm.
+
+### 64.4 What this has *not* established
+
+- **Every other reader of a waypoint's tolerance.** `find_tpath`'s own
+  `0x180`/`0x60` choice and `find_upath`'s forced 0 were read before, and
+  are not re-read here.
+- **The group-id row.** On 12281 (`1/40`–`1/42`, `1/68`) and on 12537
+  (`1/61`, `1/66`) the order's group id differs: ours 12280205 against
+  12286605. Neither spends a draw, and what the id is made of is not
+  read.
+- **Birds.** W4, the bird's second roll, could not be decided on the
+  dump, because no dump prints owner 9. The fix removes it with `1/67`'s
+  stop, which is the only evidence.
+
+### 64.5 Coverage
+
+Diff-backed:
+
+- `run174_s_word_frame_is_widened_whole`: the floor as committed before
+  the fix, the move's value diff, and the new word's first-parting rows.
+- `run163_s_word_frame_is_widened_whole`: the floor, re-pinned.
+- The long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+Pinned capture-free: `a_tolerance_0_waypoint_is_not_loose_and_0x60_is`
+(`sim`). It was made to fail against the old `tolerance < 0x60`.
+
+Reading-only: none. The predicate is a byte sequence at a named address,
+and the diff confirms its effect.

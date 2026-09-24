@@ -1889,6 +1889,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// item 669 owes the capture and its widening. run163's test pins the
 /// move's value diff: the rows on 12181–12185 are gone.
 ///
+/// ~~**12429 is `1/67`'s stop against `1/68`.**~~ **Item 669 moved it
+/// 12429 → 12536, and the mechanism was which waypoints `do_move`'s tile
+/// arm unwinds** (`docs/ORDERS.md` §4.4, `docs/AI.md` §64). Before
+/// `find_tpath` the original pops a non-final top whose tolerance is 1 to
+/// `0x60`, unsigned (`0x5f8ad2`); this crate popped `tolerance < 0x60`, so
+/// on 12322 it dropped `1/68`'s tolerance-0 formation waypoint and planned
+/// the tiles to the final goal. From 12422 `1/68` walked a leg the
+/// original's never does, and on 12429 `1/67` collided with it and
+/// stopped. The new word's delta: ours **93** draws and the original
+/// **94**, parting at index **92**. Ours spends `Farms::inc_time+0x1ae`
+/// where the original spends `PathFinder::astar_path+0x1697`. **Inside
+/// run174** (block 12537); `run174_s_word_frame_is_widened_whole` pins the
+/// block's first-parting rows, the squad `1/27`–`1/29`'s orders, and
+/// the move's value diff.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1900,7 +1915,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_429;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_536;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3122,6 +3137,15 @@ pub(crate) const GREAT_LAKES_UPGRADE_BLOCK: i64 = 12_039;
 /// 12185, inside [`WIDENING_GREAT_LAKES_UPGRADE`]. The coverage driver
 /// reads run163 around it too.
 pub(crate) const GREAT_LAKES_MAKE_BLOCK: i64 = 12_185;
+/// `run174_s_word_frame_is_widened_whole`'s window (item 669): run123
+/// from **11400**, then run125, run130, run135, run136, run163 and run174
+/// to its last block, 12899. The floor is [`WIDENING_GREAT_LAKES_UPGRADE`]'s,
+/// for the same reason.
+pub(crate) const WIDENING_GREAT_LAKES_CIVIC: (i64, i64) = (11_400, 12_899);
+/// The block [`WIDENING_GREAT_LAKES_CIVIC`] was taken to widen: the word
+/// 12429's frame writes block 12430. The coverage driver reads run174
+/// around it.
+pub(crate) const GREAT_LAKES_CIVIC_BLOCK: i64 = 12_430;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3472,12 +3496,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Barracks and Stable in Norwich (`docs/AI.md` §63). run163's test
     // keeps the move's value diff, 12181–12185 empty. Item 669 owes the
     // capture and its widening.
+    //
+    // **Item 669 paid it**: run174 is run163's line over [12390, 12899],
+    // and `run174_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across seven captures, so the window is
+    // [`WIDENING_GREAT_LAKES_CIVIC`]. The word's block parts on `1/67`,
+    // which hard-collides with `1/68` here and walks on in the original;
+    // `1/68` walks a leg the original does not, because its tile plan on
+    // 12322 dropped the group's exact formation point. With the unwind
+    // read as the listing has it, the word moved **12429 → 12536**, inside
+    // the same window (block 12537), and the test pins the move's value
+    // diff and the new word's block both.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run174_s_word_frame_is_widened_whole"),
         669,
-        None,
+        Some(WIDENING_GREAT_LAKES_CIVIC),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

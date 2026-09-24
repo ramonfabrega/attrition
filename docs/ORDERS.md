@@ -965,12 +965,12 @@ if !(unit_masks & 8):
     // the straight line is not enough: ask the pathfinder
     if invalid_loc(tile of mo->x,y, 1,0,0,0,1) and orderlist.length > 1: kill twice, return 1
     n = Random::get(game_random, 0, 0xffff)                        // *** the sync RNG ***
-    thr = n%5==2 ? 0x600 : n%5==0 ? 0x1800 : 0xf00                 // 2, 8 or 5 world cells, Manhattan
+    thr = n%5==2 ? 0x600 : n%5==0 ? 0x1800 : 0xf00  // 2, 8 or 5 world cells, Manhattan
     if |dest − pos|_manhattan > thr:
         r = find_wpath(&path, who, o)   (from the unit's position); wflag = 1
     else:
         top = peek; if !(top.flags & 1) and top == last_x/y: pop
-        if collide == 0: pop while !(top.flags & 0x21) and top.tolerance < 0x60;  r = find_tpath(&path, who, o)
+        if collide == 0: pop while !(top.flags & 0x21) and 0 < top.tolerance <= 0x60 (0x5f8ad2);  r = find_tpath(&path, who, o)
         else:            r = find_upath(&path, who, o, 0)
         wflag = 0
     (r > 0 with the length unchanged counts as 0)
