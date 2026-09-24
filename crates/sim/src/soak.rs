@@ -111,6 +111,9 @@ fn sample(sim: &Sim) -> Sample {
                 orders::Body::AttackGround(g) => {
                     (i64::from(g.at.x) * 65_536 + i64::from(g.at.y)) * 4 + i64::from(g.attack_unit)
                 }
+                orders::Body::Patrol(p) => {
+                    (p.id * 4 + p.waypoint as i64) * 65_536 + p.leader as i64 + p.form_id as i64
+                }
                 orders::Body::Attack(_) | orders::Body::Think => -1,
             });
         }

@@ -321,20 +321,20 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
 /// `move_to`, and [`crate::input::group_move_to`] is its entry.
 fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let word = command_word(&line.text);
-    let (who, to, objects) = match parse_issuer(&line.text) {
-        Some(Issued::Move { who, to, objects }) => (who, to, objects),
-        // SEAM (item 693): the patrol command has no entry into the
-        // simulation yet; chapter ten's capture comes first.
-        Some(Issued::Patrol { .. }) => {
-            done.skip(&word, "the patrol command has no entry into the simulation");
-            return;
+    // `@patrol` is `issue_patrol@00941800` with `QUEUE_NEW`, a `group` and
+    // a `patrol`, whose entry is [`crate::input::group_patrol`] (item 693).
+    let n = match parse_issuer(&line.text) {
+        Some(Issued::Move { who, to, objects }) => {
+            crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 1)
+        }
+        Some(Issued::Patrol { who, to, objects }) => {
+            crate::input::group_patrol(built, who, &objects, to, 2)
         }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
         }
     };
-    let n = crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 1);
     if n == 0 {
         done.skip(&word, "no named object is a live unit in the simulation");
         return;

@@ -236,6 +236,11 @@ fn order_values(d: OrderMismatch) -> (String, String, String) {
             ours,
             theirs,
         }
+        | Patrol {
+            field,
+            ours,
+            theirs,
+        }
         | Ground {
             field,
             ours,

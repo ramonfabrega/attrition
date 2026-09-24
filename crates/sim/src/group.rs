@@ -1719,10 +1719,16 @@ impl Sim {
                     Body::Build(b) | Body::Repair(b) => {
                         self.group_action_swarm_around_last(g, b, o.body, o.has(flag::ACTION));
                     }
-                    // SEAM: `finish_insert`'s other eighteen cases —
-                    // gather, garrison, board, follow, guard, patrol,
-                    // trade, spell. No capture reaches a group
-                    // `QUEUE_FIRST` carrying one.
+                    // Case `0x16`: `redo_patrol_order(group, order,
+                    // QUEUE_LAST)` — every member's patrol rebuilt from
+                    // the leader's, its step included. It is how a
+                    // patrol's leg reaches the whole group (§27 of
+                    // `docs/ORDERS.md`, run184).
+                    Body::Patrol(p) => self.group_redo_patrol_order(g, p),
+                    // SEAM: `finish_insert`'s other seventeen cases —
+                    // gather, garrison, board, follow, guard, trade,
+                    // spell. No capture reaches a group `QUEUE_FIRST`
+                    // carrying one.
                     _ => {}
                 }
             }
@@ -2232,6 +2238,105 @@ impl Sim {
                     }
                 }
                 None => self.add_guard_order(m, cap, dx, dy, queue),
+            }
+        }
+    }
+
+    /// `Group::action_patrol@007030c0` (`docs/ORDERS.md` §27), reached from
+    /// `CommandPackage::process_patrol@00949380` with the command's point
+    /// and queue position.
+    ///
+    /// The point is clamped into the world and a `QUEUE_FIRST` taken as
+    /// `QUEUE_NEW`; the group's `form` goes to −1. The patrol's first point
+    /// is the group's location ([`Self::group_loc`], the leader's position
+    /// unless the group stands on its own order point), and every member
+    /// that is on the map, not a plane and not busy gets a
+    /// `GroupPatrolOrder` from it to the click, with the group's id, its
+    /// own index and the leader. `order_num` steps once after the loop.
+    ///
+    /// SEAMS, none of which a player's command on land units reaches:
+    /// a plane leader or any air member hands the whole call to
+    /// `action_air_patrol`, which returns here; the `QUEUE_LAST` arm reads
+    /// [`Self::group_loc_to`] and appends the click to each member's
+    /// existing patrol (`update_patrol_order`) instead of issuing one —
+    /// here it issues; a member off the map with type flag `0x20` gets a
+    /// plain move; the scenario's `ignore_orders` filter; a buildings
+    /// group. `UnitData::is_busy@0060a370` is a head `CastOrder` here — the
+    /// original also asks the spell's type two questions, and whether the
+    /// unit is entering or exiting a building.
+    pub fn group_action_patrol(&mut self, g: &Group, to: Pos, queue: QueuePos) {
+        let to = self.restrict_pos(to);
+        let queue = if queue == QueuePos::First {
+            QueuePos::New
+        } else {
+            queue
+        };
+        if let Some(st) = self.gstate_mut(g) {
+            st.form = -1;
+        }
+        let Some(leader) = self.group_find_leader(g) else {
+            return;
+        };
+        if self.is_plane(leader) || g.list.iter().any(|&m| self.group_domain(m) == Domain::Air) {
+            return;
+        }
+        let from = if queue == QueuePos::Last {
+            self.group_loc_to(g)
+        } else {
+            self.group_loc(g)
+        };
+        let Some(from) = from else {
+            return;
+        };
+        let id = group_move_id(self.group_id(g), self.frame, self.group_order_num(g));
+        for (i, &m) in g.list.iter().enumerate() {
+            if !self.group_member_orderable(m) {
+                continue;
+            }
+            let busy = matches!(self.current_order(m).map(|o| o.body), Some(Body::Cast(_)));
+            if busy {
+                continue;
+            }
+            self.add_patrol_order(m, (from, to), id, i, leader, queue);
+        }
+        self.bump_order_num(g);
+    }
+
+    /// `Group::redo_patrol_order@00706d90`, `finish_insert`'s case `0x16`
+    /// (`docs/ORDERS.md` §27): after a group `QUEUE_FIRST` has halted every
+    /// member, each one that is on the map, not a plane and not a missile
+    /// (`obj_masks & 0x8000000`) is given the saved patrol again at
+    /// `QUEUE_LAST` — its two points, its id, its leader and **its
+    /// `form_id`, the leader's** — and then the saved `waypoint` is
+    /// written into the new order (`update_patrol_order(id)`). run184's
+    /// squad carries `form_id 0` on all three patrols from its first leg.
+    ///
+    /// SEAM: the copy of points past the second; see
+    /// [`crate::orders::PatrolOrder`].
+    pub(crate) fn group_redo_patrol_order(&mut self, g: &Group, p: crate::orders::PatrolOrder) {
+        const MISSILE: u32 = 0x800_0000;
+        for &m in &g.list {
+            if !self.group_member_orderable(m) {
+                continue;
+            }
+            let missile = self.units[m]
+                .ty
+                .is_some_and(|t| self.unit_types[t].combat.obj_masks & MISSILE != 0);
+            if missile {
+                continue;
+            }
+            self.add_patrol_order(
+                m,
+                (p.points[0], p.points[1]),
+                p.id,
+                p.form_id,
+                p.leader,
+                QueuePos::Last,
+            );
+            if let Some(i) = self.update_patrol_order(m, Some(p.id))
+                && let Body::Patrol(x) = &mut self.units[m].orders[i].body
+            {
+                x.waypoint = p.waypoint;
             }
         }
     }
@@ -4117,6 +4222,97 @@ mod tests {
             s.order_type(m),
             index::ATTACK,
             "a siege unit already shooting keeps its order"
+        );
+    }
+
+    /// A pushed squad of three and its patrol, as `process_group` and
+    /// `process_patrol` build it (`docs/ORDERS.md` §27).
+    fn patrolling_squad() -> (Sim, [usize; 3], Pos) {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(10872, 7800));
+        let b = spawn(&mut s, 0, t, Pos::new(11016, 7800));
+        let c = spawn(&mut s, 0, t, Pos::new(10920, 7944));
+        let mut g = group_of(0, &[a, b, c]);
+        assert!(s.push_group(&mut g, true));
+        let to = Pos::new(11136, 11904);
+        s.group_action_patrol(&g, to, QueuePos::New);
+        (s, [a, b, c], to)
+    }
+
+    fn patrol(s: &Sim, u: usize) -> Vec<crate::orders::PatrolOrder> {
+        s.units[u]
+            .orders
+            .iter()
+            .filter_map(|o| match o.body {
+                Body::Patrol(p) => Some(p),
+                _ => None,
+            })
+            .collect()
+    }
+
+    /// `Group::action_patrol@007030c0`: **every** member gets one
+    /// `GroupPatrolOrder` — no plain `PatrolOrder` exists — from the
+    /// group's place to the click, both on the 48-unit grid, with one id,
+    /// one leader and its own index; run184's block 642 has the points.
+    #[test]
+    fn a_patrol_is_one_group_patrol_order_a_member_from_the_group_s_place() {
+        let (s, [a, b, c], _) = patrolling_squad();
+        for (i, u) in [a, b, c].into_iter().enumerate() {
+            let p = patrol(&s, u);
+            assert_eq!(p.len(), 1, "one patrol on member {i}");
+            let p = p[0];
+            assert_eq!(s.order_type(u), index::GROUP_PATROL);
+            assert_eq!(
+                p.points,
+                [Pos::new(10872, 7800), Pos::new(11160, 11928)],
+                "the leader's place and the click, snapped"
+            );
+            assert_eq!((p.waypoint, p.leader, p.form_id), (0, a, i));
+            assert_eq!(p.id, patrol(&s, a)[0].id);
+        }
+    }
+
+    /// `Unit::do_patrol@005f1910` on the leader steps the waypoint and
+    /// hands the group an attack-move `QUEUE_FIRST`; the group's
+    /// `QUEUE_FIRST` halts the members and `redo_patrol_order@00706d90`
+    /// rebuilds each patrol behind the leg with the **leader's** step and
+    /// `form_id` — run184's squad carries `form_id 0` and `waypoint 1` on
+    /// all three on 642. A follower's `do_patrol` issues nothing.
+    #[test]
+    fn the_leader_s_leg_rebuilds_every_patrol_with_its_step() {
+        let (mut s, [a, b, c], _) = patrolling_squad();
+        let Some(Body::Patrol(p)) = s.current_order(b).map(|o| o.body) else {
+            panic!("the follower's head is its patrol");
+        };
+        s.do_patrol(b, p);
+        assert_eq!(
+            s.order_type(b),
+            index::GROUP_PATROL,
+            "a follower only idles"
+        );
+        let Some(Body::Patrol(p)) = s.current_order(a).map(|o| o.body) else {
+            panic!("the leader's head is its patrol");
+        };
+        s.do_patrol(a, p);
+        for u in [a, b, c] {
+            assert_eq!(
+                s.order_type(u),
+                index::GROUP_ATTACK_TO,
+                "the leg is at the head"
+            );
+            let ps = patrol(&s, u);
+            assert_eq!(ps.len(), 1, "the patrol is rebuilt once, behind the leg");
+            assert_eq!((ps[0].waypoint, ps[0].form_id), (1, 0));
+            assert!(s.units[u].orders[1].has(flag::ACTION));
+        }
+        let Some(Body::Move(m)) = s.current_order(a).map(|o| o.body) else {
+            panic!("a move");
+        };
+        assert_eq!(m.kind, MoveKind::AttackTo);
+        assert!(
+            !s.current_order(a).unwrap().has(flag::ACTION),
+            "the leg carries no action bit: do_patrol passes action 0"
         );
     }
 

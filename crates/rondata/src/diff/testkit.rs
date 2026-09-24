@@ -2642,26 +2642,32 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
-/// never uses (`docs/GOLDEN.md` §18, run184): **640 of 1250, open**.
+/// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
+/// 1250 is run184's trace end, and nothing parts on any frame of it:
+/// sequence 1250, no value part.
 ///
-/// **The delta** (item 693, the first walk): on 640 this crate spends 37
-/// draws against the original's 36, parting at draw 30 on an extra
-/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends
-/// `Farms::inc_time+0x1ae`. The harness skips both `@patrol` lines — the
-/// patrol command has no entry into this simulation — so the Chariot
-/// `0/6` idles, animating, where run184's walks its first leg.
+/// **The delta** (item 693): 640 → 1250, +610. On 640 this crate spent 37
+/// draws against 36, parting at draw 30 on an extra `Guy::set_anim+0x97a
+/// < Guy::inc_time+0x271`: the harness skipped both `@patrol` lines, the
+/// command having no entry into this simulation, so the Chariot `0/6`
+/// idled, animating, where run184's walked its first leg. The same item
+/// built the patrol (`docs/ORDERS.md` §27) — `input::group_patrol`,
+/// `Sim::group_action_patrol`, `add_patrol_order`, the leader's
+/// `do_patrol` legs, `redo_patrol_order` in a group `QUEUE_FIRST` — and
+/// the walk agrees to the capture's end: the chariot's four turns and the
+/// squad's three, block for block.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_TEN`]'s test over (605, 642):
-/// past the first block's 26 standing rows and the four births' `form`,
-/// the chariot's missing patrol on 622 — `orders.len` 0 against 2, no
-/// `group`, `orders_x/y`, path, `dest_angle` — and its standing still from
-/// 623; the squad's the same on 642.
-pub(crate) const GOLDEN_WORD_CHAPTER_TEN: i64 = 640;
+/// **The block**, from [`WIDENING_CHAPTER_TEN`]'s test on run184 whole:
+/// past the first block's 26 standing rows, the births' `form`; the
+/// patrol and first-leg ids on 622 and 642, a pushed group's id (parked
+/// 689); and the scout `1/0`'s `facing` from 847 (parked 275). Item 693
+/// pinned 640 on its first walk, with the missing patrols on 622 and 642.
+pub(crate) const GOLDEN_WORD_CHAPTER_TEN: i64 = 1250;
 
-/// `chapter_ten_s_word_frame_is_widened_whole`'s window: the word's frame
-/// and the squad's first patrol block, (605, 642), pinned on the open
-/// word 640 (item 693).
-pub(crate) const WIDENING_CHAPTER_TEN: (i64, i64) = (605, 643);
+/// `chapter_ten_s_word_frame_is_widened_whole`'s window: **run184
+/// whole**, its first block, 605, to its last, 1250 (item 693). The first
+/// pin was (605, 642) on the open word 640.
+pub(crate) const WIDENING_CHAPTER_TEN: (i64, i64) = (605, 1251);
 
 /// **Chapter nine's golden word** — the move line, the first issuer
 /// chapter (`docs/GOLDEN.md` §17, run180): **1100 of 1100, closed**. 1100
@@ -3806,7 +3812,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_NINE),
     ),
     // Item 693: run184, chapter ten's first walk, on the chariot's idle
-    // animation where the original's walks its patrol's first leg.
+    // animation where the original's walks its patrol's first leg; closed
+    // at 1250 by the same item (the ground patrol, built).
     (
         "GOLDEN_WORD_CHAPTER_TEN",
         GOLDEN_WORD_CHAPTER_TEN,

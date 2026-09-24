@@ -1351,7 +1351,7 @@ below without a run take their number at booking (the eleventh pass).
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
 | 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
 | 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
-| 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155** |
+| 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -1786,7 +1786,7 @@ was.
   and `0/8` is still short of its slot when the captain turns: the halt
   drops its leg.
 
-**Where this crate parted: `GOLDEN_WORD_CHAPTER_TEN` = 640, open.** The
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TEN` = 640, open; closed at 1250 by the same item, below.** The
 harness skips both `@patrol` lines, because the command has no entry into
 this simulation. On 640 this crate spends 37 draws against 36, parting at
 draw 30: an extra `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the idle
@@ -1802,3 +1802,35 @@ first block's 26 standing rows and the four births' `form`, it pins:
 The coverage driver takes 638..644. It pins `GroupPatrolOrder`'s
 `PATROLORDER` keys and the `process_patrol` text as unread, owed by this
 item's build.
+
+**Closed at 1250 by the same item** (item 693; `docs/ORDERS.md` §27, the
+ground patrol, built). The command's entry is `rondata::input::group_patrol`,
+built the way `group_move_to` was: the group, forced into the pool, then
+`Sim::group_action_patrol`. Then the order itself:
+
+- **`Body::Patrol`**, the `GroupPatrolOrder` with its two snapped points,
+  added by `add_patrol_order`;
+- **`do_patrol`**: the leader steps and issues the attack-move leg at
+  `QUEUE_FIRST`, and a follower idles;
+- **`redo_patrol_order`**, `finish_insert`'s case `0x16`, which had been a
+  named seam in `group_action_move_to`: every member's patrol is rebuilt
+  with the leader's step and `form_id`.
+
+With these the walk agrees to run184's end: sequence 1250, no value part,
+the chariot's four turns and the squad's three block for block.
+`chapter_ten_s_word_frame_is_widened_whole` spans run184 whole, 605 to
+1249; 1250 is the `!quit` frame and prints no block. Past the first
+block's 26 standing rows it pins:
+
+- the staged units' `form` on their birth blocks;
+- the patrol ids on 622 and 642 and the squad's first-leg
+  `GroupAttackToOrder` id on 642. These are a pushed group's id (parked
+  689): this crate's `64 +` index against the original's pool slot. It is
+  a value no step reads, declared non-scoring as chapter nine's is.
+- the scout `1/0`'s `facing` from 847 (parked 275).
+
+Two unit tests in `sim::group` pin the order and the rebuild. The second
+fails with `redo_patrol_order` switched off, and again with the member's
+own index in place of the leader's `form_id`. The coverage driver reads
+`PATROLORDER`'s arrays and `waypoint` now; each array's `size`,
+`increment` and `flags` stay pinned as unread.

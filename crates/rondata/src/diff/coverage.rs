@@ -220,15 +220,16 @@ const UNREAD: &[(&str, &str)] = &[
     // `GroupPatrolOrder` writes `PATROLORDER` — the two point arrays as
     // flat `SimpleArray<Coord>` lines and `waypoint` — then `GROUPORDER`,
     // whose `UNITORDER` copy is the same unread second copy as the grouped
-    // moves' above. Owed by item 693: this crate has no ground patrol yet,
-    // so nothing parses the record, and the landing that builds the patrol
-    // reads `PATROLORDER` and leaves this pin. The turn pump's text for the
-    // squad's command, printed at `GAME` level after block 641, is the
-    // same kind of line as chapter nine's `process_move_to`, which no
-    // window here reached.
+    // moves' above. The order parser reads the arrays by their `length`s
+    // and `list[scan]` lines and the `waypoint`; each array's `size`,
+    // `increment` and `flags` are its allocation, which no step reads. The
+    // turn pump's text for the squad's command, printed at `GAME` level
+    // after block 641, is the same kind of line as chapter nine's
+    // `process_move_to`, which no window here reached; the harness takes
+    // the command from the script, not from the dump.
     (
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/PATROLORDER",
-        "flags increment length list[scan] size waypoint",
+        "flags increment size",
     ),
     (
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/GROUPORDER/UNITORDER",

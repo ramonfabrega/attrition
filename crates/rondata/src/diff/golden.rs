@@ -5859,7 +5859,7 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         WIDENING_CHAPTER_TEN,
         1250,
         0,
-        (640, 641),
+        (1249, 1249),
         false,
         88,
     ) else {
@@ -5889,76 +5889,53 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
     got.sort();
     // **What parts under the word**, by block and key (`docs/GOLDEN.md`
     // §18). Each staged unit's `form` on its birth block, the standing
-    // family. Then **the patrols this crate does not take**: the harness
-    // skips both `@patrol` lines (the command has no entry into the
-    // simulation), so on 622 the chariot has no orders where run184's has
-    // two — the `GroupPatrolOrder` and the leg's `ATTACKTOORDER` — no
-    // group, no path and no heading, and from 623 it stands where the
-    // original's walks; the squad the same on 642. The draw stream parts
-    // on 640, two blocks before the squad's rows, on an idle animation
-    // draw the walking chariot does not spend.
+    // family.
+    //
+    // **Item 693 took the word to the capture's end** by building the
+    // patrol (`docs/ORDERS.md` §27): `input::group_patrol` →
+    // `Sim::group_action_patrol` → `add_patrol_order`, the leader's
+    // `do_patrol` legs, and `redo_patrol_order` in a group `QUEUE_FIRST`.
+    // The first pin, (605, 642) on the open word 640, held the chariot's
+    // missing patrol on 622 and the squad's on 642; all of it went. The
+    // window is run184 whole, 605 to its last block, 1249; 1250 is the
+    // `!quit` frame and prints no block.
+    //
+    // **The ids stand** — the patrol's on 622 and 642 and the squad's
+    // first leg's `GroupAttackToOrder` on 642: `(group.id + frame × 10) ×
+    // 100 + order_num`, where the original's `group.id` is the pool slot
+    // (1 for the chariot, 0 for the squad) and this crate's pushed group
+    // reads `64 +` its index (parked 689, chapter nine's 642 row). Values
+    // no step reads; declared non-scoring.
+    //
+    // One row stands that is neither order's: the explore order of
+    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
+    // the dump's 0 from 847, chapter nine's and five's row (parked 275),
+    // pinned by name and value.
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TEN.0)
+        .map(|((w, o, what), (f, row))| {
+            if what == "order:move.facing" {
+                format!("{f} {w}/{o} {what}: {row}")
+            } else {
+                format!("{f} {w}/{o} {what}")
+            }
+        })
+        .collect();
+    got.sort();
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
         "613 0/8 form",
         "613 0/9 form",
-        "622 0/6 dest_angle",
-        "622 0/6 form_mod",
-        "622 0/6 group",
-        "622 0/6 idle",
-        "622 0/6 order:length",
-        "622 0/6 orders.len",
-        "622 0/6 orders_x",
-        "622 0/6 orders_y",
-        "622 0/6 path:length",
-        "623 0/6 g.angle[0]",
-        "623 0/6 g.angle[1]",
-        "623 0/6 g.x[0]",
-        "623 0/6 g.x[1]",
-        "623 0/6 g.y[0]",
-        "623 0/6 g.y[1]",
-        "623 0/6 heading",
-        "623 0/6 path_recursion",
-        "623 0/6 pos",
-        "623 0/6 tolerance",
-        "642 0/7 dest_angle",
-        "642 0/7 form_mod",
-        "642 0/7 group",
-        "642 0/7 idle",
-        "642 0/7 order:length",
-        "642 0/7 orders.len",
-        "642 0/7 orders_x",
-        "642 0/7 orders_y",
-        "642 0/7 path:length",
-        "642 0/8 dest_angle",
-        "642 0/8 form_mod",
-        "642 0/8 g.angle[0]",
-        "642 0/8 g.x[0]",
-        "642 0/8 g.y[0]",
-        "642 0/8 group",
-        "642 0/8 half_step",
-        "642 0/8 heading",
-        "642 0/8 idle",
-        "642 0/8 order:length",
-        "642 0/8 orders.len",
-        "642 0/8 orders_y",
-        "642 0/8 path:length",
-        "642 0/8 pos",
-        "642 0/9 dest_angle",
-        "642 0/9 form_mod",
-        "642 0/9 g.angle[0]",
-        "642 0/9 g.x[0]",
-        "642 0/9 g.y[0]",
-        "642 0/9 group",
-        "642 0/9 half_step",
-        "642 0/9 heading",
-        "642 0/9 idle",
-        "642 0/9 order:length",
-        "642 0/9 orders.len",
-        "642 0/9 orders_x",
-        "642 0/9 orders_y",
-        "642 0/9 path:length",
-        "642 0/9 pos",
+        "622 0/6 order:patrol.id",
+        "642 0/7 order:group.id",
+        "642 0/7 order:patrol.id",
+        "642 0/8 order:group.id",
+        "642 0/8 order:patrol.id",
+        "642 0/9 order:group.id",
+        "642 0/9 order:patrol.id",
+        "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
     ]
     .iter()
     .map(|r| r.to_string())
