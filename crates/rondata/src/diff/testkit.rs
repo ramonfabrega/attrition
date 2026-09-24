@@ -2572,6 +2572,29 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 900;
 /// on their birth blocks.
 pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 901);
 
+/// **Chapter six-b's golden word** — the air line from a base
+/// (`docs/GOLDEN.md` §10, run175): **632 of 1250**, open.
+///
+/// **The delta** (item 651, the first walk): none — the word is new. On
+/// 632 ours spends 34 draws against 24, parting at draw 18: ten
+/// `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` of the Fighter
+/// `0/6`'s, where the original spends `Farms::inc_time+0x1ae`. Frames
+/// 605–631 agree, both aircraft's walks at the enemy Airbases included:
+/// this crate takes the same target on the same birth block and walks
+/// the same ground path, which is what run175 was taken to see.
+///
+/// **The block**, from [`WIDENING_CHAPTER_SIX_B`]'s test: on 633 the
+/// original's Fighter holds no order — it reached its attack point, (600,
+/// 7944), on 632 and dropped the attack — and this crate's holds its
+/// attack order and a fresh move from `find_attack_pos`. No mechanism is
+/// named: why an aircraft on the ground drops an attack on a building at
+/// its attack point is the next item's question.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 632;
+
+/// `chapter_six_b_s_word_frame_is_widened_whole`'s window: run175's first
+/// block, 605, to the word's block and one past it, 634 (item 651).
+pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 635);
+
 /// **Chapter eight's golden word** — the commanders and a declared war
 /// (`docs/GOLDEN.md` §12, run171): **900 of 901, closed**. The walk
 /// reaches the trace's last frame: `ally 1` on 900 hands both leaders an
@@ -3627,6 +3650,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_six_s_word_frame_is_widened_whole"),
         652,
         Some(WIDENING_CHAPTER_SIX),
+    ),
+    // Item 651: run175, chapter six-b's first walk, on the Fighter's
+    // arrival at its attack point beside the enemy Airbase.
+    (
+        "GOLDEN_WORD_CHAPTER_SIX_B",
+        GOLDEN_WORD_CHAPTER_SIX_B,
+        Some("chapter_six_b_s_word_frame_is_widened_whole"),
+        651,
+        Some(WIDENING_CHAPTER_SIX_B),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

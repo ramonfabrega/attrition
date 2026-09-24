@@ -423,6 +423,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch7b = golden_dump("ch7b");
     let ch7bc = golden_dump("ch7bc");
     let ch6 = golden_dump("ch6");
+    let ch6b = golden_dump("ch6b");
     let ch8 = golden_dump("ch8");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -621,6 +622,17 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let w = 700;
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter six carries the word's five blocks");
+        frames += n;
+    }
+    // **Chapter six-b's word, on run175** (item 651): the first capture
+    // with an Airbase in it, and the first with an aircraft under an
+    // attack order — each walks at the enemy Airbase — whose `BUILDS`
+    // and order records no other window here carries. The window is the
+    // word's block with two on either side, as six's.
+    if let Some(p) = &ch6b {
+        let w = super::testkit::GOLDEN_WORD_CHAPTER_SIX_B;
+        let n = drive_capture(p, w - 2, w + 2, &mut paths);
+        assert_eq!(n, 5, "chapter six-b carries the word's five blocks");
         frames += n;
     }
     // **Chapter eight's word, on run171** (item 660): the first capture

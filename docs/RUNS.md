@@ -6042,5 +6042,6 @@ lines spend no draw.
   The base-link half is dead as predicted.
 - **The second, third and fourth do not fire.**
 
-This crate parts at the word `GOLDEN_WORD_CHAPTER_SIX_B`; see
-`docs/GOLDEN.md` §10.
+This crate parts at **632**, the Fighter's arrival at its attack point,
+34 draws against 24: ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
+of `0/6`'s where the original drops the attack. See `docs/GOLDEN.md` §10.
