@@ -6065,3 +6065,26 @@ lines spend no draw.
 This crate parts at **632**, the Fighter's arrival at its attack point,
 34 draws against 24: ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
 of `0/6`'s where the original drops the attack. See `docs/GOLDEN.md` §10.
+
+**4,297,129,978 bytes of dump and 19.9 MB of trace, 2 h 24 min** from
+launch at 09:27 to archive at 11:51. The lane lock was stale (its holder,
+pid 41127, was dead) and was taken over. The window ran ~14 blocks a
+minute, 2.0 MB a block.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 14,911 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **2,006 blocks, 12894..14899, no gap** |
+| a `GROUPDATA` on every window block | **2,006** |
+| overlap with run174, nothing excluded | **6 in common (12894..12899), 0 differ** |
+| the coverage window | a set on all 9 frames 14378..14386 |
+
+**What it settled.** The word's block 14383 is who=1 placing a building
+apart. The new `1/2025` stands at (42624, 19776) in the original and at
+(39552, 17472) here, and the citizens `1/6` and `1/7` trade the build
+and walk orders between them. Under it, the leader's `SITE` table parts
+on 12976 and 13176 (`docs/AI.md` §66.3;
+`run178_s_word_frame_is_widened_whole`).

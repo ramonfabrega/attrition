@@ -41,9 +41,9 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
     GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_MAKE_BLOCK,
-    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
-    WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK,
+    GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_SQUAD_BLOCK,
+    GREAT_LAKES_UPGRADE_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -429,6 +429,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
+    let r178 = crate::testenv::dump("gamelog-run178-greatlakes-copyword.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
@@ -507,6 +508,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let gr = GREAT_LAKES_RETRY_BLOCK;
         let n = drive_capture(p, gr - 2, gr + 1, &mut paths);
         assert_eq!(n, 4, "run174 carries the new word's four blocks");
+        frames += n;
+    }
+    // Item 678 moved it to 14382, past run174's last block, and its run178
+    // is run174's line from 12894 to 14899, so the window is the word's own
+    // blocks again, on the capture taken to widen it.
+    let gy = GREAT_LAKES_COPY_BLOCK;
+    if let Some(p) = &r178 {
+        let n = drive_capture(p, gy - 2, gy + 2, &mut paths);
+        assert_eq!(n, 5, "run178 carries the word's five blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

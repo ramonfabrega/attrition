@@ -1937,8 +1937,11 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `Leader::make_stuff+0x221` where the original spends
 /// `Leader::produce_building+0x1805`. **Past run174** (block 14383 against
 /// its last, 12899) and past every Great Lakes dump on disk below run80's
-/// 23960: item 678 owes run178 and its widening, and
-/// `run174_s_word_frame_is_widened_whole` keeps the move's value diff.
+/// 23960, so item 678 took **run178** and widened it:
+/// `run178_s_word_frame_is_widened_whole` pins the word's block 14383 —
+/// who=1 places a building, `1/2025`, at (39552, 17472) here and (42624,
+/// 19776) there — and `run174_s_word_frame_is_widened_whole` keeps the
+/// move's value diff.
 ///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
@@ -3214,6 +3217,15 @@ pub(crate) const GREAT_LAKES_SQUAD_BLOCK: i64 = 12_537;
 /// 12898, run174's last but one. The coverage driver reads run174 from
 /// two blocks under it to the capture's last, four blocks.
 pub(crate) const GREAT_LAKES_RETRY_BLOCK: i64 = 12_898;
+/// `run178_s_word_frame_is_widened_whole`'s window (item 678): run123
+/// from **11400**, then run125, run130, run135, run136, run163, run174 and
+/// run178 to its last block, 14899. The floor is
+/// [`WIDENING_GREAT_LAKES_CIVIC`]'s, for the same reason.
+pub(crate) const WIDENING_GREAT_LAKES_COPY: (i64, i64) = (11_400, 14_899);
+/// The block [`WIDENING_GREAT_LAKES_COPY`] was taken to widen: the word
+/// 14382's frame writes block 14383. The coverage driver reads run178
+/// around it.
+pub(crate) const GREAT_LAKES_COPY_BLOCK: i64 = 14_383;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3585,13 +3597,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **Item 678 moved it 12897 → 14382**, past run174's last block and
     // past every Great Lakes dump on disk below run80: the pathfinder's
     // block copies (`docs/PATHFINDER.md` §26). run174's test keeps the
-    // move's value diff; item 678 owes run178 and its widening.
+    // move's value diff. **Item 678 paid it**: run178 is run174's line
+    // over [12894, 14899], and `run178_s_word_frame_is_widened_whole` walks
+    // it from run123's 11400 across eight captures, so the window is
+    // [`WIDENING_GREAT_LAKES_COPY`] and the test pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run178_s_word_frame_is_widened_whole"),
         678,
-        None,
+        Some(WIDENING_GREAT_LAKES_COPY),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

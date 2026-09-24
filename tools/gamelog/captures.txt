@@ -5625,6 +5625,24 @@ settle_min: 14000000
 # the 63 GB free. run174 dumped 510 blocks in 40 minutes with a 90-second
 # run-up, ~13 a minute, so this is ~155 minutes. 720 polls is four hours.
 poll_max: 720
+# ==== TAKEN 2026-09-24, **WHOLE** ====
+#
+# 4,297,129,978 bytes of dump and 19,893,856 of trace, **2,006 blocks
+# 12894..14899**, a `GROUPDATA` on every one. 2 h 24 min launch to archive
+# (09:27 to 11:51), through `viadriver.sh` with no human at the menu; the
+# lane lock was stale (its holder, pid 41127, was dead) and was taken
+# over. ~14 blocks a minute, 2.0 MB a block, as sized. All six checks
+# green: 14,911 frames identical to run53, `MAP_STYLE 14`, 6 blocks shared
+# with run174 (12894..12899) and 0 differing, and a coverage set on all 9
+# frames 14378..14386.
+#
+# **The readings, decided on the walk**: **R1 holds**, the overlap above.
+# **R2 holds in part**: the parting is who=1's production — `MAKE[7]` and
+# the new building `1/2025`, placed at (39552, 17472) here and (42624,
+# 19776) there — but its killer's premise does not, since units do part
+# first on 14383: the citizens `1/6` and `1/7` trade the build and walk
+# orders, which is the placement's own consequence.
+# `run178_s_word_frame_is_widened_whole`.
 # Same game: the trace word for word against run53, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run178.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=14900)}'
 # And the map, from the dump's own `GAME INFO`.
