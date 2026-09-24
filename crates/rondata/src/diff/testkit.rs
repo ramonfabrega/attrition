@@ -2006,7 +2006,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run178_s_word_frame_is_widened_whole` pins the word's block — the
 /// Woodcutter's Camp `1/2009`'s gather list — and the move's value diff on
 /// 14530.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_650;
+///
+/// ~~**14650 is the camp's gather list.**~~ **Item 698 moved it 14650 →
+/// 14982, and the mechanism was `do_move`'s `GATHER` park**
+/// (`docs/COLLISION.md` §15). The citizen `1/43`, stopped by the standing
+/// `1/18` on 14643 with its search suspended, gives its walk up on 14649,
+/// six frames on and 259 short of its point, and draws a tile afresh on
+/// 14650; this crate kept the walk. **The new word's delta: ours 11 draws
+/// and the original 15, parting at index 0**: the original spends three
+/// `Guy::init_real+0x52`, a three-figure birth, before the frame's
+/// `Guy::inc_time` wraps, and ours spends none. **Past run178** (block
+/// 14983 against its last, 14899), so item 698 took **run192**; the
+/// widening names the word's block, and
+/// `run178_s_word_frame_is_widened_whole` keeps the move's value diff on
+/// 14651.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_982;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3379,6 +3393,15 @@ pub(crate) const GREAT_LAKES_VALS_BLOCK: i64 = 14_530;
 /// 14651, inside run178 and so inside [`WIDENING_GREAT_LAKES_COPY`]. The
 /// coverage driver reads run178 around it too.
 pub(crate) const GREAT_LAKES_ROAD_BLOCK: i64 = 14_651;
+/// `run192_s_word_frame_is_widened_whole`'s window (item 698):
+/// [`WIDENING_GREAT_LAKES_COPY`]'s chain, then run192 from run178's last
+/// block to its own, 15039. The floor is [`WIDENING_GREAT_LAKES_CIVIC`]'s,
+/// for the same reason.
+pub(crate) const WIDENING_GREAT_LAKES_BIRTH: (i64, i64) = (11_400, 15_039);
+/// The block [`WIDENING_GREAT_LAKES_BIRTH`] was taken to widen: the word
+/// 14982's frame writes block 14983, past run178. The coverage driver
+/// reads run192 around it.
+pub(crate) const GREAT_LAKES_BIRTH_BLOCK: i64 = 14_983;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3784,12 +3807,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 14651): the caravan verifies a road the stray-road sweep took
     // (`docs/ROADS.md` §10). The test pins the new word's block and keeps
     // the move's value diff on 14530.
+    //
+    // **Item 698 moved it 14650 → 14982**, past run178's last block
+    // (14899): a gatherer on a suspended search gives its walk up
+    // (`docs/COLLISION.md` §15). run178's test keeps the move's value diff
+    // on 14651. **Item 698 paid it**: run192 is run178's line over
+    // [14894, 15039], and `run192_s_word_frame_is_widened_whole` walks it
+    // from run123's 11400 across nine captures, so the window is
+    // [`WIDENING_GREAT_LAKES_BIRTH`] and the test pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run178_s_word_frame_is_widened_whole"),
-        695,
-        Some(WIDENING_GREAT_LAKES_COPY),
+        Some("run192_s_word_frame_is_widened_whole"),
+        698,
+        Some(WIDENING_GREAT_LAKES_BIRTH),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

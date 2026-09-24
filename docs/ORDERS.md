@@ -877,7 +877,8 @@ target order decides its transit legs are stale.
    combat's).
 2. **A suspended search** (`openlist != 0`): an `ATTACK` action retargets
    every 4 frames; a `GATHER` action within `vector_dist < 0x120` parks the
-   unit (`avoid_x/y = pos`, resets the gather fields, kills the move); else
+   unit (`avoid_x/y` = the move's `x/y`, gather reset, move dies;
+   COLLISION §15); else
    every other frame from 4 on, `detect_unit_collision(coll_x, coll_y, …) ==
    0` → `dest = 0; clear_partial_path; flags |= 1; collide = 0; return 0` (the
    blocker has gone — re-plan next frame); otherwise `collide++` and `dest =

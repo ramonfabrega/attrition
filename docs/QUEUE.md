@@ -13,12 +13,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**10 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-698 (Great Lakes) and att-703 (chapter eleven's word) are live.*
+**11 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-706 (Great Lakes) and att-703 (chapter eleven's word) are live.*
 
-- **Great Lakes 12536 → 14650 in four landings**: the retry's gate (673),
-  a resumed search (678, run178), a founded city's halving (688), and the
-  stray-road sweep with the Senate's capital move (695, ROADS §10). **East Indies 13640 → 15782** (643):
+- **Great Lakes 12536 → 14982 in five landings**: the retry's gate (673),
+  a resumed search (678), a city's halving (688), the stray-road sweep
+  (695) and the gather park (698, COLLISION §15, run192 to 15039). **East Indies 13640 → 15782** (643):
   animation names resolve case-folded, first match (ANIM §12, run166).
 - **Chapter six-b staged and closed** at 1250 (651, 680): each aircraft
   walks at the enemy Airbase, and a captain's attack on a building re-runs
@@ -31,12 +31,12 @@ att-698 (Great Lakes) and att-703 (chapter eleven's word) are live.*
   692 the census's row, 697 `cover=1` hangs); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w15782 of 24,000 · GreatLakes w14650 of 24,000
+Long captures: EastIndies w15782 of 24,000 · GreatLakes w14982 of 24,000
 Golden: ch11 w734 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed
-Endpoint 24001: EastIndies 55 off, 0 unlinked · GreatLakes 30 off, 0 unlinked
+Endpoint 24001: EastIndies 55 off, 0 unlinked · GreatLakes 46 off, 1 unlinked
 
-**Opener: 703 is live on the rules lane and 698 on the AI lane (Great
-Lakes is the lower map); 694 follows 698. A detached capture waits on
+**Opener: 703 is live on the rules lane and 706 on the AI lane (Great
+Lakes is the lower map); 694 follows 706. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -47,13 +47,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-698. **Great Lakes' word is 14650: the Woodcutter's Camp's gather list**
-    (695 moved it 14529 → 14650: `Roads::scan_and_kill_stray_roads` erodes
-    a trade road, and the Senate moves the capital, ROADS §10, CITIES §15).
-    On 14650 ours 2 draws against 3 at index 0, theirs `Unit::do_non_flat
-    _gather+0x54b`. On block 14651 only `1/2009`'s gather list parts, one
-    entry along; on 14650 `1/43` collides with `1/7` here and `1/6` there.
-    Inside run178, widened (block 14651). No mechanism.
+706. **Great Lakes' word is 14982: who=1's birth of `1/79`** (698 moved it
+    14650 → 14982: `do_move`'s gather park, COLLISION §15). On 14982 ours
+    11 draws against 15 at index 0, the original's three `Guy::init_real
+    +0x52`. Inside run192, widened (block 14983). Under it on 14946 a
+    Barracks' free train is born type 120 here, 127 there (`current_
+    upgrade`), `myhits` 70 against 88: the ×1.25 of parked 679. No mechanism.
 
 694. **East Indies' word is 15782: who=1's birth of `1/60`** (643 moved it
     13640 → 15782: animation names resolve case-folded, first match, ANIM
