@@ -467,27 +467,6 @@ players is a single wrong decision, not residue, and it should be cheap.
 
 ## Parked by item 506, 2026-09-22 — a standing gap and two the ceiling found
 
-(514) **`1/income[2:wealth]` 960 against 992, on all 245 blocks of
-run117** — `resources[2:wealth]` and `rate[2:wealth]` (60 v 62) say it
-twice more. **It names no frame**, which is why it parks rather than
-taking the headline: run107's thirty blocks at 9170–9199 carry no income
-row at all, so the 32 opens somewhere inside `(9199, 10375]` and nothing
-on disk covers it. The AI's two unmodelled caravans are **a candidate,
-not a measurement** — 176 is not 32, and the gap is not there at 9199.
-**The disk has been grepped and it cannot answer this one — the capture
-is owed.** The argument is what run117 does *not* show: `LEADERDATA`
-carries every per-good input income is built from — `gather_slots`,
-`filled_gather_slots`, `base_rate`, `econ`, `bonus`, `support`,
-`over_cap`, `resource_cap` — and across 490 blocks **none of them
-parts**. Only `resources`, `income` and `rate` for wealth do, and `rate`
-is `income/16`. So the missing term is summed into wealth from **outside
-the goods block**, and no number of blocks of this record can name it.
-Nor can the disk date it: run107 ends at 9199, the next `LEADERS≥2`
-window on this map is run80 at 23960, and run100's `CITIES=5`/`BUILDS=7`
-show nothing changing in `(9340, 10375]` — the caravan rows are already
-standing at the window's first block and never move, so the 32 did not
-arrive with a building, a city or a caravan.
-
 **Booked as run121**: `MISC,LEADERS=2` over `[0, 10400)`. run60 did 5,400
 blocks at that detail in under five minutes and 67 MB, so ~10 minutes and
 ~135 MB here. It converts an unbounded search into a lookup, because
@@ -774,6 +753,16 @@ leaders, read as every player where the bound is 0..7, which
 `llvm-objdump` or the PDB settles in a minute. GOLDEN §3's fifth point
 could ask each falsifier's premise to cite the bound of any loop it rests
 on.
+
+(670) **A comparison against a literal 0, and a reader that counts every
+key as read.** Filed by item 661. `harness.rs`' CITY-record loop ("four
+fields nothing here holds") compared `trade_val` and `vans.length`
+against 0, written before `compute_trade` had a writer, so every capture
+printed "ours 0" and parked 514 stood for weeks on an instrument. And
+`gamelog.rs`' `build_of` iterates `b.fields()` for the mining list, so
+the coverage pin counts every direct `BUILDDATA` key as read: `city` and
+`city_down` went unparsed without the pin failing. Both are 488's
+"quiet is what a blind instrument looks like", one level down.
 
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth
@@ -1153,7 +1142,9 @@ clock — `unit_masks2 & 0x10` freezes `Guy::inc_time` (ANIM §5), and that
 arm waits on a melee frame. **312 names this first** if the 7679 figure is
 in melee.
 
-(291) **The AI's caravans are not linked** — `vans.length` 0 against 1 and
+(291) **The AI's caravans are not linked** (item 661: the `trade_val` and
+`vans` halves were the harness comparing against a literal 0, Loop 670) —
+`vans.length` 0 against 1 and
 `trade_val` 0 against 128 on **both** of player 1's cities, 246 of 246
 blocks (287). That names two of 285's eighteen fields and gives them a
 mechanism, and wealth is what a market buy spends, so it is a live

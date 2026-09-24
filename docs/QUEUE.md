@@ -25,17 +25,16 @@ the rules track closed chapters four (1500), seven (1200) and three
   floor is a pin; a packet is taken at the word's own logger frame.
 - **598 rides in 620**: `inside_up`'s container row goes into `compare`
   inside the widening. 571 never ran — both lanes held a headline.
-- **Fable backlog: 9 Loop items** (313, 527, 630, 638, 639, 645, 649, 656, 667); the `FABLE:` batch was empty.
+- **Fable backlog: 10 Loop items** (313, 527, 630, 638, 639, 645, 649, 656, 667, 670); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w12184 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w12429 of 24,000
 Golden: ch8 w659 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 668 next
-Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 0 unlinked
+Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 1 unlinked
 
-**Opener: seventeen landings since the twelfth pass's commit. Chapter
-eight 617 → 659. 661 has the AI lane (Great Lakes 12184); spawn 668 on
-the rules lane. 643 follows 661, six-b (651) follows chapter eight. Stop
-at twenty.**
+**Opener: eighteen landings since the twelfth pass's commit. Great
+Lakes 12184 → 12429, still the lower map. 668 has the rules lane; spawn
+669 on the AI lane; 643 follows it. Stop at twenty.**
 
 ## The queue
 
@@ -45,13 +44,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-661. **Great Lakes' word is 12184: who=1's `create_buildings`** (657
-    moved it 12135 → 12184: `release_mustering`'s rush ladder reads the
-    Military level, `epoch[0]`, not the age, ARMY §20). On 12184 ours 47
-    draws against 95 at index 0, ours `Leader::create_buildings`; the
-    production list parts first on 12181. The original's thirty-round
-    `think_bird` arm sits beside it. Inside run163, widening on file; no
-    capture owed. No mechanism. On the AI lane next.
+669. **Great Lakes' word is 12429, past every capture** (661 moved it
+    12184 → 12429: `gain_tech`'s Civic arm re-masks every city and runs
+    `find_buildings`, seating who=1's Barracks and Stable in Norwich on
+    8734, AI §63; parked 514). On 12429 ours 14 draws against 12 at
+    index 5: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`. Great
+    Lakes' windows end on run163's 12399. Capture **run174** over the
+    word, overlapping run163, then widen it whole. No mechanism.
 
 668. **Chapter eight's word is 659: who=1's hoplite steps back** (664
     moved it 617 → 659: `unit_is_spy` was a stub answering false, now
