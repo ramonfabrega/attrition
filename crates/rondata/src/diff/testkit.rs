@@ -2732,18 +2732,30 @@ pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 /// post, the stand on (3480, 12264) and the fight to 1036 then agree on
 /// every row.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: on 1037 the
-/// original's guard `0/6` holds its `GUARD` alone (the attack on `1/6`
-/// gone, `recharging 0`), where this crate's still has the `ATTACK` above
-/// it and has fired (`recharging 25`, `Unit::fight+0x9b0` first on 1036).
-/// `1/6` stands on (3355, 14070), about 1,810 units off. No mechanism is
-/// named.
-pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1036;
+/// 1036 → **1133** (item 707, `docs/COMBAT.md` §63): **a guard's attack
+/// is leashed to its post**. When the activity is a `GUARD`,
+/// `Unit::fight` asks `check_target` with its guarding argument once
+/// `valid_target` passes. That refuses a target past
+/// `UNIT_GUARD_RESPOND_RANGE × 2 × 0x60` = 1,536 of the post. The reload
+/// gate sits above it, so the guard met it on tick 1036 with `1/6` ≈1,780
+/// off: the attack is killed with no draw. Its search, leashed too and
+/// centred on the post, found nothing and wrote `near` −1. The same leash
+/// keeps the sixteen-frame search from re-engaging (parked 705).
+/// `target_opportunity`'s action gate keeps a human's `GUARD` from
+/// answering the hit on 1091.
+///
+/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: on 1134 the
+/// original's `1/6` has dropped its `ATTACK` on the guard (`recharging
+/// 0`, its army's `ATTACKTOORDER` alone), where this crate's fires
+/// (`recharging 25`, `Unit::fight+0x9b0` first on 1133). The guard's
+/// `visible` bit for who=1 is 0 from 1086. No mechanism is named.
+pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1133;
 
 /// `chapter_eleven_s_word_frame_is_widened_whole`'s window: 605, run190's
-/// first block, through 1037, the block after the word (item 703). The
-/// first pin was (605, 726) on the word 724, then (605, 736) on 734.
-pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1038);
+/// first block, through 1134, the block after the word (item 707). The
+/// first pin was (605, 726) on the word 724, then (605, 736) on 734 and
+/// (605, 1038) on 1036.
+pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1135);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.

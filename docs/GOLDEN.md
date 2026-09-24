@@ -2044,7 +2044,7 @@ the last.
   the wagon stands unguarded.
 
 **Where this crate parted: `GOLDEN_WORD_CHAPTER_ELEVEN` = 724, then 734
-by the same item, then 1036 (item 703), open.** On 724 this crate spends 14 draws against 11,
+by the same item, then 1036 (item 703), then 1133 (item 707), open.** On 724 this crate spends 14 draws against 11,
 three extra `Guy::set_anim+0x97a < Unit::move_step+0x823`. The value parts
 on **722**: on tick 721, the first after the wagon's move, the original's
 guard steps (21, 1) off its post and names the wagon in `collide_o`, with
@@ -2080,3 +2080,27 @@ only the birds. On block 1037 the original's guard holds its `GUARD`
 alone, with the attack on `1/6` gone and `recharging 0`. This crate's
 keeps the `ATTACK` and fires. `1/6` is about 1,810 units off. No
 mechanism is named.
+
+**1036 → 1133 (item 707), open: a guard's attack is leashed to its
+post** (`docs/COMBAT.md` §63).
+- **The arm.** When a unit's activity is a `GUARD`, `fight` asks
+  `check_target` with its guarding argument once `valid_target` passes.
+  That refuses a target further than `UNIT_GUARD_RESPOND_RANGE × 2 × 0x60`
+  = 1,536 from the post.
+- **Why 1036.** The reload gate sits above the arm, so it is first asked
+  on tick 1036. `1/6` is ≈1,780 off by then.
+- **The search.** The guard's own search is leashed too, so it adds
+  nothing and writes `near` −1. That is the widening's new `near` row, the
+  only record that said a search ran.
+- **Parked 705 closes with it.** The same leash keeps the guard's
+  sixteen-frame search from re-engaging `1/6` at ≈1,635.
+- **The retaliation.** A human's `GUARD` also holds its retaliation
+  (`target_opportunity`'s action gate), which closed a transient on 1091.
+
+Every row from 736 to 1133 agrees.
+
+**On 1133** ours spends `Unit::fight+0x9b0` and two `Guy::set_anim+0xf2f`
+for `1/6`, where the original spends only the farms. On block 1134 the
+original's `1/6` has dropped its `ATTACK` on the guard, `recharging 0`,
+and holds its army's `ATTACKTOORDER`. This crate's `1/6` fires. The
+guard's `visible` bit for who=1 is 0 from 1086 on. No mechanism is named.

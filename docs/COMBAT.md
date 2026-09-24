@@ -10550,3 +10550,160 @@ one eight tiles off loses its attack.
   `fight` answers 0, drawless, through `find_new_target` at `fight+0xa1f`.
 - **Listing-backed**: the arm's gates and branches (`005fdd5b`–`005fe01f`).
 - **Reading only**: every §62.4 arm.
+
+## 63. A guard's attack is leashed to its post (item 707, 2026-09-24)
+
+Golden chapter eleven (run190, `docs/GOLDEN.md` §19) stood at **1036**.
+Ours spent 7 draws against 4, parting at index 0: `Unit::fight+0x9b0` and
+two `Guy::set_anim+0xf2f`, all the guard `0/6`'s. On block 1037 the
+original's guard holds its `GUARD` alone, `recharging 0`. This crate kept
+the `ATTACK` on who=1's chariot `1/6` and fired. `1/6` had walked off on
+its army's `ATTACKTOORDER` from 1021. The kill conditions for three
+readings are in `docs/journal/2026-09-24-item-707.md`, written before the
+build.
+
+### 63.1 The arm in `fight`, and `check_target`'s guarding test
+
+`Unit::fight@005fd4d0`, straight after `Object::valid_target` passes and
+ahead of both captain arms (§62.2), `005fdc91`–`005fdd4f`:
+
+```text
+if param_5 == 0 && get_activity() && get_activity().type == GUARD:   ; 5fdc91-5fdca9, 0xc
+    use_poor = 0
+    if is_captain() && unit_masks & 0x40000:                         ; 5fdcc8-5fdce0
+        use_poor = 1
+        if Random::get(0, 0xffff) & 0x80000001 → drop                ; 5fdcef, fight+0x824
+    if drop || !check_target(o, who, 1, NULL, 1, use_poor, 0):       ; 5fdd0c
+        kill_current_order(0)                                         ; 5fdd19
+        find_melee_target(-1, NULL, 0, 1, 0)                          ; 5fdd2a, adds what it finds
+        order_type != ATTACK → return 0
+        recharging != 0      → return 0
+        unit_masks2 |= 0x10; return 0
+```
+
+`UnitData::get_activity@00608370` walks the list from the head past every
+order that `is_move_attack@0047ff00` (vslot `+0x1c`, `is_move ||
+is_attack`), so under a guard's `ATTACK` it lands on the `GUARD`.
+
+**`Object::check_target@00649e00`'s guarding arm** (`param_5`,
+`0064a00d`–`0064a190`, read from the listing, since the decompile lost
+both `vector_dist`s' operands):
+
+- the guard order comes off the activity (vslot `+0xec`), and needs `ox`,
+  `whom` ≥ 0;
+- `k` = 2, or 3 against a unit that is not a worker (`is_worker@0046fa10`,
+  type `0x32`–`0x35`) when the guard has `unit_masks & 0x40000`;
+- a **follower** whose captain's action is an `ATTACK` on this target is
+  accepted at once, with `check_target` answering 1 (`0064a0eb`);
+- `r = unit_guard_respond_range × k × 0x60`, with `constants +0x20`, 8
+  tiles on both sides (`rules.xml`), so **1536** for a human;
+- `vector_dist(target − post) > r` → 0, then `vector_dist(me − post) > r`
+  → 0, the post being the order's `+0x1c/+0x20`, `guard_x/guard_y`.
+
+Before it, a target in another `tregion` must be `is_in_range` (`param_3`
+is 1 here, so only the region arm runs). After it comes the tail:
+`poor_target` only with `use_poor`.
+
+### 63.2 Why 1036, and not before
+
+The guard shot `1/6` from its post on tick 1011 with `recharging` 25.
+`fight`'s reload gate returns before `valid_target` (§8.2), so the leash
+is first asked on **tick 1036**. By then `1/6` stands on (3356, 14040),
+**≈1,780** from the post (3480, 12264). It crossed 1,536 near 1028.
+`check_target` answers 0, the attack is killed with nothing drawn, and
+the guard's own search is leashed too (§63.3), so it adds nothing and
+writes `near` −1.
+
+This crate's range test says the shot was still in reach, `attack_dist`
+1536 against `8 × 0xc0 + 6` = 1542. The original never asks it: the leash
+comes first.
+
+### 63.3 The guard's search is leashed too
+
+`Object::find_nearby_target@00648da0` sets `local_2c` when the searcher
+is a unit, not a cavalry archer's call, and its activity is a `GUARD`
+(`:176`–`184`). Then:
+
+- **the rings are centred on the post**, the guard order's
+  `+0x1c/+0x20`, not the searcher (`:240`–`250`);
+- **`check_target` gets `guarding` 1** (`:332`), so every candidate out of
+  the leash is refused **before `near_o` is written**;
+- **an unarmed candidate must be reached** (`:346`–`352`), and under
+  `unit_masks & 0x40000` so must an `ANTI_AIR` one. An armed one is deemed
+  in range untested, as for any unit.
+
+So the same leash governs `do_guard`'s idle-arm search
+(`find_melee_target(−1, 0, 0, 1, 0)`, `docs/ORDERS.md` §24.3). That is
+**parked 705's non-re-engagement**: `1/6` comes back to (3384, 13896),
+≈1,635 from the post, and shoots the guard from there. The guard's
+sixteen-frame search refuses it on the leash and finds nothing, on both
+sides now.
+
+### 63.4 A human's action order holds the retaliation
+
+`Unit::target_opportunity@005fffc0`'s tail, `LAB_00600877`, adds the
+retaliating attack only for an armed unit whose action (`update_action`)
+meets one of these:
+
+- it is null, or not flagged `ACTION` (flags & 4);
+- the unit has `unit_masks & 0x40000`;
+- it is an `ATTACK_TO`, a `0x15` or a patrol (vslot `+0x34`).
+
+A player's guard, whose action is its `GUARD` (flags 4), does not answer
+a hit. On 1091, `1/6`'s second hit, this crate's guard retaliated and
+dropped the attack a frame later on the leash, drawlessly. The original's
+never took it.
+
+### 63.5 The build, and what moved
+
+- `Sim::guard_activity`, `Sim::guard_leash` and `Sim::guard_check_target`
+  (`crates/sim/src/fight.rs`);
+- the arm in `Sim::do_attack`, with the AI's roll at `fight+0x824`
+  ([`sim::fight::SITE_FIGHT_GUARD_ROLL`]);
+- the leash, the post-centred rings and the guard's reach gate in
+  `find_nearby_target`;
+- the action gate in `target_opportunity`.
+
+**1036 → 1133.** The value diff beside it, from the widening (every
+record, both directions, and the new `near` row):
+
+| block | field | before | after |
+| --- | --- | --- | --- |
+| 1037 | `0/6` orders | `ATTACK`, `GUARD` against `GUARD` | `GUARD`, both |
+| 1037 | `0/6` `recharging` | 25 against 0 | 0, both |
+| 1037 | `0/6` `near` | (6, 1) against (−1, −1) | (−1, −1), both |
+| 1091 | `0/6` orders | (with the leash alone) `ATTACK`, `GUARD` against `GUARD` | `GUARD`, both |
+
+From 1037 to 1133 no row parts. The word passes 1050, and **parked 705
+closes with it** (§63.3): the guard never re-engages, on both sides. The
+long captures' words hold at 14982 and 15782, and every closed chapter
+holds.
+
+### 63.6 What is not established, and coverage
+
+**Diff-backed**: the arm's effect on a human guard (the 1037 rows); the
+guard search's leash (`near` −1, and no re-engagement through 1133); the
+retaliation gate for a human guard (1091).
+
+**Listing-backed, never executed in a capture**:
+
+- the AI roll at `fight+0x824` (no dump has a captain under a `GUARD`
+  and `0x40000` reach an unrecharged `fight`);
+- `k` = 3;
+- the captain shortcut;
+- the region arm;
+- the guard's reach gate on an unarmed candidate;
+- the retaliation gate's `ATTACK_TO`, `0x15` and patrol exemptions, whose
+  ORDERS names the patrol's vslot `+0x34`.
+
+SEAMS: `is_attack`'s overrides are folded in the export, so it is taken
+as the attack and ground-attack orders. `check_target`'s AI-sea region
+exception and its building-cell tail are not carried. The retaliation's
+`on_duty` return (`00600877`'s `local_20 != NONE` above it) is not
+carried.
+
+**What stands at 1133** is not the guard's. `1/6`'s own `ATTACK` on the
+guard goes on block 1134, the tick its reload opens, with no draw, so
+before `fight`'s roll. The guard's `visible` bit for who=1 is 0 on every
+block from 1086, so `1/6` fired only while who=1's world map saw the
+guard's cell. The word's widening names no mechanism.

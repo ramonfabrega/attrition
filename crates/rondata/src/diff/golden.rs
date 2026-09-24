@@ -6001,6 +6001,19 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // 1037 in the original, so a search ran on tick 1036 and saw no
     // candidate; this crate's ran none. Every other block agrees on it,
     // `1/6`'s own −1 from 1030 among them.
+    //
+    // **The third pin, word 1036**: the guard's attack is leashed to its
+    // post (item 707, `docs/COMBAT.md` §63). `fight` asks `check_target`
+    // with its guarding argument once `valid_target` passes, and `1/6`
+    // stood ≈1,780 from the post against 1,536. The guard's search is
+    // leashed too (`near` −1), and a human's `GUARD` holds its
+    // retaliation (`target_opportunity`'s action gate), which closed
+    // 1091, where the leash alone left a one-frame `ATTACK`. Built →
+    // **1133**. Every row from 736 to 1133 agrees.
+    //
+    // **On 1134** the original's `1/6` has dropped its `ATTACK` on the
+    // guard (`recharging 0`, its army's `ATTACKTOORDER` alone); this
+    // crate's fires (`recharging 25`). No mechanism is named.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -6009,11 +6022,13 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         "615 0/10 form",
         "847 1/0 order:move.facing",
         "1001 1/6 form",
-        "1037 0/6 near",
-        "1037 0/6 order:kind",
-        "1037 0/6 order:length",
-        "1037 0/6 orders.len",
-        "1037 0/6 recharging",
+        "1134 1/6 dest_angle",
+        "1134 1/6 order:kind",
+        "1134 1/6 order:length",
+        "1134 1/6 orders.len",
+        "1134 1/6 orders_x",
+        "1134 1/6 orders_y",
+        "1134 1/6 recharging",
     ]
     .iter()
     .map(|r| r.to_string())
