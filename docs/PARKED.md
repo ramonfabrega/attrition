@@ -36,18 +36,19 @@ on one block; no draw.
 (§61.5): 650 made the ring search call `poor_target` as `check_target`'s
 tail does, and left these two out. No word names them.
 
+## Parked by item 652, 2026-09-23 — the bird in flight
+
+(659) **A bird's unit `+0x78` is its birth tile and never moves in
+flight.** It names no score until an air unit is dumped (651).
+
 ## Parked by item 648, 2026-09-23 — chapter six's other halves
 
 (651) **Chapter six-b: the air line from a base.** run168's second
 falsifier fired: an aircraft `add`ed outside a base never moves. The
 restage stages an `add airbase` for each side, then the aircraft; whether
 a cheat-placed Airbase launches anything on its own is its question. A run
-number is minted at booking. Returns when chapter six closes, or when the
-rules slot is empty (GOLDEN §14).
-
-(653) **Is `bird`'s cursor the same on every launch?** It is heap memory,
-so only a second take of run168 checks it. No other line of the chapter
-depends on it.
+number is minted at booking. Chapter six closed at 900 (652); returns
+when chapter eight (660) closes.
 
 ## Parked by item 642, 2026-09-23 — under East Indies' 13640
 

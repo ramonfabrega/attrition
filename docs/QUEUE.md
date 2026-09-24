@@ -29,13 +29,13 @@ the rules track closed chapters four (1500), seven (1200) and three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12135 of 24,000
-Golden: ch6 w700 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 652 next
+Golden: none pinned, every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 660 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 0 unlinked
 
-**Opener: thirteen landings since the twelfth pass's commit. Great
-Lakes 12038 → 12135, still the lower map. 652 has the rules lane
-(chapter six's `bird`); spawn 657 on the AI lane; 643 follows it. Stop
-at twenty.**
+**Opener: fourteen landings since the twelfth pass's commit, and every
+golden chapter is closed again. 657 has the AI lane (Great Lakes
+12135); spawn 660 on the rules lane (chapter eight's capture). 643
+follows 657. Stop at twenty.**
 
 ## The queue
 
@@ -53,14 +53,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     original seats `1/68` in pool group 66 with a move order, and ours
     gives it group 68 and none. No mechanism. On the AI lane next.
 
-652. **Chapter six's word is 700: `bird`, which the harness does not
-    stage** (650 moved it 616 → 700: `poor_target`'s plane arm and
-    `valid_target_const`'s air ladder, COMBAT §61). Block 700 agrees on
-    every record; 701 parts on the AI scout `1/0`'s `think_scout` roll,
-    one draw early, because this crate spawns no bird (`CHAPTER_DEBT`).
-    The crate has the bird (`gaia.rs`, `air.rs`); the cheat is
-    `spawn_bird` at the cursor. The cursor's value is the question
-    (parked 653). No mechanism. On the rules lane next.
+660. **Chapter eight, the commanders and a declared war: no capture yet**
+    (652 closed chapter six at 900: `bird` staged at the cursor run169's
+    packet read, (0, 6), SYNC §3.9; every golden chapter closed). GOLDEN
+    §14 takes the next uncaptured chapter. Capture **run171** over `[605,
+    1200)` with `chapter8.cmd`; before the run, check each §12 falsifier
+    can fire: the hoplites stand eight tiles apart. Then pin the word.
+    Chapter six-b follows (parked 651).
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
