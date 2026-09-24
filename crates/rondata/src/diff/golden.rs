@@ -5940,37 +5940,35 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // `is_corner`: §4.3's escort row, "its action is `GUARD` on me", is
     // soft. Built → **734**.
     //
-    // **On 734** the same pair parts one step further: on tick 733 the
-    // original's guard is blocked on its own step (its `coll` holds the
-    // refused point) and the wagon then pushes it (`collide_o 7`); this
-    // crate's guard steps, and the wagon's scan is soft and half-steps.
-    // No mechanism is named.
+    // **The second pin, word 734**: on tick 733 the original's guard was
+    // refused its own step (its `coll` held the refused point) and the
+    // wagon then pushed it (`collide_o 7`); this crate's guard stepped
+    // through. The disc follows guy 0, not the unit (item 703,
+    // `docs/COLLISION.md` §16): the guard's figures still stood on the
+    // cell tick 732's push left, and so did its bits, one of which is
+    // the wagon's by `is_here`. Built, with a trackless crew arriving on
+    // guy 0's point → **1036**. Every row from 736 to 1036 agrees but
+    // who=1's chariot's `form` on its birth block, 1001, the standing
+    // family, and the scout `1/0`'s formation mirror on 847, chapter
+    // ten's row (parked 275).
+    //
+    // **On 1037** the original's guard holds its `GUARD` alone, the
+    // attack on `1/6` gone with `recharging 0`; this crate's keeps the
+    // `ATTACK` above it and fires (`recharging 25`). `1/6` stands on
+    // (3355, 14070), about 1,810 units from the guard. No mechanism is
+    // named.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
         "615 0/8 form",
         "615 0/9 form",
         "615 0/10 form",
-        "734 0/6 collide",
-        "734 0/6 collide_o",
-        "734 0/6 collide_who",
-        "734 0/6 g.x[0]",
-        "734 0/6 g.x[1]",
-        "734 0/6 g.y[0]",
-        "734 0/6 g.y[1]",
-        "734 0/6 order:coll",
-        "734 0/6 pos",
-        "734 0/7 half_step",
-        "735 0/6 g.angle[0]",
-        "735 0/6 g.angle[1]",
-        "735 0/6 heading",
-        "735 0/7 g.x[0]",
-        "735 0/7 g.x[1]",
-        "735 0/7 g.x[2]",
-        "735 0/7 g.y[0]",
-        "735 0/7 g.y[1]",
-        "735 0/7 g.y[2]",
-        "735 0/7 pos",
+        "847 1/0 order:move.facing",
+        "1001 1/6 form",
+        "1037 0/6 order:kind",
+        "1037 0/6 order:length",
+        "1037 0/6 orders.len",
+        "1037 0/6 recharging",
     ]
     .iter()
     .map(|r| r.to_string())

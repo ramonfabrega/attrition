@@ -89,7 +89,9 @@ Marking is gated three ways, all in `Object::add_to_world` and
 
 `Object::add_to_world` sets the bits for figures `0 .. guy_mark`;
 `Guy::set_new_location` calls `CollCheck::move_unit(from, to, coll_size)`
-whenever a figure changes unit cell, and that **clears** the cells around
+whenever a figure changes unit cell (its only caller: the bits follow the
+**figure**, so a pushed unit's disc waits for its next `Guy::process`,
+§16), and that **clears** the cells around
 `from` that are more than `coll_size` from `to` and **sets** those around
 `to` that are more than `coll_size` from `from`.
 
@@ -2880,7 +2882,9 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
 - **`find_units`' list path** indexes its cell grid with tile coordinates
   (`docs/ORDERS.md` §5.10), which is not reproduced, as in `build_crowd`.
 - ~~**No capture has shown a push.**~~ run190 shows a land one (above),
-  and its second, on tick 733, is the next word (`docs/GOLDEN.md` §19).
+  ~~and its second, on tick 733, is the next word~~ and its second, on
+  tick 733, is §16: the pushed guard is refused its own step on its old
+  disc (item 703).
   Of the sea half: Run143's ships agree, but the only
   contact in it is between group-mates, which are skipped. The push
   arithmetic, the clamp and the refusals rest on the listing and a unit
@@ -3102,3 +3106,115 @@ above it is still a seam.
   run178's `1/43` on blocks 14650 and 14651.
 - **Reading only**: `avoid_x/y`'s value, since `UNITS=3` does not print it,
   and every later elapsed.
+
+## 16. The disc follows guy 0, not the unit: a pushed unit is refused on its own old bits — golden chapter eleven 734 → 1036 (item 703, 2026-09-24)
+
+Chapter eleven's word was **734**: ours 9 draws against theirs 8, parting at
+index 1 on a second `Guy::set_anim+0x97a < Unit::move_step+0x823` of the
+guard `0/6`. The value parted on block 734. On tick 733 the original's
+guard proposes (3440, 8933) and is refused: `coll` holds the point,
+`collide` counts 3, and the wagon `0/7` then pushes it to (3516, 8949).
+This crate's guard stepped onto the point. The walk back, and the three
+booked readings the disk killed, are in `docs/journal/2026-09-24-item-703.md`.
+
+### 16.1 The mechanism
+
+`CollCheck::move_unit@00682ad0` has one caller in the game,
+`Guy::set_new_location@005d86f0:28`, which fires when a **figure** changes
+unit cell (§2). `Unit::set_new_location@005f8d20` writes the unit's point
+into guy 0's `des_x/des_y` (`:158`–`:160`, `guy_mark == 1`), and calls
+`Guy::set_new_location` only when `param_3` is set (`:161`). A unit's own
+step passes 0, and its guys, and so its bits, take the point in
+`Guy::process` after `Unit::work`, in the same turn. A push passes 0 too
+(`detect_boat_collision:258`, `set_new_location(x, y, 0, 0)`). But the
+pushed unit's turn has already run when a later unit pushes it, so its
+disc stays on the old cell **until its next turn's `Guy::process`**, which
+runs after that turn's step.
+
+run190 shows it on both sides:
+- On every block after a push, the guard's figures stand on the unit's
+  point from before the push. Block 733 has the unit on (3473, 8928) and
+  both figures on (3432, 8904).
+- On tick 733 the guard's step, from unit cell (72, 186) to (71, 186),
+  takes §4.2's one-cell fast path, the leading column x = 69, y 184–188.
+- Its old disc (x 69–73, y 183–187) still holds (69, 184). That cell is
+  the wagon's by `is_here` (the wagon's cell is (68, 183) and its
+  `coll_size` is 2). `will_be_corner` is 1 and the wagon's `is_corner` 0,
+  so the hit is **hard**. The guard itself is `o == u`, skipped.
+- This crate had cleared that column when tick 732's push moved the
+  guard's bits. So its scan found nothing, the guard stepped, and it lay
+  inside 45° of the wagon's facing (−44.9° against the original's −50°).
+  The wagon's push then refused a moving unit, and its land scan found
+  the escort soft.
+
+**Built**: `Unit::coll_at` is where the disc stands, and `Sim::coll_follow`
+moves it to guy 0's body in `process_movement`, in the snap branch of
+`set_new_location` (`move_guys`, `Guy::set_new_location(…, 1)`) and in the
+age snap. `set_new_location` no longer moves the bits. Its world-cell heal
+(§2.3) paints around `coll_at`, the figure's point, as the original's
+`remove_from_world`/`add_to_world` do. `coll_remove` and §2.2's repaint
+read `coll_at` too.
+
+### 16.2 The crew's arrival, which the same push parts
+
+On tick 734 the guard is blocked again. The original spends **one**
+blocked-stand draw and this crate, with §16.1 in, spent none.
+`Guy::set_anim`'s walking early return (`005da300:163`) asks whether the
+guy stands on its own `des`:
+- Guy 0's `des` is the unit's point, which the push rewrote (§16.1). It
+  has not arrived, so it returns.
+- The chariot's second figure is a **trackless crew** guy
+  (`docs/MOVEMENT.md`, "And the crew that has no track"). Its `des` is
+  guy 0's *position*, written by the crew loop, and it shares that
+  position. So it stands on its destination, passes the early return and
+  rolls its idle: the one draw.
+
+`Sim::body_at_des` answers true for a trackless crew guy. The two answers
+part only between a push and the pushed unit's next `Guy::process`.
+
+### 16.3 What it moved
+
+- **Chapter eleven 734 → 1036.** Every row from 736 to 1036 agrees but
+  two:
+  - who=1's chariot's `form` on its birth block, 1001, the standing
+    family;
+  - the scout `1/0`'s formation mirror on 847, chapter ten's row (parked
+    275).
+- **The value diff**, on blocks 734–736: the guard's pos, `coll`,
+  `collide`, `collide_o/who`, its figures, and the wagon's `half_step`
+  and pos all agree. On 735 the guard is on (3551, 8963), `coll`
+  (3483, 8950), `collide` 4. Before the fix, 25 rows parted on 734–735.
+- **The new word, 1036**: ours 7 draws against 4. Ours spends
+  `Unit::fight+0x9b0` first, where the original spends only the birds.
+  On block 1037 the original's guard holds its `GUARD` alone, with the
+  attack on `1/6` gone and `recharging 0`. This crate's keeps the `ATTACK`
+  and fires (`recharging 25`). `1/6` stands on (3355, 14070), about 1,810
+  units off. That is a measurement, not a mechanism (`docs/DECISIONS.md`
+  42).
+- **Both long words hold**, Great Lakes 14982 and East Indies 15782, and
+  every closed chapter holds. East Indies' 24,001st frame gains one extra
+  unit, 2 → 3 (`endpoint.rs`).
+
+### 16.4 What is not established
+
+- **One figure's disc.** The original moves a disc per figure
+  (`0 .. guy_mark`, which is 1 on every unit dumped). This crate keeps
+  guy 0's alone, as §2.2 says.
+- **A crew guy with a track** keeps its own `des` (`Follow::des`). Only
+  the trackless case is diff-backed.
+- No capture has shown a pushed unit's stale disc refusing a *third*
+  unit. The mechanism is the same, but only the pushed unit's own step
+  is measured.
+
+### 16.5 Coverage
+
+- **Diff-backed**: §16.1 and §16.2, by
+  `chapter_eleven_s_word_frame_is_widened_whole` on run190. Blocks 734
+  and 735 no longer part, and nothing parts from 736 to 1036.
+- **Listing and decompile**: `Unit::set_new_location:152`–`:164`,
+  `Guy::set_new_location:22`–`:28`, `detect_boat_collision:258`.
+- **Unit-tested, made to fail on purpose**:
+  `collide::tests::a_pushed_unit_s_disc_waits_for_its_figure` fails with
+  the unit's move taking the bits, and
+  `anim::tests::a_pushed_unit_s_trackless_crew_rolls_its_idle_alone`
+  fails with the crew answering guy 0's arrival test.
