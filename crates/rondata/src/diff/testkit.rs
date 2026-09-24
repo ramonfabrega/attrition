@@ -3146,6 +3146,11 @@ pub(crate) const WIDENING_GREAT_LAKES_CIVIC: (i64, i64) = (11_400, 12_899);
 /// 12429's frame writes block 12430. The coverage driver reads run174
 /// around it.
 pub(crate) const GREAT_LAKES_CIVIC_BLOCK: i64 = 12_430;
+/// The block of the word item 669 moved to: 12536's frame writes block
+/// 12537, inside [`WIDENING_GREAT_LAKES_CIVIC`], where the squad
+/// `1/27`–`1/29` takes its orders. Item 673 put it in the coverage driver,
+/// which 669's landing had left on [`GREAT_LAKES_CIVIC_BLOCK`] alone.
+pub(crate) const GREAT_LAKES_SQUAD_BLOCK: i64 = 12_537;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
