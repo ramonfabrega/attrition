@@ -1039,8 +1039,9 @@ widening, only `1/1`'s group id on 990 stands (`docs/GROUPS.md` §24).
 
 ## 12. Chapter eight — the commanders, and a war that is declared
 
-**Captured as run171 (item 660), pinned open at ~~617~~ **659** of 901
-(item 664); its third change ended the game.** The staging was read and committed first
+**Captured as run171 (item 660), pinned open at ~~617~~ ~~659~~ (item
+664), and closed at **900 of 901** (item 668); its third change ended the
+game.** The staging was read and committed first
 (`chapter8.cmd`'s header, `89e338e`), the capture's section is
 `docs/RUNS.md` run171, and no falsifier fired. What the chapter measured:
 
@@ -1077,7 +1078,7 @@ the Spy never reached `think_scout`. With the lineage test its birth
 think spends the original's 71 draws, and on 618 it holds the original's
 order, path, group and `form_mod` (`docs/SCOUT.md` §15).
 
-**The word is 659**, the first blow's frame: 9 draws against 10, parting
+~~**The word is 659**, the first blow's frame: 9 draws against 10, parting
 at draw 2 on the original's `Unit::fight+0x9b0`, the one-in-five
 re-search roll. The value diff, in run171's own coordinates: who=1's
 hoplite `1/6` is chasing the General `0/9`, and on block 658 it stands at
@@ -1089,7 +1090,17 @@ targets `0/7` and lands the first blow, and both leaders' `treaties[·]`
 read 3 where this crate's read 0. No mechanism is named
 (`docs/DECISIONS.md` 42); `GOLDEN_WORD_CHAPTER_EIGHT` carries the value
 diff and `chapter_eight_s_word_frame_is_widened_whole` the blocks, now
-605–660.
+605–660.~~ **Item 668 closed it, 659 → 900.** `1/6`'s stop was
+`resolve_unit_collision`'s enemy ladder, arm C. A captain whose target is
+out of range, bumped by an enemy that is not its target, drops its walk
+and its attack. It then takes what it can strike from where it stands,
+through `find_new_target(this, NULL, 1)`, while its leader's `retargets`
+is under ten (`docs/COLLISION.md` §14). With it, block 659 is run171's,
+and every draw agrees to the trace's last frame. The widening is run171
+whole. Two rows stand on 660, and neither spends a draw: `0/7` takes 2
+hits and `damage_frac` 5 from the first blow in run171 and 3 here, which
+is the rally armor (parked 666). And both leaders' `treaties[·]` read 3
+there and 0 here.
 
 **Premise.** Chapter one's `war` is the bare form and changes nothing. This
 is the chapter that moves the diplomacy state, three times, with a fight

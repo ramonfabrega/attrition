@@ -2541,36 +2541,39 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 900;
 pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 901);
 
 /// **Chapter eight's golden word** — the commanders and a declared war
-/// (`docs/GOLDEN.md` §12, run171): **659 of 901**, the first blow's frame.
-/// 9 draws against 10, parting at draw 2: theirs `Unit::fight+0x9b0`, the
-/// one-in-five re-search roll, which ours does not spend. No mechanism is
-/// named (`docs/DECISIONS.md` 42).
+/// (`docs/GOLDEN.md` §12, run171): **900 of 901, closed**. The walk
+/// reaches the trace's last frame: `ally 1` on 900 hands both leaders an
+/// allied victory and the game closes after block 901, so 901 is the
+/// chapter's length.
 ///
-/// **The value diff**, run171's own coordinates: who=1's hoplite `1/6`,
-/// chasing the General `0/9`, stands at (1780, 7844) on block 658 both
-/// sides. On 659 the original's has stopped there, `collide_o 7`, its move
-/// dropped and its attack order alone left; this crate's has stepped back
-/// to (1800, 7848) with `collide 1` and still walks for the General. On
-/// 660 the original's targets `0/7` and lands the first blow; this
-/// crate's still targets `0/9`.
+/// **The word's delta** (item 668): **659 → 900**. On 659 the original
+/// spent `Unit::fight+0x9b0`, the one-in-five re-search roll, and this
+/// crate did not. The value diff was a frame earlier, in run171's own
+/// coordinates: who=1's hoplite `1/6`, chasing the General `0/9`, is
+/// blocked by who=0's `0/7` on 658 on both sides (`move_step+0x823`).
+/// On block 659 the original's stands at (1780, 7844) with a lone
+/// `ATTACK` on `0/7`, `collide_o 7`, `collide 0`. This crate's had taken
+/// §6 step 6, `collide 1` and the snap to (1800, 7848), and kept its
+/// walk and its attack on `0/9`. `resolve_unit_collision`'s enemy
+/// ladder, arm C (`005f9d30:189-252`), was unmodelled: a captain bumped
+/// by an enemy that is not its target, with its target out of range,
+/// calls `find_new_target(this, NULL, 1)` while its leader's
+/// `retargets` is under ten, and takes what it can strike from where it
+/// stands (`docs/COLLISION.md` §14). With it, block 659 is run171's
+/// field for field, the roll and the first blow land on 659, and every
+/// draw agrees to 900.
 ///
-/// **The word's delta** (item 664): **617 → 659**. On 617 the Spy `1/9`'s
-/// birth think spent the region scan, one `Unit::think_scout+0x941` and
-/// seventy `+0xaba`, and this crate spent none: `ObjectData::is(SPY, 0)`
-/// was a seam answering false (`docs/SCOUT.md` §15). With the lineage
-/// test the Spy takes the region scan on its birth frame and holds the
-/// original's `EXPLORETOORDER` to (4344, 10488) on 618, group, `form_mod`
-/// and path included; its nine rows on 618 are gone from the widening.
-///
-/// The trace ends on 900: `ally 1` on 900 hands both leaders an allied
-/// victory and the game closes after block 901, so 901 is the chapter's
-/// length.
-pub(crate) const GOLDEN_WORD_CHAPTER_EIGHT: i64 = 659;
+/// Before that, item 664 moved it **617 → 659**: `ObjectData::is(SPY,
+/// 0)` had been a seam answering false, so the Spy `1/9`'s birth think
+/// spent none of the region scan (`docs/SCOUT.md` §15).
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHT: i64 = 900;
 
-/// `chapter_eight_s_word_frame_is_widened_whole`'s window: run171's first
-/// block, 605, through the word's own two blocks, 659 and 660 (item 664;
-/// item 660's was 605 to 618).
-pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 661);
+/// `chapter_eight_s_word_frame_is_widened_whole`'s window: **run171
+/// whole**, its first block, 605, to its last, 900 (item 668; item 664's
+/// was 605 to 660, item 660's 605 to 618). What parts past the standing
+/// rows and the birth-block `form`s is the first blow's size on `0/7` and
+/// the leaders' `treaties[·]`, both on 660.
+pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 
 pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 94;
 

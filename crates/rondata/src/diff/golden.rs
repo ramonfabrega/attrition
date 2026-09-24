@@ -5671,7 +5671,9 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         WIDENING_CHAPTER_EIGHT,
         0,
         1,
-        (GOLDEN_WORD_CHAPTER_EIGHT, GOLDEN_WORD_CHAPTER_EIGHT + 1),
+        // The first blow's two blocks, where what stands parts; the word
+        // is the capture's end since item 668.
+        (659, 661),
         true,
         CHAPTER_EIGHT_LEADER_KEYS,
     ) else {
@@ -5699,14 +5701,18 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
     );
     // **What parts under the word**, pinned by block and key
     // (`docs/GOLDEN.md` §12). Each staged unit's `form` on its birth
-    // block, and the word's own two blocks. **Item 664** took the Spy
+    // block, and the first blow's block. **Item 664** took the Spy
     // `1/9`'s nine rows on 618: with `is(SPY, 0)` modelled, its birth
     // think takes the region scan and it holds the original's explore
-    // order, group and path. **What stands now**: on 659 who=1's hoplite
-    // `1/6`, chasing the General `0/9`, has stopped at (1780, 7844) against
-    // `0/7` in run171 and stepped back to (1800, 7848) here, still walking;
-    // on 660 run171's targets `0/7` and lands the first blow on it, and
-    // both leaders' `treaties[·]` read 3 there and 0 here.
+    // order, group and path. **Item 668** took `1/6`'s eleven rows on
+    // 659 and its eight on 660, and `0/7`'s `damage_frame`: bumped by
+    // `0/7` while it chased the General, `1/6` takes the enemy ladder's
+    // arm C, re-searches from where it stands and strikes `0/7` on 659
+    // (`docs/COLLISION.md` §14). The window is run171 whole since, and
+    // **what stands** is the first blow's size and the meeting on 660:
+    // `0/7` takes 2 hits and `damage_frac` 5 in run171 and 3 here, the General's
+    // rally armor (parked 666), and both leaders' `treaties[·]` read 3
+    // there and 0 here. Nothing parts after 660.
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_EIGHT.0)
@@ -5721,31 +5727,12 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         "616 1/6 form",
         "616 1/7 form",
         "616 1/8 form",
-        "659 1/6 collide",
-        "659 1/6 dest_angle",
-        "659 1/6 g.x[0]",
-        "659 1/6 g.y[0]",
-        "659 1/6 order:kind",
-        "659 1/6 order:length",
-        "659 1/6 orders.len",
-        "659 1/6 orders_x",
-        "659 1/6 orders_y",
-        "659 1/6 path:length",
-        "659 1/6 pos",
         "660 0/-1 leader:treaties[1]",
         "660 0/7 damage_frac",
-        "660 0/7 damage_frame",
         "660 0/7 hits:damage",
         "660 0/7 hits:damage_frac",
         "660 0/7 hits_left",
         "660 1/-1 leader:treaties[0]",
-        "660 1/6 collide_o",
-        "660 1/6 collide_who",
-        "660 1/6 g.angle[0]",
-        "660 1/6 heading",
-        "660 1/6 order:flags",
-        "660 1/6 order:target",
-        "660 1/6 recharging",
     ]
     .iter()
     .map(|r| r.to_string())

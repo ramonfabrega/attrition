@@ -18,7 +18,7 @@
 use crate::attrition::Domain;
 use crate::combat::Obj;
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
-use crate::orders::{Body, MoveOrder, Order, PathData, index, path_flag};
+use crate::orders::{Body, MoveOrder, Order, PathData, QueuePos, index, path_flag};
 use crate::world::{Cell, Pos, UNITS_PER_CELL, tile, vector_dist};
 
 /// The distance `Unit::detect_boat_collision` measures between two circle
@@ -1652,6 +1652,90 @@ impl Sim {
     // §6 — `Unit::resolve_unit_collision`
     // ------------------------------------------------------------------
 
+    /// **Arm C of the enemy ladder** (`005f9d30:189-252`,
+    /// `docs/COLLISION.md` §14), reached when arms A and B have not
+    /// returned: my action is an attack, the collider is another
+    /// player's, it is not my target, and my target is not in range.
+    /// Answers whether it took the collision.
+    ///
+    /// Read off the listing at `005f9ee0`–`005fa052`:
+    ///
+    /// - the action's attack is not `mandatory` (`+0x1c`), the current
+    ///   order is not a group's (vslot `+0x2c`), and
+    ///   `LeaderData::is_enemy(collide_who)`; otherwise nothing;
+    /// - **a follower** (`is_captain`, `+0x8e >> 15`, clear): when its
+    ///   captain's (`+0xe4`) action is an `ATTACK` whose target exists
+    ///   and is in range from where I stand (`is_in_range`, margin off),
+    ///   `repath`, `kill_current_order`, and `add_attack_order` on that
+    ///   target, `QUEUE_FIRST`, not mandatory;
+    /// - **a captain**, while `leaders[who].retargets < 10`
+    ///   (`cmp [+0x9f4], 0xa; jge`): `find_new_target(this, NULL, 1)`,
+    ///   which searches from where it stands ([`Sim::find_new_target`]).
+    ///
+    /// - **a captain at ten or more**: unless the type's vslot `+0x10c`
+    ///   answers — `is_siege`, `unit_flags & 0x20000` (§13.2 names it) —
+    ///   and when the collider is a valid target, `repath`,
+    ///   `kill_current_order`, and the collider queued `QUEUE_FIRST`.
+    ///
+    /// Anything else falls through to the sidestep.
+    fn enemy_ladder_arm_c(&mut self, u: usize) -> bool {
+        if self.units[u].combat.mandatory
+            || matches!(
+                self.order_type(u),
+                index::GROUP_MOVE | index::GROUP_ATTACK_TO
+            )
+        {
+            return false;
+        }
+        let who = self.units[u].owner;
+        let Ok(them) = u8::try_from(self.units[u].collide_who) else {
+            return false;
+        };
+        if !self.is_enemy(who, them) {
+            return false;
+        }
+        if !self.units[u].captain {
+            let cap = self.squad_captain(u);
+            if cap == u {
+                return false;
+            }
+            let Some(k) = self.action_of(cap) else {
+                return false;
+            };
+            if !matches!(self.units[cap].orders[k].body, Body::Attack(_)) {
+                return false;
+            }
+            self.update_action(cap);
+            let Some(t) = self.units[cap].combat.target else {
+                return false;
+            };
+            if !self.active(t) || !self.is_in_range(Obj::Unit(u), t) {
+                return false;
+            }
+            self.repath(u);
+            self.kill_current_order(u);
+            self.add_attack_order(u, t, QueuePos::First, false, false);
+            return true;
+        }
+        if self.retargets[usize::from(who)] < 10 {
+            self.find_new_target(u, true);
+            return true;
+        }
+        if self.is_siege_unit(u) {
+            return false;
+        }
+        let Some(c) = self.collider_of(u) else {
+            return false;
+        };
+        if !self.valid_target(Obj::Unit(u), Obj::Unit(c)) {
+            return false;
+        }
+        self.repath(u);
+        self.kill_current_order(u);
+        self.add_attack_order(u, Obj::Unit(c), QueuePos::First, false, false);
+        true
+    }
+
     /// What a blocked unit does.
     ///
     /// The original takes the refused point as an argument and then reads
@@ -1699,11 +1783,13 @@ impl Sim {
         //   attack is dropped where the unit stands and the attack fights
         //   next frame. `collide_o`/`collide_who` keep the collider.
         //
-        // The third arm (`:189-252`) re-targets a follower onto its
-        // captain's target, or a captain onto the collider, behind
-        // `LeaderData +0x9f4` and a type virtual at `+0x10c`. It is not
-        // modelled, and a unit that would take it falls through to the
-        // sidestep as it did before.
+        // - **C** (`:189-252`, `docs/COLLISION.md` §14): the attack is
+        //   not mandatory, the current order is not a group's, and the
+        //   collider's player is an enemy. A follower takes its
+        //   captain's attack target when it can strike it from here; a
+        //   captain re-searches from where it stands while its leader's
+        //   `retargets` is under ten, and past that takes the collider
+        //   unless it is siege.
         if i16::from(self.units[u].collide_who) != i16::from(who) && attacking {
             let target = self.units[u].combat.target;
             if let Some(Obj::Unit(t)) = target
@@ -1729,6 +1815,9 @@ impl Sim {
                 && self.is_in_range(Obj::Unit(u), t)
             {
                 self.kill_current_order(u);
+                return;
+            }
+            if self.enemy_ladder_arm_c(u) {
                 return;
             }
         }
@@ -2942,6 +3031,129 @@ mod tests {
         assert_eq!(sim.units[x].orders.len(), 1);
         assert!(matches!(sim.units[x].orders[0].body, Body::Attack(_)));
         assert_eq!((sim.units[x].collide_o, sim.units[x].collide_who), (-1, -1));
+    }
+
+    /// **Arm C of the enemy ladder** (`005f9d30:189-252`, §14): a captain
+    /// whose attack's target is out of range, bumped on its walk by an
+    /// enemy that is not its target, drops the walk and the attack where
+    /// it stands and takes what it can strike from there
+    /// (`find_new_target(this, NULL, 1)`). run171's `1/6` on 658: chasing
+    /// the General, bumped by `0/7`, it attacks `0/7` without a step or a
+    /// count. At ten retargets on its leader's frame it queues the
+    /// collider itself, unless it is siege; a follower takes its
+    /// captain's target instead, when it can strike it from where it
+    /// stands.
+    ///
+    /// Made to fail on purpose by taking the arm out: the captain keeps
+    /// its walk and its attack on the far target and counts the collision.
+    #[test]
+    fn a_captain_bumped_by_another_enemy_strikes_what_it_can_reach() {
+        let tile = 0xc0;
+        let here = Pos::new(0x1000 + 24, 0x1000 + 24);
+        let setup = |retargets: i32| {
+            let mut sim = Sim::new(Tuning::RON, World::new(60, 60), 2);
+            sim.world
+                .fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(59, 59));
+            sim.at_war[0][1] = true;
+            sim.at_war[1][0] = true;
+            let ty = sim.add_unit_type(UnitType {
+                hits: 100,
+                moves: 25,
+                combat: crate::combat::Profile {
+                    attack: 15,
+                    max_range: 4,
+                    uber_size: 1,
+                    block_radius: 48,
+                    big_radius: 48,
+                    ..crate::combat::Profile::default()
+                },
+                ..UnitType::default()
+            });
+            let put = |sim: &mut Sim, who: Player, at: Pos| {
+                let index = i16::try_from(sim.units.len()).unwrap();
+                let mut u = Unit::new(who, index, at, 100);
+                u.ty = Some(ty);
+                u.on_map = true;
+                u.kind = sim.unit_types[ty].kind;
+                sim.add_unit(u)
+            };
+            let me = put(&mut sim, 0, here);
+            sim.units[me].captain = true;
+            let far = put(&mut sim, 1, Pos::new(here.x - 20 * tile, here.y));
+            let bump = put(&mut sim, 1, Pos::new(here.x - tile, here.y));
+            sim.add_attack_order(me, Obj::Unit(far), QueuePos::New, false, false);
+            sim.add_move_order(
+                me,
+                Pos::new(here.x - 19 * tile, here.y),
+                crate::orders::MoveKind::MoveTo,
+                QueuePos::First,
+                false,
+            );
+            sim.units[me].collide_o = sim.units[bump].index;
+            sim.units[me].collide_who = 1;
+            sim.retargets[0] = retargets;
+            (sim, me, far, bump)
+        };
+
+        let (mut sim, me, _, bump) = setup(9);
+        sim.resolve_unit_collision(me);
+        assert_eq!(sim.units[me].orders.len(), 1, "the walk is dropped");
+        assert!(matches!(sim.units[me].orders[0].body, Body::Attack(_)));
+        assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(bump)));
+        assert_eq!(sim.units[me].pos, here, "no snap");
+        assert_eq!(sim.units[me].collide, 0, "no count");
+        assert_eq!(
+            sim.units[me].combat.stance,
+            crate::combat::Stance::Aggressive,
+            "the stance is put back"
+        );
+
+        // At ten the search is shut (`cmp [+0x9f4], 0xa; jge`), and a
+        // captain that is not siege queues the collider itself in front.
+        let (mut sim, me, _, bump) = setup(10);
+        sim.resolve_unit_collision(me);
+        assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(bump)));
+        assert_eq!(sim.units[me].orders.len(), 1);
+        assert_eq!(sim.units[me].collide, 0);
+        // A siege captain at ten takes §6 as before.
+        let (mut sim, me, far, _) = setup(10);
+        let ty = sim.units[me].ty.unwrap();
+        sim.unit_types[ty].combat.siege = true;
+        sim.resolve_unit_collision(me);
+        assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(far)));
+        assert_eq!(sim.units[me].collide, 1, "§6 step 5's count");
+
+        // A follower takes its captain's target when it can strike it.
+        let (mut sim, cap, _, bump) = setup(0);
+        sim.clear_orders(cap);
+        sim.add_attack_order(cap, Obj::Unit(bump), QueuePos::New, false, false);
+        let index = i16::try_from(sim.units.len()).unwrap();
+        let mut f = sim.units[cap].clone();
+        f.index = index;
+        f.captain = false;
+        f.orders.clear();
+        f.o_up = Some(cap);
+        let f = sim.add_unit(f);
+        let far = Obj::Unit(sim.units.len() - 2);
+        sim.add_attack_order(f, far, QueuePos::New, false, false);
+        sim.add_move_order(
+            f,
+            Pos::new(here.x - 19 * tile, here.y),
+            crate::orders::MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+        sim.units[f].collide_o = sim.units[bump].index;
+        sim.units[f].collide_who = 1;
+        // The bump is the follower's collider but not its target, and
+        // the captain's target is the bump: arm A does not fire, arm C's
+        // follower branch does.
+        sim.resolve_unit_collision(f);
+        assert_eq!(sim.units[f].combat.target, Some(Obj::Unit(bump)));
+        // `repath` takes the walk and `kill_current_order` the attack on
+        // the far target, so the captain's is the only order left.
+        assert_eq!(sim.units[f].orders.len(), 1);
+        assert!(matches!(sim.units[f].orders[0].body, Body::Attack(_)));
     }
 
     /// The throttle of §6 step 6 is a **rate**, not a lifetime count:
