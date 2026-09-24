@@ -1666,6 +1666,14 @@ pub struct OrderDump {
     pub ag_att_y: Option<i64>,
     pub ag_accuracy: Option<i64>,
     pub ag_attack_unit: Option<i64>,
+    /// `PATROLORDER`'s row, `PatrolOrder::log_data@004841f0` (item 693,
+    /// `docs/ORDERS.md` §27): `x_pos` and `y_pos` as two flat
+    /// `SimpleArray<Coord>` runs — `length size increment flags`, then one
+    /// `list[scan]` line an entry, no `BEGIN` of their own — and
+    /// `waypoint`. Empty for every other kind.
+    pub patrol_x: Vec<i64>,
+    pub patrol_y: Vec<i64>,
+    pub waypoint: Option<i64>,
 }
 
 impl OrderDump {
@@ -2808,6 +2816,26 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
             let cst_int = |k: &str| cst.and_then(|c| c.int(k));
             let agr = base("ATTACKGROUNDORDER");
             let agr_int = |k: &str| agr.and_then(|a| a.int(k));
+            // The two arrays share one block, so the flat `list[scan]`
+            // lines are split by the two `length`s in the order printed.
+            let (patrol_x, patrol_y, waypoint) = base("PATROLORDER").map_or_else(
+                || (Vec::new(), Vec::new(), None),
+                |pt| {
+                    let num = |k: &str| -> Vec<i64> {
+                        pt.all(k)
+                            .iter()
+                            .filter_map(|v| v.trim().parse::<i64>().ok())
+                            .collect()
+                    };
+                    let lens = num("length");
+                    let list = num("list[scan]");
+                    let nx = lens
+                        .first()
+                        .map_or(0, |&n| n.max(0) as usize)
+                        .min(list.len());
+                    (list[..nx].to_vec(), list[nx..].to_vec(), pt.int("waypoint"))
+                },
+            );
             let mv_int = |k: &str| mv.and_then(|m| m.int(k));
             let atk_int = |k: &str| atk.and_then(|a| a.int(k));
             let grp_int = |k: &str| grp.and_then(|g| g.int(k));
@@ -2881,6 +2909,9 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 ag_att_y: agr_int("att_y"),
                 ag_accuracy: agr_int("accuracy"),
                 ag_attack_unit: agr_int("attack_unit"),
+                patrol_x,
+                patrol_y,
+                waypoint,
             }
         })
         .collect()

@@ -3030,7 +3030,9 @@ frame: a unit **not in a group**: `waypoint = (waypoint + 1) mod count` and an
 `ATTACK_TO` move `QUEUE_FIRST` to it — a patrol is a loop of attack-moves,
 each leg engaging what it meets (§7.4); the **leader** of a group does the same
 through `Group::action_move_to(group, next waypoint, QUEUE_FIRST, …,
-ATTACK_TO)`; a **follower** idles (its legs come from the leader's group move).
+ATTACK_TO)`; a **follower** idles (its legs come from the leader's group move). Built, and
+diffed on run184, in §27 (item 693): the leader's `QUEUE_FIRST` rebuilds
+every member's patrol through `Group::redo_patrol_order@00706d90`.
 
 ### 7.8 A building's attack order
 
@@ -6310,3 +6312,80 @@ packer rule. That rule is new here as well (`docs/COMBAT.md` §57.3).
 
 The reading, the diff and the coverage are `docs/COMBAT.md` §57.
 
+
+## 27. The ground patrol, built (item 693, 2026-09-24)
+
+`Body::Patrol` is the original's `GroupPatrolOrder` (`OrderIndex` 22,
+`GroupPatrolOrder::get_type@00482d80`). It is a `PatrolOrder` and a
+`GroupOrder`: `GroupPatrolOrder::GroupPatrolOrder@00481fe0` runs the base's
+`PatrolOrder::PatrolOrder@00483720`, which builds the two empty
+`SimpleArray<Coord>`s. **`PatrolOrder` is never constructed alone** (§5's
+table, §7.7), so the census's `PatrolOrder` row is entered through this
+base.
+
+**What it holds**, as `GroupPatrolOrder::log_data@00482cf0` prints it. It
+writes the label, then `PatrolOrder::log_data@004841f0`, then the
+`GROUPORDER` row:
+
+- `x_pos` and `y_pos`: two points each, as flat `SimpleArray` runs;
+- `waypoint`: the point the current leg walks to;
+- `oxx`/`whose`: the leader;
+- `id`: `(group.id + frame × 10) × 100 + order_num`;
+- `form_id`.
+
+The harness compares every field as `order:patrol.*`. Each point is stored
+on the 48-unit grid, `div_3_table[v >> 4] × 0x30 + 0x18`.
+
+**Who issues it.** A player's patrol command:
+
+1. `CommandManager::issue_patrol@00941800` (`docs/GOLDEN.md` §18) builds
+   it.
+2. `CommandPackage::process_patrol@00949380` hands it to
+   `Group::action_patrol@007030c0` on the pushed group
+   (`rondata::input::group_patrol` → `Sim::group_action_patrol`).
+3. `action_patrol` takes the group's location as the first point and the
+   click as the second.
+4. It gives **every** orderable, not-busy member one order through
+   `Unit::add_patrol_order@005e4560`, with the member's own index as
+   `form_id`.
+
+The AI never issues one: no AI class reaches `action_patrol`.
+
+**Its life** is `Unit::do_patrol@005f1910` with the patrol at the head:
+
+- **The leader** steps `waypoint` modulo two and calls
+  `Group::action_move_to(point, QUEUE_FIRST, ATTACK_TO, action 0)`. So the
+  leg is an attack-move with no action bit: `flags 1` in the dump.
+- A group's `QUEUE_FIRST` goes through `set_up_insert`, halt,
+  `QUEUE_NEW` and `finish_insert` (§8.2; `group_action_move_to`'s §17).
+  `finish_insert`'s case `0x16` is `Group::redo_patrol_order@00706d90`:
+  every member that is on the map, not a plane and not a missile gets the
+  saved patrol again at `QUEUE_LAST`, with the leader's points, id, leader
+  and **`form_id`**, and the leader's `waypoint` written in.
+- **A follower** with its patrol at the head only calls
+  `set_anim(CHAR_DEFAULT)`.
+- A group of one is a group too: `process_group` forces the push, so a lone
+  chariot leads itself, and its leg is a plain `ATTACKTOORDER`.
+
+**Diff-backed** (run184, `chapter_ten_s_word_frame_is_widened_whole`,
+605–1249, every record both directions):
+
+- the points, `waypoint`, leader and `form_id` of every patrol;
+- the legs, both the chariot's `ATTACKTOORDER` and the squad's
+  `GroupAttackToOrder`s and their degrade to plain moves;
+- the one block each turn spends with the patrol alone at the head;
+- the chariot's four turns and the squad's three.
+
+The ids stand at the pushed group's `id` (parked 689).
+
+**Resting on the reading alone, and not built** (each a named seam in
+the code):
+
+- the arm for a unit in no group, which pushes its own bare `ATTACK_TO`;
+- the tail's transport scramble;
+- `action_patrol`'s air hand-off to `action_air_patrol`;
+- the `QUEUE_LAST` shift-click append that makes a third point (and
+  `redo_patrol_order`'s copy of it);
+- the off-map member's plain move;
+- `is_busy`'s two spell-type questions and its entering-or-exiting arm.
+  Here `is_busy` is a head `CastOrder`.

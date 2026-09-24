@@ -481,9 +481,10 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). One verb:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Two verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
+ *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -495,6 +496,11 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * `command_manager.local_package` (+0x28, size at +0x10, data at +0x12); the
  * command is processed by the next `process_turn`, before the next frame's
  * `do_frame`, so its order is in the next logger block's dump.
+ *
+ * `@patrol` calls `CommandManager::issue_patrol@00941800(&command_manager,
+ * group, x, y, QUEUE_NEW 2)` — the arguments `WorldMap::on_right_up@008c7050:
+ * 206` passes for a patrol click with no modifier — and appends a 10-byte
+ * `patrol` (type 0x0a) behind the group (item 693, `docs/GOLDEN.md` §18).
  *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
@@ -509,6 +515,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_UNITS 0x80aeb0u /* units: per player, stride 0x1c: +4 length, +0x10 slots */
 #define RVA_COMMAND_MANAGER 0xa8ff60u /* command_manager, VA 0xe8ff60 */
 #define RVA_ISSUE_MOVE_TO 0x541720u
+#define RVA_ISSUE_PATROL 0x541800u
 #define ISSUE_MAX 32
 static u8 g_groupout[0x9d0];
 
@@ -523,13 +530,21 @@ static int issue_int(const u16 **t, i32 *out) {
     return any;
 }
 
+static int issue_verb(const u16 **t, const char *verb) {
+    const u16 *p = *t;
+    for (; *verb; verb++, p++)
+        if (*p != (u16)*verb) return 0;
+    *t = p;
+    return 1;
+}
+
 static void issue_line(i32 frame, u32 idx, const u16 *text) {
-    static const u16 verb[] = {'m', 'o', 'v', 'e', ' '};
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
     const u16 *t = text;
-    for (u32 i = 0; i < sizeof verb / sizeof verb[0]; i++, t++)
-        if (*t != verb[i]) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
+    /* 0 `move`, 1 `patrol`: the issuer, its prologue and its command's size. */
+    i32 verb = issue_verb(&t, "move ") ? 0 : issue_verb(&t, "patrol ") ? 1 : -1;
+    if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x, y, ids[ISSUE_MAX];
     u32 n = 0;
     if (!issue_int(&t, &who) || !issue_int(&t, &x) || !issue_int(&t, &y)) {
@@ -543,9 +558,14 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(1) << 16), before, before, n);
         return;
     }
-    static const u8 prologue[] = {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00};
-    for (u32 i = 0; i < sizeof prologue; i++)
-        if (*(u8 *)(g_base + RVA_ISSUE_MOVE_TO + i) != prologue[i]) {
+    /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
+     * issue_patrol's; both then load `&command_manager` into ecx. */
+    static const u8 prologue[2][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+    u32 rva = verb ? RVA_ISSUE_PATROL : RVA_ISSUE_MOVE_TO;
+    u32 size = verb ? 0x0a : 0x16;
+    for (u32 i = 0; i < sizeof prologue[0]; i++)
+        if (*(u8 *)(g_base + rva + i) != prologue[verb][i]) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
             return;
         }
@@ -560,8 +580,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
             return;
         }
     }
-    /* A fresh group (3 + 2n), the 22-byte move, and two bytes of slack each. */
-    if (before + 3 + 2 * n + 0x16 + 4 > 0x200) {
+    /* A fresh group (3 + 2n), the command, and two bytes of slack each. */
+    if (before + 3 + 2 * n + size + 4 > 0x200) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(4) << 16), before, before, n);
         return;
     }
@@ -574,9 +594,14 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
-    ((issue_fn)(g_base + RVA_ISSUE_MOVE_TO))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
-                                             2, 0, 0, 1, -1, -1, 0);
+    if (verb) {
+        typedef void(__thiscall *patrol_fn)(void *, void *, i32, i32, i32);
+        ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
+    } else {
+        typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
+        ((issue_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 0, 0, 1, -1,
+                                   -1, 0);
+    }
     u32 after = *pkg_size;
     emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, n);
 }

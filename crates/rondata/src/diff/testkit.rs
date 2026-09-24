@@ -2678,6 +2678,34 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 /// pinned (605, 635) on the open word 632.
 pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
+/// **Chapter ten's golden word** — the patrol line, an issuer the AI
+/// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
+/// 1250 is run184's trace end, and nothing parts on any frame of it:
+/// sequence 1250, no value part.
+///
+/// **The delta** (item 693): 640 → 1250, +610. On 640 this crate spent 37
+/// draws against 36, parting at draw 30 on an extra `Guy::set_anim+0x97a
+/// < Guy::inc_time+0x271`: the harness skipped both `@patrol` lines, the
+/// command having no entry into this simulation, so the Chariot `0/6`
+/// idled, animating, where run184's walked its first leg. The same item
+/// built the patrol (`docs/ORDERS.md` §27) — `input::group_patrol`,
+/// `Sim::group_action_patrol`, `add_patrol_order`, the leader's
+/// `do_patrol` legs, `redo_patrol_order` in a group `QUEUE_FIRST` — and
+/// the walk agrees to the capture's end: the chariot's four turns and the
+/// squad's three, block for block.
+///
+/// **The block**, from [`WIDENING_CHAPTER_TEN`]'s test on run184 whole:
+/// past the first block's 26 standing rows, the births' `form`; the
+/// patrol and first-leg ids on 622 and 642, a pushed group's id (parked
+/// 689); and the scout `1/0`'s `facing` from 847 (parked 275). Item 693
+/// pinned 640 on its first walk, with the missing patrols on 622 and 642.
+pub(crate) const GOLDEN_WORD_CHAPTER_TEN: i64 = 1250;
+
+/// `chapter_ten_s_word_frame_is_widened_whole`'s window: **run184
+/// whole**, its first block, 605, to its last, 1250 (item 693). The first
+/// pin was (605, 642) on the open word 640.
+pub(crate) const WIDENING_CHAPTER_TEN: (i64, i64) = (605, 1251);
+
 /// **Chapter nine's golden word** — the move line, the first issuer
 /// chapter (`docs/GOLDEN.md` §17, run180): **1100 of 1100, closed**. 1100
 /// is run180's trace end, and nothing parts on any frame of it: sequence
@@ -3848,6 +3876,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_nine_s_word_frame_is_widened_whole"),
         676,
         Some(WIDENING_CHAPTER_NINE),
+    ),
+    // Item 693: run184, chapter ten's first walk, on the chariot's idle
+    // animation where the original's walks its patrol's first leg; closed
+    // at 1250 by the same item (the ground patrol, built).
+    (
+        "GOLDEN_WORD_CHAPTER_TEN",
+        GOLDEN_WORD_CHAPTER_TEN,
+        Some("chapter_ten_s_word_frame_is_widened_whole"),
+        693,
+        Some(WIDENING_CHAPTER_TEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
