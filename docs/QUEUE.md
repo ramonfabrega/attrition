@@ -29,12 +29,14 @@ the rules track closed chapters four (1500), seven (1200) and three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12429 of 24,000
-Golden: ch8 w659 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 668 next
+Golden: none pinned, every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · 651 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 1 unlinked
 
-**Opener: eighteen landings since the twelfth pass's commit. Great
-Lakes 12184 → 12429, still the lower map. 668 has the rules lane; spawn
-669 on the AI lane; 643 follows it. Stop at twenty.**
+**Opener: nineteen landings since the twelfth pass's commit, and every
+golden chapter is closed. Spawn 669 on the AI lane (Great Lakes 12429,
+the lower map) and leave the rules lane empty: the twentieth landing
+stops the count, and a lane spawned now would be in flight at the pass.
+651 (six-b) and 643 follow. Stop at twenty.**
 
 ## The queue
 
@@ -52,12 +54,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     Lakes' windows end on run163's 12399. Capture **run174** over the
     word, overlapping run163, then widen it whole. No mechanism.
 
-668. **Chapter eight's word is 659: who=1's hoplite steps back** (664
-    moved it 617 → 659: `unit_is_spy` was a stub answering false, now
-    the lineage test, so the Spy scouts, SCOUT §15). On 659 ours 9 draws
-    against 10 at draw 2, theirs `Unit::fight+0x9b0`: who=1's hoplite
-    `1/6`, chasing the General, stops against `0/7` in run171 and steps
-    back here. Widened on (605, 660). No mechanism. On the rules lane.
+651. **Chapter six-b, the air line from a base: no capture yet** (668
+    closed chapter eight at 900: `resolve_unit_collision`'s enemy-ladder
+    arm C, COLLISION §14; every golden chapter closed). run168's second
+    falsifier fired: an aircraft `add`ed outside a base never moves. Stage
+    an `add airbase` for each side, then the aircraft; mint the run at
+    spawn. Check each falsifier can fire, and cite any loop's bound
+    (parked 667). Then pin the word.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`

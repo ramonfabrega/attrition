@@ -71,8 +71,10 @@ chapter four agrees to its trace's end, 1500 (items 552, 567, 569); chapter
 seven agrees to its end, 1200, on its first walk and on its control's (item
 578); ~~chapter three is pinned at 621, then 633, of 901 (items 587, 590)~~
 chapter three agrees to its end, 900 (items 587–603, 602), and its
-restage (run146) is pinned at ~~780~~ 782 of 1001 (items 602, 616);
-chapter eight is pinned at 617 of 901 on its first walk (item 660), its
+restage (run146) ~~is pinned at 780 782 of 1001 (items 602, 616)~~
+agrees to its end, 1000 (item 627); chapter eight ~~is pinned at 617 of
+901 on its first walk (item 660)~~ agrees to its end, 900 (items 660, 664,
+668), its
 capture cut at 901 by the allied victory its own `ally` line causes (§12). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's

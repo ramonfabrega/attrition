@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 668, 2026-09-23 — past chapter eight's end
+
+(671) **The meeting on a first blow.** Both leaders' `treaties[·]` read 3
+in run171 from block 660, the first blow's block, and 0 here: bits 0 and
+1 are set on the blow, and this crate's only writer is VISION §6.2's
+meet loop. No draw.
+
+(672) **`fight`'s retarget budget**, `waiting < 5 && retargets > 10`
+(`LAB_005fdb9e`'s first arm). The counter is carried now; the arm is
+not, and no capture is known to reach ten in a frame.
+
 ## Parked by item 660, 2026-09-23 — chapter eight's other halves
 
 (665) **A fight across an alliance** needs a third live leader: in a
@@ -59,13 +70,6 @@ tail does, and left these two out. No word names them.
 flight.** It names no score until an air unit is dumped (651).
 
 ## Parked by item 648, 2026-09-23 — chapter six's other halves
-
-(651) **Chapter six-b: the air line from a base.** run168's second
-falsifier fired: an aircraft `add`ed outside a base never moves. The
-restage stages an `add airbase` for each side, then the aircraft; whether
-a cheat-placed Airbase launches anything on its own is its question. A run
-number is minted at booking. Chapter six closed at 900 (652); returns
-when chapter eight (660) closes.
 
 ## Parked by item 642, 2026-09-23 — under East Indies' 13640
 
@@ -398,11 +402,6 @@ names no score. Promote it when a word's widening lands on a
 `known_rares` row.
 
 ## Parked by item 445, 2026-09-22 — chapter one's widening floor
-
-(531) **Arm C of `resolve_unit_collision`'s enemy ladder**
-(`005f9d30:189-252`) is unread: `LeaderData +0x9f4` and type vslot
-`+0x10c` need names from the type records. Reading only; no capture
-known to reach it. `docs/COMBAT.md` §48 has arms A and B.
 
 (532) **Chapter one's standing floor rows**, none spending a draw in
 `WIDENING_CHAPTER_ONE`: `0/2000`'s city record empty at 605, `form` −1
