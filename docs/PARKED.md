@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 657, 2026-09-23 — the army's other edges
+
+(662) **`go_to_unit`'s walk group 68 is freed on 12086 in the original**
+and kept here (`pool:68`); no draw.
+
+(663) **`find_target`'s head test `2 < epoch[0] && type_avail(SUPPLYWAGON)`**,
+which this crate's `weak_army` does not carry. No word names it.
+
 ## Parked by item 571, 2026-09-23 — under Great Lakes' 12135
 
 (658) **`1/41`'s idle variant on 11922**: a roll assigned to another figure
@@ -56,7 +64,9 @@ when chapter eight (660) closes.
 the word: the boat `1/44`'s `form` −1 against 0 (the Merchant's `form`
 residue); its order's `facing` 0 against 1, inherited from the scout's
 first-block row; the scout's `avg_speed` 25/24 against 18/18 and its
-`stopped[1]` 0 against 1. The human's census still does not run
+`stopped[1]` 0 against 1. 657 read the `form` residue: `Unit::init@00612100`
+writes `+0xaa` as 9 for types `0x32`–`0x35` and 0 otherwise, and `+0xab`
+as −1; building it re-pins `form` rows across a dozen widenings. The human's census still does not run
 (`docs/AI.md` §23.1): the first-block `0/-1` leader and `0/2000` city rows
 stand.
 

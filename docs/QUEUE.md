@@ -28,14 +28,14 @@ the rules track closed chapters four (1500), seven (1200) and three
 - **Fable backlog: 8 Loop items** (313, 527, 630, 638, 639, 645, 649, 656); the `FABLE:` batch was empty.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w13640 of 24,000 · GreatLakes w12135 of 24,000
+Long captures: EastIndies w13640 of 24,000 · GreatLakes w12184 of 24,000
 Golden: none pinned, every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 660 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 0 unlinked
 
-**Opener: fourteen landings since the twelfth pass's commit, and every
-golden chapter is closed again. 657 has the AI lane (Great Lakes
-12135); spawn 660 on the rules lane (chapter eight's capture). 643
-follows 657. Stop at twenty.**
+**Opener: fifteen landings since the twelfth pass's commit. Great Lakes
+12135 → 12184, still the lower map. 660 has the rules lane (chapter
+eight's capture); spawn 661 on the AI lane; 643 follows it. Stop at
+twenty.**
 
 ## The queue
 
@@ -45,13 +45,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-657. **Great Lakes' word is 12135: `1/68`'s idle wrap** (571 moved it
-    12038 → 12135: a figure the barracks research converts stands, as
-    `Guy::init_real` stands it, ANIM §11). Inside run163 (to 12399), no
-    capture owed. The chain: newborns `1/67` (11993) and `1/68` (12057)
-    carry `form` −1 against 0 and another rally point; on 12058 the
-    original seats `1/68` in pool group 66 with a move order, and ours
-    gives it group 68 and none. No mechanism. On the AI lane next.
+661. **Great Lakes' word is 12184: who=1's `create_buildings`** (657
+    moved it 12135 → 12184: `release_mustering`'s rush ladder reads the
+    Military level, `epoch[0]`, not the age, ARMY §20). On 12184 ours 47
+    draws against 95 at index 0, ours `Leader::create_buildings`; the
+    production list parts first on 12181. The original's thirty-round
+    `think_bird` arm sits beside it. Inside run163, widening on file; no
+    capture owed. No mechanism. On the AI lane next.
 
 660. **Chapter eight, the commanders and a declared war: no capture yet**
     (652 closed chapter six at 900: `bird` staged at the cursor run169's
