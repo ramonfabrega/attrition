@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**11 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-706 (Great Lakes) and att-703 (chapter eleven's word) are live.*
+**12 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-706 (Great Lakes) and att-707 (chapter eleven's word) are live.*
 
 - **Great Lakes 12536 → 14982 in five landings**: the retry's gate (673),
   a resumed search (678), a city's halving (688), the stray-road sweep
@@ -26,16 +26,16 @@ att-706 (Great Lakes) and att-703 (chapter eleven's word) are live.*
 - **Chapters nine and ten, the first issuer chapters, closed** (676 move,
   693 patrol, ORDERS §27 the ground patrol built). The census's order row
   moved for the first time: 44 → 47 cited of 410. Chapter eleven, the
-  guard (696, run190), is open at 734 after two collision arms.
+  guard (696, 703, run190), is open at 1036 after four collision arms.
 - **Fable backlog: 6 Loop items** (527, 677, 685, 687 a capture's cost,
   692 the census's row, 697 `cover=1` hangs); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w15782 of 24,000 · GreatLakes w14982 of 24,000
-Golden: ch11 w734 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed
+Golden: ch11 w1036 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed
 Endpoint 24001: EastIndies 55 off, 0 unlinked · GreatLakes 46 off, 1 unlinked
 
-**Opener: 703 is live on the rules lane and 706 on the AI lane (Great
+**Opener: 707 is live on the rules lane and 706 on the AI lane (Great
 Lakes is the lower map); 694 follows 706. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
@@ -62,12 +62,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     (item 227). Inside run78 [15700, 15900], never widened: widen it
     first, and ask whether `LEADERS=1` prints the make list. No mechanism.
 
-703. **Chapter eleven's word is 734: the wagon's push on the guard's second
-    contact** (696 staged the guard line, run190, GOLDEN §19; no falsifier
-    fired; it built a supply wagon's land push and an escort's soft row in
-    `sim::collide`, 724 → 734). On 734 the chariot guarding the walking
-    wagon and the wagon part a step further, on the push's second contact.
-    run191's `RON_GUARD_PROBE` brackets are the instrument. No mechanism.
+707. **Chapter eleven's word is 1036: the guard's attack on a walking-off
+    enemy** (703 moved it 734 → 1036: a pushed unit's disc waits for its
+    figure, a trackless crew arrives on guy 0's point, COLLISION §16). On
+    1036 ours 7 draws against 4: ours `Unit::fight+0x9b0` and two
+    `Guy::set_anim+0xf2f`, theirs a bird's. On 1037 the original's guard
+    drops its attack on `1/6`, ~1,810 away, and ours fires. Beside 705,
+    not it. No mechanism.
 
 ## How to maintain this file
 
