@@ -1257,6 +1257,66 @@ fn an_age_snaps_the_leader_s_figures_and_a_plain_tech_does_not() {
     );
 }
 
+/// **A figure converted mid-walk comes out standing** (item 571,
+/// `docs/ANIM.md` §11). `Unit::set_type` gives every kept guy
+/// `Guy::init_real(guy, 1)`, which writes `stopped` 1, the owed and the
+/// queued attack 0, and `last_speed` and `avg_speed` 0, as well as the
+/// clock. Great Lakes' nine type-82 figures read exactly that on block
+/// 11922, the block who=1's barracks research lands.
+#[test]
+fn a_figure_converted_mid_walk_stands_with_its_speeds_zeroed() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let hoplites_t = tree.add(TypeDef::unit("Hoplites", free).at(barracks));
+    let phalanx_t = tree.add(
+        TypeDef::unit("Phalanx", UnitTraits::default())
+            .at(barracks)
+            .from(hoplites_t)
+            .needs(0, classical),
+    );
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let hoplites = sim.add_unit_type(UnitType {
+        tree: Some(hoplites_t),
+        ..citizen_type()
+    });
+    let phalanx = sim.add_unit_type(UnitType {
+        tree: Some(phalanx_t),
+        ..citizen_type()
+    });
+    let a = sim.init_unit(0, hoplites, centre_of(Cell::new(3, 3)));
+    // Walking: a moving body, and a swing owed and one queued.
+    sim.units[a].movement.body.last_speed = 25;
+    sim.units[a].movement.body.avg_speed = 23;
+    for g in &mut sim.units[a].guys {
+        g.stopped = false;
+        g.pending_attack = 1;
+        g.queued_attack = 1;
+    }
+
+    sim.gain_tech(0, phalanx_t);
+
+    assert_eq!(sim.units[a].ty, Some(phalanx), "converted");
+    let body = sim.units[a].movement.body;
+    assert_eq!(
+        (body.last_speed, body.avg_speed),
+        (0, 0),
+        "guy 0's speeds are the unit's body, zeroed"
+    );
+    for g in &sim.units[a].guys {
+        assert!(g.stopped, "every kept guy stands");
+        assert_eq!((g.pending_attack, g.queued_attack), (0, 0), "no swing owed");
+    }
+}
+
 /// **Gaining a unit type converts the units of the line it replaces**
 /// (`docs/TECH.md` §7's object half) — the pass that turns run53's three
 /// Bowmen into Archers on frame 6736.

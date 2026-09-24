@@ -2148,3 +2148,61 @@ classes are scholars, not boats (§1, §5; the garrison gate spares them),
 and the dog's own roll is settled from `end_time` rather than left to the
 trace (§5, §9). One of its claims was refuted: `Unit::inc_time`'s gate is
 `inside_up` (`+0x82`), not `o_up` (`+0x8e`), by the PDB and by the dump.
+
+## 11. A converted figure stands: `init_real`'s tail on a kept guy (item 571, 2026-09-23)
+
+`Unit::set_type@00612fa0` gives every kept guy `Guy::init_real(guy, 1)`
+(`:187`, `:201`). §4.9 and `Sim::reinit_guys` modelled the clock half of
+that call: the variant roll, `cur_time` and `end_time` 0, and `last_time`
+−1. **The rest of `init_real@005db6b0` stands the figure still.** Past the
+clock it writes:
+
+| offset | field | value |
+|---|---|---|
+| `+0x9d`/`+0x9e` (one short) | `stopped`, `hold_attack` | 1, 0 |
+| `+0xa0` | `queued_attack` | 0 |
+| `+0x80` | `last_speed` | 0 |
+| `+0x84` | `avg_speed` | 0 |
+
+After that, the `SET_TYPE_NORMAL` tail's `Guy::set_new_location(guy, x, y,
+1)` writes only position and height. So a figure converted while it walks
+reads `stopped 1` and speed 0 for one block. It walks on from the next,
+with its running average starting again from zero, and until it has sped
+up it turns at once (MOVEMENT, "The body step").
+
+**How it was established.** It came from run136's dump, before any
+reading. On block 11922 of Great Lakes, nine player-1 figures read
+`stopped 1` with both speeds 0, while their positions kept advancing on
+both sides. What they share is their type: they are every figure walking
+on 11921 with guy type 132, and on 11922 it reads 133. Player 1's leader
+record moves on the same block: `discovered_get()` 11 → 12, and
+`barracks_queued` 1 → 0. That is `Leader::gain_tech`'s conversion loop
+(TECH §7), and this crate makes it on the same frame. The listing then
+named the fields. `Guy::fresh`, the new-guy arm, already wrote all of them;
+the kept arm did not.
+
+**What it moved.** Great Lakes' long word, **12038 → 12135**. Without the
+stand, `1/62` turned slowly on 11922 (a step of 12 against the original's
+27), parted on 11923, and walked past the arrival stand against `1/64`
+that the original's makes on 12038, the draw
+`Guy::set_anim+0x97a < Unit::move_step+0x823`. Block 11922 goes from 29
+rows parted to 2, and the nine agree from 11923 to the word.
+
+**What is not established.**
+- **`1/41`'s idle variant on 11922**: ours `IDLE1` over 64, the
+  original's `IDLE2` over 48, on that block alone. The draw counts agree
+  and `init_variant` is `init_real`'s ladder, so the two sides gave
+  `1/41` different rolls. Which roll went to which unit is on no disk:
+  run136's call records end at 11910.
+- **SEAM**: `init_real`'s turret zeroing (`+0x20..+0x3c`), its
+  `reset_pivots`, and its `+0x54`/`+0x58` track zeroing, which
+  `set_type`'s `update_gpiece` may rewrite. No converted type on a
+  measured frame has a pivot or a tracked crew.
+
+**Coverage.** *Diff-backed*: the four fields on nine figures, block
+11922 (`run136_s_word_frame_is_widened_whole`,
+`run163_s_word_frame_is_widened_whole`); the word, from run53. *Guard*:
+`a_figure_converted_mid_walk_stands_with_its_speeds_zeroed`, made to
+fail without the reset. *Listing-backed*: the offsets, against the
+decompile of `init_real` and the §1 table, which names `+0x9d` and
+`+0x84`.

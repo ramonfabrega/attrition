@@ -9923,38 +9923,16 @@ mod tests {
             .filter(|(_, (f, _))| *f == GREAT_LAKES_SQUAD_HALT_BLOCK)
             .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
             .collect();
+        // **Item 571 named it**: who=1's barracks research converts the
+        // nine walking type-82 figures on sim-frame 11921, and the
+        // original's `Guy::init_real` stands each kept guy with its speeds
+        // zeroed (`docs/ANIM.md` §11). With `reinit_guys` doing the same,
+        // 27 of the 29 rows go. What stands is `1/41`'s idle variant.
         assert_eq!(
             halt,
             [
-                "1/37 g.avg_speed[0]: ours 23 theirs 0",
-                "1/37 g.last_speed[0]: ours 25 theirs 0",
-                "1/37 g.stopped[0]: ours 0 theirs 1",
-                "1/38 g.avg_speed[0]: ours 19 theirs 0",
-                "1/38 g.last_speed[0]: ours 24 theirs 0",
-                "1/38 g.stopped[0]: ours 0 theirs 1",
-                "1/39 g.avg_speed[0]: ours 23 theirs 0",
-                "1/39 g.last_speed[0]: ours 25 theirs 0",
-                "1/39 g.stopped[0]: ours 0 theirs 1",
-                "1/40 g.avg_speed[0]: ours 23 theirs 0",
-                "1/40 g.last_speed[0]: ours 25 theirs 0",
-                "1/40 g.stopped[0]: ours 0 theirs 1",
-                "1/41 g.avg_speed[0]: ours 21 theirs 0",
                 "1/41 g.cur_anim[0]: ours 1 theirs 2",
                 "1/41 g.end_time[0]: ours 64 theirs 48",
-                "1/41 g.last_speed[0]: ours 24 theirs 0",
-                "1/41 g.stopped[0]: ours 0 theirs 1",
-                "1/42 g.avg_speed[0]: ours 23 theirs 0",
-                "1/42 g.last_speed[0]: ours 25 theirs 0",
-                "1/42 g.stopped[0]: ours 0 theirs 1",
-                "1/62 g.avg_speed[0]: ours 14 theirs 0",
-                "1/62 g.last_speed[0]: ours 12 theirs 0",
-                "1/62 g.stopped[0]: ours 0 theirs 1",
-                "1/63 g.avg_speed[0]: ours 24 theirs 0",
-                "1/63 g.last_speed[0]: ours 27 theirs 0",
-                "1/63 g.stopped[0]: ours 0 theirs 1",
-                "1/64 g.avg_speed[0]: ours 24 theirs 0",
-                "1/64 g.last_speed[0]: ours 27 theirs 0",
-                "1/64 g.stopped[0]: ours 0 theirs 1",
             ],
             "the squad's halt, block 11922"
         );
@@ -10254,6 +10232,10 @@ mod tests {
         const WORD_BLOCK: i64 = GREAT_LAKES_UPGRADE_BLOCK;
         /// The block who=1's barracks research converts the nine on.
         const SQUAD_HALT_BLOCK: i64 = 11_922;
+        /// `1/68`'s birth, the first block of the chain to the next word.
+        const NEWBORN_BLOCK: i64 = 12_057;
+        /// The block of the word the fix moved to, 12135's.
+        const NEXT_BLOCK: i64 = 12_136;
         let Some(Widened {
             firsts,
             missing,
@@ -10273,7 +10255,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_UPGRADE,
             11_800,
-            &[WORD_BLOCK],
+            &[WORD_BLOCK, NEXT_BLOCK],
         )
         else {
             return;
@@ -10288,66 +10270,15 @@ mod tests {
             .filter(|(_, (f, _))| *f == SQUAD_HALT_BLOCK)
             .map(row)
             .collect();
-        // **Block 11922, the conversion** (item 571): who=1's barracks
-        // research lands on sim-frame 11921 and `Unit::set_type` converts
-        // the nine walking type-82 figures. The original's
-        // `Guy::init_real(guy, 1)` stands each kept guy `stopped` with its
-        // speeds zeroed; this crate's `reinit_guys` reset the clock alone.
-        assert_eq!(
-            halt,
-            [
-                "11922 1/37 g.avg_speed[0]: ours 23 theirs 0",
-                "11922 1/37 g.last_speed[0]: ours 25 theirs 0",
-                "11922 1/37 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/38 g.avg_speed[0]: ours 19 theirs 0",
-                "11922 1/38 g.last_speed[0]: ours 24 theirs 0",
-                "11922 1/38 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/39 g.avg_speed[0]: ours 23 theirs 0",
-                "11922 1/39 g.last_speed[0]: ours 25 theirs 0",
-                "11922 1/39 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/40 g.avg_speed[0]: ours 23 theirs 0",
-                "11922 1/40 g.last_speed[0]: ours 25 theirs 0",
-                "11922 1/40 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/41 g.avg_speed[0]: ours 21 theirs 0",
-                "11922 1/41 g.cur_anim[0]: ours 1 theirs 2",
-                "11922 1/41 g.end_time[0]: ours 64 theirs 48",
-                "11922 1/41 g.last_speed[0]: ours 24 theirs 0",
-                "11922 1/41 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/42 g.avg_speed[0]: ours 23 theirs 0",
-                "11922 1/42 g.last_speed[0]: ours 25 theirs 0",
-                "11922 1/42 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/62 g.avg_speed[0]: ours 14 theirs 0",
-                "11922 1/62 g.last_speed[0]: ours 12 theirs 0",
-                "11922 1/62 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/63 g.avg_speed[0]: ours 24 theirs 0",
-                "11922 1/63 g.last_speed[0]: ours 27 theirs 0",
-                "11922 1/63 g.stopped[0]: ours 0 theirs 1",
-                "11922 1/64 g.avg_speed[0]: ours 24 theirs 0",
-                "11922 1/64 g.last_speed[0]: ours 27 theirs 0",
-                "11922 1/64 g.stopped[0]: ours 0 theirs 1",
-            ],
-            "block 11922"
-        );
-        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
-            changed.iter().filter(|c| c.3 != c.4).copied().collect();
-        // **The word's blocks, both directions**: on 12039 the original's
-        // `1/62` goes WALK → DEFAULT, the fifth draw
-        // (`Guy::set_anim+0x97a < Unit::move_step+0x823`), and ours walks
-        // on. The rest are the same march a block apart.
-        assert_eq!(
-            one_sided,
-            [
-                (12037, 1, 39, false, true),
-                (12038, 1, 39, false, true),
-                (12039, 1, 35, true, false),
-                (12039, 1, 62, true, false),
-                (12040, 1, 35, false, true),
-                (12040, 1, 62, true, false),
-                (12041, 1, 28, true, false),
-                (12041, 1, 35, false, true),
-            ],
-            "a figure changes animation on one side only"
-        );
+        let nine: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                *w == 1
+                    && ((37..=42).contains(o) || (62..=64).contains(o))
+                    && (SQUAD_HALT_BLOCK + 1..=WORD_BLOCK).contains(f)
+            })
+            .map(row)
+            .collect();
         let word: Vec<String> = standing
             .get(&WORD_BLOCK)
             .into_iter()
@@ -10355,47 +10286,121 @@ mod tests {
             .filter(|((w, o, _), _)| (*w, *o) == (1, 62))
             .map(|((_, _, what), row)| format!("{what}: {row}"))
             .collect();
-        // **`1/62` on the word's block**: the original's hard-collides with
-        // `1/64` and stands; ours is off its point and walks.
-        assert_eq!(
-            word,
-            [
-                "collide: ours 0 theirs 1",
-                "collide_o: ours -1 theirs 64",
-                "collide_who: ours -1 theirs 1",
-                "g.angle[0]: ours -1638662144 theirs -1638334464",
-                "g.avg_speed[0]: ours 24 theirs 18",
-                "g.cur_anim[0]: ours 8 theirs 0",
-                "g.cur_time[0]: ours 12 theirs 1",
-                "g.des_angle[0]: ours -1638662144 theirs -1638334464",
-                "g.des_x[0]: ours 36772 theirs 36744",
-                "g.des_y[0]: ours 23207 theirs 23256",
-                "g.end_time[0]: ours 15 theirs 32",
-                "g.last_speed[0]: ours 26 theirs 0",
-                "g.last_time[0]: ours 11 theirs 0",
-                "g.stopped[0]: ours 0 theirs 1",
-                "g.x[0]: ours 36772 theirs 36744",
-                "g.y[0]: ours 23207 theirs 23256",
-                "heading: ours -1638662144 theirs -1638334464",
-                "order:coll: Coll { ours: None, theirs: (36712, 23273) }",
-                "order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "path:length: PathLength { ours: 1, theirs: 8 }",
-                "pos: ours (36772,23207) theirs (36744,23256)",
-            ],
-            "1/62 on the word's block"
-        );
+        let chain: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (SQUAD_HALT_BLOCK + 1..=NEWBORN_BLOCK + 1).contains(f))
+            .map(row)
+            .collect();
+        let newborn: Vec<String> = standing
+            .get(&NEXT_BLOCK)
+            .into_iter()
+            .flatten()
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 68))
+            .map(|((_, _, what), row)| format!("{what}: {row}"))
+            .collect();
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> =
+            changed.iter().filter(|c| c.3 != c.4).copied().collect();
         let under = firsts
             .values()
             .filter(|(f, _)| *f < SQUAD_HALT_BLOCK)
             .count();
-        // **And backwards to the halt**: `1/62`'s position first parts on
-        // 11923, the block after the conversion it walked through.
-        let pos = firsts.get(&(1, 62, "pos".to_string())).map(|(f, _)| *f);
-        assert_eq!(pos, Some(SQUAD_HALT_BLOCK + 1), "1/62's position parts");
-        // **The floor**: 248 keys under the conversion — run136's
-        // standing residue under its word, re-pinned by item 644 — and 2044
-        // in all, past the word to the capture's last block.
-        assert_eq!((under, firsts.len()), (248, 2_044), "the floor");
+        // **Block 11922, the conversion** (item 571). who=1's barracks
+        // research lands on sim-frame 11921, and `Unit::set_type` converts
+        // the nine walking type-82 figures (`1/37`..`1/42`, `1/62`..`1/64`).
+        // The original's `Guy::init_real(guy, 1)` stands each kept guy
+        // `stopped` with `last_speed` and `avg_speed` 0 (`docs/ANIM.md`
+        // §11). Until the fix this crate reset the clock alone, and the
+        // block parted on 29 rows: `stopped` and both speeds on all nine.
+        // What stands is `1/41`'s idle variant, on this block only. The
+        // draws agree, so the two sides gave it different rolls.
+        assert_eq!(
+            halt,
+            [
+                "11922 1/41 g.cur_anim[0]: ours 1 theirs 2",
+                "11922 1/41 g.end_time[0]: ours 64 theirs 48",
+            ],
+            "block 11922"
+        );
+        // **The move's value diff, both directions.** Until the fix,
+        // `1/62`'s position parted on 11923, a step of 12 against 27,
+        // because a body at speed 0 turns at once. On the word's block,
+        // 12039, the original's `1/62` hard-collided with `1/64` (`collide_o
+        // 64`) and went WALK → DEFAULT, the fifth draw (`Guy::set_anim+0x97a
+        // < Unit::move_step+0x823`). Ours walked on, 49 units off: 21 rows.
+        // Now none of the nine parts from 11923 to the word's block.
+        assert_eq!(nine, Vec::<String>::new(), "the nine after the conversion");
+        assert_eq!(word, Vec::<String>::new(), "1/62 on the old word's block");
+        // **The next word, 12135 (block 12136), and its chain back.** Ours
+        // spends 7 draws against 6. The extra is `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, `1/68`'s idle wrap: ours stands, and the
+        // original's walks. The newborns `1/67` (11993) and `1/68` (12057)
+        // are born with `form` −1 against 0 and another rally point. On 12058
+        // the original lists `1/68` in pool group 66 with a move order, and
+        // this crate gives it a group 68 of its own with none. No mechanism
+        // is named.
+        assert_eq!(
+            chain,
+            [
+                "12058 1/-2 pool:66: ours [60, 61, 65, 62, 63, 66, 27, 28, 29] theirs [60, 61, 65, 62, 63, 66, 27, 28, 29, 68]",
+                "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
+                "11976 1/-1 leader:SITE[4].val: ours 54243 theirs 36750",
+                "11993 1/67 form: ours -1 theirs 0",
+                "11993 1/67 orders_x: ours 43584 theirs 43848",
+                "11993 1/67 orders_y: ours 15744 theirs 16344",
+                "12058 1/68 dest_angle: ours 1431655765 theirs -1043398656",
+                "12057 1/68 form: ours -1 theirs 0",
+                "12058 1/68 form_mod: ours -1 theirs 50",
+                "12058 1/68 group: ours 68 theirs 66",
+                "12058 1/68 order:length: Length { ours: 0, theirs: 1 }",
+                "12058 1/68 orders.len: ours 0 theirs 1",
+                "12057 1/68 orders_x: ours 45120 theirs 45144",
+                "12057 1/68 orders_y: ours 23424 theirs 24120",
+                "12058 1/68 path:length: PathLength { ours: 0, theirs: 11 }",
+            ],
+            "the rows under the next word"
+        );
+        assert_eq!(
+            newborn,
+            [
+                "dest_angle: ours 1431655765 theirs -1043398656",
+                "form: ours -1 theirs 0",
+                "form_mod: ours -1 theirs 50",
+                "g.angle[0]: ours 1431655765 theirs -644874240",
+                "g.avg_speed[0]: ours 0 theirs 27",
+                "g.cur_anim[0]: ours 0 theirs 8",
+                "g.cur_time[0]: ours 0 theirs 12",
+                "g.des_angle[0]: ours 1431655765 theirs -644874240",
+                "g.des_x[0]: ours 45144 theirs 42936",
+                "g.des_y[0]: ours 24120 theirs 24071",
+                "g.end_time[0]: ours 31 theirs 22",
+                "g.last_speed[0]: ours 0 theirs 30",
+                "g.last_time[0]: ours -1 theirs 11",
+                "g.stopped[0]: ours 1 theirs 0",
+                "g.x[0]: ours 45144 theirs 42936",
+                "g.y[0]: ours 24120 theirs 24071",
+                "group: ours 68 theirs 66",
+                "heading: ours 1431655765 theirs -644874240",
+                "idle: ours 7 theirs 0",
+                "order:length: Length { ours: 0, theirs: 1 }",
+                "orders.len: ours 0 theirs 1",
+                "orders_x: ours 45144 theirs 36264",
+                "orders_y: ours 24120 theirs 23688",
+                "path:length: PathLength { ours: 0, theirs: 9 }",
+                "path_recursion: ours 0 theirs 1",
+                "pos: ours (45144,24120) theirs (42936,24071)",
+                "tolerance: ours 0 theirs 384",
+            ],
+            "1/68 on the next word's block"
+        );
+        assert_eq!(
+            one_sided,
+            [(NEXT_BLOCK, 1, 68, false, true)],
+            "a figure changes animation on one side only"
+        );
+        // **The floor**: 248 keys under the conversion — run136's standing
+        // residue under its word, as item 644 re-pinned it — and 1,884 in
+        // all, to the capture's last block. Before the fix: 248 and 2,044.
+        assert_eq!((under, firsts.len()), (248, 1_884), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
