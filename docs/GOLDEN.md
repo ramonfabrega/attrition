@@ -152,6 +152,15 @@ chapter rather than a scene:
    the form, and `chapter3b.cmd` says per falsifier when it cannot fire —
    and a chapter whose *premise* a falsifier kills is closed on what it
    measured and restaged as a new chapter, never reopened (§11).
+   **Two more things the staging reads before the run** (the thirteenth
+   pass, parked 630 and 667): the premise names the function that would
+   kill it, and the booking greps that function's writers and the dumps
+   on disk — seven-b was booked on a block `Unit::init` had already
+   closed for every computer unit, and its first falsifier fired by
+   construction; and a falsifier whose premise rests on a loop cites the
+   loop's bound from the listing or the PDB — chapter eight read
+   `set_diplo`'s loop over leaders as every player where the bound is
+   `0..7`, and `ally` ended the game.
 
 **A chapter is a script; a run is a window on it.** `docs/DECISIONS.md` 41 §2
 — digest first, detail on demand — is what makes that affordable: the first
@@ -1185,6 +1194,15 @@ says so and this is the list it was waiting for. The chapters are still
 worth running: what they buy is the *unit lines* and the *ages*, which no
 issuer buys, and each of them gives the eventual issuer a staged cast to
 order about.
+
+**Booked** (the thirteenth pass, DECISIONS 49): with every chapter above
+closed, the rules track's chapters are issuer chapters from here, in this
+table's order by what a failure would teach. **Chapter nine is the move
+line** — item 676, `issue_move_to` on one unit and on a squad over land
+with a world plan, the lab's L15 shape, the issuer under the emulator
+before the pair; its section is §17, the worker's. The census's
+order-family row (`docs/CENSUS.md`) is the counter, and it is expected to
+move for the first time since it was built.
 
 ## 14. The running order, and the run numbers
 

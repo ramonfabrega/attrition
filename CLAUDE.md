@@ -171,7 +171,10 @@ only the number says whether the whole is converging. **A residue item is
 booked by its frame and its draw delta**; a mechanism its title names is
 the previous item's hypothesis and is written as one, because the frame
 has been right every time the named mechanism was wrong
-(`docs/DECISIONS.md` entry 42).
+(`docs/DECISIONS.md` entry 42). **And a hypothesis the floor kills is
+not built by the item that killed it** — it parks with its kill; one
+was built anyway "because it was the booked hypothesis", and the
+booking is a frame, never a promise to build a name.
 
 **Definition of done**, all five:
 
@@ -503,7 +506,11 @@ and makes the eventual diff mechanical rather than a translation exercise.
   re-bills the whole context — **and then the turn ENDS.** The harness
   re-invokes the session when the task exits, so there is nothing to stay
   alive for: a no-op turn held open to wait gains no information and costs
-  a full context read each time. **The ban is on any command whose purpose
+  a full context read each time. **A detached capture is waited on with
+  `tools/gamelog/waitrun.sh <viadriver log>`** in that background lane —
+  it keys on the runner's own banner and exit, and a wait keyed on any
+  other file has sat for two hours on a finished capture (parked 656).
+  **The ban is on any command whose purpose
   is to yield the turn**, never on a list of spellings — `true`, `:`,
   `echo waiting` and `echo .` have all been used here, and enumerating them
   is how the next one gets through. `lore polls` measured the shape on

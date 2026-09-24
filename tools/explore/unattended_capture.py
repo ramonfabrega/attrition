@@ -96,6 +96,28 @@ def sha(path):
     return h.hexdigest()
 
 
+def staged_callwin(output):
+    """The proxies' call window as `rontrace.cfg` holds it, `[lo, hi]` or None.
+
+    Read back from the file the tracer reads, never from the arguments
+    (parked 649, the thirteenth pass): `live_session.stage` writes
+    `callwin=0-<end>` when no `--callwin` was given, so a receipt that
+    echoed the argument said `null` for run157 while the trace held 25,992
+    proxied calls, and a worker who trusted it would not have looked.
+    """
+    cfg = output / 'rontrace.cfg'
+    if not cfg.is_file():
+        return None
+    for line in cfg.read_text().splitlines():
+        if line.startswith('callwin='):
+            lo, _, hi = line[len('callwin='):].partition('-')
+            try:
+                return [int(lo), int(hi)]
+            except ValueError:
+                return None
+    return None
+
+
 def capture(args, output, style):
     report = {'map_requested': style, 'success': False, 'settings_restored': False}
     staged = False
@@ -118,7 +140,7 @@ def capture(args, output, style):
         report['staged'] = {'log_window': getattr(args, 'log_window', None) or list(live_session.DEFAULT_WINDOW),
                             'detail': getattr(args, 'detail', None) or list(live_session.DEFAULT_DETAIL),
                             'cover': getattr(args, 'cover', None) or 'cover=0',
-                            'callwin': getattr(args, 'callwin', None),
+                            'callwin': staged_callwin(output),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}

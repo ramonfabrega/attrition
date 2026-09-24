@@ -86,8 +86,41 @@ class GateTests(unittest.TestCase):
             gate.gate(path, report_dir=path/'report', run=run)
             self.assertEqual(len(calls), 6)
             self.assertEqual(calls[0], [sys.executable, 'tools/offline_tests.py'])
-            self.assertEqual(calls[1][:4], ['cargo','run','-p','rondata'])
-            self.assertIn('--release', calls[2])
+            self.assertEqual(calls[3][:4], ['cargo','run','-p','rondata'])
+            self.assertIn('--release', calls[4])
+
+    def test_clippy_and_fmt_run_before_the_release_suite(self):
+        # 639: a worker whose suite was red only on the queue's lines stopped
+        # there, and clippy — after it in the list — never ran; the commander's
+        # gate then failed on that worker's own `collapsible_if`. The cheap
+        # checks go first, and a suite that fails still leaves them said.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls=[]
+            def run(command, **kwargs):
+                calls.append(command)
+                if '--release' in command:
+                    release_ran(kwargs)
+                    raise subprocess.CalledProcessError(101, command)
+            with self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report', run=run)
+            names=[gate.step_name(c) for c in calls]
+            self.assertEqual(names, ['offline','clippy','fmt','survey','release'])
+            self.assertLess(names.index('clippy'), names.index('release'))
+            self.assertLess(names.index('fmt'), names.index('release'))
+
+    def test_the_steps_line_names_what_a_red_gate_never_reached(self):
+        # The other half of 639: "red only on my lines" is read off the gate's
+        # last line, never inferred from what a worker remembers running.
+        commands=[[sys.executable,'tools/offline_tests.py'],['cargo','clippy'],['cargo','fmt','--check'],
+                  ['cargo','run','-p','rondata','--','x'],['zsh','tools/memcap.sh','20','cargo','test','--release'],
+                  ['zsh','tools/guard.sh']]
+        self.assertEqual(gate.steps_line(commands, commands),
+                         'Gate steps: 6 of 6 ran (offline, clippy, fmt, survey, release, guard)')
+        self.assertEqual(gate.steps_line(commands, commands[:2]),
+                         'Gate steps: 2 of 6 ran (offline, clippy); not reached: fmt, survey, release, guard')
+        self.assertEqual(gate.steps_line(commands, []),
+                         'Gate steps: 0 of 6 ran (none); not reached: offline, clippy, fmt, survey, release, guard')
 
     def test_wider_release_is_capped_and_other_children_stay_conservative(self):
         for width in (2, 3, 4):
@@ -137,11 +170,11 @@ class GateTests(unittest.TestCase):
             calls=[]
             def fail(command, **kwargs):
                 calls.append(command)
-                if command[0] == 'cargo':
+                if command[:2] == ['cargo', 'run']:
                     raise subprocess.CalledProcessError(1, command)
             with self.assertRaises(subprocess.CalledProcessError):
                 gate.gate(path, report_dir=path/'report', run=fail)
-            self.assertEqual(len(calls), 2)
+            self.assertEqual([gate.step_name(c) for c in calls], ['offline','clippy','fmt','survey'])
 
     def test_summary_reports_requests_not_skipped_tests(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -210,7 +243,7 @@ class GateTests(unittest.TestCase):
                     self.assertLess(command.index('--no-fail-fast'), command.index('--'))
                     release_ran(kwargs)
             gate.gate(path, report_dir=path/'report', run=run)
-            self.assertIn('--no-fail-fast', calls[2])
+            self.assertIn('--no-fail-fast', calls[4])
 
     def test_release_without_a_test_result_is_unobserved(self):
         with tempfile.TemporaryDirectory() as tmp:

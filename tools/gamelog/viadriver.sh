@@ -14,9 +14,12 @@
 # Build the bundle once with `zsh tools/gamelog/rondriver/build.sh`, then grant
 # it Accessibility by hand (System Settings → + → ⇧⌘G → the path below).
 #
-# The run is detached: `open` returns as soon as LaunchServices has the app, so
-# poll the log this prints. That is the same shape as launching `runqueue.sh`
-# with `nohup`, and the log is the only place its output goes.
+# The run is detached: `open` returns as soon as LaunchServices has the app.
+# Wait on it with `waitrun.sh <the log this prints>` under the harness's
+# background lane — it blocks until `runqueue.sh`'s summary banner lands in
+# that log, or the runner dies without one, and exits with the verdict. The
+# banner goes to the runner's stdout, which is this log and never the
+# `runqueue-<ts>.log` beside it (item 571 watched the wrong one for two hours).
 set -e
 
 APP=${RONDRIVER_APP:-$HOME/bin/RonDriver.app}

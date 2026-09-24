@@ -28,6 +28,16 @@ class RunnerTest(unittest.TestCase):
                 with runner.capture_lane(self.root): pass
         with runner.capture_lane(self.root): pass
 
+    def test_receipt_reads_the_call_window_from_the_cfg(self):
+        # 649: run157's receipt said `callwin: null` off the arguments while
+        # its `rontrace.cfg` carried `callwin=0-1200` and the trace held the
+        # calls. The receipt reads the file the tracer reads.
+        (self.root/'rontrace.cfg').write_text('cover=0\ncallwin=0-1200\n')
+        self.assertEqual(runner.staged_callwin(self.root), [0, 1200])
+        (self.root/'rontrace.cfg').write_text('cover=0\n')
+        self.assertIsNone(runner.staged_callwin(self.root))
+        self.assertIsNone(runner.staged_callwin(self.root/'never-staged'))
+
     def test_missing_backup_cannot_claim_restoration(self):
         with self.assertRaisesRegex(ValueError,'incomplete settings backup'):
             runner.verify_restored(self.root/'missing',self.root)

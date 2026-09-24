@@ -273,6 +273,29 @@ impl<'a> Block<'a> {
         }
     }
 
+    /// `(key, value)` in file order for the named keys only, repeats
+    /// included — the shape a paired list (`tx`/`ty`) wants.
+    ///
+    /// Unlike [`fields`](Self::fields), this reads **only** the keys it
+    /// names, and the recorder notes those: a reader that iterated every
+    /// field to find two of them read the whole record as far as the
+    /// coverage pin could tell, and `BUILDDATA`'s `city` and `city_down`
+    /// went unparsed for weeks without the pin failing (parked 670, the
+    /// thirteenth pass).
+    pub fn fields_of<'k>(
+        &self,
+        keys: &'k [&'k str],
+    ) -> impl Iterator<Item = (&'a str, &'a str)> + 'k
+    where
+        'a: 'k,
+    {
+        #[cfg(test)]
+        for k in keys {
+            reads::note(self.log, self.node, k);
+        }
+        self.fields_raw().filter(move |(k, _)| keys.contains(k))
+    }
+
     /// The child blocks, in file order.
     pub fn children(&self) -> Children<'a> {
         self.ensure();
@@ -3005,7 +3028,7 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
     // before it; anything else between them would mean the shape changed.
     let mut gather_from = Vec::new();
     let mut tx: Option<i64> = None;
-    for (k, v) in b.fields() {
+    for (k, v) in b.fields_of(&["tx", "ty"]) {
         match k {
             "tx" => tx = v.trim().parse().ok(),
             "ty" => {

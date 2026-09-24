@@ -107,14 +107,68 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         {'schema': 1, 'release_test_threads': test_threads, 'memory_cap_gib': 20},
         indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
+    #
+    # clippy and fmt run **before** the release suite (parked 639, the
+    # thirteenth pass): a worker whose suite is red only on the queue's
+    # lines — the commander's half, by rule — stopped here before clippy
+    # ever ran, reported "red only on your lines", and the commander's
+    # booking gate then failed on a `collapsible_if` in that worker's own
+    # code. The cheap checks go first so a paperwork-red gate has still
+    # said everything it can about the code; and the steps line at the
+    # end says which steps ran, so "red only on X" is read off the gate
+    # and never inferred.
     commands = [
         [sys.executable, 'tools/offline_tests.py'],
-        ['cargo', 'run', '-p', 'rondata', '--', str(install)],
-        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--no-fail-fast', '--', f'--test-threads={test_threads}'],
         ['cargo', 'clippy', '--all-targets', '--', '-D', 'warnings'],
         ['cargo', 'fmt', '--check'],
+        ['cargo', 'run', '-p', 'rondata', '--', str(install)],
+        ['zsh', 'tools/memcap.sh', '20', 'cargo', 'test', '--release', '--no-fail-fast', '--', f'--test-threads={test_threads}'],
         ['zsh', 'tools/guard.sh'],
     ]
+    reached = []
+    try:
+        _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
+                   require_fixtures=require_fixtures, reached=reached)
+    finally:
+        print(steps_line(commands, reached), flush=True)
+    return report_dir
+
+
+def step_name(command):
+    """The step a gate command is, in the words the handoff uses."""
+    if command[-1].endswith('offline_tests.py'):
+        return 'offline'
+    if 'clippy' in command:
+        return 'clippy'
+    if 'fmt' in command:
+        return 'fmt'
+    if command[:3] == ['cargo', 'run', '-p']:
+        return 'survey'
+    if '--release' in command:
+        return 'release'
+    if command[-1].endswith('guard.sh'):
+        return 'guard'
+    return command[-1]
+
+
+def steps_line(commands, reached):
+    """`Gate steps: <ran>; not reached: <rest>` — the last line a gate prints.
+
+    A step that ran and failed is on the ran side (its own output says
+    so); the point of the line is the other side: what a red gate never
+    got to, which is what a worker's "red only on my lines" claim has to
+    be checked against.
+    """
+    names = [step_name(c) for c in commands]
+    ran = names[:len(reached)]
+    rest = names[len(reached):]
+    line = f"Gate steps: {len(ran)} of {len(names)} ran ({', '.join(ran) or 'none'})"
+    if rest:
+        line += f"; not reached: {', '.join(rest)}"
+    return line
+
+
+def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached):
     for command in commands:
         child_env = env.copy()
         is_release = '--release' in command
@@ -123,6 +177,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             child_env['RON_FIXTURE_AUDIT_DIR'] = str(audit_dir)
         extra = {'log': str(report_dir / 'release-tests.log')} if is_release else {}
         try:
+            reached.append(command)
             run(command, cwd=ROOT, env=child_env, check=True, **extra)
             completed = True
         finally:
@@ -153,7 +208,6 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                 raise ValueError('release printed no test result; the suite is unobserved')
             if require_fixtures and summary['missing_fixtures']:
                 raise ValueError('requested fixtures are missing; see fixture-coverage.json')
-    return report_dir
 
 
 def main():

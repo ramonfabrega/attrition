@@ -20616,3 +20616,28 @@ corrected in two documents and the lift's fallback written down; two
 clauses in `CLAUDE.md`; 598 to item 620's brief. **DECISIONS 48.** Two
 Loop items remain (313, 527).
 `docs/audit/2026-09-23-fable-pass-12.md`.
+
+## 2026-09-23 — the thirteenth Fable pass: twenty landings, every chapter closed, and the axis the rules track was missing (Fable 5.1, steering)
+
+Called by the opener at the chain's stop: **twenty** landings since the
+twelfth pass by `git log`, one commander and every worker on Opus 5.5 by
+transcript, 13:03 to 22:19. Seventeen moved a word. **East Indies 11,069
+→ 13,640** at 0.034 USD a frame, 1,893 of them off the disk in one
+landing; **Great Lakes 12,038 → 12,536**, the lower map since 642; the
+restage, seven-b and its control, six and eight all closed — every golden
+chapter is. Workers 437 USD, 21.8 a landing, 25.7 a word, the cheapest
+tranche yet, and no fight entered. Ten of twenty turned on an instrument
+that was not looking, four of them the shape 527 names, and one lane sat
+idle ninety minutes on a wait keyed to a file the banner never reaches.
+What the pass could see and no landing could: the rules track had closed
+everything it had, and GOLDEN §13's answer from 09-19 — order coverage is
+an issuer axis, the chapters reach it by accident — had never been booked
+while the census's order row sat still for three passes. So after six-b
+the rules track's chapter nine is the move line through `issue_move_to`,
+item 676. Nine Loop items ruled: a waiter for detached captures made to
+fail first, the golden-line guard over every pinned word, clippy before
+the suite and a steps line, the memcap timeouts, a receipt that reads its
+cfg, `fields_of` and fourteen `BUILDDATA` keys the pin then caught, two
+clauses in GOLDEN §3, and 313 closed on three tranches of reaps; 527 stays
+with a commitment, 677 filed. **DECISIONS 49.**
+`docs/audit/2026-09-23-fable-pass-13.md`.

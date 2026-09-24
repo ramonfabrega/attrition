@@ -126,6 +126,16 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/ANIMALDATA/UNITDATA/STACK<TYPE>",
         "increment length size",
     ),
+    // Pinned 2026-09-23, the thirteenth pass (parked 670): `build_of`
+    // iterated every field for its `tx`/`ty` pairs, which the recorder
+    // notes as `*`, so the whole `BUILDDATA` level read as covered while
+    // fourteen of its keys had never been parsed — `city` and `city_down`
+    // among them until item 661. `Block::fields_of` reads the two by name
+    // now, and these are what the pin then found.
+    (
+        "GAME/FRAME/BUILDDATA",
+        "attack_ox attack_whom dock flags fort founder healing increment infiltrate infiltrate2 oil_well recharging stance wonder",
+    ),
     ("GAME/FRAME/BUILDDATA/BUILDQUEUE", "queue_size"),
     (
         "GAME/FRAME/BUILDDATA/WALLDATA",

@@ -2028,7 +2028,12 @@ zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 197
 
 — and `open -a` is what makes it work: LaunchServices launches the bundle,
 so the bundle, rather than whatever spawned the script, is responsible, and
-every child inherits that. The launcher **spawns and waits**; an `exec`
+every child inherits that. `viadriver.sh` itself returns at once, so **the
+session waits with `tools/gamelog/waitrun.sh <the log viadriver printed>`**
+under its background lane: the runner's summary banner goes to its stdout,
+which is that log and never the `runqueue-<ts>.log` beside it, and item 571
+watched the wrong one for two hours after its capture had finished (parked
+656, the thirteenth pass). The launcher **spawns and waits**; an `exec`
 would replace its image with `/bin/zsh` and hand the attribution back to the
 interpreter, which is the whole bug it exists to escape.
 

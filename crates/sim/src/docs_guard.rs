@@ -1261,9 +1261,15 @@ fn the_handoff_carries_the_golden_line() {
         w.strip_prefix('w')
             .is_some_and(|d| !d.is_empty() && d.chars().all(|c| c.is_ascii_digit()))
     });
+    // Three forms: before the first chapter pins, with an open word, and
+    // with every pinned word closed (parked 638, the thirteenth pass —
+    // the third form borrowed `none pinned` for an item, which reads as
+    // the opposite of what it meant). `rondata::diff::floors` reads the
+    // parts against the constants; this only asks that the slot is filled.
     assert!(
-        pinned || rest.starts_with("none pinned"),
-        "the `Golden:` line is {rest:?}; it says `none pinned` or names a word `w<frame>`"
+        pinned || rest.starts_with("none pinned") || rest.starts_with("every chapter closed"),
+        "the `Golden:` line is {rest:?}; it says `none pinned`, names a word `w<frame>`, \
+         or leads with `every chapter closed`"
     );
 }
 

@@ -202,6 +202,16 @@ mod tests {
     /// <length>`; the first `w` is the lowest open word, which is the
     /// rules headline. A chapter that reopens — a pin under its end —
     /// fails here until the line says so as a word.
+    ///
+    /// **Every pinned golden word is on the list, not only `ch1`–`ch8`**
+    /// (parked 638, the thirteenth pass). The first version parsed `chN`
+    /// parts alone and skipped the restage and seven-b, so it passed with
+    /// the queue at `restage w792` over a constant of 865 — the two words
+    /// the rules lane was actually on were the two it could not see. The
+    /// list below is every `GOLDEN_WORD_*` with a widening; a new one is
+    /// added here in the landing that pins it. And when nothing is open
+    /// the line **leads with `every chapter closed`** rather than
+    /// borrowing `none pinned`, which means the opposite.
     #[test]
     fn the_handoff_s_golden_line_is_the_pinned_word() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
@@ -210,79 +220,156 @@ mod tests {
             "docs/QUEUE.md has no `Golden:` line in the handoff; write \
              `Golden: chN closed · chM w<frame> of <length> · …`",
         );
-        // (chapter, word, widening window) — closed when the word is the
-        // window's last block.
-        let chapters: [(u32, i64, (i64, i64)); 8] = [
-            (1, GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
-            (2, GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
-            (3, GOLDEN_WORD_CHAPTER_THREE, WIDENING_CHAPTER_THREE),
-            (4, GOLDEN_WORD_CHAPTER_FOUR, WIDENING_CHAPTER_FOUR),
-            (5, GOLDEN_WORD_CHAPTER_FIVE, WIDENING_CHAPTER_FIVE),
-            (6, GOLDEN_WORD_CHAPTER_SIX, WIDENING_CHAPTER_SIX),
-            (7, GOLDEN_WORD_CHAPTER_SEVEN, WIDENING_CHAPTER_SEVEN),
-            (8, GOLDEN_WORD_CHAPTER_EIGHT, WIDENING_CHAPTER_EIGHT),
-        ];
-        let mut said_closed = Vec::new();
-        let mut said_open = Vec::new();
+        if let Err(why) = golden_line_verdict(line, &GOLDEN_WORDS) {
+            panic!("{why}");
+        }
+    }
+
+    /// `(name on the line, word, widening window)` — closed when the word
+    /// is the window's last block.
+    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 11] = [
+        ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
+        ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
+        ("ch3", GOLDEN_WORD_CHAPTER_THREE, WIDENING_CHAPTER_THREE),
+        ("ch4", GOLDEN_WORD_CHAPTER_FOUR, WIDENING_CHAPTER_FOUR),
+        ("ch5", GOLDEN_WORD_CHAPTER_FIVE, WIDENING_CHAPTER_FIVE),
+        ("ch6", GOLDEN_WORD_CHAPTER_SIX, WIDENING_CHAPTER_SIX),
+        ("ch7", GOLDEN_WORD_CHAPTER_SEVEN, WIDENING_CHAPTER_SEVEN),
+        ("ch8", GOLDEN_WORD_CHAPTER_EIGHT, WIDENING_CHAPTER_EIGHT),
+        (
+            "restage",
+            GOLDEN_WORD_CHAPTER_THREE_RESTAGE,
+            WIDENING_CHAPTER_THREE_RESTAGE,
+        ),
+        (
+            "ch7b",
+            GOLDEN_WORD_CHAPTER_SEVEN_B,
+            WIDENING_CHAPTER_SEVEN_B,
+        ),
+        (
+            "ch7b-control",
+            GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+            WIDENING_CHAPTER_SEVEN_B_CONTROL,
+        ),
+    ];
+
+    /// The `Golden:` line against the pinned words, as a value so the
+    /// fixtures below can fail it on purpose. A part is `<name> closed`
+    /// or `<name> w<word> of <length>`; a part whose first token is not a
+    /// pinned name — `every chapter closed`, `651 next` — is skipped.
+    fn golden_line_verdict(line: &str, words: &[(&str, i64, (i64, i64))]) -> Result<(), String> {
+        let mut said_closed: Vec<&str> = Vec::new();
+        let mut said_open: Vec<(&str, i64)> = Vec::new();
         for part in line.trim_start_matches("Golden:").split('\u{b7}') {
             let t: Vec<&str> = part.split_whitespace().collect();
-            let Some(ch) = t.first().and_then(|c| c.strip_prefix("ch")) else {
+            let Some(name) = t.first().copied() else {
                 continue;
             };
-            let Ok(n) = ch.parse::<u32>() else {
+            let Some((name, _, _)) = words.iter().find(|(n, _, _)| *n == name) else {
                 continue;
             };
             match t.get(1) {
-                Some(&"closed") => said_closed.push(n),
+                Some(&"closed") => said_closed.push(name),
                 Some(w) => {
                     let word = w
                         .strip_prefix('w')
                         .and_then(|d| d.parse::<i64>().ok())
-                        .unwrap_or_else(|| panic!("unreadable golden part {part:?}"));
-                    said_open.push((n, word));
+                        .ok_or_else(|| format!("unreadable golden part {part:?}"))?;
+                    said_open.push((name, word));
                 }
-                None => panic!("unreadable golden part {part:?}"),
+                None => return Err(format!("unreadable golden part {part:?}")),
             }
         }
         let mut open_words: Vec<i64> = Vec::new();
-        for (n, w, (_, hi)) in chapters {
-            if w == hi - 1 {
-                assert!(
-                    said_closed.contains(&n),
-                    "chapter {n} is closed (its word {w} is its trace's end) and the \
-                     `Golden:` line does not say `ch{n} closed`: {line:?}"
-                );
-                assert!(
-                    !said_open.iter().any(|(c, _)| *c == n),
-                    "chapter {n} is closed and the `Golden:` line still carries it as a \
-                     word: {line:?}"
-                );
+        for (name, w, (_, hi)) in words {
+            if *w == hi - 1 {
+                if !said_closed.contains(name) {
+                    return Err(format!(
+                        "{name} is closed (its word {w} is its trace's end) and the \
+                         `Golden:` line does not say `{name} closed`: {line:?}"
+                    ));
+                }
+                if said_open.iter().any(|(c, _)| c == name) {
+                    return Err(format!(
+                        "{name} is closed and the `Golden:` line still carries it as a \
+                         word: {line:?}"
+                    ));
+                }
             } else {
-                assert!(
-                    said_open.contains(&(n, w)),
-                    "the `Golden:` line does not carry `ch{n} w{w}`; every open chapter's \
-                     word is on it: {line:?}. The constant and its comment are the \
-                     worker's to re-pin; the queue's line is the commander's to write"
-                );
-                assert!(
-                    !said_closed.contains(&n),
-                    "chapter {n} is open at {w} and the `Golden:` line calls it closed: \
-                     {line:?}"
-                );
-                open_words.push(w);
+                if !said_open.contains(&(name, *w)) {
+                    return Err(format!(
+                        "the `Golden:` line does not carry `{name} w{w}`; every open \
+                         chapter's word is on it: {line:?}. The constant and its comment \
+                         are the worker's to re-pin; the queue's line is the commander's \
+                         to write"
+                    ));
+                }
+                if said_closed.contains(name) {
+                    return Err(format!(
+                        "{name} is open at {w} and the `Golden:` line calls it closed: \
+                         {line:?}"
+                    ));
+                }
+                open_words.push(*w);
             }
         }
-        if let Some(lowest) = open_words.iter().min() {
-            let first = said_open
-                .first()
-                .map(|(_, w)| *w)
-                .unwrap_or_else(|| panic!("the `Golden:` line names no open word: {line:?}"));
-            assert_eq!(
-                first, *lowest,
-                "the `Golden:` line's first word is w{first}; the lowest open chapter is \
-                 {lowest}, and that is the rules headline"
-            );
+        let rest = line.trim_start_matches("Golden:").trim();
+        match open_words.iter().min() {
+            Some(lowest) => {
+                let first = said_open
+                    .first()
+                    .map(|(_, w)| *w)
+                    .ok_or_else(|| format!("the `Golden:` line names no open word: {line:?}"))?;
+                if first != *lowest {
+                    return Err(format!(
+                        "the `Golden:` line's first word is w{first}; the lowest open \
+                         chapter is {lowest}, and that is the rules headline"
+                    ));
+                }
+            }
+            None => {
+                if !rest.starts_with("every chapter closed") {
+                    return Err(format!(
+                        "no golden word is open, and the `Golden:` line does not lead \
+                         with `every chapter closed`: {line:?}"
+                    ));
+                }
+            }
         }
+        Ok(())
+    }
+
+    /// The verdict, made to fail first on the lines that fooled the old
+    /// guard: the restage carried as a word under a closed constant, a
+    /// seven-b part missing altogether, and an all-closed line that
+    /// borrows `none pinned`.
+    #[test]
+    fn the_golden_line_guard_reads_the_restage_and_seven_b() {
+        let words: [(&str, i64, (i64, i64)); 3] = [
+            ("ch1", 900, (605, 901)),
+            ("restage", 1000, (605, 1001)),
+            ("ch7b", 1148, (605, 1201)),
+        ];
+        let sep = " \u{b7} ";
+        let good =
+            format!("Golden: ch7b w1148 of 1200{sep}ch1 closed{sep}restage closed{sep}651 next");
+        assert_eq!(golden_line_verdict(&good, &words), Ok(()));
+        // 638's case: the restage is closed at 1000 and the line still
+        // says `restage w792` — the old guard skipped the part.
+        let stale = format!("Golden: ch7b w1148 of 1200{sep}ch1 closed{sep}restage w792 of 1000");
+        assert!(golden_line_verdict(&stale, &words).is_err(), "{stale}");
+        // A pinned word missing from the line altogether.
+        let missing = format!("Golden: ch1 closed{sep}restage closed");
+        assert!(golden_line_verdict(&missing, &words).is_err(), "{missing}");
+        // Everything closed: `none pinned` is the wrong phrase for it.
+        let all: [(&str, i64, (i64, i64)); 2] =
+            [("ch1", 900, (605, 901)), ("restage", 1000, (605, 1001))];
+        let borrowed =
+            format!("Golden: none pinned, every chapter closed{sep}ch1 closed{sep}restage closed");
+        assert!(golden_line_verdict(&borrowed, &all).is_err(), "{borrowed}");
+        let led =
+            format!("Golden: every chapter closed{sep}ch1 closed{sep}restage closed{sep}651 next");
+        assert_eq!(golden_line_verdict(&led, &all), Ok(()));
     }
 
     /// **The AI track's default map is the lower word's** (`docs/DECISIONS.md`

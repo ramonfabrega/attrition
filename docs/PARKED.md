@@ -676,6 +676,17 @@ clauses in `CLAUDE.md`, two amendments to `docs/EMULATOR.md` §8 and
 `docs/ORACLE.md`, and 598 to item 620's brief: `inside_up`'s container
 row goes into `compare` inside the next East Indies widening
 (`docs/audit/2026-09-23-fable-pass-12.md`, DECISIONS 48).
+The thirteenth, 2026-09-23, ruled nine — 313, 630, 638, 639, 645, 649,
+656, 667, 670 — a waiter for a detached capture made to fail first
+(`tools/gamelog/waitrun.sh`), the golden-line guard rewritten over every
+pinned word and made to fail on the line that fooled it, the gate
+reordered with clippy first and a `Gate steps:` line after a test saw
+the old order leave clippy unreached, the memcap timeouts, a receipt
+that reads its cfg, `Block::fields_of` and fourteen `BUILDDATA` keys
+pinned after the pin failed first, two clauses in GOLDEN §3, and 313
+closed on three tranches without a forgotten reap; 527 stays with a
+commitment and 677 is filed (`docs/audit/2026-09-23-fable-pass-13.md`,
+DECISIONS 49).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -701,89 +712,31 @@ The same section, split on 2026-09-22 when it passed the 16 KB ceiling
 the guard sets. Everything in the heading above applies: these are the
 steering pass's, never a worker's, and a commander never spawns one.
 
-(313) **The landing chain wants one verb.** Merge, gate, push and reap are
-one chain by rule since 09-17; ccc has `merge`, `update` and `clear`, and
-the reap is a separate command a commander typed after the chain twice and
-forgot twice. Filed with ccc as `land <ref>` or `merge --reap`; until it
-exists, the chain is one shell line in the commander's brief.
-
 (527) **Coverage and the ledger count a stand-up read as coverage.**
 Filed by item 523: `o_up` was read only at stand-up and parted silently on
 744, while the coverage pin called it compared. A per-frame "compared"
 check would have caught it. The same family as the five instrument
 defects of the last tranche: scope reported, not measured.
+**The thirteenth pass counted four more** — 617 (units linked on
+`(who, o)`, their numbers never compared), 642 (a widening that keeps
+each key's first parting is silent on the word's block), 644 (a
+building the dump holds and the crate does not, counted and not noted),
+661 (`trade_val` compared against a literal 0) — none caught by a pin,
+each found by a worker at the price of a floor. Deferred three passes
+running; **the fourteenth pass builds it first, or writes in DECISIONS
+why not.** The shape to build: every comparison site registers the
+`(path, key)` it compared with both sides present, per frame, and a pin
+on the headline windows reports what was read and never compared.
 
-(638) **The `Golden:` line guard reads only the `chN` parts.** Filed by
-item 617: `the_handoff_s_golden_line_is_the_pinned_word` parses `ch1`…`ch7`
-and skips the restage and `ch7b` parts, so it passed with the queue at
-`restage w792` and the constant at 865. The two words the rules lane is
-actually on are the two the guard cannot see. And its sibling,
-`the_handoff_carries_the_golden_line`, knows only `none pinned` (before
-the first chapter) or an open `w<frame>`: when 647 closed the last chapter
-the line had to borrow `none pinned` to say "every chapter closed".
-
-(639) **A worker's gate that is red on the queue's line never reaches
-clippy.** Filed by the commander on 2026-09-23: 617 reported "red only on
-your queue line", and its gate had stopped at the paperwork guard before
-the survey and before `cargo clippy --all-targets`. The commander's
-booking gate then failed on a `collapsible_if` in 617's own code, fixed as
-fc85132. A lane's "red only on your lines" is true of what ran, not of the
-gate. Either the gate runs clippy before the paperwork guard, or it reports
-what it did not reach.
-
-(645) **The memcap self-test's 8 s timeout flakes under load.** Filed by
-item 632: `tools/explore/test_memcap.py` timed out in `offline_tests.py`
-at load average 6.6 with a sibling lane gating, before any cargo step,
-and passed alone in 2.9 s. A gate that can go red on the box's load is a
-gate whose red means less; with two lanes and a commander gating, it will.
-
-(649) **A capture's receipt misreports its proxy window.** Filed by item
-647: run157's `receipt.json` says `callwin: null`, while its
-`rontrace.cfg` carries `callwin=0-1200` and the trace holds 25,992 proxied
-calls. A worker who trusts the receipt will not look for the search on
-disk; 647 found it only by reading the cfg.
-
-(656) **A lane sat idle for an hour and a half after its capture had
-finished.** Filed by the commander on 2026-09-23: item 571 launched run163
-through `viadriver.sh`, which hands the game to RonDriver.app and returns,
-and ended its turn. The queue logged "captured, checks ok" at 22:21 UTC;
-nothing re-invoked the lane, and the commander found it at 23:57 by
-reading the runner's log. `ccc watch`'s stall is 30 minutes on the job
-file, and it never fired here. A detached capture needs a wait the harness
-can see, keyed on the runner's exit (565), or the commander's roster
-check has to read the capture lane's lock. The lane's own account: it waited by
-grepping `runqueue-<ts>.log` for the banner "the queue, as it went",
-which `runqueue.sh` prints to stdout, that is to the viadriver log, so
-the grep could never match.
-
-(667) **A staging check that names a loop cites its bound.** Filed by
-item 660: its staging's one wrong reading was `set_diplo`'s loop over
-leaders, read as every player where the bound is 0..7, which
-`llvm-objdump` or the PDB settles in a minute. GOLDEN §3's fifth point
-could ask each falsifier's premise to cite the bound of any loop it rests
-on.
-
-(670) **A comparison against a literal 0, and a reader that counts every
-key as read.** Filed by item 661. `harness.rs`' CITY-record loop ("four
-fields nothing here holds") compared `trade_val` and `vans.length`
-against 0, written before `compute_trade` had a writer, so every capture
-printed "ours 0" and parked 514 stood for weeks on an instrument. And
-`gamelog.rs`' `build_of` iterates `b.fields()` for the mining list, so
-the coverage pin counts every direct `BUILDDATA` key as read: `city` and
-`city_down` went unparsed without the pin failing. Both are 488's
-"quiet is what a blind instrument looks like", one level down.
-
-(630) **A restage booked on a premise a reading already kills.** Filed by
-the commander on 2026-09-23 from item 628's staging reading. The twelfth
-pass restaged chapter seven as seven-b for who=1, "where the cheat's block
-decides". But `Unit::init`:585 sets `unit_masks & 0x40000` on every unit
-whose owner's `(leader_flags & 0xc) != 4`, so `think`:264's exit never
-fires for a computer's unit, and `think_peasant` gives the citizen its
-order above the block. Falsifier 1 fires by construction, and the
-`|| ai_off` seam decides nothing on this lobby. run156 and run157 measure
-it. This is the third booking in two passes whose premise the disk or the
-decompile already answered (575, 584). A chapter's premise names the
-function that would kill it, and the booking greps its writers.
+(677) **Birds are owner 9, no dump prints them, and five landings this
+tranche touched their rolls.** 648, 652, 657, 661 and 669 each met a
+`9/6` draw (`think_bird`, `set_anim+0x104b`) that no record on either
+side could be compared against; 652 took a packet to read one cursor;
+parked 675 names the same blindness on Great Lakes' word. The fix is
+the AI dump's shape (367, run114, DECISIONS 41 §6): a tracer proxy on
+`Unit::think_bird` — position, heading, anim per call — so the bird is
+a value row and not a draw count. Filed by the thirteenth pass from the
+journals; not built.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 

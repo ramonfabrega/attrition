@@ -60,6 +60,7 @@ is append-only and amended in place, as it always was.
 - 46 standing — A printed field is read or pinned, and struck text is not live text
 - 47 standing — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
 - 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
+- 49 standing — The rules track's next axis is the issuer, and the day's holes are guards
 
 ## 1. Fidelity before divergence
 
@@ -2830,3 +2831,109 @@ fired; East Indies' frame price against 0.19; the coverage pin against
 340 and the ledger against 10/36; whether the new capture guard fired on
 a booking; whether any lane sat empty; whether the count reached the
 pass at twenty.
+
+## 49. The rules track's next axis is the issuer, and the day's holes are guards
+
+**Decided 2026-09-23**, the thirteenth Fable pass, in the main thread
+(`docs/audit/2026-09-23-fable-pass-13.md`). Applies entry 41 §1 and §5
+and `docs/GOLDEN.md` §13; extends entries 42, 45 and 48; overturns
+nothing.
+
+**What was measured.** Twenty landings since the twelfth pass by `git
+log`, 13:03 to 22:19 the same day, one commander and every worker on
+Opus 5.5 by transcript. Seventeen moved a word: **East Indies 11,069 →
+13,640** at 0.034 USD a frame — 1,893 of them off the disk in one
+landing — and **Great Lakes 12,038 → 12,536**, the lower map since 642;
+the restage, seven-b, its control, chapter six and chapter eight all
+closed, so every golden chapter is closed. Workers 437 USD, 21.8 a
+landing, 25.7 a word — the cheapest tranche measured, and no fight was
+entered. Twelve of twenty took no capture. Ten turned on an instrument
+that was not looking, four of them the shape parked 527 names. One lane
+sat idle ninety minutes on a wait keyed to the wrong file. The census,
+regenerated: cited 922 → 981 in 169 classes, entered unchanged at
+7,180, and the order family unmoved for the third pass — 44 cited of
+410.
+
+**What the pass found that no landing could.** The rules track had
+closed every chapter it had, and the handoff asked what it is for.
+`docs/GOLDEN.md` §13 answered on 2026-09-19 and no item ever booked the
+answer: the chapters reach the order family *by accident* — every order
+in a golden capture is one the original's own automatic play issued —
+and order coverage is a separate axis whose unit of work is a native
+issuer, validated the way the lab validated `issue_move_to` (L15). The
+census row is what that looks like when nobody books it.
+
+**The decisions.**
+
+1. **The rules track's chapters are issuer chapters from here.** After
+   six-b (651, the air premise's restage), chapter nine is **the move
+   line**, item 676: `CommandManager::issue_move_to@00941720` from the
+   tracer DLL on one unit and on a squad, over land with a world plan,
+   `!ai off`, the lab's L15 shape, the issuer run under the emulator
+   before the pair. The move line first because it is the one issuer the
+   lab has validated live, and because the AI word's own residue (673) is
+   a squad's move order and world plan. The order after it is GOLDEN
+   §13's table by what a failure would teach; each chapter's section is
+   its worker's; the census's order-family row is the counter, and the
+   next pass expects it to move for the first time since it was built.
+2. **A detached capture is waited on with `tools/gamelog/waitrun.sh`**
+   (parked 656): it keys on `runqueue.sh`'s banner in the file the banner
+   actually reaches — the viadriver log — and on the runner's life, and
+   exits 0 / 1 / 2 on ok / FAILED / no banner. Made to fail first on the
+   banner-less case, the one item 571 sat in for two hours. Named in
+   `CLAUDE.md`'s wait bullet, `viadriver.sh` and `docs/ORACLE.md`.
+3. **The golden-line guard reads every pinned word** (parked 638): a
+   verdict function over eleven names — `ch1`–`ch8`, `restage`, `ch7b`,
+   `ch7b-control` — and, with nothing open, the line leads with `every
+   chapter closed` rather than borrowing `none pinned`. Fixtures made to
+   fail on the line that fooled the old guard (`restage w792` over a
+   closed constant), on a missing part, and on the borrowed phrase.
+4. **clippy and fmt precede the release suite, and the gate ends with
+   its steps line** (parked 639): `Gate steps: N of 6 ran (…); not
+   reached: …`, printed in a `finally`, so a worker's "red only on my
+   lines" is read off the gate and never inferred. The order test was
+   run against the old gate first and saw clippy unreached; the two old
+   tests that indexed the step list failed on the reorder before they
+   were rewritten.
+5. **The memcap self-test tolerates the box's load** (parked 645):
+   timeouts 50 s, and the child's death is an elapsed assertion against
+   a minute-long child.
+6. **The receipt reads `callwin` back from `rontrace.cfg`** (parked 649),
+   the file the tracer reads, as it already read `rontrace.cmd`.
+7. **`Block::fields_of(&[keys])` reads named keys only** (parked 670),
+   and `build_of` uses it for its `tx`/`ty` pairs. The coverage pin then
+   failed first, as designed: fourteen `BUILDDATA` keys printed and never
+   read, hidden since the pin was built by a whole-fields iteration.
+   Pinned as unread with the item. The literal-0 half was fixed by 661
+   and is the standing "grep this crate for a field" clause.
+8. **A staging names its premise's killer and greps its writers, and a
+   falsifier resting on a loop cites the loop's bound** (parked 630,
+   667): `docs/GOLDEN.md` §3, point 5.
+9. **A hypothesis the floor kills is not built by the item that killed
+   it**: a clause in `CLAUDE.md`'s residue rule. Item 644 killed parked
+   633 as the cause and built it "because it is the booked hypothesis";
+   the booking is a frame, never a promise to build a name.
+10. **313 closes on the measurement.** ccc 0.1.37 has no `land` verb; the
+    chain as clauses and guards has run three tranches — sixty-nine
+    landings — without a forgotten reap.
+11. **527 stays, as a commitment rather than a deferral**: four instances
+    this tranche (617, 642, 644, 661), none caught by a pin; **the
+    fourteenth pass builds the recorder first, or writes here why not.**
+    **677 is filed**: the bird's proxy — five landings this tranche met
+    owner 9's rolls that no dump prints, and one took a packet to read a
+    cursor; the fix is the AI dump's shape (entry 41 §6, run114) on
+    `Unit::think_bird`.
+
+**Not taken**: the candidate thesis sentence from entry 41, again; the
+estimate — both maps stand past half their long captures with the price
+between fights at 0.03–0.20 USD a frame and 4 inside one.
+
+**The measure for the next pass**: whether 673 moved Great Lakes past
+12,536 and at what price; whether 651 ran and which falsifier fired;
+whether 676's issuer ran under the emulator before its pair, and whether
+the census's order row moved; the coverage pin against 359 keys on
+twenty-one paths and the ledger against 10/36; whether every detached capture
+was waited on with `waitrun.sh` and no lane sat empty; whether workers'
+reports quote the gate's steps line; whether any killed hypothesis was
+built; the price per landing against 21.8; whether the count reached the
+pass at twenty; and that 527 was built first.
