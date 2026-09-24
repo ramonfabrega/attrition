@@ -29,13 +29,13 @@ the rules track closed chapters four (1500), seven (1200) and three
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12184 of 24,000
-Golden: ch8 w617 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 664 next
+Golden: ch8 w659 of 901 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · restage closed · ch7b closed · ch7b-control closed · 668 next
 Endpoint 24001: EastIndies 45 off, 12 unlinked · GreatLakes 42 off, 0 unlinked
 
-**Opener: sixteen landings since the twelfth pass's commit. Chapter
-eight is captured and open at 617. 661 has the AI lane (Great Lakes
-12184); spawn 664 on the rules lane. 643 follows 661, and six-b (651)
-follows chapter eight. Stop at twenty.**
+**Opener: seventeen landings since the twelfth pass's commit. Chapter
+eight 617 → 659. 661 has the AI lane (Great Lakes 12184); spawn 668 on
+the rules lane. 643 follows 661, six-b (651) follows chapter eight. Stop
+at twenty.**
 
 ## The queue
 
@@ -53,13 +53,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `think_bird` arm sits beside it. Inside run163, widening on file; no
     capture owed. No mechanism. On the AI lane next.
 
-664. **Chapter eight's word is 617: the Spy's birth frame** (660
-    captured run171; no falsifier fired; `ally 1` on 900 is an allied
-    victory, so the capture ends on 901). On 617 ours 9 draws against 80
-    at draw 3: ours `Farms::inc_time+0x1ae`, theirs `Unit::think_scout`.
-    On 618 the original's Spy `1/9` holds an `EXPLORETOORDER`, group 66,
-    `form_mod` 50; ours holds none. Hypothesis: `Unit::think`'s tail sends
-    an unarmied spy to `think_scout`. No mechanism. On the rules lane.
+668. **Chapter eight's word is 659: who=1's hoplite steps back** (664
+    moved it 617 → 659: `unit_is_spy` was a stub answering false, now
+    the lineage test, so the Spy scouts, SCOUT §15). On 659 ours 9 draws
+    against 10 at draw 2, theirs `Unit::fight+0x9b0`: who=1's hoplite
+    `1/6`, chasing the General, stops against `0/7` in run171 and steps
+    back here. Widened on (605, 660). No mechanism. On the rules lane.
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`
