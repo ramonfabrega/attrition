@@ -1904,6 +1904,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// block's first-parting rows, the squad `1/27`–`1/29`'s orders, and
 /// the move's value diff.
 ///
+/// ~~**12536 is the squad `1/27`–`1/29`'s orders.**~~ **Item 673 moved it
+/// 12536 → 12897, and the mechanism was the gate on the retry a failed
+/// unit-grid search buys** (`docs/PATHFINDER.md` §21.6, `docs/AI.md`
+/// §65). `astar_path`'s roll and `find_upath`'s reprieve both test vslot
+/// `+0x14`, `is_move`, which every move class answers 1; this crate tested
+/// a move *without* the action bit. So on 12536 the captain `1/27`,
+/// blocked by `1/64` under a `GROUP_ATTACK_TO`, lost its order where the
+/// original rolls `retry` 6, ungroups the squad and re-plans `1/28` and
+/// `1/29` on the world grid, which was the missing `astar_path+0x1697`.
+/// The new word's delta: ours **8** draws and the original **9**, parting
+/// at index **2**. Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+/// where the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+/// **Inside run174** (block 12898, its last but one);
+/// `run174_s_word_frame_is_widened_whole` pins `1/41`'s rows on the
+/// block and the move's value diff.
+///
 /// **The block's own rows are not restated here**, and that is
 /// deliberate: block 10818's eight rows of `1/28` are *asserted* in
 /// [`crate::diff::harness`]'s
@@ -1915,7 +1931,7 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_536;
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 12_897;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3169,6 +3185,15 @@ pub(crate) const WIDENING_GREAT_LAKES_CIVIC: (i64, i64) = (11_400, 12_899);
 /// 12429's frame writes block 12430. The coverage driver reads run174
 /// around it.
 pub(crate) const GREAT_LAKES_CIVIC_BLOCK: i64 = 12_430;
+/// The block of the word item 669 moved to: 12536's frame writes block
+/// 12537, inside [`WIDENING_GREAT_LAKES_CIVIC`], where the squad
+/// `1/27`–`1/29` takes its orders. Item 673 put it in the coverage driver,
+/// which 669's landing had left on [`GREAT_LAKES_CIVIC_BLOCK`] alone.
+pub(crate) const GREAT_LAKES_SQUAD_BLOCK: i64 = 12_537;
+/// The block of the word item 673 moved to: 12897's frame writes block
+/// 12898, run174's last but one. The coverage driver reads run174 from
+/// two blocks under it to the capture's last, four blocks.
+pub(crate) const GREAT_LAKES_RETRY_BLOCK: i64 = 12_898;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3530,11 +3555,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // read as the listing has it, the word moved **12429 → 12536**, inside
     // the same window (block 12537), and the test pins the move's value
     // diff and the new word's block both.
+    //
+    // **Item 673 moved it 12536 → 12897**, inside the same window again
+    // (block 12898, run174's last but one): a failed unit-grid search
+    // spares an action-bit move too (`docs/PATHFINDER.md` §21.6). The
+    // test pins 12537's value diff and `1/41`'s every row on 12898. The
+    // next move past 12898 owes a capture.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run174_s_word_frame_is_widened_whole"),
-        669,
+        673,
         Some(WIDENING_GREAT_LAKES_CIVIC),
     ),
     // Item 445 paid the widening chapter one had never had: the word

@@ -8097,3 +8097,93 @@ Pinned capture-free: `a_tolerance_0_waypoint_is_not_loose_and_0x60_is`
 
 Reading-only: none. The predicate is a byte sequence at a named address,
 and the diff confirms its effect.
+
+## 65. An attack-move buys the retry too, and the word moves to 12897 (2026-09-23, item 673)
+
+Item 669 left Great Lakes' word at **12536**: ours 93 draws against 94,
+parting at index 92, where the original spends `PathFinder::astar_path
++0x1697`. On block 12537 the squad `1/27`–`1/29` held kind 21 here and
+kind 2 there, and `1/27` held nothing here. The word is inside run174,
+so no capture was owed. The coverage driver had not read 12537's blocks,
+and item 673 added them before judging any fix (they print nothing
+unread).
+
+### 65.1 The frame, read from the dump
+
+- **The issuer agrees.** On 12536 all thirteen of pool group 66 take a
+  `GROUP_ATTACK_TO` (flags 5) on both sides. That includes the two
+  squads, `1/27`→`1/28`→`1/29` and `1/40`→`1/41`→`1/42`. "Kind 21
+  against kind 2" was not a different issue. It was a different
+  **ungroup**.
+- **`1/27` collides on both sides.** It steps into `1/64`, which stands
+  with no order, and records `collide 1`, `collide_o 64`. The original's
+  `1/27` ends the frame on a plain `ATTACK_TO`: `dest` 0, `dest_x/y`
+  (40456, 23011), `coll` (36485, 23365), **`retry` 6**, counting down one
+  a frame after that. This crate's has no order at all.
+- **`retry` is the roll.** A `% 3 + 6` in `retry` is `astar_path`'s
+  failure tail (`docs/PATHFINDER.md` §21), and `+0x1697` is its draw. So
+  the original's 48-grid search for `1/27` failed and bought a wait.
+  This crate's search failed and killed the order.
+
+### 65.2 The gate
+
+`docs/PATHFINDER.md` §21.6. The roll and `find_upath`'s reprieve both
+call vslot `+0x14`, `is_move`, which every move class answers with
+`return 1`. This crate read them as `is_transit`, a move without the
+action bit, and a group attack-move carries the bit. With the order
+spared, `do_group_move`'s follower arm takes its step-10 tail
+(`move_step` returned 0) and ungroups the squad from its captain down.
+`1/28` and `1/29` lose `PATHED` and their paths, and each re-plans ten
+world entries at tolerance 384 in the same frame.
+
+This is not parked 674. The group id stands, and spends no draw.
+
+### 65.3 What it moved
+
+- **Great Lakes' word: 12536 → 12897**, inside run174 (block **12898**,
+  the capture's last but one). The new delta: ours **8** draws against
+  **9**, parting at index **2**. Ours spends `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271` where the original spends `Guy::set_anim+0x97a <
+  Unit::move_step+0x823`. On 12898 the original's `1/41` hard-collides
+  with `1/15` (`collide_o 15`) and stands, and this crate's walks on.
+- **The move's value diff.** The 33 squad rows on 12537 are gone, and
+  `1/27` is the dump's own there, field for field. run174's floor fell
+  from 2,120 keys to **470**: all 1,650 above run163, and none under
+  (259 stands). What stands on 12537 is 674's group id on `1/61` and
+  `1/66`.
+- **What stands under the new word**, 209 keys from 12538 to 12899:
+  - 29 citizens' `myhits` 40 against 50 and `mylos` 2 against 4 from
+    12564, with no draw;
+  - `1/41`'s plan on 12626, 23 entries against 20, and its position
+    from 12662;
+  - on 12825 the original ungroups the squad `1/40`–`1/42` to kind 2,
+    and this crate does not. That is 12537's shape on the next squad,
+    73 blocks before the word, and it names no mechanism yet.
+- **The ladder**: two market rotations, 12582 and 12782, came under the
+  word (21 → 23).
+
+### 65.4 What this has *not* established
+
+- **Why the original ungroups `1/40`–`1/42` on 12825.** Its members
+  part in value from 12626, so the frame is booked, not a mechanism.
+- **The citizens' hit points.** 40 against 50 from block 12564 on every
+  citizen of who=1 looks like an upgrade the original applies and this
+  crate does not. It spends no draw before the word, and nothing here
+  reads it.
+- **The other `is_transit` readers.** `get_action`'s walk is its own
+  predicate in the listing, and was not re-read.
+
+### 65.5 Coverage
+
+Diff-backed:
+
+- `run174_s_word_frame_is_widened_whole`: 12537's value diff, `1/41`'s
+  every row on block 12898, the one-sided stand there, and the floor.
+- The coverage driver reads run174 on 12535..12539 and 12896..12899.
+- The long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+Pinned capture-free: `a_walled_in_attack_move_buys_the_retry_and_keeps_its_order`
+(`sim`), made to fail against `is_transit`.
+
+Reading-only: none. The slot is read at three named addresses, and the
+dump's `retry` 6 confirms its effect.

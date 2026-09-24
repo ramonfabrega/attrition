@@ -514,7 +514,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // This map's word moves 11747 → 13640, 10,361 frames before this
         // one. The unlinked are player 1's `71`..`82`. DECISIONS 36: the
         // number, not a trade.
-        off: 45,
+        // **45 → 43 off, 12 → 11 unlinked** on item 673: the retry a failed
+        // unit-grid search buys is gated on `is_move`, not on a move
+        // without the action bit (`docs/PATHFINDER.md` §21.6). This map's
+        // word holds at 13640, 10,361 frames before this one. The unlinked
+        // are player 1's `72`..`82`. DECISIONS 36: the number, not a trade.
+        off: 43,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -536,7 +541,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 3** on item 613, beside `off` above.
         // **3 → 6** on item 620, beside `off` above.
         // **8 → 12** on item 642, beside `off` above.
-        unlinked: 12,
+        // **12 → 11** on item 673, beside `off` above.
+        unlinked: 11,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         extra: 0,
@@ -1211,7 +1217,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // `docs/AI.md` §64), which moves this map's word 12429 → 12536. The
         // extra is the Merchant `1/81`. The 24,000th frame is 11,464 frames
         // past the new word. DECISIONS 36: the number, not a trade.
-        off: 53,
+        // **53 → 34 off, 6 → 8 build_diverged** on item 673: a failed
+        // unit-grid search spares an action-bit move too
+        // (`docs/PATHFINDER.md` §21.6, `docs/AI.md` §65), which moves this
+        // map's word 12536 → 12897. The extra is still `1/81`. The 24,000th
+        // frame is 11,103 frames past the new word. DECISIONS 36: the
+        // number, not a trade.
+        off: 34,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         unlinked: 0,
@@ -1232,7 +1244,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **9 → 10** on item 571, beside `off` above.
         // **10 → 7** on item 661, beside `off` above.
         // **7 → 6** on item 669, beside `off` above.
-        build_diverged: 6,
+        // **6 → 8** on item 673, beside `off` above.
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },

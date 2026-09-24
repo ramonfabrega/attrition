@@ -1820,18 +1820,19 @@ rather than argued.
 0x30`) by two doors, and **they do not have the same gate**:
 
 - **Work cap** — `traversed + probes >= work_cap && anti == 0`,
-  `00683770:552`-`564`. Gate: the current order is a **transit**. Roll:
+  `00683770:552`-`564`. Gate: the current order is a ~~**transit**~~
+  **move**, vslot `+0x14` (§21.6). Roll:
   `Random::get(game_random, 0, 0xffff) % 3 + 6` into that order's
   `retry`. The draw's return address is `006848c9`
   (`astar_path+0x1159`).
 - **Open list exhausted** — `00683770:919`-`971`. Gate: the current order
-  is a transit **and** its `attempts` is under `0xd`. Same roll, same
+  is a ~~transit~~ move (§21.6) **and** its `attempts` is under `0xd`. Same roll, same
   field. The draw's return address is `00684e07`
   (`astar_path+0x1697`), and that is the one run53's trace records on
   Great Lakes 8187.
 
 Both tails then add **30** to `UnitData::safe` (`+0xb2`), outside the
-transit test, which is the cooldown `detect_unit_collision` reads
+move test, which is the cooldown `detect_unit_collision` reads
 (`docs/COLLISION.md` §4.1).
 
 The `attempts` ceiling on one door and not the other is the kind of
@@ -1846,7 +1847,7 @@ suspend: pop the top entry unless it carries `FINAL`, then
 
 ```
 order = update_order(unit)
-if is_transit(order) && order->move_data->retry != 0:  leave it alone
+if is_move(order) && order->move_data->retry != 0:     leave it alone   # §21.6
 else:                                                  kill_current_order(unit)
 ```
 
@@ -1902,6 +1903,44 @@ rests on the listing alone. The residue beside it: `1/28`'s path stack is
 **41** entries where the dump says 42, an off-by-one already present at
 8186 and belonging to the world-grid plan (`find_wpath` drops one
 waypoint near the goal), not to this mechanic.
+
+### 21.6 The gate is `is_move`, and the action bit is not read (2026-09-23, item 673)
+
+§21.2 and §21.3 wrote the gate as "a transit", and this crate built it
+as `Order::is_transit`: a move **without** the action bit. The listing
+has one virtual call in each of the three places, and it is the same
+slot:
+
+- the work-cap tail: `call *0x14` on the current order before the roll;
+- the open-list tail: `call *0x14` at `00684d5b`, then `+0x40` and
+  `cmpl $0xc, 0x20(%eax)` for the ceiling;
+- `find_upath`'s reprieve: `call *0x14` at `006833c9`, then `+0x40` and
+  `cmpl %edi, 0x1c(%eax)` for `retry`.
+
+`+0x14` is `is_move` (`docs/ORDERS.md` §1.1). On `MoveOrder`,
+`AttackToOrder`, `GroupMoveOrder` and `GroupAttackToOrder` the slot is
+`StrafeOrder::is_air` in `vtables.txt`, the COMDAT fold of `return 1`.
+No flag is read. So an attack-move with the action bit set buys the
+retry and keeps its order exactly as a transit leg does.
+
+**Where it showed.** Great Lakes 12536: group 66's thirteen take a
+`GROUP_ATTACK_TO` (flags 5) on both sides. The captain `1/27` steps
+into the standing `1/64`, and its 48-grid search exhausts. The
+original rolls `retry` 6 (the `astar_path+0x1697` draw), spares the
+order, and `do_group_move`'s step-10 tail ungroups the squad: `1/27` to
+a plain `ATTACK_TO` with `dest` 0, and `1/28` and `1/29` to plain
+orders that re-plan ten world entries at tolerance 384. This crate
+killed `1/27`'s order, so no ungroup came and `1/28`–`1/29` marched on
+in formation. The value diff and what moved are in `docs/AI.md` §65.
+
+**Pinned**: `a_walled_in_attack_move_buys_the_retry_and_keeps_its_order`
+(`sim`), made to fail against `is_transit`; the dump's own `1/27` on
+block 12537, `retry` 6 and the rest, in
+`run174_s_word_frame_is_widened_whole`.
+
+**Not established**: whether any other `is_transit` reader in this crate
+stands for a `+0x14` call. `get_action`'s walk (`docs/ORDERS.md` §1.2)
+is `is_move && !action` in the listing, and was not re-read here.
 
 ## 22. `is_attacking` is a `return 0`, and the `army` mode it was switching off (2026-09-18)
 
