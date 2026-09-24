@@ -266,6 +266,10 @@ typedef struct {
     (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || defined(RON_LEADER_PROBE))
 #error "RON_COLLIDE_PROBE claims call-site ids 8 through 12 too"
 #endif
+#if defined(RON_GUARD_PROBE) && (defined(RON_TARGET_PROBE) || defined(RON_TURN_PROBE) || \
+                                 defined(RON_LEADER_PROBE) || defined(RON_COLLIDE_PROBE))
+#error "RON_GUARD_PROBE claims call-site ids 8 through 13 too"
+#endif
 
 static const CallSite CALLS[] = {
     /* PathFinder::astar_path@00683770(Stack<PathData>*, step, anti) — the
@@ -400,6 +404,35 @@ static const CallSite CALLS[] = {
      * 0xc`. push ebp; mov ebp,esp; sub esp,8 */
     {0x20a040, 6, 3, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0, 0, 0, 0}},
 #endif
+#ifdef RON_GUARD_PROBE
+    /* A unit's own step, bracketed (item 696, `docs/GOLDEN.md` §19): on
+     * run190's tick 721 the guard `0/6`, on its post with its `GUARD`
+     * reading on-post, takes one (21, 1) step and names the wagon in
+     * `collide_o`, with no order added and no draw. `set_new_location` (site
+     * 4) is always proxied; these six say which of the unit's functions it
+     * was nested in. Each `this` is named by an INFO 15. Argument counts are
+     * each function's own `ret <imm>` divided by four.
+     *
+     * Unit::do_guard@005e5c70(UnitOrder *) - `ret 4`.
+     * push ebp; mov ebp,esp; and esp,-8 */
+    {0x1e5c70, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
+    /* Unit::do_move@005f7b30(UnitOrder *) - `ret 4`.
+     * push ebp; mov ebp,esp; sub esp,0x40 */
+    {0x1f7b30, 6, 1, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x40, 0, 0, 0, 0}},
+    /* Unit::move_step@005faf30(MoveOrder *, step) - `ret 8`.
+     * push ebp; mov ebp,esp; sub esp,0xa2c */
+    {0x1faf30, 9, 2, 0, {0x55, 0x8b, 0xec, 0x81, 0xec, 0x2c, 0x0a, 0x00, 0x00, 0}},
+    /* Unit::resolve_unit_collision@005f9d30(x, y) - `ret 8`.
+     * push ebp; mov ebp,esp; push -1 */
+    {0x1f9d30, 5, 2, 0, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0, 0, 0, 0, 0}},
+    /* Unit::detect_unit_collision@00617060, as RON_COLLIDE_PROBE's site 8.
+     * `ret 0x1c`. push ebp; mov ebp,esp; sub esp,0x40 */
+    {0x217060, 6, 7, 0, {0x55, 0x8b, 0xec, 0x83, 0xec, 0x40, 0, 0, 0, 0}},
+    /* Unit::detect_boat_collision@005fa8b0(x, y, mates) - the push, whose
+     * answer is 1 "handled" or 0 "hand the step to the land scan". `ret
+     * 0xc`. push ebp; mov ebp,esp; and esp,-8 */
+    {0x1fa8b0, 6, 3, 0, {0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf8, 0, 0, 0, 0}},
+#endif
 #ifdef RON_TURN_PROBE
     /* GuyData::turn_speed(int), ret 4; opt-in field replay experiment. */
     {0x1de340, 6, 1, 0, {0x55, 0x8b, 0xec, 0x53, 0x8b, 0xd9, 0, 0, 0, 0}},
@@ -481,10 +514,12 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Two verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Three verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
+ *   `@guard <who> <ox> <whom> <o> [<o> ...]` the charge's id and owner in
+ *                                         place of the point, issue_guard
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -502,6 +537,13 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * 206` passes for a patrol click with no modifier — and appends a 10-byte
  * `patrol` (type 0x0a) behind the group (item 693, `docs/GOLDEN.md` §18).
  *
+ * `@guard` calls `CommandManager::issue_guard@00941ed0(&command_manager,
+ * group, ox, whom, QUEUE_NEW 2)` — what `Options::picked_spot@00721c40`
+ * passes through `GroupOut::issue_guard` for an unmodified pick — and
+ * appends a 13-byte `guard` (type 0x1f, `[ox][whom][queued]`) behind the
+ * group (item 696, `docs/GOLDEN.md` §19). The charge is not checked here:
+ * `Group::action_guard` asks it, at process time, what the chapter measures.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -516,6 +558,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_COMMAND_MANAGER 0xa8ff60u /* command_manager, VA 0xe8ff60 */
 #define RVA_ISSUE_MOVE_TO 0x541720u
 #define RVA_ISSUE_PATROL 0x541800u
+#define RVA_ISSUE_GUARD 0x541ed0u
 #define ISSUE_MAX 32
 static u8 g_groupout[0x9d0];
 
@@ -542,8 +585,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
     const u16 *t = text;
-    /* 0 `move`, 1 `patrol`: the issuer, its prologue and its command's size. */
-    i32 verb = issue_verb(&t, "move ") ? 0 : issue_verb(&t, "patrol ") ? 1 : -1;
+    /* 0 `move`, 1 `patrol`, 2 `guard`: the issuer, its prologue and its
+     * command's size. A guard's two numbers are the charge's `ox` and `whom`. */
+    i32 verb = issue_verb(&t, "move ") ? 0 : issue_verb(&t, "patrol ") ? 1 : issue_verb(&t, "guard ") ? 2 : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x, y, ids[ISSUE_MAX];
     u32 n = 0;
@@ -559,11 +603,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         return;
     }
     /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
-     * issue_patrol's; both then load `&command_manager` into ecx. */
-    static const u8 prologue[2][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * issue_patrol's and issue_guard's; each then loads `&command_manager`
+     * into ecx. */
+    static const u8 prologue[3][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
-    u32 rva = verb ? RVA_ISSUE_PATROL : RVA_ISSUE_MOVE_TO;
-    u32 size = verb ? 0x0a : 0x16;
+    u32 rva = verb == 2 ? RVA_ISSUE_GUARD : verb ? RVA_ISSUE_PATROL : RVA_ISSUE_MOVE_TO;
+    u32 size = verb == 2 ? 0x0d : verb ? 0x0a : 0x16;
     for (u32 i = 0; i < sizeof prologue[0]; i++)
         if (*(u8 *)(g_base + rva + i) != prologue[verb][i]) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
@@ -595,6 +641,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
     if (verb) {
+        /* issue_patrol(group, x, y, queue) and issue_guard(group, ox, whom,
+         * queue) share one shape: two ints and QUEUE_NEW. */
         typedef void(__thiscall *patrol_fn)(void *, void *, i32, i32, i32);
         ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
     } else {
@@ -1029,7 +1077,7 @@ static u32 build_stub(u8 *s, const HookSite *h) {
 #include "../explore/live_restore_probe.h"
 #endif
 
-#ifdef RON_COLLIDE_PROBE
+#if defined(RON_COLLIDE_PROBE) || defined(RON_GUARD_PROBE)
 /*
  * Name the object behind a `this`. Three of the collision sites are
  * `__thiscall` on a `UnitData *` whose own pair is `+0xa` (o, a short) and
@@ -1109,6 +1157,10 @@ static void __cdecl on_call(u32 site, u32 self, u32 a0, u32 a1, u32 a2, u32 a3) 
     if (site == 8 || site == 11 || site == 12) collide_name(site, self);
     /* 9 collide_here(o, who, ucx, ucy, ...): the block it is about to read. */
     if (site == 9) collide_blocks(a2, a3);
+#endif
+#ifdef RON_GUARD_PROBE
+    /* Every guard-probe site is `__thiscall` on a unit. */
+    if (site >= 8 && site <= 13) collide_name(site, self);
 #endif
 #ifdef RON_TURN_PROBE
     if (site == 8) probe_turn(self);

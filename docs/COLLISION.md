@@ -427,7 +427,7 @@ scanning:
 | when | soft |
 |---|---|
 | my action is `TRADE_ROUTE` and its action is `0xf`, and both are moving | yes |
-| its action is `0xc` and that order's target is me | yes |
+| its action is `0xc` and that order's target is me | yes — **built** (item 696, `Sim::soft_collision`): run190's wagon passes through its walking guard on tick 726, and the original's scan there reaches `is_here` on the guard and never `is_corner` (run191's third take). The first row, the caravan pair, is still not carried |
 | its action is `ATTACK`, mine is too, same player, both `coll_size 1`, both moving, and my target is more than `0x300` beyond my range | yes |
 | we share a `group` (≠ −1), I am not attacking, it has no suspended search (`+0x104 == 0`), and either it has no order or its order is a spell in `{0x28b, 0x28d, 0x28f, 0x291}` or a passable kind — `0` and `0xc` unconditionally, `1, 2, 3, 4, 0x12, 0x13, 0x15` also needing its action ≠ `ATTACK` | yes |
 
@@ -2817,7 +2817,12 @@ Listing `5fa8b0`–`5faf24`. It returns 1, "handled", except where noted.
   player is not the pusher's and not a mutual ally (`LeaderData::who`,
   `diplos == 2` both ways) and is below 8. A land pusher also returns 0
   for a packer that is not packed or is unpacking, for `unit_masks &
-  0x2000000`, and for a cargo (`+0x110`, `is_cargo`).
+  0x2000000`, and for a ~~cargo (`+0x110`, `is_cargo`)~~ **tank**: the
+  `+0x110` there is on the *type's* vtable, `**(other+0x18) + 0x110`, and
+  the PDB's `ObjectTypeData` method list names that slot `is_tank`
+  (`UnitTypeData::is_tank@00470450`, `unit_flags & 0x80000`, the `FLAGS`
+  letter `t`, "Unit is a tank"); the unit's own slot 272 is `is_cargo`,
+  which is where the misreading came from (item 696).
 - **The push.** It uses the bearing from the point to the other, clamped
   to at least 45° off the pusher's facing when the other is not moving
   (`UnitData::is_moving@00610af0`). A **moving** other within 45° of the
@@ -2856,17 +2861,27 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
 
 ### 13.5 What this has *not* established
 
-- **The land half of the arm.** A siege engine, a hero or a supply wagon
+- ~~**The land half of the arm.** A siege engine, a hero or a supply wagon
   takes the same arm in the original. Its quick probes and waypoint probe
   never scan, and `detect_boat_collision` searches land units of every
   player, gaia included, and shoves them aside. This crate gives them the
   land scan as before. It is a stated seam: no diff has reached it, and
-  Great Lakes' armies carry all three.
+  Great Lakes' armies carry all three.~~ **Built** (item 696,
+  `Sim::takes_boat_arm`): golden chapter eleven's supply wagon, on its
+  first step under a player's move on run190's tick 721, pushes the guard
+  standing on its post (21, 1) and names itself in the guard's
+  `collide_o`. run191's brackets show it, `set_new_location(0/6)` nested
+  in the wagon's `detect_unit_collision(…, boats 1)`. The land pusher's
+  candidates include gaia, its refusals are an unpacked or unpacking
+  packer, an entrenched unit and a tank, and it records itself on every
+  unit it pushes. Chapter eleven 724 → 726.
 - **The pushed unit's guy turn** (`Guy::turn_angles`, `Guy::do_turn` at
   `5faec8`/`5faedb`) is not modelled. Its `set_angle` is.
 - **`find_units`' list path** indexes its cell grid with tile coordinates
   (`docs/ORDERS.md` §5.10), which is not reproduced, as in `build_crowd`.
-- **No capture has shown a push.** Run143's ships agree, but the only
+- ~~**No capture has shown a push.**~~ run190 shows a land one (above),
+  and its second, on tick 733, is the next word (`docs/GOLDEN.md` §19).
+  Of the sea half: Run143's ships agree, but the only
   contact in it is between group-mates, which are skipped. The push
   arithmetic, the clamp and the refusals rest on the listing and a unit
   test.
@@ -2886,9 +2901,14 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
   `collide::tests::a_ship_s_quick_probe_never_scans` fails with the arm
   off, and `a_ship_pushes_an_idle_stranger_and_passes_its_group_mate`
   fails without the group-mate skip. `a_boat_measures_with_the_listing_s_distance`
-  pins the distance.
+  pins the distance. `a_supply_wagon_pushes_a_standing_unit_and_not_a_tank`
+  fails with the arm for a ship alone, and without the tank refusal.
+- **Diff-backed, the land half:** `chapter_eleven_s_word_frame_is_widened_whole`
+  (run190's 722 no longer parts), with run191's brackets as the call
+  graph. The other land refusals rest on the listing.
 - **Read from the decompile and listing only**, and owed a blind second
-  reading: all of §13.3 but the group-mate skip, which run143 exercises.
+  reading: all of §13.3 but the group-mate skip, which run143 exercises,
+  and the land push itself, which run190 does.
 
 ## 14. The enemy ladder's arm C: a captain bumped by another enemy strikes what it can reach — golden chapter eight 659 → 900, closed (item 668, 2026-09-23)
 

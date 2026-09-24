@@ -126,7 +126,11 @@ ones: `RON_TARGET_PROBE` (the target triple, item 386), `RON_TURN_PROBE`
 (the turn experiment) and `RON_LEADER_PROBE` (the AI's own offers —
 `Leader::create_units@006c40a0` as the bracket, `MakeList::make_me@006c9be0`
 as the offer, `Leader::make_this@006c94f0` as the purchase; `docs/AI.md`
-§52, run114). `tracer.c` refuses a build that defines two of them, and
+§52, run114). `RON_COLLIDE_PROBE` (the collision sweep, `docs/COLLISION.md`
+§9.1) and `RON_GUARD_PROBE` (a unit's own step bracketed — `do_guard`,
+`do_move`, `move_step`, `resolve_unit_collision`, `detect_unit_collision`,
+`detect_boat_collision`, each `this` named by an `INFO 15`; item 696,
+run191) claim 8 and up too. `tracer.c` refuses a build that defines two of them, and
 since the seventh pass the `PROXIED` INFO record carries the site's id
 beside the RVA it patched, so `report.py` and `rondata::trace` name a
 log's sites from the log itself (`site_table`, `Trace::site_va`) rather
