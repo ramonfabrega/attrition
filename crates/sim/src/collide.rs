@@ -634,7 +634,25 @@ impl Sim {
         if !(self.units[u].alive() && self.units[u].on_map) {
             return;
         }
-        self.coll_paint(u, self.units[u].pos, true);
+        let at = self.units[u].pos;
+        self.coll_paint(u, at, true);
+        self.units[u].coll_at = Some(at);
+    }
+
+    /// `Guy::set_new_location`'s `CollCheck::move_unit(from, to)`: the
+    /// disc moves from where the occupancy last saw guy 0 to where guy 0
+    /// now stands (`docs/COLLISION.md` §16). A unit that is not painted
+    /// has nothing to move.
+    pub(crate) fn coll_follow(&mut self, u: usize) {
+        let Some(from) = self.units[u].coll_at else {
+            return;
+        };
+        if !(self.units[u].alive() && self.units[u].on_map) {
+            return;
+        }
+        let to = self.units[u].movement.body.pos;
+        self.coll_move(u, from, to);
+        self.units[u].coll_at = Some(to);
     }
 
     /// **`Guy::process@005e0230`'s sixty-fourth frame** — the repaint that
@@ -673,13 +691,15 @@ impl Sim {
         if (self.frame + i64::from(self.units[u].index)).rem_euclid(64) != 0 {
             return;
         }
-        self.coll_paint(u, self.units[u].pos, true);
+        let at = self.units[u].coll_at.unwrap_or(self.units[u].pos);
+        self.coll_paint(u, at, true);
     }
 
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to
     /// move to.
     pub(crate) fn coll_remove(&mut self, u: usize) {
-        self.coll_paint(u, self.units[u].pos, false);
+        let at = self.units[u].coll_at.take().unwrap_or(self.units[u].pos);
+        self.coll_paint(u, at, false);
     }
 
     fn coll_paint(&mut self, u: usize, at: Pos, on: bool) {
@@ -882,10 +902,16 @@ impl Sim {
                 // asks `avg_speed == 0` and so only ever reaches a unit
                 // standing still — this one fires for a unit **on the
                 // march**, once every sixteen unit cells.
-                self.coll_add(u);
-            }
-            if on_map {
-                self.coll_move(u, from, to);
+                //
+                // Both walks are around the **figure's** point, which is
+                // where [`Unit::coll_at`] keeps the disc; and the disc does
+                // not move here at all (§16): `move_unit`'s one caller is
+                // `Guy::set_new_location`, so the bits follow guy 0 when
+                // it next moves — the same turn for a unit's own step, and
+                // its next turn for a unit a later one pushed.
+                if let Some(at) = self.units[u].coll_at {
+                    self.coll_paint(u, at, true);
+                }
             }
             self.units[u].pos = to;
             if cell_change {
@@ -909,6 +935,8 @@ impl Sim {
         }
         if move_guys {
             self.units[u].movement.body.pos = to;
+            // `Guy::set_new_location(guy 0, pos, 1)` moves the disc now.
+            self.coll_follow(u);
             // `Unit::set_new_location`'s `param_3` does not stop at guy 0.
             // It is handed on as `Guy::set_new_location(guy 0, pos, 1)`,
             // whose crew loop **puts** every tracked figure on its new
@@ -2353,7 +2381,7 @@ mod tests {
     /// §2, and the reason a fresh scan of the unit list is not the same
     /// thing.
     #[test]
-    fn the_index_follows_the_unit_and_is_not_refcounted() {
+    fn the_index_follows_the_figure_and_is_not_refcounted() {
         let (sim, a, _b) = pair(Pos::new(0x1800, 0x1800), Pos::new(0x4800, 0x4800));
         let c = ucell(sim.units[a].pos);
         for (dx, dy) in spiral(1) {
@@ -2365,12 +2393,45 @@ mod tests {
         let d = Pos::new(c.x + 2, c.y);
         let (mut sim2, a2, _b2) = pair(ucell_centre(c), ucell_centre(d));
         assert!(sim2.coll.get(c.x + 1, c.y), "shared by both discs");
-        sim2.set_new_location(a2, ucell_centre(Pos::new(c.x - 4, c.y)), false);
+        // The figure goes with it (`Guy::set_new_location(guy 0, pos, 1)`),
+        // so the disc moves now.
+        sim2.set_new_location(a2, ucell_centre(Pos::new(c.x - 4, c.y)), true);
         assert!(
             !sim2.coll.get(c.x + 1, c.y),
             "the mover cleared a cell its neighbour still occupies"
         );
         let _ = &sim;
+    }
+
+    /// §16: **the disc follows guy 0, not the unit.** `CollCheck::move_unit`
+    /// has one caller, `Guy::set_new_location`, so a unit moved without
+    /// its figures — a push, `Unit::set_new_location(x, y, 0, 0)` — keeps
+    /// its bits on the old cell until its own `Guy::process` puts the
+    /// figure on the new point. Golden chapter eleven's guard, pushed by
+    /// its wagon on tick 732, is refused its own step on tick 733 by a
+    /// bit its old disc still holds.
+    #[test]
+    fn a_pushed_unit_s_disc_waits_for_its_figure() {
+        let (mut sim, a, _b) = pair(
+            ucell_centre(Pos::new(20, 20)),
+            ucell_centre(Pos::new(30, 30)),
+        );
+        let old = Pos::new(19, 20);
+        let to = ucell_centre(Pos::new(23, 20));
+        assert!(sim.coll.get(old.x, old.y), "the disc stands on its cell");
+        sim.set_new_location(a, to, false);
+        assert!(
+            sim.coll.get(old.x, old.y) && !sim.coll.get(24, 20),
+            "a push leaves the disc where the figure is"
+        );
+        assert_eq!(sim.units[a].coll_at, Some(ucell_centre(Pos::new(20, 20))));
+        sim.units[a].movement.body.pos = to;
+        sim.coll_follow(a);
+        assert!(
+            !sim.coll.get(old.x, old.y) && sim.coll.get(24, 20),
+            "the figure's move takes the disc with it"
+        );
+        assert_eq!(sim.units[a].coll_at, Some(to));
     }
 
     /// §4 again, and the half of it that is a **write into the order**:
