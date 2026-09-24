@@ -22,6 +22,14 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 706, 2026-09-24 — the patriot arm's seams
+
+(712) **Three seams of the Senate's patriot** (`docs/TECH.md`, "The
+government patriot"): `set_type` on a second government, the respawn
+(`Unit::close`, `Build::process`), and `Build::activate`'s Senate head.
+No capture reaches any of them. 679 stands as a second cause: the graft
+table did not move the citizens.
+
 ## Parked by item 707, 2026-09-24 — the guard's listing-only arms
 
 (710) **The AI guard's roll at `fight+0x824`, `k` = 3, the captain
@@ -163,7 +171,8 @@ as −1; building it re-pins `form` rows across a dozen widenings. The human's c
 (`docs/AI.md` §23.1): the first-block `0/-1` leader and `0/2000` city rows
 stand.
 698 found the same shape on Great Lakes: three newborns' `form` −1
-against 0 on 14946 (`docs/journal/2026-09-24-item-698.md`).
+against 0 on 14946 (`docs/journal/2026-09-24-item-698.md`). 706 found it on the
+Senate's patriots too: `1/79` on 14983 and `1/60` on 15783.
 
 ## Parked by item 627, 2026-09-23 — the search gate's other arms
 

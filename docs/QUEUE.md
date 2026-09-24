@@ -13,31 +13,30 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**13 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-706 (Great Lakes) and att-709 (chapter eleven's word) are live.*
+**14 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-711 (Great Lakes) and att-709 (chapter eleven's word) are live.*
 
-- **Great Lakes 12536 → 14982 in five landings**: the retry's gate (673),
-  a resumed search (678), a city's halving (688), the stray-road sweep
-  (695) and the gather park (698, COLLISION §15, run192 to 15039). **East Indies 13640 → 15782** (643):
-  animation names resolve case-folded, first match (ANIM §12, run166).
-- **Chapter six-b staged and closed** at 1250 (651, 680): each aircraft
-  walks at the enemy Airbase, and a captain's attack on a building re-runs
-  `find_new_target` every frame (COMBAT §62, run177's packet).
-- **Chapters nine and ten, the first issuer chapters, closed** (676 move,
-  693 patrol, ORDERS §27 the ground patrol built). The census's order row
-  moved for the first time: 44 → 47 cited of 410. Chapter eleven, the
-  guard (696, 703, 707, run190), is open at 1133: four collision arms and
-  a guard's attack leashed to its post (COMBAT §63).
+- **Great Lakes 12536 → 15175 in six landings**: the retry's gate, a
+  resumed search, a city's halving, the stray-road sweep, the gather park
+  (COLLISION §15), and the graft table with the Senate's patriot (706).
+- **East Indies 13640 → 15985 in two**: animation names case-folded (643,
+  ANIM §12), then 706's graft and patriot. The word is past run78 (708).
+- **Chapter six-b closed** at 1250 (651, 680): a captain's attack on a
+  building re-runs `find_new_target` every frame (COMBAT §62).
+- **The issuer chapters**: nine (move) and ten (patrol, ORDERS §27)
+  closed, and the census's order row moved for the first time, 44 → 47
+  cited of 410. Eleven, the guard, is open at 1133: four collision arms
+  and an attack leashed to its post (COMBAT §63).
 - **Fable backlog: 6 Loop items** (527, 677, 685, 687 a capture's cost,
   692 the census's row, 697 `cover=1` hangs); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w15782 of 24,000 · GreatLakes w14982 of 24,000
+Long captures: EastIndies w15985 of 24,000 · GreatLakes w15175 of 24,000
 Golden: ch11 w1133 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed
-Endpoint 24001: EastIndies 55 off, 0 unlinked · GreatLakes 46 off, 1 unlinked
+Endpoint 24001: EastIndies 47 off, 7 unlinked · GreatLakes 47 off, 0 unlinked
 
-**Opener: 709 is live on the rules lane and 706 on the AI lane (Great
-Lakes is the lower map); 694 follows 706. A detached capture waits on
+**Opener: 709 is live on the rules lane and 711 on the AI lane (Great
+Lakes is the lower map); 708 follows 711. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -48,20 +47,19 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-706. **Great Lakes' word is 14982: who=1's birth of `1/79`** (698 moved it
-    14650 → 14982: `do_move`'s gather park, COLLISION §15). On 14982 ours
-    11 draws against 15 at index 0, the original's three `Guy::init_real
-    +0x52`. Inside run192, widened (block 14983). Under it on 14946 a
-    Barracks' free train is born type 120 here, 127 there (`current_
-    upgrade`), `myhits` 70 against 88: the ×1.25 of parked 679. No mechanism.
+711. **Great Lakes' word is 15175: the free Longbowmen's guard posts** (706
+    moved it 14982 → 15175: `Tribe::graft` and the Senate's patriot, TECH).
+    On 15175 ours 4 draws against 3 at index 2: an extra `Guy::set_anim
+    +0x97a < Unit::do_guard+0x7f4`. Inside run196, widened (block 15176).
+    Under it on 15095 the three free Longbowmen take their guard posts
+    the other way round, `1/77` and `1/78` swapped. No mechanism.
 
-694. **East Indies' word is 15782: who=1's birth of `1/60`** (643 moved it
-    13640 → 15782: animation names resolve case-folded, first match, ANIM
-    §12). On 15782 the original spends three `Guy::init_real+0x52` and a
-    wrap before the bird's `set_anim+0x104b`; ours spends only the bird
-    and the farms. The three are one birth, `1/60` with three figures
-    (item 227). Inside run78 [15700, 15900], never widened: widen it
-    first, and ask whether `LEADERS=1` prints the make list. No mechanism.
+708. **East Indies' word is 15985, past every capture** (706 moved it 15782
+    → 15985 and closed 694: `1/60` is The Senator). On 15985 ours 5 draws
+    against 6 at index 4: ours `Unit::think_scout+0x941`, theirs
+    `Leader::make_stuff+0x63d`. run78 ends on 15900. The `WIDENINGS` row
+    names this item: capture over the word, sized to it, and widen whole.
+    No mechanism.
 
 709. **Chapter eleven's word is 1133: `1/6`'s attack on the guard ends** (707
     moved it 1036 → 1133: a guard's attack is leashed to its post, COMBAT
