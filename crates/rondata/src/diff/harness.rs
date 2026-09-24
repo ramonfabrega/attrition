@@ -4849,13 +4849,19 @@ mod tests {
         // headline: the word went 12184 → 12429 and **12385**'s rotation
         // came under it (`docs/AI.md` §63). The streams above agree
         // through it.
+        //
+        // **Twenty-one → twenty-three on item 673**, the literal following
+        // the headline: the word went 12536 → 12897 and **12582** and
+        // **12782**'s rotations came under it (`docs/PATHFINDER.md`
+        // §21.6). The streams above agree through them.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385
+                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
+                12_782
             ],
-            "below the word Great Lakes takes exactly twenty-one market \
+            "below the word Great Lakes takes exactly twenty-three market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -10516,6 +10522,8 @@ mod tests {
         const PLAN_BLOCK: i64 = 12_322;
         /// The block of the word item 669's fix moved to, 12536's.
         const NEXT_BLOCK: i64 = 12_537;
+        /// The block of the word item 673's fix moved to, 12897's.
+        const RETRY_BLOCK: i64 = GREAT_LAKES_RETRY_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -10536,7 +10544,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_CIVIC,
             11_800,
-            &[WORD_BLOCK, NEXT_BLOCK],
+            &[WORD_BLOCK, NEXT_BLOCK, RETRY_BLOCK],
         )
         else {
             return;
@@ -10574,6 +10582,17 @@ mod tests {
             .filter(|(_, (f, _))| (RUN163_TAIL + 1..=NEXT_BLOCK).contains(f))
             .map(row)
             .collect();
+        let past = firsts
+            .values()
+            .filter(|(f, _)| (NEXT_BLOCK + 1..=TAIL).contains(f))
+            .count();
+        let retry: Vec<String> = standing
+            .get(&RETRY_BLOCK)
+            .into_iter()
+            .flatten()
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 41))
+            .map(|((_, _, what), row)| format!("{what}: {row}"))
+            .collect();
         // ~~**`1/68`'s tile plan, block 12322.**~~ On 12321 both sides held
         // `[goal, (36947, 23672)]`: the final point, and the group move's
         // formation waypoint at tolerance 0. On 12322 `do_move`'s tile arm
@@ -10604,61 +10623,87 @@ mod tests {
             Vec::<String>::new(),
             "the rows above run163, to 12430"
         );
-        assert_eq!(one_sided, [], "a figure changes animation on one side only");
-        // **The new word, 12536 (block 12537), and every key that first
-        // parts above run163 up to it.** Nothing parts from 12400 to 12536.
-        // On 12537 the squad `1/27`–`1/29` takes its orders: the original
-        // gives `1/28` and `1/29` a kind-2 order and a ten-entry world plan
-        // (tolerance 384), and this crate gives them kind 21 with one
-        // entry. It also leaves `1/27` with no order at all. That is the
-        // next item's block. The group-id row on `1/61` and `1/66` is the
-        // same shape as 12281's on `1/40`–`1/42`, which spent no draw.
+        // The one figure whose animation changes on one side only is the
+        // new word's own: the original's `1/41` stands on 12898 and wraps
+        // its idle on 12899, and this crate's walks on (item 673).
+        assert_eq!(
+            one_sided,
+            [(12_898, 1, 41, true, false), (12_899, 1, 41, true, false)],
+            "a figure changes animation on one side only"
+        );
+        // ~~**The word 12536 (block 12537).**~~ On 12537 the squad
+        // `1/27`–`1/29` took its orders. The original gave `1/28` and `1/29`
+        // a kind-2 order with a ten-entry world plan at tolerance 384, and
+        // `1/27` a kind 2 with no plan. This crate gave `1/28` and `1/29`
+        // kind 21 with one entry and `1/27` nothing: 33 rows.
+        //
+        // **Item 673 moved it 12536 → 12897** (`docs/PATHFINDER.md` §21.6,
+        // `docs/AI.md` §65). All thirteen of group 66 take a
+        // `GROUP_ATTACK_TO` on 12536 on both sides. `1/27`, the squad's
+        // captain, steps into the standing `1/64` and its unit-grid search
+        // fails. The original's `astar_path` rolls `retry` (6) and
+        // `find_upath` spares the order, both behind vslot `+0x14`,
+        // `is_move`. This crate gated both on `is_transit`, a move without
+        // the action bit, and killed the order, so `do_group_move`'s
+        // step-0 ungroup never ran and the squad marched on in formation.
+        // **The move's value diff**: the 33 rows are gone, and `1/27` is the
+        // dump's own on 12537 (`retry` 6, `dest_x` 40456, `coll` (36485,
+        // 23365)). What stands is the group-id row, parked 674's, which
+        // spends no draw.
         assert_eq!(
             mid,
             [
-                "12537 1/27 dest_angle: ours 1017446400 theirs -277413888",
-                "12537 1/27 order:length: Length { ours: 0, theirs: 1 }",
-                "12537 1/27 orders.len: ours 0 theirs 1",
-                "12537 1/27 orders_x: ours 36456 theirs 45000",
-                "12537 1/27 orders_y: ours 23352 theirs 22824",
-                "12537 1/28 g.angle[0]: ours 960561152 theirs 463011840",
-                "12537 1/28 g.avg_speed[0]: ours 3 theirs 6",
-                "12537 1/28 g.des_angle[0]: ours 960561152 theirs 463011840",
-                "12537 1/28 g.des_x[0]: ours 36612 theirs 36616",
-                "12537 1/28 g.des_y[0]: ours 23638 theirs 23620",
-                "12537 1/28 g.last_speed[0]: ours 12 theirs 26",
-                "12537 1/28 g.x[0]: ours 36612 theirs 36616",
-                "12537 1/28 g.y[0]: ours 23638 theirs 23620",
-                "12537 1/28 heading: ours 960561152 theirs 463011840",
-                "12537 1/28 order:kind: Kind { ours: 21, theirs: 2 }",
-                "12537 1/28 path:length: PathLength { ours: 1, theirs: 10 }",
-                "12537 1/28 path[0].to: PathTo { slot: 0, ours: (44874, 22902), theirs: (44856, 22920) }",
-                "12537 1/28 pos: ours (36612,23638) theirs (36616,23620)",
-                "12537 1/28 tolerance: ours 0 theirs 384",
-                "12537 1/29 g.angle[0]: ours 1022623744 theirs 610729984",
-                "12537 1/29 g.avg_speed[0]: ours 3 theirs 6",
-                "12537 1/29 g.des_angle[0]: ours 1022623744 theirs 610729984",
-                "12537 1/29 g.des_x[0]: ours 36756 theirs 36764",
-                "12537 1/29 g.des_y[0]: ours 23352 theirs 23336",
-                "12537 1/29 g.last_speed[0]: ours 12 theirs 26",
-                "12537 1/29 g.x[0]: ours 36756 theirs 36764",
-                "12537 1/29 g.y[0]: ours 23352 theirs 23336",
-                "12537 1/29 heading: ours 1022623744 theirs 610729984",
-                "12537 1/29 order:kind: Kind { ours: 21, theirs: 2 }",
-                "12537 1/29 path:length: PathLength { ours: 1, theirs: 10 }",
-                "12537 1/29 path[0].to: PathTo { slot: 0, ours: (45139, 22787), theirs: (45144, 22776) }",
-                "12537 1/29 pos: ours (36756,23352) theirs (36764,23336)",
-                "12537 1/29 tolerance: ours 0 theirs 384",
                 "12537 1/61 order:group.id: Group { field: \"id\", ours: 12536206, theirs: 12542607 }",
                 "12537 1/66 order:group.id: Group { field: \"id\", ours: 12536206, theirs: 12542607 }",
             ],
-            "the rows above run163, to the new word's block"
+            "the rows above run163, to the old word's block"
         );
+        // **The new word, 12897 (block 12898), `1/41`'s every standing
+        // row.** The original's `1/41` steps into `1/15` (`collide_o 15`),
+        // stops and stands (`Unit::move_step+0x823`, the third draw); this
+        // crate's walks on. On 12825 the original's squad `1/40`–`1/42`
+        // holds kind 2 where this crate's holds 21, the same shape as
+        // 12537's. The value chain under it starts
+        // at `1/41`'s plan on 12626 (23 entries against 20). No mechanism
+        // is named.
+        assert_eq!(
+            retry,
+            [
+                "collide: ours 0 theirs 1",
+                "collide_o: ours -1 theirs 15",
+                "collide_who: ours -1 theirs 1",
+                "g.angle[0]: ours 1543372800 theirs 1543897088",
+                "g.avg_speed[0]: ours 23 theirs 17",
+                "g.cur_anim[0]: ours 8 theirs 0",
+                "g.cur_time[0]: ours 8 theirs 1",
+                "g.des_angle[0]: ours 1543372800 theirs 1543897088",
+                "g.des_x[0]: ours 42455 theirs 42456",
+                "g.des_y[0]: ours 22484 theirs 22488",
+                "g.end_time[0]: ours 15 theirs 32",
+                "g.last_speed[0]: ours 25 theirs 0",
+                "g.last_time[0]: ours 7 theirs 0",
+                "g.stopped[0]: ours 0 theirs 1",
+                "g.x[0]: ours 42455 theirs 42456",
+                "g.y[0]: ours 22484 theirs 22488",
+                "heading: ours 1543372800 theirs 1543897088",
+                "order:coll: Coll { ours: None, theirs: (42486, 22509) }",
+                "order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
+                "path:length: PathLength { ours: 3, theirs: 5 }",
+                "pos: ours (42455,22484) theirs (42456,22488)",
+            ],
+            "1/41 on the new word's block"
+        );
+        // Every key that first parts from 12538 to run174's last block: the
+        // value chain under the new word, the citizens' `myhits` 40 against
+        // 50 from 12564 (no draw), and the squad `1/40`–`1/42` from 12825.
+        assert_eq!(past, 209, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
-        // `1/68`'s plan.
-        assert_eq!((under, firsts.len()), (259, 2120), "the floor");
+        // `1/68`'s plan. **Item 673 took 1,650 above run163** (2,120 →
+        // 470): the 33 on 12537 and the cascade the squad's formation
+        // walk left behind it, and none under.
+        assert_eq!((under, firsts.len()), (259, 470), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

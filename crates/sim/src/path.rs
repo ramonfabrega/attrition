@@ -1120,16 +1120,26 @@ impl Sim {
     ///
     /// `ceiling` is the open-list-exhausted tail's extra test — the move
     /// data's `attempts` under 13 (`astar_path@00683770:949`). The work-cap
-    /// tail has only the transit test, so it passes `false`: reading the
+    /// tail has only the move test, so it passes `false`: reading the
     /// two as one gate is the mistake this argument exists to make visible.
     ///
+    /// **The move test is vslot `+0x14`, `is_move`, and nothing else**
+    /// (`call *0x14` at `00684d5b` and on the work-cap tail; item 673,
+    /// `docs/PATHFINDER.md` §21.6). Every move class answers it with the
+    /// COMDAT fold of `return 1` (`StrafeOrder::is_air` at `+0x14` of
+    /// `AttackToOrder`, `GroupAttackToOrder`, `GroupMoveOrder` and
+    /// `MoveOrder`, `vtables.txt`), so the action bit is not read. Until
+    /// item 673 this read [`crate::orders::Order::is_transit`], a move
+    /// *without* the action bit, and an attack-move blocked on the unit
+    /// grid lost its order where the original's buys a wait.
+    ///
     /// The draw is spent **inside** the gates on both tails, so an order
-    /// that is not a transit — or one over the ceiling — costs the stream
+    /// that is not a move — or one over the ceiling — costs the stream
     /// nothing.
     fn roll_upath_retry(&mut self, u: usize, ceiling: bool) {
         if !self
             .current_order(u)
-            .is_some_and(crate::orders::Order::is_transit)
+            .is_some_and(crate::orders::Order::is_move)
         {
             return;
         }
@@ -1676,11 +1686,13 @@ impl Sim {
                     self.units[u].path.pop();
                 }
                 // **The kill, and what spares it** — `find_upath@
-                // 00682f30:187`-`195`: a **transit** current order whose
-                // move data carries a non-zero `retry` is left alone, and
-                // the tail of `astar_path` has just written that retry. So
-                // a failed unit-grid search kills the order only when the
-                // roll did not happen — a non-transit order, or one over
+                // 00682f30:187`-`195`: a current order that is a **move**
+                // (vslot `+0x14`, `call *0x14` at `006833c9`; the action
+                // bit is not read, item 673) whose move data carries a
+                // non-zero `retry` is left alone, and the tail of
+                // `astar_path` has just written that retry. So a failed
+                // unit-grid search kills the order only when the roll did
+                // not happen — an order that is not a move, or one over
                 // the `attempts` ceiling ([`Sim::roll_upath_retry`]).
                 //
                 // Until item 329 the roll was a seam and the kill was
@@ -1690,7 +1702,7 @@ impl Sim {
                 // crate threw the stack away and went back to `fight`.
                 let spared = self
                     .current_order(u)
-                    .is_some_and(crate::orders::Order::is_transit)
+                    .is_some_and(crate::orders::Order::is_move)
                     && self.current_move(u).is_some_and(|m| m.retry != 0);
                 if !spared {
                     self.kill_current_order(u);
@@ -2171,6 +2183,57 @@ mod tests {
             sim.units[u].search.is_some(),
             "`0 < length` gates the clear: an empty stack frees nothing"
         );
+    }
+
+    /// **A walled-in attack-move buys the retry, and keeps its order**
+    /// (item 673, `docs/PATHFINDER.md` §21.6). The gate on
+    /// `astar_path`'s open-list-exhausted roll (`call *0x14` at
+    /// `00684d5b`) and on `find_upath`'s reprieve (`006833c9`) is vslot
+    /// `+0x14`, `is_move`, which every move class answers with `return 1`:
+    /// the action bit is not read. So an `ATTACK_TO` with the action bit
+    /// set fares exactly as a transit leg does: one roll, `retry` in
+    /// `6..=8`, and the order stays. Against the old `is_transit` gate the
+    /// action-bit arm lost its order here. That was Great Lakes' `1/27` on
+    /// 12536, whose ungroup never came and so left its squad in formation.
+    #[test]
+    fn a_walled_in_attack_move_buys_the_retry_and_keeps_its_order() {
+        for action in [true, false] {
+            let mut sim = flat_sim(12);
+            // A ring of blocked tiles two out from tile (5, 5).
+            for d in -2..=2 {
+                for t in [(5 + d, 3), (5 + d, 7), (3, 5 + d), (7, 5 + d)] {
+                    let t = Pos::new(t.0, t.1);
+                    sim.world
+                        .set_tile_field(t, tile::SURFACE, tile::SURFACE_FOREST);
+                    sim.world.set_tile_bits(t, tile::BLOCKED);
+                }
+            }
+            let u = walker(&mut sim, Pos::new(5 * 0xc0 + 0x60, 5 * 0xc0 + 0x60));
+            let goal = Pos::new(20 * 0xc0 + 0x60, 5 * 0xc0 + 0x60);
+            sim.add_move_order(
+                u,
+                goal,
+                MoveKind::AttackTo,
+                crate::orders::QueuePos::New,
+                action,
+            );
+            push_goal(&mut sim, u, goal);
+            // A budget no ring this small can spend, so the open list is
+            // exhausted rather than the search suspended.
+            assert_eq!(
+                sim.upath(u, false, 100_000, false),
+                0,
+                "the ring refuses the plan"
+            );
+            let m = sim
+                .current_move(u)
+                .unwrap_or_else(|| panic!("action {action}: the order is spared"));
+            assert!(
+                (6..=8).contains(&m.retry),
+                "action {action}: `retry` is the roll, got {}",
+                m.retry
+            );
+        }
     }
 
     #[test]
