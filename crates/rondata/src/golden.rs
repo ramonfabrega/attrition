@@ -683,6 +683,8 @@ mod tests {
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
         ("chapter6.cmd", &[]),
+        // Chapter six-b: chapter six with an Airbase a side (item 651).
+        ("chapter6b.cmd", &[]),
         ("chapter7.cmd", &[]),
         // Chapter seven's control, the same file less `0 !ai off` (item 578).
         ("chapter7_control.cmd", &[]),

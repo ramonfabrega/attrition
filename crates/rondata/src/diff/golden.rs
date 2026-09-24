@@ -436,6 +436,40 @@ fn chapter_six_holds_to_the_golden_word() {
     eprintln!("chapter six: sequence {}, values {:?}", w.sequence, w.value);
 }
 
+/// **Chapter six-b, pinned** — the air line from a base (`docs/GOLDEN.md`
+/// §10, item 651, run175). Eight staged lines: chapter six's six and an
+/// `add airbase` for each side on 606 and 608, before the aircraft.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run175): ten `INFO cmd` records each returning 1; 647 blocks; run168's
+/// game to frame 611 by `rngcmp.py`; both Airbases finished on 607 and
+/// 609; the aircraft on run168's seats. **The first falsifier fired, on
+/// the target arm**: each aircraft takes an `ATTACKORDER` on the enemy
+/// Airbase on its birth block and walks to it on the ground, `air_alt` 0;
+/// `inside_up` stays −1, so the base link is dead as read.
+///
+/// `GOLDEN_WORD_CHAPTER_SIX_B` carries what stands at the word.
+#[test]
+fn chapter_six_b_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch6b", "chapter6b", 6, 8, 1250) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIX_B,
+        "chapter six-b's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIX_B}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIX_B,
+        "chapter six-b's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §10"
+    );
+    eprintln!(
+        "chapter six-b: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter eight, pinned** — the commanders and a declared war
 /// (`docs/GOLDEN.md` §12, item 660, run171). Ten staged lines: `!ai off`,
 /// `library 2` for both players, a hoplite squad and a General for who=0, a
@@ -5655,6 +5689,82 @@ fn chapter_six_s_word_frame_is_widened_whole() {
     got.sort();
     let want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
     assert_eq!(got, want, "ch6: what parts under the word moved");
+}
+
+/// **Chapter six-b's word, widened whole, both directions** (item 651).
+/// Every record run175 carries on every block of
+/// [`WIDENING_CHAPTER_SIX_B`], by [`widen_civilians`] with the `AMMO`
+/// record on: every unit and figure, every building — the two Airbases
+/// among them, since run175 prints `BUILDS=7` — both leaders at
+/// `LEADERS=2`, and every live round.
+#[test]
+fn chapter_six_b_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch6b",
+        "chapter6b",
+        WIDENING_CHAPTER_SIX_B,
+        0,
+        0,
+        (GOLDEN_WORD_CHAPTER_SIX_B, GOLDEN_WORD_CHAPTER_SIX_B + 2),
+        true,
+        88,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch6b f{f} {w}/{o} {what}: {row}");
+    }
+    // **The standing rows of the first block**: the unmodelled `form` on
+    // the eleven start units and two `filled_gather_slots` — chapter six's
+    // family less its thirteen `build:extra`, because run175 prints
+    // `BUILDS` and every building, the two Airbases included, agrees on
+    // every block.
+    let standing = |what: &str| what == "form" || what.starts_with("leader:filled_gather_slots");
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX_B.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 13,
+        "ch6b: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    // **What parts under the word**, pinned by block and key
+    // (`docs/GOLDEN.md` §10). Each aircraft's `form` on its birth block,
+    // the standing family. Each aircraft's `order:target` on its birth
+    // block, **the harness's and not the simulation's**: this crate's
+    // attack order names the enemy Airbase exactly as run175's does, but
+    // `Built::build_ids` names only a building the start dump linked, so
+    // a staged Airbase reads `None` (item 651 probed it: with a fallback
+    // to the building's own `(owner, index)` both rows go and nothing else
+    // moves). Then **the word's own block**: on 633 the original's
+    // Fighter `0/6` holds no order, having reached its attack point on
+    // 632, and this crate's holds its attack order and a fresh move from
+    // `find_attack_pos` (the word's ten draws), so `orders.len`, the
+    // order stack's `length`, and `dest_angle` part; on 634 `idle`. The
+    // Bomber `1/6` agrees on every block to 634.
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX_B.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "611 0/6 order:target",
+        "616 1/6 form",
+        "616 1/6 order:target",
+        "633 0/6 dest_angle",
+        "633 0/6 order:length",
+        "633 0/6 orders.len",
+        "634 0/6 idle",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch6b: what parts under the word moved");
 }
 
 /// **Chapter eight's word, widened whole, both directions** (item 660).
