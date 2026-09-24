@@ -730,6 +730,16 @@ gate whose red means less; with two lanes and a commander gating, it will.
 calls. A worker who trusts the receipt will not look for the search on
 disk; 647 found it only by reading the cfg.
 
+(656) **A lane sat idle for an hour and a half after its capture had
+finished.** Filed by the commander on 2026-09-23: item 571 launched run163
+through `viadriver.sh`, which hands the game to RonDriver.app and returns,
+and ended its turn. The queue logged "captured, checks ok" at 22:21 UTC;
+nothing re-invoked the lane, and the commander found it at 23:57 by
+reading the runner's log. `ccc watch`'s stall is 30 minutes on the job
+file, and it never fired here. A detached capture needs a wait the harness
+can see, keyed on the runner's exit (565), or the commander's roster
+check has to read the capture lane's lock.
+
 (630) **A restage booked on a premise a reading already kills.** Filed by
 the commander on 2026-09-23 from item 628's staging reading. The twelfth
 pass restaged chapter seven as seven-b for who=1, "where the cheat's block
