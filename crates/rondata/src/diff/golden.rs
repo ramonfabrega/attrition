@@ -6031,14 +6031,18 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // **1139**. The seven 1134 rows close, and every row from 736 to 1140
     // agrees.
     //
-    // **The block, word 1139** (this test's, beside the constant's delta):
-    // on 1139 the original's guard rolls its idle stand on the post,
-    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, and this crate's does
-    // not. **No record parts on block 1140**: `GUYS=2` prints no
-    // animation state, so the roll's input is not on disk. Both guards
-    // die on tick 1140 with 60 of 65 hits, off the block after. The first
-    // value part past the word is `1/4`'s move on 1156, downstream of the
-    // draw. No mechanism is named.
+    // **The fifth pin, word 1139**: the guard's idle stand on 1139,
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, with no record parting
+    // (`GUYS=2` prints no clock). `guy_flags & 0x20` is guy 0's (item 713,
+    // `docs/ANIM.md` §13): the crew figure's p91 on tick 1100 is `IDLE2`,
+    // 71 frames, and its re-roll falls on 1139. Built → **1250, closed**.
+    //
+    // **The block, run190 whole** (this test's, beside the constant's
+    // delta). Without the fix the whole window parts from 1156: `1/4`'s
+    // move (`orders_x/y`, `dest_angle`, the move's `x/y/off/angle`), then
+    // `0/4` on 1172, `1/3` on 1188 and `1/1`'s gather `wait` on 1189. With
+    // it no row parts past 1001: the list below is the standing family
+    // and parked 275's row, as on 1139.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",

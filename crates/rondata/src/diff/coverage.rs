@@ -790,7 +790,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Item 703 moved the word 734 → 1036, the guard's attack on who=1's
     // chariot ending; 734 stays, the block it was widened on. Item 707
     // moved it 1036 → 1133, `1/6`'s own attack ending; 1036 stays. Item
-    // 709 moved it 1133 → 1139, the resync; 1133 stays.
+    // 709 moved it 1133 → 1139, the resync; 1133 stays. Item 713 closed
+    // it at 1250, the trace's end; 1139 stays, the last word's block.
     if let Some(p) = &ch11 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ELEVEN;
         for w in [622, 724, 734, 1036, 1133, 1139] {

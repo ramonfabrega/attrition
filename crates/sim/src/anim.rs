@@ -1249,7 +1249,13 @@ impl Sim {
                 let p = self.rng.roll() % 100;
                 if cur_cat == 0 && p3 {
                     let peasant_on_masked = self.is_peasant(u) && self.on_masked_tile(u);
-                    v = idle_variant(p, self.units[u].guy_flag_0x20, peasant_on_masked);
+                    // `guy_flags & 0x20` is **the guy's**, and only
+                    // `Unit::set_in_danger@005fcfb0` sets it, on figures
+                    // `0 .. guy_mark` (`5fd01e`, the image's one writer).
+                    // A crew figure past the squad never carries it, so
+                    // it keeps all four variants (`docs/ANIM.md` §13).
+                    let two = self.units[u].guy_flag_0x20 && g < SQUAD_SIZE;
+                    v = idle_variant(p, two, peasant_on_masked);
                 }
                 // `5da7a2` — and it sits **outside** the variant
                 // selection's `(cur_cat == 0) && p3` gate, so a scholar
@@ -2784,6 +2790,45 @@ mod tests {
         assert_eq!((a.cur_time, a.anim), (0, b.anim));
         assert_eq!(b.cur_time, 0);
         assert_eq!(b.last_time, -1);
+    }
+
+    /// **`guy_flags & 0x20` is guy 0's; the crew keeps four idle
+    /// variants** (`docs/ANIM.md` §13). `Unit::set_in_danger@005fcfb0`
+    /// sets the bit on figures `0 .. guy_mark` alone (`5fd01e`, the
+    /// image's one writer), so the crew figure past the squad rolls
+    /// without it. Golden chapter eleven's chariot, the guard `0/6`, with
+    /// its two pieces' lengths: on tick 1100 its crew's p91 is `IDLE2`, 71
+    /// frames, where the flag would give `IDLE1`, 81, and the re-roll on
+    /// 1139 is the one this crate missed.
+    ///
+    /// Made to fail on purpose: with the flag read for every figure, the
+    /// crew takes `IDLE1`.
+    #[test]
+    fn a_crew_figure_rolls_its_idle_without_the_danger_flag() {
+        // Two rolls in 83..=95 in a row: guy 0's, then the crew's.
+        let seed = (1u32..)
+            .find(|&x| {
+                let mut r = Rng::new(x);
+                let (a, b) = (r.roll() % 100, r.roll() % 100);
+                (83..=95).contains(&a) && (83..=95).contains(&b)
+            })
+            .unwrap();
+        let mut s = sim_at(seed);
+        for (piece, lens) in [(145, [31, 80, 70, 31]), (12817, [31, 81, 71, 31])] {
+            for (slot, len) in [DEFAULT, IDLE1, IDLE2, IDLE3].into_iter().zip(lens) {
+                s.art.lengths.insert((piece, slot), len);
+            }
+        }
+        let u = animal(&mut s, 0, 6, 145, IDLE1, 80, 80);
+        let mut crew = s.units[u].guys[0];
+        (crew.gpiece, crew.end_time) = (12817, 80);
+        s.units[u].guys.push(crew);
+        s.units[u].guy_flag_0x20 = true;
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, stepped(seed, 2), "one roll a figure");
+        let (a, b) = (s.units[u].guys[0], s.units[u].guys[1]);
+        assert_eq!((a.anim, a.end_time), (IDLE1, 80), "guy 0 is flagged");
+        assert_eq!((b.anim, b.end_time), (IDLE2, 71), "the crew is not");
     }
 
     /// The idle roll's thresholds, and `init_real`'s.
