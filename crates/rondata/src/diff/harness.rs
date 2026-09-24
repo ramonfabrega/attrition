@@ -10226,6 +10226,36 @@ mod tests {
                 };
                 let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                if who == 1 && std::env::var("RON_SITE_SET").is_ok() {
+                    let m: BTreeMap<String, i64> = mine.iter().cloned().collect();
+                    let set = |g: &dyn Fn(&str) -> i64| -> Vec<String> {
+                        (0..10)
+                            .map(|i| {
+                                let f = |k: &str| g(&format!("SITE[{i}].{k}"));
+                                format!(
+                                    "({},{}) v{} d{} r{} g{}",
+                                    f("wx"),
+                                    f("wy"),
+                                    f("val"),
+                                    f("dist"),
+                                    f("rank"),
+                                    f("reg")
+                                )
+                            })
+                            .collect()
+                    };
+                    let o = set(&|k| m.get(k).copied().unwrap_or(-9));
+                    let y = set(&|k| t.get(k).copied().unwrap_or(-9));
+                    let (mut os, mut ys) = (o.clone(), y.clone());
+                    os.sort();
+                    ys.sort();
+                    eprintln!(
+                        "  siteset {n} {}\n    ours  {}\n    thrs  {}",
+                        if os == ys { "same" } else { "DIFF" },
+                        o.join(" | "),
+                        y.join(" | ")
+                    );
+                }
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());

@@ -282,6 +282,55 @@ fn a_finished_city_projects_territory_and_the_radius_mask() {
     );
 }
 
+/// **`City::fix_world_vals`: a city wears the map's site values down
+/// round it** (`docs/AI.md` §67). The last thing `City::init` does is
+/// quarter `WData.val` on every cell of the circle round the centre out to
+/// ring `k = (radius + 3) / 4`, and halve it on the three rings beyond.
+/// This fixture's radius is 20 tiles, so `k` is 5 and the walk ends with
+/// ring 8; a cell past it keeps its value. Great Lakes 14382's Barracks
+/// went up on the cell Norwich's founding had halved, and every one of
+/// the leader's ten site scores stood at double the original's for want
+/// of it.
+#[test]
+fn a_founded_city_quarters_the_site_values_inside_its_rings_and_halves_three_beyond() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    for y in 0..16 {
+        for x in 0..16 {
+            let c = Cell::new(x, y);
+            let mut d = sim.world.cell_data(c);
+            d.val = 200;
+            sim.world.set_cell_data(c, d);
+        }
+    }
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let centre = sim.cities[c].pos.cell();
+    assert_eq!(centre, Cell::new(8, 8));
+    assert_eq!(sim.radius_of(c), 20, "the fixture's radius, so k is 5");
+    let circle = crate::ai_place::circle();
+    let val = |sim: &Sim, i: usize| {
+        let at = Cell::new(centre.x + circle.x[i], centre.y + circle.y[i]);
+        sim.world.cell_data(at).val
+    };
+    assert_eq!(val(&sim, 0), 50, "the centre is quartered");
+    assert_eq!(
+        val(&sim, circle.radius[5] - 1),
+        50,
+        "ring 5's last is quartered"
+    );
+    assert_eq!(val(&sim, circle.radius[5]), 100, "ring 6's first is halved");
+    assert_eq!(
+        val(&sim, circle.radius[7] - 1),
+        100,
+        "ring 7's last is halved"
+    );
+    assert_eq!(
+        sim.world.cell_data(Cell::new(0, 0)).val,
+        200,
+        "a corner twelve cells out is past ring 8"
+    );
+}
+
 /// **`mask_me`'s first write: the `BUILDING` bit on the building's own
 /// cell** — `006312a0`, `cells[y / 0x300 * xs + x / 0x300].flags |= 0x4000`
 /// when marking and `&= 0xbfff` when unmarking. `docs/CITIES.md` §3.6 named

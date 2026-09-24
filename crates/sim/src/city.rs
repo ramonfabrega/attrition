@@ -420,7 +420,34 @@ impl Sim {
         if capital && let Some(r) = reg {
             self.ai[who as usize].census.home_reg = i32::from(r);
         }
+        self.fix_world_vals(c);
         c
+    }
+
+    /// `City::fix_world_vals@00735aa0`, the last thing `City::init` does,
+    /// on every city it records — a founding and a capture alike
+    /// (`docs/AI.md` §67). The site value byte `WData.val` of every cell
+    /// in the circle round the centre is **quartered** out to ring `k`
+    /// and **halved** on the three rings beyond it, where `k` is the
+    /// city's radius in tiles, capped at 64, plus three, over four (the
+    /// circle's `radius[r]` counts rings `0..=r`) — so a spiral
+    /// or a site score read after a city stands sees the map maker's value
+    /// worn down round it, and a second city on the same ground wears it
+    /// down again. `City::close` gives nothing back.
+    fn fix_world_vals(&mut self, c: usize) {
+        let centre = self.cities[c].pos.cell();
+        let r = self.radius_of(c).min(0x40);
+        let k = ((r + 3) / 4).min(0x3d) as usize;
+        let circle = crate::ai_place::circle();
+        for i in 0..circle.radius[k + 3] {
+            let cell = crate::world::Cell::new(centre.x + circle.x[i], centre.y + circle.y[i]);
+            if !self.world.contains(cell) {
+                continue;
+            }
+            let mut d = self.world.cell_data(cell);
+            d.val >>= if i < circle.radius[k] { 2 } else { 1 };
+            self.world.set_cell_data(cell, d);
+        }
     }
 
     /// `City::close`: the record dies; members re-home.
