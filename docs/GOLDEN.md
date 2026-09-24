@@ -77,7 +77,8 @@ agrees to its end, 1000 (item 627); chapter eight ~~is pinned at 617 of
 668), its
 capture cut at 901 by the allied victory its own `ally` line causes (§12);
 chapter six-b ~~is pinned at 632 of 1250 (item 651)~~ agrees to its end,
-1250 (item 680). **A chapter whose
+1250 (item 680); chapter nine, the first issuer chapter, is pinned at 693
+of 1100 (item 676, §17). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -1547,3 +1548,47 @@ their slots on blocks 938–941.
 
 Predicted: none fires. If one does, it closes the chapter on what it
 measured and restages as a new one, as §11 and §10 did.
+
+**Run 2026-09-24 as run180 (item 676): no falsifier fired.**
+
+- **Both commands reach the pump.** `INFO` 17 on 620 and 640, refusal 0,
+  the package 10 → 37 bytes (its 10 are the turn's `camera`). Between
+  blocks 621 and 622 the dump prints `process_group, new 0 1 621`,
+  `process_move_to 12672 7296 2 0 0 1 0` and `process_move_to_2 -1 -1`,
+  and the same for the squad between 641 and 642. `process_group` sets
+  `play 0` on each commanded unit.
+- **The chariot**: one `MOVEORDER`, `flags 5`, an 11-entry plan, on 622.
+  **The squad**: three `GroupMoveOrder`s, id 641000, leader `0/7`,
+  `form_id` 0–2, on 642.
+- **All four arrive.** The squad's stacks empty on 938, 939 and 941 on
+  (5112, 16488), (4992, 16512) and (4872, 16536), exactly this crate's
+  blocks and points. The chariot's empties on 1040 on (12672, 7296).
+- **What the reading missed: the lake is no obstacle to the plan.** The
+  original's plan runs straight along row 9 (`y 7320`), through the sand.
+  A human leader's world search takes a cell whose four fog half-cells it
+  has never seen as valid — `UnitData::invalid_loc@00607c30`'s `param_4`
+  arm, which `valid_wcoord` enables past a node's second step — and on 620
+  player 0 has seen none of the sand. The chariot walks east until the sand
+  is in sight. On 693, a cell short of it, the straight line fails, it
+  spends `do_move`'s grid draw, and it re-plans round the north end. That
+  is the bend this crate took on 621.
+
+**Where this crate parts: `GOLDEN_WORD_CHAPTER_NINE` = 693, open.** On 693
+the original spends 7 draws against this crate's 6, parting at draw 0 on
+`Unit::do_move+0xe84`, the chariot's re-plan. This crate's `invalid_loc`
+carries the fog arm as a seam ("a no-op with no fog model"), so its plan
+went round the lake from the start and there is nothing to refuse. The
+value diff is `chapter_nine_s_word_frame_is_widened_whole` over (605, 696).
+Past the first block's 26 standing rows — `form`, `filled_gather_slots`
+and `build:extra`, chapter six's family — it pins:
+
+- each staged unit's `form` on its birth block;
+- the chariot's plan slots 2–10, `dest_y`, heading and position on 622
+  (648–649 a waypoint on);
+- the squad's `order:group.id` on 642, 641000 against 647600. The original's
+  `group.id` is the pool slot, 0 here (the chariot's push took slot 1
+  first); this crate's pushed group reads `64 +` its index in `Sim::pushed`.
+
+The squad's walk, slots and plan agree to the word. The coverage driver
+takes the word's five blocks, and they add one unread key,
+`GroupMoveOrder/GROUPORDER/UNITORDER` `flags`, the attack-move's second copy.

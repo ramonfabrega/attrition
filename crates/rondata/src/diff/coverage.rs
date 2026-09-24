@@ -207,6 +207,15 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/UNITDATA/GROUPATTACKTOORDER/GroupMoveOrder/GROUPORDER/UNITORDER",
         "flags",
     ),
+    // **Item 676's run180 window is the first to print a plain grouped
+    // move** — the squad's `GroupMoveOrder` under a player's `MOVE_TO` —
+    // and its second `UNITORDER`, under `GROUPORDER`, is the same unread
+    // copy as the attack-move's above; both print 5 on the word's blocks.
+    // Nothing is owed on it either.
+    (
+        "GAME/FRAME/UNITDATA/GroupMoveOrder/GROUPORDER/UNITORDER",
+        "flags",
+    ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
         "healing inside_down inside_down_who launch_frames near_o near_who",
@@ -426,6 +435,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch6 = golden_dump("ch6");
     let ch6b = golden_dump("ch6b");
     let ch8 = golden_dump("ch8");
+    let ch9 = golden_dump("ch9");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -650,6 +660,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let w = 632;
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter six-b carries the word's five blocks");
+        frames += n;
+    }
+    // **Chapter nine's word, on run180** (item 676): the first capture of
+    // a player's order — a `GroupMoveOrder` under a player's command, the
+    // `COMMANDMANAGER` text the turn pump prints, and `play` set on each
+    // commanded unit — whose records no other window here carries. The
+    // window is the word's block with two on either side, as six's.
+    if let Some(p) = &ch9 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINE;
+        let w = 693;
+        let n = drive_capture(p, w - 2, w + 2, &mut paths);
+        assert_eq!(n, 5, "chapter nine carries the word's five blocks");
         frames += n;
     }
     // **Chapter eight's word, on run171** (item 660): the first capture
