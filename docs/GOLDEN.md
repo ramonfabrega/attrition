@@ -846,6 +846,55 @@ Both leaders agree on every `LEADERS=2` row of every block, so `library
 §11.11). The chapter's premise stays killed: an air line that moves needs
 a based restage (parked 651).
 
+### Chapter six-b — the air line from a base (item 651)
+
+**Premise, as booked.** A based aircraft moves where an unbased one did
+not. **Lines** (`chapter6b.cmd`): chapter six's, with one lever added —
+`add airbase who=0 4,33` on 606 and `add airbase who=1 12,33` on 608, each
+centred seven tiles north of its own aircraft's seat — and a window to
+1250, so that both aircraft run out of fuel inside it. **The capture must
+dump** chapter six's `end:` set plus `BUILDS=7`, over `[605, 1250)`.
+
+**The reading kills the base link before the run** (the file's header
+has every citation). An aircraft moves only on an air order, and run168's
+had none. The base's three writers of one — `Object::do_launch@0064f3b0`,
+`Object::attempt_launch@00643a10` and `Build::train@0062f9b0`'s gather arm
+— each walk the base's `inside_down` chain, and **`do_launch`'s whole body
+sits under `-1 < inside_down`**, so an empty base spends nothing. What
+fills the chain is `Unit::go_inside@0061a2e0`, and `add` never calls it:
+`Build::train` seats its trainee inside the base, and `add` is
+`find_nearby_spot` and `init_unit` and nothing after. No caller of
+`go_inside` is reachable by a channel line under `!ai off`. **So the
+premise's base-link half is predicted dead by construction**, as seven-b's
+was (§11). What this chapter can still teach is below.
+
+**The Airbase is also a target, and that half is open.** who=1's Bomber
+is AI-driven, so its idle search reaches 24 tiles
+(`UNIT_RESPOND_RANGE × 0x180`), and who=0's Airbase is ~10.8 tiles away.
+Whether a `FLY_HIGH 0` plane on the ground takes a building is not read
+(COMBAT §61 covers a plane target only). The order stack separates the
+halves: a target on the enemy Airbase is the target arm; `inside_up ≥ 0`
+or a targetless air order is the base arm.
+
+**What would falsify it, and where each could first fire** (§3, point 5):
+
+1. **An aircraft moves, takes an order, or goes inside**: the Fighter's
+   `UNITDATA` from block 611, the Bomber's from 616, to 1249. Predicted
+   to fire on the target arm only, if at all.
+2. **The Airbases displace the seats**: blocks 611 and 616, a seat other
+   than run168's (888, 7800) and (2424, 7800). Predicted not: neither
+   footprint (5 × 9 tiles, rows 29–37) reaches row 40.
+3. **An empty tank does something**: `mana_burn` reaches `mana()` on
+   block 1010 for the Fighter (400) and 1215 for the Bomber (600). A
+   death, a move or an order from then on fires it. Predicted not:
+   `Unit::check_fuel@005e9be0`, the one reader that acts on an empty tank,
+   runs only under an air order.
+4. **An empty base spends something**: from 607 and 609, any draw under
+   `do_launch` or `attempt_launch`, a `launch_frames` above 0, or who=1's
+   Airbase disbanded by `Leader::check_orphaned_buildings@006c9f20` (its
+   disband arm needs `build_masks & 1`, written only by
+   `Unit::resolve_block@005fccc0`). Predicted not.
+
 ## 11. Chapter seven — the civilians, and what AI-off takes away
 
 **The premise below was falsified by its own capture, and the chapter is
@@ -1223,6 +1272,7 @@ below without a run take their number at booking (the eleventh pass).
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
+| 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window (item 651) — **staged, not yet captured** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
