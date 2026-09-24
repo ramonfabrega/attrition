@@ -5984,3 +5984,24 @@ the original's has no collider and walks on. `1/68` has walked a leg the
 original does not since 12422, because its tile plan on 12322 dropped the
 group move's exact formation point that the original keeps
 (`docs/AI.md` §64; `run174_s_word_frame_is_widened_whole`).
+
+## run178 — Great Lakes' word 14382, past run174's last block (2026-09-24, item 678)
+
+**What it is.** run174's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[12894, 14900)`, plus `rontrace.cfg` `cover=1` and `window=14378-14386`
+over the word. `!quit` at 14910, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 678
+```
+
+**Why it was owed.** Item 678 moved Great Lakes' word 12897 → 14382 (the
+pathfinder's block copies, `docs/PATHFINDER.md` §26). run174, the last
+capture on this map below run80's 23960, ends on block 12899, and no
+`gamelog-*greatlakes*` holds block 14382 or 14383 (grepped before booking,
+the pattern checked against run163's 12180). The window overlaps run174 by
+six blocks so the widening walks one chain from run123's 11400 to the
+word, and runs 516 blocks past it so a fix that moves the word is measured
+on the same capture.

@@ -5585,3 +5585,56 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run163-greatlakes-upgradeword.txt gamelog-run174-greatlakes-civicword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run163 overlap: common="n" "r" differ="d; exit !(n==10 && d==0 && r=="(12390..12399)")}'
 # **The coverage window landed**: every frame 12425..12433 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run174.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=12425&&f<=12433&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+
+run: 178
+tag: greatlakes-copyword
+item: 678
+why: Great Lakes' long word is 14382 (item 678), where ours spends 11 draws against 13, parting at index 2 — ours `Leader::make_stuff+0x221`, the original's `Leader::produce_building+0x1805` — and run174, the last capture on this map below 23960, ends on block 12899, so the word's block 14383 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-24, item 678): every
+# `gamelog-*greatlakes*` for `BEGIN FRAME 14382`/`14383`, and none
+# holds either (the pattern checked against run163's 12180 first); and
+# every `mapstyle: 14` stanza in this file: the windows end at run174's
+# [12390, 12900), and run80's [23960, 24000) is the next above them;
+# run53 prints only its draw stream. **What the disk cannot answer**:
+# every record on block 14383 (the word 14382's), whose
+# `produce_building` the original spends there and ours does not, and
+# every block between run174's last and it, which the widening walks.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run174's game past 12899.** Killed if the overlap with
+#   run174 on 12894..12899 differs, or counts other than six blocks.
+# - **R2 — the parting is who=1's production, not a unit**: the leader's
+#   make list or a building's queue on block 14383 differs, and no unit
+#   record parts on that block. Killed if a unit's position or order
+#   parts first on 14383 while the leader records agree.
+#
+# **run174's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the overlap is byte for byte.
+frames: 14910
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **12894..14899, 2,006 blocks**: six shared with run174 (12894..12899),
+# the 1,483 up to the word, its block 14383, and 516 of runway above it.
+frame_window: 12894 14900
+# **Per-frame coverage over the word**, 14378..14386.
+cover: cover=1
+cover: window=14378-14386
+settle_min: 14000000
+# **Sized from run174**: 2.1 MB a block, so 2,006 blocks is ~4.2 GB, 7% of
+# the 63 GB free. run174 dumped 510 blocks in 40 minutes with a 90-second
+# run-up, ~13 a minute, so this is ~155 minutes. 720 polls is four hours.
+poll_max: 720
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run178.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=14900)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run178-greatlakes-copyword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 2,006 blocks, 12894..14899, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run178-greatlakes-copyword.txt" | awk '{v=$3+0; if(v>=12894&&v<14900) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==2006 && lo==12894 && hi==14899)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run178-greatlakes-copyword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=12894&&v<14900)n++} print "blocks with a GROUPDATA: "n; exit !(n==2006)}'
+# **The overlap with run174, and the count is the claim** — six blocks,
+# 12894..12899, the same line, nothing excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run174-greatlakes-civicword.txt gamelog-run178-greatlakes-copyword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run174 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(12894..12899)")}'
+# **The coverage window landed**: every frame 14378..14386 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run178.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=14378&&f<=14386&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
