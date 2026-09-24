@@ -5708,14 +5708,37 @@ settle_min: 20000000
 # ~14 blocks a minute after a 90-second run-up, so this is ~10 minutes.
 # 120 polls is forty.
 poll_max: 120
+# ==== TAKEN 2026-09-24, **WHOLE, WITHOUT THE POOL** ====
+#
+# 265,438,560 bytes of dump and 20,861,792 of trace, **120 blocks
+# 13580..13699**, a `MAKEOBJECT` on every one. Launched 12:19:46 through
+# `viadriver.sh` with no human at the menu and archived 12:31, about 11
+# minutes; the lane lock was stale (pid 45812, dead). 2.1 MB a block net
+# of the 11 MB start dump, as sized. Five of six checks green: 13,711
+# frames identical to run54, `MAP_STYLE 18`, the window whole, a
+# `MAKEOBJECT` on every block, and a coverage set on all 9 frames
+# 13636..13644. The sixth, the pool, is below. No overlap check: the
+# window shares no block with run159.
+#
+# **The readings, decided on the walk**: **R1 holds**, the trace above.
+# **R2 holds**: the Galley `1/32`'s `end_time` parts on 13638 (ours 3,
+# theirs 20), its order agreeing, and no record parts on 13580 that the
+# word's cause comes from — so no backward window (run182) is owed.
+# `run166_s_word_frame_is_widened_whole`.
 # Same game: the trace word for word against run54, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run166.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=13700)}'
 # And the map, from the dump's own `GAME INFO`.
 check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
 # **The window landed whole** — 120 blocks, 13580..13699, no gap.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '{v=$3+0; if(v>=13580&&v<13700) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==120 && lo==13580 && hi==13699)}'
-# **The pool landed**: a `GROUPDATA` on every window block.
-check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=13580&&v<13700)n++} print "blocks with a GROUPDATA: "n; exit !(n==120)}'
+# **The pool did NOT land** — its check read `blocks with a GROUPDATA: 0`
+# and is taken out rather than left to fail on every re-run. `DEATHS=1`
+# under `[End Frame]` leaves the logger's type at `WORLD` (`dump_deaths`
+# ends in two `WorldData::log_data`), and `GroupData::log_data` sets no
+# type of its own, so with `WORLD=0` every pool line fails `check_accept`
+# silently: run30's trap, in `docs/ORACLE.md` and run31's section of
+# `docs/RUNS.md`. run178's line had dropped `DEATHS` for exactly that
+# reason; this stanza added `GROUPS=1` to run159's line and kept it.
 # **The raised category is there**: a `MAKEOBJECT` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run166-eastindies-incword.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=13580&&v<13700)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==120)}'
 # **The coverage window landed**: every frame 13636..13644 has a set.

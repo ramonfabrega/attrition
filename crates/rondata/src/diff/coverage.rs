@@ -39,11 +39,12 @@ use crate::gamelog::{Block, Log, reads};
 use super::testkit::{
     EAST_INDIES_BARK_BLOCK, EAST_INDIES_CAST_BLOCK, EAST_INDIES_EXPLORE_BLOCK,
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
-    EAST_INDIES_MERCS_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
-    GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK,
-    GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_SQUAD_BLOCK,
-    GREAT_LAKES_UPGRADE_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_MERCS_BLOCK, EAST_INDIES_WRAP_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
+    GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
+    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_CIVIC_BLOCK,
+    GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_MAKE_BLOCK,
+    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -436,6 +437,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r152 = crate::testenv::dump("gamelog-run152-eastindies-gatherbuilding.txt");
     let r155 = crate::testenv::dump("gamelog-run155-eastindies-longword.txt");
     let r159 = crate::testenv::dump("gamelog-run159-eastindies-idleword.txt");
+    let r166 = crate::testenv::dump("gamelog-run166-eastindies-incword.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -578,6 +580,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r159 {
         let n = drive_capture(p, ec - 2, ec + 2, &mut paths);
         assert_eq!(n, 5, "run159 carries the cast word's five blocks");
+        frames += n;
+    }
+    // Item 642 moved the word to 13640, past every East Indies dump, and
+    // item 643's run166 is run159's line over [13580, 13700), so the window
+    // is the word's own blocks again, on the capture taken to widen it.
+    let ew2 = EAST_INDIES_WRAP_BLOCK;
+    if let Some(p) = &r166 {
+        let n = drive_capture(p, ew2 - 2, ew2 + 2, &mut paths);
+        assert_eq!(n, 5, "run166 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

@@ -3316,6 +3316,16 @@ pub(crate) const EAST_INDIES_IDLE_BLOCK: i64 = 11_591;
 /// `1/0`'s boarding cast, writes block 11748. The coverage driver reads
 /// run159 around it.
 pub(crate) const EAST_INDIES_CAST_BLOCK: i64 = 11_748;
+/// `run166_s_word_frame_is_widened_whole`'s window (item 643): run166
+/// whole, 13580..13699 — a narrow window over the word 13640, sized to the
+/// word and not to the 1,741-block gap from run159's last block, so it
+/// shares no block with any other capture. The floor is the capture's
+/// first block, which carries every key that parted anywhere in the gap.
+pub(crate) const WIDENING_EAST_INDIES_WRAP: (i64, i64) = (13_580, 13_699);
+/// The word 13640's block on run166: its frame, three `Guy::inc_time`
+/// wraps in ours against two, writes block 13641. The coverage driver
+/// reads run166 around it.
+pub(crate) const EAST_INDIES_WRAP_BLOCK: i64 = 13_641;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -3405,14 +3415,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     //
     // Item 642 widened 11747's blocks on run159 (the scout's boat), and
     // moved the word to **13640**, past run159's last block (11899) and
-    // past every East Indies dump on disk. Item 643 owes the capture and
-    // its widening; run159's test keeps the move's value diff.
+    // past every East Indies dump on disk; run159's test keeps the move's
+    // value diff.
+    //
+    // Item 643 paid it: **run166** is run159's line with `GROUPS=1` over
+    // [13580, 13699], sized to the word rather than to the gap, and
+    // `run166_s_word_frame_is_widened_whole` is a sibling through the same
+    // walk, gaia and the pool included, on 120 blocks it shares with no
+    // other capture.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run166_s_word_frame_is_widened_whole"),
         643,
-        None,
+        Some(WIDENING_EAST_INDIES_WRAP),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

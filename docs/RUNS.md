@@ -6157,3 +6157,25 @@ the gap**: 60 blocks under the word and 59 above. It shares no block with
 run159, so its only same-game evidence is the draw stream against run54;
 a backward window is owed only if 13580 already parts on a record the
 word's cause could come from.
+
+**Taken whole, without the pool.** 265 MB of dump and 20.9 MB of trace,
+120 blocks 13580..13699, about 11 minutes from launch (12:19) to archive
+(12:31), with no human at the menu. The lane lock was stale (pid 45812,
+dead). Five of six checks are green: 13,711 frames identical to run54,
+`MAP_STYLE 18`, the window whole, a `MAKEOBJECT` on every block, and
+coverage on all 9 frames 13636..13644.
+
+**The pool check failed: no `GROUPDATA` at all.** That is run30's trap,
+repeated. `DEATHS=1` under `[End Frame]` leaves the logger's type at
+`WORLD`, and the pool's lines then fail `check_accept` silently
+(`docs/ORACLE.md`). run178's line had dropped `DEATHS` for that reason,
+and this stanza kept it while adding `GROUPS=1`. The check is taken out of
+the stanza and the widening reads no pool. The word does not need one: it
+parts on a figure clock.
+
+**What it answered.** The Galley `1/32` (the Trireme, upgraded inside the
+window on both sides) enters `CHAR_DEFAULT` on block 13638 with `end_time`
+3 here and 20 there, and wraps again on 13640, one draw more than the
+original spends. No record parts on 13580 that the cause could come from,
+so no backward window (run182) is owed.
+`run166_s_word_frame_is_widened_whole`.
