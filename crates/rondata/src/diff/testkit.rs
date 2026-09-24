@@ -1976,7 +1976,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// never pinned as text. **The rule this comment now follows: the word's
 /// *delta* here, the word's *block* in the widening, and each says
 /// which.**
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_382;
+///
+/// ~~**14382 is who=1's Barracks.**~~ **Item 688 moved it 14382 → 14529,
+/// and the mechanism was the site values a founded city wears down**
+/// (`City::fix_world_vals`, `docs/AI.md` §67). `City::init` quarters
+/// `WData.val` out to ring `(radius + 3) / 4` of the circle round the
+/// centre and halves it on three rings beyond; this crate never wrote the
+/// value after load. So Norwich's founding left cell (55, 25) at `val` 4
+/// here against 2, the spiral round the capital took (51, 22) at 1252
+/// over (55, 25) at 1251, and the Barracks `1/2025` went up four cells
+/// west. **The new word's delta: ours 7 draws and the original 3,213,
+/// parting at index 0**: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+/// where the original spends `PathFinder::calc_road_cost+0x46`. **Inside
+/// run178** (block 14530 against its last, 14899);
+/// `run178_s_word_frame_is_widened_whole` pins the word's block — `1/23`'s
+/// path flags and `1/28`'s figure — and the move's value diff on 14383.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 14_529;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3288,6 +3303,10 @@ pub(crate) const WIDENING_GREAT_LAKES_COPY: (i64, i64) = (11_400, 14_899);
 /// 14382's frame writes block 14383. The coverage driver reads run178
 /// around it.
 pub(crate) const GREAT_LAKES_COPY_BLOCK: i64 = 14_383;
+/// The block of the word item 688 moved to: 14529's frame writes block
+/// 14530, inside run178 and so inside [`WIDENING_GREAT_LAKES_COPY`]. The
+/// coverage driver reads run178 around it too.
+pub(crate) const GREAT_LAKES_VALS_BLOCK: i64 = 14_530;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -3683,11 +3702,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over [12894, 14899], and `run178_s_word_frame_is_widened_whole` walks
     // it from run123's 11400 across eight captures, so the window is
     // [`WIDENING_GREAT_LAKES_COPY`] and the test pins the word's block.
+    //
+    // **Item 688 moved it 14382 → 14529**, inside the same window again
+    // (block 14530): a founded city wears the site values down
+    // (`docs/AI.md` §67). The test pins the new word's block and keeps the
+    // move's value diff on 14383.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run178_s_word_frame_is_widened_whole"),
-        678,
+        688,
         Some(WIDENING_GREAT_LAKES_COPY),
     ),
     // Item 445 paid the widening chapter one had never had: the word

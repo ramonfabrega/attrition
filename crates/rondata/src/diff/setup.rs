@@ -500,6 +500,15 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
     if flagged > 0 {
         notes.push(format!("regions: {flagged} carry the dump's own flags"));
     }
+    // The dump's site values are the map **after** `City::init` wore them
+    // down round every city it stands on (`City::fix_world_vals`,
+    // `docs/AI.md` §67). Standing those cities up below runs the same
+    // `init_city` and would wear them twice, so the values are kept here
+    // and written back once every building stands.
+    let vals: Vec<(sim::world::Cell, u8)> = (0..world.height())
+        .flat_map(|y| (0..world.width()).map(move |x| sim::world::Cell::new(x, y)))
+        .map(|c| (c, world.cell_data(c).val))
+        .collect();
     let mut sim = loaded.sim(tuning, world, players);
     // The harness is where the per-phase fold is wanted: it is what the
     // sim's own draws are lined up against the trace's sites with
@@ -958,6 +967,11 @@ pub fn build_sim(loaded: &Loaded, init: &Initial, tuning: Tuning) -> Built {
                 format!(" (unnamed types: {unknown:?})")
             }
         ));
+    }
+    for (c, v) in vals {
+        let mut d = sim.world.cell_data(c);
+        d.val = v;
+        sim.world.set_cell_data(c, d);
     }
     // The sync stream entering frame 0: the trace's last record is the end
     // of `Game::init` (`game.cpp` 5024 on this build), after the empires,

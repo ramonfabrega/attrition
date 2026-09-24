@@ -4866,14 +4866,18 @@ mod tests {
         // **13382**, **13385**, **13582**, **13782** and **13982** came
         // under it (`docs/PATHFINDER.md` §26). The streams above agree
         // through them.
+        //
+        // **Twenty-nine → thirty on item 688**: the word went 14382 →
+        // 14529 and **14385** came under it (`docs/AI.md` §67). The
+        // streams above agree through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
-                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982
+                12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385
             ],
-            "below the word Great Lakes takes exactly twenty-nine market \
+            "below the word Great Lakes takes exactly thirty market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -10066,8 +10070,11 @@ mod tests {
         // fix took twelve** (250 → 238), and nothing arrived: those four
         // BUILD rows, both cities' `trade_val`, who=1's five wealth rows
         // (`bucket`, `income`, `leftover`, `rate`, `resources`) and
-        // `worst_good`, which read the wealth.
-        assert_eq!(under, 238, "the floor under the word");
+        // `worst_good`, which read the wealth. **Item 688 took twenty**
+        // (238 → 218), all who=1 `SITE` rows, and nothing arrived: the
+        // site values are the original's once a founded city wears them
+        // down (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!(under, 218, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10226,6 +10233,36 @@ mod tests {
                 };
                 let t = crate::diff::leader::theirs(&block);
                 let mine = crate::diff::leader::rows(&loaded, &built, who);
+                if who == 1 && std::env::var("RON_SITE_SET").is_ok() {
+                    let m: BTreeMap<String, i64> = mine.iter().cloned().collect();
+                    let set = |g: &dyn Fn(&str) -> i64| -> Vec<String> {
+                        (0..10)
+                            .map(|i| {
+                                let f = |k: &str| g(&format!("SITE[{i}].{k}"));
+                                format!(
+                                    "({},{}) v{} d{} r{} g{}",
+                                    f("wx"),
+                                    f("wy"),
+                                    f("val"),
+                                    f("dist"),
+                                    f("rank"),
+                                    f("reg")
+                                )
+                            })
+                            .collect()
+                    };
+                    let o = set(&|k| m.get(k).copied().unwrap_or(-9));
+                    let y = set(&|k| t.get(k).copied().unwrap_or(-9));
+                    let (mut os, mut ys) = (o.clone(), y.clone());
+                    os.sort();
+                    ys.sort();
+                    eprintln!(
+                        "  siteset {n} {}\n    ours  {}\n    thrs  {}",
+                        if os == ys { "same" } else { "DIFF" },
+                        o.join(" | "),
+                        y.join(" | ")
+                    );
+                }
                 for (k, v) in &mine {
                     let Some(&y) = t.get(k) else {
                         missing.insert(k.clone());
@@ -10493,13 +10530,14 @@ mod tests {
         // - their birth-block `orders_x`, one block;
         // - group 68, the original's `go_to_unit` walk group, freed on
         //   12086 there and kept here;
-        // - `MAKE[2].city` from 11982 and `SITE[4].val` from 11976.
+        // - `MAKE[2].city` from 11982, and until item 688 `SITE[4].val`
+        //   from 11976, the halving a founded city makes of the site values
+        //   round it (`City::fix_world_vals`, `docs/AI.md` §67).
         assert_eq!(
             chain,
             [
                 "12086 1/-2 pool:68: ours [68] theirs []",
                 "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
-                "11976 1/-1 leader:SITE[4].val: ours 54243 theirs 36750",
                 "11993 1/67 form: ours -1 theirs 0",
                 "11993 1/67 orders_x: ours 43584 theirs 43848",
                 "11993 1/67 orders_y: ours 15744 theirs 16344",
@@ -10526,7 +10564,10 @@ mod tests {
         // conversion: `1/68`'s tile plan on 12322 and 12389, which kept the
         // group's tolerance-0 formation point once the unwind read 1 to
         // `0x60` (`docs/ORDERS.md` §4.4).
-        assert_eq!((under, firsts.len()), (238, 259), "the floor");
+        // **Item 688 took twenty-one** (238/259 → 218/238), all who=1 `SITE` rows and nothing
+        // arriving: a founded city wears the site values down
+        // (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!((under, firsts.len()), (218, 238), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -10705,8 +10746,10 @@ mod tests {
         assert_eq!(retry, Vec::<String>::new(), "1/41 on the old word's block");
         // Every key that first parts from 12538 to run174's last block:
         // the citizens' `myhits` 40 against 50 from 12564 (no draw, parked
-        // 679) and what stands with them. The squad's 74 left with item 678.
-        assert_eq!(past, 135, "the keys first parting after 12537");
+        // 679) and what stands with them. The squad's 74 left with item 678,
+        // and item 688 took the leader's `SITE` rank on 12576: a founded
+        // city wears the site values down (`docs/AI.md` §67).
+        assert_eq!(past, 134, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
@@ -10714,7 +10757,10 @@ mod tests {
         // 470): the 33 on 12537 and the cascade the squad's formation
         // walk left behind it, and none under. **Item 678 took 74 more**
         // (470 → 396), `1/40`–`1/42`'s chain from 12626, and none under.
-        assert_eq!((under, firsts.len()), (259, 396), "the floor");
+        // **Item 688 took twenty-two** (259/396 → 238/374), all who=1 `SITE` rows and nothing
+        // arriving: a founded city wears the site values down
+        // (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!((under, firsts.len()), (238, 374), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -10725,12 +10771,21 @@ mod tests {
     /// captures, with every player-1 pool list from run135's first block.
     ///
     /// The word's frame, 14382, writes block **14383**.
+    ///
+    /// **Item 688 moved it 14382 → 14529, inside this window** (`docs/AI.md`
+    /// §67): a founded city wears the site values down round it, and the
+    /// Barracks on 14383 goes up on the original's cell. The new word's
+    /// frame writes block **14530**; the test keeps the move's value diff
+    /// on 14383 and pins the new word's block.
     #[test]
     fn run178_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
         const FIRST: i64 = WIDENING_GREAT_LAKES_COPY.0;
         const TAIL: i64 = WIDENING_GREAT_LAKES_COPY.1;
-        const WORD_BLOCK: i64 = GREAT_LAKES_COPY_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_VALS_BLOCK;
+        /// The word item 678 left, and 688 moved: its block keeps the move's
+        /// value diff.
+        const OLD_BLOCK: i64 = GREAT_LAKES_COPY_BLOCK;
         /// run174's last block: everything above it is run178's.
         const RUN174_TAIL: i64 = WIDENING_GREAT_LAKES_CIVIC.1;
         let Some(Widened {
@@ -10753,7 +10808,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_COPY,
             11_800,
-            &[WORD_BLOCK],
+            &[OLD_BLOCK, WORD_BLOCK],
         )
         else {
             return;
@@ -10780,25 +10835,47 @@ mod tests {
         }
         let standing_n = standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len);
         let under = firsts.values().filter(|(f, _)| *f <= RUN174_TAIL).count();
-        // **Under the word, on run178's own blocks: who=1's site table and
-        // the newborns' residue.** The leader's `SITE` rows part on 12976
-        // and 13176, and a site is where a building is placed — the word's
-        // block is a placement (below). The rest is what run174 already
-        // carried on every newborn: `form` −1 against 9 (parked 646's
-        // shape), `myhits` 40 against 50 and `mylos` 2 against 4 (parked
-        // 679), a birth-block `orders_x/y`. And the leader's scholar count
-        // on 13556, the block after the thirteenth seating, which both
-        // sides spend on 13555.
+        // **The move's value diff, on the old word's block 14383.** Until
+        // item 688 who=1's new Barracks `1/2025` stood at (39552, 17472)
+        // here and (42624, 19776) there: the spiral round the capital
+        // scored cell (51, 22) 1252 and (55, 25) 1251 here, `1000 + 0xff −
+        // val`, where the original reads (55, 25) at `val` 2 because
+        // Norwich's founding halved it (`City::fix_world_vals`). With it,
+        // 60 keys on 14383 — the building, Norwich's chain, `MAKE[7]`, and
+        // `1/6` and `1/7` trading the build and walk orders — are gone,
+        // and nothing parts on the old word's five blocks.
+        let old: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (OLD_BLOCK - 2..=OLD_BLOCK + 2).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(old, Vec::<String>::new(), "the old word's five blocks");
+        // **Under the word, on run178's own blocks: the site list's slot
+        // order and the newborns' residue.** The site values agree on
+        // every block but three spans since item 688 (the table as a set:
+        // 2,776 of 3,500 blocks, against none before). The `SITE[8]` rows
+        // on 12976 are the same ten sites in another slot order, and
+        // `SITE[4]` on 14176 is one low-value site the sweep samples
+        // differently. The rest is what run174 already carried on every
+        // newborn: `form` −1 against 9 (parked 646's shape), `myhits` 40
+        // against 50 and `mylos` 2 against 4 (parked 679), a birth-block
+        // `orders_x/y`. The leader's scholar count on 13556 is the block
+        // after the thirteenth seating, which both sides spend on 13555.
+        // And on 14529 the capital: `city_flags` bit `0x10` moves from
+        // `1/2000` to Norwich `1/2007` there and not here (below).
         assert_eq!(
             mid,
             [
-                "12976 1/-1 leader:SITE[0].rank: ours 2 theirs 3",
-                "12976 1/-1 leader:SITE[1].rank: ours 2 theirs 3",
-                "12976 1/-1 leader:SITE[1].wx: ours 14 theirs 0",
-                "12976 1/-1 leader:SITE[1].wy: ours 59 theirs 0",
-                "13176 1/-1 leader:SITE[4].dist: ours 0 theirs 2888",
-                "13176 1/-1 leader:SITE[4].wx: ours 15 theirs 57",
-                "13176 1/-1 leader:SITE[4].wy: ours 59 theirs 45",
+                "14176 1/-1 leader:SITE[4].dist: ours 968 theirs 2048",
+                "14176 1/-1 leader:SITE[4].rank: ours 6 theirs 4",
+                "14176 1/-1 leader:SITE[4].val: ours 95326 theirs 26656",
+                "14176 1/-1 leader:SITE[4].wx: ours 47 theirs 54",
+                "14176 1/-1 leader:SITE[4].wy: ours 33 theirs 11",
+                "12976 1/-1 leader:SITE[8].dist: ours 968 theirs 1250",
+                "12976 1/-1 leader:SITE[8].rank: ours 5 theirs 10",
+                "12976 1/-1 leader:SITE[8].val: ours 95326 theirs 191650",
+                "12976 1/-1 leader:SITE[8].wx: ours 47 theirs 44",
+                "12976 1/-1 leader:SITE[8].wy: ours 33 theirs 30",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
                 "13163 1/71 form: ours -1 theirs 9",
                 "13163 1/71 hits:myhits: ours 40 theirs 50",
@@ -10829,57 +10906,41 @@ mod tests {
                 "13737 1/75 g.angle[0]: ours 1431655765 theirs 0",
                 "13737 1/75 orders_x: ours 40416 theirs 40440",
                 "13737 1/75 orders_y: ours 25248 theirs 25272",
+                "14529 1/2000 city:city_flags[0x10]: ours 1 theirs 0",
+                "14529 1/2007 city:city_flags[0x10]: ours 0 theirs 1",
             ],
             "the rows under the word, on run178's own blocks"
         );
-        // **The word, 14382 (block 14383): who=1 places a building.** The
-        // original's `Leader::produce_building+0x1805` is the draw this
-        // crate does not spend, and its product is here: the new building
-        // `1/2025` stands at (42624, 19776) there and (39552, 17472) here,
-        // Norwich's chain `1/2022 → 1/2025` exists only here, and the
-        // make list's eighth slot holds type 427 there and nothing here.
-        // The two citizens `1/6` and `1/7` trade roles: each holds the
-        // other's order kind (3 against 7), and so its path, heading and
-        // figure. `1/3` walks to a different point beside them, and
-        // `1/68`'s idle clock differs. No mechanism is named (DECISIONS 42).
+        // **The word, 14529 (block 14530).** The original's capital moved
+        // to Norwich on 14528, and on 14529 it spends 3,213 draws under
+        // `PathFinder::calc_road_cost+0x46` where this crate spends 7.
+        // On the block, `1/23`'s path — 24 entries, every one — carries
+        // flag `0x20` here and not there, and `1/28`'s figure turns here
+        // alone. No mechanism is named (DECISIONS 42).
         let words: Vec<(i64, i64, usize)> =
             word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
         assert_eq!(
             words,
-            [
-                (1, -1, 1),
-                (1, 3, 8),
-                (1, 6, 23),
-                (1, 7, 22),
-                (1, 68, 2),
-                (1, 2022, 1),
-                (1, 2025, 3)
-            ],
-            "who parts first on 14383, and on how many keys"
+            [(1, 23, 24), (1, 28, 2)],
+            "who parts first on 14530, and on how many keys"
         );
-        let placed: Vec<String> = [(1, -1), (1, 2022), (1, 2025)]
-            .iter()
-            .flat_map(|k| word.get(k).cloned().unwrap_or_default())
-            .collect();
         assert_eq!(
-            placed,
+            word.get(&(1, 28)).cloned().unwrap_or_default(),
             [
-                "leader:MAKE[7].t: ours -1 theirs 427",
-                "build:city_down: ours 2025 theirs -1",
-                "build:city: ours 0 theirs -1",
-                "build:x_internal: ours 39552 theirs 42624",
-                "build:y_internal: ours 17472 theirs 19776",
+                "g.cur_anim[0]: ours 1 theirs 0",
+                "g.end_time[0]: ours 58 theirs 31",
             ],
-            "the building on 14383"
+            "1/28 on 14530"
         );
-        assert_eq!(standing_n, 392, "every row standing on 14383");
-        // **The floor**: run174's 396 to its last block, exactly as
+        assert_eq!(standing_n, 350, "every row standing on 14530");
+        // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
-        // the same walk — then 37 under the word, 60 on it, and 1,552 in
-        // all to run178's last block.
+        // the same walk — then the rows under the word on run178's own
+        // blocks, and every key to run178's last block: 1,552 before item
+        // 688, 1,375 after it, with 26 on the new word's block.
         assert_eq!(
             (under, mid.len(), firsts.len()),
-            (396, 37, 1_552),
+            (374, 42, 1_375),
             "the floor"
         );
     }
@@ -12916,8 +12977,11 @@ mod tests {
                 // **Item 661: 141 → 137**, who=1's two cities' `trade_val`
                 // and `vans.length`, compared against a literal 0 until the
                 // rows read the sim's own, and agreeing (`docs/AI.md` §63).
-                (9960, 137),
-                (9976, 8),
+                // **Item 688: 137 → 111, and 9976's eight go**, all who=1
+                // `SITE` rows: the site values are the original's once a
+                // founded city wears them down (`City::fix_world_vals`,
+                // `docs/AI.md` §67), and the sweep on 9975 agrees.
+                (9960, 111),
                 (9982, 7),
                 (9992, 1),
             ],
@@ -13087,7 +13151,11 @@ mod tests {
         // `trade_val` and `vans.length`, which were compared against a
         // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
         // §63).
-        assert_eq!((first, under_n, firsts.len()), (254, 254, 270), "the floor");
+        // **Item 688 took thirty-one** (254/254/270 → 223/223/233), all
+        // who=1 `SITE` rows under the word, and six more past it: a founded
+        // city wears the site values down (`City::fix_world_vals`,
+        // `docs/AI.md` §67).
+        assert_eq!((first, under_n, firsts.len()), (223, 223, 233), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -13144,8 +13212,9 @@ mod tests {
             format!("{f} {w}/{o} {what}: {row}")
         };
         // **Under the word and on it, both directions** (item 629). The
-        // leader rows are the census and the site list (parked 622); until
-        // the fix 613's food and metal a unit off stood here too, from
+        // leader rows are the census and, until item 688, the site list
+        // (parked 622; `docs/AI.md` §67); until the fix 613's food and
+        // metal a unit off stood here too, from
         // 11272 and 11275, and the sheep's three rows on 11578..11591. `1/41`, `1/42` and `1/43` are citizens born under the
         // window with 40 hit points against 50 (parked 622's `1/36`), and
         // `form` −1 against 9 beside them.
@@ -13159,8 +13228,6 @@ mod tests {
             [
                 "11401 0/-1 leader:production_step: ours 0 theirs 1",
                 "11384 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
-                "11376 1/-1 leader:SITE[2].rank: ours 4 theirs 3",
-                "11376 1/-1 leader:SITE[3].rank: ours 3 theirs 4",
                 "11318 1/-1 leader:peasants: ours 17 theirs 18",
                 "11363 1/-1 leader:scholars: ours 12 theirs 13",
                 "11318 1/41 form: ours -1 theirs 9",
@@ -13332,7 +13399,10 @@ mod tests {
         // `trade_val` and `vans.length`, which were compared against a
         // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
         // §63).
-        assert_eq!((first, under_n, firsts.len()), (263, 287, 292), "the floor");
+        // **Item 688 took thirty-seven** (263/287/292 → 228/250/255), all who=1 `SITE` rows and nothing
+        // arriving: a founded city wears the site values down
+        // (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!((first, under_n, firsts.len()), (228, 250, 255), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -13465,10 +13535,13 @@ mod tests {
         // 295/308/495 before the fix (`ad71c9b`): `1/32`'s `end_time` under
         // the word, and 187 rows past it that the extra draw parted — `0/4`
         // from 13677, the scout `1/0` from 13642, `1/1`, `1/9` and the rest.
-        // Nothing now parts past the word to the window's end.
+        // Nothing now parts past the word to the window's end. **Item 688
+        // took twenty-five** (295/307/307 → 270/282/282), all who=1 `SITE`
+        // rows on the first block: a founded city wears the site values
+        // down (`City::fix_world_vals`, `docs/AI.md` §67).
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (295, 307, 307), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (270, 282, 282), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
@@ -13531,7 +13604,10 @@ mod tests {
         // row stands, §52.2's `city` shift. The Mine's value on 10982,
         // 316800 against 310400, went with item 629 (parked 623): the
         // Merchants' seat puts the leader's rates on the original's
-        // cadence (`docs/MERCHANT.md` §3.2).
+        // cadence (`docs/MERCHANT.md` §3.2). The site list's fourteen rows
+        // on 10976 went with item 688: a founded city wears the site values
+        // down (`City::fix_world_vals`, `docs/AI.md` §67), and the sweep
+        // agrees.
         let leader: Vec<String> = firsts
             .iter()
             .filter(|((_, o, _), (f, _))| *o == -1 && (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -13541,20 +13617,6 @@ mod tests {
             leader,
             [
                 "10981 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
-                "10976 1/-1 leader:SITE[2].wx: ours 51 theirs 0",
-                "10976 1/-1 leader:SITE[2].wy: ours 58 theirs 0",
-                "10976 1/-1 leader:SITE[3].dist: ours 288 theirs 0",
-                "10976 1/-1 leader:SITE[3].val: ours 48 theirs 0",
-                "10976 1/-1 leader:SITE[3].wx: ours 45 theirs 51",
-                "10976 1/-1 leader:SITE[3].wy: ours 52 theirs 58",
-                "10976 1/-1 leader:SITE[4].dist: ours 722 theirs 288",
-                "10976 1/-1 leader:SITE[4].val: ours 76 theirs 48",
-                "10976 1/-1 leader:SITE[5].rank: ours 8 theirs 6",
-                "10976 1/-1 leader:SITE[5].reg: ours 7 theirs 11",
-                "10976 1/-1 leader:SITE[6].rank: ours 6 theirs 8",
-                "10976 1/-1 leader:SITE[6].reg: ours 5 theirs 7",
-                "10976 1/-1 leader:SITE[6].wx: ours 49 theirs 34",
-                "10976 1/-1 leader:SITE[6].wy: ours 31 theirs 33",
                 "10956 1/-1 leader:peasants: ours 15 theirs 16",
             ],
             "the leader record"
@@ -13603,7 +13665,10 @@ mod tests {
         // `trade_val` and `vans.length`, which were compared against a
         // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
         // §63).
-        assert_eq!((first, under, firsts.len()), (244, 273, 275), "the floor");
+        // **Item 688 took thirty-nine** (244/273/275 → 219/234/236), all who=1 `SITE` rows and nothing
+        // arriving: a founded city wears the site values down
+        // (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!((first, under, firsts.len()), (219, 234, 236), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -13664,17 +13729,16 @@ mod tests {
         // `gather_max 3` in city 1's chain. This crate skipped a building
         // that was not `active`. Now the row is gone; `SITE[7]`'s value,
         // which parted on the same sweep before the fix and spends no
-        // draw, stays (`docs/AI.md` §61).
+        // draw, stayed (`docs/AI.md` §61) — **until item 688**: 26 against
+        // 13 was the halving a founded city makes of the site values round
+        // it (`City::fix_world_vals`, `docs/AI.md` §67), and nothing under
+        // the word parts now.
         let census: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (10_734..WORD_BLOCK - 2).contains(f))
             .map(row)
             .collect();
-        assert_eq!(
-            census,
-            ["10776 1/-1 leader:SITE[7].val: ours 26 theirs 13"],
-            "the census under the word"
-        );
+        assert_eq!(census, Vec::<String>::new(), "the census under the word");
         // **The word's blocks, 10781..10783, both directions.** Until the
         // fix 20 rows parted here: on 10781, `create_units`' frame, the
         // original offered the Citizen (type 50) with `num 4` at `val
@@ -13728,7 +13792,10 @@ mod tests {
         // `trade_val` and `vans.length`, which were compared against a
         // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
         // §63).
-        assert_eq!((first, under, firsts.len()), (244, 245, 254), "the floor");
+        // **Item 688 took twenty-five** (244/245/254 → 220/220/229), all who=1 `SITE` rows and nothing
+        // arriving: a founded city wears the site values down
+        // (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!((first, under, firsts.len()), (220, 220, 229), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -14295,7 +14362,11 @@ mod tests {
         // `trade_val` and `vans.length`, which were compared against a
         // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
         // §63).
-        assert_eq!((first, under, firsts.len()), (239, 265, 276), "the floor");
+        // **Item 688 took twenty-five** (239/265/276 → 214/240/251), all on
+        // the first block and all who=1 `SITE` rows, with nothing
+        // arriving: a founded city wears the site values down
+        // (`City::fix_world_vals`, `docs/AI.md` §67).
+        assert_eq!((first, under, firsts.len()), (214, 240, 251), "the floor");
     }
 
     #[test]
