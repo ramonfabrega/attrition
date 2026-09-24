@@ -1195,6 +1195,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`docs/ANIM.md` §11), which moves this map's word 12038 → 12135.
         // The 24,000th frame is 11,866 frames past the new word.
         // DECISIONS 36: the number, not a trade.
+        // **0 → 2 extra** on item 657, `release_mustering` reading the
+        // Military level (`docs/ARMY.md` §20), which moves this map's word
+        // 12135 → 12184; `off` holds at 42 and `build_diverged` at 10. The
+        // extras are the Merchants `1/81` and `1/82` again. DECISIONS 36:
+        // the number, not a trade.
         off: 42,
         unlinked: 0,
         // **2 → 1 extra** on item 557, beside 47 → 57 off above.
@@ -1204,7 +1209,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 1 extra** on item 597, beside 41 → 48 off above.
         // **1 → 0 extra** on item 608, beside 48 → 45 off above.
         // **1 → 0 extra** on item 571, beside 41 → 42 off above.
-        extra: 0,
+        // **0 → 2 extra** on item 657; `off` held at 42.
+        extra: 2,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.

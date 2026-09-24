@@ -4781,13 +4781,18 @@ mod tests {
         // **Eighteen → nineteen on item 566**, the literal following the
         // headline: the word went 11903 → 12038 and **11982**'s rotation
         // came under it (`docs/PATHFINDER.md` §24.6).
+        //
+        // **Nineteen → twenty on item 657**, the literal following the
+        // headline: the word went 12135 → 12184 and **12182**'s rotation
+        // came under it (`docs/ARMY.md` §20). The streams above agree
+        // through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
-                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982
+                10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182
             ],
-            "below the word Great Lakes takes exactly nineteen market \
+            "below the word Great Lakes takes exactly twenty market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
