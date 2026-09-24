@@ -779,10 +779,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // guard's first block, with the `process_guard` text before it.
     // Item 703 moved the word 734 → 1036, the guard's attack on who=1's
     // chariot ending; 734 stays, the block it was widened on. Item 707
-    // moved it 1036 → 1133, `1/6`'s own attack ending; 1036 stays.
+    // moved it 1036 → 1133, `1/6`'s own attack ending; 1036 stays. Item
+    // 709 moved it 1133 → 1139, the resync; 1133 stays.
     if let Some(p) = &ch11 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_ELEVEN;
-        for w in [622, 724, 734, 1036, 1133] {
+        for w in [622, 724, 734, 1036, 1133, 1139] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter eleven carries the window's five blocks");
             frames += n;

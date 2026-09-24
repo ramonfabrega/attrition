@@ -392,6 +392,14 @@ impl Sim {
         let Some(sw) = self.seen_sweep(u, ring_pass) else {
             return 0;
         };
+        // The whole-disc call relights what the unit has made visible to
+        // others first (`00651b80`: `param_1 == 0` and `visible != 0` →
+        // vtable `+0x164`, `Unit::update_local_seen`), so a rebuild of
+        // `seen` keeps an attacker lit for its victims while its byte
+        // stands. `docs/VISION.md` §10.
+        if !ring_pass && self.units[u].visible != 0 {
+            self.update_local_seen_unit(u);
+        }
         self.write_sweep(&sw, who)
     }
 
@@ -448,23 +456,30 @@ impl Sim {
         Some(self.update_seen(u, ring_pass))
     }
 
-    /// `GameDaemon::update_all_seen@00732840`, on the plane this simulation
-    /// keeps: every unit's whole disc, `frame % 100 == 0x21`.
+    /// `GameDaemon::update_all_seen@00732840`, on the planes this
+    /// simulation keeps: `seen` cleared, then every unit's whole disc and
+    /// every building's, `frame % 100 == 0x21`.
     ///
-    /// The original clears `seen` and `seen3` first and rebuilds `seen` from
-    /// every object. Here the clear is skipped, because `seen2` is monotone
-    /// — the pass cannot *remove* a bit from it — and `seen` has no reader.
-    /// What the pass is for is the objects the incremental path misses: a
-    /// unit that never crosses a half-cell, and **every building**, which
-    /// has no incremental path at all.
+    /// **The clear is the pass's point for `seen`** (`docs/VISION.md` §10):
+    /// between resyncs the current plane only grows, and this is the one
+    /// place it forgets. `valid_target`'s fog test reads it
+    /// ([`Sim::world_sees`]), so a unit whose target's cell nobody sees
+    /// after the resync drops the target; chapter eleven's `1/6` does on
+    /// 1133. `seen2` is monotone and the pass cannot remove a bit from it;
+    /// what it adds there is the objects the incremental path misses — a
+    /// unit that never crosses a half-cell, and every building.
     ///
-    /// `update_local_seen` — the second, smaller reveal a *started*
-    /// building makes through `ObjectData::visible` — is still not carried
-    /// (§6); nothing here sets `visible`.
+    /// Each unit's whole disc relights its `visible` cells first
+    /// ([`Sim::update_seen`]). The original's unit arm relights only what
+    /// passes vslots `+0x8` and `+0xbc`; the buildings' arm, which also
+    /// reaches `Wall::update_local_seen` for a started building that fails
+    /// its first two tests, is carried as before (§6.1). `seen3` and the
+    /// cell twin `+0x168` are not kept.
     pub(crate) fn update_all_seen(&mut self) {
         if !self.world.has_fog() {
             return;
         }
+        self.world.clear_seen();
         for u in 0..self.units.len() {
             self.update_seen(u, false);
         }
@@ -1129,6 +1144,92 @@ mod tests {
                 if reveals { "should run" } else { "should not" }
             );
         }
+    }
+
+    /// §10: **the resync forgets what nothing sees any more.**
+    /// `update_all_seen` opens with `World::clear_seen@006b2250`, so the
+    /// current plane under ground the unit has walked off goes dark for
+    /// its owner, while `seen2`, the ever-seen plane, keeps it.
+    ///
+    /// **Made to fail on purpose**: without the clear, the birth cell is
+    /// still in `seen` after the resync.
+    #[test]
+    fn the_resync_forgets_what_nothing_sees_any_more() {
+        let (mut s, u) = fog_sim(4, 0);
+        let born = (fog_of(s.units[u].pos.x), fog_of(s.units[u].pos.y));
+        assert_eq!(s.world.seen(born.0, born.1), Some(1), "the birth disc");
+        s.units[u].pos = Pos::new(6 * 0x300 + 0x180, 6 * 0x300 + 0x180);
+        s.frame = 133;
+        s.tick();
+        assert_eq!(
+            s.world.seen(born.0, born.1),
+            Some(0),
+            "nothing stands there now"
+        );
+        assert_eq!(s.world.seen2(born.0, born.1), Some(1), "ever seen");
+        let now = (fog_of(s.units[u].pos.x), fog_of(s.units[u].pos.y));
+        assert_eq!(s.world.seen(now.0, now.1), Some(1));
+    }
+
+    /// §10: **and it relights an attacker for its victims.** The whole-disc
+    /// `update_seen(0)` calls `Unit::update_local_seen` first when the
+    /// unit's `visible` byte is not 0 (`00651b80`), so a resync keeps the
+    /// attacker's own cell lit for the players it has attacked, and only
+    /// while the byte stands. Chapter eleven's guard is the diff: lit for
+    /// who=1 by 1033's resync, dark from 1133's (`docs/VISION.md` §10).
+    ///
+    /// **Made to fail on purpose**: without the call in `update_seen`, the
+    /// victim's bit is gone after the resync whatever `visible` holds.
+    #[test]
+    fn the_resync_relights_an_attacker_for_its_victims() {
+        for (visible, lit) in [(1u8 << 1, Some(0b11)), (0, Some(0b01))] {
+            let (mut s, u) = fog_sim(4, 0);
+            s.units[u].visible = visible;
+            let at = (fog_of(s.units[u].pos.x), fog_of(s.units[u].pos.y));
+            s.frame = 133;
+            s.tick();
+            assert_eq!(
+                s.world.seen(at.0, at.1),
+                lit,
+                "visible {visible:#04b}: who=1's bit on the attacker's cell"
+            );
+        }
+    }
+
+    /// §10.4: **a building target is seen through its `ever_seen` byte,
+    /// not the fog plane** (`BuildData::is_seen@0062e1a0` →
+    /// `WallData::is_seen@00642bd0`). A started building who=1 has once
+    /// laid eyes on stays a legal target of who=1's after the resync has
+    /// forgotten its cell; one it never saw is refused though the cell is
+    /// lit; and its owner always sees it. Great Lakes is the diff: without
+    /// this arm, the resync's clear dropped who=1's army's target on 8233
+    /// and the word fell 14982 → 9401.
+    ///
+    /// **Made to fail on purpose**: through the fog plane instead, the
+    /// first and second rows answer the other way.
+    #[test]
+    fn a_building_target_is_seen_through_its_ever_seen_byte() {
+        let (mut s, b) = fog_build(4, 0, 2);
+        s.buildings[b].started = true;
+        let (fx, fy) = (
+            s.buildings[b].pos.x / UNITS_PER_FOG,
+            s.buildings[b].pos.y / UNITS_PER_FOG,
+        );
+        for (ever, lit, seen) in [(0b10, 0, true), (0, 0b10, false), (0b10, 0b10, true)] {
+            s.buildings[b].ever_seen = ever;
+            s.world.clear_seen();
+            s.world.set_seen(fx, fy, lit);
+            assert_eq!(
+                s.build_is_seen(b, 1),
+                seen,
+                "ever_seen {ever:#04b}, who=1's fog bit {lit:#04b}"
+            );
+        }
+        s.buildings[b].ever_seen = 0;
+        assert!(s.build_is_seen(b, 0), "the owner");
+        s.buildings[b].started = false;
+        s.buildings[b].ever_seen = 0b10;
+        assert!(!s.build_is_seen(b, 1), "unstarted, and not an ally's");
     }
 
     /// **The unpack lights the whole disc** (`SpellType::cast_unpack

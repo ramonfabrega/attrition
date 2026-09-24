@@ -6018,9 +6018,27 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // 1091, where the leash alone left a one-frame `ATTACK`. Built →
     // **1133**. Every row from 736 to 1133 agrees.
     //
-    // **On 1134** the original's `1/6` has dropped its `ATTACK` on the
+    // **On 1134** the original's `1/6` had dropped its `ATTACK` on the
     // guard (`recharging 0`, its army's `ATTACKTOORDER` alone); this
-    // crate's fires (`recharging 25`). No mechanism is named.
+    // crate's fired (`recharging 25`).
+    //
+    // **The fourth pin, word 1133**: the hundredth-frame resync (item 709,
+    // `docs/VISION.md` §10). `update_all_seen` on 1133 clears `seen` and
+    // relights it; the guard's `visible` byte, 0 since 1051, no longer
+    // lights its cell for who=1, and `1/6`'s disc stops a half-cell short.
+    // `valid_target`'s fog test fails. 1033's resync had relit the cell
+    // through the byte, which is why `1/6` fired from 1058 to 1108. Built →
+    // **1139**. The seven 1134 rows close, and every row from 736 to 1140
+    // agrees.
+    //
+    // **The block, word 1139** (this test's, beside the constant's delta):
+    // on 1139 the original's guard rolls its idle stand on the post,
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, and this crate's does
+    // not. **No record parts on block 1140**: `GUYS=2` prints no
+    // animation state, so the roll's input is not on disk. Both guards
+    // die on tick 1140 with 60 of 65 hits, off the block after. The first
+    // value part past the word is `1/4`'s move on 1156, downstream of the
+    // draw. No mechanism is named.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -6029,13 +6047,6 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         "615 0/10 form",
         "847 1/0 order:move.facing",
         "1001 1/6 form",
-        "1134 1/6 dest_angle",
-        "1134 1/6 order:kind",
-        "1134 1/6 order:length",
-        "1134 1/6 orders.len",
-        "1134 1/6 orders_x",
-        "1134 1/6 orders_y",
-        "1134 1/6 recharging",
     ]
     .iter()
     .map(|r| r.to_string())

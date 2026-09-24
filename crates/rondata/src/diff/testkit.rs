@@ -2777,18 +2777,32 @@ pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 /// `target_opportunity`'s action gate keeps a human's `GUARD` from
 /// answering the hit on 1091.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: on 1134 the
-/// original's `1/6` has dropped its `ATTACK` on the guard (`recharging
-/// 0`, its army's `ATTACKTOORDER` alone), where this crate's fires
-/// (`recharging 25`, `Unit::fight+0x9b0` first on 1133). The guard's
-/// `visible` bit for who=1 is 0 from 1086. No mechanism is named.
-pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1133;
+/// 1133 → **1139** (item 709, `docs/VISION.md` §10): **the hundredth-frame
+/// resync forgets, and relights an attacker for its victims.**
+/// `update_all_seen` runs on `frame % 100 == 33` and opens with
+/// `World::clear_seen`; this crate skipped the clear. Its whole-disc
+/// `update_seen(0)` relights a unit's `visible` cells first; this crate
+/// did not. On 1033 the guard's byte still held who=1's bit, so the
+/// resync kept its cell lit for who=1 and `1/6` fired on 1058, 1083 and
+/// 1108 through the fog. On 1133 the byte was 0 and `1/6`'s own disc,
+/// radius 4 from half-cell (8, 36), stops short of the guard's (9, 31):
+/// `valid_target`'s fog test fails and the attack is dropped, drawless.
+/// The clear alone fell to ~1050; the relight with it closes every 1134
+/// row. A building target is seen through its `ever_seen` byte
+/// (`BuildData::is_seen`), not the fog plane, which keeps Great Lakes'
+/// word from falling to 9401 under the clear.
+///
+/// **The delta**, this constant's: +6, 1133 → 1139. On 1139 the original
+/// spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, the guard's idle
+/// stand on its post, which this crate's guard does not roll. The block's
+/// rows are the widening's. No mechanism is named.
+pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1139;
 
 /// `chapter_eleven_s_word_frame_is_widened_whole`'s window: 605, run190's
-/// first block, through 1134, the block after the word (item 707). The
-/// first pin was (605, 726) on the word 724, then (605, 736) on 734 and
-/// (605, 1038) on 1036.
-pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1135);
+/// first block, through 1140, the block after the word (item 709). The
+/// first pin was (605, 726) on the word 724, then (605, 736) on 734,
+/// (605, 1038) on 1036 and (605, 1135) on 1133.
+pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1141);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
