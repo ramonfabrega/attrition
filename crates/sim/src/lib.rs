@@ -377,6 +377,14 @@ pub struct Unit {
     pub collide: i16,
     /// `UnitData::collide_frame`.
     pub collide_frame: i64,
+    /// Where this unit's collision disc stands in [`Sim::coll`] — **guy
+    /// 0's unit cell as the occupancy last saw it**, not the unit's
+    /// (`docs/COLLISION.md` §16). `CollCheck::move_unit` is called only
+    /// from `Guy::set_new_location`, so the bits follow the figure: a
+    /// unit moved by someone else's turn (a push) keeps its disc on the
+    /// old cell until its own `Guy::process` next runs. `None` while it
+    /// is not painted.
+    pub coll_at: Option<Pos>,
     /// `UnitData::collide_o` / `collide_who` / `collide_guy`: what is in
     /// the way, `-1` for nothing.
     pub collide_o: i16,
@@ -809,6 +817,7 @@ impl Unit {
             form_width: -1,
             collide: 0,
             collide_frame: 0,
+            coll_at: None,
             collide_o: -1,
             collide_who: -1,
             collide_guy: -1,
@@ -3099,6 +3108,7 @@ impl Sim {
             let angle = self.units[u].movement.heading;
             self.units[u].movement.set_facing(angle);
             self.units[u].movement.body.pos = pos;
+            self.coll_follow(u);
             self.crew_des(u, pos, angle, true);
         }
     }
@@ -4288,6 +4298,11 @@ impl Sim {
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
         unit.movement.body = follow.body;
+        // `Guy::move`'s `Guy::set_new_location` is what moves the
+        // collision disc (`CollCheck::move_unit`, its only caller): the
+        // bits follow guy 0 here, not the unit's own step
+        // (`docs/COLLISION.md` §16).
+        self.coll_follow(i);
         // **Where a crew guy is told to be**, and it is written twice
         // over — the two arms of `Guy::move` reach it by different
         // functions and both end in the same rotation:

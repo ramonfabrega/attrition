@@ -560,7 +560,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
-        extra: 2,
+        // **2 → 3** on item 703: a pushed unit's collision disc waits for
+        // its figure (`docs/COLLISION.md` §16). This map's word holds at
+        // 15782, 8,219 frames before this one; `off` holds at 55. The
+        // three are player 1's `83` Bowmen and `84`, `85` Transport
+        // Barges. DECISIONS 36: the number, not a trade.
+        extra: 3,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.

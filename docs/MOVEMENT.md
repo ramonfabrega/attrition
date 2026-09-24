@@ -877,9 +877,14 @@ the subtraction is a no-op, which is what `crates/sim` implements.
 
 `Guy::do_turn@005d97a0:37` recurses into the crew **only** where both track
 components are zero, and such a guy's destination is its leader's position
-exactly. So a trackless crew guy has guy 0's position, guy 0's angle and guy
-0's arrival test on every frame: it *is* guy 0's body, and `crates/sim` leaves
-it sharing one rather than modelling a second that could only ever agree.
+exactly. So a trackless crew guy has guy 0's position, guy 0's angle and ~~guy
+0's arrival test on every frame~~ its own arrival test: it *is* guy 0's body,
+and `crates/sim` leaves it sharing one rather than modelling a second that
+could only ever agree. **The arrival test is not guy 0's** (item 703): its
+`des` is guy 0's *position*, and guy 0's `des` is the unit's point. The two
+part between a push, which rewrites guy 0's `des`, and the pushed unit's
+next `Guy::process`. There the crew stands on its destination and guy 0
+does not (`docs/COLLISION.md` §16.2).
 
 **The idle body's turn.** Standing on its destination and not turned this
 frame by the unit step (`guy_flags & 2`, which `do_turn` sets), guy 0 turns

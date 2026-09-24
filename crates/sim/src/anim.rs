@@ -1102,10 +1102,23 @@ impl Sim {
     ///
     /// Guy 0's destination is the unit's own position; a crew guy with a
     /// track offset has its own ([`Follow::des`]).
+    ///
+    /// **A trackless crew guy's destination is guy 0's position, not guy
+    /// 0's destination** (`docs/MOVEMENT.md`, "And the crew that has no
+    /// track"; `docs/COLLISION.md` §16). The crew loop writes it from
+    /// the leader's point, and the guy shares that point, so it stands on
+    /// its destination whenever it is asked. The two answers part only
+    /// between a push and the pushed unit's next `Guy::process`:
+    /// `Unit::set_new_location` has rewritten guy 0's `des_x/des_y` and
+    /// nothing has rewritten the crew's. Golden chapter eleven's chariot,
+    /// pushed by its wagon on tick 733 and blocked on tick 734, rolls its
+    /// crew's idle there and not its guy 0's: one `move_step+0x823` draw
+    /// where two would be the unit's arrival test for both.
     fn body_at_des(&self, u: usize, g: usize) -> bool {
         let unit = &self.units[u];
         match unit.guys.get(g).and_then(|g| g.follow) {
             Some(f) => f.body.pos == f.des,
+            None if g >= SQUAD_SIZE => true,
             None => unit.movement.body.pos == unit.pos,
         }
     }
@@ -2268,6 +2281,38 @@ mod tests {
             turret: Turret::ZERO,
         }];
         s.add_unit(u)
+    }
+
+    /// **A pushed unit's trackless crew arrives where its guy 0 does not**
+    /// (`docs/COLLISION.md` §16). A push rewrites guy 0's destination
+    /// (`Unit::set_new_location`) and leaves the crew's, which is guy 0's
+    /// old point and the one the shared body still stands on. So a
+    /// blocked stand asked before the figures catch up passes guy 0's
+    /// walking early return and rolls the crew's idle: one draw, not two
+    /// and not none. Golden chapter eleven's chariot on tick 734.
+    ///
+    /// Written to fail first: with the crew answering guy 0's arrival test
+    /// the request draws nothing.
+    #[test]
+    fn a_pushed_unit_s_trackless_crew_rolls_its_idle_alone() {
+        let mut s = sim_at(12345);
+        let u = animal(&mut s, 0, 1, -1, WALK, 2, 30);
+        let crew = s.units[u].guys[0];
+        s.units[u].guys.push(crew);
+        // Pushed: the unit is on a new point, the body on the old one.
+        s.units[u].movement.body.pos = Pos::new(2957, 2979);
+        let before = s.rng.seed;
+        s.set_default_anim(u);
+        assert_ne!(s.rng.seed, before, "the crew's idle was not rolled");
+        assert_eq!(category(s.units[u].guys[0].anim), 8, "guy 0 left its walk");
+        assert_eq!(
+            category(s.units[u].guys[1].anim),
+            0,
+            "the crew kept its walk"
+        );
+        let mut once = Rng::new(before);
+        once.roll();
+        assert_eq!(s.rng.seed, once.seed, "more than one draw");
     }
 
     /// **An unpacked packer's moving figure asks for no walk**

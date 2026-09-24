@@ -2751,16 +2751,29 @@ pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 /// `GUARD` on me is soft. Both read off run191's brackets on the
 /// original's own tick, not off a reading.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: on 734 the
-/// original's guard is blocked on its own step (tick 733) and then pushed
-/// by the wagon (`collide_o 7`), where this crate's guard steps and the
-/// wagon half-steps on a soft scan. No mechanism is named.
-pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 734;
+/// 734 → **1036** (item 703, `docs/COLLISION.md` §16): the collision
+/// disc follows guy 0, not the unit. The wagon pushed the guard on tick
+/// 732, and the original's guard, whose figures still stood on the old
+/// cell, was refused its own step on tick 733 by a bit its old disc still
+/// held. This crate had moved the bits with the push and stepped it
+/// through. Beside it, a trackless crew guy's destination is guy 0's
+/// position, so the blocked stand on tick 734 rolls the crew's idle and
+/// not guy 0's: one `move_step+0x823` draw, not none. The chase to the
+/// post, the stand on (3480, 12264) and the fight to 1036 then agree on
+/// every row.
+///
+/// **The block**, from [`WIDENING_CHAPTER_ELEVEN`]'s test: on 1037 the
+/// original's guard `0/6` holds its `GUARD` alone (the attack on `1/6`
+/// gone, `recharging 0`), where this crate's still has the `ATTACK` above
+/// it and has fired (`recharging 25`, `Unit::fight+0x9b0` first on 1036).
+/// `1/6` stands on (3355, 14070), about 1,810 units off. No mechanism is
+/// named.
+pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1036;
 
 /// `chapter_eleven_s_word_frame_is_widened_whole`'s window: 605, run190's
-/// first block, through 735, the block after the word (item 696). The
-/// first pin was (605, 726) on the word 724.
-pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 736);
+/// first block, through 1037, the block after the word (item 703). The
+/// first pin was (605, 726) on the word 724, then (605, 736) on 734.
+pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1038);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
