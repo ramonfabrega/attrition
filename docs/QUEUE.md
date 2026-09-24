@@ -13,11 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-23, the commander (Opus 5.5) after the thirteenth Fable pass:
-**2 landings since 29a46bd.** 673 moved Great Lakes 12536 → 12897
+**3 landings since 29a46bd.** 673 moved Great Lakes 12536 → 12897
 (`astar_path`'s retry gates on `is_move`, PATHFINDER §21.6, AI §65).
 651 staged chapter six-b and captured run175: the first falsifier fired,
-each aircraft walks at the enemy Airbase, and the word is open at 632.
-Lane att-678 is live on Great Lakes.*
+each aircraft walks at the enemy Airbase. 680 closed it 632 → 1250: a
+captain's attack on a building re-runs `find_new_target` every frame
+(COMBAT §62), found on run177's packet. Lane att-678 is capturing run178
+on Great Lakes.*
 
 - **Both maps moved and every golden chapter closed.** East Indies
   11069 → 13640 at 0.034 USD a frame (1893 of them off the disk in one
@@ -29,16 +31,16 @@ Lane att-678 is live on Great Lakes.*
   nine is the move line through `issue_move_to` (676).
 - **Nine Loop items ruled**, each a guard, a tool or a clause: 313, 630,
   638, 639, 645, 649, 656 (`tools/gamelog/waitrun.sh`), 667, 670.
-- **Fable backlog: 2 Loop items** (527 with a commitment, 677 the bird's
-  proxy); no `FABLE:` marker was filed.
+- **Fable backlog: 4 Loop items** (527, 677, 685 `step4`'s whole frame,
+  687 a capture's cost and levels); no `FABLE:` marker was filed.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w13640 of 24,000 · GreatLakes w12897 of 24,000
-Golden: ch6b w632 of 1250 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · 676 next
 Endpoint 24001: EastIndies 43 off, 11 unlinked · GreatLakes 34 off, 0 unlinked
 
-**Opener: spawn 680 on the rules lane (the open word before the next
-chapter); 678 is live on the AI lane, 643 follows it, and 676 follows 680. A detached capture waits on
+**Opener: 676 is live on the rules lane and 678 on the AI lane; 643
+follows 678. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -56,14 +58,6 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     original's `1/41` stands on `1/15`; ours walks on. Above it: 12626's
     plan (23 against 20), 12825's ungroup of `1/40`–`1/42` to kind 2.
     Inside run174, its last but one; a move past 12898 owes run178.
-
-680. **Chapter six-b's word is 632: the Fighter's `find_attack_pos`** (651
-    staged six-b, run175; the first falsifier fired, each aircraft walks
-    at the enemy Airbase on the ground). On 632 ours 34 draws against 24 at
-    draw 18: ours ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`,
-    the original none, killing the attack. Frames 605–631 agree. Which
-    exit of `find_attack_pos@00601280` answers 0 drawless for an air
-    attacker on a building: a packet at logger frame 632 first (run177).
 
 643. **East Indies' word is 13640, past every capture** (642 moved it
     11747 → 13640: `Region::go_here` reads the human's `reg_cities`

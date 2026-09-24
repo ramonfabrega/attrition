@@ -652,9 +652,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // with an Airbase in it, and the first with an aircraft under an
     // attack order — each walks at the enemy Airbase — whose `BUILDS`
     // and order records no other window here carries. The window is the
-    // word's block with two on either side, as six's.
+    // word's block with two on either side, as six's. Item 680 closed it
+    // at 1250, the capture's end, so the window stays on 632, the block
+    // it was widened on, as six's stays on 700.
     if let Some(p) = &ch6b {
-        let w = super::testkit::GOLDEN_WORD_CHAPTER_SIX_B;
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIX_B;
+        let w = 632;
         let n = drive_capture(p, w - 2, w + 2, &mut paths);
         assert_eq!(n, 5, "chapter six-b carries the word's five blocks");
         frames += n;

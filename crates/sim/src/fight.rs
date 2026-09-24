@@ -3569,6 +3569,73 @@ mod tests {
         assert_eq!(pushes, 1, "the ready frame re-entered work and fired again");
     }
 
+    /// **A captain's attack on a building re-searches every frame**
+    /// (`docs/COMBAT.md` §62, `Unit::fight@005fd4d0`'s `LAB_005fddf7`,
+    /// `005fdeb4` → `005fdf50` → `005fdeea`). Out of its search's reach the
+    /// attack dies where the unit stands, and nothing walks: run177's
+    /// Fighter on tick 632. In reach, the search re-finds the building and
+    /// the chase goes on under a fresh order.
+    ///
+    /// Made to fail both ways: with the arm off, the far unit keeps its
+    /// attack and adds a chase; with the search's answer dropped, the near
+    /// one loses its attack.
+    #[test]
+    fn a_captains_attack_on_a_building_re_searches_every_frame() {
+        let (mut sim, ty) = at_war();
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        let target_at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let b = sim.add_building(1, target_at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1000;
+        sim.buildings[b].health = 1000;
+        sim.buildings[b].combat = Some(Profile::default());
+        let run = |sim: &mut Sim, from: Pos| {
+            let u = put(sim, 0, ty, from);
+            sim.add_attack_order(
+                u,
+                Obj::Building(b),
+                crate::orders::QueuePos::New,
+                false,
+                false,
+            );
+            let before = sim.find_melee_target(u, -1);
+            assert!(sim.valid_target(Obj::Unit(u), Obj::Building(b)));
+            sim.tick();
+            (u, before)
+        };
+        // Far: sixteen tiles off, past a human's twelve-tile idle search
+        // (`UNIT_RESPOND_RANGE × 0xc0`), as run175's Fighter at its attack
+        // point is at about twelve.
+        let mut far = sim.clone();
+        let (u, before) = run(&mut far, Pos::new(target_at.x - 16 * 0xc0, target_at.y));
+        assert_eq!(before, None, "the far unit's search reaches the building");
+        assert!(
+            far.units[u].orders.is_empty(),
+            "the far unit kept an order: {:?}",
+            far.units[u].orders
+        );
+        // Near: eight tiles off, out of range 4 and inside the search.
+        let (u, before) = run(&mut sim, Pos::new(target_at.x - 8 * 0xc0, target_at.y));
+        assert_eq!(
+            before,
+            Some(Obj::Building(b)),
+            "the near unit's search misses"
+        );
+        assert!(
+            sim.units[u]
+                .orders
+                .iter()
+                .any(|o| matches!(o.body, crate::orders::Body::Attack(_))),
+            "the near unit lost its attack: {:?}",
+            sim.units[u].orders
+        );
+        assert_eq!(sim.units[u].combat.target, Some(Obj::Building(b)));
+    }
+
     /// **An unpacked packer takes only what it can reach, and a hit from
     /// inside its minimum is dropped without a chase**
     /// (`Object::find_nearby_target@00648da0`'s `local_24`, the listing

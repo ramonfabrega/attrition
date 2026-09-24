@@ -5703,9 +5703,9 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         "ch6b",
         "chapter6b",
         WIDENING_CHAPTER_SIX_B,
+        1250,
         0,
-        0,
-        (GOLDEN_WORD_CHAPTER_SIX_B, GOLDEN_WORD_CHAPTER_SIX_B + 2),
+        (632, 634),
         true,
         88,
     ) else {
@@ -5738,16 +5738,33 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     // `Built::build_ids` names only a building the start dump linked, so
     // a staged Airbase reads `None` (item 651 probed it: with a fallback
     // to the building's own `(owner, index)` both rows go and nothing else
-    // moves). Then **the word's own block**: on 633 the original's
-    // Fighter `0/6` holds no order, having reached its attack point on
-    // 632, and this crate's holds its attack order and a fresh move from
-    // `find_attack_pos` (the word's ten draws), so `orders.len`, the
-    // order stack's `length`, and `dest_angle` part; on 634 `idle`. The
-    // Bomber `1/6` agrees on every block to 634.
+    // moves; parked 681).
+    //
+    // **Item 680 took the word to the capture's end**: a captain's attack
+    // on a building re-searches every frame (`docs/COMBAT.md` §62), and
+    // the Fighter's search at its attack point finds nothing. The rows
+    // item 651 pinned on 633 and 634 are gone: the Fighter's `orders.len`,
+    // the stack's `length` and `dest_angle`, and `idle`. The window is
+    // run175 whole now, 605 to its last block, 1249; 1250 is the trace's
+    // end and prints no block, as run168's 900. The Bomber `1/6` agrees on
+    // every block, its alternating `ATTACK` and `MOVE` from 700 included.
+    //
+    // One row stands that is neither aircraft's: the explore order of
+    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
+    // the dump's 0 from 991, the row chapter five pins on 847 and Great
+    // Lakes carries on 8002. The field is declared non-scoring
+    // (`OrderMismatch::scores`, parked 275). It is pinned by name and
+    // value so it cannot stand in for anything else.
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX_B.0)
-        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .map(|((w, o, what), (f, row))| {
+            if what == "order:move.facing" {
+                format!("{f} {w}/{o} {what}: {row}")
+            } else {
+                format!("{f} {w}/{o} {what}")
+            }
+        })
         .collect();
     got.sort();
     let mut want: Vec<String> = [
@@ -5755,10 +5772,7 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         "611 0/6 order:target",
         "616 1/6 form",
         "616 1/6 order:target",
-        "633 0/6 dest_angle",
-        "633 0/6 order:length",
-        "633 0/6 orders.len",
-        "634 0/6 idle",
+        "991 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
     ]
     .iter()
     .map(|r| r.to_string())

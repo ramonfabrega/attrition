@@ -2612,27 +2612,34 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX: i64 = 900;
 pub(crate) const WIDENING_CHAPTER_SIX: (i64, i64) = (605, 901);
 
 /// **Chapter six-b's golden word** — the air line from a base
-/// (`docs/GOLDEN.md` §10, run175): **632 of 1250**, open.
+/// (`docs/GOLDEN.md` §10, run175): **1250 of 1250, closed**. 1250 is
+/// run175's trace end, and nothing parts on any frame of it: sequence
+/// 1250, no value part.
 ///
-/// **The delta** (item 651, the first walk): none — the word is new. On
-/// 632 ours spends 34 draws against 24, parting at draw 18: ten
-/// `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` of the Fighter
-/// `0/6`'s, where the original spends `Farms::inc_time+0x1ae`. Frames
-/// 605–631 agree, both aircraft's walks at the enemy Airbases included:
-/// this crate takes the same target on the same birth block and walks
-/// the same ground path, which is what run175 was taken to see.
+/// **The delta** (item 680): 632 → 1250, +618. On 632 ours spent 34 draws
+/// against 24, parting at draw 18 on ten `Unit::find_attack_pos+0xea9 <
+/// Unit::fight+0xcb4` of the Fighter `0/6`'s. run177's packet at logger
+/// frame 632 named the arm: `find_attack_pos` there answers 1 with the
+/// same ten draws, and it is never called. `fight`'s captain arm runs
+/// `find_new_target` drawlessly on every frame of an attack on a
+/// **building** (`LAB_005fddf7`, `005fdeb4` → `005fdf50` → `005fdeea`),
+/// and the Fighter's search, at its attack point, finds nothing, so
+/// the attack dies (`docs/COMBAT.md` §62). With that arm built, the
+/// Bomber `1/6`'s alternating `ATTACK` and `MOVE` from 700 to 1249 also
+/// agrees: its search re-finds who=0's Airbase every frame.
 ///
-/// **The block**, from [`WIDENING_CHAPTER_SIX_B`]'s test: on 633 the
-/// original's Fighter holds no order — it reached its attack point, (600,
-/// 7944), on 632 and dropped the attack — and this crate's holds its
-/// attack order and a fresh move from `find_attack_pos`. No mechanism is
-/// named: why an aircraft on the ground drops an attack on a building at
-/// its attack point is the next item's question.
-pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 632;
+/// **The block**, from [`WIDENING_CHAPTER_SIX_B`]'s test on run175 whole
+/// (605 to 1250): the 633 and 634 rows are gone (the Fighter's order
+/// stack, `dest_angle` and `idle`). Past the first block's 13 standing
+/// rows only each aircraft's `form` and `order:target` on its birth block
+/// part, 611 and 616, and the `order:target` rows are the harness's
+/// (`Built::build_ids`, parked 681).
+pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 
-/// `chapter_six_b_s_word_frame_is_widened_whole`'s window: run175's first
-/// block, 605, to the word's block and one past it, 634 (item 651).
-pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 635);
+/// `chapter_six_b_s_word_frame_is_widened_whole`'s window: **run175
+/// whole**, its first block, 605, to its last, 1250 (item 680). Item 651
+/// pinned (605, 635) on the open word 632.
+pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
 /// **Chapter eight's golden word** — the commanders and a declared war
 /// (`docs/GOLDEN.md` §12, run171): **900 of 901, closed**. The walk
@@ -3723,12 +3730,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_SIX),
     ),
     // Item 651: run175, chapter six-b's first walk, on the Fighter's
-    // arrival at its attack point beside the enemy Airbase.
+    // arrival at its attack point beside the enemy Airbase. Item 680
+    // closed it at 1250 (a building target's re-search) and widened
+    // run175 whole.
     (
         "GOLDEN_WORD_CHAPTER_SIX_B",
         GOLDEN_WORD_CHAPTER_SIX_B,
         Some("chapter_six_b_s_word_frame_is_widened_whole"),
-        651,
+        680,
         Some(WIDENING_CHAPTER_SIX_B),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.

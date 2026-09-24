@@ -6634,6 +6634,48 @@ impl Sim {
             }
             return;
         }
+        // **A captain's attack on a building re-searches every frame**
+        // (`docs/COMBAT.md` §62). The same captain arm as the one-in-five
+        // below, `Unit::fight@005fd4d0`, `LAB_005fddf7`: when the target
+        // is not a unit (vtable `+0x18`, `005fdeb1`-`005fdeb6` → `005fdf50`)
+        // there is no roll and no `poor_target`, only `find_new_target(
+        // this, &who, 0)` at `005fdeea` — the order killed and the idle
+        // search run again. Nothing found, and the attack is gone
+        // (`LAB_005fe001`); another target, and the search's own order
+        // stands with the frozen mark (`005fdf85`-`005fdfea`); the same
+        // one, and `fight` goes on with the order the search added, fresh.
+        // run177's packet: the Fighter `0/6` on tick 632 of chapter six-b.
+        //
+        // SEAM: the retarget arm's early return when the search names
+        // `fight`'s own entry arguments (`local_20`/`local_24`) after the
+        // target was changed above; nothing here changes it in between.
+        if !state.mandatory
+            && state.captain == i32::from(self.units[u].index)
+            && let Obj::Building(_) = target
+        {
+            match self.find_new_target(u, false) {
+                None => return,
+                Some(f) if f != target => {
+                    if matches!(
+                        self.current_order(u).map(|o| &o.body),
+                        Some(Body::Attack(_))
+                    ) {
+                        self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+                    }
+                    return;
+                }
+                Some(_) => {
+                    let Some(Order {
+                        body: Body::Attack(fresh),
+                        ..
+                    }) = self.current_order(u).copied()
+                    else {
+                        return;
+                    };
+                    a = fresh;
+                }
+            }
+        }
         // The one-in-five re-search (`docs/COMBAT.md` §8.2 step 0).
         if !state.mandatory
             && state.captain == i32::from(self.units[u].index)

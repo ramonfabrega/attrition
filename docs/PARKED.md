@@ -22,15 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 680, 2026-09-24 — chapter six-b's other arm
+
+(686) **§62.4's unit-target arm.** The original's `local_14` search is
+`find_new_target`, a kill and a fresh order, where this crate retargets
+in place (COMBAT §62). It names no frame yet.
+
 ## Parked by item 651, 2026-09-24 — past chapter six-b's 632
 
 (681) **`Built::build_ids` names no building placed after `BEGIN GAME`**,
 so a staged Airbase reads `None` as an attack's `order:target`: item
 462's shape one level over. A fallback to `(owner, index)` removes both
 rows and moves nothing else; it reaches the long captures' widenings.
-
-(682) **The Bomber's stuck attack from 700**: `ATTACK` and a one-frame
-`MOVE` alternating to 1249 with no blow. Past the word.
 
 (683) **Whether an aircraft on the ground may strike a building at all**:
 the Fighter is `ANTI_AIR`, and neither aircraft does in 640 frames.
@@ -762,6 +765,25 @@ the AI dump's shape (367, run114, DECISIONS 41 §6): a tracer proxy on
 `Unit::think_bird` — position, heading, anim per call — so the bird is
 a value row and not a draw count. Filed by the thirteenth pass from the
 journals; not built.
+
+(685) **`tools/recomp/step4.py` cannot run `do_frame` on a packet from
+597's plan**: a stack read falls outside the mapped ranges. A per-function
+call on the packet was enough for 680; a question that spans a whole
+frame would not be (`docs/journal/2026-09-24-item-680.md`).
+
+(687) **A long capture's wall clock is its window, and nobody has priced
+the levels.** run178 (item 678) is 2,006 blocks, 12894..14899, at ~13 a
+minute and 2.1 MB a block (sized from run174: 510 blocks in 40 minutes,
+a 90-second run-up), so ~155 minutes and 4.2 GB, holding the single
+capture lane while a second lane waits. 1,483 blocks are the word's
+move, 516 are runway. Two questions for the pass, raised by the user
+2026-09-24: **does a lower level** (`LEADERS=9`, `GUYS=4`, `BUILDS=7`)
+cut the per-block cost without losing a field a widening reads —
+measured, not guessed, on one window at two levels — and **can the lab
+make captures cheaper** (a packet or `step4` over a sampled frame in
+place of a dumped block, a draw-stream-first split, a runway sized to
+the queue's history of word jumps). Neither is ruled; the rule that a
+moved word lands with its value diff stands until it is.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
