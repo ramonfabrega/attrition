@@ -26,7 +26,7 @@ and nothing more**~~ **chapter three is captured (run145, closed at 900;
 its restage run146, open) and seven-b too (run156/run157, item 628, its
 premise killed by construction and pinned open as measured, §11); ~~six and
 eight are a design and nothing more~~ **six is captured too (run168, item
-648, its second falsifier fired, pinned open at ~~616~~ ~~700~~ and closed at 900 by item 652, §10), and its restage six-b (run175, item 651, its first falsifier fired on the target arm, open at 632); eight is a design
+648, its second falsifier fired, pinned open at ~~616~~ ~~700~~ and closed at 900 by item 652, §10), and its restage six-b (run175, item 651, its first falsifier fired on the target arm, pinned open at ~~632~~ and closed at 1250 by item 680); eight is a design
 and nothing more** — no capture has been run for it, and each one's own falsifier section is written
 precisely so that the first run can say it was wrong. The
 stageability of each is held by a test rather than by this prose
@@ -75,7 +75,9 @@ restage (run146) ~~is pinned at 780 782 of 1001 (items 602, 616)~~
 agrees to its end, 1000 (item 627); chapter eight ~~is pinned at 617 of
 901 on its first walk (item 660)~~ agrees to its end, 900 (items 660, 664,
 668), its
-capture cut at 901 by the allied victory its own `ally` line causes (§12). **A chapter whose
+capture cut at 901 by the allied victory its own `ally` line causes (§12);
+chapter six-b ~~is pinned at 632 of 1250 (item 651)~~ agrees to its end,
+1250 (item 680). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -920,7 +922,7 @@ take, and run168 simply had none in reach. What flies — an air order on a
 player's aircraft — still needs a writer the channel does not reach: a
 trained aircraft inside its base, or an issuer (§13).
 
-**Where this crate parts: `GOLDEN_WORD_CHAPTER_SIX_B` = 632, open.**
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_SIX_B` = 632, open (item 651); closed at 1250 by item 680, below.**
 Frames 605–631 agree: this crate takes the same Airbase on the same birth
 block and walks the same path to the same attack point. On 632, the
 Fighter's arrival, ours spends 34 draws against 24, parting at draw 18 on
@@ -928,9 +930,11 @@ ten `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` of `0/6`'s: at its
 point and out of range, it asks for a new attack position and gets one.
 The original spends none and drops the attack, so its stack is empty on
 633 — `Unit::fight@005fd4d0:1059`'s arm, where `find_attack_pos` answering
-0 runs `find_new_target` and kills an attack on the same target. **Which
+0 runs `find_new_target` and kills an attack on the same target. ~~**Which
 exit of `find_attack_pos@00601280` answers 0, drawless, for an air-domain
-attacker on a building is not read** (957 lines, the ranged arm under
+attacker on a building is not read**~~ — no exit does: on the word's
+packet it answers 1 with this crate's ten draws, and the original never
+calls it (item 680, below) (957 lines, the ranged arm under
 `type +0x2c8 & 0x400`), and that is what moving the word needs. The value
 diff is `chapter_six_b_s_word_frame_is_widened_whole` over (605, 635):
 past the first block's 13 standing rows, each aircraft's `form` on its
@@ -939,6 +943,33 @@ names no building staged after `BEGIN GAME`; with a fallback to the
 building's own `(owner, index)` both rows go), and the Fighter's
 `orders.len`, `order:length` and `dest_angle` on 633 and `idle` on 634.
 The Bomber agrees on every block to 634.
+
+**Closed at 1250 by item 680** (`docs/COMBAT.md` §62; run177's packet at
+logger frame 632, `docs/RUNS.md`). The word's premise was wrong in its
+arm: `fight@005fd4d0:1059` never runs on 632. Run on the packet,
+`find_attack_pos` from `fight`'s own call answers **1**, out (600, 7944),
+with exactly this crate's ten `+0xea9` draws. `fight` itself, run on the
+packet with `do_attack`'s arguments, returns 0 with **no draw**, never
+enters `find_attack_pos`, and calls `find_new_target` from `fight+0xa1f`.
+That is the captain arm `LAB_005fddf7`: a non-mandatory attack by a
+captain whose target is **not a unit** re-runs the idle search on every
+frame (`005fdeb4` → `005fdf50` → `005fdeea`), with no roll and no
+`poor_target`. The Fighter's search at its attack point reaches twelve
+tiles (`UNIT_RESPOND_RANGE × 0xc0`, a human's), and the Airbase is about
+12.2 off, so the search finds nothing and the attack dies where the
+Fighter stands. From its seat, 10.6 tiles off, the same search had found
+it. This crate carried the arm for a unit target only (§8.2 step 0).
+With it built for a building, the walk agrees to run175's end: sequence
+1250, no value part. The Bomber's alternating `ATTACK` and one-frame
+`MOVE` from 700 to 1249 (parked 682) agrees on every block too: its
+AI-driven search reaches 24 tiles and re-finds who=0's Airbase each frame,
+and the chase that follows moves it nowhere. The widening,
+`chapter_six_b_s_word_frame_is_widened_whole`, now spans run175 whole
+(605 to 1249). Past the first
+block's standing rows only each aircraft's `form` and the harness's
+`order:target` part on their birth blocks, 611 and 616, and one row that
+is neither aircraft's: the scout `1/0`'s non-scoring `order:move.facing`
+from 991 (parked 275), pinned by value as chapter five pins it on 847.
 
 ## 11. Chapter seven — the civilians, and what AI-off takes away
 
@@ -1317,7 +1348,7 @@ below without a run take their number at booking (the eleventh pass).
 | 156 | seven-b, the computer's civilians | `[605, 1200)` | the same five for who=1 with `!ai off`, where the cheat's block decides (item 628, the twelfth pass) — **run 2026-09-23 (item 628), 106 MB, 295 s; the first falsifier fired by construction; word 1148** |
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
-| 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word 632** |
+| 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
