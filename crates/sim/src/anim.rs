@@ -1249,7 +1249,13 @@ impl Sim {
                 let p = self.rng.roll() % 100;
                 if cur_cat == 0 && p3 {
                     let peasant_on_masked = self.is_peasant(u) && self.on_masked_tile(u);
-                    v = idle_variant(p, self.units[u].guy_flag_0x20, peasant_on_masked);
+                    // `guy_flags & 0x20` is **the guy's**, and only
+                    // `Unit::set_in_danger@005fcfb0` sets it, on figures
+                    // `0 .. guy_mark` (`5fd01e`, the image's one writer).
+                    // A crew figure past the squad never carries it, so
+                    // it keeps all four variants (`docs/ANIM.md` §13).
+                    let two = self.units[u].guy_flag_0x20 && g < SQUAD_SIZE;
+                    v = idle_variant(p, two, peasant_on_masked);
                 }
                 // `5da7a2` — and it sits **outside** the variant
                 // selection's `(cur_cat == 0) && p3` gate, so a scholar
