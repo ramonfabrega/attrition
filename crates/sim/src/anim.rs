@@ -2792,6 +2792,45 @@ mod tests {
         assert_eq!(b.last_time, -1);
     }
 
+    /// **`guy_flags & 0x20` is guy 0's; the crew keeps four idle
+    /// variants** (`docs/ANIM.md` §13). `Unit::set_in_danger@005fcfb0`
+    /// sets the bit on figures `0 .. guy_mark` alone (`5fd01e`, the
+    /// image's one writer), so the crew figure past the squad rolls
+    /// without it. Golden chapter eleven's chariot, the guard `0/6`, with
+    /// its two pieces' lengths: on tick 1100 its crew's p91 is `IDLE2`, 71
+    /// frames, where the flag would give `IDLE1`, 81, and the re-roll on
+    /// 1139 is the one this crate missed.
+    ///
+    /// Made to fail on purpose: with the flag read for every figure, the
+    /// crew takes `IDLE1`.
+    #[test]
+    fn a_crew_figure_rolls_its_idle_without_the_danger_flag() {
+        // Two rolls in 83..=95 in a row: guy 0's, then the crew's.
+        let seed = (1u32..)
+            .find(|&x| {
+                let mut r = Rng::new(x);
+                let (a, b) = (r.roll() % 100, r.roll() % 100);
+                (83..=95).contains(&a) && (83..=95).contains(&b)
+            })
+            .unwrap();
+        let mut s = sim_at(seed);
+        for (piece, lens) in [(145, [31, 80, 70, 31]), (12817, [31, 81, 71, 31])] {
+            for (slot, len) in [DEFAULT, IDLE1, IDLE2, IDLE3].into_iter().zip(lens) {
+                s.art.lengths.insert((piece, slot), len);
+            }
+        }
+        let u = animal(&mut s, 0, 6, 145, IDLE1, 80, 80);
+        let mut crew = s.units[u].guys[0];
+        (crew.gpiece, crew.end_time) = (12817, 80);
+        s.units[u].guys.push(crew);
+        s.units[u].guy_flag_0x20 = true;
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, stepped(seed, 2), "one roll a figure");
+        let (a, b) = (s.units[u].guys[0], s.units[u].guys[1]);
+        assert_eq!((a.anim, a.end_time), (IDLE1, 80), "guy 0 is flagged");
+        assert_eq!((b.anim, b.end_time), (IDLE2, 71), "the crew is not");
+    }
+
     /// The idle roll's thresholds, and `init_real`'s.
     #[test]
     fn the_variants() {
