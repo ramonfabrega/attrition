@@ -3051,8 +3051,9 @@ above it is still a seam.
 - **Great Lakes 14650 → 14982.** On 14982 the original spends three
   `Guy::init_real+0x52` before the frame's `Guy::inc_time` wraps, 15 draws
   against this crate's 11. That is a three-figure birth this crate does not
-  make. It is **past run178's last block (14899)**, so run192 was captured
-  over it (`docs/RUNS.md`).
+  make, `1/79`. It is **past run178's last block (14899)**, so run192 was
+  captured over it and widened (`run192_s_word_frame_is_widened_whole`,
+  `docs/RUNS.md`).
 - **The value diff, on block 14651** (`run178_s_word_frame_is_widened_whole`):
   the eight rows of `1/43` on 14650 and the 192 on 14651 are gone, and
   nothing parts on 14649..14653. The rows standing on 14651 went 517 →

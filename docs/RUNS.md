@@ -6395,3 +6395,26 @@ block 14899, and no `gamelog-*greatlakes*` holds block 14982 or 14983
 wraps, a three-figure birth, and this crate spends none. **Sized to the
 word, not to the gap** (Loop 687): the 83 blocks up to it, six shared with
 run178 so the widening walks one chain, and 56 of runway above it.
+
+**Taken whole.** 326 MB of dump and 20.3 MB of trace, 146 blocks
+14894..15039. It took about 14 minutes from launch (15:33) to archive
+(15:47), with no human at the menu. The lane lock was stale (pid 66547,
+dead). Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 15,051 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **146 blocks, 14894..15039, no gap** |
+| a `GROUPDATA` on every window block | **146** |
+| overlap with run178, nothing excluded | **6 in common (14894..14899), 0 differ** |
+| the coverage window | a set on all 9 frames 14978..14986 |
+
+**What it settled.** The word's block 14983 holds a birth, `1/79`. It
+appears in the dump alone: three figures of guy type 352 at (44184,
+24552), `myhits` 109, counted by who=1's `active` and `num_units[302]`.
+Nothing parts on 14900..14945. The first parting under the word is on
+14946. A who=1 Barracks' free train, `1/76`–`1/78`, is born on both sides,
+as type 120 here and type 127 there, with `myhits` 70 against 88. No make
+list or queue parts under the word
+(`run192_s_word_frame_is_widened_whole`).

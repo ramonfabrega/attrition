@@ -5793,6 +5793,23 @@ settle_min: 14000000
 # the 55 GB free. run178 ran ~14 blocks a minute after its run-up, so this
 # is ~12 minutes. 120 polls is forty.
 poll_max: 120
+# ==== TAKEN 2026-09-24, **WHOLE** ====
+#
+# 325,984,427 bytes of dump and 20,342,496 of trace, **146 blocks
+# 14894..15039**, a `GROUPDATA` on every one. Launched 15:33 through
+# `viadriver.sh` with no human at the menu and archived 15:47, about 14
+# minutes; the lane lock was stale (pid 66547, dead). All six checks
+# green: 15,051 frames identical to run53, `MAP_STYLE 14`, the window
+# whole, the pool, 6 blocks shared with run178 (14894..14899) and 0
+# differing, and a coverage set on all 9 frames 14978..14986.
+#
+# **The readings, decided on the walk**: **R1 holds**, the checks above.
+# **R2 holds**: `1/79` stands on 14983 in the dump alone, three figures
+# of guy type 352 at (44184, 24552). **R3 is killed**: nothing parts on
+# 14900..14945, and the first parting is units — a Barracks' free train,
+# `1/76`–`1/78` on 14946, born as type 120 here and 127 there — with the
+# leader's `num_units` counting them on the same block. No make list or
+# queue parts under the word. `run192_s_word_frame_is_widened_whole`.
 # Same game: the trace word for word against run53, this map's own 24k run.
 check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run192.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=15040)}'
 # And the map, from the dump's own `GAME INFO`.
