@@ -1561,6 +1561,10 @@ mod tests {
     /// that `reg_known_rares` has a writer (`docs/AI.md` §55). 89 → 84.
     // Item 629 took `MAKE[1].val`, `MAKE[3].val` and `MAKE[4].val`: the Merchants' seat (`docs/MERCHANT.md`
     // §3.2) brings the make list's values to the original's.
+    ///
+    /// **81 → 69 on item 688** (`docs/AI.md` §67), all `SITE` rows of leader
+    /// 1: fourteen gone and `SITE[1].dist`/`.val` arriving, a site the
+    /// slot order moved.
     const PARTS_ON_RUN115: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -1591,15 +1595,13 @@ mod tests {
         (1, "MAKE[3].city"),
         (1, "MAKE[4].city"),
         (1, "MAKE[8].city"),
-        (1, "SITE[0].rank"),
         (1, "SITE[0].reg"),
+        (1, "SITE[1].dist"),
         (1, "SITE[1].rank"),
         (1, "SITE[1].reg"),
+        (1, "SITE[1].val"),
         (1, "SITE[1].wx"),
         (1, "SITE[1].wy"),
-        (1, "SITE[2].dist"),
-        (1, "SITE[2].rank"),
-        (1, "SITE[2].val"),
         (1, "SITE[2].wx"),
         (1, "SITE[2].wy"),
         (1, "SITE[3].dist"),
@@ -1627,16 +1629,6 @@ mod tests {
         (1, "SITE[7].val"),
         (1, "SITE[7].wx"),
         (1, "SITE[7].wy"),
-        (1, "SITE[8].dist"),
-        (1, "SITE[8].rank"),
-        (1, "SITE[8].val"),
-        (1, "SITE[8].wx"),
-        (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
         (1, "tech_cat_frame[1]"),
@@ -2288,6 +2280,10 @@ mod tests {
     /// `leftover`, `rate` and `resources` of `1/…[2:wealth]`. The income
     /// was 32 short, the two trade routes' worth with the Barracks and
     /// Stable outside Norwich, and nothing arrives (`docs/AI.md` §63).
+    ///
+    /// **83 → 53 on item 688** (`docs/AI.md` §67): thirty `SITE` rows of
+    /// leader 1 gone — `SITE[1]`–`[4]`, `[8]` and `[9]` whole — and nothing
+    /// arriving.
     const PARTS_ON_RUN111: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2318,27 +2314,7 @@ mod tests {
         (1, "MAKE[4].city"),
         (1, "MAKE[5].city"),
         (1, "SITE[0].reg"),
-        (1, "SITE[1].dist"),
-        (1, "SITE[1].rank"),
-        (1, "SITE[1].val"),
-        (1, "SITE[1].wx"),
-        (1, "SITE[1].wy"),
-        (1, "SITE[2].dist"),
-        (1, "SITE[2].rank"),
         (1, "SITE[2].reg"),
-        (1, "SITE[2].val"),
-        (1, "SITE[2].wx"),
-        (1, "SITE[2].wy"),
-        (1, "SITE[3].dist"),
-        (1, "SITE[3].rank"),
-        (1, "SITE[3].val"),
-        (1, "SITE[3].wx"),
-        (1, "SITE[3].wy"),
-        (1, "SITE[4].dist"),
-        (1, "SITE[4].rank"),
-        (1, "SITE[4].val"),
-        (1, "SITE[4].wx"),
-        (1, "SITE[4].wy"),
         (1, "SITE[5].dist"),
         (1, "SITE[5].rank"),
         (1, "SITE[5].val"),
@@ -2354,16 +2330,6 @@ mod tests {
         (1, "SITE[7].val"),
         (1, "SITE[7].wx"),
         (1, "SITE[7].wy"),
-        (1, "SITE[8].dist"),
-        (1, "SITE[8].rank"),
-        (1, "SITE[8].val"),
-        (1, "SITE[8].wx"),
-        (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "gather_stamp"),
         (1, "scholars"),
         (1, "scouts"),
@@ -2391,6 +2357,10 @@ mod tests {
     /// caps (`Leader::gather@006ce280:58` runs `calc_resource_caps` every
     /// frame), and `gain_tech` raises the economy flag. The AI's timber
     /// accumulator stood off by a lag; it agrees now, and nothing arrives.
+    ///
+    /// **83 → 53 on item 688** (`docs/AI.md` §67): thirty `SITE` rows of
+    /// leader 1 gone — `SITE[1]`–`[4]`, `[8]` and `[9]` whole — and nothing
+    /// arriving. `City::fix_world_vals` was the doubled site values.
     const PARTS_ON_RUN107: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2423,26 +2393,6 @@ mod tests {
         (1, "MAKE[4].city"),
         (1, "MAKE[5].city"),
         (1, "MAKE[8].city"),
-        (1, "SITE[1].dist"),
-        (1, "SITE[1].rank"),
-        (1, "SITE[1].val"),
-        (1, "SITE[1].wx"),
-        (1, "SITE[1].wy"),
-        (1, "SITE[2].dist"),
-        (1, "SITE[2].rank"),
-        (1, "SITE[2].val"),
-        (1, "SITE[2].wx"),
-        (1, "SITE[2].wy"),
-        (1, "SITE[3].dist"),
-        (1, "SITE[3].rank"),
-        (1, "SITE[3].val"),
-        (1, "SITE[3].wx"),
-        (1, "SITE[3].wy"),
-        (1, "SITE[4].dist"),
-        (1, "SITE[4].rank"),
-        (1, "SITE[4].val"),
-        (1, "SITE[4].wx"),
-        (1, "SITE[4].wy"),
         (1, "SITE[5].dist"),
         (1, "SITE[5].rank"),
         (1, "SITE[5].val"),
@@ -2458,16 +2408,6 @@ mod tests {
         (1, "SITE[7].val"),
         (1, "SITE[7].wx"),
         (1, "SITE[7].wy"),
-        (1, "SITE[8].dist"),
-        (1, "SITE[8].rank"),
-        (1, "SITE[8].val"),
-        (1, "SITE[8].wx"),
-        (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "scholars"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -2528,6 +2468,11 @@ mod tests {
     /// row. 80 → 78.
     // Item 629 took `MAKE[3].val`: the Merchants' seat (`docs/MERCHANT.md`
     // §3.2) brings the make list's values to the original's.
+    ///
+    /// **77 → 62 on item 688** (`docs/AI.md` §67): fifteen `SITE` rows of
+    /// leader 1 gone, `SITE[2]`, `[8]` and `[9]` whole, and nothing arriving.
+    /// The site values were twice and four times the original's for want of
+    /// `City::fix_world_vals`.
     const PARTS_ON_RUN19: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2559,11 +2504,6 @@ mod tests {
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
-        (1, "SITE[2].dist"),
-        (1, "SITE[2].rank"),
-        (1, "SITE[2].val"),
-        (1, "SITE[2].wx"),
-        (1, "SITE[2].wy"),
         (1, "SITE[3].dist"),
         (1, "SITE[3].rank"),
         (1, "SITE[3].val"),
@@ -2589,16 +2529,6 @@ mod tests {
         (1, "SITE[7].val"),
         (1, "SITE[7].wx"),
         (1, "SITE[7].wy"),
-        (1, "SITE[8].dist"),
-        (1, "SITE[8].rank"),
-        (1, "SITE[8].val"),
-        (1, "SITE[8].wx"),
-        (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "gather_stamp"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -2632,6 +2562,10 @@ mod tests {
     /// close with the Merchant offer (`docs/AI.md` §55), and `1/known_rares`
     /// arrives, compared for the first time — the original's sum lags its
     /// array over 7514–7583 (§55.3). 91 → 90.
+    ///
+    /// **90 → 85 on item 688** (`docs/AI.md` §67), all `SITE` rows of leader
+    /// 1: `SITE[8]` and `SITE[9]` gone, `SITE[1]` arriving — the same sites
+    /// at the original's values, in other slots.
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2675,6 +2609,11 @@ mod tests {
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
+        (1, "SITE[1].dist"),
+        (1, "SITE[1].rank"),
+        (1, "SITE[1].val"),
+        (1, "SITE[1].wx"),
+        (1, "SITE[1].wy"),
         (1, "SITE[2].dist"),
         (1, "SITE[2].rank"),
         (1, "SITE[2].val"),
@@ -2705,21 +2644,7 @@ mod tests {
         (1, "SITE[7].val"),
         (1, "SITE[7].wx"),
         (1, "SITE[7].wy"),
-        (1, "SITE[8].dist"),
-        (1, "SITE[8].rank"),
-        (1, "SITE[8].val"),
-        (1, "SITE[8].wx"),
-        (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "gather_stamp"),
-        // Item 327: the original's sum reads 0 from its 7335
-        // recompute to its 7583 one while the array holds 3 — the second
-        // writer, `compute_reg_territory`'s zeroing, which the immediate
-        // territory pass here cannot place (`docs/AI.md` §55.3).
         (1, "known_rares"),
         (1, "scouts"),
         (1, "tech_cat_frame[0]"),
@@ -2759,6 +2684,13 @@ mod tests {
     /// territory census counted only computer leaders where
     /// `plan_strategy@006b9620:159` gates on `leader_flags & 2`, which
     /// every capture sets for the human. `docs/AI.md` §43.
+    ///
+    /// **81 → 87 on item 688** (`docs/AI.md` §67), all `SITE` rows of leader
+    /// 1: `SITE[9]`'s five gone, and `SITE[1]`, `SITE[3]` and `SITE[4].wx`
+    /// arriving. With `City::fix_world_vals` the sites' values are the
+    /// original's and the ten sit in different slots — a slot index is
+    /// not an identity, and a site that was double scored no longer holds
+    /// the slot it held.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2797,16 +2729,27 @@ mod tests {
         (1, "MAKE[7].city"),
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
+        (1, "SITE[1].dist"),
+        (1, "SITE[1].rank"),
         (1, "SITE[1].reg"),
+        (1, "SITE[1].val"),
+        (1, "SITE[1].wx"),
+        (1, "SITE[1].wy"),
         (1, "SITE[2].dist"),
         (1, "SITE[2].rank"),
         (1, "SITE[2].val"),
         (1, "SITE[2].wx"),
         (1, "SITE[2].wy"),
+        (1, "SITE[3].dist"),
+        (1, "SITE[3].rank"),
         (1, "SITE[3].reg"),
+        (1, "SITE[3].val"),
+        (1, "SITE[3].wx"),
+        (1, "SITE[3].wy"),
         (1, "SITE[4].dist"),
         (1, "SITE[4].rank"),
         (1, "SITE[4].val"),
+        (1, "SITE[4].wx"),
         (1, "SITE[4].wy"),
         (1, "SITE[5].dist"),
         (1, "SITE[5].rank"),
@@ -2828,11 +2771,6 @@ mod tests {
         (1, "SITE[8].val"),
         (1, "SITE[8].wx"),
         (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "defense"),
         (1, "gather_stamp"),
         (1, "scouts"),
@@ -2976,6 +2914,9 @@ mod tests {
     /// wealth rows and `worst_good` agree, and so does what the four wealth
     /// decided: `bucket[0:food]` and `bucket[1:timber]` across the buy, and
     /// the `MAKE[2].val` and `MAKE[9].val` it re-ranked. Nothing arrives.
+    ///
+    /// **88 → 61 on item 688** (`docs/AI.md` §67): twenty-seven `SITE` rows
+    /// of leader 1 gone and nothing arriving.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -3012,25 +2953,8 @@ mod tests {
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
-        (1, "SITE[1].dist"),
-        (1, "SITE[1].rank"),
         (1, "SITE[1].reg"),
-        (1, "SITE[1].val"),
-        (1, "SITE[1].wx"),
-        (1, "SITE[2].dist"),
-        (1, "SITE[2].rank"),
-        (1, "SITE[2].val"),
-        (1, "SITE[2].wx"),
-        (1, "SITE[3].dist"),
-        (1, "SITE[3].rank"),
-        (1, "SITE[3].val"),
-        (1, "SITE[3].wx"),
-        (1, "SITE[3].wy"),
-        (1, "SITE[4].dist"),
         (1, "SITE[4].rank"),
-        (1, "SITE[4].val"),
-        (1, "SITE[4].wx"),
-        (1, "SITE[4].wy"),
         (1, "SITE[5].dist"),
         (1, "SITE[5].rank"),
         (1, "SITE[5].val"),
@@ -3046,16 +2970,6 @@ mod tests {
         (1, "SITE[7].val"),
         (1, "SITE[7].wx"),
         (1, "SITE[7].wy"),
-        (1, "SITE[8].dist"),
-        (1, "SITE[8].rank"),
-        (1, "SITE[8].val"),
-        (1, "SITE[8].wx"),
-        (1, "SITE[8].wy"),
-        (1, "SITE[9].dist"),
-        (1, "SITE[9].rank"),
-        (1, "SITE[9].val"),
-        (1, "SITE[9].wx"),
-        (1, "SITE[9].wy"),
         (1, "peasants"),
         (1, "scholars"),
         (1, "scouts"),

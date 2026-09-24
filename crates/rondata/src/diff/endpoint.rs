@@ -525,7 +525,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // word moves 13640 → 15782, 8,219 frames before this one. The
         // unlinked are player 1's `73`..`82`. DECISIONS 36: the number, not
         // a trade.
-        off: 46,
+        // **46 → 55 off, 10 → 0 unlinked, 0 → 2 extra, 1 → 2
+        // build_unlinked, 18 → 16 build_diverged** on item 688: a founded
+        // city quarters and halves the site values round it
+        // (`City::fix_world_vals`, `docs/AI.md` §67). This map's word holds
+        // at 15782, 8,219 frames before this one. DECISIONS 36: the number,
+        // not a trade.
+        off: 55,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -549,23 +555,27 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **8 → 12** on item 642, beside `off` above.
         // **12 → 11** on item 673, beside `off` above.
         // **11 → 10** on item 643, beside `off` above.
-        unlinked: 10,
+        // **10 → 0** on item 688, beside `off` above.
+        unlinked: 0,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
-        extra: 0,
+        // **0 → 2** on item 688, beside `off` above.
+        extra: 2,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
         // **2 → 1** on item 620, beside `off` above.
         // **2 → 1** on item 643, beside `off` above.
-        build_unlinked: 1,
+        // **1 → 2** on item 688, beside `off` above.
+        build_unlinked: 2,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
         // **24 → 22** on item 613, beside `off` above.
         // **22 → 24** on item 620, beside `off` above.
         // **22 → 18** on item 642, beside `off` above.
-        build_diverged: 18,
+        // **18 → 16** on item 688, beside `off` above.
+        build_diverged: 16,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1236,7 +1246,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // §26, `docs/AI.md` §66), which moves this map's word 12897 →
         // 14382. The extra is still `1/81`. The 24,000th frame is 9,618
         // frames past the new word. DECISIONS 36: the number, not a trade.
-        off: 33,
+        // **33 → 46 off, 1 → 0 extra, 4 → 2 build_diverged** on item 688:
+        // a founded city quarters and halves the site values round it
+        // (`City::fix_world_vals`, `docs/AI.md` §67), which moves this
+        // map's word 14382 → 14529. The 24,000th frame is 9,471 frames
+        // past the new word. DECISIONS 36: the number, not a trade.
+        off: 46,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         unlinked: 0,
@@ -1250,7 +1265,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 2 extra** on item 657; `off` held at 42.
         // **2 → 0 extra** on item 661, beside `off` above.
         // **0 → 1 extra** on item 669, beside `off` above: `1/81`.
-        extra: 1,
+        // **1 → 0 extra** on item 688, beside `off` above.
+        extra: 0,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
@@ -1259,7 +1275,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **7 → 6** on item 669, beside `off` above.
         // **6 → 8** on item 673, beside `off` above.
         // **8 → 4** on item 678, beside `off` above.
-        build_diverged: 4,
+        // **4 → 2** on item 688, beside `off` above.
+        build_diverged: 2,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1642,7 +1659,9 @@ pub const LADDER: [Endpoint; 2] = [
         // 11590 (`docs/ORDERS.md` §6.4). DECISIONS 36: the number, not a
         // trade.
         // **39 → 36** on item 642; see `extra` below.
-        off: 36,
+        // **36 → 37** on item 688 (`docs/AI.md` §67), 707 frames past this
+        // map's word 15782. DECISIONS 36: the number, not a trade.
+        off: 37,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the

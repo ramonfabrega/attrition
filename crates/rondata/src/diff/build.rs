@@ -1122,6 +1122,12 @@ mod tests {
         // with it. That is `compute_site_stats`' arithmetic, and it is
         // booked (`docs/QUEUE.md`); this run moved the **region**, not the
         // score.
+        //
+        // **Item 688 took all 7,122**: the twice and four times were
+        // `City::fix_world_vals` (`docs/AI.md` §67), the second city
+        // halving and quartering the site values round it, which this
+        // crate never did. Every field of both leaders' ten slots now
+        // agrees on every frame of the window.
         let wrong: usize = site_bad.values().map(|(n, _, _)| n).sum();
         assert_eq!(
             wrong, RUN63_SITE_WRONG,
@@ -1135,7 +1141,7 @@ mod tests {
     /// `compute_site_stats`' own residue, which
     /// `run63_s_window_is_where_the_ai_s_colony_site_appears` names.
     const RUN63_SITE_FIELDS: usize = 27_000;
-    const RUN63_SITE_WRONG: usize = 7_122;
+    const RUN63_SITE_WRONG: usize = 0;
 
     /// **run40 and run41 — the ten `SITE` records, and the territory the
     /// site scorer reads through them (item 113).**

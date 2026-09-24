@@ -8261,8 +8261,11 @@ prints, and it is where the next item starts.
 
 ### 66.4 What this has *not* established
 
-- **Why `SITE[1]` parts on 12976.** It is 1,406 blocks under the word,
-  and run178 prints every block between.
+- ~~**Why `SITE[1]` parts on 12976.** It is 1,406 blocks under the word,
+  and run178 prints every block between.~~ It was not the first parting:
+  the site values stood at double the original's from before 11400,
+  for want of `City::fix_world_vals` (§67), and the Barracks on 14383
+  does not read the table at all.
 - **Whether a word turns on the unwind probe's copies.** They are carried
   (`docs/PATHFINDER.md` §26.6), and no diff has isolated them.
 
@@ -8280,3 +8283,138 @@ prints, and it is where the next item starts.
 (`sim`).
 
 **Reading only**: none. The rule is listing-backed (PATHFINDER §26.7).
+
+## 67. A founded city wears the site values down, and the word moves to 14529 (2026-09-24, item 688)
+
+Item 678 left Great Lakes' word at **14382**. There, ours spent 11 draws
+against the original's 13, parting at index 2: ours
+`Leader::make_stuff+0x221`, theirs `Leader::produce_building+0x1805`. On
+block 14383 who=1's new building `1/2025` stood at (39552, 17472) here
+and (42624, 19776) there. The nearest input the dump prints was the
+`SITE` table, parting on 12976. No mechanism was named.
+
+### 67.1 The frame, read from the dump
+
+- **Both sides place a Barracks (type 427) on 14382, for the capital
+  `1/2000`.** The original spends four jitter draws (`+0x1805`, a 2×2
+  all clear) before `make_stuff`'s two. Ours spent two.
+- **They take different spiral cells**: (55, 25) in the original, a 4×4
+  corner at tile (220, 100) with jitter `dy` 1, and (51, 22) here. The
+  spiral (§2.20) scores both `1000 + 0xff − val`, since neither has a
+  friend and both are `d ≤ 4`. The scores were 1251 for (55, 25) at
+  `val` 4 and **1252** for (51, 22) at `val` 3.
+- **Every input the dump prints agrees on 14382**: each unit's position,
+  each building, and the leader's territory (568).
+- **The `SITE` table is not a link.** A Barracks placement does not read
+  `Leader::sites`. The 12976 rows were only the first partings of a
+  table that had not agreed since before 11400. The same sites sat in
+  other slots, and their values were double the original's, e.g.
+  (48, 34) at 189000 against 94500.
+
+The brief's three readings: the site ranking from a different input
+(killed: the values already differed at 11400); the site right and the
+spiral different (the spiral half held); the make list on another frame
+(killed: both place on 14382). The spiral's gates were each killed on
+this cell: the river bit `0x2`, the city's `city_flags` bit `0x2`, `find_friends`,
+the distance (from the listing at `006e1f9a`), and a probe of
+`blocked_site`'s unseen count. What held is the score's last input:
+`WData.val`, which this crate never wrote after load.
+
+### 67.2 `City::fix_world_vals@00735aa0`
+
+`City::init@00737050` calls it last, unconditionally, so it runs on a
+founding and on a capture alike:
+
+- the centre is the city's cell;
+- `r = min(get_radius(type), 0x40)` and `k = min((r + 3) / 4, 0x3d)`;
+- for `i < circle_radius[k + 3]`, each in-bounds cell's `val >>= 2`
+  while `i < circle_radius[k]`, and `>>= 1` otherwise. `circle_radius[r]`
+  counts rings `0..=r`, so rings up to `k` are quartered and the three
+  beyond are halved.
+
+`City::close` gives nothing back. The only other writers of `val` are
+the map build (`World::compute_all_vals`), the constructor and the
+scenario loader. Readers: the spiral's score (§2.20), `compute_site_stats`
+(§2.13) and `Map::make_continents`.
+
+Norwich (54, 32) was founded after the frame-0 dump. (55, 25) is seven
+cells from it, in the halved rings, so the original reads `val` 2 there
+and scores 1253. (51, 22), ten cells away, keeps 3. `Sim::init_city`
+now ends in `fix_world_vals`. The harness's `build_sim` writes the
+dumped values back once its frame-0 cities stand, because the dump is
+post-`City::init`. `sim_at_frame` already restores its whole map.
+
+### 67.3 What it moved
+
+- **Great Lakes' word: 14382 → 14529**, inside run178 (block 14530 of
+  its 14899). The new delta: ours **7** draws against the original's
+  **3,213**, parting at index **0**. Ours spends `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271` where the original spends `PathFinder::
+  calc_road_cost+0x46`.
+- **The move's value diff, on run178**: the 60 keys on block 14383 are
+  gone (`1/2025`'s position, Norwich's chain, `MAKE[7]`, and `1/6` and
+  `1/7` trading the build and walk orders). Nothing parts on the old
+  word's five blocks. The walk's keys went 1,552 → 1,375.
+- **The site table agrees as a set**, `reg` aside, on 2,776 of the walk's
+  3,500 blocks, against none before. Three spans remain, 11776–11975,
+  14176–14375 and from 14576, and each is one low-value site sampled
+  differently. The rest of the parting is slot order.
+- **Every widening under both words sheds only `SITE` rows**, with none
+  arriving under a word. On Great Lakes: run136 238 → 218, run163
+  259 → 238, run174 396 → 374, and run159's two ranks. On East Indies:
+  run139, run143, run149, run152, run155 and run166 lose 20 to 39 each.
+  run149's `SITE[7].val` 26 against 13 on 10776 (§61.5) was the halving.
+  run63's site residue goes **7,122 → 0** of 27,000: the "twice and
+  four times the original's" its comment named. The leader-record
+  residues run19, run91, run107, run111, run115 and run117 lose 5 to 30
+  `SITE` rows each. run84 goes 81 → 87, the same sites at the original's
+  values sitting in other slots.
+- **East Indies' word holds at 15782**, with the same delta. Every golden
+  chapter holds, and run53's ladder literals hold.
+- **The endpoints at 24001**, pinned in no direction: Great Lakes `off`
+  33 → 46, `extra` 1 → 0, `build_diverged` 4 → 2. East Indies `off`
+  46 → 55, `unlinked` 10 → 0, `extra` 0 → 2, `build_unlinked` 1 → 2,
+  `build_diverged` 18 → 16. East Indies B `off` 36 → 37.
+
+### 67.4 The new word's block, 14530
+
+- **On block 14529 the capital moves** in the original: `city_flags` bit
+  `0x10` leaves `1/2000` for Norwich `1/2007`. Here it stays. CITIES §4
+  reads the arm that does this: a Senate finishing in a city of the
+  capital's race, when the capital has no Senate, takes the flag and
+  runs `fix_borders`. That is the next item's hypothesis, not a
+  finding.
+- **On 14530** `1/23`'s 24 path entries carry flag `0x20` here and not
+  there, and `1/28`'s figure turns here alone. 350 rows stand on the
+  block.
+
+No mechanism is named (DECISIONS 42).
+
+### 67.5 What this has *not* established
+
+- **The three spans where one site still differs.** Each is a single
+  low-value site, which points at `compute_sites`' large-region stride
+  or `site_mark`, and no draw was compared for it.
+- **The slot order.** The same ten values sit in different slots on most
+  blocks. §2.7's insertion rule is transliterated. Whatever orders the
+  slots differently is upstream of the values, and unread.
+- **A capture's re-`init`.** `City::init` runs on a capture, and so the
+  wearing-down runs again. No capture on disk takes a city.
+
+### 67.6 Coverage
+
+**Diff-backed**:
+
+- `run178_s_word_frame_is_widened_whole`: the move's value diff on
+  14383, the rows under the new word, its block and the floor;
+- run63's site residue at 0 of 27,000, both leaders, every frame;
+- the widenings and leader-record windows above, re-pinned;
+- the coverage driver, which reads run178 on 14528..14532;
+- the long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Pinned capture-free**:
+`a_founded_city_quarters_the_site_values_inside_its_rings_and_halves_three_beyond`
+(`sim`). It was made to fail with the call removed from `init_city`.
+
+**Reading only**: the capture arm, which no run reaches. The rest of
+`fix_world_vals` is backed by the diffs above.

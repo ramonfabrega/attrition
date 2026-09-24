@@ -996,7 +996,9 @@ from the building's cell, `x, y`; `city_flags = 1`; `race = −1`; stamps
 = get_pop_value()`; `leader.pop += pv`, `world_pop += pv`, `reg_pop[reg] +=
 pv`, `reg_cities[reg]++`; `calc_pop_cap`; every region's `borders` (+0x2c)
 zeroed (a border recompute trigger); capital → `city_flags |= 0x10 | 0x4000`;
-name; `fix_world_vals` (AI site values). `City::close` (§8.4) undoes it.
+name; `fix_world_vals` (AI site values: quartered out to ring `(radius +
+3) / 4` of the circle round the centre and halved on three rings beyond,
+`docs/AI.md` §67). `City::close` (§8.4) undoes the rest, not the values.
 
 ### 5.2 Membership — `find_city`, `get_town`, `find_city_at`, `add_to_city`
 
