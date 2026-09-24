@@ -2256,3 +2256,70 @@ run54. *Guard*: `the_install_s_piece_lengths_match_the_dumps` pins piece
 291's slot at 20, and it was made to fail against the case-sensitive
 key. *Listing-backed*: the first-match walk and `_wcsicmp`, from the
 decompile of `decipher_animation`.
+
+## 13. The danger flag is guy 0's (item 713, 2026-09-24)
+
+`guy_flags & 0x20` narrows §4's idle roll to `DEFAULT` or `IDLE1`, with
+everything above 69 collapsing to `IDLE1`. **Only guy 0 carries it.**
+
+- **One writer.** `orw $0x20, 0x9a(%eax)` at `5fd01e` is the only
+  instruction in the image that sets the bit. It sits inside
+  `Unit::set_in_danger@005fcfb0`, in a loop over figures `0 .. guy_mark`
+  (`+0xb5`), which is 1 on every dumped unit (§3.5).
+- **The other bytes are not it.** Every other store to `+0x9a` either
+  zeroes it (`Guy::clear`, `Guy::init_real`) or sets another bit
+  (`init_real`'s `0x100`, `8`, `0x10`, `0x40` and `0x80`, and
+  `do_turn`'s `2`). `Unit::update_speed`'s `+0x9a` is the unit's own
+  `myspeed`, a different record.
+- **The clear is per guy.** `Guy::process@005e0230:120` drops the bit
+  when `(frame + o) % 64 == 0` and that guy's own `avg_speed` (`+0x84`)
+  is 0. `Unit::process@00610bc0:540–551` runs it on every figure.
+
+So a crew figure past the squad rolls all four variants whenever it is
+asked, and a hit on its unit does not change that.
+
+This crate kept one flag per unit (`Unit::guy_flag_0x20`), which every
+figure read. It is now read for guys below `SQUAD_SIZE` only, in
+`Sim::guy_set_anim`. The clear stays keyed to guy 0, because no other
+guy has a flag to drop.
+
+**How it was established.** From the draw stream and this crate's own
+clocks, before any reading and with no packet (run200 was not taken).
+
+On chapter eleven's 1139 (run190), the original spends one
+`Guy::set_anim+0x97a < Unit::do_guard+0x7f4` more than this crate. Both
+sides reach `do_guard`'s stand on the post:
+
+- on tick 1139 neither sixteen-frame arm returns (`o` = 6);
+- the guard is on its cell;
+- its heading is its facing.
+
+`RON_DEBUG_UNIT` put this crate's chariot at guy 0 `IDLE1` 72/80 and crew
+guy 1 at 72/81, with the crew's clock mirrored and its `end_time` its own
+(§5). A scratch print of the rolls gave the crew's re-rolls on ticks
+1098–1100 under the mirror, with p6 and then **p91**. With the flag,
+p91 is `IDLE1` at 81 frames. Without it, p91 is `IDLE2`, and piece 12817's
+`IDLE2` is 71 frames. 71 runs out on block 1138, and tick 1138 is
+`do_guard`'s search arm (`(6 + 1138 + 8) % 16 == 0`), which returns
+before the stand. So the re-roll falls on 1139, which is the original's
+draw. The guard was flagged by the hit on 1091. Guy 0's own roll on tick
+1066, p97, is `IDLE1` on both sides only because guy 0 does carry the
+flag.
+
+**What it moved.** Golden chapter eleven, **1139 → 1250, closed**. Before
+the fix, run190's whole-run widening parts from 1156 on (`1/4`'s move,
+then `0/4` on 1172 and `1/3` on 1188). With it, no row parts past 1001.
+
+**What is not established.**
+- **`guy_mark` above 1.** Every dump prints `guy_mark 1`, and this crate
+  reads the bound as `SQUAD_SIZE`.
+- **The crew's own clear.** It is unobservable while no crew figure can
+  hold the bit.
+
+**Coverage.** *Diff-backed*: the crew's `IDLE2` on tick 1100, through
+the re-roll on 1139 and run190's whole trace
+(`chapter_eleven_holds_to_the_golden_word`,
+`chapter_eleven_s_word_frame_is_widened_whole`). *Unit test*:
+`a_crew_figure_rolls_its_idle_without_the_danger_flag`, made to fail by
+reading the flag for every figure. *Listing-backed*: the single writer
+and its loop bound, and the per-guy clear.
