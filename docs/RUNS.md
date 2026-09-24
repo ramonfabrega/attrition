@@ -6375,6 +6375,29 @@ proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
 hour of the single lane was already spent.
+## run196 — Great Lakes' word 15175, past run192's last block (2026-09-24, item 706)
+
+**What it is.** run192's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15034, 15233)`, plus `rontrace.cfg` `cover=1` and `window=15171-15179`
+over the word. `!quit` at 15243, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 706
+```
+
+**Why it was owed.** Item 706 moved Great Lakes' word 14982 → 15175:
+the nation graft table and the Senate's government patriot
+(`docs/TECH.md` §"The graft table", §"The government patriot"). run192
+ends on block 15039, so the word's block 15176 is on no disk. On 15175
+ours spends one `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` more than
+the original. **Sized to the word, not to the gap** (Loop 687): six
+blocks shared with run192, the 136 up to the word, its block, and 56 of
+runway above it. The readings and their kills are in the stanza.
+
+**Booked, not yet taken.**
+
 ## run192 — Great Lakes' word 14982, past run178's last block (2026-09-24, item 698)
 
 **What it is.** run178's line, unchanged,
