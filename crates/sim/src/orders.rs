@@ -1921,7 +1921,7 @@ impl Sim {
 
     /// `Unit::repath`: pop the leading transit legs so the target order
     /// re-issues them.
-    fn repath(&mut self, u: usize) {
+    pub(crate) fn repath(&mut self, u: usize) {
         while self.current_order(u).is_some_and(Order::is_transit) {
             self.kill_current_order(u);
         }
@@ -6603,15 +6603,19 @@ impl Sim {
             // `1/6`, freezes, and spends **no** attack-end wrap on 695
             // where this crate spent one — 21 draws against 20.
             //
-            // SEAM: the **search budget** above it. `LAB_005fdb9e`'s
-            // first arm is `waiting < 5 && leaders[who].searches > 10`,
-            // which sets the same bit, adds 2 to `UnitData::waiting` and
-            // returns *without* searching; `Leader::process@006b88b0`
-            // zeroes the counter at the head of each leader's frame and
-            // `Unit::resolve_unit_collision` reads the same `< 10`. It
-            // is not modelled, and run112 says it did not fire here:
-            // `0/6`'s `waiting` is 0 on block 696, where the throttle
-            // would have left 2.
+            // The count is [`Sim::retargets`], `LeaderData +0x9f4`
+            // (item 668): `Leader::process@006b88b0` zeroes it at the
+            // head of each leader's frame, and `resolve_unit_collision`'s
+            // enemy ladder reads `< 10` (`docs/COLLISION.md` §14).
+            //
+            // SEAM: the **search budget** it feeds here. `LAB_005fdb9e`'s
+            // first arm is `waiting < 5 && retargets > 10`, which sets
+            // the same bit, adds 2 to `UnitData::waiting` and returns
+            // *without* searching or counting. It is not modelled, and
+            // run112 says it did not fire there: `0/6`'s `waiting` is 0
+            // on block 696, where the throttle would have left 2.
+            let who = usize::from(self.units[u].owner);
+            self.retargets[who] += 1;
             if matches!(
                 self.current_order(u).map(|o| &o.body),
                 Some(Body::Attack(_))
@@ -6921,6 +6925,63 @@ impl Sim {
         {
             *x = a;
         }
+    }
+
+    /// `Unit::find_new_target(this, NULL, stand)@005ff6a0`, in the one
+    /// shape this crate calls it: from `resolve_unit_collision`'s enemy
+    /// ladder, `stand` 1 (`docs/COLLISION.md` §14, the listing at
+    /// `005f9ffb`–`005fa001` pushes `1, 0`).
+    ///
+    /// 1. `repath`: the leading transit legs go.
+    /// 2. The current order goes too: `kill_current_order`, or for a
+    ///    group order `Group::kill_group_order`.
+    /// 3. With `stand`, the unit's stance (`+0xb1`) reads **2,
+    ///    `STAND_GROUND`**, across `find_melee_target(-1, NULL, 0, 1, 0)`
+    ///    and is put back after. That is the whole of what `stand` does,
+    ///    and it does two things inside the search: `find_nearby_target`'s
+    ///    `local_24` makes every candidate pass `is_in_range` from where
+    ///    the unit stands, and the order it adds is `QUEUE_NEW`, because
+    ///    the stance it reads is not `DEFENSIVE` (`00649b6d`).
+    ///
+    /// So a captain bumped by an enemy that is not its target drops the
+    /// walk and the old attack where it stands, and takes whatever it can
+    /// strike from there. run171's `1/6` on 658: `0/7`.
+    ///
+    /// SEAM: the defensive-post arm (`bVar3`, a `DEFENSIVE` unit whose
+    /// type has stances and whose `find_def_pos` answers), which writes
+    /// the post into the found attack or walks back to it; and the group
+    /// order's `kill_group_order`, which this crate has no group attack
+    /// order for. Neither is reached by `1/6`, `stance 0` and not grouped
+    /// in its order.
+    pub(crate) fn find_new_target(&mut self, u: usize, stand: bool) -> Option<Obj> {
+        self.repath(u);
+        self.kill_current_order(u);
+        let stance = self.units[u].combat.stance;
+        if stand {
+            self.units[u].combat.stance = combat::Stance::StandGround;
+        }
+        let found = self.find_melee_target(u, -1);
+        if let Some(t) = found {
+            // `find_nearby_target`'s add (`00649b3a`–`00649bc0`): an
+            // attack-move in front keeps its place under a `QUEUE_FIRST`
+            // attack; otherwise `QUEUE_FIRST` only for a `DEFENSIVE`
+            // stance, and `QUEUE_NEW` for every other. SEAM: a unit whose
+            // activity is a `GUARD` (`local_2c`) kills an attack-move in
+            // front and adds `QUEUE_FIRST`, and a group's attack-move
+            // may hand the target to `Group::action_attack` instead.
+            let pos = if matches!(
+                self.order_type(u),
+                index::ATTACK_TO | index::GROUP_ATTACK_TO
+            ) || self.units[u].combat.stance == combat::Stance::Defensive
+            {
+                QueuePos::First
+            } else {
+                QueuePos::New
+            };
+            self.add_attack_order(u, t, pos, false, false);
+        }
+        self.units[u].combat.stance = stance;
+        found
     }
 
     /// A found better target rewrites the order's target in place.

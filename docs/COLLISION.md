@@ -836,7 +836,8 @@ In order, with the first that fires winning:
    `kill_current_order`, or `repath` + `add_attack_order(QUEUE_FIRST)`, or
    `find_new_target`. ~~Never reached by any capture so far.~~ **Reached
    by golden chapter one's `0/8` on tick 624** (item 445). The ladder's
-   three arms, and the two this crate models, are `docs/COMBAT.md` §48.3.
+   three arms are `docs/COMBAT.md` §48.3; the third, arm C, is §14
+   (item 668, run171's `1/6`).
    Step 2 is reached for a foreign collider too, whenever the action is
    not an attack.
 4. **The sidestep.** Only when *the other unit's* current order is one of
@@ -2885,3 +2886,99 @@ This crate now takes the arm for a **sea** unit: `Sim::takes_boat_arm`,
   pins the distance.
 - **Read from the decompile and listing only**, and owed a blind second
   reading: all of §13.3 but the group-mate skip, which run143 exercises.
+
+## 14. The enemy ladder's arm C: a captain bumped by another enemy strikes what it can reach — golden chapter eight 659 → 900, closed (item 668, 2026-09-23)
+
+Chapter eight's word was **659**, 9 draws against 10 at draw 2, the
+original's `Unit::fight+0x9b0`. The value diff was a frame earlier.
+who=1's hoplite `1/6` chases the General `0/9` and is blocked by who=0's
+`0/7` on 658, on both sides (`move_step+0x823`, §5). On block 659 the
+original's stands where it was, (1780, 7844), with one order, an
+`ATTACK` on `0/7` with flags 0. It has `collide_o 7` and `collide 0`.
+This crate's had taken §6 step 6: `collide 1`, the snap to (1800,
+7848), and its walk and its attack on `0/9` kept. The item's journal
+has the widening read and the three readings each killed or kept.
+
+### 14.1 The arm
+
+§6 step 3's third arm, `Unit::resolve_unit_collision@005f9d30:189-252`,
+read off the listing at `005f9ee0`–`005fa052`. It is reached when my
+action is an attack, the collider is another player's, and arms A and B
+of `docs/COMBAT.md` §48.3 have not returned. Then, when the action's
+attack is not `mandatory` (`+0x1c`), the current order is not a group's
+(vslot `+0x2c`), and `LeaderData::is_enemy(collide_who)`:
+
+- **A follower** (`is_captain`, `+0x8e >> 15`, clear). Its captain's
+  (vslot `+0xe4`) action is tested for `ATTACK` (`0x60a850`, `cmp eax,
+  0xa`), then `update_action` runs on the captain. If the target exists
+  and `is_in_range@00648d70` from where I stand (margin off, the same
+  pushes as arm B), then `repath`, `kill_current_order(0)` and
+  `add_attack_order(ox, whom, QUEUE_FIRST, 0, 0)`.
+- **A captain, while `leaders[who].retargets < 10`** (`cmp dword
+  [+0xe3ad84], 0xa; jge`, that is `leaders + 0x9f4`): `find_new_target
+  (this, NULL, 1)` (pushes `1, 0`), then return.
+- **A captain at ten or more.** Unless the type's `+0x10c` answers, and
+  that is `is_siege` (§13.2), and the collider is a `valid_target`:
+  `repath`, `kill_current_order`, and the collider queued `QUEUE_FIRST`.
+
+Anything else falls through to step 4.
+
+**`LeaderData +0x9f4` is `retargets`** in the type record.
+`Leader::process@006b88b0` zeroes it at the head of each leader's frame.
+`Leaders::process_all` runs before the objects (`Game::do_frame:199`
+against `:275`). The only other writer is `Unit::fight@005fd4d0`'s
+invalid-target tail, `LAB_005fdb9e`, which adds one after its search.
+`Leader::init` and a `HotKeyGroup` constructor write the same offset of
+other types. `LEADERS=5` does not print it. `LEADERS=9` prints it on the
+start block, 0 for every leader.
+
+**`find_new_target(this, NULL, 1)@005ff6a0`.** It runs `repath` and then
+kills the current order (a group order's `kill_group_order` instead). So
+the walk and the attack both go. With the third argument set it writes
+**2, `STAND_GROUND`**, into the stance byte `+0xb1` across
+`find_melee_target(-1, NULL, 0, 1, 0)` and restores it after. Inside,
+`find_nearby_target`'s `local_24` then tests every candidate with
+`is_in_range` from where the unit stands (`docs/COMBAT.md` §60.2). The
+add reads the same stance, so it is `QUEUE_NEW`. The defensive-post arm
+(`bVar3`) needs a `DEFENSIVE` stance and is not reached.
+
+### 14.2 What moved
+
+- **Chapter eight 659 → 900 of 901: closed.** On block 659 `1/6` is
+  run171's field for field: it stands at (1780, 7844) with a lone attack
+  on `0/7`. On 659 its re-search roll and the first blow land on the
+  original's draws. On block 660 it stands snapped at (1800, 7848) with
+  `recharging 32`, and `0/7`'s `damage_frame` reads 659. Every draw
+  agrees to the trace's last frame, 900.
+- `Sim::retargets`, its reset at the head of the leader loop, and the
+  increment in `fight`'s invalid-target arm. `Sim::find_new_target` in
+  the one shape above. Arm C is `Sim::enemy_ladder_arm_c`.
+- `a_captain_bumped_by_another_enemy_strikes_what_it_can_reach` covers
+  all three branches and the siege exemption. It was made to fail with
+  the arm taken out: the walk is kept.
+
+### 14.3 What is not established
+
+- **Two rows stand under the closed word**, both on 660, and neither
+  spends a draw in the capture. `0/7` takes 2 hits and `damage_frac` 5
+  from `1/6`'s blow in run171 and 3 here. That is the General's rally
+  armor, which this crate does not apply (parked 666). Both leaders'
+  `treaties[·]` read 3 in run171 from the blow's block on and 0 here. The
+  meeting on a first blow has no writer here (`docs/VISION.md` §6.2 has
+  the met bit's one writer).
+- **`fight`'s own budget arm**, `waiting < 5 && retargets > 10`, which
+  returns without searching, is still not modelled
+  (`crates/sim/src/orders.rs`). The counter it reads now is.
+- The follower branch, the captain-at-ten branch and the siege exemption
+  are reading only. run171 reaches the first captain branch alone.
+- `find_new_target`'s defensive post, and its `GUARD`-activity and
+  group-order add paths, are seams.
+
+### 14.4 Coverage
+
+- **Diff-backed**: the captain branch under ten, and `find_new_target`'s
+  stand-ground search and `QUEUE_NEW` add, by run171's `1/6` on blocks
+  659 and 660 (`chapter_eight_s_word_frame_is_widened_whole`, 605–900).
+- **Reading only**: the follower branch, the captain-at-ten branch, the
+  siege exemption, and `retargets`' increment and reset. No capture on
+  disk is known to reach ten retargets in a frame.

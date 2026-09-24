@@ -1133,6 +1133,13 @@ pub struct Sim {
     /// `GameDaemon::repaths[who]`: how many 48-grid recoveries this player
     /// has asked for, the throttle collision recovery reads (§6 step 6).
     pub repaths: Vec<i32>,
+    /// `LeaderData::retargets` (`+0x9f4`): the frame's count of attacks
+    /// whose target went invalid. `Leader::process@006b88b0` zeroes it
+    /// at the head of each leader's frame, `Unit::fight@005fd4d0`'s
+    /// invalid-target tail adds one, and `resolve_unit_collision`'s
+    /// enemy ladder lets a captain re-search only while it is under ten
+    /// (`docs/COLLISION.md` §14). Not dumped per frame at `LEADERS=5`.
+    pub retargets: Vec<i32>,
     pub frame: i64,
 }
 
@@ -1432,6 +1439,7 @@ impl Sim {
             path_memo: std::collections::BTreeMap::new(),
             chain_heads: vec![None; (world.width() * world.height()) as usize],
             repaths: vec![0; players.max(10)],
+            retargets: vec![0; players.max(10)],
             tuning,
             world,
             frame: 0,
@@ -1473,6 +1481,7 @@ impl Sim {
         self.wall_stats_dirty.push(false);
         self.marks.push(Marks::default());
         self.repaths.push(0);
+        self.retargets.push(0);
         self.ai.push(ai::Leader::new());
         self.transport.push(transport::LeaderTransport::default());
         self.docks.push(transport::Docks::default());
@@ -3691,6 +3700,9 @@ impl Sim {
         // a citizen that dies this frame was already paid for it.
         for who in 0..self.players.len() {
             let player = u8::try_from(who).expect("too many players");
+            // `Leader::process@006b88b0`'s head: the frame's retarget
+            // count starts again at zero (`docs/COLLISION.md` §14).
+            self.retargets[who] = 0;
             // `Leader::calc_gather` assembles its inputs from the live state
             // inside the same gate it recomputes under, so the holdings are
             // rebuilt only on the frames the rate is actually reassembled —

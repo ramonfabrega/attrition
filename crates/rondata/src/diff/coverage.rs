@@ -609,8 +609,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // window is the word's block with two on either side, as six's.
     // Item 664 moved the word 617 → 659, and both windows are driven:
     // 617's carries the Spy's explore order, the first on this lobby.
+    // Item 668 closed it at 900, the capture's end, so the windows stay
+    // on 617 and 659, the blocks it was widened on, as six's stays on 700.
+    let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHT;
     if let Some(p) = &ch8 {
-        for w in [617, super::testkit::GOLDEN_WORD_CHAPTER_EIGHT] {
+        for w in [617, 659] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter eight carries the word's five blocks");
             frames += n;

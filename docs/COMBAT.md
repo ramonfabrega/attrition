@@ -8404,8 +8404,11 @@ byte (`:98`):
     repaths, kills, and queues that target `QUEUE_FIRST`. A captain calls
     `find_new_target(0, 1)` while `LeaderData +0x9f4 < 10`. Otherwise,
     unless type virtual `+0x10c` answers, it repaths, kills, and queues the
-    collider. **Not modelled**: `+0x9f4` and `+0x10c` are unnamed, and a
-    unit that would take this arm falls through to step 4 as before.
+    collider. ~~**Not modelled**: `+0x9f4` and `+0x10c` are unnamed, and a
+    unit that would take this arm falls through to step 4 as before.~~
+    **Built by item 668**: `+0x9f4` is `LeaderData::retargets` and
+    `+0x10c` is `is_siege`, and run171's `1/6` reaches the captain's
+    arm on 658 (`docs/COLLISION.md` §14).
   - Anything the ladder does not return from falls through to step 4
     (`:255`), never to step 2.
 
@@ -8447,15 +8450,16 @@ same-player gate.
   `a_bump_from_the_target_itself_drops_the_chase_and_forgets_the_collider`),
   the group arm's `collide = 1`, and step 2's foreign-collider reach. No
   capture on disk is known to reach any of them.
-- **Not modelled**: arm C, and step 1.
+- **Not modelled**: ~~arm C, and~~ step 1. Arm C is built
+  (`docs/COLLISION.md` §14).
 
 ### 48.6 What is not established
 
 - Whether `update_action`'s `orders_x/y` and `dest_angle` writes at `:96`
   move anything on the long captures. It now runs on every resolve that
   reaches it, as in the original.
-- Arm C's two unnamed predicates, `LeaderData +0x9f4` and type vslot
-  `+0x10c`.
+- ~~Arm C's two unnamed predicates, `LeaderData +0x9f4` and type vslot
+  `+0x10c`.~~ `retargets` and `is_siege` (`docs/COLLISION.md` §14.1).
 - ~~The five `dest_angle` rows under the word (618–652). They spend no draw
   in the window and are not examined.~~ **Closed by item 530**: they were
   `Unit::work`'s unconditional `update_action` (`docs/ORDERS.md` §22.2).
