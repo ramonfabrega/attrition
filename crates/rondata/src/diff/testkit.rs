@@ -3357,12 +3357,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // empty as the move's value diff, and pins block 11922's 29 rows —
     // army 1's squad stopping in the original and walking here, which
     // spends no draw — as the nearest parting (`docs/PATHFINDER.md` §24.6).
+    //
+    // **Item 571 paid it**: run163 is run136's line over [11950, 12399],
+    // and `run163_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across six captures, so the window is
+    // [`WIDENING_GREAT_LAKES_UPGRADE`]. The word's block parts on `1/62`,
+    // which stands against `1/64` in the original and walks here; the
+    // chain runs back to 11922, where who=1's barracks research converts
+    // the nine and the original's `Guy::init_real` stands them
+    // (`docs/ANIM.md` §11).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        None,
+        Some("run163_s_word_frame_is_widened_whole"),
         571,
-        None,
+        Some(WIDENING_GREAT_LAKES_UPGRADE),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

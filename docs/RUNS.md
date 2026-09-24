@@ -5792,3 +5792,38 @@ back, five settings files restored. One take, **137 s from launch to exit,
 This crate parts at **616**, the Bomber's birth frame, 25 draws against 24:
 a `Unit::fight+0x9b0` of `1/6`'s that the original does not spend. See
 `docs/GOLDEN.md` §10.
+
+## run163 — Great Lakes' word 12038, past run136's last block (2026-09-23, item 571)
+
+**What it is.** run136's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[11950, 12400)`, plus `rontrace.cfg` `cover=1` and `window=12034-12042`
+over the word. `!quit` at 12410. **961,670,782 bytes of dump and 17.9 MB
+of trace, 34 minutes** from launch at 16:47 to archive at 17:21, through
+`viadriver.sh` with no human at the menu. The lane lock was free.
+
+**Why it was owed.** Item 566 moved Great Lakes' word to 12038. run136, the
+only capture past 11859, ends on block 11959. The window runs 360 blocks
+past the word because this crate's fix for block 11922, measured before
+the run, moved the word to 12135.
+
+**Every check passed:**
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 12,411 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **450 blocks, 11950..12399, no gap** |
+| a `GROUPDATA` on every window block | **450** |
+| overlap with run136, nothing excluded | **10 in common (11950..11959), 0 differ** |
+| the coverage window | a set on all 9 frames 12034..12042 |
+
+**What it settled.** The word's fifth draw is `1/62`'s arrival stand. On
+block 12039 the original's `1/62` hard-collides with `1/64`
+(`collide_o 64`) and goes WALK → DEFAULT. Ours is 49 units off its point,
+and walks on. The chain runs back unbroken to block 11922, where who=1's
+barracks research converts the nine walking type-82 figures, and the
+original's `Guy::init_real` stands each one. `docs/ANIM.md` §11;
+`run163_s_word_frame_is_widened_whole`. It is also the first window on
+this map to print a grouped attack-move (`GROUPATTACKTOORDER`); the
+coverage pin reads it.
