@@ -1352,7 +1352,7 @@ below without a run take their number at booking (the eleventh pass).
 | 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
 | 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
-| 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16)** |
+| 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2045,7 +2045,7 @@ the last.
 
 **Where this crate parted: `GOLDEN_WORD_CHAPTER_ELEVEN` = 724, then 734
 by the same item, then 1036 (item 703), then 1133 (item 707), then 1139
-(item 709), open.** On 724 this crate spends 14 draws against 11,
+(item 709), then 1250 (item 713), closed.** On 724 this crate spends 14 draws against 11,
 three extra `Guy::set_anim+0x97a < Unit::move_step+0x823`. The value parts
 on **722**: on tick 721, the first after the wagon's move, the original's
 guard steps (21, 1) off its post and names the wagon in `collide_o`, with
@@ -2111,7 +2111,9 @@ who=1, so `valid_target` fails. A building target is seen through its
 `ever_seen` byte, which keeps Great Lakes from falling. Every row from
 736 to 1141 agrees.
 
-**On 1139** the original's guard rolls its idle stand on the post,
-`Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, and this crate's does not.
-No record parts on block 1140: `GUYS=2` prints no animation state. No
-mechanism is named.
+**1139 → 1250 (item 713), closed: the danger flag is guy 0's**
+(`docs/ANIM.md` §13). On 1139 the original's guard re-rolls its stand
+(`Unit::do_guard+0x7f4`). `set_in_danger` flags figures `0 .. guy_mark`
+alone, and this crate flagged the crew too. So on tick 1100 its crew
+took `IDLE1` where the original's took `IDLE2`, whose 71 frames ran out
+for 1139. Nothing parts on any frame of run190.

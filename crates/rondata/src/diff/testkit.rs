@@ -2741,7 +2741,8 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIX_B: i64 = 1250;
 pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 
 /// **Chapter eleven's golden word** — the guard line, an issuer the AI
-/// never uses from a command (`docs/GOLDEN.md` §19, run190): **734**, open.
+/// never uses from a command (`docs/GOLDEN.md` §19, run190): **1250 of
+/// 1250, closed**. 1250 is run190's trace end.
 ///
 /// **The delta** (item 696): a new chapter, first walked at **724** with
 /// the guard command's entry built (`input::group_guard` →
@@ -2792,17 +2793,24 @@ pub(crate) const WIDENING_CHAPTER_SIX_B: (i64, i64) = (605, 1251);
 /// (`BuildData::is_seen`), not the fog plane, which keeps Great Lakes'
 /// word from falling to 9401 under the clear.
 ///
-/// **The delta**, this constant's: +6, 1133 → 1139. On 1139 the original
-/// spends `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, the guard's idle
-/// stand on its post, which this crate's guard does not roll. The block's
-/// rows are the widening's. No mechanism is named.
-pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1139;
+/// 1139 → **1250** (item 713, `docs/ANIM.md` §13): **`guy_flags & 0x20`
+/// is guy 0's.** `Unit::set_in_danger` sets it on figures `0 .. guy_mark`
+/// alone, and this crate held one flag for the unit. On tick 1100 the
+/// guard's crew figure, re-rolling under the mirror, drew p91: `IDLE1`
+/// (81 frames) with the flag, `IDLE2` (71) without. 71 runs out on block
+/// 1138, tick 1138 is `do_guard`'s search arm, and the stand on 1139 is
+/// the original's re-roll, `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+///
+/// **The delta**, this constant's: +111, 1139 → 1250, closed. Nothing
+/// parts on any frame of run190's trace. The value rows the widening
+/// dropped are its block's.
+pub(crate) const GOLDEN_WORD_CHAPTER_ELEVEN: i64 = 1250;
 
-/// `chapter_eleven_s_word_frame_is_widened_whole`'s window: 605, run190's
-/// first block, through 1140, the block after the word (item 709). The
-/// first pin was (605, 726) on the word 724, then (605, 736) on 734,
-/// (605, 1038) on 1036 and (605, 1135) on 1133.
-pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1141);
+/// `chapter_eleven_s_word_frame_is_widened_whole`'s window: **run190
+/// whole**, 605 through 1250 (item 713, the word closed). The first pin
+/// was (605, 726) on the word 724, then (605, 736) on 734, (605, 1038) on
+/// 1036, (605, 1135) on 1133 and (605, 1141) on 1139.
+pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1251);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.

@@ -4742,7 +4742,7 @@ mod tests {
         );
     }
 
-    /// **A hit marks the whole squad in danger, and every figure's guys**
+    /// **A hit marks the whole squad in danger, and every figure's guy 0**
     /// (item 530, `docs/ORDERS.md` §22). `Object::take_damage@00652020`
     /// calls `Unit::set_in_danger(this, 0)` for any unit hit by anything
     /// but attrition. That climbs to the captain and walks `o_down`, so
@@ -4764,7 +4764,7 @@ mod tests {
             assert!(sim.units[f].in_danger, "figure {f} was not marked");
             assert!(
                 sim.units[f].guy_flag_0x20,
-                "figure {f}'s guys were not marked"
+                "figure {f}'s guy 0 was not marked"
             );
         }
         assert!(

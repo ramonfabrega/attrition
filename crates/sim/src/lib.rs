@@ -347,7 +347,9 @@ pub struct Unit {
     /// `guy_flags & 0x20`, which collapses the idle roll to two variants.
     /// `Unit::set_in_danger` raises it with [`Unit::in_danger`], and
     /// `Guy::process` drops it on a standing guy's sixty-fourth frame
-    /// (item 530, `docs/ORDERS.md` §22).
+    /// (item 530, `docs/ORDERS.md` §22). **It is guy 0's**:
+    /// `set_in_danger` sets it on figures `0 .. guy_mark` alone, so a crew
+    /// figure never carries it (`docs/ANIM.md` §13).
     pub guy_flag_0x20: bool,
     /// An animal's herd, an index into [`gaia::Gaia::herds`] — the
     /// `UnitData+0x86` union for an `Animal`. `None` for everything else
@@ -4357,8 +4359,8 @@ impl Sim {
         // And the same block's last line, `Guy::process@005e0230:120`:
         // a standing guy on its sixty-fourth frame forgets the in-danger
         // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
-        // SEAM: the flag is the unit's here and guy 0's gate decides it,
-        // where the original keeps one per guy.
+        // The flag is guy 0's (`set_in_danger` sets no other), so guy
+        // 0's gate is the whole clear: a crew figure has none to drop.
         if self.units[i].movement.body.avg_speed == 0
             && (self.frame + i64::from(self.units[i].index)).rem_euclid(64) == 0
         {
