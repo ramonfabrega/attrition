@@ -2100,33 +2100,18 @@ post** (`docs/COMBAT.md` §63).
 
 Every row from 736 to 1133 agrees.
 
-**On 1133** ours spent `Unit::fight+0x9b0` and two `Guy::set_anim+0xf2f`
-for `1/6`, where the original spends only the farms. On block 1134 the
-original's `1/6` had dropped its `ATTACK` on the guard, `recharging 0`,
-and held its army's `ATTACKTOORDER`. This crate's `1/6` fired. The
-guard's `visible` bit for who=1 is 0 from 1051 on (the brief's "from
-1086" was the window it was read over).
+**On 1133** ours spent `Unit::fight+0x9b0` where the original spends
+only the farms: on block 1134 the original's `1/6` had dropped its
+`ATTACK` on the guard, drawlessly.
 
-**1133 → 1139 (item 709), open: the hundredth-frame resync forgets, and
-relights an attacker for its victims** (`docs/VISION.md` §10).
-- **The pass.** `update_all_seen` runs on `frame % 100 == 33` and clears
-  `seen` first; this crate skipped the clear. Its whole-disc
-  `update_seen(0)` relights a unit's `visible` cells; this crate did not.
-- **1033.** The guard's byte held who=1's bit from its shot on 1011, so
-  the resync kept its cell lit for who=1, and `1/6` fired through the fog
-  on 1058, 1083 and 1108 after the byte cleared on 1051.
-- **1133.** The byte is 0, and `1/6`'s disc, radius 4 from half-cell
-  (8, 36), stops a half-cell short of the guard's (9, 31). `valid_target`
-  fails on the tick the reload opens, and the attack drops drawless.
-- The clear alone fell to ~1050; the two together close every 1134 row.
-- **And a building target is seen through its `ever_seen` byte**
-  (`BuildData::is_seen`), not the fog plane. Without it the clear dropped
-  Great Lakes 14982 → 9401; with it both long words hold.
-
-Every row from 736 to 1141 agrees.
+**1133 → 1139 (item 709), open: the hundredth-frame resync forgets**
+(`docs/VISION.md` §10). `update_all_seen` on 1133 clears `seen`, and the
+guard's `visible` byte, 0 since 1051, no longer relights its cell for
+who=1, so `valid_target` fails. A building target is seen through its
+`ever_seen` byte, which keeps Great Lakes from falling. Every row from
+736 to 1141 agrees.
 
 **On 1139** the original's guard rolls its idle stand on the post,
 `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, and this crate's does not.
-No record parts on block 1140: `GUYS=2` prints no animation state. Both
-guards die on tick 1140. The first value part past the word is `1/4`'s
-move on 1156, downstream of the draw. No mechanism is named.
+No record parts on block 1140: `GUYS=2` prints no animation state. No
+mechanism is named.
