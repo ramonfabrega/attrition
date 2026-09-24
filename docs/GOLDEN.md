@@ -77,8 +77,8 @@ agrees to its end, 1000 (item 627); chapter eight ~~is pinned at 617 of
 668), its
 capture cut at 901 by the allied victory its own `ally` line causes (§12);
 chapter six-b ~~is pinned at 632 of 1250 (item 651)~~ agrees to its end,
-1250 (item 680); chapter nine, the first issuer chapter, is pinned at 693
-of 1100 (item 676, §17). **A chapter whose
+1250 (item 680); chapter nine, the first issuer chapter, ~~is pinned at
+693 of 1100~~ agrees to its end, 1100 (item 676, §17). **A chapter whose
 word is its trace's last block is closed**, and the handoff's `Golden:`
 line says so — `chN closed` — and leads with the lowest *open* chapter's
 word, which is the rules headline; `rondata::diff::floors` reads the line
@@ -1350,7 +1350,7 @@ below without a run take their number at booking (the eleventh pass).
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
 | 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
-| 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand** |
+| 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -1573,7 +1573,7 @@ measured and restages as a new one, as §11 and §10 did.
   spends `do_move`'s grid draw, and it re-plans round the north end. That
   is the bend this crate took on 621.
 
-**Where this crate parts: `GOLDEN_WORD_CHAPTER_NINE` = 693, open.** On 693
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_NINE` = 693, open; closed at 1100 by the same item, below.** On 693
 the original spends 7 draws against this crate's 6, parting at draw 0 on
 `Unit::do_move+0xe84`, the chariot's re-plan. This crate's `invalid_loc`
 carries the fog arm as a seam ("a no-op with no fog model"), so its plan
@@ -1592,3 +1592,37 @@ and `build:extra`, chapter six's family — it pins:
 The squad's walk, slots and plan agree to the word. The coverage driver
 takes the word's five blocks, and they add one unread key,
 `GroupMoveOrder/GROUPORDER/UNITORDER` `flags`, the attack-move's second copy.
+
+**Closed at 1100 by the same item** (item 676; `docs/PATHFINDER.md`
+§3's human variant, now built). Two human-only arms of the pathfinder were
+missing, and the chariot's walk needs both:
+
+- **`invalid_loc`'s fog arm.** With `fog_relax` set and a human leader, a
+  tile whose cell's four fog half-cells are all unseen is valid before its
+  terrain is read (`00607c9e`–`00607d4c`). `valid_wcoord` sets it past a
+  node's second step, so the plan on 621 runs straight through the sand.
+  With this arm alone every 622 row goes, and the word moves 693 → 694:
+  the re-plan comes a frame late.
+- **`find_wpath`'s human variant** (`00689109`–`006892e4`). A human's goal
+  is **popped** for the entry under it while its cell's centre tile is in
+  another region from the start's, or its centre half-cell is unseen,
+  stopping on a final entry. Only a seen goal, or a sea unit's, goes on to
+  the AI's pull-back walk. On 693 the waypoint is sand. The AI's walk had
+  dragged it onto the shore and returned with the stack unchanged, which
+  counts as a refusal. The human's pops past the sand and the unseen land
+  beyond it to the order's own goal, and the search lays the 11-entry
+  route round the north end.
+
+With both, the walk agrees to run180's end: sequence 1100, no value part.
+`chapter_nine_s_word_frame_is_widened_whole` spans run180 whole, 605 to
+1099; 1100 is the `!quit` frame and prints no block. Past the first block's
+26 standing rows it pins:
+
+- the staged units' `form` on their birth blocks;
+- the squad's `order:group.id` on 642, a pushed group's id, which is a value
+  and no step reads it;
+- the scout `1/0`'s non-scoring `order:move.facing` from 847 (parked 275),
+  the row chapter five pins on 847.
+
+Every other chapter and both long words hold. Two unit tests in `sim::path`
+each fail with their arm switched off.
