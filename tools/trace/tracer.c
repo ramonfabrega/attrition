@@ -189,6 +189,11 @@ enum {
     I_COVER = 13, /* the coverage stubs are built: a = region, b = stubs, c = table entries excluded */
     I_DROPPED = 14, /* records lost to a full buffer since the last flush: a = count */
     I_UNITID = 15, /* RON_COLLIDE_PROBE: a = site, b = UnitData*, c = o, d = who */
+    I_ISSUE = 17, /* an `@` issuer line: a = frame, b = line index | refusal << 16
+                   * (0 = issued; see `issue_line`), c = package size before,
+                   * d = after (or the refused object), e = objects named */
+    I_ISSUE_UNIT = 18, /* one named object as issued: a = frame, b = o | who << 16,
+                        * c = uid, d = x, e = y (decoded internal) */
     I_COLLBLOCK = 16, /* RON_COLLIDE_PROBE: a = cx | cy << 8 | src << 16 | part << 24,
                        * b..e = four dwords of the block's 256 bits (part 0: 0..3,
                        * part 1: 4..7). src 0 = the world's live block, 1 = the
@@ -459,7 +464,8 @@ static void flush(void);
 #define CMD_CHARS 160
 typedef struct {
     i32 frame;
-    i32 from_chat; /* 1 = chat half (a `cheat` line), 0 = console half (`!` lines) */
+    i32 from_chat; /* 1 = chat half (a `cheat` line), 0 = console half (`!` lines),
+                    * 2 = an issuer line (`@`), which never reaches parse_cmd */
     u16 text[CMD_CHARS]; /* UTF-16, NUL-terminated */
 } Cmd;
 static Cmd g_cmds[MAX_CMDS];
@@ -470,6 +476,111 @@ typedef int(__thiscall *parse_cmd_fn)(void *self, void *line, int from_chat, int
 typedef void *(__thiscall *string_ctor_fn)(void *self, const u16 *text);
 typedef void(__thiscall *string_dtor_fn)(void *self);
 
+/* ---- the issuer lines -------------------------------------------------
+ *
+ * A line whose text starts with `@` is not a cheat: it is an order, put into
+ * the local player's `CommandPackage` through the original's own issuer, so
+ * the turn pump processes it exactly as it processes a click (item 676,
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). One verb:
+ *
+ *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
+ *
+ * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
+ * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
+ * disembark 0)` — the arguments `WorldMap::on_right_up@008c7050:203` passes
+ * for a plain right-click. The lab's probes (live_move_probe.h, L15) passed
+ * orders 0, form 0, width 0, which is not a click. `group` is a GroupOut
+ * with `num` at +0xc, `who` at +0x4a and the object list at +0x8cc, the
+ * three fields `CommandPackage::add_group@0094bb60` reads. The package is
+ * `command_manager.local_package` (+0x28, size at +0x10, data at +0x12); the
+ * command is processed by the next `process_turn`, before the next frame's
+ * `do_frame`, so its order is in the next logger block's dump.
+ *
+ * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
+ * issued: 1 no console or
+ * `who` is not the console's player (`process_group` hands another player's
+ * group to `is_team` and drops it); 2 the issuer's prologue is not the
+ * shipped one; 3 an object is out of the registry, not active, not `who`'s,
+ * not that id, or not a captain (`add_group` would drop it silently); 4 the
+ * package cannot hold a fresh group and the move (the issuer returns void and
+ * appends nothing); 5 the text did not parse; 6 the package did not grow. */
+#define RVA_CONSOLE 0x806210u /* MiscAccess::console, VA 0xc06210 (Console *) */
+#define CONSOLE_PLAY_OFF 0x2a0u /* Console::play */
+#define RVA_UNITS 0x80aeb0u /* units: per player, stride 0x1c: +4 length, +0x10 slots */
+#define RVA_COMMAND_MANAGER 0xa8ff60u /* command_manager, VA 0xe8ff60 */
+#define RVA_ISSUE_MOVE_TO 0x541720u
+#define ISSUE_MAX 32
+static u8 g_groupout[0x9d0];
+
+static int issue_int(const u16 **t, i32 *out) {
+    const u16 *p = *t;
+    while (*p == ' ' || *p == '\t') p++;
+    i32 sign = 1, v = 0, any = 0;
+    if (*p == '-') { sign = -1; p++; }
+    while (*p >= '0' && *p <= '9') { v = v * 10 + (i32)(*p - '0'); p++; any = 1; }
+    *t = p;
+    *out = sign * v;
+    return any;
+}
+
+static void issue_line(i32 frame, u32 idx, const u16 *text) {
+    static const u16 verb[] = {'m', 'o', 'v', 'e', ' '};
+    u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
+    u32 before = *pkg_size;
+    const u16 *t = text;
+    for (u32 i = 0; i < sizeof verb / sizeof verb[0]; i++, t++)
+        if (*t != verb[i]) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
+    i32 who, x, y, ids[ISSUE_MAX];
+    u32 n = 0;
+    if (!issue_int(&t, &who) || !issue_int(&t, &x) || !issue_int(&t, &y)) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
+        return;
+    }
+    while (n < ISSUE_MAX && issue_int(&t, &ids[n])) n++;
+    if (!n || who < 0 || who > 7) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, n); return; }
+    u8 *console = *(u8 **)(g_base + RVA_CONSOLE);
+    if (!console || *(i32 *)(console + CONSOLE_PLAY_OFF) != who) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(1) << 16), before, before, n);
+        return;
+    }
+    static const u8 prologue[] = {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00};
+    for (u32 i = 0; i < sizeof prologue; i++)
+        if (*(u8 *)(g_base + RVA_ISSUE_MOVE_TO + i) != prologue[i]) {
+            emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
+            return;
+        }
+    u8 *band = (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
+    u32 length = *(u32 *)(band + 4);
+    u8 **slots = *(u8 ***)(band + 0x10);
+    for (u32 j = 0; j < n; j++) {
+        u8 *unit = (ids[j] >= 0 && (u32)ids[j] < length && slots) ? slots[ids[j]] : 0;
+        if (!unit || !(unit[8] & 1) || unit[9] != (u8)who || *(u16 *)(unit + 0xa) != (u16)ids[j] ||
+            !(*(u16 *)(unit + 0x8e) & 0x8000)) {
+            emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(3) << 16), before, (u32)ids[j], n);
+            return;
+        }
+    }
+    /* A fresh group (3 + 2n), the 22-byte move, and two bytes of slack each. */
+    if (before + 3 + 2 * n + 0x16 + 4 > 0x200) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(4) << 16), before, before, n);
+        return;
+    }
+    for (u32 i = 0; i < sizeof g_groupout; i++) g_groupout[i] = 0;
+    *(i32 *)(g_groupout + 0xc) = (i32)n;
+    g_groupout[0x4a] = (u8)who;
+    for (u32 j = 0; j < n; j++) {
+        *(u16 *)(g_groupout + 0x8cc + 2 * j) = (u16)ids[j];
+        u8 *unit = slots[ids[j]];
+        emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
+             *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
+    }
+    typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
+    ((issue_fn)(g_base + RVA_ISSUE_MOVE_TO))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
+                                             2, 0, 0, 1, -1, -1, 0);
+    u32 after = *pkg_size;
+    emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, n);
+}
+
 /* Run every line due at `frame`. Called at the top of Game::do_frame, before
  * the frame's phases — so a line sees the state at the end of the previous
  * frame, and its effects are in this frame's dump. */
@@ -477,6 +588,11 @@ static void run_cmds(i32 frame) {
     while (g_next_cmd < g_ncmds && g_cmds[g_next_cmd].frame <= frame) {
         Cmd *c = &g_cmds[g_next_cmd];
         u32 idx = g_next_cmd++;
+        if (c->from_chat == 2) {
+            issue_line(frame, idx, c->text);
+            flush();
+            continue;
+        }
         void *console = *(void **)(g_base + RVA_CONSOLE_WIN);
         if (!console) {
             emit(K_INFO, I_CMD_NOCONSOLE, (u32)frame, idx, 0, 0, 0);
@@ -1245,6 +1361,9 @@ static void read_cmds(void) {
         c->from_chat = 1;
         if (*p == '!') {
             c->from_chat = 0;
+            p++;
+        } else if (*p == '@') {
+            c->from_chat = 2;
             p++;
         }
         u32 i = 0;

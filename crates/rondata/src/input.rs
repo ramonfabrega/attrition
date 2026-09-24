@@ -94,6 +94,79 @@ fn queue_pos(queued: i32) -> QueuePos {
     }
 }
 
+/// A `group` command (0x00) and the `move_to` (0x07) behind it, into the
+/// simulation the way the turn pump walks them (`docs/COMMANDS.md` §1 and
+/// §3; `docs/ORDERS.md` §8.1) — the command's entry, as the original has
+/// it rather than as a per-unit order.
+///
+/// `CommandPackage::process_group@0094a0c0` builds a `Group` on the stack
+/// from the listed objects — `Group::add(o, who, 0, 0)` each, and each
+/// captain's `o_down` chain behind it, so a squad's figures come with its
+/// captain — and installs it with `Groups::push_group(who, &g, 1)`, forced.
+/// `CommandPackage::process_move_to@009497c0` then calls
+/// `Group::action_move_to(g, to_x, to_y, queued, set_angle, angle, orders,
+/// 1, form, width, disembark)`: the action bit is set on every order it
+/// makes, and the group — not each unit — decides who gets a
+/// `GroupMoveOrder` and who a plain move (`docs/ORDERS.md` §8.2).
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation (the original's group is then empty and
+/// `process_group` sets `group = -1`, so the move acts on nothing).
+///
+/// SEAMS, each with what it leaves out: `form`/`width` are the −1 every
+/// army call passes and the only value an issuer line sends, so
+/// [`sim::Sim::group_action_move_to`]'s own `−1` is exact here and a packet
+/// with any other form is not modelled; `disembark` is 0; the
+/// `num = 0` replay of the previous selection is the caller's; and
+/// `UnitData::play` (`+0xb6`), which `process_group` sets to the issuing
+/// player on every member, is not carried (`docs/GOLDEN.md` §17).
+pub fn group_move_to(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    to: Pos,
+    queued: i32,
+    set_angle: bool,
+    angle: i32,
+    orders: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    // `OrderIndex`: 1 `MOVE_TO`, 2 `ATTACK_TO`, 3 `EXPLORE_TO`, 4
+    // `FLEE_TO` (`docs/ORDERS.md` §1.2). `action_move_near` hands any
+    // other value to `add_move_facing_order`, which makes a `MOVE_TO`.
+    let kind = match orders {
+        2 => MoveKind::AttackTo,
+        3 => MoveKind::ExploreTo,
+        4 => MoveKind::FleeTo,
+        _ => MoveKind::MoveTo,
+    };
+    built.sim.group_action_move_to(
+        &g,
+        to,
+        queue_pos(queued),
+        set_angle,
+        sim::movement::Angle(angle),
+        kind,
+        true,
+    );
+    g.list.len()
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {

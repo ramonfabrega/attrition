@@ -1290,7 +1290,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | AttackOrder, AttackToOrder | auto, and `CommandManager::issue_attack@009415e0` | 1, 2, 3, 5, 6, 8 |
 | TargetOrder | auto (the search step) | 1 and every combat chapter |
 | GroupAttackOrder, GroupAttackToOrder | `issue_attack` on a multi-unit group | — |
-| MoveOrder, GroupMoveOrder | `CommandManager::issue_move_to@00941720` | — (the lab has validated this one) |
+| MoveOrder, GroupMoveOrder | `CommandManager::issue_move_to@00941720` | 9, the first issuer chapter (§17; the lab validated the issuer) |
 | ExploreToOrder, FleeToOrder | the same entry point, trailing selector | — |
 | PatrolOrder, GroupPatrolOrder | `CommandManager::issue_patrol@00941800` | — |
 | AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860` | 6 |
@@ -1349,6 +1349,7 @@ below without a run take their number at booking (the eleventh pass).
 | 157 | seven-b, the control | `[605, 1200)` | `!ai off` deleted; the AI's economy should reach the citizen, or the pair is vacuous — **run157, 114 MB, 335 s on the second take (the first stalled before the menu); the citizen gathers on 611 as in run156; word 1036** |
 | ~~119~~ 168 | six, the air and the bird | `[605, 900)` | the one new order class — **run 2026-09-23 as run168 (item 648), 42 MB, 137 s; the second falsifier fired: an unbased aircraft is inert; word ~~616~~ ~~700~~ (item 650), closed at 900 (item 652; the cursor from run169's packet)** |
 | 175 | six-b, the air line from a base | `[605, 1250)` | run168's second falsifier killed chapter six's premise; one Airbase a side, and both tanks run dry inside the window — **run 2026-09-23 (item 651), 112 MB, 315 s; the first falsifier fired on the target arm: each aircraft walks at the enemy Airbase; the base link is dead; word ~~632~~, closed at 1250 (item 680; a building target's re-search, from run177's packet)** |
+| 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot round a lake and a squad of three Hoplites (§17) |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -1440,3 +1441,109 @@ of chapter one itself.
   second family of chapters — a unit brought to an exact hit total, a
   building finished on a chosen frame, a resource given — that this design
   does not reach and that costs interpreter work rather than a capture.
+
+## 17. Chapter nine — the move line, the first issuer chapter (item 676)
+
+**Premise.** A player's move command, issued through the original's own
+issuer, reaches the order family and is walked: a lone unit takes a plain
+`MoveOrder` with the action bit and a world plan, a squad of three takes
+three `GroupMoveOrder`s under one id and one leader, and both arrive. Every
+order in chapters one to eight was one the original's own automatic play
+issued (§13); these two are a player's. `tools/gamelog/golden/chapter9.cmd`
+has the whole reading with its citations; this section is its summary.
+
+**The channel's third half.** A line whose text starts with `@` is not
+handed to `parse_cmd`. `rontrace.dll` (`tools/trace/tracer.c`,
+`issue_line`) builds a `GroupOut` — `num` at `+0xc`, `who` at `+0x4a`, the
+objects at `+0x8cc`, the three fields `CommandPackage::add_group@0094bb60`
+reads — and calls `CommandManager::issue_move_to@00941720` with a plain
+right-click's arguments: `QUEUE_NEW`, no angle, `MOVE_TO`, form and width
+−1, no disembark (`WorldMap::on_right_up@008c7050:203`). It checks the
+issuer's prologue, that `who` is the console's player, that every object is
+a live captain of `who` with that id, and that the package has room, and
+refuses by an `INFO` 17 record otherwise. The lab's probes (L15) passed
+`orders 0, form 0, width 0`, which is not a click.
+
+**The issuer, under the emulator first** (`tools/emu/callfn.py`'s machine,
+item 676's scratch fixture: `command_oracle.py`'s widened to who=0's
+objects 6–10). With the chapter's two calls, `issue_move_to` writes the
+local `CommandPackage` and the four selection caches `CommandPackage::
+last_who_sent`, `last_num_sent`, `last_objects_sent[0]` and
+`last_uids_sent[0]`, and nothing else — no unit, no order, no draw
+(`add_group`'s padding roll is under `semaphore & 4`, the network bit). Each
+call appends 27 bytes: `group` num 1 who 0 [o] and the 22-byte `move_to`.
+The squad's call names **one** object, its captain. A second call on the
+same selection appends the three-byte `num 0` reuse, and a non-captain in
+the list is dropped. **What the emulator cannot reach** is everything the
+chapter measures, which happens at process time: `process_group@0094a0c0`
+walking the captain's `o_down` chain into a `Group`, `Groups::push_group`,
+`Group::action_move_to` and the plan. That needs the game.
+
+**Lines.** `0 !ai off`; `610 add chariot who=0 16,36` — a Chariot is
+`UBER_SIZE` 1, the lone unit, `0/6`; `612 add hoplite who=0 16,52` —
+Hoplites are `UBER_SIZE` 3, captain `0/7` with `0/8` and `0/9` on its
+`o_down` chain, as run105 threads chapter one's; `620 @move 0 12672 7296 6`,
+the chariot from cell (4, 9) to cell (16, 9)'s centre; `640 @move 0 4992
+16512 7`, the squad by its captain from cell (4, 13) to cell (6, 21)'s
+centre. Ancient, one lever a line.
+
+**The frame convention.** The call runs where a cheat runs, at `do_frame`'s
+entry on trace frame F, but only appends: `TurnControl::do_frame_solo@
+009556a0` calls `CommandManager::process_turn` before the next `do_frame`,
+so the command is processed after logger block F+1 is written and before
+tick F+1, and its order is first on block **F+2** — 622 and 642. The
+harness runs an `@` line before the tick of F+1, ahead of any cheat staged
+there ([`crate::golden::Script::apply`]), through
+[`crate::input::group_move_to`], the `group` + `move_to` entry named against
+`docs/COMMANDS.md` §3: `Group::add` each listed captain with its squad,
+`push_group(…, 1)`, `group_action_move_to(…, action = 1)`.
+
+**The capture must dump** `end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2` and
+`misc:COMMANDMANAGER=1` over `[605, 1100)` — `COMMANDMANAGER=1` is where
+`process_group` and `process_move_to` log the command they walk — beside
+run105's `start:` set.
+
+**The premise's killer, and its writers** (§3, point 5). It is
+`CommandManager::check_accept_issue@00940a70` answering 0, which appends
+nothing. It answers 1 in a solo game unless `use_mp_playback` is set —
+written by `CommandManager::CommandManager@00943440` (0) and
+`CommandManager::set_mp_playback@0093ee70`, a replay's — or the semaphore
+has `0x10` (playback) or `4`, whose one writer is `Game::run_gamespy@
+00587060`. The second is `process_group`'s player test, which hands a group
+not of `info.player[package.play].who` to `is_team` and drops it; the DLL
+issues only for the console's player. The third is `add_group`'s captain
+filter, which the DLL's refusal 3 stands in front of. What decides plain
+move against formation is `Group::action_move_near@00704990`'s per-member
+test (`docs/ORDERS.md` §8.2), whose loop is bounded by `group.num`, at most
+128 and here one and three.
+
+**The ground.** A SANDY lake, region 65, lies at cells x 7–11, y 7–17
+(run175's start `WORLD`), between the chariot and its point, so the
+chariot's plan must bend round its north end; `find_wpath@00688fc0` plans
+on the world grid for any start and goal three or more cells apart by
+Manhattan, and these are 12 and 10. The squad walks the lake's west shore.
+Neither walk enters a goody box's cell, the one way a walker opens one
+(`Unit::set_new_location@005f8d20`, `docs/GOODY.md` §2).
+
+**What this crate predicts, walked before the run** from run175's frame 0,
+which every chapter shares to 599: the chariot a plain `MOVE_TO` with an
+11-entry plan round the lake, on (12672, 7296) on block 990; the squad three
+`GroupMoveOrder`s, one id, leader `0/7`, a 7-entry plan, the figures on
+their slots on blocks 938–941.
+
+**What would falsify it, and where each could first fire.**
+
+1. **The issuer does not reach the pump**: an `INFO` 17 with a refusal on
+   trace frame 620 or 640, or no `COMMANDMANAGER` group and move text
+   between blocks 621 and 622 (641 and 642).
+2. **The chariot's order is not a plain move with a plan**: block 622,
+   `0/6`'s stack — anything but one `MOVEORDER` of kind 1 with the action
+   bit, or a path of fewer than three entries.
+3. **The squad's orders are not one formation**: block 642, `0/7`–`0/9` —
+   anything but three kind-19 orders with one id and one leader.
+4. **A walk does not arrive**: the block where a stack empties with the
+   chariot more than a tile from (12672, 7296) or a figure more than two
+   cells from (4992, 16512), or 1099 with either still walking.
+
+Predicted: none fires. If one does, it closes the chapter on what it
+measured and restages as a new one, as §11 and §10 did.
