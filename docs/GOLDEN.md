@@ -3124,7 +3124,10 @@ set: run215's levels, the line whose pool printed (parked 733).
 
 **The premise's killer, and its writers** (§3, point 5).
 - **A `MOVEORDER` (type 1) or any group order where an explore or a flee
-  is predicted.** The type's writer on this path is
+  is predicted.** The dump names the class by its record's label,
+  `EXPLORETOORDER` (`ExploreToOrder::log_data@00483000`) or `FLEETOORDER`
+  (`FleeToOrder::log_data@00482eb0`), and its `type` line (`FleeToOrder::
+  get_type@00482f30` answers 4). The type's writer on this path is
   `add_move_facing_order`'s switch. Its two other `EXPLORE_TO` writers
   are not reached: the `QUEUE_LAST` conversion of a `role & 0x10` type's
   `MOVE_TO` (the call is `QUEUE_NEW`, and neither type is a scout), and
