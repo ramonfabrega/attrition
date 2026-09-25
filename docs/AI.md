@@ -9185,7 +9185,14 @@ on the old rule first.
   ours spends `Animal::do_idle+0x83`. Under it on 16779, who=1's make-list
   slot 1 reads `val` 22784 here against 91136 there. No mechanism is named.
 - run227's other rows past the word: the scout `1/0`'s order point and
-  formation mirror from 16782 (743's family).
+  formation mirror from 16782 (743's family). On its last block, 16934,
+  `MAKE[1].val` still stands, 22784 against 91136, exactly a quarter.
+- **The older captures** carried the same split. run58's "gatherer filed
+  under the wrong city" from 2576, three rows over 800 frames, closes. So
+  do who=1's two city rows on the first blocks of run99, run166, run78
+  and run221.
+- **East Indies' endpoint** at 24001: 47 → 48 off, 8 → 3 extra, 3 → 1
+  build unlinked, 7 → 9 build diverged. Great Lakes' holds.
 
 ### 73.6 What this has *not* established
 
@@ -9194,8 +9201,8 @@ on the old rule first.
   crate does too. Its `peasant_dist` would read the search's untouched
   `find_dist`, 99,999,999, truncated to a short. That is a seam, skipped
   here: no capture has one.
-- **When the split first parted.** It stands on run221's first block,
-  15894, and on its last. The earlier captures' floors are not read for it.
+- **When the split first parted.** run58 has it from frame 2576, and it
+  stands on every East Indies window since. Nothing earlier is read.
 - **Coverage**: the rule is diff-backed. run227's `city:gatherers` rows
   agree on every block, and `1/46` does not leave. The listing settles
   the register. `busy`'s move to the building's city was already built and
