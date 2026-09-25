@@ -22,6 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 718, 2026-09-24 — the garrison's other arms
+
+(724) **`action_garrison`'s unbuilt arms**: `QUEUE_FIRST`, the editor, a
+worker's `QUEUE_FIRST` (the decompile's registers are garbage there; the
+listing settles it), packing types, and `search` from the command; and
+`action_eject_all`'s `back_to_work` filter and `eject_o`/`eject_who` arm.
+
+(725) **`GarrisonOrder::get_garrison_order@00482dd0`'s vtable slot.** A PE
+read of the vtable would cite it and move the census's order row 49 → 50.
+
 ## Parked by item 714, 2026-09-24 — the follow's other arms
 
 (719) **A follow on an enemy unit**: `action_follow` has no `is_ally`
@@ -80,7 +90,8 @@ stray-road sweep's two unmodelled inputs (ROADS §10.5).
 (689) **A pushed group's `GroupData::id`**: ours `64 +` its index in
 `Sim::pushed`, the original `who·64 +` the pool slot; run180 block 642
 reads 641000 against 647600, and chapter ten's patrol ids the same
-(693). No step reads it, but the fix reaches the
+(693); 718's `come_out` squad push and the eject's building group are
+pool slots of the same family. No step reads it, but the fix reaches the
 AI's pushed groups on both long captures, so it wants both words
 measured. Likely 674's cause (an order's group id).
 
@@ -870,6 +881,14 @@ run185, chapter ten's coverage re-run (item 693), hung with the
 the single lane until 14:17, about an hour. run184 at `cover=0` ran on
 the same lane. Until a coverage capture runs there, no issuer chapter
 can move the census's *entered* column, only the cited one (692).
+
+(726) **Two lanes met in one code module three times this tranche**, and
+the commander coordinated each by message: 696 and 698 in `sim::collide`,
+711 and 713 on `do_guard`'s draw site, and 718 nearly dropping a correct
+fix to stay inside a fence set for a lane that had already landed. The
+brief reserves document sections and constants, never a code module, and
+a fence has no expiry. Whether the brief should name the modules a lane
+may touch, and when a fence lifts, is the pass's.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 

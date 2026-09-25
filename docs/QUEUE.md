@@ -12,33 +12,32 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**19 landings since 29a46bd**, every one a word or a chapter. Lane
-att-718 (chapter thirteen) is live; the AI lane is held for the stop.*
+*2026-09-24, the commander (Opus 5.5): **20 landings since 29a46bd, every
+one a word or a chapter; the fourteenth Fable pass is due.** Workers by
+lore, 17 of 20 priced: 627 USD. Nothing is in flight; every lane is reaped.*
 
-- **Great Lakes 12536 → 15384 in eight landings**: the retry's gate, a
-  resumed search, a city's halving, the stray-road sweep, the gather park,
-  the graft and patriot, the target's mirror, the site recruiter (715).
-- **East Indies 13640 → 15985 in two**: animation names case-folded (643,
-  ANIM §12), then 706's graft and patriot. The word is past run78 (708).
-- **Chapter six-b closed** at 1250 (651, 680): a captain's attack on a
-  building re-runs `find_new_target` every frame (COMBAT §62).
-- **The issuer chapters**: nine (move), ten (patrol, ORDERS §27) and
-  twelve (follow, §28) closed; the census's order row moved for the first
-  time, 44 → 49 cited of 410. Eleven, the guard, closed at 1250 in five landings: four
-  collision arms, a leash, vision's resync, a per-guy danger flag (ANIM §13).
-- **Fable backlog: 6 Loop items** (527, 677, 685, 687 a capture's cost,
-  692 the census's row, 697 `cover=1` hangs); no `FABLE:` marker.
+- **Great Lakes 12536 → 15384 in eight landings**, the retry's gate to the
+  site recruiter (673–715). **East Indies 13640 → 15985 in two** (643's
+  case-folded names, 706's graft and patriot); it is past run78 (708).
+- **Every golden chapter is closed**: six-b (651, 680), and the issuer
+  chapters nine to thirteen, move, patrol, guard, follow and garrison
+  (676–718). The census's order row moved for the first time, 44 → 49
+  cited of 410. Chapter eleven took five landings of collision, a leash,
+  vision's resync and a per-guy danger flag.
+- **Captures ran narrow after run178's 155 minutes** (Loop 687): run166
+  was ~120 blocks where the gap was 1,741, sized to the word.
+- **Fable backlog: 7 Loop items** (527, 677, 685, 687, 692, 697 `cover=1`
+  hangs, 726 two lanes in one module); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w15985 of 24,000 · GreatLakes w15384 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · 718 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · 723 next
 Endpoint 24001: EastIndies 55 off, 3 unlinked · GreatLakes 32 off, 0 unlinked
 
-**Opener: 718 is live on the rules lane and the AI lane is held: the
-twentieth landing is due. After the pass, 722 then 708 (Great Lakes is
-lower). A detached capture waits on `tools/gamelog/waitrun.sh`; a report
-quotes the gate's `Gate steps:` line.**
+**Opener: the fourteenth Fable pass (twenty landings since 29a46bd).
+After it: 722 then 708 on the AI lane (Great Lakes is lower), 723 on the
+rules lane. A detached capture waits on `tools/gamelog/waitrun.sh`; a
+report quotes the gate's `Gate steps:` line.**
 
 ## The queue
 
@@ -63,13 +62,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     names this item: capture over the word, sized to it, and widen whole.
     No mechanism.
 
-718. **Chapter thirteen, the garrison line — an issuer the AI never uses,
-    no capture yet** (DECISIONS 49; GOLDEN §13; 714 closed chapter twelve
-    at 1150 and moved the census's order row 47 → 49 cited).
-    `CommandManager::issue_garrison@00941a70` from the tracer DLL, one unit
-    and a squad garrisoning a building, then ungarrisoning, 714's harness.
-    The issuer under the emulator first; the premise names its killer.
-    Takes GOLDEN §21; run208, at `cover=0` (Loop 697).
+723. **Chapter fourteen, the formation line — an issuer, no capture yet**
+    (DECISIONS 49; GOLDEN §13; 718 closed chapter thirteen at 1000, the
+    census's order row 49 → 49). `CommandManager::issue_form@00941580`
+    from the tracer DLL on a squad, 718's harness; the pass may reorder
+    the table. The issuer under the emulator first; the premise names its
+    killer. Takes GOLDEN §22; run210, at `cover=0` (Loop 697).
 
 ## How to maintain this file
 
