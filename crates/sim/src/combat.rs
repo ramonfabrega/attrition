@@ -1318,6 +1318,44 @@ pub fn flight_time(n: i64, d: i64) -> i32 {
     q.trunc_to_int()
 }
 
+/// **A bomb's flight time** (`docs/ORDERS.md` §35.3): `Ammo::init@0067bbf0`'s
+/// Bomber arm, `0x67d24b`–`0x67d26f` — `(int)sqrtf((float)((ez − sz) · 2) /
+/// GRAV_Z)`, the time a round dropped from `sz` takes to fall to `ez` under
+/// [`GRAV_Z`]. The listing doubles the integer difference (`addl %eax,
+/// %eax`), converts it (`cvtdq2ps`), divides by `GRAV_Z` (`divss`), and
+/// calls `0x41e6f0`, which is `(float)sqrt((double)x)` — a correctly
+/// rounded single root, since a double carries more than twice a single's
+/// bits — and truncates it (`cvtss2sd`, `cvttsd2si`).
+///
+/// SEAM: a round released at or under its landing height, whose quotient
+/// is not positive: the original's root is a NaN and its truncation
+/// `0x80000000`. No bomb reaches it; this answers 0, which the caller
+/// raises to 1 as `Ammo::init` does a zero time.
+pub fn fall_time(sz: i32, ez: i32) -> i32 {
+    let q = Single::from_i32((ez - sz).wrapping_mul(2)).divss(GRAV_Z);
+    let bits = q.bits();
+    if bits & 0x8000_0000 != 0 || bits & 0x7fff_ffff == 0 {
+        return 0;
+    }
+    let e = ((bits >> 23) & 0xff) as i32;
+    let f = u128::from(bits & 0x007f_ffff);
+    let (mut mant, mut exp) = if e == 0 {
+        (f, -149)
+    } else {
+        (f | 1 << 23, e - 150)
+    };
+    if exp % 2 != 0 {
+        mant <<= 1;
+        exp -= 1;
+    }
+    // Sixty guard bits under the root's own twenty-four, and an even shift
+    // so the exponent halves exactly.
+    let scaled = mant << 60;
+    let root = isqrt(scaled);
+    let exact = root * root == scaled;
+    round24(root, exp / 2 - 30, !exact).trunc_to_int()
+}
+
 /// An IEEE single as an exact rational: `mant × 2^exp`, `mant < 2^24`,
 /// normalised so `mant ≥ 2^23` unless the value is zero.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -2129,6 +2167,22 @@ mod tests {
         let p = scatter_point(&mut r, Pos::new(100, 100), 10);
         assert!((p.x - 100).abs() <= 5 && (p.y - 100).abs() <= 5);
         assert_ne!(r.seed, s0);
+    }
+
+    /// [`fall_time`] against the host's own single precision — the test
+    /// oracle `no_float.rs` allows — over every drop from 1 to 40,000
+    /// units, the whole height a plane can fly. run223's `0/8` drops from
+    /// 1632 onto ground at 10: `sqrt(3244 / 10.4875)` is 17.59, so 17.
+    #[test]
+    fn fall_time_matches_the_float_expression() {
+        let g = f32::from_bits(GRAV_Z.bits());
+        for drop in 1..40_000i32 {
+            let q = ((-drop) * 2) as f32 / g;
+            let want = f64::from(q).sqrt() as f32;
+            assert_eq!(fall_time(drop, 0), want as i32, "drop {drop}");
+        }
+        assert_eq!(fall_time(1632, 10), 17);
+        assert_eq!(fall_time(10, 10), 0);
     }
 
     #[test]

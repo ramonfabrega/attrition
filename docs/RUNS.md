@@ -7448,3 +7448,41 @@ in the stanza.
   pair.
 - The floor is 293 keys on the first block, 363 before the word's frame
   and 1,139 in all.
+
+## run235 — chapter seventeen's bombs, at `AMMO=5` (2026-09-25, item 770)
+
+**What it is.** run223's game again: the same lobby, seed,
+`chapter17.cmd` and detail line, with `AMMO=5` added, to 1100 rather
+than 1400. run223 dumps no `AMMO`, so its bombs could be read only by
+their damage. The disk could not answer where a bomb leaves the plane,
+and that is what the fringe hits on 842 and after turn on.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch17-ammo \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,AMMO=5,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter17.cmd
+```
+
+**Taken whole.** One take on the click-free lane: 588 s from launch
+(17:41) to exit, 208 MB of dump and 10.4 MB of trace. The lane lock
+named att-767's longtrace, whose pid had exited, so it was taken over as
+the launch line does. It was waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| receipt | `success: true`, exit 0, 1,101 frames, seed 12345, `MAP_STYLE 14` |
+| `rngcmp.py` vs run223's trace | **0 differing**, 1,101 identical |
+| window blocks | 497 |
+| live `AMMO` records on 800–1100 | 784, every one the Bomber pair's |
+
+**What it settled** (`docs/ORDERS.md` §35).
+- **Every bomb is `total_time 17`**, and `ex − sx`, `ey − sy` is one
+  tile along the heading.
+- **Two bays, 19 under the plane**, turned by a whole degree taken from
+  the angle's top byte. That model reproduces all 49 release points.
+- With the bays built, all 784 records agree field for field
+  (`run235_s_bombs_are_the_original_s_record_for_record`), except the
+  target a round in flight keeps past the Barracks' death on 1080.

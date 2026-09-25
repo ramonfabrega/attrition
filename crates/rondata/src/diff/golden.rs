@@ -714,6 +714,144 @@ fn chapter_seventeen_holds_to_the_golden_word() {
     );
 }
 
+/// **run235's bombs, record for record** (item 770, `docs/ORDERS.md` §35).
+/// run235 is run223's game again — the same seed, script and detail line —
+/// with `AMMO=5`, to 1100: every bomb the pair drop on the Barracks is a
+/// dumped round. Every live round of either side on every block of
+/// [`RUN235_BOMBS`], keyed on its shooter and pool slot, both directions,
+/// and every field this crate carries: the release point and height, the
+/// landing point and height, the fall time, the target, the flags.
+#[test]
+fn run235_s_bombs_are_the_original_s_record_for_record() {
+    use std::collections::{BTreeMap, BTreeSet};
+    let Some(mut s) = stage_script("ch17-ammo", "chapter17") else {
+        return;
+    };
+    let (first, last) = RUN235_BOMBS;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut theirs_n, mut ours_n) = (0usize, 0usize);
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0)
+            .map(|(a, _)| ((a.who, a.o, a.index), a))
+            .collect();
+        let sim = &s.built.sim;
+        let ident = |o: sim::combat::Obj| match o {
+            sim::combat::Obj::Unit(u) => {
+                (i64::from(sim.units[u].owner), i64::from(sim.units[u].index))
+            }
+            sim::combat::Obj::Building(b) => (
+                i64::from(sim.buildings[b].owner),
+                i64::from(sim.buildings[b].index),
+            ),
+        };
+        let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .projectiles
+            .iter()
+            .map(|p| {
+                let (w, o) = ident(p.shooter);
+                ((w, o, i64::from(p.slot)), *p)
+            })
+            .collect();
+        theirs_n += theirs.len();
+        ours_n += ours.len();
+        if (805..=808).contains(&n) {
+            for (k, a) in &theirs {
+                eprintln!("  run235 block {n} theirs {k:?} {a:?}");
+            }
+            for (k, p) in &ours {
+                eprintln!("  run235 block {n} ours   {k:?} {p:?}");
+            }
+        }
+        let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+        for key @ (who, o, slot) in keys {
+            let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                let side = if theirs.contains_key(&key) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                firsts
+                    .entry((who, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+                continue;
+            };
+            let target = p.target.map_or((-1, -1), ident);
+            for (name, mine, dumped) in [
+                ("cur_time", i64::from(p.cur_time), a.cur_time),
+                ("total_time", i64::from(p.total_time), a.total_time),
+                ("sx", i64::from(p.launch.x), a.sx),
+                ("sy", i64::from(p.launch.y), a.sy),
+                ("ex", i64::from(p.landing.x), a.ex),
+                ("ey", i64::from(p.landing.y), a.ey),
+                ("whom", target.0, a.whom),
+                ("ox", target.1, a.ox),
+                ("accuracy", i64::from(p.accuracy), a.accuracy),
+                ("splash_area", i64::from(p.splash_area), a.splash_area),
+                ("num_guys", i64::from(p.num_guys), a.num_guys),
+                ("sz", i64::from(p.sz), a.sz),
+                ("ez", i64::from(p.ez), a.ez),
+                ("angle", i64::from(p.angle.0), a.angle),
+                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
+                if mine != dumped {
+                    firsts
+                        .entry((who, o, format!("ammo[{slot}].{name}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+    }
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run235 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!("run235: {theirs_n} dumped rounds, {ours_n} of ours");
+    assert!(theirs_n > 0, "run235 dumps the bombs");
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    // **What stands**: the six rounds in flight when the Barracks dies on
+    // 1080 keep it as their target there and lose it here — chapter
+    // three's standing family (`Sim::forget` clears a dead object from
+    // every round; the original's round keeps it to its landing), which
+    // no landing reads: a dead target is no target on both sides.
+    let mut want: Vec<String> = [
+        "1080 0/8 ammo[0].ox",
+        "1080 0/8 ammo[0].whom",
+        "1080 0/8 ammo[1].ox",
+        "1080 0/8 ammo[1].whom",
+        "1080 0/8 ammo[3].ox",
+        "1080 0/8 ammo[3].whom",
+        "1080 0/8 ammo[4].ox",
+        "1080 0/8 ammo[4].whom",
+        "1080 0/8 ammo[5].ox",
+        "1080 0/8 ammo[5].whom",
+        "1080 0/8 ammo[6].ox",
+        "1080 0/8 ammo[6].whom",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "run235: what parts on the bombs moved");
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6944,6 +7082,18 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // 806. What stands is the Barracks' `damage`/`damage_frac` on 822,
     // compared by the shared instrument since this item (parked 728):
     // the bomb's round, which this crate does not release.
+    //
+    // **The strafe's round, released** (item 770, `docs/ORDERS.md` §35;
+    // the window widened to run223 whole, (605, 1401), the word walking
+    // to the capture's end). A strafe with a target releases its bombs,
+    // from the plane's own height and its two bays, and each falls a tile
+    // ahead in 17 frames: the Barracks' `damage` agrees on every block,
+    // 822 to its death on 1080, all five attacks and every fringe. What
+    // stands past the births is **the tank** (parked 765), and nothing
+    // before it: `0/7`'s `returning` 1 there and 0 here on 1212, `0/8`'s
+    // on 1214 — `mana_burn` is not carried — and each plane's flight
+    // home from then, which this crate does not turn for. No draw
+    // follows from them to 1400.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -6954,8 +7104,50 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         "650 0/1 g.last_time[0]",
         "655 0/2 g.cur_time[0]",
         "655 0/2 g.last_time[0]",
-        "822 1/2006 build:damage",
-        "822 1/2006 build:damage_frac",
+        "1212 0/7 g.angle[0]",
+        "1212 0/7 g.avg_speed[0]",
+        "1212 0/7 g.des_angle[0]",
+        "1212 0/7 g.des_x[0]",
+        "1212 0/7 g.des_y[0]",
+        "1212 0/7 g.last_speed[0]",
+        "1212 0/7 g.x[0]",
+        "1212 0/7 g.y[0]",
+        "1212 0/7 heading",
+        "1212 0/7 order:air.returning",
+        "1212 0/7 path[0].to",
+        "1212 0/7 pos",
+        "1213 0/7 dest_angle",
+        "1213 0/7 orders_x",
+        "1213 0/7 orders_y",
+        "1214 0/8 g.angle[0]",
+        "1214 0/8 g.avg_speed[0]",
+        "1214 0/8 g.bank[0]",
+        "1214 0/8 g.des_angle[0]",
+        "1214 0/8 g.des_x[0]",
+        "1214 0/8 g.des_y[0]",
+        "1214 0/8 g.last_speed[0]",
+        "1214 0/8 g.pitch[0]",
+        "1214 0/8 g.x[0]",
+        "1214 0/8 g.y[0]",
+        "1214 0/8 g.z[0]",
+        "1214 0/8 heading",
+        "1214 0/8 order:air.returning",
+        "1214 0/8 path[0].to",
+        "1214 0/8 pos",
+        "1215 0/8 dest_angle",
+        "1215 0/8 g.last_bank[0]",
+        "1215 0/8 g.last_pitch[0]",
+        "1215 0/8 g.last_z[0]",
+        "1215 0/8 orders_x",
+        "1215 0/8 orders_y",
+        "1223 0/7 g.bank[0]",
+        "1224 0/7 g.last_bank[0]",
+        "1225 0/7 g.last_z[0]",
+        "1225 0/7 g.pitch[0]",
+        "1225 0/7 g.z[0]",
+        "1226 0/7 g.last_pitch[0]",
+        "1378 0/7 g.cur_anim[0]",
+        "1398 0/8 g.cur_anim[0]",
     ]
     .iter()
     .map(|r| r.to_string())

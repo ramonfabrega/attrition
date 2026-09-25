@@ -1435,6 +1435,51 @@ impl Sim {
             Aim::Ground(g) => (None, Some(g)),
         };
         let tp = target.map_or_else(no_profile, |t| self.profile(t));
+        // **A bomb falls** (`docs/ORDERS.md` §35.3). `Ammo::init`'s
+        // `is(0x130)` test (`0x67c289`, `[ebp − 0x30]`) takes a Bomber's
+        // round past the whole accuracy-and-scatter block: no accuracy, no
+        // draw, no near-face aim and no lead. The landing is the launch
+        // `project`ed one tile (`edx = 0xc0`) along the shooter's own
+        // heading (`ecx = UnitData +0x50`), `WorldData::restrict`ed,
+        // `find_data_z` there unclamped; the time is the fall's.
+        if let Obj::Unit(su) = shooter
+            && self.is_bomber(su)
+        {
+            let facing = self.units[su].movement.facing;
+            let w = self.world.width() * UNITS_PER_CELL;
+            let h = self.world.height() * UNITS_PER_CELL;
+            let landing = Pos::new(
+                (launch.x + crate::movement::sin_component(facing, 0xc0)).clamp(0, w - 1),
+                (launch.y - crate::movement::cos_component(facing, 0xc0)).clamp(0, h - 1),
+            );
+            let ez = self.ground_z(landing);
+            let total_time = combat::fall_time(sz, ez).max(1);
+            let _ = (angle, frame);
+            self.add_ammo(combat::Projectile {
+                shooter,
+                owner: self.owner_of(shooter),
+                target,
+                launch,
+                landing,
+                cur_time: 0,
+                total_time,
+                // SEAM: the arm writes no `accuracy` (`+0x6`), so the
+                // recycled slot keeps its last round's; only a unit
+                // target's hit test reads it, and a building is struck.
+                accuracy: 0,
+                angle: crate::movement::find_angle(landing.x - launch.x, landing.y - launch.y),
+                splash_area: p.splash_area,
+                num_guys: 1,
+                rolling: false,
+                missed: false,
+                air: target.is_some() && matches!(tp.domain, Domain::Air),
+                sz,
+                ez,
+                v1z: combat::arc_v1z(sz, ez, total_time),
+                slot: 0,
+            });
+            return;
+        }
         let target_pos = match (target, ground) {
             (Some(t), _) => self.pos_of(t),
             (None, Some(g)) => g.at,

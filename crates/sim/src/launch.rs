@@ -272,6 +272,289 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
 ];
 
+/// **A release node the original turns by a whole degree** (item 770,
+/// `docs/ORDERS.md` §35.2): the model's own vector, in thousandths of a
+/// position unit — `right` across the heading, `fwd` along it — and the
+/// height under or over the figure.
+///
+/// `GraphicPieces::get_position@0090b750`'s non-pivot arm builds its
+/// rotation from `(int)param_5`, and `param_5` is
+/// `fast_angle_to_degrees@00a28f70` of the figure's angle, whose table
+/// is filled at `angle << 24` steps: **a whole degree, the nearest to the
+/// angle's top byte**. The vector is turned by it in singles and each
+/// axis truncated toward zero when `execute_game_events` adds it to the
+/// figure. [`Bay::point`] does the same in integers with [`COS_DEG`].
+///
+/// Measured, not read: run235 dumps all 49 of the Bomber pair's bombs,
+/// at thirteen whole-degree headings between 80 and 257, and each row's
+/// vector is the centre of the region that reproduces every one of its
+/// node's points to the unit. The planar `(bearing, radius)` [`Node`]
+/// with the engine's own sine misses 17 of 25.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Bay {
+    /// Across the heading, to its right, in thousandths.
+    pub right: i64,
+    /// Along the heading, in thousandths.
+    pub fwd: i64,
+    /// Height above the figure.
+    pub dz: i32,
+}
+
+/// `cos(d°) · 2^30`, nearest, for `d` in `0..=90` — a pinned table, built
+/// once with doubles and checked against the host's in
+/// `the_whole_degree_table_is_the_cosine`.
+const COS_DEG: [i64; 91] = [
+    1_073_741_824,
+    1_073_578_288,
+    1_073_087_729,
+    1_072_270_298,
+    1_071_126_243,
+    1_069_655_912,
+    1_067_859_754,
+    1_065_738_315,
+    1_063_292_242,
+    1_060_522_280,
+    1_057_429_273,
+    1_054_014_162,
+    1_050_277_989,
+    1_046_221_891,
+    1_041_847_103,
+    1_037_154_959,
+    1_032_146_887,
+    1_026_824_413,
+    1_021_189_159,
+    1_015_242_840,
+    1_008_987_269,
+    1_002_424_350,
+    995_556_083,
+    988_384_560,
+    980_911_966,
+    973_140_576,
+    965_072_759,
+    956_710_970,
+    948_057_759,
+    939_115_760,
+    929_887_697,
+    920_376_381,
+    910_584_710,
+    900_515_665,
+    890_172_315,
+    879_557_810,
+    868_675_383,
+    857_528_349,
+    846_120_104,
+    834_454_122,
+    822_533_958,
+    810_363_241,
+    797_945_680,
+    785_285_058,
+    772_385_229,
+    759_250_125,
+    745_883_746,
+    732_290_163,
+    718_473_518,
+    704_438_018,
+    690_187_940,
+    675_727_625,
+    661_061_475,
+    646_193_961,
+    631_129_609,
+    615_873_009,
+    600_428_808,
+    584_801_711,
+    568_996_477,
+    553_017_922,
+    536_870_912,
+    520_560_366,
+    504_091_252,
+    487_468_587,
+    470_697_435,
+    453_782_903,
+    436_730_145,
+    419_544_355,
+    402_230_767,
+    384_794_656,
+    367_241_333,
+    349_576_144,
+    331_804_471,
+    313_931_728,
+    295_963_357,
+    277_904_834,
+    259_761_657,
+    241_539_355,
+    223_243_478,
+    204_879_599,
+    186_453_311,
+    167_970_228,
+    149_435_979,
+    130_856_211,
+    112_236_583,
+    93_582_766,
+    74_900_443,
+    56_195_305,
+    37_473_049,
+    18_739_379,
+    0,
+];
+
+/// `fast_angle_to_degrees`' whole degree for an angle: its top byte in
+/// 256ths of a turn, to the nearest degree. SEAM: the half-way bytes
+/// (`byte ≡ 16 mod 32`, 22.5° and its kin) are taken to the even degree;
+/// no measured heading sits on one.
+pub fn whole_degrees(facing: Angle) -> i64 {
+    let byte = i64::from((facing.0 as u32) >> 24);
+    let (q, r) = ((byte * 45) / 32, (byte * 45) % 32);
+    if r > 16 || (r == 16 && q % 2 == 1) {
+        q + 1
+    } else {
+        q
+    }
+}
+
+/// `(cos, sin)` of a whole degree, scaled by 2^30.
+fn cos_sin(d: i64) -> (i64, i64) {
+    let c = |d: i64| match d.rem_euclid(360) {
+        d @ 0..=90 => COS_DEG[d as usize],
+        d @ 91..=180 => -COS_DEG[(180 - d) as usize],
+        d @ 181..=270 => -COS_DEG[(d - 180) as usize],
+        d => COS_DEG[(360 - d) as usize],
+    };
+    (c(d), c(d + 270))
+}
+
+impl Bay {
+    /// The world point the round leaves from: the figure's point plus the
+    /// vector turned by the whole degree, each axis truncated toward zero.
+    pub fn point(self, pos: Pos, facing: Angle) -> Pos {
+        let (c, s) = cos_sin(whole_degrees(facing));
+        let den = 1000i64 << 30;
+        let x = (self.right * c + self.fwd * s) / den;
+        let y = (self.right * s - self.fwd * c) / den;
+        Pos::new(pos.x + x as i32, pos.y + y as i32)
+    }
+}
+
+/// `(piece, animation slot, starttime)` → bay. **Piece 254, the Bomber**:
+/// `CHAR_ATTACK2`'s ten `BomberBomb`s alternate `node 0` (frames 1, 5, 10,
+/// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
+/// event's frame.
+const BAYS: &[(i32, i8, u32, Bay)] = &[
+    (
+        254,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: -71_064,
+            fwd: 67_455,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        2,
+        Bay {
+            right: 67_610,
+            fwd: -16_464,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        5,
+        Bay {
+            right: -71_064,
+            fwd: 67_455,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        8,
+        Bay {
+            right: 67_610,
+            fwd: -16_464,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        10,
+        Bay {
+            right: -71_064,
+            fwd: 67_455,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        13,
+        Bay {
+            right: 67_610,
+            fwd: -16_464,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        16,
+        Bay {
+            right: -71_064,
+            fwd: 67_455,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        18,
+        Bay {
+            right: 67_610,
+            fwd: -16_464,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        21,
+        Bay {
+            right: -71_064,
+            fwd: 67_455,
+            dz: -19,
+        },
+    ),
+    (
+        254,
+        crate::anim::ATTACK2,
+        24,
+        Bay {
+            right: 67_610,
+            fwd: -16_464,
+            dz: -19,
+        },
+    ),
+];
+
+/// The bay a piece releases from, or `None` when none is measured.
+pub fn bay(gpiece: i32, anim: i8, starttime: u32) -> Option<Bay> {
+    BAYS.iter()
+        .find(|(p, a, t, _)| *p == gpiece && *a == anim && *t == starttime)
+        .map(|(_, _, _, b)| *b)
+}
+
+/// The release height over the figure, from whichever table measures it.
+pub fn release_dz(gpiece: i32, anim: i8, starttime: u32) -> Option<i32> {
+    bay(gpiece, anim, starttime)
+        .map(|b| b.dz)
+        .or_else(|| node(gpiece, anim, starttime).map(|n| n.dz))
+}
+
 /// The node a piece releases from, or `None` when nothing has measured it.
 pub fn node(gpiece: i32, anim: i8, starttime: u32) -> Option<Node> {
     MEASURED
@@ -290,8 +573,12 @@ pub fn point(pos: Pos, facing: Angle, n: Node) -> Pos {
     )
 }
 
-/// [`point`] for a piece that has a row, and `pos` for one that does not.
+/// [`Bay::point`] or [`point`] for a piece that has a row, and `pos` for
+/// one that does not.
 pub fn launch_point(pos: Pos, facing: Angle, gpiece: i32, anim: i8, starttime: u32) -> Pos {
+    if let Some(b) = bay(gpiece, anim, starttime) {
+        return b.point(pos, facing);
+    }
     match node(gpiece, anim, starttime) {
         Some(n) => point(pos, facing, n),
         None => pos,
@@ -309,6 +596,85 @@ mod tests {
     /// and 1/27's two rows are the ones that make this a rotation rather
     /// than a stored world vector: same node, different facing, different
     /// answer, and the same two numbers.
+    /// The pinned table is the cosine, to the nearest 2^-30, against the
+    /// host's doubles — the test oracle `no_float.rs` allows.
+    #[test]
+    fn the_whole_degree_table_is_the_cosine() {
+        for (d, &c) in COS_DEG.iter().enumerate() {
+            let want = ((d as f64).to_radians().cos() * f64::from(1u32 << 30)).round() as i64;
+            assert_eq!(c, want, "cos {d}");
+        }
+        assert_eq!(cos_sin(90), (0, 1 << 30));
+        assert_eq!(cos_sin(180), (-(1 << 30), 0));
+        assert_eq!(cos_sin(270), (0, -(1 << 30)));
+    }
+
+    /// Every one of run235's 49 Bomber bombs: `(node's frame, figure x, y,
+    /// angle, sx, sy)`, the dump's own columns. **The degree is the
+    /// angle's top byte to the nearest degree**: 1003487232 is 84.1° but
+    /// 59 in the top byte, 83°.
+    #[test]
+    fn run235_s_bomb_bays_are_reproduced_to_the_unit() {
+        const M: &[(u32, i32, i32, i32, i32, i32)] = &[
+            (1, 20573, 16573, 1003487232, 20631, 16495),
+            (2, 20632, 16567, 1002831872, 20624, 16636),
+            (5, 20809, 16549, 999751680, 20867, 16471),
+            (8, 20986, 16530, 990904320, 20978, 16599),
+            (10, 21104, 16515, 981793360, 21160, 16436),
+            (13, 21281, 16489, 968019104, 21277, 16558),
+            (16, 21458, 16462, 968019104, 21512, 16381),
+            (18, 21576, 16444, 968019104, 21572, 16513),
+            (21, 21753, 16417, 968019104, 21807, 16336),
+            (24, 21930, 16390, 968019104, 21926, 16459),
+            (1, 20552, 16527, 1057947648, 20618, 16455),
+            (2, 20611, 16526, 1057423360, 20596, 16593),
+            (5, 20788, 16523, 1054736384, 20851, 16449),
+            (8, 20965, 16518, 1050542080, 20953, 16586),
+            (10, 21083, 16514, 1047855104, 21146, 16440),
+            (13, 21260, 16508, 1039990784, 21249, 16576),
+            (16, 21437, 16502, 1039990784, 21499, 16427),
+            (18, 21555, 16498, 1039990784, 21544, 16566),
+            (21, 21732, 16492, 1039990784, 21794, 16417),
+            (24, 21909, 16486, 1039990784, 21898, 16554),
+            (1, 21022, 16037, 2014183424, 21104, 16089),
+            (2, 21033, 16096, 2012610560, 20964, 16096),
+            (5, 21068, 16273, 2006777856, 21152, 16322),
+            (8, 21105, 16450, 1995177984, 21036, 16450),
+            (10, 21132, 16568, 1981807184, 21217, 16616),
+            (13, 21174, 16745, 1981807184, 21105, 16745),
+            (16, 21216, 16922, 1981807184, 21301, 16970),
+            (18, 21244, 17040, 1981807184, 21175, 17040),
+            (21, 21286, 17217, 1981807184, 21371, 17265),
+            (24, 21328, 17394, 1981807184, 21259, 17394),
+            (1, 21059, 15985, 2073605984, 21137, 16043),
+            (2, 21065, 16045, 2073755648, 20996, 16037),
+            (5, 21083, 16225, 2068381696, 21161, 16283),
+            (8, 21104, 16405, 2059206656, 21035, 16399),
+            (10, 21120, 16525, 2045377104, 21201, 16579),
+            (13, 21144, 16705, 2045377104, 21075, 16701),
+            (16, 21168, 16885, 2045377104, 21249, 16939),
+            (18, 21184, 17005, 2045377104, 21115, 17001),
+            (21, 21208, 17185, 2045377104, 21289, 17239),
+            (24, 21232, 17365, 2045377104, 21163, 17361),
+            (1, 21681, 16384, -1228677792, 21633, 16469),
+            (2, 21622, 16398, -1223819264, 21622, 16329),
+            (5, 21445, 16439, -1222705152, 21396, 16523),
+            (8, 21268, 16479, -1223032832, 21268, 16410),
+            (10, 21150, 16505, -1221328896, 21101, 16589),
+            (13, 20973, 16547, -1227423744, 20973, 16478),
+            (16, 20796, 16589, -1227423744, 20748, 16674),
+            (18, 20678, 16617, -1227423744, 20678, 16548),
+            (21, 20501, 16659, -1227423744, 20453, 16744),
+        ];
+        for &(t, x, y, a, sx, sy) in M {
+            let p = launch_point(Pos::new(x, y), Angle(a), 254, crate::anim::ATTACK2, t);
+            assert_eq!((p.x, p.y), (sx, sy), "frame {t} at {a}");
+        }
+        assert_eq!(M.len(), 49);
+        assert_eq!(whole_degrees(Angle(1_003_487_232)), 83);
+        assert_eq!(release_dz(254, crate::anim::ATTACK2, 21), Some(-19));
+    }
+
     #[test]
     fn run109_launch_points_are_reproduced_to_the_unit() {
         const M: &[(i32, i32, i32, i8, u32, i32, i32)] = &[

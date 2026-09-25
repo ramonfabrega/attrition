@@ -3693,6 +3693,91 @@ mod tests {
         assert_ne!(s.units[v].guys[0].anim, crate::anim::ATTACK2);
     }
 
+    /// **A strafe releases its bomb, and the bomb falls** (item 770,
+    /// `docs/ORDERS.md` §35). The Bomber's release on its first
+    /// `CHAR_ATTACK2` frame is a round under the strafe's own target; it
+    /// leaves `node 0`'s bay 19 under the plane's altitude, lands one tile
+    /// (192) ahead of the bay along the heading with no draw, and takes
+    /// the fall's 17 frames from 1613 to the ground — run235's `0/8` on
+    /// 806, `total_time 17`, `sz 1613`, `ex − sx` 191 at 83°. Made to fail
+    /// with the strafe dropped from the release gate (no round), the
+    /// ground's height for the plane's (`sz`), the scatter arm kept for a
+    /// Bomber (the draws) and the fall for the flight (`total_time`).
+    #[test]
+    fn a_strafe_releases_a_bomb_that_falls_a_tile_ahead() {
+        let mut s = sim();
+        let (base, target) = airbase_and_target(&mut s);
+        live_barracks(&mut s, target);
+        // run223's Barracks is four tiles square: the bomb lands inside.
+        if let Some(c) = s.buildings[target].combat.as_mut() {
+            c.x_size = 4;
+            c.y_size = 4;
+        }
+        for (anim, len) in [
+            (crate::anim::WALK, 31),
+            (crate::anim::SLOG, 31),
+            (crate::anim::ATTACK2, 30),
+        ] {
+            s.art.lengths.insert((-1, anim), len);
+        }
+        let at = Pos::new(21120 - 400, 16512);
+        let u = bomber(&mut s, at, Angle::EAST);
+        s.units[u].airframe.z = 1632;
+        let piece = s.units[u].guys[0].gpiece;
+        s.art.releases.insert(
+            piece,
+            [(
+                crate::anim::ATTACK2,
+                vec![1, 2, 5, 8, 10, 13, 16, 18, 21, 24],
+            )]
+            .into_iter()
+            .collect(),
+        );
+        s.add_strafe_order(
+            u,
+            Some(Obj::Building(target)),
+            Some(base),
+            true,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        s.work(u, 805);
+        assert_eq!(s.units[u].guys[0].anim, crate::anim::ATTACK2);
+        let seed = s.rng.seed;
+        s.guys_inc_time();
+        assert_eq!(s.projectiles.len(), 1, "the first event's round");
+        assert_eq!(s.rng.seed, seed, "a bomb spends no draw");
+        let p = s.projectiles[0];
+        assert_eq!(p.target, Some(Obj::Building(target)));
+        let from = s.units[u].pos;
+        assert_eq!(
+            p.launch,
+            crate::launch::launch_point(from, Angle::EAST, piece, crate::anim::ATTACK2, 1)
+        );
+        // The figure's altitude as the release reads it, after `work`'s
+        // climb: not the ground's.
+        assert_eq!(
+            p.sz,
+            s.units[u].airframe.z
+                + crate::launch::release_dz(piece, crate::anim::ATTACK2, 1).unwrap_or(0)
+        );
+        assert!(p.sz > 1500);
+        assert_eq!(p.landing, Pos::new(p.launch.x + 192, p.launch.y));
+        assert_eq!(p.total_time, combat::fall_time(p.sz, p.ez).max(1));
+        assert_eq!(p.total_time, 17);
+        assert!(!p.rolling);
+        for _ in 0..16 {
+            s.process_projectiles(806);
+        }
+        assert_eq!(s.projectiles.len(), 1, "still falling after 16");
+        s.process_projectiles(822);
+        assert!(s.projectiles.is_empty(), "down on the seventeenth");
+        assert!(
+            s.hits.iter().any(|h| h.target == Obj::Building(target)),
+            "and it strikes"
+        );
+    }
+
     /// **A plane lights the fog it flies over** — `Unit::set_new_location`'s
     /// half-cell test and `update_seen(param_3 == 0)`, the ring pass,
     /// which `do_air_physics`' step reaches like any other

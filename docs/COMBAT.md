@@ -1306,9 +1306,8 @@ map, in the same air/ground class as the ammo's domain, not a missile:
 `d = max(0, vector_dist(landing, unit) − 0xc0 − unit.type.guy_radius)`;
 `count = 0x100 − (d << 8) / (splash_area × 0xc0)`; if `count > 0`:
 `do_damage(A, unit, …, count, splash, 0)`. A building, for a non-air ammo:
-`d = vector_dist(|Δx| − x_size × 0xc0, |Δy| − y_size × 0xc0)` — the x term is
-explicit and the y term is in a register the decompiler lost, read by
-symmetry; `count` likewise; `do_damage` if `count ≥ 0`. The `splash`
+`d = vector_dist(|Δx| − x_size × 0xc0, |Δy| − y_size × 0xc0)`, each
+axis floored at zero (the listing, ORDERS §35.3); `count` likewise; `do_damage` if `count ≥ 0`. The `splash`
 argument is what makes `get_damage` apply step 15 and lets the fringe do
 nothing (step 26).
 
