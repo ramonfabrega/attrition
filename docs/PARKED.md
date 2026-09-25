@@ -22,6 +22,11 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 752, 2026-09-25 — run227 past the word
+
+(768) **run227's scout `1/0`: its order point and mirror from 16782**
+(743's family). No draw parts on it before the word.
+
 ## Parked by item 759, 2026-09-25 — the flight's other pieces
 
 (764) **A squad that garrisons in its own `work` is owed `Guy::process`
@@ -1034,6 +1039,12 @@ filed at its merge): five functions in a row hit `tools/ghidra/README.md`'s
 one trap; 759 lost nothing because every reading went to the listing
 first. A brief that says "the listing first" for arithmetic is cheaper
 than a trap a worker meets.
+
+(769) **A standing floor row whose field has a live reader is a cause
+waiting for its frame** (752's Loop line, filed at its merge).
+`RON_STANDING` printed 280 floor rows on run227's block, and the cause —
+two `city:gatherers` rows, read by `find_gather_spot` and `create_units` —
+was filtered out among them. 745's sweep could rank floor rows by reader.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
