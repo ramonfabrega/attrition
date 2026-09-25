@@ -2151,7 +2151,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// ours does not. **Past run211** (block 16461 against its last, 15859),
 /// so item 736 took **run218**; `run211_s_word_frame_is_widened_whole`
 /// keeps the move's value diff: nothing parts on 15441..15859.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 16_460;
+///
+/// ~~**16460 is `1/23`'s blocked step.**~~ **Item 742 moved it 16460 →
+/// 17099, and the mechanism was `Unit::move_step`'s give-up**
+/// (`docs/COLLISION.md` §17): a unit blocked 26 frames (`collide >=
+/// 0x1a`) widens `tolerance` and jumps to the arrival tail
+/// (`005fb7bb jmp 005fb82c`) **without stepping**, so the leg pops where
+/// it stands. This crate took the step first, and run218's `1/23`,
+/// blocked by The Despot, walked 26 north on 16459. **The new word's
+/// delta (this constant's comment): ours 217 draws and the original 225,
+/// parting at index 0**: the original spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`, a blocked step, where ours spends
+/// `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. **Past run218** (block
+/// 17100 against its last, 16711), so item 742 took **run226**;
+/// `run218_s_word_frame_is_widened_whole` keeps the move's value diff:
+/// nothing parts on 15860..16711.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 17_099;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
