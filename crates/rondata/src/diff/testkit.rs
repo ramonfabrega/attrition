@@ -2873,12 +2873,25 @@ pub(crate) const WIDENING_CHAPTER_TWELVE: (i64, i64) = (605, 1151);
 /// chariot's idle roll, where the original's walks. The walk's value
 /// compare parts on 641; the widening's first rows are on 622.
 ///
-/// **The delta**, this constant's: 640, the first pin.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTEEN: i64 = 640;
+/// 640 → **1000, closed** (item 718, `docs/ORDERS.md` §29): **the
+/// garrison command and the Eject, entered.** `rondata::input::
+/// group_garrison` pushes the group and calls `Sim::group_action_garrison`,
+/// one `GARRISON` a member that `can_garrison` the building;
+/// `group_eject_all` defers the building's ejection. Four fixes under
+/// them, each from run208's widening: `check_target_path`'s GARRISON arm
+/// cuts the walk at the door on the sixteen-frame review (699, 761); the
+/// door is `adjacent_to`, not a ring of tiles; `kill_garrison_order`
+/// walks the captain's chain; and `come_out` keeps the unit's angles and
+/// turns a member to its captain's. Nothing parts on the draw stream or
+/// the walk's values to run208's end.
+///
+/// **The delta**, this constant's: +360, 640 → 1000, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTEEN: i64 = 1000;
 
-/// `chapter_thirteen_s_word_frame_is_widened_whole`'s window: 605
-/// through 641, the word and the block after it (item 718).
-pub(crate) const WIDENING_CHAPTER_THIRTEEN: (i64, i64) = (605, 642);
+/// `chapter_thirteen_s_word_frame_is_widened_whole`'s window: **run208
+/// whole**, 605 through 1000 (item 718, the word closed). The first pin
+/// was (605, 642) on the word 640.
+pub(crate) const WIDENING_CHAPTER_THIRTEEN: (i64, i64) = (605, 1001);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.

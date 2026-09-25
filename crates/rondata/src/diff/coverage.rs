@@ -233,9 +233,6 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/PATROLORDER",
         "flags increment size",
     ),
-    // **Item 718's run208 windows carry the first `GARRISONORDER`**: its
-    // target reads as every `TARGETORDER`'s; `search` is owed by item 718.
-    ("GAME/FRAME/UNITDATA/GARRISONORDER", "search"),
     (
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/GROUPORDER/UNITORDER",
         "flags",

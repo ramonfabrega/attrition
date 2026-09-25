@@ -412,19 +412,18 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             objects,
         }) => crate::input::group_follow(built, who, &objects, ox, whom, 2),
         // `@garrison` is `issue_garrison@00941a70` with `QUEUE_NEW`, a
-        // `group` and a `garrison`; `@eject` is `issue_eject_all@00941ca0`
-        // on a group of buildings. SEAM: neither command has an entry into
-        // this simulation yet (item 718, `docs/GOLDEN.md` §21).
-        Some(Issued::Garrison { .. }) => {
-            done.skip(
-                &word,
-                "the garrison command has no entry into the simulation",
-            );
-            return;
-        }
-        Some(Issued::Eject { .. }) => {
-            done.skip(&word, "the eject command has no entry into the simulation");
-            return;
+        // `group` and a `garrison`, whose entry is
+        // [`crate::input::group_garrison`]; `@eject` is
+        // `issue_eject_all@00941ca0` on a group of buildings,
+        // [`crate::input::group_eject_all`] (item 718).
+        Some(Issued::Garrison {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_garrison(built, who, &objects, ox, whom, 2),
+        Some(Issued::Eject { who, buildings }) => {
+            crate::input::group_eject_all(built, who, &buildings)
         }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");

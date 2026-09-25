@@ -6246,39 +6246,30 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     got.sort();
     // **What parts under the word**, by block and key (`docs/GOLDEN.md`
     // §21). Each staged unit's `form` on its birth block, the standing
-    // family; the Barracks `0/2007` agrees on every block, so its `add`
-    // is placed as the original places it.
+    // family; the scout `1/0`'s formation mirror on 847 (parked 275).
     //
-    // **The first pin, word 640**: this crate cannot take the garrison
-    // command, and the harness skips both `@garrison` lines. On 622 the
-    // original's chariot `0/6` holds its `GARRISONORDER` under a plain
-    // leg to (2904, 13800) and is its pushed group's (`group 1`), where
-    // this crate's holds nothing and counts `idle`; on 623 it has pathed
-    // (`tolerance 384`, a two-entry path) and stepped. The squad's
-    // command on 640 is first on 642, past the window.
+    // **The first pin, word 640**: this crate could not take the garrison
+    // command, and the harness skipped both `@garrison` lines. On 622 the
+    // original's chariot held its `GARRISONORDER` under a plain leg and
+    // was its pushed group's (`group 1`), where this crate's held nothing
+    // and counted `idle`; on 623 it had pathed and stepped.
+    //
+    // **Built → 1000, closed** (`docs/ORDERS.md` §29): the two entries,
+    // `check_target_path`'s GARRISON arm, the door as `adjacent_to`, the
+    // chain's kill, and `come_out`'s angles. What stays is the squad's
+    // pool slot on 903: `come_out` pushes a squad that leaves a building
+    // into a fresh group (`Groups::push_group(…, 1)`, type `+0x308 > 1`),
+    // slot 3 behind the eject's own building group in 2. Neither is
+    // carried here (parked 689's family).
     let mut want: Vec<String> = [
         "611 0/6 form",
         "615 0/7 form",
         "615 0/8 form",
         "615 0/9 form",
-        "622 0/6 dest_angle",
-        "622 0/6 group",
-        "622 0/6 idle",
-        "622 0/6 order:length",
-        "622 0/6 orders.len",
-        "622 0/6 orders_x",
-        "622 0/6 orders_y",
-        "623 0/6 g.angle[0]",
-        "623 0/6 g.angle[1]",
-        "623 0/6 g.x[0]",
-        "623 0/6 g.x[1]",
-        "623 0/6 g.y[0]",
-        "623 0/6 g.y[1]",
-        "623 0/6 heading",
-        "623 0/6 path:length",
-        "623 0/6 path_recursion",
-        "623 0/6 pos",
-        "623 0/6 tolerance",
+        "847 1/0 order:move.facing",
+        "903 0/7 group",
+        "903 0/8 group",
+        "903 0/9 group",
     ]
     .iter()
     .map(|r| r.to_string())

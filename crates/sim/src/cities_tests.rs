@@ -1104,6 +1104,86 @@ fn a_squad_comes_out_one_member_at_a_time_and_no_two_share_a_spot() {
     );
 }
 
+/// **A player's garrison command, and the building's eject** (item 718,
+/// `docs/ORDERS.md` §29, run208). `Group::action_garrison` gives each
+/// member that `can_garrison` the building one GARRISON with the action
+/// bit, and a member that cannot — a citizen at a barracks — nothing.
+/// The first of the squad through the door takes the whole squad in, and
+/// `kill_garrison_order` walks the captain's chain, so no member keeps
+/// its walk or its GARRISON inside. On the way out a unit keeps its own
+/// heading and each member takes its captain's.
+#[test]
+fn a_player_s_garrison_takes_the_squad_in_whole_and_its_eject_keeps_their_angles() {
+    use crate::orders::{Body, QueuePos, flag};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    squad.combat.block_radius = 48;
+    let squad = sim.add_unit_type(squad);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let produced = sim.build_train(b, squad);
+    let cap = produced.unit;
+    let members = sim.squad_members(cap);
+    assert_eq!(members.len(), 3);
+    let c = spawn(&mut sim, 0, citizen, tile_pos(40, 52));
+
+    let mut g = crate::group::Group::stack(0);
+    sim.group_add(&mut g, cap);
+    sim.group_add(&mut g, c);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_garrison(&g, b, QueuePos::New);
+    for &m in &members {
+        let o = sim.units[m].orders.front().copied().expect("a GARRISON");
+        assert!(matches!(o.body, Body::Garrison { building, search: false } if building == b));
+        assert_ne!(
+            o.flags & flag::ACTION,
+            0,
+            "the command's order is an action"
+        );
+    }
+    assert!(
+        sim.units[c].orders.is_empty(),
+        "a citizen cannot garrison a barracks, so it gets no order"
+    );
+
+    for _ in 0..300 {
+        if members.iter().all(|&m| sim.units[m].inside == Some(b)) {
+            break;
+        }
+        sim.tick();
+    }
+    for &m in &members {
+        assert_eq!(sim.units[m].inside, Some(b), "the squad goes in whole");
+        assert!(
+            sim.units[m].orders.is_empty(),
+            "no member keeps its walk or its GARRISON inside: {:?}",
+            sim.units[m].orders
+        );
+    }
+
+    let heading = crate::movement::Angle(0x1234_0000);
+    for &m in &members {
+        sim.units[m].movement.heading = crate::movement::Angle(m as i32);
+    }
+    sim.units[cap].movement.heading = heading;
+    sim.action_eject_all(0, &[b], -1, -1);
+    sim.tick();
+    for &m in &members {
+        assert!(
+            sim.units[m].on_map,
+            "one squad a frame, and this is the one"
+        );
+        assert_eq!(
+            sim.units[m].movement.heading, heading,
+            "the captain keeps its heading, and each member takes it"
+        );
+    }
+}
+
 #[test]
 fn the_garrison_heal_runs_every_twenty_frames_where_the_unit_was_trained() {
     let mut sim = world_sim();

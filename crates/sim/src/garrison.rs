@@ -221,14 +221,10 @@ impl Sim {
         if !self.can_garrison(uty, bty) {
             return Err(GarrisonRefused::CantGarrison);
         }
-        let corner = self.tile_corner(bty, bd.pos);
-        let (xs, ys) = (self.build_types[bty].x_size, self.build_types[bty].y_size);
-        let t = u.pos.tile();
-        if !(t.x >= corner.x - 1
-            && t.x <= corner.x + xs
-            && t.y >= corner.y - 1
-            && t.y <= corner.y + ys)
-        {
+        // The door is `Object::adjacent_to` (`do_garrison@005e6b80`, vslot
+        // `+0x170`): `attack_dist < 0x60`, edge to edge — not the ring of
+        // tiles round the footprint this crate first read it as.
+        if !self.adjacent_to(unit, b) {
             return Err(GarrisonRefused::NotAdjacent);
         }
         if self.building_is_city(b) {
@@ -348,7 +344,12 @@ impl Sim {
             return false;
         };
         self.buildings[b].garrison.retain(|&c| c != captain);
-        self.come_out_place(captain, spot);
+        self.come_out_place(captain, spot, None);
+        // The captain's `orders_x/y` and `dest_angle` are its new place
+        // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
+        // a member's are rewritten by its own next `work`.
+        self.update_action(captain);
+        let host_angle = self.units[captain].movement.heading;
         for f in self.squad_of(captain) {
             if f == captain || self.units[f].inside != Some(b) {
                 continue;
@@ -357,8 +358,12 @@ impl Sim {
             // [`Sim::come_out_unit_host_spot`] and `docs/CITIES.md` §6.5.1.
             // A member that finds nothing stays inside: the recursion's own
             // refusal is per unit, and the captain is out either way.
+            // **And it is turned to its captain's angle** (`006191a5`'s
+            // not-a-captain arm, `set_angle(host->angle)`): run208's
+            // `0/8` and `0/9` come out on 903 with `0/7`'s heading and
+            // facing, not their own.
             if let Some(s) = self.come_out_unit_host_spot(f, captain) {
-                self.come_out_place(f, s);
+                self.come_out_place(f, s, Some(host_angle));
             }
         }
         // The city alarm clears when the city empties.
@@ -536,14 +541,38 @@ impl Sim {
 
     /// The rest of `Unit::come_out` for one unit: out of the building, onto
     /// the spot, into both collision indices and the vision map.
-    fn come_out_place(&mut self, f: usize, spot: crate::Pos) {
+    ///
+    /// `set_new_location` moves the unit and nothing else: **the unit
+    /// keeps the angles it went in with** (run208's chariot comes out on
+    /// 902 with the heading and facing of its last step on 698). A member
+    /// is given its captain's (`angle`).
+    fn come_out_place(
+        &mut self,
+        f: usize,
+        spot: crate::Pos,
+        angle: Option<crate::movement::Angle>,
+    ) {
         let u = &mut self.units[f];
         u.inside = None;
         u.on_map = true;
         u.pos = spot;
+        let (heading, facing, frame_facing, des_angle) = match angle {
+            Some(a) => (a, a, a, u.movement.des_angle),
+            None => (
+                u.movement.heading,
+                u.movement.facing,
+                u.movement.frame_facing,
+                u.movement.des_angle,
+            ),
+        };
         u.movement = crate::Movement {
             speed: u.movement.speed,
             turning: u.movement.turning,
+            heading,
+            facing,
+            frame_facing,
+            des_angle,
+            mirror: u.movement.mirror,
             ..crate::Movement::at(spot)
         };
         // `Object::add_to_world` reaches `update_seen(0)` — the whole

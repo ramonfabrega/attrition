@@ -106,6 +106,8 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// A `GARRISONORDER`'s own `search` (item 718, `docs/ORDERS.md` §29).
+    Garrison { ours: i64, theirs: i64 },
     /// One field of a `CASTORDER`'s own row — `spell` and `paid`
     /// (item 590). Two casts of different spells are one `OrderIndex`,
     /// so [`Self::Kind`] cannot tell an unpack from a heal.
@@ -230,6 +232,7 @@ impl OrderMismatch {
             Self::Coll { .. } => "order:coll".into(),
             Self::Move { field, .. } => format!("order:move.{field}"),
             Self::Guard { field, .. } => format!("order:guard.{field}"),
+            Self::Garrison { .. } => "order:garrison.search".into(),
             Self::Cast { field, .. } => format!("order:cast.{field}"),
             Self::Ground { field, .. } => format!("order:ground.{field}"),
             Self::Patrol { field, .. } => format!("order:patrol.{field}"),
@@ -254,6 +257,7 @@ impl OrderMismatch {
             Self::Coll { .. } => "coll",
             Self::Move { .. } => "move",
             Self::Guard { .. } => "guard",
+            Self::Garrison { .. } => "garrison",
             Self::Cast { .. } => "cast",
             Self::Ground { .. } => "ground",
             Self::Patrol { .. } => "patrol",
@@ -644,6 +648,28 @@ pub(crate) fn compare_orders(
                     },
                 );
             }
+        }
+    }
+
+    // **The garrison order's own row** (item 718): `search`, which the
+    // player's command writes 0 and `do_garrison`'s redirect 1.
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::Garrison { search, .. } = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        let mine = i64::from(search);
+        if let Some(theirs) = theirs.garrison_search
+            && theirs != mine
+        {
+            at(slot, OrderMismatch::Garrison { ours: mine, theirs });
         }
     }
 

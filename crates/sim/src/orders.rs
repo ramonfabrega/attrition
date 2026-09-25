@@ -1941,6 +1941,16 @@ impl Sim {
             Body::Guard(_) if self.units[u].phase(frame).rem_euclid(64) == 0 => {
                 self.repath(u);
             }
+            // **The `GARRISON` arm** (`check_target_path@005e22d0`, action
+            // type `0x1a`): a building target that is on the map and
+            // `Object::adjacent_to` the unit (vslot `+0x170`) ends the walk
+            // — `repath` pops the leg — and the head re-read runs
+            // `do_garrison` on the same frame, which takes the squad in
+            // (`docs/ORDERS.md` §29). run208's chariot goes in on 699
+            // without its last step, ~140 short of its leg's point.
+            Body::Garrison { building, .. } if self.adjacent_to(u, building) => {
+                self.repath(u);
+            }
             _ => {}
         }
     }
@@ -5825,15 +5835,26 @@ impl Sim {
         }
     }
 
-    /// `Unit::kill_garrison_order`: every GARRISON action down the squad is
-    /// killed; here the unit's own.
+    /// `Unit::kill_garrison_order(captain, 0)@005e2bd0`: from the squad's
+    /// captain down its `o_down` chain, each unit whose action is a
+    /// GARRISON is `repath`ed — its leading moves go — and has its head
+    /// killed, once. The walk stops at the first link that is not active.
+    /// run208's squad goes in on 761 through `0/7`, and `0/8` and `0/9`
+    /// go in with their walks and their GARRISONs gone too.
     fn kill_garrison_order(&mut self, u: usize) {
-        while let Some(a) = self.action_of(u) {
-            if !matches!(self.units[u].orders[a].body, Body::Garrison { .. }) {
-                break;
+        let mut v = self.captain_of(u);
+        for _ in 0..self.units.len() {
+            if self
+                .action_of(v)
+                .is_some_and(|a| matches!(self.units[v].orders[a].body, Body::Garrison { .. }))
+            {
+                self.repath(v);
+                self.kill_current_order(v);
             }
-            self.repath(u);
-            self.kill_current_order(u);
+            match self.units[v].o_down {
+                Some(next) if self.units[next].alive() => v = next,
+                _ => return,
+            }
         }
     }
 
