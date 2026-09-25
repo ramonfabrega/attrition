@@ -7398,3 +7398,26 @@ Waited on with `waitrun.sh`, exit 0.
   here and 12 against 12 there.
 - With the census fixed the word moves **16683 → 16982**, past run227's
   last block.
+
+## run233 — East Indies' word 17189, past run227's last block (2026-09-25, item 767)
+
+**What it is.** run227's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[16929, 17441)`, at `cover=0`: a draw-stream trace first. `!quit` at
+17451, through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 767
+```
+
+**Why it was owed.** Item 767 moved East Indies' word 16982 → 17189 (the
+British price of Taxation, `docs/AI.md` §74). run227 ends on block 16934,
+so the word's block 17190 is on no disk. On 17189 ours spends 2 draws
+against 1, parting at index 0: ours spends a blocked stand,
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, and the original spends its
+own on 17190. **The disk answered whose stand it is here, not there**: a
+scratch print named ours' `1/55`, blocked by `1/60`, and run227 parts on
+neither to its last block. **Sized with 250 blocks of runway**
+(DECISIONS 50 §7): six blocks shared with run227, the 255 up to the word,
+its block, and 250 above it, 512 blocks. The readings and their kills are
+in the stanza.
