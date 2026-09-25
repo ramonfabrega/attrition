@@ -6619,12 +6619,27 @@ run210's own blocks:
   Line slot on 742 was offset by (216, 24). `GroupMove::orig` carries it.
   The word moved 764 → 1150, closed.
 
-**What the equal-group fix did elsewhere.** Parked 275's row is gone from
-ten golden widenings and the two AI-on controls: the scout `1/0`'s
-formation mirror `facing`, 1 against the dump's 0, on 847 (on 767 and 991
-in chapters four and six-b). It lost rows and gained none. The scout's
-repeated pushes now lay out from the last layout's record, as the
-original's do.
+**What the equal-group fix did elsewhere**, all in the non-scoring
+formation mirror, parked 275's family. Both long words hold.
+
+- **Gone**:
+  - the scout `1/0`'s `facing` on 847 in ten golden widenings (767 and
+    991 in chapters four and six-b) and in the two AI-on controls;
+  - on the long captures, East Indies' `1/0` (run88's 101 rows) and the
+    row in every Great Lakes widening from run136 to run211, run78's
+    15800 and run94's 8002 among them. run94's `1/0` now parts nowhere in
+    its window.
+- **Moved earlier on Great Lakes, not closed**:
+  - `1/0`'s mirror now parts on 6864 (run83), where run79's clean window
+    carries 29 rows on 6910..6938, until its 6939 push takes a fresh
+    slot;
+  - run99's first rows move 8481 → 7969 for `1/0` and 9945 → 9815 for
+    `1/29`, and `1/22` gains one on 7993.
+
+Every scout push on who=1 before 6939 is the same forced one-member list
+into slot 1, so the reuse is the original's rule. What the kept record
+carries wrong is the rest of 275: `Unit::set_angle`'s toggle or the dying
+order's hand-back, which a fresh record used to mask.
 
 **Diff-backed** (run210, `chapter_fourteen_s_word_frame_is_widened_whole`,
 605–1150, every record both directions):
