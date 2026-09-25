@@ -7035,6 +7035,65 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
 }
 
+/// **run223's air orders, read whole** (item 746, `docs/ORDERS.md` §11.1
+/// and §32) — the first `STRAFEORDER` and the first player's
+/// `AIRPATROLORDER` on disk, each with its `AIRORDER` base, pinned as the
+/// parser reads them. On 642 the Fighter's flight home: target −1,
+/// `mandatory 1`, home `0/2007`, `cruising_alt` 1600, `sharp_turn` and
+/// `old` 0, `returning 1`, `xx/yy −1`. On 666 a bomber's strike turned
+/// patrol: the Barracks' point in both arrays, the same home, `returning
+/// 0`. A second reader beside `compare_orders`, so a parser change that
+/// drops a field fails here as well as there.
+#[test]
+fn run223_s_air_orders_are_read_whole() {
+    let Some((dump, _)) = golden("ch17") else {
+        eprintln!("skipping: no golden capture ch17 (see docs/RUNS.md)");
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut at = |n: i64| {
+        let i = ix
+            .frames()
+            .iter()
+            .position(|x| x.number == n)
+            .expect("run223 holds the block");
+        ix.frame_state(i).unwrap()
+    };
+    let mut head = |n: i64, o: i64| {
+        let f = at(n);
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == o)
+            .expect("the aircraft is on the block")
+            .clone();
+        u.orders_front_first().next().expect("an order").clone()
+    };
+    let strafe = head(642, 6);
+    assert_eq!((strafe.index, strafe.kind.as_str()), (16, "STRAFEORDER"));
+    assert_eq!(
+        (strafe.ox, strafe.whom, strafe.flags),
+        (Some(-1), Some(-1), 4)
+    );
+    assert_eq!(strafe.mandatory, Some(1));
+    assert_eq!((strafe.air_oxx, strafe.air_whose), (Some(2007), Some(0)));
+    assert_eq!(
+        (strafe.cruising_alt, strafe.sharp_turn, strafe.air_old),
+        (Some(1600), Some(0), Some(0))
+    );
+    assert_eq!(strafe.returning, Some(1));
+    assert_eq!((strafe.strafe_xx, strafe.strafe_yy), (Some(-1), Some(-1)));
+    let patrol = head(666, 7);
+    assert_eq!((patrol.index, patrol.kind.as_str()), (17, "AIRPATROLORDER"));
+    assert_eq!(
+        (patrol.patrol_x.clone(), patrol.patrol_y.clone()),
+        (vec![21120], vec![16512])
+    );
+    assert_eq!((patrol.air_oxx, patrol.air_whose), (Some(2007), Some(0)));
+    assert_eq!(patrol.returning, Some(0));
+    assert_eq!((patrol.strafe_xx, patrol.strafe_yy), (None, None));
+}
+
 /// **Chapter ten's word, widened whole, both directions** (item 693).
 /// Every record run184 carries on every block of
 /// [`WIDENING_CHAPTER_TEN`], by [`widen_civilians`]: every unit and
