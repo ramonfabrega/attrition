@@ -326,6 +326,8 @@ pub(crate) fn compare_orders(
         .zip(them.orders_front_first())
         .enumerate()
     {
+        compared::note("UnitDump", &["orders"]);
+        compared::note("OrderDump", &["kind", "index"]);
         // **The record against itself, first.** The block's name and the
         // `type` beside it are two independent statements of the kind; a
         // disagreement means the positional pairing has slid and every
@@ -377,6 +379,7 @@ pub(crate) fn compare_orders(
         // `UnitOrder::log_data` prints the byte **signed**: an order with
         // the fired bit (`0x80`, the ground order's) reads `flags -128`
         // (item 621).
+        compared::note("OrderDump", &["flags"]);
         if i64::from(ours.flags as i8) != theirs.flags {
             at(
                 slot,
@@ -412,6 +415,9 @@ pub(crate) fn compare_orders(
         // unit-frames of divergence that the comparison read as
         // agreement. `docs/COMBAT.md` §43.
         let attack = matches!(ours.body, sim::orders::Body::Attack(_));
+        if logged.is_some() {
+            compared::note("OrderDump", &["whom", "ox"]);
+        }
         if logged.is_some() && mine != logged && (mine.is_some() || attack) {
             at(
                 slot,
@@ -429,6 +435,7 @@ pub(crate) fn compare_orders(
             && let sim::orders::Body::Move(m) = ours.body
         {
             let mine = m.coll.map(|p| (p.x, p.y));
+            compared::note("OrderDump", &["coll_x", "coll_y"]);
             if mine.map(|(x, y)| (i64::from(x), i64::from(y))) != Some(theirs) {
                 at(slot, OrderMismatch::Coll { ours: mine, theirs });
             }
@@ -478,6 +485,9 @@ pub(crate) fn compare_orders(
                 ("off_x", i64::from(m.dest.x).rem_euclid(0x300), theirs.off_x),
                 ("off_y", i64::from(m.dest.y).rem_euclid(0x300), theirs.off_y),
             ] {
+                if logged.is_some() {
+                    compared::note("OrderDump", &[field]);
+                }
                 if let Some(theirs) = logged
                     && theirs != mine
                 {
@@ -519,6 +529,12 @@ pub(crate) fn compare_orders(
                 // leader `unit_ids` cannot name — the second is a quiet
                 // disagreement this row does not report, and the target row
                 // above compares dead or alive (item 502) for that reason.
+                if mine.is_some() && logged.is_some() {
+                    compared::note(
+                        "OrderDump",
+                        &[if field == "id" { "group_id" } else { field }],
+                    );
+                }
                 if let (Some(mine), Some(theirs)) = (mine, logged)
                     && mine != theirs
                 {
@@ -567,6 +583,17 @@ pub(crate) fn compare_orders(
                 // or a detail level that prints no `waypoint`; `mine` None
                 // is a leader `unit_ids` cannot name, the `GROUPORDER`
                 // row's own quiet case above.
+                if mine.is_some() && logged.is_some() {
+                    compared::note(
+                        "OrderDump",
+                        &[match field {
+                            "x_pos.length" | "x_pos[0]" | "x_pos[1]" => "patrol_x",
+                            "y_pos.length" | "y_pos[0]" | "y_pos[1]" => "patrol_y",
+                            "id" => "group_id",
+                            f => f,
+                        }],
+                    );
+                }
                 if let (Some(mine), Some(theirs)) = (mine, logged)
                     && mine != theirs
                 {
@@ -597,6 +624,9 @@ pub(crate) fn compare_orders(
                 ("been_there", i64::from(g.been_there), theirs.been_there),
                 ("dist_mod", i64::from(g.dist_mod), theirs.dist_mod),
             ] {
+                if logged.is_some() {
+                    compared::note("OrderDump", &[field]);
+                }
                 if let Some(theirs) = logged
                     && theirs != mine
                 {
@@ -636,6 +666,18 @@ pub(crate) fn compare_orders(
             ("idle", i64::from(g.idle), theirs.guard_idle),
             ("retry", i64::from(g.retry), theirs.guard_retry),
         ] {
+            if logged.is_some() {
+                compared::note(
+                    "OrderDump",
+                    &[match field {
+                        "dx" => "guard_dx",
+                        "dy" => "guard_dy",
+                        "idle" => "guard_idle",
+                        "retry" => "guard_retry",
+                        f => f,
+                    }],
+                );
+            }
             if let Some(theirs) = logged
                 && theirs != mine
             {
@@ -666,6 +708,9 @@ pub(crate) fn compare_orders(
             continue;
         }
         let mine = i64::from(search);
+        if theirs.garrison_search.is_some() {
+            compared::note("OrderDump", &["garrison_search"]);
+        }
         if let Some(theirs) = theirs.garrison_search
             && theirs != mine
         {
@@ -692,6 +737,16 @@ pub(crate) fn compare_orders(
             ("spell", i64::from(c.spell), theirs.cast_spell),
             ("paid", i64::from(c.paid), theirs.cast_paid),
         ] {
+            if logged.is_some() {
+                compared::note(
+                    "OrderDump",
+                    &[if field == "spell" {
+                        "cast_spell"
+                    } else {
+                        "cast_paid"
+                    }],
+                );
+            }
             if let Some(theirs) = logged
                 && theirs != mine
             {
@@ -731,6 +786,17 @@ pub(crate) fn compare_orders(
                 theirs.ag_attack_unit,
             ),
         ] {
+            if logged.is_some() {
+                compared::note(
+                    "OrderDump",
+                    &[match field {
+                        "att_x" => "ag_att_x",
+                        "att_y" => "ag_att_y",
+                        "accuracy" => "ag_accuracy",
+                        _ => "ag_attack_unit",
+                    }],
+                );
+            }
             if let Some(theirs) = logged
                 && theirs != mine
             {
@@ -756,6 +822,8 @@ pub(crate) fn compare_orders(
         );
     }
     for (slot, (ours, theirs)) in unit.path.iter().zip(them.path.iter()).enumerate() {
+        compared::note("UnitDump", &["path"]);
+        compared::note("PathDump", &["to", "tolerance", "flags"]);
         let mine = (ours.to.x, ours.to.y);
         if i64::from(mine.0) != theirs.to.0 || i64::from(mine.1) != theirs.to.1 {
             at(

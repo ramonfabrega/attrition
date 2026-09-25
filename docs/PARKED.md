@@ -796,7 +796,15 @@ that reads its cfg, `Block::fields_of` and fourteen `BUILDDATA` keys
 pinned after the pin failed first, two clauses in GOLDEN §3, and 313
 closed on three tranches without a forgotten reap; 527 stays with a
 commitment and 677 is filed (`docs/audit/2026-09-23-fable-pass-13.md`,
-DECISIONS 49).
+DECISIONS 49). The fourteenth, 2026-09-25, **built 527** — the compared
+recorder and its pin, made to fail first both ways, 137 registrations on
+the word's window, and its first run caught a comparator comment claiming
+a comparison the code does not make (728) — and ruled 687, 692 and 726
+(a measurement, a counter, a clause), the golden-lane waiter from the
+table (656's sequel, made to fail first 2/2/2 → 0/1/2), the killer clause
+(711), the chain's remote branch (727), and a journal's Loop line filed
+at its merge; 677, 685 and 697 stay, each with its next step named
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -822,22 +830,6 @@ The same section, split on 2026-09-22 when it passed the 16 KB ceiling
 the guard sets. Everything in the heading above applies: these are the
 steering pass's, never a worker's, and a commander never spawns one.
 
-(527) **Coverage and the ledger count a stand-up read as coverage.**
-Filed by item 523: `o_up` was read only at stand-up and parted silently on
-744, while the coverage pin called it compared. A per-frame "compared"
-check would have caught it. The same family as the five instrument
-defects of the last tranche: scope reported, not measured.
-**The thirteenth pass counted four more** — 617 (units linked on
-`(who, o)`, their numbers never compared), 642 (a widening that keeps
-each key's first parting is silent on the word's block), 644 (a
-building the dump holds and the crate does not, counted and not noted),
-661 (`trade_val` compared against a literal 0) — none caught by a pin,
-each found by a worker at the price of a floor. Deferred three passes
-running; **the fourteenth pass builds it first, or writes in DECISIONS
-why not.** The shape to build: every comparison site registers the
-`(path, key)` it compared with both sides present, per frame, and a pin
-on the headline windows reports what was read and never compared.
-
 (677) **Birds are owner 9, no dump prints them, and five landings this
 tranche touched their rolls.** 648, 652, 657, 661 and 669 each met a
 `9/6` draw (`think_bird`, `set_anim+0x104b`) that no record on either
@@ -846,49 +838,57 @@ parked 675 names the same blindness on Great Lakes' word. The fix is
 the AI dump's shape (367, run114, DECISIONS 41 §6): a tracer proxy on
 `Unit::think_bird` — position, heading, anim per call — so the bird is
 a value row and not a draw count. Filed by the thirteenth pass from the
-journals; not built.
+journals; not built. **The fourteenth pass priced it and did not build
+it**: the tracer's proxies log a site's *arguments*, so a `think_bird`
+proxy logs `this` and the frame for free and the position only with a
+new proxy kind that reads memory (`tools/trace/tracer.c`, C, validated
+by a capture); 715's new word still spends its third draw on
+`Animal::think_bird+0x82`. Stays; the AI lane's next capture stanza may
+carry the cheap half.
 
 (685) **`tools/recomp/step4.py` cannot run `do_frame` on a packet from
 597's plan**: a stack read falls outside the mapped ranges. A per-function
 call on the packet was enough for 680; a question that spans a whole
-frame would not be (`docs/journal/2026-09-24-item-680.md`).
-
-(687) **A long capture's wall clock is its window, and nobody has priced
-the levels.** run178 (item 678) is 2,006 blocks, 12894..14899, at ~13 a
-minute and 2.1 MB a block (sized from run174: 510 blocks in 40 minutes,
-a 90-second run-up), so ~155 minutes and 4.2 GB, holding the single
-capture lane while a second lane waits. 1,483 blocks are the word's
-move, 516 are runway. Two questions for the pass, raised by the user
-2026-09-24: **does a lower level** (`LEADERS=9`, `GUYS=4`, `BUILDS=7`)
-cut the per-block cost without losing a field a widening reads —
-measured, not guessed, on one window at two levels — and **can the lab
-make captures cheaper** (a packet or `step4` over a sampled frame in
-place of a dumped block, a draw-stream-first split, a runway sized to
-the queue's history of word jumps). Neither is ruled; the rule that a
-moved word lands with its value diff stands until it is.
-
-(692) **The census's order row cannot see an issuer chapter whose orders
-the AI already issues.** Chapter nine (676) drove `issue_move_to` and the
-row stayed 44 of 410: `MoveOrder` and `GroupMoveOrder` were already
-entered by the long captures. DECISIONS 49 expected the row to move. It
-will on the issuers the AI never uses (patrol, guard, follow, garrison),
-which is why 693 is patrol; whether the counter should also credit an
-issuer chapter is the pass's.
+frame would not be (`docs/journal/2026-09-24-item-680.md`). **The
+fourteenth pass named the fix and did not build it**: the plan copies
+the process's private data and not the game thread's stack, and
+`do_frame` reads its caller's frame on its nineteenth instruction; the
+packet's tracer build adds the thread's stack (the TEB `find_teb`
+already locates carries `StackBase`/`StackLimit` at +4/+8) to the
+ranges, and the next packet's stanza says so. Stays.
 
 (697) **`cover=1` hangs the click-free golden lane before frame 0.**
 run185, chapter ten's coverage re-run (item 693), hung with the
 `callwin` proxies and the autostart build, and the runner's timeout held
 the single lane until 14:17, about an hour. run184 at `cover=0` ran on
 the same lane. Until a coverage capture runs there, no issuer chapter
-can move the census's *entered* column, only the cited one (692).
+can move the census's *entered* column, only the cited one (692). **The
+fourteenth pass named the probe and did not run it**: `docs/ORACLE.md`'s
+three six-second probes — `window=0-3` + `cover=1` under
+`WINEDEBUG=+seh`, no lobby — on the autostart build alone, then with the
+`callwin` proxies, which is what run185 added over the `cover=1` runs
+that work on the queue lane. Stays; the cited column moves without it.
 
-(726) **Two lanes met in one code module three times this tranche**, and
-the commander coordinated each by message: 696 and 698 in `sim::collide`,
-711 and 713 on `do_guard`'s draw site, and 718 nearly dropping a correct
-fix to stay inside a fence set for a lane that had already landed. The
-brief reserves document sections and constants, never a code module, and
-a fence has no expiry. Whether the brief should name the modules a lane
-may touch, and when a fence lifts, is the pass's.
+(727) **Thirty-seven merged `origin/worktree-att-*` branches stood on
+2026-09-25** — every one 0 unmerged. A worker pushes its branch, `ccc rm`
+deletes the worktree and the local branch, and nothing in the chain
+deleted the remote one; the user saw `att-673` from a phone. The chain
+clause is in `CLAUDE.md`; **the sweep is the user's** — the pass's
+classifier refused `git push --delete` as destructive — one command:
+`git branch -r | grep worktree-att- | sed 's|origin/||' | xargs git push
+origin --delete`, from any checkout, after `git fetch --prune`. Closes
+when the listing is empty.
+
+## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
+
+(728) **A building's `orig_type`, `damage` and `damage_frac` are compared
+by no shared instrument.** The compared pin's first catch, the day it was
+built: `harness::compare`'s own comment on the building loop says
+`orig_type` "was parsed and neither compared" and is compared now, and
+the code compares the position only; the hit-point pair is compared for
+units (item 484) and not for buildings. Every capture at any detail
+level prints all three. A widening, cheap, and it may move fourteen
+pinned widenings; returns when a score names a building's type or hits.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 

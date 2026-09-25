@@ -20641,3 +20641,31 @@ cfg, `fields_of` and fourteen `BUILDDATA` keys the pin then caught, two
 clauses in GOLDEN §3, and 313 closed on three tranches of reaps; 527 stays
 with a commitment, 677 filed. **DECISIONS 49.**
 `docs/audit/2026-09-23-fable-pass-13.md`.
+
+## 2026-09-25 — the fourteenth Fable pass: twenty landings, the issuer axis paid, and the recorder three passes owed (Fable 5.1, steering)
+
+Called by the opener at the chain's stop, and by the user, who had seen
+`att-673` still standing from a phone: **twenty** landings since the
+thirteenth pass by `git log`, one commander and every worker on Opus 5.5
+by transcript, 23:05 on 09-23 to 20:55 on 09-24. Nineteen moved a word,
+all twenty with the value diff beside it. **Great Lakes 12,536 →
+15,384**, **East Indies 13,640 → 15,985**, both past run78; six-b closed
+and the five issuer chapters — move, patrol, guard, follow, garrison —
+each under the emulator first and each closed at its trace's end; the
+census's order row moved for the first time since it was built, 44 →
+50. Workers 679 USD, 33.9 a landing, the issuer chapters' price, with
+the AI lane at 0.055 a frame. Fifteen of twenty turned on an instrument
+that was not looking, and six of those on a specification line that
+called the cause dormant. What the pass could see and no landing could:
+the recorder owed since the eleventh pass — **built**, `diff::compared`
+and its exact pin on the word's own window, made to fail first both
+ways, and its first run caught a comparator comment claiming a
+comparison the code does not make; the golden lane's waiter, which four
+journals had found broken and nobody filed — fixed, 2/2/2 → 0/1/2, and
+the filing rule extended to a journal's Loop line; and thirty-seven
+merged remote branches the chain never deleted — a clause, and the sweep
+left as the user's one command, since the classifier refused it. 687
+closed on a measurement (`LEADERDATA` is 67% of a block; runway 250),
+692 on the counter that moved, 726 and 711 as clauses; 677, 685 and 697
+stay priced. **DECISIONS 50.** Four Loop items remain (677, 685, 697,
+727). `docs/audit/2026-09-25-fable-pass-14.md`.

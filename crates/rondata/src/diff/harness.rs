@@ -54,6 +54,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         let ours = built.sim.units[link.unit].pos;
         let theirs = pos_of(u.pos);
         r.compared += 1;
+        compared::note("UnitDump", &["who", "o", "pos"]);
         // `ObjectData::mylos`, which the object record writes at every
         // detail level — `docs/VISION.md` §2. A garrisoned unit is skipped:
         // `update_los` is not run for one, so the field is whatever it held
@@ -62,6 +63,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             && built.sim.units[link.unit].on_map
         {
             r.los_compared += 1;
+            compared::note("UnitDump", &["mylos"]);
             let ours_los = built.sim.unit_los(link.unit);
             if i64::from(ours_los) != theirs_los {
                 r.los_diverged.push(LosDivergence {
@@ -80,6 +82,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         // `think_fish`'s cadence gate and `unit_los`'s clamp both read it.
         if let Some(masks) = u.unit_masks {
             r.packed_compared += 1;
+            compared::note("UnitDump", &["unit_masks"]);
             let ours_packed = built.sim.units[link.unit].combat.packed;
             if ours_packed != (masks & 0x8_0000 != 0) {
                 r.packed_diverged.push(PackedDivergence {
@@ -105,6 +108,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             && built.sim.units[link.unit].on_map
         {
             r.visible_compared += 1;
+            compared::note("UnitDump", &["visible"]);
             let ours_vis = built.sim.units[link.unit].visible;
             if i64::from(ours_vis) != theirs_vis {
                 r.visible_diverged.push(VisibleDivergence {
@@ -143,6 +147,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 .or(x.inside_unit.map(|b| i64::from(built.sim.units[b].index)))
                 .unwrap_or(-1);
             r.inside_compared += 1;
+            compared::note("UnitDump", &["inside_up"]);
             if up >= 0 {
                 r.inside_housed += 1;
             }
@@ -203,6 +208,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ] {
                 let Some(theirs) = logged else { continue };
                 r.hits_compared += 1;
+                compared::note("UnitDump", &[field]);
                 if theirs != mine {
                     r.hits_diverged.push(HitsDivergence {
                         frame: frame.n,
@@ -306,6 +312,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             for (field, mine, logged) in rows.into_iter().chain(chain) {
                 let Some(theirs) = logged else { continue };
                 r.firing_compared += 1;
+                compared::note("UnitDump", &[field]);
                 if theirs != mine {
                     r.firing_diverged.push(FiringDivergence {
                         frame: frame.n,
@@ -357,6 +364,15 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ] {
                 let Some(theirs) = logged else { continue };
                 compared += 1;
+                // `half_step` is a bit of `unit_masks`, the record's field.
+                compared::note(
+                    "UnitDump",
+                    &[if field == "half_step" {
+                        "unit_masks"
+                    } else {
+                        field
+                    }],
+                );
                 if theirs != mine {
                     parts.push(CollideDivergence {
                         frame: frame.n,
@@ -376,6 +392,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 && un.collide_frame > 0
             {
                 compared += 1;
+                compared::note("UnitDump", &["collide_frame"]);
                 if theirs != un.collide_frame {
                     parts.push(CollideDivergence {
                         frame: frame.n,
@@ -412,6 +429,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             if agree {
                 r.search_compared += 1;
             }
+            compared::note("UnitDump", &["start_dist"]);
             if ours_dist != theirs_dist {
                 let d = SearchDivergence {
                     frame: frame.n,
@@ -454,9 +472,11 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             };
             if let Some(theirs) = u.angle {
                 angle(Which::Heading, m.heading.0, theirs);
+                compared::note("UnitDump", &["angle"]);
             }
             if let Some(theirs) = u.guys.first().and_then(|g| g.angle) {
                 angle(Which::Facing, m.facing.0, theirs);
+                compared::note("Guy", &["angle"]);
             }
             if agree {
                 r.angle_compared += compared;
@@ -525,6 +545,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             if !(0..players as i64).contains(&who) {
                 continue;
             }
+            compared::note("DeathDump", &["who", "o"]);
             let Some(mine) = ours
                 .iter()
                 .find(|m| i64::from(m.who) == who && i64::from(m.o) == o)
@@ -547,6 +568,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ] {
                 let Some(theirs) = logged else { continue };
                 r.death_compared += 1;
+                compared::note("DeathDump", &[field]);
                 if theirs != m {
                     r.death_diverged.push(DeathDivergence {
                         frame: frame.n,
@@ -611,6 +633,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             continue;
         };
         let ours = &built.sim.buildings[handle];
+        compared::note("BuildDump", &["who", "o"]);
         // **Where it stands, and what it was made as.** The dump writes
         // `x_internal`/`y_internal` at every detail level and `orig_type`
         // from `BUILDS=6`; both were parsed and neither compared, so an AI
@@ -645,6 +668,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         for &(field, mine, theirs) in clock {
             let Some(theirs) = theirs else { continue };
             r.build_compared += 1;
+            compared::note("BuildDump", &[field]);
             if mine != theirs {
                 r.build_diverged.push(BuildDivergence {
                     frame: frame.n,
@@ -661,6 +685,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             ("y_internal", i64::from(ours.pos.y), b.pos.y),
         ] {
             r.build_compared += 1;
+            compared::note("BuildDump", &["pos"]);
             if mine != theirs {
                 r.build_diverged.push(BuildDivergence {
                     frame: frame.n,
@@ -684,6 +709,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             let theirs = i64::from(mask & 0x100 != 0);
             let mine = i64::from(ours.regen_roads);
             r.build_compared += 1;
+            compared::note("BuildDump", &["build_masks"]);
             if mine != theirs {
                 r.build_diverged.push(BuildDivergence {
                     frame: frame.n,
@@ -725,6 +751,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             });
             for (field, mine, theirs) in [("city", slot, city), ("city_down", next, down)] {
                 r.build_compared += 1;
+                compared::note("BuildDump", &[field]);
                 if mine != theirs {
                     r.build_diverged.push(BuildDivergence {
                         frame: frame.n,
@@ -760,6 +787,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             };
             let mine = ours.queue.items.len() as i64;
             off("queued".into(), mine, q);
+            compared::note("BuildDump", &["queued"]);
             // Only where the depths agree: a queue one entry short would
             // otherwise report every slot after the gap and turn one fact
             // into a page of them — the same rule the mining list keeps.
@@ -768,6 +796,8 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     let item = &ours.queue.items[k];
                     let id = item.tech.unwrap_or_else(|| built.unit_tree[item.ty]);
                     let ty = built.type_index.get(id).copied().unwrap_or(-1);
+                    compared::note("BuildDump", &["queue"]);
+                    compared::note("QueueItemDump", &["ty", "job_counter", "cost", "good"]);
                     off(format!("queue[{k}].type"), i64::from(ty), theirs.ty);
                     off(
                         format!("queue[{k}].job_counter"),
@@ -811,11 +841,13 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 .gatherers
                 .first()
                 .map_or(-1, |&u| i64::from(built.sim.units[u].index));
+            compared::note("BuildDump", &["gather_down"]);
             wrong("gather_down", -1, head, theirs);
         }
         // The mining list. `mining_len` is `None` below `BUILDS=7`, which
         // is what keeps a thin capture from reading as "every list empty".
         let Some(len) = b.mining_len else { continue };
+        compared::note("BuildDump", &["mining_len"]);
         wrong("length", -1, ours.gather_from.len() as i64, len);
         if ours.gather_from.len() as i64 != len {
             continue;
@@ -823,6 +855,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         for (k, theirs) in b.gather_from.iter().enumerate() {
             let mine = ours.gather_from[k];
             let k = k as i64;
+            compared::note("BuildDump", &["gather_from"]);
             wrong("tx", k, i64::from(mine.x), theirs.0);
             wrong("ty", k, i64::from(mine.y), theirs.1);
         }
@@ -854,6 +887,43 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         };
         let ours = &built.sim.cities[ci];
         let w = c.who as usize;
+        compared::note(
+            "CityDump",
+            &[
+                "who",
+                "o",
+                "x",
+                "y",
+                "pop",
+                "race",
+                "city",
+                "attack_stamp",
+                "capture_stamp",
+                "assimilation_timer",
+                "capture_strength",
+                "reg",
+                "was_capital_flags",
+                "in_port",
+                "peasant_dist",
+                "free",
+                "busy",
+                "gatherers",
+                "ocean",
+                "land",
+                "filled",
+                "bordering",
+                "ocean_filled",
+                "dock_tile",
+                "city_flags",
+                "space",
+                "ter",
+                "raid_stamp",
+                "reduce_stamp",
+                "scouted",
+                "trade_val",
+                "vans",
+            ],
+        );
         // The AI's half of the record. The original keeps these on
         // `CityData` itself, where one leader's sweep writes them for its
         // own cities; this crate keeps a copy per leader, so the owner's is
@@ -1683,6 +1753,9 @@ pub(crate) fn widen_block(
         for (name, ours, theirs) in rows {
             let Some(theirs) = theirs else { continue };
             compared += 1;
+            if let Some((record, field)) = widened_field(&name) {
+                compared::note(record, &[field]);
+            }
             if ours != theirs {
                 firsts
                     .entry((them.who, them.o, name))
@@ -1691,6 +1764,65 @@ pub(crate) fn widen_block(
         }
     }
     (r, compared)
+}
+
+/// The parser's `Record.field` behind one of [`widen_block`]'s row labels
+/// (parked 527). A label the table does not know registers nothing, and
+/// the coverage pin then says its field arrived uncompared — which is the
+/// right verdict for a row nobody has named the field of.
+#[cfg(test)]
+fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
+    let base = label.split('[').next().unwrap_or(label);
+    Some(match base {
+        "heading" => ("UnitDump", "angle"),
+        "hits_left" => ("UnitDump", "damage"),
+        "sheltered" => ("UnitDump", "unit_masks2"),
+        "orders.len" => ("UnitDump", "orders"),
+        "guys.len" => ("UnitDump", "guys"),
+        "half_step" | "packed" => ("UnitDump", "unit_masks"),
+        "dest_angle" => ("UnitDump", "dest_angle"),
+        "orders_x" => ("UnitDump", "orders_x"),
+        "orders_y" => ("UnitDump", "orders_y"),
+        "tolerance" => ("UnitDump", "tolerance"),
+        "path_recursion" => ("UnitDump", "path_recursion"),
+        "idle" => ("UnitDump", "idle"),
+        "stance" => ("UnitDump", "stance"),
+        "myhits" => ("UnitDump", "myhits"),
+        "damage_frac" => ("UnitDump", "damage_frac"),
+        "hold_frames" => ("UnitDump", "hold_frames"),
+        "damage_frame" => ("UnitDump", "damage_frame"),
+        "damage_o" => ("UnitDump", "damage_o"),
+        "damage_who" => ("UnitDump", "damage_who"),
+        "myspeed" => ("UnitDump", "myspeed"),
+        "attrition" => ("UnitDump", "attrition"),
+        "group" => ("UnitDump", "group"),
+        "form" => ("UnitDump", "form"),
+        "form_mod" => ("UnitDump", "form_mod"),
+        "collide" => ("UnitDump", "collide"),
+        "collide_o" => ("UnitDump", "collide_o"),
+        "collide_who" => ("UnitDump", "collide_who"),
+        "collide_guy" => ("UnitDump", "collide_guy"),
+        "safe" => ("UnitDump", "safe"),
+        "recharging" => ("UnitDump", "recharging"),
+        "start_dist" => ("UnitDump", "start_dist"),
+        "mylos" => ("UnitDump", "mylos"),
+        "g.x" | "g.y" => ("Guy", "pos"),
+        "g.angle" => ("Guy", "angle"),
+        "g.des_x" | "g.des_y" => ("Guy", "des"),
+        "g.des_angle" => ("Guy", "des_angle"),
+        "g.cur_anim" => ("Guy", "cur_anim"),
+        "g.cur_time" => ("Guy", "cur_time"),
+        "g.end_time" => ("Guy", "end_time"),
+        "g.last_time" => ("Guy", "last_time"),
+        "g.gpiece" => ("Guy", "gpiece"),
+        "g.stopped" => ("Guy", "stopped"),
+        "g.hold_attack" => ("Guy", "hold_attack"),
+        "g.queued_attack" => ("Guy", "queued_attack"),
+        "g.track_dx" | "g.track_dy" => ("Guy", "track"),
+        "g.last_speed" => ("Guy", "last_speed"),
+        "g.avg_speed" => ("Guy", "avg_speed"),
+        _ => return None,
+    })
 }
 
 /// `RON_DEBUG_BUILDS=<lo>-<hi>` — every building's construction clock and
@@ -2068,12 +2200,65 @@ pub fn run_indexed_observed(
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
     use crate::diff::testkit::*;
 
     use crate::testenv::{dump, install};
+
+    /// **The Great Lakes word's own window, walked by the shared
+    /// instrument** (parked 527): the chain every widening past run196
+    /// replays, from run53's start through eleven captures, and the
+    /// word's block with two on either side. `run202_s_word_frame_is_
+    /// widened_whole` walks the whole window from the same chain;
+    /// `coverage`'s compared pin walks only these blocks, with the
+    /// recorder on. **The chain is one place** so that the capture a
+    /// moved word adds is added once and the pin follows the word.
+    pub(crate) fn great_lakes_word_chain() -> Vec<(&'static str, i64)> {
+        vec![
+            (
+                "gamelog-run123-greatlakes-marketword.txt",
+                WIDENING_GREAT_LAKES_MIRROR.0,
+            ),
+            ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
+            ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
+            ("gamelog-run135-greatlakes-crossing.txt", 11_800),
+            ("gamelog-run136-greatlakes-detour.txt", 11_860),
+            ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
+            ("gamelog-run174-greatlakes-civicword.txt", 12_400),
+            (
+                "gamelog-run178-greatlakes-copyword.txt",
+                WIDENING_GREAT_LAKES_CIVIC.1 + 1,
+            ),
+            (
+                "gamelog-run192-greatlakes-birthword.txt",
+                WIDENING_GREAT_LAKES_COPY.1 + 1,
+            ),
+            (
+                "gamelog-run196-greatlakes-patriotword.txt",
+                WIDENING_GREAT_LAKES_BIRTH.1 + 1,
+            ),
+            (
+                "gamelog-run202-greatlakes-mirrorword.txt",
+                WIDENING_GREAT_LAKES_PATRIOT.1 + 1,
+            ),
+        ]
+    }
+
+    /// [`widen_great_lakes`] over the word's block and two on either side,
+    /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
+    /// is not on this machine.
+    pub(crate) fn great_lakes_word_window() -> Option<Widened> {
+        const WORD_BLOCK: i64 = GREAT_LAKES_RECRUIT_BLOCK;
+        widen_great_lakes(
+            "the word's window",
+            &great_lakes_word_chain(),
+            (WORD_BLOCK - 2, WORD_BLOCK + 2),
+            11_800,
+            &[WORD_BLOCK],
+        )
+    }
 
     #[test]
     fn indexed_replay_preserves_reports_with_sibling_corrections() {
@@ -10131,7 +10316,7 @@ mod tests {
     /// `RON_ROW_WALK=<who>/<o>,…` prints every row a unit parts on, at each
     /// block the set changes; `RON_STANDING=<lo>-<hi>` every row parting on
     /// each block of the window.
-    fn widen_great_lakes(
+    pub(crate) fn widen_great_lakes(
         name: &str,
         chain: &[(&str, i64)],
         window: (i64, i64),
@@ -10231,6 +10416,8 @@ mod tests {
                         continue;
                     }
                     pool_lists += 1;
+                    compared::note("GroupDump", &["id", "who", "members"]);
+                    compared::note("GroupMemberDump", &["o"]);
                     if ours != t {
                         here.entry((1, -2, format!("pool:{}", 64 + i64::from(s))))
                             .or_insert((n, format!("ours {ours:?} theirs {t:?}")));
@@ -11253,31 +11440,7 @@ mod tests {
             ..
         }) = widen_great_lakes(
             "run202",
-            &[
-                (
-                    "gamelog-run123-greatlakes-marketword.txt",
-                    WIDENING_GREAT_LAKES_MIRROR.0,
-                ),
-                ("gamelog-run125-greatlakes-armyidle.txt", 11_440),
-                ("gamelog-run130-greatlakes-armytwo.txt", 11_560),
-                ("gamelog-run135-greatlakes-crossing.txt", 11_800),
-                ("gamelog-run136-greatlakes-detour.txt", 11_860),
-                ("gamelog-run163-greatlakes-upgradeword.txt", 11_960),
-                ("gamelog-run174-greatlakes-civicword.txt", 12_400),
-                (
-                    "gamelog-run178-greatlakes-copyword.txt",
-                    WIDENING_GREAT_LAKES_CIVIC.1 + 1,
-                ),
-                (
-                    "gamelog-run192-greatlakes-birthword.txt",
-                    WIDENING_GREAT_LAKES_COPY.1 + 1,
-                ),
-                (
-                    "gamelog-run196-greatlakes-patriotword.txt",
-                    WIDENING_GREAT_LAKES_BIRTH.1 + 1,
-                ),
-                ("gamelog-run202-greatlakes-mirrorword.txt", RUN196_TAIL + 1),
-            ],
+            &great_lakes_word_chain(),
             WIDENING_GREAT_LAKES_MIRROR,
             11_800,
             &[OLD_BLOCK, WORD_BLOCK],
@@ -14628,20 +14791,20 @@ mod tests {
     }
 
     /// What [`widen_east_indies`] found.
-    struct Widened {
-        firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
-        missing: std::collections::BTreeSet<String>,
-        blocks: usize,
-        leader_rows: usize,
+    pub(crate) struct Widened {
+        pub(crate) firsts: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+        pub(crate) missing: std::collections::BTreeSet<String>,
+        pub(crate) blocks: usize,
+        pub(crate) leader_rows: usize,
         /// `(block, who, o, theirs changed, ours changed)`.
-        changed: Vec<(i64, i64, i64, bool, bool)>,
+        pub(crate) changed: Vec<(i64, i64, i64, bool, bool)>,
         /// Unit-blocks `compare`'s container row read on a housed unit
         /// (parked 598): what says the row saw a garrison at all.
-        housed: usize,
+        pub(crate) housed: usize,
         /// Every row parting on each block within two of a `near` block,
         /// keyed as `firsts` is: what a key that parted earlier says on
         /// the word's own frame, which `firsts` cannot (item 642).
-        standing:
+        pub(crate) standing:
             std::collections::BTreeMap<i64, std::collections::BTreeMap<(i64, i64, String), String>>,
     }
 

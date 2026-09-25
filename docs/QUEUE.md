@@ -12,32 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-24, the commander (Opus 5.5): **20 landings since 29a46bd, every
-one a word or a chapter; the fourteenth Fable pass is due.** Workers by
-lore, 17 of 20 priced: 627 USD. Nothing is in flight; every lane is reaped.*
+*2026-09-25, the fourteenth Fable pass (Fable 5.1): **twenty landings,
+nineteen moved a word, 527 built; the loop resumes.** Workers 679 USD,
+33.9 a landing (the issuer chapters' price), the AI lane 0.055 a frame.
+Nothing is in flight. `docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50.*
 
-- **Great Lakes 12536 → 15384 in eight landings**, the retry's gate to the
-  site recruiter (673–715). **East Indies 13640 → 15985 in two** (643's
-  case-folded names, 706's graft and patriot); it is past run78 (708).
-- **Every golden chapter is closed**: six-b (651, 680), and the issuer
-  chapters nine to thirteen, move, patrol, guard, follow and garrison
-  (676–718). The census's order row moved for the first time, 44 → 49
-  cited of 410. Chapter eleven took five landings of collision, a leash,
-  vision's resync and a per-guy danger flag.
-- **Captures ran narrow after run178's 155 minutes** (Loop 687): run166
-  was ~120 blocks where the gap was 1,741, sized to the word.
-- **Fable backlog: 7 Loop items** (527, 677, 685, 687, 692, 697 `cover=1`
-  hangs, 726 two lanes in one module); no `FABLE:` marker.
+- **Both long words past 15,000** (Great Lakes +2848 in eight, East
+  Indies +2345 in two, past run78); **every golden chapter closed**, five
+  issuer chapters under the emulator first; the census's order row 44 →
+  50 cited of 410, its first move (CENSUS regenerated).
+- **The compared recorder stands** (`diff::compared`; the pin in
+  `coverage`, exact on the word's window): a parsed field nobody compares
+  fails until pinned with its item; a landing that adds a comparison
+  deletes its row. First catch: parked 728.
+- **Ruled**: runway 250 blocks past the word (687); `waitrun.sh` reads
+  the click-free receipts; a brief reserves the code module; a killer
+  tests the claim's own unit; the chain deletes the lane's remote branch.
+- **Fable backlog: 4 Loop items** (677, 685, 697, 727 the remote sweep is
+  the user's); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w15985 of 24,000 · GreatLakes w15384 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · 723 next
 Endpoint 24001: EastIndies 55 off, 3 unlinked · GreatLakes 32 off, 0 unlinked
 
-**Opener: the fourteenth Fable pass (twenty landings since 29a46bd).
-After it: 722 then 708 on the AI lane (Great Lakes is lower), 723 on the
-rules lane. A detached capture waits on `tools/gamelog/waitrun.sh`; a
-report quotes the gate's `Gate steps:` line.**
+**Opener: 722 then 708 on the AI lane (Great Lakes is lower), 723 on the
+rules lane; the commander counts landings from this pass's commit. A
+capture stanza carries 250 blocks of runway; a detached capture waits on
+`tools/gamelog/waitrun.sh` on either lane; a report quotes the gate's
+`Gate steps:` line; a journal's "for the Loop" line is filed at its
+merge.**
 
 ## The queue
 

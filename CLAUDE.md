@@ -277,7 +277,9 @@ rules follow:
   whose widening is not on file. A value diff read a few frames past the
   word is not the widening, and one once stood in three documents for
   four items. **A widening's own framing is a hypothesis** too: a stanza
-  writes what would kill each reading before the run. **A payoff probe
+  writes what would kill each reading before the run, **and a killer
+  tests the claim's own unit, never the first row** — one was false and
+  its killer did not fire (item 711). **A payoff probe
   changes only the frames under test** — one wide enough to touch a
   frame that already agrees reports that frame's breakage as its result.
   **A probe of a decision the original makes mid-frame runs inside the
@@ -425,15 +427,21 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
 --no-ff`, the booking commit, the gate to a file, `ccc push <ref> --base`,
-`ccc rm <ref>` — never a raw `git merge`, never a hand-rolled reap, **no
+`ccc rm <ref>`, and `git push origin --delete <the lane's branch>` — a
+worker pushes its branch, `ccc rm` deletes only the worktree and the local
+branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
+(parked 727) — never a raw `git merge`, never a hand-rolled reap, **no
 spawn and no `ccc update` between the merge and its booking commit** (the
 tree is red in that window), and **nothing under `docs/` is edited while
 a gate runs**: the handoff is rewritten before the gate, not during it.
 **A reap that refuses is a lane with work on the floor**: a killed lane
 looks exactly like one that never started, so a handoff never says a lane
 produced nothing until `git status` in that lane has said so. **A brief
-reserves what two lanes could both take** — the run number, and the
-section number when another lane is in the same document. **A pinned
+reserves what two lanes could both take** — the run number, the
+section number when another lane is in the same document, **and the code
+module when two items sit in one** (`sim::collide` twice and `do_guard`'s
+site in one tranche, parked 726); **a fence lifts at the other lane's
+merge**, and the merge's turn tells the lane still running. **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
 those lines has done its half. The re-pin is split on purpose: **the
@@ -456,7 +464,9 @@ stops at twenty**, writing the handoff and saying the steering pass is
 due; **and a finding it would raise at that pass is filed in
 `docs/PARKED.md`'s Loop section in the turn it is noticed**, the
 handoff's `Fable backlog:` count moving with it — a finding narrated in
-chat has told nobody (parked 509); a
+chat has told nobody (parked 509), **and a journal's own "for the Loop"
+line is filed at its merge**: four journals of one tranche named the
+same broken waiter and the pass found it in the table (656's sequel); a
 free clear between is taken at a seam in the chain (`ccc clear <own ref>
 --then continue`), never in the middle of one. A second lane may run a
 parked value-diff row *beside* the word's frame, never instead of it — a
@@ -508,7 +518,8 @@ and makes the eventual diff mechanical rather than a translation exercise.
   alive for: a no-op turn held open to wait gains no information and costs
   a full context read each time. **A detached capture is waited on with
   `tools/gamelog/waitrun.sh <viadriver log>`** in that background lane —
-  it keys on the runner's own banner and exit, and a wait keyed on any
+  it keys on the runner's own banner and exit on the queue lane and on
+  the receipt lines on the click-free lane, and a wait keyed on any
   other file has sat for two hours on a finished capture (parked 656).
   **The ban is on any command whose purpose
   is to yield the turn**, never on a list of spellings — `true`, `:`,

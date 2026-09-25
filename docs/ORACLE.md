@@ -2033,7 +2033,10 @@ session waits with `tools/gamelog/waitrun.sh <the log viadriver printed>`**
 under its background lane: the runner's summary banner goes to its stdout,
 which is that log and never the `runqueue-<ts>.log` beside it, and item 571
 watched the wrong one for two hours after its capture had finished (parked
-656, the thirteenth pass). The launcher **spawns and waits**; an `exec`
+656, the thirteenth pass). On the click-free lane the runner prints no
+banner and one JSON receipt per map instead, and the same script reads
+those once the runner has exited (the fourteenth pass; four items had
+found it exiting 2 there). The launcher **spawns and waits**; an `exec`
 would replace its image with `/bin/zsh` and hand the attribution back to the
 interpreter, which is the whole bug it exists to escape.
 

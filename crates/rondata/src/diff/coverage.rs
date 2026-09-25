@@ -26,8 +26,13 @@
 //! is deleted — a pin that is allowed to lag is parked 449's "stale by
 //! success" one level over.
 //!
-//! What it does not check: that a *parsed* field is *compared*. That is
-//! `crate::ledger`'s side. And a record family with a parser of its own
+//! What this pin does not check is that a *parsed* field is *compared*.
+//! `crate::ledger` counts that statically, as a lower bound; **the
+//! compared pin at the end of this file measures it** — the shared
+//! instrument registers every `Record.field` it compares with both sides
+//! present (`crate::diff::compared`, parked 527) and the pin holds the
+//! parser's records against what arrived on the Great Lakes word's own
+//! window. And a record family with a parser of its own
 //! that never touches `Block` — `AMMO`, whose scanner is `diff::ammo`
 //! — is named in [`OWN_PARSER`] with the module that reads it, and its
 //! keys are that module's to keep.
@@ -918,4 +923,190 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+// ---------------------------------------------------------------------
+// **The compared pin** — parked 527, built in the fourteenth Fable pass
+// (2026-09-25). The recorder is `crate::diff::compared`; this is the pin
+// that holds the parser's own records against what the shared instrument
+// registered on the Great Lakes word's own window.
+
+/// A parsed record the per-frame instrument never touches, with who does:
+/// the start block's, the world's, and the parser's own containers. A
+/// registration arriving for one of these fails the pin: the row is stale.
+const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
+    ("Log", "the parser's index"),
+    ("Pos", "a component, compared through its record's `pos`"),
+    ("Frame", "the per-frame container"),
+    (
+        "FrameUnit",
+        "the checkpoint's own row, `harness::checkpoint`",
+    ),
+    ("Initial", "the start block, `diff::setup`"),
+    ("ConstantDump", "the start block's constants, `diff::setup`"),
+    ("Checksum", "the start block's checksums, `diff::setup`"),
+    ("CellDump", "the world, `diff::world`"),
+    ("RegionDump", "the world, `build_sim`"),
+    ("GoodDump", "the world, `build_sim`"),
+    ("HerdDump", "the world, `build_sim`"),
+    ("FarmDump", "the world, `diff::world`"),
+    ("MountainDump", "the world, `build_sim`"),
+    (
+        "MakeObjectDump",
+        "the leader's make list, `diff::setup` and `diff::leader`",
+    ),
+    // The leader record is compared on every AI widening — 12,660 rows on
+    // this window — by `diff::leader::rows` against `leader::theirs`,
+    // which reads the block's keys directly and never this struct.
+    (
+        "LeaderDump",
+        "the leader block, read by `diff::leader` off the block",
+    ),
+];
+
+/// `(record, fields)` — every field of a record the instrument reads on
+/// the window that it did **not** compare, on the day of the pin,
+/// space-separated and sorted. **Exact**: a field compared since must be
+/// deleted here, and a field that arrives uncompared must be compared or
+/// added here with the item that owes it.
+const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
+    // Pinned 2026-09-25, the fourteenth pass, on run202's blocks 15383..
+    // 15387: 137 registrations. **A site gated on the window's content
+    // registers only when it runs**, so a row here is one of two things
+    // and the comment says which: a field no site compares, or a site
+    // the window never reached (no death, no queued build, no patrol,
+    // guard, garrison, cast or ground order, no group move, no
+    // collision point on these six blocks). The second kind leaves this
+    // pin the day a window that reaches it is driven here.
+    //
+    // `UnitDump`: `uid` is the identity behind `o` (ledger); `flags`,
+    // `infiltrated` and the container pair `up`/`up_who`/`down`/
+    // `down_who` no site compares.
+    ("UnitDump", "down down_who flags infiltrated uid up up_who"),
+    // `Guy`: `ox`/`whom` are chapter one's word and compared by its own
+    // widening (item 530), `last_pos` by run86's (item 271); `kind`,
+    // `guy_num` and `guy_flags` no site compares.
+    ("Guy", "guy_flags guy_num kind last_pos ox whom"),
+    // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
+    // and `orig_x`/`orig_y` to run29's field-table test on purpose
+    // (`compare_orders`); `coll_x`/`coll_y` register on a collision
+    // point; the `GROUPORDER`, patrol, guard, garrison, cast and ground
+    // rows on their orders, none of which stand on this window; `uid`,
+    // `metric`, `build_type`, `non_flat_gather` and the attack order's
+    // `mandatory defensive in_range ever_in_range new_ord def_x def_y`
+    // no site compares.
+    (
+        "OrderDump",
+        "ag_accuracy ag_att_x ag_att_y ag_attack_unit attempts build_type cast_paid \
+         cast_spell coll_x coll_y def_x def_y defensive ever_in_range form_id \
+         garrison_search group_angle group_id in_group in_range mandatory metric \
+         new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry tolerance \
+         uid waypoint whose",
+    ),
+    // `BuildDump`: `queue` registers with a non-empty queue whose depths
+    // agree, and none stands on this window. **`orig_type`, `damage` and
+    // `damage_frac` no site compares** — the comparator's own comment
+    // says `orig_type` was "parsed and neither compared" and is compared
+    // now, and it is not: the position is. The pin's first catch, the
+    // day it was built; parked for a widening rather than fixed here.
+    // `flags`, `max_age`, `mtn`, `cliff`, `mining_size`,
+    // `construct_hits`, `ever_seen` and `ever_seen_completed` no site
+    // compares.
+    (
+        "BuildDump",
+        "cliff construct_hits damage damage_frac ever_seen ever_seen_completed flags \
+         max_age mining_size mtn orig_type queue",
+    ),
+    // Registered with `BuildDump.queue`, on a queued build.
+    ("QueueItemDump", "cost good job_counter ty"),
+    // `DEATH_OBJS`: the window holds no death; the rows register on one.
+    ("DeathDump", "cur_anim first_frame gpiece o valid who"),
+    // The pool lists compare `id`, `who` and the members' `o`; the rest of
+    // the group record is `diff::army`'s and the groups tests'.
+    (
+        "GroupDump",
+        "army buildings disband facing form form_num new_speed num o_angle o_dist \
+         order_num ox oy priority role speed stamp think_frame",
+    ),
+    ("GroupMemberDump", "angle curr_x curr_y off_x off_y"),
+];
+
+/// **Every field the parser carries is compared by the shared instrument
+/// on the Great Lakes word's own window, or pinned above.** The window is
+/// `harness::tests::great_lakes_word_window` — the word's block and two
+/// on either side, replayed through the chain every widening past run196
+/// replays — walked with the recorder on; a machine without the chain
+/// says so. What this checks that the `UNREAD` pin cannot: that a key
+/// which is *parsed* is also *compared*, per record, with both sides
+/// present — the gap five landings in two tranches turned on.
+#[test]
+fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
+    use super::compared;
+    compared::start();
+    let walked = super::harness::tests::great_lakes_word_window();
+    let seen = compared::stop();
+    let Some(w) = walked else {
+        eprintln!("skipping: the Great Lakes word's chain is not all on disk");
+        return;
+    };
+    assert!(w.blocks >= 4, "the word's window is {} blocks", w.blocks);
+    assert!(
+        !seen.is_empty(),
+        "the instrument registered nothing on {} blocks",
+        w.blocks
+    );
+    let recs = crate::ledger::records(include_str!("../gamelog.rs"));
+    let mut wrong: Vec<String> = Vec::new();
+    let mut known: BTreeSet<String> = BTreeSet::new();
+    for r in &recs {
+        for f in &r.fields {
+            known.insert(format!("{}.{}", r.name, f));
+        }
+        if let Some((_, who)) = NOT_THE_INSTRUMENT_S.iter().find(|(n, _)| *n == r.name) {
+            let stale: Vec<&String> = seen
+                .iter()
+                .filter(|s| s.split('.').next() == Some(r.name.as_str()))
+                .collect();
+            if !stale.is_empty() {
+                wrong.push(format!(
+                    "{}: pinned as not the instrument's ({who}), but it registered {stale:?}",
+                    r.name
+                ));
+            }
+            continue;
+        }
+        let pinned: BTreeSet<&str> = UNCOMPARED_BY_THE_INSTRUMENT
+            .iter()
+            .find(|(n, _)| *n == r.name)
+            .map(|(_, f)| f.split_whitespace().collect())
+            .unwrap_or_default();
+        let actual: BTreeSet<&str> = r
+            .fields
+            .iter()
+            .filter(|f| !seen.contains(&format!("{}.{}", r.name, f)))
+            .map(String::as_str)
+            .collect();
+        let arrived: Vec<&&str> = actual.difference(&pinned).collect();
+        let gone: Vec<&&str> = pinned.difference(&actual).collect();
+        if !arrived.is_empty() || !gone.is_empty() {
+            wrong.push(format!(
+                "{}: uncompared and not pinned {arrived:?}; compared now, delete from the pin {gone:?}",
+                r.name
+            ));
+        }
+    }
+    // A registration naming no parsed field is a site whose label drifted.
+    let unknown: Vec<&String> = seen.iter().filter(|s| !known.contains(*s)).collect();
+    if !unknown.is_empty() {
+        wrong.push(format!(
+            "registered, but no record has the field: {unknown:?}"
+        ));
+    }
+    assert!(
+        wrong.is_empty(),
+        "the compared pin, over {} blocks and {} registrations:\n  {}",
+        w.blocks,
+        seen.len(),
+        wrong.join("\n  ")
+    );
 }

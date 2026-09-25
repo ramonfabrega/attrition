@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-21
+## Index — what stands, as of 2026-09-25
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -55,12 +55,13 @@ is append-only and amended in place, as it always was.
 - 41 extended by 42 — Two tracks: the rules on a golden record, the AI on the long captures
 - 42 extended by 43 — The frame is the item; the loop's holes become guards
 - 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
-- 44 standing — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
-- 45 standing — The chain's last link is the spawn, and lanes are throughput, not a pair
+- 44 extended by 50 — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
+- 45 extended by 50 — The chain's last link is the spawn, and lanes are throughput, not a pair
 - 46 standing — A printed field is read or pinned, and struck text is not live text
 - 47 standing — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
 - 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
 - 49 standing — The rules track's next axis is the issuer, and the day's holes are guards
+- 50 standing — The instrument records what it compares, and the chain reaps the remote
 
 ## 1. Fidelity before divergence
 
@@ -2937,3 +2938,83 @@ was waited on with `waitrun.sh` and no lane sat empty; whether workers'
 reports quote the gate's steps line; whether any killed hypothesis was
 built; the price per landing against 21.8; whether the count reached the
 pass at twenty; and that 527 was built first.
+
+## 50. The instrument records what it compares, and the chain reaps the remote
+
+**Decided 2026-09-25**, the fourteenth Fable pass, in the main thread
+(`docs/audit/2026-09-25-fable-pass-14.md`). Applies entry 44 (the
+instrument that agrees because it is not looking) and entry 49 §11;
+extends entries 40, 42 and 45; overturns nothing.
+
+**What was measured.** Twenty landings since the thirteenth pass by
+`git log`, one commander and every worker on Opus 5.5 by transcript, a
+day's work from 23:05 on 09-23. Nineteen moved a word and all twenty
+landed with the value diff beside it: **Great Lakes 12,536 → 15,384**,
+**East Indies 13,640 → 15,985**, both past run78's end; six-b closed,
+and five issuer chapters — move, patrol, guard, follow, garrison — each
+run under the emulator before its pair, each closed at its trace's end,
+and the census's order row moved for the first time since it was built,
+44 → 50 cited of 410. Workers 679 USD, 33.9 a landing against 21.8 —
+the issuer chapters' price, a first capture, a built issuer and a walk
+each — with the AI lane at 0.055 a frame. Fifteen of twenty turned on an
+instrument that was not looking, three of them the shape parked 527
+names, and six on a specification line that called the cause dormant.
+Four journals found the detached-capture waiter exiting 2 on the golden
+lane and each wrote its own workaround; nobody filed it. Thirty-seven
+merged remote branches stood.
+
+**The decisions.**
+
+1. **The shared instrument records every field it compares, and a pin
+   holds the parser's records against it** (parked 527, owed since the
+   eleventh pass). `crate::diff::compared` notes each `Record.field` a
+   site of `compare`, `compare_orders` or `widen_block` compares with
+   both sides present; `coverage`'s compared pin walks the Great Lakes
+   word's own window with the recorder on and is exact both ways —
+   fifteen records named as not the instrument's with who reads each,
+   ninety fields of eight records pinned with the reason each stands.
+   Made to fail first both ways; 12 s on the gate. Its first run caught
+   a comment claiming a comparison the code does not make (parked 728).
+   What it cannot see is a comparison that exists and is wrong — three
+   of 527's five instances — and that half stays the workers'.
+2. **`tools/gamelog/waitrun.sh` reads the click-free lane's receipts**
+   (parked 656's sequel): once no runner is alive, a log holding the
+   runner's JSON receipts is judged by them, and the default runner
+   pattern covers both runners. Made to fail first on three fixture
+   logs, 2/2/2 → 0/1/2.
+3. **The chain's last link before the spawn deletes the lane's remote
+   branch** (parked 727): a worker pushes its branch and `ccc rm`
+   deletes only the worktree and the local one. The sweep of the
+   thirty-seven standing is the user's command; the session's classifier
+   refuses a remote deletion, and that refusal is not worked around.
+4. **A brief reserves the code module when two items sit in one, and a
+   fence lifts at the other lane's merge** (parked 726): three
+   collisions in one tranche, each coordinated by message.
+5. **A killer tests the claim's own unit, never the first row** (item
+   711): one reading was false and its killer did not fire.
+6. **A journal's own "for the Loop" line is filed at its merge**: the
+   filing rule reached the commander's own findings and not a worker's.
+7. **687 closes on a measurement**: `LEADERDATA` is 67% of a block at
+   `LEADERS=9` and is what every AI widening reads, so the level stays;
+   a capture's runway is 250 blocks past the word, from the tranche's
+   ten word jumps (median ~205), and a jump past it takes a second
+   capture at ~20 minutes rather than a first at 155.
+8. **692 closes**: the cited column is the counter and it moved; the
+   entered column waits on a coverage capture on the golden lane (697).
+9. **677, 685 and 697 stay**, each priced with its next step in
+   `docs/PARKED.md`: a proxy kind that reads memory, a packet that
+   copies the game thread's stack, three six-second probes.
+
+**Not taken**: the candidate thesis sentence from entry 41, again; the
+estimate — both maps stand past 15,000 of 24,000, and at this tranche's
+rate (+2,848 and +2,345 a tranche, no fight entered) the long captures
+close in three to four tranches each, which the next pass checks.
+
+**The measure for the next pass**: whether 722 and 708 moved their words
+and at what price against 0.055 a frame; whether 723 ran `issue_form`
+under the emulator before its pair and which falsifier fired; the
+compared pin against 25 records and 137 registrations; the coverage pin
+against 369/25 and the ledger against 10/36; every stanza's runway at
+250 and no capture run to the gap; the golden lane waited on by the
+receipt; a journal's Loop line filed at its merge; the remote listing
+empty; the price per landing against 33.9; and the count at twenty.

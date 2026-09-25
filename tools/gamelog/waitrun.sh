@@ -19,10 +19,19 @@
 # turn: the harness re-invokes the session when this exits. The sleeping is
 # this script's, not the session's.
 #
-# Exit status: 0 — the banner arrived and every check passed; 1 — the banner
-# arrived and a check FAILED; 2 — no runner is alive and no banner came (the
-# queue died, or was never started; read the log's tail this prints);
-# 64 — usage.
+# The click-free lane (`tools/explore/unattended_capture.py`, the golden
+# chapters' runner) prints no banner: its verdict is one JSON receipt line per
+# map, `{"map_requested": …, "success": true|false, …}`, on the same stdout.
+# Four items of the fourteenth pass's tranche (651, 676, 696, 714) found this
+# script exiting 2 at once on that lane and fell back on reading the receipt
+# by hand, so the receipt is read here: once no runner is alive, a log holding
+# receipts is judged by them.
+#
+# Exit status: 0 — the banner arrived and every check passed, or the runner
+# has exited and every receipt says `"success": true`; 1 — the banner arrived
+# and a check FAILED, or a receipt says `"success": false`; 2 — no runner is
+# alive and neither a banner nor a receipt came (the queue died, or was never
+# started; read the log's tail this prints); 64 — usage.
 set -u
 log=${1:-}
 poll=${2:-20}
@@ -31,7 +40,8 @@ if [ -z "$log" ]; then
   exit 64
 fi
 banner='=== the queue, as it went ==='
-runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh'}
+receipt='^{"map_requested"'
+runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py'}
 
 # `run_in_background` reports a task the moment it exits, so a launch that
 # has not written its log yet is waited for too — but only for a while: a
@@ -46,7 +56,17 @@ while :; do
     exit 0
   fi
   if ! pgrep -f -- "$runner_pattern" >/dev/null 2>&1; then
-    # No runner. Give a fresh launch one more poll to start, then call it.
+    # No runner. The click-free lane's receipts are its verdict, read only
+    # once the runner is gone: it prints one per map and may still be on
+    # the next.
+    if [ -r "$log" ] && grep -qE -- "$receipt" "$log"; then
+      grep -E -- "$receipt" "$log"
+      if grep -E -- "$receipt" "$log" | grep -q '"success": false'; then
+        exit 1
+      fi
+      exit 0
+    fi
+    # Give a fresh launch one more poll to start, then call it.
     if [ -r "$log" ] || [ "$missing" -ge 1 ]; then
       echo "waitrun: no '$runner_pattern' process is alive and $log holds no banner" >&2
       [ -r "$log" ] && tail -n 20 "$log" >&2
