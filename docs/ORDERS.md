@@ -6774,8 +6774,8 @@ is the generic one (§7.5's).
   `a_strike_re_points_a_flying_strafe`. Each fails with its arm changed.
 
 **The flight** (`docs/GOLDEN.md` §25 has what run223 shows). Pieces 1
-to 3 are **built for a flight home by item 759, §33**; 4 and 5 are not,
-and a strafe with a target is still held where it stands. In the
+to 3 are **built for a flight home by item 759, §33**; 5 by item 763,
+§34, to the bomb's release; 4 is not. In the
 original it flies through `Unit::do_air_physics@005e86d0`:
 1. **Every eighth frame, a non-bomber redraws its `cruising_alt`** as
    `(r % 7 + 13) · 100` (`Random::get` at `+0xba`, chapter seventeen's
@@ -6917,11 +6917,13 @@ that one frame to an aircraft alone (`Sim::process_unit`).
 
 ### 33.6 What is not established
 
-- **A strike, flown**: a strafe with a target (`returning 0`) is held
+- ~~**A strike, flown**: a strafe with a target (`returning 0`) is held
   where it stands. Its `do_strafe` arms — the target-ahead doubling
   (`local_20`), the sixteenth-frame re-target, **the dead or unseen
   target turned `AirPatrolOrder` (run223's 666, the chapter's next
-  frame)**, the release — are §32's piece 5, unbuilt.
+  frame)**, the release — are §32's piece 5, unbuilt.~~ Flown by item
+  763, §34, to the release; the target-ahead doubling and the escort's
+  re-target are §34.7's.
 - **The tank** (§32 piece 4): `mana_burn` is not carried, so a flight
   with a target never turns for home on an empty tank (`check_fuel`'s
   first arm), and the refill inside is not modelled.
@@ -6943,3 +6945,152 @@ sides, and the figure's `bank`, `last_bank`, `pitch`, `last_pitch`
 `a_plane_inside_a_step_and_a_half_of_its_point_lands_in_its_base` and
 `a_flight_home_is_flown_to_its_base_and_lands`, each made to fail with its
 arm changed.
+
+## 34. The strike flown, and the patrol it becomes (item 763, 2026-09-25)
+
+`docs/GOLDEN.md` §25 is the chapter and run223 the capture. §33 flew a
+strafe home; this is §32's fifth piece, a strafe with a target: the
+dead-or-unseen arm that turns it into an `AirPatrolOrder`, the patrol's
+flight and its search, and the strike that search pushes, to the bomb's
+release. Built in `crate::orders` (`Body::AirPatrol`,
+`Sim::add_air_patrol_order`, `do_strafe`'s strike arms) and `crate::air`
+(`plane_air_physics` with a point, `do_air_patrol`,
+`find_new_bomber_target`). Read from the listings of `do_strafe`,
+`do_air_patrol`, `pitch_aircraft`, `find_new_bomber_target` and
+`ObjectData::is_in_range@00648d70`, since the decompiler drops their
+register arguments.
+
+**How it was established, and how confident.** Built alongside the
+reading and diffed. On run223 every compared field of both bombers agrees
+on every block 666–822: the patrol's class, point, home and flags on 666
+and its step in the same frame; the whole climbing, turning flight;
+the searches' strikes on 777 and 778 with `orders_x/y`; `0/8`'s release
+on 805 (the draw, `recharging 31`, `CHAR_ATTACK2`). **Diff-backed**:
+§34.1, §34.2's unseen arm, §34.3's release, §34.5's search and reveal,
+§34.6. **Reading only**: the rest, listed in §34.7.
+
+### 34.1 `Unit::add_air_patrol_order@005e4350`
+
+For a plane: `unit_masks &= ~0x4000000`, the path emptied,
+`close_orders`, `clear_partial_path`, `update_action`, and one
+`AirPatrolOrder` (type 17) appended: both point arrays of length 1 at
+`(x, y)`, `waypoint 0`, home `oxx/whose`, `cruising_alt` 0x640,
+`sharp_turn`, `old` and `returning` 0, the action bit from `param_5`. The
+queue argument is not read on this arm. A home that is a unit (vslot
+`+0x8`) stores the point relative to it; a helicopter gets a move.
+
+### 34.2 `do_strafe`'s strike: the target it may not take
+
+With `returning 0` and a target that is not an ally, `do_strafe` asks
+`Object::valid_target@00648ba0`. Refused, and not a missile or a
+helicopter:
+- with another order behind it (`orders > 1`), the strafe is killed,
+  `set_anim(CHAR_WALK, 1, 1)`, and `work` runs again;
+- alone, with `xx/yy` on the map, it is killed and becomes
+  `add_air_patrol_order(xx, yy, home, action)`, and **`work` (vslot
+  `+0x188`) runs in the same frame**, so the patrol flies at once. The
+  action argument is the `UnitOrder` base's slot `+0x2c`, which the PE's
+  vtable at `0xb47b08` names `0x41bff0`, `xor eax, eax`: the patrol has
+  flags 0 (run223's 666);
+- with no point left, it turns for home (`returning 1`, target −1).
+
+run223's pair are refused on 665 because the Barracks is **unseen**:
+`build_is_seen` wants its `ever_seen` bit, which only the fog under the
+footprint grows, and the pair are 28 tiles off. Diplomacy and the
+building's life stand from 616 to 1080; only the planes move.
+
+### 34.3 The strike it may take, and the release
+
+A valid target is flown at: `do_air_physics(order, x, y)` at the
+target's point (a flying target's lead is not built). Then, not
+reloading and still valid:
+- **the leash**: not `mandatory`, a target that does not fly, and an
+  `AirPatrolOrder` behind — the strike dies when the **target** is more
+  than `AIRCRAFT_RESPOND_RANGE · 0x100` from the patrol's last point
+  (`0x5eb22a`);
+- **the release**: `is_in_range` from the plane's own point (the angle
+  argument is not read; `param_6` is 0), and the target within 15°
+  (`0xaaaaaaa`) of the heading — 60° for the `0x127` line. A Bomber
+  plays `set_anim(CHAR_ATTACK2, 0, 1)` (the draw at `do_strafe+0x9d0`)
+  and reloads `recharge() + 1`; `BOMBING_MANA_COST` is 0 in the rules.
+
+Reloading, or refused: a target within 30° of the heading (90° for
+`0x127`), or any Bomber, skips the `CHAR_WALK`.
+
+### 34.4 The tail, `0x5eb62b`
+
+A strike that is not alone and not `mandatory`, with fuel and a target,
+on `(frame + 2·o) & 31 == 0`, asks the order behind it: an
+`AirPatrolOrder`'s `find_new_bomber_target` at its last point re-points
+the strike (`ox/whom/uid`, `returning 0`) at a valid answer, or kills it.
+
+### 34.5 `Unit::do_air_patrol@005ea620` and the search
+
+Not returning, the patrol flies at `list[waypoint]` through §34.6, then:
+- **the arrival**: inside `0x240` of the clamped point after the step,
+  the waypoint steps on, or at the last one a patrol with an order behind
+  it is killed; alone it flies on;
+- **the search**, `(o + frame) & 15 == 0`: a Bomber asks
+  `Unit::find_new_bomber_target@005eb960` at the last point. Its
+  `param_3 = −1` arm: nothing if the plane is more than
+  `BOMBER_RESPOND_RANGE · 0x3c0` from the point; else, of the enemy
+  buildings within `BOMBER_RESPOND_RANGE · 0xc0` of the point that
+  `valid_target` passes, the best `compare_target(t, 1, 0) / (dist /
+  0xc0 + 1)`. A valid answer at the last waypoint (or a flying one) is
+  pushed `add_strafe_order(t, home, 0, QUEUE_FIRST, 0)`;
+- **the look**, `(o + frame) & 31 == 0`: an enemy building on the
+  waypoint's tile whose `ever_seen` (`BuildData +0x62`) holds this
+  player's bit is pushed the same way with `mandatory 1`.
+
+Two things this crate lacked, each named by the diff:
+- **a plane lights the fog**: `do_air_physics` steps through
+  `Unit::set_new_location@005f8d20`, whose half-cell test calls
+  `update_seen(param_3 == 0)` — the ring pass. Without it the Barracks
+  stayed unseen until the pair flew over it (840); with it the search
+  refuses on 760/761 and takes it on 776/777, as the original;
+- **`add_strafe_order`'s `QUEUE_FIRST` takes no `update_action`**
+  (`0x5e4a2b`: `clear_partial_path` and the rotate), so `orders_x/y`
+  and `dest_angle` keep what `work` wrote before the step.
+
+### 34.6 `do_air_physics`, `bank_aircraft`, `pitch_aircraft` with a point
+
+Not returning: `check_fuel` returns at once (the tank aside) and hands on
+altitude 0; no landing test; the keep-heading radius is `min_range ·
+0xc0 + 0x300`. **The bank** of a player's plane wants 0 while `|guy.z −
+find_tcoord_z| ≤ 199` (`0x5e9700`), else the bird's want clamped at 55,
+with none of the returning arms. **The pitch** wants `cruising_alt` over
+the ground ahead, is floored at the ground here plus 200, takes `extra`
+0 and no halving, and divides its rate by `0x240 / speed`: the
+listing's `[ebp−0x18]` keeps the `0x240` handed to `project`, since only
+the returning arm overwrites it with the distance (`0x5e8fae`). run223's
+`0/7` on 666: bank 40 → 30, pitch 8 → 10, `z` 24 → 36.
+
+### 34.7 What is not established
+
+- **The bomb's round.** The release is an animation; the bomb is the
+  `Ammo` its event fires (`Guy::execute_events`), which this crate's
+  `guy_release_events` (`crate::anim`) fires for an `ATTACK` or
+  `ATTACK_GROUND` front order only. So no round, no damage: chapter
+  seventeen's word, 821.
+- **Reading only**: the leash (run223's target is its patrol's point),
+  §34.4's re-target (it runs on 784 and 816 and re-points the strike at
+  the Barracks it holds), the look (never reached before the strike),
+  the arrival, the refused strike with an order behind it, the escort's
+  ally arm, a flying target's lead and `local_20`'s doubled bank.
+- SEAMs: a non-bomber's `find_new_air_target` and the `semaphore & 2`
+  fallback; the `FIGHTERBOMBER` and carrier-relative points;
+  `find_new_bomber_target`'s `param_3 ≥ 0` arm and its `0x40000` arm;
+  `find_builds`' ring order, taken here as building order; the
+  `0x400000` pitch arm (the Bomber has only `h`); the tank (§32 piece 4).
+
+### 34.8 Coverage
+
+The widening, (605, 823), compares every field above on every block,
+both sides, and since this item a building's `damage`/`damage_frac`
+(`widen_civilians`), which parts on 822. Tests in `group::tests`:
+`a_strike_it_may_not_take_is_a_patrol_flown_the_same_frame` (run223's
+665 → 666 for `0/7`, field for field),
+`the_patrol_s_search_pushes_its_strike_first_without_update_action`,
+`a_bomber_releases_in_range_and_on_its_nose` and
+`a_flying_plane_lights_the_fog_it_crosses`; eight mutations, each
+failing its test on an assertion.
