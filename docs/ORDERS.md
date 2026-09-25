@@ -3010,14 +3010,20 @@ periodic `find_melee_target`; it never calls `fight` itself.
 
 ### 7.6 `FOLLOW` — `do_follow@005e65d0`
 
-`add_follow_order@005e3f60`: `ox/whom/uid` the target, `oxx/whose/uid2` its
-transport if inside one, action bit. Per frame: a followed object inside
+*Built by item 714 (§28), which reads the listing and corrects two clauses
+below: `oxx/whose/uid2` is the target itself unless it is inside something,
+and the first fallback is the point behind the target.*
+
+`add_follow_order@005e3f60`: `ox/whom/uid` the target, `oxx/whose/uid2` ~~its
+transport if inside one~~ the target again, or its container if it is inside
+one; action bit. Per frame: a followed object inside
 something swaps to follow the container (and back when the original
 reappears by `uid`); not seen → kill; `d = vector_dist`; the standoff `s =
 clamp(los × 0x180 − k, 0x180, 0x600)` with `k = los × 0x60` if the target is
 slower else `los × 0x300 / 5`, doubled if it `is_moving`; `d > s + 0xc0` →
-project from the target toward me by `s`, `find_nearby_spot` (fallbacks: the
-projected point, a ring at the target's facing, its own cell),
+project from the target toward me by `s`, `find_nearby_spot` (fallbacks: ~~the
+projected point~~ the point `s` behind the target's heading, a ring
+`s..s + 0xc0` at the target's heading, its own place),
 `add_move_facing_order(spot, the target's facing, MOVE_TO, QUEUE_FIRST, 0)`
 and **`do_move` this frame**; else idle animation.
 
@@ -6390,3 +6396,81 @@ the code):
 - the off-map member's plain move;
 - `is_busy`'s two spell-type questions and its entering-or-exiting arm.
   Here `is_busy` is a head `CastOrder`.
+
+## 28. The follow, built (item 714, 2026-09-24)
+
+`Body::Follow` is the original's `FollowOrder` (`OrderIndex` 11,
+`FollowOrder::get_type@00486c20`). It is a `TargetOrder`:
+`FollowOrder::FollowOrder@00486cb0` runs the base and then sets the
+three fields of its own, which the PDB names `oxx`, `whose` and `uid2`, to
+−1. `FollowOrder::log_data@00486ba0` writes the label and then
+`TargetOrder::log_data`, so the dump prints `flags`, `ox`, `whom` and
+`uid` and nothing of the three. The harness compares the target through
+`ox/whom` as for the guard.
+
+**Who issues it.** A player's follow command:
+
+1. `CommandManager::issue_follow@00941e70` (`docs/GOLDEN.md` §20) builds
+   it, 13 bytes behind the group.
+2. `CommandPackage::process_follow@009479c0` hands `ox`, `whom` and
+   `queued` to `Group::action_follow@006fd510` on the pushed group
+   (`rondata::input::group_follow` → `Sim::group_action_follow`).
+3. `action_follow` returns for a buildings group or a negative `ox` or
+   `whom`, sets the group's `form` to −1, and asks the leader
+   `is_valid_unit`, `is_on_map` and not `is_plane` (vslots `+0x8`,
+   `+0xbc`, `+0xc0`).
+4. Every member asked the same three, and not the leader's own
+   `get_captain` (vslot `+0xe4`) of the same player, gets one
+   `Unit::add_follow_order@005e3f60(ox, whom, queued)`. **There is no
+   `is_ally` test.**
+
+The AI never issues one: no AI class reaches `action_follow`.
+
+**Its life** is `Unit::do_follow@005e65d0` with the follow at the head
+(`005e65d0`–`005e6b7c`):
+
+- **The kill.** A leader not active and on the map, and inside nothing,
+  ends the order; so does one `UnitData::is_seen@00607a60(who, 0)`
+  refuses, which answers 1 for the follower's own player.
+- **The standoff.** `d = vector_dist` from the follower to the leader
+  (`5e6847`). `k = los × 0x60` when the follower's `UnitData::speed@
+  0060aae0` is the greater (`5e686b`), else `los × 0x300 / 5`, truncated
+  toward zero (`5e6887`–`5e689b`). `k` doubles when the leader
+  `is_moving` (vslot `+0xd8`, `5e68ab`). `s = clamp(los × 0x180 − k,
+  0x180, 0x600)`, `los` the follower's (`UnitData::los@006100c0`).
+- **Standing.** `d ≤ s + 0xc0`: `set_anim(CHAR_DEFAULT, 0, 1)` at
+  `5e68f5` and return. That is the draw `SITE_FOLLOW_STAND`, `5dac7a` via
+  `5e68fa`.
+- **Trailing.** Farther: `find_angle` from the leader to the follower,
+  `project` by `s`, `find_nearby_spot(0, −1, 0, 0x55555555,
+  FILTER_NOT_ME)`. Failing that, the same from the point `s` behind the
+  leader's heading (`+0x50` less `0x80000000`). Then a ring `s .. s +
+  0xc0`, step `0x30`, on the leader's heading. Then the leader's own
+  place. `add_move_facing_order(spot, the leader's heading, MOVE_TO, 0,
+  QUEUE_FIRST, 0, …)`, then `update_order` and **`do_move` this frame**
+  (`5e6b1c`–`5e6b29`). The leg has no action bit and no timer.
+
+**Diff-backed** (run204, `chapter_twelve_s_word_frame_is_widened_whole`,
+605–1150, every record both directions):
+
+- one `FOLLOWORDER` a member, on the leader, with the action bit, and
+  the pushed groups' ids;
+- a faster follower's standoff clamped at `0x600`: the chariot's 24
+  one-tile legs on the wagon's first walk, each issued past 1,728, its
+  rest at d 1,612 and its trail after the turn;
+- a slower follower's `k` doubled by a walking leader: the hoplites' first
+  legs at d ≈ 790, against 1,575 standing;
+- the stand's draw, on every block the four followers stand.
+
+**Resting on the reading alone, and not built** (each a named seam in
+the code):
+
+- the container swap at the head and its tail's swap back through
+  `Unit::work` (vslot `+0x188`), with `oxx/whose/uid2`;
+- `action_follow`'s `QUEUE_FIRST` insert (`set_up_insert`,
+  `action_halt`, `finish_insert`), taken as `QUEUE_NEW`, and the
+  scenario's `ignore_orders` sweep;
+- `is_seen`'s fog and stealth arms for another player's leader, carried
+  as `target_is_seen`;
+- the ring and the leader's-place fallbacks, which no capture reached.
+

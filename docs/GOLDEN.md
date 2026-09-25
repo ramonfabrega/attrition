@@ -1353,7 +1353,7 @@ below without a run take their number at booking (the eleventh pass).
 | 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
-| 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad** |
+| 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2308,7 +2308,8 @@ blocks were up.
   standing threshold. No fresh `do_follow` leg is due there, and which step
   re-aims it is not named.
 
-**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWELVE` = 717, open.** The
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWELVE` = 717, open;
+closed at 1150 by the same item, below.** The
 harness skips both `@follow` lines. The sequence parts first on 703, at an
 equal count: the original's chariot stands under `do_follow` (`set_anim`,
 `5dac7a`) where this crate's idles through `Unit::do_idle`. On **717** this
@@ -2326,3 +2327,19 @@ first block's 26 standing rows, it pins:
 
 The coverage driver takes 620..624, 640..644, 709..713 and 715..719. It
 pins the `process_follow` text as unread.
+
+**Closed at 1150 by the same item** (item 714; `docs/ORDERS.md` §28, the
+follow, built). The command's entry is `rondata::input::group_follow`,
+built the way `group_guard` was: the group, forced into the pool, then
+`Sim::group_action_follow`, one `Body::Follow` a member on the leader.
+`Sim::do_follow` stands within `s + 0xc0` and otherwise lays a `MOVE_TO`
+leg to the standoff point and steps it the same frame. With these the
+walk agrees to run204's end: sequence 1150, no value part.
+`chapter_twelve_s_word_frame_is_widened_whole` spans run204 whole, 605
+to 1150. Past the first block's 26 standing rows it pins only the staged
+units' `form` on their birth blocks and the scout `1/0`'s `facing` from
+847 (parked 275). Every row the first pin carried goes, the pushed
+groups' ids on 622, 642 and 702 among them. Two unit tests in
+`sim::group` pin the order and the standoff. The first fails with the
+leader's-own-captain exclusion removed, the second with the doubling
+removed.
