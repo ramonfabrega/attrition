@@ -794,7 +794,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// +0x941` where the original spends `Leader::make_stuff+0x63d`. **Past
 /// run78** (block 15986 against its last, 15900) and past every East
 /// Indies dump on disk: no widening names its block yet.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 15_985;
+///
+/// ~~**15985 is past every capture.**~~ **15985 → 16683 on item 708, and
+/// the frame was the commerce cap's republic term.** run221 over [15894,
+/// 16237) said whose draw it was: the original's `make_stuff+0x63d` is its
+/// slot loop buying a citizen (`t 50`, cat 5) that `create_units` offered
+/// on 15983 and ours never offered. Its first parting is 15977's `rate`,
+/// 93 on three goods here against 118, 110 and 100 — `min(cap, income) /
+/// 16` — and the cap was who=1's `resource_cap`, 2992 here against 3792 on
+/// every capped good: `calc_resource_caps@006ce900` adds
+/// `REPUBLIC_COMMERCE_BONUS` (50) for the highest `REPUBLIC_n` held, and
+/// who=1 took Republic on 15782 (`docs/AI.md` §72). **The move's value
+/// diff (the word's delta, here; its block is the widening's):** the
+/// fifteen leader rows under the word and the five caps go, and the 551
+/// rows past it (`run221_s_word_frame_is_widened_whole`, floor
+/// 285/288/851 → 280/280/290). **The new word's delta: ours 6 draws and
+/// the original 7, parting at index 5**: ours spends `Farms::inc_time
+/// +0x1ae` where the original spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`: six `Guy::inc_time` wraps there before the farm's
+/// draw against ours' five (`1/18` twice, `1/19`, `1/20`, `1/54`), so one
+/// figure's wrap is missing here, whose is the capture's to say. **Past
+/// run221** (block 16684 against its last, 16236): no widening names its
+/// block yet.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 16_683;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -3857,6 +3879,16 @@ pub(crate) const WIDENING_EAST_INDIES_WRAP: (i64, i64) = (13_580, 13_699);
 /// wraps in ours against two, writes block 13641. The coverage driver
 /// reads run166 around it.
 pub(crate) const EAST_INDIES_WRAP_BLOCK: i64 = 13_641;
+/// `run221_s_word_frame_is_widened_whole`'s window (item 708): run221
+/// whole, 15894..16236 — six blocks shared with run78, the 86 up to the
+/// word 15985, its block, and 250 of runway past it. The floor is the
+/// capture's first block, which carries every key that parted since
+/// run166's last block that run78's `LEADERS=1` does not print.
+pub(crate) const WIDENING_EAST_INDIES_SLOT: (i64, i64) = (15_894, 16_236);
+/// The word 15985's block on run221: its frame, the original's slot-loop
+/// buy and its `make_stuff+0x63d` expiry roll, writes block 15986. The
+/// coverage driver reads run221 around it.
+pub(crate) const EAST_INDIES_SLOT_BLOCK: i64 = 15_986;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -3964,11 +3996,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`docs/TECH.md` §"The government patriot"), built for Great Lakes'
     // Despot. `run78_s_old_word_keeps_its_value_diff` keeps the move's
     // value diff on 15783. Item 708 owes the capture over the new word.
+    //
+    // **Item 708 paid it**: run221 is run166's line without `DEATHS` over
+    // [15894, 16236], six blocks shared with run78 and 250 past the word,
+    // and `run221_s_word_frame_is_widened_whole` walks it through the same
+    // walk, gaia and the pool included, and pins the word's block, 15986.
+    // **The same item moved it 15985 → 16683**, past run221's last block
+    // (16236): the commerce cap's republic term (`docs/AI.md` §72).
+    // run221's test keeps the move's value diff. Item 752 owes the capture
+    // over the new word.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        708,
+        752,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

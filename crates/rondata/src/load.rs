@@ -1516,6 +1516,9 @@ pub fn load_tables(
     .collect();
     tree.roles.fishermen_preq = [bonus_at(19), bonus_at(20), bonus_at(21)];
     tree.roles.merchants_preq = [bonus_at(99), bonus_at(100), bonus_at(101), bonus_at(102)];
+    // `REPUBLIC_1..3` (`0x31d`–`0x31f`): the commerce cap's republic term
+    // (`docs/AI.md` §72).
+    tree.roles.republic_preq = [bonus_at(113), bonus_at(114), bonus_at(115)];
     // And the five ladders `docs/ECONOMY.md` indexes by — `GRANARY2..5`,
     // `LUMBERMILL2..4`, `SMELTER2..4`, `UNIVERSITY2..6` and `TAX_1..4`, at
     // `0x2bb`, `0x2c2`, `0x2c5`, `0x2e1` and `0x30b` off `BASE_BONUSTYPES`

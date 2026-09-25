@@ -561,7 +561,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 15619 → 16460; this map's holds at 15985. The unlinked are still
         // player 1's `79`..`82`. Measured after `ccc update` onto `8e75c3b`.
         // DECISIONS 36: the number, not a trade.
-        off: 49,
+        // **49 → 50 off, 4 → 0 unlinked, 0 → 3 extra, 12 → 8
+        // build_diverged** on item 708: the commerce cap's republic term
+        // (`docs/AI.md` §72), which moves this map's word 15985 → 16683,
+        // 7,318 frames before this one. The three extra are player 1's
+        // `83`..`85` Longbowmen. Measured after `ccc update` onto
+        // `df68f0d`. DECISIONS 36: the number, not a trade.
+        off: 50,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -589,7 +595,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 7** on item 706, beside `off` above.
         // **7 → 3** on item 711, beside `off` above.
         // **3 → 4** on item 722, beside `off` above.
-        unlinked: 4,
+        // **4 → 0** on item 708, beside `off` above.
+        unlinked: 0,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -599,7 +606,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // three are player 1's `83` Bowmen and `84`, `85` Transport
         // Barges. DECISIONS 36: the number, not a trade.
         // **3 → 0** on item 706, beside `off` above.
-        extra: 0,
+        // **0 → 3** on item 708, beside `off` above.
+        extra: 3,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
@@ -620,7 +628,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **15 → 16** on item 711, beside `off` above.
         // **16 → 10** on item 722, beside `off` above.
         // **10 → 12** on item 736, beside `off` above.
-        build_diverged: 12,
+        // **12 → 8** on item 708, beside `off` above.
+        build_diverged: 8,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1762,7 +1771,8 @@ pub const LADDER: [Endpoint; 2] = [
         // map's word 15782. DECISIONS 36: the number, not a trade.
         // **37 → 36** on item 706 (`docs/TECH.md` §"The government
         // patriot"); see `extra` below.
-        off: 36,
+        // **36 → 37** on item 708 (`docs/AI.md` §72); see `extra` below.
+        off: 37,
         unlinked: 16,
         // 19 → 33 on 2026-09-07, item 261, the same reshuffle, then 33 →
         // **27** the same day on item 265's byte — this rung took the
@@ -1891,7 +1901,13 @@ pub const LADDER: [Endpoint; 2] = [
         // moves 15782 → 15985, 504 frames before this rung. The fifth is
         // The Senator `1/60`, which this crate now trains and which this
         // rung's dump does not hold.
-        extra: 5,
+        // **5 → 7** on item 708: the commerce cap's republic term
+        // (`docs/AI.md` §72); this map's word moves 15985 → 16683, 194
+        // frames past this rung. The seven are player 1's Citizens `12`,
+        // `59` and `61`, the Light Horse `56`, the Cataphracts `57` and
+        // `58`, and The Senator `60`. DECISIONS 36: the number, not a
+        // trade.
+        extra: 7,
         build_unlinked: 19,
         build_diverged: 0,
         city_unlinked: 4,

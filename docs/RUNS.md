@@ -7088,6 +7088,58 @@ The dump prints three commands between blocks:
 scratch walk predicted, to the unit. On 736 every member stands where
 the scratch walk put it on the tick before, (2999, 13821) for `0/6`.
 
+## run221 — East Indies' word 15985, past run78's last block (2026-09-25, item 708)
+
+**What it is.** run166's line without `DEATHS`, the pool's line (run178's
+and run218's), `MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+over `[15894, 16237)`, at `cover=0`: a draw-stream trace first. `!quit`
+at 16247, through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 708
+```
+
+**Why it was owed.** Item 706 moved East Indies' word 15782 → 15985 (The
+Senator, `docs/TECH.md` §"The government patriot"). run78 ends on block
+15899 and run96 starts at 23960, so the word's block 15986 is on no disk.
+**The disk answered the who, not the why.** The draw stream (run54's
+trace against ours) agrees through 15984; on 15985 both sides spend the
+head's two expiry rolls (`make_stuff+0x221`), then the original alone
+spends `make_stuff+0x63d`, a bought slot's expiry roll (`docs/AI.md`
+§2.6 step 6), and then both spend `think_scout+0x941`. The scout's draw
+is spent on both sides; the extra is who=1's slot loop. run78 is
+`LEADERS=1`, so no block past run166's 13699 prints the make list, the
+purse or the sites. **Sized with 250 blocks of runway** (DECISIONS 50
+§7): six blocks shared with run78, the 86 up to the word, its block and
+250 above it, 343 blocks. The readings and their kills are in the
+stanza.
+
+**Taken whole.** 801.6 MB of dump and 22.5 MB of trace, 343 blocks
+15894..16236. About 29 minutes from launch (11:07) to archive (11:36),
+with no human at the menu. Waited on with `waitrun.sh`, exit 0. The lane
+lock was stale (pid 83878).
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 16,248 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **343 blocks, 15894..16236, no gap** |
+| a `GROUPDATA` / a `MAKEOBJECT` on every window block | **343 / 343** |
+| overlap with run78, on what both lines print | **6 in common (15894..15899), 0 differ** |
+
+**What it settled** (`run221_s_word_frame_is_widened_whole`,
+`docs/AI.md` §72).
+- **R3 holds**: on 15985 the original's slot 5 is a citizen, `t 50`, `val
+  130909`, bought and rolled on the word's frame; ours' slot 5 is empty.
+  The offer parts on 15984 (`create_units`' frame) and the rates under it
+  on 15977, 93 here against 118/110/100.
+- The cause is on the window's first block: who=1's `resource_cap`, 2992
+  here and 3792 there on every capped good. `calc_resource_caps` adds
+  `REPUBLIC_COMMERCE_BONUS` (50) under Republic, which who=1 took on
+  15782, and this crate had no republic term.
+- R2 and R4 die on the stream. `1/31`'s record parts only on parked rows.
+- With the term built the word moves **15985 → 16683**, past run221's
+  last block. The floor goes 285/288/851 → 280/280/290.
 ## run219 — chapter sixteen, explore and flee (2026-09-25, item 738)
 
 `docs/GOLDEN.md` §24, `tools/gamelog/golden/chapter16.cmd`. The cast is a

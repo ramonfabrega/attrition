@@ -391,6 +391,9 @@ impl Sim {
         // it at `+0xf0`, which is `epoch + 2 * 4` off `+0xe8`, and the
         // engine's own category order puts Commerce at 2.
         let commerce = self.tech[w].epoch[Line::Commerce.index()].max(0) as usize;
+        // The republic term's tier: `has_preq(REPUBLIC_3)`, then 2, then 1
+        // (`calc_resource_caps@006ce900`, `docs/AI.md` §72).
+        let republic = self.bonus_level(who, &self.tech_tree.roles.republic_preq);
 
         // `LeaderData::get_gather_handicap@006d66a0`: a human takes zero
         // unless the multiplayer handicap option is on, and an AI takes the
@@ -413,6 +416,7 @@ impl Sim {
         h.rare_owned = rare_owned;
         h.refineries = refineries;
         h.commerce = commerce;
+        h.republic = republic;
         h.handicap = handicap;
         h.taxation = levels.taxation;
         h.british = self.nation[w].british;

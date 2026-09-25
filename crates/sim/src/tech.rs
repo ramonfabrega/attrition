@@ -337,6 +337,13 @@ pub struct Roles {
     /// with the highest held, and **level 0 is 100%**, so the whole term is
     /// inert until Taxation.
     pub merchants_preq: [Option<TypeId>; 4],
+    /// `REPUBLIC_1`–`REPUBLIC_3`' prerequisites, in level order — bonuses
+    /// 113–115 (`0x31d`–`0x31f` off `BASE_BONUSTYPES`), each **Republic**
+    /// in the shipped file. `calc_resource_caps@006ce900` asks `has_preq`
+    /// of the three from the top down and adds that tier's
+    /// `REPUBLIC_COMMERCE_BONUS` to every capped good (`docs/AI.md` §72).
+    /// A row the tree does not know is not held.
+    pub republic_preq: [Option<TypeId>; 3],
     /// The five *enhancer and taxation* ladders, in level order — the
     /// `TECHBONUSES` rows `docs/ECONOMY.md`'s indexed arithmetic is keyed
     /// by, and the same shape as [`Roles::merchants_preq`]: a row the tree

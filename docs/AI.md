@@ -8982,3 +8982,120 @@ same test pins it, and the coverage driver reads run211 15607..15622.
 - **Coverage**: the stamp is diff-backed by `0/frame_attacked` on every
   block of the Great Lakes chain and by 15608's draw stream. The
   difficulty-2 arm is the unit test's only.
+
+## 72. A republic raises the commerce cap, and the word moves to 16683 (2026-09-25, item 708)
+
+East Indies' word was **15985**: ours 5 draws against 6, parting at index
+4, ours `Unit::think_scout+0x941` where the original spends
+`Leader::make_stuff+0x63d`. No dump held the frame; run221 was taken over
+it ([15894, 16237), `docs/RUNS.md`).
+
+### 72.1 What the stream said before the capture
+
+The draw stream alone (run54's trace against ours, `RON_DEBUG_SITES`)
+already names the side. Both spend two `produce_building+0x1805` and the
+head's two expiry rolls, `make_stuff+0x221` (the Temple in slots 0 and
+8). Then the original alone spends `+0x63d`, and after it both spend
+`think_scout+0x941` (ours: `1/31`, §11's region scan of `docs/SCOUT.md`).
+So the scout's draw is spent on both sides, and the extra is who=1's slot
+loop (§2.6 step 6) buying a slot ours did not. One `+0x63d` is one slot of
+the bought type: the walk runs from the slot to the end of the eleven and
+rolls once per match, none for a tower, upgrade-kind or wonder type
+(`make_stuff@006c8af0`, the `do … while (iVar9 < 0x1b8)` after
+`make_this`).
+
+### 72.2 The readings, and what killed each
+
+Written before the capture's first block was read (the stanza, run221):
+
+- **R2, the scout spends a draw the original's does not.** Killed by the
+  stream: the original spends its own `+0x941` at index 5. Its
+  record-level killer, `1/31` agreeing field for field on 15985, *fires*,
+  on six rows standing since the window's first block: `form` (parked
+  646), the pool `group` (674), `myhits`, `hits_left` and `mylos` (679).
+  None of them is a term the region scan's stride reads (`n`, the frame),
+  and its position and orders agree.
+- **R3, the original's slot loop buys a slot ours does not.** Holds. On
+  block 15985 the original's slot 5 is a citizen, `t 50`, `val 130909`,
+  `escrow 1`, `city 1`, `cat 5`; ours' slot 5 is empty. On 15986 the
+  original's reads `t −1`, `val 1309`: bought (`val` /100) and cleared by
+  the roll. The gate's own terms (§2.6 step 6, in order) never reach a
+  purse comparison: ours has no slot 5 to test.
+- **R4, the two are one parting in order.** Killed by the stream.
+
+### 72.3 Whose offer, and why
+
+`run221_s_word_frame_is_widened_whole` walks the whole window. Under the
+word, who=1's leader record parts on two blocks and nothing else does:
+
+- **15977**: `rate` for food, timber and metal, ours 93 against 118, 110
+  and 100. `rate` is `min(cap, income) / 16` (`goods_picture`, §2.5), and
+  93 on three goods at once is a cap.
+- **15984**, `create_units`' frame (`create_units+0x642` ×6 on 15983): the
+  original offers the citizen at the head and into slot 5, and ours
+  offers nothing. The citizen's value reads the rates.
+
+The window's first block carries the cap itself: who=1's `resource_cap`
+is **2992 here and 3792 there** on every capped good (knowledge is 999 on
+both). run166's 13699 agrees at 2992; run78 (`LEADERS=1`) does not print
+it. The difference is 800 sixteenths, **50 a good**.
+
+`Leader::calc_resource_caps@006ce900` ends each slot with the **republic
+term**: `has_preq(REPUBLIC_3)`, else `REPUBLIC_2`, else `REPUBLIC_1`, adds
+`REPUBLIC_COMMERCE_BONUS3`, `…2` or `REPUBLIC_COMMERCE_BONUS` — once, the
+highest tier held, never summed — after the wonder additions and before
+`bonus_cap` and the clamp. `rules.xml` ships all three as 50, and the three
+`TECHBONUSES` rows (113–115, `0x31d`–`0x31f`) each carry the one
+prerequisite **Republic**. who=1, the British, took Republic on 15782 (its
+patriot is The Senator, item 706). At commerce level 2, `150 × 125 / 100`
+is 187, plus 50, times 16: **3792**. This crate's `commerce_cap` stopped
+after the nation percentages (the 2026-09-05 audit's R16), so the tech
+arrived and the cap never moved.
+
+### 72.4 The fix
+
+`sim::economy::commerce_cap` adds `Tuning::republic_commerce_bonus[tier −
+1]` for `Holdings::republic`, the highest `REPUBLIC_n` held
+(`Roles::republic_preq`, loaded from bonuses 113–115, read by
+`bonus_level` as the fishermen and merchants ladders are). The three
+constants are pinned against `rules.xml` by `Tuning`'s slot table. The
+unit test is `a_republic_adds_fifty_to_every_capped_good` (2992 → 3792,
+knowledge untouched).
+
+### 72.5 What it moved
+
+- **The value diff** (run221, the word's own frame and the block before):
+  the fifteen leader rows under the word go — the three rates on 15977,
+  the citizen's nine offer rows on 15984, and the food, the queue count
+  and the building's queue on 15986 — and so do the five caps on the
+  first block and the 551 rows past the word the purchase parted. One row
+  stands: `MAKE[5].city`, 2 here and 1 there, the list's `city` shift the
+  floor's make-list rows carry. The floor goes 285/288/851 → 280/280/290.
+- **East Indies 15985 → 16683**, past run221's last block (16236). On
+  16683 ours spends 6 draws against 7, parting at index 5: the original
+  spends six `Guy::set_anim+0x97a < Guy::inc_time+0x271` wraps before
+  `Farms::inc_time+0x1ae`, ours five (`1/18` twice, `1/19`, `1/20`,
+  `1/54`). One figure's wrap is missing here; whose it is, and why, is the
+  next capture's (item 752). No mechanism is named.
+- run221's rows past the word to its end: the human's `production_step`,
+  and on 16166 who=1's newborn `1/59` on the parked families (`form`,
+  `myhits`, `hits_left`, `mylos`) with its `path_recursion`, the leader's
+  `peasants` 25 against 26 and its `gather_stamp`.
+
+### 72.6 What this has *not* established
+
+- **The frame the cap moves.** No dump prints `resource_cap` between
+  13699 and 15894. This crate refreshes `Holdings` on the rate's cadence;
+  the original recomputes the caps every frame. The commerce level takes
+  the same path and agrees; the republic term is assumed to, and the first
+  agreeing block is 15894.
+- **The tiers.** All three rows carry the one prerequisite Republic, so a
+  republic holds all three and takes tier 3's 50. Whether a later
+  government makes the tiers differ is not read; the constants are equal,
+  so no capture could tell.
+- **The rest of the cap's terms**: Diamonds, the wonders and Virtual
+  Reality (R16) are still not built. No capture on either map has
+  reached one.
+- **Coverage**: the term is diff-backed by run221's `resource_cap` rows
+  and by the draw stream through 16682. The has-preq order (3, 2, 1) is a
+  reading, and with equal constants no run can falsify it.
