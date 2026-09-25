@@ -1671,14 +1671,16 @@ impl Sim {
     /// tank is not carried).
     fn strafe_attack(&mut self, u: usize, t: crate::combat::Obj, sf: StrafeOrder) -> bool {
         let air_target = matches!(self.profile(t).domain, crate::attrition::Domain::Air);
-        if !air_target && self.units[u].orders.len() > 1 && !sf.mandatory {
-            if let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) {
-                let at = self.pos_of(t);
-                let d = crate::world::vector_dist(at.x - p.point.x, at.y - p.point.y);
-                if d > self.tuning.aircraft_respond_range * 0x100 {
-                    self.kill_current_order(u);
-                    return false;
-                }
+        if !air_target
+            && self.units[u].orders.len() > 1
+            && !sf.mandatory
+            && let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body)
+        {
+            let at = self.pos_of(t);
+            let d = crate::world::vector_dist(at.x - p.point.x, at.y - p.point.y);
+            if d > self.tuning.aircraft_respond_range * 0x100 {
+                self.kill_current_order(u);
+                return false;
             }
         }
         let off = self.strafe_off_line(u, t);
