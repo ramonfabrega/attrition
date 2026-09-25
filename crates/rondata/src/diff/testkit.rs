@@ -3857,6 +3857,16 @@ pub(crate) const WIDENING_EAST_INDIES_WRAP: (i64, i64) = (13_580, 13_699);
 /// wraps in ours against two, writes block 13641. The coverage driver
 /// reads run166 around it.
 pub(crate) const EAST_INDIES_WRAP_BLOCK: i64 = 13_641;
+/// `run221_s_word_frame_is_widened_whole`'s window (item 708): run221
+/// whole, 15894..16236 — six blocks shared with run78, the 86 up to the
+/// word 15985, its block, and 250 of runway past it. The floor is the
+/// capture's first block, which carries every key that parted since
+/// run166's last block that run78's `LEADERS=1` does not print.
+pub(crate) const WIDENING_EAST_INDIES_SLOT: (i64, i64) = (15_894, 16_236);
+/// The word 15985's block on run221: its frame, the original's slot-loop
+/// buy and its `make_stuff+0x63d` expiry roll, writes block 15986. The
+/// coverage driver reads run221 around it.
+pub(crate) const EAST_INDIES_SLOT_BLOCK: i64 = 15_986;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -3964,12 +3974,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`docs/TECH.md` §"The government patriot"), built for Great Lakes'
     // Despot. `run78_s_old_word_keeps_its_value_diff` keeps the move's
     // value diff on 15783. Item 708 owes the capture over the new word.
+    //
+    // **Item 708 paid it**: run221 is run166's line without `DEATHS` over
+    // [15894, 16236], six blocks shared with run78 and 250 past the word,
+    // and `run221_s_word_frame_is_widened_whole` walks it through the same
+    // walk, gaia and the pool included, and pins the word's block.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run221_s_word_frame_is_widened_whole"),
         708,
-        None,
+        Some(WIDENING_EAST_INDIES_SLOT),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
