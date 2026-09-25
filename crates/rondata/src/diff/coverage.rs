@@ -999,8 +999,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ("Guy", "guy_flags guy_num kind last_pos ox whom"),
     // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
     // and `orig_x`/`orig_y` to run29's field-table test on purpose
-    // (`compare_orders`); `coll_x`/`coll_y` register on a collision
-    // point; the `GROUPORDER`, patrol, guard, garrison, cast and ground
+    // (`compare_orders`); `coll_x`/`coll_y` are compared since the window
+    // moved to run211's 15609 (item 722), where a collision point stands
+    // on both sides; the `GROUPORDER`, patrol, guard, garrison, cast and ground
     // rows on their orders, none of which stand on this window; `uid`,
     // `metric`, `build_type`, `non_flat_gather` and the attack order's
     // `mandatory defensive in_range ever_in_range new_ord def_x def_y`
@@ -1008,7 +1009,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit attempts build_type cast_paid \
-         cast_spell coll_x coll_y def_x def_y defensive ever_in_range form_id \
+         cast_spell def_x def_y defensive ever_in_range form_id \
          garrison_search group_angle group_id in_group in_range mandatory metric \
          new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry tolerance \
          uid waypoint whose",

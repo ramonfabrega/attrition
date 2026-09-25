@@ -8714,8 +8714,7 @@ run53's draw stream with `RON_DEBUG_SITES` and `RON_DEBUG_LEADER` over
 - Ours also spends a third `Guy::set_anim+0x104b` at index 48 against the
   original's two. It went with the pairs (§70.4), so it was their
   consequence, not a second parting.
-- `MAKE[1]` on 15386 is the pairs' product: ours' list after 15384 holds
-  the Siege Factory in city 1's slot where the original's slot is empty.
+- `MAKE[1]` on 15386 was the pairs' product: it went with them (§70.4).
 
 ### 70.2 The readings, and what would kill each
 
@@ -8770,3 +8769,69 @@ either (§69.7).
 places a site of a second wonder type in one of two cities and counts two
 draws, the other city's. It was made to fail with the filter restored
 ("the site counts").
+
+### 70.4 What it moved
+
+Measured on `745c91f`, based on `2355946`:
+
+- **Great Lakes 15384 → 15608.** On 15384 both sides spend 46 draws
+  draw for draw, and 15385 and 15386 agree too. On 15608 this crate
+  spends 40 against the original's 38, parting at index 0: ours throws
+  `Army::find_target+0x410`, the difficulty gate's coin (`docs/ARMY.md`
+  §12), where the original's first draw is the per-candidate score
+  `+0x7df`. The coin is thrown only when `find_aggressive_army` answers −1.
+- **East Indies holds at 15985**, its delta unchanged (ours 5 against 6,
+  parting at index 4).
+- **The value diff** (`run202_s_word_frame_is_widened_whole`): the three
+  rows on 15386 are gone, and **so is every key that first-parted on
+  run202's runway**. Nothing first-parts on 15385..15440, and the floor
+  goes 400/1/624 → 400/1/401. The rows standing on 15384 and 15385 are
+  unchanged (315, 316): they are the floor's.
+
+### 70.5 The new word's block, 15609, on run211
+
+15609 is past run202's last block, so run211 was taken: run202's line
+over [15435, 15860), 250 blocks of runway (`docs/RUNS.md`).
+`run211_s_word_frame_is_widened_whole` walks it from run123's 11400
+across twelve captures. Floor 401/78/1003: run202's 401, then run211's
+own 78 up to the word's block.
+
+- **Nothing parts on 15441..15606.**
+- **On 15607 the Despot's escort trades posts.** The Longbowmen `1/77`
+  and `1/78` — group 67, who=1's army 3 with The Despot `1/79` and
+  `1/76` — each walk toward the post the other holds in the original:
+  `1/77`'s `orders_x`/`orders_y` are (41976, 21672) here, `1/78`'s there,
+  and the reverse. On 15608 their `GUARDORDER`s carry the swapped posts.
+  That is item 711's shape (`docs/GROUPS.md` §25) and sits beside
+  parked 716 (`1/79`'s move `facing`) and 717 (the mirror bit's unwired
+  readers).
+- **On 15609** `1/3`'s move target and `1/61`'s clock part.
+- **The coin is probably not the escort's.** `find_aggressive_army`
+  wants an army with two captains, not mustering, outside its own land.
+  This crate's who=1 armies on 15608 (`RON_DEBUG_ARMIES`): army 3, the
+  escort, is status 17 (mustering); armies 1 and 2 are status 18 with
+  three and eight captains, and none of their units parts before the
+  word's block (`1/61`, army 2's, parts on it — a clock). So what the
+  predicate reads differently is an army's own `pos` or the owner of
+  its cell, and neither is dumped per frame. **A packet at 15607
+  (run212, `docs/EMULATOR.md` §8) reads the original's army records.**
+  No mechanism is named (DECISIONS 42).
+
+The coverage driver reads run211 15607..15611, and the compared pin walks
+the same window: `OrderDump.coll_x`/`coll_y` are compared there and left
+the pin.
+
+### 70.6 What this has *not* established
+
+- **The other two readers are not diffed.** `blocked_site`'s wonder
+  clause and `do_construct`'s start test move with the count, and no
+  widening on file was checked for a frame that exercises either (a
+  second wonder placed in a city holding a site, or started beside a
+  finished one). Reading-only: the decompile's
+  `num_wonders` and the two comparisons in `docs/CITIES.md` §2.6.4 and
+  §3.3.
+- **`find_target`'s `num_wonders(city, 0)`** is not carried (§70.3).
+- **Coverage**: the wonder gate on 15384 is diff-backed, by the draw
+  stream (four pairs → two) and by every row of run202's runway. The
+  unit test covers a site of a second type; a site of the same type is
+  the ally walk's, already covered.
