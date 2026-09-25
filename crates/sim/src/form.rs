@@ -56,6 +56,7 @@
 
 use crate::group::Group;
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
+use crate::orders::QueuePos;
 use crate::world::{Pos, tile, vector_dist};
 use crate::{Player, Sim, UnitType};
 
@@ -904,6 +905,109 @@ impl Sim {
             }
         }
         if n > 0 { sum / n } else { 0x32 }
+    }
+
+    /// `Group::action_form(form, rotate, queue, ·, inserting)@00707220`
+    /// (`docs/ORDERS.md` §30), reached from
+    /// `CommandPackage::process_form@00949d90` with the command's three
+    /// fields — a formation button's `form`, `rotate` 0 and `QUEUE_NEW`
+    /// (`docs/GOLDEN.md` §22).
+    ///
+    /// **It makes no order of its own.** No `FormOrder` is built: the
+    /// formation is each member's `form` byte and a group move laid out in
+    /// it. For a unit group on the map with a leader that is no plane, and
+    /// `QUEUE_NEW` or `QUEUE_FIRST`, the group's `form` goes to −1, the
+    /// leader's action-bit orders are copied aside
+    /// ([`Sim::group_set_up_insert`]), every member is halted, the call
+    /// recurses — at `QUEUE_NEW` when nothing was copied, `QUEUE_FIRST`
+    /// when something was — and the copies are replayed
+    /// ([`Sim::group_finish_insert`]). The recursion writes `unit +0xaa =
+    /// form` on every member that is no plane, figures and citizens alike,
+    /// and then, at `QUEUE_NEW` or `QUEUE_LAST` only, moves the group to
+    /// `get_loc_to` — where the leader will end up, which for a group that
+    /// stood is where it stands — at `QUEUE_LAST`, `MOVE_TO`, **without
+    /// the action bit**, `form −1` so `get_form` reads the byte just
+    /// written. With `rotate` non-zero the move's angle is set: the group's
+    /// `o_angle` when the point is the group's own `(ox, oy)`, else the
+    /// leader's heading, plus `rotate`.
+    ///
+    /// So a group that stands re-forms on the spot, and a group that walks
+    /// is halted and its move replayed to the same point in the new
+    /// formation.
+    ///
+    /// SEAMS, none reached by a capture on file: the three negative
+    /// formations — −1 and −3 step `get_form_option@0070beb0` forward and
+    /// back through the five buttons, −2 is `Options::do_rotate`'s, which
+    /// keeps the leader's own formation, sets the group's `form` to −2 and
+    /// skips the insert dance — are not acted on here; the scenario's
+    /// `ignore_orders` sweep (`action_begin`); a buildings group, which the
+    /// command's `process_group` cannot build from units.
+    pub fn group_action_form(&mut self, g: &Group, form: i32, rotate: i32, queue: QueuePos) {
+        self.group_action_form_at(g, form, rotate, queue, false);
+    }
+
+    fn group_action_form_at(
+        &mut self,
+        g: &Group,
+        form: i32,
+        rotate: i32,
+        queue: QueuePos,
+        inserting: bool,
+    ) {
+        if !self.group_is_on_map(g) || g.list.is_empty() || form < 0 {
+            return;
+        }
+        let Some(leader) = self.group_find_leader(g) else {
+            return;
+        };
+        if self.is_plane(leader) {
+            return;
+        }
+        if !inserting && matches!(queue, QueuePos::New | QueuePos::First) {
+            if let Some(st) = self.gstate_mut(g) {
+                st.form = -1;
+            }
+            let insert = self.group_set_up_insert(g);
+            self.group_action_halt(g, 0);
+            let queue = if insert.is_empty() {
+                QueuePos::New
+            } else {
+                QueuePos::First
+            };
+            self.group_action_form_at(g, form, rotate, queue, true);
+            self.group_finish_insert(g, insert);
+            return;
+        }
+        for &u in &g.list {
+            if !self.is_plane(u) {
+                self.units[u].form = form as i8;
+            }
+        }
+        if queue == QueuePos::First {
+            return;
+        }
+        let Some(to) = self.group_loc_to(g) else {
+            return;
+        };
+        let (set_angle, angle) = if rotate == 0 {
+            (false, Angle(0))
+        } else {
+            let base = if to == self.group_o(g) {
+                self.group_o_angle(g)
+            } else {
+                self.units[leader].movement.heading
+            };
+            (true, Angle(base.0.wrapping_add(rotate)))
+        };
+        self.group_action_move_to(
+            g,
+            to,
+            QueuePos::Last,
+            set_angle,
+            angle,
+            crate::orders::MoveKind::MoveTo,
+            false,
+        );
     }
 
     /// Whether the destination cell is water — `compute_form`'s own test,
