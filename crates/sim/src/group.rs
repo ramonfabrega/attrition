@@ -2242,6 +2242,45 @@ impl Sim {
         }
     }
 
+    /// `Group::action_follow(ox, whom, queue)@006fd510` (`docs/ORDERS.md`
+    /// §28), reached from `CommandPackage::process_follow@009479c0` with
+    /// the command's leader and queue position.
+    ///
+    /// `action_begin`, then a group of buildings returns. The group's
+    /// `form` goes to −1. The leader must be active, on the map and not a
+    /// plane (vslots `+0x8`, `+0xbc`, `+0xc0`). Every member that is the
+    /// same, and is not the leader's own captain of the same player
+    /// (`get_captain`, vslot `+0xe4`), gets one
+    /// [`Sim::add_follow_order`]. **There is no `is_ally` test**: a player
+    /// may follow anyone's unit.
+    ///
+    /// SEAM, none reached by a capture on file: `QUEUE_FIRST`'s insert
+    /// dance (`set_up_insert`, `action_halt`, the follow at `QUEUE_NEW`,
+    /// `finish_insert`), taken here as `QUEUE_NEW`; the scenario's
+    /// `ignore_orders` sweep; a buildings group, which the command's
+    /// `process_group` cannot build from units.
+    pub fn group_action_follow(&mut self, g: &Group, target: usize, queue: QueuePos) {
+        let queue = if queue == QueuePos::First {
+            QueuePos::New
+        } else {
+            queue
+        };
+        if let Some(st) = self.gstate_mut(g) {
+            st.form = -1;
+        }
+        if !self.group_member_orderable(target) {
+            return;
+        }
+        let whom = self.units[target].owner;
+        let cap = self.top_captain(target);
+        for &m in &g.list {
+            if !self.group_member_orderable(m) || (m == cap && g.who == whom) {
+                continue;
+            }
+            self.add_follow_order(m, target, queue);
+        }
+    }
+
     /// `Group::action_patrol@007030c0` (`docs/ORDERS.md` §27), reached from
     /// `CommandPackage::process_patrol@00949380` with the command's point
     /// and queue position.
@@ -4230,6 +4269,71 @@ mod tests {
             index::ATTACK,
             "a siege unit already shooting keeps its order"
         );
+    }
+
+    /// `Group::action_follow@006fd510` (`docs/ORDERS.md` §28): **every**
+    /// orderable member gets one `FOLLOW` on the leader with the action
+    /// bit — run204's squad, three orders on `0/11` on block 642 — and a
+    /// member that is the leader's own captain of the same player gets
+    /// none.
+    #[test]
+    fn a_follow_is_one_follow_order_a_member_and_none_on_the_leader_itself() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(11640, 10872));
+        let b = spawn(&mut s, 0, t, Pos::new(11784, 10872));
+        let c = spawn(&mut s, 0, t, Pos::new(11688, 11016));
+        let lead = spawn(&mut s, 0, t, Pos::new(11640, 11640));
+        let mut g = group_of(0, &[a, b, c, lead]);
+        assert!(s.push_group(&mut g, true));
+        s.group_action_follow(&g, lead, QueuePos::New);
+        for u in [a, b, c] {
+            let [o] = s.units[u].orders.iter().copied().collect::<Vec<_>>()[..] else {
+                panic!("one order on {u}: {:?}", s.units[u].orders);
+            };
+            assert_eq!(
+                o.body,
+                Body::Follow(crate::orders::FollowOrder { target: lead })
+            );
+            assert!(o.has(flag::ACTION));
+        }
+        assert!(s.units[lead].orders.is_empty(), "the leader follows no one");
+    }
+
+    /// `Unit::do_follow@005e65d0`'s standoff, on run204's squad: a hoplite
+    /// (`los` 6, slower than its leader) 768 from a standing chariot is
+    /// inside `s + 0xc0` = 1,575 and stands. Once the chariot walks, `k`
+    /// doubles, the threshold is 653, and the hoplite takes a `MOVE_TO` leg
+    /// without the action bit to the point 461 short of the leader — block
+    /// 722's (11640, 11160).
+    #[test]
+    fn a_follower_stands_inside_its_standoff_and_walks_when_the_leader_does() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        s.unit_types[t].los = 6;
+        let lead = spawn(&mut s, 0, t, Pos::new(11640, 11640));
+        let f = spawn(&mut s, 0, t, Pos::new(11640, 10872));
+        s.units[lead].movement.speed = 29;
+        s.units[f].movement.speed = 23;
+        s.add_follow_order(f, lead, QueuePos::New);
+        let o = i64::from(s.units[f].index);
+        s.work(f, 1 - o);
+        assert_eq!(s.units[f].orders.len(), 1, "no leg within the standoff");
+        s.add_move_order(
+            lead,
+            Pos::new(11640, 20000),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            true,
+        );
+        s.work(f, 2 - o);
+        let head = s.units[f].orders[0];
+        let Body::Move(m) = head.body else {
+            panic!("no leg: {:?}", s.units[f].orders);
+        };
+        assert_eq!((m.kind, m.dest), (MoveKind::MoveTo, Pos::new(11640, 11160)));
+        assert!(!head.has(flag::ACTION));
+        assert!(matches!(s.units[f].orders[1].body, Body::Follow(_)));
     }
 
     /// A pushed squad of three and its patrol, as `process_group` and

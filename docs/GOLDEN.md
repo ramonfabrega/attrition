@@ -1298,7 +1298,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | AirOrder | `CommandManager::issue_flight@00941d40` | — |
 | AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0`; AttackGroundOrder also auto, `Unit::fight`'s siege arm (`docs/COMBAT.md` §57) | 3 (the restage) |
 | GuardOrder | `CommandManager::issue_guard@00941ed0`; also an army's escort (`docs/ORDERS.md` §24) | 4 (the AI's escort); 11, the guard line (§19) |
-| FollowOrder | `CommandManager::issue_follow@00941e70` | — |
+| FollowOrder | `CommandManager::issue_follow@00941e70` | 12, the follow line (§20) |
 | FormOrder | `CommandManager::issue_form@00941580` | — |
 | GarrisonOrder | `CommandManager::issue_garrison@00941a70` | — |
 | GatherOrder | auto (starting citizens), `CommandManager::issue_gather@00941a20` | 7 (the control) |
@@ -1353,6 +1353,7 @@ below without a run take their number at booking (the eleventh pass).
 | 180 | nine, the move line | `[605, 1100)` | the first issuer chapter (DECISIONS 49): two player orders through `issue_move_to` from the DLL, a lone Chariot and a squad of three Hoplites (§17) — **run 2026-09-24 (item 676), 66 MB, 209 s; no falsifier fired: both commands processed on the next frame, a plain move and three `GroupMoveOrder`s, all four arrive; the chariot's plan runs straight through the sand; word ~~693~~, closed at 1100 (item 676: a human's fog arm and `find_wpath` pop)** |
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
+| 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2117,3 +2118,228 @@ who=1, so `valid_target` fails. A building target is seen through its
 alone, and this crate flagged the crew too. So on tick 1100 its crew
 took `IDLE1` where the original's took `IDLE2`, whose 71 frames ran out
 for 1139. Nothing parts on any frame of run190.
+
+## 20. Chapter twelve — the follow line, an issuer the AI never uses (item 714)
+
+**Premise.** A player's follow command, issued through the original's own
+issuer, gives each commanded unit one `FollowOrder` on its leader. The
+follower stands while it is within its standoff, trails a walking leader
+by `MOVE_TO` legs to the standoff point, comes to rest when the leader
+stops, and trails again when the leader turns. No AI class reaches
+`Group::action_follow@006fd510`, so no dump on disk holds a `FOLLOWORDER`.
+`tools/gamelog/golden/chapter12.cmd` has the reading with its citations.
+
+**The issuer, under the emulator first.** Item 714's scratch script runs
+on `tools/explore/command_oracle.py`'s fixture, widened to who=0's objects
+6–10 as live captains.
+
+- **`CommandManager::issue_follow@00941e70(group, ox, whom, QUEUE_NEW)`
+  appends 18 bytes.** That is the 5-byte `group` (num 1, who 0, the one
+  object) and a 13-byte `follow`: type `0x1e`, then `[ox i32][whom
+  i32][queued i32]` (`docs/COMMANDS.md` §3). Two captains make a 7-byte
+  group.
+- **It writes** the package's size and data and the four selection caches,
+  `CommandPackage::last_who_sent` and `last_num_sent` directly and
+  `last_objects_sent` and `last_uids_sent` through the imported memcpy.
+  Nothing else: no unit, no order, no draw. The same selection again
+  appends the 3-byte reuse; `queued` rides through as passed;
+  `use_mp_playback`, `semaphore & 0x10` and `semaphore & 4` each append
+  nothing.
+- **What the emulator cannot reach**: `CommandPackage::process_follow@
+  009479c0` → `action_follow(g, ox, whom, queued)` →
+  `Unit::add_follow_order@005e3f60`, and each frame's `Unit::do_follow@
+  005e65d0`.
+
+The DLL's `@follow <who> <ox> <whom> <o>…` is `@guard`'s with this issuer:
+the same prologue (`sub esp, 0x10`), and QUEUE_NEW, which is what
+`Options::picked_spot@00721c40` passes through `GroupOut::issue_follow@
+00708980` for an unmodified pick of a map unit.
+
+**The reading** (the listing, `005e65d0`–`005e6b7c`; `docs/ORDERS.md` §7.6
+has the older summary).
+
+- **The order.** `action_follow` gives every member that passes
+  `is_valid_unit`, `is_on_map` and not `is_plane`, and is not the leader's
+  own `get_captain` of the same player, one `add_follow_order(ox, whom,
+  queued)`. That is a FOLLOW (type 11) with `ox/whom/uid` the leader and
+  the action bit, and `oxx/whose/uid2` the leader again unless it is
+  inside a container. The dump prints `flags`, `ox`, `whom` and `uid`.
+- **The standoff, each frame.** `d = vector_dist` from the follower to the
+  leader. From the follower's `los` (`UnitData::los@006100c0`, the unit's
+  `+0x3c`, `mylos` in the dump):
+  - `k = los × 0x60` when the follower is the faster
+    (`UnitData::speed@0060aae0`), else `los × 0x300 / 5`;
+  - `k` doubles while the leader `is_moving`;
+  - `s = clamp(los × 0x180 − k, 0x180, 0x600)`.
+- **Standing.** `d ≤ s + 0xc0`: `set_anim(CHAR_DEFAULT, 0, 1)`, nothing
+  else.
+- **Trailing.** Farther, the target point is `s` from the leader toward
+  the follower (`find_angle`, `project`). `find_nearby_spot` from it, with
+  `FILTER_NOT_ME`; failing that the point `s` behind the leader's heading;
+  then a ring `s..s + 0xc0` round the leader; then the leader's own place.
+  A `MOVE_TO` leg goes on at QUEUE_FIRST without the action bit, facing the
+  leader's heading, and `do_move` runs the same frame. The leg has no timer,
+  so it walks to its end before the FOLLOW is read again.
+
+**The cast's numbers** (run190's dump: a chariot's `mylos` is 9 at about 29
+units a frame, a supply wagon's 4 at 25, a hoplite's 6 at 23).
+- **Pair A**, a Chariot after a Supply Wagon. It is the faster, so `s` is
+  `0x600` whether the wagon stands or walks (clamped). It trails at 1,536
+  and moves once `d` passes 1,728.
+- **Pair B**, three Hoplites after a Chariot. They are the slower, so `s`
+  is 1,383 (threshold 1,575) while the chariot stands and **461**
+  (threshold 653) while it walks. That is the doubling, and this pair is
+  staged to see it.
+
+**Lines.**
+
+- `0 !ai off`.
+- `610 add chariot who=0 16,36`: `0/6`, on cell (4, 9).
+- `612 add supply who=0 16,44`: its leader, `0/7`, on cell (4, 11), 1,536
+  away.
+- `614 add hoplite who=0 60,56`: the squad `0/8`–`0/10`, on cell (15, 14).
+- `616 add chariot who=0 60,60`: its leader, `0/11`, on cell (15, 15), one
+  cell south.
+- `620 @follow 0 7 0 6` and `640 @follow 0 11 0 8`.
+- `700 @move 0 3456 13440 7`: the wagon south to cell (4, 17)'s centre.
+- `720 @move 0 11904 14976 11`: the chariot south to cell (15, 19)'s.
+- `880 @move 0 14976 14976 11`: the chariot turns east, to cell (19, 19).
+- `960 @move 0 1152 13440 7`: the wagon turns west, to cell (1, 17).
+
+A call on trace frame F is on block F+2 (§17's convention).
+
+**The capture must dump** `end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2` and
+`misc:COMMANDMANAGER=1` over `[605, 1150)`, beside run105's `start:` set.
+
+**The premise's killer, and its writers** (§3, point 5).
+
+- `check_accept_issue` and `process_group`'s player test are chapter
+  nine's, with the same writers (§17).
+- **`action_follow`'s early returns**, each ahead of any order:
+  - `GroupData::buildings` (`+0x49`), whose one writer is
+    `Group::add@00714350`; the DLL names only unit captains.
+  - `ox` or `whom` negative.
+  - The leader failing `is_valid_unit` or `is_on_map`, or `is_plane`. A
+    cheat's wagon and chariot pass all three.
+  - Per member, the same three, and the member being the leader's captain
+    with `who == whom`. `0/6` against `0/7` and `0/8`–`0/10` against
+    `0/11` are not. **There is no `is_ally` test**: a player may follow an
+    enemy.
+- **`do_follow`'s kill.** It kills the order when the leader fails
+  `UnitData::is_seen@00607a60` by the follower's player. That answers 1
+  for any unit of that player (its stealth block ends in `is_detected`,
+  which answers 1 for the owner, and the fog test is skipped), so it
+  cannot fire here. It also kills when the leader is neither valid on the
+  map nor inside a container.
+- **The loops' bounds.** The member loop is bounded by `group.num`
+  (`+0xc`, below `0x80` in `Group::add`), here 1 and 3. The scenario sweep
+  ahead of it runs only under `ScenarioData::ignore_orders`, whose writers
+  are all `ScenarioFuncSet`'s. `do_follow` has no loop but
+  `find_nearby_spot`'s.
+
+**The ground** (run190's start `WORLD`). Pair A walks BASELAND on column
+x 4, y 9–17, then row y 17, x 1–4. Pair B walks column x 15, y 14–19,
+then row y 19, x 15–19. Chapter nine's sand is x 7–11. The nearest goody
+boxes, (1, 19) and (16, 21), are two cells off each line.
+
+**What would falsify it, and where each could first fire.** Predicted by
+speed alone: the wagon's stack empties near 897 and again near 1054, the
+chariot's near 828 and 988.
+
+1. **The issuer does not reach the pump.** Trace frames 620 and 640: an
+   `INFO` 17 with a refusal. Or no `COMMANDMANAGER` `process_group` and
+   follow text between blocks 621 and 622 (641 and 642), or no move text
+   for 700, 720, 880 and 960 between F+1 and F+2.
+2. **Not one `FollowOrder` a unit on its leader.** Block 622 for `0/6`,
+   block 642 for `0/8`–`0/10`: no type-11 order; an `ox/whom` other than
+   7/0 (11/0); a `uid` other than the leader's; or the action bit clear.
+3. **A follower within its standoff does not stand.** Blocks 622–701 for
+   `0/6` and 642–721 for the squad: a leg above the FOLLOW, or a step.
+4. **A follower does not trail a walking leader.**
+   - `0/6`: no `MOVEORDER` leg above its FOLLOW by block 720 (the wagon
+     passes 1,728 near 712), or a leg with no FOLLOW under it.
+   - The squad: no leg by block 727. With the doubling the legs come as
+     soon as the chariot walks, since `d` ≈ 768 > 653. Without it they come
+     no sooner than `d` > 1,575, near 750.
+5. **A follower does not come to rest.** Sixty blocks after its leader's
+   stack empties, the follower has a leg, or stands farther than its
+   standing threshold (1,728 and 1,575) from its leader. Or, on any block
+   to 1149, a follower's FOLLOW is gone.
+6. **A follower does not trail again after the turn.** No leg on `0/6`
+   after block 962, or on the squad after 882. Or, on block 1149, `0/6`
+   farther than 1,728 from the wagon, or a hoplite farther than 1,575 from
+   `0/11`.
+
+Predicted: none fires. **This crate cannot take the command yet**: it has
+no FOLLOW, and the harness skips both `@follow` lines (a named seam in
+`crate::golden`). If the capture agrees with the reading, the first
+landing is the follow command's entry into the sim, built the way
+`crate::input::group_patrol` was.
+
+**Run 2026-09-24 as run204 (item 714): no falsifier fired; the fifth
+could not for the squad**, whose chariot turned on 880, before its sixty
+blocks were up.
+
+- **Both follows reach the pump.** `INFO` 17 on 620 and 640, refusal 0,
+  the package 10 → 28 bytes. The dump prints `process_group` and
+  `process_follow 621` (641) between blocks 621/622 (641/642).
+- **One `FOLLOWORDER` a unit, as read.** On 622 `0/6`'s has `flags 4`,
+  `ox 7 whom 0 uid 14`. On 642 each of `0/8`–`0/10` has `flags 4`, `ox 11
+  whom 0 uid 18`.
+- **Standing.** `0/6` stands 622–710 at d 1,536, and the squad 642–721
+  at d 625–781.
+- **Trailing, pair A.** The first leg comes on **711** at d 1,737, the
+  1,728 threshold crossed. From then on there is a leg every 6–9 blocks,
+  each issued at d 1,724–1,748 and each **one tile** long. A faster
+  follower hops, since the point 1,536 behind the wagon is only ~200
+  ahead of it when it crosses the threshold.
+- **Trailing, pair B.** `0/8` and `0/9` take legs on **722** and `0/10`
+  on 724, at d 784–797. That is the moving threshold 653: **the doubling,
+  measured.** Without it the first leg would wait for d > 1,575.
+- **Rest and turn.** On 961 `0/6` holds its FOLLOW alone at d 1,612. It
+  trails again from 990, and the squad from 882. On 1149 every follower
+  holds its FOLLOW alone, within its threshold.
+- **The legs** are `MOVEORDER`s with `flags 1`: no action bit, and the
+  pathed bit `do_move` sets on the same frame. Every stack of the four
+  followers, on every block, is the FOLLOW alone or the FOLLOW under one
+  leg.
+- **What the reading did not say.** While `0/11` stands, from 835 to 880,
+  `0/9`'s leg changes its destination five times at d 700–940, below the
+  standing threshold. No fresh `do_follow` leg is due there, and which step
+  re-aims it is not named.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWELVE` = 717, open;
+closed at 1150 by the same item, below.** The
+harness skips both `@follow` lines. The sequence parts first on 703, at an
+equal count: the original's chariot stands under `do_follow` (`set_anim`,
+`5dac7a`) where this crate's idles through `Unit::do_idle`. On **717** this
+crate spends 6 draws against 8, parting at draw 0.
+`chapter_twelve_s_word_frame_is_widened_whole` covers (605, 719). Past the
+first block's 26 standing rows, it pins:
+
+- the staged units' `form` on their birth blocks;
+- the missing follows on 622 and 642: `orders.len` 0 against 1, no
+  `group`, and `idle` counting;
+- the wagon's move group on 702, `group 2` against this crate's 1: the
+  follows took pool slots 1 and 0 first (parked 689's family);
+- the chariot's first leg on 711: its path, `orders_y`, `dest_angle`,
+  heading and position.
+
+The coverage driver takes 620..624, 640..644, 709..713 and 715..719. It
+pins the `process_follow` text as unread.
+
+**Closed at 1150 by the same item** (item 714; `docs/ORDERS.md` §28, the
+follow, built). The command's entry is `rondata::input::group_follow`,
+built the way `group_guard` was: the group, forced into the pool, then
+`Sim::group_action_follow`, one `Body::Follow` a member on the leader.
+`Sim::do_follow` stands within `s + 0xc0` and otherwise lays a `MOVE_TO`
+leg to the standoff point and steps it the same frame. With these the
+walk agrees to run204's end: sequence 1150, no value part.
+`chapter_twelve_s_word_frame_is_widened_whole` spans run204 whole, 605
+to 1150. Past the first block's 26 standing rows it pins only the staged
+units' `form` on their birth blocks and the scout `1/0`'s `facing` from
+847 (parked 275). Every row the first pin carried goes, the pushed
+groups' ids on 622, 642 and 702 among them. Two unit tests in
+`sim::group` pin the order and the standoff. The first fails with the
+leader's-own-captain exclusion removed, the second with the doubling
+removed.

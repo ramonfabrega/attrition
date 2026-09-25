@@ -36,6 +36,10 @@ pub mod index {
     pub const BUILD_AT: u8 = 6;
     pub const GATHER: u8 = 7;
     pub const ATTACK: u8 = 10;
+    /// `FollowOrder` — [`super::Body::Follow`], issued by
+    /// `Group::action_follow@006fd510` from a player's follow command
+    /// (`docs/ORDERS.md` §28).
+    pub const FOLLOW: u8 = 11;
     /// `GuardOrder` — [`super::Body::Guard`], issued by
     /// `Group::action_guard` (`docs/ORDERS.md` §7.5, §24) and read by
     /// `UnitData::get_speed`'s order scale (`docs/MOVEMENT.md`, "The
@@ -448,6 +452,20 @@ pub struct PatrolOrder {
 /// a seam (`crate::group`), so no building is ever guarded here, and the
 /// `uid` is the unit's index because this crate never reuses one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FollowOrder {
+    /// `+0x8`/`+0xc` — the leader, as the command named it
+    /// (`Unit::add_follow_order@005e3f60`; `docs/ORDERS.md` §28). The dump
+    /// prints it as `ox/whom/uid`.
+    ///
+    /// SEAM: `+0x14`/`+0x18`/`+0x1c`, `oxx/whose/uid2`, the leader again
+    /// or the container it is inside, and `do_follow`'s swap onto the
+    /// container and back. This crate puts no unit inside another that a
+    /// follow can name, and the dump does not print the three.
+    pub target: usize,
+}
+
+/// `GuardOrder` (`docs/ORDERS.md` §7.5, §24).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GuardOrder {
     /// `+0x8`/`+0xc` — the escorted unit, always its squad's captain
     /// (`action_guard` takes `get_captain` of what it was given).
@@ -501,6 +519,7 @@ pub enum Body {
     Attack(AttackOrder),
     Cast(CastOrder),
     Guard(GuardOrder),
+    Follow(FollowOrder),
     AttackGround(AttackGroundOrder),
     Patrol(PatrolOrder),
     Think,
@@ -546,6 +565,7 @@ impl Order {
             Body::Attack(_) => index::ATTACK,
             Body::Cast(_) => index::CAST_SPELL,
             Body::Guard(_) => index::GUARD,
+            Body::Follow(_) => index::FOLLOW,
             Body::AttackGround(_) => index::ATTACK_GROUND,
             Body::Patrol(_) => index::GROUP_PATROL,
             Body::Think => index::THINK,
@@ -715,6 +735,11 @@ pub const SITE_GUARD_RETRY: &str = "Unit::do_guard+0x8fb";
 pub const SITE_GUARD_IDLE: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x7f4";
 pub const SITE_GUARD_STAND: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x8e0";
 pub const SITE_GUARD_DEAD: &str = "Guy::set_anim+0x97a < Unit::do_guard+0x926";
+
+/// `Unit::do_follow@005e65d0`'s stand within the standoff,
+/// `set_anim(CHAR_DEFAULT, 0, 1)` at `5e68f5`, named by its return
+/// address (`docs/ORDERS.md` §28).
+pub const SITE_FOLLOW_STAND: &str = "Guy::set_anim+0x97a < Unit::do_follow+0x32a";
 
 /// The 31 bearings of one ring of `find_nearby_spot`, as multiples of a
 /// sixteenth of a turn from the base angle; `|k| >= 8` adds a thirty-second.
@@ -1470,6 +1495,18 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
+    /// `Unit::add_follow_order(ox, whom, queue, ·)@005e3f60`
+    /// (`docs/ORDERS.md` §28): the leader, and the action bit set
+    /// unconditionally. The `QUEUE_NEW` head and the `QUEUE_FIRST`
+    /// rotation are [`Self::enqueue`]'s, as for the guard.
+    pub fn add_follow_order(&mut self, u: usize, target: usize, pos: QueuePos) {
+        let order = Order {
+            flags: flag::ACTION,
+            body: Body::Follow(FollowOrder { target }),
+        };
+        self.enqueue(u, order, pos);
+    }
+
     /// `Unit::add_patrol_order@005e4560(x1, y1, x2, y2, id, form_id,
     /// leader, who, queue)` (`docs/ORDERS.md` §27): a `GroupPatrolOrder`
     /// with the two points — each passed as `div_3_table[v >> 4]` and
@@ -1676,6 +1713,7 @@ impl Sim {
             Some(Body::Attack(_)) => self.do_attack(u, frame),
             Some(Body::Cast(c)) => self.do_cast(u, c),
             Some(Body::Guard(_)) => self.do_guard(u, frame),
+            Some(Body::Follow(f)) => self.do_follow(u, f, frame),
             Some(Body::AttackGround(_)) => self.do_attack_ground(u, frame),
             Some(Body::Patrol(p)) => self.do_patrol(u, p),
             Some(Body::Think) => self.do_think_order(u, frame),
@@ -2795,6 +2833,78 @@ impl Sim {
         store(self, 0, g);
         self.mark(SITE_GUARD_IDLE);
         self.set_anim(u, anim::DEFAULT, false, true);
+    }
+
+    /// `Unit::do_follow@005e65d0` (`docs/ORDERS.md` §28), with the
+    /// `FOLLOW` at the head.
+    ///
+    /// A leader no longer active and on the map, or not seen by the
+    /// follower's player (`UnitData::is_seen@00607a60(who, 0)`, which
+    /// answers 1 for the owner), kills the order. Otherwise the standoff:
+    ///
+    /// - `k = los × 0x60` when the follower is the faster
+    ///   (`UnitData::speed@0060aae0`), else `los × 0x300 / 5`, truncated;
+    /// - `k` doubles while the leader `is_moving`;
+    /// - `s = clamp(los × 0x180 − k, 0x180, 0x600)`, `los` the follower's.
+    ///
+    /// Within `s + 0xc0` of the leader (`vector_dist`), the follower stands:
+    /// `set_anim(CHAR_DEFAULT, 0, 1)`. Farther, the point `s` from the
+    /// leader toward the follower, placed by `find_nearby_spot`; failing
+    /// that the point `s` behind the leader's heading; then a ring
+    /// `s .. s + 0xc0` round the leader on its heading; then the leader's
+    /// own place. A `MOVE_TO` leg goes on at `QUEUE_FIRST` without the
+    /// action bit, facing the leader's heading, and `do_move` runs this
+    /// frame (`5e6b1c`–`5e6b29`). The leg has no timer.
+    ///
+    /// SEAM: the container swap at the head (`5e6643`–`5e66fd`) and its
+    /// tail (`5e6b5b`, the swap back and `Unit::work`), with
+    /// [`FollowOrder`]'s `oxx/whose/uid2`.
+    fn do_follow(&mut self, u: usize, f: FollowOrder, frame: i64) {
+        let t = f.target;
+        let who = self.units[u].owner;
+        let seen = self.units[t].owner == who || self.target_is_seen(Obj::Unit(u), Obj::Unit(t));
+        if !(self.units[t].alive() && self.units[t].on_map) || !seen {
+            self.kill_current_order(u);
+            return;
+        }
+        let me = self.units[u].pos;
+        let tp = self.units[t].pos;
+        let d = vector_dist((tp.x - me.x).abs(), (tp.y - me.y).abs());
+        let los = self.unit_los(u);
+        let mut k = if self.units[t].movement.speed < self.units[u].movement.speed {
+            los * 0x60
+        } else {
+            los * 0x300 / 5
+        };
+        if self.is_moving(t) {
+            k *= 2;
+        }
+        let s = (los * 0x180 - k).clamp(0x180, 0x600);
+        if d <= s + 0xc0 {
+            self.mark(SITE_FOLLOW_STAND);
+            self.set_anim(u, anim::DEFAULT, false, true);
+            return;
+        }
+        let heading = self.units[t].movement.heading;
+        let bearing = Angle(0x5555_5555);
+        let toward = crate::army::step_along(tp, find_angle(me.x - tp.x, me.y - tp.y), s);
+        let behind = crate::army::step_along(tp, Angle(heading.0.wrapping_sub(i32::MIN)), s);
+        let spot = self
+            .find_nearby_spot(u, toward, 0, -1, 0, bearing, None)
+            .or_else(|| self.find_nearby_spot(u, behind, 0, -1, 0, bearing, None))
+            .or_else(|| self.find_nearby_spot(u, tp, s, s + 0xc0, 0x30, heading, None))
+            .unwrap_or(tp);
+        self.add_move_facing_order(
+            u,
+            spot,
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+            heading,
+            None,
+            false,
+        );
+        self.do_move(u, frame);
     }
 
     /// `Unit::do_think_order`: consume the THINK; if nothing follows, a

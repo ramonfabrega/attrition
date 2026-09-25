@@ -108,6 +108,7 @@ fn sample(sim: &Sim) -> Sample {
                         + i64::from(g.guard.y)
                         + i64::from(g.retry)
                 }
+                orders::Body::Follow(f) => f.target as i64,
                 orders::Body::AttackGround(g) => {
                     (i64::from(g.at.x) * 65_536 + i64::from(g.at.y)) * 4 + i64::from(g.attack_unit)
                 }

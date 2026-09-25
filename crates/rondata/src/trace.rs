@@ -307,6 +307,13 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005e_6596), // `Unit::do_guard+0x926`
         sim::orders::SITE_GUARD_DEAD,
     ),
+    // `Unit::do_follow@005e65d0`'s stand within the standoff (item 714,
+    // `docs/ORDERS.md` §28).
+    (
+        0x005d_ac7a,
+        Some(0x005e_68fa), // `Unit::do_follow+0x32a`
+        sim::orders::SITE_FOLLOW_STAND,
+    ),
     // `Guy::init_real@005db6b0` — the creation roll.
     (0x005d_b702, None, sim::anim::SITE_INIT_REAL),
     // `Dock::init@00740a80+0x125` — a finished dock's gull, the second of
