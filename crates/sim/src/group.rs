@@ -3343,7 +3343,7 @@ mod tests {
     /// seated, pointed where the test wants it. `bomber` puts its type on
     /// the `0x130` line.
     fn plane(s: &mut Sim, at: Pos, heading: Angle, bomber: bool) -> usize {
-        let mut t = UnitType {
+        let t = UnitType {
             hits: 100,
             moves: 75,
             turn_speed: crate::movement::degrees_to_angle(10).0,
