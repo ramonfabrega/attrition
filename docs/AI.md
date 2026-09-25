@@ -8734,7 +8734,7 @@ killer it had to survive.
   on both sides. **The readers do not**: `CityData::num_wonders@007382b0`
   walks the chain and counts every object whose Build vslot `+0x2c`
   (`BuildData::is_wonder`, `vtables.txt`) answers — a type range,
-  `0x20d < type < 0x21f` — that is not the Red Fort and, with the flag,
+  the wonders, `0x20e..0x21e` — that is not the Red Fort and, with the flag,
   not the city building (`+8 & 0x20`). **Nothing reads `is_active`.**
   This crate's `num_wonders` filtered `bd.active`. R1 survives, as a
   reader difference.

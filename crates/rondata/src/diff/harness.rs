@@ -5067,15 +5067,19 @@ pub(crate) mod tests {
         // **Thirty-two → thirty-three on item 711**: the word went 15175 →
         // 15383 and **15382** came under it (`docs/GROUPS.md` §25). The
         // streams above agree through it.
+        //
+        // **Thirty-three → thirty-four on item 722**: the word went 15384 →
+        // 15608 and **15385**, the make step after the second pass, came
+        // under it (`docs/AI.md` §70). The streams above agree through it.
         assert_eq!(
             markets,
             vec![
                 8582, 8585, 8782, 8982, 9_182, 9_382, 9_582, 9_782, 9_982, 10_182, 10_382, 10_582,
                 10_782, 10_982, 11_185, 11_382, 11_582, 11_782, 11_982, 12_182, 12_385, 12_582,
                 12_782, 12_982, 13_382, 13_385, 13_582, 13_782, 13_982, 14_385, 14_582, 14_585,
-                15_382
+                15_382, 15_385
             ],
-            "below the word Great Lakes takes exactly thirty-three market \
+            "below the word Great Lakes takes exactly thirty-four market \
              draws — and 10582 is item 506's own: the frame the sequence \
              used to part on is a `use_market` sell on both sides now"
         );
@@ -10379,7 +10383,10 @@ pub(crate) mod tests {
         let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
         let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
         let is_near = |n: i64| near.iter().any(|b| (b - 2..=b + 2).contains(&n));
-        for f in 0..=tail {
+        // Frame `f` writes block `f + 1`, so the window's last block is
+        // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
+        // chain held until run211 followed run202 (item 722).
+        for f in 0..tail {
             built.tick();
             let n = f + 1;
             if n < first_block {
