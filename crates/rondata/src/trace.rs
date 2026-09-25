@@ -383,6 +383,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // a bird's step first leaves the world and not again until one lands
     // inside (`docs/SYNC.md` §3.9). run54's is at 5437.
     (0x005e_8d09, None, sim::air::SITE_AIR_TURN),
+    // …and a non-bomber plane's `cruising_alt` redraw, every eighth frame
+    // of its flight (`docs/ORDERS.md` §33.1): chapter seventeen's 642.
+    (0x005e_878a, None, sim::air::SITE_AIR_ALT),
     // `Herd::process@00741760` — one herd's walk.
     (0x0074_1777, None, sim::gaia::SITE_HERD_X),
     (0x0074_1796, None, sim::gaia::SITE_HERD_Y),

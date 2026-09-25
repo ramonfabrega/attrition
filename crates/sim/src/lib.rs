@@ -239,6 +239,13 @@ pub struct Unit {
     /// `docs/SYNC.md` §3.9). `Unit::init` clears it with `mana_burn`, so a
     /// bird starts at 0.
     pub spell_time: i16,
+    /// **A plane's figure in the air** — guy 0's bank, pitch and altitude
+    /// (`GuyData +0x44/+0x48/+0x4c/+0x50/+0x14/+0x70`), which
+    /// `Unit::bank_aircraft` and `Unit::pitch_aircraft` step on every frame
+    /// of a flight (`docs/ORDERS.md` §33). Zero on the ground and on every
+    /// unit that never flies. A wild bird's bank is `crate::air::Flight`
+    /// instead, which predates this and carries no altitude.
+    pub airframe: air::Airframe,
     /// `unit_masks & 0x400`: has been given a build or repair order.
     pub was_builder: bool,
     /// `unit_masks & 0x78000000`: the carrying walk a gatherer plays.
@@ -820,6 +827,7 @@ impl Unit {
             idle: 0,
             stance: 1,
             spell_time: 0,
+            airframe: air::Airframe::default(),
             was_builder: false,
             carry: 0,
             cant_reach: false,
@@ -4131,6 +4139,13 @@ impl Sim {
             self.units[i].unit_masks2 &= !combat::umask2::NOT_FIRING;
         }
         if !self.units[i].on_map {
+            // **The inside arm's figure write** — `Unit::process@00610bc0`'s
+            // `else`, `guy+0x70 = guy+0x14` for every figure: `last_z` is
+            // put onto `z`. This crate carries a figure's altitude for a
+            // plane alone ([`air::Airframe`]), which is what the landed
+            // Fighter's `last_z` on run223's 723 is (item 759).
+            let af = &mut self.units[i].airframe;
+            af.last_z = af.z;
             return;
         }
         // `Unit::process` begins by counting the reload down, before
@@ -4179,7 +4194,26 @@ impl Sim {
         // order (`docs/ORDERS.md` §2.3): a move steps the unit, a build
         // runs the clock, an attack runs `fight`, an idle unit thinks.
         self.work(i, frame);
-        if !self.units[i].alive() || !self.units[i].on_map {
+        if !self.units[i].alive() {
+            return;
+        }
+        if !self.units[i].on_map {
+            // `Unit::process` runs `Guy::process` for each figure after
+            // `work` **whether or not the work put the unit inside**
+            // (`00610bc0`, the `+0x188` call and the guy loops after it).
+            // A plane that landed this frame is standing on its `des`, so
+            // its figure takes `Guy::move`'s standing arm once — the
+            // `last_speed 0`, `stopped 1` of run223's 722 — and never
+            // again, the inside arm writing only `last_z` from then on.
+            //
+            // SEAM: **only an aircraft is given the frame.** A squad that
+            // garrisons in its own `work` is owed the same `Guy::process`
+            // by the reading, and this crate has always returned here for
+            // it; no capture has been measured on that frame.
+            if self.units[i].inside.is_some() && self.units[i].kind.domain == attrition::Domain::Air
+            {
+                self.process_movement(i);
+            }
             return;
         }
         self.process_movement(i);

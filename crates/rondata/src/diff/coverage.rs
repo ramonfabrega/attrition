@@ -119,6 +119,14 @@ const UNREAD: &[(&str, &str)] = &[
     // tick period, which `widen_block` compares beside `unit_masks2`'s
     // supply mark since chapter four put a squad on hostile ground. Two
     // keys leave; no path does.
+    //
+    // **Item 759 took `*((dword*)` off both `UNITDATA/GUY` paths**: the
+    // key every one of `GuyData::log_data`'s single-precision lines
+    // shares, the record splitting at the first space, and the four that
+    // are a plane's attitude — `bank`, `last_bank`, `pitch`, `last_pitch`
+    // — are read by their tag now and compared (`docs/ORDERS.md` §33).
+    // `turret_inc`, the fifth, rides the same key unread. Two keys leave;
+    // no path does.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
@@ -126,7 +134,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
+        "(int)off_x (int)off_y (int)variation des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/OBJECT",
@@ -203,7 +211,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation *((dword*) des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
+        "(int)off_x (int)off_y (int)variation des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
     ),
     // **Item 571's run163 window is the first to print a grouped
     // attack-move** (`GROUPATTACKTOORDER`; run136 has none). Its
@@ -965,10 +973,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // 642, the word and the Fighter's strafe home; 662, the pair's; 666,
     // the strike turned patrol; 722, the Fighter inside its base; 778, the
     // patrol's strafe on the Barracks; 822, its first damage; 1081, the
-    // Barracks gone; 1212, the first empty tank.
+    // Barracks gone; 1212, the first empty tank. **Item 759 moved the word
+    // to 805**, the first bomb's animation, and its window joins.
     if let Some(p) = &ch17 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN;
-        for w in [622, 642, 662, 666, 722, 778, 822, 1081, 1212] {
+        for w in [622, 642, 662, 666, 722, 778, 805, 822, 1081, 1212] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter seventeen carries the window's five blocks");
             frames += n;
