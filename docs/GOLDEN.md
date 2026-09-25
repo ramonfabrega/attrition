@@ -1358,7 +1358,7 @@ below without a run take their number at booking (the eleventh pass).
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
 | 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
 | 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
-| 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) |
+| 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3188,3 +3188,22 @@ walk back from its box, after 856. The crate's `calc_cost` triples a
 flee's extra on `flags & 2`, a bit nothing writes (`docs/ORDERS.md`
 §1.3), not on `FLEE_TO`. The scratch walk is the same with the predicate
 corrected, so this staging cannot reach it (falsifier 7 cannot see it).
+
+**Run 2026-09-25 as run219 (item 738)** (`docs/RUNS.md` has the tables).
+- **No falsifier fired.** All four commands reached the pump on the next
+  frame with their selector, `process_move_to … 3 0` and `… 4 0`.
+- **The premise holds, measured.** One `EXPLORETOORDER` on 622 and 642
+  and one `FLEETOORDER` on 902 and 1002 a member, `flags 5`, `orig` the
+  click. The squad's are at their own slots, and there is no group order
+  on any of the four.
+- **The look**, on the frames this crate predicted. `0/6` takes its box
+  leg on 685 and opens the box on 730; the squad takes its leg on 804,
+  every member with its captain, and opens the box on 855. Each opening
+  is three `explore_goody` draws. The leg is re-aimed every fifteenth
+  frame while it walks (`0/9` on 819 and 834).
+- **The re-issue goes to the click.** Behind each box leg the re-issued
+  explore carries the member's first point and `orig`. The squad's slots
+  are laid out afresh round (12672, 14976), and `0/6` ends on (2400,
+  17280), its `orig`, where the plan's goal is.
+- The squad stands on 936–947; the flees on 1098 and 1175–1183.
+- **The pool printed**: 330,240 `GROUPDATA` at `GUYS=4`.

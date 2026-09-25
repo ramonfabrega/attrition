@@ -19,6 +19,13 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter16.cmd
 #
+#   Run 2026-09-25: 769 s, 263 MB, same game as run215 to frame 610. All four
+#   commands processed on the next frame with their selector. No falsifier
+#   fired: one EXPLORETOORDER or FLEETOORDER a member, flags 5, orig the
+#   click, no group order; box legs on 685 (0/6) and 804 (the squad, every
+#   member with its captain), boxes opened on 730 and 855; the re-issue goes
+#   to the click. The pool printed: 330,240 GROUPDATA (docs/RUNS.md, run219).
+#
 # `GUYS=4` with `GROUPS=1` and neither `DEATHS` nor `AMMO`: run215's levels,
 # the line whose pool printed (parked 733). The goody-box leg is a pushed
 # group, so the pool is worth having.
