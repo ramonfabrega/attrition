@@ -10083,7 +10083,10 @@ mod tests {
         // (238 → 218), all who=1 `SITE` rows, and nothing arrived: the
         // site values are the original's once a founded city wears them
         // down (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!(under, 218, "the floor under the word");
+        // **Item 718 took six (218 → 212)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!(under, 212, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10096,8 +10099,6 @@ mod tests {
             [
                 "11424 1/62 form",
                 "11424 1/62 group",
-                "11424 1/62 orders_x",
-                "11424 1/62 orders_y",
                 "11424 1/64 form",
                 "11424 1/64 group",
                 "11424 1/64 orders_x",
@@ -10548,11 +10549,7 @@ mod tests {
                 "12086 1/-2 pool:68: ours [68] theirs []",
                 "11982 1/-1 leader:MAKE[2].city: ours 1 theirs 0",
                 "11993 1/67 form: ours -1 theirs 0",
-                "11993 1/67 orders_x: ours 43584 theirs 43848",
-                "11993 1/67 orders_y: ours 15744 theirs 16344",
                 "12057 1/68 form: ours -1 theirs 0",
-                "12057 1/68 orders_x: ours 45120 theirs 45144",
-                "12057 1/68 orders_y: ours 23424 theirs 24120",
             ],
             "the rows under the next word"
         );
@@ -10576,7 +10573,9 @@ mod tests {
         // **Item 688 took twenty-one** (238/259 → 218/238), all who=1 `SITE` rows and nothing
         // arriving: a founded city wears the site values down
         // (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!((under, firsts.len()), (218, 238), "the floor");
+        // Item 718: trained units' `orders_x`/`orders_y` on their exit block
+        // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
+        assert_eq!((under, firsts.len()), (212, 228), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -10758,7 +10757,10 @@ mod tests {
         // 679) and what stands with them. The squad's 74 left with item 678,
         // and item 688 took the leader's `SITE` rank on 12576: a founded
         // city wears the site values down (`docs/AI.md` §67).
-        assert_eq!(past, 134, "the keys first parting after 12537");
+        // **Item 718 took four (134 → 130)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!(past, 130, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
@@ -10769,7 +10771,9 @@ mod tests {
         // **Item 688 took twenty-two** (259/396 → 238/374), all who=1 `SITE` rows and nothing
         // arriving: a founded city wears the site values down
         // (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!((under, firsts.len()), (238, 374), "the floor");
+        // Item 718: trained units' `orders_x`/`orders_y` on their exit block
+        // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
+        assert_eq!((under, firsts.len()), (228, 360), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -10928,22 +10932,16 @@ mod tests {
                 "13163 1/71 hits_left: ours 40 theirs 50",
                 "13163 1/71 myhits: ours 40 theirs 50",
                 "13163 1/71 mylos: ours 2 theirs 4",
-                "13163 1/71 orders_x: ours 42336 theirs 42360",
-                "13163 1/71 orders_y: ours 16224 theirs 17208",
                 "13344 1/72 form: ours -1 theirs 9",
                 "13344 1/72 hits:myhits: ours 40 theirs 50",
                 "13344 1/72 hits_left: ours 40 theirs 50",
                 "13344 1/72 myhits: ours 40 theirs 50",
                 "13344 1/72 mylos: ours 2 theirs 4",
-                "13344 1/72 orders_x: ours 42336 theirs 42360",
-                "13344 1/72 orders_y: ours 16224 theirs 17208",
                 "13525 1/73 form: ours -1 theirs 9",
                 "13525 1/73 hits:myhits: ours 40 theirs 50",
                 "13525 1/73 hits_left: ours 40 theirs 50",
                 "13525 1/73 myhits: ours 40 theirs 50",
                 "13525 1/73 mylos: ours 2 theirs 4",
-                "13525 1/73 orders_x: ours 42336 theirs 42360",
-                "13525 1/73 orders_y: ours 16224 theirs 17208",
                 "13556 1/74 form: ours -1 theirs 9",
                 "13556 1/74 g.angle[0]: ours 1431655765 theirs 0",
                 "13556 1/74 orders_x: ours 40416 theirs 40440",
@@ -10992,7 +10990,7 @@ mod tests {
         // above it to 14899, and none under.
         assert_eq!(
             (under, mid.len(), firsts.len()),
-            (374, 42, 416),
+            (360, 36, 396), // item 718: six trained units' `orders_x`/`orders_y`
             "the floor"
         );
     }
@@ -11096,8 +11094,6 @@ mod tests {
                 "14946 1/77 form: ours -1 theirs 0",
                 "14946 1/78 form: ours -1 theirs 0",
                 "14983 1/79 form: ours -1 theirs 0",
-                "14983 1/79 orders_x: ours 44160 theirs 44184",
-                "14983 1/79 orders_y: ours 23712 theirs 24552",
             ],
             "the rows on run192's own blocks, to the word's"
         );
@@ -11110,14 +11106,17 @@ mod tests {
             word.iter().map(|(&(w, o), v)| (w, o, v.len())).collect();
         assert_eq!(
             words,
-            [(1, 79, 3)],
+            [(1, 79, 1)], // item 718: `orders_x`/`orders_y` agree on its exit
             "who parts first on 14983, and on how many keys"
         );
-        assert_eq!(standing_n, 317, "every row standing on 14983");
+        // Item 718: `1/79`'s `orders_x`/`orders_y` agree on its exit block.
+        assert_eq!(standing_n, 315, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
-        assert_eq!((under, own.len(), firsts.len()), (416, 6, 422), "the floor");
+        // Item 718: twenty-two trained units' exit rows agree (416/6/422 →
+        // 396/4/400).
+        assert_eq!((under, own.len(), firsts.len()), (396, 4, 400), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11223,7 +11222,10 @@ mod tests {
             .filter(|(f, _)| (RUN192_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
         // Item 711: run196's own 89 and the 221 above the old word are gone.
-        assert_eq!((under, mid, firsts.len()), (422, 0, 422), "the floor");
+        // **Item 718 took twenty-two (422/0/422 → 400/0/400)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!((under, mid, firsts.len()), (400, 0, 400), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11362,7 +11364,10 @@ mod tests {
         // on run196's own blocks since item 711 — then run202's own one up
         // to the word's block (item 715: `1/70`'s nine and `1/2022`'s one
         // are gone), and every key to the window's end.
-        assert_eq!((under, mid, firsts.len()), (422, 1, 646), "the floor");
+        // **Item 718 took twenty-two (422/1/646 → 400/1/624)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!((under, mid, firsts.len()), (400, 1, 624), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
@@ -13186,7 +13191,10 @@ mod tests {
         // `trade_val` and `vans.length`, which were compared against a
         // literal 0 and agree once the rows read the sim's own (`docs/AI.md`
         // §63).
-        assert_eq!(under, 190, "the floor under the word");
+        // **Item 718 took four (190 → 186)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!(under, 186, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -13213,8 +13221,6 @@ mod tests {
             [
                 "10187 1/32 form: ours -1 theirs 0",
                 "10188 1/32 group: ours 68 theirs 66",
-                "10187 1/32 orders_x: ours 44160 theirs 45192",
-                "10187 1/32 orders_y: ours 41856 theirs 41880",
             ],
             "the warship's birth"
         );
@@ -13580,7 +13586,10 @@ mod tests {
         // who=1 `SITE` rows under the word, and six more past it: a founded
         // city wears the site values down (`City::fix_world_vals`,
         // `docs/AI.md` §67).
-        assert_eq!((first, under_n, firsts.len()), (223, 223, 233), "the floor");
+        // **Item 718 took two (223/223/233 → 223/223/231)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!((first, under_n, firsts.len()), (223, 223, 231), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -13660,8 +13669,6 @@ mod tests {
                 "11318 1/41 hits_left: ours 40 theirs 50",
                 "11318 1/41 myhits: ours 40 theirs 50",
                 "11318 1/41 mylos: ours 2 theirs 4",
-                "11318 1/41 orders_x: ours 34656 theirs 34680",
-                "11318 1/41 orders_y: ours 36192 theirs 37176",
                 "11363 1/42 form: ours -1 theirs 9",
                 "11363 1/42 g.angle[0]: ours 1431655765 theirs 0",
                 "11363 1/42 orders_x: ours 36000 theirs 36024",
@@ -13671,8 +13678,6 @@ mod tests {
                 "11499 1/43 hits_left: ours 40 theirs 50",
                 "11499 1/43 myhits: ours 40 theirs 50",
                 "11499 1/43 mylos: ours 2 theirs 4",
-                "11499 1/43 orders_x: ours 34656 theirs 34680",
-                "11499 1/43 orders_y: ours 36192 theirs 37176",
             ],
             "the rows under the word and on it"
         );
@@ -13827,7 +13832,9 @@ mod tests {
         // **Item 688 took thirty-seven** (263/287/292 → 228/250/255), all who=1 `SITE` rows and nothing
         // arriving: a founded city wears the site values down
         // (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!((first, under_n, firsts.len()), (228, 250, 255), "the floor");
+        // Item 718: trained units' `orders_x`/`orders_y` on their exit block
+        // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (228, 246, 251), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -13905,8 +13912,6 @@ mod tests {
                 "13582 1/-1 leader:MAKE[8].city: ours 1 theirs 0",
                 "13593 1/53 form: ours -1 theirs 0",
                 "13594 1/53 group: ours 69 theirs 68",
-                "13593 1/53 orders_x: ours 34944 theirs 34488",
-                "13593 1/53 orders_y: ours 33408 theirs 33864",
             ],
             "the rows under the word and on it"
         );
@@ -13966,7 +13971,9 @@ mod tests {
         // down (`City::fix_world_vals`, `docs/AI.md` §67).
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (270, 282, 282), "the floor");
+        // Item 718: trained units' `orders_x`/`orders_y` on their exit block
+        // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (270, 280, 280), "the floor");
     }
 
     /// **run78 — East Indies' old word 15782, the move's value diff**
@@ -14161,7 +14168,10 @@ mod tests {
         // **Item 688 took thirty-nine** (244/273/275 → 219/234/236), all who=1 `SITE` rows and nothing
         // arriving: a founded city wears the site values down
         // (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!((first, under, firsts.len()), (219, 234, 236), "the floor");
+        // **Item 718 took two (219/234/236 → 219/232/234)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!((first, under, firsts.len()), (219, 232, 234), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -14859,7 +14869,10 @@ mod tests {
         // the first block and all who=1 `SITE` rows, with nothing
         // arriving: a founded city wears the site values down
         // (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!((first, under, firsts.len()), (214, 240, 251), "the floor");
+        // **Item 718 took two (214/240/251 → 214/240/249)**: trained units' `orders_x`/`orders_y`
+        // on their exit block, `come_out`'s `update_action` on the captain
+        // (`docs/ORDERS.md` §29), and nothing arrived.
+        assert_eq!((first, under, firsts.len()), (214, 240, 249), "the floor");
     }
 
     #[test]
