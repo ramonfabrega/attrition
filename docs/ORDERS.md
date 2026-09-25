@@ -798,7 +798,7 @@ invariant — 17 of the 79 carry a blocker's position, which is
 | `dest_x, dest_y` | **the current waypoint — what `move_step` walks toward.** Initialised to `x, y`; rewritten from the stack top each time `dest` goes 0 → 1; moved by `find_path`'s pull-back and by `resolve_unit_collision`'s side-step. |
 | `last_x, last_y` | the position at which the last straight-line plan was made (`find_path` after a successful detour); −1 when a fresh target is taken; a stack top equal to `last` (and not final) is popped before re-planning. |
 | `coll_x, coll_y` | **the refused step point**, not the blocker's (run10 frame 123) and not `astar_path`'s: `detect_unit_collision@00617060` writes it. `do_move` re-probes it every other frame while a search runs. `docs/COLLISION.md` §4.3. |
-| `orig_x, orig_y` | the un-snapped point the caller asked for (`action_move_near` passes the click; `add_move_order` passes −1, −1). Not reset by `clear`. Informational. |
+| `orig_x, orig_y` | the un-snapped point the caller asked for (`action_move_near` passes the click, `add_move_order` −1, −1). Not reset by `clear`. Replayed to (§31). |
 | `off_x, off_y` | `x mod 0x300`, `y mod 0x300` — the destination's offset inside its world cell; `go_around_building` and `find_tpath` use `off % 0xc0` (inside the *tile*) to place detour waypoints off-centre. |
 
 `ExploreToOrder`, `FleeToOrder`, `AttackToOrder` are `MoveOrder` with no extra
@@ -6663,4 +6663,54 @@ code):
   which keeps the leader's formation, sets the group's `form` to −2 and
   skips the insert dance;
 - `action_begin`'s scenario sweep;
-- a plain move's `orig`, which the replay takes as its `dest`.
+- ~~a plain move's `orig`, which the replay takes as its `dest`~~ —
+  carried since item 738 (§31).
+
+## 31. A plain move's `orig`, carried: the replay goes to the click (item 738, 2026-09-25)
+
+`docs/GOLDEN.md` §24's chapter sixteen parted on **838**. The player's
+explore sends the chariot `0/6` past a goody box; `get_goody_box@005f7690`
+pushes a one-member group and moves it `QUEUE_FIRST`, and the group's
+`QUEUE_FIRST` arm copies the leader's action-flagged orders aside, halts,
+issues the box leg and re-issues each copy through
+`Group::finish_insert@0070e620`. Cases 1–4 (`MOVE_TO`, `ATTACK_TO`,
+`EXPLORE_TO`, `FLEE_TO`) call `action_move_near(orig_x, orig_y, 0,
+QUEUE_LAST, 1, the copy's angle, kind, 1, −1, −1, 0)` when both halves of
+`orig` are non-negative, and fall back to the copy's `x, y` otherwise
+(`finish_insert:85–103`).
+
+**`orig` is the click.** `action_move_near`'s plain arm (`705f61`) hands
+`add_move_facing_order@005e55c0` its own `param_1, param_2` as the 9th
+and 10th arguments, which land at `MoveOrder +0x44/+0x48`
+(`piVar6[0x11]`, `[0x12]`); the group arm does the same through
+`add_group_move_order@005e4710`. `add_move_order` passes −1, −1. So the
+replay is laid out round the point the player clicked, and its plan ends
+there: run219's chariot stands on (2400, 17280), its click, where its
+first explore's point was the snap (2424, 17304); the squad's replay on
+804 re-lays its slots round (12672, 14976), keeping each member's first
+point.
+
+**This crate** carried `orig` on a group move only (`GroupMove::orig`,
+item 723's replay to `orig`, §30) and replayed a plain move to its
+snapped `dest`. The chariot's replay planned to (2424, 17304), arrived a
+frame late, and missed the original's two idle rolls on 838.
+
+**Built.** `MoveOrder::orig`, `Some(click)` from `group_action_move_to`'s
+plain arm, `None` (the −1 pair) from `add_move_order`, `Some(dest)` from
+the ungroup arm (run100's `1/29`, `(39133, 21131)` → `(38952, 21048)`),
+and a stood-up order's dump value. `group_finish_insert` replays to
+`group.orig`, then `orig`, then `dest`. `crate::diff::order` does not
+compare `orig_x`/`orig_y` yet: on the whole suite it adds two rows past
+Great Lakes' word to run218's widening (`1/0`'s explore on 16470, whose
+point has already parted), and that widening was fenced this tranche.
+
+**What it moved**: chapter sixteen **838 → 1250**, run219's trace end,
+sequence 1250, no value part; the widening over run219 whole leaves the
+births' `form` and the pool's `speed` rows (§24).
+`grouppath::tests::a_copied_plain_move_replays_to_its_click_not_its_slot`
+fails with the replay's `.or(m.orig)` removed.
+
+**Diff-backed**: the replay's point for `EXPLORE_TO` (run219, 685 and 804).
+**Reading only**: cases 1, 2 and 4 on a plain move — no capture puts a
+player's plain move, attack-move or flee behind a group `QUEUE_FIRST`.
+

@@ -1293,7 +1293,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | GroupAttackOrder | ~~`issue_attack` on a multi-unit group~~ **no issuer makes one** (`docs/ORDERS.md` §7.9): `CommandManager::issue_attack@009415e0` → `Group::action_attack@00712490` gives each member its own `AttackOrder`; only `copy_order` and the save loader build a `GroupAttackOrder` | 15, the group attack (§23), which measures the absence |
 | GroupAttackToOrder | `issue_move_to` with `ATTACK_TO`, a ctrl+right-click on the ground (`WorldMap::on_right_up@008c7050:199`); also the AI's armies and the patrol's legs | 10 (the patrol's legs); 15, the group attack (§23) |
 | MoveOrder, GroupMoveOrder | `CommandManager::issue_move_to@00941720` | 9, the first issuer chapter (§17; the lab validated the issuer) |
-| ExploreToOrder, FleeToOrder | the same entry point, trailing selector | — |
+| ExploreToOrder, FleeToOrder | the same entry point, trailing selector: `issue_move_to` copies the `orders` byte, and `add_move_facing_order@005e55c0` picks the class at process time; a squad gets one a member and no group order | 16, explore and flee (§24) |
 | PatrolOrder, GroupPatrolOrder | `CommandManager::issue_patrol@00941800`; `PatrolOrder` is never constructed alone (`docs/ORDERS.md` §7.7) | 10, the patrol line (§18) |
 | AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860` | 6 |
 | AirOrder | `CommandManager::issue_flight@00941d40` | — |
@@ -1358,6 +1358,7 @@ below without a run take their number at booking (the eleventh pass).
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
 | 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
 | 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
+| 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3025,3 +3026,217 @@ The widening over run215 whole leaves:
 - one instrument row, `1/6`'s death object `extra` on 809. `DEATHS` was
   off for the pool, and `DEATH_OBJS` prints a record per corpse and
   nothing else, so the dump cannot say the list was not asked for.
+
+## 24. Chapter sixteen — explore and flee, the move issuer's trailing selector (item 738)
+
+**Premise.** `CommandManager::issue_move_to@00941720`'s `orders` byte,
+the trailing selector, set to `EXPLORE_TO` (3) or `FLEE_TO` (4), makes
+**one `ExploreToOrder` (type 3) or one `FleeToOrder` (type 4) a member,
+each at its own formation slot, and no group order**. Chapters fourteen and
+fifteen died on "no issuer builds one", so the booking asked the
+emulator first. The issuer builds nothing at all, and the class is chosen
+at process time by `Unit::add_move_facing_order@005e55c0`'s switch on its
+kind. The explore's one behaviour of its own is the goody look, and the
+staging puts a box in reach of each explorer. `tools/gamelog/golden/
+chapter16.cmd` has the reading with its citations.
+
+**The issuer, under the emulator first**, on
+`tools/explore/command_oracle.py`'s fixture widened to who=0's objects
+6–14, with 6, 9 and 12 as captains (a scratch script in the job's tmp dir).
+
+- **`orders` 0 to 5 append the same 27 bytes**, a 5-byte `group` of one
+  and the 22-byte `move_to`, differing in the `orders` byte alone. The
+  issuer copies the byte and tests nothing.
+- **It writes** the package and the selection caches, and nothing else,
+  as in §17 and §23. The same selection again appends the 3-byte reuse; a
+  non-captain is dropped; `queued` 0, 1 and 2 ride through;
+  `use_mp_playback`, `semaphore & 0x10` and `semaphore & 4` each append
+  nothing.
+- **What the emulator cannot reach** is everything that makes a class:
+  `process_move_to@009497c0` → `Group::action_move_to@0070fba0` →
+  `action_move_near@00704990` → `add_move_facing_order@005e55c0`.
+- **The DLL's two new verbs.** `@explore` and `@flee` are `@move` with
+  `orders` 3 and 4. `@explore` is the Explore button's pick on the ground
+  (`Options::picked_spot@00721c40:905`). The Flee button (`:946`) passes
+  `FLEE_TO` to a friendly building's point and then a `QUEUE_LAST`
+  `issue_garrison` of it; `@flee` issues the move alone. Both compile
+  `-Werror`, plain and under `RON_AUTOSTART`.
+
+**The reading.**
+
+- **The class.** `add_move_facing_order` maps kind 2 → `get_obj(ATTACK_TO)`,
+  3 → `get_obj(EXPLORE_TO)`, 4 → `get_obj(FLEE_TO)`, anything else
+  `MOVE_TO`. Its kind is `action_move_near`'s `param_7`, which is
+  `process_move_to`'s `orders` byte. Both classes are `MoveOrder`s with no
+  fields of their own (`docs/ORDERS.md` §4.1). `do_flee_to@005f2480` is
+  `do_move`.
+- **No group.** `action_move_near:758` hands a member to
+  `add_group_move_order` only for `MOVE_TO` or `ATTACK_TO`. A squad told
+  to explore or flee gets a plain order a member at its slot, pathed, with
+  the action bit, and `orig` the click.
+- **The explore's look.** `do_explore_to@005f24a0` is `do_move` and, every
+  fifteenth frame (`(o + frame) % 15 == 0`), on a captain whose head is
+  still this order, `find_goody_box@005f2540`: a 49-cell sweep for a seen
+  box in the unit's region (`docs/GOODY.md` §7). A hit calls
+  `get_goody_box@005f7690`: a one-member group of the captain, which drags
+  its figures (`docs/GROUPS.md` §4.1), pushed, and `action_move_to(box
+  cell centre, QUEUE_FIRST, EXPLORE_TO, action 0)`. The group's
+  `QUEUE_FIRST` copies the leader's action-flagged orders aside, halts,
+  issues the box leg `QUEUE_NEW`, and re-issues each copy through
+  `Group::finish_insert@0070e620` case 3. That call is
+  `action_move_near(orig_x, orig_y, QUEUE_LAST, set_angle 1, the copy's
+  angle, EXPLORE_TO, action 1)`: **to the copy's click, not its slot**.
+- **The look repeats.** The box leg has no action bit, so `update_action`
+  walks past it, and `orders_x/y` stays the re-issued explore's point.
+  `find_goody_box`'s "already going there" test compares the box against
+  `orders_x/y`, so the look re-issues the leg on every fifteenth frame
+  until the unit stands in the box's cell. Entering it opens the box
+  (`Unit::set_new_location` → `explore_goody`, one draw a candidate good,
+  `docs/GOODY.md` §2–§3).
+- **The flee's readers** are `UnitData::is_fleeing@0046efa0`,
+  `order_type() == FLEE_TO`. `Unit::target_opportunity@005fffc0` returns
+  on it, `PathFinder::calc_cost@00684e50` triples a seen world or tile
+  step's extra on it, and `Unit::resolve_unit_collision@005f9d30:380`
+  does not wait for a blocker that holds one. None is staged to fire:
+  no enemy is in the window, and the flee paths cross no seen cell whose
+  extra is above 0.
+
+**The cast**, on chapter nine's and ten's ground (BASELAND, no border).
+Two goody boxes are in reach, read off run215's start `WORLD` (22 on the
+map): cells (1, 19) and (16, 21).
+- a Chariot `0/6`, seated at tile (12, 60), cell (3, 15);
+- a Hoplite squad `0/7`–`0/9`, captain `0/7`, seated at tile (52, 60),
+  cell (13, 15).
+
+**Lines.**
+- `0 !ai off`; `610 add chariot who=0 12,60`; `612 add hoplite who=0 52,60`.
+- `620 @explore 0 2400 17280 6`: south, past the box at (1, 19).
+- `640 @explore 0 12672 14976 7`: south-east, two cells short of the box
+  at (16, 21), which the captain sees on the way.
+- `900 @flee 0 2400 11520 6`: the chariot back north.
+- `1000 @flee 0 10752 11520 7`: the squad back north-west.
+
+A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1250)`, beside run105's `start:`
+set: run215's levels, the line whose pool printed (parked 733).
+
+**The premise's killer, and its writers** (§3, point 5).
+- **A `MOVEORDER` (type 1) or any group order where an explore or a flee
+  is predicted.** The dump names the class by its record's label,
+  `EXPLORETOORDER` (`ExploreToOrder::log_data@00483000`) or `FLEETOORDER`
+  (`FleeToOrder::log_data@00482eb0`), and its `type` line (`FleeToOrder::
+  get_type@00482f30` answers 4). The type's writer on this path is
+  `add_move_facing_order`'s switch. Its two other `EXPLORE_TO` writers
+  are not reached: the `QUEUE_LAST` conversion of a `role & 0x10` type's
+  `MOVE_TO` (the call is `QUEUE_NEW`, and neither type is a scout), and
+  `Unit::work`'s step 5 on `unit_masks & 0x4000000`, which the `QUEUE_NEW`
+  arm clears (`005e568d`).
+- **The loops' bounds.** `action_move_near`'s member loop runs to
+  `group.num`: 1 for the chariot, 3 for the squad. `find_goody_box` sweeps
+  `0xc4 / 4` = 49 cells. `explore_goody` walks goods 0..6.
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frames 620, 640, 900 and
+   1000: an `INFO 17` with a refusal. Or no `process_move_to` with
+   `orders` 3 between 621 and 622 and between 641 and 642, and with 4
+   between 901 and 902 and between 1001 and 1002.
+2. **The class is not the selector's.** Block 622: `0/6` without one
+   `EXPLORETOORDER` (type 3), `flags 5`, `orig` (2400, 17280). Block 642:
+   any of `0/7`–`0/9` without one at its own slot, or with a
+   `GROUPMOVEORDER`. Blocks 902 and 1002: the same for `FLEETOORDER`
+   (type 4).
+3. **The look does not fire.** No box leg (an `EXPLORETOORDER`, `flags 1`,
+   to (1176, 15000)) in front of `0/6`'s re-issued explore by block 760;
+   none on the squad by block 880. Its first possible block is the first
+   fifteenth frame with the box seen and in the sweep.
+4. **The look is a figure's, or it drops the walk.** A box leg on a
+   follower that its captain does not share; or no re-issued `flags 5`
+   explore behind the leg.
+5. **The re-issue goes to the slot.** Behind the squad's box legs, a
+   re-issued explore whose `orig` is not the click (12672, 14976), or
+   whose points are not the slots laid out afresh round the click.
+6. **The box is not opened.** No `Unit::explore_goody` draw on the frame
+   `0/6` first stands in cell (1, 19), or the frame a squad member first
+   stands in (16, 21).
+7. **They do not arrive.** A stack not empty on block 900 (`0/6`), 1000
+   (the squad), 1150 (`0/6`'s flee) or 1250 (the squad's flee).
+
+**This crate's prediction**, walked from run215's start with the harness's
+new `@explore` and `@flee` (a scratch walk; run215 is the same game to
+610). The harness takes both verbs through `crate::input::group_move_to`
+with `orders` 3 and 4, which the crate already carried.
+- **The chariot**: an `EXPLORE_TO` to (2424, 17304) on 622. The box leg
+  to (1176, 15000) on 685, re-issued each fifteenth frame. The box opens
+  on 731 and the chariot stands on its centre by 748. It re-walks the
+  explore and stands on (2424, 17304) on 839.
+- **The squad**: three `EXPLORE_TO`s on 642, to (12696, 15000), (12552,
+  15048) and (12792, 14904), and no group. All three get the box leg on
+  804, the figures with their captain. The box opens on 856, and they
+  stand by 950.
+- **The flees**: a `FLEE_TO` on 902 and three on 1002. They stand on
+  1095 and by 1190.
+
+**Where it should part.** The crate's `group_finish_insert` re-issues a
+plain move to its snapped `dest`, since the crate does not carry a plain
+move's `orig` (a named seam). For `0/6` the two are the same point. For
+the squad the group re-forms round the leader's slot, (12696, 15000),
+where the reading says the click. That puts `0/8` on (12600, 15096)
+against (12552, 15048), so the first parting expected is the squad's
+walk back from its box, after 856. The crate's `calc_cost` triples a
+flee's extra on `flags & 2`, a bit nothing writes (`docs/ORDERS.md`
+§1.3), not on `FLEE_TO`. The scratch walk is the same with the predicate
+corrected, so this staging cannot reach it (falsifier 7 cannot see it).
+
+**Run 2026-09-25 as run219 (item 738)** (`docs/RUNS.md` has the tables).
+- **No falsifier fired.** All four commands reached the pump on the next
+  frame with their selector, `process_move_to … 3 0` and `… 4 0`.
+- **The premise holds, measured.** One `EXPLORETOORDER` on 622 and 642
+  and one `FLEETOORDER` on 902 and 1002 a member, `flags 5`, `orig` the
+  click. The squad's are at their own slots, and there is no group order
+  on any of the four.
+- **The look**, on the frames this crate predicted. `0/6` takes its box
+  leg on 685 and opens the box on 730; the squad takes its leg on 804,
+  every member with its captain, and opens the box on 855. Each opening
+  is three `explore_goody` draws. The leg is re-aimed every fifteenth
+  frame while it walks (`0/9` on 819 and 834).
+- **The re-issue goes to the click.** Behind each box leg the re-issued
+  explore carries the member's first point and `orig`. The squad's slots
+  are laid out afresh round (12672, 14976), and `0/6` ends on (2400,
+  17280), its `orig`, where the plan's goal is.
+- The squad stands on 936–947; the flees on 1098 and 1175–1183.
+- **The pool printed**: 330,240 `GROUPDATA` at `GUYS=4`.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_SIXTEEN` = 838, open.**
+The harness took both selectors from the start, and every class, box leg
+and box opening agreed on its frame. The parting was the one predicted,
+the re-issue's point. On 838 the original's chariot stands on its click
+and goes idle, two `Guy::set_anim+0x97a < Unit::do_idle+0x7d` rolls,
+7 draws against 5 at draw 0; this crate's walked on to the snap.
+- **The widening** over (605, 840) names it first on 685: `0/6`'s plan
+  goal, (2424, 17304) here against (2400, 17280). From it follow the
+  waypoint on 779, a one-unit drift on 793 and 797, and the arrival. On
+  804 the squad's replay was laid out round the leader's slot, `0/8` to
+  (12600, 15096) against (12552, 15048), and 819's re-aim carried it.
+  71 keys, and the births' `form`.
+- **The pool's widening** adds the replay's group point, `ox/oy` on the
+  box leg's slot, and `speed`/`new_speed` on 685 and 804.
+  `Groups::get_open_slot@006fa460` asks each live slot it walks past for
+  `get_num`, which normalizes a seated group of fewer than four and
+  re-seats its speed; this crate does not model the slot allocation.
+- **The coverage pin** needed nothing new; its driver takes 622, 642,
+  685, 730, 804, 838, 902 and 1002.
+
+**Closed at 1250 by the same item** (`docs/ORDERS.md` §31). A plain
+move's `orig` is carried, the click from `action_move_near`'s plain arm,
+and `finish_insert` replays to it. That alone moved the word 838 → 1250,
+run219's trace end: sequence 1250, no value part. The widening over run219
+whole leaves the births' `form` and the pool's six `speed` rows.
+
+**Not reached by this staging**: the flee's three readers. The crate's
+`calc_cost` triples a flee's extra on `flags & 2`, a bit nothing writes,
+where the original reads `order_type() == FLEE_TO`; the scratch walk with
+it corrected was identical, because neither flee path crosses a seen
+cell whose extra is above 0. A flee over seen rough ground, or past an
+enemy's danger, would reach it.
