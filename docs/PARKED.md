@@ -22,6 +22,15 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 746, 2026-09-25 — the flight's corners
+
+(760) **A pushed flight group's point** reads (0, 0) in the original and
+(−1, −1) here. No step of a flight reads it, and its writer is not read.
+
+(761) **A strike from inside a base**: its `valid_target`,
+`MISSILE_DEFENSE_BONUS`, reach and war tests are not built. No capture
+reaches it.
+
 ## Parked by item 708, 2026-09-25 — run221 past the word
 
 (753) **run221's rows past the word**: who=1's newborn `1/59` on 16166
@@ -1003,6 +1012,13 @@ at its merge): `winelaunch.sh` refuses rather than queues, and 742 chained
 The same line asks that a brief carry the first parting's *field list*,
 not its unit: 736's widening already showed the give-up's stores agreeing
 on 16459, one field from the mechanism.
+
+(762) **The click-free lane stalls in DXVK's device setup** (746's Loop
+line, filed at its merge): run223's first take hung for the whole 3600 s
+with `wine.log` ending at MoltenVK's `VkInstance` and no `gamelog.txt`,
+the second such stall after run157's; the second take captured. No game
+process, display asleep or dialog was found. A launch that times out
+before frame 0 could be retried once by the runner rather than a worker.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
