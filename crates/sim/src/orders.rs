@@ -2868,7 +2868,7 @@ impl Sim {
         if self.is_moving(t) {
             k *= 2;
         }
-        let s = (los * 0x180 - k).max(0x180).min(0x600);
+        let s = (los * 0x180 - k).clamp(0x180, 0x600);
         if d <= s + 0xc0 {
             self.mark(SITE_FOLLOW_STAND);
             self.set_anim(u, anim::DEFAULT, false, true);
