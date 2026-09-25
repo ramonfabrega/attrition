@@ -6354,3 +6354,88 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 #   wealth is 4800 there and 4000 here, after a purchase both sides make
 #   on 17085. Four citizens are re-dealt under it (`1/3`, `1/5`, `1/70`,
 #   `1/72` across `1/2002`, `1/2004`, `1/2022`).
+
+run: 227
+tag: eastindies-wrapword
+item: 752
+why: East Indies' long word is 16683 (item 708), where ours spends 6 draws against 7, parting at index 5 — the original spends six `Guy::set_anim+0x97a < Guy::inc_time+0x271` idle wraps before `Farms::inc_time+0x1ae`, ours five (`1/18` twice, `1/19`, `1/20`, `1/54`) — and run221, the last capture on this map below 23960, ends on block 16236, so the word's block 16684 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-25, item 752): every
+# `gamelog-*eastindies*` by its block range. run221 holds 15894..16236
+# (its `!quit` stub to 16247), run96 from 23960; run54 prints only its
+# draw stream. None holds 16683 or 16684. **What the disk does answer.**
+# The draw stream (run54's trace against ours, `RON_DEBUG_SITES=16680-
+# 16684`) agrees in count and sequence on every frame to 16682 and again
+# on 16684; on 16683 ours' five wraps are `1/18`'s two crew figures, `1/19`,
+# `1/20` and `1/54`, three of them the three-frame crew idles that also
+# wrapped on 16680 (`1/21` wrapped with them there and not here). The
+# original's sixth wrap has no unit in a `cover=0` trace. run221's last
+# block, 16236 (`RON_STANDING=16236-16236` on its widening), carries
+# every figure's `GUY` record at `GUYS=4`, and **no figure clock stands
+# there**: the rows on it are the parked families (646's `form`, 679's
+# hits and LOS, 674's pool `group`), the human's new city `0/2000`,
+# the scouts' order points, who=1's leader rows, and `1/18`'s order
+# (`action` ours only, `flags` 4 against 0, `move.angle`) — `1/18` is
+# one of the five. **What the disk could not answer**: every record on
+# 16237..16684 — which figure's idle runs out on the original's 16683,
+# whether it exists here, what its `cur_anim`, `cur_time`, `end_time`
+# and `last_time` read on block 16683 (the word's pre-state), and on
+# which earlier block its clock first parts.
+#
+# **Sized to the word, with 250 blocks of runway** (DECISIONS 50 §7):
+# seven blocks shared with run221 (16230..16236), the 447 up to the
+# word, its block 16684, and 250 above it — 705 blocks.
+#
+# **The readings, each with what kills it** (block = frame + 1, so block
+# 16683 is frame 16683's pre-state and 16684 its result). Each killer
+# tests the claim's own unit, the figure, never the first row:
+#
+# - **R1 — this is run54's game to 16945.** Killed if the trace differs
+#   from run54's on any frame, or the overlap with run221 on
+#   16230..16236 differs or counts other than seven blocks.
+# - **R2 — a figure both sides hold wraps there and not here, because
+#   its clock or its state differs.** Its unit is the figure whose
+#   `GUY` shows a fresh roll on the original's block 16684 (`cur_time`
+#   0 and `last_time` −1, or `cur_anim` changed) and not on ours'.
+#   Killed if every figure of every owner agrees on `cur_anim`,
+#   `cur_time`, `end_time`, `last_time`, `guy_flags` and `stopped` on
+#   block 16683, compared on (who, o, guy_num) — what the slot holds,
+#   not its print index.
+# - **R3 — the same five wrap, and the original holds one more figure.**
+#   Killed if the roster of figures, (who, o, type, guy_num), agrees on
+#   block 16683.
+# - **R4 — the farm's own tick differs and the wraps follow it.** The
+#   stream already bounds it: both sides spend the farm's one
+#   `Farms::inc_time+0x1ae` after every phase-7 wrap on 16683, so the
+#   farm cannot set a wrap on its own frame. Kept as a record check:
+#   killed if who=1's farm buildings (`BUILDDATA`) and every citizen
+#   working a farm (its order, `cur_anim`, clock) agree on block 16683.
+#   The farm list itself prints only in a full dump, not on this line.
+#
+# **run221's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the overlap is byte for byte and the pool lands (no `DEATHS`).
+frames: 16945
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **16230..16934, 705 blocks**: seven shared with run221 (16230..16236),
+# the 447 up to the word, its block 16684, and 250 of runway above it.
+frame_window: 16230 16935
+# A draw-stream trace first (the brief): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run221 and run226**: 2.3 MB a block, so 705 blocks is
+# ~1.6 GB. run221 took 29 minutes for 343 blocks, run226 50 for 645;
+# this is ~55. 360 polls is two hours.
+poll_max: 360
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run227.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=16935)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run227-eastindies-wrapword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 705 blocks, 16230..16934, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run227-eastindies-wrapword.txt" | awk '{v=$3+0; if(v>=16230&&v<16935) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==705 && lo==16230 && hi==16934)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run227-eastindies-wrapword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=16230&&v<16935)n++} print "blocks with a GROUPDATA: "n; exit !(n==705)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run227-eastindies-wrapword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=16230&&v<16935)n++} print "blocks with a GUY: "n; exit !(n==705)}'
+# **The overlap with run221, and the count is the claim** — seven
+# blocks, 16230..16236, the same line, nothing excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run221-eastindies-slotword.txt gamelog-run227-eastindies-wrapword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run221 overlap: common="n" "r" differ="d; exit !(n==7 && d==0 && r=="(16230..16236)")}'
