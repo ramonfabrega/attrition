@@ -541,7 +541,8 @@ if detect(proposed, quick 0):
            or collide < 0x1a
            or ((path_top.tolerance == 0 or path_top.flags & 2) and not path_top.flags & 1):
             resolve_unit_collision(proposed); return
-        tolerance = manh * 2               # give up: call it arrived
+        tolerance = manh * 2               # give up: call it arrived,
+        → the tail below, with no step    # from where it stands (§17)
 ```
 
 `big_radius` is `ObjectType +0x244`.
@@ -561,7 +562,9 @@ Three things about it matter and each has cost a frame: the distance is
 **Manhattan**, not the octagonal `vector_dist` `do_move`'s own take uses;
 the tolerance is **`UnitData::tolerance`**, the unit's field, never the path
 entry's; and it runs **only after an accepted step**, so a blocked frame
-never reaches it. §8.7 is the mechanic that turns on all three.
+never reaches it — ~~every blocked frame~~ **except the give-up's**, which
+jumps onto it with the unit where it stood (§17, item 742). §8.7 is the
+mechanic that turns on all three.
 
 The `set_anim(CHAR_DEFAULT)` is the call at `005fb74e`, so its draw site is
 `Unit::move_step+0x823` and the trace names it
@@ -3218,3 +3221,98 @@ part only between a push and the pushed unit's next `Guy::process`.
   the unit's move taking the bits, and
   `anim::tests::a_pushed_unit_s_trackless_crew_rolls_its_idle_alone`
   fails with the crew answering guy 0's arrival test.
+
+## 17. The give-up takes no step: a unit blocked 26 frames pops its leg where it stands — Great Lakes 16460 → 17099 (item 742, 2026-09-25)
+
+Great Lakes' word was **16460**. The original spent 3 draws there and this
+crate 1, parting at index 1 on `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. On run218's own blocks only `1/23` parted, a
+three-figure unit outside The Despot's group: 26 keys on block 16460 and
+17 on 16461. No mechanism was named.
+
+### 17.1 The frame
+
+`1/23` walks north on a 26-entry plan to (41632, 21280). From about 16433
+The Despot `1/79` (type 2, stopped at (41631, 21346), 120 north) blocks
+its step on both sides. Each blocked frame counts `collide` up, 22 on
+block 16455 to 26 on block 16459, `collide_o 79` throughout. Positions,
+`collide`, `collide_o` and the orders all agree through 16459.
+
+On sim-frame 16459 (block 16460) the original's `1/23`:
+- stays at (41632, 21466);
+- takes `tolerance` 96 → **372**, which is 2 × 186, the Manhattan still
+  owed to (41632, 21280);
+- goes `path:length` 26 → 25 and `move.dest` 1 → 0;
+- leaves `collide` at 26 and `collide_frame` at 16458.
+
+This crate's took the same tolerance, the same pop and the same `dest`,
+and **walked 26 north to (41632, 21440)**. That was the only row that
+parted. On 16460 the original takes the next leg, (41824, 21024). It is
+blocked again (`collide 27`, `coll` (41642, 21443)), and that is the
+word's `+0x823`.
+
+### 17.2 The arm
+
+§5's give-up: blocked, no turn owed, and none of the three `resolve`
+tests passing. That is `(my big_radius + its) × 3 > manh`, `collide >=
+0x1a`, and the top leg either has a tolerance and no `SIDESTEP` flag, or
+is final. It widens `tolerance` and **jumps to the tail**:
+
+- `005fb7b5 lea eax, [ecx+ecx]` and `005fb7b8 mov [ebx+0x60], eax`:
+  `tolerance = local_28 * 2`;
+- `005fb7bb jmp 005fb82c`, past the step. The step is `invalid_loc` at
+  `005fb7d1`–`005fb7fe`, `set_anim(local_2c)` at `005fb812` and
+  `set_new_location` at `005fb81f`;
+- `005fb82c`–`005fb85c` is the tail's arrival test,
+  `|dest_y − y| + |dest_x − x|` against `tolerance`, reading the
+  unit's position as it stands (`+0x10`/`+0x14 ^ 0x63637`). `jg` returns
+  1; otherwise `dest = 0` (`005fb862`) and the pop.
+
+The decompile says the same (`move_step@005faf30:280-296`). The step
+sits in the `else` of `if (bVar16)`, and the give-up is in the `if`.
+The pseudocode of §5 read `tolerance = manh * 2  # give up: call it
+arrived` and did not say that no step was taken. This crate stepped onto
+`target` and then ran the arrival test from there.
+
+Since the tolerance is twice the distance, the test always passes from
+where the unit stands. The code still runs the original's test rather
+than assuming it (`Sim::move_step`'s `gave_up` arm in
+`crates/sim/src/orders.rs`), and a unit test pins that it arrives.
+
+### 17.3 What it moved
+
+- **Great Lakes 16460 → 17099.** On 17099 ours spends 217 draws against
+  225, parting at index 0. The original's first draw is
+  `Guy::set_anim+0x97a < Unit::move_step+0x823`, another blocked step;
+  ours is `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. That is **past
+  run218's last block (16711)**, so run226 was captured over it and
+  widened (`run226_s_word_frame_is_widened_whole`, `docs/RUNS.md`).
+  Nothing parts on 16712..17085. The first rows are on 17086: who=1's
+  `resource_cap`, 4800 there and 4000 here, and a re-deal of four
+  citizens under it. No mechanism is named.
+- **The value diff on 16459** (`run218_s_word_frame_is_widened_whole`):
+  `1/23` at (41632, 21466), `tolerance` 372, `path:length` 25 and
+  `move.dest` 0, on both sides. **Nothing parts on 15860..16711.** The
+  floor went 398/43/957 → 398/0/398, and the rows standing on 16461 went
+  355 → 312.
+- East Indies holds at 16683, and every closed golden chapter holds.
+- `collide::tests::a_blocked_unit_that_gives_up_takes_its_waypoint_where_it_stands`
+  covers the arm. It was made to fail with the arm taken out: the unit
+  stepped 25.
+
+### 17.4 What is not established
+
+- **A middle leg.** `1/23`'s popped leg was not final. The test pins a
+  final one (the order dies where it stands). No capture has shown the
+  give-up on a final leg of an order under which a `set_angle` runs.
+- **The snap arm has no give-up** (§5.4), so the case is only the
+  partial step's.
+
+### 17.5 Coverage
+
+- **Diff-backed**: §17.1, and the arm's four stores on 16459 (position
+  kept, `tolerance`, the pop, `dest`), by
+  `run218_s_word_frame_is_widened_whole` on run218.
+- **Listing and decompile**: `005fb7b5`–`005fb862`,
+  `move_step@005faf30:280-316`.
+- **Unit-tested, made to fail on purpose**: the test above.

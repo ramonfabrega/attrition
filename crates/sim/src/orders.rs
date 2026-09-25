@@ -4641,6 +4641,7 @@ impl Sim {
             self.arrive(u, mo, true);
             return Did::Something;
         }
+        let mut gave_up = false;
         if let Some(other) = hit {
             let (dx, dy) = (mo.waypoint.x - from.x, mo.waypoint.y - from.y);
             let through = top.is_some_and(|t| t.flags & path_flag::SIDESTEP != 0)
@@ -4696,12 +4697,27 @@ impl Sim {
                 // Give up on reaching it exactly: the waypoint is close
                 // enough now.
                 self.units[u].tolerance = manh * 2;
+                gave_up = true;
             }
         }
 
         let mut arrived = false;
         let mut snapped_in = false;
-        if self.world.accepts(target) {
+        if gave_up && self.world.accepts(target) {
+            // **The give-up does not step** (`docs/COLLISION.md` §17).
+            // `005fb7b5`–`005fb7bb` write `tolerance = local_28 * 2` and
+            // `jmp 005fb82c`, past the step's `invalid_loc`,
+            // `set_anim(walk)` and `set_new_location` (`005fb7d1`–
+            // `005fb826`), onto the tail's arrival test itself:
+            // `|dest_y − y| + |dest_x − x|` from where the unit stands,
+            // `jg` over `tolerance` returns 1 (`005fb82c`–`005fb85c`), and
+            // otherwise `dest = 0` and the pop (`005fb862`). This crate
+            // took the step first, and run218's `1/23`, blocked 26 frames
+            // by The Despot, walked 26 on 16459 where the original pops
+            // its waypoint in place (Great Lakes 16460).
+            let (dx, dy) = (mo.waypoint.x - from.x, mo.waypoint.y - from.y);
+            arrived = dx.abs() + dy.abs() <= self.units[u].tolerance;
+        } else if self.world.accepts(target) {
             // **The step that changes tile is asked permission**
             // (`move_step@005faf30`, `005fb7c1`–`005fb7fd`). The original
             // compares the tile of the proposed point against the tile it

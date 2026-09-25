@@ -7215,3 +7215,55 @@ frames. The two places the scratch walk was wrong are both the re-issue's
 explore plans to its `orig`, where the walk had (2424, 17304). The
 squad's re-issue keeps its 642 slots round the click, where the walk
 re-formed them round the leader's slot and put `0/8` on (12600, 15096).
+
+## run226 — Great Lakes' word 17099, past run218's last block (2026-09-25, item 742)
+
+**What it is.** run218's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[16706, 17351)`, plus `rontrace.cfg` `cover=1` and `window=17095-17103`
+over the word. `!quit` at 17361, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 742
+```
+
+**Why it was owed.** Item 742 moved Great Lakes' word 16460 → 17099:
+`move_step`'s give-up takes its waypoint where the unit stands
+(`docs/COLLISION.md` §17). run218 ends on block 16711, so the word's
+block 17100 is on no disk. On 17099 ours spends 217 draws against 225,
+parting at index 0: the original's first is `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, a blocked step, where ours spends
+`Guy::set_anim+0x97a < Unit::do_move+0x11cf`. **Sized with 250 blocks
+of runway** (DECISIONS 50 §7): six blocks shared with run218, the 388 up
+to the word, its block, and 250 above it — 645 blocks. The readings and
+their kills are in the stanza.
+
+**Taken whole.** 1,410.7 MB of dump and 21.9 MB of trace, 645 blocks
+16706..17350. About 50 minutes from launch (12:46, when att-746's chapter
+seventeen freed the lane) to archive (13:36), with no human at the menu.
+Waited on with `waitrun.sh`, which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 17,362 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **645 blocks, 16706..17350, no gap** |
+| a `GROUPDATA` on every window block | **645** |
+| overlap with run218, nothing excluded | **6 in common (16706..16711), 0 differ** |
+| the coverage window | a set on all 9 frames 17095..17103 |
+
+**What it settled** (`run226_s_word_frame_is_widened_whole`).
+- **R1 holds**: the checks above.
+- **R2 is killed.** `1/23` walks freely on block 17100 (`collide_frame
+  16983`), and no unit carries `collide_frame 17099`: the word's blocked
+  stand never reached `resolve`. The original's `1/5` stands stopped
+  with `collide_o 3` there and walks on here.
+- **R3 is killed.** Nothing parts on 16712..17085. On block 17086
+  who=1's `resource_cap` for food and wealth is 4800 there and 4000 here,
+  +50 a good, after a purchase both sides make on 17085 (`leftover`
+  parts only on 17088). Four citizens are re-dealt on the same block:
+  the original sends `1/70` and `1/72` to `1/2022`, ours `1/3` and
+  `1/5`. Their walks part from 17087, and `1/9`'s from 17088.
+- The floor is run218's walk (398), then 147 keys on 17086..17100, and
+  1,382 to the window's end. 456 rows stand on the word's block.
