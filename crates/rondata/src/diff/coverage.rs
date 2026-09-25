@@ -1109,11 +1109,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // day it was built; parked for a widening rather than fixed here.
     // `flags`, `max_age`, `mtn`, `cliff`, `mining_size`,
     // `construct_hits`, `ever_seen` and `ever_seen_completed` no site
-    // compares.
+    // compares. `job_counter` is compared only while **both** sides call
+    // a site unfinished (the construction clock, `harness.rs`), and no
+    // site stands unfinished on run226's 17098..17102, the window since
+    // item 742; run218's 16459..16463 had one.
     (
         "BuildDump",
         "cliff construct_hits damage damage_frac ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type queue",
+         job_counter max_age mining_size mtn orig_type queue",
     ),
     // Registered with `BuildDump.queue`, on a queued build.
     ("QueueItemDump", "cost good job_counter ty"),
