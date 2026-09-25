@@ -14587,15 +14587,21 @@ pub(crate) mod tests {
                 eprintln!("  first {r}");
             }
         }
-        // **Under the word and on it, both directions.** Nothing parts on
-        // any unit before the word's block. who=1's leader record parts
-        // twice: its `rate` on 15977, 93 on three goods here against
-        // 118, 110 and 100, and on 15984 — `create_units`' frame — the
-        // original offers a citizen (`t 50`, `val 130909`, cat 5) at the
-        // head and into slot 5, and ours offers nothing. On the word's
-        // frame the original's slot loop buys that citizen (`val` /100 and
-        // its `make_stuff+0x63d` expiry), and the queue and the food show
-        // it on 15986.
+        // **Under the word and on it, both directions — and the move's
+        // value diff (item 708; the word's delta is in
+        // `LONG_WORD_EAST_INDIES`' comment, its block here).** Until the fix
+        // who=1's leader record parted twice under the word: its `rate` on
+        // 15977, 93 on three goods here against 118, 110 and 100 — the
+        // capped income, `min(cap, income) / 16` — and on 15984,
+        // `create_units`' frame, the original offered a citizen (`t 50`,
+        // `val 130909`, cat 5) at the head and into slot 5 where ours
+        // offered nothing, and its slot loop bought it on the word's frame
+        // (`val` /100 and the `make_stuff+0x63d` expiry), the queue and the
+        // food showing it on 15986. Fifteen rows stood here. The cause was
+        // the commerce cap's republic term (`docs/AI.md` §72): who=1 took
+        // Republic on 15782, and `calc_resource_caps` adds
+        // `REPUBLIC_COMMERCE_BONUS`, 50, to every capped good. One row
+        // stands, the slot's `city` shift the floor's make-list rows carry.
         let under: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -14603,29 +14609,13 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             under,
-            [
-                "15984 1/-1 leader:MAKE[0].cat: ours 7 theirs 5",
-                "15984 1/-1 leader:MAKE[0].escrow: ours 0 theirs 1",
-                "15984 1/-1 leader:MAKE[0].t: ours 428 theirs 50",
-                "15984 1/-1 leader:MAKE[0].val: ours 15 theirs 130909",
-                "15984 1/-1 leader:MAKE[5].cat: ours 0 theirs 5",
-                "15984 1/-1 leader:MAKE[5].city: ours -1 theirs 1",
-                "15984 1/-1 leader:MAKE[5].escrow: ours 0 theirs 1",
-                "15984 1/-1 leader:MAKE[5].t: ours -1 theirs 50",
-                "15984 1/-1 leader:MAKE[5].val: ours -1 theirs 130909",
-                "15986 1/-1 leader:bucket[0:food]: ours 162 theirs 117",
-                "15986 1/-1 leader:num_queued[0]: ours 0 theirs 1",
-                "15977 1/-1 leader:rate[0:food]: ours 93 theirs 118",
-                "15977 1/-1 leader:rate[1:timber]: ours 93 theirs 110",
-                "15977 1/-1 leader:rate[4:metal]: ours 93 theirs 100",
-                "15986 1/2007 queue:queued: ours 0 theirs 1",
-            ],
+            ["15984 1/-1 leader:MAKE[5].city: ours 2 theirs 1"],
             "the rows under the word and on it"
         );
         // **The cap, on the window's first block** (the floor's): who=1's
-        // `resource_cap` is 2992 here and 3792 there on every capped good.
-        // run166's 13699 agrees at 2992, and run78 (`LEADERS=1`) does not
-        // print it, so its move lies somewhere in 13700..15893.
+        // `resource_cap` was 2992 here and 3792 there on every capped good
+        // until the republic term (`docs/AI.md` §72). run166's 13699 agrees
+        // at 2992, and run78 (`LEADERS=1`) does not print it.
         let cap: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -14633,17 +14623,7 @@ pub(crate) mod tests {
             })
             .map(row)
             .collect();
-        assert_eq!(
-            cap,
-            [
-                "15894 1/-1 leader:resource_cap[0:food]: ours 2992 theirs 3792",
-                "15894 1/-1 leader:resource_cap[1:timber]: ours 2992 theirs 3792",
-                "15894 1/-1 leader:resource_cap[2:wealth]: ours 2992 theirs 3792",
-                "15894 1/-1 leader:resource_cap[4:metal]: ours 2992 theirs 3792",
-                "15894 1/-1 leader:resource_cap[5:oil]: ours 2992 theirs 3792",
-            ],
-            "who=1's commerce cap"
-        );
+        assert_eq!(cap, Vec::<String>::new(), "who=1's commerce cap");
         // **The scout's draw is spent on both sides** (the stream: the
         // original spends its own `think_scout+0x941` after the extra), so
         // the scout reading dies there. Its record-level killer — ours'
@@ -14692,16 +14672,45 @@ pub(crate) mod tests {
         );
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, |m| m.len()),
-            295,
+            // 295 before item 708's fix: the fifteen under the word and
+            // the five caps went, the newborn row came.
+            281,
             "every row standing on the word's block"
         );
-        // **The floor**: 285 keys standing on the window's first block —
+        // **Past the word to the window's end** (the word left for 16683,
+        // past run221): the human's `production_step`, and who=1's newborn
+        // `1/59` on 16166 on the parked families — `form` (646), `myhits`,
+        // `hits_left` and `mylos` (679) — with its `path_recursion`, the
+        // leader's `peasants` 25 against 26 there, and its `gather_stamp`.
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .map(row)
+            .collect();
+        assert_eq!(
+            past,
+            [
+                "16001 0/-1 leader:production_step: ours 0 theirs 1",
+                "16168 1/-1 leader:gather_stamp: ours 16167 theirs 15991",
+                "16166 1/-1 leader:peasants: ours 25 theirs 26",
+                "16166 1/59 form: ours -1 theirs 9",
+                "16166 1/59 hits:myhits: ours 40 theirs 50",
+                "16166 1/59 hits_left: ours 40 theirs 50",
+                "16166 1/59 myhits: ours 40 theirs 50",
+                "16166 1/59 mylos: ours 2 theirs 4",
+                "16166 1/59 path_recursion: ours 0 theirs 1",
+            ],
+            "every key first parting past the word"
+        );
+        // **The floor**: 280 keys standing on the window's first block —
         // everything that parted since run166's last block, which run78's
-        // `LEADERS=1` does not print — 288 before the word's frame, 851 in
-        // all.
+        // `LEADERS=1` does not print — 280 before the word's frame, 290 in
+        // all. It was 285/288/851 before item 708's fix: the five caps, the
+        // rates, the citizen's offer and the 551 rows past the word that
+        // its purchase parted.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (285, 288, 851), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (280, 280, 290), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**

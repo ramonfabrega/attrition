@@ -7113,6 +7113,33 @@ purse or the sites. **Sized with 250 blocks of runway** (DECISIONS 50
 §7): six blocks shared with run78, the 86 up to the word, its block and
 250 above it, 343 blocks. The readings and their kills are in the
 stanza.
+
+**Taken whole.** 801.6 MB of dump and 22.5 MB of trace, 343 blocks
+15894..16236. About 29 minutes from launch (11:07) to archive (11:36),
+with no human at the menu. Waited on with `waitrun.sh`, exit 0. The lane
+lock was stale (pid 83878).
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 16,248 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **343 blocks, 15894..16236, no gap** |
+| a `GROUPDATA` / a `MAKEOBJECT` on every window block | **343 / 343** |
+| overlap with run78, on what both lines print | **6 in common (15894..15899), 0 differ** |
+
+**What it settled** (`run221_s_word_frame_is_widened_whole`,
+`docs/AI.md` §72).
+- **R3 holds**: on 15985 the original's slot 5 is a citizen, `t 50`, `val
+  130909`, bought and rolled on the word's frame; ours' slot 5 is empty.
+  The offer parts on 15984 (`create_units`' frame) and the rates under it
+  on 15977, 93 here against 118/110/100.
+- The cause is on the window's first block: who=1's `resource_cap`, 2992
+  here and 3792 there on every capped good. `calc_resource_caps` adds
+  `REPUBLIC_COMMERCE_BONUS` (50) under Republic, which who=1 took on
+  15782, and this crate had no republic term.
+- R2 and R4 die on the stream. `1/31`'s record parts only on parked rows.
+- With the term built the word moves **15985 → 16683**, past run221's
+  last block. The floor goes 285/288/851 → 280/280/290.
 ## run219 — chapter sixteen, explore and flee (2026-09-25, item 738)
 
 `docs/GOLDEN.md` §24, `tools/gamelog/golden/chapter16.cmd`. The cast is a

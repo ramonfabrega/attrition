@@ -794,7 +794,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// +0x941` where the original spends `Leader::make_stuff+0x63d`. **Past
 /// run78** (block 15986 against its last, 15900) and past every East
 /// Indies dump on disk: no widening names its block yet.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 15_985;
+///
+/// ~~**15985 is past every capture.**~~ **15985 → 16683 on item 708, and
+/// the frame was the commerce cap's republic term.** run221 over [15894,
+/// 16237) said whose draw it was: the original's `make_stuff+0x63d` is its
+/// slot loop buying a citizen (`t 50`, cat 5) that `create_units` offered
+/// on 15983 and ours never offered. Its first parting is 15977's `rate`,
+/// 93 on three goods here against 118, 110 and 100 — `min(cap, income) /
+/// 16` — and the cap was who=1's `resource_cap`, 2992 here against 3792 on
+/// every capped good: `calc_resource_caps@006ce900` adds
+/// `REPUBLIC_COMMERCE_BONUS` (50) for the highest `REPUBLIC_n` held, and
+/// who=1 took Republic on 15782 (`docs/AI.md` §72). **The move's value
+/// diff (the word's delta, here; its block is the widening's):** the
+/// fifteen leader rows under the word and the five caps go, and the 551
+/// rows past it (`run221_s_word_frame_is_widened_whole`, floor
+/// 285/288/851 → 280/280/290). **The new word's delta: ours 6 draws and
+/// the original 7, parting at index 5**: ours spends `Farms::inc_time
+/// +0x1ae` where the original spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`: six `Guy::inc_time` wraps there before the farm's
+/// draw against ours' five (`1/18` twice, `1/19`, `1/20`, `1/54`), so one
+/// figure's wrap is missing here, whose is the capture's to say. **Past
+/// run221** (block 16684 against its last, 16236): no widening names its
+/// block yet.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 16_683;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -3978,13 +4000,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **Item 708 paid it**: run221 is run166's line without `DEATHS` over
     // [15894, 16236], six blocks shared with run78 and 250 past the word,
     // and `run221_s_word_frame_is_widened_whole` walks it through the same
-    // walk, gaia and the pool included, and pins the word's block.
+    // walk, gaia and the pool included, and pins the word's block, 15986.
+    // **The same item moved it 15985 → 16683**, past run221's last block
+    // (16236): the commerce cap's republic term (`docs/AI.md` §72).
+    // run221's test keeps the move's value diff. Item 752 owes the capture
+    // over the new word.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run221_s_word_frame_is_widened_whole"),
-        708,
-        Some(WIDENING_EAST_INDIES_SLOT),
+        None,
+        752,
+        None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

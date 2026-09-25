@@ -304,6 +304,9 @@ pub struct Holdings {
     pub taxation: usize,
     /// Level of the commerce tech line, indexing `COMMERCE_CAP`.
     pub commerce: usize,
+    /// The highest `REPUBLIC_n` bonus held, 1–3, or 0 for none: which
+    /// `REPUBLIC_COMMERCE_BONUS` the cap adds (`docs/AI.md` §72).
+    pub republic: usize,
     /// A flat addition to the commerce cap, `LeaderData + 0x918`.
     ///
     /// **Scenario-script only.** `ScenarioFuncSet::set_bonus_cap` is its one
@@ -661,9 +664,15 @@ pub fn territory_tax(t: &Tuning, h: &Holdings) -> i32 {
 /// every slot first, then the one per-resource power — Egyptian food, French
 /// timber, Inca wealth. Each is a percentage of the running value and each
 /// truncates on its own, so a British Egyptian's food cap is
-/// `70 * 125 / 100 * 110 / 100` and not `70 * 137 / 100`. The wonder, rare
-/// and republic terms are additions on the same value and are not here; they
-/// belong with the rest of the wonder layer.
+/// `70 * 125 / 100 * 110 / 100` and not `70 * 137 / 100`. The wonder and
+/// rare terms are additions on the same value and are not here; they belong
+/// with the rest of the wonder layer.
+///
+/// The **republic** term is: the highest `REPUBLIC_n` held adds its
+/// `REPUBLIC_COMMERCE_BONUS`, once and not summed, after the wonders and
+/// before `bonus_cap` (`calc_resource_caps@006ce900`). run221 measures it:
+/// East Indies' British AI took Republic on 15782, and its cap is 3792
+/// against 2992, fifty more on every capped good (`docs/AI.md` §72).
 ///
 /// The British 25% is what run40 measures: the AI's `resource_cap` is 1392
 /// on every frame of the window against the human's 1120, and
@@ -684,6 +693,13 @@ pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
         _ => 0,
     };
     cap = cap * (100 + nation) / 100;
+    if let Some(&bonus) = h
+        .republic
+        .checked_sub(1)
+        .and_then(|i| t.republic_commerce_bonus.get(i))
+    {
+        cap += bonus;
+    }
     let cap = cap + h.bonus_cap[r.index()];
     cap.clamp(0, CAP_CEILING) * RATE_SCALE
 }
@@ -1025,6 +1041,28 @@ mod tests {
         assert_eq!(l.rate[know], 1250 * RATE_SCALE);
         assert_eq!(l.over_cap[know], OverCap::Uncapped);
         assert_eq!(l.bucket[know], CAP_CEILING);
+    }
+
+    /// run221's value diff (`docs/AI.md` §72): the British AI at commerce
+    /// level 2 holds Republic, and its cap is 3792 — `150 * 125 / 100` is
+    /// 187, plus fifty, times sixteen — where the dump read 2992 before it.
+    /// Knowledge takes no term.
+    #[test]
+    fn a_republic_adds_fifty_to_every_capped_good() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.british = true;
+        h.commerce = 2;
+        assert_eq!(commerce_cap(&t, &h, Resource::Food), 2992);
+        for tier in 1..=3 {
+            h.republic = tier;
+            assert_eq!(commerce_cap(&t, &h, Resource::Food), 3792);
+            assert_eq!(commerce_cap(&t, &h, Resource::Metal), 3792);
+            assert_eq!(
+                commerce_cap(&t, &h, Resource::Knowledge),
+                CAP_CEILING * RATE_SCALE
+            );
+        }
     }
 
     #[test]

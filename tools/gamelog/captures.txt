@@ -6241,3 +6241,28 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/
 # `GUYS=4`'s three animal keys dropped. Weaker than a bare overlap: the
 # excluded records are unchecked, not checked and equal.
 check: python3 tools/gamelog/samegame.py --exclude GUY --exclude LEADERDATA --exclude DIPLOMACY --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE --exclude GROUPDATA --exclude WORLD --drop ox --drop whom --drop aid gamelog-run78-eastindies-threeborn.txt gamelog-run221-eastindies-slotword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run78 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(15894..15899)")}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 801,588,152 bytes of dump and 22,503,296 of trace, **343 blocks
+# 15894..16236**, with a `GROUPDATA` and a `MAKEOBJECT` on every one.
+# Launched 11:07 through `viadriver.sh` with no human at the menu, and
+# archived 11:36: about 29 minutes. The lane lock was stale (pid 83878).
+# Waited on with `waitrun.sh`, exit 0. All six checks were green:
+# - 16,248 frames identical to run54;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the make list on every block;
+# - 6 blocks shared with run78 (15894..15899), 0 differing on what both
+#   lines print.
+#
+# **The readings, decided on the walk**
+# (`run221_s_word_frame_is_widened_whole`, `docs/AI.md` §72):
+# - **R1 holds**, by the checks above.
+# - **R2 is killed by the stream.** Its record check fires on six parked
+#   rows of `1/31` (`form`, the pool `group`, `myhits`, `hits_left`,
+#   `mylos`), none a term the region scan reads.
+# - **R3 holds.** The original's slot 5 is a citizen (`t 50`, `val
+#   130909`), bought on 15985; ours' is empty. The offer parts on 15984
+#   and the rates under it on 15977: who=1's `resource_cap` was 2992 here
+#   and 3792 there, the republic term. The word moved to 16683.
+# - **R4 is killed by the stream.**
