@@ -22,6 +22,12 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 767, 2026-09-25 — `get_cost`'s tech tail
+
+(774) **`get_cost`'s tech terms past the British one** (AI §74.6). The
+human is an age behind who=1 on these windows, so the age-behind discount
+is live on any tech it prices; no word names it yet.
+
 ## Parked by item 763, 2026-09-25 — the patrol's unexercised arms
 
 (771) **The patrol's leash, its 32-frame re-target, its look and its
@@ -1056,6 +1062,13 @@ booking** (763's Loop line, filed at its merge): the compared pin named
 `BuildDump.damage` "parked for a widening" (728), and chapter seventeen's
 word was a building's first damage; it stood on that blind field until
 763 looked. A booking could grep the compared pin for the word's record.
+
+(775) **A hand-written probe prices the wrong tech** (767's Loop line,
+filed at its merge): the harness maps this crate's tech ids to the dump's
+through `diff::leader`'s `ti`, off by one, and a scratch probe does not;
+767's first probe priced the wrong two techs, caught only by an empty
+`make_me`. A `RON_PRICE`-style probe keyed on the dump's `TypeIndex`
+would close the trap.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
