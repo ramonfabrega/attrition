@@ -1354,7 +1354,7 @@ below without a run take their number at booking (the eleventh pass).
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
-| 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **not yet run** |
+| 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2519,3 +2519,25 @@ player's command. The harness skips all three `@` lines as a named seam
 in `crate::golden`. If the capture agrees with the reading, the first
 landing is the two commands' entry into the sim, built the way
 `crate::input::group_follow` was.
+
+**Run 2026-09-24 as run208 (item 718): no falsifier fired**
+(`docs/RUNS.md` has the tables).
+
+- **All three commands reach the pump.** `INFO` 17 on 620, 640 and 900,
+  refusal 0. The dump prints `process_garrison 2007 0 2` on 621 and 641,
+  and `process_eject_all 901`.
+- **One `GARRISONORDER` a unit, as read.** On 622 and 642 each of the
+  four has `flags 4, ox 2007 whom 0 uid 13, search 0` under its own
+  `MOVEORDER` leg, `flags 0`. The chariot's point is 461 from the centre.
+- **The door takes the squad whole.** `0/6` is inside on **699** and
+  `0/7`–`0/9` together on **761**. The chain is 2007 ← 6 ← 7 ← 8 ← 9
+  with `inside_down` 6, and every stack is empty inside.
+- **One squad a frame, first in first out.** `0/6` is out on 902 at
+  (2712, 14904) with `inside_down` 7, and the squad on 903. `build_masks`
+  carries `0x4000` on 902 and 903. Every stack stays empty to 999.
+- **What the reading did not say.** Each walk ended short of its leg: the
+  chariot's last step on 698 left it ~140 from its point, and the
+  captain's on 761 ~35. The door is `adjacent_to`, tested with the leg
+  still at the head. Which step does it is not named. `Unit::work`'s
+  every-16-frames step, phased by `o`, fits both frames and is only a
+  hypothesis.

@@ -175,6 +175,16 @@
 #    empty on any of the four (back_to_work 0; no rally point on a cheat's
 #    Barracks; a human's unit keeps what it had, and it had nothing).
 #
+# RUN 2026-09-24 as run208 (item 718; docs/RUNS.md): 184 s, 72 MB. NO
+# FALSIFIER FIRED. All three `INFO 17` issued (package 10 -> 28, 28, 32);
+# the dump logs `process_garrison 2007 0 2 621` and `641`, and
+# `process_eject_all 901`. Block 622/642: each of the four a GARRISONORDER
+# flags 4, ox 2007 whom 0 uid 13, search 0, under its own MOVEORDER leg.
+# `0/6` in on 699, `0/7`..`0/9` together on 761, chain 2007 <- 6 <- 7 <- 8
+# <- 9, empty stacks. `0/6` out on 902 at (2712, 14904), the squad on 903;
+# empty stacks to 999. Each walk ended short of its leg's point (the
+# chariot ~140, the captain ~35): the door fired with the leg at the head.
+#
 # check: `cmdsran.py` shows six `INFO cmd` returning 1 (`0 !ai off`, the
 #        three cheats, `37 !ffwd`, `1000 !quit`); the three `@` lines are
 #        `INFO 17` records.
