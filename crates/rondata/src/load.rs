@@ -899,6 +899,13 @@ pub fn load_tables(
         .iter()
         .filter_map(|n| tt(n))
         .collect();
+        // `TAXATION` and the three after it, `0x24d..=0x250` — Taxation,
+        // Vassalage, Social Contract and Income Tax in the shipped file.
+        r.taxation_line = (0x24d..=0x250)
+            .map(|t| (t - BASE_TECHTYPES) as usize)
+            .filter(|&i| i < tech_tree.len())
+            .map(|i| tech_tree[i])
+            .collect();
         // What every final requires: the last age and the four last epochs.
         r.final_needs = [
             "Information Age",

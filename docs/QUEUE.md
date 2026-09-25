@@ -13,16 +13,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **12 landings
-since 7958738**, eight words and four chapters. Lane att-767 (East Indies) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **13 landings
+since 7958738**, nine words and four chapters. Lane att-770 (chapter seventeen) is live.*
 
 - **Great Lakes 15384 → 17099** in four: `num_wonders` counts a site
   (722), `take_damage` stamps `frame_attacked` (729), the siege sub-group's
   own record (736, GROUPS §26), and `move_step`'s give-up takes no step
-  (742, COLLISION §17; run226 to 17350). **East Indies is the lower map.**
-- **East Indies 15985 → 16982** in two: a republic raises the commerce
-  cap (708, AI §72), and the census counts a gatherer in its building's
-  city (752, AI §73; run227 captured [16230, 16935)).
+  (742, COLLISION §17; run226 to 17350). **Great Lakes is the lower map.**
+- **East Indies 15985 → 17189** in three: the republic's commerce cap
+  (708), a gatherer counted in its building's city (752), and the British
+  Taxation discount (767, AI §74; run233 captured [16929, 17441)).
 - **Chapters fourteen to sixteen closed** (723, 731, 738), **seventeen
   open, 642 → 821** (746, 759, 763; §25, ORDERS §33–§34): the flight home,
   the landing and the pair's patrol are built. Order row 50 → 57.
@@ -30,16 +30,16 @@ since 7958738**, eight words and four chapters. Lane att-767 (East Indies) is li
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 16 Loop items** (677, 685, 697, 727 the remote sweep
-  is the user's, 730, 735, 737, 745, 751, 755, 756, 758, 762, 766, 769, 772).
+- **Fable backlog: 17 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–775 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w16982 of 24,000 · GreatLakes w17099 of 24,000
+Long captures: EastIndies w17189 of 24,000 · GreatLakes w17099 of 24,000
 Golden: ch17 w821 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 770 next
-Endpoint 24001: EastIndies 48 off, 0 unlinked · GreatLakes 44 off, 0 unlinked
+Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 44 off, 0 unlinked
 
-**Opener: 767 is live on the AI lane (East Indies is lower), 757 after
-it; 770 on the rules lane; landings count from 7958738. A capture carries
+**Opener: 757 on the AI lane (Great Lakes is lower), 773 after it; 770
+is live on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -47,16 +47,9 @@ it; 770 on the rules lane; landings count from 7958738. A capture carries
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — East Indies (a guard reads this line). Take the first
+lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-767. **East Indies' word is 16982, past every capture** (752 moved it
-    16683 → 16982: the census counts a gatherer in its building's city, AI
-    §73). On 16982 ours 10 draws against 15 at index 4: theirs
-    `Leader::make_stuff+0x63d`, ours `Animal::do_idle+0x83`. run227 ends
-    on 16934; on it who=1's `MAKE[1].val` is 22784 here, 91136 there (×4)
-    from 16779. `WIDENINGS` names this item: capture over the word.
 
 757. **Great Lakes' word is 17099** (742 moved it 16460 → 17099:
     `move_step`'s give-up takes no step, COLLISION §17). On 17099 ours 217
@@ -64,6 +57,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     Unit::move_step+0x823`, ours `< Unit::do_move+0x11cf`. Under it on
     17086 who=1's `resource_cap` 4800 there, 4000 here, and the gatherers
     re-dealt. Inside run226, widened (17098..17102). No mechanism.
+
+773. **East Indies' word is 17189** (767 moved it 16982 → 17189: the
+    British Taxation discount in `get_cost`, AI §74). On 17189 ours spends
+    a blocked stand (`move_step+0x823`, `1/55` by `1/60`) the original
+    spends on 17190. Under it `1/55`'s `half_step` from 17182, `1/57`'s
+    from 17161, `1/58`'s path from 17147, who=1's `scholars` from 16971.
+    Inside run233, widened. No mechanism.
 
 770. **Chapter seventeen's word is 821: the strafe's round** (763 moved it
     805 → 821: the pair's patrol, ORDERS §34). On 821 ours 4 draws against

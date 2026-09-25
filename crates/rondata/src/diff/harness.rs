@@ -15085,9 +15085,12 @@ pub(crate) mod tests {
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
-        // past run227): who=1's make-list slot 1 on 16779, 22784 here
-        // against 91136 there, and the scout `1/0`'s order point and
-        // formation mirror from 16782 (743's family).
+        // past run227): the scout `1/0`'s order point and formation mirror
+        // from 16782 (743's family). who=1's make-list slot 1 on 16779,
+        // 22784 here against 91136 there, went with item 767: the British
+        // price of Taxation, which `check_income` read as unaffordable
+        // here (`docs/AI.md` §74; the word's delta, 16982 → 17189, is in
+        // `LONG_WORD_EAST_INDIES`' comment).
         let past: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f > WORD_BLOCK)
@@ -15096,7 +15099,6 @@ pub(crate) mod tests {
         assert_eq!(
             past,
             [
-                "16779 1/-1 leader:MAKE[1].val: ours 22784 theirs 91136",
                 "16782 1/0 dest_angle: ours -2143223808 theirs -2147483648",
                 "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
                 "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
@@ -15109,10 +15111,185 @@ pub(crate) mod tests {
         // everything standing on run221's last block, which run227 shares
         // — 306 before the word's frame, 312 in all. It was 286/333/866
         // before item 752's fix: the two cities' counts, `1/46`'s rows and
-        // the 554 rows past the word that its walk parted.
+        // the 554 rows past the word that its walk parted. Item 767 took
+        // one past the word (312 → 311): `MAKE[1].val` on 16779.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 306, 312), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 306, 311), "the floor");
+    }
+
+    /// **run233 — East Indies' word 17189, widened whole, both directions**
+    /// (item 767). run227's line over [`WIDENING_EAST_INDIES_BLOCKWORD`]:
+    /// six blocks shared with run227, the 255 up to the word, its block,
+    /// and 250 past it. [`widen_east_indies`] with gaia's animals.
+    ///
+    /// The word's frame, 17189, writes block **17190**.
+    #[test]
+    fn run233_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_BLOCKWORD.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_BLOCKWORD.1;
+        /// The block run233 was taken to widen, the word 17189's.
+        const WORD_BLOCK: i64 = EAST_INDIES_BLOCKWORD_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run233",
+            "gamelog-run233-eastindies-blockword.txt",
+            WIDENING_EAST_INDIES_BLOCKWORD,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "512 blocks x 2 leaders x (1,055 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for r in firsts.iter().filter(|(_, (f, _))| *f > FIRST).map(row) {
+                eprintln!("  first {r}");
+            }
+        }
+        let under = |(_, (f, _)): &(&(i64, i64, String), &(i64, String))| {
+            (FIRST + 1..=WORD_BLOCK).contains(f)
+        };
+        // **Under the word and on it, both directions** (item 767). The
+        // word's unit is who=1's `1/55`, one of a column walking with
+        // `1/57` and `1/58`. Ours' stands blocked by `1/60` on frame 17189
+        // (block 17190: `collide_o 60`); on block 17189 it already stands
+        // at (34471, 41185), which the original's reaches on 17190. It is
+        // a step ahead. It parts first on 17182, on `half_step`, 0 here and
+        // 1 there, and on 17183 its `last_speed` reads 30 against 15: the
+        // original's took a half step where ours took a whole one. `1/57`
+        // does the same from 17161, and `1/58`'s path parts from 17147.
+        // Each unit's first row, and how many of its keys part by the
+        // word's block.
+        let mut per_unit: std::collections::BTreeMap<(i64, i64), ((i64, String), usize)> =
+            std::collections::BTreeMap::new();
+        for r in firsts.iter().filter(under) {
+            let at = (r.1.0, row(r));
+            let e = per_unit.entry((r.0.0, r.0.1)).or_insert((at.clone(), 0));
+            e.0 = e.0.clone().min(at);
+            e.1 += 1;
+        }
+        let got: Vec<(String, usize)> = per_unit.into_values().map(|((_, r), n)| (r, n)).collect();
+        let want: Vec<(String, usize)> = [
+            ("17001 0/-1 leader:production_step: ours 0 theirs 1", 1),
+            ("16971 1/-1 leader:scholars: ours 13 theirs 14", 6),
+            ("17139 1/0 group: ours 71 theirs 70", 1),
+            ("17182 1/55 half_step: ours 0 theirs 1", 22),
+            ("17161 1/57 half_step: ours 0 theirs 1", 13),
+            (
+                "17147 1/58 path:length: PathLength { ours: 10, theirs: 18 }",
+                25,
+            ),
+            ("16971 1/63 form: ours -1 theirs 9", 7),
+            ("17113 1/64 form: ours -1 theirs 0", 2),
+            ("17113 1/65 form: ours -1 theirs 0", 2),
+            ("17113 1/66 form: ours -1 theirs 0", 2),
+        ]
+        .iter()
+        .map(|(r, n)| ((*r).to_string(), *n))
+        .collect();
+        assert_eq!(
+            got, want,
+            "each unit's first row under the word, and its count"
+        );
+        // who=1's leader, whole: the make list's `city` shift (the floor's
+        // family), wealth after the column's rows, and `scholars` from
+        // 16971, the first row on the window that is no floor family's.
+        let leader: Vec<String> = firsts
+            .iter()
+            .filter(under)
+            .filter(|((w, o, _), _)| *w == 1 && *o == -1)
+            .map(row)
+            .collect();
+        assert_eq!(
+            leader,
+            [
+                "17181 1/-1 leader:MAKE[1].city: ours 1 theirs 0",
+                "17181 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
+                "17184 1/-1 leader:income[2:wealth]: ours 1234 theirs 1380",
+                "17184 1/-1 leader:leftover[2:wealth]: ours 4226 theirs 4321",
+                "17184 1/-1 leader:resources[2:wealth]: ours 1234 theirs 1380",
+                "16971 1/-1 leader:scholars: ours 13 theirs 14",
+            ],
+            "who=1's leader under the word"
+        );
+        // The readings (the stanza's). **R1 holds**, by its checks. **R2
+        // holds**: the original's `1/55` takes the same stand by `1/60` a
+        // frame later — `collide_o 60` on block 17191 there, where ours'
+        // has already cleared it.
+        let on = |b: i64, k: &str| {
+            standing
+                .get(&b)
+                .and_then(|m| m.get(&(1, 55, k.to_string())))
+                .cloned()
+        };
+        assert_eq!(
+            on(WORD_BLOCK, "collide_o").as_deref(),
+            Some("ours 60 theirs -1")
+        );
+        assert_eq!(
+            on(WORD_BLOCK + 1, "collide_o").as_deref(),
+            Some("ours -1 theirs 60")
+        );
+        // **R3 holds**: the pair's `1/55` parts before the word, on
+        // `half_step` (above); `1/60` parts on nothing but the pool's
+        // `group` (689). **R4's killer fires**: the first row on the window
+        // that is no floor family's is who=1's `scholars` on 16971, not
+        // the pair's, and `1/58`'s path parts on 17147 before either.
+        // Figures whose animation changes on one side on the word's blocks.
+        let word: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        assert_eq!(
+            word,
+            [
+                (17188, 1, 55, true, false),
+                (17190, 1, 55, false, true),
+                (17190, 1, 63, true, false),
+                (17192, 1, 55, true, false),
+            ],
+            "a figure's animation changes on one side only"
+        );
+        assert_eq!(
+            (WORD_BLOCK - 1..=WORD_BLOCK)
+                .map(|b| standing.get(&b).map_or(0, |m| m.len()))
+                .collect::<Vec<_>>(),
+            [346, 359],
+            "every row standing on the word's pre-state and its block"
+        );
+        // **The floor**: 293 keys standing on the window's first block —
+        // everything standing on run227's last block, which run233 shares
+        // — 363 before the word's frame, 1,139 in all: past the word the
+        // column's stand parts the human's citizens and who=1's army.
+        let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, under_n, firsts.len()),
+            (293, 363, 1_139),
+            "the floor"
+        );
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**

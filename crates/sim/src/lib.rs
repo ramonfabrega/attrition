@@ -2177,13 +2177,24 @@ impl Sim {
 
     /// A technology's price for `who` — `TypeData::get_cost` over a tech
     /// record: `COST × TECH_COST_FACTOR`, the **science discount**, no ramp,
-    /// the redirect for a good the player does not have (`docs/COSTS.md`
-    /// §"The redirect"). The rest of the discount tail — being behind in
-    /// ages, the lobby's tech-cost setting, the final-tech ramp — is
-    /// [`cost::Modifiers`]'s and arrives as the undiscounted price until the
-    /// layers that produce it exist, as [`Sim::price_of`] does for a unit.
+    /// the British taxation discount, and the redirect for a good the player
+    /// does not have (`docs/COSTS.md` §"The redirect"). The rest of the
+    /// discount tail — being behind in ages, the lobby's tech-cost setting,
+    /// the final-tech ramp, Democracy, Incense — is [`cost::Modifiers`]'s
+    /// and arrives as the undiscounted price until the layers that produce
+    /// it exist, as [`Sim::price_of`] does for a unit.
+    ///
+    /// The British term is `get_cost`'s `TVar21 − TAXATION < 4 &&
+    /// has_tribe_bonus(0xb)` → `(100 − BRITISH_TAXATION_DISCOUNT) × p /
+    /// 100`, after the science discount and before the redirect. A tech has
+    /// no ramp, so it rides [`cost::Modifiers::late_discount`], the same
+    /// expression at the same place (`docs/AI.md` §74).
     pub fn tech_price(&self, who: Player, t: tech::TypeId) -> [i32; economy::RESOURCES] {
         let holdings = &self.holdings[who as usize];
+        let british_taxation = self.tech_tree.roles.taxation_line.contains(&t)
+            && self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0xb);
         let price = cost::Price {
             kind: cost::Kind::Tech,
             base: self.tech_tree.types[t].cost,
@@ -2195,6 +2206,11 @@ impl Sim {
             cost::Counts::default(),
             &cost::Modifiers {
                 science_ahead: self.science_ahead(who, t),
+                late_discount: if british_taxation {
+                    self.tuning.british_taxation_discount
+                } else {
+                    0
+                },
                 ..cost::Modifiers::default()
             },
             &holdings.available,

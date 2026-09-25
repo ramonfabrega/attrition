@@ -42,17 +42,18 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
-    EAST_INDIES_BARK_BLOCK, EAST_INDIES_CAST_BLOCK, EAST_INDIES_EXPLORE_BLOCK,
-    EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
-    EAST_INDIES_MERCS_BLOCK, EAST_INDIES_SLOT_BLOCK, EAST_INDIES_WRAP_BLOCK,
-    EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
-    GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
-    GREAT_LAKES_ATTACKED_BLOCK, GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK,
-    GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK,
-    GREAT_LAKES_GIVEUP_BLOCK, GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK,
-    GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK,
-    GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
-    GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_BARK_BLOCK, EAST_INDIES_BLOCKWORD_BLOCK, EAST_INDIES_CAST_BLOCK,
+    EAST_INDIES_EXPLORE_BLOCK, EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK,
+    EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MERCS_BLOCK, EAST_INDIES_SLOT_BLOCK,
+    EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
+    GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
+    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
+    GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_GIVEUP_BLOCK,
+    GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK,
+    GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK,
+    GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK,
+    GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -534,6 +535,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r166 = crate::testenv::dump("gamelog-run166-eastindies-incword.txt");
     let r221 = crate::testenv::dump("gamelog-run221-eastindies-slotword.txt");
     let r227 = crate::testenv::dump("gamelog-run227-eastindies-wrapword.txt");
+    let r233 = crate::testenv::dump("gamelog-run233-eastindies-blockword.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -776,6 +778,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r227 {
         let n = drive_capture(p, eww - 2, eww + 2, &mut paths);
         assert_eq!(n, 5, "run227 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 767 moved the word to 17189, past run227's last block, and its
+    // run233 is run227's line over [16929, 17441), so the window is the
+    // word's own blocks again, on the capture taken to widen it.
+    let ebw = EAST_INDIES_BLOCKWORD_BLOCK;
+    if let Some(p) = &r233 {
+        let n = drive_capture(p, ebw - 2, ebw + 2, &mut paths);
+        assert_eq!(n, 5, "run233 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

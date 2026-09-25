@@ -836,9 +836,28 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 15, parting at index 4**: the original spends `Leader::make_stuff
 /// +0x63d`, a bought slot's expiry roll, where ours spends `Animal::do_idle
 /// +0x83`. Under it on 16779 who=1's make-list slot 1 reads `val` 22784
-/// here against 91136. **Past run227** (block 16983 against its last,
-/// 16934): no widening names its block yet.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 16_982;
+/// here against 91136. ~~**Past run227** (block 16983 against its last,
+/// 16934): no widening names its block yet.~~
+///
+/// **16982 → 17189 on item 767, and the frame was the British price of
+/// Taxation.** The ×4 on 16779 was one multiplier, `check_income`'s escrow
+/// arm: `0x40` when the tech cannot be paid for, `0x100` when it can, on
+/// the same 67,200,000 before it. who=1 held 106 food and 76 timber, and
+/// this crate priced Taxation at 88 of each. `get_cost` takes
+/// `BRITISH_TAXATION_DISCOUNT` (50) off `TAXATION` and the three after it
+/// for the British (`docs/AI.md` §74), so the original's price was 44.
+/// **The move's value diff (the word's delta, here; its block is the
+/// widening's):** `MAKE[1].val` on 16779 goes, and nothing else on run227
+/// moves (`run227_s_word_frame_is_widened_whole`, floor 284/306/312 →
+/// 284/306/311). **The new word's delta: ours 2 draws and the original 1,
+/// parting at index 0**: ours spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`, a blocked stand, where the original spends `<
+/// Guy::inc_time+0x271`; the original spends its own stand on 17190. A
+/// scratch print named ours' as who=1's `1/55`, blocked by `1/60`.
+/// ~~**Past run227** (block 17190 against its last, 16934): no widening
+/// names its block yet.~~ run233 over [16929, 17440] widens it
+/// (`run233_s_word_frame_is_widened_whole`).
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_189;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4005,6 +4024,16 @@ pub(crate) const WIDENING_EAST_INDIES_WRAPWORD: (i64, i64) = (16_230, 16_934);
 /// idle wraps there against five here, writes block 16684. The coverage
 /// driver reads run227 around it.
 pub(crate) const EAST_INDIES_WRAPWORD_BLOCK: i64 = 16_684;
+/// `run233_s_word_frame_is_widened_whole`'s window (item 767): run233
+/// whole, 16929..17440 — six blocks shared with run227, the 255 up to the
+/// word 17189, its block, and 250 of runway past it. The floor is the
+/// capture's first block, which carries every key standing on run227's
+/// last.
+pub(crate) const WIDENING_EAST_INDIES_BLOCKWORD: (i64, i64) = (16_929, 17_440);
+/// The word 17189's block on run233: its frame, ours' blocked stand
+/// (`Unit::move_step+0x823`) a frame before the original's, writes block
+/// 17190. The coverage driver reads run233 around it.
+pub(crate) const EAST_INDIES_BLOCKWORD_BLOCK: i64 = 17_190;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4131,12 +4160,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run227's last block (16934): the census counts a gatherer in its
     // building's city (`docs/AI.md` §73). run227's test keeps the move's
     // value diff. Item 767 owes the capture over the new word.
+    //
+    // **Item 767 moved it and paid it**: the British price of Taxation
+    // (`docs/AI.md` §74) moved the word 16982 → 17189, past run227's last
+    // block, and run233 is run227's line over [16929, 17440], six blocks
+    // shared with run227 and 250 past the word.
+    // `run233_s_word_frame_is_widened_whole` walks it through the same
+    // walk, gaia and the pool included, and pins the word's block, 17190:
+    // who=1's `1/55` takes its blocked stand by `1/60` a frame early here,
+    // a half step ahead from 17182. run227's test keeps the move's value
+    // diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run233_s_word_frame_is_widened_whole"),
         767,
-        None,
+        Some(WIDENING_EAST_INDIES_BLOCKWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
