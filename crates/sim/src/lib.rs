@@ -89,6 +89,7 @@ pub mod rares;
 pub mod roads;
 pub mod scout;
 pub mod single;
+pub mod site_recruit;
 pub mod stance;
 pub mod supply;
 pub mod tech;

@@ -3218,3 +3218,196 @@ fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     sim.tech[0].no_patriots = true;
     assert_eq!(sim.tech_tree.get_gov_hero(&sim.setup, &sim.tech[0]), None);
 }
+
+/// **`Wall::process`'s site recruiter** (`docs/AI.md` §69, item 715). On
+/// its `(frame + o) & 31` phase an unfinished wonder or fort of a computer
+/// leader wants `max(4, helpers)` builders, and while it is short it hands
+/// the **nearest** own citizen that is not busy — idle, gathering or on a
+/// plain move — `add_build_order(site, QUEUE_NEW, 0)`: a build order with
+/// no action bit. Great Lakes' Pyramids `1/2026` does it on 15382 for
+/// `1/70`, whose swarm `do_move` had just refused.
+#[test]
+fn an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy() {
+    use crate::tech::{TechTree, TypeDef};
+    struct Ground {
+        sim: Sim,
+        t: Types,
+        citizen: usize,
+        wonder: usize,
+    }
+    fn ground(human: bool) -> Ground {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        sim.nation[0].human = human;
+        sim.lobby.starting_resources = 1;
+        let mut tree = TechTree::new();
+        // The Citizen is the tree's first unit — `types.list[BASE_UNITTYPES]`,
+        // what `FILTER_TYPE 0x32` asks a candidate to be.
+        let root = tree.add(TypeDef::unit(
+            "Citizen",
+            crate::tech::UnitTraits {
+                free: false,
+                jumpable: false,
+                unique: false,
+                hero: false,
+                patriot: false,
+                combat: false,
+            },
+        ));
+        for name in ["Food", "Timber", "Metal", "Wealth", "Knowledge", "Oil"] {
+            tree.add(TypeDef::good(name));
+        }
+        sim.set_tech_tree(tree);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        sim.unit_types[citizen].worker = Worker::Citizen;
+        sim.unit_types[citizen].tree = Some(root);
+        let wonder = sim.add_build_type(bt(Ident::Wonder, None, "ean", 4, 4, 2000, 2000, 0));
+        Ground {
+            sim,
+            t,
+            citizen,
+            wonder,
+        }
+    }
+    /// The first frame past `after` on which building `b`'s phase is due.
+    fn due(sim: &Sim, b: usize, after: i64) -> i64 {
+        (after..)
+            .find(|f| sim.buildings[b].phase(*f) & 31 == 0)
+            .unwrap()
+    }
+    let held = |sim: &Sim, u: usize| -> Vec<(Body, u8)> {
+        sim.units[u]
+            .orders
+            .iter()
+            .map(|o| (o.body, o.flags))
+            .collect()
+    };
+
+    // 1. The recruit: the nearer of two idle citizens, on the phase frame
+    //    and not a frame before, with `QUEUE_NEW` and no action bit.
+    let Ground {
+        mut sim,
+        citizen,
+        wonder,
+        ..
+    } = ground(false);
+    let site = sim.place_building(0, wonder, tile_pos(44, 32)).unwrap();
+    assert!(!sim.buildings[site].active);
+    let far = spawn(&mut sim, 0, citizen, tile_pos(52, 32));
+    let near = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    let f = due(&sim, site, 100);
+    sim.process_building(site, f - 1);
+    assert!(
+        held(&sim, near).is_empty(),
+        "off the phase, nobody is called"
+    );
+    sim.process_building(site, f);
+    assert_eq!(
+        held(&sim, near),
+        [(Body::Build(site), 0)],
+        "the nearer is sent"
+    );
+    assert!(held(&sim, far).is_empty(), "one citizen a phase");
+    // The next phase takes the other: `helpers` is still short of four.
+    let f2 = due(&sim, site, f + 1);
+    sim.process_building(site, f2);
+    assert_eq!(held(&sim, far), [(Body::Build(site), 0)]);
+
+    // 2. A gatherer is not busy, and a builder is: `FILTER_NOT_BUSY` is
+    //    `action_type` ∈ {NONE, GATHER, MOVE_TO}.
+    let Ground {
+        mut sim,
+        t,
+        citizen,
+        wonder,
+    } = ground(false);
+    let site = sim.place_building(0, wonder, tile_pos(44, 32)).unwrap();
+    let farm = sim.place_building(0, t.farm, tile_pos(40, 44)).unwrap();
+    let builder = spawn(&mut sim, 0, citizen, tile_pos(42, 32));
+    sim.add_build_order(builder, farm, QueuePos::New, false);
+    let camp = sim.place_building(0, t.farm, tile_pos(46, 40)).unwrap();
+    let gatherer = spawn(&mut sim, 0, citizen, tile_pos(48, 32));
+    sim.add_gather_order(gatherer, camp, QueuePos::New, false);
+    assert!(
+        sim.units[gatherer]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Gather(_))),
+        "the fixture's gatherer gathers"
+    );
+    let f = due(&sim, site, 100);
+    sim.process_building(site, f);
+    assert_eq!(
+        held(&sim, gatherer),
+        [(Body::Build(site), 0)],
+        "the gatherer is taken"
+    );
+    assert!(
+        held(&sim, builder)
+            .iter()
+            .all(|(b, _)| *b != Body::Build(site)),
+        "the nearer builder is busy"
+    );
+
+    // 3. Four builders already at it last frame: `helpers` is read before
+    //    the reset, and four is enough.
+    let Ground {
+        mut sim,
+        citizen,
+        wonder,
+        ..
+    } = ground(false);
+    let site = sim.place_building(0, wonder, tile_pos(44, 32)).unwrap();
+    let idle = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    sim.buildings[site].helpers = 4;
+    let f = due(&sim, site, 100);
+    sim.process_building(site, f);
+    assert!(held(&sim, idle).is_empty(), "four helpers want nobody");
+    assert_eq!(sim.buildings[site].helpers, 0, "and the reset comes after");
+
+    // 4. Neither a farm site nor a human's wonder recruits.
+    let Ground {
+        mut sim,
+        t,
+        citizen,
+        ..
+    } = ground(false);
+    let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    let idle = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    let f = due(&sim, farm, 100);
+    sim.process_building(farm, f);
+    assert!(
+        held(&sim, idle).is_empty(),
+        "a farm is neither wonder nor fort"
+    );
+    let Ground {
+        mut sim,
+        citizen,
+        wonder,
+        ..
+    } = ground(true);
+    let site = sim.place_building(0, wonder, tile_pos(44, 32)).unwrap();
+    let idle = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    let f = due(&sim, site, 100);
+    sim.process_building(site, f);
+    assert!(held(&sim, idle).is_empty(), "a human's site calls nobody");
+
+    // 5. A fort recruits too, while undamaged.
+    let Ground {
+        mut sim,
+        t,
+        citizen,
+        ..
+    } = ground(false);
+    let fort = sim.place_building(0, t.fort, tile_pos(44, 32)).unwrap();
+    let idle = spawn(&mut sim, 0, citizen, tile_pos(40, 32));
+    sim.buildings[fort].damage = 1;
+    let f = due(&sim, fort, 100);
+    sim.process_building(fort, f);
+    assert!(held(&sim, idle).is_empty(), "a damaged fort calls nobody");
+    sim.buildings[fort].damage = 0;
+    let f2 = due(&sim, fort, f + 1);
+    sim.process_building(fort, f2);
+    assert_eq!(held(&sim, idle), [(Body::Build(fort), 0)]);
+}

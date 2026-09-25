@@ -44,8 +44,9 @@ use super::testkit::{
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_BIRTH_BLOCK,
     GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK,
     GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK,
-    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK,
-    GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK, WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK,
+    GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -602,10 +603,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Item 711 moved it to 15383, past run196's last block, and its run202
     // is run196's line from 15227 to 15440, so the window is the word's own
     // blocks again, on the capture taken to widen it.
+    // Item 715 moved it to 15384, inside run202, so the window runs on to
+    // two blocks past the new word's block.
     let gm = GREAT_LAKES_MIRROR_BLOCK;
+    let gr = GREAT_LAKES_RECRUIT_BLOCK;
     if let Some(p) = &r202 {
-        let n = drive_capture(p, gm - 2, gm + 2, &mut paths);
-        assert_eq!(n, 5, "run202 carries the word's five blocks");
+        let n = drive_capture(p, gm - 2, gr + 2, &mut paths);
+        assert_eq!(n, 6, "run202 carries both words' blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower
