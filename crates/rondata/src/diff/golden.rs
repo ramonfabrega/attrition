@@ -676,6 +676,41 @@ fn chapter_sixteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter seventeen, pinned** — the flight line, an issuer the AI
+/// rarely takes (`docs/GOLDEN.md` §25, item 746, run223). Eleven staged
+/// lines: `!ai off`, `library who=0 6`, who=0's Airbase on 606, a
+/// Fighter on 610 and a Bomber pair on 612 and 614, who=1's Barracks on
+/// 616; and four issuer lines through `issue_flight@00941d40` — `@strike`
+/// on 620 and 664, `@flight` on 640 and 660.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run223): the strike on the ground took no order; each flight home is
+/// one `STRAFEORDER`, `returning 1`, home `0/2007`; the flying pair's
+/// strike became an `AIRPATROLORDER` over the unseen Barracks' point; the
+/// Fighter inside its base on 722.
+///
+/// `GOLDEN_WORD_CHAPTER_SEVENTEEN` carries what stands at the word.
+#[test]
+fn chapter_seventeen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch17", "chapter17", 17, 11, 1399) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SEVENTEEN,
+        "chapter seventeen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SEVENTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SEVENTEEN,
+        "chapter seventeen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §25"
+    );
+    eprintln!(
+        "chapter seventeen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6794,6 +6829,269 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     .collect();
     want_pool.sort();
     assert_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
+}
+
+/// **Chapter seventeen's word, widened whole, both directions** (item
+/// 746). Every record run223 carries on every block of
+/// [`WIDENING_CHAPTER_SEVENTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the Fighter `0/6` on its strafe home, the Bomber pair `0/7`,
+/// `0/8` on their pads — every building, the two staged ones among them,
+/// both leaders at `LEADERS=2`; and who=0's `GROUPDATA` pool by
+/// [`widen_pool`], where each command's pushed selection sits. run223
+/// dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_seventeen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch17",
+        "chapter17",
+        WIDENING_CHAPTER_SEVENTEEN,
+        1399,
+        0,
+        (640, 644),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch17 f{f} {w}/{o} {what}: {row}");
+    }
+    // `g.gpiece` is chapter one's age bracket (`library who=0 6` on 600,
+    // before the window): the pre-existing citizens' art, which the
+    // stand-up does not carry.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SEVENTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch17: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SEVENTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch17", "chapter17", WIDENING_CHAPTER_SEVENTEEN, 0)
+        .expect("run223 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch17 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §25). **The first pin, word 642, open** (605, 645): the births'
+    // `form`, chapter one's `g.end_time` beside the age bracket, the
+    // pair's `group` on 622 (`process_group` pushed the refused strike's
+    // selection), and the Fighter on 642 — no order, no path, idle, where
+    // the original's holds its `STRAFEORDER` home and has taken its first
+    // step — 26 keys past the births.
+    //
+    // **The command entered** (item 746, `docs/ORDERS.md` §32; the window
+    // widened to 667 to hold the pair's strafe and the strike): every
+    // `STRAFEORDER` row agrees on 642 and 662 — the target, `mandatory`,
+    // the `AIRORDER`'s home `0/2007`, `cruising_alt` 1600, `sharp_turn`,
+    // `old`, `returning 1`, `xx/yy −1` — and the pushed selections' `group`
+    // with them. What stands is **the flight**, which this crate does not
+    // fly: each aircraft's first step (its figure, heading, `pos`, `path`)
+    // on its processed block and `orders_x/y` and `dest_angle` the next;
+    // the Fighter's `cruising_alt` redraw on 643, 1600 → 1300, the word's
+    // draw; and on 666 the strike turned `AIRPATROLORDER` (17), a class
+    // this crate has no body for. Past the word the stream is one draw
+    // short, and that is what the citizens' and `1/5`'s rows from 650
+    // are: `1/5`'s scout leg re-rolled on 659, `1/1`'s gather wait.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "615 0/8 form",
+        "617 0/1 g.end_time[0]",
+        "623 0/2 g.end_time[0]",
+        "642 0/6 g.angle[0]",
+        "642 0/6 g.avg_speed[0]",
+        "642 0/6 g.cur_anim[0]",
+        "642 0/6 g.cur_time[0]",
+        "642 0/6 g.des_angle[0]",
+        "642 0/6 g.des_x[0]",
+        "642 0/6 g.des_y[0]",
+        "642 0/6 g.last_speed[0]",
+        "642 0/6 g.last_time[0]",
+        "642 0/6 g.stopped[0]",
+        "642 0/6 g.x[0]",
+        "642 0/6 g.y[0]",
+        "642 0/6 heading",
+        "642 0/6 path:length",
+        "642 0/6 pos",
+        "643 0/6 dest_angle",
+        "643 0/6 order:air.cruising_alt",
+        "643 0/6 orders_x",
+        "643 0/6 orders_y",
+        "650 0/1 g.cur_time[0]",
+        "650 0/1 g.last_time[0]",
+        "655 0/2 g.cur_time[0]",
+        "655 0/2 g.last_time[0]",
+        "656 1/1 order:gather.wait",
+        "659 1/5 order:move.off_x",
+        "659 1/5 order:move.off_y",
+        "659 1/5 order:move.x",
+        "659 1/5 order:move.y",
+        "659 1/5 orders_x",
+        "659 1/5 orders_y",
+        "660 1/5 order:move.dest_x",
+        "660 1/5 order:move.dest_y",
+        "660 1/5 path[0].to",
+        "661 1/5 angle:Facing",
+        "661 1/5 angle:Heading",
+        "661 1/5 g.angle[0]",
+        "661 1/5 g.des_angle[0]",
+        "661 1/5 heading",
+        "662 0/7 g.angle[0]",
+        "662 0/7 g.avg_speed[0]",
+        "662 0/7 g.cur_anim[0]",
+        "662 0/7 g.cur_time[0]",
+        "662 0/7 g.des_angle[0]",
+        "662 0/7 g.des_x[0]",
+        "662 0/7 g.des_y[0]",
+        "662 0/7 g.last_speed[0]",
+        "662 0/7 g.last_time[0]",
+        "662 0/7 g.stopped[0]",
+        "662 0/7 g.x[0]",
+        "662 0/7 g.y[0]",
+        "662 0/7 heading",
+        "662 0/7 path:length",
+        "662 0/7 pos",
+        "662 0/8 g.angle[0]",
+        "662 0/8 g.avg_speed[0]",
+        "662 0/8 g.cur_anim[0]",
+        "662 0/8 g.cur_time[0]",
+        "662 0/8 g.des_angle[0]",
+        "662 0/8 g.des_x[0]",
+        "662 0/8 g.des_y[0]",
+        "662 0/8 g.last_speed[0]",
+        "662 0/8 g.last_time[0]",
+        "662 0/8 g.stopped[0]",
+        "662 0/8 g.x[0]",
+        "662 0/8 g.y[0]",
+        "662 0/8 heading",
+        "662 0/8 path:length",
+        "662 0/8 pos",
+        "663 0/7 dest_angle",
+        "663 0/7 orders_x",
+        "663 0/7 orders_y",
+        "663 0/8 dest_angle",
+        "663 0/8 orders_x",
+        "663 0/8 orders_y",
+        "665 1/5 g.avg_speed[0]",
+        "665 1/5 g.des_y[0]",
+        "665 1/5 g.last_speed[0]",
+        "665 1/5 g.y[0]",
+        "665 1/5 pos",
+        "666 0/7 order:unspellable",
+        "666 0/8 order:unspellable",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch17: what parts under the word moved");
+    // **What parts in the pool.** The first pin had each command's
+    // pushed selection missing here — the refused strike's pair in slot 1
+    // on 622, the Fighter's flight in slot 0 on 642 — and the entry seats
+    // both. What stands:
+    // - **`ox`/`oy` on each pushed flight group**: (0, 0) in the original,
+    //   `Group::clear`'s (−1, −1) here. `action_flight` writes no group
+    //   point and no step of a flight reads one; which writer leaves 0 is
+    //   not read.
+    // - **`speed`/`new_speed`** on 662 and 666: `Groups::get_open_slot`
+    //   re-seating a live slot's speed as it walks past (item 738's
+    //   `get_num`), which this crate does not model, and no flight reads.
+    let mut want_pool: Vec<String> = [
+        "622 slot 1 ox",
+        "622 slot 1 oy",
+        "642 slot 0 ox",
+        "642 slot 0 oy",
+        "662 slot 0 new_speed",
+        "662 slot 0 speed",
+        "662 slot 2 ox",
+        "662 slot 2 oy",
+        "666 slot 2 new_speed",
+        "666 slot 2 speed",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
+}
+
+/// **run223's air orders, read whole** (item 746, `docs/ORDERS.md` §11.1
+/// and §32) — the first `STRAFEORDER` and the first player's
+/// `AIRPATROLORDER` on disk, each with its `AIRORDER` base, pinned as the
+/// parser reads them. On 642 the Fighter's flight home: target −1,
+/// `mandatory 1`, home `0/2007`, `cruising_alt` 1600, `sharp_turn` and
+/// `old` 0, `returning 1`, `xx/yy −1`. On 666 a bomber's strike turned
+/// patrol: the Barracks' point in both arrays, the same home, `returning
+/// 0`. A second reader beside `compare_orders`, so a parser change that
+/// drops a field fails here as well as there.
+#[test]
+fn run223_s_air_orders_are_read_whole() {
+    let Some((dump, _)) = golden("ch17") else {
+        eprintln!("skipping: no golden capture ch17 (see docs/RUNS.md)");
+        return;
+    };
+    let mut ix = crate::capture::indexed::IndexedCapture::open(&dump).unwrap();
+    let mut at = |n: i64| {
+        let i = ix
+            .frames()
+            .iter()
+            .position(|x| x.number == n)
+            .expect("run223 holds the block");
+        ix.frame_state(i).unwrap()
+    };
+    let mut head = |n: i64, o: i64| {
+        let f = at(n);
+        let u = f
+            .units
+            .iter()
+            .find(|u| u.who == 0 && u.o == o)
+            .expect("the aircraft is on the block")
+            .clone();
+        u.orders_front_first().next().expect("an order").clone()
+    };
+    let strafe = head(642, 6);
+    assert_eq!((strafe.index, strafe.kind.as_str()), (16, "STRAFEORDER"));
+    assert_eq!(
+        (strafe.ox, strafe.whom, strafe.flags),
+        (Some(-1), Some(-1), 4)
+    );
+    assert_eq!(strafe.mandatory, Some(1));
+    assert_eq!((strafe.air_oxx, strafe.air_whose), (Some(2007), Some(0)));
+    assert_eq!(
+        (strafe.cruising_alt, strafe.sharp_turn, strafe.air_old),
+        (Some(1600), Some(0), Some(0))
+    );
+    assert_eq!(strafe.returning, Some(1));
+    assert_eq!((strafe.strafe_xx, strafe.strafe_yy), (Some(-1), Some(-1)));
+    let patrol = head(666, 7);
+    assert_eq!((patrol.index, patrol.kind.as_str()), (17, "AIRPATROLORDER"));
+    assert_eq!(
+        (patrol.patrol_x.clone(), patrol.patrol_y.clone()),
+        (vec![21120], vec![16512])
+    );
+    assert_eq!((patrol.air_oxx, patrol.air_whose), (Some(2007), Some(0)));
+    assert_eq!(patrol.returning, Some(0));
+    assert_eq!((patrol.strafe_xx, patrol.strafe_yy), (None, None));
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).

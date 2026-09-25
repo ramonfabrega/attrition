@@ -47,6 +47,18 @@ use crate::world::{Pos, vector_dist};
 const GROUP_LOC_NEAR: i32 = 0x180;
 use crate::{Player, Sim};
 
+/// `MAX_AIRCRAFT_PER_AIRBASE` (`rules.xml`, 10): `ObjectData::can_carry`'s
+/// room for aircraft in an Airbase.
+const MAX_AIRCRAFT_PER_AIRBASE: usize = 10;
+
+/// The flight command's `orders` (`docs/ORDERS.md` §32): `MOVE_TO` (1),
+/// home to one's own base, or `ATTACK` (10), at an enemy.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Flight {
+    Home,
+    Strike,
+}
+
 /// Where this module knowingly stands in for the original, in one list.
 ///
 /// | seam | stands in for | what it costs |
@@ -2620,6 +2632,110 @@ impl Sim {
         best.map(|(_, c)| c)
     }
 
+    /// `Group::action_flight(ox, whom, orders, shift, ctrl, alt)@006fb260`
+    /// (`docs/ORDERS.md` §32): the flight command's one call, and the
+    /// only maker of a player's `StrafeOrder`. `kind` is the command's
+    /// `orders`: [`Flight::Home`] for `MOVE_TO`, a right-click on one's
+    /// own base, and [`Flight::Strike`] for `ATTACK`, one on an enemy.
+    ///
+    /// The target must be live (`+8 & 1`); a flight home must name one of
+    /// the group's own Airbases (`can_carry(AIR)`). Then, per member
+    /// (the loop's bound is `group.num`):
+    /// - **a member already on a `STRAFE`** has that order re-pointed and
+    ///   gets no new one. A strike writes the target and its point, then
+    ///   `returning 0`, `mandatory 1` and the action bit; a flight home
+    ///   writes the base as its home, no target, `returning 1`,
+    ///   `mandatory 1` and the action bit;
+    /// - **any other member**'s "inside" is its `inside_up`. A strike
+    ///   needs it; a flight home gives `add_strafe_order(−1, −1, base,
+    ///   who, 1, QUEUE_NEW, 1)` unless the member already stands in that
+    ///   base.
+    ///
+    /// So **an aircraft on the ground outside a base takes no strike at
+    /// all**, and no feedback beyond the console's: run223's block 622.
+    ///
+    /// SEAMs, none reached by run223: the split of a strike's non-air
+    /// members into `action_attack` (every member is air here), the
+    /// `NUCLEARMISSILE` arm, the missile arm of each gate, the empty-tank
+    /// arms (this crate carries no fuel, so a tank is never empty), the
+    /// `FIGHTERBOMBER` `home_base` gate, a carrier as the base, the
+    /// `AIR_PATROL`/`AIR_ATTACK_GROUND` home as the "inside" (no member
+    /// holds either), and **a strike from inside a base**, whose
+    /// `valid_target`, `MISSILE_DEFENSE_BONUS`, reach and war tests are
+    /// not built: such a member takes no order here.
+    pub fn group_action_flight(&mut self, g: &Group, target: Obj, kind: Flight) {
+        let live = match target {
+            Obj::Unit(i) => self.units.get(i).is_some_and(|u| u.alive()),
+            Obj::Building(b) => self.buildings.get(b).is_some_and(|b| b.alive),
+        };
+        if !live {
+            return;
+        }
+        let base = match (kind, target) {
+            (Flight::Home, Obj::Building(b))
+                if self.buildings[b].owner == g.who
+                    && self.buildings[b].ty.is_some_and(|t| {
+                        crate::build::is(&self.build_types, t, crate::build::Ident::Airbase)
+                    }) =>
+            {
+                Some(b)
+            }
+            (Flight::Home, _) => return,
+            (Flight::Strike, _) => None,
+        };
+        let point = self.pos_of(target);
+        for &u in &g.list {
+            if !self.units[u].alive() {
+                continue;
+            }
+            if let Some(b) = base
+                && self.aircraft_inside(b) >= MAX_AIRCRAFT_PER_AIRBASE
+            {
+                continue;
+            }
+            if let Some(o) = self.units[u].orders.front_mut()
+                && let Body::Strafe(ref mut sf) = o.body
+            {
+                match kind {
+                    Flight::Strike => {
+                        sf.target = Some(target);
+                        sf.at = Some(point);
+                        sf.returning = false;
+                    }
+                    Flight::Home => {
+                        sf.home = base;
+                        sf.target = None;
+                        sf.at = None;
+                        sf.returning = true;
+                    }
+                }
+                sf.mandatory = true;
+                o.flags |= flag::ACTION;
+                continue;
+            }
+            let inside = self.units[u].inside;
+            match kind {
+                // SEAM: a strike from inside a base (above).
+                Flight::Strike => {}
+                Flight::Home => {
+                    if inside != base {
+                        self.add_strafe_order(u, None, base, true, QueuePos::New, true);
+                    }
+                }
+            }
+        }
+    }
+
+    /// `ObjectData::num_aircraft_here`: the planes standing in a base,
+    /// its `inside_up` chain's aircraft.
+    fn aircraft_inside(&self, b: usize) -> usize {
+        self.buildings[b]
+            .garrison
+            .iter()
+            .filter(|&&u| self.group_domain(u) == Domain::Air)
+            .count()
+    }
+
     /// `Group::action_attack(o, whom, mandatory, queue, ignore)` (§10):
     /// three passes by domain, the `ignore` mask, and the `mandatory == 0`
     /// melee retarget.
@@ -3142,6 +3258,85 @@ mod tests {
         }
         t.cols.role |= role::MILITARY;
         sim.add_unit_type(t)
+    }
+
+    /// who=0's Airbase and who=1's other building, as chapter seventeen
+    /// stages them (`docs/GOLDEN.md` §25).
+    fn airbase_and_target(sim: &mut Sim) -> (usize, usize) {
+        let airbase = sim.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::Airbase,
+            ..crate::build::BuildType::default()
+        });
+        let base = sim.add_building(0, Pos::new(11616, 13920), 0);
+        sim.buildings[base].ty = Some(airbase);
+        let target = sim.add_building(1, Pos::new(21120, 16512), 0);
+        (base, target)
+    }
+
+    /// **A flight home is one `StrafeOrder` with no target, going home**
+    /// (`Group::action_flight@006fb260`'s `MOVE_TO` arm →
+    /// `Unit::add_strafe_order(−1, −1, base, who, 1, QUEUE_NEW, 1)`,
+    /// `docs/ORDERS.md` §32; run223's blocks 642 and 662).
+    #[test]
+    fn a_flight_home_is_one_strafe_with_no_target_going_home() {
+        let mut s = sim();
+        let t = flier(&mut s, false);
+        let u = spawn(&mut s, 0, t, Pos::new(11616, 16224));
+        let (base, _) = airbase_and_target(&mut s);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
+        let o: Vec<Order> = s.units[u].orders.iter().copied().collect();
+        assert_eq!(o.len(), 1, "one order");
+        assert_eq!(o[0].index(), index::STRAFE);
+        assert!(o[0].has(flag::ACTION), "the action bit");
+        let Body::Strafe(sf) = o[0].body else {
+            panic!("a strafe")
+        };
+        assert_eq!(sf.target, None);
+        assert_eq!(sf.at, None);
+        assert!(sf.returning && sf.mandatory);
+        assert_eq!(sf.home, Some(base));
+        assert_eq!(sf.cruising_alt, 0x640);
+    }
+
+    /// **An aircraft on the ground outside a base takes no strike**: an
+    /// `ATTACK` flight needs the member "inside" — its `inside_up`, or an
+    /// air order's home — and `add` placed it outside (run223's block
+    /// 622, where the original gave the pair nothing).
+    #[test]
+    fn an_unbased_aircraft_on_the_ground_takes_no_strike() {
+        let mut s = sim();
+        let t = flier(&mut s, false);
+        let u = spawn(&mut s, 0, t, Pos::new(10104, 16248));
+        let (_, target) = airbase_and_target(&mut s);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+        assert!(
+            s.units[u].orders.is_empty(),
+            "no order: the member is skipped"
+        );
+    }
+
+    /// **A strike re-points a flying strafe and adds nothing**: the STRAFE
+    /// arm writes the target and its point, `returning 0`, and keeps the
+    /// home (run223's block 665, the order the original then turns into
+    /// an air patrol over the unseen target's point).
+    #[test]
+    fn a_strike_re_points_a_flying_strafe() {
+        let mut s = sim();
+        let t = flier(&mut s, false);
+        let u = spawn(&mut s, 0, t, Pos::new(10104, 16248));
+        let (base, target) = airbase_and_target(&mut s);
+        let g = group_of(0, &[u]);
+        s.group_action_flight(&g, Obj::Building(base), Flight::Home);
+        s.group_action_flight(&g, Obj::Building(target), Flight::Strike);
+        let o: Vec<Order> = s.units[u].orders.iter().copied().collect();
+        assert_eq!(o.len(), 1, "still one order");
+        let Body::Strafe(sf) = o[0].body else {
+            panic!("a strafe")
+        };
+        assert_eq!(sf.target, Some(Obj::Building(target)));
+        assert_eq!(sf.at, Some(Pos::new(21120, 16512)));
+        assert!(!sf.returning && sf.mandatory);
+        assert_eq!(sf.home, Some(base));
     }
 
     fn siege_type(sim: &mut Sim) -> usize {

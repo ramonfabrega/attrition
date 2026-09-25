@@ -254,10 +254,30 @@ const UNREAD: &[(&str, &str)] = &[
     // and with its 702 window the right-click's `process_move_to` and
     // `process_move_to_2` lines, which no chapter's window had held.
     // **Item 731's run215 windows `process_attack`** (`ox whom ignore
-    // queued frame`), the first player's attack on disk.
+    // queued frame`), the first player's attack on disk. **Item 746's
+    // run223 windows `process_flight`**, the frame alone, the same shape.
     (
         "GAME",
-        "process_attack process_eject_all process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
+        "process_attack process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
+    ),
+    // **Item 746's run223 windows are the first to print a player's air
+    // order**: the `STRAFEORDER` a flight home builds and the
+    // `AIRPATROLORDER` a strike on an unseen target becomes
+    // (`docs/GOLDEN.md` §25). The order parser reads each `AIRORDER` row
+    // and the strafe's `xx`/`yy` (`docs/ORDERS.md` §32); what stays unread
+    // is the `AIRORDER`'s own `UNITORDER` copy, the same second copy as
+    // the grouped moves' above, and the patrol's array allocation.
+    (
+        "GAME/FRAME/UNITDATA/AIRPATROLORDER/AIRORDER/UNITORDER",
+        "flags",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/AIRPATROLORDER/PATROLORDER",
+        "flags increment size",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/STRAFEORDER/AIRORDER/UNITORDER",
+        "flags",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
@@ -486,6 +506,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch14 = golden_dump("ch14");
     let ch15 = golden_dump("ch15");
     let ch16 = golden_dump("ch16");
+    let ch17 = golden_dump("ch17");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -937,6 +958,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter seventeen's word, on run223** (item 746): the first
+    // player's aircraft on disk under an air order, and the first
+    // `STRAFEORDER`, `AIRORDER` and player's `AIRPATROLORDER` records in
+    // any capture. 622, the strike from the ground that gives no order;
+    // 642, the word and the Fighter's strafe home; 662, the pair's; 666,
+    // the strike turned patrol; 722, the Fighter inside its base; 778, the
+    // patrol's strafe on the Barracks; 822, its first damage; 1081, the
+    // Barracks gone; 1212, the first empty tank.
+    if let Some(p) = &ch17 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN;
+        for w in [622, 642, 662, 666, 722, 778, 822, 1081, 1212] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter seventeen carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **Chapter eight's word, on run171** (item 660): the first capture
     // with a General and a Spy in it, and the first golden capture at
     // `LEADERS=5`, whose leader record prints the diplomacy row. The
@@ -1092,14 +1129,17 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // rows on their orders, none of which stand on this window; `uid`,
     // `metric`, `build_type`, `non_flat_gather` and the attack order's
     // `mandatory defensive in_range ever_in_range new_ord def_x def_y`
-    // no site compares.
+    // no site compares. The strafe's row since item 746 — `mandatory`,
+    // the `AIRORDER`'s `air_oxx air_whose cruising_alt sharp_turn air_old
+    // returning` and `strafe_xx strafe_yy` — is compared on every strafe
+    // (`compare_orders`, run223), and none stands on this window.
     (
         "OrderDump",
-        "ag_accuracy ag_att_x ag_att_y ag_attack_unit attempts build_type cast_paid \
-         cast_spell def_x def_y defensive ever_in_range form_id \
-         garrison_search group_angle group_id in_group in_range mandatory metric \
-         new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry tolerance \
-         uid waypoint whose",
+        "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
+         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
+         ever_in_range form_id garrison_search group_angle group_id in_group in_range \
+         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
+         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: `queue` registers with a non-empty queue whose depths
     // agree, and none stands on this window. **`orig_type`, `damage` and

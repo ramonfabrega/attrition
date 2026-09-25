@@ -1627,6 +1627,21 @@ pub struct OrderDump {
     pub form_id: Option<i64>,
     /// `GroupMoveOrder`'s own last field, past both bases.
     pub in_group: Option<i64>,
+    /// `AirOrder::log_data@0047fa40`'s row, on the `AIRORDER` base of a
+    /// `STRAFEORDER` or an `AIRPATROLORDER` (`docs/ORDERS.md` §32): the
+    /// home base `oxx/whose`, `cruising_alt`, `sharp_turn`, `old` and
+    /// `returning`. Kept apart from the `GROUPORDER` row's `oxx/whose`,
+    /// which name a leader. First printed by run223 (item 746).
+    pub air_oxx: Option<i64>,
+    pub air_whose: Option<i64>,
+    pub cruising_alt: Option<i64>,
+    pub sharp_turn: Option<i64>,
+    pub air_old: Option<i64>,
+    pub returning: Option<i64>,
+    /// `STRAFEORDER`'s own `xx yy`, past both bases: the target's point,
+    /// −1 without one.
+    pub strafe_xx: Option<i64>,
+    pub strafe_yy: Option<i64>,
     /// `ATTACKORDER`'s own fields, past the `TARGETORDER` base.
     pub mandatory: Option<i64>,
     pub defensive: Option<i64>,
@@ -2841,6 +2856,10 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                     (list[..nx].to_vec(), list[nx..].to_vec(), pt.int("waypoint"))
                 },
             );
+            let air = base("AIRORDER");
+            let air_int = |k: &str| air.and_then(|a| a.int(k));
+            let strafe = base("STRAFEORDER");
+            let strafe_int = |k: &str| strafe.and_then(|a| a.int(k));
             let mv_int = |k: &str| mv.and_then(|m| m.int(k));
             let atk_int = |k: &str| atk.and_then(|a| a.int(k));
             let grp_int = |k: &str| grp.and_then(|g| g.int(k));
@@ -2895,6 +2914,14 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 // wraps, and reading it off `o` returned `None` for
                 // every grouped attack-move ever captured (item 237).
                 in_group: base("GroupMoveOrder").and_then(|g| g.int("in_group")),
+                air_oxx: air_int("oxx"),
+                air_whose: air_int("whose"),
+                cruising_alt: air_int("cruising_alt"),
+                sharp_turn: air_int("sharp_turn"),
+                air_old: air_int("old"),
+                returning: air_int("returning"),
+                strafe_xx: strafe_int("xx"),
+                strafe_yy: strafe_int("yy"),
                 mandatory: atk_int("mandatory"),
                 defensive: atk_int("defensive"),
                 in_range: atk_int("in_range"),
