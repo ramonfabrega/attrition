@@ -544,7 +544,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // holds at 15985. Measured on the tree before item 713's merge
         // and again after it, with the same counts. The unlinked are
         // player 1's `80`..`82`. DECISIONS 36: the number, not a trade.
-        off: 52,
+        // **52 → 55 off** on item 715: `Wall::process`'s site recruiter
+        // (`docs/AI.md` §69), which moves Great Lakes' word 15383 → 15384;
+        // this map's holds at 15985. Measured after item 714's merge. The
+        // unlinked are still player 1's `80`..`82`. DECISIONS 36: the
+        // number, not a trade.
+        off: 55,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -1300,7 +1305,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // The extras are `1/81` and `1/82`, Merchants. The 24,000th frame
         // is 8,617 frames past the new word. DECISIONS 36: the number, not
         // a trade.
-        off: 27,
+        // **27 → 32 off, 2 → 0 extra** on item 715: `Wall::process`'s site
+        // recruiter (`docs/AI.md` §69), which moves this map's word 15383 →
+        // 15384. Measured after item 714's merge. The 24,000th frame is
+        // 8,616 frames past the new word. DECISIONS 36: the number, not a
+        // trade.
+        off: 32,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1319,7 +1329,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **1 → 0 extra** on item 688, beside `off` above.
         // **0 → 1 extra** on item 706, beside `off` above: `1/81`.
         // **1 → 2** on item 711, beside `off` above.
-        extra: 2,
+        // **2 → 0** on item 715, beside `off` above.
+        extra: 0,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
