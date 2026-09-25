@@ -3601,14 +3601,13 @@ is past run211 (15859), so run218 was taken (`docs/RUNS.md`).
 **The new row, `mirror`** (`unit_masks & 2` against
 `Movement::mirror`) is in `widen_block`. It was carried since item 711
 and compared nowhere. Outside group 67 it parts on two units, and does
-so with or without this item's fix:
-- the scout `1/0`: Great Lakes from 9960 (run139, run143) and East
-  Indies from 8242 (run99), beside its `order:move.facing` (parked
-  275's family);
-- `1/31` on Great Lakes from 10875 (run149, run152).
+so with or without this item's fix. **All of it is East Indies**:
+- the scout `1/0` from 8242 (run99), standing on 9960 (run139, run143),
+  beside its `order:move.facing` (parked 275's family);
+- `1/31` from 10875 (run149, run152).
 
-Each of those widenings gains that one key. None spends a draw that the
-word has reached.
+Each of those widenings gains that one key. On Great Lakes, the `mirror`
+row parts nowhere under the word: the floor stays 398.
 
 ### 26.5 717's readers are unreachable on this install
 
