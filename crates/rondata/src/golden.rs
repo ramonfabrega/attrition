@@ -332,18 +332,48 @@ pub enum Issued {
         to: Pos,
         objects: Vec<i16>,
     },
+    /// `@explore <who> <x> <y> <o> [<o> …]`: `@move`'s fields through the
+    /// same `issue_move_to@00941720`, with `EXPLORE_TO` (3) for `MOVE_TO` —
+    /// the Explore button's pick on the ground
+    /// (`Options::picked_spot@00721c40:905`), item 738.
+    Explore {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
+    /// `@flee <who> <x> <y> <o> [<o> …]`: `@move`'s fields with `FLEE_TO`
+    /// (4). The Flee button's pick (`Options::picked_spot@00721c40:946`)
+    /// issues the same move to a friendly building's point and then a
+    /// `QUEUE_LAST` garrison; the DLL issues the move alone, on the ground
+    /// (item 738, `docs/GOLDEN.md` §24).
+    Flee {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
-/// `attack` or `amove`, a `who` outside `0..8`, fewer than three numbers
+/// `attack`, `amove`, `explore` or `flee`, a `who` outside `0..8`, fewer
+/// than three numbers
 /// (one for `eject`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
     if !matches!(
         verb,
-        "move" | "patrol" | "guard" | "follow" | "garrison" | "eject" | "form" | "attack" | "amove"
+        "move"
+            | "patrol"
+            | "guard"
+            | "follow"
+            | "garrison"
+            | "eject"
+            | "form"
+            | "attack"
+            | "amove"
+            | "explore"
+            | "flee"
     ) {
         return None;
     }
@@ -407,6 +437,8 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             objects,
         },
         "amove" => Issued::AttackMove { who, to, objects },
+        "explore" => Issued::Explore { who, to, objects },
+        "flee" => Issued::Flee { who, to, objects },
         _ => Issued::Move { who, to, objects },
     })
 }
@@ -479,6 +511,16 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // 731, `docs/GOLDEN.md` §23).
         Some(Issued::AttackMove { who, to, objects }) => {
             crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 2)
+        }
+        // `@explore` and `@flee` are `issue_move_to@00941720` with
+        // `EXPLORE_TO` (3) and `FLEE_TO` (4), whose entry is
+        // [`crate::input::group_move_to`] with that `orders` byte (item
+        // 738, `docs/GOLDEN.md` §24).
+        Some(Issued::Explore { who, to, objects }) => {
+            crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 3)
+        }
+        Some(Issued::Flee { who, to, objects }) => {
+            crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 4)
         }
         // `@attack` is `issue_attack@009415e0` with `ignore` 0 and
         // `QUEUE_NEW`, a `group` and an `attack`, whose entry is
@@ -966,6 +1008,9 @@ mod tests {
         // Chapter fifteen: a `@move`, an `@attack` and an `@amove`, the
         // group attack line (item 731, `docs/GOLDEN.md` §23).
         ("chapter15.cmd", &[]),
+        // Chapter sixteen: two `@explore` and two `@flee` issuer lines, the
+        // move issuer's trailing selector (item 738, `docs/GOLDEN.md` §24).
+        ("chapter16.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -1156,7 +1201,25 @@ mod tests {
                 objects: vec![6, 9],
             })
         );
+        assert_eq!(
+            parse_issuer("@explore 0 2400 17280 6"),
+            Some(Issued::Explore {
+                who: 0,
+                to: Pos::new(2400, 17280),
+                objects: vec![6],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@flee 0 3168 7008 7"),
+            Some(Issued::Flee {
+                who: 0,
+                to: Pos::new(3168, 7008),
+                objects: vec![7],
+            })
+        );
         for bad in [
+            "@explore 0 2400 17280",
+            "@flee 0 3168",
             "move 0 1 2 3",
             "@formation 0 1 2 3",
             "@attack 0 6 1",

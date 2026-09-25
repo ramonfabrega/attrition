@@ -529,6 +529,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@attack <who> <ox> <whom> <o> [<o> ...]` the target's id and owner,
  *                                         issue_attack
  *   `@amove <who> <x> <y> <o> [<o> ...]`  `@move`'s fields, ATTACK_TO
+ *   `@explore <who> <x> <y> <o> [<o> ...]` `@move`'s fields, EXPLORE_TO
+ *   `@flee <who> <x> <y> <o> [<o> ...]`   `@move`'s fields, FLEE_TO
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -597,6 +599,13 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * bytes `WorldMap::on_right_up@008c7050:199` passes for a ctrl+right-click
  * on the ground, the attack-move (item 731).
  *
+ * `@explore` and `@flee` are `@move` with `orders` EXPLORE_TO (3) and
+ * FLEE_TO (4) (item 738, `docs/GOLDEN.md` §24). EXPLORE_TO is the bytes
+ * `Options::picked_spot@00721c40:905` passes for the Explore button's pick
+ * on the ground. FLEE_TO is what its Flee arm (`:946`) passes, to a
+ * friendly building's point, before a QUEUE_LAST `issue_garrison` of that
+ * building; the verb issues the move alone, to the point it is given.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -648,7 +657,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u32 before = *pkg_size;
     const u16 *t = text;
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
-     * `eject`, 6 `form`, 7 `attack`, 8 `amove`: the issuer, its prologue
+     * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`:
+     * the issuer, its prologue
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
      * attack's the target's, a form's the formation and the rotation; an
@@ -662,6 +672,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "form ")     ? 6
                : issue_verb(&t, "attack ")   ? 7
                : issue_verb(&t, "amove ")    ? 8
+               : issue_verb(&t, "explore ")  ? 9
+               : issue_verb(&t, "flee ")     ? 10
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, ids[ISSUE_MAX];
@@ -682,8 +694,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * issue_form's, `0x14` for issue_eject_all's; each then loads
      * `&command_manager` into ecx. issue_attack's `sub esp, 0x14` is
      * followed by `push esi; mov esi, [ebp+0xc]`: it tests `ox` and
-     * `whom` before it asks `check_accept_issue`. `@amove` is issue_move_to. */
-    static const u8 prologue[9][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * `whom` before it asks `check_accept_issue`. `@amove`, `@explore` and
+     * `@flee` are issue_move_to. */
+    static const u8 prologue[11][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -691,8 +704,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
-    u32 rva = verb == 8   ? RVA_ISSUE_MOVE_TO
+    /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
+    i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
+    u32 rva = verb >= 8   ? RVA_ISSUE_MOVE_TO
               : verb == 7 ? RVA_ISSUE_ATTACK
               : verb == 6 ? RVA_ISSUE_FORM
               : verb == 5 ? RVA_ISSUE_EJECT_ALL
@@ -701,7 +718,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb == 8   ? 0x16
+    u32 size = verb >= 8   ? 0x16
                : verb == 7 ? 0x11
                : verb == 5 ? 0x11
                : verb >= 2 ? 0x0d
@@ -751,7 +768,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
          * right-click on an enemy. */
         typedef void(__thiscall *attack_fn)(void *, void *, i32, i32, i32, i32);
         ((attack_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 0, 2);
-    } else if (verb && verb != 8) {
+    } else if (verb && verb < 8) {
         /* issue_patrol(group, x, y, queue), issue_guard(group, ox, whom,
          * queue), issue_follow(group, ox, whom, queue) and
          * issue_garrison(group, ox, whom, queue) share one shape: two ints
@@ -760,9 +777,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
     } else {
         typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
-        /* `@move` passes MOVE_TO (1), `@amove` ATTACK_TO (2). */
+        /* `@move` passes MOVE_TO (1), `@amove` ATTACK_TO (2), `@explore`
+         * EXPLORE_TO (3), `@flee` FLEE_TO (4). */
         ((issue_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 0, 0,
-                                   verb == 8 ? 2 : 1, -1, -1, 0);
+                                   move_kind, -1, -1, 0);
     }
     u32 after = *pkg_size;
     emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, n);
