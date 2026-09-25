@@ -6131,3 +6131,15 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run211-greatlakes-wonderword.txt gamelog-run218-greatlakes-escortword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run211 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(15854..15859)")}'
 # **The coverage window landed**: every frame 16456..16464 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run218.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=16456&&f<=16464&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 1,870,856,427 bytes of dump and 21,371,680 of trace, **858 blocks
+# 15854..16711**, with a `GROUPDATA` on every one. Launched 09:22 through
+# `viadriver.sh` with no human at the menu, and archived 10:26: about 64
+# minutes. All six checks were green:
+# - 16,723 frames identical to run53;
+# - `MAP_STYLE 14`;
+# - the window whole;
+# - the pool on every block;
+# - 6 blocks shared with run211 (15854..15859), 0 differing;
+# - a coverage set on all 9 frames 16456..16464.

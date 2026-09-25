@@ -6982,6 +6982,20 @@ a blocked step, which ours does not. **Sized with 250 blocks of runway**
 (DECISIONS 50 §7): six blocks shared with run211, the 601 up to the word,
 its block, and 250 above it. The readings and their kills are in the
 stanza.
+
+**Taken whole.** 1,870.9 MB of dump and 21.4 MB of trace, 858 blocks
+15854..16711. About 64 minutes from launch (09:22) to archive (10:26),
+with no human at the menu, while this lane worked. Waited on with
+`waitrun.sh`, exit 0. The lane lock was stale (pid 74824).
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 16,723 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **858 blocks, 15854..16711, no gap** |
+| a `GROUPDATA` on every window block | **858** |
+| overlap with run211, nothing excluded | **6 in common (15854..15859), 0 differ** |
+| the coverage window | a set on all 9 frames 16456..16464 |
 ## run215 — chapter fifteen, the group attack (2026-09-25, item 731)
 
 `docs/GOLDEN.md` §23, `tools/gamelog/golden/chapter15.cmd`. The cast is

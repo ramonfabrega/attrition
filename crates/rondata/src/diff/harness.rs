@@ -2259,6 +2259,10 @@ pub(crate) mod tests {
                 "gamelog-run211-greatlakes-wonderword.txt",
                 WIDENING_GREAT_LAKES_MIRROR.1 + 1,
             ),
+            (
+                "gamelog-run218-greatlakes-escortword.txt",
+                WIDENING_GREAT_LAKES_WONDER.1 + 1,
+            ),
         ]
     }
 
@@ -2266,7 +2270,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_ATTACKED_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_ESCORT_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -11696,19 +11700,19 @@ pub(crate) mod tests {
         );
         // **Item 736's value diff** (`docs/GROUPS.md` §26, parked 716): the
         // Despot's move `facing`, 1 here and 0 there from 15351, and its
-        // `mirror`, 1 here and 0 there on 15607, part nowhere from run202's
-        // first block on; nor does any other row of group 67's (their
-        // `form`, −1 against 0 since 14946, is the floor's).
+        // `mirror`, 1 here and 0 there on 15607, part nowhere on run202's
+        // and run211's own blocks; nor does any other row of group 67's
+        // (their `form`, −1 against 0 since 14946, is the floor's).
         let despot: Vec<String> = firsts
             .iter()
             .filter(|((w, o, _), (f, _))| {
-                *w == 1 && (76..=79).contains(o) && *f >= WIDENING_GREAT_LAKES_MIRROR.0
+                *w == 1 && (76..=79).contains(o) && *f > WIDENING_GREAT_LAKES_PATRIOT.1
             })
             .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
             .collect();
         assert!(
             despot.is_empty(),
-            "group 67 — 1/76..1/79 — holds from 15227 on: {despot:?}"
+            "group 67 — 1/76..1/79 — holds from run202's own blocks on: {despot:?}"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN202_TAIL).count();
         let mid = firsts
@@ -11741,6 +11745,93 @@ pub(crate) mod tests {
         // (`docs/GROUPS.md` §26). Nothing parts on 15441..15859; the word
         // left run211 for 16460 (run218).
         assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+    }
+
+    /// **run218 — Great Lakes' word 16460, widened whole, both directions**
+    /// (item 736). run211's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_ESCORT`]: six blocks shared with run211, the
+    /// 601 up to the word, its block, and 250 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across thirteen captures, with every player-1
+    /// pool list from run135's first block.
+    ///
+    /// The word's frame, 16460, writes block **16461**.
+    #[test]
+    fn run218_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_ESCORT_BLOCK;
+        /// run211's last block: everything above it is run218's.
+        const RUN211_TAIL: i64 = WIDENING_GREAT_LAKES_WONDER.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run218",
+            &great_lakes_word_chain(),
+            WIDENING_GREAT_LAKES_ESCORT,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (WIDENING_GREAT_LAKES_ESCORT.1 - WIDENING_GREAT_LAKES_ESCORT.0 + 1) as usize,
+            "the walk is whole"
+        );
+        let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (RUN211_TAIL + 1..=WORD_BLOCK).contains(f) {
+                *own.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let own: Vec<(i64, i64, i64, usize)> =
+            own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        // **On run218's own blocks up to the word: one unit, on the word's
+        // own frame.** Nothing parts on 15860..16459. On block 16460 —
+        // sim-frame 16459, a frame before the word — `1/23`, a
+        // three-figure unit, stands stopped in the original at
+        // (41632, 21466) and walks on here to (41632, 21440). On the
+        // word's block its original carries `collide_o 79, collide_who 1`:
+        // its step is blocked by **The Despot**, which is the word's
+        // `Unit::move_step+0x823`. No member of group 67 parts.
+        assert_eq!(
+            own,
+            [(16_460, 1, 23, 26), (16_461, 1, 23, 17)],
+            "who parts first on run218's own blocks up to the word's, and on how many keys"
+        );
+        let group67: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                *w == 1
+                    && (76..=79).contains(o)
+                    && (WIDENING_GREAT_LAKES_PATRIOT.1 + 1..=WORD_BLOCK).contains(f)
+            })
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert!(
+            group67.is_empty(),
+            "group 67 holds on run202's, run211's and run218's blocks up to the word: {group67:?}"
+        );
+        let under = firsts.values().filter(|(f, _)| *f <= RUN211_TAIL).count();
+        let mid = firsts
+            .values()
+            .filter(|(f, _)| (RUN211_TAIL + 1..=WORD_BLOCK).contains(f))
+            .count();
+        // The floor's rows standing on the word's block, and `1/23`'s.
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            355,
+            "every row standing on the word's block, 16461"
+        );
+        // **The floor**: run211's walk (398, nothing on run211's own blocks
+        // since item 736), then `1/23`'s 43 keys on 16460..16461, and every
+        // key to the window's end.
+        assert_eq!((under, mid, firsts.len()), (398, 43, 957), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
