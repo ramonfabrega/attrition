@@ -6465,3 +6465,106 @@ check: python3 tools/gamelog/samegame.py gamelog-run221-eastindies-slotword.txt 
 # - The cause stands on the window's first block: who=1's cities count
 #   their gatherers 11 and 11 here against 10 and 12 there, and
 #   `find_gather_spot`'s crossing rule reads them.
+
+run: 233
+tag: eastindies-blockword
+item: 767
+why: East Indies' long word is 17189 (item 767), where ours spends 2 draws against 1, parting at index 0 — ours spends `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked stand, where the original spends `< Guy::inc_time+0x271`, and the original spends its own `move_step+0x823` a frame later, on 17190 — and run227, the last capture on this map below 23960, ends on block 16934, so the word's block 17190 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-25, item 767): every
+# `gamelog-*eastindies*` by its block range. run227 holds 16230..16934
+# (its `!quit` stub to 16946), run96 from 23960; run54 prints only its
+# draw stream. None holds 17189 or 17190. **What the disk does answer.**
+# The draw stream (run54's trace against ours, `RON_DEBUG_SITES=17186-
+# 17190`) agrees in count and sequence on every frame to 17188. On 17189
+# ours spends the blocked stand before one idle wrap and the original the
+# wrap alone; on 17190 the original spends the blocked stand before four
+# wraps and ours the four alone — **one unit's stand, a frame early
+# here**. A scratch print at ours' `SITE_BLOCKED` (reverted) names it:
+# **who=1's `1/55`, blocked by `1/60`** on 17189, at (34471, 41185)
+# against (34368, 41088). A `cover=0` trace names no unit, so whether the
+# original's stand on 17190 is `1/55`'s is not on disk. run227's walk,
+# re-run with item 767's fix, parts on nothing of `1/55`'s or `1/60`'s to
+# its last block, 16934; what stands there is the floor, the scout `1/0`'s
+# order point and mirror from 16782 (parked 768), and the newborns' parked
+# families. **What the disk could not answer**: every record on
+# 16935..17190 — where `1/55` and `1/60` walk, their paths, move states
+# and `collide_*` fields, on which block either first parts, and whose
+# stand the original's 17190 is.
+#
+# **Sized to the word, with 250 blocks of runway** (DECISIONS 50 §7): six
+# blocks shared with run227 (16929..16934), the 255 up to the word, its
+# block 17190, and 250 above it — 512 blocks.
+#
+# **The readings, each with what kills it** (block = frame + 1, so block
+# 17189 is frame 17189's pre-state and 17190 its result). Each killer
+# tests the claim's own unit, the pair `1/55` and `1/60`, never the first
+# row:
+#
+# - **R1 — this is run54's game to 17451.** Killed if the trace differs
+#   from run54's on any frame, or the overlap with run227 on
+#   16929..16934 differs or counts other than six blocks.
+# - **R2 — `1/55` is the original's stand too, a frame later, because
+#   its walk or `1/60`'s differs.** Its unit is `1/55`: killed if the
+#   original's `1/55` shows no fresh roll on block 17191 (its `cur_anim`
+#   unchanged and `cur_time` not reset), compared on (who, o).
+# - **R3 — the pair parts on its own records before the word.** Killed if
+#   `1/55` and `1/60` agree on position, orders, path, move state and every
+#   `collide_*` field on every block to 17189, compared on (who, o) — what
+#   the slot holds, not its print index.
+# - **R4 — the parting is upstream of the pair, on who=1's leader or the
+#   scout `1/0`'s family (parked 768).** Killed if the first parting row
+#   on 16935..17190 that is not a floor or parked-family row is one of the
+#   pair's own.
+#
+# **run227's line**, the same lobby (no `cfg:`) and the same `end:`, so the
+# overlap is byte for byte and the pool lands (no `DEATHS`).
+frames: 17451
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **16929..17440, 512 blocks**: six shared with run227 (16929..16934),
+# the 255 up to the word, its block 17190, and 250 of runway above it.
+frame_window: 16929 17441
+# A draw-stream trace first (the brief): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run227**: 2.3 MB a block, so 512 blocks is ~1.2 GB.
+# run227 took 57 minutes for 705 blocks; this is ~45. 360 polls is two
+# hours.
+poll_max: 360
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run233.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=17441)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run233-eastindies-blockword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 512 blocks, 16929..17440, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run233-eastindies-blockword.txt" | awk '{v=$3+0; if(v>=16929&&v<17441) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==512 && lo==16929 && hi==17440)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run233-eastindies-blockword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=16929&&v<17441)n++} print "blocks with a GROUPDATA: "n; exit !(n==512)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run233-eastindies-blockword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=16929&&v<17441)n++} print "blocks with a GUY: "n; exit !(n==512)}'
+# **The overlap with run227, and the count is the claim** — six blocks,
+# 16929..16934, the same line, nothing excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run227-eastindies-wrapword.txt gamelog-run233-eastindies-blockword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run227 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(16929..16934)")}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 1,211,836,805 bytes of dump and 23,448,544 of trace, **512 blocks
+# 16929..17440**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 16:39 through `viadriver.sh` with no human at the menu, the dump closed
+# 17:20 and the trace 17:21: about 42 minutes. `waitrun.sh` exited 0. All
+# six checks were green:
+# - 17,452 frames identical to run54;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block;
+# - 6 blocks shared with run227 (16929..16934), 0 differing.
+#
+# **The readings, decided on the walk**
+# (`run233_s_word_frame_is_widened_whole`, `docs/AI.md` §74):
+# - **R1 holds**, by the checks above.
+# - **R2 holds.** The original's `1/55` takes its stand by `1/60` a frame
+#   later: `collide_o 60` on block 17191 there, 17190 here.
+# - **R3 holds.** `1/55` parts first on 17182 on `half_step`, 0 here and
+#   1 there. On 17183 its `last_speed` reads 30 against 15, so ours took a
+#   whole step where the original took a half.
+# - **R4's killer fires.** The first non-floor row is who=1's `scholars`,
+#   13 against 14 from 16971. `1/58`'s path parts from 17147 and `1/57`'s
+#   `half_step` from 17161, both before the pair.

@@ -1268,6 +1268,38 @@ mod tests {
         assert_eq!(recency(-15 * 25600, 1, 25600, 16, 3), 2);
     }
 
+    /// `get_cost`'s British taxation term (`docs/AI.md` §74). run227's
+    /// who=1, the British, held 106 food and 76 timber on block 16779 and
+    /// priced Taxation at 88 each here — `8 × TECH_COST_FACTOR` and the
+    /// Science surcharge — so `check_income`'s escrow arm read it
+    /// unaffordable (`0x40`) where the original's, at half the price, read
+    /// `0x100`: the offer's value 22784 against 91136.
+    #[test]
+    fn the_british_pay_half_for_the_taxation_line() {
+        let (mut sim, t) = sim();
+        for x in [t.taxation, t.religion] {
+            sim.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
+        }
+        sim.tech_tree.roles.taxation_line = vec![t.taxation];
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        sim.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
+        sim.tech[1].has_city = true;
+        let income = |sim: &Sim, x| sim.check_income(1, x, 0x400, None, true, -1, 1, 0);
+        assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
+        assert_eq!(
+            income(&sim, t.taxation),
+            0x40,
+            "not British: 88 is out of reach"
+        );
+        sim.tech[1].power = Some(0xb);
+        assert_eq!(sim.tech_price(1, t.taxation), [44, 44, 0, 0, 0, 0]);
+        assert_eq!(income(&sim, t.taxation), 0x100, "British: 44 is in reach");
+        // Only the four taxation techs, and only for the British.
+        assert_eq!(sim.tech_price(1, t.religion), [88, 88, 0, 0, 0, 0]);
+        sim.tech[1].power = Some(0xc);
+        assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
+    }
+
     #[test]
     fn the_slot_is_the_category() {
         assert_eq!(slot_for(0), 10);

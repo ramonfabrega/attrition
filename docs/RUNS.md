@@ -7398,3 +7398,53 @@ Waited on with `waitrun.sh`, exit 0.
   here and 12 against 12 there.
 - With the census fixed the word moves **16683 → 16982**, past run227's
   last block.
+
+## run233 — East Indies' word 17189, past run227's last block (2026-09-25, item 767)
+
+**What it is.** run227's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[16929, 17441)`, at `cover=0`: a draw-stream trace first. `!quit` at
+17451, through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 767
+```
+
+**Why it was owed.** Item 767 moved East Indies' word 16982 → 17189 (the
+British price of Taxation, `docs/AI.md` §74). run227 ends on block 16934,
+so the word's block 17190 is on no disk. On 17189 ours spends 2 draws
+against 1, parting at index 0: ours spends a blocked stand,
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, and the original spends its
+own on 17190. **The disk answered whose stand it is here, not there**: a
+scratch print named ours' `1/55`, blocked by `1/60`, and run227 parts on
+neither to its last block. **Sized with 250 blocks of runway**
+(DECISIONS 50 §7): six blocks shared with run227, the 255 up to the word,
+its block, and 250 above it, 512 blocks. The readings and their kills are
+in the stanza.
+
+**Taken whole.** 1,211.8 MB of dump and 23.4 MB of trace, 512 blocks
+16929..17440. About 42 minutes from launch (16:39) to the trace's close
+(17:21), with no human at the menu. Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 17,452 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **512 blocks, 16929..17440, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **512 / 512** |
+| overlap with run227, nothing excluded | **6 in common (16929..16934), 0 differ** |
+
+**What it settled** (`run233_s_word_frame_is_widened_whole`,
+`docs/AI.md` §74).
+- **R2 holds**: the original's `1/55` takes the same stand by `1/60` a
+  frame later, `collide_o 60` on block 17191.
+- **R3 holds**: `1/55` parts before the word, first on 17182 on
+  `half_step` (0 here, 1 there), then `last_speed` 30 against 15 on 17183.
+  Ours took a whole step where the original took a half one. `1/60` parts
+  on nothing but the pool's `group` (689).
+- **R4's killer fires**: the first row on the window that is no floor
+  family's is who=1's `scholars`, 13 against 14, from 16971. `1/58`'s path
+  parts from 17147 and `1/57`'s `half_step` from 17161, both before the
+  pair.
+- The floor is 293 keys on the first block, 363 before the word's frame
+  and 1,139 in all.

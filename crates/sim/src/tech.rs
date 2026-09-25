@@ -416,6 +416,11 @@ pub struct Roles {
     pub german_industry: Vec<TypeId>,
     /// The five techs every final requires.
     pub final_needs: Vec<TypeId>,
+    /// Taxation, Vassalage, Social Contract and Income Tax — `TAXATION`
+    /// and the three after it (`0x24d..=0x250`), the window both
+    /// `get_cost`'s British discount and `research_techs`' Temple ×100
+    /// test as `t − TAXATION < 4`.
+    pub taxation_line: Vec<TypeId>,
 }
 
 /// What gates a free-tech rule.
