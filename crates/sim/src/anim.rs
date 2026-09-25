@@ -1706,7 +1706,7 @@ impl Sim {
                             // surface rather than the lake bed under it
                             // (§50.3, run127's trireme rounds at `sz` 88
                             // over a bed at −273).
-                            crate::launch::node(guy.gpiece, guy.anim, start).map_or(0, |n| n.dz),
+                            crate::launch::release_dz(guy.gpiece, guy.anim, start).unwrap_or(0),
                         ),
                     };
                     // A plane's figure flies at its own `z` (`GuyData +0x14`,

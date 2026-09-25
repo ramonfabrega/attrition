@@ -516,6 +516,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch15 = golden_dump("ch15");
     let ch16 = golden_dump("ch16");
     let ch17 = golden_dump("ch17");
+    let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -997,11 +998,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Barracks gone; 1212, the first empty tank. **Item 759 moved the word
     // to 805**, the first bomb's animation, and its window joins. **Item
     // 763 moved it to 821**, the bomb's damage, inside 822's window.
+    // **Item 770 closed it at 1400**, run223's last block, whose window
+    // joins at 1397, the last whole five blocks.
     if let Some(p) = &ch17 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN;
-        for w in [622, 642, 662, 666, 722, 778, 805, 822, 1081, 1212] {
+        for w in [622, 642, 662, 666, 722, 778, 805, 822, 1081, 1212, 1397] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter seventeen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **run235** (item 770): run223's game again at `AMMO=5`, the first
+    // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
+    // a frame out; 852, `0/7`'s.
+    if let Some(p) = &ch17a {
+        for w in [806, 852] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "run235 carries the window's five blocks");
             frames += n;
         }
     }

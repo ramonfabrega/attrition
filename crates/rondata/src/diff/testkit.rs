@@ -3177,16 +3177,35 @@ pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 1251);
 /// animation's event (`anim.rs`'s `guy_release_events`, which fires for
 /// an `ATTACK`/`ATTACK_GROUND` front order only), fenced this tranche.
 ///
-/// **The delta**, this constant's: +16, 805 → 821, open.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 821;
+/// **The strafe's round: 1400, closed** (item 770, `docs/ORDERS.md` §35).
+/// A strafe with a target releases: `Guy::execute_events`' `+0xdc` arm
+/// takes a `StrafeOrder`'s own `ox/whom/uid` (its `UnitOrder` vtable at
+/// `0xb47b08` answers `+0x18` 1, `+0x2c` 0), and the bomb leaves from the
+/// plane's figure `z` and one of its two bays, lands one tile ahead along
+/// the heading with no draw, and falls in `(int)sqrtf(2(ez − sz) /
+/// GRAV_Z)`, 17 frames. On 821 the original's `take_damage+0xe1` is ours
+/// too, and the stream agrees to run223's last frame: sequence 1400, no
+/// value part. The widening, moved to run223 whole, has the Barracks'
+/// `damage` agreeing on every block to its death on 1080; what stands is
+/// the tank from 1212 (parked 765), which spends no draw to 1400. run235
+/// (`AMMO=5`) diff-backs every bomb's record on 800–1100.
+///
+/// **The delta**, this constant's: +579, 821 → 1400, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 1400;
 
-/// `chapter_seventeen_s_word_frame_is_widened_whole`'s window: (605,
+/// `chapter_seventeen_s_word_frame_is_widened_whole`'s window: **run223
+/// whole**, (605, 1401), since item 770 closed the word at 1400; (605,
 /// 823) since item 763, the word 821 and the bomb's damage on 822;
 /// (605, 807) since item 759, the word 805 and the bomb on 806; (605,
 /// 667) before it, the word 642 and the pair's strafe on 662 and strike
 /// on 666 (item 746); the first pin was (605, 645). Its pool half,
 /// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 1401);
+
+/// `run235_s_bombs_are_the_original_s_record_for_record`'s window
+/// (item 770): run235's blocks from the first bomb's release, 805, to its
+/// last, 1100 — the four attacks on the Barracks and its death on 1080.
+pub(crate) const RUN235_BOMBS: (i64, i64) = (800, 1101);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
@@ -3654,7 +3673,19 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// 58,081 corners, every one under 16 in magnitude, where two to four
 /// singles print alike and [`sim::single::Single::from_millionths`] takes
 /// the nearest — at most a few ulp, under 2e-6 of a world unit.
-pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[];
+///
+/// **Chapter seventeen's bombs** (item 770, `docs/ORDERS.md` §35.3). A
+/// Bomber's round lands where `find_data_z` answers under open ground at
+/// 0 to 10, on the corners the zero stands over, and its height feeds
+/// one thing: the fall time, `(int)sqrtf(2(ez − sz) / GRAV_Z)`. Every one
+/// of run223's 49 bombs falls from 1601–1632 and takes 17 frames with
+/// `ez` one either side as well (measured, item 770's journal); 17 holds
+/// for any drop in 1516–1698. So the reads are counted, and pinned.
+pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    ("chapter_seventeen_holds_to_the_golden_word", 34),
+    ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
+    ("run235_s_bombs_are_the_original_s_record_for_record", 34),
+];
 
 /// **Every pinned word names the test that widened its frame whole, or
 /// the open item that will** (`docs/DECISIONS.md` 43). A word is the frame
@@ -4662,11 +4693,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // draw on its strafe home. Item 759 flew the flight home and moved
     // the word to 805, the first bomb, and widened it whole on
     // (605, 807): the first value parting is the pair's patrol on 666.
+    // Item 770 released the strafe's round and closed it at 1400, widened
+    // on run223 whole: what stands is the tank from 1212 (parked 765).
     (
         "GOLDEN_WORD_CHAPTER_SEVENTEEN",
         GOLDEN_WORD_CHAPTER_SEVENTEEN,
         Some("chapter_seventeen_s_word_frame_is_widened_whole"),
-        759,
+        770,
         Some(WIDENING_CHAPTER_SEVENTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
