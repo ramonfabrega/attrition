@@ -1354,7 +1354,7 @@ below without a run take their number at booking (the eleventh pass).
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
-| 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg** |
+| 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2555,3 +2555,24 @@ the chariot's 622–623 rows, and the Barracks agrees on every block. The
 coverage driver takes 620..624, 638..644, 697..701, 759..763 and
 900..904, and pins `process_garrison`, `process_eject_all` and the
 order's `search` as unread.
+
+**Closed at 1000 by the same item** (item 718; `docs/ORDERS.md` §29).
+`rondata::input::group_garrison` pushes the group and calls
+`Sim::group_action_garrison`; `group_eject_all` calls
+`Sim::action_eject_all`. That alone moved the word to 903, and the
+widening named four things under it, each fixed:
+
+- `check_target_path`'s GARRISON arm (the door on the review, 699 and
+  761);
+- the door as `adjacent_to`;
+- `kill_garrison_order`'s walk down the chain;
+- `come_out`'s angles.
+
+With these the walk agrees to run208's end: sequence 1000, no value part.
+The widening over run208 whole leaves the standing `form`s, parked 275's
+scout row on 847, and the squad's `group` on 903. `come_out` pushes a
+squad that leaves a building into a fresh pool slot, behind the eject's
+own building group, and this crate carries neither (parked 689's family).
+A test in `sim::cities_tests` pins the command, the whole-squad door and
+the exit's angles. It fails with the one-unit kill, and again with the
+angles reset.

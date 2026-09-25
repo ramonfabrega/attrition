@@ -1411,14 +1411,15 @@ raw `BLOCK_RADIUS` (`+0x248`), bias its `angle` — then `set_new_location`.
 all three at once, so a trained squad never keeps it and one born on open
 ground does. Not modelled, and no capture reaches it.
 
-**What is not established.** Whether a member is turned to its captain's
-`angle` on the way out. `come_out`'s tail splits on the same `is_captain`
+~~**What is not established.** Whether a member is turned to its captain's
+`angle` on the way out.~~ **It is** (run208, item 718, `docs/ORDERS.md`
+§29): `come_out`'s tail splits on the same `is_captain`
 bit (`006191a5`) and the not-a-captain arm calls
 `set_angle(this, host->angle)` for a unit host (vslot `0x8`);
-`docs/TRANSPORT.md` §6.4 has it diff-backed for a passenger. run76 cannot
-separate it — both angles are `Unit::init`'s initial value — so it is not
-implemented here, and the falsifier is a squad ejected from a building whose
-captain has turned.
+`docs/TRANSPORT.md` §6.4 has it diff-backed for a passenger. run76 could not
+separate it, since both angles are `Unit::init`'s initial value. run208's
+squad, ejected on 903 after walking to the door, comes out with its
+captain's heading and facing.
 
 #### 6.5.2 A scholar is seated on its host, and a trained one never leaves
 

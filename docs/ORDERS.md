@@ -500,7 +500,8 @@ frame.
    kind, **every 16 frames phased by `o`**: `action = update_action()`, and if
    it `is_targeted` and is not `AWAIT_BOARD`: a `GUARD` repaths every 64,
    any other targeted action → `check_target_path@005e22d0` (which re-paths
-   only to *unit* targets — a building target is left alone). Then an
+   only to *unit* targets ~~— a building target is left alone~~ — and to
+   a building a `GARRISON` is `adjacent_to`, §29). Then an
    action-bit move that is the only order: if within `block_radius`
    (`ptype+0x240`) of its target object the move is reset to the unit's
    position and, if the unit's tile equals the target's, killed; else a cast
@@ -6476,3 +6477,85 @@ the code):
   as `target_is_seen`;
 - the ring and the leader's-place fallbacks, which no capture reached.
 
+
+## 29. The garrison command and the Eject, entered (item 718, 2026-09-24)
+
+`Body::Garrison` is the original's `GarrisonOrder` (`OrderIndex` 26,
+`GarrisonOrder::get_type@004847e0`): a `TargetOrder` and `search`.
+`GarrisonOrder::log_data@004846f0` writes the label, then
+`TargetOrder::log_data`, then `search`. The order, `do_garrison`,
+`go_inside`, `come_out` and the deferred ejection were written from §5.7
+and `docs/CITIES.md` §6 long before a player's command reached them.
+Chapter thirteen (`docs/GOLDEN.md` §21, run208) is the first capture to
+hold one, and it corrected four things.
+
+**Who issues it.** A player's garrison command:
+
+1. `CommandManager::issue_garrison@00941a70` builds it, 13 bytes behind
+   the group.
+2. `CommandPackage::process_garrison@00948760` hands `ox`, `whom` and
+   `queued` to `Group::action_garrison@00700490` with `search` 0, when the
+   building is alive (`rondata::input::group_garrison` →
+   `Sim::group_action_garrison`).
+3. `action_garrison` returns unless the building is the group's player's
+   or a mutual ally's, active, with a garrison limit, and not an
+   unassimilated city.
+4. Every member that is active, on the map and not a plane, and **whose
+   type `can_garrison` the building's**, gets
+   `Unit::add_garrison_order@005e4080(b, whom, 0, QUEUE_NEW, 1)`. A member
+   that cannot gets nothing.
+
+The Eject: `CommandManager::issue_eject_all@00941ca0` on a group of
+buildings, `CommandPackage::process_eject_all@00947fe0` →
+`Group::action_eject_all@00710b40` (`group_eject_all` →
+`Sim::action_eject_all`). With `who < 0` each building that holds a squad
+and is no hangar gets `Object::eject_contents@0064cd20`, which defers:
+`build_masks |= 0x4000`, and `Build::process_ejection@006201e0` takes one
+squad a frame from the head.
+
+**What run208 corrected.**
+
+- **The door is cut on the review, not at the leg's end.**
+  `Unit::check_target_path@005e22d0`, on `Unit::work`'s every-16-frames
+  step phased by `o` (§2.3 step 5), has an arm for action type `0x1a`: a
+  building target that is on the map and `Object::adjacent_to` the unit
+  (vslot `+0x170`) is `repath`ed, which pops the leg. The head re-read
+  then runs `do_garrison` in the same frame. run208's chariot is inside
+  on 699 ~140 short of its leg's point, and the squad on 761 ~35 short,
+  each on its phase.
+- **The door is `adjacent_to`**: `attack_dist < 0x60`, edge to edge.
+  This crate had a ring of tiles round the footprint.
+- **`Unit::kill_garrison_order@005e2bd0` walks the captain's `o_down`
+  chain**, repaths each unit whose action is a GARRISON and kills it
+  once. The member that reached the door was not always the captain, and
+  the others kept their walks inside.
+- **`Unit::come_out@00617c10` keeps the unit's angles.**
+  `set_new_location` moves only the position, and a member takes its
+  captain's heading and facing (`docs/CITIES.md` §6.5.1's open question).
+  The captain's `orders_x/y` and `dest_angle` are its new place on the
+  block it leaves; a member's follow on its next `work`.
+
+**Diff-backed** (run208, `chapter_thirteen_s_word_frame_is_widened_whole`,
+605–1000, every record both directions):
+
+- one `GARRISONORDER` a member, on the building, with the action bit and
+  `search 0`, under its own plain leg to the 432 ring;
+- the chariot's door on 699 and the squad's, whole, on 761, with every
+  stack empty inside;
+- the Eject: the chariot on 902, the squad on 903, their places and
+  angles.
+
+**Not carried, and pinned**: the squad's `group` on 903. `come_out` gives
+a unit whose type's `+0x308` exceeds 1, leaving a building, a fresh group
+(`Group::add`, `Groups::push_group(…, 1)`). run208's squad takes pool slot 3
+behind the eject's own building group in slot 2. This crate pushes
+neither (parked 689's family). Every trained AI squad on the long captures
+takes that push.
+
+**Resting on the reading alone, and not built** (each a named seam in
+the code): `action_garrison`'s `QUEUE_FIRST` insert, its editor arm
+(`Game::semaphore` bit `0xb`), a worker's `QUEUE_FIRST`, a packing type's
+arms, `search`'s `find_garrison_build` from the command, and
+`is_entering_or_exiting`; `action_eject_all`'s `back_to_work` filter, its
+`eject_o`/`eject_who` arm, and the two types that die when emptied;
+`adjacent_to`'s sea arm.
