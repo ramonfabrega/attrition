@@ -997,6 +997,13 @@ tools/gamelog/waitrun.sh` works, and the commander's briefs say so until
 the pass sets the mode bit or the text. A waiter that cannot fail loudly
 when it cannot start is 656's shape again.
 
+(758) **Nothing waits on a lane lock's release** (742's Loop line, filed
+at its merge): `winelaunch.sh` refuses rather than queues, and 742 chained
+`waitrun.sh` behind a hand-rolled `kill -0` wait on another lane's pid.
+The same line asks that a brief carry the first parting's *field list*,
+not its unit: 736's widening already showed the give-up's stores agreeing
+on 16459, one field from the mechanism.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
