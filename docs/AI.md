@@ -8932,19 +8932,25 @@ was made to fail with the stamp removed (0 against 10233).
 
 ### 71.4 What it moved
 
-Measured on the tree based on `7ec485a` (no `ccc update` since spawn):
+Measured on `2567873`, the lane merged onto the base at `5b2132a` (item
+723's booking):
 
 - **Great Lakes 15608 → 15619.** On 15608 both sides spend 38 draws draw
   for draw. On 15619 this crate spends 4 draws against the original's 5,
   parting at index 0: the original spends `Guy::set_anim+0x97a <
   Unit::move_step+0x823` first.
+- **East Indies holds at 15985.**
+- **The endpoint**: Great Lakes 45 → 22 off, 4 → 0 extra, 0 unlinked;
+  East Indies unchanged at 51 off, 4 unlinked.
 - **The value diff** (`run211_s_word_frame_is_widened_whole`):
   `0/frame_attacked` is gone from every block of the chain (8186 against
-  10233 since the stamp's first hit), and so are the coin's consequences on
-  15609, `1/3`'s move target and `1/61`'s clock. run202's floor goes
-  400/1/401 → 399/1/400 and its standing rows 315/316 → 314/315, the same
-  row; run211's goes 401/78/1003 → 400/89/1014, the eleven new keys being
-  the escort's and the new word's block's (§71.5).
+  10233 since the stamp's first hit), and so are the coin's consequences
+  on 15609, `1/3`'s move target and `1/61`'s clock. Every Great Lakes
+  widening from run136 up loses that one row, beside item 723's own one
+  (the scout's formation mirror): run202's floor goes 399/1/400 →
+  398/1/399 and its standing rows 315/316 → 314/315; run211's goes
+  400/78/1003 → 399/89/1014, the eleven new keys being the escort's and
+  the new word's block's (§71.5); run117's leader residue 61 → 60.
 
 ### 71.5 The new word's block, 15620, on run211
 

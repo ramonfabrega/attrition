@@ -10283,8 +10283,8 @@ pub(crate) mod tests {
         // (`docs/ORDERS.md` §29), and nothing arrived.
         // **Item 723 took one (212 → 211)**: the scout's formation mirror
         // (parked 275), once `push_group` keeps an equal group's record.
-        // **Item 729 took one (212 → 211)**: `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!(under, 211, "the floor under the word");
+        // **Item 729 took one more (211 → 210)**: `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!(under, 210, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10780,8 +10780,8 @@ pub(crate) mod tests {
         // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
         // Item 723 took one (212/228 → 211/227): the scout's formation
         // mirror (parked 275), an equal group's record kept.
-        // Item 729 took one under the word (212/228 → 211/227): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, firsts.len()), (211, 227), "the floor");
+        // Item 729 took one more (211/227 → 210/226): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, firsts.len()), (210, 226), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -10981,8 +10981,8 @@ pub(crate) mod tests {
         // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
         // Item 723 took one (228/360 → 227/359): the scout's formation
         // mirror (parked 275), an equal group's record kept.
-        // Item 729 took one (228/360 → 227/359): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, firsts.len()), (227, 359), "the floor");
+        // Item 729 took one more (227/359 → 226/358): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, firsts.len()), (226, 358), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11203,9 +11203,9 @@ pub(crate) mod tests {
             // Item 718: six trained units' `orders_x`/`orders_y`; item 723
             // took one more, the scout's formation mirror (parked 275).
             // Item 718: six trained units' `orders_x`/`orders_y`; item 729
-            // took one (360/36/396 → 359/36/395), `0/frame_attacked`
+            // took one more (359/36/395 → 358/36/394), `0/frame_attacked`
             // (`Object::take_damage`'s stamp, `docs/AI.md` §71).
-            (359, 36, 395),
+            (358, 36, 394),
             "the floor"
         );
     }
@@ -11327,8 +11327,8 @@ pub(crate) mod tests {
         // Item 718: `1/79`'s `orders_x`/`orders_y` agree on its exit block.
         // Item 723 took one (315 → 314): the scout's formation mirror
         // (parked 275), an equal group's record kept.
-        // Item 729: 315 → 314, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!(standing_n, 314, "every row standing on 14983");
+        // Item 729 took one more (314 → 313): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!(standing_n, 313, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
@@ -11338,7 +11338,7 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one: `0/frame_attacked`, `Object::take_damage`'s
         // stamp (`docs/AI.md` §71).
-        assert_eq!((under, own.len(), firsts.len()), (395, 4, 399), "the floor");
+        assert_eq!((under, own.len(), firsts.len()), (394, 4, 398), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11429,11 +11429,11 @@ pub(crate) mod tests {
         // Nor above it: run196's runway, 15177..15232, parts nowhere.
         // The 315 rows standing on 15176 are the floor's, parted under
         // run192's tail (376 before item 711: the archers' 61 are gone;
-        // 315 before item 729, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71)).
+        // item 729 took one more, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71)).
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 723 took one (315 → 314): the scout's formation mirror.
-            314,
+            313,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -11451,8 +11451,8 @@ pub(crate) mod tests {
         // (`docs/ORDERS.md` §29), and nothing arrived.
         // Item 723 took one (400/0/400 → 399/0/399): the scout's formation
         // mirror (parked 275), an equal group's record kept.
-        // Item 729 took one (400/0/400 → 399/0/399): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, mid, firsts.len()), (399, 0, 399), "the floor");
+        // Item 729 took one more (399/0/399 → 398/0/398): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11577,9 +11577,9 @@ pub(crate) mod tests {
         // (`docs/AI.md` §70), and nothing arrived.
         // **Item 723 took one (400/1/401 → 399/1/400)**: the scout's
         // formation mirror (parked 275), an equal group's record kept.
-        // **Item 729 took one (400/1/401 → 399/1/400)**: `0/frame_attacked`,
+        // **Item 729 took one more (399/1/400 → 398/1/399)**: `0/frame_attacked`,
         // `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, mid, firsts.len()), (399, 1, 400), "the floor");
+        assert_eq!((under, mid, firsts.len()), (398, 1, 399), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11700,7 +11700,7 @@ pub(crate) mod tests {
         // formation mirror (parked 275), an equal group's record kept.
         // **Item 729**: run202's walk loses `0/frame_attacked`, the one
         // row under run211 the stamp closes, and the word's block moves.
-        assert_eq!((under, mid, firsts.len()), (400, 89, 1014), "the floor");
+        assert_eq!((under, mid, firsts.len()), (399, 89, 1014), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
