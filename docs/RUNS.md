@@ -7433,3 +7433,18 @@ in the stanza.
 | the window, block for block | **512 blocks, 16929..17440, no gap** |
 | a `GROUPDATA` / a `GUY` on every window block | **512 / 512** |
 | overlap with run227, nothing excluded | **6 in common (16929..16934), 0 differ** |
+
+**What it settled** (`run233_s_word_frame_is_widened_whole`,
+`docs/AI.md` §74).
+- **R2 holds**: the original's `1/55` takes the same stand by `1/60` a
+  frame later, `collide_o 60` on block 17191.
+- **R3 holds**: `1/55` parts before the word, first on 17182 on
+  `half_step` (0 here, 1 there), then `last_speed` 30 against 15 on 17183.
+  Ours took a whole step where the original took a half one. `1/60` parts
+  on nothing but the pool's `group` (689).
+- **R4's killer fires**: the first row on the window that is no floor
+  family's is who=1's `scholars`, 13 against 14, from 16971. `1/58`'s path
+  parts from 17147 and `1/57`'s `half_step` from 17161, both before the
+  pair.
+- The floor is 293 keys on the first block, 363 before the word's frame
+  and 1,139 in all.

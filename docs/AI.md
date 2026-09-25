@@ -9304,6 +9304,18 @@ Taxation now costs the British half.
   early here. A scratch print at ours' `SITE_BLOCKED` (reverted) named it:
   who=1's `1/55`, blocked by `1/60`. Neither parts on run227 up to its last
   block. run233 was taken over the word ([16929, 17441), `docs/RUNS.md`).
+- **The word, widened** (`run233_s_word_frame_is_widened_whole`). The
+  stand is `1/55`'s on both sides: the original's takes it by `1/60` a
+  frame later (`collide_o 60` on block 17191). Ours' is a step ahead. It
+  parts first on 17182 on `half_step`, 0 here and 1 there, and on 17183
+  its `last_speed` reads 30 against 15. The original's took a half step
+  where ours took a whole one. `1/57`, walking with it, does the same from
+  17161, and `1/58`'s path parts from 17147. The first row on the window
+  that belongs to no floor family is who=1's `scholars`, 13 here against
+  14, from 16971. No mechanism is named.
+- **East Indies' endpoint** at 24001: 48 → 47 off, 0 → 3 unlinked, 3 → 0
+  extra, 1 → 2 build unlinked, 9 → 3 build diverged. East Indies is now
+  above Great Lakes (17099).
 
 ### 74.6 What this has *not* established
 
