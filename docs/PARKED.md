@@ -61,11 +61,12 @@ not reached by run204.
 ## Parked by item 711, 2026-09-24 — under Great Lakes' 15383
 
 (716) **`1/79`'s move `facing`**, 1 here against 0 in the original from
-15351: a value row, no draw.
+15351: a value row, no draw. **Taken by 736** (the escort's move step).
 
 (717) **The mirror bit's two unwired readers**: `set_new_location` at
 `5f9290` and `Guy::set_anim` at `5dafad` read `unit_masks & 2`, and this
-crate carries the bit now (GROUPS §25) but neither reader.
+crate carries the bit now (GROUPS §25) but neither reader. **Taken by
+736**: the original's first draw on 15619 is `Guy::set_anim+0x97a`.
 
 ## Parked by item 706, 2026-09-24 — the patriot arm's seams
 
@@ -906,6 +907,12 @@ domain against its own bound would have caught it. 722 also reports
 and printed no `GROUPDATA`**, as `groupfacing.py` does (723's Loop line,
 filed at its merge). run210 is the third capture to lose the pool
 silently (733).
+
+(737) **A booking that names a value cites the gate's terms in order, and
+greps the dump for each, before naming an instrument** (729's Loop line,
+filed at its merge). 722 booked a packet (run212) for `frame_attacked`,
+which `LeaderData::log_data` prints every block; one `grep` of run211
+answered it. A packet is a capture: the disk rule applies to it too.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

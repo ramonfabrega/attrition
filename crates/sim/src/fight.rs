@@ -1721,6 +1721,18 @@ impl Sim {
         _frame: i64,
         dtype: i32,
     ) -> Taken {
+        // `Object::take_damage@00652020:67-71`, first after the sixteenth
+        // floor: a hit by anything but attrition (`param_5 == 0`), at
+        // difficulty below 2, stamps the **struck object's owner's**
+        // `frame_attacked` — human or computer, the leader of whatever was
+        // hit. `Army::find_target`'s difficulty gate reads it for 7,200
+        // frames (`docs/ARMY.md` §12, `docs/AI.md` §71).
+        if self.ai_difficulty() < 2 {
+            let owner = self.owner_of(target) as usize;
+            if let Some(l) = self.ai.get_mut(owner) {
+                l.frame_attacked = _frame;
+            }
+        }
         // `Object::take_damage@00652020:306-311`, ahead of the accumulate:
         // a unit hit by anything but attrition (`param_5 == 0`) marks its
         // whole squad in danger. Attrition never comes through here.
@@ -4770,6 +4782,35 @@ mod tests {
         assert!(
             !sim.units[foe].in_danger,
             "the attacker is not the victim's squad"
+        );
+    }
+
+    /// **A hit stamps the struck object's owner's `frame_attacked`, at
+    /// difficulty below 2** (item 729, `docs/AI.md` §71).
+    /// `Object::take_damage@00652020:67-71` writes
+    /// `leaders[owner].frame_attacked = frame` for any combat hit, and
+    /// `Army::find_target`'s difficulty gate keeps a leader out for 7,200
+    /// frames after it. This crate wrote the field only from `find_target`,
+    /// so Great Lakes' human stood at 8186 where the original's stood at
+    /// 10233, and on 15608 the gate reached the coin the original skips.
+    ///
+    /// Made to fail on purpose: with the stamp out of `take_damage`, the
+    /// first assertion reads 0.
+    #[test]
+    fn a_hit_stamps_the_struck_owner_s_frame_attacked_below_difficulty_two() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+        let hit = combat::Sixteenths { whole: 1, frac: 0 };
+        sim.lobby.difficulty = 1;
+        sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10_233);
+        assert_eq!(sim.ai[0].frame_attacked, 10_233, "the struck owner's stamp");
+        assert_eq!(sim.ai[1].frame_attacked, 0, "never the attacker's");
+        sim.lobby.difficulty = 2;
+        sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10_300);
+        assert_eq!(
+            sim.ai[0].frame_attacked, 10_233,
+            "difficulty 2 and above: no stamp"
         );
     }
 

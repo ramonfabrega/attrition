@@ -999,7 +999,10 @@ So above `0x100` the AI considers allies only, below it enemies only, at
 `0x100` both. A leader that passes goes through the **difficulty gate**,
 whose shape the run26 replay corrected (§16.5): at `diff < 2`, first
 `diff != 0 || L is human` and `L.frame_attacked + 0x1c20 <= frame` (7,200
-frames since I last took a target against `L`) and either
+frames since ~~I last took a target against `L`~~ **I last took a target
+against `L` or any object of `L`'s last took a combat hit** —
+`Object::take_damage` stamps the struck owner at `diff < 2`, `docs/AI.md`
+§71) and either
 `find_aggressive_army(me)` is this army or, with none, a coin —
 **`Random::get(game_random, 0, 0xffff) & 1 == 0`** — and a leader that
 passes **goes on** (`goto LAB_006f6dd1`) to the tests every difficulty
