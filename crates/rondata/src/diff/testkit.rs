@@ -2207,7 +2207,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// 17100 against its last, 16711), so item 742 took **run226**;
 /// `run218_s_word_frame_is_widened_whole` keeps the move's value diff:
 /// nothing parts on 15860..16711.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 17_099;
+///
+/// ~~**17099 is `1/5`'s blocked stand.**~~ **Item 757 moved it 17099 →
+/// 17128, and the mechanism was the Pyramids** (`docs/ECONOMY.md` §15):
+/// who=1's `1/2026` activates on sim-frame 17084, and the original's
+/// `calc_resource_caps` adds `PYRAMIDS_COMMERCE` to food and wealth from
+/// 17085 (300 a good against 250) and `calc_resource_bonuses` pays
+/// `PYRAMIDS_FOOD`'s fifth on the 17087 reassembly (1920 against 1600).
+/// This crate had no wonder term and never read `has_wonder`. **The new
+/// word's delta (this constant's comment): ours 37 draws and the original
+/// 34, parting at index 30**: ours spends `Unit::do_move+0xe84` where the
+/// original spends `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. **Inside
+/// run226** (block 17129 against its last, 17350);
+/// `run226_s_word_frame_is_widened_whole` pins the new word's block and
+/// keeps the move's value diff.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 17_128;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3911,6 +3925,10 @@ pub(crate) const WIDENING_GREAT_LAKES_GIVEUP: (i64, i64) = (11_400, 17_350);
 /// 17099's frame writes block 17100, past run218. The coverage driver
 /// reads run226 around it.
 pub(crate) const GREAT_LAKES_GIVEUP_BLOCK: i64 = 17_100;
+/// The block [`WIDENING_GREAT_LAKES_GIVEUP`] widens since item 757: the
+/// word 17128's frame writes block 17129, inside run226. The coverage
+/// driver reads run226 around it too.
+pub(crate) const GREAT_LAKES_PYRAMIDS_BLOCK: i64 = 17_129;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4440,11 +4458,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // [16706, 17350], and `run226_s_word_frame_is_widened_whole` walks it
     // from run123's 11400 across fourteen captures and pins the word's
     // block.
+    //
+    // **Item 757 moved it 17099 → 17128**, inside run226: the Pyramids'
+    // commerce cap and food terms (`docs/ECONOMY.md` §15). The same test
+    // pins the new word's block, 17129, and keeps the move's value diff.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run226_s_word_frame_is_widened_whole"),
-        742,
+        757,
         Some(WIDENING_GREAT_LAKES_GIVEUP),
     ),
     // Item 445 paid the widening chapter one had never had: the word

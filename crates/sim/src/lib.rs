@@ -3833,6 +3833,11 @@ impl Sim {
             // reassembly still said 1392 (item 644, parked 633).
             self.holdings[who].commerce =
                 self.tech[who].epoch[tech::Line::Commerce.index()].max(0) as usize;
+            // And its wonder arm reads `has_wonder` there too: the
+            // Pyramids `1/2026` activate on Great Lakes' sim-frame 17084
+            // and who=1's food and wealth caps are 300, not 250, on 17085
+            // (`docs/ECONOMY.md` §15).
+            self.holdings[who].wonders = self.wonders_held(player);
             economy::process(
                 &self.tuning,
                 &mut self.ledgers[who],

@@ -1379,7 +1379,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // moves this map's word 15619 → 16460. The 24,000th frame is 7,540
         // frames past the new word. Measured after `ccc update` onto
         // `8e75c3b`. DECISIONS 36: the number, not a trade.
-        off: 44,
+        // **44 → 46 off, 0 → 1 extra** on item 757: the wonders' commerce
+        // cap and income terms (`docs/ECONOMY.md` §15), which move this
+        // map's word 17099 → 17128. The extra is `1/81`, a Merchant. The
+        // 24,000th frame is 6,872 frames past the new word. Measured on
+        // the spawn base, `7019d78`. DECISIONS 36: the number, not a
+        // trade.
+        off: 46,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1401,7 +1407,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 0** on item 715, beside `off` above.
         // **0 → 4** on item 722, beside `off` above.
         // **4 → 0** on item 729, beside `off` above.
-        extra: 0,
+        // **0 → 1** on item 757, beside `off` above: `1/81`.
+        extra: 1,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.

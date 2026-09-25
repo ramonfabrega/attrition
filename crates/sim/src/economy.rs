@@ -307,6 +307,11 @@ pub struct Holdings {
     /// The highest `REPUBLIC_n` bonus held, 1–3, or 0 for none: which
     /// `REPUBLIC_COMMERCE_BONUS` the cap adds (`docs/AI.md` §72).
     pub republic: usize,
+    /// `LeaderData::has_wonder`, a bit per wonder (`1 << tech::wonder::*`):
+    /// an activated wonder of the type standing in one of the player's
+    /// cities. Refreshed every frame, because `calc_resource_caps` runs
+    /// every frame and reads it there (`docs/ECONOMY.md` §15).
+    pub wonders: u32,
     /// A flat addition to the commerce cap, `LeaderData + 0x918`.
     ///
     /// **Scenario-script only.** `ScenarioFuncSet::set_bonus_cap` is its one
@@ -576,7 +581,46 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     out[oil] = (h.refineries * t.refinery_bonus + 100) * out[oil] / 100;
 
     out[Resource::Wealth.index()] += territory_tax(t, h);
+    resource_bonuses(t, h.wonders, &mut out);
     out
+}
+
+/// `LeaderData::calc_resource_bonuses@006db030`, the last thing
+/// `Leader::calc_gather` does to the rates before it clears the dirty
+/// flag — its wonder terms, in the listing's order, each truncating
+/// (`docs/ECONOMY.md` §15). The Pyramids' `PYRAMIDS_FOOD` is the one a
+/// capture has reached: Great Lakes' who=1 reads food 1920 on 17087's
+/// reassembly against 1600 without it.
+///
+/// **Seams**, stated rather than built: the Russian oil term
+/// (`has_tribe_bonus(0xd)`, first in the listing), Virtual Reality's
+/// `GLOBAL_PROSPERITY` and the Conquer-the-World rate bonuses. No capture
+/// holds a Russian player or reaches either of the others.
+pub fn resource_bonuses(t: &Tuning, wonders: u32, out: &mut [i32; RESOURCES]) {
+    use crate::tech::wonder;
+    let has = |w: usize| wonders & (1 << w) != 0;
+    let pct = |v: &mut i32, p: i32| *v = (p + 100) * *v / 100;
+    if has(wonder::PYRAMIDS) {
+        pct(&mut out[Resource::Food.index()], t.pyramids_food);
+    }
+    if has(wonder::COLOSSUS) {
+        pct(&mut out[Resource::Wealth.index()], t.colossus_wealth);
+    }
+    if has(wonder::HANGING_GARDENS) {
+        out[Resource::Knowledge.index()] += t.hanging_gardens_knowledge * RATE_SCALE;
+    }
+    if has(wonder::ANGKOR_WAT) {
+        pct(&mut out[Resource::Metal.index()], t.angkor_metal);
+    }
+    if has(wonder::TAJ_MAHAL) {
+        pct(&mut out[Resource::Wealth.index()], t.taj_wealth);
+    }
+    if has(wonder::EIFFEL_TOWER) {
+        pct(&mut out[Resource::Oil.index()], t.eiffel_oil);
+    }
+    if has(wonder::TIKAL) {
+        pct(&mut out[Resource::Timber.index()], t.tikal_timber);
+    }
 }
 
 /// `LeaderData::calc_rare@006e08d0` — what one deposit pays the player
@@ -693,6 +737,10 @@ pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
         _ => 0,
     };
     cap = cap * (100 + nation) / 100;
+    // The wonders' flat additions (`calc_resource_caps@006ce900`'s wonder
+    // arm, `docs/ECONOMY.md` §15). Diamonds, which comes before them, is
+    // not built.
+    cap += wonder_commerce(t, h.wonders, r);
     if let Some(&bonus) = h
         .republic
         .checked_sub(1)
@@ -702,6 +750,56 @@ pub fn commerce_cap(t: &Tuning, h: &Holdings, r: Resource) -> i32 {
     }
     let cap = cap + h.bonus_cap[r.index()];
     cap.clamp(0, CAP_CEILING) * RATE_SCALE
+}
+
+/// What the wonders add to one good's commerce cap, in whole units —
+/// `calc_resource_caps@006ce900` between Diamonds and the republic term.
+///
+/// The slots each wonder reaches are the listing's branches: the Pyramids
+/// on food and wealth (`iVar5 == 0 || iVar5 == 2`), the Colossus on timber
+/// and wealth, the Taj Mahal on wealth; then oil takes the Eiffel Tower
+/// and the Kremlin, and every other slot below six except wealth takes the
+/// Kremlin, with Tikal on timber and Angkor Wat on metal
+/// (`resource_cap_add`, the same addition). Knowledge never reaches the
+/// arm. All are flat, so their order does not truncate.
+pub fn wonder_commerce(t: &Tuning, wonders: u32, r: Resource) -> i32 {
+    use crate::tech::wonder;
+    let has = |w: usize| wonders & (1 << w) != 0;
+    let mut add = 0;
+    if matches!(r, Resource::Food | Resource::Wealth) && has(wonder::PYRAMIDS) {
+        add += t.pyramids_commerce;
+    }
+    if matches!(r, Resource::Timber | Resource::Wealth) && has(wonder::COLOSSUS) {
+        add += t.colossus_commerce;
+    }
+    match r {
+        Resource::Wealth => {
+            if has(wonder::TAJ_MAHAL) {
+                add += t.taj_wealth_commerce;
+            }
+        }
+        Resource::Oil => {
+            if has(wonder::EIFFEL_TOWER) {
+                add += t.eiffel_oil_commerce;
+            }
+            if has(wonder::KREMLIN) {
+                add += t.kremlin_commerce;
+            }
+        }
+        Resource::Food | Resource::Timber | Resource::Metal => {
+            if has(wonder::KREMLIN) {
+                add += t.kremlin_commerce;
+            }
+            if r == Resource::Timber && has(wonder::TIKAL) {
+                add += t.tikal_timber_commerce;
+            }
+            if r == Resource::Metal && has(wonder::ANGKOR_WAT) {
+                add += t.angkor_metal_commerce;
+            }
+        }
+        Resource::Knowledge => {}
+    }
+    add
 }
 
 /// Every commerce cap.
@@ -1041,6 +1139,47 @@ mod tests {
         assert_eq!(l.rate[know], 1250 * RATE_SCALE);
         assert_eq!(l.over_cap[know], OverCap::Uncapped);
         assert_eq!(l.bucket[know], CAP_CEILING);
+    }
+
+    /// run226's value diff (`docs/ECONOMY.md` §15): Great Lakes' British
+    /// AI at commerce level 3 finishes the Pyramids on sim-frame 17084, and
+    /// its food and wealth caps read 4800 on 17085 — `200 * 125 / 100` is
+    /// 250, plus fifty, times sixteen — where timber, metal and oil stay at
+    /// 4000 and knowledge at 999.
+    #[test]
+    fn the_pyramids_add_fifty_to_food_and_wealth_only() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.british = true;
+        h.commerce = 3;
+        assert_eq!(commerce_cap(&t, &h, Resource::Food), 4000);
+        h.wonders = 1 << crate::tech::wonder::PYRAMIDS;
+        assert_eq!(commerce_cap(&t, &h, Resource::Food), 4800);
+        assert_eq!(commerce_cap(&t, &h, Resource::Wealth), 4800);
+        for r in [Resource::Timber, Resource::Metal, Resource::Oil] {
+            assert_eq!(commerce_cap(&t, &h, r), 4000, "{r:?}");
+        }
+        assert_eq!(
+            commerce_cap(&t, &h, Resource::Knowledge),
+            CAP_CEILING * RATE_SCALE
+        );
+        // The Kremlin reaches every capped good but wealth.
+        h.wonders = 1 << crate::tech::wonder::KREMLIN;
+        assert_eq!(commerce_cap(&t, &h, Resource::Wealth), 4000);
+        assert_eq!(commerce_cap(&t, &h, Resource::Oil), (250 + 200) * 16);
+    }
+
+    /// run226's second value diff (`docs/ECONOMY.md` §15): who=1's first
+    /// reassembly after the Pyramids, sim-frame 17087, reads food income
+    /// 1920 where it read 1600 — the twenty percent, on food alone.
+    #[test]
+    fn the_pyramids_pay_a_fifth_more_food() {
+        let t = Tuning::RON;
+        let mut out = [1600, 2560, 1024, 1840, 1120, 0];
+        resource_bonuses(&t, 0, &mut out);
+        assert_eq!(out, [1600, 2560, 1024, 1840, 1120, 0]);
+        resource_bonuses(&t, 1 << crate::tech::wonder::PYRAMIDS, &mut out);
+        assert_eq!(out, [1920, 2560, 1024, 1840, 1120, 0]);
     }
 
     /// run221's value diff (`docs/AI.md` §72): the British AI at commerce

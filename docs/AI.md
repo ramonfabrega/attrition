@@ -9093,9 +9093,10 @@ knowledge untouched).
   republic holds all three and takes tier 3's 50. Whether a later
   government makes the tiers differ is not read; the constants are equal,
   so no capture could tell.
-- **The rest of the cap's terms**: Diamonds, the wonders and Virtual
+- **The rest of the cap's terms**: Diamonds, ~~the wonders~~ and Virtual
   Reality (R16) are still not built. No capture on either map has
-  reached one.
+  reached one. **The wonders are built**: Great Lakes' Pyramids reached
+  the cap on run226 (`docs/ECONOMY.md` §15, item 757).
 - **Coverage**: the term is diff-backed by run221's `resource_cap` rows
   and by the draw stream through 16682. The has-preq order (3, 2, 1) is a
   reading, and with equal constants no run can falsify it.
