@@ -3142,20 +3142,32 @@ pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 1251);
 /// < Unit::do_strafe+0x9d0`, 5 draws against 4 at draw 0, the patrol's
 /// strafe on `1/2006` going to `CHAR_ATTACK2`.
 ///
-/// **What parts first is 666, not the word**: the pair's strike turned
-/// `AIRPATROLORDER` over the unseen Barracks, a class this crate has no
-/// body for, and whose flight spends no draw until the bomb. The
-/// widening names it; the next item's frame is 666.
+/// **The pair's patrol, flown: 821, open** (item 763, `docs/ORDERS.md`
+/// §34). `do_strafe` turns the flying strike on the unseen Barracks into
+/// an `AirPatrolOrder` over its point and `work` flies it the same frame
+/// (666); the patrol flies through `do_air_physics`' non-returning arms,
+/// and a plane's step now lights the fog as it flies (`set_new_location`'s
+/// ring pass), so the Barracks is first seen between the pair's searches
+/// on 760 and 776. The search pushes the strike `QUEUE_FIRST` on 776 and
+/// 777 — with no `update_action`, so `orders_x/y` keep the frame's own —
+/// and `0/8` bombs on 805 (`do_strafe+0x9d0`, `recharging 31`), all as
+/// the original. The word is the bomb's landing: on 821 the original
+/// spends `Object::take_damage+0xe1 < Object::do_damage < Ammo::do_damage`,
+/// 5 draws against 4 at draw 0, and the Barracks is at `damage 45` on
+/// block 822 where ours is 0. The bomb's round is released by the
+/// animation's event (`anim.rs`'s `guy_release_events`, which fires for
+/// an `ATTACK`/`ATTACK_GROUND` front order only), fenced this tranche.
 ///
-/// **The delta**, this constant's: +163, 642 → 805, open.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 805;
+/// **The delta**, this constant's: +16, 805 → 821, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 821;
 
 /// `chapter_seventeen_s_word_frame_is_widened_whole`'s window: (605,
-/// 807) since item 759, the word 805 and the bomb on 806; (605, 667)
-/// before it, the word 642 and the pair's strafe on 662 and strike on
-/// 666 (item 746); the first pin was (605, 645). Its pool half,
+/// 823) since item 763, the word 821 and the bomb's damage on 822;
+/// (605, 807) since item 759, the word 805 and the bomb on 806; (605,
+/// 667) before it, the word 642 and the pair's strafe on 662 and strike
+/// on 666 (item 746); the first pin was (605, 645). Its pool half,
 /// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
-pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 807);
+pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 823);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.

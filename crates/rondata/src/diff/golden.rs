@@ -690,7 +690,8 @@ fn chapter_sixteen_holds_to_the_golden_word() {
 /// Fighter inside its base on 722.
 ///
 /// **Item 759 flew the flight home** (`docs/ORDERS.md` §33): the word
-/// walks 642 → 805, the first bomb. `GOLDEN_WORD_CHAPTER_SEVENTEEN`
+/// walks 642 → 805, the first bomb. **Item 763 flew the pair's patrol**
+/// (§34): 805 → 821, the bomb's damage. `GOLDEN_WORD_CHAPTER_SEVENTEEN`
 /// carries what stands at the word.
 #[test]
 fn chapter_seventeen_holds_to_the_golden_word() {
@@ -5651,6 +5652,45 @@ fn widen_civilians(
         // eleven's guard is the witness: its `near_o` goes 6 → −1 on
         // the block its attack ends, the one record that says a search
         // ran there and saw nothing.
+        // **A building's hit points, both directions** (item 763). The
+        // shared instrument parses `damage`/`damage_frac` on `BUILDDATA`
+        // and compares neither (`coverage.rs`'s pin, parked for a
+        // widening), so a building taking a bomb was a quiet field on
+        // every golden window: run223's Barracks goes to 45 on block
+        // 822. Linked on the building's own `(owner, index)`, as
+        // `widen_block`'s two building directions are.
+        for b in &frame.builds {
+            if !(0..players as i64).contains(&b.who) {
+                continue;
+            }
+            let Some(ours) = s
+                .built
+                .sim
+                .buildings
+                .iter()
+                .find(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o)
+            else {
+                continue;
+            };
+            for (field, mine, theirs) in [
+                ("build:damage", i64::from(ours.damage), b.damage),
+                (
+                    "build:damage_frac",
+                    i64::from(ours.damage_frac),
+                    b.damage_frac,
+                ),
+            ] {
+                let Some(theirs) = theirs else {
+                    continue;
+                };
+                rows += 1;
+                if mine != theirs {
+                    firsts
+                        .entry((b.who, b.o, field.into()))
+                        .or_insert((n, format!("ours {mine} theirs {theirs}")));
+                }
+            }
+        }
         let near = raw_near(&raw);
         for them in &frame.units {
             if !(0..players as i64).contains(&them.who) {
@@ -6933,6 +6973,16 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     //   bit), and on 806 `0/8`'s bomb: its `recharging` and the
     //   `CHAR_ATTACK2` clock. **666 is the next item's frame.**
     // - the citizens' standing rows, 617 to 655, as before the flight.
+    //
+    // **The pair's patrol, flown** (item 763, `docs/ORDERS.md` §34; the
+    // window widened to 823 to hold the new word 821 and the damage on
+    // 822). Every row of 666 onward goes: the patrol's class and its
+    // step on 666, `orders_x/y` and `dest_angle` on 667, the searches'
+    // strikes on 777 and 778 — whose `orders_x/y` needed the
+    // `QUEUE_FIRST` push to skip `update_action` — and `0/8`'s bomb on
+    // 806. What stands is the Barracks' `damage`/`damage_frac` on 822,
+    // compared here since this item (`widen_civilians`, both directions):
+    // the bomb's round, which this crate does not release.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -6943,66 +6993,8 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         "650 0/1 g.last_time[0]",
         "655 0/2 g.cur_time[0]",
         "655 0/2 g.last_time[0]",
-        "666 0/7 g.angle[0]",
-        "666 0/7 g.avg_speed[0]",
-        "666 0/7 g.bank[0]",
-        "666 0/7 g.cur_anim[0]",
-        "666 0/7 g.des_angle[0]",
-        "666 0/7 g.des_x[0]",
-        "666 0/7 g.des_y[0]",
-        "666 0/7 g.last_bank[0]",
-        "666 0/7 g.last_pitch[0]",
-        "666 0/7 g.last_speed[0]",
-        "666 0/7 g.last_z[0]",
-        "666 0/7 g.pitch[0]",
-        "666 0/7 g.stopped[0]",
-        "666 0/7 g.x[0]",
-        "666 0/7 g.y[0]",
-        "666 0/7 g.z[0]",
-        "666 0/7 heading",
-        "666 0/7 order:unspellable",
-        "666 0/7 path[0].to",
-        "666 0/7 pos",
-        "666 0/8 g.angle[0]",
-        "666 0/8 g.avg_speed[0]",
-        "666 0/8 g.bank[0]",
-        "666 0/8 g.cur_anim[0]",
-        "666 0/8 g.des_angle[0]",
-        "666 0/8 g.des_x[0]",
-        "666 0/8 g.des_y[0]",
-        "666 0/8 g.last_bank[0]",
-        "666 0/8 g.last_pitch[0]",
-        "666 0/8 g.last_speed[0]",
-        "666 0/8 g.last_z[0]",
-        "666 0/8 g.pitch[0]",
-        "666 0/8 g.stopped[0]",
-        "666 0/8 g.x[0]",
-        "666 0/8 g.y[0]",
-        "666 0/8 g.z[0]",
-        "666 0/8 heading",
-        "666 0/8 order:unspellable",
-        "666 0/8 path[0].to",
-        "666 0/8 pos",
-        "667 0/7 dest_angle",
-        "667 0/7 orders_x",
-        "667 0/7 orders_y",
-        "667 0/8 dest_angle",
-        "667 0/8 orders_x",
-        "667 0/8 orders_y",
-        "777 0/8 order:action",
-        "777 0/8 order:air.mandatory",
-        "777 0/8 order:flags",
-        "777 0/8 order:length",
-        "777 0/8 orders.len",
-        "778 0/7 order:action",
-        "778 0/7 order:air.mandatory",
-        "778 0/7 order:flags",
-        "778 0/7 order:length",
-        "778 0/7 orders.len",
-        "806 0/8 g.cur_time[0]",
-        "806 0/8 g.end_time[0]",
-        "806 0/8 g.last_time[0]",
-        "806 0/8 recharging",
+        "822 1/2006 build:damage",
+        "822 1/2006 build:damage_frac",
     ]
     .iter()
     .map(|r| r.to_string())

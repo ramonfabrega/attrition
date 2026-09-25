@@ -1522,6 +1522,18 @@ impl Sim {
                 at,
             }),
         };
+        // **`QUEUE_FIRST` takes no `update_action`** (`0x5e4a2b`): the
+        // adder's tail is `clear_partial_path` and the list's rotate, so
+        // `orders_x/orders_y` and `dest_angle` keep the frame's own —
+        // run223's 777, where the patrol's search pushes the strike after
+        // the step and the dump still names the point before it
+        // (`docs/ORDERS.md` §34.5). The generic enqueue's closing
+        // `update_action` is the other adders'.
+        if pos == QueuePos::First {
+            self.clear_partial_path(u);
+            self.units[u].orders.push_front(order);
+            return;
+        }
         self.enqueue(u, order, pos);
     }
 
