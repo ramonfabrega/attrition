@@ -6558,3 +6558,109 @@ arms, `search`'s `find_garrison_build` from the command, and
 `is_entering_or_exiting`; `action_eject_all`'s `back_to_work` filter, its
 `eject_o`/`eject_who` arm, and the two types that die when emptied;
 `adjacent_to`'s sea arm.
+
+## 30. The formation command, entered: no order of its own (item 723, 2026-09-25)
+
+`docs/GOLDEN.md` §22 is the chapter and run210 the capture.
+`CommandManager::issue_form@00941580` appends a `group` and a 13-byte
+`form` (type `0x03`, `[form][rotate][queued]`, `docs/COMMANDS.md` §3).
+`CommandPackage::process_form@00949d90` hands it to
+`Group::action_form@00707220`.
+
+**There is no `FormOrder` to enter.** `FormOrder::FormOrder@00485f20` has
+one caller, `get_new_order@00730550`. That is reached from
+`OrdersMemManager::get_obj`, and nothing asks `get_obj` for `CHANGE_FORM`.
+It is also reached from the save loader and from `copy_order@0072f900`,
+which copies an order that exists. So `CHANGE_FORM` (§3.3's `0x12`) is a
+save-game class in this build, and `finish_insert`'s case `0x12` replays
+an order that nothing makes. run210 holds no `FORMORDER` on any block.
+
+**The action** (`Sim::group_action_form`, `crates/sim/src/form.rs`):
+
+- **The gates.** It returns early for a group that is off the map or holds
+  buildings, or that is empty, leaderless or led by a plane.
+- **With an explicit formation and `QUEUE_NEW` or `QUEUE_FIRST`:**
+  1. The group's `form` is set to −1.
+  2. `set_up_insert` copies the leader's action-bit orders aside.
+  3. `action_halt(0)`.
+  4. The function recurses: `QUEUE_NEW` when nothing was copied,
+     `QUEUE_FIRST` when something was.
+  5. `finish_insert` replays the copies.
+- **The recursion** writes `unit +0xaa = form` on every member that is no
+  plane, figures and citizens included. Then, at `QUEUE_NEW` or
+  `QUEUE_LAST` only, it calls `action_move_to(get_loc_to, QUEUE_LAST,
+  set_angle, angle, MOVE_TO, action 0, form −1, …)`.
+- **With `rotate`**, the angle is set: the group's `o_angle` when the
+  point is its own `(ox, oy)`, else the leader's heading, plus `rotate`.
+  The insert dance is factored out of `group_action_move_to`'s
+  `QUEUE_FIRST` unchanged (`Sim::group_set_up_insert`,
+  `Sim::group_finish_insert`).
+
+**Two fixes the widening named under it**, each with the value diff on
+run210's own blocks:
+
+- **`Groups::push_group@0070f9e0` keeps an equal group's slot and
+  record.** It compares the pushed group with **the player's last pushed
+  slot** by `Group::equals_group@00708000`: the same owner, the same
+  members in the same order. `copy_group` runs only on a fresh slot from
+  `get_open_slot`. This crate already numbered the slot that way
+  (`pool_slot_for`), but it wrote a fresh `GroupState` over it on every
+  push. So the right-click on 701 laid Envelop out from `o (−1, −1)` and
+  no slot bytes. The original's `process_group, repeat` kept the standing
+  layout's `(ox, oy)` (2424, 16248) and the leader's slot byte −0x20.
+  Its bearing, 75° + 45° − 7°, reverses, so the layout **mirrors**:
+  `order:move.facing` 1 against this crate's 0 on every member on 702,
+  with every slot mirrored. The word moved 740 → 764.
+- **`finish_insert`'s case `0x13` replays to `orig`.**
+  `Unit::add_group_move_order@005e4710` stores the group's own point at
+  `MoveOrder +0x44`/`+0x48` beside the member's slot. The replay takes it
+  when non-negative, else `x`/`y`. This crate replayed the leader's slot
+  (2760, 11976), where the original's anchor is (2976, 12000), and every
+  Line slot on 742 was offset by (216, 24). `GroupMove::orig` carries it.
+  The word moved 764 → 1150, closed.
+
+**What the equal-group fix did elsewhere**, all in the non-scoring
+formation mirror, parked 275's family. Both long words hold.
+
+- **Gone**:
+  - the scout `1/0`'s `facing` on 847 in ten golden widenings (767 and
+    991 in chapters four and six-b) and in the two AI-on controls;
+  - on the long captures, East Indies' `1/0` (run88's 101 rows) and the
+    row in every Great Lakes widening from run136 to run211, run78's
+    15800 and run94's 8002 among them. run94's `1/0` now parts nowhere in
+    its window.
+- **Moved earlier on Great Lakes, not closed**:
+  - `1/0`'s mirror now parts on 6864 (run83), where run79's clean window
+    carries 29 rows on 6910..6938, until its 6939 push takes a fresh
+    slot;
+  - run99's first rows move 8481 → 7969 for `1/0` and 9945 → 9815 for
+    `1/29`, and `1/22` gains one on 7993.
+
+Every scout push on who=1 before 6939 is the same forced one-member list
+into slot 1, so the reuse is the original's rule. What the kept record
+carries wrong is the rest of 275: `Unit::set_angle`'s toggle or the dying
+order's hand-back, which a fresh record used to mask.
+
+**Diff-backed** (run210, `chapter_fourteen_s_word_frame_is_widened_whole`,
+605–1150, every record both directions):
+
+- the byte on all nine members on 622 and 742;
+- the standing re-form's plain moves to the Envelop slots round the
+  leader, without the action bit, and their arrival 631–684;
+- the right-click's mirrored Envelop `GroupMoveOrder`s on 702;
+- the halt and replay in Line to `orig` on 742, under a new id, and the
+  arrival 905–926.
+
+**Not carried, and pinned**:
+- the group move's `id` on 702 (701101 against this crate's 707501),
+  because this crate numbers a pushed group `64 +` its seat (parked 689);
+- each staged unit's birth `form`, the standing family.
+
+**Resting on the reading alone, and not built** (named seams in the
+code):
+- the three negative formations: −1 and −3 step `get_form_option@0070beb0`
+  through the five buttons, and −2 is `Options::do_rotate@0071dfd0`'s,
+  which keeps the leader's formation, sets the group's `form` to −2 and
+  skips the insert dance;
+- `action_begin`'s scenario sweep;
+- a plain move's `orig`, which the replay takes as its `dest`.

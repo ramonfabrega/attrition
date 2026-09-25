@@ -2024,10 +2024,18 @@ mod tests {
                 && sum(|f| f.build_compared) >= 17_000,
             "run79's own rows are missing — the wrong file"
         );
+        // **Item 723 added 29**, all one row: the scout `1/0`'s formation
+        // mirror `facing`, 0 against the original's 1 on 6910..6938, until
+        // its 6939 push takes a fresh slot. `push_group` now keeps an equal
+        // group's record, and the scout's kept record carries a mirror the
+        // original's does not (parked 275). Non-scoring; no draw.
+        let mirror = "1/0 order: Move { field: \"facing\", ours: 0, theirs: 1 }";
+        let other: Vec<&String> = wrong.iter().filter(|w| !w.ends_with(mirror)).collect();
         assert!(
-            wrong.is_empty(),
-            "run79's window parted on {} rows, first twenty-four printed above",
-            wrong.len()
+            other.is_empty() && wrong.len() == 29,
+            "run79's window parted on {} rows ({} not the scout's mirror), first twenty-four printed above",
+            wrong.len(),
+            other.len()
         );
 
         // **`CityData::free`, the one field of the `CITY` record this
@@ -3297,7 +3305,6 @@ mod tests {
                 } => Some((field, ours, theirs)),
                 _ => None,
             })
-            .filter(|(field, _, _)| *field != "facing")
             .collect();
         assert_eq!(
             move_rows,
@@ -3305,21 +3312,10 @@ mod tests {
             "1/0's explore order parts on block 8002 — the danger term is \
              the only thing that chooses this destination: {move_rows:?}"
         );
-        // And the exclusion is shown to be an exclusion rather than an
-        // empty filter: the row it names is really there.
-        assert!(
-            at_8002.order_diverged.iter().any(|d| (d.who, d.o) == (1, 0)
-                && matches!(
-                    d.what,
-                    OrderMismatch::Move {
-                        field: "facing",
-                        ours: 1,
-                        theirs: 0
-                    }
-                )),
-            "block 8002 carries no `facing` row for 1/0, so filtering it \
-             out above says nothing — if it has closed, drop the filter"
-        );
+        // ~~And the exclusion is shown to be an exclusion rather than an
+        // empty filter: the row it names is really there.~~ It closed on
+        // item 723 (`push_group` keeps an equal group's record, parked
+        // 275), so the filter is gone: every `MOVEORDER` row agrees.
 
         // **The successor, by value.** The stack's bottom two entries are
         // the original's and the rest is `find_wpath`'s own route: the
@@ -3401,9 +3397,13 @@ mod tests {
                 .map(|(f, _, _, _, _)| *f)
                 .min()
         };
+        // **Item 723 closed the order's last row**: 8002's `facing` was
+        // the formation mirror (parked 275), and with `push_group` keeping
+        // an equal group's record `1/0`'s order parts nowhere in this
+        // window either.
         assert_eq!(
             (first("order"), first("pos")),
-            (Some(8002), None),
+            (None, None),
             "1/0's record parts somewhere else: order {:?}, pos {:?}. A \
              `pos` of 8014 is item 322's reveal lost (`docs/VISION.md` \
              §6.1); anything below 8002 is a different finding",

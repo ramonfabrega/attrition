@@ -306,17 +306,26 @@ pub enum Issued {
     /// `CommandManager::issue_eject_all@00941ca0` with the Eject button's
     /// `back_to_work 0, who −1, eject_o −1, eject_who −1` (item 718).
     Eject { who: i32, buildings: Vec<i16> },
+    /// `@form <who> <form> <rotate> <o> [<o> …]`: a formation index and a
+    /// rotation, through `CommandManager::issue_form@00941580` with
+    /// `QUEUE_NEW`, a formation button's bytes (item 723).
+    Form {
+        who: i32,
+        form: i32,
+        rotate: i32,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
-/// not `move`, `patrol`, `guard`, `follow`, `garrison` or `eject`, a `who`
+/// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject` or `form`, a `who`
 /// outside `0..8`, fewer than three numbers (one for `eject`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
     if !matches!(
         verb,
-        "move" | "patrol" | "guard" | "follow" | "garrison" | "eject"
+        "move" | "patrol" | "guard" | "follow" | "garrison" | "eject" | "form"
     ) {
         return None;
     }
@@ -365,6 +374,12 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             who,
             ox: x,
             whom: y,
+            objects,
+        },
+        "form" => Issued::Form {
+            who,
+            form: x,
+            rotate: y,
             objects,
         },
         _ => Issued::Move { who, to, objects },
@@ -425,6 +440,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         Some(Issued::Eject { who, buildings }) => {
             crate::input::group_eject_all(built, who, &buildings)
         }
+        // `@form` is `issue_form@00941580` with `QUEUE_NEW`, a `group`
+        // and a `form`, whose entry is [`crate::input::group_form`] (item
+        // 723, `docs/GOLDEN.md` §22).
+        Some(Issued::Form {
+            who,
+            form,
+            rotate,
+            objects,
+        }) => crate::input::group_form(built, who, &objects, form, rotate, 2),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -896,6 +920,9 @@ mod tests {
         // Chapter thirteen: two `@garrison` issuer lines and an `@eject`, the
         // garrison line (item 718, `docs/GOLDEN.md` §21).
         ("chapter13.cmd", &[]),
+        // Chapter fourteen: two `@form` issuer lines and a `@move`, the
+        // formation line (item 723, `docs/GOLDEN.md` §22).
+        ("chapter14.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -1060,9 +1087,19 @@ mod tests {
                 buildings: vec![2007],
             })
         );
+        assert_eq!(
+            parse_issuer("@form 0 2 0 6 9 12"),
+            Some(Issued::Form {
+                who: 0,
+                form: 2,
+                rotate: 0,
+                objects: vec![6, 9, 12],
+            })
+        );
         for bad in [
             "move 0 1 2 3",
-            "@form 0 1 2 3",
+            "@formation 0 1 2 3",
+            "@form 0 2 0",
             "@eject 0",
             "@eject 9 2007",
             "@garrison 0 2007 0",

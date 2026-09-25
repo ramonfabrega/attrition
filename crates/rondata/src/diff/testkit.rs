@@ -2924,6 +2924,40 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTEEN: i64 = 1000;
 /// was (605, 642) on the word 640.
 pub(crate) const WIDENING_CHAPTER_THIRTEEN: (i64, i64) = (605, 1001);
 
+/// **Chapter fourteen's golden word** — the formation line, an issuer the
+/// AI never uses (`docs/GOLDEN.md` §22, item 723, run210): a three-squad
+/// group told Envelop standing and Line on the move through the DLL's
+/// `@form`, with a right-click `@move` between.
+///
+/// **The first walk, 631, open.** This crate could not take the
+/// formation command: the harness skipped both `@form` lines, so its nine
+/// stood where the original's each hold a plain move to an Envelop slot
+/// round the leader from 622 and walk from 623. On **631** this crate
+/// spent 9 draws against 10, parting at draw 3: the original's leader
+/// `0/6`, stopped on its slot, rolls an idle (`Guy::set_anim+0x97a <
+/// Unit::do_idle+0x7d`).
+///
+/// 631 → **1150, closed** (item 723, `docs/ORDERS.md` §30): **the
+/// formation command, entered**, and two fixes under it.
+/// `rondata::input::group_form` pushes the group and calls
+/// `Sim::group_action_form` — the byte on every member and a group move
+/// laid out in it — which alone moved the word to 740. Then:
+/// `Groups::push_group` keeps an **equal group's slot and record** (the
+/// player's last pushed slot, `equals_group`), so the right-click on 701
+/// lays Envelop out from the standing layout's `(ox, oy)` and slot bytes
+/// and **mirrors** it, 740 → 764; and `finish_insert` replays a copied
+/// group move to its **`orig`**, the group's own point, not the leader's
+/// slot, 764 → 1150. Nothing parts on the draw stream or the walk's
+/// values to run210's end.
+///
+/// **The delta**, this constant's: +519, 631 → 1150, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_FOURTEEN: i64 = 1150;
+
+/// `chapter_fourteen_s_word_frame_is_widened_whole`'s window: **run210
+/// whole**, 605 through 1150 (item 723, the word closed). The first pin
+/// was (605, 633) on the word 631.
+pub(crate) const WIDENING_CHAPTER_FOURTEEN: (i64, i64) = (605, 1151);
+
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
 /// 1250 is run184's trace end, and nothing parts on any frame of it:
@@ -4256,6 +4290,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirteen_s_word_frame_is_widened_whole"),
         718,
         Some(WIDENING_CHAPTER_THIRTEEN),
+    ),
+    // Item 723: run210, chapter fourteen's first walk at 631, on the
+    // formation this crate could not take: the leader's idle roll on its
+    // Envelop slot, its plain move laid on 622. Closed at 1150 by the
+    // same item (the formation command, an equal group's slot kept, and
+    // the replay to `orig`).
+    (
+        "GOLDEN_WORD_CHAPTER_FOURTEEN",
+        GOLDEN_WORD_CHAPTER_FOURTEEN,
+        Some("chapter_fourteen_s_word_frame_is_widened_whole"),
+        723,
+        Some(WIDENING_CHAPTER_FOURTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
