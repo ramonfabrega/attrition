@@ -6814,3 +6814,25 @@ short while it is still the head. A hypothesis, not a finding: `Unit::
 work`'s every-16-frames step, phased by `o` (`docs/ORDERS.md` §2.3 step
 5). `(698 + 6)` and `(761 + 7)` are both multiples of 16. The widening
 and this crate's own walk will say.
+
+## run211 — Great Lakes' word 15608, past run202's last block (2026-09-25, item 722)
+
+**What it is.** run202's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15435, 15860)`, plus `rontrace.cfg` `cover=1` and `window=15604-15612`
+over the word. `!quit` at 15870, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 722
+```
+
+**Why it was owed.** Item 722 moved Great Lakes' word 15384 → 15608:
+`CityData::num_wonders` counts a wonder site (`docs/AI.md` §70). run202
+ends on block 15440, so the word's block 15609 is on no disk. On 15608
+ours spends 40 draws against 38, parting at index 0: ours throws
+`Army::find_target+0x410`, the difficulty gate's coin, where the
+original's first draw is the per-candidate score `+0x7df`. **Sized with
+250 blocks of runway** (DECISIONS 50 §7): six blocks shared with run202,
+the 168 up to the word, its block, and 250 above it. The readings and
+their kills are in the stanza.

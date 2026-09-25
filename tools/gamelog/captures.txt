@@ -5984,3 +5984,67 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 #   the journal says so.
 # - **R3 holds.** `1/70`'s order stack parts on 15383 (one order there,
 #   none here) before its guy does, on 15384.
+
+run: 211
+tag: greatlakes-wonderword
+item: 722
+why: Great Lakes' long word is 15608 (item 722), where ours spends 40 draws against 38, parting at index 0 — ours throws `Army::find_target+0x410`, the difficulty gate's coin, where the original's first draw is `Army::find_target+0x7df` — and run202, the last capture on this map below 23960, ends on block 15440, so the word's block 15609 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-25, item 722): run202's last
+# block is 15440 and its `!quit` stub 15452; run80 starts at 23960; run53
+# prints only its draw stream. **What the disk could not answer**: every
+# record on the word's block 15609, and every block from 15441 to it —
+# which army `find_aggressive_army` finds in the original and not here,
+# and where its captains stand.
+#
+# **Sized to the word, with 250 blocks of runway** (DECISIONS 50 §7,
+# Loop 687): the six-block overlap with run202 the widening's chain needs
+# (15435..15440), the 168 up to the word, its block 15609, and 250 above
+# it — 425 blocks.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run202's game past 15440.** Killed if the trace
+#   differs from run53's on any frame, or if the overlap with run202 on
+#   15435..15440 differs or counts other than six blocks.
+# - **R2 — the coin is `find_aggressive_army`'s answer.** The original
+#   skips the coin (`006f6dac`'s jump) because some army of the calling
+#   leader has two captains, is not mustering and stands outside its own
+#   land; here none does. Killed if, on block 15608, every unit carrying
+#   an `army` agrees with this crate's in `army` and in position, and
+#   every `GROUPDATA` of an AI leader agrees — then the standing agrees
+#   and the difference is in a reader (the border, or the status bit),
+#   not in where the army is.
+# - **R3 — the army parts before the word.** The first rows to part on
+#   run211's own blocks (15441..15609) belong to a unit that carries an
+#   `army`. Killed if nothing parts on 15441..15608, or if the first unit
+#   to part carries none.
+#
+# **run202's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the overlap is byte for byte and the pool lands (no `DEATHS`).
+frames: 15870
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **15435..15859, 425 blocks**: six shared with run202 (15435..15440),
+# the 168 up to the word, its block 15609, and 250 of runway above it.
+frame_window: 15435 15860
+# **Per-frame coverage over the word**, 15604..15612.
+cover: cover=1
+cover: window=15604-15612
+settle_min: 14000000
+# **Sized from run202**: 2.2 MB a block, so 425 blocks is ~0.94 GB.
+# run202 took 20 minutes for 214 blocks from launch; this is ~40. 240
+# polls is eighty minutes.
+poll_max: 240
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run211.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=15860)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run211-greatlakes-wonderword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 425 blocks, 15435..15859, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run211-greatlakes-wonderword.txt" | awk '{v=$3+0; if(v>=15435&&v<15860) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==425 && lo==15435 && hi==15859)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run211-greatlakes-wonderword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=15435&&v<15860)n++} print "blocks with a GROUPDATA: "n; exit !(n==425)}'
+# **The overlap with run202, and the count is the claim** — six blocks,
+# 15435..15440, the same line, nothing excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run202-greatlakes-mirrorword.txt gamelog-run211-greatlakes-wonderword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run202 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(15435..15440)")}'
+# **The coverage window landed**: every frame 15604..15612 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run211.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=15604&&f<=15612&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
