@@ -1608,15 +1608,24 @@ impl Sim {
         // `ATTACK_GROUND` order, whose point `Ammo::init` reads off the
         // order itself (`Guy::execute_events@005d99c0`'s `0x17` arm sets
         // `ox = whom = −1`; `docs/COMBAT.md` §57.4).
-        let ground = match self.current_order(u).map(|o| o.body) {
-            Some(crate::orders::Body::AttackGround(g)) => Some(g),
-            Some(crate::orders::Body::Attack(_)) => None,
+        //
+        // **A strafe is an attack here** (`docs/ORDERS.md` §35.1). The
+        // `+0xdc` arm asks the order's vslot `+0x18` and then `+0x2c`;
+        // `StrafeOrder`'s `UnitOrder` vtable (`0xb47b08` in the PE) answers
+        // 1 and 0 (`0x41e0e0`, `0x41bff0`), so its `+0x3c`
+        // (`get_strafe_order`, `this − 0x4c`) hands over the `AttackOrder`
+        // part's own `ox/whom/uid` — the target `add_strafe_order` writes
+        // at `+0x8/+0xc/+0x10`. A strafe home has none, and is refused.
+        let (ground, ordered) = match self.current_order(u).map(|o| o.body) {
+            Some(crate::orders::Body::AttackGround(g)) => (Some(g), None),
+            Some(crate::orders::Body::Attack(_)) => (None, self.units[u].combat.target),
+            Some(crate::orders::Body::Strafe(s)) => (None, s.target),
             _ => return,
         };
         let target = match ground {
             Some(_) => None,
             None => {
-                let Some(target) = self.units[u].combat.target else {
+                let Some(target) = ordered else {
                     return;
                 };
                 if !self.active(target) {
@@ -1700,8 +1709,18 @@ impl Sim {
                             crate::launch::node(guy.gpiece, guy.anim, start).map_or(0, |n| n.dz),
                         ),
                     };
-                    let z = if self.unit_domain_of(u) == crate::attrition::Domain::Sea {
+                    // A plane's figure flies at its own `z` (`GuyData +0x14`,
+                    // the `GUY` record's), and that is the height the
+                    // package carries (`Guy::execute_events@005d99c0:29`):
+                    // a bomb leaves from the Bomber's altitude, not the
+                    // ground under it (`docs/ORDERS.md` §35.2). SEAM: a
+                    // helicopter's figure `z`, which this crate does not
+                    // fly, keeps the ground's.
+                    let domain = self.unit_domain_of(u);
+                    let z = if domain == crate::attrition::Domain::Sea {
                         0
+                    } else if domain == crate::attrition::Domain::Air && !self.is_helicopter(u) {
+                        self.units[u].airframe.z
                     } else {
                         self.ground_z(self.units[u].pos)
                     };

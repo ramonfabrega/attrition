@@ -3167,7 +3167,7 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 821;
 /// 667) before it, the word 642 and the pair's strafe on 662 and strike
 /// on 666 (item 746); the first pin was (605, 645). Its pool half,
 /// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
-pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 823);
+pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 1401);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
