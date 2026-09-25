@@ -1061,7 +1061,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ("Guy", "guy_flags guy_num kind last_pos ox whom"),
     // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
     // and `orig_x`/`orig_y` to run29's field-table test on purpose
-    // (`compare_orders`); `coll_x`/`coll_y` are compared since the window
+    // (`compare_orders`). `orig` is carried on every move since item 738
+    // (`MoveOrder::orig`, `finish_insert`'s replay point, run219), and
+    // comparing it adds two rows past Great Lakes' word to run218's
+    // fenced widening, `1/0`'s explore on 16470 whose point has already
+    // parted: the compare waits for that widening's owner; `coll_x`/`coll_y` are compared since the window
     // moved to run211's 15609 (item 722), where a collision point stands
     // on both sides; the `GROUPORDER`, patrol, guard, garrison, cast and ground
     // rows on their orders, none of which stand on this window; `uid`,

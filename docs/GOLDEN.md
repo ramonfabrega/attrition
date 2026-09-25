@@ -3207,3 +3207,36 @@ corrected, so this staging cannot reach it (falsifier 7 cannot see it).
   17280), its `orig`, where the plan's goal is.
 - The squad stands on 936–947; the flees on 1098 and 1175–1183.
 - **The pool printed**: 330,240 `GROUPDATA` at `GUYS=4`.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_SIXTEEN` = 838, open.**
+The harness took both selectors from the start, and every class, box leg
+and box opening agreed on its frame. The parting was the one predicted,
+the re-issue's point. On 838 the original's chariot stands on its click
+and goes idle, two `Guy::set_anim+0x97a < Unit::do_idle+0x7d` rolls,
+7 draws against 5 at draw 0; this crate's walked on to the snap.
+- **The widening** over (605, 840) names it first on 685: `0/6`'s plan
+  goal, (2424, 17304) here against (2400, 17280). From it follow the
+  waypoint on 779, a one-unit drift on 793 and 797, and the arrival. On
+  804 the squad's replay was laid out round the leader's slot, `0/8` to
+  (12600, 15096) against (12552, 15048), and 819's re-aim carried it.
+  71 keys, and the births' `form`.
+- **The pool's widening** adds the replay's group point, `ox/oy` on the
+  box leg's slot, and `speed`/`new_speed` on 685 and 804.
+  `Groups::get_open_slot@006fa460` asks each live slot it walks past for
+  `get_num`, which normalizes a seated group of fewer than four and
+  re-seats its speed; this crate does not model the slot allocation.
+- **The coverage pin** needed nothing new; its driver takes 622, 642,
+  685, 730, 804, 838, 902 and 1002.
+
+**Closed at 1250 by the same item** (`docs/ORDERS.md` §31). A plain
+move's `orig` is carried, the click from `action_move_near`'s plain arm,
+and `finish_insert` replays to it. That alone moved the word 838 → 1250,
+run219's trace end: sequence 1250, no value part. The widening over run219
+whole leaves the births' `form` and the pool's six `speed` rows.
+
+**Not reached by this staging**: the flee's three readers. The crate's
+`calc_cost` triples a flee's extra on `flags & 2`, a bit nothing writes,
+where the original reads `order_type() == FLEE_TO`; the scratch walk with
+it corrected was identical, because neither flee path crosses a seen
+cell whose extra is above 0. A flee over seen rough ground, or past an
+enemy's danger, would reach it.

@@ -3948,6 +3948,11 @@ impl Sim {
         if let Some(m) = order.move_mut() {
             m.group = None;
             m.has_waypoint = false;
+            // `orig_x`/`orig_y` take the order's own `x`/`y` here
+            // (`MoveOrder +0x44`/`+0x48`): `1/29`'s go `(39133, 21131)` →
+            // `(38952, 21048)` across run100's ungroup. `finish_insert`
+            // replays a copy to this point (item 738).
+            m.orig = Some(m.dest);
         }
         // **The plain move is a *new* order at the head of the list, not
         // the old one rewritten where it stood** (item 487,
@@ -3968,11 +3973,6 @@ impl Sim {
         // the two readings come apart: the original walks home from
         // block 10241 and this crate stood still.
         //
-        // SEAM: `orig_x`/`orig_y` (`MoveOrder +0x44`/`+0x48`), which the
-        // same arm sets to the order's own `x`/`y`, are neither held here
-        // nor compared by `crate::diff::order` — `1/29`'s go
-        // `(39133, 21131)` → `(38952, 21048)` across the ungroup and
-        // nothing on either side reads them.
         let order = self.units[u]
             .orders
             .remove(i)
