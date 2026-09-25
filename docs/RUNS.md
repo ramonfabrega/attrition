@@ -7421,3 +7421,15 @@ neither to its last block. **Sized with 250 blocks of runway**
 (DECISIONS 50 §7): six blocks shared with run227, the 255 up to the word,
 its block, and 250 above it, 512 blocks. The readings and their kills are
 in the stanza.
+
+**Taken whole.** 1,211.8 MB of dump and 23.4 MB of trace, 512 blocks
+16929..17440. About 42 minutes from launch (16:39) to the trace's close
+(17:21), with no human at the menu. Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 17,452 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **512 blocks, 16929..17440, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **512 / 512** |
+| overlap with run227, nothing excluded | **6 in common (16929..16934), 0 differ** |

@@ -6544,3 +6544,15 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # **The overlap with run227, and the count is the claim** — six blocks,
 # 16929..16934, the same line, nothing excluded.
 check: python3 tools/gamelog/samegame.py gamelog-run227-eastindies-wrapword.txt gamelog-run233-eastindies-blockword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run227 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(16929..16934)")}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 1,211,836,805 bytes of dump and 23,448,544 of trace, **512 blocks
+# 16929..17440**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 16:39 through `viadriver.sh` with no human at the menu, the dump closed
+# 17:20 and the trace 17:21: about 42 minutes. `waitrun.sh` exited 0. All
+# six checks were green:
+# - 17,452 frames identical to run54;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block;
+# - 6 blocks shared with run227 (16929..16934), 0 differing.
