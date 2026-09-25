@@ -2723,8 +2723,11 @@ pub(crate) mod tests {
         // 2. **The AI's second city, `1/2007`** — `land`, `filled` and the
         //    three `space` counts, one apart, from the frame its circle is
         //    first swept.
-        // 3. **A gatherer filed under the wrong city** from 2576 — the
-        //    totals agree, the attribution does not. Until item 592 a free
+        // 3. ~~**A gatherer filed under the wrong city** from 2576 — the
+        //    totals agree, the attribution does not.~~ **Closed by item
+        //    752**: `plan_strategy` counts a gatherer in its building's
+        //    city, not the nearest (`docs/AI.md` §73), and the three rows
+        //    went. Until item 592 a free
         //    citizen parted beside it from 4176 for 200 frames: a citizen
         //    riding a transport barge, which the original's census counts
         //    through its container and never free (`docs/AI.md` §58).
@@ -2747,9 +2750,6 @@ pub(crate) mod tests {
             "1/2007 space[0] f1976 x3226",
             "1/2007 space[1] f1976 x3226",
             "1/2007 space[2] f1976 x3226",
-            "1/2000 gatherers f2576 x800",
-            "1/2007 peasant_dist f2576 x800",
-            "1/2007 gatherers f2576 x800",
         ];
         assert_eq!(
             city_said, city_want,
@@ -13814,7 +13814,10 @@ pub(crate) mod tests {
         // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on the scout `1/0`
         // from 8242, ours 0 against 1, beside its `order:move.facing`, and it parts so with or without item 736's fix: a turn
         // this crate flips the bit on and the original does not.
-        assert_eq!(under, 188, "the floor under the word");
+        // **Item 752 took two (188 → 186)**: who=1's two cities'
+        // `gatherers`, a gatherer counted in its building's city and not
+        // the nearest (`docs/AI.md` §73).
+        assert_eq!(under, 186, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -14603,7 +14606,10 @@ pub(crate) mod tests {
         // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
         // Item 723 took one (270/280/280 → 269/279/279): the scout's
         // formation mirror (parked 275), an equal group's record kept.
-        assert_eq!((first, under_n, firsts.len()), (269, 279, 279), "the floor");
+        // Item 752 took two (269/279/279 → 267/277/277): who=1's two
+        // cities' `gatherers` on the first block, counted in the building's
+        // city (`docs/AI.md` §73).
+        assert_eq!((first, under_n, firsts.len()), (267, 277, 277), "the floor");
     }
 
     /// **run78 — East Indies' old word 15782, the move's value diff**
@@ -14664,8 +14670,9 @@ pub(crate) mod tests {
         assert_eq!(
             standing.get(&15_783).map_or(0, |m| m.len()),
             // Item 718: `1/60`'s order point, two rows fewer; item 723 one
-            // more, the scout's formation mirror (parked 275).
-            437,
+            // more, the scout's formation mirror (parked 275); item 752 two
+            // fewer, who=1's cities' `gatherers` (`docs/AI.md` §73).
+            435,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -14675,7 +14682,9 @@ pub(crate) mod tests {
         // Item 718: 443, `1/60`'s order point agreeing. Item 723: 436/441,
         // the formation mirror (parked 275) on the first block and on
         // `1/0`'s 15800, an equal group's record kept.
-        assert_eq!((first, firsts.len()), (436, 441), "the floor");
+        // Item 752: 434/439, who=1's two cities' `gatherers` on the first
+        // block, counted in the building's city (`docs/AI.md` §73).
+        assert_eq!((first, firsts.len()), (434, 439), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
@@ -14820,8 +14829,9 @@ pub(crate) mod tests {
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, |m| m.len()),
             // 295 before item 708's fix: the fifteen under the word and
-            // the five caps went, the newborn row came.
-            281,
+            // the five caps went, the newborn row came. Item 752 took two,
+            // who=1's cities' `gatherers` (`docs/AI.md` §73).
+            279,
             "every row standing on the word's block"
         );
         // **Past the word to the window's end** (the word left for 16683,
@@ -14857,7 +14867,10 @@ pub(crate) mod tests {
         // its purchase parted.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (280, 280, 290), "the floor");
+        // Item 752 took two (280/280/290 → 278/278/288): who=1's two
+        // cities' `gatherers` on the first block, counted in the building's
+        // city (`docs/AI.md` §73).
+        assert_eq!((first, under_n, firsts.len()), (278, 278, 288), "the floor");
     }
 
     /// **run227 — East Indies' word 16683, widened whole, both directions**

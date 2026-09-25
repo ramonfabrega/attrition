@@ -4101,12 +4101,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // woodcutter on 16594. **The same item moved it 16683 → 16982**, past
     // run227's last block (16934): the census counts a gatherer in its
     // building's city (`docs/AI.md` §73). run227's test keeps the move's
-    // value diff. The next item owes the capture over the new word.
+    // value diff. Item 767 owes the capture over the new word.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        752,
+        767,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
