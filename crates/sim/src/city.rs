@@ -311,8 +311,13 @@ impl Sim {
             .count() as i32
     }
 
-    /// `CityData::num_wonders(exclude_city)`: finished wonders on the chain,
-    /// never the Red Fort, and not the city building itself when asked.
+    /// `CityData::num_wonders@007382b0(exclude_city)`: wonders on the chain,
+    /// **finished or not**, never the Red Fort, and not the city building
+    /// itself when asked. The test is `BuildData::is_wonder` (Build vslot
+    /// `+0x2c`), a type range, and nothing reads `is_active`: a wonder site
+    /// counts from the frame it joins the city (`docs/AI.md` §70). That is
+    /// why `Wall::do_construct`'s bound is `<= 1 + egyptians` — the site
+    /// counts itself — and `blocked_location`'s is `> egyptians`.
     pub fn num_wonders(&self, c: usize, exclude_city: bool) -> i32 {
         let city = &self.cities[c];
         std::iter::once(city.building)
@@ -320,7 +325,6 @@ impl Sim {
             .filter(|&b| {
                 let bd = &self.buildings[b];
                 bd.alive
-                    && bd.active
                     && bd.ty.is_some_and(|t| self.build_types[t].wonder)
                     && !self.building_is(b, Ident::RedFort)
                     && !(exclude_city && self.building_is_city(b))
