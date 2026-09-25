@@ -89,6 +89,20 @@ pub(crate) enum Member {
     Move,
 }
 
+/// What [`Sim::group_set_up_insert`] copies aside and
+/// [`Sim::group_finish_insert`] re-issues (§6.2, §17).
+pub(crate) struct Insert {
+    saved: Vec<Order>,
+    aim: Option<(Obj, bool)>,
+}
+
+impl Insert {
+    /// Nothing was copied: `action_form`'s `QUEUE_NEW` arm.
+    pub(crate) fn is_empty(&self) -> bool {
+        self.saved.is_empty()
+    }
+}
+
 /// `reversing@0092cf20` — "is this angular difference a turn-around?"
 ///
 /// Nine lines in the original and the engine's own name for the test three
@@ -446,7 +460,32 @@ impl Sim {
             }
             return false;
         }
+        let last = self.last_group[g.who as usize];
         let pool = self.pool_slot_for(g.who, &g.list);
+        // `70fa3b`: `equals_group` against the player's **last pushed**
+        // slot — the same owner and the same members in the same order —
+        // and an equal group is **not copied**: `copy_group` runs only on
+        // the fresh slot `get_open_slot` hands back. So a selection pushed
+        // again keeps its record, `(ox, oy)`, `o_angle`, `facing` and the
+        // slot bytes, which the next layout reads (`docs/GOLDEN.md` §22:
+        // run210's `process_group, repeat` on 701 and 741). The second
+        // walk then finds every member already pointing at the slot and
+        // kills none.
+        if pool == last
+            && let Some(i) = self
+                .pushed
+                .iter()
+                .position(|x| x.who == g.who && x.state.pool == Some(pool) && x.list == g.list)
+        {
+            for &u in &g.list {
+                if self.units[u].alive() {
+                    self.units[u].group_ptr = Some(pool);
+                }
+            }
+            g.army = None;
+            g.pushed = Some(i);
+            return true;
+        }
         self.unseat_group(g);
         // The pool slot every member's `+0x80` then points at.
         // `Groups::get_open_slot` recycles, so a slot whose members are
@@ -1390,7 +1429,7 @@ impl Sim {
     /// SEAM: the `buildings` seat (`list[0]` rather than `find_leader`) and
     /// the `get_inside` hop for a garrisoned leader, neither of which any
     /// group this simulation builds reaches.
-    fn group_loc_to(&self, g: &Group) -> Option<Pos> {
+    pub(crate) fn group_loc_to(&self, g: &Group) -> Option<Pos> {
         let u = self.group_find_leader(g)?;
         let p = self.unit_final_loc(u);
         let o = self.group_o(g);
@@ -1458,7 +1497,7 @@ impl Sim {
     /// **to**, before any slot offset. A group with no army has no record
     /// to read, and the original's `(-1, -1)` initialiser is what a
     /// never-moved group holds.
-    fn group_o(&self, g: &Group) -> Pos {
+    pub(crate) fn group_o(&self, g: &Group) -> Pos {
         self.gstate(g).map_or(Pos::new(-1, -1), |st| st.o)
     }
 
@@ -1571,6 +1610,86 @@ impl Sim {
         }
     }
 
+    /// `Group::set_up_insert@0070e520` (§6.2, §17): the **leader's**
+    /// action-flagged orders, copied aside ahead of a halt, and the target
+    /// an attack copy needs — this crate keeps it on the unit rather than on
+    /// the order (`docs/GROUPS.md` §12), and the halt clears it.
+    pub(crate) fn group_set_up_insert(&self, g: &Group) -> Insert {
+        let leader = self.group_find_leader(g);
+        let saved: Vec<Order> = leader
+            .map(|l| {
+                self.units[l]
+                    .orders
+                    .iter()
+                    .filter(|o| o.has(flag::ACTION))
+                    .copied()
+                    .collect()
+            })
+            .unwrap_or_default();
+        // The target goes with the copies: this crate keeps it on the
+        // unit rather than on the attack order (`docs/GROUPS.md` §12),
+        // and the halt below clears it.
+        let aim = leader.and_then(|l| {
+            let unit = &self.units[l];
+            unit.combat.target.map(|t| (t, unit.combat.mandatory))
+        });
+        Insert { saved, aim }
+    }
+
+    /// `Group::finish_insert@0070e620` (§6.2, §17): each copy
+    /// [`Self::group_set_up_insert`] saved, re-issued as a **group**
+    /// action at `QUEUE_LAST`.
+    pub(crate) fn group_finish_insert(&mut self, g: &Group, insert: Insert) {
+        let Insert { saved, aim } = insert;
+        for o in saved {
+            match o.body {
+                // Cases 1–4, `0x13` and `0x15`: `action_move_near` to the
+                // copy's `orig_x`/`orig_y` when both are non-negative — for
+                // a group move, the group's own point — else its `x`/`y`,
+                // at `QUEUE_LAST`, `set_angle 1` and the order's own angle,
+                // with the action bit. SEAM: a plain move's `orig`, which
+                // this crate does not carry, is taken as its `dest`.
+                Body::Move(m) => self.group_action_move_to(
+                    g,
+                    m.group
+                        .map(|gm| gm.orig)
+                        .filter(|p| p.x >= 0 && p.y >= 0)
+                        .unwrap_or(m.dest),
+                    QueuePos::Last,
+                    true,
+                    m.angle,
+                    m.kind,
+                    true,
+                ),
+                Body::Attack(_) => {
+                    if let Some((t, mandatory)) = aim {
+                        self.group_action_attack(g, t, mandatory, QueuePos::Last, 0);
+                    }
+                }
+                // Cases 6 and `0xd`: `action_swarm_around(o, who,
+                // QUEUE_LAST, kind, flags & 4)`, the order's own
+                // action bit. run157's `1/1` is a citizen on its way
+                // to a site when the goody look halts it on 990, and
+                // the original keeps the build behind the box's walk
+                // (§24).
+                Body::Build(b) | Body::Repair(b) => {
+                    self.group_action_swarm_around_last(g, b, o.body, o.has(flag::ACTION));
+                }
+                // Case `0x16`: `redo_patrol_order(group, order,
+                // QUEUE_LAST)` — every member's patrol rebuilt from
+                // the leader's, its step included. It is how a
+                // patrol's leg reaches the whole group (§27 of
+                // `docs/ORDERS.md`, run184).
+                Body::Patrol(p) => self.group_redo_patrol_order(g, p),
+                // SEAM: `finish_insert`'s other seventeen cases —
+                // gather, garrison, board, follow, guard, trade,
+                // spell. No capture reaches a group `QUEUE_FIRST`
+                // carrying one.
+                _ => {}
+            }
+        }
+    }
+
     /// `Group::action_halt(mask)` (§7).
     pub fn group_action_halt(&mut self, g: &Group, mask: i32) {
         // `0070d0c0:29`: the **group's** `form` is cleared once, before any
@@ -1674,64 +1793,10 @@ impl Sim {
         // order list comes out of `Unit::get_goody_box` holding the new
         // explore alone (`docs/GOODY.md` §7.3).
         if queue == QueuePos::First {
-            let leader = self.group_find_leader(g);
-            let saved: Vec<Order> = leader
-                .map(|l| {
-                    self.units[l]
-                        .orders
-                        .iter()
-                        .filter(|o| o.has(flag::ACTION))
-                        .copied()
-                        .collect()
-                })
-                .unwrap_or_default();
-            // The target goes with the copies: this crate keeps it on the
-            // unit rather than on the attack order (`docs/GROUPS.md` §12),
-            // and the halt below clears it.
-            let aim = leader.and_then(|l| {
-                let unit = &self.units[l];
-                unit.combat.target.map(|t| (t, unit.combat.mandatory))
-            });
+            let insert = self.group_set_up_insert(g);
             self.group_action_halt(g, 0);
             self.group_action_move_to(g, to, QueuePos::New, set_angle, angle, kind, action);
-            for o in saved {
-                match o.body {
-                    Body::Move(m) => self.group_action_move_to(
-                        g,
-                        m.dest,
-                        QueuePos::Last,
-                        true,
-                        m.angle,
-                        m.kind,
-                        true,
-                    ),
-                    Body::Attack(_) => {
-                        if let Some((t, mandatory)) = aim {
-                            self.group_action_attack(g, t, mandatory, QueuePos::Last, 0);
-                        }
-                    }
-                    // Cases 6 and `0xd`: `action_swarm_around(o, who,
-                    // QUEUE_LAST, kind, flags & 4)`, the order's own
-                    // action bit. run157's `1/1` is a citizen on its way
-                    // to a site when the goody look halts it on 990, and
-                    // the original keeps the build behind the box's walk
-                    // (§24).
-                    Body::Build(b) | Body::Repair(b) => {
-                        self.group_action_swarm_around_last(g, b, o.body, o.has(flag::ACTION));
-                    }
-                    // Case `0x16`: `redo_patrol_order(group, order,
-                    // QUEUE_LAST)` — every member's patrol rebuilt from
-                    // the leader's, its step included. It is how a
-                    // patrol's leg reaches the whole group (§27 of
-                    // `docs/ORDERS.md`, run184).
-                    Body::Patrol(p) => self.group_redo_patrol_order(g, p),
-                    // SEAM: `finish_insert`'s other seventeen cases —
-                    // gather, garrison, board, follow, guard, trade,
-                    // spell. No capture reaches a group `QUEUE_FIRST`
-                    // carrying one.
-                    _ => {}
-                }
-            }
+            self.group_finish_insert(g, insert);
             return;
         }
 
@@ -1999,6 +2064,7 @@ impl Sim {
                     form_id: i,
                     group_angle: order_angle,
                     in_group: false,
+                    orig: to,
                 };
                 self.add_move_facing_order_grouped(
                     u,
@@ -2627,7 +2693,7 @@ impl Sim {
         self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::New, false);
     }
 
-    fn group_o_angle(&self, g: &Group) -> Angle {
+    pub(crate) fn group_o_angle(&self, g: &Group) -> Angle {
         self.gstate(g).map_or(Angle(0), |st| st.o_angle)
     }
 
@@ -4238,6 +4304,72 @@ mod tests {
             "and a unit past it is out"
         );
         assert!(!within_third(Angle(0), Angle(i32::MIN)), "dead astern");
+    }
+
+    /// **A formation command makes no order of its own** (`docs/GOLDEN.md`
+    /// §22, `docs/ORDERS.md` §30). A group that stands takes the byte and
+    /// re-forms on the spot — a move to the leader's own point, **without**
+    /// the action bit; a group that walks is halted and the leader's move
+    /// replayed to the same point, **with** it. Neither holds a
+    /// `CHANGE_FORM`.
+    #[test]
+    fn action_form_writes_the_byte_and_moves_the_group_it_does_not_order_a_form() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 0, t, Pos::new(0x1200, 0x1000));
+        let g = group_of(0, &[a, b]);
+
+        // Standing: the byte, and one move each at the leader's point.
+        s.group_action_form(&g, 2, 0, QueuePos::New);
+        let leader = s.group_find_leader(&g).expect("a leader");
+        for u in [a, b] {
+            assert_eq!(s.units[u].form, 2, "the byte is written");
+            assert_eq!(s.units[u].orders.len(), 1, "one move, no FormOrder");
+            let o = *s.current_order(u).expect("a move order");
+            assert_ne!(o.index(), index::CHANGE_FORM);
+            assert!(o.move_dest().is_some());
+            assert!(
+                !o.has(crate::orders::flag::ACTION),
+                "no action bit on the spot"
+            );
+        }
+        assert!(
+            s.current_order(leader)
+                .and_then(Order::move_dest)
+                .is_some_and(|d| vector_dist(
+                    d.x - s.units[leader].pos.x,
+                    d.y - s.units[leader].pos.y
+                ) < 0x180),
+            "the group re-forms round where its leader stands"
+        );
+
+        // Walking: an action-bit move, then Line; the move is replayed.
+        let to = Pos::new(0x4000, 0x1000);
+        s.group_action_move_to(
+            &g,
+            to,
+            QueuePos::New,
+            false,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        s.group_action_form(&g, 0, 0, QueuePos::New);
+        for u in [a, b] {
+            assert_eq!(s.units[u].form, 0);
+            assert_eq!(s.units[u].orders.len(), 1, "halted, then one replay");
+            let o = *s.current_order(u).expect("the replayed move");
+            assert!(
+                o.has(crate::orders::flag::ACTION),
+                "the replay keeps the action bit"
+            );
+            let d = o.move_dest().expect("a move");
+            assert!(
+                vector_dist(d.x - to.x, d.y - to.y) < 0x400,
+                "to the same point"
+            );
+        }
     }
 
     #[test]

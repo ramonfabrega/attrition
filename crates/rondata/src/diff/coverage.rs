@@ -249,10 +249,12 @@ const UNREAD: &[(&str, &str)] = &[
     // takes the command from the script, as for the patrol. **Item 714's
     // run204 window at 622 adds `process_follow`**, the same shape, and
     // **item 718's run208 windows `process_garrison` and
-    // `process_eject_all`**.
+    // `process_eject_all`**. **Item 723's run210 windows `process_form`**,
+    // and with its 702 window the right-click's `process_move_to` and
+    // `process_move_to_2` lines, which no chapter's window had held.
     (
         "GAME",
-        "process_eject_all process_follow process_garrison process_group, process_guard process_patrol",
+        "process_eject_all process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
@@ -478,6 +480,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch11 = golden_dump("ch11");
     let ch12 = golden_dump("ch12");
     let ch13 = golden_dump("ch13");
+    let ch14 = golden_dump("ch14");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -854,6 +857,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 640, 642, 699, 761, 902] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirteen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter fourteen's word, on run210** (item 723): the first
+    // player's formation command on disk, its `process_form` text, and a
+    // walking group halted and replayed. 622, the standing re-form's
+    // first block; 631, the word; 702, the move; 742, the replay in Line;
+    // 905, the leader's arrival.
+    if let Some(p) = &ch14 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FOURTEEN;
+        for w in [622, 631, 702, 742, 905] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter fourteen carries the window's five blocks");
             frames += n;
         }
     }

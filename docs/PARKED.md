@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 723, 2026-09-25 — the formation's other edges
+
+(732) **Great Lakes' `1/0` mirror from 6864, 275's remainder.** 723's
+`push_group` keeps an equal group's record, and the fresh record had been
+masking what the kept one carries wrong: `set_angle`'s toggle, or the
+dying order's facing hand-back. New rows: run83 from 6864, run79 29 rows
+on 6910..6938, run99 net +1. The non-scoring `facing`; no draw parts.
+
+(733) **run210 printed no `GROUPDATA`**, the third golden capture to lose
+the pool; `GUYS=2` is the hypothesis. A capture at `GUYS=4` settles it and
+gives the chapters the pool's `facing`, `o`, `o_angle` and slot bytes.
+
+(734) **`action_form`'s negative formations** (−1, −2, −3) and a plain
+move's `orig`: named seams, reached by no capture.
+
 ## Parked by item 718, 2026-09-24 — the garrison's other arms
 
 (724) **`action_garrison`'s unbuilt arms**: `QUEUE_FIRST`, the editor, a
@@ -887,6 +902,11 @@ the whole tranche. A reader, or a guard, that flags a count's stated
 domain against its own bound would have caught it. 722 also reports
 `waitrun.sh` exiting 0 cleanly on the queue lane: 656's sequel held.
 
+(735) **`golden_capture.sh` should refuse a capture that asked for `GROUPS`
+and printed no `GROUPDATA`**, as `groupfacing.py` does (723's Loop line,
+filed at its merge). run210 is the third capture to lose the pool
+silently (733).
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
@@ -1288,7 +1308,8 @@ the `+0x94` vcall returns, where `Sim::group_refresh_order` uses
 every frame, so the two agree except where membership changed and the
 follower arm has not run: wants a `GROUPS=1` window across a death or a
 join in a marching formation. (275) `MoveOrder::facing` still does not
-score; 267 split the two mechanisms, so re-read that. **304 is the nearest
+score; 267 split the two mechanisms, so re-read that. **723 took the row
+off every widening; the remainder is 732.** **304 is the nearest
 live window** to this — a formation ending early on run76.
 
 (315) **run90's `1/7` names no blocker on 7820** — `collide_o` and

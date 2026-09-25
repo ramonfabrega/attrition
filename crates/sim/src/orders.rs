@@ -325,6 +325,14 @@ pub struct GroupMove {
     /// `+0x68 in_group` — "I am walking to my slot rather than to a
     /// waypoint of the leader's".
     pub in_group: bool,
+    /// **`MoveOrder +0x44`/`+0x48 orig_x`/`orig_y`** — the group's own
+    /// point, the one `action_move_near` was handed, which
+    /// `Unit::add_group_move_order@005e4710` stores beside the member's
+    /// slot. Carried on the group half because the one reader this crate
+    /// has is a group's: `Group::finish_insert@0070e620`'s case `0x13`
+    /// replays a copied group move **to `orig`**, not to the leader's
+    /// slot (`docs/GOLDEN.md` §22, run210's 742).
+    pub orig: Pos,
 }
 
 /// One entry of the unit's path stack.

@@ -6815,6 +6815,100 @@ work`'s every-16-frames step, phased by `o` (`docs/ORDERS.md` §2.3 step
 5). `(698 + 6)` and `(761 + 7)` are both multiples of 16. The widening
 and this crate's own walk will say.
 
+## run210 — chapter fourteen, the formation line (2026-09-25, item 723)
+
+`docs/GOLDEN.md` §22, `tools/gamelog/golden/chapter14.cmd`. The cast, on
+chapter thirteen's ground, is three squads:
+- Hoplites `0/6`–`0/8` on 610;
+- Hoplites `0/9`–`0/11` on 612;
+- Slingers `0/12`–`0/14` on 614.
+
+Two **player formation commands** go through `CommandManager::issue_form`,
+called from `rontrace.dll` by the new `@form` line:
+- Envelop (2) on 620, the group standing;
+- Line (0) on 740, the group walking.
+
+Between them, chapter nine's right-click `@move` on 700 sends the group
+north to (2976, 12000). The staging, the premise's killer and the
+falsifiers were committed before the run (`5e591b5`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch14 \
+    --map 14 --end-frame 1150 --log-window 605 1150 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter14.cmd
+```
+
+**The capture.** One take at `cover=0`: **284 s from launch to exit, 97 MB
+of dump and 10.4 MB of trace**.
+- The receipt says `success: true` and exit 0, with 1,151 frames.
+- `MAP_STYLE 14` and seed 12345 read back, and five settings files were
+  restored.
+- `cmdsran.py` has all six cheat lines returning 1.
+- `waitrun.sh` exited 0 on the click-free lane's receipt.
+
+**The lane.** att-722's run211 held it until 07:29. Its lock was left
+stale: pid 22231 was dead and the runner had exited. This run launched
+at 07:29 and exited at 07:34.
+
+**It is the same game as run208 to frame 610.** `rngcmp.py` finds 611
+frames identical. The first difference is at 611, the frame after both
+scripts' first `add`.
+
+**The pool did not come out.** There are 0 `GROUPDATA` records in the
+dump. That is run30's and run166's family, but not their cause: `DEATHS`
+was off, and `gamelog.ini` carried `GROUPS=1`. `GameLog::full_dump
+@00930380` runs `dump_units` and then `dump_groups`, as it did in run178,
+whose pool came out. The one difference in what reaches that point is
+`GUYS=2` here against `GUYS=4` in run178. **A hypothesis, not a finding**:
+the unit dump ends on a guy record, whose type and detail the pool's lines
+inherit, and `GUYS=2` rejects them. The chapter's measures do not need the
+pool, because each member's own order prints the slot (`x`/`y`, `off_x`/
+`off_y`), `orig`, the group move's `id` and its leader `oxx`.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6` uid 13 at (2424, 16248); `0/9` uid 16 at (3576, 16248); `0/12` uid 19 at (3000, 17016) |
+| 620 | `INFO 17` | line 5, refusal 0, package 10 → 32 bytes, three objects |
+| 700 | `INFO 18` | `0/6` (2314, 16436), `0/9` (2520, 16056), `0/12` (2088, 16056): already on their Envelop slots |
+| 700 | `INFO 17` | line 6, refusal 0, package 10 → 35 bytes (the 3-byte reuse and the 22-byte `move_to`) |
+| 740 | `INFO 17` | line 7, refusal 0, package 10 → 26 bytes (the reuse and the 13-byte `form`) |
+
+The first `form` is the emulator's 22 bytes behind the turn's 10-byte
+`camera`: a 9-byte `group` of three and the 13-byte command.
+
+### The processed commands, and §22's falsifiers
+
+The dump prints three commands between blocks:
+- `process_group, new 0 3 621` and `process_form 2 0 2 621` between 621
+  and 622;
+- `process_group, repeat 0 0 701` and `process_move_to 2976 12000 2 0 0 1
+  0` between 701 and 702;
+- `process_group, repeat 0 0 741` and `process_form 0 0 2 741` between
+  741 and 742.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | appended, processed on the next frame | as predicted, on 621, 701 and 741 |
+| 2, no `FormOrder` | no `FORMORDER` anywhere | **none in the whole dump** |
+| 3, the byte | `form 2` on all nine on 622, `form 0` on 742 | exactly so; `form_mod 50`, `group 1` on each |
+| 4, the re-form on the spot | one `GroupMoveOrder` a member, leader `0/6`, no action bit, to a slot round `0/6` | **a plain `MOVEORDER` (type 1) a member**, no action bit (`flags` 1 on six, 0 on `0/7`, `0/9`, `0/12`), `orig` = its own slot, no `GROUPORDER`; the slots lie round `0/6` at (2411, 16270): `0/6` → (2328, 16440), `0/9` → (2520, 16056), `0/12` → (2088, 16056). Every stack is empty on its slot by 684 (`0/6` 631 … `0/10` 684) |
+| 5, the move reads the byte | Envelop `GroupMoveOrder`s with the action bit on 702 | nine `GroupMoveOrder`s (type 19), `flags 5`, `orig` (2976, 12000), id 701101, leader `oxx 6`, `form 2` |
+| 6, halt and replay | on 742, one `GroupMoveOrder` a member, a new id, Line, `orig` 700's point, the action bit | exactly so: id **741102**, `flags 5`, `orig` (2976, 12000), `oxx 6`, `form 0`; nothing under it |
+| 7, arrival in Line | stacks empty near 900 | empty from 905 (`0/6`) to 926 (`0/9`), round (2976, 12000) |
+
+**Falsifier 4 fired in its letter.** The members hold plain moves on the
+block the command was processed, not group moves. Everything else about
+them is as read: the byte, no action bit, a slot round the leader, and
+arrival. `Unit::do_group_move@005e79a0` ungroups a group move whose
+point lies within `0x5ff` of the leader (`ungroup_move_order`, its tail).
+A re-form on the spot always does. **A hypothesis, not a finding**: the
+orders were laid grouped on 621 and ungrouped on their first step. This
+crate models both `do_group_move` and the ungroup, so its walk will say.
 ## run211 — Great Lakes' word 15608, past run202's last block (2026-09-25, item 722)
 
 **What it is.** run202's line, unchanged,
