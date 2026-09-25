@@ -351,11 +351,31 @@ pub enum Issued {
         to: Pos,
         objects: Vec<i16>,
     },
+    /// `@flight <who> <ox> <whom> <o> [<o> …]`: an aircraft's flight to its
+    /// side's own base or carrier, through
+    /// `CommandManager::issue_flight@00941d40` with `MOVE_TO` — a
+    /// right-click on one's own Airbase (`Console::execute_at_cursor@
+    /// 007c6630:2849`), item 746, `docs/GOLDEN.md` §25.
+    Flight {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
+    /// `@strike <who> <ox> <whom> <o> [<o> …]`: the same issuer with
+    /// `ATTACK`, a right-click on an enemy (`:2835`), item 746.
+    Strike {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
-/// `attack`, `amove`, `explore` or `flee`, a `who` outside `0..8`, fewer
+/// `attack`, `amove`, `explore`, `flee`, `flight` or `strike`, a `who`
+/// outside `0..8`, fewer
 /// than three numbers
 /// (one for `eject`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
@@ -374,6 +394,8 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "amove"
             | "explore"
             | "flee"
+            | "flight"
+            | "strike"
     ) {
         return None;
     }
@@ -439,6 +461,18 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
         "amove" => Issued::AttackMove { who, to, objects },
         "explore" => Issued::Explore { who, to, objects },
         "flee" => Issued::Flee { who, to, objects },
+        "flight" => Issued::Flight {
+            who,
+            ox: x,
+            whom: y,
+            objects,
+        },
+        "strike" => Issued::Strike {
+            who,
+            ox: x,
+            whom: y,
+            objects,
+        },
         _ => Issued::Move { who, to, objects },
     })
 }
@@ -531,6 +565,13 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_attack(built, who, &objects, ox, whom, 0, 2),
+        // `@flight` and `@strike` are `issue_flight@00941d40`, whose
+        // command this simulation does not enter yet (item 746,
+        // `docs/GOLDEN.md` §25).
+        Some(Issued::Flight { .. } | Issued::Strike { .. }) => {
+            done.skip(&word, "the flight command is not entered yet");
+            return;
+        }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1011,6 +1052,9 @@ mod tests {
         // Chapter sixteen: two `@explore` and two `@flee` issuer lines, the
         // move issuer's trailing selector (item 738, `docs/GOLDEN.md` §24).
         ("chapter16.cmd", &[]),
+        // Chapter seventeen: two `@flight` and two `@strike` issuer lines,
+        // the flight line (item 746, `docs/GOLDEN.md` §25).
+        ("chapter17.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -1215,6 +1259,24 @@ mod tests {
                 who: 0,
                 to: Pos::new(3168, 7008),
                 objects: vec![7],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@flight 0 2007 0 7 8"),
+            Some(Issued::Flight {
+                who: 0,
+                ox: 2007,
+                whom: 0,
+                objects: vec![7, 8],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@strike 0 2006 1 6"),
+            Some(Issued::Strike {
+                who: 0,
+                ox: 2006,
+                whom: 1,
+                objects: vec![6],
             })
         );
         for bad in [
