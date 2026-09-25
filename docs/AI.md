@@ -8520,3 +8520,164 @@ No mechanism is named (DECISIONS 42).
   this, a group with no army that reached the line panicked. So no
   passing test ran it, chapters nine and ten included, and both pass on
   the gate.
+
+## 69. An unfinished wonder calls its builder back, and the word moves to 15384 (2026-09-24, item 715)
+
+Great Lakes' word was **15383**. On it this crate spent 4 draws against
+the original's 3, parting at index 1 on an extra `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d` stand. On block 15383 the citizen `1/70` held one order
+in the original and none here. On 15384 it stood idle here, and the
+Woodcutter's Camp `1/2022`'s gather-chain head was `1/70` here and `1/73`
+there (run202, widened by item 711).
+
+### 69.1 The frame, read whole before any reading
+
+run202's `1/70`, blocks 15368..15386. It gathers at `1/2022` (tile (223, 67),
+`wait 999998`) and stands at (42744, 13080) through block 15382; only its
+figure clock moves. On **block 15383** the original's gather order is gone
+and a `BUILDORDER` on `1/2026` (`uid 106`) stands alone. Its `UNITORDER
+flags` is **0**, and there is no move above it. `1/2026` is new on that
+block: the Pyramids (`orig_type 526`), at (44544, 14592), `frame_started
+−1`, `helpers 0`. On 15384 an `EXPLORETOORDER` to (43704, 14280) goes on top
+of it, and on 15385 the citizen walks.
+
+`1/2022`'s head is `1/73` on every block 15376..15386, and `1/73`'s next
+is `1/72`. So the chain's three "missing entries" are one row, the head,
+and ours reads `1/70` there only because ours pushed `1/70` back on at the
+front. **The list and the order are one parting**: the order is the cause,
+and the chain is its consequence a frame later.
+
+### 69.2 The readings, and what would kill each
+
+Written before this crate's side was read.
+
+- **R1: `1/70` is handed a *gather* order by a list that holds it in the
+  original and not here.** Killed if the lists agree on the frame the order
+  is issued. **Killed by the dump**: the order the original hands `1/70` is
+  a `BUILDORDER`, not a gather, and `1/2022`'s head agrees on 15382.
+- **R2: the list parts earlier, on a slot or an arrival.** Killed if
+  `1/2022`'s list agrees on 15370. **Killed by the pinned widening**:
+  `1/2022` first-parts on 15384 and nowhere under it.
+- **R3: `1/70` goes idle here because its last delivery lands a frame
+  late.** Killed if its carried load and position agree on 15382.
+  **Killed**: nothing of `1/70` parts before 15383, and it had been standing
+  at its tile since 15368.
+- **R4 (mine): `produce_building` swarms `1/70` onto the Pyramids on both
+  sides, and something strips the build here.** Killed if this crate's
+  `1/70` holds the build order when `produce_building` returns on 15382.
+
+### 69.3 What killed R4, and what was left
+
+A scratch probe (`RON_PROBE_715`, never committed) printed this crate's side
+on 15382. `produce_building` picks `1/70` (kind 7), clears its orders, finds
+the swarm spot **(43704, 14280)** — the original's own 15384 explore target
+— and leaves `[ExploreTo, Build(2026)]`. **R4 is killed**: the build is
+handed.
+
+Then, the same frame, `do_move` kills both orders. The move-grid draw
+`Unit::do_move+0xe84` is `1/70`'s and rolls 35862, the original's value
+at the same index. That puts the threshold at `0x600` and the goal 2160
+away, far, so `find_wpath`. `find_wpath` returns through its **near test**
+(start cell (55, 17), goal cell (56, 18), 2 < 3) with the stack unchanged.
+The unchanged length is a refusal, the top is final, and the kill tail takes
+the build beneath (`5f8b5b`–`5f8b84`). The original's `find_wpath`
+(`00688fc0:196`), `do_move` tail and `UnitData::order_type` are the same
+shape, so **both sides strip `1/70`**.
+
+`Unit::add_build_order@005e5210`'s callers are four. The one that gives an
+**unflagged** build with nothing above it is `Wall::process@00640450`, the
+recruiter. `docs/ORDERS.md` §5.9 had named it in one line, and this crate
+did not carry it. The site's phase is due on this very frame: (15382 +
+2026) = 544 × 32.
+
+### 69.4 The recruiter
+
+`Wall::process@00640450:39-171`, inside the `(frame + o) & 31 == 0` block,
+after the under-attack decay and **before** `helpers` is reset (`:172`):
+
+1. The site is not active (`WallData::is_active`, `+8 & 4`) and its owner is
+   not human (`leader_flags & 4`).
+2. SEAM: every 128 frames an oil-platform site (`is(0x1a6)`) that no friendly
+   unit targets (`find_unit(…, FILTER_TARGET, o, who) < 0`) is disbanded.
+3. **The gate**: `is_wonder()` (Build vslot `+0x2c`, `BuildData::is_wonder`
+   in `vtables.txt`), **or** `ptype.is_fort()` (`ObjectTypeData` vslot
+   `+0xfc`, named by the PDB's `LF_ONEMETHOD` record — the export has no
+   `BuildType` vtable) with `damage` (`+0x24`) zero. No other site recruits.
+4. `want = max(4, helpers)` (`+0x64`). For a wonder, every playing leader
+   (`flags & 3 == 3`) that is not its ally adds one if its `wonderwin_timer`
+   (`+0x44c`) runs. Otherwise it adds one for each of its unbuilt wonders of
+   the same type whose progress `f` beats this one's `g` with `f < 2g` or
+   `f < 0.35` (`__real_3eb33333`). Progress is `job_counter (+0x48) /
+   construct_time(0)` (vslot `+0x18c`), in floats.
+5. If `helpers < want`: `ObjectsData::find_unit@0065ca80(x, y,
+   SEARCH_FRIENDLY, who, 0xf00, 0x200, FILTER_TYPE, 0x32, 0,
+   FILTER_NOT_BUSY)`, and the unit found takes `add_build_order(site,
+   QUEUE_NEW, 0)`.
+
+**The search** is the nearest by `vector_dist` on world units (`65cf16`–
+`65cf3c`), `<=` against the running best and the range, so the **last** of
+a tie wins.
+
+- The two walks are chosen by `total_units` against `circle_radius[5]`.
+- The `0x200` flag is the cell-region gate.
+- `SEARCH_FRIENDLY` is case 1 of `Search::valid_search@0067daa0`, the
+  searcher's own leader only.
+- `FILTER_TYPE` is arm 0 of `Search::valid_filter`'s table at `0067e57c`
+  (`0067dbc3`): `ObjectData::is(0x32, 1)`.
+- `FILTER_NOT_BUSY` (12) is arm 11 (`0067e019`). It is
+  `SubObjectData::is_unit` (vslot `+0x18`, the PDB), then
+  `UnitData::action_type` ∈ {NONE, GATHER, MOVE_TO}. **A gatherer is not
+  busy**, so the recruit is the nearest citizen who is not building,
+  fighting or on some other errand.
+
+`crates/sim/src/site_recruit.rs` carries it. `process_building` calls it
+ahead of its `helpers` reset. The rival count is exact rational arithmetic,
+cross-multiplied, with `0.35f` as its binary fraction `11744051 / 2^25`.
+`cities_tests::an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy`
+covers the pick, the phase, the no-action flag, a gatherer taken over a
+builder, four helpers, a farm, a human's wonder and a damaged fort. It was
+made to fail with the call removed.
+
+### 69.5 What it moved
+
+Measured after `ccc update` onto 714 (`9133578`):
+
+- **Great Lakes 15383 → 15384.** On 15384 this crate spends 51 draws
+  against the original's 46, parting at index 4: a third pair of
+  `Leader::create_buildings+0xffb`/`+0x1017` (the wonder arm's `% 1000`
+  and `% 300`, §2.19) where the original's third draw is
+  `Animal::think_bird+0x82`.
+- **East Indies holds at 15985**, its delta unchanged.
+- **The value diff** (`run202_s_word_frame_is_widened_whole`): `1/70`'s nine
+  rows on 15383–15384 and `1/2022`'s one are gone. Nothing of either first-
+  parts up to 15385; `1/70` walks from (42728, 13100) on 15385 on both sides.
+  Keys first-parting over the window: 840 → 646. Rows standing on 15384:
+  327 → 315.
+
+### 69.6 The new word's block, 15385
+
+Nothing first-parts on 15385. On **15386** three rows do:
+
+- the make list's second slot, `MAKE[1].t`, is 430 `SIEGEFACTORY` here and
+  −1 there;
+- `1/75`'s figure clock (`cur_anim` 31 against 29).
+
+So the new word's extra `create_buildings` draws belong to a producer
+that wants a building the original does not. No mechanism is named
+(DECISIONS 42). It is inside run202 (last block 15440), so no capture is
+owed. The coverage driver reads run202 15382..15387.
+
+### 69.7 What this has *not* established
+
+- **The circle walk's tie order within a cell** is this crate's
+  `chain_heads` order, which is the original's object chain for units. A
+  tie at equal `vector_dist` is the only place it matters.
+- **The rival-wonder count is dormant**: no capture on file has two leaders
+  building one wonder. It is reading-only, and so is the oil-platform arm
+  (not built).
+- **`wonderwin_timer`** is not carried; a leader whose wonder window is open
+  would add one without its wonders being walked.
+- **Coverage**: the recruit on 15382 is diff-backed, by `1/70`'s order on
+  block 15383 and every row of the widening to 15385. The gate's other arms
+  — a fort, `helpers ≥ 4`, the rival count, a gatherer taken — rest on the
+  reading and the unit test alone.
