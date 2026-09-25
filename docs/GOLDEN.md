@@ -1300,7 +1300,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | GuardOrder | `CommandManager::issue_guard@00941ed0`; also an army's escort (`docs/ORDERS.md` §24) | 4 (the AI's escort); 11, the guard line (§19) |
 | FollowOrder | `CommandManager::issue_follow@00941e70` | 12, the follow line (§20) |
 | FormOrder | `CommandManager::issue_form@00941580` | — |
-| GarrisonOrder | `CommandManager::issue_garrison@00941a70` | — |
+| GarrisonOrder | `CommandManager::issue_garrison@00941a70`; the way out is `CommandManager::issue_eject_all@00941ca0` | 13, the garrison line (§21) |
 | GatherOrder | auto (starting citizens), `CommandManager::issue_gather@00941a20` | 7 (the control) |
 | BuildOrder | `CommandManager::issue_build@00941c30` | — |
 | TradeOrder | auto (a Caravan under AI), `CommandManager::issue_trade@00941960` | 7 (the control) |
@@ -1354,6 +1354,7 @@ below without a run take their number at booking (the eleventh pass).
 | 184 | ten, the patrol line | `[605, 1250)` | an issuer the AI never uses (parked 692): two player patrols through `issue_patrol` from the DLL, chapter nine's chariot and a squad east of the sand (§18) — **run 2026-09-24 (item 693), 85 MB, 243 s; no falsifier fired: one `GroupPatrolOrder` a unit, attack-move legs from the leader, the chariot turning on 761, 903, 1043, 1185 and the squad on 812, 985, 1155; word ~~640~~, closed at 1250 (item 693: the ground patrol, built)** |
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
+| 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **not yet run** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2343,3 +2344,178 @@ groups' ids on 622, 642 and 702 among them. Two unit tests in
 `sim::group` pin the order and the standoff. The first fails with the
 leader's-own-captain exclusion removed, the second with the doubling
 removed.
+
+## 21. Chapter thirteen — the garrison line, an issuer the AI never uses (item 718)
+
+**Premise.** A player's garrison command, issued through the original's
+own issuer, gives each commanded unit one `GarrisonOrder` on the building.
+Each unit walks to the building's approach ring by a plain `MOVE_TO` leg
+above that order, and the first of a squad to reach the door takes the
+whole squad inside, off the map, with its orders gone. The building's
+eject puts the squads back on the map one a frame, first in first out, on
+the exit ring south of it. No capture on disk holds a player's garrison
+command or an eject: every garrison the long captures hold is the AI's or
+a trained unit's. `tools/gamelog/golden/chapter13.cmd` has the reading
+with its citations.
+
+**The issuers, under the emulator first.** Item 718's scratch script runs
+on `tools/explore/command_oracle.py`'s fixture, widened to who=0's
+objects 6–10 as live units and a `Build` at 2003.
+
+- **`CommandManager::issue_garrison@00941a70(group, ox, whom,
+  QUEUE_NEW)` appends 18 bytes**: the 5-byte `group` and a 13-byte
+  `garrison`, type `0x14`, `[ox i32][whom i32][queued i32]`
+  (`docs/COMMANDS.md` §3). It is `issue_follow`'s shape to the byte.
+- **`CommandManager::issue_eject_all@00941ca0(group, 0, −1, −1, −1)`
+  appends 22 bytes**: a `group` naming the building and a 17-byte
+  `eject_all`, type `0x1a`, `[back_to_work][who][eject_o][eject_who]`.
+  `CommandPackage::add_group@0094bb60` takes a non-unit object whole,
+  since its vslot `+0x18` answers 0 and the captain test is skipped.
+- **Each writes** the package's size and data and the four selection
+  caches, and nothing else. The same selection again appends the 3-byte
+  reuse; `queued` and `back_to_work` ride through as passed;
+  `use_mp_playback`, `semaphore & 0x10` and `semaphore & 4` each append
+  nothing.
+- **What the emulator cannot reach**: `process_garrison@00948760` →
+  `Group::action_garrison@00700490` → `Unit::add_garrison_order@005e4080`;
+  each frame's `Unit::do_garrison@005e6b80`, `go_inside@0061a2e0` and
+  `kill_garrison_order@005e2bd0`; `process_eject_all@00947fe0` →
+  `Group::action_eject_all@00710b40` → `Object::eject_contents@0064cd20`;
+  and `Build::process_ejection@006201e0` → `Unit::come_out@00617c10`.
+
+The DLL's `@garrison <who> <ox> <whom> <o>…` is `@follow`'s with this
+issuer; `@eject <who> <b>…` checks its objects as the player's live
+buildings on `Build::vftable`, and passes what the Eject button does
+(`Options::exec@007188c0` option `0x1f` → `Options::do_eject_all@0071c470`
+→ `GroupOut::issue_eject_all@00708b90`, whose own-player arm writes
+`back_to_work 0` and three −1s).
+
+**The reading** (each function's decompile; `docs/ORDERS.md` §5.7–§5.8
+and `docs/CITIES.md` §6 had the summaries).
+
+- **The order.** `action_garrison`, with QUEUE_NEW, on an own building
+  that is active, has a limit and is not unassimilated, gives every
+  member that is active, on the map, not air and not entering or exiting,
+  **and whose type `can_garrison` the building's**, one
+  `add_garrison_order(b, whom, search 0, QUEUE_NEW, action 1)`. A member
+  that cannot garrison gets no order. The dump prints `flags`, `ox`,
+  `whom`, `uid` and `search`.
+- **The walk.** `do_garrison`, not `Object::adjacent_to` the building
+  (vslot `+0x170`: `attack_dist < 0x60`), takes `find_nearby_spot` on
+  the ring `min(x_size, y_size) × 0x60 + 0x30` round the building's
+  centre, biased toward the unit, `FILTER_NOT_ME`, retried relaxed, and
+  adds `add_move_order(spot, MOVE_TO, 0, QUEUE_FIRST, action 0)`. The
+  GARRISON stays under the leg. The leg is stepped from the next frame
+  (`docs/ORDERS.md` §2.3).
+- **The door.** Adjacent, with room (`num_inside(0) + control_cost ≤
+  limit`) and the building's cell nobody's, its owner's or an ally's:
+  `go_inside(get_captain(), b, who, 0)` takes the whole squad, appended
+  at the chain's bottom, and `kill_garrison_order(captain)` walks the
+  `o_down` chain. On each unit whose action is a GARRISON it `repath`s,
+  which pops the leading moves, and kills the order.
+- **The way out.** `action_eject_all` with `who < 0` gives each building
+  that is alive, holds a squad and is no hangar `eject_contents(0, −1, 0,
+  1)`. For a building on the map, outside the editor, that **defers**:
+  `build_masks |= 0x4000`. `Build::process` then runs `process_ejection`
+  every frame: `come_out(captain of the head, 1)`, **one squad a frame,
+  from the head**. The captain lands on the ring `(x_size + y_size) ×
+  0x30 + UNIT_TRAIN_DISTANCE` (672 .. 864), swept from due south, and each
+  member round its captain (`docs/CITIES.md` §6.5.1).
+
+**The cast.** A Barracks (4 × 4, `GARRISON_MAX` 10) trains Hoplites
+(`can_garrison`'s own-trainer arm) and not Chariots. The Chariot enters by
+the sibling arm: `where` Stable admits a Barracks under
+`Game::get_patch_version@00595260 > 3`, which this build's own
+`info.version` takes (`docs/RECGAME.md` §5). Both have POP 1, so the two
+squads fill 2 of 10. Neither is a worker or a packing type, so each takes
+the plain QUEUE_NEW arm.
+
+**Lines.**
+
+- `0 !ai off`.
+- `606 add barracks who=0 14,74`: `0/2007`, uid 13, centred on the tile
+  corner (2688, 14208) as chapter four's Temple was; its footprint is
+  cell (3, 18).
+- `610 add chariot who=0 20,60`: `0/6`, on cell (5, 15), ~2,880 north-east
+  of the door.
+- `614 add hoplite who=0 10,90`: the squad `0/7`–`0/9`, on cell (2, 22),
+  ~3,250 south of it.
+- `620 @garrison 0 2007 0 6` and `640 @garrison 0 2007 0 7`.
+- `900 @eject 0 2007`.
+
+A call on trace frame F is on block F+2 (§17's convention).
+
+**The capture must dump** `end:UNITS=3,GUYS=2,BUILDS=7,DEATHS=1,LEADERS=2`
+and `misc:COMMANDMANAGER=1` over `[605, 1000)`, beside run105's `start:`
+set. `BUILDS=7` is for the Barracks' own chain head, `inside_down`.
+
+**The premise's killer, and its writers** (§3, point 5).
+
+- `check_accept_issue` and `process_group`'s player test are chapter
+  nine's (§17).
+- **`action_garrison`'s gates**: the owner test, the building's
+  `is_active`, a zero limit, `is_unassimilated`, and per member
+  `can_garrison`. The chariot's half rests on `get_patch_version`, whose
+  one input, `GameInfo.version`, the lobby writes.
+- **The editor arm**: QUEUE_NEW under `Game::semaphore` bit `0xb` is an
+  instant `go_inside` and no order. Its writers are `Game::Game`, which
+  zeroes it, and `ConsoleWin::run_cmd`'s editor toggle, which sets and
+  resets it. No line here reaches it.
+- **`do_garrison`'s kills**: the building inactive (vslots `+0xc`,
+  `+0x4c`), foreign, limitless or refused by `can_garrison`; no spot
+  relaxed; full; or standing on an enemy's territory. The start `WORLD`
+  has `who −1` on every cell x 0–6, y 14–22, and no line moves a border.
+- **The eject's**: `action_eject_all` needs `who < 0`, or `eject_who <
+  0` with `who` the group's. `eject_contents` defers only for a building
+  on the map outside the editor. `come_out` keeps a unit inside when even
+  the relaxed ring finds nothing, and the ground south of the door is
+  open BASELAND.
+- **The loops' bounds.** `action_garrison`'s member loop is bounded by
+  `group.num` (`+0xc`, below `0x80` in `Group::add`), here 1 and 3;
+  `action_eject_all`'s by its group's `num`, 1. The scenario sweeps run
+  only under `ScenarioData::ignore_orders`, whose writers are
+  `ScenarioFuncSet`'s. `go_inside`, `kill_garrison_order` and
+  `come_out`'s recursion walk the captain's `o_down` chain, `uber_size`
+  long (3 and 1). `process_ejection` has no loop, so one squad a frame.
+
+**The ground** (run204's start `WORLD`, the same map and seed): cells
+x 0–6, y 14–22 are BASELAND with no border, west of chapter nine's sand
+(x 7–11). The chariot walks south-west across cells (5, 15)–(4, 17), the
+squad north across (2, 22)–(3, 19).
+
+**What would falsify it, and where each could first fire.**
+
+1. **The issuer does not reach the pump.** Trace frames 620, 640 and 900:
+   an `INFO` 17 with a refusal. Or no `COMMANDMANAGER` `process_group`
+   and `process_garrison` text between blocks 621/622 (641/642), or no
+   `process_eject_all` between 901/902.
+2. **Not one `GarrisonOrder` a unit on the building.** Block 622 for
+   `0/6`, block 642 for each of `0/7`–`0/9`: no type-26 order at the
+   bottom of the stack; `ox/whom` other than 2007/0; a `uid` other than
+   13; the action bit clear; `search` other than 0.
+3. **A unit does not walk to the door.** Block 622 (`0/6`) and 642 (the
+   squad): no `MOVEORDER` leg above the GARRISON, without the action bit,
+   aimed 432–480 from (2688, 14208) on the unit's side. Or the GARRISON
+   gone while the unit is on the map.
+4. **The door does not take the squad whole.** By speed the chariot is
+   in near block 708 and the squad near 766. It fires on any member
+   inside on a block its captain is not; a unit inside with an order
+   left; an `inside_up` chain other than 2007 ← 6 ← 7 ← 8 ← 9 with the
+   Barracks' `inside_down` 6; or a unit still on the map at block 850.
+5. **The eject is not one squad a frame, first in first out.** Block
+   902: `0/6` on the map on the 672–864 ring south of the Barracks
+   (bearing 0 at 672 snaps to (2712, 14904)), the squad inside, and
+   `inside_down` 7. Block 903: the squad out and `inside_down` −1. It
+   fires on both out on one block, the squad first, or anyone out before
+   902 or after 903.
+6. **They come out with orders.** Any of the four with a non-empty stack
+   on blocks 902–999: `back_to_work` is 0, a cheat's Barracks has no rally
+   point, and a human's unit keeps what it had, which was nothing.
+
+Predicted: none fires. **This crate cannot take either command yet.** It
+has the GARRISON order, `do_garrison`, `go_inside`, `come_out` and the
+deferred ejection, all written from the reading and none diffed against a
+player's command. The harness skips all three `@` lines as a named seam
+in `crate::golden`. If the capture agrees with the reading, the first
+landing is the two commands' entry into the sim, built the way
+`crate::input::group_follow` was.

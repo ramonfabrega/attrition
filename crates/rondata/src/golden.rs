@@ -293,18 +293,48 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@garrison <who> <ox> <whom> <o> [<o> …]`: the building's object id
+    /// and owner, through `CommandManager::issue_garrison@00941a70` (item
+    /// 718).
+    Garrison {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
+    /// `@eject <who> <b> [<b> …]`: the player's own buildings, through
+    /// `CommandManager::issue_eject_all@00941ca0` with the Eject button's
+    /// `back_to_work 0, who −1, eject_o −1, eject_who −1` (item 718).
+    Eject { who: i32, buildings: Vec<i16> },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
-/// not `move`, `patrol`, `guard` or `follow`, a `who` outside `0..8`, fewer than
-/// three numbers, or no object.
+/// not `move`, `patrol`, `guard`, `follow`, `garrison` or `eject`, a `who`
+/// outside `0..8`, fewer than three numbers (one for `eject`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
-    if !matches!(verb, "move" | "patrol" | "guard" | "follow") {
+    if !matches!(
+        verb,
+        "move" | "patrol" | "guard" | "follow" | "garrison" | "eject"
+    ) {
         return None;
     }
     let nums: Vec<i32> = tok.map_while(|t| t.parse::<i32>().ok()).collect();
+    if verb == "eject" {
+        let [who, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Eject { who, buildings });
+    }
     let [who, x, y, ref objects @ ..] = nums[..] else {
         return None;
     };
@@ -326,6 +356,12 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             objects,
         },
         "follow" => Issued::Follow {
+            who,
+            ox: x,
+            whom: y,
+            objects,
+        },
+        "garrison" => Issued::Garrison {
             who,
             ox: x,
             whom: y,
@@ -375,6 +411,21 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_follow(built, who, &objects, ox, whom, 2),
+        // `@garrison` is `issue_garrison@00941a70` with `QUEUE_NEW`, a
+        // `group` and a `garrison`; `@eject` is `issue_eject_all@00941ca0`
+        // on a group of buildings. SEAM: neither command has an entry into
+        // this simulation yet (item 718, `docs/GOLDEN.md` §21).
+        Some(Issued::Garrison { .. }) => {
+            done.skip(
+                &word,
+                "the garrison command has no entry into the simulation",
+            );
+            return;
+        }
+        Some(Issued::Eject { .. }) => {
+            done.skip(&word, "the eject command has no entry into the simulation");
+            return;
+        }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -843,6 +894,9 @@ mod tests {
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
+        // Chapter thirteen: two `@garrison` issuer lines and an `@eject`, the
+        // garrison line (item 718, `docs/GOLDEN.md` §21).
+        ("chapter13.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -991,9 +1045,28 @@ mod tests {
                 objects: vec![6],
             })
         );
+        assert_eq!(
+            parse_issuer("@garrison 0 2007 0 6"),
+            Some(Issued::Garrison {
+                who: 0,
+                ox: 2007,
+                whom: 0,
+                objects: vec![6],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@eject 0 2007"),
+            Some(Issued::Eject {
+                who: 0,
+                buildings: vec![2007],
+            })
+        );
         for bad in [
             "move 0 1 2 3",
             "@form 0 1 2 3",
+            "@eject 0",
+            "@eject 9 2007",
+            "@garrison 0 2007 0",
             "@follow 0 7 0",
             "@guard 0 7 0",
             "@patrol 0 1 2",
