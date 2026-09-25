@@ -263,17 +263,10 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
     // `AIRPATROLORDER` a strike on an unseen target becomes
-    // (`docs/GOLDEN.md` §25). Each carries an `AIRORDER` block —
-    // `oxx`/`whose`, the home base, `cruising_alt`, `sharp_turn`, `old`,
-    // `returning`, and its own `UNITORDER` copy — and the strafe its
-    // `xx`/`yy`, the target's point. This crate carries no air order yet,
-    // so nothing reads them: owed by item 746's command entry. The
-    // patrol's arrays are read as the ground patrol's are; their `size`,
-    // `increment` and `flags` are the allocation, as above.
-    (
-        "GAME/FRAME/UNITDATA/AIRPATROLORDER/AIRORDER",
-        "cruising_alt old oxx returning sharp_turn whose",
-    ),
+    // (`docs/GOLDEN.md` §25). The order parser reads each `AIRORDER` row
+    // and the strafe's `xx`/`yy` (`docs/ORDERS.md` §32); what stays unread
+    // is the `AIRORDER`'s own `UNITORDER` copy, the same second copy as
+    // the grouped moves' above, and the patrol's array allocation.
     (
         "GAME/FRAME/UNITDATA/AIRPATROLORDER/AIRORDER/UNITORDER",
         "flags",
@@ -281,11 +274,6 @@ const UNREAD: &[(&str, &str)] = &[
     (
         "GAME/FRAME/UNITDATA/AIRPATROLORDER/PATROLORDER",
         "flags increment size",
-    ),
-    ("GAME/FRAME/UNITDATA/STRAFEORDER", "xx yy"),
-    (
-        "GAME/FRAME/UNITDATA/STRAFEORDER/AIRORDER",
-        "cruising_alt old oxx returning sharp_turn whose",
     ),
     (
         "GAME/FRAME/UNITDATA/STRAFEORDER/AIRORDER/UNITORDER",
@@ -1141,14 +1129,17 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // rows on their orders, none of which stand on this window; `uid`,
     // `metric`, `build_type`, `non_flat_gather` and the attack order's
     // `mandatory defensive in_range ever_in_range new_ord def_x def_y`
-    // no site compares.
+    // no site compares. The strafe's row since item 746 — `mandatory`,
+    // the `AIRORDER`'s `air_oxx air_whose cruising_alt sharp_turn air_old
+    // returning` and `strafe_xx strafe_yy` — is compared on every strafe
+    // (`compare_orders`, run223), and none stands on this window.
     (
         "OrderDump",
-        "ag_accuracy ag_att_x ag_att_y ag_attack_unit attempts build_type cast_paid \
-         cast_spell def_x def_y defensive ever_in_range form_id \
-         garrison_search group_angle group_id in_group in_range mandatory metric \
-         new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry tolerance \
-         uid waypoint whose",
+        "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
+         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
+         ever_in_range form_id garrison_search group_angle group_id in_group in_range \
+         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
+         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: `queue` registers with a non-empty queue whose depths
     // agree, and none stands on this window. **`orig_type`, `damage` and

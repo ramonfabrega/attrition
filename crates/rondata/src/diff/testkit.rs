@@ -3100,13 +3100,23 @@ pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 1251);
 /// spends an idle roll for the Fighter, standing without an order, that
 /// the original does not.
 ///
-/// **The delta**, this constant's: the first pin, 642, open.
+/// **The command entered, 642 held** (item 746, `docs/ORDERS.md` §32):
+/// `input::group_flight` → `Sim::group_action_flight` gives each aircraft
+/// its `StrafeOrder` home on its processed block, whole and compared, and
+/// the refused strike nothing. The word stays on the draw: the flight
+/// itself, `do_air_physics` and the landing, is not built, and a
+/// `cruising_alt` draw without the step it belongs to would move the word
+/// with the positions already parted.
+///
+/// **The delta**, this constant's: the first pin, 642, open; unchanged by
+/// the entry.
 pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 642;
 
 /// `chapter_seventeen_s_word_frame_is_widened_whole`'s window: (605,
-/// 645), the word 642 and the blocks either side (item 746). Its pool
+/// 667) since the entry, the word 642 and the pair's strafe on 662 and
+/// strike on 666 (item 746); the first pin was (605, 645). Its pool
 /// half, `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
-pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 645);
+pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 667);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.

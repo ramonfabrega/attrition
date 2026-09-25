@@ -6892,24 +6892,31 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         .collect();
     got_pool.sort();
     // **What parts under the word**, by block and key (`docs/GOLDEN.md`
-    // §25). **The first pin, word 642, open** (605, 645):
-    // - each staged unit's `form` on its birth block, and chapter one's
-    //   `g.end_time` on two citizens beside the age bracket;
-    // - **622, the pair's `group`**: `process_group` pushed the refused
-    //   strike's selection (theirs 1, ours −1), and `action_flight` then
-    //   skipped both members; this crate skips the command by name;
-    // - **642, the Fighter**: the original's `0/6` holds its
-    //   `STRAFEORDER` home and has taken its first step — its figure's
-    //   point, speed, heading and anim — where this crate's stands, idle,
-    //   with no order and no path; and on 643 its `orders_x/y` and
-    //   `dest_angle`.
+    // §25). **The first pin, word 642, open** (605, 645): the births'
+    // `form`, chapter one's `g.end_time` beside the age bracket, the
+    // pair's `group` on 622 (`process_group` pushed the refused strike's
+    // selection), and the Fighter on 642 — no order, no path, idle, where
+    // the original's holds its `STRAFEORDER` home and has taken its first
+    // step — 26 keys past the births.
+    //
+    // **The command entered** (item 746, `docs/ORDERS.md` §32; the window
+    // widened to 667 to hold the pair's strafe and the strike): every
+    // `STRAFEORDER` row agrees on 642 and 662 — the target, `mandatory`,
+    // the `AIRORDER`'s home `0/2007`, `cruising_alt` 1600, `sharp_turn`,
+    // `old`, `returning 1`, `xx/yy −1` — and the pushed selections' `group`
+    // with them. What stands is **the flight**, which this crate does not
+    // fly: each aircraft's first step (its figure, heading, `pos`, `path`)
+    // on its processed block and `orders_x/y` and `dest_angle` the next;
+    // the Fighter's `cruising_alt` redraw on 643, 1600 → 1300, the word's
+    // draw; and on 666 the strike turned `AIRPATROLORDER` (17), a class
+    // this crate has no body for. Past the word the stream is one draw
+    // short, and that is what the citizens' and `1/5`'s rows from 650
+    // are: `1/5`'s scout leg re-rolled on 659, `1/1`'s gather wait.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
         "615 0/8 form",
         "617 0/1 g.end_time[0]",
-        "622 0/7 group",
-        "622 0/8 group",
         "623 0/2 g.end_time[0]",
         "642 0/6 g.angle[0]",
         "642 0/6 g.avg_speed[0]",
@@ -6923,30 +6930,107 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         "642 0/6 g.stopped[0]",
         "642 0/6 g.x[0]",
         "642 0/6 g.y[0]",
-        "642 0/6 group",
         "642 0/6 heading",
-        "642 0/6 idle",
-        "642 0/6 order:length",
-        "642 0/6 orders.len",
         "642 0/6 path:length",
         "642 0/6 pos",
         "643 0/6 dest_angle",
+        "643 0/6 order:air.cruising_alt",
         "643 0/6 orders_x",
         "643 0/6 orders_y",
+        "650 0/1 g.cur_time[0]",
+        "650 0/1 g.last_time[0]",
+        "655 0/2 g.cur_time[0]",
+        "655 0/2 g.last_time[0]",
+        "656 1/1 order:gather.wait",
+        "659 1/5 order:move.off_x",
+        "659 1/5 order:move.off_y",
+        "659 1/5 order:move.x",
+        "659 1/5 order:move.y",
+        "659 1/5 orders_x",
+        "659 1/5 orders_y",
+        "660 1/5 order:move.dest_x",
+        "660 1/5 order:move.dest_y",
+        "660 1/5 path[0].to",
+        "661 1/5 angle:Facing",
+        "661 1/5 angle:Heading",
+        "661 1/5 g.angle[0]",
+        "661 1/5 g.des_angle[0]",
+        "661 1/5 heading",
+        "662 0/7 g.angle[0]",
+        "662 0/7 g.avg_speed[0]",
+        "662 0/7 g.cur_anim[0]",
+        "662 0/7 g.cur_time[0]",
+        "662 0/7 g.des_angle[0]",
+        "662 0/7 g.des_x[0]",
+        "662 0/7 g.des_y[0]",
+        "662 0/7 g.last_speed[0]",
+        "662 0/7 g.last_time[0]",
+        "662 0/7 g.stopped[0]",
+        "662 0/7 g.x[0]",
+        "662 0/7 g.y[0]",
+        "662 0/7 heading",
+        "662 0/7 path:length",
+        "662 0/7 pos",
+        "662 0/8 g.angle[0]",
+        "662 0/8 g.avg_speed[0]",
+        "662 0/8 g.cur_anim[0]",
+        "662 0/8 g.cur_time[0]",
+        "662 0/8 g.des_angle[0]",
+        "662 0/8 g.des_x[0]",
+        "662 0/8 g.des_y[0]",
+        "662 0/8 g.last_speed[0]",
+        "662 0/8 g.last_time[0]",
+        "662 0/8 g.stopped[0]",
+        "662 0/8 g.x[0]",
+        "662 0/8 g.y[0]",
+        "662 0/8 heading",
+        "662 0/8 path:length",
+        "662 0/8 pos",
+        "663 0/7 dest_angle",
+        "663 0/7 orders_x",
+        "663 0/7 orders_y",
+        "663 0/8 dest_angle",
+        "663 0/8 orders_x",
+        "663 0/8 orders_y",
+        "665 1/5 g.avg_speed[0]",
+        "665 1/5 g.des_y[0]",
+        "665 1/5 g.last_speed[0]",
+        "665 1/5 g.y[0]",
+        "665 1/5 pos",
+        "666 0/7 order:unspellable",
+        "666 0/8 order:unspellable",
     ]
     .iter()
     .map(|r| r.to_string())
     .collect();
     want.sort();
     assert_eq!(got, want, "ch17: what parts under the word moved");
-    // **What parts in the pool**: each command's pushed selection, which
-    // `process_group` seats before `action_flight` runs — the refused
-    // strike's pair in slot 1 on 622, and the Fighter's flight in slot 0
-    // on 642 — where this crate, skipping the command, pushed neither.
-    let mut want_pool: Vec<String> = ["622 slot 1 held", "642 slot 0 held"]
-        .iter()
-        .map(|r| r.to_string())
-        .collect();
+    // **What parts in the pool.** The first pin had each command's
+    // pushed selection missing here — the refused strike's pair in slot 1
+    // on 622, the Fighter's flight in slot 0 on 642 — and the entry seats
+    // both. What stands:
+    // - **`ox`/`oy` on each pushed flight group**: (0, 0) in the original,
+    //   `Group::clear`'s (−1, −1) here. `action_flight` writes no group
+    //   point and no step of a flight reads one; which writer leaves 0 is
+    //   not read.
+    // - **`speed`/`new_speed`** on 662 and 666: `Groups::get_open_slot`
+    //   re-seating a live slot's speed as it walks past (item 738's
+    //   `get_num`), which this crate does not model, and no flight reads.
+    let mut want_pool: Vec<String> = [
+        "622 slot 1 ox",
+        "622 slot 1 oy",
+        "642 slot 0 ox",
+        "642 slot 0 oy",
+        "662 slot 0 new_speed",
+        "662 slot 0 speed",
+        "662 slot 2 ox",
+        "662 slot 2 oy",
+        "666 slot 2 new_speed",
+        "666 slot 2 speed",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
     want_pool.sort();
     assert_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
 }

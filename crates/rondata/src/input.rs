@@ -466,6 +466,76 @@ pub fn group_attack(
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `flight` (0x1c) behind it, into the
+/// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
+/// `docs/GOLDEN.md` §25) — [`group_attack`]'s group, then
+/// `CommandPackage::process_flight@00947db0`'s one call,
+/// `Group::action_flight(g, ox, whom, orders, shift, ctrl, alt)`
+/// ([`sim::Sim::group_action_flight`]).
+///
+/// `orders` is the command's: `MOVE_TO` (1) sends the aircraft home to
+/// the base `ox`, `ATTACK` (10) at the target `ox`. The target is `whom`'s
+/// object, a unit or a building; one this simulation cannot name gives no
+/// order, and the group is still pushed, as `process_group` forces it
+/// (run223's block 622). `shift`, `ctrl` and `alt` are 0 on the DLL's
+/// call, and `action_flight` reads none of them on the arms here.
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation.
+pub fn group_flight(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    ox: i32,
+    whom: i32,
+    orders: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let target = i16::try_from(ox).ok().and_then(|o| {
+        built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(whom) && l.o == i64::from(o))
+            .map(|l| sim::combat::Obj::Unit(l.unit))
+            .or_else(|| {
+                built
+                    .sim
+                    .unit_by_o(whom as sim::Player, o)
+                    .map(sim::combat::Obj::Unit)
+            })
+            .or_else(|| {
+                built
+                    .sim
+                    .building_by_o(whom as sim::Player, o)
+                    .map(sim::combat::Obj::Building)
+            })
+    });
+    let kind = match orders {
+        1 => Some(sim::group::Flight::Home),
+        10 => Some(sim::group::Flight::Strike),
+        _ => None,
+    };
+    if let (Some(t), Some(k)) = (target, kind) {
+        built.sim.group_action_flight(&g, t, k);
+    }
+    g.list.len()
+}
+
 /// A `group` of buildings (0x00) and the `eject_all` (0x1a) behind it —
 /// `CommandPackage::process_eject_all@00947fe0`'s one call,
 /// `Group::action_eject_all(g, back_to_work, who, eject_o, eject_who)`

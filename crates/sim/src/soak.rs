@@ -115,6 +115,14 @@ fn sample(sim: &Sim) -> Sample {
                 orders::Body::Patrol(p) => {
                     (p.id * 4 + p.waypoint as i64) * 65_536 + p.leader as i64 + p.form_id as i64
                 }
+                orders::Body::Strafe(sf) => {
+                    (sf.home.map_or(-1, |b| b as i64) * 4
+                        + i64::from(sf.returning) * 2
+                        + i64::from(sf.mandatory))
+                        * 65_536
+                        + sf.at
+                            .map_or(-1, |p| i64::from(p.x) * 65_536 + i64::from(p.y))
+                }
                 orders::Body::Attack(_) | orders::Body::Think => -1,
             });
         }

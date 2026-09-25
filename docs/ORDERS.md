@@ -6714,3 +6714,90 @@ fails with the replay's `.or(m.orig)` removed.
 **Reading only**: cases 1, 2 and 4 on a plain move — no capture puts a
 player's plain move, attack-move or flee behind a group `QUEUE_FIRST`.
 
+
+## 32. The flight command, entered: a strafe home, and the strike's re-point (item 746, 2026-09-25)
+
+`docs/GOLDEN.md` §25 is the chapter and run223 the capture.
+`CommandManager::issue_flight@00941d40` appends a `group` and a 25-byte
+`flight` (type `0x1c`, `[ox][whom][shift][ctrl][alt][orders]`,
+`docs/COMMANDS.md` §3's row, as the emulator's bytes confirm).
+`CommandPackage::process_flight@00947db0` hands it to
+`Group::action_flight@006fb260`, which makes the player's only air order.
+
+**The class is `StrafeOrder` (type 16), never a bare `AirOrder`.**
+`AirOrder` has no `OrderIndex`. It is the second base of `StrafeOrder :
+AttackOrder, AirOrder` (§1.1), of `AirPatrolOrder` and of
+`AirAttackGroundOrder`, and the dump prints it as the `AIRORDER` block
+inside those records. `Unit::add_strafe_order(ox, whom, home_o, home_who,
+mandatory, queue, action)@005e48c0` writes:
+- the target `ox/whom/uid` at `+0x8/+0xc/+0x10`;
+- `mandatory` at `+0x1c`;
+- the `AirOrder`'s home `oxx/whose` at `+0x28/+0x2c`;
+- `cruising_alt` 0x640 at `+0x30`;
+- `returning` at `+0x3c`: 1 exactly when there is no target;
+- the strafe's own `xx/yy` at `+0x40/+0x44`: the target's point, −1
+  without one;
+- the action bit as asked.
+
+`sharp_turn` and `old` stay at the constructor's 0. The `QUEUE_NEW` head
+is the generic one (§7.5's).
+
+**`action_flight`'s gates.**
+- The target must be live (`+8 & 1`).
+- `MOVE_TO` (a right-click on one's own base) must name the group's own
+  base, which `can_carry(AIR)`. Each member needs room,
+  `MAX_AIRCRAFT_PER_AIRBASE` 10, and must not be `is(FIGHTERBOMBER 0x134)`
+  unless the base is its `home_base`.
+- Per member, to `group.num`:
+  - **On a `STRAFE` already**, the order is re-pointed and nothing is
+    added. `ATTACK` writes the target, its uid and point, then, with fuel
+    left, `returning 0`, `mandatory 1` and the action bit. `MOVE_TO`
+    writes the base as home, no target, `returning 1`, `mandatory 1` and
+    the action bit.
+  - **Otherwise** the member's "inside" is an `AIR_PATROL`'s or
+    `AIR_ATTACK_GROUND`'s home (`is_air@0046f000`: 16, 17, 24), else
+    `ObjectData::get_inside@00651a80`, its `inside_up`. **An `ATTACK`
+    needs that inside**, so an aircraft `add` placed on the ground takes
+    no strike and no feedback (run223's block 622). `MOVE_TO` gives
+    `add_strafe_order(−1, −1, base, who, 1, QUEUE_NEW, 1)` unless the
+    member already stands in that base.
+
+**Built** (`Sim::group_action_flight`, `crates/sim/src/group.rs`;
+`Sim::add_strafe_order` and `Body::Strafe`, `crates/sim/src/orders.rs`;
+`rondata::input::group_flight`).
+- The two gates, the re-point, the flight home, and the unbased strike's
+  skip.
+- The dump's `STRAFEORDER` row is compared whole: the target, `mandatory`,
+  the `AIRORDER` row and `xx/yy`. It agrees on run223's 642 and 662.
+- Tests: `group::tests::a_flight_home_is_one_strafe_with_no_target_going_home`,
+  `an_unbased_aircraft_on_the_ground_takes_no_strike` and
+  `a_strike_re_points_a_flying_strafe`. Each fails with its arm changed.
+
+**Not built: the flight** (`docs/GOLDEN.md` §25 has what run223 shows).
+`Unit::do_strafe@005eab00` holds the order here and spends nothing. In
+the original it flies through `Unit::do_air_physics@005e86d0`:
+1. **Every eighth frame, a non-bomber redraws its `cruising_alt`** as
+   `(r % 7 + 13) · 100` (`Random::get` at `+0xba`, chapter seventeen's
+   word 642). A Bomber holds 0x640.
+2. **The climb and the step**: `pitch_aircraft`, the bank this crate has
+   for the bird (`crate::air`), the projected step and the edge coin.
+3. **The way home**: `Unit::check_fuel@005e9be0`'s approach to the base's
+   point less 0xc0. At 1.5 steps `Unit::land_plane@005e9950` clears the
+   strafe and adds a `SpecialAnimOrder` that ends in `go_inside` within the
+   same frame. No `SPECIALANIMORDER` is ever dumped; `0/6` is inside on 722.
+4. **The tank**: `mana_burn` one a frame outside and refilled 2 a frame
+   inside (`Unit::process@00610bc0`). This crate carries no fuel, so the
+   empty-tank arms here and in `check_fuel` are seams.
+5. **A dead or unseen target becomes an `AirPatrolOrder` over its point**
+   (`do_strafe`'s `valid_target == 0` arm; run223's 666). The patrol's own
+   search then takes the target once seen, as a `QUEUE_FIRST` strafe with
+   `mandatory 0` and no action bit (777 and 778), and bombs it.
+
+**SEAMs in the command**, none reached by run223:
+- a strike's non-air members split into `action_attack`;
+- the `NUCLEARMISSILE` arm and the missile arm of each gate;
+- the `FIGHTERBOMBER` `home_base` gate, and a carrier as the base;
+- an air patrol's home as the "inside";
+- **a strike from inside a base**, whose `valid_target`,
+  `MISSILE_DEFENSE_BONUS`, reach (`dist ≤ mana · vslot 0x17c`) and war
+  tests are not built: such a member takes no order here.

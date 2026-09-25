@@ -1295,8 +1295,8 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | MoveOrder, GroupMoveOrder | `CommandManager::issue_move_to@00941720` | 9, the first issuer chapter (§17; the lab validated the issuer) |
 | ExploreToOrder, FleeToOrder | the same entry point, trailing selector: `issue_move_to` copies the `orders` byte, and `add_move_facing_order@005e55c0` picks the class at process time; a squad gets one a member and no group order | 16, explore and flee (§24) |
 | PatrolOrder, GroupPatrolOrder | `CommandManager::issue_patrol@00941800`; `PatrolOrder` is never constructed alone (`docs/ORDERS.md` §7.7) | 10, the patrol line (§18) |
-| AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860` | 6 |
-| AirOrder | `CommandManager::issue_flight@00941d40` | — |
+| AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860`; and a player's strike at a target it cannot see (`Unit::do_strafe@005eab00`) | 6; 17, the flight line (§25) |
+| AirOrder | ~~`CommandManager::issue_flight@00941d40`~~ **no class of its own**: `AirOrder` is a base, printed as the `AIRORDER` block of a `STRAFEORDER` or an `AIRPATROLORDER` (`docs/ORDERS.md` §32) | 17, the flight line (§25), under both |
 | AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0`; AttackGroundOrder also auto, `Unit::fight`'s siege arm (`docs/COMBAT.md` §57) | 3 (the restage) |
 | GuardOrder | `CommandManager::issue_guard@00941ed0`; also an army's escort (`docs/ORDERS.md` §24) | 4 (the AI's escort); 11, the guard line (§19) |
 | FollowOrder | `CommandManager::issue_follow@00941e70` | 12, the follow line (§20) |
@@ -1308,7 +1308,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | CastOrder | `CommandManager::issue_spell@00941b80` | 8 stages the Spy; the cast needs the issuer |
 | RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
 | BoardOrder, AwaitBoardOrder | `CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer | unresolved |
-| StrafeOrder | no command type of its own; a mounted or air attack on the move | unresolved |
+| StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
 | SpecialAnimOrder | **not** `anim`, which pokes `Guy::set_anim@005da300` | unresolved |
 | UnitOrder, GroupOrder, ThinkOrder | base classes, entered by everything | all |
 
@@ -3412,3 +3412,37 @@ the second take, since the first stalled in DXVK's device setup).
   The pair's tanks run dry on 1212 and 1214 (`returning 1`, as read),
   and both are **still flying home on 1399** (falsifier 8 fired on the
   landing). The base's count at the end is one, `0/6`.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_SEVENTEEN` = 642, open.**
+As predicted, 642 is the first frame of the Fighter's strafe home. The
+original spends its `cruising_alt` redraw, `Random::get` at
+`Unit::do_air_physics+0xba` (`0x5e878a`): 7 draws against 5 + 1, parting
+at draw 0. The first pin had the harness skip both verbs by name. Its
+widening over (605, 645) named the pushed selections, the pair's `group`
+on 622, and the Fighter standing with no order on 642.
+- **The command entered** (item 746, `docs/ORDERS.md` §32):
+  `input::group_flight` → `Sim::group_action_flight`, and the strafe's
+  row compared.
+- On the widening, now (605, 667), every `STRAFEORDER` row agrees on 642
+  and 662, the pushes with them.
+- **What stands is the flight**:
+  - each aircraft's first step on its processed block;
+  - the Fighter's redraw on 643 (1600 → 1300);
+  - the strike turned `AIRPATROLORDER` on 666, a class this crate has no
+    body for;
+  - past the word, the one-draw shift in the citizens' and the scout's
+    rows;
+  - in the pool, the pushed groups' point, (0, 0) there and (−1, −1)
+    here, and item 738's `get_num` speeds.
+
+**What moving the word takes is the flight**, bigger than an item and
+listed in `docs/ORDERS.md` §32:
+- the `cruising_alt` draw with the climb (`pitch_aircraft`) and the step,
+  built onto the bird's bank in `crate::air`;
+- `check_fuel`'s approach, `land_plane` and `go_inside` for a plane, and
+  the tank;
+- the `AirPatrolOrder` a dead or unseen target becomes, with the patrol's
+  search and its bombing.
+
+A draw alone would move the word with the positions already parted, which
+is the trap DECISIONS 42 names, so it was not taken.

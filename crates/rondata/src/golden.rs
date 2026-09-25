@@ -565,13 +565,22 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_attack(built, who, &objects, ox, whom, 0, 2),
-        // `@flight` and `@strike` are `issue_flight@00941d40`, whose
-        // command this simulation does not enter yet (item 746,
+        // `@flight` and `@strike` are `issue_flight@00941d40` with
+        // `MOVE_TO` (1) and `ATTACK` (10), a `group` and a `flight`, whose
+        // entry is [`crate::input::group_flight`] (item 746,
         // `docs/GOLDEN.md` §25).
-        Some(Issued::Flight { .. } | Issued::Strike { .. }) => {
-            done.skip(&word, "the flight command is not entered yet");
-            return;
-        }
+        Some(Issued::Flight {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_flight(built, who, &objects, ox, whom, 1),
+        Some(Issued::Strike {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_flight(built, who, &objects, ox, whom, 10),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;

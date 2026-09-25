@@ -1631,6 +1631,12 @@ impl Built {
             // A `FollowOrder`'s `(o, who)` is the leader the command named
             // (`docs/ORDERS.md` §28).
             Body::Follow(f) => self.unit_ids_dead_or_alive(f.target),
+            // A `StrafeOrder`'s `(o, who)` is the strike's target, and
+            // `(-1, -1)` on a flight home (`docs/ORDERS.md` §32).
+            Body::Strafe(s) => match s.target? {
+                sim::combat::Obj::Unit(u) => self.unit_ids_dead_or_alive(u),
+                sim::combat::Obj::Building(b) => self.build_ids(b),
+            },
             // An `AttackGroundOrder` is a `UnitOrder`, not a
             // `TargetOrder`: it holds a point, and the dump prints no
             // `ox/whom` for it (`docs/COMBAT.md` §57).

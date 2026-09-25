@@ -124,6 +124,15 @@ pub enum OrderMismatch {
         ours: i64,
         theirs: i64,
     },
+    /// One field of a `STRAFEORDER`'s row past its target — `mandatory`,
+    /// the `AIRORDER` row's home `oxx whose`, `cruising_alt`, `sharp_turn`,
+    /// `old` and `returning`, and the strafe's `xx yy` (item 746,
+    /// `docs/ORDERS.md` §32).
+    Air {
+        field: &'static str,
+        ours: i64,
+        theirs: i64,
+    },
     /// One field of a `GroupPatrolOrder`'s own row — a point of either
     /// array, the array's length, `waypoint`, and the `GROUPORDER` row's
     /// `oxx whose id form_id` (item 693, `docs/ORDERS.md` §27).
@@ -235,6 +244,7 @@ impl OrderMismatch {
             Self::Garrison { .. } => "order:garrison.search".into(),
             Self::Cast { field, .. } => format!("order:cast.{field}"),
             Self::Ground { field, .. } => format!("order:ground.{field}"),
+            Self::Air { field, .. } => format!("order:air.{field}"),
             Self::Patrol { field, .. } => format!("order:patrol.{field}"),
             Self::PathLength { .. } => "path:length".into(),
             Self::PathTo { slot, .. } => format!("path[{slot}].to"),
@@ -260,6 +270,7 @@ impl OrderMismatch {
             Self::Garrison { .. } => "garrison",
             Self::Cast { .. } => "cast",
             Self::Ground { .. } => "ground",
+            Self::Air { .. } => "air",
             Self::Patrol { .. } => "patrol",
             Self::PathLength { .. } => "path-length",
             Self::PathTo { .. } => "path-to",
@@ -803,6 +814,73 @@ pub(crate) fn compare_orders(
                 at(
                     slot,
                     OrderMismatch::Ground {
+                        field,
+                        ours: mine,
+                        theirs,
+                    },
+                );
+            }
+        }
+    }
+
+    // **The strafe's own row** (item 746): what the flight command
+    // wrote, field for field — the home base, the altitude, whether it
+    // is going home, the strike's point, and `mandatory`. The target is
+    // the `TARGETORDER` row above (`target_ids`).
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::Strafe(sf) = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        // The home is named by the building's own `(owner, index)`, the
+        // object's `who`/`o`: `build_ids` names no building staged after
+        // `BEGIN GAME` (parked 681), and an Airbase a chapter stages is
+        // exactly that.
+        let home = sf.home.map(|b| {
+            let b = &built.sim.buildings[b];
+            (i64::from(b.owner), i64::from(b.index))
+        });
+        let (xx, yy) = sf.at.map_or((-1, -1), |p| (i64::from(p.x), i64::from(p.y)));
+        for (field, mine, logged) in [
+            ("mandatory", Some(i64::from(sf.mandatory)), theirs.mandatory),
+            ("oxx", Some(home.map_or(-1, |(_, o)| o)), theirs.air_oxx),
+            ("whose", Some(home.map_or(-1, |(w, _)| w)), theirs.air_whose),
+            (
+                "cruising_alt",
+                Some(i64::from(sf.cruising_alt)),
+                theirs.cruising_alt,
+            ),
+            ("sharp_turn", Some(0), theirs.sharp_turn),
+            ("old", Some(0), theirs.air_old),
+            ("returning", Some(i64::from(sf.returning)), theirs.returning),
+            ("xx", Some(xx), theirs.strafe_xx),
+            ("yy", Some(yy), theirs.strafe_yy),
+        ] {
+            let (Some(mine), Some(theirs)) = (mine, logged) else {
+                continue;
+            };
+            compared::note(
+                "OrderDump",
+                &[match field {
+                    "oxx" => "air_oxx",
+                    "whose" => "air_whose",
+                    "old" => "air_old",
+                    "xx" => "strafe_xx",
+                    "yy" => "strafe_yy",
+                    f => f,
+                }],
+            );
+            if mine != theirs {
+                at(
+                    slot,
+                    OrderMismatch::Air {
                         field,
                         ours: mine,
                         theirs,
