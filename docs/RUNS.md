@@ -7087,3 +7087,29 @@ The dump prints three commands between blocks:
 **No falsifier fired.** The six arrival points are the ones this crate's
 scratch walk predicted, to the unit. On 736 every member stands where
 the scratch walk put it on the tick before, (2999, 13821) for `0/6`.
+
+## run221 — East Indies' word 15985, past run78's last block (2026-09-25, item 708)
+
+**What it is.** run166's line without `DEATHS`, the pool's line (run178's
+and run218's), `MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+over `[15894, 16237)`, at `cover=0`: a draw-stream trace first. `!quit`
+at 16247, through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 708
+```
+
+**Why it was owed.** Item 706 moved East Indies' word 15782 → 15985 (The
+Senator, `docs/TECH.md` §"The government patriot"). run78 ends on block
+15899 and run96 starts at 23960, so the word's block 15986 is on no disk.
+**The disk answered the who, not the why.** The draw stream (run54's
+trace against ours) agrees through 15984; on 15985 both sides spend the
+head's two expiry rolls (`make_stuff+0x221`), then the original alone
+spends `make_stuff+0x63d`, a bought slot's expiry roll (`docs/AI.md`
+§2.6 step 6), and then both spend `think_scout+0x941`. The scout's draw
+is spent on both sides; the extra is who=1's slot loop. run78 is
+`LEADERS=1`, so no block past run166's 13699 prints the make list, the
+purse or the sites. **Sized with 250 blocks of runway** (DECISIONS 50
+§7): six blocks shared with run78, the 86 up to the word, its block and
+250 above it, 343 blocks. The readings and their kills are in the
+stanza.

@@ -6151,3 +6151,93 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 #   `collide_o 79` on 16461: The Despot blocks it. No escort member parts.
 # - **R3 is killed.** The first unit to part on run218's own blocks is
 #   `1/23`, on 16460, and it is not in group 67.
+
+run: 221
+tag: eastindies-slotword
+item: 708
+why: East Indies' long word is 15985 (item 706), where ours spends 5 draws against 6, parting at index 4 — the original spends `Leader::make_stuff+0x63d`, a bought slot's expiry roll, before both sides' `Unit::think_scout+0x941` — and run78, the last capture on this map below 23960, ends on block 15899, so the word's block 15986 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-25, item 708): every
+# `gamelog-*eastindies*` in `Logs\` by its block range. run78 holds
+# 15700..15899 (its `!quit` stub to 15951), run166 13580..13711, run96
+# from 23960; run54 prints only its draw stream. None holds 15985 or
+# 15986. **What the disk does answer.** The draw stream (run54's trace
+# against ours, `RON_DEBUG_SITES=15980-15986`): 15980..15984 agree in
+# count and sequence; on 15985 both sides spend two
+# `produce_building+0x1805` and two `make_stuff+0x221` (the head's
+# expiry walk), and then the original alone spends `make_stuff+0x63d`
+# (the slot loop's expiry, `docs/AI.md` §2.6 step 6) before both spend
+# `think_scout+0x941` (ours: `1/31`, §11's region scan). So the scout's
+# draw is spent on both sides, and the extra is the leader's.
+# run78's last blocks carry the scout `1/0`'s order point, parted since
+# 15800 (`run78_s_old_word_keeps_its_value_diff`), and every unit
+# record at `UNITS=3`. **What the disk could not answer**: run78 is
+# `LEADERS=1`, so who=1's make list, resources and sites are not
+# printed on any block past run166's 13699; and no record at all
+# exists on 15900..15986 — which slot the original buys on 15985, what
+# the list, the purse and the free-peasant counts read on the
+# frame's pre-state block 15985, and whether any unit parts first.
+#
+# **Sized to the word, with 250 blocks of runway** (DECISIONS 50 §7,
+# Loop 687): six blocks shared with run78 (15894..15899), the 86 up to
+# the word, its block 15986, and 250 above it — 343 blocks.
+#
+# **The readings, each with what kills it** (block = frame + 1, so
+# block 15985 is frame 15985's pre-state and 15986 its result):
+#
+# - **R1 — this is run54's game to 16247.** Killed if the trace differs
+#   from run54's on any frame, or the overlap with run78 on
+#   15894..15899, taken on the records both lines print, differs or
+#   counts other than six blocks.
+# - **R2 — the scout's `think_scout` spends a draw the original's does
+#   not.** Already killed by the stream: the original spends its own
+#   `+0x941` at index 5, after the extra. Kept as a record check: its
+#   unit is ours' `1/31`, and the widening names whether that unit's
+#   record agrees field for field on 15984..15986.
+# - **R3 — the original's slot loop buys a slot ours does not**, one
+#   whose type no other slot shares (one `+0x63d` is one matching slot:
+#   the expiry walk visits all eleven slots and rolls once per slot of
+#   the bought type, and not at all for a tower, upgrade-kind or wonder
+#   type). Killed if every term the slot loop's gate reads agrees on
+#   block 15985 for who=1, in the gate's order: `MAKE[1..10]`'s `t`,
+#   `val`, `city` (the dedupe against slots 0–3), then the purse
+#   (`resources`) against the head's and the slot's `get_cost` and
+#   `need`, then the slot-5 and slot-4 exceptions' terms (free
+#   peasants, gatherers, `econ`), then `can_pay_cost`'s `escrow` and
+#   `num` — and on 15986 which slot's `val` was divided by 100.
+# - **R4 — the two are one parting in order, not in count.** Killed by
+#   the stream (the original spends its `+0x941` later on 15985).
+#
+# **run166's line without `DEATHS`** (run178's and run218's: the pool
+# lands only without it, run30's trap), the same lobby (no `cfg:`).
+frames: 16247
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **15894..16236, 343 blocks**: six shared with run78 (15894..15899),
+# the 86 up to the word, its block 15986, and 250 of runway above it.
+frame_window: 15894 16237
+# A draw-stream trace first (the brief): no coverage window.
+cover: cover=0
+# The East Indies start dump is ~11 MB and nothing grows until the
+# window opens (run78's and run166's settle).
+settle_min: 14000000
+# **Sized from run166 and run218**: 2.1 MB a block without the pool and
+# 2.2 with it, so 343 blocks is ~0.8 GB. run166 took 11 minutes for 120
+# blocks from launch; this is ~35. 180 polls is an hour.
+poll_max: 180
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run221.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=16237)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run221-eastindies-slotword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 343 blocks, 15894..16236, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run221-eastindies-slotword.txt" | awk '{v=$3+0; if(v>=15894&&v<16237) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==343 && lo==15894 && hi==16236)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run221-eastindies-slotword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=15894&&v<16237)n++} print "blocks with a GROUPDATA: "n; exit !(n==343)}'
+# **The raised category is there**: a `MAKEOBJECT` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN MAKEOBJECT" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run221-eastindies-slotword.txt" | awk '/BEGIN FRAME/{f=$3} /MAKEOBJECT/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=15894&&v<16237)n++} print "blocks with a MAKEOBJECT: "n; exit !(n==343)}'
+# **The overlap with run78, and the count is the claim** — six blocks,
+# 15894..15899, on what both lines print: run78 is `GUYS=2,DEATHS=1,
+# LEADERS=1` and this `GUYS=4,LEADERS=9,GROUPS=1`, so the figures, the
+# leader records, the pool and `DEATHS`' `WORLD` are excluded and
+# `GUYS=4`'s three animal keys dropped. Weaker than a bare overlap: the
+# excluded records are unchecked, not checked and equal.
+check: python3 tools/gamelog/samegame.py --exclude GUY --exclude LEADERDATA --exclude DIPLOMACY --exclude MAKEOBJECT --exclude PERSONALITY --exclude SITE --exclude GROUPDATA --exclude WORLD --drop ox --drop whom --drop aid gamelog-run78-eastindies-threeborn.txt gamelog-run221-eastindies-slotword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run78 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(15894..15899)")}'
