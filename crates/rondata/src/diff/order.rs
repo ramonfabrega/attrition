@@ -524,17 +524,17 @@ pub(crate) fn compare_orders(
                 ),
                 ("in_group", Some(i64::from(gm.in_group)), theirs.in_group),
             ] {
-                // both sides: `logged` None is a detail level that does not
-                // print the field; `mine` None is `form_id` past i64 or a
-                // leader `unit_ids` cannot name — the second is a quiet
-                // disagreement this row does not report, and the target row
-                // above compares dead or alive (item 502) for that reason.
                 if mine.is_some() && logged.is_some() {
                     compared::note(
                         "OrderDump",
                         &[if field == "id" { "group_id" } else { field }],
                     );
                 }
+                // both sides: `logged` None is a detail level that does not
+                // print the field; `mine` None is `form_id` past i64 or a
+                // leader `unit_ids` cannot name — the second is a quiet
+                // disagreement this row does not report, and the target row
+                // above compares dead or alive (item 502) for that reason.
                 if let (Some(mine), Some(theirs)) = (mine, logged)
                     && mine != theirs
                 {
@@ -578,11 +578,6 @@ pub(crate) fn compare_orders(
                 rows.push((Y[i], Some(i64::from(pt.y)), theirs.patrol_y.get(i).copied()));
             }
             for (field, mine, logged) in rows {
-                // both sides: `logged` None is a point past the dump's
-                // array — which the `length` rows above already report —
-                // or a detail level that prints no `waypoint`; `mine` None
-                // is a leader `unit_ids` cannot name, the `GROUPORDER`
-                // row's own quiet case above.
                 if mine.is_some() && logged.is_some() {
                     compared::note(
                         "OrderDump",
@@ -594,6 +589,11 @@ pub(crate) fn compare_orders(
                         }],
                     );
                 }
+                // both sides: `logged` None is a point past the dump's
+                // array — which the `length` rows above already report —
+                // or a detail level that prints no `waypoint`; `mine` None
+                // is a leader `unit_ids` cannot name, the `GROUPORDER`
+                // row's own quiet case above.
                 if let (Some(mine), Some(theirs)) = (mine, logged)
                     && mine != theirs
                 {
