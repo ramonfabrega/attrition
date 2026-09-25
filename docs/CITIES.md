@@ -477,9 +477,13 @@ FARM and count_buildings(city, FARM) ≥ get_farm_limit(city) → FARM 0x29
 a wonder (0x20e..0x21e) not the Red Fort: num_wonders(city, 1) > (Egyptians ? 1 : 0) → WONDER 0x2a
 ```
 
-`num_wonders(city, 1)` counts finished wonders on the chain, excluding the
-Red Fort and the city building itself (the Forbidden City). One wonder per
-city, two for Egyptians. `get_farm_limit` = `LeaderData::get_farm_limit +
+~~`num_wonders(city, 1)` counts finished wonders on the chain~~ —
+**wrong, corrected 2026-09-25** (`docs/AI.md` §70): `num_wonders@007382b0`
+tests `BuildData::is_wonder`, a type range, and never `is_active`, so it
+counts wonders on the chain **finished or not**, excluding the Red Fort and
+the city building itself (the Forbidden City). That is why §3.3's
+`do_construct` admits `≤ 1 + Egyptians`: the site counts itself. One wonder
+per city, two for Egyptians, and an unfinished one already holds the slot. `get_farm_limit` = `LeaderData::get_farm_limit +
 (level − 1) × FARMS_PER_CITY_LEVEL`, the leader part `FARMS_PER_CITY_BASE` (5)
 or `EGYPTIAN_FARMS_PER_CITY_BASE` (7) + `TAJ_FARMS` + `KREMLIN_FARMS` +
 `OLIVE_FARMS`.

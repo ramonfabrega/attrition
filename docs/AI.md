@@ -8681,3 +8681,92 @@ owed. The coverage driver reads run202 15382..15387.
   block 15383 and every row of the widening to 15385. The gate's other arms
   — a fort, `helpers ≥ 4`, the rival count, a gatherer taken — rest on the
   reading and the unit test alone.
+
+## 70. A wonder site holds its city's wonder slot, and the word moves to 15608 (2026-09-25, item 722)
+
+Great Lakes' word was **15384**. On it this crate spent 51 draws against
+the original's 46, parting at index 4 on a third
+`Leader::create_buildings+0xffb`/`+0x1017` pair (§2.19's wonder arm) where
+the original's draw is `Animal::think_bird+0x82`. On block 15386 the make
+list's `MAKE[1].t` was 430 `SIEGEFACTORY` here and −1 there (run202,
+widened by item 715, §69.6).
+
+### 70.1 The frame, read whole before any reading
+
+run53's draw stream with `RON_DEBUG_SITES` and `RON_DEBUG_LEADER` over
+15376..15386, both sides:
+
+- **15384 is the step machine's second pass on both sides.** who=1 goes
+  8 → 9 on 15382 (the make step places the Pyramids `1/2026` and spends
+  three `use_market`, two `produce_building` and three `make_stuff`
+  draws), 9 → 10 on 15383 and runs `create_buildings` again on 15384
+  (§2.4's step 10). The first pass, on 15381, spent **six** pairs on both
+  sides: three wonder types (Pyramids 526, Colossus 527, Hanging Gardens
+  528) in two cities.
+- **On 15384 ours spends four pairs and the original two**, then the same
+  eleven birds. So the parting is a count of (city, wonder) pairs, not an
+  order: the original spends no third pair anywhere on the frame.
+- The Pyramids' own pairs are gone on both sides — who=1 has a site of
+  that type, and the ally walk drops it (`create_buildings@006c1be0:1360`,
+  `*local_18 != 0` on an ally, itself included). What remains is the Colossus and
+  the Hanging Gardens: four pairs here, two there. **Two pairs are one
+  city's.**
+- Ours also spends a third `Guy::set_anim+0x104b` at index 48 against the
+  original's two. It went with the pairs (§70.4), so it was their
+  consequence, not a second parting.
+- `MAKE[1]` on 15386 is the pairs' product: ours' list after 15384 holds
+  the Siege Factory in city 1's slot where the original's slot is empty.
+
+### 70.2 The readings, and what would kill each
+
+Written after the frame and before the fix. **`num_wonders` had been read
+by then** (the gate's one call), so R1 is not blind; it is stated with the
+killer it had to survive.
+
+- **R1: a gate the wonder arm reads for one city differs.** The arm's
+  city gate is `semaphore & 2 == 0 && num_wonders(city, 1) == 0 &&
+  (starting_resources != 7 || city_count > 1)` (`006c1be0:1293–1302`),
+  evaluated once per (city, wonder type) — the loop's bound is the
+  leader's cities times the wonder types the tree offers, six on 15381.
+  Killed if every field the gate reads agrees for who=1 on 15384 *and*
+  both sides' readers of those fields agree. **The fields agree**: the
+  site `1/2026` is on city 0's chain in the dump (`city 0`, and `1/2022`'s
+  `city_down` is 2026), unfinished (`frame_started −1`, `job_counter 0`)
+  on both sides. **The readers do not**: `CityData::num_wonders@007382b0`
+  walks the chain and counts every object whose Build vslot `+0x2c`
+  (`BuildData::is_wonder`, `vtables.txt`) answers — a type range,
+  `0x20d < type < 0x21f` — that is not the Red Fort and, with the flag,
+  not the city building (`+8 & 0x20`). **Nothing reads `is_active`.**
+  This crate's `num_wonders` filtered `bd.active`. R1 survives, as a
+  reader difference.
+- **R2: the count is right and the order differs, so the bird draw is
+  displaced rather than missing.** Killed if the original spends its own
+  `create_buildings` pair later on 15384. **Killed by the trace**: its 46
+  draws hold two pairs, at 0–3, and none after.
+- **R3: 715's recruiter changed `1/70`, and that sends the leader into the
+  arm.** Killed if `1/70` agrees field for field on 15383. **Killed by the
+  pinned widening**: `run202_s_word_frame_is_widened_whole` asserts
+  nothing of `1/70` parts on 15383..15385.
+
+### 70.3 The fix
+
+`City::num_wonders` (`crates/sim/src/city.rs`) drops its `active` filter.
+Its three readers are the original's three that this crate carries, and
+all three move with it:
+
+- `create_buildings`' wonder gate (§2.19): a city with a wonder site
+  values no wonder at all;
+- `blocked_site`'s wonder clause (`docs/CITIES.md` §2.6.4, `> Egyptians`):
+  a second wonder cannot be placed in a city whose first is a site;
+- `do_construct`'s start test (`docs/CITIES.md` §3.3, `≤ 1 + Egyptians`):
+  the bound was always written for a site that counts itself, and with
+  the old filter it admitted one wonder too many.
+
+`Army::find_target`'s `num_wonders(city, 0)` (the `× 10` clause, `docs/ARMY.md`
+§12) is not carried; it is gated on `wonderwin_timer`, which is not
+either (§69.7).
+
+`ai_build::tests::an_unfinished_wonder_site_shuts_its_city_out_of_the_other_wonders`
+places a site of a second wonder type in one of two cities and counts two
+draws, the other city's. It was made to fail with the filter restored
+("the site counts").

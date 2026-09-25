@@ -11422,8 +11422,11 @@ pub(crate) mod tests {
     /// from run123's 11400 across eleven captures, with every player-1
     /// pool list from run135's first block.
     ///
-    /// The word's frame, 15384, writes block **15385**; item 711's word,
-    /// 15383, wrote **15384**, and its value diff is kept here.
+    /// Item 715's word's frame, 15384, writes block **15385**; item 711's
+    /// word, 15383, wrote **15384**, and both value diffs are kept here.
+    /// **Item 722 moved the word past run202, to 15608** (`docs/AI.md` §70),
+    /// and its value diff is kept here too: nothing first-parts on
+    /// 15385..15440. The new word's block is `run211_s_word_frame_is_widened_whole`'s.
     #[test]
     fn run202_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -11491,23 +11494,21 @@ pub(crate) mod tests {
             !firsts.values().any(|(f, _)| *f == WORD_BLOCK),
             "nothing parts first on the word's own block, 15385"
         );
-        // **The first rows past the word**, on 15386: the make list's
-        // second slot takes a Siege Factory (430) here and nothing there —
-        // the new word's third `create_buildings` draw is the producer's —
-        // and `1/75`'s figure clock. No mechanism is named (DECISIONS 42).
-        let next: Vec<String> = firsts
+        // ~~**The first rows past the word**, on 15386: the make list's
+        // second slot takes a Siege Factory (430) here and nothing there,
+        // and `1/75`'s figure clock.~~ **Item 722 closed all three, and
+        // every row above them** (`docs/AI.md` §70): `CityData::num_wonders`
+        // counts the Pyramids site, so who=1's city 0 values no wonder on
+        // 15384's second pass. Nothing first-parts anywhere on run202's
+        // runway, 15385..15440; the word left run202 for 15608 (run211).
+        let above: Vec<String> = firsts
             .iter()
-            .filter(|(_, (f, _))| *f == WORD_BLOCK + 1)
-            .map(|((w, o, what), (_, r))| format!("{w}/{o} {what}: {r}"))
+            .filter(|(_, (f, _))| *f >= WORD_BLOCK)
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
             .collect();
-        assert_eq!(
-            next,
-            [
-                "1/-1 leader:MAKE[1].t: ours 430 theirs -1",
-                "1/75 g.cur_anim[0]: ours 31 theirs 29",
-                "1/75 g.end_time[0]: ours 80 theirs 30",
-            ],
-            "what parts first on 15386, one block past the word"
+        assert!(
+            above.is_empty(),
+            "nothing parts first on 15385..15440, item 715's word's block and above: {above:?}"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN196_TAIL).count();
         let mid = firsts
@@ -11530,7 +11531,10 @@ pub(crate) mod tests {
         // **Item 718 took twenty-two (422/1/646 → 400/1/624)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        assert_eq!((under, mid, firsts.len()), (400, 1, 624), "the floor");
+        // **Item 722 took the other 223 (400/1/624 → 400/1/401)**: every
+        // key that first-parted on 15386..15440 was the wonder pairs'
+        // (`docs/AI.md` §70), and nothing arrived.
+        assert_eq!((under, mid, firsts.len()), (400, 1, 401), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
