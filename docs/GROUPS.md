@@ -1344,7 +1344,9 @@ Then:
   `flags & 0x100` to `region` or `region2`, going `>> 6` then `>> 2`, while
   the **destination** is always read at `+0x4` and reaches its cell through
   `div_3_table[v >> 8]` directly;
-- otherwise the **sub-group** attack-moves to `(x, y)`, its slot offsets and
+- otherwise the **sub-group** attack-moves to `(x, y)` — on **its own
+  record**, `Group::clear`'s, so its `facing` is 0 whatever the parent's
+  is (§26, item 736) — its slot offsets and
   angle bytes are copied back onto the matching members of the parent
   (`Unit::replace_form_id` re-indexes each), and the parent gets
   **`action_guard(anchor, who, QUEUE_NEW, 1)`** — everyone escorts the
@@ -3473,10 +3475,12 @@ and chapter eleven's at 1139.
 
 ### 25.4 What this has *not* established
 
-- **Two more readers are not wired.** `Unit::set_new_location` tests
+- ~~**Two more readers are not wired.** `Unit::set_new_location` tests
   the bit at `5f9290` and negates a pair of crew offsets under it.
   `Guy::set_anim` tests `+0x68 & 2` of its argument at `5dafad`. No
-  capture has been compared on either.
+  capture has been compared on either.~~ **Both are unreachable on this
+  install** (§26.5): the first needs `guy_mark != 1` and the second a
+  `GROUP_IDLE2` packet. The bit itself is compared since item 736.
 - `kill_current_order`'s three guards before the write (the order's
   `+0x8`, and the game's `+0x558`/`+0x55c`) are the call site's as it
   stood. This item did not re-read them.
@@ -3494,3 +3498,166 @@ and chapter eleven's at 1139.
 
 **Reading-only**: the `kill_current_order` writer, and the two unwired
 readers.
+
+## 26. The anchor's sub-group has its own record — Great Lakes 15619 → 16460 (item 736, 2026-09-25)
+
+*Established by run202 and run211's dumps, the decompile of
+`action_siege_attack_to` and `Group::clear`, and the widening. The chain
+from the sub-group's `facing` to the escort's posts is diff-backed on
+every block of run211; the record's other fields are reading only.*
+
+### 26.1 The frame, read whole first
+
+On 15619 the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`
+first, a blocked step (`docs/ANIM.md` §4's table, `:281`), and ours does
+not. run211's widening with `RON_ROW_WALK` on group 67 (`1/76`–`1/79`)
+read the whole chain backwards:
+
+- **15619**: `1/76`'s position parts; on 15617, its `half_step`.
+- **15607**: `1/77` and `1/78` walk to each other's posts. In the
+  original both stand on their posts with one `GUARD`; ours holds a leg
+  over the `GUARD`, `1/77` to (41976, 21672) and `1/78` to (42216,
+  21528), the original's posts traded. Item 711's shape: a mirrored `dx`.
+- **The target's mirror.** `do_guard` negates `dx` when its target
+  carries `unit_masks & 2` (§25.2). A new widening row (§26.4) shows the
+  Despot `1/79` carrying it **here and not there from 15607**. The dump
+  prints 0x40008 on every block of run211.
+- **The bit's writer.** The Despot's `ATTACK_TO` died on 15606, and
+  `kill_current_order` wrote the order's `facing` into the bit (§25.2).
+  That order is 15350's, and its `facing` has parted since 15351, 1 here
+  and 0 there (**parked 716**). So 716 is not a second parting; it is
+  the head of this one.
+
+### 26.2 The readings, and what killed each
+
+Written before reading `action_siege_attack_to` and after the widening,
+so not blind. Each killer tests the claim's own unit.
+
+- **R1, `set_anim`'s mirror reader (717) turns `1/76`.** Killed if
+  `1/76`'s bit agrees on 15617 or its heading agrees on 15618. **Killed
+  by the widening**: `1/76` parts on nothing but `half_step` before
+  15619, and the new `mirror` row agrees on it. And the reader cannot
+  spend a draw (§26.5).
+- **R2, `set_new_location`'s mirror reader (717) moves `1/76`'s post.**
+  Killed if the post agrees on every block to 15619. **Killed**: no
+  guard or order row of `1/76` parts before 15619.
+- **R3, `1/76`'s speed or path parts with no mirror involved.** Killed if
+  its next node and its speed agree on 15616. **Killed**: nothing of
+  `1/76`'s parts on 15616. The half step is the collision's, and the
+  neighbours are the ones that moved.
+- **R4 (mine), the target's mirror swaps the posts, and the move's
+  `facing` sets the mirror.** Killed if `1/79`'s bit agrees on 15607.
+  **It holds**: ours 1, theirs 0.
+
+**The disk answered, so run217 (the packet) was not taken.** Every term
+was printed: the posts (`GUARDORDER`), the bit (`unit_masks`) and the
+move's `facing` (`MOVEORDER +0x28`).
+
+### 26.3 The cause
+
+`Group::action_siege_attack_to@0070d830` builds its sub-group **on the
+stack** (§9). It calls `Group::clear(local, −1)`, copies the parent's
+`+0x4 id` and `+0x8 army`, and sets `+0x14 stamp = 0` (`:60–66`).
+`Group::clear@00713e80` zeroes the `short` at `+0x48`, which is `facing`
+and `buildings`, along with every other scalar field. So the anchor's
+`ATTACK_TO` is laid out on **`facing` 0**, XOR `compute_form`'s toggle
+(§6.3). The layout's writes go to that stack record and die with the
+call.
+
+This crate keys a group's record by its seat (`Sim::gstate`: the army
+slot, or the pushed slot). The sub-group carried `army: g.army`, so it
+read **army 3's record**: its `facing`, which the leader `1/76`'s turns
+had left at 1, and its `form`, `o`, `o_angle` and slot angles. It also
+wrote its layout onto that record. On 15095, the first issue, the army's
+`facing` was 0 and the two agreed. On 15350 it was 1.
+
+**Built** (`crates/sim/src/group.rs`, `group_action_siege_attack_to`
+only, by the commander's leave): for the sub-group's `action_move_to`,
+the seat's record is replaced by `GroupState::default()` (which is
+`Group::clear`'s), with the parent's `pool` (the carried `id`) and
+`stamp 0`. The parent's record is put back afterwards. The army reads
+(`hurry`, the AI branch) still see the carried `army`.
+`the_anchor_s_sub_group_lays_out_on_its_own_cleared_facing` fails
+without it (`Some(true)`).
+
+### 26.4 What it moved
+
+**Great Lakes 15619 → 16460.** On 16460 ours spends 1 draw against 3,
+parting at index 1. The original spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, a blocked step again, which ours does not. That
+is past run211 (15859), so run218 was taken (`docs/RUNS.md`).
+Its widening (`run218_s_word_frame_is_widened_whole`) finds nothing on
+15860..16459. On block 16460, a frame before the word, `1/23` (three
+figures, outside group 67) stands stopped in the original at (41632,
+21466) and walks on here to (41632, 21440). On the word's block the
+original's carries `collide_o 79`: **The Despot blocks it**. No escort
+member parts, and no mechanism is named.
+
+- **East Indies holds at 15985.**
+- **Every closed golden chapter holds**, and all twenty word tests pass
+  at their words.
+
+**The value diff.**
+- `run211_s_word_frame_is_widened_whole`'s floor goes 399/89/1014 →
+  398/0/398. `1/79`'s move `facing` is gone from run202's walk.
+  run211's own 89 up to the old word and the 526 above it are gone, and
+  nothing arrived: **nothing parts on 15441..15859**.
+- run202's own row (716) is gone, 398/1/399 → 398/0/398.
+
+**The new row, `mirror`** (`unit_masks & 2` against
+`Movement::mirror`) is in `widen_block`. It was carried since item 711
+and compared nowhere. Outside group 67 it parts on two units, and does
+so with or without this item's fix. **All of it is East Indies**:
+- the scout `1/0` from 8242 (run99), standing on 9960 (run139, run143),
+  beside its `order:move.facing` (parked 275's family);
+- `1/31` from 10875 (run149, run152).
+
+Each of those widenings gains that one key. On Great Lakes, the `mirror`
+row parts nowhere under the word: the floor stays 398.
+
+### 26.5 717's readers are unreachable on this install
+
+- **`Unit::set_new_location` at `5f9290`** is inside the `guy_mark != 1`
+  arm. That arm lays the squad's figures out on a grid, and the bit
+  negates both axes of the grid. `guy_mark` is `UnitType::init`'s
+  literal 1 (`anim::SQUAD_SIZE`), and every `UNITDATA` of run211 prints
+  `guy_mark 1` (53,602 records). The arm is never entered.
+- **`Guy::set_anim` at `5dafad`** is in the idle roll, **after** the
+  draw. It is reached only when the packet has a `GROUP_IDLE2` animobj
+  (`get_animobj(5)`), and a guy of the unit's first `guy_mark` other
+  than this one stands on slot 4–6. No shipped unit packet names
+  `CHAR_GROUP_IDLE2` (§3.2 of `docs/ANIM.md`), and `guy_mark` is 1. It
+  would set the slot, never a draw.
+
+So there is nothing to wire. **717 closes on this reading**, and
+**716 closes on the diff**.
+
+### 26.6 What this has *not* established
+
+- **The sub-group's slot angles.** `Group::clear` does not touch `+0x84c
+  angles`, so the original's stack sub-group reads whatever the stack
+  held. Here it reads an empty table, byte 0. The anchor's `ATTACK_TO`
+  `angle` agrees on 15351, so the toggle agreed there.
+- **The copy-back.** `replace_form_id` copies the sub-group's slot
+  offsets and angle bytes onto the parent's members. This crate writes
+  nothing back, and before this item it wrote the whole layout onto the
+  parent's record instead. The parent's `GROUPDATA` (its `o`, `o_angle`
+  and `order_num`) is printed on every block but not compared.
+- **`Form::categorize`'s sort** runs on the stack sub-group in the
+  original. This crate's `group_action_move_to` sorts the **seat's**
+  list. A one-member sub-group's sort is a no-op, but a sub-group of two
+  or more siege would sort the whole army here.
+- **An anchor that leads its parent.** If its dying move is handed back
+  inside the sub-group's clear loop, this crate writes it onto the
+  swapped-in stack record, and the original onto the parent (`+0x80`).
+  No capture has such an anchor.
+
+### 26.7 Coverage
+
+**Diff-backed** (run202 and run211, every block): the anchor move's
+`facing`; the Despot's `mirror`; the escort's posts, orders and
+positions; nothing parting on 15441..15859.
+
+**Reading only**: the stack record's other cleared fields (§26.6), and
+§26.5's two unreachable readers (backed by the dump's `guy_mark` and the
+install's packets, not by a run that reaches them).

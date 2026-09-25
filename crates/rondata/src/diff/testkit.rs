@@ -2115,7 +2115,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// its last, 15859); the new word's block is in
 /// `run211_s_word_frame_is_widened_whole` (the widening test), which also
 /// keeps the move's value diff on 15608 and 15609.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_619;
+///
+/// ~~**15619 is the escort's move step.**~~ **Item 736 moved it 15619 →
+/// 16460, and the mechanism was `Group::action_siege_attack_to`'s stack
+/// sub-group** (`docs/GROUPS.md` §26): it is `Group::clear(-1)`'s record
+/// carrying the parent's `id` and `army`, so the anchor's `ATTACK_TO` is
+/// laid out on `facing` 0; this crate read army 3's 1. The Despot's move
+/// of 15350 carried it (parked 716), the dying move handed it into
+/// `unit_masks & 2`, and `do_guard` mirrored the escort's posts off it on
+/// 15606. **The new word's delta (this constant's comment): ours 1 draw
+/// and the original 3, parting at index 1**: the original spends
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked step, which
+/// ours does not. **Past run211** (block 16461 against its last, 15859),
+/// so item 736 took **run218**; `run211_s_word_frame_is_widened_whole`
+/// keeps the move's value diff: nothing parts on 15441..15859.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 16_460;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3712,6 +3726,14 @@ pub(crate) const GREAT_LAKES_WONDER_BLOCK: i64 = 15_609;
 /// [`WIDENING_GREAT_LAKES_WONDER`]; the coverage driver reads run211 from
 /// two blocks under [`GREAT_LAKES_WONDER_BLOCK`] to two over this one.
 pub(crate) const GREAT_LAKES_ATTACKED_BLOCK: i64 = 15_620;
+/// `run218_s_word_frame_is_widened_whole`'s window (item 736):
+/// [`WIDENING_GREAT_LAKES_WONDER`]'s chain, then run218 from run211's last
+/// block to its own, 16711 — 250 blocks of runway past the word's block.
+pub(crate) const WIDENING_GREAT_LAKES_ESCORT: (i64, i64) = (11_400, 16_711);
+/// The block [`WIDENING_GREAT_LAKES_ESCORT`] was taken to widen: the word
+/// 16460's frame writes block 16461, past run211. The coverage driver
+/// reads run218 around it.
+pub(crate) const GREAT_LAKES_ESCORT_BLOCK: i64 = 16_461;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4166,12 +4188,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `Object::take_damage` stamps the struck owner's `frame_attacked`
     // (`docs/AI.md` §71). The same test pins the new word's block, 15620,
     // and keeps the move's value diff on 15608 and 15609.
+    //
+    // **Item 736 moved it 15619 → 16460**, past run211's last block
+    // (15859): `action_siege_attack_to`'s sub-group lays out on its own
+    // cleared record (`docs/GROUPS.md` §26). run211's test keeps the
+    // move's value diff (nothing parts on 15441..15859). **Item 736 paid
+    // it**: run218 is run211's line over [15854, 16711], and
+    // `run218_s_word_frame_is_widened_whole` walks it from run123's 11400
+    // across thirteen captures and pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run211_s_word_frame_is_widened_whole"),
-        722,
-        Some(WIDENING_GREAT_LAKES_WONDER),
+        Some("run218_s_word_frame_is_widened_whole"),
+        736,
+        Some(WIDENING_GREAT_LAKES_ESCORT),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

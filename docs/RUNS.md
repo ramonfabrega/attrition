@@ -6961,6 +6961,56 @@ with no human at the menu. Waited on with `waitrun.sh`, exit 0.
   722), then 78 keys on run211's own blocks up to the word, and 1003 to
   the window's end.
 
+## run218 — Great Lakes' word 16460, past run211's last block (2026-09-25, item 736)
+
+**What it is.** run211's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15854, 16712)`, plus `rontrace.cfg` `cover=1` and `window=16456-16464`
+over the word. `!quit` at 16722, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 736
+```
+
+**Why it was owed.** Item 736 moved Great Lakes' word 15619 → 16460:
+the siege arm's sub-group lays out on its own cleared `facing`
+(`docs/GROUPS.md` §26). run211 ends on block 15859, so the word's block
+16461 is on no disk. On 16460 ours spends 1 draw against 3, parting at
+index 1: the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+a blocked step, which ours does not. **Sized with 250 blocks of runway**
+(DECISIONS 50 §7): six blocks shared with run211, the 601 up to the word,
+its block, and 250 above it. The readings and their kills are in the
+stanza.
+
+**Taken whole.** 1,870.9 MB of dump and 21.4 MB of trace, 858 blocks
+15854..16711. About 64 minutes from launch (09:22) to archive (10:26),
+with no human at the menu, while this lane worked. Waited on with
+`waitrun.sh`, exit 0. The lane lock was stale (pid 74824).
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 16,723 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **858 blocks, 15854..16711, no gap** |
+| a `GROUPDATA` on every window block | **858** |
+| overlap with run211, nothing excluded | **6 in common (15854..15859), 0 differ** |
+| the coverage window | a set on all 9 frames 16456..16464 |
+
+**What it settled** (`run218_s_word_frame_is_widened_whole`,
+`docs/GROUPS.md` §26.4).
+- **R1 holds**: the checks above.
+- **R2 is killed.** The blocked step on 16460 is not the escort's. On the
+  word's block the original's `1/23`, a three-figure unit outside group
+  67, carries `collide_o 79, collide_who 1`: it is blocked by The
+  Despot. No escort member parts.
+- **R3 is killed.** Nothing parts on 15860..16459. The first unit to
+  part is `1/23`, on block 16460 (sim-frame 16459, a frame before the
+  word): it stands stopped at (41632, 21466) in the original, and walks
+  on here to (41632, 21440). It is not a member of group 67.
+- The floor is run211's walk (398, nothing on run211's own blocks since
+  item 736), then `1/23`'s 43 keys on 16460..16461, and 957 to the
+  window's end. 355 rows stand on the word's block.
 ## run215 — chapter fifteen, the group attack (2026-09-25, item 731)
 
 `docs/GOLDEN.md` §23, `tools/gamelog/golden/chapter15.cmd`. The cast is

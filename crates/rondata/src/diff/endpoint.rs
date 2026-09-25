@@ -555,7 +555,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 15384 → 15608; this map's holds at 15985 with its delta. The
         // unlinked are player 1's `79`..`82`. Measured on the spawn base,
         // `2355946`. DECISIONS 36: the number, not a trade.
-        off: 51,
+        // **51 → 49 off, 10 → 12 build_diverged** on item 736:
+        // `action_siege_attack_to`'s sub-group lays out on its own cleared
+        // record (`docs/GROUPS.md` §26), which moves Great Lakes' word
+        // 15619 → 16460; this map's holds at 15985. The unlinked are still
+        // player 1's `79`..`82`. Measured after `ccc update` onto `8e75c3b`.
+        // DECISIONS 36: the number, not a trade.
+        off: 49,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -613,7 +619,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **16 → 15** on item 706, beside `off` above.
         // **15 → 16** on item 711, beside `off` above.
         // **16 → 10** on item 722, beside `off` above.
-        build_diverged: 10,
+        // **10 → 12** on item 736, beside `off` above.
+        build_diverged: 12,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1330,7 +1337,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // which moves this map's word 15608 → 15619. The 24,000th frame is
         // 8,381 frames past the new word. Measured on the spawn base,
         // `7ec485a`. DECISIONS 36: the number, not a trade.
-        off: 22,
+        // **22 → 44 off** on item 736: `action_siege_attack_to`'s sub-group
+        // lays out on its own cleared record (`docs/GROUPS.md` §26), which
+        // moves this map's word 15619 → 16460. The 24,000th frame is 7,540
+        // frames past the new word. Measured after `ccc update` onto
+        // `8e75c3b`. DECISIONS 36: the number, not a trade.
+        off: 44,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
