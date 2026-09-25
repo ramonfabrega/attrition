@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 714, 2026-09-24 — the follow's other arms
+
+(719) **A follow on an enemy unit**: `action_follow` has no `is_ally`
+test, and `is_seen`'s fog or stealth kill would end it. No capture
+stages one.
+
+(720) **The follow's container swap** (`oxx`, `whose`, `uid2`), read and
+not reached by run204.
+
+(721) **`action_follow`'s `QUEUE_FIRST` insert**, read and not reached.
+
 ## Parked by item 711, 2026-09-24 — under Great Lakes' 15383
 
 (716) **`1/79`'s move `facing`**, 1 here against 0 in the original from
