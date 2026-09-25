@@ -367,12 +367,14 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             objects,
         }) => crate::input::group_guard(built, who, &objects, ox, whom, 2),
         // `@follow` is `issue_follow@00941e70` with `QUEUE_NEW`, a `group`
-        // and a `follow`. SEAM: the command has no entry into this
-        // simulation yet (item 714, `docs/GOLDEN.md` §20).
-        Some(Issued::Follow { .. }) => {
-            done.skip(&word, "the follow command has no entry into the simulation");
-            return;
-        }
+        // and a `follow`, whose entry is [`crate::input::group_follow`]
+        // (item 714).
+        Some(Issued::Follow {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_follow(built, who, &objects, ox, whom, 2),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;

@@ -259,6 +259,58 @@ pub fn group_guard(
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `follow` (0x1e) behind it, into the
+/// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
+/// `docs/GOLDEN.md` §20) — [`group_move_to`]'s group, then
+/// `CommandPackage::process_follow@009479c0`'s one call,
+/// `Group::action_follow(g, ox, whom, queued)`
+/// ([`sim::Sim::group_action_follow`]).
+///
+/// The leader is `whom`'s object `ox`. `action_follow@006fd510` asks it
+/// `is_valid_unit`, as `action_guard` does, so a leader that is no unit of
+/// the simulation gives no order, and the group is still pushed, as
+/// `process_group` forces it.
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation. The same seams as [`group_move_to`]'s.
+pub fn group_follow(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    ox: i32,
+    whom: i32,
+    queued: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let leader = i16::try_from(ox).ok().and_then(|o| {
+        built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(whom) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(whom as sim::Player, o))
+    });
+    if let Some(t) = leader {
+        built.sim.group_action_follow(&g, t, queue_pos(queued));
+    }
+    g.list.len()
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {

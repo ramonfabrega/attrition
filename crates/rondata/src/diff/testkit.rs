@@ -2826,12 +2826,21 @@ pub(crate) const WIDENING_CHAPTER_ELEVEN: (i64, i64) = (605, 1251);
 /// count on **717**, ours 6 draws against 8, at draw 0: ours
 /// `Farms::inc_time+0x1ae`, theirs two `5dac7a`s first.
 ///
-/// **The delta**, this constant's: the first pin, 717.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWELVE: i64 = 717;
+/// 717 → **1150, closed** (item 714, `docs/ORDERS.md` §28): **the follow,
+/// built.** `rondata::input::group_follow` pushes the group and calls
+/// `Sim::group_action_follow`, which gives each orderable member one
+/// `FOLLOW` on the leader; `Sim::do_follow` stands within `s + 0xc0` and
+/// otherwise lays a `MOVE_TO` leg to the standoff point. `s` comes from the
+/// follower's `los`, halved for a slower follower and again while the
+/// leader walks. Nothing parts on any frame of run204's trace.
+///
+/// **The delta**, this constant's: +433, 717 → 1150, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWELVE: i64 = 1150;
 
-/// `chapter_twelve_s_word_frame_is_widened_whole`'s window, (605, 719) on
-/// the word 717 (item 714).
-pub(crate) const WIDENING_CHAPTER_TWELVE: (i64, i64) = (605, 719);
+/// `chapter_twelve_s_word_frame_is_widened_whole`'s window: **run204
+/// whole**, 605 through 1150 (item 714, the word closed). The first pin
+/// was (605, 719) on the word 717.
+pub(crate) const WIDENING_CHAPTER_TWELVE: (i64, i64) = (605, 1151);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
@@ -4107,7 +4116,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_ELEVEN),
     ),
     // Item 714: run204, chapter twelve's first walk at 717, on the
-    // follow this crate cannot take: the chariot's first leg on 711.
+    // follow this crate could not take: the chariot's first leg on 711.
+    // Closed at 1150 by the same item (the follow, built).
     (
         "GOLDEN_WORD_CHAPTER_TWELVE",
         GOLDEN_WORD_CHAPTER_TWELVE,

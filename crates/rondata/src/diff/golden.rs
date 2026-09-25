@@ -6138,15 +6138,20 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
     got.sort();
     // **What parts under the word**, by block and key (`docs/GOLDEN.md`
     // §20). Each staged unit's `form` on its birth block, the standing
-    // family. Then the follow this crate cannot take: on 622 the original's
-    // chariot `0/6` holds one `FOLLOWORDER` on the wagon and is its pushed
-    // group's (`group 1`), where this crate's holds nothing and counts
-    // `idle`; the same for the squad on 642 (`group 0`). The wagon's own
-    // move on 702 lands in the next pool slot, `group 2`, against this
-    // crate's 1 (parked 689's family). **On 711** the original's chariot
-    // takes its first leg, a one-tile `MOVEORDER` to (3192, 7224), and
-    // steps; this crate's stands. The word, 717, is the next draw count
-    // it parts on.
+    // family, and the scout `1/0`'s formation mirror on 847 (parked 275).
+    //
+    // **The first pin, word 717**: this crate had no follow, and the
+    // harness skipped both `@follow` lines. On 622 the original's chariot
+    // `0/6` held one `FOLLOWORDER` on the wagon and was its pushed group's
+    // (`group 1`), where this crate's held nothing and counted `idle`; the
+    // same for the squad on 642 (`group 0`); the wagon's move group on
+    // 702 was `group 2` against this crate's 1; and on 711 the original's
+    // chariot took its first one-tile leg and stepped.
+    //
+    // **Built → 1150, closed** (`docs/ORDERS.md` §28): every one of those
+    // rows goes. The chariot's 24 hops and its rest, the hoplites' legs
+    // under the doubled `k`, both turns and every follower's final stand
+    // agree to run204's end, block for block.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -6154,33 +6159,7 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
         "615 0/9 form",
         "615 0/10 form",
         "617 0/11 form",
-        "622 0/6 group",
-        "622 0/6 idle",
-        "622 0/6 order:length",
-        "622 0/6 orders.len",
-        "642 0/8 group",
-        "642 0/8 idle",
-        "642 0/8 order:length",
-        "642 0/8 orders.len",
-        "642 0/9 group",
-        "642 0/9 idle",
-        "642 0/9 order:length",
-        "642 0/9 orders.len",
-        "642 0/10 group",
-        "642 0/10 idle",
-        "642 0/10 order:length",
-        "642 0/10 orders.len",
-        "702 0/7 group",
-        "711 0/6 dest_angle",
-        "711 0/6 g.angle[0]",
-        "711 0/6 g.angle[1]",
-        "711 0/6 g.y[0]",
-        "711 0/6 g.y[1]",
-        "711 0/6 heading",
-        "711 0/6 orders_y",
-        "711 0/6 path:length",
-        "711 0/6 path_recursion",
-        "711 0/6 pos",
+        "847 1/0 order:move.facing",
     ]
     .iter()
     .map(|r| r.to_string())
