@@ -1357,6 +1357,7 @@ below without a run take their number at booking (the eleventh pass).
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
 | 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
+| 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2966,3 +2967,21 @@ Predicted: none fires. **The harness skips `@attack`**, a named seam in
 `crate::golden` until the floor is pinned. `crate::input::group_attack`
 is built, and the scratch walk used it. So the word should part on 736,
 where the original's six charge and this crate's walk on.
+
+**Run 2026-09-25 as run215 (item 731)** (`docs/RUNS.md` has the tables).
+
+- **No falsifier fired.** All three commands reached the pump on the next
+  frame, among them `process_attack 6 1 0 2 735`.
+- **The dump holds no `GroupAttackOrder`**, in either spelling. The kill of
+  the booked premise's first half stands, measured.
+- On 736 each member holds one `ATTACKORDER` on `ox 6 whom 1`, `uid 12`,
+  `mandatory 1`, `new_ord 1`, `flags 20`, over a `MOVEORDER` approach
+  leg. The right-click's group move is gone. `0/6` stands on (2999,
+  13821), this crate's point.
+- In range by 780. **`1/6` last prints on 808.** The stacks empty by 850.
+- On 862 each member holds one `GROUPATTACKTOORDER`, `flags 5`, id
+  861102, `orig` (3192, 7680), leader `oxx 6`. None has `unit_masks & 4`.
+- They ungroup to plain `ATTACKTOORDER`s on 1060 and stand from 1080 on
+  exactly the six points this crate predicted.
+- **The pool printed**: 330,240 `GROUPDATA` at `GUYS=4`, where run210's
+  `GUYS=2` printed none.

@@ -21,6 +21,14 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter15.cmd
 #
+#   Run 2026-09-25: ~13 min, 269 MB, same game as run210 to frame 614. All
+#   three commands processed on the next frame (`process_attack 6 1 0 2
+#   735`). No falsifier fired: six ATTACKORDERs, mandatory 1, flags 20, on
+#   736 and no GroupAttackOrder anywhere; 1/6 last prints on 808; six
+#   GROUPATTACKTOORDERs, id 861102, on 862, ungrouped on 1060 and standing
+#   from 1080 on the points this crate predicted. The pool printed:
+#   330,240 GROUPDATA at GUYS=4 (docs/RUNS.md, run215).
+#
 # `GROUPS=1` for the pool, with `GUYS=4` and neither `DEATHS` nor `AMMO`
 # under `[End Frame]`: run178's levels, the one golden-lane-shaped line
 # whose pool printed. `GroupData::log_data@0045e1d0` sets no logger type of
