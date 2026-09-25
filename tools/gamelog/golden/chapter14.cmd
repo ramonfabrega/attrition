@@ -21,6 +21,14 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter14.cmd
 #
+#   Run 2026-09-25: 284 s, 97 MB, same game as run208 to frame 610. All
+#   three commands processed on the next frame; no FORMORDER anywhere; the
+#   byte on all nine; the walking group halted and replayed in Line (id
+#   741102, orig 2976,12000), arriving 905..926. Falsifier 4 fired in its
+#   letter: the standing re-form is a plain MOVEORDER a member on 622, not
+#   a GroupMoveOrder. The pool did NOT come out (0 GROUPDATA): a hypothesis
+#   is GUYS=2, where run178's GUYS=4 passed it (docs/RUNS.md, run210).
+#
 # `GROUPS=1` puts the whole 512-slot pool in every block; `DEATHS` is OFF
 # under `[End Frame]` because `dump_deaths@0092fd80` would leave the logger's
 # type at WORLD and the pool's lines would fail `check_accept` silently

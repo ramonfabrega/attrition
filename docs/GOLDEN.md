@@ -1355,7 +1355,7 @@ below without a run take their number at booking (the eleventh pass).
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
-| 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **booked (item 723)** |
+| 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2739,3 +2739,31 @@ Two of them are not the original's here:
 The harness skips both `@form` lines as a named seam in `crate::golden`.
 So the word should part on 622, where the original's group walks to its
 Envelop slots and this crate's stands.
+
+**Run 2026-09-25 as run210 (item 723)** (`docs/RUNS.md` has the tables).
+
+- **Falsifiers 1, 2, 3, 5, 6 and 7 did not fire.**
+  - All three commands reached the pump: `process_form 2 0 2 621`, the
+    move on 701, and `process_form 0 0 2 741`.
+  - **The dump holds no `FORMORDER` at all.** The kill of the booked
+    premise stands, measured.
+  - All nine members read `form 2` on 622 and `form 0` on 742.
+  - On 702 the move laid Envelop `GroupMoveOrder`s with the action bit.
+  - On 742 the walking group was halted and its move replayed. Each
+    member holds one `GroupMoveOrder`, `flags 5`, under the new id 741102,
+    with `orig` 700's point (2976, 12000) and leader `oxx 6`, in Line, and
+    nothing under it.
+  - They arrive 905–926.
+- **Falsifier 4 fired in its letter.** On 622 each member holds a plain
+  `MOVEORDER` (type 1), not a `GroupMoveOrder`. Its point is its Envelop
+  slot round `0/6`'s position, its `orig` that same slot, and it carries
+  no action bit. Every stack is empty on its slot by 684. The rest of the
+  claim held. `Unit::do_group_move@005e79a0` ungroups a group move whose
+  point lies within `0x5ff` of the leader, and a re-form on the spot
+  always does. That the orders were laid grouped on 621 and ungrouped on
+  their first step is **a hypothesis**. This crate models both, and its
+  walk decides.
+- **The pool did not come out**: 0 `GROUPDATA` records, though `DEATHS`
+  was off and the ini carried `GROUPS=1`. The hypothesis is that `GUYS=2`
+  rejects the lines, where run178's `GUYS=4` passed them (`docs/RUNS.md`,
+  run210). The measures above come from each member's own order.
