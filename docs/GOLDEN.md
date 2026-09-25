@@ -1357,7 +1357,7 @@ below without a run take their number at booking (the eleventh pass).
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
 | 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
-| 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed** |
+| 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3005,3 +3005,23 @@ original's `Guy::set_anim+0x97a < Unit::move_step+0x823`.
 - **The coverage pin** failed first on `process_attack`, pinned unread
   beside its siblings. Its driver takes 620..624, 734..738, 751..755,
   807..811, 860..864 and 1058..1062.
+
+**Closed at 1250 by the same item.**
+- **The entry.** `rondata::input::group_attack` pushes the group and
+  calls `Sim::group_action_attack` with `mandatory` 1. That alone moved
+  the word 753 → 1250, run215's trace end: sequence 1250, no value part.
+  The attack-move needed nothing new: `input::group_move_to` already took
+  `orders` 2 into `GroupAttackToOrder`s, and they agree value for value
+  from 862 to the arrival.
+- **A fresh slot's `stamp`.** `Groups::copy_group@006fa690` writes `+0x14
+  = game->frame` on the slot `push_group` copies into. This crate's
+  record started at 0. It is stamped now, and the pool widening parts
+  nowhere on run215's 645 blocks. Nothing here reads a pushed `stamp`,
+  so no draw moved.
+
+The widening over run215 whole leaves:
+- the births' `form`;
+- the group move's `id` from 622 (parked 689);
+- one instrument row, `1/6`'s death object `extra` on 809. `DEATHS` was
+  off for the pool, and `DEATH_OBJS` prints a record per corpse and
+  nothing else, so the dump cannot say the list was not asked for.

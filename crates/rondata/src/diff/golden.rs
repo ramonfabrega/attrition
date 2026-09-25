@@ -6605,25 +6605,19 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // family, and the right-click's group move `id` on 622, this crate's
     // numbering of a pushed group (parked 689).
     //
-    // **The first pin, word 753**: this crate could not take the attack
-    // command, and the harness skipped `@attack`. On 736 each of the
-    // original's six held an `ATTACKORDER` on `1/6` over an approach leg,
-    // where this crate's still walked the right-click's group move: 105
-    // keys of the six members part on that block, every one of them
-    // theirs. The rest follow from it: `0/11`'s step on 737, two
-    // `half_step`s on 742, and on 754 `0/9` stopped against `0/10`, the
-    // block after the word's extra `Unit::move_step+0x823` roll.
-    let charge: Vec<&String> = got.iter().filter(|r| r.starts_with("736 ")).collect();
-    assert!(
-        charge.len() == 105
-            && charge.iter().all(|r| {
-                let who_o = r.split_whitespace().nth(1).unwrap_or("");
-                matches!(who_o, "0/6" | "0/7" | "0/8" | "0/9" | "0/10" | "0/11")
-            }),
-        "ch15: the skipped attack's block moved ({}): {charge:?}",
-        charge.len()
-    );
-    got.retain(|r| !r.starts_with("736 "));
+    // **The first pin, word 753**: the harness skipped `@attack`, and on
+    // 736 105 keys of the six parted, the original's `ATTACKORDER`s
+    // against this crate's walk; the charge's first roll parted the draw
+    // stream on 753.
+    //
+    // **Built → 1250, closed**: `input::group_attack` entered alone took
+    // the word to the trace's end and emptied the 736 block. What stays
+    // beside the standing family and the id is **one instrument row**:
+    // `1/6`'s death object on 809 is `extra`, because run215 dumps no
+    // `DEATHS` (off under `[End Frame]` for the pool) and `DEATH_OBJS`
+    // prints a record per corpse and nothing else, so the dump cannot say
+    // the list was not asked for. The target last prints on 808 on both
+    // sides.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "611 0/7 form",
@@ -6638,46 +6632,20 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
         "622 0/7 order:group.id",
         "622 0/8 order:group.id",
         "622 0/9 order:group.id",
-        "737 0/11 g.des_y[0]",
-        "737 0/11 g.y[0]",
-        "742 0/10 half_step",
-        "742 0/7 half_step",
-        "754 0/9 collide_guy",
-        "754 0/9 collide_o",
-        "754 0/9 collide_who",
-        "754 0/9 g.cur_anim[0]",
-        "754 0/9 g.cur_time[0]",
-        "754 0/9 g.end_time[0]",
-        "754 0/9 g.last_time[0]",
-        "754 0/9 g.stopped[0]",
-        "754 0/9 path:length",
+        "809 1/6 death:extra",
     ]
     .iter()
     .map(|r| r.to_string())
     .collect();
     want.sort();
     assert_eq!(got, want, "ch15: what parts under the word moved");
-    // **What parts in the pool.** Slot 1 is the pushed selection from
-    // 621 on. Its `stamp` (`GroupData +0x14`, the frame its membership
-    // last changed) is 621 in the dump and 0 here from the first block:
-    // this crate's pushed record never writes it. On 736 the skipped
-    // attack's `order_num` bump and the mirror `facing`, and on 738 the
-    // slot offsets `curr` rotated by a leader heading that is still the
-    // walk's here.
-    let mut want_pool: Vec<String> = [
-        "622 slot 1 stamp",
-        "736 slot 1 facing",
-        "736 slot 1 order_num",
-        "738 slot 1 curr[1]",
-        "738 slot 1 curr[2]",
-        "738 slot 1 curr[3]",
-        "738 slot 1 curr[4]",
-        "738 slot 1 curr[5]",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
-    want_pool.sort();
+    // **What parts in the pool: nothing**, on all 645 blocks. Slot 1 is
+    // the pushed selection from 621. The first pin had its `stamp`
+    // (`GroupData +0x14`) 621 in the dump and 0 here from 622, until
+    // `push_group` stamped a fresh slot as `Groups::copy_group@006fa690`
+    // does; and on 736 and 738 the skipped attack's `order_num`,
+    // `facing` and `curr`.
+    let want_pool: Vec<String> = Vec::new();
     assert_eq!(got_pool, want_pool, "ch15: what parts in the pool moved");
 }
 

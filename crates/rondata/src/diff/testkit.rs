@@ -2986,13 +2986,24 @@ pub(crate) const WIDENING_CHAPTER_FOURTEEN: (i64, i64) = (605, 1151);
 /// against 7, parting at draw 0: the original's extra `Guy::set_anim
 /// +0x97a < Unit::move_step+0x823`.
 ///
-/// **The delta**, this constant's: the first pin, 753.
-pub(crate) const GOLDEN_WORD_CHAPTER_FIFTEEN: i64 = 753;
+/// 753 → **1250, closed** (item 731): **the attack command, entered.**
+/// `rondata::input::group_attack` pushes the group and calls
+/// `Sim::group_action_attack` with `mandatory` 1, one `ATTACK` a member
+/// with the action bit, and that alone took the word to run215's trace
+/// end: sequence 1250, no value part. The attack-move needed nothing:
+/// `input::group_move_to` already took `orders` 2 into
+/// `GroupAttackToOrder`s. The pool's widening then found `push_group`'s
+/// fresh slot unstamped, which `Groups::copy_group@006fa690` stamps with
+/// the frame; it spends no draw.
+///
+/// **The delta**, this constant's: +497, 753 → 1250, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_FIFTEEN: i64 = 1250;
 
-/// `chapter_fifteen_s_word_frame_is_widened_whole`'s window: run215's
-/// first block to two past the word (item 731, the first pin). Its
-/// pool half, `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
-pub(crate) const WIDENING_CHAPTER_FIFTEEN: (i64, i64) = (605, 755);
+/// `chapter_fifteen_s_word_frame_is_widened_whole`'s window: **run215
+/// whole**, 605 through 1250 (item 731, the word closed). The first pin
+/// was (605, 755) on the word 753. Its pool half, `widen_pool`, reads
+/// who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_FIFTEEN: (i64, i64) = (605, 1251);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
@@ -4351,7 +4362,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 731: run215, chapter fifteen's first walk at 753, on the
     // attack this crate could not take: the six's `ATTACKORDER`s laid on
     // 736, the charge's first roll on 753; and the first golden pool,
-    // widened on the same blocks.
+    // widened on the same blocks. Closed at 1250 by the same item (the
+    // attack command entered, a fresh slot's stamp).
     (
         "GOLDEN_WORD_CHAPTER_FIFTEEN",
         GOLDEN_WORD_CHAPTER_FIFTEEN,

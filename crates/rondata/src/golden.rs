@@ -480,14 +480,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         Some(Issued::AttackMove { who, to, objects }) => {
             crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 2)
         }
-        // SEAM (item 731, `docs/GOLDEN.md` §23): `@attack` is
-        // `issue_attack@009415e0`, whose entry is
-        // [`crate::input::group_attack`]. It stays unwired until the
-        // chapter's floor is pinned on the command skipped.
-        Some(Issued::Attack { .. }) => {
-            done.skip(&word, "the attack command has no entry yet (item 731)");
-            return;
-        }
+        // `@attack` is `issue_attack@009415e0` with `ignore` 0 and
+        // `QUEUE_NEW`, a `group` and an `attack`, whose entry is
+        // [`crate::input::group_attack`] (item 731, `docs/GOLDEN.md` §23).
+        Some(Issued::Attack {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_attack(built, who, &objects, ox, whom, 0, 2),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;

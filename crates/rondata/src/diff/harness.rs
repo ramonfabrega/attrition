@@ -523,7 +523,10 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
     }
     // **The death-object list, both directions and field for field**
     // (`docs/COMBAT.md` §42.1). `DEATH_OBJS` is written at `DEATHS=1` and
-    // above, which is every capture this crate diffs, and no reader had
+    // above, which is every capture this crate diffs but the golden pool
+    // captures (run210, run215: `DEATHS` off under `[End Frame]`, where
+    // the `extra` direction below compares this crate's corpse against a
+    // record nobody asked for, item 731), and no reader had
     // ever opened one: item 485 read a `first_frame` out of the raw text
     // by hand and `cur_anim 17` stood in three documents as a reading.
     //
