@@ -13,31 +13,30 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **3 landings
-since 7958738**, two words and a chapter. Lane att-731 (chapter fifteen) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **4 landings
+since 7958738**, two words and two chapters. Lane att-736 (Great Lakes) is live.*
 
 - **Great Lakes 15384 → 15619** in two: `num_wonders` counts an unfinished
   site (722, AI §70; run211 captured [15435, 15860)), and `take_damage`
   stamps `frame_attacked` below difficulty 2 (729, AI §71). East Indies
   holds at 15985, past run78.
-- **Chapter fourteen closed at 1150** (723, GOLDEN §22, ORDERS §30): no
-  issuer builds a `FormOrder`; `push_group` keeps an equal group's record
-  and a copied group move replays to its `orig`. Both long words held;
-  275's mirror row left every widening and parts on 6864 (732).
+- **Chapters fourteen and fifteen closed at 1150 and 1250** (723, 731,
+  GOLDEN §22–§23): no issuer builds a `FormOrder` or a `GroupAttackOrder`;
+  the census's order row 50 → 52. The pool prints at `GUYS=4` (run215).
 - **Ruled at the pass**: the compared recorder (`diff::compared`, a
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
 - **Fable backlog: 7 Loop items** (677, 685, 697, 727 the remote sweep is
-  the user's, 730, 735, 737 a packet booked for a printed value).
+  the user's, 730, 735 the pool check, 737 a packet for a printed value).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w15985 of 24,000 · GreatLakes w15619 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · 731 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · 738 next
 Endpoint 24001: EastIndies 51 off, 4 unlinked · GreatLakes 22 off, 0 unlinked
 
-**Opener: 731 is live on the rules lane; 736 then 708 on the AI lane
-(Great Lakes is lower); the commander counts landings from 7958738. A
+**Opener: 736 is live on the AI lane, 708 after it (Great Lakes is
+lower); 738 on the rules lane; the commander counts landings from 7958738. A
 capture stanza carries 250 blocks of runway; a detached capture waits on
 `tools/gamelog/waitrun.sh` on either lane; a report quotes the gate's
 `Gate steps:` line; a journal's "for the Loop" line is filed at its
@@ -65,13 +64,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     names this item: capture over the word, sized to it, and widen whole.
     No mechanism.
 
-731. **Chapter fifteen, the group attack — an issuer, no capture yet**
-    (DECISIONS 49; GOLDEN §13's next `—` row; 723 closed chapter fourteen
-    at 1150, the census's order row 50 → 50). `CommandManager::issue_attack
-    @009415e0` on a multi-unit squad from the tracer DLL, a unit target
-    and a ground point, 723's harness. It should enter `GroupAttackOrder`
-    and `GroupAttackToOrder`. The issuer under the emulator first; the
-    premise names its killer. Takes GOLDEN §23; run215, at `cover=0`.
+738. **Chapter sixteen, explore and flee — an issuer, no capture yet**
+    (DECISIONS 49; GOLDEN §13's next `—` row; 731 closed chapter fifteen
+    at 1250, the census's order row 50 → 52). `issue_move_to@00941720`'s
+    trailing selector from the tracer DLL, on a unit and on a squad, 731's
+    harness. It should enter `ExploreToOrder` and `FleeToOrder`; two
+    premises have died on "no issuer builds one". The issuer under the
+    emulator first. Takes GOLDEN §24; run219 at `GUYS=4`, `cover=0`.
 
 ## How to maintain this file
 

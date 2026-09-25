@@ -504,11 +504,16 @@ impl Sim {
                 });
                 self.pushed.len() - 1
             });
+        // `Groups::copy_group@006fa690` stamps the fresh slot with the
+        // frame (`+0x14 = game->frame`), whatever the stack group held:
+        // run215's slot 1 prints `stamp 621`, the frame its selection was
+        // processed (`docs/GOLDEN.md` §23).
         self.pushed[slot] = crate::group::Pushed {
             who: g.who,
             list: g.list.clone(),
             state: GroupState {
                 pool: Some(pool),
+                stamp: self.frame,
                 ..GroupState::default()
             },
         };
@@ -973,6 +978,26 @@ impl Sim {
         self.units[u]
             .group_ptr
             .map_or(-1, |s| who * 64 + i64::from(s))
+    }
+
+    /// The record half of `who`'s pool slot `s` — an army's or a pushed
+    /// group's, whichever [`Sim::pool_list`] would list — for a widening
+    /// that compares the dump's `GROUPDATA` whole (`docs/GOLDEN.md` §23).
+    pub fn pool_state(&self, who: Player, s: u8) -> Option<&GroupState> {
+        let w = who as usize;
+        let army = self
+            .armies
+            .get(w)
+            .into_iter()
+            .flat_map(|x| x.list.iter())
+            .find(|a| a.valid && a.group.pool == Some(s))
+            .map(|a| &a.group);
+        army.or_else(|| {
+            self.pushed
+                .iter()
+                .find(|p| p.who == who && p.state.pool == Some(s) && !p.list.is_empty())
+                .map(|p| &p.state)
+        })
     }
 
     /// The member list of the seat on `who`'s pool slot `s`, as object
@@ -5447,6 +5472,36 @@ mod tests {
             s.units[a].combat.target,
             Some(Obj::Unit(far)),
             "mandatory 1 keeps the given target"
+        );
+    }
+
+    /// **A fresh pool slot is stamped with the frame it was pushed on**,
+    /// and an equal group pushed again keeps its record's stamp:
+    /// `Groups::copy_group@006fa690` writes `+0x14 = game->frame`, and
+    /// `push_group` calls it only on the slot `get_open_slot` hands back
+    /// (`docs/GOLDEN.md` §23, run215's `stamp 621`).
+    #[test]
+    fn a_pushed_group_is_stamped_with_the_frame_it_took_its_slot() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 0, t, Pos::new(0x1200, 0x1000));
+        s.frame = 621;
+        let mut g = Group::stack(0);
+        s.group_add(&mut g, a);
+        s.group_add(&mut g, b);
+        assert!(s.push_group(&mut g, true));
+        let slot = s.units[a].group_ptr.expect("a slot");
+        assert_eq!(s.pool_state(0, slot).map(|st| st.stamp), Some(621));
+        s.frame = 701;
+        let mut again = Group::stack(0);
+        s.group_add(&mut again, a);
+        s.group_add(&mut again, b);
+        assert!(s.push_group(&mut again, true));
+        assert_eq!(
+            s.pool_state(0, slot).map(|st| st.stamp),
+            Some(621),
+            "an equal group is not copied, so its stamp stays"
         );
     }
 

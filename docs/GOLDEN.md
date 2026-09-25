@@ -1290,7 +1290,8 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 |---|---|---|
 | AttackOrder, AttackToOrder | auto, and `CommandManager::issue_attack@009415e0` | 1, 2, 3, 5, 6, 8 |
 | TargetOrder | auto (the search step) | 1 and every combat chapter |
-| GroupAttackOrder, GroupAttackToOrder | `issue_attack` on a multi-unit group | — |
+| GroupAttackOrder | ~~`issue_attack` on a multi-unit group~~ **no issuer makes one** (`docs/ORDERS.md` §7.9): `CommandManager::issue_attack@009415e0` → `Group::action_attack@00712490` gives each member its own `AttackOrder`; only `copy_order` and the save loader build a `GroupAttackOrder` | 15, the group attack (§23), which measures the absence |
+| GroupAttackToOrder | `issue_move_to` with `ATTACK_TO`, a ctrl+right-click on the ground (`WorldMap::on_right_up@008c7050:199`); also the AI's armies and the patrol's legs | 10 (the patrol's legs); 15, the group attack (§23) |
 | MoveOrder, GroupMoveOrder | `CommandManager::issue_move_to@00941720` | 9, the first issuer chapter (§17; the lab validated the issuer) |
 | ExploreToOrder, FleeToOrder | the same entry point, trailing selector | — |
 | PatrolOrder, GroupPatrolOrder | `CommandManager::issue_patrol@00941800`; `PatrolOrder` is never constructed alone (`docs/ORDERS.md` §7.7) | 10, the patrol line (§18) |
@@ -1356,6 +1357,7 @@ below without a run take their number at booking (the eleventh pass).
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
 | 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
+| 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2798,3 +2800,228 @@ Sequence 1150, and no value part. The widening over run210 whole leaves:
 
 The equal-group fix took parked 275's scout row off ten other chapters'
 widenings and the two controls.
+
+## 23. Chapter fifteen — the group attack, an issuer the AI rarely takes whole (item 731)
+
+**Premise.** A player's attack on an enemy unit, issued through the
+original's own issuer, **makes no group order**. Each member, figures
+too, gets its own `AttackOrder` (type 10) on the target, `mandatory` 1,
+`new_ord` 1, with the action bit, and walks, fights and stops on its own.
+A player's attack-move on the ground **is** a group order: each member
+of a land group gets a `GroupAttackToOrder` (type 21). The booked premise
+was that `issue_attack` enters both classes (§13's table). The reading
+kills half of it before the run: `issue_attack` takes a target, never a
+point, and no issuer builds a `GroupAttackOrder`. No capture on disk
+holds a player's attack command: the console has no attack verb, and
+every attack on disk is the AI's `engagement` (`mandatory` 0) or an
+auto-engage. `tools/gamelog/golden/chapter15.cmd` has the reading with
+its citations.
+
+**The issuer, under the emulator first**, on
+`tools/explore/command_oracle.py`'s fixture widened to who=0's objects
+6–14, with 6, 9 and 12 as captains (a scratch script in the job's tmp dir).
+
+- **`CommandManager::issue_attack@009415e0(group, ox, whom, ignore,
+  queued)` appends 26 bytes** for three captains: the 9-byte `group` and
+  a 17-byte `attack`, type `0x04`, `[ox][whom][ignore][queued]`
+  (`docs/COMMANDS.md` §3).
+- **It writes** the package and the selection caches, and nothing else.
+  The same selection again appends the 3-byte reuse. `ignore 7` and every
+  queue ride through as passed, and a non-captain is dropped.
+- **A negative `ox` or `whom` appends nothing and writes nothing**: the
+  issuer tests both before `check_accept_issue`. `use_mp_playback`,
+  `semaphore & 0x10` and `semaphore & 4` each append nothing.
+- **The ground point is not this issuer's.** A ctrl+right-click is
+  `issue_move_to@00941720(…, ATTACK_TO, −1, −1, 0)`
+  (`WorldMap::on_right_up@008c7050:199`), and the emulator appends its
+  22-byte `move_to` with the `orders` byte 2.
+- **The DLL's two new verbs.** `@attack <who> <ox> <whom> <o>…` passes
+  `ignore` 0 and QUEUE_NEW, the right-click's bytes
+  (`Console::execute_at_cursor@007c6630:2741` through
+  `GroupOut::issue_attack@0070b060`). `@amove` is `@move` with ATTACK_TO.
+  Both compile `-Werror`, plain and under `RON_AUTOSTART`.
+- **What the emulator cannot reach**: `process_attack@00949c30` →
+  `Group::action_attack@00712490` → `Unit::add_attack_order@005e5410`,
+  and `process_move_to@009497c0` → `action_move_near@00704990` →
+  `Unit::add_group_move_order@005e4710`.
+
+**The reading.**
+
+- **No `GroupAttackOrder`.** Nothing asks `OrdersMemManager::get_obj`
+  for `GROUP_ATTACK` (20). `get_new_order@00730550:193` builds one only
+  for the save loader and for `copy_order@0072f900`, which copies an
+  order that exists (`docs/ORDERS.md` §7.9). A record would print as
+  `GroupAttackOrder`, mixed case (`GroupAttackOrder::log_data@00485140`),
+  and `get_type@00485320` answers 20.
+- **The attack** (`docs/ORDERS.md` §8.5, `docs/GROUPS.md` §10).
+  `process_attack` hands the command on when the target's object is
+  active and calls `action_attack(g, ox, whom, mandatory 1, queued,
+  ignore)`. For a unit group on the map, a unit target and QUEUE_NEW:
+  1. The leader, out of range, asks `find_attack_pos` once
+     (`action_attack+0x41a`).
+  2. Three passes, one a domain. Each member that is not already on a
+     mandatory attack of this target gets `add_attack_order(ox, whom,
+     QUEUE_NEW, mandatory 1, action 1)`.
+  3. QUEUE_NEW closes the member's orders, so the right-click's group
+     move goes. `mandatory` 1 skips the `find_melee_target` retarget,
+     which is the AI's arm.
+- **The attack-move.** `action_move_near`'s step 6 (`docs/GROUPS.md`
+  §6.6) gives each member of a land group of two or more a group move,
+  unless it is modern infantry, a scout, sea, `unit_masks & 4` or form 9.
+  `add_group_move_order` asks `get_obj(GROUP_ATTACK_TO)` when its kind
+  is 2. Its step, `Unit::do_group_attack_to@005e74e0`, is
+  `do_group_move` plus a `find_melee_target(−1, …)` look every
+  fifteenth frame, `(o + frame) % 15 == 0`.
+
+**The cast**, on chapter thirteen's ground and chapter eleven's column
+north of it (cells x 3–5, y 9–22, BASELAND, no border):
+
+- two Hoplite squads, captains `0/6` (the leader) and `0/9`;
+- a Chariot of who=1, `1/6`, at (3192, 12408), about 3,840 north.
+
+A Hoplite sees about 1,150 and searches 2,304 (`unit_respond_range` 12
+× `0xc0`). The Chariot sees about 1,730 and outranges it. **No ground
+lets who=0 see the Chariot while nobody engages**, and a click can name
+only a seen target: `execute_at_cursor` filters on `FILTER_SEEN`, and
+`fight`'s `valid_target` drops an unseen one on its first step. So the
+group walks in under a right-click, through the Chariot's spot. The
+move's action bit keeps it from answering fire, and the attack comes
+fifteen frames after this crate first sees the target.
+
+**Lines.**
+
+- `0 !ai off`.
+- `610 add hoplite who=0 12,84`, `612 add hoplite who=0 18,84`, `614 add
+  chariot who=1 16,64`.
+- `620 @move 0 3192 10752 6 9`: north, past the target.
+- `734 @attack 0 6 1 6 9`: the right-click on `1/6`.
+- `860 @amove 0 3192 7680 6 9`: the attack-move north, on the ground.
+
+A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1250)`, beside run105's `start:`
+set. These are run178's levels, the one line whose pool printed.
+`GroupData::log_data@0045e1d0` sets no logger type of its own, so the
+pool passes `GameLog::check_accept@009309a0` only on the type and detail
+the dumper before it left. run210 asked at `GUYS=2` and got none (parked
+733). `DEATHS` and `AMMO` are off, so the target's death is read off
+`UNITS`.
+
+**The premise's killer, and its writers** (§3, point 5).
+
+- **A `GroupAttackOrder` record anywhere**, in either spelling. Its only
+  builder, `get_new_order`, is reached by `copy_order`, which
+  `set_up_insert` alone calls on an order that exists, and by the save
+  loader.
+- **The `mandatory` byte**, `AttackOrder +0x1c`. Its writer on this path
+  is `add_attack_order`'s `param_4`, which `action_attack` passes as its
+  own `param_3` and `process_attack` passes as 1.
+- **The kind 2.** `process_move_to` passes the packet's `orders` byte to
+  `action_move_to`, and `add_group_move_order` tests `param_10 == 2`.
+- `check_accept_issue` and `process_group`'s player test are chapter
+  nine's (§17).
+- **The loops' bounds.** `action_attack`'s member loop runs to
+  `group.num` (`+0xc`, below `0x80` in `Group::add`), here six, inside
+  `local_14 < 3` domain passes. `action_move_near`'s runs to the same
+  `num`.
+
+**What would falsify it, and where each could first fire.**
+
+1. **The issuer does not reach the pump.** Trace frames 620, 734 and
+   860: an `INFO` 17 with a refusal. Or no `COMMANDMANAGER`
+   `process_attack` naming `6 1 0 2` between blocks 735 and 736, or no
+   `process_move_to 3192 7680 2 0 0 2 0` between 861 and 862.
+2. **A `GroupAttackOrder` is made.** Any `GroupAttackOrder` or
+   `GROUPATTACKORDER` block, from 736 on.
+3. **The attack is not six `AttackOrder`s.** Block 736: any of `0/6`–`0/11`
+   without an `ATTACKORDER` on `ox 6 whom 1` with `1/6`'s `uid`,
+   `mandatory 1` and the action bit (`flags & 4`), or with the
+   right-click's `GROUPMOVEORDER` still under it.
+4. **The approach does not hold its target.** Any `ATTACKORDER` on
+   another object while `1/6` prints, or `1/6` still printing on block
+   900.
+5. **The death leaves them ordered.** Block 850: a member whose stack is
+   not empty. A resumed right-click leg would fire here.
+6. **The attack-move is not six `GroupAttackToOrder`s.** Block 862: a
+   member without one `GROUPATTACKTOORDER` (type 21) with `flags & 4`,
+   `orig` (3192, 7680), one id and leader `oxx 6`, unless its
+   `unit_masks & 4` holds (step 6's exemption, a plain `ATTACKTOORDER`).
+7. **They do not arrive.** Block 1200: a member still ordered, or
+   standing more than a tile from its slot round (3192, 7680).
+
+**This crate's prediction**, walked from run210's start with `@attack`
+through `crate::input::group_attack` (a scratch walk; run210 is the same
+game to 610):
+
+- The group walks from 622 and sees `1/6` from 719. The Chariot shoots
+  from 728.
+- On 736, each member holds an `ATTACK` on `1/6` under a `MOVE_TO`
+  approach leg.
+- Contact on about 775. `1/6` falls to 19 hits by 780 and dies by 810.
+  The stacks are empty by 840.
+- On 862, six `GroupAttackToOrder`s. They ungroup to plain
+  `ATTACKTOORDER`s near the point about 1060 and stand by 1080.
+
+Predicted: none fires. **The harness skips `@attack`**, a named seam in
+`crate::golden` until the floor is pinned. `crate::input::group_attack`
+is built, and the scratch walk used it. So the word should part on 736,
+where the original's six charge and this crate's walk on.
+
+**Run 2026-09-25 as run215 (item 731)** (`docs/RUNS.md` has the tables).
+
+- **No falsifier fired.** All three commands reached the pump on the next
+  frame, among them `process_attack 6 1 0 2 735`.
+- **The dump holds no `GroupAttackOrder`**, in either spelling. The kill of
+  the booked premise's first half stands, measured.
+- On 736 each member holds one `ATTACKORDER` on `ox 6 whom 1`, `uid 12`,
+  `mandatory 1`, `new_ord 1`, `flags 20`, over a `MOVEORDER` approach
+  leg. The right-click's group move is gone. `0/6` stands on (2999,
+  13821), this crate's point.
+- In range by 780. **`1/6` last prints on 808.** The stacks empty by 850.
+- On 862 each member holds one `GROUPATTACKTOORDER`, `flags 5`, id
+  861102, `orig` (3192, 7680), leader `oxx 6`. None has `unit_masks & 4`.
+- They ungroup to plain `ATTACKTOORDER`s on 1060 and stand from 1080 on
+  exactly the six points this crate predicted.
+- **The pool printed**: 330,240 `GROUPDATA` at `GUYS=4`, where run210's
+  `GUYS=2` printed none.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_FIFTEEN` = 753, open.**
+The harness skipped `@attack`, so this crate's six walked on under the
+right-click where the original's charged from 736. The charge spends no
+draw until **753**: 6 draws against 7, parting at draw 0 on the
+original's `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+- **The widening** over (605, 755) holds the standing rows on 605, the
+  births' `form`, the right-click's group `id` on 622 (parked 689), and
+  on 736 105 keys of the six, every one of them the skipped attack's.
+  It failed first on an empty pin.
+- **The pool's widening**, `widen_pool`, is the first on a golden
+  capture: who=0's 64 slots, both directions, on what each holds. Slot 1
+  is the pushed selection from 621. Its **`stamp` (`+0x14`) is 621 in
+  the dump and 0 here**: this crate's pushed record never writes it. The
+  rest is the skipped attack's (`order_num`, `facing` on 736, `curr` on
+  738).
+- **The coverage pin** failed first on `process_attack`, pinned unread
+  beside its siblings. Its driver takes 620..624, 734..738, 751..755,
+  807..811, 860..864 and 1058..1062.
+
+**Closed at 1250 by the same item.**
+- **The entry.** `rondata::input::group_attack` pushes the group and
+  calls `Sim::group_action_attack` with `mandatory` 1. That alone moved
+  the word 753 → 1250, run215's trace end: sequence 1250, no value part.
+  The attack-move needed nothing new: `input::group_move_to` already took
+  `orders` 2 into `GroupAttackToOrder`s, and they agree value for value
+  from 862 to the arrival.
+- **A fresh slot's `stamp`.** `Groups::copy_group@006fa690` writes `+0x14
+  = game->frame` on the slot `push_group` copies into. This crate's
+  record started at 0. It is stamped now, and the pool widening parts
+  nowhere on run215's 645 blocks. Nothing here reads a pushed `stamp`,
+  so no draw moved.
+
+The widening over run215 whole leaves:
+- the births' `form`;
+- the group move's `id` from 622 (parked 689);
+- one instrument row, `1/6`'s death object `extra` on 809. `DEATHS` was
+  off for the pool, and `DEATH_OBJS` prints a record per corpse and
+  nothing else, so the dump cannot say the list was not asked for.

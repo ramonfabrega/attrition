@@ -6982,3 +6982,79 @@ a blocked step, which ours does not. **Sized with 250 blocks of runway**
 (DECISIONS 50 §7): six blocks shared with run211, the 601 up to the word,
 its block, and 250 above it. The readings and their kills are in the
 stanza.
+## run215 — chapter fifteen, the group attack (2026-09-25, item 731)
+
+`docs/GOLDEN.md` §23, `tools/gamelog/golden/chapter15.cmd`. The cast is
+two Hoplite squads, `0/6`–`0/8` on 610 and `0/9`–`0/11` on 612, and a
+who=1 Chariot `1/6` on 614 at (3192, 12408). Three **player commands**
+go through the DLL:
+- a right-click `@move` on 620, north past the Chariot;
+- `@attack` on 734, through `CommandManager::issue_attack`, the new verb;
+- `@amove` on 860, `issue_move_to` with `ATTACK_TO`, the other new verb.
+
+The staging, the premise's killer and the falsifiers were committed
+before the run (`eff8b57`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch15 \
+    --map 14 --end-frame 1250 --log-window 605 1250 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter15.cmd
+```
+
+**The capture.** One take at `cover=0`: **about 13 minutes from launch
+(09:04) to exit (09:17), 269 MB of dump and 11.1 MB of trace**, 647
+blocks.
+- The receipt says `success: true` and exit 0, with 1,251 frames,
+  `MAP_STYLE 14` and seed 12345.
+- `cmdsran.py` has all six cheat lines returning 1.
+- `waitrun.sh` exited 0 on the click-free lane's receipt.
+- The lane lock was stale (pid 46167, 07:30).
+
+**It is the same game as run210 to frame 614.** `rngcmp.py` finds 615
+frames identical. The first difference is at 615, the frame after the
+third `add`: a Chariot here, a Slinger there.
+
+**The pool came out: 330,240 `GROUPDATA` records**, 512 on each of the
+645 window blocks. The level was `GUYS=4` with neither `DEATHS` nor
+`AMMO`, run178's. run210 asked at `GUYS=2` and got none. That makes
+`GUYS=2` the likelier cause of run210's loss (parked 733), not a proof:
+this line changed `GUYS` alone against run210's set, but the cast
+differs too. The cost is the size: `GUYS=4` took the dump from run210's
+97 MB to 269 MB over a window 100 blocks longer.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6` uid 13 at (2424, 16248); `0/9` uid 16 at (3576, 16248) |
+| 620 | `INFO 17` | line 5, refusal 0, package 10 → 39 bytes: a 7-byte `group` of two and the 22-byte `move_to` |
+| 734 | `INFO 18` | `0/6` at (2983, 13858), `0/9` at (3414, 13866), walking |
+| 734 | `INFO 17` | line 6, refusal 0, package 10 → 30 bytes: the 3-byte reuse and the **17-byte `attack`** |
+| 860 | `INFO 17` | line 7, refusal 0, package 10 → 35 bytes: the reuse and a `move_to` |
+
+### The processed commands, and §23's falsifiers
+
+The dump prints three commands between blocks:
+- `process_group, new 0 2 621` and `process_move_to 3192 10752 2 0 0 1
+  0` between 621 and 622;
+- `process_group, repeat 0 0 735` and **`process_attack 6 1 0 2 735`**
+  between 735 and 736;
+- `process_group, repeat 0 0 861` and `process_move_to 3192 7680 2 0 0
+  2 0` between 861 and 862, `orders` 2.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | three commands, each processed on the next frame | as predicted |
+| 2, no `GroupAttackOrder` | none in either spelling | **none in the whole dump** |
+| 3, six `AttackOrder`s | one a member on 736, `ox 6 whom 1`, `mandatory 1`, the action bit, no group move under it | exactly so: `uid 12`, `flags 20`, `new_ord 1`, each over a `MOVEORDER` approach leg (`flags 1`); the right-click's group move is gone |
+| 4, the target held | no other target while `1/6` prints; dead by 900 | held; in range by 780 (`in_range 1`, `new_ord 0`); **`1/6` last prints on 808** |
+| 5, stacks empty after | empty on 850 | empty on 850: `0/7`, `0/8` by 810, the rest by 850 |
+| 6, six `GroupAttackToOrder`s | one a member on 862, `flags & 4`, `orig` (3192, 7680), one id, leader `oxx 6` | exactly so: type 21, `flags 5`, id **861102**; no member has `unit_masks & 4` |
+| 7, arrival | stacks empty by 1200 on slots round the point | ungrouped to plain `ATTACKTOORDER`s (type 2) on 1060, empty from 1080 on (2976, 7670), (2856, 7656), (3096, 7656), (3384, 7704), (3240, 7704) and (3528, 7704) |
+
+**No falsifier fired.** The six arrival points are the ones this crate's
+scratch walk predicted, to the unit. On 736 every member stands where
+the scratch walk put it on the tick before, (2999, 13821) for `0/6`.
