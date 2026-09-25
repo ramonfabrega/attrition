@@ -3005,6 +3005,28 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FIFTEEN: i64 = 1250;
 /// who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_FIFTEEN: (i64, i64) = (605, 1251);
 
+/// **Chapter sixteen's golden word** — explore and flee, the move
+/// issuer's trailing selector (`docs/GOLDEN.md` §24, item 738, run219): a
+/// Chariot and a Hoplite squad told to explore through the DLL's
+/// `@explore` and to flee through `@flee`, `issue_move_to` with `orders` 3
+/// and 4, each explorer walking past a goody box.
+///
+/// **The first walk, 838, open.** The crate took both selectors from the
+/// start (`input::group_move_to` with `orders` 3 and 4), and every class,
+/// box leg and box opening agreed. It parted on the **re-issue behind the
+/// box leg**: `Group::finish_insert@0070e620` replays the copied explore
+/// to its `orig`, the click, and this crate, which carried no `orig` on a
+/// plain move, replayed it to the snapped `dest`. The original's chariot
+/// stands on its click on 838 and goes idle — two `Guy::set_anim+0x97a <
+/// Unit::do_idle+0x7d` rolls, 7 draws against this crate's 5, parting at
+/// draw 0 — while this crate's walks on to (2424, 17304).
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTEEN: i64 = 838;
+
+/// `chapter_sixteen_s_word_frame_is_widened_whole`'s window: 605 through
+/// the word's next block, 839 (item 738). Its pool half, `widen_pool`,
+/// reads who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 840);
+
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
 /// 1250 is run184's trace end, and nothing parts on any frame of it:
@@ -4370,6 +4392,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_fifteen_s_word_frame_is_widened_whole"),
         731,
         Some(WIDENING_CHAPTER_FIFTEEN),
+    ),
+    // Item 738: run219, chapter sixteen's first walk at 838, on the
+    // re-issue behind a goody-box leg: `finish_insert` replays a plain
+    // move to its `orig`, which this crate did not carry; the chariot's
+    // plan goal on 685, its arrival on 838; and the pool on the same
+    // blocks.
+    (
+        "GOLDEN_WORD_CHAPTER_SIXTEEN",
+        GOLDEN_WORD_CHAPTER_SIXTEEN,
+        Some("chapter_sixteen_s_word_frame_is_widened_whole"),
+        738,
+        Some(WIDENING_CHAPTER_SIXTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

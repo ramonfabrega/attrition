@@ -642,6 +642,40 @@ fn chapter_fifteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter sixteen, pinned** — explore and flee, the move issuer's
+/// trailing selector (`docs/GOLDEN.md` §24, item 738, run219). Seven
+/// staged lines: `!ai off`, a Chariot on 610, a Hoplite squad on 612,
+/// and four issuer lines — `@explore` on 620 and 640, `@flee` on 900 and
+/// 1000 — which the harness runs one frame later through
+/// `input::group_move_to` with `orders` 3 and 4.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run219): one `EXPLORETOORDER` or `FLEETOORDER` a member and no group
+/// order; box legs on 685 and 804, boxes opened on 730 and 855; the
+/// re-issue behind a box leg goes to the click. No falsifier fired.
+///
+/// `GOLDEN_WORD_CHAPTER_SIXTEEN` carries what stands at the word.
+#[test]
+fn chapter_sixteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch16", "chapter16", 16, 7, 1250) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SIXTEEN,
+        "chapter sixteen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SIXTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SIXTEEN,
+        "chapter sixteen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §24"
+    );
+    eprintln!(
+        "chapter sixteen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6647,6 +6681,183 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // `facing` and `curr`.
     let want_pool: Vec<String> = Vec::new();
     assert_eq!(got_pool, want_pool, "ch15: what parts in the pool moved");
+}
+
+/// **Chapter sixteen's word, widened whole, both directions** (item
+/// 738). Every record run219 carries on every block of
+/// [`WIDENING_CHAPTER_SIXTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the Chariot `0/6` and the squad `0/7`–`0/9` under their
+/// explores and their box legs — every building, both leaders at
+/// `LEADERS=2`; and who=0's `GROUPDATA` pool by [`widen_pool`], where each
+/// box leg's pushed group sits. run219 dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_sixteen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch16",
+        "chapter16",
+        WIDENING_CHAPTER_SIXTEEN,
+        1250,
+        0,
+        (836, 839),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch16 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIXTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch16: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIXTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch16", "chapter16", WIDENING_CHAPTER_SIXTEEN, 0)
+        .expect("run219 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch16 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §24). Each staged unit's `form` on its birth block, the standing
+    // family.
+    //
+    // **The first pin, word 838, open**: the re-issue behind a goody-box
+    // leg. `finish_insert` replays the copied explore to its `orig`, the
+    // click, and this crate replayed it to the snapped `dest`: `0/6`'s
+    // plan goal on 685 is (2424, 17304) against (2400, 17280), and from
+    // it the waypoint on 779, the heading and the one-unit drift of 793
+    // and 797, and the arrival — the original's chariot stands on the
+    // click on 838 and goes idle, the word's two `Unit::do_idle` rolls.
+    // The squad's re-issue on 804 is the same seam: laid out round the
+    // leader's slot, `0/8` to (12600, 15096) against (12552, 15048), and
+    // its next box-leg re-aim on 819 carries it.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "613 0/8 form",
+        "613 0/9 form",
+        "685 0/6 path[0].to",
+        "779 0/6 angle:Heading",
+        "779 0/6 g.des_angle[0]",
+        "779 0/6 heading",
+        "779 0/6 order:move.dest_x",
+        "779 0/6 order:move.dest_y",
+        "782 0/6 angle:Facing",
+        "782 0/6 g.angle[0]",
+        "782 0/6 g.angle[1]",
+        "782 0/6 g.des_angle[1]",
+        "793 0/6 g.des_y[0]",
+        "793 0/6 g.des_y[1]",
+        "793 0/6 g.last_speed[0]",
+        "793 0/6 g.last_speed[1]",
+        "793 0/6 g.y[0]",
+        "793 0/6 g.y[1]",
+        "793 0/6 pos",
+        "797 0/6 g.des_x[0]",
+        "797 0/6 g.des_x[1]",
+        "797 0/6 g.x[0]",
+        "797 0/6 g.x[1]",
+        "804 0/7 path[0].to",
+        "804 0/8 order:move.off_x",
+        "804 0/8 order:move.off_y",
+        "804 0/8 order:move.x",
+        "804 0/8 order:move.y",
+        "804 0/8 orders_x",
+        "804 0/8 orders_y",
+        "804 0/8 path[0].to",
+        "804 0/9 path[0].to",
+        "819 0/7 order:move.angle",
+        "819 0/8 angle:Facing",
+        "819 0/8 angle:Heading",
+        "819 0/8 g.angle[0]",
+        "819 0/8 g.des_angle[0]",
+        "819 0/8 heading",
+        "819 0/8 order:move.angle",
+        "819 0/8 order:move.dest_y",
+        "819 0/8 path[1].to",
+        "819 0/9 angle:Facing",
+        "819 0/9 angle:Heading",
+        "819 0/9 g.angle[0]",
+        "819 0/9 g.des_angle[0]",
+        "819 0/9 heading",
+        "819 0/9 order:move.angle",
+        "819 0/9 order:move.dest_x",
+        "819 0/9 order:move.dest_y",
+        "819 0/9 order:move.off_x",
+        "819 0/9 order:move.x",
+        "819 0/9 path[1].to",
+        "823 0/9 g.des_x[0]",
+        "823 0/9 g.x[0]",
+        "823 0/9 pos",
+        "838 0/6 g.avg_speed[0]",
+        "838 0/6 g.avg_speed[1]",
+        "838 0/6 order:length",
+        "838 0/6 orders.len",
+        "838 0/6 orders_x",
+        "838 0/6 orders_y",
+        "838 0/6 path:length",
+        "839 0/6 g.cur_time[0]",
+        "839 0/6 g.cur_time[1]",
+        "839 0/6 g.end_time[1]",
+        "839 0/6 g.last_time[0]",
+        "839 0/6 g.last_time[1]",
+        "839 0/6 g.stopped[1]",
+        "839 0/6 idle",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch16: what parts under the word moved");
+    // **What parts in the pool.** Slot 0 is the squad's explore (641),
+    // slot 1 the chariot's (621); the chariot's box leg on 684 frees slot
+    // 1 and takes slot 2, the squad's on 803 takes slot 1 back.
+    //
+    // - `ox`/`oy` on the box leg's slot: the re-issue's group point, the
+    //   click there and the snap here — the seam above.
+    // - `speed`/`new_speed` on 685 and 804: `Groups::get_open_slot@
+    //   006fa460` asks each live slot it walks past for `get_num` (vslot
+    //   `+4`), which normalizes a seated group of fewer than four and so
+    //   re-seats its speed (`docs/GROUPS.md` §4.1, §18.1): the squad's
+    //   slot 0 takes 25 on the chariot's push. This crate does not model
+    //   the slot allocation (`docs/GROUPS.md` §3's table), and nothing a
+    //   plain explore steps reads a group's speed.
+    let mut want_pool: Vec<String> = [
+        "685 slot 0 new_speed",
+        "685 slot 0 speed",
+        "685 slot 2 new_speed",
+        "685 slot 2 ox",
+        "685 slot 2 oy",
+        "685 slot 2 speed",
+        "804 slot 1 new_speed",
+        "804 slot 1 ox",
+        "804 slot 1 oy",
+        "804 slot 1 speed",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).

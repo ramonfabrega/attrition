@@ -484,6 +484,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch13 = golden_dump("ch13");
     let ch14 = golden_dump("ch14");
     let ch15 = golden_dump("ch15");
+    let ch16 = golden_dump("ch16");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -887,6 +888,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 736, 753, 809, 862, 1060] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter fifteen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter sixteen's word, on run219** (item 738): the first
+    // player's explore and flee commands on disk (`process_move_to`'s
+    // `orders` 3 and 4) and the first goody-box legs a player's explorer
+    // takes. 622 and 642, the explores; 685, the chariot's box leg; 730,
+    // its box opened; 804, the squad's box leg; 838, the word; 902 and
+    // 1002, the flees.
+    if let Some(p) = &ch16 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTEEN;
+        for w in [622, 642, 685, 730, 804, 838, 902, 1002] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixteen carries the window's five blocks");
             frames += n;
         }
     }
