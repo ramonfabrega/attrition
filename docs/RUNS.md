@@ -6960,3 +6960,25 @@ with no human at the menu. Waited on with `waitrun.sh`, exit 0.
 - The floor is run202's walk (401, nothing on run202's runway since item
   722), then 78 keys on run211's own blocks up to the word, and 1003 to
   the window's end.
+
+## run218 — Great Lakes' word 16460, past run211's last block (2026-09-25, item 736)
+
+**What it is.** run211's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15854, 16712)`, plus `rontrace.cfg` `cover=1` and `window=16456-16464`
+over the word. `!quit` at 16722, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 736
+```
+
+**Why it was owed.** Item 736 moved Great Lakes' word 15619 → 16460:
+the siege arm's sub-group lays out on its own cleared `facing`
+(`docs/GROUPS.md` §26). run211 ends on block 15859, so the word's block
+16461 is on no disk. On 16460 ours spends 1 draw against 3, parting at
+index 1: the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`,
+a blocked step, which ours does not. **Sized with 250 blocks of runway**
+(DECISIONS 50 §7): six blocks shared with run211, the 601 up to the word,
+its block, and 250 above it. The readings and their kills are in the
+stanza.

@@ -2173,6 +2173,20 @@ impl Sim {
             self.group_action_move_to(g, to, QueuePos::New, true, angle, MoveKind::AttackTo, true);
             return;
         }
+        // **The sub-group's record is its own** (§26): `Group::clear(-1)` on
+        // the stack, then the parent's `id` and `army` and `stamp = 0`
+        // (`0070d830:60–66`). Its layout reads that record's `facing`, 0,
+        // and writes that record, which the original discards on return.
+        // This crate keys a group's record by its seat, so the parent's is
+        // set aside while the sub-group moves and put back after it.
+        let stack = GroupState {
+            stamp: 0,
+            pool: self.gstate(&sub).and_then(|st| st.pool),
+            ..GroupState::default()
+        };
+        let parent = self
+            .gstate_mut(&sub)
+            .map(|st| std::mem::replace(st, stack));
         self.group_action_move_to(
             &sub,
             to,
@@ -2182,6 +2196,9 @@ impl Sim {
             MoveKind::AttackTo,
             true,
         );
+        if let (Some(p), Some(st)) = (parent, self.gstate_mut(&sub)) {
+            *st = p;
+        }
         // `action_guard(anchor, who, QUEUE_NEW, 1)` on the parent: the
         // rest escort the anchor while it walks in (`docs/ORDERS.md` §24).
         // Golden chapter four's word, 1277: an AI army with a Supply Wagon

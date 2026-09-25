@@ -1653,6 +1653,15 @@ pub(crate) fn widen_block(
                 un.orders.len() as i64,
                 Some(them.orders.len() as i64),
             ),
+            // **The unit's own mirror, `unit_masks & 2`** (item 736):
+            // carried since item 711 (`docs/GROUPS.md` §25) and read by
+            // `do_guard` off its target, and compared nowhere until the
+            // Despot's escort traded posts on Great Lakes 15607.
+            (
+                "mirror".into(),
+                i64::from(un.movement.mirror),
+                them.unit_masks.map(|m| i64::from(m & 2 != 0)),
+            ),
         ];
         // The collision block and the two masks, **ungated by the
         // position** — the whole point of this test.
@@ -1779,7 +1788,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "sheltered" => ("UnitDump", "unit_masks2"),
         "orders.len" => ("UnitDump", "orders"),
         "guys.len" => ("UnitDump", "guys"),
-        "half_step" | "packed" => ("UnitDump", "unit_masks"),
+        "half_step" | "packed" | "mirror" => ("UnitDump", "unit_masks"),
         "dest_angle" => ("UnitDump", "dest_angle"),
         "orders_x" => ("UnitDump", "orders_x"),
         "orders_y" => ("UnitDump", "orders_y"),
