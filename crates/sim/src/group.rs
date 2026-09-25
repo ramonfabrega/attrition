@@ -3339,6 +3339,171 @@ mod tests {
         assert_eq!(sf.home, Some(base));
     }
 
+    /// A plane on run223's numbers: `MOVES 75`, air domain, its figure
+    /// seated, pointed where the test wants it. `bomber` puts its type on
+    /// the `0x130` line.
+    fn plane(s: &mut Sim, at: Pos, heading: Angle, bomber: bool) -> usize {
+        let mut t = UnitType {
+            hits: 100,
+            moves: 75,
+            turn_speed: crate::movement::degrees_to_angle(10).0,
+            kind: crate::attrition::UnitKind {
+                domain: Domain::Air,
+                ..crate::attrition::UnitKind::default()
+            },
+            combat: combat::Profile {
+                attack: 15,
+                uber_size: 1,
+                domain: Domain::Air,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        };
+        let ty = s.add_unit_type(t);
+        if bomber {
+            // After the add, which indexes the leaders' tech bits by it: a
+            // hand-built tree holds no `0x130`, and `is` answers the
+            // equality alone.
+            s.unit_types[ty].tree = Some(0x130);
+        }
+        let u = spawn(s, 0, ty, at);
+        s.units[u].kind = s.unit_types[ty].kind;
+        s.units[u].movement.speed = 75;
+        s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+        s.units[u].movement.heading = heading;
+        s.units[u].movement.facing = heading;
+        s.init_guys(u, Some(ty));
+        u
+    }
+
+    /// **The Fighter's first frame home is run223's block 642, field for
+    /// field** (`Unit::do_air_physics@005e86d0`, `docs/ORDERS.md` §33).
+    /// `check_fuel` aims at the landing point pushed half the distance
+    /// back along the approach, (11424, 15089); the returning bank wants
+    /// its double, clamps at 55 and steps 10, and turns twice by the
+    /// half-degree floor; banked, the plane flies at three quarters, and
+    /// within `0x600` of its point at half that, 28; the pitch climbs 2 and
+    /// lifts the figure 2. Made to fail with each arm changed: without the
+    /// second turn the heading is one floor short, without the halving the
+    /// step is (48, 27).
+    #[test]
+    fn a_fighter_s_first_frame_home_is_run223_s_642() {
+        let mut s = sim();
+        let (base, _) = airbase_and_target(&mut s);
+        let u = plane(&mut s, Pos::new(11640, 16248), Angle(0x5555_5555), false);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
+        let seed = s.rng.seed;
+        // Frame 641: `(0 + 641) & 7 != 0`, no redraw.
+        assert_eq!(s.plane_air_physics(u, 641), crate::air::Flew::On);
+        assert_eq!(s.rng.seed, seed, "no draw off the eighth frame");
+        assert_eq!(s.units[u].pos, Pos::new(11664, 16262), "run223's 642");
+        assert_eq!(s.units[u].movement.heading, Angle(1_419_725_301));
+        assert_eq!(s.units[u].path[0].to, Pos::new(11424, 15089));
+        let af = s.units[u].airframe;
+        assert_eq!(af.bank.bits(), 0x4120_0000, "bank 10, the guy's sign");
+        assert_eq!(af.pitch.bits(), 0x4000_0000, "pitch 2");
+        assert_eq!((af.z, af.last_z), (2, 0), "the climb's first step");
+    }
+
+    /// **The redraw is a non-bomber's, every eighth frame phased by `o`**
+    /// (`Unit::do_air_physics+0xba`): `(r % 7 + 13) · 100`, and a Bomber
+    /// holds `0x640` and throws nothing. Made to fail by dropping the
+    /// bomber test (a draw appears) and by un-phasing the cadence (the
+    /// Fighter draws on 648 and not on 647).
+    #[test]
+    fn only_a_non_bomber_redraws_its_altitude_and_only_on_its_eighth_frame() {
+        let mut s = sim();
+        let (base, _) = airbase_and_target(&mut s);
+        let b = plane(&mut s, Pos::new(13176, 16248), Angle(0x5555_5555), true);
+        let f = plane(&mut s, Pos::new(11640, 16248), Angle(0x5555_5555), false);
+        assert_eq!((s.units[b].index, s.units[f].index), (0, 1));
+        s.group_action_flight(&group_of(0, &[f, b]), Obj::Building(base), Flight::Home);
+        let alt = |s: &Sim, u: usize| match s.units[u].orders.front().map(|o| o.body) {
+            Some(Body::Strafe(sf)) => sf.cruising_alt,
+            _ => panic!("a strafe"),
+        };
+        // 648: `(0 + 648) & 7 == 0` is the Bomber's, and it draws nothing.
+        let seed = s.rng.seed;
+        s.plane_air_physics(b, 648);
+        assert_eq!(s.rng.seed, seed, "a Bomber throws no redraw");
+        assert_eq!(alt(&s, b), 0x640);
+        // 648 is not the Fighter's (`o` 1): nothing.
+        s.plane_air_physics(f, 648);
+        assert_eq!(s.rng.seed, seed, "off its eighth frame");
+        // 647 is: `(1 + 647) & 7 == 0`.
+        let mut probe = s.rng;
+        let want = (probe.roll() % 7 + 13) * 100;
+        s.plane_air_physics(f, 647);
+        assert_eq!(s.rng, probe, "one draw");
+        assert_eq!(alt(&s, f), want);
+    }
+
+    /// **The landing** (`Unit::land_plane@005e9950`): inside a step and a
+    /// half of the landing point the plane lands — the strafe home
+    /// cleared, the plane inside its base, off the map, on the point it
+    /// reached, its attitude kept. Made to fail by testing the landing
+    /// against a single step (it flies on).
+    #[test]
+    fn a_plane_inside_a_step_and_a_half_of_its_point_lands_in_its_base() {
+        let mut s = sim();
+        let (base, _) = airbase_and_target(&mut s);
+        let at = Pos::new(11424, 13920 + 100);
+        let u = plane(&mut s, at, Angle(0), false);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
+        assert_eq!(s.plane_air_physics(u, 721), crate::air::Flew::Done);
+        assert!(s.units[u].orders.is_empty(), "the strafe home is gone");
+        assert!(s.units[u].path.is_empty());
+        assert_eq!(s.units[u].inside, Some(base));
+        assert!(!s.units[u].on_map);
+        assert_eq!(s.units[u].pos, at, "it keeps its point");
+    }
+
+    /// **End to end: a flight home is flown and lands** — the flight
+    /// command, then whole frames of `Sim::tick`, through `do_strafe`,
+    /// the unit loop and the figure. The Fighter comes round from 120°
+    /// onto the north-bound approach, lands inside its base, spends one
+    /// redraw on each eighth frame it flew and nothing else, and its
+    /// figure takes the standing arm on the landing frame alone. Made to
+    /// fail with the landed plane's figure frame removed from
+    /// `process_unit` (`stopped` stays false).
+    #[test]
+    fn a_flight_home_is_flown_to_its_base_and_lands() {
+        let mut s = sim();
+        s.trace_phases = true;
+        let (base, _) = airbase_and_target(&mut s);
+        let u = plane(&mut s, Pos::new(11640, 16248), Angle(0x5555_5555), false);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
+        let mut flown = 0;
+        let mut eighths = 0;
+        for _ in 0..400 {
+            if s.units[u].inside.is_some() {
+                break;
+            }
+            if (i64::from(s.units[u].index) + s.frame) & 7 == 0 {
+                eighths += 1;
+            }
+            s.phase_marks.clear();
+            s.tick();
+            flown += 1;
+            let draws = s
+                .phase_marks
+                .iter()
+                .filter(|(l, _)| l == crate::air::SITE_AIR_ALT)
+                .count();
+            assert!(draws <= 1, "one redraw a frame at most");
+        }
+        assert_eq!(s.units[u].inside, Some(base), "landed after {flown} frames");
+        assert!(flown > 20, "it flew: {flown} frames");
+        assert!(eighths >= 2);
+        let g = s.units[u].guys[0];
+        assert!(g.stopped, "the landing frame's standing arm");
+        assert_eq!(s.units[u].movement.body.last_speed, 0);
+        // The inside arm puts `last_z` onto `z` from the next frame on.
+        s.tick();
+        let af = s.units[u].airframe;
+        assert_eq!(af.last_z, af.z);
+    }
+
     fn siege_type(sim: &mut Sim) -> usize {
         let mut t = UnitType {
             hits: 100,

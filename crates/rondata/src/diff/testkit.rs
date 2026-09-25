@@ -3108,15 +3108,32 @@ pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 1251);
 /// `cruising_alt` draw without the step it belongs to would move the word
 /// with the positions already parted.
 ///
-/// **The delta**, this constant's: the first pin, 642, open; unchanged by
-/// the entry.
-pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 642;
+/// **The flight home, flown: 805, open** (item 759, `docs/ORDERS.md`
+/// §33). `Unit::do_strafe` takes a flight home into `do_air_physics`:
+/// the Fighter's redraw on every eighth frame, `check_fuel`'s approach,
+/// the returning bank, `pitch_aircraft`, the step, and `land_plane` into
+/// its base. On 642 every aircraft agrees whole — `0/6`'s point (11664,
+/// 16262), heading, bank 10, pitch 2 and altitude 2, the pair still on
+/// their pads — and so does every redraw to 714, the Fighter's landing on
+/// 722 and the pair's flight home on 662–665. The word is the first bomb:
+/// on 805 the original spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56
+/// < Unit::do_strafe+0x9d0`, 5 draws against 4 at draw 0, the patrol's
+/// strafe on `1/2006` going to `CHAR_ATTACK2`.
+///
+/// **What parts first is 666, not the word**: the pair's strike turned
+/// `AIRPATROLORDER` over the unseen Barracks, a class this crate has no
+/// body for, and whose flight spends no draw until the bomb. The
+/// widening names it; the next item's frame is 666.
+///
+/// **The delta**, this constant's: +163, 642 → 805, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 805;
 
 /// `chapter_seventeen_s_word_frame_is_widened_whole`'s window: (605,
-/// 667) since the entry, the word 642 and the pair's strafe on 662 and
-/// strike on 666 (item 746); the first pin was (605, 645). Its pool
-/// half, `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
-pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 667);
+/// 807) since item 759, the word 805 and the bomb on 806; (605, 667)
+/// before it, the word 642 and the pair's strafe on 662 and strike on
+/// 666 (item 746); the first pin was (605, 645). Its pool half,
+/// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 807);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
@@ -4548,13 +4565,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_CHAPTER_SIXTEEN),
     ),
     // Item 746: run223, chapter seventeen's first walk at 642, on the
-    // flight this crate does not take: the Fighter's first
-    // `cruising_alt` draw on its strafe home.
+    // flight this crate did not take: the Fighter's first `cruising_alt`
+    // draw on its strafe home. Item 759 flew the flight home and moved
+    // the word to 805, the first bomb, and widened it whole on
+    // (605, 807): the first value parting is the pair's patrol on 666.
     (
         "GOLDEN_WORD_CHAPTER_SEVENTEEN",
         GOLDEN_WORD_CHAPTER_SEVENTEEN,
         Some("chapter_seventeen_s_word_frame_is_widened_whole"),
-        746,
+        759,
         Some(WIDENING_CHAPTER_SEVENTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
