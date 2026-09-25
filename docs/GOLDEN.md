@@ -3471,3 +3471,25 @@ pitch and altitude are parsed and compared now.
   across a stretch where the pair's points do not. The widening, now
   (605, 807), names every row from 666. **666 is the chapter's next
   frame.**
+
+**The pair's patrol, flown: `GOLDEN_WORD_CHAPTER_SEVENTEEN` = 821, open**
+(item 763, `docs/ORDERS.md` §34). `do_strafe` turns the strike on the
+unseen Barracks into an `AirPatrolOrder` over its point and `work` flies
+it in the same frame; the patrol flies `do_air_physics`' non-returning
+arms; a plane's step lights the fog, so the Barracks is first seen
+between the searches on 760 and 776; the search pushes the strike
+`QUEUE_FIRST`, with no `update_action`; `0/8` releases on 805.
+- **The value diff on 666, both sides**: `0/7` at (10319, 16351),
+  heading 1315604981, `z` 36; `0/8` at (13370, 16389), heading
+  1547706549, `z` 36; each one `AIRPATROLORDER` over (21120, 16512),
+  home `0/2007`, flags 0.
+- **On the old word's frame, 805** (block 806), both sides: `0/8` at
+  (20573, 16573), `z` 1632, `recharging 31`, `cur_anim 12`, strike in
+  front of patrol; `0/7` at (17838, 16573), `z` 1674, still closing.
+- **The word is the bomb's landing**, 821: the original spends
+  `Object::take_damage+0xe1 < Object::do_damage < Ammo::do_damage`, 5
+  draws against 4 at draw 0. **The first value parting is its own
+  block**, 822: the Barracks' `damage` 45 (`damage_frac` 14) there, 0
+  here — compared by the widening since this item. The round is the
+  release animation's event, which `crate::anim` fires for an `ATTACK`
+  or `ATTACK_GROUND` front order only.

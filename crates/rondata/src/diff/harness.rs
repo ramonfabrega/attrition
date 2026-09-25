@@ -683,6 +683,28 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 });
             }
         }
+        // **Its hit points** (item 763, parked 728): `damage` and
+        // `damage_frac` were parsed and compared by no site, so a building
+        // taking a bomb was quiet on every window — run223's Barracks goes
+        // to 45 on block 822 (`docs/GOLDEN.md` §25).
+        for (field, mine, theirs) in [
+            ("damage", i64::from(ours.damage), b.damage),
+            ("damage_frac", i64::from(ours.damage_frac), b.damage_frac),
+        ] {
+            let Some(theirs) = theirs else { continue };
+            r.build_compared += 1;
+            compared::note("BuildDump", &[field]);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field,
+                    ours: mine,
+                    theirs,
+                });
+            }
+        }
         for (field, mine, theirs) in [
             ("x_internal", i64::from(ours.pos.x), b.pos.x),
             ("y_internal", i64::from(ours.pos.y), b.pos.y),
@@ -2605,8 +2627,10 @@ pub(crate) mod tests {
         // field on every linked building-frame (`docs/ROADS.md` §1.2).
         // **263,095 → 393,421 on item 661** — the `city` slot and the
         // `city_down` link, two more, none wrong (`docs/AI.md` §63).
+        // **393,421 → 523,747 on item 763** — `damage` and `damage_frac`,
+        // two more, none wrong (parked 728).
         assert_eq!(
-            builds, 393_421,
+            builds, 523_747,
             "the site and the clock on every linked building-frame"
         );
         assert!(
@@ -17385,7 +17409,9 @@ pub(crate) mod tests {
     /// **359,336 → 537,662 on item 661**, which added the building's
     /// `city` slot and `city_down` link (`docs/AI.md` §63); nothing here
     /// is wrong on either, so every member chain agrees for 5,200 frames.
-    const RUN58_BUILD_FIELDS: usize = 537_662;
+    /// **537,662 → 715,988 on item 763**, a building's `damage` and
+    /// `damage_frac` (parked 728); nothing here is wrong on either.
+    const RUN58_BUILD_FIELDS: usize = 715_988;
     const RUN58_COLL_FIELDS: usize = 449_279;
     /// Unit-frames carrying `unit_masks` and `mylos` — one apiece per
     /// linked unit-frame, which is every one, so the floor only grows.

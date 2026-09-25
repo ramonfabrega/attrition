@@ -514,9 +514,11 @@ mod tests {
         // (`docs/ROADS.md` §1.2). `bad` stays empty, so the flag's whole
         // life agrees here as well as on Great Lakes. **186,804 → 279,430
         // on item 661**: the `city` slot and the `city_down` link, and
-        // `bad` stays empty on both (`docs/AI.md` §63).
+        // `bad` stays empty on both (`docs/AI.md` §63). **279,430 →
+        // 372,056 on item 763**: `damage` and `damage_frac`, and `bad`
+        // stays empty (parked 728).
         assert_eq!(
-            seen, 279_430,
+            seen, 372_056,
             "the site and the clock on every linked building-frame"
         );
         // **Every building of both players stands on the original's own

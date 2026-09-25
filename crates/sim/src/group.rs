@@ -3394,7 +3394,7 @@ mod tests {
         s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
         let seed = s.rng.seed;
         // Frame 641: `(0 + 641) & 7 != 0`, no redraw.
-        assert_eq!(s.plane_air_physics(u, 641), crate::air::Flew::On);
+        assert_eq!(s.plane_air_physics(u, None, 641), crate::air::Flew::On);
         assert_eq!(s.rng.seed, seed, "no draw off the eighth frame");
         assert_eq!(s.units[u].pos, Pos::new(11664, 16262), "run223's 642");
         assert_eq!(s.units[u].movement.heading, Angle(1_419_725_301));
@@ -3424,16 +3424,16 @@ mod tests {
         };
         // 648: `(0 + 648) & 7 == 0` is the Bomber's, and it draws nothing.
         let seed = s.rng.seed;
-        s.plane_air_physics(b, 648);
+        s.plane_air_physics(b, None, 648);
         assert_eq!(s.rng.seed, seed, "a Bomber throws no redraw");
         assert_eq!(alt(&s, b), 0x640);
         // 648 is not the Fighter's (`o` 1): nothing.
-        s.plane_air_physics(f, 648);
+        s.plane_air_physics(f, None, 648);
         assert_eq!(s.rng.seed, seed, "off its eighth frame");
         // 647 is: `(1 + 647) & 7 == 0`.
         let mut probe = s.rng;
         let want = (probe.roll() % 7 + 13) * 100;
-        s.plane_air_physics(f, 647);
+        s.plane_air_physics(f, None, 647);
         assert_eq!(s.rng, probe, "one draw");
         assert_eq!(alt(&s, f), want);
     }
@@ -3450,7 +3450,7 @@ mod tests {
         let at = Pos::new(11424, 13920 + 100);
         let u = plane(&mut s, at, Angle(0), false);
         s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
-        assert_eq!(s.plane_air_physics(u, 721), crate::air::Flew::Done);
+        assert_eq!(s.plane_air_physics(u, None, 721), crate::air::Flew::Done);
         assert!(s.units[u].orders.is_empty(), "the strafe home is gone");
         assert!(s.units[u].path.is_empty());
         assert_eq!(s.units[u].inside, Some(base));
@@ -3502,6 +3502,236 @@ mod tests {
         s.tick();
         let af = s.units[u].airframe;
         assert_eq!(af.last_z, af.z);
+    }
+
+    /// A Bomber on run223's numbers (`unitrules.xml`'s `Bomber`): `MOVES
+    /// 60`, `TURN_SPEED 3`, `RANGE 1-3`, `RECHARGE 30`, on the `0x130`
+    /// line, its figure seated at `z`, banked `bank` (the guy's sign) and
+    /// pitched `pitch`, all by their bits.
+    fn bomber(s: &mut Sim, at: Pos, heading: Angle) -> usize {
+        let t = UnitType {
+            hits: 300,
+            moves: 60,
+            turn_speed: crate::movement::degrees_to_angle(3).0,
+            kind: crate::attrition::UnitKind {
+                domain: Domain::Air,
+                ..crate::attrition::UnitKind::default()
+            },
+            combat: combat::Profile {
+                attack: 43,
+                uber_size: 1,
+                domain: Domain::Air,
+                min_range: 1,
+                max_range: 3,
+                recharge: 30,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        };
+        let ty = s.add_unit_type(t);
+        s.unit_types[ty].tree = Some(0x130);
+        let u = spawn(s, 0, ty, at);
+        s.units[u].kind = s.unit_types[ty].kind;
+        s.units[u].movement.speed = 60;
+        s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+        s.units[u].movement.heading = heading;
+        s.units[u].movement.facing = heading;
+        s.init_guys(u, Some(ty));
+        u
+    }
+
+    /// who=1's building made a target: started, active, a combat profile
+    /// and run223's Barracks' 1200 hit points.
+    fn live_barracks(s: &mut Sim, b: usize) {
+        let bd = &mut s.buildings[b];
+        bd.started = true;
+        bd.active = true;
+        bd.combat = Some(combat::Profile {
+            armor: 1,
+            ..combat::Profile::default()
+        });
+        bd.health = 1200;
+    }
+
+    /// **A strike it may not take is a patrol over the strike's point,
+    /// flown in the same frame: run223's `0/7`, 665 → 666, field for
+    /// field** (`Unit::do_strafe@005eab00`, `docs/ORDERS.md` §34). The
+    /// strike is re-pointed at a target `valid_target` refuses (here: no
+    /// war; on run223, unseen), so `do_strafe` kills it, adds an
+    /// `AirPatrolOrder` over `xx/yy` with no action bit, and `work` flies
+    /// it at once. Within 199 of the ground the patrol's bank wants none,
+    /// so the 40° it came off the runway with steps to 30; the pitch's
+    /// rate divides by `0x240 / speed`, 9, and climbs 8 → 10, lifting the
+    /// figure 12. Made to fail with each arm changed: without `work`'s
+    /// re-entry the plane stands; without the low-bank arm the heading
+    /// and the bank part; with the distance as the divisor the pitch
+    /// holds at 8 and the figure rises 10.
+    #[test]
+    fn a_strike_it_may_not_take_is_a_patrol_flown_the_same_frame() {
+        let mut s = sim();
+        let (base, target) = airbase_and_target(&mut s);
+        s.at_war[0][1] = false;
+        s.at_war[1][0] = false;
+        let u = bomber(&mut s, Pos::new(10263, 16330), Angle(1_341_635_061));
+        let g = group_of(0, &[u]);
+        s.group_action_flight(&g, Obj::Building(base), Flight::Home);
+        s.group_action_flight(&g, Obj::Building(target), Flight::Strike);
+        {
+            let af = &mut s.units[u].airframe;
+            af.bank = crate::single::Single::from_bits(0x4220_0000);
+            af.pitch = crate::single::Single::from_bits(0x4100_0000);
+            af.z = 24;
+        }
+        s.work(u, 665);
+        let o: Vec<Order> = s.units[u].orders.iter().copied().collect();
+        assert_eq!(o.len(), 1, "the patrol alone");
+        assert_eq!(o[0].index(), index::AIR_PATROL);
+        assert_eq!(o[0].flags, 0, "no action bit: slot +0x2c is xor eax, eax");
+        let Body::AirPatrol(p) = o[0].body else {
+            panic!("an air patrol")
+        };
+        assert_eq!(p.point, Pos::new(21120, 16512), "the strike's xx/yy");
+        assert_eq!((p.home, p.waypoint, p.returning), (Some(base), 0, false));
+        assert_eq!(p.cruising_alt, 0x640);
+        assert_eq!(s.units[u].pos, Pos::new(10319, 16351), "run223's 666");
+        assert_eq!(s.units[u].movement.heading, Angle(1_315_604_981));
+        assert_eq!(s.units[u].path[0].to, Pos::new(21120, 16512));
+        let af = s.units[u].airframe;
+        assert_eq!(af.bank.bits(), 0x41f0_0000, "bank 40 → 30");
+        assert_eq!(af.pitch.bits(), 0x4120_0000, "pitch 8 → 10");
+        assert_eq!((af.z, af.last_z), (36, 24));
+    }
+
+    /// **The patrol's search pushes its strike first, and takes no
+    /// `update_action`** (`Unit::do_air_patrol@005ea620`,
+    /// `add_strafe_order(…, QUEUE_FIRST, 0)@005e48c0`, `docs/ORDERS.md`
+    /// §34.5): on the sixteenth frame phased by `o` a Bomber asks
+    /// `find_new_bomber_target` round the patrol's point, and pushes a
+    /// strafe with `mandatory 0` and no action bit in front of the patrol;
+    /// `orders_x/y` keep the point `work` wrote before the step (run223's
+    /// 777).
+    /// Made to fail with the generic enqueue's `update_action` put back
+    /// (`orders_pos` is the new point) and with the phase dropped (the
+    /// search runs on 783).
+    #[test]
+    fn the_patrol_s_search_pushes_its_strike_first_without_update_action() {
+        let mut s = sim();
+        let (base, target) = airbase_and_target(&mut s);
+        live_barracks(&mut s, target);
+        let u = bomber(&mut s, Pos::new(18803, 16729), Angle(1_014_693_888));
+        s.units[u].airframe.z = 1656;
+        s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), false);
+        // `o` 0: its sixteenth frames are `frame & 15 == 0`, 784 where
+        // run223's `0/8` searched on 776.
+        assert_eq!(s.units[u].index, 0);
+        s.work(u, 783);
+        assert_eq!(s.units[u].orders.len(), 1, "783 is not its sixteenth frame");
+        let before = s.units[u].pos;
+        s.work(u, 784);
+        assert_ne!(s.units[u].pos, before, "it flew first");
+        let o: Vec<Order> = s.units[u].orders.iter().copied().collect();
+        assert_eq!(o.len(), 2, "the strike in front of the patrol");
+        assert_eq!(o[0].index(), index::STRAFE);
+        assert_eq!(o[0].flags, 0, "no action bit");
+        let Body::Strafe(sf) = o[0].body else {
+            panic!("a strafe")
+        };
+        assert_eq!(sf.target, Some(Obj::Building(target)));
+        assert!(!sf.mandatory && !sf.returning);
+        assert_eq!(sf.home, Some(base));
+        assert_eq!(o[1].index(), index::AIR_PATROL);
+        // `work`'s own `update_action` ran before the step, so the point
+        // is the frame's first; the push after the step leaves it.
+        assert_eq!(
+            s.units[u].orders_pos, before,
+            "no update_action on QUEUE_FIRST"
+        );
+        assert_ne!(s.units[u].orders_pos, s.units[u].pos);
+    }
+
+    /// **A Bomber releases in range and within 15° of its nose, once, and
+    /// reloads `recharge() + 1`** (`do_strafe+0x9d0`, `docs/ORDERS.md`
+    /// §34.3): `CHAR_ATTACK2` on the figure and `recharging 31`, which is
+    /// run223's `0/8` on 806; reloading, it flies on without a second.
+    /// Twenty degrees off the nose, it holds its bomb. Made to fail with
+    /// the angle test dropped (the off-line plane bombs) and with the
+    /// `+ 1` dropped (`recharging 30`).
+    #[test]
+    fn a_bomber_releases_in_range_and_on_its_nose() {
+        let mut s = sim();
+        let (base, target) = airbase_and_target(&mut s);
+        live_barracks(&mut s, target);
+        for (anim, len) in [
+            (crate::anim::WALK, 31),
+            (crate::anim::SLOG, 31),
+            (crate::anim::ATTACK2, 30),
+        ] {
+            s.art.lengths.insert((-1, anim), len);
+        }
+        let run = |s: &mut Sim, heading: Angle| {
+            let u = bomber(s, Pos::new(21120 - 400, 16512), heading);
+            s.units[u].airframe.z = 1632;
+            s.add_strafe_order(
+                u,
+                Some(Obj::Building(target)),
+                Some(base),
+                true,
+                crate::orders::QueuePos::New,
+                false,
+            );
+            s.work(u, 805);
+            u
+        };
+        let u = run(&mut s, Angle::EAST);
+        assert_eq!(s.units[u].guys[0].anim, crate::anim::ATTACK2);
+        assert_eq!(s.units[u].combat.recharging, 31, "recharge() + 1");
+        s.work(u, 806);
+        assert_eq!(s.units[u].combat.recharging, 31, "no second release");
+        let off = Angle(Angle::EAST.0 + crate::movement::degrees_to_angle(20).0);
+        let v = run(&mut s, off);
+        assert_eq!(s.units[v].combat.recharging, 0, "20° off: no release");
+        assert_ne!(s.units[v].guys[0].anim, crate::anim::ATTACK2);
+    }
+
+    /// **A plane lights the fog it flies over** — `Unit::set_new_location`'s
+    /// half-cell test and `update_seen(param_3 == 0)`, the ring pass,
+    /// which `do_air_physics`' step reaches like any other
+    /// (`docs/ORDERS.md` §34.5). It is how run223's pair first see the
+    /// Barracks between their searches on 760 and 776. Made to fail with
+    /// the reveal dropped from the plane's step (no new cell).
+    #[test]
+    fn a_flying_plane_lights_the_fog_it_crosses() {
+        let mut s = sim();
+        assert!(s.world.set_fog(vec![0; 60 * 60 * 4]));
+        let (base, _) = airbase_and_target(&mut s);
+        let mut t = UnitType {
+            hits: 300,
+            moves: 60,
+            los: 16,
+            ..UnitType::default()
+        };
+        t.kind.domain = Domain::Air;
+        t.combat.domain = Domain::Air;
+        let ty = s.add_unit_type(t);
+        let u = spawn(&mut s, 0, ty, Pos::new(10000, 16000));
+        s.units[u].kind = s.unit_types[ty].kind;
+        s.units[u].movement.speed = 60;
+        s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+        s.units[u].movement.heading = Angle::EAST;
+        s.init_guys(u, Some(ty));
+        s.add_air_patrol_order(u, Pos::new(30000, 16000), Some(base), false);
+        let lit = |s: &Sim| {
+            (0..s.world.fog_ys())
+                .flat_map(|y| (0..s.world.fog_xs()).map(move |x| (x, y)))
+                .filter(|&(x, y)| s.world.seen(x, y).unwrap_or(0) & 1 != 0)
+                .count()
+        };
+        let before = lit(&s);
+        for f in 0..20 {
+            s.work(u, 801 + f);
+        }
+        assert!(s.units[u].pos.x > 11000, "it flew east");
+        assert!(lit(&s) > before, "the rim it crossed is lit");
     }
 
     fn siege_type(sim: &mut Sim) -> usize {
