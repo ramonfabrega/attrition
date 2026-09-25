@@ -581,7 +581,46 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
     out[oil] = (h.refineries * t.refinery_bonus + 100) * out[oil] / 100;
 
     out[Resource::Wealth.index()] += territory_tax(t, h);
+    resource_bonuses(t, h.wonders, &mut out);
     out
+}
+
+/// `LeaderData::calc_resource_bonuses@006db030`, the last thing
+/// `Leader::calc_gather` does to the rates before it clears the dirty
+/// flag — its wonder terms, in the listing's order, each truncating
+/// (`docs/ECONOMY.md` §15). The Pyramids' `PYRAMIDS_FOOD` is the one a
+/// capture has reached: Great Lakes' who=1 reads food 1920 on 17087's
+/// reassembly against 1600 without it.
+///
+/// **Seams**, stated rather than built: the Russian oil term
+/// (`has_tribe_bonus(0xd)`, first in the listing), Virtual Reality's
+/// `GLOBAL_PROSPERITY` and the Conquer-the-World rate bonuses. No capture
+/// holds a Russian player or reaches either of the others.
+pub fn resource_bonuses(t: &Tuning, wonders: u32, out: &mut [i32; RESOURCES]) {
+    use crate::tech::wonder;
+    let has = |w: usize| wonders & (1 << w) != 0;
+    let pct = |v: &mut i32, p: i32| *v = (p + 100) * *v / 100;
+    if has(wonder::PYRAMIDS) {
+        pct(&mut out[Resource::Food.index()], t.pyramids_food);
+    }
+    if has(wonder::COLOSSUS) {
+        pct(&mut out[Resource::Wealth.index()], t.colossus_wealth);
+    }
+    if has(wonder::HANGING_GARDENS) {
+        out[Resource::Knowledge.index()] += t.hanging_gardens_knowledge * RATE_SCALE;
+    }
+    if has(wonder::ANGKOR_WAT) {
+        pct(&mut out[Resource::Metal.index()], t.angkor_metal);
+    }
+    if has(wonder::TAJ_MAHAL) {
+        pct(&mut out[Resource::Wealth.index()], t.taj_wealth);
+    }
+    if has(wonder::EIFFEL_TOWER) {
+        pct(&mut out[Resource::Oil.index()], t.eiffel_oil);
+    }
+    if has(wonder::TIKAL) {
+        pct(&mut out[Resource::Timber.index()], t.tikal_timber);
+    }
 }
 
 /// `LeaderData::calc_rare@006e08d0` — what one deposit pays the player
@@ -1128,6 +1167,19 @@ mod tests {
         h.wonders = 1 << crate::tech::wonder::KREMLIN;
         assert_eq!(commerce_cap(&t, &h, Resource::Wealth), 4000);
         assert_eq!(commerce_cap(&t, &h, Resource::Oil), (250 + 200) * 16);
+    }
+
+    /// run226's second value diff (`docs/ECONOMY.md` §15): who=1's first
+    /// reassembly after the Pyramids, sim-frame 17087, reads food income
+    /// 1920 where it read 1600 — the twenty percent, on food alone.
+    #[test]
+    fn the_pyramids_pay_a_fifth_more_food() {
+        let t = Tuning::RON;
+        let mut out = [1600, 2560, 1024, 1840, 1120, 0];
+        resource_bonuses(&t, 0, &mut out);
+        assert_eq!(out, [1600, 2560, 1024, 1840, 1120, 0]);
+        resource_bonuses(&t, 1 << crate::tech::wonder::PYRAMIDS, &mut out);
+        assert_eq!(out, [1920, 2560, 1024, 1840, 1120, 0]);
     }
 
     /// run221's value diff (`docs/AI.md` §72): the British AI at commerce

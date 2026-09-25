@@ -432,6 +432,7 @@ pub struct Roles {
 pub mod wonder {
     pub const PYRAMIDS: usize = 0x20e - 0x20e;
     pub const COLOSSUS: usize = 0x20f - 0x20e;
+    pub const HANGING_GARDENS: usize = 0x210 - 0x20e;
     pub const TIKAL: usize = 0x214 - 0x20e;
     /// The one wonder `has_wonder` holds without a city (`param_1 ==
     /// 0x216`).
