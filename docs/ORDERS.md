@@ -1036,10 +1036,8 @@ as `docs/MOVEMENT.md` gives them, and then:
   `kill_current_order(0); return 1`.
 - A step into a tile `invalid_loc` says is blocked: `unit_masks &= ~8; return
   0` — next frame `do_move` re-plans. A collision on a partial step with
-  `tolerance` already raised: `UnitData::tolerance = 2 × manh` (the give-up
-  short of `docs/MOVEMENT.md`) and the arrival test **with no step taken**,
-  so the leg pops where the unit stands (`docs/COLLISION.md` §17, item 742),
-  otherwise `resolve_unit_collision`.
+  `tolerance` already raised: `tolerance = 2 × manh` and the arrival test
+  with **no step** (`docs/COLLISION.md` §17), else `resolve_unit_collision`.
 
 **Two arrival tests, two metrics.** Before stepping, `do_move` tests the
 Euclidean `vector_dist(dest − pos) ≤ tolerance`; after a partial step
