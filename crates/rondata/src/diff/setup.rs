@@ -1642,10 +1642,13 @@ impl Built {
             // `ox/whom` for it (`docs/COMBAT.md` §57).
             // A `GroupPatrolOrder` is a `UnitOrder` with two points and a
             // `GROUPORDER` row; no `TARGETORDER` (`docs/ORDERS.md` §27).
+            // An `AirPatrolOrder` is a `PatrolOrder` and an `AirOrder`: a
+            // point, a home, no `TARGETORDER` (`docs/ORDERS.md` §34).
             Body::Move(_)
             | Body::Cast(_)
             | Body::AttackGround(_)
             | Body::Patrol(_)
+            | Body::AirPatrol(_)
             | Body::Think => None,
         }
     }

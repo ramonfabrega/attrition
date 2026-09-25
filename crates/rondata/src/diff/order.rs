@@ -823,6 +823,82 @@ pub(crate) fn compare_orders(
         }
     }
 
+    // **The air patrol's own row** (item 763, `docs/ORDERS.md` §34):
+    // the point arrays whole, their length, the step, and the `AIRORDER`
+    // row — the home, the altitude, the edge turn, `old` and whether it
+    // is going home.
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::AirPatrol(p) = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        let home = p.home.map(|b| {
+            let b = &built.sim.buildings[b];
+            (i64::from(b.owner), i64::from(b.index))
+        });
+        for (field, mine, logged) in [
+            ("x_pos.length", Some(1), Some(theirs.patrol_x.len() as i64)),
+            ("y_pos.length", Some(1), Some(theirs.patrol_y.len() as i64)),
+            (
+                "x_pos[0]",
+                Some(i64::from(p.point.x)),
+                theirs.patrol_x.first().copied(),
+            ),
+            (
+                "y_pos[0]",
+                Some(i64::from(p.point.y)),
+                theirs.patrol_y.first().copied(),
+            ),
+            ("waypoint", Some(p.waypoint as i64), theirs.waypoint),
+            ("oxx", Some(home.map_or(-1, |(_, o)| o)), theirs.air_oxx),
+            ("whose", Some(home.map_or(-1, |(w, _)| w)), theirs.air_whose),
+            (
+                "cruising_alt",
+                Some(i64::from(p.cruising_alt)),
+                theirs.cruising_alt,
+            ),
+            (
+                "sharp_turn",
+                Some(i64::from(p.sharp_turn)),
+                theirs.sharp_turn,
+            ),
+            ("old", Some(0), theirs.air_old),
+            ("returning", Some(i64::from(p.returning)), theirs.returning),
+        ] {
+            let (Some(mine), Some(theirs)) = (mine, logged) else {
+                continue;
+            };
+            compared::note(
+                "OrderDump",
+                &[match field {
+                    "x_pos.length" | "x_pos[0]" => "patrol_x",
+                    "y_pos.length" | "y_pos[0]" => "patrol_y",
+                    "oxx" => "air_oxx",
+                    "whose" => "air_whose",
+                    "old" => "air_old",
+                    f => f,
+                }],
+            );
+            if mine != theirs {
+                at(
+                    slot,
+                    OrderMismatch::Air {
+                        field,
+                        ours: mine,
+                        theirs,
+                    },
+                );
+            }
+        }
+    }
+
     // **The strafe's own row** (item 746): what the flight command
     // wrote, field for field — the home base, the altitude, whether it
     // is going home, the strike's point, and `mandatory`. The target is

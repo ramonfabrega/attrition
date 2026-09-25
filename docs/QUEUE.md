@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **11 landings
-since 7958738**, seven words and four chapters. Lane att-763 (chapter seventeen) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **12 landings
+since 7958738**, eight words and four chapters. Lane att-767 (East Indies) is live.*
 
 - **Great Lakes 15384 → 17099** in four: `num_wonders` counts a site
   (722), `take_damage` stamps `frame_attacked` (729), the siege sub-group's
@@ -24,22 +24,22 @@ since 7958738**, seven words and four chapters. Lane att-763 (chapter seventeen)
   cap (708, AI §72), and the census counts a gatherer in its building's
   city (752, AI §73; run227 captured [16230, 16935)).
 - **Chapters fourteen to sixteen closed** (723, 731, 738), **seventeen
-  open, 642 → 805** (746, 759; §25, ORDERS §33): the flight home and the
-  landing are built; the pair's patrol is not. Order row 50 → 57.
+  open, 642 → 821** (746, 759, 763; §25, ORDERS §33–§34): the flight home,
+  the landing and the pair's patrol are built. Order row 50 → 57.
 - **Ruled at the pass**: the compared recorder (`diff::compared`, a
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 15 Loop items** (677, 685, 697, 727 the remote sweep
-  is the user's, 730, 735, 737, 745, 751, 755, 756, 758, 762, 766, 769).
+- **Fable backlog: 16 Loop items** (677, 685, 697, 727 the remote sweep
+  is the user's, 730, 735, 737, 745, 751, 755, 756, 758, 762, 766, 769, 772).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w16982 of 24,000 · GreatLakes w17099 of 24,000
-Golden: ch17 w805 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 763 next
+Golden: ch17 w821 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 770 next
 Endpoint 24001: EastIndies 48 off, 0 unlinked · GreatLakes 44 off, 0 unlinked
 
-**Opener: 767 on the AI lane (East Indies is lower), 757 after it; 763
-is live on the rules lane; landings count from 7958738. A capture carries
+**Opener: 767 is live on the AI lane (East Indies is lower), 757 after
+it; 770 on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -65,12 +65,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     17086 who=1's `resource_cap` 4800 there, 4000 here, and the gatherers
     re-dealt. Inside run226, widened (17098..17102). No mechanism.
 
-763. **Chapter seventeen's word is 805: the pair's patrol** (759 moved it
-    642 → 805: the flight home and the landing, ORDERS §33). On 805 ours
-    4 draws against 5, the first bomb (`do_strafe+0x9d0`). The first value
-    parting is 666: the flying pair's strike turned `AIRPATROLORDER` over
-    the unseen Barracks' point (ORDERS §32's fifth piece). Inside run223,
-    widened (605..807). No mechanism.
+770. **Chapter seventeen's word is 821: the strafe's round** (763 moved it
+    805 → 821: the pair's patrol, ORDERS §34). On 821 ours 4 draws against
+    5 at index 0: theirs `Object::take_damage+0xe1 < Object::do_damage <
+    Ammo::do_damage`. On 822 the Barracks' damage is 45 there, 0 here.
+    763 read `guy_release_events` (`anim.rs`) firing no round under a
+    `STRAFE` front order, as a hypothesis. Inside run223, widened.
 
 ## How to maintain this file
 

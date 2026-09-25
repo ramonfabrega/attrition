@@ -36,9 +36,18 @@ pub const SITE_AIR_TURN: &str = "Unit::do_air_physics+0x639";
 /// (`docs/ORDERS.md` §33.1). Chapter seventeen's first word, 642.
 pub const SITE_AIR_ALT: &str = "Unit::do_air_physics+0xba";
 
+/// **A bomb's release** — `Guy::set_anim+0xf2f < Unit::set_anim+0x56 <
+/// Unit::do_strafe+0x9d0`, the `CHAR_ATTACK2` a Bomber plays over its
+/// target (`docs/ORDERS.md` §34.3). Chapter seventeen's word 805.
+pub const SITE_STRAFE_BOMB: &str = "Unit::do_strafe+0x9d0";
+
 /// `ObjectData::is(0x130)` — the Bomber line, which holds its
 /// `cruising_alt` at 0x640 and throws no redraw.
 const BOMBER: crate::tech::TypeId = 0x130;
+
+/// `ObjectData::is(0x127)` — the line `do_strafe` lets release a quarter
+/// turn off the nose where every other takes 15° (`0x5eb448`).
+const WIDE_RELEASE: crate::tech::TypeId = 0x127;
 
 /// Half a degree a frame — `0x5b05b0`, the floor under every turn rate a
 /// non-hovering type can be given. `GuyData::turn_speed` has the same one
@@ -406,6 +415,16 @@ struct Approach {
     z: i32,
 }
 
+/// The `AirOrder` base of a plane's front order — what `do_air_physics`,
+/// `bank_aircraft` and `pitch_aircraft` read through `get_air_order`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct AirBase {
+    home: Option<usize>,
+    cruising_alt: i32,
+    sharp_turn: i32,
+    returning: bool,
+}
+
 /// How a plane's frame of flight ended — `do_air_physics`' return, which
 /// `do_strafe` branches on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -431,6 +450,11 @@ impl Sim {
     /// `ObjectData::is(0x130)`, the Bomber line.
     pub(crate) fn is_bomber(&self, u: usize) -> bool {
         self.air_line_is(u, BOMBER)
+    }
+
+    /// `ObjectData::is(0x127)`, `do_strafe`'s wide release.
+    pub(crate) fn is_fighter_line(&self, u: usize) -> bool {
+        self.air_line_is(u, WIDE_RELEASE)
     }
 
     /// `unit_flags & 0x20`, "flies like a helicopter" (`ai_load::uflags`).
@@ -489,25 +513,43 @@ impl Sim {
         }
     }
 
-    /// **`Unit::do_air_physics@005e86d0` for a plane on a `StrafeOrder`
-    /// home** (`docs/ORDERS.md` §33): the redraw, `check_fuel`'s
-    /// approach, the landing test, the bank, the pitch and the step.
+    /// **`Unit::do_air_physics@005e86d0` for a plane** (`docs/ORDERS.md`
+    /// §33, §34): the redraw, `check_fuel`'s approach home or the point
+    /// the order hands it (`goal`, `param_2/param_3`), the landing test,
+    /// the bank, the pitch and the step. The order is a `StrafeOrder` or
+    /// an `AirPatrolOrder`; both carry the `AirOrder` base it reads.
     ///
-    /// SEAMs, none reached by a flight home: a helicopter (`unit_flags &
-    /// 0x20`), which hovers rather than banks and is not flown here; a
-    /// flight with a target (`returning 0`), whose target-ahead doubling
-    /// and fuel test are not built; a home that is not a live building,
-    /// whose nearest-base search is not built; and a carrier as the home.
-    pub(crate) fn plane_air_physics(&mut self, u: usize, frame: i64) -> Flew {
-        let Some(sf) = self.current_strafe(u) else {
+    /// **A flight with a point** (`returning 0`, §34.6) differs from the
+    /// flight home in five places: `check_fuel` returns at once and aims
+    /// nothing (the altitude handed on is 0), there is no landing test,
+    /// the keep-heading radius is the type's `min_range · 0xc0`, and the
+    /// bank and the pitch take their non-returning arms.
+    ///
+    /// SEAMs: a helicopter (`unit_flags & 0x20`), which hovers rather
+    /// than banks and is not flown here; a flying target's lead
+    /// (`local_20`, the doubled bank); the tank (`check_fuel`'s empty-tank
+    /// arm, §32 piece 4); a home that is not a live building, whose
+    /// nearest-base search is not built; and a carrier as the home.
+    pub(crate) fn plane_air_physics(&mut self, u: usize, goal: Option<Pos>, frame: i64) -> Flew {
+        let Some(air) = self.current_air(u) else {
             return Flew::Done;
         };
-        let Some(home) = sf.home.filter(|&b| self.buildings[b].alive) else {
-            return Flew::Done;
-        };
-        if !sf.returning || self.is_helicopter(u) {
+        if self.is_helicopter(u) {
             return Flew::Done;
         }
+        let aim = if air.returning {
+            let Some(home) = air.home.filter(|&b| self.buildings[b].alive) else {
+                return Flew::Done;
+            };
+            Some((home, self.home_approach(u, home)))
+        } else {
+            None
+        };
+        let (point, aim_z) = match (aim, goal) {
+            (Some((_, a)), _) => (a.at, a.z),
+            (None, Some(g)) => (g, 0),
+            (None, None) => return Flew::Done,
+        };
         // **The redraw**, `+0x3b`–`+0xc4`: `(o + frame) & 7` with the
         // signed-modulo fix-up, which a non-negative sum never takes. A
         // Bomber holds `0x640` flat.
@@ -523,21 +565,20 @@ impl Sim {
         // `field_0xc0 = 0`: the path stack is emptied before anything
         // can return, and gets this frame's one point below.
         self.units[u].path.clear();
-        let aim = self.home_approach(u, home);
         let xs = self.world.width() * UNITS_PER_CELL;
         let ys = self.world.height() * UNITS_PER_CELL;
-        let (gx, gy) = (aim.at.x.clamp(0, xs - 1), aim.at.y.clamp(0, ys - 1));
-        let clamped = (gx, gy) != (aim.at.x, aim.at.y);
+        let (gx, gy) = (point.x.clamp(0, xs - 1), point.y.clamp(0, ys - 1));
+        let clamped = (gx, gy) != (point.x, point.y);
         let at = self.units[u].pos;
         let (dx, dy) = (gx - at.x, gy - at.y);
         let mut speed = self.get_speed(u, 1);
         if self.ai_speed > 1 {
             speed *= self.ai_speed;
         }
-        // **The landing test** (`+0x1ea`): Manhattan inside a step and a
-        // half, the point not clamped. The helicopter's altitude half is
-        // not reached.
-        if dx.abs() + dy.abs() < speed * 3 / 2 && !clamped {
+        // **The landing test** (`+0x1ea`), a flight home's alone:
+        // Manhattan inside a step and a half, the point not clamped. The
+        // helicopter's altitude half is not reached.
+        if air.returning && dx.abs() + dy.abs() < speed * 3 / 2 && !clamped {
             self.land_plane(u);
             return Flew::Done;
         }
@@ -548,18 +589,23 @@ impl Sim {
         });
         let heading = self.units[u].movement.heading;
         let mut des = find_angle(dx, dy);
-        // Owing more than 45°, a returning plane keeps its heading only
-        // within `0x300` of the point: its radius is `0`, not the type's
-        // `min_range`.
-        if owed(heading, des) > HALF_QUARTER && vector_dist(dx, dy) < 0x300 {
+        // Owing more than 45°, a plane keeps its heading within the
+        // radius of the point: `0x300` for a flight home, and the type's
+        // `min_range · 0xc0` beyond it for a flight with a point.
+        let radius = if air.returning {
+            0
+        } else {
+            self.profile(crate::combat::Obj::Unit(u)).min_range * 0xc0
+        };
+        if owed(heading, des) > HALF_QUARTER && vector_dist(dx, dy) < radius + 0x300 {
             des = heading;
         }
-        let turn = self.current_strafe(u).map_or(0, |s| s.sharp_turn);
+        let turn = air.sharp_turn;
         if turn != 0 {
             des = Angle(heading.0.wrapping_add(turn.wrapping_shl(30)));
         }
-        self.bank_plane(u, des, &mut speed);
-        self.pitch_plane(u, dx, dy, aim.z, &mut speed);
+        self.bank_plane(u, des, &mut speed, air.returning);
+        self.pitch_plane(u, dx, dy, aim_z, &mut speed, air.returning);
         let heading = self.units[u].movement.heading;
         self.units[u].movement.facing = heading;
         let nx = at.x + sin_component(heading, speed);
@@ -573,10 +619,147 @@ impl Sim {
         }
         let to = Pos::new(nx.clamp(0, xs - 1), ny.clamp(0, ys - 1));
         self.set_new_location(u, to, false);
+        // `Unit::set_new_location@005f8d20`'s half-cell test and the
+        // reveal behind it, `update_seen(param_3 == 0)`: `do_air_physics`
+        // passes `param_3 = 0`, so the **ring** pass. A plane lights the
+        // fog as it flies — which is how run223's pair first see the
+        // Barracks their patrol then takes (`docs/ORDERS.md` §34.5).
+        self.moved_to(u, at, true);
         if self.units[u].combat.recharging == 0 {
             self.set_anim(u, crate::anim::WALK, false, true);
         }
         Flew::On
+    }
+
+    /// **`Unit::do_air_patrol@005ea620` for a plane** (`docs/ORDERS.md`
+    /// §34.5): the flight at the waypoint, then — for a patrol not going
+    /// home — the arrival, the sixteen-frame search and the thirty-two
+    /// frame look at the point's own tile.
+    ///
+    /// - **The arrival**: inside `0x240` of the (clamped) point after the
+    ///   step, the waypoint steps on, or at the last one a patrol with an
+    ///   order behind it is killed. Alone, it flies on.
+    /// - **The search**, on `(o + frame) & 15 == 0`: a Bomber asks
+    ///   [`Sim::find_new_bomber_target`] round the patrol's last point,
+    ///   and a valid answer — at the last waypoint, or a flying one — is
+    ///   pushed `QUEUE_FIRST` as a strafe with `mandatory 0` and no
+    ///   action bit (run223's 777 and 778).
+    /// - **The look**, on `(o + frame) & 31 == 0`: an enemy building
+    ///   standing on the waypoint's own tile that this player has ever
+    ///   seen is pushed the same way with `mandatory 1`.
+    ///
+    /// SEAM: a non-bomber's `find_new_air_target` (a Fighter's patrol),
+    /// the `semaphore & 2` fallback between the two searches, a
+    /// `FIGHTERBOMBER`'s carrier-relative point, and a patrol going home.
+    pub(crate) fn do_air_patrol(&mut self, u: usize, frame: i64) {
+        let Some(crate::orders::Body::AirPatrol(p)) = self.current_order(u).map(|o| o.body) else {
+            return;
+        };
+        let goal = (!p.returning).then_some(p.point);
+        if self.plane_air_physics(u, goal, frame) == Flew::Done {
+            return;
+        }
+        if p.returning {
+            return;
+        }
+        let xs = self.world.width() * UNITS_PER_CELL;
+        let ys = self.world.height() * UNITS_PER_CELL;
+        let at = self.units[u].pos;
+        let (gx, gy) = (p.point.x.clamp(0, xs - 1), p.point.y.clamp(0, ys - 1));
+        if vector_dist(at.x - gx, at.y - gy) < 0x240 && self.units[u].orders.len() > 1 {
+            // One waypoint: the last, so the step on is never taken.
+            self.kill_current_order(u);
+            return;
+        }
+        let phase = i64::from(self.units[u].index) + frame;
+        if phase & 15 == 0 && self.is_bomber(u) {
+            let me = crate::combat::Obj::Unit(u);
+            if let Some(t) = self
+                .find_new_bomber_target(u, p.point)
+                .filter(|&t| self.valid_target(me, t))
+            {
+                self.add_strafe_order(
+                    u,
+                    Some(t),
+                    p.home,
+                    false,
+                    crate::orders::QueuePos::First,
+                    false,
+                );
+                return;
+            }
+        }
+        if phase & 31 == 0
+            && let Some(b) = self.enemy_building_on_tile(u, p.point)
+            && self.buildings[b].ever_seen & Self::who_bit(self.units[u].owner) != 0
+        {
+            let t = crate::combat::Obj::Building(b);
+            self.add_strafe_order(
+                u,
+                Some(t),
+                p.home,
+                true,
+                crate::orders::QueuePos::First,
+                false,
+            );
+        }
+    }
+
+    /// `ObjectsData::find_building_at(tile, SEARCH_ENEMY, who, FILTER_ALL)`
+    /// — the enemy building whose footprint holds the point's tile.
+    fn enemy_building_on_tile(&self, u: usize, at: Pos) -> Option<usize> {
+        let who = self.units[u].owner;
+        let tile = at.tile();
+        (0..self.buildings.len()).find(|&b| {
+            let bd = &self.buildings[b];
+            bd.alive
+                && bd.owner != who
+                && usize::from(bd.owner) < crate::world::PLAYER_SLOTS as usize
+                && self.is_enemy(who, bd.owner)
+                && self.covers_tile(b, tile)
+        })
+    }
+
+    /// **`Unit::find_new_bomber_target(x, y, −1, …)@005eb960`**
+    /// (`docs/ORDERS.md` §34.5), the arm a patrol's search takes: nothing
+    /// when the plane is more than `BOMBER_RESPOND_RANGE · 0x3c0` from the
+    /// point; else, of the enemy buildings within `BOMBER_RESPOND_RANGE ·
+    /// 0xc0` of it that `valid_target` passes, the best by
+    /// `compare_target(t, 1, 0) / (dist / 0xc0 + 1)`.
+    ///
+    /// SEAM: the first arm (`param_3 ≥ 0`, a search round a current
+    /// target at five times the circle), and the `unit_masks & 0x40000`
+    /// arm that searches round the plane itself. The candidates are taken
+    /// in building order where `Objects::find_builds` walks its rings, so
+    /// a tie between two may part.
+    pub(crate) fn find_new_bomber_target(&self, u: usize, at: Pos) -> Option<crate::combat::Obj> {
+        let range = self.tuning.bomber_respond_range;
+        let me = self.units[u].pos;
+        if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
+            return None;
+        }
+        let who = self.units[u].owner;
+        let plane = crate::combat::Obj::Unit(u);
+        let mut best: Option<(i32, crate::combat::Obj)> = None;
+        for b in 0..self.buildings.len() {
+            let bd = &self.buildings[b];
+            if !bd.alive || bd.owner == who || !self.is_enemy(who, bd.owner) {
+                continue;
+            }
+            let t = crate::combat::Obj::Building(b);
+            if !self.valid_target(plane, t) {
+                continue;
+            }
+            let d = vector_dist(bd.pos.x - at.x, bd.pos.y - at.y);
+            if d > range * 0xc0 {
+                continue;
+            }
+            let v = self.compare_target(plane, t, true, false) / (d / 0xc0 + 1);
+            if best.is_none_or(|(w, _)| w < v) {
+                best = Some((v, t));
+            }
+        }
+        best.map(|(_, t)| t)
     }
 
     /// **`Unit::land_plane@005e9950`, into a building** (`docs/ORDERS.md`
@@ -619,31 +802,55 @@ impl Sim {
         }
     }
 
-    fn with_strafe(&mut self, u: usize, f: impl FnOnce(&mut crate::orders::StrafeOrder)) {
-        if let Some(crate::orders::Order {
-            body: crate::orders::Body::Strafe(sf),
-            ..
-        }) = self.units[u].orders.front_mut()
-        {
-            f(sf);
+    /// The front order's `AirOrder` base — `get_air_order` (vslot
+    /// `+0x84`/`+0xfc`), which the three air classes answer and every
+    /// other order answers 0.
+    fn current_air(&self, u: usize) -> Option<AirBase> {
+        match self.current_order(u).map(|o| o.body) {
+            Some(crate::orders::Body::Strafe(sf)) => Some(AirBase {
+                home: sf.home,
+                cruising_alt: sf.cruising_alt,
+                sharp_turn: sf.sharp_turn,
+                returning: sf.returning,
+            }),
+            Some(crate::orders::Body::AirPatrol(p)) => Some(AirBase {
+                home: p.home,
+                cruising_alt: p.cruising_alt,
+                sharp_turn: p.sharp_turn,
+                returning: p.returning,
+            }),
+            _ => None,
+        }
+    }
+
+    fn with_air(&mut self, u: usize, f: impl FnOnce(&mut i32, &mut i32)) {
+        match self.units[u].orders.front_mut().map(|o| &mut o.body) {
+            Some(crate::orders::Body::Strafe(sf)) => f(&mut sf.cruising_alt, &mut sf.sharp_turn),
+            Some(crate::orders::Body::AirPatrol(p)) => f(&mut p.cruising_alt, &mut p.sharp_turn),
+            _ => {}
         }
     }
 
     fn set_cruising_alt(&mut self, u: usize, alt: i32) {
-        self.with_strafe(u, |sf| sf.cruising_alt = alt);
+        self.with_air(u, |c, _| *c = alt);
     }
 
     fn set_sharp_turn(&mut self, u: usize, t: i32) {
-        self.with_strafe(u, |sf| sf.sharp_turn = t);
+        self.with_air(u, |_, s| *s = t);
     }
 
-    /// **`Unit::bank_aircraft(des, &speed, 0)` for a plane going home** —
+    /// **`Unit::bank_aircraft(des, &speed, 0)` for a plane** —
     /// [`Sim::bank_aircraft`]'s shape, with the three arms the order's
     /// `returning` flag opens (`docs/ORDERS.md` §33.3): the bank it wants
     /// is **doubled** before the clamp, a **second turn** toward `des`
     /// follows the first (and takes it outright inside 3°), and a banked
     /// plane flies at **three quarters** of its speed.
-    fn bank_plane(&mut self, u: usize, des: Angle, speed: &mut i32) {
+    ///
+    /// **Not returning** (`docs/ORDERS.md` §34.6), a player's plane wants
+    /// **no bank at all within 199 of the ground** under it (`0x5e9700`:
+    /// `|guy.z − find_tcoord_z| ≤ 199`), and none of the three arms: it
+    /// levels its wings off the runway before it turns.
+    fn bank_plane(&mut self, u: usize, des: Angle, speed: &mut i32, returning: bool) {
         let stored = self.units[u].airframe.bank;
         let mut roll = stored.neg();
         let heading = self.units[u].movement.heading;
@@ -660,10 +867,20 @@ impl Sim {
         if F5.gt(want.abs()) {
             want = want.mulss(F_HALF);
         }
-        // The returning arm: doubled, then the upper clamp.
-        want = want.addss(want);
-        if !F55.gt(want) {
-            want = F55;
+        if returning {
+            // The returning arm: doubled, then the upper clamp.
+            want = want.addss(want);
+            if !F55.gt(want) {
+                want = F55;
+            }
+        } else {
+            let at = self.units[u].pos;
+            let low = (self.units[u].airframe.z - self.world.tile_z(at.tile())).abs() <= 199;
+            if low {
+                want = Single::ZERO;
+            } else if !F55.gt(want) {
+                want = F55;
+            }
         }
         let step = Single::from_i32(sign_in).mulss(want).subss(roll);
         let mag = step.abs();
@@ -705,19 +922,22 @@ impl Sim {
         }
         // `LAB_005e97b9`: the second turn, which only a returning order
         // takes.
-        let h = self.units[u].movement.heading;
-        let d2 = fold((h.0 as u32).wrapping_sub(des.0 as u32));
-        if d2 < RETURN_SNAP {
-            self.units[u].movement.heading = des;
-        } else {
-            let rate = air_turn_speed(raw, stored, sign_out) as i32;
-            let h2 = Angle(h.0.wrapping_add(rate.wrapping_mul(sign_out)));
-            if fold((h2.0 as u32).wrapping_sub(des.0 as u32)) < d2 {
-                self.units[u].movement.heading = h2;
+        if returning {
+            let h = self.units[u].movement.heading;
+            let d2 = fold((h.0 as u32).wrapping_sub(des.0 as u32));
+            if d2 < RETURN_SNAP {
+                self.units[u].movement.heading = des;
+            } else {
+                let rate = air_turn_speed(raw, stored, sign_out) as i32;
+                let h2 = Angle(h.0.wrapping_add(rate.wrapping_mul(sign_out)));
+                if fold((h2.0 as u32).wrapping_sub(des.0 as u32)) < d2 {
+                    self.units[u].movement.heading = h2;
+                }
             }
         }
-        // `(s·3 + (s·3 >> 31 & 3)) >> 2`: three quarters, toward zero.
-        if !roll.eq_value(Single::ZERO) {
+        // `(s·3 + (s·3 >> 31 & 3)) >> 2`: three quarters, toward zero —
+        // returning only.
+        if returning && !roll.eq_value(Single::ZERO) {
             *speed = *speed * 3 / 4;
         }
         let af = &mut self.units[u].airframe;
@@ -725,11 +945,28 @@ impl Sim {
         af.bank = roll.neg();
     }
 
-    /// **`Unit::pitch_aircraft(dx, dy, z, &speed)@005e8de0` for a plane
-    /// going home** (`docs/ORDERS.md` §33.4): the altitude it wants, the
-    /// pitch that climbs or dives toward it two a frame, the step of
-    /// altitude the pitch makes, and the two speed cuts.
-    fn pitch_plane(&mut self, u: usize, dx: i32, dy: i32, aim_z: i32, speed: &mut i32) {
+    /// **`Unit::pitch_aircraft(dx, dy, z, &speed)@005e8de0` for a plane**
+    /// (`docs/ORDERS.md` §33.4): the altitude it wants, the pitch that
+    /// climbs or dives toward it two a frame, the step of altitude the
+    /// pitch makes, and the two speed cuts.
+    ///
+    /// **Not returning** (§34.6): the altitude wanted is `cruising_alt`
+    /// over the ground ahead; there is no halving; the floor is the
+    /// ground here plus 200; `extra` is 0; and the rate's divisor is
+    /// `0x240 / speed` — the listing's `[ebp−0x18]` keeps the `0x240`
+    /// `project` was handed, because only the returning arm overwrites it
+    /// with the distance (`0x5e8fae`).
+    ///
+    /// SEAM: the `0x400000` type arm (the Bomber has only `h`).
+    fn pitch_plane(
+        &mut self,
+        u: usize,
+        dx: i32,
+        dy: i32,
+        aim_z: i32,
+        speed: &mut i32,
+        returning: bool,
+    ) {
         let xs = self.world.width() * UNITS_PER_CELL;
         let ys = self.world.height() * UNITS_PER_CELL;
         let at = self.units[u].pos;
@@ -738,21 +975,24 @@ impl Sim {
         let ax = (at.x + sin_component(heading, 0x240)).clamp(0, xs - 1);
         let ay = (at.y - cos_component(heading, 0x240)).clamp(0, ys - 1);
         let ahead = self.world.tile_z(Pos::new(ax, ay).tile());
-        let cruise = self
-            .current_strafe(u)
-            .map_or(CRUISING_ALT, |s| s.cruising_alt);
+        let cruise = self.current_air(u).map_or(CRUISING_ALT, |a| a.cruising_alt);
         // The returning arm (`air +0x18`). `local_2c`, the home carrier's
         // own speed test, is never set for a building.
-        let dist = vector_dist(dx, dy);
-        let want = (ahead + 100).max(aim_z + (dist / *speed) * 25);
-        if dist < 0x600 {
-            *speed /= 2;
-        }
+        let (want, dist) = if returning {
+            let dist = vector_dist(dx, dy);
+            let want = (ahead + 100).max(aim_z + (dist / *speed) * 25);
+            if dist < 0x600 {
+                *speed /= 2;
+            }
+            (want, dist)
+        } else {
+            (cruise + ahead, 0x240)
+        };
         let want = want.min(cruise + ahead);
         let ground = self.world.tile_z(at.tile());
-        let target = want.max(ground + 50);
+        let target = want.max(ground + if returning { 50 } else { 200 });
         let mut pitch = self.units[u].airframe.pitch;
-        let extra = if target < ground + 500 {
+        let extra = if returning && target < ground + 500 {
             F20_NEG
         } else {
             Single::ZERO

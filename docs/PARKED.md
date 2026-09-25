@@ -22,6 +22,11 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 763, 2026-09-25 — the patrol's unexercised arms
+
+(771) **The patrol's leash, its 32-frame re-target, its look and its
+arrival** (ORDERS §34.7) are built, and no capture distinguishes them.
+
 ## Parked by item 752, 2026-09-25 — run227 past the word
 
 (768) **run227's scout `1/0`: its order point and mirror from 16782**
@@ -1046,6 +1051,12 @@ waiting for its frame** (752's Loop line, filed at its merge).
 two `city:gatherers` rows, read by `find_gather_spot` and `create_units` —
 was filtered out among them. 745's sweep could rank floor rows by reader.
 
+(772) **A parked blind field under a live word is worth a check at
+booking** (763's Loop line, filed at its merge): the compared pin named
+`BuildDump.damage` "parked for a widening" (728), and chapter seventeen's
+word was a building's first damage; it stood on that blind field until
+763 looked. A booking could grep the compared pin for the word's record.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
@@ -1056,6 +1067,8 @@ the code compares the position only; the hit-point pair is compared for
 units (item 484) and not for buildings. Every capture at any detail
 level prints all three. A widening, cheap, and it may move fourteen
 pinned widenings; returns when a score names a building's type or hits.
+**763 compares `damage` and `damage_frac` now** (their compared-pin rows
+are gone; run56–run58 re-pinned); **the remainder is `orig_type`**.
 
 ## Parked by the tenth Fable pass, 2026-09-22 — names no score
 
