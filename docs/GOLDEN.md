@@ -2275,3 +2275,54 @@ no FOLLOW, and the harness skips both `@follow` lines (a named seam in
 `crate::golden`). If the capture agrees with the reading, the first
 landing is the follow command's entry into the sim, built the way
 `crate::input::group_patrol` was.
+
+**Run 2026-09-24 as run204 (item 714): no falsifier fired; the fifth
+could not for the squad**, whose chariot turned on 880, before its sixty
+blocks were up.
+
+- **Both follows reach the pump.** `INFO` 17 on 620 and 640, refusal 0,
+  the package 10 → 28 bytes. The dump prints `process_group` and
+  `process_follow 621` (641) between blocks 621/622 (641/642).
+- **One `FOLLOWORDER` a unit, as read.** On 622 `0/6`'s has `flags 4`,
+  `ox 7 whom 0 uid 14`. On 642 each of `0/8`–`0/10` has `flags 4`, `ox 11
+  whom 0 uid 18`.
+- **Standing.** `0/6` stands 622–710 at d 1,536, and the squad 642–721
+  at d 625–781.
+- **Trailing, pair A.** The first leg comes on **711** at d 1,737, the
+  1,728 threshold crossed. From then on there is a leg every 6–9 blocks,
+  each issued at d 1,724–1,748 and each **one tile** long. A faster
+  follower hops, since the point 1,536 behind the wagon is only ~200
+  ahead of it when it crosses the threshold.
+- **Trailing, pair B.** `0/8` and `0/9` take legs on **722** and `0/10`
+  on 724, at d 784–797. That is the moving threshold 653: **the doubling,
+  measured.** Without it the first leg would wait for d > 1,575.
+- **Rest and turn.** On 961 `0/6` holds its FOLLOW alone at d 1,612. It
+  trails again from 990, and the squad from 882. On 1149 every follower
+  holds its FOLLOW alone, within its threshold.
+- **The legs** are `MOVEORDER`s with `flags 1`: no action bit, and the
+  pathed bit `do_move` sets on the same frame. Every stack of the four
+  followers, on every block, is the FOLLOW alone or the FOLLOW under one
+  leg.
+- **What the reading did not say.** While `0/11` stands, from 835 to 880,
+  `0/9`'s leg changes its destination five times at d 700–940, below the
+  standing threshold. No fresh `do_follow` leg is due there, and which step
+  re-aims it is not named.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWELVE` = 717, open.** The
+harness skips both `@follow` lines. The sequence parts first on 703, at an
+equal count: the original's chariot stands under `do_follow` (`set_anim`,
+`5dac7a`) where this crate's idles through `Unit::do_idle`. On **717** this
+crate spends 6 draws against 8, parting at draw 0.
+`chapter_twelve_s_word_frame_is_widened_whole` covers (605, 719). Past the
+first block's 26 standing rows, it pins:
+
+- the staged units' `form` on their birth blocks;
+- the missing follows on 622 and 642: `orders.len` 0 against 1, no
+  `group`, and `idle` counting;
+- the wagon's move group on 702, `group 2` against this crate's 1: the
+  follows took pool slots 1 and 0 first (parked 689's family);
+- the chariot's first leg on 711: its path, `orders_y`, `dest_angle`,
+  heading and position.
+
+The coverage driver takes 620..624, 640..644, 709..713 and 715..719. It
+pins the `process_follow` text as unread.

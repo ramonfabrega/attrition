@@ -240,8 +240,12 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 696's run190 window at 622 adds `process_guard`**, the
     // guard's line after block 621: the frame alone (the `ox`/`whom`/
     // `queued` line is the sync logger's, not the dump's). The harness
-    // takes the command from the script, as for the patrol.
-    ("GAME", "process_group, process_guard process_patrol"),
+    // takes the command from the script, as for the patrol. **Item 714's
+    // run204 window at 622 adds `process_follow`**, the same shape.
+    (
+        "GAME",
+        "process_follow process_group, process_guard process_patrol",
+    ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
         "healing inside_down inside_down_who launch_frames near_o near_who",
@@ -464,6 +468,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch9 = golden_dump("ch9");
     let ch10 = golden_dump("ch10");
     let ch11 = golden_dump("ch11");
+    let ch12 = golden_dump("ch12");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -787,6 +792,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 724, 734, 1036, 1133, 1139] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter eleven carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twelve's word, on run204** (item 714): the first
+    // `FOLLOWORDER` on disk and the `process_follow` text before it. The
+    // word's block with two on either side; 622, the chariot's first
+    // follow block; 642, the squad's; and 711, where the value first
+    // parted, the chariot's first leg.
+    if let Some(p) = &ch12 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWELVE;
+        for w in [622, 642, 711, 717] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twelve carries the window's five blocks");
             frames += n;
         }
     }
