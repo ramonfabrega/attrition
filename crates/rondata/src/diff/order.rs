@@ -857,7 +857,11 @@ pub(crate) fn compare_orders(
                 Some(i64::from(sf.cruising_alt)),
                 theirs.cruising_alt,
             ),
-            ("sharp_turn", Some(0), theirs.sharp_turn),
+            (
+                "sharp_turn",
+                Some(i64::from(sf.sharp_turn)),
+                theirs.sharp_turn,
+            ),
             ("old", Some(0), theirs.air_old),
             ("returning", Some(i64::from(sf.returning)), theirs.returning),
             ("xx", Some(xx), theirs.strafe_xx),

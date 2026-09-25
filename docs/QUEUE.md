@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **9 landings
-since 7958738**, five words and four chapters. Lane att-752 (East Indies) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **10 landings
+since 7958738**, six words and four chapters. Lane att-752 (East Indies) is live.*
 
 - **Great Lakes 15384 → 17099** in four: `num_wonders` counts a site
   (722), `take_damage` stamps `frame_attacked` (729), the siege sub-group's
@@ -23,22 +23,22 @@ since 7958738**, five words and four chapters. Lane att-752 (East Indies) is liv
 - **East Indies 15985 → 16683** (708, AI §72): a republic raises the
   commerce cap, +50 a capped good; run221 captured [15894, 16237).
 - **Chapters fourteen to sixteen closed** (723, 731, 738), **seventeen
-  open at 642** (746, §25): `issue_flight` builds a `StrafeOrder`, and the
-  flight itself is unbuilt. The census's order row 50 → 57.
+  open, 642 → 805** (746, 759; §25, ORDERS §33): the flight home and the
+  landing are built; the pair's patrol is not. Order row 50 → 57.
 - **Ruled at the pass**: the compared recorder (`diff::compared`, a
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 13 Loop items** (677, 685, 697, 727 the remote sweep
-  is the user's, 730, 735, 737, 745, 751, 755, 756, 758, 762 DXVK stalls).
+- **Fable backlog: 14 Loop items** (677, 685, 697, 727 the remote sweep
+  is the user's, 730, 735, 737, 745, 751, 755, 756, 758, 762, 766).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w16683 of 24,000 · GreatLakes w17099 of 24,000
-Golden: ch17 w642 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 759 next
+Golden: ch17 w805 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 763 next
 Endpoint 24001: EastIndies 47 off, 0 unlinked · GreatLakes 44 off, 0 unlinked
 
 **Opener: 752 is live on the AI lane (East Indies is lower), 757 after
-it; 759 on the rules lane; landings count from 7958738. A capture carries
+it; 763 on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -64,12 +64,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     17086 who=1's `resource_cap` 4800 there, 4000 here, and the gatherers
     re-dealt. Inside run226, widened (17098..17102). No mechanism.
 
-759. **Chapter seventeen's word is 642: the flight** (746 opened it,
-    GOLDEN §25; ORDERS §32 enters the flight command). On 642 ours 6 draws
-    against 7: theirs the Fighter's `cruising_alt` redraw at
-    `Unit::do_air_physics+0xba` on the strafe home. The flight is
-    unbuilt: `do_air_physics`, `check_fuel`'s approach, `land_plane`, the
-    refuel (ORDERS §32's five), two or three items. Inside run223, widened.
+763. **Chapter seventeen's word is 805: the pair's patrol** (759 moved it
+    642 → 805: the flight home and the landing, ORDERS §33). On 805 ours
+    4 draws against 5, the first bomb (`do_strafe+0x9d0`). The first value
+    parting is 666: the flying pair's strike turned `AIRPATROLORDER` over
+    the unseen Barracks' point (ORDERS §32's fifth piece). Inside run223,
+    widened (605..807). No mechanism.
 
 ## How to maintain this file
 

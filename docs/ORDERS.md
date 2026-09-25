@@ -6773,9 +6773,10 @@ is the generic one (§7.5's).
   `an_unbased_aircraft_on_the_ground_takes_no_strike` and
   `a_strike_re_points_a_flying_strafe`. Each fails with its arm changed.
 
-**Not built: the flight** (`docs/GOLDEN.md` §25 has what run223 shows).
-`Unit::do_strafe@005eab00` holds the order here and spends nothing. In
-the original it flies through `Unit::do_air_physics@005e86d0`:
+**The flight** (`docs/GOLDEN.md` §25 has what run223 shows). Pieces 1
+to 3 are **built for a flight home by item 759, §33**; 4 and 5 are not,
+and a strafe with a target is still held where it stands. In the
+original it flies through `Unit::do_air_physics@005e86d0`:
 1. **Every eighth frame, a non-bomber redraws its `cruising_alt`** as
    `(r % 7 + 13) · 100` (`Random::get` at `+0xba`, chapter seventeen's
    word 642). A Bomber holds 0x640.
@@ -6801,3 +6802,144 @@ the original it flies through `Unit::do_air_physics@005e86d0`:
 - **a strike from inside a base**, whose `valid_target`,
   `MISSILE_DEFENSE_BONUS`, reach (`dist ≤ mana · vslot 0x17c`) and war
   tests are not built: such a member takes no order here.
+
+## 33. The flight home, flown (item 759, 2026-09-25)
+
+`docs/GOLDEN.md` §25 is the chapter and run223 the capture. §32 entered
+the command; this is the flight a `StrafeOrder` home is, pieces 1 to 3 of
+§32's list, built in `crate::air` (`Sim::plane_air_physics`,
+`bank_plane`, `pitch_plane`, `home_approach`, `land_plane`) and entered
+from `Sim::do_strafe`. Read from the listings (`llvm-objdump` of
+`0x5e86d0`–`0x5ea420` and of `do_strafe`), since the decompiler drops the
+register arguments of `find_angle`, `vector_dist`, `project` and the sine
+calls throughout; every float is a `Single` by its bits.
+
+**How it was established, and how confident.** Built alongside the
+reading and diffed. On run223, every aircraft agrees whole on 642 — the
+Fighter's point (11664, 16262), heading, figure, path point (11424,
+15089), bank 10, pitch 2 and altitude 2 — and the Fighter agrees on every
+compared field of every block through its landing on 722 and inside to
+807; the pair agree through their flight home, 662–665. Every redraw
+642–714 agrees on the draw stream. **Diff-backed**: §33.1 to §33.5 on the
+arms a flight home to a building takes. **Reading only**: every SEAM
+below.
+
+### 33.1 `do_strafe` and the redraw
+
+A strafe with `returning` set (`+0x3c`) goes straight to
+`do_air_physics(order, −1, −1)` (`0x5eb0ae`). On a 1 back, a non-bomber
+whose target is not valid sets `CHAR_WALK` again (`0x5eb0cd`), and a
+single order returns at `0x5eb62b`. `do_air_physics` then:
+- on `(o + game->frame) & 7 == 0`, a type not on the `0x130` (Bomber)
+  line, not an animal and not a helicopter draws `Random::get(0, 0xffff)`
+  at `+0xba` and writes `cruising_alt = (r % 7 + 13) · 100`; a Bomber
+  writes `0x640` and draws nothing (run223: no redraw on `0/7`, `0/8`);
+- empties the path stack (`field_0xc0 = 0`);
+- calls `check_fuel` (§33.2), clamps the point into the world, and takes
+  the speed `get_speed(x, y, 1)` — the Fighter's 75;
+- lands (§33.5) when the Manhattan distance to the point is under
+  `speed · 3 / 2` and the point was not clamped;
+- pushes the point as the one `PATHDATA`;
+- aims at `find_angle(dx, dy)`, keeping the heading when more than 45° is
+  owed within `0x300` (a returning order's radius is 0, not the type's
+  `min_range · 0xc0`), and a quarter turn off it while `sharp_turn`
+  stands;
+- banks (§33.3), pitches (§33.4), sets guy 0's angle, projects the step,
+  runs the edge coin as a bird's (`sharp_turn` is now carried on the
+  order and compared), `set_new_location(x, y, 0, 1)`, and sets
+  `CHAR_WALK` unless `recharging`.
+
+### 33.2 `check_fuel@005e9be0`'s approach, a building home
+
+The landing point is the base's `(x − 0xc0, y)` at its ground `z`. The
+**approach** is `0` (north-bound, `−y`) unless the base's `y` exceeds
+`height · 0x240`, then `0x80000000`. With `d` the folded angle between
+the approach and the plane's bearing to the landing point:
+- `d ≤ 0x15555555` (30°): the push is `vector_dist / 2`;
+- else the push is the distance to a point `0xc00` behind the landing
+  point along the reverse approach, plus `0x300`;
+- a push over `0xc0` with `d < 0x55555555` (120°), capped at `0xc00`,
+  is projected from the landing point along the reverse approach — the
+  point in memory is still the landing point at `0x5ea2cf`, whichever
+  arm ran; otherwise the point is the landing point itself (small push)
+  or the `0xc00` point (wide angle).
+
+The altitude handed back is the base's ground plus half the distance from
+the landing point to the (clamped) point. The plane so chases a point
+half its distance out, and flies the last `0xc0` at the landing point:
+run223's path point 15089, 15097, 15104… and 13920 from 714.
+
+### 33.3 `bank_aircraft@005e9520`, returning
+
+As a bird's (`crate::air`'s header), with the arms a returning order
+opens: the bank wanted is **doubled** before the upper clamp at 55; after
+the turn, a **second turn** by the same rate is taken when it brings the
+heading closer, and within 3° (`0x2222220`) the heading is set outright;
+and a plane with a non-zero bank flies at **three quarters** of its
+speed, toward zero. The guy's `bank`/`last_bank` (`+0x44/+0x48`) are
+stored negated, so a settled bank is `−0.0` (`0x80000000`), as the dump
+prints. Run223's 642: the first turn and the second each take the
+half-degree floor, 120° → 119°.
+
+### 33.4 `pitch_aircraft@005e8de0`, returning
+
+- `ahead` is the tile height `0x240` along the new heading, clamped
+  into the world.
+- With `dist = vector_dist(dx, dy)` to the point, the altitude wanted is
+  `max(ahead + 100, aim + (dist / speed) · 25)`, and **the speed is
+  halved inside `0x600`**. The Fighter chases a point half its distance
+  out, so it flies at `75 · 3/4 / 2 = 28` banked and `37` level (run223).
+- It is capped by `cruising_alt + ahead` and floored at the ground here
+  plus 50 (200 for a non-returning order).
+- `extra` is −20 when the target is under the ground plus 500.
+- `rate = (((target − z) / 25) · 20) / max(dist / speed, 1)`, all
+  truncating.
+- The pitch steps 2 toward it (`rate − (extra + pitch)` beyond ±1),
+  inside ±40, and is set to `−extra` when level and within 1.
+- A non-zero `extra + pitch` moves the altitude by `cvttss2si((extra +
+  pitch) · 25 / 20)`, `last_z` taking the old.
+- A pitch over 20 cuts the speed to `(40 − |p|) · (s/2) / 20 + s/2`.
+- `last_pitch`/`pitch` are written last; the carrier's speed test
+  (`local_2c`) is never set for a building.
+
+### 33.5 `land_plane@005e9950` and the inside frame
+
+The strafe home has no target, so it goes (`clear_orders` for a mandatory
+one); for a base that is not a unit the path and orders are closed; the
+`SpecialAnimOrder` it adds is run by the `work` at its tail, and
+`do_spec_anim`'s landing arm is `go_inside` and a kill — which is why no
+dump prints one. The plane keeps its point, altitude, bank and pitch.
+`Unit::process@00610bc0` then runs `Guy::process` whether or not the work
+put the unit inside: the figure takes `Guy::move`'s standing arm once
+(run223's 722: `last_speed 0`, `stopped 1`). From the next frame the
+inside arm writes `last_z = z` for each figure (723). This crate gives
+that one frame to an aircraft alone (`Sim::process_unit`).
+
+### 33.6 What is not established
+
+- **A strike, flown**: a strafe with a target (`returning 0`) is held
+  where it stands. Its `do_strafe` arms — the target-ahead doubling
+  (`local_20`), the sixteenth-frame re-target, **the dead or unseen
+  target turned `AirPatrolOrder` (run223's 666, the chapter's next
+  frame)**, the release — are §32's piece 5, unbuilt.
+- **The tank** (§32 piece 4): `mana_burn` is not carried, so a flight
+  with a target never turns for home on an empty tank (`check_fuel`'s
+  first arm), and the refill inside is not modelled.
+- SEAMs: a helicopter (hover arms at `0x20`); a home that is dead, full or
+  missing (the nearest-base search, and the out-of-fuel death); a carrier
+  as home (the `+0x100000` mark, `local_2c`, the carrier's landing
+  point); the `0x400000` type arm of the pitch; a Gull (`0x193`).
+- **A squad garrisoning in its own `work`** is owed `Guy::process` on
+  that frame by the same reading of `Unit::process`; this crate still
+  returns for it, and no capture has measured that frame.
+
+### 33.7 Coverage
+
+The widening (605, 807) compares every field above on every block, both
+sides, and the figure's `bank`, `last_bank`, `pitch`, `last_pitch`
+(parsed by their `*((dword*) &name)` tags) and, for an aircraft, `z` and
+`last_z`. Tests: `group::tests::a_fighter_s_first_frame_home_is_run223_s_642`,
+`only_a_non_bomber_redraws_its_altitude_and_only_on_its_eighth_frame`,
+`a_plane_inside_a_step_and_a_half_of_its_point_lands_in_its_base` and
+`a_flight_home_is_flown_to_its_base_and_lands`, each made to fail with its
+arm changed.

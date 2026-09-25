@@ -518,8 +518,8 @@ pub const CRUISING_ALT: i32 = 0x640;
 /// `docs/ORDERS.md` §1.1, §32), as `Unit::add_strafe_order@005e48c0`
 /// writes them and the dump prints them: the `TARGETORDER` row, the
 /// `ATTACKORDER`'s `mandatory`, the `AIRORDER` row and the strafe's own
-/// `xx yy`. `sharp_turn` and `old` are the constructor's 0 on every
-/// order this crate makes, so they are not carried.
+/// `xx yy`. `old` is the constructor's 0 on every order this crate makes,
+/// so it is not carried; `sharp_turn` is the flight's edge turn.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StrafeOrder {
     /// `TargetOrder::ox/whom` (`+0x8/+0xc`): what it strikes, `None` (−1)
@@ -529,8 +529,13 @@ pub struct StrafeOrder {
     pub mandatory: bool,
     /// `AirOrder::oxx/whose` (`+0x28/+0x2c`): the home base.
     pub home: Option<usize>,
-    /// `AirOrder::cruising_alt` (`+0x30`), [`CRUISING_ALT`] when added.
+    /// `AirOrder::cruising_alt` (`+0x30`), [`CRUISING_ALT`] when added;
+    /// a non-bomber redraws it every eighth frame of its flight.
     pub cruising_alt: i32,
+    /// `AirOrder::sharp_turn` (`+0x34`): which way the flight is turning
+    /// away from the world's edge, `±1`, and 0 when it is not — the
+    /// edge coin's, as `crate::air::Flight::turn` is a bird's.
+    pub sharp_turn: i32,
     /// `AirOrder::returning` (`+0x3c`): 1 for a flight with no target.
     pub returning: bool,
     /// `StrafeOrder::xx/yy` (`+0x40/+0x44`): the target's point, `None`
@@ -1475,6 +1480,7 @@ impl Sim {
                 mandatory,
                 home,
                 cruising_alt: CRUISING_ALT,
+                sharp_turn: 0,
                 returning: target.is_none(),
                 at,
             }),
@@ -1482,19 +1488,33 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
-    /// `Unit::do_strafe@005eab00`, the air order a flight is.
+    /// `Unit::do_strafe@005eab00`, the air order a flight is
+    /// (`docs/ORDERS.md` §33).
     ///
-    /// SEAM: **the flight is not modelled** (`docs/ORDERS.md` §32,
-    /// `docs/GOLDEN.md` §25). The original flies the order through
-    /// `Unit::do_air_physics@005e86d0`: a non-bomber's `cruising_alt`
-    /// redraw on every eighth frame (`Random::get` at `+0xba`, the draw
-    /// chapter seventeen's word 642 is), the climb, the bank and the step;
-    /// `Unit::check_fuel@005e9be0`'s approach and `Unit::land_plane@
-    /// 005e9950`'s landing inside the base; a dead or unseen target turned
-    /// into an `AirPatrolOrder` over its point; and the re-targeting. This
-    /// crate's aircraft holds the order where it stands and spends
-    /// nothing: no idle, no draw.
-    fn do_strafe(&mut self, _u: usize) {}
+    /// **A flight home** (`returning 1`, `+0x3c`) goes straight to
+    /// `do_air_physics(order, −1, −1)` (`0x5eb0ae`) — [`crate::air`]'s
+    /// plane arm — and, when that returns 1, a non-bomber with no live
+    /// target sets `CHAR_WALK` a second time (`0x5eb0cd`), and the order
+    /// count test at `0x5eb62b` returns for a single order.
+    ///
+    /// SEAM: **a flight with a target is not flown** — the re-target
+    /// every sixteenth frame, the dead or unseen target turned into an
+    /// `AirPatrolOrder` over its point (run223's 666), the strike itself.
+    /// Such an aircraft holds the order where it stands and spends nothing.
+    fn do_strafe(&mut self, u: usize, frame: i64) {
+        let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
+            return;
+        };
+        if !sf.returning {
+            return;
+        }
+        if self.plane_air_physics(u, frame) == crate::air::Flew::Done {
+            return;
+        }
+        if self.units[u].combat.recharging == 0 && !self.is_bomber(u) {
+            self.set_anim(u, crate::anim::WALK, false, true);
+        }
+    }
 
     /// `UnitData::find_def_pos`: an existing DEFENSIVE attack's post, else a
     /// head move carrying the post flag, else the unit's own quarter-tile
@@ -1822,7 +1842,7 @@ impl Sim {
             Some(Body::Follow(f)) => self.do_follow(u, f, frame),
             Some(Body::AttackGround(_)) => self.do_attack_ground(u, frame),
             Some(Body::Patrol(p)) => self.do_patrol(u, p),
-            Some(Body::Strafe(_)) => self.do_strafe(u),
+            Some(Body::Strafe(_)) => self.do_strafe(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }

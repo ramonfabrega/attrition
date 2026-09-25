@@ -1541,6 +1541,26 @@ pub struct Guy {
     /// decides whether an arriving figure stands on `CHAR_WALK` — and
     /// the arrival draw tests that slot (`docs/ANIM.md` §4, §4.3).
     pub avg_speed: Option<i64>,
+    /// `GuyData::bank`/`last_bank`/`pitch`/`last_pitch` (`+0x44`/`+0x48`/
+    /// `+0x4c`/`+0x50`) — **a plane's attitude**, singles the log prints
+    /// by their bits as `*((dword*) &bank)` and so on, which is why they
+    /// arrive under one key, `*((dword*)`, the record splitting a line at
+    /// its first space (`docs/ORDERS.md` §33.3). Zero on every figure
+    /// that does not fly. Parsed by item 759.
+    pub bank: Option<i64>,
+    pub last_bank: Option<i64>,
+    pub pitch: Option<i64>,
+    pub last_pitch: Option<i64>,
+}
+
+/// One of `GuyData::log_data`'s `*((dword*) &name)` lines, by `name`:
+/// every such line shares the key `*((dword*)` and carries `&name)` at the
+/// head of its value.
+fn dword_of(g: &Block<'_>, name: &str) -> Option<i64> {
+    let tag = format!("&{name})");
+    g.all("*((dword*)")
+        .into_iter()
+        .find_map(|v| v.trim().strip_prefix(tag.as_str())?.trim().parse().ok())
 }
 
 impl Guy {
@@ -3021,6 +3041,10 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
             },
             last_speed: g.int("last_speed"),
             avg_speed: g.int("avg_speed"),
+            bank: dword_of(&g, "bank"),
+            last_bank: dword_of(&g, "last_bank"),
+            pitch: dword_of(&g, "pitch"),
+            last_pitch: dword_of(&g, "last_pitch"),
         })
         .collect();
     // `myhits`, `damage` and `damage_frac` sit on the `OBJECT` level, one

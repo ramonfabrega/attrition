@@ -689,7 +689,9 @@ fn chapter_sixteen_holds_to_the_golden_word() {
 /// strike became an `AIRPATROLORDER` over the unseen Barracks' point; the
 /// Fighter inside its base on 722.
 ///
-/// `GOLDEN_WORD_CHAPTER_SEVENTEEN` carries what stands at the word.
+/// **Item 759 flew the flight home** (`docs/ORDERS.md` §33): the word
+/// walks 642 → 805, the first bomb. `GOLDEN_WORD_CHAPTER_SEVENTEEN`
+/// carries what stands at the word.
 #[test]
 fn chapter_seventeen_holds_to_the_golden_word() {
     let Some(w) = walk_script("ch17", "chapter17", 17, 11, 1399) else {
@@ -6912,93 +6914,95 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // this crate has no body for. Past the word the stream is one draw
     // short, and that is what the citizens' and `1/5`'s rows from 650
     // are: `1/5`'s scout leg re-rolled on 659, `1/1`'s gather wait.
+    //
+    // **The flight home, flown** (item 759, `docs/ORDERS.md` §33; the
+    // window widened to 807 to hold the new word 805 and the bomb on
+    // 806). Every aircraft agrees whole on 642 — the Fighter's point,
+    // heading, figure, path, bank, pitch and altitude, all compared now —
+    // and so does the Fighter's whole flight to its landing inside
+    // `0/2007` on 722, its figure's one standing frame there and the
+    // inside arm's `last_z` after it, and the pair's flight home on
+    // 662–665. The one-draw shift past the word is gone with it. What
+    // stands:
+    // - **666 onward, the pair**: the strike turned `AIRPATROLORDER`
+    //   (17), a class this crate has no body for, so its aircraft hold
+    //   the re-pointed strafe where they stand — every figure row, the
+    //   point, the heading, the path, the attitude and the altitude, and
+    //   the order rows on 667; on 777 and 778 the patrol's own search
+    //   pushes a `STRAFEORDER` on `1/2006` (`mandatory 0`, no action
+    //   bit), and on 806 `0/8`'s bomb: its `recharging` and the
+    //   `CHAR_ATTACK2` clock. **666 is the next item's frame.**
+    // - the citizens' standing rows, 617 to 655, as before the flight.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
         "615 0/8 form",
         "617 0/1 g.end_time[0]",
         "623 0/2 g.end_time[0]",
-        "642 0/6 g.angle[0]",
-        "642 0/6 g.avg_speed[0]",
-        "642 0/6 g.cur_anim[0]",
-        "642 0/6 g.cur_time[0]",
-        "642 0/6 g.des_angle[0]",
-        "642 0/6 g.des_x[0]",
-        "642 0/6 g.des_y[0]",
-        "642 0/6 g.last_speed[0]",
-        "642 0/6 g.last_time[0]",
-        "642 0/6 g.stopped[0]",
-        "642 0/6 g.x[0]",
-        "642 0/6 g.y[0]",
-        "642 0/6 heading",
-        "642 0/6 path:length",
-        "642 0/6 pos",
-        "643 0/6 dest_angle",
-        "643 0/6 order:air.cruising_alt",
-        "643 0/6 orders_x",
-        "643 0/6 orders_y",
         "650 0/1 g.cur_time[0]",
         "650 0/1 g.last_time[0]",
         "655 0/2 g.cur_time[0]",
         "655 0/2 g.last_time[0]",
-        "656 1/1 order:gather.wait",
-        "659 1/5 order:move.off_x",
-        "659 1/5 order:move.off_y",
-        "659 1/5 order:move.x",
-        "659 1/5 order:move.y",
-        "659 1/5 orders_x",
-        "659 1/5 orders_y",
-        "660 1/5 order:move.dest_x",
-        "660 1/5 order:move.dest_y",
-        "660 1/5 path[0].to",
-        "661 1/5 angle:Facing",
-        "661 1/5 angle:Heading",
-        "661 1/5 g.angle[0]",
-        "661 1/5 g.des_angle[0]",
-        "661 1/5 heading",
-        "662 0/7 g.angle[0]",
-        "662 0/7 g.avg_speed[0]",
-        "662 0/7 g.cur_anim[0]",
-        "662 0/7 g.cur_time[0]",
-        "662 0/7 g.des_angle[0]",
-        "662 0/7 g.des_x[0]",
-        "662 0/7 g.des_y[0]",
-        "662 0/7 g.last_speed[0]",
-        "662 0/7 g.last_time[0]",
-        "662 0/7 g.stopped[0]",
-        "662 0/7 g.x[0]",
-        "662 0/7 g.y[0]",
-        "662 0/7 heading",
-        "662 0/7 path:length",
-        "662 0/7 pos",
-        "662 0/8 g.angle[0]",
-        "662 0/8 g.avg_speed[0]",
-        "662 0/8 g.cur_anim[0]",
-        "662 0/8 g.cur_time[0]",
-        "662 0/8 g.des_angle[0]",
-        "662 0/8 g.des_x[0]",
-        "662 0/8 g.des_y[0]",
-        "662 0/8 g.last_speed[0]",
-        "662 0/8 g.last_time[0]",
-        "662 0/8 g.stopped[0]",
-        "662 0/8 g.x[0]",
-        "662 0/8 g.y[0]",
-        "662 0/8 heading",
-        "662 0/8 path:length",
-        "662 0/8 pos",
-        "663 0/7 dest_angle",
-        "663 0/7 orders_x",
-        "663 0/7 orders_y",
-        "663 0/8 dest_angle",
-        "663 0/8 orders_x",
-        "663 0/8 orders_y",
-        "665 1/5 g.avg_speed[0]",
-        "665 1/5 g.des_y[0]",
-        "665 1/5 g.last_speed[0]",
-        "665 1/5 g.y[0]",
-        "665 1/5 pos",
+        "666 0/7 g.angle[0]",
+        "666 0/7 g.avg_speed[0]",
+        "666 0/7 g.bank[0]",
+        "666 0/7 g.cur_anim[0]",
+        "666 0/7 g.des_angle[0]",
+        "666 0/7 g.des_x[0]",
+        "666 0/7 g.des_y[0]",
+        "666 0/7 g.last_bank[0]",
+        "666 0/7 g.last_pitch[0]",
+        "666 0/7 g.last_speed[0]",
+        "666 0/7 g.last_z[0]",
+        "666 0/7 g.pitch[0]",
+        "666 0/7 g.stopped[0]",
+        "666 0/7 g.x[0]",
+        "666 0/7 g.y[0]",
+        "666 0/7 g.z[0]",
+        "666 0/7 heading",
         "666 0/7 order:unspellable",
+        "666 0/7 path[0].to",
+        "666 0/7 pos",
+        "666 0/8 g.angle[0]",
+        "666 0/8 g.avg_speed[0]",
+        "666 0/8 g.bank[0]",
+        "666 0/8 g.cur_anim[0]",
+        "666 0/8 g.des_angle[0]",
+        "666 0/8 g.des_x[0]",
+        "666 0/8 g.des_y[0]",
+        "666 0/8 g.last_bank[0]",
+        "666 0/8 g.last_pitch[0]",
+        "666 0/8 g.last_speed[0]",
+        "666 0/8 g.last_z[0]",
+        "666 0/8 g.pitch[0]",
+        "666 0/8 g.stopped[0]",
+        "666 0/8 g.x[0]",
+        "666 0/8 g.y[0]",
+        "666 0/8 g.z[0]",
+        "666 0/8 heading",
         "666 0/8 order:unspellable",
+        "666 0/8 path[0].to",
+        "666 0/8 pos",
+        "667 0/7 dest_angle",
+        "667 0/7 orders_x",
+        "667 0/7 orders_y",
+        "667 0/8 dest_angle",
+        "667 0/8 orders_x",
+        "667 0/8 orders_y",
+        "777 0/8 order:action",
+        "777 0/8 order:air.mandatory",
+        "777 0/8 order:flags",
+        "777 0/8 order:length",
+        "777 0/8 orders.len",
+        "778 0/7 order:action",
+        "778 0/7 order:air.mandatory",
+        "778 0/7 order:flags",
+        "778 0/7 order:length",
+        "778 0/7 orders.len",
+        "806 0/8 g.cur_time[0]",
+        "806 0/8 g.end_time[0]",
+        "806 0/8 g.last_time[0]",
+        "806 0/8 recharging",
     ]
     .iter()
     .map(|r| r.to_string())

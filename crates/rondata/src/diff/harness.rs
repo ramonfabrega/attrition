@@ -1761,6 +1761,35 @@ pub(crate) fn widen_block(
             ] {
                 rows.push((format!("{name}[{k}]"), ours, theirs));
             }
+            // **A plane's attitude and altitude** (item 759,
+            // `docs/ORDERS.md` §33): guy 0's bank and pitch by their
+            // bits, on every figure — zero on any that does not fly —
+            // and its altitude on an aircraft's alone, since a figure on
+            // the ground follows the terrain (`find_data_z`), which this
+            // crate does not carry.
+            if k == 0 {
+                let af = un.airframe;
+                for (name, ours, theirs) in [
+                    ("g.bank", i64::from(af.bank.bits()), g.bank),
+                    ("g.last_bank", i64::from(af.last_bank.bits()), g.last_bank),
+                    ("g.pitch", i64::from(af.pitch.bits()), g.pitch),
+                    (
+                        "g.last_pitch",
+                        i64::from(af.last_pitch.bits()),
+                        g.last_pitch,
+                    ),
+                ] {
+                    rows.push((format!("{name}[{k}]"), ours, theirs));
+                }
+                if un.kind.domain == sim::attrition::Domain::Air {
+                    rows.push((format!("g.z[{k}]"), i64::from(af.z), g.pos.map(|p| p.z)));
+                    rows.push((
+                        format!("g.last_z[{k}]"),
+                        i64::from(af.last_z),
+                        g.last_pos.map(|p| p.z),
+                    ));
+                }
+            }
         }
         for (name, ours, theirs) in rows {
             let Some(theirs) = theirs else { continue };
@@ -1833,6 +1862,14 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "g.track_dx" | "g.track_dy" => ("Guy", "track"),
         "g.last_speed" => ("Guy", "last_speed"),
         "g.avg_speed" => ("Guy", "avg_speed"),
+        "g.bank" => ("Guy", "bank"),
+        "g.last_bank" => ("Guy", "last_bank"),
+        "g.pitch" => ("Guy", "pitch"),
+        "g.last_pitch" => ("Guy", "last_pitch"),
+        // The altitude is `pos`'s third slot, whose first two are `g.x`
+        // and `g.y`. `last_z` is `last_pos`'s, and its `x`/`y` are not
+        // compared, so it registers nothing.
+        "g.z" => ("Guy", "pos"),
         _ => return None,
     })
 }

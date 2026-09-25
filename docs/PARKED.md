@@ -22,6 +22,15 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 759, 2026-09-25 — the flight's other pieces
+
+(764) **A squad that garrisons in its own `work` is owed `Guy::process`
+that frame** (`Unit::process@00610bc0`); this crate returns for it and
+gives the frame to a landed aircraft alone. No score names it yet.
+
+(765) **The tank, ORDERS §32's fourth piece**: fuel and its empty arms.
+It matters to chapter seventeen at 1212, not before.
+
 ## Parked by item 746, 2026-09-25 — the flight's corners
 
 (760) **A pushed flight group's point** reads (0, 0) in the original and
@@ -1019,6 +1028,12 @@ with `wine.log` ending at MoltenVK's `VkInstance` and no `gamelog.txt`,
 the second such stall after run157's; the second take captured. No game
 process, display asleep or dialog was found. A launch that times out
 before frame 0 could be retried once by the runner rather than a worker.
+
+(766) **The decompiler's dropped register arguments** (759's Loop line,
+filed at its merge): five functions in a row hit `tools/ghidra/README.md`'s
+one trap; 759 lost nothing because every reading went to the listing
+first. A brief that says "the listing first" for arithmetic is cheaper
+than a trap a worker meets.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
