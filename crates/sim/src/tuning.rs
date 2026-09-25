@@ -286,6 +286,11 @@ pub struct Tuning {
     pub french_timber_commerce: i32,
     /// The same, for the Inca on wealth.
     pub inca_wealth_cap: i32,
+    /// `REPUBLIC_COMMERCE_BONUS`, `…2` and `…3`: the flat addition to every
+    /// capped good's commerce cap by the highest `REPUBLIC_n` bonus held —
+    /// `calc_resource_caps@006ce900` tests 3, then 2, then 1, and adds one
+    /// (`docs/ECONOMY.md`, "The commerce cap").
+    pub republic_commerce_bonus: [i32; 3],
     /// What finishing a farm pays, once per gather slot the player has never
     /// held before — `Build::activate`'s tail through `Build::do_bonus`.
     /// A flat amount, not per slot.
@@ -855,6 +860,7 @@ impl Tuning {
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
         inca_wealth_cap: 33,
+        republic_commerce_bonus: [50, 50, 50],
         food_bonus_for_farm: 20,
         timber_bonus_per_wood_slot: 5,
         knowledge_bonus_for_university: 25,
@@ -1073,7 +1079,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 297] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 300] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1183,6 +1189,18 @@ impl Tuning {
                 Slot::Value(T.french_timber_commerce),
             ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
+            (
+                "REPUBLIC_COMMERCE_BONUS",
+                Slot::Value(T.republic_commerce_bonus[0]),
+            ),
+            (
+                "REPUBLIC_COMMERCE_BONUS2",
+                Slot::Value(T.republic_commerce_bonus[1]),
+            ),
+            (
+                "REPUBLIC_COMMERCE_BONUS3",
+                Slot::Value(T.republic_commerce_bonus[2]),
+            ),
             ("FOOD_BONUS_FOR_FARM", Slot::Value(T.food_bonus_for_farm)),
             (
                 "TIMBER_BONUS_PER_WOOD_SLOT",

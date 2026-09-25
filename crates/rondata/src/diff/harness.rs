@@ -14531,6 +14531,188 @@ pub(crate) mod tests {
         assert_eq!((first, firsts.len()), (436, 441), "the floor");
     }
 
+    /// **run221 — East Indies' word 15985, widened whole, both directions**
+    /// (item 708). run166's line without `DEATHS`, the pool's, over
+    /// [`WIDENING_EAST_INDIES_SLOT`]: six blocks shared with run78, the 86
+    /// up to the word, its block, and 250 past it. [`widen_east_indies`]
+    /// with gaia's animals.
+    ///
+    /// The word's frame, 15985, writes block **15986**.
+    #[test]
+    fn run221_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_SLOT.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_SLOT.1;
+        /// The block run221 was taken to widen, the word 15985's.
+        const WORD_BLOCK: i64 = EAST_INDIES_SLOT_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run221",
+            "gamelog-run221-eastindies-slotword.txt",
+            WIDENING_EAST_INDIES_SLOT,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
+            "343 blocks x 2 leaders x (1,055 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // `RON_FIRSTS=1` prints every key's first parting, the window's
+        // first block's leader rows included.
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for r in firsts
+                .iter()
+                .filter(|((_, o, _), (f, _))| *f > FIRST || *o == -1)
+                .map(row)
+            {
+                eprintln!("  first {r}");
+            }
+        }
+        // **Under the word and on it, both directions — and the move's
+        // value diff (item 708; the word's delta is in
+        // `LONG_WORD_EAST_INDIES`' comment, its block here).** Until the fix
+        // who=1's leader record parted twice under the word: its `rate` on
+        // 15977, 93 on three goods here against 118, 110 and 100 — the
+        // capped income, `min(cap, income) / 16` — and on 15984,
+        // `create_units`' frame, the original offered a citizen (`t 50`,
+        // `val 130909`, cat 5) at the head and into slot 5 where ours
+        // offered nothing, and its slot loop bought it on the word's frame
+        // (`val` /100 and the `make_stuff+0x63d` expiry), the queue and the
+        // food showing it on 15986. Fifteen rows stood here. The cause was
+        // the commerce cap's republic term (`docs/AI.md` §72): who=1 took
+        // Republic on 15782, and `calc_resource_caps` adds
+        // `REPUBLIC_COMMERCE_BONUS`, 50, to every capped good. One row
+        // stands, the slot's `city` shift the floor's make-list rows carry.
+        let under: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            under,
+            ["15984 1/-1 leader:MAKE[5].city: ours 2 theirs 1"],
+            "the rows under the word and on it"
+        );
+        // **The cap, on the window's first block** (the floor's): who=1's
+        // `resource_cap` was 2992 here and 3792 there on every capped good
+        // until the republic term (`docs/AI.md` §72). run166's 13699 agrees
+        // at 2992, and run78 (`LEADERS=1`) does not print it.
+        let cap: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, what), (f, _))| {
+                *w == 1 && *o == -1 && *f == FIRST && what.starts_with("leader:resource_cap")
+            })
+            .map(row)
+            .collect();
+        assert_eq!(cap, Vec::<String>::new(), "who=1's commerce cap");
+        // **The scout's draw is spent on both sides** (the stream: the
+        // original spends its own `think_scout+0x941` after the extra), so
+        // the scout reading dies there. Its record-level killer — ours'
+        // unit for the draw, `1/31`, agreeing field for field on 15985 —
+        // fires, on six rows standing since the window's first block, and
+        // each is a parked family, not a term the region scan's stride
+        // reads: `form` (parked 646), the pool `group` (674), and
+        // `myhits`, `hits_left` and `mylos` (679). Its position and
+        // orders agree through the word.
+        let scout: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| *w == 1 && *o == 31 && *f <= WORD_BLOCK + 2)
+            .map(row)
+            .collect();
+        assert_eq!(
+            scout,
+            [
+                "15894 1/31 form: ours -1 theirs 9",
+                "15894 1/31 group: ours 66 theirs 65",
+                "15894 1/31 hits:myhits: ours 40 theirs 50",
+                "15894 1/31 hits_left: ours 40 theirs 50",
+                "15894 1/31 myhits: ours 40 theirs 50",
+                "15894 1/31 mylos: ours 2 theirs 4",
+            ],
+            "1/31's rows through the word's blocks"
+        );
+        assert_eq!(
+            standing
+                .get(&(WORD_BLOCK - 1))
+                .into_iter()
+                .flatten()
+                .filter(|((w, o, _), _)| *w == 1 && *o == 31)
+                .count(),
+            6,
+            "1/31's rows standing on 15985, the word's pre-state"
+        );
+        let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        assert_eq!(
+            one_sided,
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
+            "a figure moves on one side only"
+        );
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, |m| m.len()),
+            // 295 before item 708's fix: the fifteen under the word and
+            // the five caps went, the newborn row came.
+            281,
+            "every row standing on the word's block"
+        );
+        // **Past the word to the window's end** (the word left for 16683,
+        // past run221): the human's `production_step`, and who=1's newborn
+        // `1/59` on 16166 on the parked families — `form` (646), `myhits`,
+        // `hits_left` and `mylos` (679) — with its `path_recursion`, the
+        // leader's `peasants` 25 against 26 there, and its `gather_stamp`.
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .map(row)
+            .collect();
+        assert_eq!(
+            past,
+            [
+                "16001 0/-1 leader:production_step: ours 0 theirs 1",
+                "16168 1/-1 leader:gather_stamp: ours 16167 theirs 15991",
+                "16166 1/-1 leader:peasants: ours 25 theirs 26",
+                "16166 1/59 form: ours -1 theirs 9",
+                "16166 1/59 hits:myhits: ours 40 theirs 50",
+                "16166 1/59 hits_left: ours 40 theirs 50",
+                "16166 1/59 myhits: ours 40 theirs 50",
+                "16166 1/59 mylos: ours 2 theirs 4",
+                "16166 1/59 path_recursion: ours 0 theirs 1",
+            ],
+            "every key first parting past the word"
+        );
+        // **The floor**: 280 keys standing on the window's first block —
+        // everything that parted since run166's last block, which run78's
+        // `LEADERS=1` does not print — 280 before the word's frame, 290 in
+        // all. It was 285/288/851 before item 708's fix: the five caps, the
+        // rates, the citizen's offer and the 551 rows past the word that
+        // its purchase parted.
+        let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!((first, under_n, firsts.len()), (280, 280, 290), "the floor");
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the

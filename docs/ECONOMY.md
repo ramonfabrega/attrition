@@ -1223,6 +1223,13 @@ and oil but *not* wealth, Tikal on timber, and Angkor on metal via
 `resource_cap_add`; then the republic term, which takes the highest tier held
 rather than summing; then `bonus_cap`; then the clamp and the `<< 4`.
 
+**The republic term is built and diff-backed, 2026-09-25** (`docs/AI.md`
+§72). `REPUBLIC_COMMERCE_BONUS{,2,3}` are 50 each, and the three
+`REPUBLIC_n` bonuses each need Republic alone. run221's British AI, at
+commerce level 2 with Republic, carries **3792** against the 2992 this
+crate had: `150 × 125 / 100 + 50`, times 16. Diamonds, the wonders and
+Virtual Reality are still not built.
+
 `COMMERCE_CAP` ships as `70 100 150 200 260 320 400 500`, indexed by the
 player's commerce level — one of four `epoch` counters on the encrypted block.
 So a player at commerce level 0 cannot earn more than seventy of any capped

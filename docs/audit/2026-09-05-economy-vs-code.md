@@ -256,7 +256,7 @@ are not.
 | document | ECONOMY.md §"The commerce cap", the seven-line block: `DIAMONDS_COMMERCE`, the flat wonder additions, `REPUBLIC_COMMERCE_BONUS{,2,3}` "by republic level", `bonus_cap[t]`, then the clamp and the `<< 4`; plus the two overrides that skip the whole body |
 | code | `crates/sim/src/economy.rs:630` (`fn commerce_cap`) |
 | document says | after the British and per-nation percentages come the Diamonds percentage (rare bit 22, from **either** `rare` or `rare_conquest`), then the flat wonder additions (Pyramids food+wealth, Colossus timber+wealth, Taj wealth, Eiffel oil, Kremlin food/timber/metal/oil but *not* wealth, Tikal timber, Angkor metal via `resource_cap_add`), then the republic term — **the highest tier held, not the sum** — then `bonus_cap`; and the Virtual Reality bonus overrides the whole body to 999 |
-| code does | British, one per-resource nation term, `+ h.bonus_cap[r]`, clamp, `× 16`. No Diamonds, no wonders, no republic, no Virtual Reality override. Knowledge's 999 override is implemented (`economy.rs:631`) |
+| code does | British, one per-resource nation term, `+ h.bonus_cap[r]`, clamp, `× 16`. No Diamonds, no wonders, ~~no republic,~~ no Virtual Reality override. Knowledge's 999 override is implemented (`economy.rs:631`). **The republic term is built (item 708, `docs/AI.md` §72): run221's `resource_cap` measures it** |
 | difference shows | `LEADERDATA`'s `resource_cap` — the field run40, run42, run59 and run60 all print and all four diff tests already compare (`crates/rondata/src/diff.rs:9906`, `:10177`, `:10287`, `:14576`) — on the frame a player holds Diamonds or researches a republic |
 | reached | reached, except `LeaderData::resource_cap_add@0047da40`, which is **blind** |
 

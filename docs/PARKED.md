@@ -22,6 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 708, 2026-09-25 — run221 past the word
+
+(753) **run221's rows past the word**: who=1's newborn `1/59` on 16166
+(646's `form`, 679's hits and LOS, and its `path_recursion`), the leader's
+`peasants` 25 against 26 there, and its `gather_stamp` from 16168. None
+names a word frame.
+
+(754) **The rest of the audit's R16**: Diamonds, the wonder additions and
+Virtual Reality on the commerce cap are unbuilt; no capture reaches them.
+
 ## Parked by item 738, 2026-09-25 — the flee's other half
 
 (747) **The flee's `calc_cost` ×3** (`path.rs`): it reads `flags & 2`, a
@@ -972,6 +982,12 @@ of the recorder is the same blind spot as a parsed-and-uncompared field.
 ended** (738's Loop line, filed at its merge): an exit-0 "completed" for a
 backgrounded `waitrun.sh`, and a Monitor event naming a banner the log did
 not yet hold. The worker read the log before acting; nothing says to.
+
+(755) **`tools/gamelog/leader.py` answers "no LEADERDATA for who 1" on a
+`frame.py` slice of run221** whose block holds four `LEADERDATA` records
+(708's Loop line, filed at its merge). The worker read the make list with
+awk instead. The slicer may key on a `who` line that `LEADERS=9` prints
+elsewhere; a graduated tool that fails on its own sibling's output.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
