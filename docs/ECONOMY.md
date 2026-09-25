@@ -1227,8 +1227,10 @@ rather than summing; then `bonus_cap`; then the clamp and the `<< 4`.
 §72). `REPUBLIC_COMMERCE_BONUS{,2,3}` are 50 each, and the three
 `REPUBLIC_n` bonuses each need Republic alone. run221's British AI, at
 commerce level 2 with Republic, carries **3792** against the 2992 this
-crate had: `150 × 125 / 100 + 50`, times 16. Diamonds, the wonders and
-Virtual Reality are still not built.
+crate had: `150 × 125 / 100 + 50`, times 16. ~~Diamonds, the wonders and
+Virtual Reality are still not built.~~ **The wonders are built and the
+Pyramids' term is diff-backed, 2026-09-25** (§15); Diamonds and Virtual
+Reality are still not.
 
 `COMMERCE_CAP` ships as `70 100 150 200 260 320 400 500`, indexed by the
 player's commerce level — one of four `epoch` counters on the encrypted block.
@@ -2281,4 +2283,106 @@ it. It agrees on every block of all seven windows: run19, run84, run91,
 run107, run115, run117 and run123. The coverage driver runs that reader
 too, and its Great Lakes window is run123's word ±2 now, not run100's
 10834 (`diff::coverage::UNREAD`).
+
+## 15. The wonders' two income terms: the Pyramids, Great Lakes 17099 → 17128 (2026-09-25, item 757)
+
+Great Lakes' word was **17099**: ours 217 draws against 225, parting at
+index 0, the original's first a blocked stand (`Guy::set_anim+0x97a <
+Unit::move_step+0x823`). run226 holds it, widened. Under it, on block
+17086, who=1's `resource_cap` read 4800 there and 4000 here on **food
+and wealth only**, and four citizens were re-dealt on the same block.
+
+### 15.1 What the dump says
+
+Between blocks 17085 and 17086 who=1's leader record changes on
+`leader_flags`, the buckets, the `leftover`s and the two caps, and
+nothing else: the government, the epochs (commerce level 3, `epoch_get`'s
+third, and `epochs_get() 9`), `tribe 11` and `bonus_cap` are the same on both. The
+event is a building finishing, not a purchase (the `leftover` fall item
+742 read as one is the accumulator paying out). **`1/2026`, `otype 526`
+(`0x20e`, the Pyramids** — the site of `docs/AI.md` §69–§70), goes
+`flags 3 → 7` and `job_counter 363390 → 0` on block 17085, with `city 0`.
+It activated on sim-frame 17084, after that frame's `Leader::process`;
+the cap moves on 17085's.
+
+### 15.2 The cap: `calc_resource_caps@006ce900`'s wonder arm
+
+Between Diamonds and the republic term, per slot, flat additions in whole
+units (all `get_item` plain in `Constants::init`, `rules.xml` values):
+
+| slot | wonder (`has_wonder` argument) | constant |
+|---|---|---|
+| food, wealth (`iVar5 == 0 \|\| 2`) | Pyramids `0x20e` | `PYRAMIDS_COMMERCE` 50 |
+| timber, wealth | Colossus `0x20f` | `COLOSSUS_COMMERCE` 50 |
+| wealth | Taj Mahal `0x21b` | `TAJ_WEALTH_COMMERCE` 300 |
+| oil | Eiffel Tower `0x21c`, Kremlin `0x21a` | `EIFFEL_OIL_COMMERCE` 200, `KREMLIN_COMMERCE` 200 |
+| food, timber, metal | Kremlin `0x21a` | `KREMLIN_COMMERCE` 200 |
+| timber | Tikal `0x214` | `TIKAL_TIMBER_COMMERCE` 100 |
+| metal | Angkor Wat `0x217`, through `resource_cap_add` | `ANGKOR_METAL_COMMERCE` 100 |
+
+Knowledge (slot 3) never reaches the arm, and neither does slot 6. The
+branch shape is `if (1||2) Colossus; if (2) Taj else goto L; … L: if (5)
+Eiffel, Kremlin; else if (< 6) Kremlin, then Tikal on 1 or Angkor on 4`,
+so the Kremlin misses wealth only. who=1, British at commerce level 3:
+`200 × 125 / 100` is 250, plus 50, times 16: **4800**.
+`sim::economy::wonder_commerce` is the arm; `commerce_cap` adds it where
+the listing does.
+
+### 15.3 The rate: `calc_resource_bonuses@006db030`
+
+`Leader::calc_gather` ends with it, after the territory tax, on every
+reassembly: Russian oil (`has_tribe_bonus(0xd)`), then in order the
+Pyramids' `PYRAMIDS_FOOD` 20% on food, the Colossus' `COLOSSUS_WEALTH`
+30% on wealth, the Hanging Gardens' `HANGING_GARDENS_KNOWLEDGE` × 16 added
+to knowledge, Angkor's `ANGKOR_METAL` 50% on metal, the Taj's
+`TAJ_WEALTH` 100% on wealth, Eiffel's `EIFFEL_OIL` 100% on oil and
+Tikal's `TIKAL_TIMBER` 50% on timber, each `(p + 100) × r / 100`; then
+Virtual Reality's `GLOBAL_PROSPERITY` on every good but knowledge, and
+the Conquer-the-World rate bonuses. who=1's reassembly on 17087 (dirty,
+`(1 + 17087) % 8 == 0`) reads food **1920** there against 1600: the fifth.
+`sim::economy::resource_bonuses` is the wonder terms.
+
+### 15.4 `has_wonder`, and why it is read every frame
+
+`LeaderData::has_wonder@006ebc10` walks the player's wonder list up to
+`wonder_mark` for an entry in use (`+0xc & 1`) whose object is of the
+asked type and stands in a city (`+0x72 >= 0`), or is the Red Fort
+(`0x216`). The one writer of an entry is `Wonders::init_wonder`, from
+`Build::activate`'s wonder arm; the one clearer is `close_wonder`, from
+`Build::close`. So it is "an activated, standing wonder of the type in a
+city", and `Sim::wonders_held` reads exactly that off the buildings into
+`Holdings::wonders`, **every frame**, beside the commerce level: the caps
+are computed every frame (`Leader::gather@006ce280:58`), and a wonder
+finished between two reassemblies caps the next frame. The
+Conquer-the-World arm (`conquest_wonders`) is cut from v1.
+`tech::PlayerTech::wonders`, which nothing writes, is left as it was.
+
+### 15.5 What it moved
+
+- **The value diff** (run226, `run226_s_word_frame_is_widened_whole`):
+  the two caps on 17086, the re-deal (`1/3`, `1/5`, `1/70`, `1/72` and
+  the three buildings' `gather_down`), who=1's food `income`,
+  `resources` and `leftover` on 17088, and every row of `1/3`, `1/5` and
+  `1/70` after them go.
+- **Great Lakes 17099 → 17128**, inside run226. On 17128 ours spends 37
+  draws against 34, parting at index 30: ours `Unit::do_move+0xe84`
+  where the original spends `Guy::set_anim+0x97a < Unit::do_move+0x11cf`.
+  Under it on 17088 `1/9` and `1/72` walk other paths to the same
+  targets (`path:length` 2 against 4 and 3 against 9, `path_recursion`,
+  `tolerance`). No mechanism is named.
+
+### 15.6 What this has *not* established
+
+- **The Pyramids' other terms.** `has_wonder(0x20e)` is read by
+  `LeaderData::get_city_limit` (`PYRAMIDS_CITY_LIMIT`), `found_cities`
+  and `TypeData::get_cost` (`PYRAMIDS_CITY_DISCOUNT`). This crate's
+  `Nation::pyramids`, which `place.rs`'s city limit reads, has no writer;
+  nor do `versailles`, `taj_mahal`, `red_fort` and `tikal`. They go live
+  for who=1 from 17085 in the original, and are not fed here.
+- **Every wonder but the Pyramids** is a reading: no capture holds one.
+  The branch shape of §15.2 is from the decompile, not the listing.
+- **Russian oil, Virtual Reality and the CtW terms** of §15.3 are seams.
+- **Coverage**: §15.2's Pyramids row and §15.3's Pyramids term are
+  diff-backed by run226's `resource_cap` and `income` rows. The rest is a
+  reading alone, owed a second reader.
 

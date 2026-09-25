@@ -51,9 +51,9 @@ use super::testkit::{
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
     GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_GIVEUP_BLOCK,
     GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK,
-    GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK,
-    GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK,
-    GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_PYRAMIDS_BLOCK, GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK,
+    GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
+    GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -690,6 +690,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r226 {
         let n = drive_capture(p, gg - 2, gg + 2, &mut paths);
         assert_eq!(n, 5, "run226 carries the word's five blocks");
+        frames += n;
+        // Item 757 moved it to 17128, still inside run226.
+        let gp = GREAT_LAKES_PYRAMIDS_BLOCK;
+        let n = drive_capture(p, gp - 2, gp + 2, &mut paths);
+        assert_eq!(n, 5, "run226 carries the new word's five blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

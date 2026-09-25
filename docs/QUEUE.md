@@ -13,13 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **13 landings
-since 7958738**, nine words and four chapters. Lane att-770 (chapter seventeen) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **14 landings
+since 7958738**, ten words and four chapters. Lane att-770 (chapter seventeen) is live.*
 
-- **Great Lakes 15384 → 17099** in four: `num_wonders` counts a site
-  (722), `take_damage` stamps `frame_attacked` (729), the siege sub-group's
-  own record (736, GROUPS §26), and `move_step`'s give-up takes no step
-  (742, COLLISION §17; run226 to 17350). **Great Lakes is the lower map.**
+- **Great Lakes 15384 → 17128** in five: `num_wonders` (722),
+  `frame_attacked` (729), the siege sub-group's record (736), `move_step`'s
+  give-up (742; run226 to 17350) and the Pyramids' cap and food terms (757,
+  ECONOMY §15). **Great Lakes is the lower map.**
 - **East Indies 15985 → 17189** in three: the republic's commerce cap
   (708), a gatherer counted in its building's city (752), and the British
   Taxation discount (767, AI §74; run233 captured [16929, 17441)).
@@ -30,15 +30,15 @@ since 7958738**, nine words and four chapters. Lane att-770 (chapter seventeen) 
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 17 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–775 filed from this tranche's journals).
+- **Fable backlog: 18 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–778 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w17189 of 24,000 · GreatLakes w17099 of 24,000
+Long captures: EastIndies w17189 of 24,000 · GreatLakes w17128 of 24,000
 Golden: ch17 w821 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 770 next
-Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 44 off, 0 unlinked
+Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 46 off, 0 unlinked
 
-**Opener: 757 on the AI lane (Great Lakes is lower), 773 after it; 770
+**Opener: 776 on the AI lane (Great Lakes is lower), 773 after it; 770
 is live on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
@@ -51,12 +51,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-757. **Great Lakes' word is 17099** (742 moved it 16460 → 17099:
-    `move_step`'s give-up takes no step, COLLISION §17). On 17099 ours 217
-    draws against 225 at index 0: theirs `Guy::set_anim+0x97a <
-    Unit::move_step+0x823`, ours `< Unit::do_move+0x11cf`. Under it on
-    17086 who=1's `resource_cap` 4800 there, 4000 here, and the gatherers
-    re-dealt. Inside run226, widened (17098..17102). No mechanism.
+776. **Great Lakes' word is 17128** (757 moved it 17099 → 17128: the
+    Pyramids' commerce cap and food terms, `has_wonder` read live, ECONOMY
+    §15). On 17128 ours 37 draws against 34 at index 30: ours
+    `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Unit::do_move
+    +0x11cf`. Under it `1/9` and `1/72` take other paths to the same
+    targets from 17088. Inside run226, widened. No mechanism.
 
 773. **East Indies' word is 17189** (767 moved it 16982 → 17189: the
     British Taxation discount in `get_cost`, AI §74). On 17189 ours spends

@@ -295,6 +295,34 @@ pub struct Tuning {
     /// `calc_resource_caps@006ce900` tests 3, then 2, then 1, and adds one
     /// (`docs/ECONOMY.md`, "The commerce cap").
     pub republic_commerce_bonus: [i32; 3],
+    /// The wonders' flat additions to the commerce cap, in whole units
+    /// before the `<< 4` — `calc_resource_caps@006ce900`'s wonder arm,
+    /// after the nation percentages and Diamonds and before the republic
+    /// term (`docs/ECONOMY.md` §15). `PYRAMIDS_COMMERCE` on food and
+    /// wealth, `COLOSSUS_COMMERCE` on timber and wealth,
+    /// `TAJ_WEALTH_COMMERCE` on wealth, `EIFFEL_OIL_COMMERCE` on oil,
+    /// `KREMLIN_COMMERCE` on food, timber, metal and oil, never wealth,
+    /// `TIKAL_TIMBER_COMMERCE` on timber, and `ANGKOR_METAL_COMMERCE` on
+    /// metal through `LeaderData::resource_cap_add`.
+    pub pyramids_commerce: i32,
+    pub colossus_commerce: i32,
+    pub taj_wealth_commerce: i32,
+    pub eiffel_oil_commerce: i32,
+    pub kremlin_commerce: i32,
+    pub tikal_timber_commerce: i32,
+    pub angkor_metal_commerce: i32,
+    /// The wonders' income terms, `LeaderData::calc_resource_bonuses@006db030`
+    /// at the end of every rate reassembly (`docs/ECONOMY.md` §15): the
+    /// percentages on one good each — `PYRAMIDS_FOOD`, `COLOSSUS_WEALTH`,
+    /// `ANGKOR_METAL`, `TAJ_WEALTH`, `EIFFEL_OIL`, `TIKAL_TIMBER` — and
+    /// `HANGING_GARDENS_KNOWLEDGE`, a flat addition in whole units.
+    pub pyramids_food: i32,
+    pub colossus_wealth: i32,
+    pub hanging_gardens_knowledge: i32,
+    pub angkor_metal: i32,
+    pub taj_wealth: i32,
+    pub eiffel_oil: i32,
+    pub tikal_timber: i32,
     /// What finishing a farm pays, once per gather slot the player has never
     /// held before — `Build::activate`'s tail through `Build::do_bonus`.
     /// A flat amount, not per slot.
@@ -873,6 +901,20 @@ impl Tuning {
         french_timber_commerce: 10,
         inca_wealth_cap: 33,
         republic_commerce_bonus: [50, 50, 50],
+        pyramids_commerce: 50,
+        colossus_commerce: 50,
+        taj_wealth_commerce: 300,
+        eiffel_oil_commerce: 200,
+        kremlin_commerce: 200,
+        tikal_timber_commerce: 100,
+        angkor_metal_commerce: 100,
+        pyramids_food: 20,
+        colossus_wealth: 30,
+        hanging_gardens_knowledge: 50,
+        angkor_metal: 50,
+        taj_wealth: 100,
+        eiffel_oil: 100,
+        tikal_timber: 50,
         food_bonus_for_farm: 20,
         timber_bonus_per_wood_slot: 5,
         knowledge_bonus_for_university: 25,
@@ -1093,7 +1135,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 303] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 317] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1219,6 +1261,29 @@ impl Tuning {
                 "REPUBLIC_COMMERCE_BONUS3",
                 Slot::Value(T.republic_commerce_bonus[2]),
             ),
+            ("PYRAMIDS_COMMERCE", Slot::Value(T.pyramids_commerce)),
+            ("COLOSSUS_COMMERCE", Slot::Value(T.colossus_commerce)),
+            ("TAJ_WEALTH_COMMERCE", Slot::Value(T.taj_wealth_commerce)),
+            ("EIFFEL_OIL_COMMERCE", Slot::Value(T.eiffel_oil_commerce)),
+            ("KREMLIN_COMMERCE", Slot::Value(T.kremlin_commerce)),
+            (
+                "TIKAL_TIMBER_COMMERCE",
+                Slot::Value(T.tikal_timber_commerce),
+            ),
+            (
+                "ANGKOR_METAL_COMMERCE",
+                Slot::Value(T.angkor_metal_commerce),
+            ),
+            ("PYRAMIDS_FOOD", Slot::Value(T.pyramids_food)),
+            ("COLOSSUS_WEALTH", Slot::Value(T.colossus_wealth)),
+            (
+                "HANGING_GARDENS_KNOWLEDGE",
+                Slot::Value(T.hanging_gardens_knowledge),
+            ),
+            ("ANGKOR_METAL", Slot::Value(T.angkor_metal)),
+            ("TAJ_WEALTH", Slot::Value(T.taj_wealth)),
+            ("EIFFEL_OIL", Slot::Value(T.eiffel_oil)),
+            ("TIKAL_TIMBER", Slot::Value(T.tikal_timber)),
             ("FOOD_BONUS_FOR_FARM", Slot::Value(T.food_bonus_for_farm)),
             (
                 "TIMBER_BONUS_PER_WOOD_SLOT",
