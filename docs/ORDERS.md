@@ -6775,7 +6775,8 @@ is the generic one (§7.5's).
 
 **The flight** (`docs/GOLDEN.md` §25 has what run223 shows). Pieces 1
 to 3 are **built for a flight home by item 759, §33**; 5 by item 763,
-§34, to the bomb's release; 4 is not. In the
+§34, to the bomb's release, and its round by item 770, §35; 4 is
+not. In the
 original it flies through `Unit::do_air_physics@005e86d0`:
 1. **Every eighth frame, a non-bomber redraws its `cruising_alt`** as
    `(r % 7 + 13) · 100` (`Random::get` at `+0xba`, chapter seventeen's
@@ -7067,11 +7068,12 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
 
 ### 34.7 What is not established
 
-- **The bomb's round.** The release is an animation; the bomb is the
+- ~~**The bomb's round.** The release is an animation; the bomb is the
   `Ammo` its event fires (`Guy::execute_events`), which this crate's
   `guy_release_events` (`crate::anim`) fires for an `ATTACK` or
   `ATTACK_GROUND` front order only. So no round, no damage: chapter
-  seventeen's word, 821.
+  seventeen's word, 821.~~ Released, and diff-backed on run235, by
+  item 770: §35.
 - **Reading only**: the leash (run223's target is its patrol's point),
   §34.4's re-target (it runs on 784 and 816 and re-points the strike at
   the Barracks it holds), the look (never reached before the strike),
@@ -7094,3 +7096,118 @@ both sides, and since this item a building's `damage`/`damage_frac`
 `a_bomber_releases_in_range_and_on_its_nose` and
 `a_flying_plane_lights_the_fog_it_crosses`; eight mutations, each
 failing its test on an assertion.
+
+## 35. The strafe's round: the release, the bays and the fall (item 770, 2026-09-25)
+
+`docs/GOLDEN.md` §25 is the chapter. run223 is its capture, and run235
+is the same game at `AMMO=5` to 1100 (`docs/RUNS.md`). §34 flew the
+strike to the bomb's release on 805. This section covers the round that
+release makes, and the round's landing on 821. Built in `crate::anim`
+(`guy_release_events`), `crate::fight` (`fire_ammo_aim`'s Bomber arm),
+`crate::combat` (`fall_time`) and `crate::launch` (`Bay`).
+
+**How it was established, and how confident.** It was read from the
+listings of `Guy::execute_events@005d99c0`, `Ammo::init@0067bbf0` and
+`Ammo::do_damage@00678060`, and from the PE's vtable at `0xb47b08`. The
+bays were **measured** on run235 and diffed.
+- **Diff-backed**: run235's 49 bombs agree field for field on every
+  block of 800–1100. That covers `sx sy sz ex ey ez total_time angle
+  accuracy splash_area num_guys flags v1z` and the pool slot.
+- run223's Barracks agrees on `damage` and `damage_frac` on every block
+  to its death, and its draw stream agrees to 1400.
+- **Reading only**: the SEAMs below.
+
+### 35.1 The release under a strafe
+
+`Guy::execute_events`' `+0xdc` arm asks the front order's vslot `+0x18`,
+then `+0x2c`. In `StrafeOrder`'s `UnitOrder` vtable (`0xb47b08`) they
+are `0x41e0e0` (`mov eax, 1`) and `0x41bff0` (`xor eax, eax`). So
+`+0x3c`, `get_strafe_order` (`this − 0x4c`), hands over the `AttackOrder`
+part's own `ox/whom/uid`, which is the target `add_strafe_order` writes
+at `+0x8/+0xc/+0x10`.
+- `+0x54` is `0x41bff0` too, so the `CHAR_ATTACK2` tail's `uid` test
+  applies.
+- A strafe home (`ox −1`) releases nothing.
+
+~~§34.7: "`guy_release_events` fires for an `ATTACK` or `ATTACK_GROUND`
+front order only"~~. It now fires under a `Body::Strafe` too, with the
+order's own target, not `combat.target`.
+
+### 35.2 Where it leaves: the height and the bays
+
+**The height.** The package carries the figure's own `z` (`GuyData
++0x14`, `Guy::execute_events:29`), so a plane's round leaves from its
+altitude (`Airframe::z`), not the ground's.
+
+**The bays.** `GraphicPieces::get_position@0090b750`'s non-pivot arm
+turns the node's model vector by `(int)` of `fast_angle_to_degrees`.
+That is a table filled at `angle << 24` steps, and on run235 it is **the
+angle's top byte, to the nearest whole degree**. Each axis is truncated
+toward zero. `crate::launch::Bay` does this in integers, with a pinned
+`cos(d°)·2^30` table checked against the host in a test.
+- Piece 254's `CHAR_ATTACK2` drops ten `BomberBomb`s. `node 0` fires on
+  frames 1, 5, 10, 16 and 21, at right −71.064 and forward 67.455.
+  `node 1` fires on 2, 8, 13, 18 and 24, at right 67.610 and forward
+  −16.464. Both are 19 under the figure.
+- These values are the centres of the regions that reproduce all 49 of
+  run235's launch points to the unit. Neither node moves with the
+  event's frame.
+- The planar `(bearing, radius)` rows `crate::launch` keeps for archers
+  miss 17 of the 25 points of `node 0`.
+
+### 35.3 `Ammo::init`'s Bomber arm, and the fall
+
+`is(0x130)` (`[ebp − 0x30]`, `0x67c289`) takes a Bomber's round past the
+whole accuracy-and-scatter block. That means no accuracy, no scatter
+draw, no near-face aim and no lead.
+- **The landing** is the launch point `project`ed `0xc0` along the
+  shooter's heading. The listing's `ecx` is `UnitData +0x50` and its
+  `edx` is `0xc0`, both registers the decompiler dropped. It is then
+  `restrict`ed, with `ez` taken from `find_data_z` there, unclamped. On
+  run235, `ex − sx` is 191 and `ey − sy` is −19 at 83°, on both sides.
+- **The time** is `(int)sqrtf((float)(2(ez − sz)) / GRAV_Z)`
+  (`0x67d24b`–`0x67d26f`; `0x41e6f0` is `(float)sqrt((double)x)`, a
+  correctly rounded single). `combat::fall_time` computes it exactly in
+  integers, checked against the host over every drop to 40,000. Every
+  bomb takes 17 frames, and 17 holds for any drop from 1516 to 1698.
+- `BomberBomb` is `missile="0"`, so `ammo_flags & 8` is clear and there
+  is no spline. The arm sets no rolling flag.
+
+**The landing, unchanged.** The round lands through `Ammo::do_damage` as
+any other.
+- A bomb inside the 4×4 footprint hits (45 + 14/16).
+- A bomb outside it is a splash on the building. Its count's
+  `vector_dist(max(0, |Δx| − x_size·0xc0), max(0, |Δy| − y_size·0xc0))`
+  now has both axes confirmed by the listing (`cmovns`, `0x67890c` and
+  `0x678916`), not only by symmetry (`docs/COMBAT.md` §9.3). The fringe
+  is what the bays' offset moved.
+
+### 35.4 What is not established
+
+- **The half-way bytes.** A top byte ≡ 16 (mod 32) (22.5°, 67.5°, …) is
+  taken to the even degree. No measured heading sits on one.
+- **`accuracy`.** The arm writes no `+0x6`, so a recycled slot keeps its
+  last round's value. Here it is 0, which run235 prints on every bomb.
+  Only a unit target's hit test reads it.
+- **A dead target on a round in flight.** The original keeps it until
+  the landing. `Sim::forget` clears it, which is chapter three's
+  standing family, read by no landing.
+- **Another nation's or age's bomber piece**, a Fighter's release and a
+  helicopter's figure `z`. A helicopter keeps the ground's height here.
+- **The height guard.** The landing's `find_data_z` reads corners the
+  ground guard cannot pin (`GROUND_INEXACT`: 34 per replay). Every such
+  bomb takes 17 frames with `ez` one either side.
+
+### 35.5 Coverage
+
+- Tests:
+  - `group::tests::a_strafe_releases_a_bomb_that_falls_a_tile_ahead`;
+  - `combat::tests::fall_time_matches_the_float_expression`;
+  - `launch::tests::run235_s_bomb_bays_are_reproduced_to_the_unit` and
+    `the_whole_degree_table_is_the_cosine`;
+  - `rondata`'s `run235_s_bombs_are_the_original_s_record_for_record`
+    and `chapter_seventeen_s_word_frame_is_widened_whole`, on run223
+    whole.
+- Three mutations fail the first test: the strafe dropped from the gate
+  (no round), the ground's height for the plane's (`sz`), and the
+  scatter arm kept for a Bomber (two draws).

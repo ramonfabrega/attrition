@@ -3493,3 +3493,19 @@ between the searches on 760 and 776; the search pushes the strike
   here — compared by the widening since this item. The round is the
   release animation's event, which `crate::anim` fires for an `ATTACK`
   or `ATTACK_GROUND` front order only.
+
+**The strafe's round: `GOLDEN_WORD_CHAPTER_SEVENTEEN` = 1400, closed**
+(item 770, `docs/ORDERS.md` §35). A strafe with a target releases: the
+bomb leaves one of the Bomber's two bays at its altitude less 19, lands
+a tile ahead along the heading with no draw, and falls in 17 frames.
+The stream agrees to run223's end, 1400, with no value part.
+- **The value diff on the old word's frame**, block 822, both sides:
+  the Barracks at `damage 45`, `damage_frac 14`. Its damage agrees on
+  every block to its death on 1080, every fringe hit included.
+- **The widening is run223 whole**, (605, 1401). What stands past the
+  births is **the tank** (parked 765): `returning` is 1 there and 0 here
+  on `0/7` from 1212 and on `0/8` from 1214, and each plane's flight
+  home after it. No draw follows from it to 1400.
+- **run235** is this game again at `AMMO=5`, to 1100. All 49 bombs
+  agree field for field on 800–1100, except the target a round in
+  flight keeps when the Barracks dies (chapter three's family).
