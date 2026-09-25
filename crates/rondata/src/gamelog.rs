@@ -1645,6 +1645,11 @@ pub struct OrderDump {
     pub guard_y: Option<i64>,
     pub guard_idle: Option<i64>,
     pub guard_retry: Option<i64>,
+    /// `GARRISONORDER`'s own field past the `TARGETORDER` base,
+    /// `GarrisonOrder::log_data@004846f0`: `search`, whether a full
+    /// building sends the unit on to a sibling (`docs/ORDERS.md` §5.7,
+    /// §29).
+    pub garrison_search: Option<i64>,
     /// `CASTORDER`'s own row past the `TARGETORDER` base: `x y paid
     /// spell` — the spell's `TypeIndex` (`+0x20`) and the "cost taken"
     /// flag (`+0x1c`). Printed on every cast since the first capture that
@@ -2903,6 +2908,7 @@ fn orders_of(b: Block<'_>) -> Vec<OrderDump> {
                 guard_y: grd_int("guard_y"),
                 guard_idle: grd_int("idle"),
                 guard_retry: grd_int("retry"),
+                garrison_search: base("GARRISONORDER").and_then(|g| g.int("search")),
                 cast_spell: cst_int("spell"),
                 cast_paid: cst_int("paid"),
                 ag_att_x: agr_int("att_x"),

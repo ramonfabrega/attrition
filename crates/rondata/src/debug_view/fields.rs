@@ -250,6 +250,11 @@ fn order_values(d: OrderMismatch) -> (String, String, String) {
             theirs.to_string(),
             ours.to_string(),
         ),
+        Garrison { ours, theirs } => (
+            "garrison.search".into(),
+            theirs.to_string(),
+            ours.to_string(),
+        ),
         Action { ours, theirs } => ("action".into(), theirs.to_string(), ours.to_string()),
         Target { ours, theirs } => (
             "target (owner, object)".into(),

@@ -2281,6 +2281,106 @@ impl Sim {
         }
     }
 
+    /// `Group::action_garrison(ox, whom, queue, search)@00700490`
+    /// (`docs/ORDERS.md` §29), reached from
+    /// `CommandPackage::process_garrison@00948760` with the command's
+    /// building and queue position, and `search` 0.
+    ///
+    /// `action_begin`; the group's `form` goes to −1. The building must be
+    /// the group's player's or a mutual ally's, alive, with a garrison
+    /// limit, and not an unassimilated city. Then every member that is
+    /// active, on the map and not a plane gets one
+    /// [`Sim::add_garrison_order`] with the action bit — **if its type
+    /// `can_garrison` the building's**; a member that cannot gets nothing.
+    /// A member whose action is already a GARRISON is `repath`ed and has
+    /// its head killed first.
+    ///
+    /// SEAMS, none reached by a capture on file: `QUEUE_FIRST`'s insert
+    /// dance (`set_up_insert`, `action_halt`, the garrison at
+    /// `QUEUE_NEW`, `finish_insert`), taken here as `QUEUE_NEW`; the
+    /// scenario's `ignore_orders` sweep; the zero-limit arm's second test
+    /// (a type vslot `+0x60`), taken as a refusal; `search`'s
+    /// `find_garrison_build`, which the command never asks for; the
+    /// editor's instant `go_inside` (`Game::semaphore` bit `0xb`); a
+    /// worker's `QUEUE_FIRST` and a packing type's arms;
+    /// `is_entering_or_exiting`.
+    pub fn group_action_garrison(&mut self, g: &Group, b: usize, queue: QueuePos) {
+        let queue = if queue == QueuePos::First {
+            QueuePos::New
+        } else {
+            queue
+        };
+        if let Some(st) = self.gstate_mut(g) {
+            st.form = -1;
+        }
+        let whom = self.buildings[b].owner;
+        if !self.is_ally(g.who, whom) || !self.buildings[b].alive {
+            return;
+        }
+        let Some(bty) = self.buildings[b].ty else {
+            return;
+        };
+        if self.garrison_limit(b) == 0 {
+            return;
+        }
+        // `BuildData::is_unassimilated`: a city whose race is not its owner.
+        if self.building_is_city(b)
+            && let Some(c) = self.buildings[b].city
+            && self.cities[c].alive
+            && self.cities[c].race != Some(whom)
+        {
+            return;
+        }
+        for &m in &g.list {
+            if !self.group_member_orderable(m) {
+                continue;
+            }
+            if self
+                .action_of(m)
+                .is_some_and(|a| matches!(self.units[m].orders[a].body, Body::Garrison { .. }))
+            {
+                self.repath(m);
+                self.kill_current_order(m);
+            }
+            if !self.units[m].ty.is_some_and(|t| self.can_garrison(t, bty)) {
+                continue;
+            }
+            self.add_garrison_order(m, b, false, queue, true);
+        }
+    }
+
+    /// `Group::action_eject_all(back_to_work, who, eject_o, eject_who)
+    /// @00710b40` (`docs/ORDERS.md` §29), reached from
+    /// `CommandPackage::process_eject_all@00947fe0` on a group of
+    /// buildings. With `who < 0`, or `eject_who < 0` and `who` the group's,
+    /// every building of the group, last first, that is alive, holds a
+    /// squad and is no hangar gets `Object::eject_contents(0, −1, 0,
+    /// back_to_work == 0)`, which for a building on the map defers:
+    /// [`Sim::eject_contents`], one squad a frame from the head.
+    ///
+    /// SEAMS: `back_to_work`'s type filter (`0x32`, the citizens) and the
+    /// immediate path it takes; the two types (`0x140`, `0x13e`) that die
+    /// when emptied; the `eject_o`/`eject_who` arm that pulls one player's
+    /// units out of another's building.
+    pub fn action_eject_all(
+        &mut self,
+        who: Player,
+        buildings: &[usize],
+        eject_who: i32,
+        cmd_who: i32,
+    ) {
+        if !((eject_who < 0 && cmd_who == i32::from(who)) || cmd_who < 0) {
+            return;
+        }
+        for &b in buildings.iter().rev() {
+            let bd = &self.buildings[b];
+            if !bd.alive || bd.garrison.is_empty() || bd.ty.is_some_and(|t| self.is_hangar(t)) {
+                continue;
+            }
+            self.eject_contents(b, false);
+        }
+    }
+
     /// `Group::action_patrol@007030c0` (`docs/ORDERS.md` §27), reached from
     /// `CommandPackage::process_patrol@00949380` with the command's point
     /// and queue position.

@@ -514,13 +514,16 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Four verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Six verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
  *   `@guard <who> <ox> <whom> <o> [<o> ...]` the charge's id and owner in
  *                                         place of the point, issue_guard
  *   `@follow <who> <ox> <whom> <o> [<o> ...]` the leader's, issue_follow
+ *   `@garrison <who> <ox> <whom> <o> [<o> ...]` the building's,
+ *                                         issue_garrison
+ *   `@eject <who> <b> [<b> ...]`          building ids, issue_eject_all
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -552,12 +555,29 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * the group (item 714, `docs/GOLDEN.md` §20). As for the guard, the leader
  * is `Group::action_follow`'s to ask at process time.
  *
+ * `@garrison` calls `CommandManager::issue_garrison@00941a70(&command_manager,
+ * group, ox, whom, QUEUE_NEW 2)` — what `Options::picked_spot@00721c40`
+ * passes through `GroupOut::issue_garrison@0070a9b0` for an unmodified pick
+ * of a building — and appends a 13-byte `garrison` (type 0x14, `[ox][whom]
+ * [queued]`) behind the group (item 718, `docs/GOLDEN.md` §21). The
+ * building is `Group::action_garrison`'s to ask at process time.
+ *
+ * `@eject` calls `CommandManager::issue_eject_all@00941ca0(&command_manager,
+ * group, 0, -1, -1, -1)` on a group of the player's own **buildings** —
+ * the bytes the Eject button appends (`Options::exec@007188c0` option 0x1f
+ * → `Options::do_eject_all@0071c470(console->who)` → `GroupOut::
+ * issue_eject_all@00708b90`, whose own-player arm writes `back_to_work 0`
+ * and three −1s) — a 17-byte `eject_all` (type 0x1a, `[back_to_work][who]
+ * [eject_o][eject_who]`) behind the group. Its objects are checked as
+ * buildings: in `objects`, not `units`, and on `Build::vftable`.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
  * group to `is_team` and drops it); 2 the issuer's prologue is not the
  * shipped one; 3 an object is out of the registry, not active, not `who`'s,
- * not that id, or not a captain (`add_group` would drop it silently); 4 the
+ * not that id, or not a captain (`add_group` would drop it silently) — for
+ * `@eject`, not a building; 4 the
  * package cannot hold a fresh group and the move (the issuer returns void and
  * appends nothing); 5 the text did not parse; 6 the package did not grow. */
 #define RVA_CONSOLE 0x806210u /* MiscAccess::console, VA 0xc06210 (Console *) */
@@ -568,6 +588,11 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_PATROL 0x541800u
 #define RVA_ISSUE_GUARD 0x541ed0u
 #define RVA_ISSUE_FOLLOW 0x541e70u
+#define RVA_ISSUE_GARRISON 0x541a70u
+#define RVA_ISSUE_EJECT_ALL 0x541ca0u
+#define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
+                               * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
+#define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
 #define ISSUE_MAX 32
 static u8 g_groupout[0x9d0];
 
@@ -594,18 +619,21 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
     const u16 *t = text;
-    /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`: the issuer, its prologue
-     * and its command's size. A guard's two numbers are the charge's `ox`
-     * and `whom`, a follow's the leader's. */
-    i32 verb = issue_verb(&t, "move ")     ? 0
-               : issue_verb(&t, "patrol ") ? 1
-               : issue_verb(&t, "guard ")  ? 2
-               : issue_verb(&t, "follow ") ? 3
-                                           : -1;
+    /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
+     * `eject`: the issuer, its prologue and its command's size. A guard's
+     * two numbers are the charge's `ox` and `whom`, a follow's the
+     * leader's, a garrison's the building's; an eject has none. */
+    i32 verb = issue_verb(&t, "move ")       ? 0
+               : issue_verb(&t, "patrol ")   ? 1
+               : issue_verb(&t, "guard ")    ? 2
+               : issue_verb(&t, "follow ")   ? 3
+               : issue_verb(&t, "garrison ") ? 4
+               : issue_verb(&t, "eject ")    ? 5
+                                             : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
-    i32 who, x, y, ids[ISSUE_MAX];
+    i32 who, x = 0, y = 0, ids[ISSUE_MAX];
     u32 n = 0;
-    if (!issue_int(&t, &who) || !issue_int(&t, &x) || !issue_int(&t, &y)) {
+    if (!issue_int(&t, &who) || (verb != 5 && (!issue_int(&t, &x) || !issue_int(&t, &y)))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
         return;
     }
@@ -617,29 +645,38 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         return;
     }
     /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
-     * issue_patrol's, issue_guard's and issue_follow's; each then loads
-     * `&command_manager` into ecx. */
-    static const u8 prologue[4][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * issue_patrol's, issue_guard's, issue_follow's and issue_garrison's,
+     * `0x14` for issue_eject_all's; each then loads `&command_manager`
+     * into ecx. */
+    static const u8 prologue[6][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
-    u32 rva = verb == 3   ? RVA_ISSUE_FOLLOW
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+    u32 rva = verb == 5   ? RVA_ISSUE_EJECT_ALL
+              : verb == 4 ? RVA_ISSUE_GARRISON
+              : verb == 3 ? RVA_ISSUE_FOLLOW
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb >= 2 ? 0x0d : verb ? 0x0a : 0x16;
+    u32 size = verb == 5 ? 0x11 : verb >= 2 ? 0x0d : verb ? 0x0a : 0x16;
     for (u32 i = 0; i < sizeof prologue[0]; i++)
         if (*(u8 *)(g_base + rva + i) != prologue[verb][i]) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
             return;
         }
-    u8 *band = (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
-    u32 length = *(u32 *)(band + 4);
-    u8 **slots = *(u8 ***)(band + 0x10);
+    /* A unit verb names live captains, from `units`; `@eject` names live
+     * buildings, from `objects`, on `Build::vftable`. */
+    u8 *objects = verb == 5 ? *(u8 **)(g_base + RVA_OBJECTS) : 0;
+    u8 *band = verb == 5 ? (objects ? objects + 4 + (u32)who * 0x1c : 0)
+                         : (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
+    u32 length = band ? *(u32 *)(band + 4) : 0;
+    u8 **slots = band ? *(u8 ***)(band + 0x10) : 0;
     for (u32 j = 0; j < n; j++) {
         u8 *unit = (ids[j] >= 0 && (u32)ids[j] < length && slots) ? slots[ids[j]] : 0;
         if (!unit || !(unit[8] & 1) || unit[9] != (u8)who || *(u16 *)(unit + 0xa) != (u16)ids[j] ||
-            !(*(u16 *)(unit + 0x8e) & 0x8000)) {
+            (verb == 5 ? *(u32 *)unit != g_base + RVA_BUILD_VFTABLE : !(*(u16 *)(unit + 0x8e) & 0x8000))) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(3) << 16), before, (u32)ids[j], n);
             return;
         }
@@ -658,10 +695,16 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb) {
+    if (verb == 5) {
+        /* issue_eject_all(group, back_to_work 0, who -1, eject_o -1,
+         * eject_who -1): the Eject button's bytes. */
+        typedef void(__thiscall *eject_fn)(void *, void *, i32, i32, i32, i32);
+        ((eject_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, 0, -1, -1, -1);
+    } else if (verb) {
         /* issue_patrol(group, x, y, queue), issue_guard(group, ox, whom,
-         * queue) and issue_follow(group, ox, whom, queue) share one shape:
-         * two ints and QUEUE_NEW. */
+         * queue), issue_follow(group, ox, whom, queue) and
+         * issue_garrison(group, ox, whom, queue) share one shape: two ints
+         * and QUEUE_NEW. */
         typedef void(__thiscall *patrol_fn)(void *, void *, i32, i32, i32);
         ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
     } else {

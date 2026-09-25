@@ -311,6 +311,76 @@ pub fn group_follow(
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `garrison` (0x14) behind it, into the
+/// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
+/// `docs/GOLDEN.md` §21) — [`group_move_to`]'s group, then
+/// `CommandPackage::process_garrison@00948760`'s one call,
+/// `Group::action_garrison(g, ox, whom, queued, 0)`
+/// ([`sim::Sim::group_action_garrison`]).
+///
+/// The building is `whom`'s object `ox`; `process_garrison` drops a
+/// command whose building is dead, and the group is still pushed, as
+/// `process_group` forces it.
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation. The same seams as [`group_move_to`]'s.
+pub fn group_garrison(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    ox: i32,
+    whom: i32,
+    queued: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let b = i16::try_from(ox)
+        .ok()
+        .and_then(|o| built.sim.building_by_o(whom as sim::Player, o));
+    if let Some(b) = b {
+        built.sim.group_action_garrison(&g, b, queue_pos(queued));
+    }
+    g.list.len()
+}
+
+/// A `group` of buildings (0x00) and the `eject_all` (0x1a) behind it —
+/// `CommandPackage::process_eject_all@00947fe0`'s one call,
+/// `Group::action_eject_all(g, back_to_work, who, eject_o, eject_who)`
+/// ([`sim::Sim::action_eject_all`]), with the Eject button's `back_to_work
+/// 0, who −1, eject_o −1, eject_who −1` (`docs/GOLDEN.md` §21).
+///
+/// SEAM: the command's `process_group` pushes the building group into the
+/// pool, which this crate's pool of units does not hold; no capture on
+/// file pushes a group after an eject.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_eject_all(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.action_eject_all(player, &list, -1, -1);
+    list.len()
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {

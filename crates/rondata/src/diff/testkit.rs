@@ -2875,6 +2875,40 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWELVE: i64 = 1150;
 /// was (605, 719) on the word 717.
 pub(crate) const WIDENING_CHAPTER_TWELVE: (i64, i64) = (605, 1151);
 
+/// **Chapter thirteen's golden word** — the garrison line, an issuer the
+/// AI never uses from a command (`docs/GOLDEN.md` §21, item 718, run208):
+/// a Chariot and a Hoplite squad garrisoning one Barracks through the
+/// DLL's `@garrison`, then the building's Eject through `@eject`.
+///
+/// **The first walk, 640, open.** This crate cannot take either command:
+/// the harness skips both `@garrison` lines and the `@eject`, so its
+/// chariot stands and counts `idle` where the original's holds a
+/// `GARRISONORDER` under a plain leg from 622 and walks from 623. On
+/// **640** this crate spends 37 draws against 36, parting at draw 30: an
+/// extra `Guy::set_anim+0x97a < Guy::inc_time+0x271`, the standing
+/// chariot's idle roll, where the original's walks. The walk's value
+/// compare parts on 641; the widening's first rows are on 622.
+///
+/// 640 → **1000, closed** (item 718, `docs/ORDERS.md` §29): **the
+/// garrison command and the Eject, entered.** `rondata::input::
+/// group_garrison` pushes the group and calls `Sim::group_action_garrison`,
+/// one `GARRISON` a member that `can_garrison` the building;
+/// `group_eject_all` defers the building's ejection. Four fixes under
+/// them, each from run208's widening: `check_target_path`'s GARRISON arm
+/// cuts the walk at the door on the sixteen-frame review (699, 761); the
+/// door is `adjacent_to`, not a ring of tiles; `kill_garrison_order`
+/// walks the captain's chain; and `come_out` keeps the unit's angles and
+/// turns a member to its captain's. Nothing parts on the draw stream or
+/// the walk's values to run208's end.
+///
+/// **The delta**, this constant's: +360, 640 → 1000, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTEEN: i64 = 1000;
+
+/// `chapter_thirteen_s_word_frame_is_widened_whole`'s window: **run208
+/// whole**, 605 through 1000 (item 718, the word closed). The first pin
+/// was (605, 642) on the word 640.
+pub(crate) const WIDENING_CHAPTER_THIRTEEN: (i64, i64) = (605, 1001);
+
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
 /// 1250 is run184's trace end, and nothing parts on any frame of it:
@@ -4182,6 +4216,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twelve_s_word_frame_is_widened_whole"),
         714,
         Some(WIDENING_CHAPTER_TWELVE),
+    ),
+    // Item 718: run208, chapter thirteen's first walk at 640, on the
+    // garrison this crate could not take: the chariot's leg on 622.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTEEN",
+        GOLDEN_WORD_CHAPTER_THIRTEEN,
+        Some("chapter_thirteen_s_word_frame_is_widened_whole"),
+        718,
+        Some(WIDENING_CHAPTER_THIRTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

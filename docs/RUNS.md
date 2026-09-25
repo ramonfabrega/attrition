@@ -6728,3 +6728,89 @@ pathed bit `do_move` sets on the same frame.
   each a step or two off the last, at d 700–940. The standing threshold
   is 1,575, so no fresh `do_follow` leg is due. Which step re-aims it is
   not named.
+
+## run208 — chapter thirteen, the garrison line (2026-09-24, item 718)
+
+`docs/GOLDEN.md` §21, `tools/gamelog/golden/chapter13.cmd`. The cast:
+- a Barracks `0/2007` (uid 13) on 606, centred on (2688, 14208);
+- a Chariot `0/6` on 610, on cell (5, 15);
+- a Hoplite squad `0/7`–`0/9` on 614, on cell (2, 22).
+
+Two **player garrisons** through `CommandManager::issue_garrison`, called
+from `rontrace.dll` by the new `@garrison` line: the chariot on 620 and the
+squad on 640, both into the Barracks. Then the **Eject** through
+`CommandManager::issue_eject_all` by the new `@eject` line on 900. The
+staging, the premise's killer and the falsifiers were committed before
+the run (`938a17a`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch13 \
+    --map 14 --end-frame 1000 --log-window 605 1000 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,BUILDS=7,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter13.cmd
+```
+
+**The capture.** One take, `cover=0`: **184 s launch to exit, 72 MB of
+dump and 10.1 MB of trace**.
+- `success: true`, exit 0, 1,001 frames.
+- `MAP_STYLE 14` and seed 12345 read back, and five settings files
+  restored.
+- The six `INFO cmd` records returned 1 (`cmdsran.py`).
+
+**The lane.** The lock was stale: its holder, pid 9574 (run204's
+unattended runner), had exited. `waitrun.sh` ran with
+`WAITRUN_RUNNER=unattended_capture.py` and exited 2 once the runner was
+gone, as on every golden lane; the receipt is the verdict.
+
+**The same game as run204 to frame 612**: `rngcmp.py` finds 613 the first
+differing frame. The Barracks on 606 takes no draw.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6`, uid 14, at (3960, 11640) |
+| 620 | `INFO 17` | line 5, refusal 0, package 10 → 28 bytes, one object |
+| 640 | `INFO 18` | `0/7`, uid 15, at (2040, 17400) |
+| 640 | `INFO 17` | line 6, refusal 0, package 10 → 28 bytes, one object |
+| 900 | `INFO 18` | `0/2007`, uid 13, at (2688, 14208) |
+| 900 | `INFO 17` | line 7, refusal 0, package 10 → 32 bytes, one object |
+
+Each garrison adds the emulator's 18 bytes to the turn's 10-byte `camera`,
+and the eject its 22.
+
+### The processed commands, and §21's falsifiers
+
+The dump prints `process_group, new 0 1 621` and `process_garrison 2007 0
+2 621` between blocks 621 and 622, the same for 641, and `process_group,
+new 0 1 901` and `process_eject_all 901` between 901 and 902. **None of
+the six falsifiers fires.**
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the issue | appended, processed on the next frame | as predicted, on 621, 641 and 901 |
+| the orders, 622 and 642 | one `GARRISONORDER` a unit on the Barracks, the action bit, `search 0` | four, each `flags 4, ox 2007 whom 0 uid 13, search 0`, at the bottom of the stack |
+| the walk | a `MOVEORDER` leg above it, no action bit, 432–480 from (2688, 14208) on the unit's side | `0/6` to (2904, 13800), 461; `0/7` (2616, 14616), `0/8` (2808, 14616) and `0/9` (2280, 14328), each its own leg; `flags 0` on the block laid, `flags 1` from the next |
+| the door | the chariot in near 708, the squad near 766, the squad whole | `0/6` in on **699**; `0/7`–`0/9` in together on **761**; `inside_up` 2007 ← 6 ← 7 ← 8 ← 9, the Barracks' `inside_down` 6; every stack empty inside |
+| the eject | `0/6` out on 902 at (2712, 14904), `inside_down` 7; the squad out on 903, `inside_down` −1 | exactly so. The squad: `0/7` at (2424, 14808), `0/8` (2424, 14952), `0/9` (2424, 14616) |
+| no orders after | empty stacks 902–999 | empty on every block |
+
+**`build_masks`** reads 4096 before the eject, **20480** (`| 0x4000`) on
+902 and 903, and 4096 again from 904: `process_ejection` clears the bit
+on the frame after the last squad, when it finds the chain empty.
+
+**What the reading did not say: every walk ended before its leg's point.**
+- The chariot's last step is on 698, to (2990, 13689), about 140 short of
+  (2904, 13800). It is inside on 699 without moving again.
+- The squad's captain steps on 761 to (2612, 14651), about 35 short of
+  (2616, 14616), and is inside the same block with both members. They had
+  not moved on 761.
+
+`do_garrison`'s door is `Object::adjacent_to`, and the reading put the
+test only on a frame whose head is the GARRISON. Something cuts the leg
+short while it is still the head. A hypothesis, not a finding: `Unit::
+work`'s every-16-frames step, phased by `o` (`docs/ORDERS.md` §2.3 step
+5). `(698 + 6)` and `(761 + 7)` are both multiples of 16. The widening
+and this crate's own walk will say.
