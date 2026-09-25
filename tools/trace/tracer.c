@@ -514,7 +514,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Seven verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Nine verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -526,6 +526,9 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@eject <who> <b> [<b> ...]`          building ids, issue_eject_all
  *   `@form <who> <form> <rotate> <o> [<o> ...]` a formation index and a
  *                                         rotation, issue_form
+ *   `@attack <who> <ox> <whom> <o> [<o> ...]` the target's id and owner,
+ *                                         issue_attack
+ *   `@amove <who> <x> <y> <o> [<o> ...]`  `@move`'s fields, ATTACK_TO
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -580,6 +583,20 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * (type 0x03, `[form][rotate][queued]`) behind the group (item 723,
  * `docs/GOLDEN.md` §22). `Group::action_form` reads it at process time.
  *
+ * `@attack` calls `CommandManager::issue_attack@009415e0(&command_manager,
+ * group, ox, whom, ignore 0, QUEUE_NEW 2)` — what `Console::
+ * execute_at_cursor@007c6630:2741` passes through `GroupOut::issue_attack
+ * @0070b060` for an unmodified right-click on an enemy — and appends a
+ * 17-byte `attack` (type 0x04, `[ox][whom][ignore][queued]`) behind the
+ * group (item 731, `docs/GOLDEN.md` §23). `ignore` is read only against
+ * siege, special and spy members, and the chapter's cast has none. The
+ * target is not checked here: `CommandPackage::process_attack@00949c30`
+ * and `Group::action_attack` ask it at process time.
+ *
+ * `@amove` is `@move` with `orders` ATTACK_TO (2) for MOVE_TO (1): the
+ * bytes `WorldMap::on_right_up@008c7050:199` passes for a ctrl+right-click
+ * on the ground, the attack-move (item 731).
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -600,6 +617,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_GARRISON 0x541a70u
 #define RVA_ISSUE_EJECT_ALL 0x541ca0u
 #define RVA_ISSUE_FORM 0x541580u
+#define RVA_ISSUE_ATTACK 0x5415e0u
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -630,10 +648,11 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u32 before = *pkg_size;
     const u16 *t = text;
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
-     * `eject`, 6 `form`: the issuer, its prologue and its command's size.
-     * A guard's two numbers are the charge's `ox` and `whom`, a follow's
-     * the leader's, a garrison's the building's, a form's the formation
-     * and the rotation; an eject has none. */
+     * `eject`, 6 `form`, 7 `attack`, 8 `amove`: the issuer, its prologue
+     * and its command's size. A guard's two numbers are the charge's `ox`
+     * and `whom`, a follow's the leader's, a garrison's the building's, an
+     * attack's the target's, a form's the formation and the rotation; an
+     * eject has none. */
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "patrol ")   ? 1
                : issue_verb(&t, "guard ")    ? 2
@@ -641,6 +660,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "garrison ") ? 4
                : issue_verb(&t, "eject ")    ? 5
                : issue_verb(&t, "form ")     ? 6
+               : issue_verb(&t, "attack ")   ? 7
+               : issue_verb(&t, "amove ")    ? 8
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, ids[ISSUE_MAX];
@@ -659,22 +680,33 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
      * issue_patrol's, issue_guard's, issue_follow's, issue_garrison's and
      * issue_form's, `0x14` for issue_eject_all's; each then loads
-     * `&command_manager` into ecx. */
-    static const u8 prologue[7][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * `&command_manager` into ecx. issue_attack's `sub esp, 0x14` is
+     * followed by `push esi; mov esi, [ebp+0xc]`: it tests `ox` and
+     * `whom` before it asks `check_accept_issue`. `@amove` is issue_move_to. */
+    static const u8 prologue[9][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
-    u32 rva = verb == 6   ? RVA_ISSUE_FORM
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+    u32 rva = verb == 8   ? RVA_ISSUE_MOVE_TO
+              : verb == 7 ? RVA_ISSUE_ATTACK
+              : verb == 6 ? RVA_ISSUE_FORM
               : verb == 5 ? RVA_ISSUE_EJECT_ALL
               : verb == 4 ? RVA_ISSUE_GARRISON
               : verb == 3 ? RVA_ISSUE_FOLLOW
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb == 5 ? 0x11 : verb >= 2 ? 0x0d : verb ? 0x0a : 0x16; /* 6 is 0x0d */
+    u32 size = verb == 8   ? 0x16
+               : verb == 7 ? 0x11
+               : verb == 5 ? 0x11
+               : verb >= 2 ? 0x0d
+               : verb      ? 0x0a
+                           : 0x16; /* 6 is 0x0d */
     for (u32 i = 0; i < sizeof prologue[0]; i++)
         if (*(u8 *)(g_base + rva + i) != prologue[verb][i]) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
@@ -714,7 +746,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
          * eject_who -1): the Eject button's bytes. */
         typedef void(__thiscall *eject_fn)(void *, void *, i32, i32, i32, i32);
         ((eject_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, 0, -1, -1, -1);
-    } else if (verb) {
+    } else if (verb == 7) {
+        /* issue_attack(group, ox, whom, ignore 0, QUEUE_NEW 2): a
+         * right-click on an enemy. */
+        typedef void(__thiscall *attack_fn)(void *, void *, i32, i32, i32, i32);
+        ((attack_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 0, 2);
+    } else if (verb && verb != 8) {
         /* issue_patrol(group, x, y, queue), issue_guard(group, ox, whom,
          * queue), issue_follow(group, ox, whom, queue) and
          * issue_garrison(group, ox, whom, queue) share one shape: two ints
@@ -723,8 +760,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
     } else {
         typedef void(__thiscall *issue_fn)(void *, void *, i32, i32, i32, i32, i32, i32, i32, i32, i32);
-        ((issue_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 0, 0, 1, -1,
-                                   -1, 0);
+        /* `@move` passes MOVE_TO (1), `@amove` ATTACK_TO (2). */
+        ((issue_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 0, 0,
+                                   verb == 8 ? 2 : 1, -1, -1, 0);
     }
     u32 after = *pkg_size;
     emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, n);
