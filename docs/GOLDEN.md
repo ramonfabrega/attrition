@@ -1355,7 +1355,7 @@ below without a run take their number at booking (the eleventh pass).
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
-| 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926** |
+| 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2767,3 +2767,34 @@ Envelop slots and this crate's stands.
   was off and the ini carried `GROUPS=1`. The hypothesis is that `GUYS=2`
   rejects the lines, where run178's `GUYS=4` passed them (`docs/RUNS.md`,
   run210). The measures above come from each member's own order.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_FOURTEEN` = 631, open.**
+The harness skipped both `@form` lines. On 622 the original's nine hold
+`form 2`, `form_mod 50`, `group 1` and a plain move each, where this
+crate's hold nothing. On **631** this crate spends 9 draws against 10,
+parting at draw 3: the original's leader `0/6`, stopped on its slot,
+rolls an idle (`Guy::set_anim+0x97a < Unit::do_idle+0x7d`). The widening
+over (605, 633) had 13 standing rows on 605, each unit's birth `form`,
+and the nine on 622–626. The coverage pin failed first on `process_form`
+and on the right-click's `process_move_to` lines. Its driver takes 620..624,
+629..633, 700..704, 740..744 and 903..907.
+
+**Closed at 1150 by the same item** (item 723; `docs/ORDERS.md` §30).
+- **The entry.** `rondata::input::group_form` pushes the group and calls
+  `Sim::group_action_form`. That alone moved the word to 740. The
+  standing re-form now agrees value for value, so the plain moves need
+  no ungroup hypothesis: this crate lays them the same way.
+- **The equal group's slot and record.** `push_group` keeps them for the
+  player's last pushed slot, so the right-click on 701 mirrors Envelop as
+  the original's does. That moved the word 740 → 764.
+- **The replay to `orig`.** `finish_insert` replays the copied group move
+  to `orig`, the group's point, not the leader's slot. That moved the
+  word 764 → 1150.
+
+Sequence 1150, and no value part. The widening over run210 whole leaves:
+- the standing `form`s;
+- the group move's `id` on 702, 701101 against 707501, which is this
+  crate's numbering of a pushed group (parked 689).
+
+The equal-group fix took parked 275's scout row off ten other chapters'
+widenings and the two controls.

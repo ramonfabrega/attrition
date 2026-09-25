@@ -440,14 +440,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         Some(Issued::Eject { who, buildings }) => {
             crate::input::group_eject_all(built, who, &buildings)
         }
-        // SEAM: `@form` is `issue_form@00941580` with `QUEUE_NEW`, a
-        // `group` and a `form` (item 723, `docs/GOLDEN.md` §22). The
-        // command has no entry into the simulation yet, so the line is
-        // skipped by name and the chapter's word says where that parts.
-        Some(Issued::Form { .. }) => {
-            done.skip(&word, "the formation command has no entry yet");
-            return;
-        }
+        // `@form` is `issue_form@00941580` with `QUEUE_NEW`, a `group`
+        // and a `form`, whose entry is [`crate::input::group_form`] (item
+        // 723, `docs/GOLDEN.md` §22).
+        Some(Issued::Form {
+            who,
+            form,
+            rotate,
+            objects,
+        }) => crate::input::group_form(built, who, &objects, form, rotate, 2),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;

@@ -4352,12 +4352,11 @@ fn chapter_five_s_word_frame_is_widened_whole() {
     // plays `CHAR_ATTACK2`, forty frames, not three. With the fallback
     // removed the word falls back to 739 and the map holds 224 keys, the
     // first `1/6 ammo[0]` on 742; with it, 30.
-    // One row stands under the word and it is not the water's: the
-    // explore order of who=1's scout `1/0` carries the formation mirror
-    // `facing` 1 against the dump's 0 from 847. That field is declared
-    // non-scoring (`OrderMismatch::scores`, parked 275), and Great Lakes'
-    // `1/0` carries the same row on 8002. It is pinned by name and value
-    // so it cannot stand in for anything else.
+    // ~~One row stood under the word and it was not the water's: the
+    // explore order of who=1's scout `1/0` carried the formation mirror
+    // `facing` 1 against the dump's 0 from 847 (parked 275).~~ Nothing
+    // stands since `push_group` keeps an equal group's record (item 723): the scout's
+    // repeated pushes lay out from the last layout's slot bytes.
     let under: Vec<String> = firsts
         .iter()
         .filter(|((_, _, what), (f, _))| *f <= GOLDEN_WORD_CHAPTER_FIVE && !standing(what))
@@ -4365,9 +4364,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         .collect();
     assert_eq!(
         under,
-        vec![
-            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }".to_string()
-        ],
+        Vec::<String>::new(),
         "what parts at or under the word moved"
     );
     // **Every round of the capture agrees whole** (items 542 and 549):
@@ -5041,9 +5038,8 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         "the namesake's record parts somewhere new"
     );
     // **What parts under the word**, none of it a draw, and the word is
-    // the capture's end: the scout's explore-order `facing` (the declared
-    // non-scoring formation mirror, parked 275, as chapter five's `1/0` on
-    // 847); the squad's group id (`1020001` against `1026401`, a
+    // the capture's end: ~~the scout's explore-order `facing` (parked 275),
+    // gone since `push_group` keeps an equal group's record (item 723)~~; the squad's group id (`1020001` against `1026401`, a
     // numbering, on 1021); and the scout's second figure three units off
     // on 1172. Pinned by key and block so none of them can stand in for
     // anything else.
@@ -5062,7 +5058,6 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
     let mut want: Vec<String> = [
-        "767 1/9 order:move.facing",
         "1021 1/6 order:group.id",
         "1021 1/7 order:group.id",
         "1021 1/8 order:group.id",
@@ -5819,7 +5814,9 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     let control_standing = |what: &str| what == "group" || what == "order:move.facing";
     for ((run, firsts), (floor, under_want)) in summaries
         .iter()
-        .zip([(27usize, &[847i64][..]), (32usize, &[][..])])
+        // run142's 32 lost the scout's `order:move.facing` (parked 275)
+        // when `push_group` kept an equal group's record (item 723).
+        .zip([(27usize, &[][..] as &[i64]), (31usize, &[][..])])
     {
         let at_floor: Vec<&String> = firsts
             .iter()
@@ -5841,9 +5838,10 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
         // `NUBIAN_HIT_POINTS`, "50% more" on merchants, caravans and
         // markets (`rules.xml`), which `Unit::update_hits@0060e930` reads
         // and this crate does not apply. Player 0 is Nubia (its capital is
-        // Napata). The citizen's and the scholar's agree. And run141 alone
-        // carries the scout `1/0`'s `facing` from 847, as chapter five's
-        // does; in run142 it stands from the first block.
+        // Napata). The citizen's and the scholar's agree. ~~And run141
+        // alone carries the scout `1/0`'s `facing` from 847~~, gone since
+        // `push_group` keeps an equal group's record (item 723); in run142 it stands from the
+        // first block.
         let mut got: Vec<String> = firsts
             .iter()
             .filter(|((_, _, what), (f, _))| *f > FIRST && !standing(what))
@@ -5996,12 +5994,9 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     // end and prints no block, as run168's 900. The Bomber `1/6` agrees on
     // every block, its alternating `ATTACK` and `MOVE` from 700 included.
     //
-    // One row stands that is neither aircraft's: the explore order of
-    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
-    // the dump's 0 from 991, the row chapter five pins on 847 and Great
-    // Lakes carries on 8002. The field is declared non-scoring
-    // (`OrderMismatch::scores`, parked 275). It is pinned by name and
-    // value so it cannot stand in for anything else.
+    // ~~One row stood that was neither aircraft's: the scout `1/0`'s
+    // formation mirror `facing` from 991 (parked 275).~~ Gone since
+    // `push_group` keeps an equal group's record (item 723).
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SIX_B.0)
@@ -6019,7 +6014,6 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         "611 0/6 order:target",
         "616 1/6 form",
         "616 1/6 order:target",
-        "991 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
     ]
     .iter()
     .map(|r| r.to_string())
@@ -6145,14 +6139,13 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     // move (`orders_x/y`, `dest_angle`, the move's `x/y/off/angle`), then
     // `0/4` on 1172, `1/3` on 1188 and `1/1`'s gather `wait` on 1189. With
     // it no row parts past 1001: the list below is the standing family
-    // and parked 275's row, as on 1139.
+    // (parked 275's row, as on 1139, gone since `push_group` keeps an equal group's record (item 723)).
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
         "615 0/8 form",
         "615 0/9 form",
         "615 0/10 form",
-        "847 1/0 order:move.facing",
         "1001 1/6 form",
     ]
     .iter()
@@ -6206,7 +6199,8 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
     got.sort();
     // **What parts under the word**, by block and key (`docs/GOLDEN.md`
     // §20). Each staged unit's `form` on its birth block, the standing
-    // family, and the scout `1/0`'s formation mirror on 847 (parked 275).
+    // family. ~~The scout `1/0`'s formation mirror on 847 (parked 275)~~,
+    // gone since `push_group` keeps an equal group's record (item 723).
     //
     // **The first pin, word 717**: this crate had no follow, and the
     // harness skipped both `@follow` lines. On 622 the original's chariot
@@ -6227,7 +6221,6 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
         "615 0/9 form",
         "615 0/10 form",
         "617 0/11 form",
-        "847 1/0 order:move.facing",
     ]
     .iter()
     .map(|r| r.to_string())
@@ -6280,7 +6273,8 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     got.sort();
     // **What parts under the word**, by block and key (`docs/GOLDEN.md`
     // §21). Each staged unit's `form` on its birth block, the standing
-    // family; the scout `1/0`'s formation mirror on 847 (parked 275).
+    // family. ~~The scout `1/0`'s formation mirror on 847 (parked 275)~~,
+    // gone since `push_group` keeps an equal group's record (item 723).
     //
     // **The first pin, word 640**: this crate could not take the garrison
     // command, and the harness skipped both `@garrison` lines. On 622 the
@@ -6300,7 +6294,6 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
         "615 0/7 form",
         "615 0/8 form",
         "615 0/9 form",
-        "847 1/0 order:move.facing",
         "903 0/7 group",
         "903 0/8 group",
         "903 0/9 group",
@@ -6358,11 +6351,18 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
     // §22). Each staged unit's `form` on its birth block, the standing
     // family.
     //
-    // **The first pin, word 631**: this crate cannot take the formation
-    // command, and the harness skips both `@form` lines. On 622 each of
-    // the original's nine holds `form 2`, `form_mod 50` and `group 1`,
-    // and a plain move to its Envelop slot round `0/6`, where this
-    // crate's hold nothing and count `idle`; from 623 they walk.
+    // **The first pin, word 631**: this crate could not take the
+    // formation command, and the harness skipped both `@form` lines. On
+    // 622 each of the original's nine held `form 2`, `form_mod 50` and
+    // `group 1`, and a plain move to its Envelop slot round `0/6`, where
+    // this crate's held nothing and counted `idle`; from 623 they walked.
+    //
+    // **Built → 1150, closed** (`docs/ORDERS.md` §30): the command's
+    // entry, an equal group's slot and record kept by `push_group`, and
+    // the replay to `orig`. What stays is the group move's `id` on 702:
+    // this crate numbers a pushed group `64 +` its seat, where the
+    // original's is `who·64 +` the pool slot, 701101 against 707501
+    // (parked 689).
     let mut want: Vec<String> = [
         "611 0/6 form",
         "611 0/7 form",
@@ -6373,147 +6373,15 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
         "615 0/12 form",
         "615 0/13 form",
         "615 0/14 form",
-        "622 0/10 dest_angle",
-        "622 0/10 form_mod",
-        "622 0/10 g.angle[0]",
-        "622 0/10 g.x[0]",
-        "622 0/10 g.y[0]",
-        "622 0/10 group",
-        "622 0/10 heading",
-        "622 0/10 idle",
-        "622 0/10 order:length",
-        "622 0/10 orders.len",
-        "622 0/10 orders_x",
-        "622 0/10 orders_y",
-        "622 0/10 path:length",
-        "622 0/10 path_recursion",
-        "622 0/10 pos",
-        "622 0/11 dest_angle",
-        "622 0/11 form_mod",
-        "622 0/11 g.angle[0]",
-        "622 0/11 g.x[0]",
-        "622 0/11 g.y[0]",
-        "622 0/11 group",
-        "622 0/11 heading",
-        "622 0/11 idle",
-        "622 0/11 order:length",
-        "622 0/11 orders.len",
-        "622 0/11 orders_x",
-        "622 0/11 orders_y",
-        "622 0/11 path:length",
-        "622 0/11 path_recursion",
-        "622 0/11 pos",
-        "622 0/12 form_mod",
-        "622 0/12 group",
-        "622 0/12 idle",
-        "622 0/12 order:length",
-        "622 0/12 orders.len",
-        "622 0/12 orders_x",
-        "622 0/12 orders_y",
-        "622 0/13 dest_angle",
-        "622 0/13 form_mod",
-        "622 0/13 g.angle[0]",
-        "622 0/13 g.x[0]",
-        "622 0/13 g.y[0]",
-        "622 0/13 group",
-        "622 0/13 heading",
-        "622 0/13 idle",
-        "622 0/13 order:length",
-        "622 0/13 orders.len",
-        "622 0/13 orders_x",
-        "622 0/13 orders_y",
-        "622 0/13 path:length",
-        "622 0/13 path_recursion",
-        "622 0/13 pos",
-        "622 0/14 dest_angle",
-        "622 0/14 form_mod",
-        "622 0/14 g.angle[0]",
-        "622 0/14 g.x[0]",
-        "622 0/14 g.y[0]",
-        "622 0/14 group",
-        "622 0/14 heading",
-        "622 0/14 idle",
-        "622 0/14 order:length",
-        "622 0/14 orders.len",
-        "622 0/14 orders_x",
-        "622 0/14 orders_y",
-        "622 0/14 path:length",
-        "622 0/14 path_recursion",
-        "622 0/14 pos",
-        "622 0/6 dest_angle",
-        "622 0/6 form_mod",
-        "622 0/6 g.angle[0]",
-        "622 0/6 g.x[0]",
-        "622 0/6 g.y[0]",
-        "622 0/6 group",
-        "622 0/6 heading",
-        "622 0/6 idle",
-        "622 0/6 order:length",
-        "622 0/6 orders.len",
-        "622 0/6 orders_x",
-        "622 0/6 orders_y",
-        "622 0/6 path:length",
-        "622 0/6 path_recursion",
-        "622 0/6 pos",
-        "622 0/7 dest_angle",
-        "622 0/7 form_mod",
-        "622 0/7 group",
-        "622 0/7 idle",
-        "622 0/7 order:length",
-        "622 0/7 orders.len",
-        "622 0/7 orders_x",
-        "622 0/7 orders_y",
-        "622 0/8 dest_angle",
-        "622 0/8 form_mod",
-        "622 0/8 g.angle[0]",
-        "622 0/8 g.x[0]",
-        "622 0/8 g.y[0]",
-        "622 0/8 group",
-        "622 0/8 heading",
-        "622 0/8 idle",
-        "622 0/8 order:length",
-        "622 0/8 orders.len",
-        "622 0/8 orders_x",
-        "622 0/8 orders_y",
-        "622 0/8 path:length",
-        "622 0/8 path_recursion",
-        "622 0/8 pos",
-        "622 0/9 dest_angle",
-        "622 0/9 form_mod",
-        "622 0/9 group",
-        "622 0/9 idle",
-        "622 0/9 order:length",
-        "622 0/9 orders.len",
-        "622 0/9 orders_x",
-        "622 0/9 orders_y",
-        "623 0/12 g.angle[0]",
-        "623 0/12 g.x[0]",
-        "623 0/12 g.y[0]",
-        "623 0/12 heading",
-        "623 0/12 path:length",
-        "623 0/12 path_recursion",
-        "623 0/12 pos",
-        "623 0/6 half_step",
-        "623 0/7 g.angle[0]",
-        "623 0/7 g.x[0]",
-        "623 0/7 g.y[0]",
-        "623 0/7 heading",
-        "623 0/7 path:length",
-        "623 0/7 path_recursion",
-        "623 0/7 pos",
-        "623 0/9 g.angle[0]",
-        "623 0/9 g.x[0]",
-        "623 0/9 g.y[0]",
-        "623 0/9 heading",
-        "623 0/9 path:length",
-        "623 0/9 path_recursion",
-        "623 0/9 pos",
-        "625 0/11 half_step",
-        "625 0/13 half_step",
-        "625 0/14 half_step",
-        "625 0/7 half_step",
-        "625 0/8 half_step",
-        "626 0/10 half_step",
+        "702 0/10 order:group.id",
+        "702 0/11 order:group.id",
+        "702 0/12 order:group.id",
+        "702 0/13 order:group.id",
+        "702 0/14 order:group.id",
+        "702 0/6 order:group.id",
+        "702 0/7 order:group.id",
+        "702 0/8 order:group.id",
+        "702 0/9 order:group.id",
     ]
     .iter()
     .map(|r| r.to_string())
@@ -6584,10 +6452,9 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
     // reads `64 +` its index (parked 689, chapter nine's 642 row). Values
     // no step reads; declared non-scoring.
     //
-    // One row stands that is neither order's: the explore order of
-    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
-    // the dump's 0 from 847, chapter nine's and five's row (parked 275),
-    // pinned by name and value.
+    // ~~One row stood that was neither order's: the scout `1/0`'s
+    // formation mirror `facing` from 847 (parked 275).~~ Gone since
+    // `push_group` keeps an equal group's record (item 723).
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TEN.0)
@@ -6612,7 +6479,6 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         "642 0/8 order:patrol.id",
         "642 0/9 order:group.id",
         "642 0/9 order:patrol.id",
-        "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
     ]
     .iter()
     .map(|r| r.to_string())
@@ -6680,11 +6546,9 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
     // its index in `Sim::pushed`. It is a value no step reads, and the
     // fix reaches the AI's pushed groups on both long captures.
     //
-    // One row stands that is neither order's: the explore order of
-    // who=1's scout `1/0` carries the formation mirror `facing` 1 against
-    // the dump's 0 from 847, the row chapter five pins on 847 and six-b on
-    // 991; non-scoring (`OrderMismatch::scores`, parked 275), pinned by
-    // name and value.
+    // ~~One row stood that was neither order's: the scout `1/0`'s
+    // formation mirror `facing` from 847 (parked 275).~~ Gone since
+    // `push_group` keeps an equal group's record (item 723).
     let mut got: Vec<String> = firsts
         .iter()
         .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_NINE.0)
@@ -6705,7 +6569,6 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         "642 0/7 order:group.id",
         "642 0/8 order:group.id",
         "642 0/9 order:group.id",
-        "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
     ]
     .iter()
     .map(|r| r.to_string())
@@ -6841,7 +6704,10 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .filter(|(_, (f, _))| *f == window.0)
             .map(|((_, _, what), _)| what)
             .collect();
-        let floor = if run == "ch7b" { 27 } else { 32 };
+        // The control's 32 was 31 and the scout's `order:move.facing`
+        // (parked 275), gone since `push_group` keeps an equal group's
+        // record (item 723).
+        let floor = if run == "ch7b" { 27 } else { 31 };
         assert!(
             at_floor
                 .iter()
@@ -6886,8 +6752,10 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
             .collect();
         got.sort();
+        // run156's scout row on 847 (parked 275) is gone since
+        // `push_group` keeps an equal group's record (item 723).
         let want: &[&str] = if run == "ch7b" {
-            &["847 1/0 order:move.facing"]
+            &[]
         } else {
             &["990 1/1 group"]
         };

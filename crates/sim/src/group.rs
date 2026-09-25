@@ -460,7 +460,32 @@ impl Sim {
             }
             return false;
         }
+        let last = self.last_group[g.who as usize];
         let pool = self.pool_slot_for(g.who, &g.list);
+        // `70fa3b`: `equals_group` against the player's **last pushed**
+        // slot — the same owner and the same members in the same order —
+        // and an equal group is **not copied**: `copy_group` runs only on
+        // the fresh slot `get_open_slot` hands back. So a selection pushed
+        // again keeps its record, `(ox, oy)`, `o_angle`, `facing` and the
+        // slot bytes, which the next layout reads (`docs/GOLDEN.md` §22:
+        // run210's `process_group, repeat` on 701 and 741). The second
+        // walk then finds every member already pointing at the slot and
+        // kills none.
+        if pool == last
+            && let Some(i) = self
+                .pushed
+                .iter()
+                .position(|x| x.who == g.who && x.state.pool == Some(pool) && x.list == g.list)
+        {
+            for &u in &g.list {
+                if self.units[u].alive() {
+                    self.units[u].group_ptr = Some(pool);
+                }
+            }
+            g.army = None;
+            g.pushed = Some(i);
+            return true;
+        }
         self.unseat_group(g);
         // The pool slot every member's `+0x80` then points at.
         // `Groups::get_open_slot` recycles, so a slot whose members are
@@ -1618,9 +1643,18 @@ impl Sim {
         let Insert { saved, aim } = insert;
         for o in saved {
             match o.body {
+                // Cases 1–4, `0x13` and `0x15`: `action_move_near` to the
+                // copy's `orig_x`/`orig_y` when both are non-negative — for
+                // a group move, the group's own point — else its `x`/`y`,
+                // at `QUEUE_LAST`, `set_angle 1` and the order's own angle,
+                // with the action bit. SEAM: a plain move's `orig`, which
+                // this crate does not carry, is taken as its `dest`.
                 Body::Move(m) => self.group_action_move_to(
                     g,
-                    m.dest,
+                    m.group
+                        .map(|gm| gm.orig)
+                        .filter(|p| p.x >= 0 && p.y >= 0)
+                        .unwrap_or(m.dest),
                     QueuePos::Last,
                     true,
                     m.angle,
@@ -2030,6 +2064,7 @@ impl Sim {
                     form_id: i,
                     group_angle: order_angle,
                     in_group: false,
+                    orig: to,
                 };
                 self.add_move_facing_order_grouped(
                     u,
