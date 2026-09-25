@@ -343,6 +343,37 @@ impl Sim {
     /// `LeaderData::get_buildings@006e0680` sums a per-type census over the
     /// type's upgrade chain; the refinery has no upgrade, so the lineage test
     /// is the same answer.
+    /// `LeaderData::has_wonder@006ebc10` for every wonder at once, a bit
+    /// per [`crate::tech::wonder`] offset.
+    ///
+    /// The original walks the player's wonder list: an entry is written by
+    /// `Wonders::init_wonder` from `Build::activate`'s wonder arm and
+    /// cleared by `close_wonder` from `Build::close`, and it holds when its
+    /// object is of the asked type and stands in a city (`city >= 0`,
+    /// `+0x72`) — except the Red Fort, which holds without one. So it is
+    /// an activated, standing wonder of the type, which is what this reads
+    /// off the buildings. The Conquer-the-World arm (`conquest_wonders`,
+    /// `local_8 = 2`) is cut from v1. `docs/ECONOMY.md` §15.
+    pub fn wonders_held(&self, who: Player) -> u32 {
+        let line = &self.tech_tree.roles.wonder_line;
+        let mut held = 0u32;
+        for b in &self.buildings {
+            if b.owner != who || !b.alive || !b.active {
+                continue;
+            }
+            let Some(tree) = b.ty.and_then(|t| self.build_types[t].tree) else {
+                continue;
+            };
+            let Some(k) = line.iter().position(|&w| w == tree) else {
+                continue;
+            };
+            if k == crate::tech::wonder::RED_FORT || b.city.is_some() {
+                held |= 1 << k;
+            }
+        }
+        held
+    }
+
     pub fn refinery_count(&self, who: Player) -> i32 {
         let n = (0..self.buildings.len())
             .filter(|&b| self.buildings[b].owner == who)

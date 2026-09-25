@@ -906,6 +906,13 @@ pub fn load_tables(
             .filter(|&i| i < tech_tree.len())
             .map(|i| tech_tree[i])
             .collect();
+        // `PYRAMIDS` through `SPACEPROGRAM`, `0x20e..=0x21e`: what
+        // `LeaderData::has_wonder`'s argument names (`docs/ECONOMY.md` §15).
+        r.wonder_line = (0x20e..=0x21e)
+            .map(|t| t - BASE_BUILDTYPES as usize)
+            .filter(|&i| i < build_tree.len())
+            .map(|i| build_tree[i])
+            .collect();
         // What every final requires: the last age and the four last epochs.
         r.final_needs = [
             "Information Age",

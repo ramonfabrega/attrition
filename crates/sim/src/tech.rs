@@ -421,6 +421,25 @@ pub struct Roles {
     /// `get_cost`'s British discount and `research_techs`' Temple ×100
     /// test as `t − TAXATION < 4`.
     pub taxation_line: Vec<TypeId>,
+    /// The seventeen wonders, `PYRAMIDS` through `SPACEPROGRAM`
+    /// (`0x20e..=0x21e`), indexed by `TypeIndex − 0x20e` — what
+    /// `LeaderData::has_wonder`'s argument names ([`wonder`]).
+    pub wonder_line: Vec<TypeId>,
+}
+
+/// `LeaderData::has_wonder`'s arguments, as offsets into
+/// [`Roles::wonder_line`] (`TypeIndex − BASE_WONDERTYPES`).
+pub mod wonder {
+    pub const PYRAMIDS: usize = 0x20e - 0x20e;
+    pub const COLOSSUS: usize = 0x20f - 0x20e;
+    pub const TIKAL: usize = 0x214 - 0x20e;
+    /// The one wonder `has_wonder` holds without a city (`param_1 ==
+    /// 0x216`).
+    pub const RED_FORT: usize = 0x216 - 0x20e;
+    pub const ANGKOR_WAT: usize = 0x217 - 0x20e;
+    pub const KREMLIN: usize = 0x21a - 0x20e;
+    pub const TAJ_MAHAL: usize = 0x21b - 0x20e;
+    pub const EIFFEL_TOWER: usize = 0x21c - 0x20e;
 }
 
 /// What gates a free-tech rule.
