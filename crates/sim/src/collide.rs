@@ -3838,6 +3838,60 @@ mod tests {
         assert_ne!(marks[at].1, after, "the blocked stand spends a draw");
     }
 
+    /// §17: **the give-up does not step.** A unit blocked for 26 frames
+    /// (`collide >= 0x1a`) on a final waypoint within three reaches widens
+    /// `tolerance` to twice the Manhattan distance still owed and jumps
+    /// straight to the step's arrival tail (`005fb7b5`–`005fb7bb`,
+    /// `jmp 005fb82c`), past `set_new_location`. The test, from where it
+    /// stands, then takes the waypoint: run218's `1/23` on Great Lakes
+    /// 16459, which this crate walked a step into The Despot.
+    #[test]
+    fn a_blocked_unit_that_gives_up_takes_its_waypoint_where_it_stands() {
+        let b = Pos::new(27 * 0x30 + 0x18, 30 * 0x30 + 0x18);
+        let a = Pos::new(b.x + 0x60, b.y);
+        let (mut sim, x, y) = pair(a, b);
+        sim.order_move(x, Pos::new(20 * 0x30 + 0x18, 30 * 0x30 + 0x18));
+        sim.tick();
+        let here = sim.units[x].pos;
+        // One final leg, past the unit in front and inside three reaches
+        // (`(48 + 48) * 3 = 288`), with a tolerance of its own.
+        let to = Pos::new(b.x - 0x30, b.y);
+        sim.units[x].path.clear();
+        sim.units[x].path.push(PathData {
+            to,
+            tolerance: 0x30,
+            flags: path_flag::FINAL,
+        });
+        sim.units[x].line_ok = true;
+        if let Some(front) = sim.units[x].orders.front_mut()
+            && let Some(m) = front.move_mut()
+        {
+            m.has_waypoint = true;
+            m.waypoint = to;
+        }
+        sim.units[x].collide = 0x1a;
+        sim.units[x].collide_frame = sim.frame;
+        let manh = (to.x - here.x).abs() + (to.y - here.y).abs();
+        assert!(manh < 3 * 96, "inside three reaches: {manh}");
+        sim.tick();
+        assert_eq!(
+            (sim.units[x].collide_o, sim.units[x].collide_who),
+            (
+                sim.units[y].index,
+                i8::try_from(sim.units[y].owner).unwrap()
+            ),
+            "the step was refused by the unit in front"
+        );
+        assert_eq!(sim.units[x].tolerance, manh * 2, "the widened tolerance");
+        assert_eq!(sim.units[x].pos, here, "and no step was taken");
+        assert!(
+            sim.units[x].path.is_empty() && sim.units[x].orders.is_empty(),
+            "the arrival test took the final leg where it stands: {:?} {:?}",
+            sim.units[x].path,
+            sim.units[x].orders
+        );
+    }
+
     /// §6 step 2's fence, and what it is: the target type's `+0x94` is
     /// `BuildTypeData::is_flat` — `build_flags & 0x10000000`, the derived
     /// bit only the Farm, the Oil Well and the Oil Platform carry

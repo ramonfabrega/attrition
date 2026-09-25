@@ -48,11 +48,11 @@ use super::testkit::{
     GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
-    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_MAKE_BLOCK,
-    GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_RECRUIT_BLOCK,
-    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK,
-    GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK,
-    WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_GIVEUP_BLOCK,
+    GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK,
+    GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK,
+    GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK,
+    GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -528,6 +528,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r202 = crate::testenv::dump("gamelog-run202-greatlakes-mirrorword.txt");
     let r211 = crate::testenv::dump("gamelog-run211-greatlakes-wonderword.txt");
     let r218 = crate::testenv::dump("gamelog-run218-greatlakes-escortword.txt");
+    let r226 = crate::testenv::dump("gamelog-run226-greatlakes-giveupword.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
@@ -680,6 +681,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r218 {
         let n = drive_capture(p, ge - 2, ge + 2, &mut paths);
         assert_eq!(n, 5, "run218 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 742 moved it to 17099, past run218's last block, and its run226
+    // is run218's line from 16706 to 17350, so the window is the word's own
+    // blocks again, on the capture taken to widen it.
+    let gg = GREAT_LAKES_GIVEUP_BLOCK;
+    if let Some(p) = &r226 {
+        let n = drive_capture(p, gg - 2, gg + 2, &mut paths);
+        assert_eq!(n, 5, "run226 carries the word's five blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower
@@ -1148,11 +1158,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // day it was built; parked for a widening rather than fixed here.
     // `flags`, `max_age`, `mtn`, `cliff`, `mining_size`,
     // `construct_hits`, `ever_seen` and `ever_seen_completed` no site
-    // compares.
+    // compares. `job_counter` is compared only while **both** sides call
+    // a site unfinished (the construction clock, `harness.rs`), and no
+    // site stands unfinished on run226's 17098..17102, the window since
+    // item 742; run218's 16459..16463 had one.
     (
         "BuildDump",
         "cliff construct_hits damage damage_frac ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type queue",
+         job_counter max_age mining_size mtn orig_type queue",
     ),
     // Registered with `BuildDump.queue`, on a queued build.
     ("QueueItemDump", "cost good job_counter ty"),
