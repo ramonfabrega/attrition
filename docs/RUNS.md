@@ -7215,3 +7215,82 @@ frames. The two places the scratch walk was wrong are both the re-issue's
 explore plans to its `orig`, where the walk had (2424, 17304). The
 squad's re-issue keeps its 642 slots round the click, where the walk
 re-formed them round the leader's slot and put `0/8` on (12600, 15096).
+
+## run223 — chapter seventeen, the flight line (2026-09-25, item 746)
+
+`docs/GOLDEN.md` §25, `tools/gamelog/golden/chapter17.cmd`. The cast:
+- who=0's Airbase `0/2007` on 606 at tile (60, 72);
+- a Fighter `0/6` on 610;
+- a Bomber pair `0/7`, `0/8` on 612 and 614;
+- who=1's Barracks `1/2006` on 616, at (21120, 16512).
+
+Four **player commands** go through `issue_flight@00941d40` from the DLL:
+- `@strike` on 620, the pair on the ground at the Barracks;
+- `@flight` on 640, the Fighter to its base;
+- `@flight` on 660, the pair to the base;
+- `@strike` on 664, the pair, flying, at the Barracks.
+
+The chapter, its premise's killer and the falsifiers were committed before
+the run (`637f623`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch17 \
+    --map 14 --end-frame 1400 --log-window 605 1400 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter17.cmd
+```
+
+**The first take stalled.** It launched at 11:45 on a stale lane lock
+(att-708's run221 had exited) and hung in DXVK's device setup:
+- `wine.log` ends at MoltenVK's `VkInstance`, 173 lines against run219's
+  812;
+- a 544-byte trace and no `gamelog.txt`;
+- killed at the 3600 s timeout, settings restored.
+
+It is kept as `~/ron-golden/ch17-stalled`. The commander checked the
+machine and asked for one relaunch, as run157's first take had stalled
+the same way.
+
+**The second take** was one take at `cover=0`: **942 s from launch
+(13:39) to exit (13:55), 325 MB of dump and 11.1 MB of trace**, 795
+blocks.
+- The receipt says `success: true` and exit 0, with 1,401 frames,
+  `MAP_STYLE 14` and seed 12345.
+- `cmdsran.py` has all eight cheat lines returning 1.
+- `zsh tools/gamelog/waitrun.sh` exited 0 on the click-free receipt. Run
+  bare, the script fails with 126: it is committed 100644 (Loop 756).
+
+**It is the same game as run219 to frame 610.** `rngcmp.py` finds 616
+frames identical; the first difference is 611, the frame after the
+Fighter's `add`.
+
+**The pool came out: 407,040 `GROUPDATA` records**, 512 on each of the
+795 window blocks.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` ×2 / `17` | `0/7` uid 15 at (10104, 16248), `0/8` uid 16 at (13176, 16248); line 8, refusal 0, 10 → 42 bytes: a 7-byte `group` of two and the 25-byte `flight` |
+| 640 | `INFO 18` / `17` | `0/6` uid 14 at (11640, 16248); line 9, refusal 0, 10 → 40 |
+| 660 | `INFO 18` ×2 / `17` | the pair on their pads; line 10, refusal 0, 10 → 42 |
+| 664 | `INFO 18` ×2 / `17` | the pair **airborne**, (10222, 16312) and (13289, 16322); line 11, refusal 0, 10 → 38: the 3-byte reuse and the `flight` |
+
+Each command is processed on the next frame: `process_group, new 0 2
+621` and `process_flight 621`; `new 0 1 641`; `new 0 2 661`; `repeat 0
+0 665`.
+
+### §25's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | four commands, each processed on the next frame | as predicted |
+| 2, an unbased strike | no order on `0/7`, `0/8` on 622 | **no order**: `action_flight` skipped both |
+| 3, the class | one `STRAFEORDER` (16), target −1, `mandatory 1`, flags 4, `AIRORDER` `oxx 2007 whose 0 cruising_alt 1600 returning 1`, `xx/yy −1`: `0/6` on 642, the pair on 662 | **exactly so**, on all three |
+| 4, the strike | block 666: the pair's strafe re-pointed at `1/2006`, `returning 0` | **fired**: on 666 each holds one **`AIRPATROLORDER` (17)** over (21120, 16512), the Barracks' point, home `0/2007`, `returning 0`, flags 0. Block 665 still shows the home-bound strafe |
+| 5, flight | the pads left, an altitude above 0 | the Fighter's guy `z` 348 on 660 and 547 on 700; its `cruising_alt` redrawn, 1600 → 1300 on 643 and 1500 on 659. `UnitData::air_alt` prints 0 throughout |
+| 6, the landing | a `SPECIALANIMORDER` on `0/2007`, then `inside_up` 2007 by 760 | **fired in its letter**: no `SPECIALANIMORDER` in the whole dump. `0/6` holds its strafe on 721 and is inside `0/2007` on **722**, stack empty; its `mana_burn` refills 2 a frame to 0 on 778 |
+| 7, the strike reaches the point | damage on `1/2006` by 900 | the patrol pushes a `STRAFEORDER` on `1/2006` (`mandatory 0`, flags 0) on 777 (`0/8`) and 778 (`0/7`); damage from **822** (285 on 850, 571 on 900, 951 on 1000); the Barracks is gone on **1080**, and the strafe drops on 1081 |
+| 8, home again | `returning` by 1230; the pair inside by 1400; three planes in the base | `returning 1` on **1212** and **1214**, as read; **fired on the landing**: both are still flying home on 1399, (12068, 15846) and (12277, 16312). Only `0/6` is inside at the end |

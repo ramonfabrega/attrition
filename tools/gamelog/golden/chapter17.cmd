@@ -18,6 +18,15 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter17.cmd
 #
+#   Run 2026-09-25, the second take (the first stalled in DXVK's device
+#   setup): 942 s, 325 MB, the same game as run219 to 610, 407,040
+#   GROUPDATA. All four commands processed on the next frame. Falsifier 4
+#   fired: the flying pair's strike became an AIRPATROLORDER over the
+#   Barracks' point on 666, and the patrol struck it once seen (777), from
+#   822 to its death on 1080. Falsifier 6 fired in its letter (no
+#   SPECIALANIMORDER is ever dumped; 0/6 is inside on 722) and 8 on the
+#   landing (the pair is still flying home at 1399). docs/RUNS.md, run223.
+#
 # `GUYS=4` with `GROUPS=1` and neither `DEATHS` nor `AMMO`: run215's and
 # run219's levels, the line whose pool printed (parked 733). The window runs
 # to 1400 because the pair's tanks run dry near 1212 and the chapter's last
