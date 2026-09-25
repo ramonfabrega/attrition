@@ -3446,3 +3446,28 @@ listed in `docs/ORDERS.md` §32:
 
 A draw alone would move the word with the positions already parted, which
 is the trap DECISIONS 42 names, so it was not taken.
+
+**The flight home, flown: `GOLDEN_WORD_CHAPTER_SEVENTEEN` = 805, open**
+(item 759, `docs/ORDERS.md` §33). `do_strafe` takes a flight home into
+`do_air_physics`: the redraw, `check_fuel`'s approach, the returning
+bank, `pitch_aircraft`, the step and `land_plane`. The figure's bank,
+pitch and altitude are parsed and compared now.
+- **The value diff on the old word's frame, 642**: every aircraft
+  agrees whole. `0/6` stands at (11664, 16262), heading 1419725301,
+  bank 10, pitch 2, altitude 2, path point (11424, 15089), on both
+  sides. `0/7` and `0/8` are still on their pads, (10104, 16248) and
+  (13176, 16248), altitude 0 on both.
+- Every redraw 642–714 agrees, as does the figure draw under
+  `do_air_physics+0x683` on 705. Its whole flight agrees to its landing inside `0/2007` on 722,
+  and inside after it. The pair's flight home agrees on 662–665. The
+  citizens' one-draw shift past the old word is gone.
+- **The word is the first bomb**, 805. The original spends
+  `Guy::set_anim+0xf2f < Unit::set_anim+0x56 < Unit::do_strafe+0x9d0`,
+  5 draws against 4 at draw 0: the patrol's strafe on `1/2006` going to
+  `CHAR_ATTACK2`.
+- **The first value parting is 666, before the word**: the pair's strike
+  turned `AIRPATROLORDER`, which this crate has no body for (§32 piece
+  5). Its flight spends no draw until the bomb, so the stream agrees
+  across a stretch where the pair's points do not. The widening, now
+  (605, 807), names every row from 666. **666 is the chapter's next
+  frame.**
