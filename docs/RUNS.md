@@ -6634,3 +6634,97 @@ carry no caller. The brackets' nesting is the caller.
 `this` is named by an `INFO 15` as `RON_COLLIDE_PROBE` names them. Every
 prologue and `ret` immediate was read off the listing. It refuses a build
 beside the other probes that claim 8–13.
+
+## run204 — chapter twelve, the follow line (2026-09-24, item 714)
+
+`docs/GOLDEN.md` §20, `tools/gamelog/golden/chapter12.cmd`. The cast:
+- pair A: chapter nine's Chariot `0/6` on 610, and a Supply Wagon `0/7`
+  on 612, two cells south;
+- pair B: a Hoplite squad `0/8`–`0/10` on 614, on cell (15, 14), and a
+  Chariot `0/11` on 616, one cell south.
+
+Two **player follows** through `CommandManager::issue_follow`, called from
+`rontrace.dll` by the new `@follow` line: the chariot on the wagon on 620,
+and the squad on the chariot on 640. Then chapter nine's `@move` walks each
+leader and turns it: the wagon south on 700 and west on 960, the chariot
+south on 720 and east on 880. The staging, the premise's killer and the
+falsifiers were committed before the run (`26ae843`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch12 \
+    --map 14 --end-frame 1150 --log-window 605 1150 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter12.cmd
+```
+
+**The capture.** One take, `cover=0`: **229 s launch to exit, 74 MB of
+dump and 10.5 MB of trace**.
+- `success: true`, exit 0, 1,151 frames.
+- `MAP_STYLE 14` and seed 12345 read back, and five settings files
+  restored.
+- The seven `INFO cmd` records returned 1 (`cmdsran.py`).
+
+**The lane.** The lock was stale when it launched: its holder, pid 33875
+(att-711's `longtrace.sh`), had exited. `waitrun.sh` ran with
+`WAITRUN_RUNNER=unattended_capture.py`, and exited 2 once the runner was
+gone, since a golden lane prints no queue banner; the receipt is the
+verdict.
+
+**The same game as run190 to frame 616**: `rngcmp.py` finds 0..616
+identical, and 617, the tick after pair B's chariot is born, first
+differing.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6`, uid 13, at (3192, 7032) |
+| 620 | `INFO 17` | line 6, refusal 0, package 10 → 28 bytes, one object |
+| 640 | `INFO 18` | `0/8`, uid 15, at (11640, 10872) |
+| 640 | `INFO 17` | line 7, refusal 0, package 10 → 28 bytes, one object |
+| 700 | `INFO 18` | `0/7`, uid 14, at (3192, 8568) |
+| 700 | `INFO 17` | line 8, refusal 0, package 10 → 37 bytes |
+| 720 | `INFO 18` | `0/11`, uid 18, at (11640, 11640) |
+| 720 | `INFO 17` | line 9, refusal 0, package 10 → 37 bytes |
+| 880 | `INFO 18` | `0/11`, uid 18, at (11904, 14976) |
+| 880 | `INFO 17` | line 10, refusal 0, package 10 → 35 bytes: the 3-byte reuse |
+| 960 | `INFO 18` | `0/7`, uid 14, at (3456, 13440) |
+| 960 | `INFO 17` | line 11, refusal 0, package 10 → 37 bytes |
+
+Each follow adds the emulator's 18 bytes to the turn's 10-byte `camera`.
+
+### The processed commands, and §20's falsifiers
+
+Between blocks 621 and 622 the dump prints `process_group, new 0 1 621`
+and `process_follow 621`, and the same for 641. The moves print
+`process_move_to` between F+1 and F+2; the 880 one follows
+`process_group, repeat 0 0 881`. **None of the six falsifiers fires; the
+fifth could not for pair B**, whose chariot turned before its sixty
+blocks were up.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| the issue | appended, processed on the next frame | as predicted, on 621, 641, 701, 721, 881 and 961 |
+| the orders, 622 and 642 | one `FOLLOWORDER` a unit on its leader, the action bit | `0/6`: `flags 4`, `ox 7 whom 0 uid 14`. `0/8`–`0/10`: `flags 4`, `ox 11 whom 0 uid 18`, three orders |
+| standing | no leg before the leader walks | `0/6` stands 622–710 at d 1,536; the squad 642–721 at d 625–781 |
+| trailing, pair A | a leg by 720 | first leg on **711** at d 1,737, the threshold 1,728 crossed. Then a leg every 6–9 blocks, each **one tile (192)** long, to the point 1,536 behind the wagon; every leg is issued at d 1,724–1,748 |
+| trailing, pair B | a leg by 727 | `0/8` and `0/9` on **722**, `0/10` on 724, at d 784–797: the moving threshold 653, the doubling. Without it none would come before d 1,575 |
+| rest, pair A | 60 blocks after the wagon's stack empties (901): FOLLOW alone, within 1,728 | on 961: FOLLOW alone, d 1,612 |
+| rest, pair B | the same after 835 | not reachable: the chariot turned on 880 and `0/9` still held a leg then |
+| the FOLLOW kept | on every block to 1149 | every stack of the four followers is the FOLLOW alone or the FOLLOW under one `MOVEORDER` leg, on every block |
+| the turn | legs again after 962 (pair A) and 882 (pair B); within threshold on 1149 | `0/6` from 990, the squad from 882; on 1149, `0/6` stands at d 1,599 from the wagon and the hoplites at 1,416, 1,272 and 936 from `0/11`, each FOLLOW alone |
+
+**The legs** are `MOVEORDER`s with `flags 1`: no action bit, and the
+pathed bit `do_move` sets on the same frame.
+
+**What the reading did not say.**
+- **A faster follower hops.** The chariot's legs are one tile each, since
+  the point 1,536 behind the wagon is only ~200 ahead of it when it
+  crosses 1,728. Pair A's first walk is 24 legs.
+- **The hoplites' legs are re-aimed.** While `0/11` stands, from 835 to
+  880, `0/9`'s leg changes its destination on 861, 863, 865, 869 and 878,
+  each a step or two off the last, at d 700–940. The standing threshold
+  is 1,575, so no fresh `do_follow` leg is due. Which step re-aims it is
+  not named.

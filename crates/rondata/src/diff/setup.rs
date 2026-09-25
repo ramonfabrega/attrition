@@ -1628,6 +1628,9 @@ impl Built {
             // A `GuardOrder`'s `(o, who)` is the escorted unit, always a
             // squad's captain (`docs/ORDERS.md` §24).
             Body::Guard(g) => self.unit_ids_dead_or_alive(g.target),
+            // A `FollowOrder`'s `(o, who)` is the leader the command named
+            // (`docs/ORDERS.md` §28).
+            Body::Follow(f) => self.unit_ids_dead_or_alive(f.target),
             // An `AttackGroundOrder` is a `UnitOrder`, not a
             // `TargetOrder`: it holds a point, and the dump prints no
             // `ox/whom` for it (`docs/COMBAT.md` §57).
