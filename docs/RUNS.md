@@ -6952,7 +6952,9 @@ with no human at the menu. Waited on with `waitrun.sh`, exit 0.
   is mustering, so the escort cannot be `find_aggressive_army`'s answer;
   armies 1 and 2 are the candidates, and none of their units parts before
   15609. The claim's own unit is an army's `pos` and its cell's owner,
-  which the dump does not print — a packet's question (run212).
+  which the dump does not print — ~~a packet's question (run212)~~
+  answered from the dump by item 729 (AI §70.5, §71.2): the gate before
+  the coin is `frame_attacked`, which run211 prints every block.
 - **R3 holds.** Nothing parts on 15441..15606; the first rows, on 15607,
   are the escort's (group 67, army 3), trading guard posts.
 - The floor is run202's walk (401, nothing on run202's runway since item

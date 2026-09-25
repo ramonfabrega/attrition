@@ -13,12 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **2 landings
-since 7958738**, a word and a chapter. Lane att-729 (Great Lakes) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **3 landings
+since 7958738**, two words and a chapter. Lane att-731 (chapter fifteen) is live.*
 
-- **Great Lakes 15384 → 15608** (722): `CityData::num_wonders` counts an
-  unfinished wonder site (CITIES §2.6.4, AI §70); run211 captured
-  [15435, 15860). East Indies holds at 15985, past run78.
+- **Great Lakes 15384 → 15619** in two: `num_wonders` counts an unfinished
+  site (722, AI §70; run211 captured [15435, 15860)), and `take_damage`
+  stamps `frame_attacked` below difficulty 2 (729, AI §71). East Indies
+  holds at 15985, past run78.
 - **Chapter fourteen closed at 1150** (723, GOLDEN §22, ORDERS §30): no
   issuer builds a `FormOrder`; `push_group` keeps an equal group's record
   and a copied group move replays to its `orig`. Both long words held;
@@ -27,16 +28,16 @@ since 7958738**, a word and a chapter. Lane att-729 (Great Lakes) is live.*
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 6 Loop items** (677, 685, 697, 727 the remote sweep is
-  the user's, 730, 735 a GROUPS capture with no pool); no `FABLE:` marker.
+- **Fable backlog: 7 Loop items** (677, 685, 697, 727 the remote sweep is
+  the user's, 730, 735, 737 a packet booked for a printed value).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w15985 of 24,000 · GreatLakes w15608 of 24,000
+Long captures: EastIndies w15985 of 24,000 · GreatLakes w15619 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · 731 next
-Endpoint 24001: EastIndies 51 off, 4 unlinked · GreatLakes 45 off, 0 unlinked
+Endpoint 24001: EastIndies 51 off, 4 unlinked · GreatLakes 22 off, 0 unlinked
 
-**Opener: 729 is live on the AI lane, 708 after it (Great Lakes is
-lower); 731 on the rules lane; the commander counts landings from 7958738. A
+**Opener: 731 is live on the rules lane; 736 then 708 on the AI lane
+(Great Lakes is lower); the commander counts landings from 7958738. A
 capture stanza carries 250 blocks of runway; a detached capture waits on
 `tools/gamelog/waitrun.sh` on either lane; a report quotes the gate's
 `Gate steps:` line; a journal's "for the Loop" line is filed at its
@@ -50,12 +51,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-729. **Great Lakes' word is 15608: who=1's difficulty coin** (722 moved
-    it 15384 → 15608: `num_wonders` counts a site, AI §70). On 15608 ours
-    40 draws against 38 at index 0: ours `Army::find_target+0x410` (the
-    coin), theirs opens on `+0x7df`. Inside run211, widened (15607..15611).
-    On 15607 the escort `1/77`/`1/78` swap posts (716/717's family), but
-    its army 3 is mustering; armies 1 and 2 agree. No mechanism.
+736. **Great Lakes' word is 15619: the escort `1/76`'s move step** (729
+    moved it 15608 → 15619: `take_damage` stamps `frame_attacked`, AI
+    §71). On 15619 ours 4 draws against 5 at index 0: theirs spends
+    `Guy::set_anim+0x97a < Unit::move_step+0x823` first. `1/76`'s
+    `half_step` parts on 15617, its position on 15619. Inside run211,
+    widened (15607..15622). Takes 716 and 717. No mechanism.
 
 708. **East Indies' word is 15985, past every capture** (706 moved it 15782
     → 15985 and closed 694: `1/60` is The Senator). On 15985 ours 5 draws
