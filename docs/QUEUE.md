@@ -13,8 +13,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **14 landings
-since 7958738**, ten words and four chapters. Lane att-770 (chapter seventeen) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **15 landings
+since 7958738**, ten words and five chapters. Lane att-776 (Great Lakes) is live.*
 
 - **Great Lakes 15384 → 17128** in five: `num_wonders` (722),
   `frame_attacked` (729), the siege sub-group's record (736), `move_step`'s
@@ -23,23 +23,23 @@ since 7958738**, ten words and four chapters. Lane att-770 (chapter seventeen) i
 - **East Indies 15985 → 17189** in three: the republic's commerce cap
   (708), a gatherer counted in its building's city (752), and the British
   Taxation discount (767, AI §74; run233 captured [16929, 17441)).
-- **Chapters fourteen to sixteen closed** (723, 731, 738), **seventeen
-  open, 642 → 821** (746, 759, 763; §25, ORDERS §33–§34): the flight home,
-  the landing and the pair's patrol are built. Order row 50 → 57.
+- **Every golden chapter closed again**: fourteen to sixteen (723, 731,
+  738), and seventeen 642 → 1400 in four (746, 759, 763, 770): the flight,
+  the landing, the patrol and the bomb (§25, ORDERS §33–§35). Row 50 → 57.
 - **Ruled at the pass**: the compared recorder (`diff::compared`, a
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 18 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–778 filed from this tranche's journals).
+- **Fable backlog: 20 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–784 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w17189 of 24,000 · GreatLakes w17128 of 24,000
-Golden: ch17 w821 of 1399 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 770 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · 779 next
 Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 46 off, 0 unlinked
 
-**Opener: 776 on the AI lane (Great Lakes is lower), 773 after it; 770
-is live on the rules lane; landings count from 7958738. A capture carries
+**Opener: 776 is live on the AI lane (Great Lakes is lower), 773 after
+it; 779 on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -65,12 +65,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     from 17161, `1/58`'s path from 17147, who=1's `scholars` from 16971.
     Inside run233, widened. No mechanism.
 
-770. **Chapter seventeen's word is 821: the strafe's round** (763 moved it
-    805 → 821: the pair's patrol, ORDERS §34). On 821 ours 4 draws against
-    5 at index 0: theirs `Object::take_damage+0xe1 < Object::do_damage <
-    Ammo::do_damage`. On 822 the Barracks' damage is 45 there, 0 here.
-    763 read `guy_release_events` (`anim.rs`) firing no round under a
-    `STRAFE` front order, as a hypothesis. Inside run223, widened.
+779. **Chapter eighteen, the build line — an issuer, no capture yet**
+    (DECISIONS 49; GOLDEN §13's next `—` row; 770 closed chapter
+    seventeen at 1400). `CommandManager::issue_build@00941c30` on a citizen
+    and on a group of citizens from the tracer DLL, a building placed and
+    built, 770's harness. It should enter `BuildOrder`. The issuer under
+    the emulator first. Takes GOLDEN §26; run241 at `GUYS=4`, `cover=0`.
 
 ## How to maintain this file
 

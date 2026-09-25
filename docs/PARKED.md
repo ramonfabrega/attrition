@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 770, 2026-09-25 — the bomb's other edges
+
+(780) **A round in flight forgets a dead target here and keeps it there**
+(chapter three's family, now on a building).
+
+(781) **`whole_degrees`' half-way bytes**: a top byte ≡ 16 mod 32 rounds
+by a rule no capture has pinned.
+
+(782) **Other nations' and ages' bomber pieces**: 770 built the Bomber's
+two bays from run235; the rest of the family is unread.
+
 ## Parked by item 757, 2026-09-25 — the Pyramids' other readers
 
 (777) **The Pyramids' other readers**: `get_city_limit`, `found_cities` and
@@ -1082,6 +1093,16 @@ on 17085 as "a purchase both sides make", and the commander's brief for
 757 carried it as the cause's frame; it was a building's activation, one
 grep of `BUILDDATA` away (`flags 3 → 7`). An event in a brief is a
 hypothesis the way DECISIONS 42 makes a mechanism one.
+
+(783) **A chapter whose word is a round wants `AMMO` in its capture line
+from the start** (770's first Loop line, filed at its merge): the draw
+stream agreed to run223's end while one fringe count on 842 stood; only
+a whole-run widening showed it and only run235 at `AMMO=5` answered it.
+
+(784) **A mutation run that restores a file with `shutil.move` from a copy
+puts back the older mtime, so cargo does not rebuild** (770's second Loop
+line): its first gate ran `sim`'s tests on the last mutant and failed its
+own test. `touch` after a restore, or restore from version control.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
