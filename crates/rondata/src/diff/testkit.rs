@@ -2115,7 +2115,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// its last, 15859); the new word's block is in
 /// `run211_s_word_frame_is_widened_whole` (the widening test), which also
 /// keeps the move's value diff on 15608 and 15609.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_619;
+///
+/// ~~**15619 is the escort's move step.**~~ **Item 736 moved it 15619 →
+/// 16460, and the mechanism was `Group::action_siege_attack_to`'s stack
+/// sub-group** (`docs/GROUPS.md` §26): it is `Group::clear(-1)`'s record
+/// carrying the parent's `id` and `army`, so the anchor's `ATTACK_TO` is
+/// laid out on `facing` 0; this crate read army 3's 1. The Despot's move
+/// of 15350 carried it (parked 716), the dying move handed it into
+/// `unit_masks & 2`, and `do_guard` mirrored the escort's posts off it on
+/// 15606. **The new word's delta (this constant's comment): ours 1 draw
+/// and the original 3, parting at index 1**: the original spends
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked step, which
+/// ours does not. **Past run211** (block 16461 against its last, 15859),
+/// so item 736 took **run218**; `run211_s_word_frame_is_widened_whole`
+/// keeps the move's value diff: nothing parts on 15441..15859.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 16_460;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records

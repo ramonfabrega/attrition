@@ -11514,12 +11514,16 @@ pub(crate) mod tests {
         }
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
-        // **Under the word, on run202's own blocks: one unit and one key.**
+        // ~~**Under the word, on run202's own blocks: one unit and one key.**
         // The Despot `1/79`'s move order carries `facing` 1 here and 0 there
-        // from 15351: a value row that spends no draw (parked 716).
+        // from 15351: a value row that spends no draw (parked 716).~~
+        // **Item 736 closed it** (`docs/GROUPS.md` §26): the Despot's
+        // `ATTACK_TO` is laid out by `action_siege_attack_to`'s stack
+        // sub-group, whose `facing` is `Group::clear`'s 0, where this crate
+        // read army 3's 1. Nothing parts on run202's own blocks.
         assert_eq!(
             own,
-            [(15_351, 1, 79, 1)],
+            [],
             "who parts first on run202's own blocks up to the word's, and on how many keys"
         );
         // **Item 715's value diff.** Item 711's word was `1/70`'s order:
@@ -11565,13 +11569,15 @@ pub(crate) mod tests {
             .filter(|(f, _)| (RUN196_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
         // The floor's rows, standing: 327 on 15384 before item 715, and
-        // 315/316 before item 729, whose stamp closed `0/frame_attacked`.
+        // 315/316 before item 729, whose stamp closed `0/frame_attacked`,
+        // and 314/315 before item 736, whose sub-group closed `1/79`'s
+        // move `facing` (parked 716).
         assert_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
-            (314, 315),
+            (313, 314),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -11588,7 +11594,10 @@ pub(crate) mod tests {
         // formation mirror (parked 275), an equal group's record kept.
         // **Item 729 took one more (399/1/400 → 398/1/399)**: `0/frame_attacked`,
         // `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, mid, firsts.len()), (398, 1, 399), "the floor");
+        // **Item 736 took the last one (398/1/399 → 398/0/398)**: `1/79`'s
+        // move `facing` on 15351 (parked 716), the siege arm's sub-group
+        // laying out on its own cleared record (`docs/GROUPS.md` §26).
+        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11650,21 +11659,16 @@ pub(crate) mod tests {
         // `half_step` parts on 15617 and its position on 15619, the new
         // word's frame; on its block, 15620, its heading, the two swapped
         // Longbowmen's collision, and `1/36`/`1/40`'s clocks.
+        // **Item 736 closed every one** (`docs/GROUPS.md` §26): the
+        // Despot's `ATTACK_TO` of 15350 was laid out on army 3's `facing`
+        // (1) where the original's stack sub-group carries
+        // `Group::clear`'s 0 (parked 716); the dying move handed that into
+        // `1/79`'s `unit_masks & 2` on 15606 (the new `mirror` row, ours 1
+        // against 0 on 15607), and `do_guard` mirrored the escort's `dx`
+        // off it. Nothing parts on run211's own blocks, 15441..15620.
         assert_eq!(
             own,
-            [
-                (15_607, 1, 77, 22),
-                (15_607, 1, 78, 22),
-                (15_608, 1, 77, 12),
-                (15_608, 1, 78, 12),
-                (15_617, 1, 76, 1),
-                (15_619, 1, 76, 7),
-                (15_620, 1, 36, 2),
-                (15_620, 1, 40, 2),
-                (15_620, 1, 76, 3),
-                (15_620, 1, 77, 1),
-                (15_620, 1, 78, 5),
-            ],
+            [],
             "who parts first on run211's own blocks up to the word's, and on how many keys"
         );
         // **Item 729's value diff.** Item 722's word was army 2's
@@ -11687,19 +11691,37 @@ pub(crate) mod tests {
             gone.is_empty(),
             "0/frame_attacked holds on the whole chain, and 1/3 and 1/61 on 15609: {gone:?}"
         );
+        // **Item 736's value diff** (`docs/GROUPS.md` §26, parked 716): the
+        // Despot's move `facing`, 1 here and 0 there from 15351, and its
+        // `mirror`, 1 here and 0 there on 15607, part nowhere from run202's
+        // first block on; nor does any other row of group 67's (their
+        // `form`, −1 against 0 since 14946, is the floor's).
+        let despot: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                *w == 1 && (76..=79).contains(o) && *f >= WIDENING_GREAT_LAKES_MIRROR.0
+            })
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert!(
+            despot.is_empty(),
+            "group 67 — 1/76..1/79 — holds from 15227 on: {despot:?}"
+        );
         let under = firsts.values().filter(|(f, _)| *f <= RUN202_TAIL).count();
         let mid = firsts
             .values()
             .filter(|(f, _)| (RUN202_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
         // The floor's rows, standing: 364 on 15608 and 374 on 15609 before
-        // item 729.
+        // item 729, and 363/381 before item 736, whose sub-group closed the
+        // Despot's move `facing` (parked 716), its `mirror` and the escort's
+        // posts: only the floor's own rows stand on either block.
         assert_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
-            (363, 381),
+            (309, 309),
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -11709,7 +11731,13 @@ pub(crate) mod tests {
         // formation mirror (parked 275), an equal group's record kept.
         // **Item 729**: run202's walk loses `0/frame_attacked`, the one
         // row under run211 the stamp closes, and the word's block moves.
-        assert_eq!((under, mid, firsts.len()), (399, 89, 1014), "the floor");
+        // **Item 736 (399/89/1014 → 398/0/398)**: run202's walk loses
+        // `1/79`'s move `facing` (parked 716), and run211's own 89 up to
+        // the word and the 526 above it go with nothing arriving: the siege
+        // arm's sub-group lays out on its own cleared record
+        // (`docs/GROUPS.md` §26). Nothing parts on 15441..15859; the word
+        // left run211 for 16460 (run218).
+        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
@@ -13541,7 +13569,11 @@ pub(crate) mod tests {
         // group's record, `1/0`'s first parts on 7969 (was 8481), `1/22`
         // gains one on 7993, and `1/29`'s moves 9945 → 9815. None spends a
         // draw.
-        assert_eq!(under, 187, "the floor under the word");
+        // **Item 736 added one (187 → 188)**: the new `mirror` row
+        // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on the scout `1/0`
+        // from 8242, ours 0 against 1, beside its `order:move.facing`, and it parts so with or without item 736's fix: a turn
+        // this crate flips the bit on and the original does not.
+        assert_eq!(under, 188, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -13759,7 +13791,10 @@ pub(crate) mod tests {
                 // `SITE` rows: the site values are the original's once a
                 // founded city wears them down (`City::fix_world_vals`,
                 // `docs/AI.md` §67), and the sweep on 9975 agrees.
-                (9960, 111),
+                // **Item 736: 111 → 112**, the new `mirror` row
+                // (`unit_masks & 2`, `docs/GROUPS.md` §26.4): `1/0`, the
+                // scout, ours 1 against 0, with or without the item's fix.
+                (9960, 112),
                 (9982, 7),
                 (9992, 1),
             ],
@@ -14531,7 +14566,11 @@ pub(crate) mod tests {
         // (`docs/ORDERS.md` §29), and nothing arrived.
         // **Item 723 took one (219/232/234 → 219/231/233)**: the scout's
         // formation mirror (parked 275), an equal group's record kept.
-        assert_eq!((first, under, firsts.len()), (219, 231, 233), "the floor");
+        // **Item 736 added one (219/231/233 → 219/232/234)**: the new `mirror` row
+        // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on `1/31` from 10875, ours 1
+        // against 0, and it parts so with or without item 736's fix: a turn
+        // this crate flips the bit on and the original does not.
+        assert_eq!((first, under, firsts.len()), (219, 232, 234), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -14658,7 +14697,11 @@ pub(crate) mod tests {
         // **Item 688 took twenty-five** (244/245/254 → 220/220/229), all who=1 `SITE` rows and nothing
         // arriving: a founded city wears the site values down
         // (`City::fix_world_vals`, `docs/AI.md` §67).
-        assert_eq!((first, under, firsts.len()), (220, 220, 229), "the floor");
+        // **Item 736 added one (220/220/229 → 220/220/230)**: the new `mirror` row
+        // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on `1/31` from 10875, ours 1
+        // against 0, and it parts so with or without item 736's fix: a turn
+        // this crate flips the bit on and the original does not.
+        assert_eq!((first, under, firsts.len()), (220, 220, 230), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -15232,7 +15275,11 @@ pub(crate) mod tests {
         // **Item 718 took two (214/240/251 → 214/240/249)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        assert_eq!((first, under, firsts.len()), (214, 240, 249), "the floor");
+        // **Item 736 added one (214/240/249 → 214/241/250)**: the new `mirror` row
+        // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on `1/0`, the scout (parked 275's family), ours 1
+        // against 0, and it parts so with or without item 736's fix: a turn
+        // this crate flips the bit on and the original does not.
+        assert_eq!((first, under, firsts.len()), (214, 241, 250), "the floor");
     }
 
     #[test]

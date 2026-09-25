@@ -2184,9 +2184,7 @@ impl Sim {
             pool: self.gstate(&sub).and_then(|st| st.pool),
             ..GroupState::default()
         };
-        let parent = self
-            .gstate_mut(&sub)
-            .map(|st| std::mem::replace(st, stack));
+        let parent = self.gstate_mut(&sub).map(|st| std::mem::replace(st, stack));
         self.group_action_move_to(
             &sub,
             to,
@@ -4807,6 +4805,49 @@ mod tests {
         // stacking a second guard (`update_guard_order`).
         s.group_action_guard(&g, w, QueuePos::New, true);
         assert_eq!(s.units[a].orders.len(), 1);
+    }
+
+    /// **The anchor's sub-group lays out on its own record** (§26, item
+    /// 736): `action_siege_attack_to@0070d830` builds it on the stack with
+    /// `Group::clear(-1)`, so its `facing` is 0 whatever the parent's is,
+    /// and what the layout writes is discarded. Great Lakes' Despot took
+    /// army 3's `facing 1` onto its `ATTACK_TO` on 15351 where the original
+    /// carries 0, and that mirror came back into `unit_masks & 2` when the
+    /// move died.
+    #[test]
+    fn the_anchor_s_sub_group_lays_out_on_its_own_cleared_facing() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let slot = s.init_army(1, None);
+        let a = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1400, 0x1000));
+        for u in [a, w] {
+            s.army_add_unit(1, slot, u);
+            s.units[u].movement.set_facing(Angle::NORTH);
+        }
+        s.armies[1].list[slot].group.facing = true;
+        let before = s.armies[1].list[slot].group.clone();
+        let g = s.army_group(1, slot);
+        s.group_action_siege_attack_to(&g, Pos::new(0x1400, 0x4000), Angle::NORTH);
+        assert_eq!(s.order_type(w), index::ATTACK_TO, "the wagon walks in");
+        let facing = s.units[w].orders.iter().find_map(|o| match o.body {
+            Body::Move(m) => Some(m.facing),
+            _ => None,
+        });
+        assert_eq!(
+            facing,
+            Some(Some(false)),
+            "the stack record's 0, not the army's 1: {:?}",
+            s.units[w].orders
+        );
+        let after = &s.armies[1].list[slot].group;
+        assert!(after.facing, "the army's own flag is left alone");
+        assert_eq!(
+            (after.o, after.o_angle, after.order_num),
+            (before.o, before.o_angle, before.order_num),
+            "and the sub-group's layout is not written onto the army's record"
+        );
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9),
