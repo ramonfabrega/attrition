@@ -3285,7 +3285,11 @@ than assuming it (`Sim::move_step`'s `gave_up` arm in
   225, parting at index 0. The original's first draw is
   `Guy::set_anim+0x97a < Unit::move_step+0x823`, another blocked step;
   ours is `Guy::set_anim+0x97a < Unit::do_move+0x11cf`. That is **past
-  run218's last block (16711)**, so run226 was captured over it.
+  run218's last block (16711)**, so run226 was captured over it and
+  widened (`run226_s_word_frame_is_widened_whole`, `docs/RUNS.md`).
+  Nothing parts on 16712..17085. The first rows are on 17086: who=1's
+  `resource_cap`, 4800 there and 4000 here, and a re-deal of four
+  citizens under it. No mechanism is named.
 - **The value diff on 16459** (`run218_s_word_frame_is_widened_whole`):
   `1/23` at (41632, 21466), `tolerance` 372, `path:length` 25 and
   `move.dest` 0, on both sides. **Nothing parts on 15860..16711.** The

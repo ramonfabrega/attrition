@@ -6328,3 +6328,29 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/A
 check: python3 tools/gamelog/samegame.py gamelog-run218-greatlakes-escortword.txt gamelog-run226-greatlakes-giveupword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run218 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(16706..16711)")}'
 # **The coverage window landed**: every frame 17095..17103 has a set.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run226.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=17095&&f<=17103&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 1,410,701,984 bytes of dump and 21,876,416 of trace, **645 blocks
+# 16706..17350**, with a `GROUPDATA` on every one. Launched 12:46 through
+# `viadriver.sh` with no human at the menu, the moment att-746's chapter
+# seventeen released the lane, and archived 13:36: about 50 minutes.
+# `waitrun.sh` exited 0. All six checks were green:
+# - 17,362 frames identical to run53;
+# - `MAP_STYLE 14`;
+# - the window whole;
+# - the pool on every block;
+# - 6 blocks shared with run218 (16706..16711), 0 differing;
+# - a coverage set on all 9 frames 17095..17103.
+#
+# **The readings, decided on the walk**
+# (`run226_s_word_frame_is_widened_whole`):
+# - **R1 holds**, by the checks above.
+# - **R2 is killed.** On block 17100 the original's `1/23` walks freely
+#   (`collide_frame 16983`), and no unit carries `collide_frame 17099`.
+#   The blocked stand the word spends never reached `resolve`. The
+#   original's `1/5` stands stopped with `collide_o 3` and walks on here.
+# - **R3 is killed.** The first rows on run226's own blocks, 17086, are
+#   who=1's leader and not a blocked unit. `resource_cap` for food and
+#   wealth is 4800 there and 4000 here, after a purchase both sides make
+#   on 17085. Four citizens are re-dealt under it (`1/3`, `1/5`, `1/70`,
+#   `1/72` across `1/2002`, `1/2004`, `1/2022`).

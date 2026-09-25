@@ -2263,6 +2263,10 @@ pub(crate) mod tests {
                 "gamelog-run218-greatlakes-escortword.txt",
                 WIDENING_GREAT_LAKES_WONDER.1 + 1,
             ),
+            (
+                "gamelog-run226-greatlakes-giveupword.txt",
+                WIDENING_GREAT_LAKES_ESCORT.1 + 1,
+            ),
         ]
     }
 
@@ -2270,7 +2274,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_ESCORT_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_GIVEUP_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -11852,6 +11856,129 @@ pub(crate) mod tests {
         // §17), nothing arriving — **nothing parts on 15860..16711**, and
         // the word left run218 for 17099.
         assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+    }
+
+    /// **run226 — Great Lakes' word 17099, widened whole, both directions**
+    /// (item 742). run218's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_GIVEUP`]: six blocks shared with run218, the
+    /// 388 up to the word, its block, and 250 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across fourteen captures, with every player-1
+    /// pool list from run135's first block.
+    ///
+    /// The word's frame, 17099, writes block **17100**.
+    #[test]
+    fn run226_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_GIVEUP_BLOCK;
+        /// run218's last block: everything above it is run226's.
+        const RUN218_TAIL: i64 = WIDENING_GREAT_LAKES_ESCORT.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run226",
+            &great_lakes_word_chain(),
+            WIDENING_GREAT_LAKES_GIVEUP,
+            11_800,
+            &[WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (WIDENING_GREAT_LAKES_GIVEUP.1 - WIDENING_GREAT_LAKES_GIVEUP.0 + 1) as usize,
+            "the walk is whole"
+        );
+        let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (RUN218_TAIL + 1..=WORD_BLOCK).contains(f) {
+                *own.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let own: Vec<(i64, i64, i64, usize)> =
+            own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        // **On run226's own blocks up to the word: who=1's economy, from
+        // 17086.** Nothing parts on 16712..17085. On block 17086 — sim-frame
+        // 17085, where both sides make the same purchase (`leftover`
+        // parts only on 17088) — the original's `resource_cap` for food and
+        // wealth is 4800 (300 a good) and ours 4000 (250) — +50 a good,
+        // the size of `docs/AI.md` §72's republic term, whose frame §72.6
+        // left open (a hypothesis, not a cause). On the same block
+        // who=1 re-deals four citizens: the original sends `1/70` and
+        // `1/72` to `1/2022` and keeps `1/3` and `1/5` on `1/2002` and
+        // `1/2004`; ours the other way round (`gather.dist_mod`, `target`,
+        // the three buildings' `gather_down`). Their walks part from 17087
+        // and `1/9`'s from 17088. **On the word's block** the original's
+        // `1/5` stands stopped with `collide_o 3` (no `collide_frame`
+        // stamp) and walks on here, which reads as the word's
+        // `Unit::move_step+0x823`. No mechanism is named (item 742 hands
+        // it on).
+        assert_eq!(
+            own,
+            [
+                (17_086, 1, -1, 2),
+                (17_086, 1, 3, 1),
+                (17_086, 1, 5, 1),
+                (17_086, 1, 70, 2),
+                (17_086, 1, 72, 2),
+                (17_086, 1, 2002, 1),
+                (17_086, 1, 2004, 1),
+                (17_086, 1, 2022, 1),
+                (17_087, 1, 3, 8),
+                (17_087, 1, 5, 8),
+                (17_087, 1, 70, 8),
+                (17_087, 1, 72, 7),
+                (17_088, 1, -1, 3),
+                (17_088, 1, 3, 14),
+                (17_088, 1, 5, 15),
+                (17_088, 1, 9, 17),
+                (17_088, 1, 70, 20),
+                (17_088, 1, 72, 19),
+                (17_089, 1, 9, 1),
+                (17_089, 1, 70, 1),
+                (17_092, 1, 70, 1),
+                (17_094, 1, 72, 1),
+                (17_097, 1, 72, 1),
+                (17_100, 1, 5, 10),
+                (17_100, 1, 70, 1),
+                (17_100, 1, 72, 1),
+            ],
+            "who parts first on run226's own blocks up to the word's, and on how many keys"
+        );
+        let cap: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, what), (f, _))| {
+                (*w, *o) == (1, -1) && *f == 17_086 && what.starts_with("leader:resource_cap")
+            })
+            .map(|((_, _, what), (_, r))| format!("{what}: {r}"))
+            .collect();
+        assert_eq!(
+            cap,
+            [
+                "leader:resource_cap[0:food]: ours 4000 theirs 4800",
+                "leader:resource_cap[2:wealth]: ours 4000 theirs 4800",
+            ],
+            "the leader's two capped goods, 250 here and 300 there"
+        );
+        let under = firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count();
+        let mid = firsts
+            .values()
+            .filter(|(f, _)| (RUN218_TAIL + 1..=WORD_BLOCK).contains(f))
+            .count();
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            456,
+            "every row standing on the word's block, 17100"
+        );
+        // **The floor**: run218's walk (398, nothing on run211's or
+        // run218's own blocks since item 742), then the 147 keys of 17086
+        // up to the word's block, and every key to the window's end.
+        assert_eq!((under, mid, firsts.len()), (398, 147, 1382), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
