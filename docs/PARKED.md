@@ -22,6 +22,12 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 757, 2026-09-25 — the Pyramids' other readers
+
+(777) **The Pyramids' other readers**: `get_city_limit`, `found_cities` and
+`get_cost`'s city discount. And `Nation::pyramids` and the other wonder
+flags have no writer in this crate; `has_wonder` is read live instead.
+
 ## Parked by item 767, 2026-09-25 — `get_cost`'s tech tail
 
 (774) **`get_cost`'s tech terms past the British one** (AI §74.6). The
@@ -1069,6 +1075,13 @@ through `diff::leader`'s `ti`, off by one, and a scratch probe does not;
 767's first probe priced the wrong two techs, caught only by an empty
 `make_me`. A `RON_PRICE`-style probe keyed on the dump's `TypeIndex`
 would close the trap.
+
+(778) **A brief that names an event cites the record that shows it**
+(757's Loop line, filed at its merge). 742's journal read `leftover`'s fall
+on 17085 as "a purchase both sides make", and the commander's brief for
+757 carried it as the cause's frame; it was a building's activation, one
+grep of `BUILDDATA` away (`flags 3 → 7`). An event in a brief is a
+hypothesis the way DECISIONS 42 makes a mechanism one.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
