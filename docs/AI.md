@@ -9207,3 +9207,115 @@ on the old rule first.
   agree on every block, and `1/46` does not leave. The listing settles
   the register. `busy`'s move to the building's city was already built and
   agreeing.
+
+## 74. The British pay half for Taxation, and the word moves to 17189 (2026-09-25, item 767)
+
+East Indies' word was **16982**: ours 10 draws against 15, parting at
+index 4. The original spends `Leader::make_stuff+0x63d`, a bought slot's
+expiry roll (§2.6 step 6), where ours spends `Animal::do_idle+0x83`.
+run227 ends on 16934, so no dump holds the frame. A value parts on disk
+first: from 16779, who=1's `MAKE[1].val` reads 22784 here and 91136 there,
+exactly a quarter.
+
+### 74.1 The slot, and what its value is made of
+
+The slot holds the same entry on both sides on block 16779: `t 589`
+(`0x24d`, **Taxation**; this crate's tree id is one lower, `diff::leader`'s
+`ti`), `city −1`, `escrow 1`, `cat 8`. `research_techs` (§2.14) offered it
+on frame 16778. It had offered the same tech on 16578, at **91136 on both
+sides**, and the walk agreed then.
+
+The offer's value is `income_scaled(check_income(t, 0x400, …, flag), v)`
+(the tail of `research_techs@006c6ba0`, the decompile's line 668), and `flag` is
+`wonder_mod == 0`. who=1's `wonder_mod` is 0, so `check_income@006cc800`
+takes its escrow arm. It answers `0x100` when `can_pay_cost(who, −1, −1,
+1) ≥ 1` and `0x40` when not, and returns at once, before the income loop.
+
+A scratch print of ours' terms (reverted) read the same `v` on both
+frames: base 2000, w 14, f1 4, f2 3, shortages 0, no missing good,
+**67,200,000**. Only `check_income` moved, **256 on 16578 and 64 on
+16778**. `67,200,000 × 256` and `× 64` both wrap 32 bits, to 91136 and
+22784 after `>> 8`. **So the ×4 is one multiplier, not a sum**: the
+original still read `0x100` on 16778, and this crate read `0x40`.
+
+### 74.2 The readings, and what killed each
+
+Written from the brief before the listing was read. Each killer tests the
+slot, not the first row.
+
+- **R-a, a factor this crate does not apply** (an age, a government, a
+  difficulty, a count of cities). Holds, but the factor is a **nation**
+  term. Every term of the value agrees on 16578, and on 16778 only
+  `check_income` differs. `check_income` reads the price, and the price
+  has a term this crate did not carry (§74.3).
+- **R-b, the slot holds a different entry.** Killed: `t`, `city`, `cat`
+  and `escrow` agree on 16779, compared on what the slot holds.
+- **R-c, `val` does not decide the 16982 draw.** Killed by the
+  measurement. With the price fixed, 16982 agrees in count and sequence,
+  and the word moves to 17189.
+
+### 74.3 The price
+
+The purse agrees on every block: who=1's `bucket` reads 106 food and 76
+timber on 16778, here and there. This crate priced Taxation at **88 of
+each**. That is `8 × TECH_COST_FACTOR`, plus the Science surcharge of a
+plain Ancient tech with no Science level (`docs/COSTS.md`, "The
+discounts"). 76 cannot pay 88. 134 timber paid it on 16578, which is why
+that offer agreed.
+
+`TypeData::get_cost@00664090`'s tech arm, after the science discount, the
+age-behind terms, the final ramp, the lobby's `tech_cost`, Democracy and
+the Greek terms, reads:
+
+```
+if (t − TAXATION < 4 && has_tribe_bonus(0xb))
+    p = (100 − BRITISH_TAXATION_DISCOUNT) × p / 100
+```
+
+`rules.xml` ships the constant as "50% cheaper". who=1 is the British
+(§72.3), so the original's price is **44**, 106 and 76 pay it, and the
+escrow arm answers `0x100`. The window is the one `research_techs`'
+Temple ×100 tests (listing `6c76f5`, `t − 0x24d ≤ 3`): Taxation,
+Vassalage, Social Contract and Income Tax.
+
+### 74.4 The fix
+
+`Sim::tech_price` sets `cost::Modifiers::late_discount` to
+`Tuning::british_taxation_discount` when the tech is in
+`Roles::taxation_line` and `has_tribe_bonus(0xb)` holds. The window is
+loaded as `0x24d..=0x250` from `TypeIndex`. A tech has no ramp, so
+`late_discount` is the same expression at the same place: after the
+science discount and before the redirect. The constant is pinned against
+`rules.xml` by `Tuning`'s slot table (301 constants agree). The unit test
+is `the_british_pay_half_for_the_taxation_line` (88 → 44 against run227's
+purse, `check_income` `0x40` → `0x100`), made to fail on the old rule
+first. The price is the one `produce_tech` pays too, so a British
+Taxation now costs the British half.
+
+### 74.5 What it moved
+
+- **The value diff** (run227): `MAKE[1].val` on 16779 goes, and nothing
+  else on the walk moves. The floor goes 284/306/312 → 284/306/311.
+- **East Indies 16982 → 17189**, past run227's last block (16934). On
+  17189 ours spends 2 draws against 1, parting at index 0: ours spends
+  `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked stand (§5 of
+  `docs/COLLISION.md`), where the original spends `< Guy::inc_time+0x271`.
+  The original spends its own stand on 17190, so one unit stands a frame
+  early here. A scratch print at ours' `SITE_BLOCKED` (reverted) named it:
+  who=1's `1/55`, blocked by `1/60`. Neither parts on run227 up to its last
+  block. run233 was taken over the word ([16929, 17441), `docs/RUNS.md`).
+
+### 74.6 What this has *not* established
+
+- **The rest of `get_cost`'s tech tail.** Nothing in this crate applies
+  the age-behind terms (`TECH_AGE_BEHIND_*`, and the colour pair),
+  Incense on Temple research, Democracy's research discount, the Greek
+  terms, the lobby's `tech_cost`, the Hanging Gardens or German industry
+  discounts, or Versailles. Where two of them apply to one tech, the
+  order truncates. Of these, only Versailles comes after the British term
+  in the original. None is measured. The age-behind term is live on
+  run227: the human holds no age where who=1 holds one, so any tech the
+  human prices there costs it 10% less (20% of knowledge) in the original.
+- **Coverage**: the term is diff-backed by run227's `MAKE[1].val` and by
+  the draw stream to 17188. The window's other three techs are a reading
+  of the listing; no capture has offered one.

@@ -836,9 +836,27 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// 15, parting at index 4**: the original spends `Leader::make_stuff
 /// +0x63d`, a bought slot's expiry roll, where ours spends `Animal::do_idle
 /// +0x83`. Under it on 16779 who=1's make-list slot 1 reads `val` 22784
-/// here against 91136. **Past run227** (block 16983 against its last,
-/// 16934): no widening names its block yet.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 16_982;
+/// here against 91136. ~~**Past run227** (block 16983 against its last,
+/// 16934): no widening names its block yet.~~
+///
+/// **16982 → 17189 on item 767, and the frame was the British price of
+/// Taxation.** The ×4 on 16779 was one multiplier, `check_income`'s escrow
+/// arm: `0x40` when the tech cannot be paid for, `0x100` when it can, on
+/// the same 67,200,000 before it. who=1 held 106 food and 76 timber, and
+/// this crate priced Taxation at 88 of each. `get_cost` takes
+/// `BRITISH_TAXATION_DISCOUNT` (50) off `TAXATION` and the three after it
+/// for the British (`docs/AI.md` §74), so the original's price was 44.
+/// **The move's value diff (the word's delta, here; its block is the
+/// widening's):** `MAKE[1].val` on 16779 goes, and nothing else on run227
+/// moves (`run227_s_word_frame_is_widened_whole`, floor 284/306/312 →
+/// 284/306/311). **The new word's delta: ours 2 draws and the original 1,
+/// parting at index 0**: ours spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`, a blocked stand, where the original spends `<
+/// Guy::inc_time+0x271`; the original spends its own stand on 17190. A
+/// scratch print named ours' as who=1's `1/55`, blocked by `1/60`.
+/// **Past run227** (block 17190 against its last, 16934): no widening
+/// names its block yet.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_189;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in

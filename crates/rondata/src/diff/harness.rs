@@ -15061,9 +15061,12 @@ pub(crate) mod tests {
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
-        // past run227): who=1's make-list slot 1 on 16779, 22784 here
-        // against 91136 there, and the scout `1/0`'s order point and
-        // formation mirror from 16782 (743's family).
+        // past run227): the scout `1/0`'s order point and formation mirror
+        // from 16782 (743's family). who=1's make-list slot 1 on 16779,
+        // 22784 here against 91136 there, went with item 767: the British
+        // price of Taxation, which `check_income` read as unaffordable
+        // here (`docs/AI.md` §74; the word's delta, 16982 → 17189, is in
+        // `LONG_WORD_EAST_INDIES`' comment).
         let past: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f > WORD_BLOCK)
@@ -15072,7 +15075,6 @@ pub(crate) mod tests {
         assert_eq!(
             past,
             [
-                "16779 1/-1 leader:MAKE[1].val: ours 22784 theirs 91136",
                 "16782 1/0 dest_angle: ours -2143223808 theirs -2147483648",
                 "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
                 "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
@@ -15085,10 +15087,11 @@ pub(crate) mod tests {
         // everything standing on run221's last block, which run227 shares
         // — 306 before the word's frame, 312 in all. It was 286/333/866
         // before item 752's fix: the two cities' counts, `1/46`'s rows and
-        // the 554 rows past the word that its walk parted.
+        // the 554 rows past the word that its walk parted. Item 767 took
+        // one past the word (312 → 311): `MAKE[1].val` on 16779.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 306, 312), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 306, 311), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**
