@@ -22,6 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 736, 2026-09-25 — the stack sub-group's edges
+
+(743) **The `mirror` row's partings on East Indies**, there before 736's
+fix: the scout `1/0` from 8242 (275's family) and `1/31` from 10875.
+Neither names a score.
+
+(744) **The stack sub-group's other seams** (GROUPS §26.6): its
+uninitialised slot angles, `replace_form_id`'s copy-back,
+`Form::categorize` sorting the seat's list rather than the stack group's,
+and an anchor that leads its parent.
+
 ## Parked by item 731, 2026-09-25 — the group attack's loose ends
 
 (739) **`compare`'s death `extra` direction reads a record the capture may
@@ -78,12 +89,13 @@ not reached by run204.
 ## Parked by item 711, 2026-09-24 — under Great Lakes' 15383
 
 (716) **`1/79`'s move `facing`**, 1 here against 0 in the original from
-15351: a value row, no draw. **Taken by 736** (the escort's move step).
+15351: a value row, no draw. **Closed by 736** on the diff (GROUPS §26).
 
 (717) **The mirror bit's two unwired readers**: `set_new_location` at
 `5f9290` and `Guy::set_anim` at `5dafad` read `unit_masks & 2`, and this
-crate carries the bit now (GROUPS §25) but neither reader. **Taken by
-736**: the original's first draw on 15619 is `Guy::set_anim+0x97a`.
+crate carries the bit now (GROUPS §25) but neither reader. **Closed by
+736** on the reading: `set_new_location` needs `guy_mark > 1` (every
+`UNITDATA` prints 1) and `set_anim` a `GROUP_IDLE2` packet (none ships).
 
 ## Parked by item 706, 2026-09-24 — the patriot arm's seams
 
@@ -931,6 +943,12 @@ greps the dump for each, before naming an instrument** (729's Loop line,
 filed at its merge). 722 booked a packet (run212) for `frame_attacked`,
 which `LeaderData::log_data` prints every block; one `grep` of run211
 answered it. A packet is a capture: the disk rule applies to it too.
+
+(745) **Nothing pins that each field the simulation carries has a widening
+row** (736's Loop line, filed at its merge). `diff::compared` pins the
+dump's side; `Movement::mirror` sat a tranche carried and read, with no
+row, and was caught only because a brief named the bit. The crate's side
+of the recorder is the same blind spot as a parsed-and-uncompared field.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

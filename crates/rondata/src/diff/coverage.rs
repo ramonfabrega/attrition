@@ -48,10 +48,11 @@ use super::testkit::{
     GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
-    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK,
-    GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK,
-    GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
-    GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_MAKE_BLOCK,
+    GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_RECRUIT_BLOCK,
+    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK,
+    GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -493,6 +494,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r196 = crate::testenv::dump("gamelog-run196-greatlakes-patriotword.txt");
     let r202 = crate::testenv::dump("gamelog-run202-greatlakes-mirrorword.txt");
     let r211 = crate::testenv::dump("gamelog-run211-greatlakes-wonderword.txt");
+    let r218 = crate::testenv::dump("gamelog-run218-greatlakes-escortword.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
@@ -635,6 +637,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r211 {
         let n = drive_capture(p, gw - 2, ga + 2, &mut paths);
         assert_eq!(n, 16, "run211 carries both words' blocks");
+        frames += n;
+    }
+    // Item 736 moved it to 16460, past run211's last block, and its run218
+    // is run211's line from 15854 to 16711, so the window is the word's own
+    // blocks again, on the capture taken to widen it.
+    let ge = GREAT_LAKES_ESCORT_BLOCK;
+    if let Some(p) = &r218 {
+        let n = drive_capture(p, ge - 2, ge + 2, &mut paths);
+        assert_eq!(n, 5, "run218 carries the word's five blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

@@ -6071,3 +6071,83 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 #   dumped: a packet's question.
 # - **R3 holds.** The first rows on run211's own blocks, 15607, are the
 #   Despot's escort `1/77`/`1/78` (group 67, army 3) trading guard posts.
+
+run: 218
+tag: greatlakes-escortword
+item: 736
+why: Great Lakes' long word is 16460 (item 736), where ours spends 1 draw against 3, parting at index 1 — the original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked step, which ours does not — and run211, the last capture on this map below 23960, ends on block 15859, so the word's block 16461 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-25, item 736): run211's last
+# block is 15859 and its `!quit` stub 15870; run80 starts at 23960; run53
+# prints only its draw stream. **What the disk could not answer**: every
+# record on the word's block 16461, and every block from 15860 to it —
+# whose step the original blocks on 16460, against what, and where the
+# Despot's escort stands after its posts agree (item 736 closed the
+# sub-group's `facing`, `docs/GROUPS.md` §26).
+#
+# **Sized to the word, with 250 blocks of runway** (DECISIONS 50 §7,
+# Loop 687): the six-block overlap with run211 the widening's chain needs
+# (15854..15859), the 601 up to the word, its block 16461, and 250 above
+# it — 858 blocks.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run211's game past 15859.** Killed if the trace
+#   differs from run53's on any frame, or if the overlap with run211 on
+#   15854..15859 differs or counts other than six blocks.
+# - **R2 — the blocked step on 16460 is the escort's** (`1/76`, `1/77`,
+#   `1/78`, group 67). Its unit is the stepping unit. Killed if, on block
+#   16461, no escort member carries a `collide` other than 0 in the
+#   original's record, or if one outside the escort does and they do not.
+# - **R3 — the parting up to the word starts in group 67.** Killed if the
+#   first unit to part on run218's own blocks (15860..16461) is not a
+#   member of group 67 (`1/76`–`1/79`).
+#
+# **run211's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the overlap is byte for byte and the pool lands (no `DEATHS`).
+frames: 16722
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **15854..16711, 858 blocks**: six shared with run211 (15854..15859),
+# the 601 up to the word, its block 16461, and 250 of runway above it.
+frame_window: 15854 16712
+# **Per-frame coverage over the word**, 16456..16464.
+cover: cover=1
+cover: window=16456-16464
+settle_min: 14000000
+# **Sized from run211**: 2.2 MB a block, so 858 blocks is ~1.9 GB.
+# run211 took 35 minutes for 425 blocks from launch; this is ~70. 330
+# polls is 110 minutes.
+poll_max: 330
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run218.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=16712)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run218-greatlakes-escortword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 858 blocks, 15854..16711, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run218-greatlakes-escortword.txt" | awk '{v=$3+0; if(v>=15854&&v<16712) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==858 && lo==15854 && hi==16711)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run218-greatlakes-escortword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=15854&&v<16712)n++} print "blocks with a GROUPDATA: "n; exit !(n==858)}'
+# **The overlap with run211, and the count is the claim** — six blocks,
+# 15854..15859, the same line, nothing excluded.
+check: python3 tools/gamelog/samegame.py gamelog-run211-greatlakes-wonderword.txt gamelog-run218-greatlakes-escortword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run211 overlap: common="n" "r" differ="d; exit !(n==6 && d==0 && r=="(15854..15859)")}'
+# **The coverage window landed**: every frame 16456..16464 has a set.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run218.log" coverage | awk '/^== frame/{f=$3+0; sub(":","",f); if(f>=16456&&f<=16464&&$4+0>100) n[f]=1} END{c=0; for(k in n)c++; print "coverage frames: "c; exit !(c==9)}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 1,870,856,427 bytes of dump and 21,371,680 of trace, **858 blocks
+# 15854..16711**, with a `GROUPDATA` on every one. Launched 09:22 through
+# `viadriver.sh` with no human at the menu, and archived 10:26: about 64
+# minutes. All six checks were green:
+# - 16,723 frames identical to run53;
+# - `MAP_STYLE 14`;
+# - the window whole;
+# - the pool on every block;
+# - 6 blocks shared with run211 (15854..15859), 0 differing;
+# - a coverage set on all 9 frames 16456..16464.
+#
+# **The readings, decided on the walk**
+# (`run218_s_word_frame_is_widened_whole`):
+# - **R1 holds**, by the checks above.
+# - **R2 is killed.** The original's `1/23`, outside the escort, carries
+#   `collide_o 79` on 16461: The Despot blocks it. No escort member parts.
+# - **R3 is killed.** The first unit to part on run218's own blocks is
+#   `1/23`, on 16460, and it is not in group 67.
