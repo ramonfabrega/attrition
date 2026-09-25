@@ -3912,6 +3912,16 @@ pub(crate) const WIDENING_EAST_INDIES_SLOT: (i64, i64) = (15_894, 16_236);
 /// buy and its `make_stuff+0x63d` expiry roll, writes block 15986. The
 /// coverage driver reads run221 around it.
 pub(crate) const EAST_INDIES_SLOT_BLOCK: i64 = 15_986;
+/// `run227_s_word_frame_is_widened_whole`'s window (item 752): run227
+/// whole, 16230..16934 — seven blocks shared with run221, the 447 up to
+/// the word 16683, its block, and 250 of runway past it. The floor is the
+/// capture's first block, which carries every key standing on run221's
+/// last.
+pub(crate) const WIDENING_EAST_INDIES_WRAPWORD: (i64, i64) = (16_230, 16_934);
+/// The word 16683's block on run227: its frame, six `Guy::inc_time`
+/// idle wraps there against five here, writes block 16684. The coverage
+/// driver reads run227 around it.
+pub(crate) const EAST_INDIES_WRAPWORD_BLOCK: i64 = 16_684;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
