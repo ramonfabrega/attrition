@@ -8813,9 +8813,11 @@ own 78 up to the word's block.
   three and eight captains, and none of their units parts before the
   word's block (`1/61`, army 2's, parts on it — a clock). So what the
   predicate reads differently is an army's own `pos` or the owner of
-  its cell, and neither is dumped per frame. **A packet at 15607
+  its cell, and neither is dumped per frame. ~~**A packet at 15607
   (run212, `docs/EMULATOR.md` §8) reads the original's army records.**
-  No mechanism is named (DECISIONS 42).
+  No mechanism is named (DECISIONS 42).~~ **The disk answered first**:
+  the dump prints the human's `frame_attacked`, 10233 there against 8186
+  here, and the stamp closes L=0 before any army is read (§71).
 
 The coverage driver reads run211 15607..15611, and the compared pin walks
 the same window: `OrderDump.coll_x`/`coll_y` are compared there and left
@@ -8835,3 +8837,142 @@ the pin.
   stream (four pairs → two) and by every row of run202's runway. The
   unit test covers a site of a second type; a site of the same type is
   the ally walk's, already covered.
+
+## 71. A hit stamps its owner's `frame_attacked`, and the word moves to 15619 (2026-09-25, item 729)
+
+Great Lakes' word was **15608**. On it this crate spent 40 draws against
+the original's 38, parting at index 0: ours threw `Army::find_target+0x410`,
+the difficulty gate's coin (`docs/ARMY.md` §12), where the original's first
+draw is the per-candidate score `+0x7df` (§70.4). Inside run211, widened by
+item 722 (§70.5). No mechanism was named.
+
+### 71.1 The frame, read whole before any reading
+
+run53's draw stream over 15600..15612 with `RON_DEBUG_SITES` and
+`RON_DEBUG_ARMIES`, both sides:
+
+- **One parting.** Ours: the coin, two scores, the same ten birds'
+  thirty draws, `1/3`'s two `do_job` draws, `1/32`'s and `1/61`'s
+  clocks, then **three** `Guy::set_anim+0x104b` on `9/6`. The original:
+  the same without the coin, and **two** on `9/6`. The third bird draw is
+  the coin's consequence: it went with it (§71.4).
+- **Both sides call `find_target` on 15608 and score the same two
+  cities.** A scratch probe inside the decision (not at the frame
+  boundary) named the caller: **army 2** (status 18, eight captains),
+  at difficulty 0. For L=0, the human: at war, `defense_mod` 0x100, the
+  stamp term `frame_attacked + 0x1c20 <= frame` passes (8186 + 7200 ≤
+  15608), `find_aggressive_army(1)` answers −1 — every army's cell is
+  who=1's — so the coin is thrown; it is odd, and L=0 is skipped. L=1 is
+  me: its two cities, founded by who=1, are scored. So the original
+  either stops L=0 at the stamp, or `find_aggressive_army` answers an
+  army other than 2 (which skips L=0 without a draw). Both give two
+  scores and no coin.
+- **The army records agree with themselves** on 15600..15612 here: no
+  status, target or membership moves on the word.
+
+### 71.2 The readings, and what would kill each
+
+Written after the frame and the in-decision probe, **before** reading any
+writer of `frame_attacked`, but not before `find_aggressive_army@006f2e10`
+had been read: the brief's three were held against the probe's output.
+Each killer tests the claim's own unit.
+
+- **R1: an army's `pos` or the owner of its cell differs, so ours takes
+  the coin arm where the original's `find_aggressive_army` answers.**
+  Its unit is the term the coin arm's gate reads *first*. Killed if the
+  original never reaches `find_aggressive_army` for L=0 on 15608. The
+  listing orders it: `6f6d7a`–`6f6d91` load L's `frame_attacked`, add
+  `0x1c20`, compare the frame and `jg` to the skip (`6f81f6`) before the
+  call at `6f6d9a`. **Killed by the dump**: `LeaderData::log_data`
+  prints `frame_attacked`, and run211's human carries **10233** on every
+  block, 15435..15859 (10233 + 7200 = 17433 > 15608). The original stops
+  L=0 at the stamp; no army's position is read.
+- **R2: the escort's post swap on 15607 is the cause.** Killed if army 3
+  cannot reach `find_target` as the caller or as `find_aggressive_army`'s
+  answer on 15608. By the listing: `find_aggressive_army` skips a
+  mustering army (`6f2e3f`, `testb $0x1, 0x4(%eax)`, the loop's bound 16
+  slots, `6f2e89`ff), and army 3 is status 17; the caller is army 2. And
+  by R1's kill no army is read for L=0 at all. **Killed.** The escort is
+  716/717's and stays parked.
+- **R3: the drawing army is a different army in each game.** Its unit is
+  the caller's identity, compared on what the slot holds. **Neither
+  killed nor shown**: no capture writes an `ARMYDATA` record. What the
+  disk does say is weaker: with the fix the frame agrees draw for draw
+  (38 = 38) and so does 15610's `find_target` (army 1's, two scores), so
+  if the callers differ they differ without a draw.
+
+### 71.3 The writer this crate did not carry
+
+`frame_attacked` (`LeaderData +0xa40`) has **two** writers in the export,
+not one (`grep` of `+0xa40` and the name over `decomp/funcs`; the other
+two hits are `Leader::init` and `LeaderData::log_data`):
+
+- `Army::find_target@006f69b0`, on taking a target against an enemy and on
+  the probe (§12 of `docs/ARMY.md`), with `attacked_by = me`;
+- **`Object::take_damage@00652020:67-71`**: when `param_5 == 0` (not
+  attrition), `semaphore[0] & 4 == 0` and `difficulty < 2`,
+  `leaders[this.who].frame_attacked = frame` — **the struck object's
+  owner**, human or computer, with no `attacked_by`.
+
+This crate wrote only the first (`crates/sim/src/ai.rs` called the field
+"the frame an enemy army last took a target of this leader's", and
+`docs/ARMY.md` §12's gate "7,200 frames since I last took a target against
+`L`"; `docs/COMBAT.md` §7.2 step 3 named the stamp as "the owner's
+last-attacked frame (AI, on low difficulty)", and nothing carried it). All
+three are amended in place.
+
+**The fix**: `take_damage_typed` (`crates/sim/src/fight.rs`), the one
+combat entry (`do_damage`'s; the city path passes attrition), stamps the
+struck object's owner at difficulty below 2, first after the sixteenth
+floor as in the original. With it, who=0 is stamped on every hit its
+objects take from 9451 on and last on **10233** — the original's value to
+the frame — and nothing is stamped on any other leader through 24,000.
+`fight::tests::a_hit_stamps_the_struck_owner_s_frame_attacked_below_difficulty_two`
+was made to fail with the stamp removed (0 against 10233).
+
+### 71.4 What it moved
+
+Measured on the tree based on `7ec485a` (no `ccc update` since spawn):
+
+- **Great Lakes 15608 → 15619.** On 15608 both sides spend 38 draws draw
+  for draw. On 15619 this crate spends 4 draws against the original's 5,
+  parting at index 0: the original spends `Guy::set_anim+0x97a <
+  Unit::move_step+0x823` first.
+- **The value diff** (`run211_s_word_frame_is_widened_whole`):
+  `0/frame_attacked` is gone from every block of the chain (8186 against
+  10233 since the stamp's first hit), and so are the coin's consequences on
+  15609, `1/3`'s move target and `1/61`'s clock. run202's floor goes
+  400/1/401 → 399/1/400 and its standing rows 315/316 → 314/315, the same
+  row; run211's goes 401/78/1003 → 400/89/1014, the eleven new keys being
+  the escort's and the new word's block's (§71.5).
+
+### 71.5 The new word's block, 15620, on run211
+
+15620 is inside run211 (last block 15859), so no capture was owed; the
+same test pins it, and the coverage driver reads run211 15607..15622.
+
+- **Up to the word, only the escort parts.** Past 15608's swapped guard
+  posts, `1/76` — army 3, The Despot's fourth — parts in `half_step` on
+  15617 and in position on 15619, the word's frame (ours (41858, 21615),
+  theirs (41869, 21627)).
+- **On 15620**: `1/76`'s heading, the two swapped Longbowmen's collision
+  (`1/78` meets `1/23` in the original and nothing here; `1/77`'s
+  `collide_guy`), and `1/36`/`1/40`'s clocks.
+- The original's extra `Unit::move_step` draw is very likely `1/76`'s, the
+  one unit that parts in position on the word's frame. That is the
+  escort's post swap carried forward: **parked 716/717's family**, and the
+  commander's to route before a worker builds. No mechanism is named
+  (DECISIONS 42).
+
+### 71.6 What this has *not* established
+
+- **R3**, the caller's identity (§71.2).
+- **The gaia and third-player stamps.** `leaders.list` is indexed by the
+  struck owner's byte; this crate's `ai` covers the players only, so a hit
+  on a gaia object stamps nothing here. No reader of a gaia
+  `frame_attacked` is carried, and none was found.
+- **`semaphore[0] & 4`** is read as off, as `ai_difficulty` already reads
+  it: the lobby's difficulty, never a leader's `multi_diff`.
+- **Coverage**: the stamp is diff-backed by `0/frame_attacked` on every
+  block of the Great Lakes chain and by 15608's draw stream. The
+  difficulty-2 arm is the unit test's only.

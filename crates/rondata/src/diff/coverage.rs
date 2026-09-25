@@ -46,12 +46,12 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MERCS_BLOCK, EAST_INDIES_WRAP_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
     GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
-    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_BIRTH_BLOCK,
-    GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK,
-    GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK,
-    GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_ROAD_BLOCK,
-    GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK,
-    GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
+    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
+    GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
+    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK,
+    GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK,
+    GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
+    GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -621,10 +621,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // Item 722 moved it to 15608, past run202's last block, and its run211
     // is run202's line from 15435 to 15859, so the window is the word's own
     // blocks again, on the capture taken to widen it.
+    // Item 729 moved it to 15619, inside run211, so the window runs on to
+    // two blocks past the new word's block.
     let gw = GREAT_LAKES_WONDER_BLOCK;
+    let ga = GREAT_LAKES_ATTACKED_BLOCK;
     if let Some(p) = &r211 {
-        let n = drive_capture(p, gw - 2, gw + 2, &mut paths);
-        assert_eq!(n, 5, "run211 carries the word's five blocks");
+        let n = drive_capture(p, gw - 2, ga + 2, &mut paths);
+        assert_eq!(n, 16, "run211 carries both words' blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

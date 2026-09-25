@@ -2254,7 +2254,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_WONDER_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_ATTACKED_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -10279,7 +10279,8 @@ pub(crate) mod tests {
         // **Item 718 took six (218 → 212)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        assert_eq!(under, 212, "the floor under the word");
+        // **Item 729 took one (212 → 211)**: `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!(under, 211, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10773,7 +10774,8 @@ pub(crate) mod tests {
         // (`City::fix_world_vals`, `docs/AI.md` §67).
         // Item 718: trained units' `orders_x`/`orders_y` on their exit block
         // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
-        assert_eq!((under, firsts.len()), (212, 228), "the floor");
+        // Item 729 took one under the word (212/228 → 211/227): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, firsts.len()), (211, 227), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -10971,7 +10973,8 @@ pub(crate) mod tests {
         // (`City::fix_world_vals`, `docs/AI.md` §67).
         // Item 718: trained units' `orders_x`/`orders_y` on their exit block
         // now agree (`come_out`'s `update_action`, `docs/ORDERS.md` §29).
-        assert_eq!((under, firsts.len()), (228, 360), "the floor");
+        // Item 729 took one (228/360 → 227/359): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, firsts.len()), (227, 359), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11178,7 +11181,8 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(road, Vec::<String>::new(), "695's word's five blocks");
         assert!(word.is_empty(), "nothing parts first on 14651");
-        assert_eq!(standing_n, 317, "every row standing on 14651");
+        // Item 729: 317 → 316, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!(standing_n, 316, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
@@ -11188,7 +11192,10 @@ pub(crate) mod tests {
         // above it to 14899, and none under.
         assert_eq!(
             (under, mid.len(), firsts.len()),
-            (360, 36, 396), // item 718: six trained units' `orders_x`/`orders_y`
+            // Item 718: six trained units' `orders_x`/`orders_y`; item 729
+            // took one (360/36/396 → 359/36/395), `0/frame_attacked`
+            // (`Object::take_damage`'s stamp, `docs/AI.md` §71).
+            (359, 36, 395),
             "the floor"
         );
     }
@@ -11308,13 +11315,14 @@ pub(crate) mod tests {
             "who parts first on 14983, and on how many keys"
         );
         // Item 718: `1/79`'s `orders_x`/`orders_y` agree on its exit block.
-        assert_eq!(standing_n, 315, "every row standing on 14983");
+        // Item 729: 315 → 314, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!(standing_n, 314, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
         // Item 718: twenty-two trained units' exit rows agree (416/6/422 →
-        // 396/4/400).
-        assert_eq!((under, own.len(), firsts.len()), (396, 4, 400), "the floor");
+        // 396/4/400). Item 729 took one (→ 395/4/399): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, own.len(), firsts.len()), (395, 4, 399), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11404,10 +11412,11 @@ pub(crate) mod tests {
         );
         // Nor above it: run196's runway, 15177..15232, parts nowhere.
         // The 315 rows standing on 15176 are the floor's, parted under
-        // run192's tail (376 before item 711: the archers' 61 are gone).
+        // run192's tail (376 before item 711: the archers' 61 are gone;
+        // 315 before item 729, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71)).
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            315,
+            314,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -11423,7 +11432,8 @@ pub(crate) mod tests {
         // **Item 718 took twenty-two (422/0/422 → 400/0/400)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        assert_eq!((under, mid, firsts.len()), (400, 0, 400), "the floor");
+        // Item 729 took one (400/0/400 → 399/0/399): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, mid, firsts.len()), (399, 0, 399), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11526,13 +11536,14 @@ pub(crate) mod tests {
             .values()
             .filter(|(f, _)| (RUN196_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
-        // The floor's rows, standing: 327 on 15384 before item 715.
+        // The floor's rows, standing: 327 on 15384 before item 715, and
+        // 315/316 before item 729, whose stamp closed `0/frame_attacked`.
         assert_eq!(
             (
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
-            (315, 316),
+            (314, 315),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -11545,7 +11556,9 @@ pub(crate) mod tests {
         // **Item 722 took the other 223 (400/1/624 → 400/1/401)**: every
         // key that first-parted on 15386..15440 was the wonder pairs'
         // (`docs/AI.md` §70), and nothing arrived.
-        assert_eq!((under, mid, firsts.len()), (400, 1, 401), "the floor");
+        // **Item 729 took one (400/1/401 → 399/1/400)**: `0/frame_attacked`,
+        // `Object::take_damage`'s stamp (`docs/AI.md` §71).
+        assert_eq!((under, mid, firsts.len()), (399, 1, 400), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11555,11 +11568,16 @@ pub(crate) mod tests {
     /// from run123's 11400 across twelve captures, with every player-1
     /// pool list from run135's first block.
     ///
-    /// The word's frame, 15608, writes block **15609**.
+    /// The word's frame, 15608, writes block **15609**. **Item 729 moved
+    /// the word to 15619** (`docs/AI.md` §71), inside run211: its frame
+    /// writes block **15620**, which this test pins, and the move's value
+    /// diff on 15608 and 15609 stays here.
     #[test]
     fn run211_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
-        const WORD_BLOCK: i64 = GREAT_LAKES_WONDER_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_ATTACKED_BLOCK;
+        /// Item 722's word's block, which item 729 moved off.
+        const OLD_BLOCK: i64 = GREAT_LAKES_WONDER_BLOCK;
         /// run202's last block: everything above it is run211's.
         const RUN202_TAIL: i64 = WIDENING_GREAT_LAKES_MIRROR.1;
         let Some(Widened {
@@ -11573,7 +11591,7 @@ pub(crate) mod tests {
             &great_lakes_word_chain(),
             WIDENING_GREAT_LAKES_WONDER,
             11_800,
-            &[WORD_BLOCK - 1, WORD_BLOCK],
+            &[OLD_BLOCK, WORD_BLOCK],
         )
         else {
             return;
@@ -11593,17 +11611,15 @@ pub(crate) mod tests {
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
         // **On run211's own blocks up to the word: the Despot's escort,
-        // then `1/3`.** Nothing parts on 15441..15606. On 15607 the
-        // Longbowmen `1/77` and `1/78` — group 67, who=1's army 3 with
-        // The Despot `1/79` and `1/76` — trade guard posts: each walks to
-        // the post the other holds in the original (item 711's shape,
-        // beside parked 716 and 717). On 15608 their guard orders carry the
-        // swapped posts, and on 15609 `1/3`'s move and `1/61`'s clock part.
-        // The word's coin is `find_aggressive_army`'s, whose candidates are
-        // armies 1 and 2 (not mustering, three and eight captains), and no
-        // unit of either parts before the word's block — `1/61`, army 2's,
-        // parts on it, a clock. The escort's army 3 is mustering. No
-        // mechanism is named (DECISIONS 42).
+        // and only the escort until the word's block.** Nothing parts on
+        // 15441..15606. On 15607 the Longbowmen `1/77` and `1/78` — group
+        // 67, who=1's army 3 with The Despot `1/79` and `1/76` — trade
+        // guard posts: each walks to the post the other holds in the
+        // original (item 711's shape, beside parked 716 and 717), and on
+        // 15608 their guard orders carry the swapped posts. `1/76`'s
+        // `half_step` parts on 15617 and its position on 15619, the new
+        // word's frame; on its block, 15620, its heading, the two swapped
+        // Longbowmen's collision, and `1/36`/`1/40`'s clocks.
         assert_eq!(
             own,
             [
@@ -11611,28 +11627,56 @@ pub(crate) mod tests {
                 (15_607, 1, 78, 22),
                 (15_608, 1, 77, 12),
                 (15_608, 1, 78, 12),
-                (15_609, 1, 3, 8),
-                (15_609, 1, 61, 2),
+                (15_617, 1, 76, 1),
+                (15_619, 1, 76, 7),
+                (15_620, 1, 36, 2),
+                (15_620, 1, 40, 2),
+                (15_620, 1, 76, 3),
+                (15_620, 1, 77, 1),
+                (15_620, 1, 78, 5),
             ],
             "who parts first on run211's own blocks up to the word's, and on how many keys"
+        );
+        // **Item 729's value diff.** Item 722's word was army 2's
+        // `find_target` throwing the difficulty gate's coin for the human:
+        // this crate's `0/frame_attacked` was 8186 (the probe's stamp) where
+        // the original's is 10233 (`Object::take_damage`'s), so the
+        // 7,200-frame gate let L=0 through. The stamp brings the human's
+        // `frame_attacked` to 10233 on every block of the chain, and the
+        // coin's consequences on 15609 — `1/3`'s move target and `1/61`'s
+        // clock — part nowhere.
+        let gone: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, what), (f, _))| {
+                (*w == 0 && what == "leader:frame_attacked")
+                    || (*f == OLD_BLOCK && *w == 1 && (*o == 3 || *o == 61))
+            })
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert!(
+            gone.is_empty(),
+            "0/frame_attacked holds on the whole chain, and 1/3 and 1/61 on 15609: {gone:?}"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN202_TAIL).count();
         let mid = firsts
             .values()
             .filter(|(f, _)| (RUN202_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
+        // The floor's rows, standing: 364 on 15608 and 374 on 15609 before
+        // item 729.
         assert_eq!(
             (
-                standing.get(&(WORD_BLOCK - 1)).map_or(0, BTreeMap::len),
+                standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
-            (364, 374),
-            "every row standing on 15608 and on the word's block, 15609"
+            (363, 381),
+            "every row standing on 15609 and on the word's block, 15620"
         );
-        // **The floor**: run202's walk exactly (400/1/401 — its runway
-        // parts nowhere since item 722), then run211's own 78 up to the
-        // word's block, and every key to the window's end.
-        assert_eq!((under, mid, firsts.len()), (401, 78, 1003), "the floor");
+        // **The floor**: run202's walk, then run211's own keys up to the
+        // word's block, and every key to the window's end. 401/78/1003
+        // before item 729: run202's walk loses `0/frame_attacked`, the one
+        // row under run211 the stamp closes.
+        assert_eq!((under, mid, firsts.len()), (400, 89, 1014), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

@@ -2101,7 +2101,21 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// word's block is in `run211_s_word_frame_is_widened_whole` (the
 /// widening test), and `run202_s_word_frame_is_widened_whole` keeps the
 /// move's value diff: nothing parts on 15385..15440.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_608;
+///
+/// ~~**15608 is who=1's difficulty coin.**~~ **Item 729 moved it 15608 →
+/// 15619, and the mechanism was `Object::take_damage`'s stamp**
+/// (`docs/AI.md` §71): a combat hit at difficulty below 2 writes the
+/// struck object's owner's `frame_attacked`, and this crate wrote the
+/// field only from `Army::find_target`. The human's stood at 8186 here and
+/// 10233 there, so on 15608 army 2's `find_target` passed the 7,200-frame
+/// stamp for L=0 and threw the coin the original never reaches. **The new
+/// word's delta (this constant's comment): ours 4 draws and the original
+/// 5, parting at index 0**: the original spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823` first. It is inside run211 (block 15620 against
+/// its last, 15859); the new word's block is in
+/// `run211_s_word_frame_is_widened_whole` (the widening test), which also
+/// keeps the move's value diff on 15608 and 15609.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_619;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3627,6 +3641,10 @@ pub(crate) const WIDENING_GREAT_LAKES_WONDER: (i64, i64) = (11_400, 15_859);
 /// 15608's frame writes block 15609, past run202. The coverage driver
 /// reads run211 around it.
 pub(crate) const GREAT_LAKES_WONDER_BLOCK: i64 = 15_609;
+/// The word 15619's frame writes block 15620 (item 729), inside
+/// [`WIDENING_GREAT_LAKES_WONDER`]; the coverage driver reads run211 from
+/// two blocks under [`GREAT_LAKES_WONDER_BLOCK`] to two over this one.
+pub(crate) const GREAT_LAKES_ATTACKED_BLOCK: i64 = 15_620;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4076,6 +4094,11 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // and `run211_s_word_frame_is_widened_whole` walks it from run123's
     // 11400 across twelve captures, so the window is
     // [`WIDENING_GREAT_LAKES_WONDER`] and the test pins the word's block.
+    //
+    // **Item 729 moved it 15608 → 15619**, inside run211:
+    // `Object::take_damage` stamps the struck owner's `frame_attacked`
+    // (`docs/AI.md` §71). The same test pins the new word's block, 15620,
+    // and keeps the move's value diff on 15608 and 15609.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,

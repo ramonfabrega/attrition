@@ -829,8 +829,10 @@ passed on).
 1. Not active → 0.
 2. If `whole < 1` and `frac < 1`: `frac = 1`. Every hit that reaches here
    takes at least a sixteenth.
-3. Combat only (`attrition == 0`): the owner's last-attacked frame (AI, on
-   low difficulty); on the **first** damage to a building (`damage == 0`)
+3. Combat only (`attrition == 0`): the owner's last-attacked frame (~~AI,
+   on low difficulty~~ **the struck object's owner, human or computer**, at
+   `difficulty < 2`: `leaders[who].frame_attacked = frame`, lines 67–71,
+   carried since item 729, `docs/AI.md` §71); on the **first** damage to a building (`damage == 0`)
    a roll of `Random::get(0, 0xffff) % 100 < 5` is taken at
    **`+0xe1`**, and if the building is a fort (`BuildTypeData::is_fort`),
    `TEMPLE` (`0x1b5`) or `TOWN` (`0x19f`) **and** the attacker exists
