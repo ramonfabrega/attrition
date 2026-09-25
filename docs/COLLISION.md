@@ -541,7 +541,8 @@ if detect(proposed, quick 0):
            or collide < 0x1a
            or ((path_top.tolerance == 0 or path_top.flags & 2) and not path_top.flags & 1):
             resolve_unit_collision(proposed); return
-        tolerance = manh * 2               # give up: call it arrived
+        tolerance = manh * 2               # give up: call it arrived,
+        → the tail below, with no step    # from where it stands (§17)
 ```
 
 `big_radius` is `ObjectType +0x244`.
@@ -561,7 +562,9 @@ Three things about it matter and each has cost a frame: the distance is
 **Manhattan**, not the octagonal `vector_dist` `do_move`'s own take uses;
 the tolerance is **`UnitData::tolerance`**, the unit's field, never the path
 entry's; and it runs **only after an accepted step**, so a blocked frame
-never reaches it. §8.7 is the mechanic that turns on all three.
+never reaches it — ~~every blocked frame~~ **except the give-up's**, which
+jumps onto it with the unit where it stood (§17, item 742). §8.7 is the
+mechanic that turns on all three.
 
 The `set_anim(CHAR_DEFAULT)` is the call at `005fb74e`, so its draw site is
 `Unit::move_step+0x823` and the trace names it

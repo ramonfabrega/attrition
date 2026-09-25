@@ -7215,3 +7215,26 @@ frames. The two places the scratch walk was wrong are both the re-issue's
 explore plans to its `orig`, where the walk had (2424, 17304). The
 squad's re-issue keeps its 642 slots round the click, where the walk
 re-formed them round the leader's slot and put `0/8` on (12600, 15096).
+
+## run226 — Great Lakes' word 17099, past run218's last block (2026-09-25, item 742)
+
+**What it is.** run218's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[16706, 17351)`, plus `rontrace.cfg` `cover=1` and `window=17095-17103`
+over the word. `!quit` at 17361, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 742
+```
+
+**Why it was owed.** Item 742 moved Great Lakes' word 16460 → 17099:
+`move_step`'s give-up takes its waypoint where the unit stands
+(`docs/COLLISION.md` §17). run218 ends on block 16711, so the word's
+block 17100 is on no disk. On 17099 ours spends 217 draws against 225,
+parting at index 0: the original's first is `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, a blocked step, where ours spends
+`Guy::set_anim+0x97a < Unit::do_move+0x11cf`. **Sized with 250 blocks
+of runway** (DECISIONS 50 §7): six blocks shared with run218, the 388 up
+to the word, its block, and 250 above it — 645 blocks. The readings and
+their kills are in the stanza.

@@ -11791,18 +11791,34 @@ pub(crate) mod tests {
         }
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
-        // **On run218's own blocks up to the word: one unit, on the word's
-        // own frame.** Nothing parts on 15860..16459. On block 16460 —
-        // sim-frame 16459, a frame before the word — `1/23`, a
-        // three-figure unit, stands stopped in the original at
-        // (41632, 21466) and walks on here to (41632, 21440). On the
-        // word's block its original carries `collide_o 79, collide_who 1`:
-        // its step is blocked by **The Despot**, which is the word's
-        // `Unit::move_step+0x823`. No member of group 67 parts.
+        // **On run218's own blocks up to the word: nothing** (item 742).
+        // Before it, `1/23` — three figures, blocked by **The Despot**
+        // (`collide_o 79`) from 16433 with `collide` counting 22..26 —
+        // parted on 16460 on 26 keys and on 16461 on 17: on sim-frame
+        // 16459 `move_step`'s give-up (`collide >= 0x1a`) widened its
+        // `tolerance` to 372 and this crate then took the step to
+        // (41632, 21440). The original takes no step: it pops the leg
+        // where it stands (`docs/COLLISION.md` §17).
+        //
+        // **The value diff on 16459 (block 16460), both sides now**:
+        // `1/23` at (41632, 21466), `tolerance` 372 (twice the Manhattan
+        // 186 still owed to (41632, 21280)), `path:length` 26 → 25,
+        // `move.dest` 0 — every one a row `widen_block` compares, and none
+        // parts; on 16461 the next leg, (41824, 21024), is blocked again
+        // with `collide 27`, as the original's is.
         assert_eq!(
             own,
-            [(16_460, 1, 23, 26), (16_461, 1, 23, 17)],
+            [],
             "who parts first on run218's own blocks up to the word's, and on how many keys"
+        );
+        let walked_23: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| (*w, *o) == (1, 23) && *f > RUN211_TAIL)
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert!(
+            walked_23.is_empty(),
+            "`1/23` parts on no new key to run218's last block: {walked_23:?}"
         );
         let group67: Vec<String> = firsts
             .iter()
@@ -11822,16 +11838,20 @@ pub(crate) mod tests {
             .values()
             .filter(|(f, _)| (RUN211_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
-        // The floor's rows standing on the word's block, and `1/23`'s.
+        // The floor's rows standing on the old word's block: 355 before
+        // item 742, whose give-up took `1/23`'s 43 keys off it.
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            355,
-            "every row standing on the word's block, 16461"
+            312,
+            "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
-        // since item 736), then `1/23`'s 43 keys on 16460..16461, and every
-        // key to the window's end.
-        assert_eq!((under, mid, firsts.len()), (398, 43, 957), "the floor");
+        // since item 736), and every key to the window's end. 398/43/957
+        // before item 742: `1/23`'s 43 keys on 16460..16461 and the 516
+        // above them went with the give-up's step (`docs/COLLISION.md`
+        // §17), nothing arriving — **nothing parts on 15860..16711**, and
+        // the word left run218 for 17099.
+        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
