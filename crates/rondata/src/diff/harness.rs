@@ -2333,7 +2333,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_GIVEUP_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_PYRAMIDS_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -11944,7 +11944,7 @@ pub(crate) mod tests {
             &great_lakes_word_chain(),
             WIDENING_GREAT_LAKES_GIVEUP,
             11_800,
-            &[WORD_BLOCK],
+            &[WORD_BLOCK, GREAT_LAKES_PYRAMIDS_BLOCK],
         )
         else {
             return;
@@ -11963,6 +11963,21 @@ pub(crate) mod tests {
         }
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        eprintln!(
+            "run226 own {own:?} standing {} {} floor {:?}",
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            standing
+                .get(&GREAT_LAKES_PYRAMIDS_BLOCK)
+                .map_or(0, BTreeMap::len),
+            (
+                firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count(),
+                firsts
+                    .values()
+                    .filter(|(f, _)| (RUN218_TAIL + 1..=WORD_BLOCK).contains(f))
+                    .count(),
+                firsts.len()
+            )
+        );
         // **On run226's own blocks up to the word: who=1's economy, from
         // 17086.** Nothing parts on 16712..17085. On block 17086 — sim-frame
         // 17085, where both sides make the same purchase (`leftover`
