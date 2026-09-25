@@ -7345,3 +7345,56 @@ Waited on with `waitrun.sh`, which exited 0.
   `1/5`. Their walks part from 17087, and `1/9`'s from 17088.
 - The floor is run218's walk (398), then 147 keys on 17086..17100, and
   1,382 to the window's end. 456 rows stand on the word's block.
+
+## run227 — East Indies' word 16683, past run221's last block (2026-09-25, item 752)
+
+**What it is.** run221's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[16230, 16935)`, at `cover=0`: a draw-stream trace first. `!quit` at
+16945, through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 752
+```
+
+**Why it was owed.** Item 708 moved East Indies' word 15985 → 16683 (the
+republic's commerce cap, `docs/AI.md` §72). run221 ends on block 16236, so
+the word's block 16684 is on no disk. On 16683 ours spends 6 draws against
+7, parting at index 5: the original spends six `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` idle wraps before `Farms::inc_time+0x1ae`, ours five
+(`1/18`'s two crew figures, `1/19`, `1/20`, `1/54`). **The disk answered
+who wraps here, not who wraps there**: the stream agrees to 16682, and
+run221's last block holds no figure clock that parts. A `cover=0` trace
+names no unit. **Sized with 250 blocks of runway** (DECISIONS 50 §7): seven
+blocks shared with run221, the 447 up to the word, its block, and 250
+above it, 705 blocks. The readings and their kills are in the stanza.
+
+**Taken whole.** 1,645.7 MB of dump and 23.0 MB of trace, 705 blocks
+16230..16934. About 57 minutes from launch (14:22) to the trace's close
+(15:19), with no human at the menu. The lane lock was stale (pid 15110).
+Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 16,946 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **705 blocks, 16230..16934, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **705 / 705** |
+| overlap with run221, nothing excluded | **7 in common (16230..16236), 0 differ** |
+
+**What it settled** (`run227_s_word_frame_is_widened_whole`,
+`docs/AI.md` §73).
+- **R2 holds**: the sixth wrap is who=1's idle citizen `1/46`, idle since
+  16529 with a 123-frame `CHAR_IDLE`. It parts first on 16595: on tick
+  16594, its seventh idle count, ours' `find_gather_spot` sends it to the
+  woodcutter `1/2009`. The original's finds nothing and leaves it
+  standing.
+- R3 and R4 are killed: no figure is on one side only, and no farm or
+  farmer parts under the word.
+- The cause is on the window's first block: who=1's two cities count their
+  gatherers 11 and 11 here against 10 and 12 there. `plan_strategy` counts
+  a gatherer in its **building's** city (`6babfb`), and this crate counted
+  it in the nearest. On 16594 the crossing rule read London 14 against 10
+  here and 12 against 12 there.
+- With the census fixed the word moves **16683 → 16982**, past run227's
+  last block.

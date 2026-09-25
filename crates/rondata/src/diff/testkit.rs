@@ -4070,12 +4070,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (16236): the commerce cap's republic term (`docs/AI.md` §72).
     // run221's test keeps the move's value diff. Item 752 owes the capture
     // over the new word.
+    //
+    // **Item 752 paid it**: run227 is run221's line over [16230, 16934],
+    // seven blocks shared with run221 and 250 past the word, and
+    // `run227_s_word_frame_is_widened_whole` walks it through the same
+    // walk, gaia and the pool included, and pins the word's block, 16684:
+    // the sixth wrap is the idle citizen `1/46`, which ours had sent to a
+    // woodcutter on 16594.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run227_s_word_frame_is_widened_whole"),
         752,
-        None,
+        Some(WIDENING_EAST_INDIES_WRAPWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

@@ -6439,3 +6439,29 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # **The overlap with run221, and the count is the claim** — seven
 # blocks, 16230..16236, the same line, nothing excluded.
 check: python3 tools/gamelog/samegame.py gamelog-run221-eastindies-slotword.txt gamelog-run227-eastindies-wrapword.txt | tee /dev/stderr | awk '/in common/{r=$0; sub(/.*in common /,"",r); split($0,a,", "); n=a[2]+0} /^differ:/{d=$2+0} END{print "run221 overlap: common="n" "r" differ="d; exit !(n==7 && d==0 && r=="(16230..16236)")}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 1,645,724,385 bytes of dump and 23,003,808 of trace, **705 blocks
+# 16230..16934**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 14:22 through `viadriver.sh` with no human at the menu (the lane lock
+# stale, pid 15110), the dump closed 15:17 and the trace 15:19: about 57
+# minutes. `waitrun.sh` exited 0. All seven checks were green:
+# - 16,946 frames identical to run54;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block;
+# - 7 blocks shared with run221 (16230..16236), 0 differing.
+#
+# **The readings, decided on the walk**
+# (`run227_s_word_frame_is_widened_whole`, `docs/AI.md` §73):
+# - **R1 holds**, by the checks above.
+# - **R2 holds.** The sixth wrap is who=1's citizen `1/46`: idle since
+#   16529 (`cur_anim 3`, `end_time 123`), it rolls on the original's
+#   16683 where ours' walks. Its record parts first on 16595, on its
+#   order: on tick 16594 ours' `find_gather_spot` sends it to the
+#   woodcutter `1/2009` and the original's finds nothing.
+# - **R3 is killed**: no figure is on one side only.
+# - **R4 is killed**: no farm and no farmer parts under the word.
+# - The cause stands on the window's first block: who=1's cities count
+#   their gatherers 11 and 11 here against 10 and 12 there, and
+#   `find_gather_spot`'s crossing rule reads them.
