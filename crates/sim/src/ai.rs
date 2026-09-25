@@ -678,7 +678,10 @@ pub struct Leader {
     pub tech_frame: i64,
     pub tech_cat_frame: [i64; 4],
     /// `frame_attacked`, `attacked_by`: the frame an enemy army last took
-    /// a target of this leader's, and whose (`docs/ARMY.md` §12).
+    /// a target of this leader's, and whose (`docs/ARMY.md` §12) — and
+    /// `frame_attacked` alone also the frame any of this leader's objects
+    /// last took a combat hit, at difficulty below 2
+    /// (`Object::take_damage`, `docs/AI.md` §71).
     pub frame_attacked: i64,
     pub attacked_by: i32,
     /// `new_rares` (`LeaderData +0x6e6c`) — the **goods-list indices** of

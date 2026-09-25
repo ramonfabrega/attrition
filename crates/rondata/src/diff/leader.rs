@@ -2934,6 +2934,8 @@ mod tests {
     ///
     /// **88 → 61 on item 688** (`docs/AI.md` §67): twenty-seven `SITE` rows
     /// of leader 1 gone and nothing arriving.
+    /// **61 → 60 on item 729** (`docs/AI.md` §71): `0/frame_attacked`, the
+    /// human struck on 10233, which `Object::take_damage` stamps.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2951,7 +2953,6 @@ mod tests {
         (0, "attacked"),
         (0, "filled_gather_slots[0:food]"),
         (0, "filled_gather_slots[1:timber]"),
-        (0, "frame_attacked"),
         (0, "free_peasants"),
         (0, "gatherers"),
         (0, "min_other_team_terr"),

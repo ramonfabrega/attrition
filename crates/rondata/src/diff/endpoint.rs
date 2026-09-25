@@ -1325,7 +1325,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // `1/84`, a Merchant. The 24,000th frame is 8,392 frames past the
         // new word. Measured on the spawn base, `2355946`. DECISIONS 36:
         // the number, not a trade.
-        off: 45,
+        // **45 → 22 off, 4 → 0 extra** on item 729: `Object::take_damage`
+        // stamps the struck owner's `frame_attacked` (`docs/AI.md` §71),
+        // which moves this map's word 15608 → 15619. The 24,000th frame is
+        // 8,381 frames past the new word. Measured on the spawn base,
+        // `7ec485a`. DECISIONS 36: the number, not a trade.
+        off: 22,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1346,7 +1351,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **1 → 2** on item 711, beside `off` above.
         // **2 → 0** on item 715, beside `off` above.
         // **0 → 4** on item 722, beside `off` above.
-        extra: 4,
+        // **4 → 0** on item 729, beside `off` above.
+        extra: 0,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
