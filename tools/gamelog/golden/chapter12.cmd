@@ -120,6 +120,16 @@
 #    block 962, or on the squad after 882; or, on block 1149, `0/6` farther
 #    than 1728 from the wagon or a hoplite farther than 1575 from 0/11.
 #
+# RUN 2026-09-24 as run204 (item 714; docs/RUNS.md): 229 s, 74 MB. NO
+# FALSIFIER FIRED; the fifth could not for pair B (its chariot turned on 880,
+# before its sixty blocks). Both `INFO 17` follows issued (package 10 -> 28);
+# the dump logs `process_follow 621` and `641`. Block 622: `0/6` a
+# FOLLOWORDER flags 4, ox 7 whom 0 uid 14; block 642: three, ox 11 uid 18.
+# `0/6` stands to 710, then a one-tile MOVEORDER leg (flags 1) whenever d
+# passes 1728, from 711; rests at d 1612 (961); trails again from 990. The
+# hoplites' first legs come on 722 and 724 at d ~790: the doubling. Every
+# follower's stack is the FOLLOW, or the FOLLOW under one leg, to 1149.
+#
 # This crate cannot take the command yet: it has no follow order, and its
 # harness skips both `@follow` lines. The first parting is the capture's.
 #
