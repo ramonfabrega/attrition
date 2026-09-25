@@ -854,8 +854,9 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// Unit::move_step+0x823`, a blocked stand, where the original spends `<
 /// Guy::inc_time+0x271`; the original spends its own stand on 17190. A
 /// scratch print named ours' as who=1's `1/55`, blocked by `1/60`.
-/// **Past run227** (block 17190 against its last, 16934): no widening
-/// names its block yet.
+/// ~~**Past run227** (block 17190 against its last, 16934): no widening
+/// names its block yet.~~ run233 over [16929, 17440] widens it
+/// (`run233_s_word_frame_is_widened_whole`).
 pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_189;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
@@ -4159,12 +4160,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run227's last block (16934): the census counts a gatherer in its
     // building's city (`docs/AI.md` §73). run227's test keeps the move's
     // value diff. Item 767 owes the capture over the new word.
+    //
+    // **Item 767 moved it and paid it**: the British price of Taxation
+    // (`docs/AI.md` §74) moved the word 16982 → 17189, past run227's last
+    // block, and run233 is run227's line over [16929, 17440], six blocks
+    // shared with run227 and 250 past the word.
+    // `run233_s_word_frame_is_widened_whole` walks it through the same
+    // walk, gaia and the pool included, and pins the word's block, 17190:
+    // who=1's `1/55` takes its blocked stand by `1/60` a frame early here,
+    // a half step ahead from 17182. run227's test keeps the move's value
+    // diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        None,
+        Some("run233_s_word_frame_is_widened_whole"),
         767,
-        None,
+        Some(WIDENING_EAST_INDIES_BLOCKWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
