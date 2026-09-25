@@ -433,6 +433,13 @@ mod tests {
                     (Some(x), Some(y)) if x > 0 || y > 0 => Some(Pos::new(x as i32, y as i32)),
                     _ => None,
                 },
+                // `orig_x`/`orig_y`, the point the move was issued to
+                // (−1, −1 from `add_move_order`), which `finish_insert`
+                // replays a copied move to (`docs/GOLDEN.md` §24).
+                orig: match (od.orig_x, od.orig_y) {
+                    (Some(x), Some(y)) if x >= 0 && y >= 0 => Some(Pos::new(x as i32, y as i32)),
+                    _ => None,
+                },
                 // The `GROUPORDER` base is not read back into the order:
                 // the comparison this builds is over the `MOVEORDER`
                 // block, and a `GroupMoveOrder`'s own five fields are

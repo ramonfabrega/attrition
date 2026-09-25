@@ -1497,6 +1497,7 @@ mod tests {
                 attempts: 0,
                 timer: 0,
                 coll: None,
+                orig: None,
                 group: None,
             }),
         };
@@ -1568,6 +1569,7 @@ mod tests {
                 attempts: 0,
                 timer: 0,
                 coll: None,
+                orig: None,
                 group: None,
             }),
         });

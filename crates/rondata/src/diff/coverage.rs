@@ -485,6 +485,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch13 = golden_dump("ch13");
     let ch14 = golden_dump("ch14");
     let ch15 = golden_dump("ch15");
+    let ch16 = golden_dump("ch16");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -901,6 +902,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter sixteen's word, on run219** (item 738): the first
+    // player's explore and flee commands on disk (`process_move_to`'s
+    // `orders` 3 and 4) and the first goody-box legs a player's explorer
+    // takes. 622 and 642, the explores; 685, the chariot's box leg; 730,
+    // its box opened; 804, the squad's box leg; 838, the word; 902 and
+    // 1002, the flees.
+    if let Some(p) = &ch16 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SIXTEEN;
+        for w in [622, 642, 685, 730, 804, 838, 902, 1002] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter sixteen carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **Chapter eight's word, on run171** (item 660): the first capture
     // with a General and a Spy in it, and the first golden capture at
     // `LEADERS=5`, whose leader record prints the diplomacy row. The
@@ -1046,7 +1061,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ("Guy", "guy_flags guy_num kind last_pos ox whom"),
     // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
     // and `orig_x`/`orig_y` to run29's field-table test on purpose
-    // (`compare_orders`); `coll_x`/`coll_y` are compared since the window
+    // (`compare_orders`). `orig` is carried on every move since item 738
+    // (`MoveOrder::orig`, `finish_insert`'s replay point, run219), and
+    // comparing it adds two rows past Great Lakes' word to run218's
+    // fenced widening, `1/0`'s explore on 16470 whose point has already
+    // parted: the compare waits for that widening's owner; `coll_x`/`coll_y` are compared since the window
     // moved to run211's 15609 (item 722), where a collision point stands
     // on both sides; the `GROUPORDER`, patrol, guard, garrison, cast and ground
     // rows on their orders, none of which stand on this window; `uid`,

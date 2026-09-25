@@ -7087,3 +7087,79 @@ The dump prints three commands between blocks:
 **No falsifier fired.** The six arrival points are the ones this crate's
 scratch walk predicted, to the unit. On 736 every member stands where
 the scratch walk put it on the tick before, (2999, 13821) for `0/6`.
+
+## run219 — chapter sixteen, explore and flee (2026-09-25, item 738)
+
+`docs/GOLDEN.md` §24, `tools/gamelog/golden/chapter16.cmd`. The cast is a
+Chariot `0/6` on 610 at (2424, 11640) and a Hoplite squad `0/7`–`0/9`,
+captain `0/7`, on 612 at (10104, 11640). Four **player commands** go
+through `issue_move_to@00941720` from the DLL, with its trailing selector:
+- `@explore` on 620, the chariot south past the goody box at cell (1, 19);
+- `@explore` on 640, the squad south-east, short of the box at (16, 21);
+- `@flee` on 900, the chariot back north;
+- `@flee` on 1000, the squad back north-west.
+
+The staging, the premise's killer and the falsifiers were committed
+before the run (`a334f7d`, `3a71525`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch16 \
+    --map 14 --end-frame 1250 --log-window 605 1250 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter16.cmd
+```
+
+**The capture.** One take at `cover=0`: **769 s from launch (10:27) to
+exit (10:40), 263 MB of dump and 11.2 MB of trace**, 647 blocks.
+- The receipt says `success: true` and exit 0, with 1,251 frames,
+  `MAP_STYLE 14` and seed 12345.
+- `cmdsran.py` has all five cheat lines returning 1.
+- The lane waited on att-736's run218. The lock named it; `waitrun.sh`
+  on its log, under a Monitor, released at 10:27.
+- `waitrun.sh` exited 0 on the click-free lane's receipt.
+
+**It is the same game as run215 to frame 610.** `rngcmp.py` finds 611
+frames identical; the first difference is 611, the frame after the
+chariot's `add`.
+
+**The pool came out: 330,240 `GROUPDATA` records**, 512 on each of the
+645 window blocks, at run215's levels.
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` | `0/6` uid 13 at (2424, 11640) |
+| 620 | `INFO 17` | line 4, refusal 0, package 10 → 37 bytes: a 5-byte `group` of one and the 22-byte `move_to` |
+| 640 | `INFO 18` / `17` | `0/7` uid 14 at (10104, 11640); line 5, refusal 0, 10 → 37 |
+| 900 | `INFO 18` / `17` | `0/6` at **(2400, 17280)**, the click; line 6, refusal 0, 10 → 37 |
+| 1000 | `INFO 18` / `17` | `0/7` at **(12672, 14976)**, the click; line 7, refusal 0, 10 → 37 |
+
+### The processed commands, and §24's falsifiers
+
+Each command is processed on the next frame, a fresh `group` of one and
+the `move_to` with its selector:
+- `process_move_to 2400 17280 2 0 0 3 0` between 621 and 622;
+- `process_move_to 12672 14976 2 0 0 3 0` between 641 and 642;
+- `process_move_to 2400 11520 2 0 0 4 0` between 901 and 902;
+- `process_move_to 10752 11520 2 0 0 4 0` between 1001 and 1002.
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | four commands, each processed on the next frame | as predicted |
+| 2, the class | one `EXPLORETOORDER` (type 3) a member on 622 and 642, one `FLEETOORDER` (type 4) on 902 and 1002, `flags 5`, `orig` the click, no group order | exactly so; the squad's at their slots (12696, 15000), (12552, 15048), (12792, 14904); no `GROUPMOVEORDER` anywhere on the four |
+| 3, the look | a box leg on `0/6` by 760, on the squad by 880 | `0/6` on **685**, an `EXPLORETOORDER` `flags 1` to (1176, 15000), `orig` (1152, 14976); the squad on **804**, to (12696, 16536), `orig` (12672, 16512) |
+| 4, a figure's look, the walk dropped | none | every member of the squad takes the leg with its captain; each keeps its `flags 5` explore behind it; `0/9`'s leg is re-aimed on 819 and 834 |
+| 5, the re-issue to the slot | the re-issued explores laid out afresh round the click | exactly so: each member's re-issued explore is its 642 order, point and `orig`, on 804 |
+| 6, the box opened | an `explore_goody` draw on the frame the unit enters the cell | **730** for (1, 19) and **855** for (16, 21), three game draws each at `Unit::explore_goody+0x27c` |
+| 7, arrival | stacks empty by 900, 1000, 1150 and 1250 | `0/6` on 838, standing on the click (2400, 17280); the squad on 936–947; `0/6`'s flee on 1098; the squad's on 1175–1183 |
+
+**No falsifier fired.** Every frame above is this crate's scratch-walk
+frame to within a few blocks, and both boxes open on the predicted
+frames. The two places the scratch walk was wrong are both the re-issue's
+**point**. `0/6` ends on its click, (2400, 17280), because the re-issued
+explore plans to its `orig`, where the walk had (2424, 17304). The
+squad's re-issue keeps its 642 slots round the click, where the walk
+re-formed them round the leader's slot and put `0/8` on (12600, 15096).
