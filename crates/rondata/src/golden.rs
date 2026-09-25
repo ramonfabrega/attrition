@@ -315,17 +315,35 @@ pub enum Issued {
         rotate: i32,
         objects: Vec<i16>,
     },
+    /// `@attack <who> <ox> <whom> <o> [<o> …]`: the target's object id and
+    /// owner, through `CommandManager::issue_attack@009415e0` with `ignore
+    /// 0` and `QUEUE_NEW`, a right-click on an enemy (item 731).
+    Attack {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
+    /// `@amove <who> <x> <y> <o> [<o> …]`: `@move`'s fields through the
+    /// same `issue_move_to@00941720`, with `ATTACK_TO` for `MOVE_TO` — a
+    /// ctrl+right-click on the ground, the attack-move (item 731).
+    AttackMove {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
-/// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject` or `form`, a `who`
-/// outside `0..8`, fewer than three numbers (one for `eject`), or no object.
+/// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
+/// `attack` or `amove`, a `who` outside `0..8`, fewer than three numbers
+/// (one for `eject`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
     if !matches!(
         verb,
-        "move" | "patrol" | "guard" | "follow" | "garrison" | "eject" | "form"
+        "move" | "patrol" | "guard" | "follow" | "garrison" | "eject" | "form" | "attack" | "amove"
     ) {
         return None;
     }
@@ -382,6 +400,13 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             rotate: y,
             objects,
         },
+        "attack" => Issued::Attack {
+            who,
+            ox: x,
+            whom: y,
+            objects,
+        },
+        "amove" => Issued::AttackMove { who, to, objects },
         _ => Issued::Move { who, to, objects },
     })
 }
@@ -449,6 +474,20 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             rotate,
             objects,
         }) => crate::input::group_form(built, who, &objects, form, rotate, 2),
+        // `@amove` is `issue_move_to@00941720` with `ATTACK_TO`, whose
+        // entry is [`crate::input::group_move_to`] with `orders` 2 (item
+        // 731, `docs/GOLDEN.md` §23).
+        Some(Issued::AttackMove { who, to, objects }) => {
+            crate::input::group_move_to(built, who, &objects, to, 2, false, 0, 2)
+        }
+        // SEAM (item 731, `docs/GOLDEN.md` §23): `@attack` is
+        // `issue_attack@009415e0`, whose entry is
+        // [`crate::input::group_attack`]. It stays unwired until the
+        // chapter's floor is pinned on the command skipped.
+        Some(Issued::Attack { .. }) => {
+            done.skip(&word, "the attack command has no entry yet (item 731)");
+            return;
+        }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -923,6 +962,9 @@ mod tests {
         // Chapter fourteen: two `@form` issuer lines and a `@move`, the
         // formation line (item 723, `docs/GOLDEN.md` §22).
         ("chapter14.cmd", &[]),
+        // Chapter fifteen: a `@move`, an `@attack` and an `@amove`, the
+        // group attack line (item 731, `docs/GOLDEN.md` §23).
+        ("chapter15.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -1096,9 +1138,28 @@ mod tests {
                 objects: vec![6, 9, 12],
             })
         );
+        assert_eq!(
+            parse_issuer("@attack 0 6 1 6 9"),
+            Some(Issued::Attack {
+                who: 0,
+                ox: 6,
+                whom: 1,
+                objects: vec![6, 9],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@amove 0 3192 7680 6 9"),
+            Some(Issued::AttackMove {
+                who: 0,
+                to: Pos::new(3192, 7680),
+                objects: vec![6, 9],
+            })
+        );
         for bad in [
             "move 0 1 2 3",
             "@formation 0 1 2 3",
+            "@attack 0 6 1",
+            "@amove 0 3192 7680",
             "@form 0 2 0",
             "@eject 0",
             "@eject 9 2007",
