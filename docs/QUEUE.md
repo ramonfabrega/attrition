@@ -29,8 +29,8 @@ since 7958738**, four words and three chapters. Lane att-746 (chapter seventeen)
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 10 Loop items** (677, 685, 697, 727 the remote sweep
-  is the user's, 730, 735, 737, 745, 751, 755 `leader.py` on a slice).
+- **Fable backlog: 11 Loop items** (677, 685, 697, 727 the remote sweep
+  is the user's, 730, 735, 737, 745, 751, 755, 756 `waitrun.sh`'s mode).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w16683 of 24,000 · GreatLakes w16460 of 24,000

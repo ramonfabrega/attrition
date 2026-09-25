@@ -989,6 +989,14 @@ not yet hold. The worker read the log before acting; nothing says to.
 awk instead. The slicer may key on a `who` line that `LEADERS=9` prints
 elsewhere; a graduated tool that fails on its own sibling's output.
 
+(756) **`tools/gamelog/waitrun.sh` is committed `100644`**, so the
+invocation `CLAUDE.md` and `docs/ORACLE.md` spell — the path, bare —
+exits 126 at once ("permission denied"), and the backgrounded task reports
+"completed" (746, run223; very likely 751's early notice). `zsh
+tools/gamelog/waitrun.sh` works, and the commander's briefs say so until
+the pass sets the mode bit or the text. A waiter that cannot fail loudly
+when it cannot start is 656's shape again.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
