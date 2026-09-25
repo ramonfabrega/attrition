@@ -22,6 +22,24 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 738, 2026-09-25 — the flee's other half
+
+(747) **The flee's `calc_cost` ×3** (`path.rs`): it reads `flags & 2`, a
+bit nothing writes, where the original reads `FLEE_TO`. A flee over seen
+rough ground or past enemy danger would reach it.
+
+(748) **`get_open_slot`'s walk re-seats speeds**: `get_num` on each live
+slot it passes normalizes a group of fewer than four, so the pool's
+`speed` differs on a push (run219, 685 and 804). No explore step reads it.
+
+(749) **`crate::diff::order` does not compare `orig_x`/`orig_y`**: doing so
+adds two rows to run218's widening past the word (959 against 957), `1/0`
+on 16470. The compared pin names the reason.
+
+(750) **The Flee button's garrison**: the UI's flee is `FLEE_TO` to a
+friendly building, then a `QUEUE_LAST` garrison of it. The DLL issues the
+move alone.
+
 ## Parked by item 736, 2026-09-25 — the stack sub-group's edges
 
 (743) **The `mirror` row's partings on East Indies**, there before 736's
@@ -949,6 +967,11 @@ row** (736's Loop line, filed at its merge). `diff::compared` pins the
 dump's side; `Movement::mirror` sat a tranche carried and read, with no
 row, and was caught only because a brief named the bit. The crate's side
 of the recorder is the same blind spot as a parsed-and-uncompared field.
+
+(751) **A background task's exit notice can arrive before the task has
+ended** (738's Loop line, filed at its merge): an exit-0 "completed" for a
+backgrounded `waitrun.sh`, and a Monitor event naming a banner the log did
+not yet hold. The worker read the log before acting; nothing says to.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

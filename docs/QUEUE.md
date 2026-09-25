@@ -13,30 +13,30 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **5 landings
-since 7958738**, three words and two chapters. Lane att-738 (chapter sixteen) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **6 landings
+since 7958738**, three words and three chapters. Lane att-708 (East Indies) is live.*
 
 - **Great Lakes 15384 → 16460** in three: `num_wonders` counts a site
   (722, AI §70), `take_damage` stamps `frame_attacked` (729, AI §71), and
   the siege sub-group lays out on its own cleared record (736, GROUPS §26;
   run218 to 16711). **East Indies, 15985 past run78, is the lower map.**
-- **Chapters fourteen and fifteen closed at 1150 and 1250** (723, 731,
-  GOLDEN §22–§23): no issuer builds a `FormOrder` or a `GroupAttackOrder`;
-  the census's order row 50 → 52. The pool prints at `GUYS=4` (run215).
+- **Chapters fourteen to sixteen closed** (723, 731, 738; GOLDEN
+  §22–§24): no issuer builds a `FormOrder` or a `GroupAttackOrder`; a
+  copied plain move replays to its `orig`. The census's order row 50 → 55.
 - **Ruled at the pass**: the compared recorder (`diff::compared`, a
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 8 Loop items** (677, 685, 697, 727 the remote sweep is
-  the user's, 730, 735, 737, 745 a carried field with no widening row).
+- **Fable backlog: 9 Loop items** (677, 685, 697, 727 the remote sweep is
+  the user's, 730, 735, 737, 745, 751 an early exit notice).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w15985 of 24,000 · GreatLakes w16460 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · 738 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · 746 next
 Endpoint 24001: EastIndies 49 off, 4 unlinked · GreatLakes 44 off, 0 unlinked
 
-**Opener: 708 on the AI lane (East Indies is lower now), 742 after it;
-738 is live on the rules lane; the commander counts landings from 7958738. A
+**Opener: 708 is live on the AI lane (East Indies is lower), 742 after
+it; 746 on the rules lane; the commander counts landings from 7958738. A
 capture stanza carries 250 blocks of runway; a detached capture waits on
 `tools/gamelog/waitrun.sh` on either lane; a report quotes the gate's
 `Gate steps:` line; a journal's "for the Loop" line is filed at its
@@ -64,13 +64,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     walks here; on 16461 the original's is blocked by The Despot
     (`collide_o 79`). Inside run218, widened (16459..16463). No mechanism.
 
-738. **Chapter sixteen, explore and flee — an issuer, no capture yet**
-    (DECISIONS 49; GOLDEN §13's next `—` row; 731 closed chapter fifteen
-    at 1250, the census's order row 50 → 52). `issue_move_to@00941720`'s
-    trailing selector from the tracer DLL, on a unit and on a squad, 731's
-    harness. It should enter `ExploreToOrder` and `FleeToOrder`; two
-    premises have died on "no issuer builds one". The issuer under the
-    emulator first. Takes GOLDEN §24; run219 at `GUYS=4`, `cover=0`.
+746. **Chapter seventeen, the flight line — an issuer, no capture yet**
+    (DECISIONS 49; GOLDEN §13's next `—` row; 738 closed chapter sixteen
+    at 1250, the census's order row 52 → 55).
+    `CommandManager::issue_flight@00941d40` on an aircraft from the tracer
+    DLL, 738's harness and chapter six's airbase staging. It should enter
+    `AirOrder`. The issuer under the emulator first; the premise names its
+    killer. Takes GOLDEN §25; run223 at `GUYS=4`, `cover=0`.
 
 ## How to maintain this file
 
