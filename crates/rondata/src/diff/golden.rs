@@ -574,6 +574,40 @@ fn chapter_thirteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter fourteen, pinned** — the formation line, an issuer the AI
+/// never uses (`docs/GOLDEN.md` §22, item 723, run210). Seven staged
+/// lines: `!ai off`, two Hoplite squads on 610 and 612 and a Slinger squad
+/// on 614; an `@form` issuer line (Envelop) on 620, an `@move` on 700, and
+/// an `@form` (Line) on 740.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run210): all three commands processed on the next frame; no
+/// `FORMORDER` anywhere; `form 2` on all nine on 622, where each holds a
+/// plain move to its Envelop slot round the leader, no action bit; on 742
+/// the walking group halted and its move replayed in Line under a new id.
+///
+/// `GOLDEN_WORD_CHAPTER_FOURTEEN` carries what stands at the word.
+#[test]
+fn chapter_fourteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch14", "chapter14", 14, 7, 1150) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FOURTEEN,
+        "chapter fourteen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FOURTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FOURTEEN,
+        "chapter fourteen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §22"
+    );
+    eprintln!(
+        "chapter fourteen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6276,6 +6310,216 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     .collect();
     want.sort();
     assert_eq!(got, want, "ch13: what parts under the word moved");
+}
+
+/// **Chapter fourteen's word, widened whole, both directions** (item
+/// 723). Every record run210 carries on every block of
+/// [`WIDENING_CHAPTER_FOURTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the three squads `0/6`–`0/14` under their player formation
+/// and move — every building, both leaders at `LEADERS=2`. run210 dumps no
+/// `AMMO`, and its `GROUPDATA` pool did not come out (`docs/RUNS.md`).
+#[test]
+fn chapter_fourteen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch14",
+        "chapter14",
+        WIDENING_CHAPTER_FOURTEEN,
+        1150,
+        0,
+        (629, 632),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch14 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_FOURTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 13,
+        "ch14: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_FOURTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §22). Each staged unit's `form` on its birth block, the standing
+    // family.
+    //
+    // **The first pin, word 631**: this crate cannot take the formation
+    // command, and the harness skips both `@form` lines. On 622 each of
+    // the original's nine holds `form 2`, `form_mod 50` and `group 1`,
+    // and a plain move to its Envelop slot round `0/6`, where this
+    // crate's hold nothing and count `idle`; from 623 they walk.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "611 0/7 form",
+        "611 0/8 form",
+        "613 0/10 form",
+        "613 0/11 form",
+        "613 0/9 form",
+        "615 0/12 form",
+        "615 0/13 form",
+        "615 0/14 form",
+        "622 0/10 dest_angle",
+        "622 0/10 form_mod",
+        "622 0/10 g.angle[0]",
+        "622 0/10 g.x[0]",
+        "622 0/10 g.y[0]",
+        "622 0/10 group",
+        "622 0/10 heading",
+        "622 0/10 idle",
+        "622 0/10 order:length",
+        "622 0/10 orders.len",
+        "622 0/10 orders_x",
+        "622 0/10 orders_y",
+        "622 0/10 path:length",
+        "622 0/10 path_recursion",
+        "622 0/10 pos",
+        "622 0/11 dest_angle",
+        "622 0/11 form_mod",
+        "622 0/11 g.angle[0]",
+        "622 0/11 g.x[0]",
+        "622 0/11 g.y[0]",
+        "622 0/11 group",
+        "622 0/11 heading",
+        "622 0/11 idle",
+        "622 0/11 order:length",
+        "622 0/11 orders.len",
+        "622 0/11 orders_x",
+        "622 0/11 orders_y",
+        "622 0/11 path:length",
+        "622 0/11 path_recursion",
+        "622 0/11 pos",
+        "622 0/12 form_mod",
+        "622 0/12 group",
+        "622 0/12 idle",
+        "622 0/12 order:length",
+        "622 0/12 orders.len",
+        "622 0/12 orders_x",
+        "622 0/12 orders_y",
+        "622 0/13 dest_angle",
+        "622 0/13 form_mod",
+        "622 0/13 g.angle[0]",
+        "622 0/13 g.x[0]",
+        "622 0/13 g.y[0]",
+        "622 0/13 group",
+        "622 0/13 heading",
+        "622 0/13 idle",
+        "622 0/13 order:length",
+        "622 0/13 orders.len",
+        "622 0/13 orders_x",
+        "622 0/13 orders_y",
+        "622 0/13 path:length",
+        "622 0/13 path_recursion",
+        "622 0/13 pos",
+        "622 0/14 dest_angle",
+        "622 0/14 form_mod",
+        "622 0/14 g.angle[0]",
+        "622 0/14 g.x[0]",
+        "622 0/14 g.y[0]",
+        "622 0/14 group",
+        "622 0/14 heading",
+        "622 0/14 idle",
+        "622 0/14 order:length",
+        "622 0/14 orders.len",
+        "622 0/14 orders_x",
+        "622 0/14 orders_y",
+        "622 0/14 path:length",
+        "622 0/14 path_recursion",
+        "622 0/14 pos",
+        "622 0/6 dest_angle",
+        "622 0/6 form_mod",
+        "622 0/6 g.angle[0]",
+        "622 0/6 g.x[0]",
+        "622 0/6 g.y[0]",
+        "622 0/6 group",
+        "622 0/6 heading",
+        "622 0/6 idle",
+        "622 0/6 order:length",
+        "622 0/6 orders.len",
+        "622 0/6 orders_x",
+        "622 0/6 orders_y",
+        "622 0/6 path:length",
+        "622 0/6 path_recursion",
+        "622 0/6 pos",
+        "622 0/7 dest_angle",
+        "622 0/7 form_mod",
+        "622 0/7 group",
+        "622 0/7 idle",
+        "622 0/7 order:length",
+        "622 0/7 orders.len",
+        "622 0/7 orders_x",
+        "622 0/7 orders_y",
+        "622 0/8 dest_angle",
+        "622 0/8 form_mod",
+        "622 0/8 g.angle[0]",
+        "622 0/8 g.x[0]",
+        "622 0/8 g.y[0]",
+        "622 0/8 group",
+        "622 0/8 heading",
+        "622 0/8 idle",
+        "622 0/8 order:length",
+        "622 0/8 orders.len",
+        "622 0/8 orders_x",
+        "622 0/8 orders_y",
+        "622 0/8 path:length",
+        "622 0/8 path_recursion",
+        "622 0/8 pos",
+        "622 0/9 dest_angle",
+        "622 0/9 form_mod",
+        "622 0/9 group",
+        "622 0/9 idle",
+        "622 0/9 order:length",
+        "622 0/9 orders.len",
+        "622 0/9 orders_x",
+        "622 0/9 orders_y",
+        "623 0/12 g.angle[0]",
+        "623 0/12 g.x[0]",
+        "623 0/12 g.y[0]",
+        "623 0/12 heading",
+        "623 0/12 path:length",
+        "623 0/12 path_recursion",
+        "623 0/12 pos",
+        "623 0/6 half_step",
+        "623 0/7 g.angle[0]",
+        "623 0/7 g.x[0]",
+        "623 0/7 g.y[0]",
+        "623 0/7 heading",
+        "623 0/7 path:length",
+        "623 0/7 path_recursion",
+        "623 0/7 pos",
+        "623 0/9 g.angle[0]",
+        "623 0/9 g.x[0]",
+        "623 0/9 g.y[0]",
+        "623 0/9 heading",
+        "623 0/9 path:length",
+        "623 0/9 path_recursion",
+        "623 0/9 pos",
+        "625 0/11 half_step",
+        "625 0/13 half_step",
+        "625 0/14 half_step",
+        "625 0/7 half_step",
+        "625 0/8 half_step",
+        "626 0/10 half_step",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch14: what parts under the word moved");
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).
