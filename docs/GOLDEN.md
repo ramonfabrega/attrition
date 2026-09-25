@@ -1299,7 +1299,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0`; AttackGroundOrder also auto, `Unit::fight`'s siege arm (`docs/COMBAT.md` §57) | 3 (the restage) |
 | GuardOrder | `CommandManager::issue_guard@00941ed0`; also an army's escort (`docs/ORDERS.md` §24) | 4 (the AI's escort); 11, the guard line (§19) |
 | FollowOrder | `CommandManager::issue_follow@00941e70` | 12, the follow line (§20) |
-| FormOrder | `CommandManager::issue_form@00941580` | — |
+| FormOrder | **no issuer makes one**: `CommandManager::issue_form@00941580` → `Group::action_form@00707220` writes each member's `form` and lays out a group move; only `copy_order` and the save loader build a `FormOrder` | 14, the formation line (§22), which measures the absence |
 | GarrisonOrder | `CommandManager::issue_garrison@00941a70`; the way out is `CommandManager::issue_eject_all@00941ca0` | 13, the garrison line (§21) |
 | GatherOrder | auto (starting citizens), `CommandManager::issue_gather@00941a20` | 7 (the control) |
 | BuildOrder | `CommandManager::issue_build@00941c30` | — |
@@ -1355,6 +1355,7 @@ below without a run take their number at booking (the eleventh pass).
 | 190 | eleven, the guard line | `[605, 1250)` | an issuer the AI never uses from a command: a chariot guarding a wagon that walks, then an enemy in range, and a squad guarding a building, which the reading says gives no order (§19) — **run 2026-09-24 (item 696), 85 MB, 254 s; no falsifier fired: one `GUARDORDER` on the wagon at (0, 372), the post re-read as it walks, the guard's attack above its guard on 1011, and no order on the squad; then the guard drops its attack when the enemy walks off, never re-engages, and dies on 1141; word 724, then 734 (item 696: a supply wagon's land push, and an escort's soft row, from run191's brackets), then 1036 (item 703: a pushed unit's disc follows its figure, COLLISION §16); closed at 1250 (item 713: the danger flag is guy 0's, ANIM §13)** |
 | 204 | twelve, the follow line | `[605, 1150)` | an issuer the AI never uses: a chariot following a supply wagon, and a squad following a chariot, each leader walking, stopping and turning (§20) — **run 2026-09-24 (item 714), 74 MB, 229 s; no falsifier fired: one `FOLLOWORDER` a unit, the chariot trailing in one-tile legs at the 1,728 threshold, the hoplites' first legs at d ≈ 790 while their leader walks (the doubling); the fifth could not fire for the squad; word ~~717~~, closed at 1150 (item 714: the follow, built)** |
 | 208 | thirteen, the garrison line | `[605, 1000)` | an issuer the AI never uses from a command: a chariot and a squad garrisoning one Barracks, then the building's eject (§21) — **run 2026-09-24 (item 718), 72 MB, 184 s; no falsifier fired: one `GARRISONORDER` a unit under a plain leg, the chariot in on 699 and the squad whole on 761, the chariot out on 902 and the squad on 903; each walk ended short of its leg; word ~~640~~, closed at 1000 (item 718: the command and the Eject entered, the door on the review, the chain's kill, the exit's angles)** |
+| 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **booked (item 723)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2576,3 +2577,165 @@ own building group, and this crate carries neither (parked 689's family).
 A test in `sim::cities_tests` pins the command, the whole-squad door and
 the exit's angles. It fails with the one-unit kill, and again with the
 angles reset.
+
+## 22. Chapter fourteen — the formation line, an issuer the AI never uses (item 723)
+
+**Premise.** A player's formation command, issued through the original's
+own issuer, **makes no order of its own**. It writes the formation into
+every member's `UnitData::form` (`+0xaa`) and lays out a group move in it.
+A group that stands re-forms on the spot, round its leader, with orders
+that carry no action bit. A group that walks is halted and its move
+replayed to the same point in the new formation, with the action bit. The
+booked premise was that the command enters `FormOrder` (§13's table). The
+reading kills that before the run, and this chapter measures the
+absence. No capture on disk holds a formation command: the console has no
+formation verb (`docs/RUNS.md` run45), so every group on disk is the AI's
+or a right-click's. `tools/gamelog/golden/chapter14.cmd` has the reading
+with its citations.
+
+**The issuer, under the emulator first.** A scratch script ran on
+`tools/explore/command_oracle.py`'s fixture, widened to who=0's objects
+6–10 as live captains.
+
+- **`CommandManager::issue_form@00941580(group, form, rotate,
+  QUEUE_NEW)` appends 18 bytes**: the 5-byte `group` and a 13-byte
+  `form`, type `0x03`, `[form i32][rotate i32][queued i32]`
+  (`docs/COMMANDS.md` §3). Its prologue is `issue_follow`'s to the byte.
+- **It writes** the package's size and data and the four selection caches,
+  and nothing else. The same selection again appends the 3-byte reuse.
+  `form −2, rotate 0x40000000, queued 1` and `form −1` ride through as
+  passed, and a non-captain is dropped. `use_mp_playback`, `semaphore &
+  0x10` and `semaphore & 4` each append nothing.
+- **Its callers.** `Options::do_formation@007215b0` passes the button's
+  formation, `rotate` 0 and the queue from the shift and alt keys (option
+  `0x14` passes −3, "the previous one"). `Options::do_rotate@0071dfd0`
+  passes −2 and an angle. The DLL's `@form <who> <form> <rotate> <o>…`
+  passes QUEUE_NEW, a button with no key held.
+- **What the emulator cannot reach**: `process_form@00949d90` →
+  `Group::action_form@00707220`, and under it `set_up_insert@0070e520`,
+  `action_halt@0070d0c0`, `GroupData::get_loc_to@0070c5d0`,
+  `action_move_to@0070fba0` → `action_move_near@00704990` →
+  `Form::compute@0072e8e0`, and `finish_insert@0070e620`.
+
+**The reading.**
+
+- **No `FormOrder`.** Nothing in the export calls
+  `OrdersMemManager::get_obj(CHANGE_FORM)`. `get_new_order@00730550`
+  builds one only for the save loader (`OrderList::walk_data`,
+  `get_new_data`) and for `copy_order@0072f900`, which copies an order that
+  already exists. `finish_insert`'s case `0x12` would replay one, and none
+  exists to replay.
+- **The gates.** `action_form` returns early for a group that is off the map
+  or holds buildings, or that is empty, leaderless or led by a plane.
+- **With an explicit formation and QUEUE_NEW**, the group's `form`
+  (`+0x10`) is set to −1. Then:
+  1. `set_up_insert` copies the leader's action-bit orders aside.
+  2. `action_halt(0)`.
+  3. The function recurses with `param_5 = 1`: QUEUE_NEW when nothing was
+     copied, QUEUE_FIRST when something was.
+  4. `finish_insert`.
+- **The recursion** writes `unit +0xaa = form` on every member that is a
+  unit and no plane. That includes figures, and it does not exempt
+  citizens, which a move does (`docs/GROUPS.md` §6.6).
+- **Standing** (QUEUE_NEW): `get_loc_to` gives the leader's final point,
+  where it stands when it has no orders. Then `action_move_to(that,
+  QUEUE_LAST, set_angle 0, angle 0, MOVE_TO, action 0, form −1, width −1,
+  0)`, and `form −1` reads the byte just written through `get_form`. With
+  a zero delta, the formation's bearing is the leader's heading less its
+  slot byte (`docs/GROUPS.md` §6.3).
+- **Walking** (QUEUE_FIRST): nothing more happens in the recursion.
+  `finish_insert`'s case `0x13` replays the leader's copied
+  `GroupMoveOrder`: `action_move_near(orig_x, orig_y, tolerance,
+  QUEUE_LAST, set_angle 1, the order's angle, MOVE_TO, action 1, form −1,
+  …)`. `orig_x`/`orig_y` are `+0x44`/`+0x48`, which
+  `Unit::add_group_move_order@005e4710` sets to the group's anchor, not
+  to the leader's slot.
+
+**The cast.** Three squads on chapter thirteen's ground (cells x 0–6,
+y 14–22: BASELAND, no border), no Barracks:
+
+- two Hoplite squads, captains `0/6` and `0/9` (`FORM_CAT_FOOT`);
+- a Slinger squad, captain `0/12` (`FORM_CAT_FOOT_RANGED`).
+
+`find_leader` takes `0/6`, the first of the lowest category. Formation 2 is
+Envelop and 0 is Line, both buttons.
+
+**Lines.**
+
+- `0 !ai off`.
+- `610 add hoplite who=0 12,84`, `612 add hoplite who=0 18,84` and
+  `614 add slinger who=0 15,88`.
+- `620 @form 0 2 0 6 9 12`: Envelop, standing.
+- `700 @move 0 2976 12000 6 9 12`: north, ~4,200 to cell (3, 15).
+- `740 @form 0 0 0 6 9 12`: Line, on the move.
+
+A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=2,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1150)`, beside run105's `start:`
+set. `GROUPS=1` puts the 512-slot pool in every block, for `GROUPDATA`'s
+`form`, `off`, `curr` and `angles`. `DEATHS` is off under `[End Frame]`:
+`dump_deaths` would leave the logger's type at `WORLD` and drop the pool
+(run166's trap). With it off, `dump_units` runs just before `dump_groups`
+(`GameLog::full_dump@00930380`), as in run178's line.
+
+**The premise's killer, and its writers** (§3, point 5).
+
+- **A `FORMORDER` anywhere**, on any unit on any block. Its only builders are
+  `copy_order`, which `set_up_insert` alone calls, on an order that exists,
+  and the save loader.
+- **The `form` byte.** Its writers are:
+  - `UnitData::UnitData@00606670` (−1);
+  - `action_form`;
+  - `action_move_near`'s step 1, per member of every group move;
+  - `SpellType::cast_civilian@006704a0` and `cast_to_arms@00670880`.
+
+  No line here casts, and `!ai off` issues no group move.
+- `check_accept_issue` and `process_group`'s player test are chapter
+  nine's (§17). `action_form`'s gates are above. The leader is a Hoplite.
+- **The loops' bounds.**
+  - `action_form`'s member loop and `get_form`'s run to `group.num`
+    (`+0xc`, below `0x80` in `Group::add`): here nine, with the figures.
+  - `set_up_insert` walks the leader's order list to its tail, and
+    `finish_insert` walks the copies until the list is empty.
+  - `Form::compute` walks the members.
+  - `get_form_option`'s `% 5` and −3 arms are not reached: both formations
+    are explicit.
+
+**What would falsify it, and where each could first fire.**
+
+1. **The issuer does not reach the pump.** Trace frames 620, 700 and 740:
+   an `INFO` 17 with a refusal. Refusal 3 would name a wrong captain id,
+   12 above all. Or no `COMMANDMANAGER` `process_form 2 0 2` between
+   blocks 621 and 622, or no `process_form 0 0 2` between 741 and 742.
+2. **A `FormOrder` is made.** Any `FORMORDER` block, from 622 on.
+3. **The byte is not written.** Block 622: any of `0/6`–`0/14` with
+   `UNITDATA form` other than 2. Block 742: other than 0.
+4. **The standing group does not re-form on the spot.** Block 622: a
+   member whose stack is not one `GroupMoveOrder` (type 19) leader `0/6`,
+   under one id, without the action bit, aimed at a slot round `0/6`'s own
+   position. The group's `GROUPDATA` `form` other than 2. Or any stack
+   empty with the member off its slot.
+5. **The move does not read the byte.** Block 702: the `GroupMoveOrder`s
+   laid out in anything but Envelop (`GROUPDATA form` 2), or without the
+   action bit.
+6. **The walking group is not halted and replayed.** Block 742: a member
+   whose stack is not exactly one `GroupMoveOrder` under a new id minted
+   on 741. It fires on an order without the action bit, on one laid out
+   in anything but Line, and on an anchor other than 700's point
+   (2976, 12000), such as the leader's old slot. It also fires on the
+   Envelop order still under the new one.
+7. **They do not arrive in Line.** By speed, near block 900. It fires on a
+   member still walking on 1100, or standing off its Line slot.
+
+Predicted: 2 does not fire, and the rest do not either. **This crate cannot
+take the command yet.** It carries `get_form`, `get_form_option`,
+`get_loc_to`, the slot table, the halt and `QUEUE_FIRST`'s insert dance.
+Two of them are not the original's here:
+- Its replay of a copied move goes to the order's `dest`, the leader's
+  slot, not its `orig`.
+- Its moves take `get_form` whatever the caller passes.
+
+The harness skips both `@form` lines as a named seam in `crate::golden`.
+So the word should part on 622, where the original's group walks to its
+Envelop slots and this crate's stands.
