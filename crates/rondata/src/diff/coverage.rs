@@ -233,6 +233,9 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/PATROLORDER",
         "flags increment size",
     ),
+    // **Item 718's run208 windows carry the first `GARRISONORDER`**: its
+    // target reads as every `TARGETORDER`'s; `search` is owed by item 718.
+    ("GAME/FRAME/UNITDATA/GARRISONORDER", "search"),
     (
         "GAME/FRAME/UNITDATA/GroupPatrolOrder/GROUPORDER/UNITORDER",
         "flags",
@@ -241,10 +244,12 @@ const UNREAD: &[(&str, &str)] = &[
     // guard's line after block 621: the frame alone (the `ox`/`whom`/
     // `queued` line is the sync logger's, not the dump's). The harness
     // takes the command from the script, as for the patrol. **Item 714's
-    // run204 window at 622 adds `process_follow`**, the same shape.
+    // run204 window at 622 adds `process_follow`**, the same shape, and
+    // **item 718's run208 windows `process_garrison` and
+    // `process_eject_all`**.
     (
         "GAME",
-        "process_follow process_group, process_guard process_patrol",
+        "process_eject_all process_follow process_garrison process_group, process_guard process_patrol",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
@@ -469,6 +474,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch10 = golden_dump("ch10");
     let ch11 = golden_dump("ch11");
     let ch12 = golden_dump("ch12");
+    let ch13 = golden_dump("ch13");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -815,6 +821,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 642, 711, 717] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twelve carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirteen's word, on run208** (item 718): the first
+    // player's `GARRISONORDER` on disk, the `process_garrison` and
+    // `process_eject_all` text, and a garrisoned Barracks at `BUILDS=7`.
+    // 622, the chariot's first garrison block; 640, the word; 642, the
+    // squad's; 699 and 761, each squad's door; 902, the eject's first
+    // block.
+    if let Some(p) = &ch13 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTEEN;
+        for w in [622, 640, 642, 699, 761, 902] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirteen carries the window's five blocks");
             frames += n;
         }
     }

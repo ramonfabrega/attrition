@@ -227,7 +227,7 @@ mod tests {
 
     /// `(name on the line, word, widening window)` — closed when the word
     /// is the window's last block.
-    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 16] = [
+    const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 17] = [
         ("ch1", GOLDEN_WORD_CHAPTER_ONE, WIDENING_CHAPTER_ONE),
         ("ch2", GOLDEN_WORD_CHAPTER_TWO, WIDENING_CHAPTER_TWO),
         ("ch3", GOLDEN_WORD_CHAPTER_THREE, WIDENING_CHAPTER_THREE),
@@ -241,6 +241,11 @@ mod tests {
         ("ch10", GOLDEN_WORD_CHAPTER_TEN, WIDENING_CHAPTER_TEN),
         ("ch11", GOLDEN_WORD_CHAPTER_ELEVEN, WIDENING_CHAPTER_ELEVEN),
         ("ch12", GOLDEN_WORD_CHAPTER_TWELVE, WIDENING_CHAPTER_TWELVE),
+        (
+            "ch13",
+            GOLDEN_WORD_CHAPTER_THIRTEEN,
+            WIDENING_CHAPTER_THIRTEEN,
+        ),
         (
             "restage",
             GOLDEN_WORD_CHAPTER_THREE_RESTAGE,

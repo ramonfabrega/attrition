@@ -2541,3 +2541,17 @@ landing is the two commands' entry into the sim, built the way
   still at the head. Which step does it is not named. `Unit::work`'s
   every-16-frames step, phased by `o`, fits both frames and is only a
   hypothesis.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTEEN` = 640, open.**
+The harness skips both `@garrison` lines and the `@eject`. On 622 the
+original's chariot holds its GARRISON under a plain leg and is its pushed
+group's (`group 1`), where this crate's holds nothing and counts `idle`. On
+623 it has pathed (`tolerance 384`) and stepped. On **640** this crate
+spends 37 draws against 36, parting at draw 30 on the standing chariot's
+idle roll (`Guy::set_anim+0x97a < Guy::inc_time+0x271`).
+`chapter_thirteen_s_word_frame_is_widened_whole` covers (605, 642): past
+the first block's 13 standing rows it pins the staged units' `form` and
+the chariot's 622–623 rows, and the Barracks agrees on every block. The
+coverage driver takes 620..624, 638..644, 697..701, 759..763 and
+900..904, and pins `process_garrison`, `process_eject_all` and the
+order's `search` as unread.

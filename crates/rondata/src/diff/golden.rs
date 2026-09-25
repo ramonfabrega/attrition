@@ -540,6 +540,40 @@ fn chapter_twelve_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter thirteen, pinned** — the garrison line, an issuer the AI
+/// never uses from a command (`docs/GOLDEN.md` §21, item 718, run208).
+/// Seven staged lines: `!ai off`, a Barracks on 606, a Chariot on 610 and
+/// a Hoplite squad on 614; two `@garrison` issuer lines on 620 and 640,
+/// both into the Barracks; and an `@eject` on 900.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run208): all three commands appended (`INFO 17`, refusal 0) and
+/// processed on the next frame; one `GARRISONORDER` a unit under its own
+/// plain leg on 622 and 642; the chariot inside on 699, the squad whole on
+/// 761; the chariot out on 902 and the squad on 903. No falsifier fired.
+///
+/// `GOLDEN_WORD_CHAPTER_THIRTEEN` carries what stands at the word.
+#[test]
+fn chapter_thirteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch13", "chapter13", 13, 7, 1000) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTEEN,
+        "chapter thirteen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTEEN,
+        "chapter thirteen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §21"
+    );
+    eprintln!(
+        "chapter thirteen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6166,6 +6200,91 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
     .collect();
     want.sort();
     assert_eq!(got, want, "ch12: what parts under the word moved");
+}
+
+/// **Chapter thirteen's word, widened whole, both directions** (item
+/// 718). Every record run208 carries on every block of
+/// [`WIDENING_CHAPTER_THIRTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the Chariot `0/6` and the squad `0/7`–`0/9` under their
+/// player garrisons — every building, the Barracks `0/2007` at `BUILDS=7`
+/// among them, both leaders at `LEADERS=2`. run208 dumps no `AMMO`.
+#[test]
+fn chapter_thirteen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch13",
+        "chapter13",
+        WIDENING_CHAPTER_THIRTEEN,
+        1000,
+        0,
+        (638, 641),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch13 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)) && floor.len() == 13,
+        "ch13: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §21). Each staged unit's `form` on its birth block, the standing
+    // family; the Barracks `0/2007` agrees on every block, so its `add`
+    // is placed as the original places it.
+    //
+    // **The first pin, word 640**: this crate cannot take the garrison
+    // command, and the harness skips both `@garrison` lines. On 622 the
+    // original's chariot `0/6` holds its `GARRISONORDER` under a plain
+    // leg to (2904, 13800) and is its pushed group's (`group 1`), where
+    // this crate's holds nothing and counts `idle`; on 623 it has pathed
+    // (`tolerance 384`, a two-entry path) and stepped. The squad's
+    // command on 640 is first on 642, past the window.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "615 0/7 form",
+        "615 0/8 form",
+        "615 0/9 form",
+        "622 0/6 dest_angle",
+        "622 0/6 group",
+        "622 0/6 idle",
+        "622 0/6 order:length",
+        "622 0/6 orders.len",
+        "622 0/6 orders_x",
+        "622 0/6 orders_y",
+        "623 0/6 g.angle[0]",
+        "623 0/6 g.angle[1]",
+        "623 0/6 g.x[0]",
+        "623 0/6 g.x[1]",
+        "623 0/6 g.y[0]",
+        "623 0/6 g.y[1]",
+        "623 0/6 heading",
+        "623 0/6 path:length",
+        "623 0/6 path_recursion",
+        "623 0/6 pos",
+        "623 0/6 tolerance",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch13: what parts under the word moved");
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).
