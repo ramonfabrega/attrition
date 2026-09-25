@@ -1669,15 +1669,19 @@ impl Sim {
         for o in saved {
             match o.body {
                 // Cases 1–4, `0x13` and `0x15`: `action_move_near` to the
-                // copy's `orig_x`/`orig_y` when both are non-negative — for
-                // a group move, the group's own point — else its `x`/`y`,
-                // at `QUEUE_LAST`, `set_angle 1` and the order's own angle,
-                // with the action bit. SEAM: a plain move's `orig`, which
-                // this crate does not carry, is taken as its `dest`.
+                // copy's `orig_x`/`orig_y` when both are non-negative — the
+                // point the move was issued to, a group move's and a plain
+                // one's alike — else its `x`/`y`, at `QUEUE_LAST`,
+                // `set_angle 1` and the order's own angle, with the action
+                // bit. run219's explorers replay to their click behind the
+                // goody-box leg (`docs/GOLDEN.md` §24): the chariot's plan
+                // ends on (2400, 17280), not its snap, and the squad lays
+                // its slots out afresh round the click.
                 Body::Move(m) => self.group_action_move_to(
                     g,
                     m.group
                         .map(|gm| gm.orig)
+                        .or(m.orig)
                         .filter(|p| p.x >= 0 && p.y >= 0)
                         .unwrap_or(m.dest),
                     QueuePos::Last,
@@ -2101,9 +2105,14 @@ impl Sim {
                     Some(reverse),
                     true,
                     Some(gm),
+                    Some(to),
                 );
             } else {
-                self.add_move_facing_order(
+                // `705f61`–`705f9b`: the plain arm hands
+                // `add_move_facing_order` the click as its `orig`
+                // (`param_1`, `param_2`), which `finish_insert` replays
+                // to (`docs/GOLDEN.md` §24).
+                self.add_move_facing_order_grouped(
                     u,
                     slot,
                     kind,
@@ -2112,6 +2121,8 @@ impl Sim {
                     order_angle,
                     Some(reverse),
                     true,
+                    None,
+                    Some(to),
                 );
             }
         }

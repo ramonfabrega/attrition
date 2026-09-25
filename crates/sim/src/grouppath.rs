@@ -344,6 +344,70 @@ mod tests {
             .collect()
     }
 
+    /// **A copied move replays to its click, not its slot**
+    /// (`Group::finish_insert@0070e620` cases 1–4, `docs/GOLDEN.md` §24).
+    /// A player's explore to an unaligned point stores the click as its
+    /// `orig`; a group `QUEUE_FIRST` — the goody box's leg — copies it
+    /// aside and re-issues it `QUEUE_LAST` to that click, so the replay
+    /// carries the same `orig` and plans to it again. run219's chariot
+    /// stands on (2400, 17280), its click, and not on the snap.
+    ///
+    /// Made to fail by dropping `.or(m.orig)` from `finish_insert`, which
+    /// replays to the snapped `dest` and hands the copy that as its `orig`.
+    #[test]
+    fn a_copied_plain_move_replays_to_its_click_not_its_slot() {
+        let mut s = flat(24);
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(0x480, 0x480));
+        let mut g = stack(0, &[a]);
+        assert!(s.push_group(&mut g, true));
+        let click = Pos::new(0x480 + 10, 0x480 + 8 * 0x300 + 10);
+        s.group_action_move_to(
+            &g,
+            click,
+            QueuePos::New,
+            false,
+            Angle(0),
+            MoveKind::ExploreTo,
+            true,
+        );
+        let first = match s.units[a].orders.front().map(|o| o.body) {
+            Some(crate::orders::Body::Move(m)) => m,
+            other => panic!("an explore, not {other:?}"),
+        };
+        assert_eq!(first.orig, Some(click), "the click is the explore's orig");
+        assert_ne!(first.dest, click, "and the order's point is its snap");
+        // The box leg: a one-member group's QUEUE_FIRST, no action bit.
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x480 + 3 * 0x300, 0x480 + 3 * 0x300),
+            QueuePos::First,
+            false,
+            Angle(0),
+            MoveKind::ExploreTo,
+            false,
+        );
+        assert_eq!(s.units[a].orders.len(), 2, "the leg and the replay");
+        let replay = match s.units[a].orders.back().map(|o| (o.flags, o.body)) {
+            Some((f, crate::orders::Body::Move(m))) => {
+                assert_ne!(
+                    f & crate::orders::flag::ACTION,
+                    0,
+                    "the replay is an action"
+                );
+                m
+            }
+            other => panic!("a replayed explore, not {other:?}"),
+        };
+        assert_eq!(replay.kind, MoveKind::ExploreTo);
+        assert_eq!(replay.dest, first.dest, "the same snapped point");
+        assert_eq!(
+            replay.orig,
+            Some(click),
+            "replayed to the click, not the slot"
+        );
+    }
+
     /// §6.7's centre: **one** search, and the followers get the leader's
     /// answer rather than one of their own.
     ///

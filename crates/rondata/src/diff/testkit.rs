@@ -3020,12 +3020,20 @@ pub(crate) const WIDENING_CHAPTER_FIFTEEN: (i64, i64) = (605, 1251);
 /// stands on its click on 838 and goes idle — two `Guy::set_anim+0x97a <
 /// Unit::do_idle+0x7d` rolls, 7 draws against this crate's 5, parting at
 /// draw 0 — while this crate's walks on to (2424, 17304).
-pub(crate) const GOLDEN_WORD_CHAPTER_SIXTEEN: i64 = 838;
+///
+/// 838 → **1250, closed** (item 738): **a plain move's `orig`, carried.**
+/// `MoveOrder::orig` takes the click in `action_move_near`'s plain arm,
+/// and `finish_insert` replays a copied move to it. That alone took the
+/// word to run219's trace end: sequence 1250, no value part.
+///
+/// **The delta**, this constant's: +412, 838 → 1250, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_SIXTEEN: i64 = 1250;
 
-/// `chapter_sixteen_s_word_frame_is_widened_whole`'s window: 605 through
-/// the word's next block, 839 (item 738). Its pool half, `widen_pool`,
-/// reads who=0's `GROUPDATA` on the same blocks.
-pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 840);
+/// `chapter_sixteen_s_word_frame_is_widened_whole`'s window: **run219
+/// whole**, 605 through 1250 (item 738, the word closed). The first pin
+/// was (605, 840) on the word 838. Its pool half, `widen_pool`, reads
+/// who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 1251);
 
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
@@ -4397,7 +4405,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // re-issue behind a goody-box leg: `finish_insert` replays a plain
     // move to its `orig`, which this crate did not carry; the chariot's
     // plan goal on 685, its arrival on 838; and the pool on the same
-    // blocks.
+    // blocks. Closed at 1250 by the same item (`orig` carried).
     (
         "GOLDEN_WORD_CHAPTER_SIXTEEN",
         GOLDEN_WORD_CHAPTER_SIXTEEN,

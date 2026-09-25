@@ -298,6 +298,15 @@ pub struct MoveOrder {
     /// collision refused, which `resolve_unit_collision` sidesteps from
     /// (`docs/COLLISION.md` §4.3, §6 step 4). The dump prints the pair.
     pub coll: Option<Pos>,
+    /// **`MoveOrder +0x44`/`+0x48 orig_x`/`orig_y`** on a plain move — the
+    /// point `Group::action_move_near@00704990` was handed, the click,
+    /// which `add_move_facing_order@005e55c0` stores beside the member's
+    /// snapped slot; `None` for the −1, −1 of `Unit::add_move_order`.
+    /// `Group::finish_insert@0070e620`'s cases 1–4 replay a copied move
+    /// **to this point**, not to its slot (`docs/GOLDEN.md` §24, run219:
+    /// an explorer's walk behind its goody-box leg). A group move's is
+    /// [`GroupMove::orig`].
+    pub orig: Option<Pos>,
     /// `Some` when this is a **`GroupMoveOrder`** rather than a plain
     /// `MoveOrder` — the order `Group::action_move_near`'s step 6 hands a
     /// land formation of two or more, and the one `Unit::do_group_move`
@@ -1207,7 +1216,9 @@ impl Sim {
         facing: Option<bool>,
         pathed: bool,
     ) {
-        self.add_move_facing_order_grouped(u, to, kind, pos, action, angle, facing, pathed, None);
+        self.add_move_facing_order_grouped(
+            u, to, kind, pos, action, angle, facing, pathed, None, None,
+        );
     }
 
     /// `Unit::add_group_move_order@005e4710` and `add_move_facing_order`
@@ -1228,6 +1239,7 @@ impl Sim {
         facing: Option<bool>,
         pathed: bool,
         group: Option<GroupMove>,
+        orig: Option<Pos>,
     ) {
         let dest = snapped(to);
         let order = Order {
@@ -1245,6 +1257,7 @@ impl Sim {
                 attempts: 0,
                 timer: 0,
                 coll: None,
+                orig,
                 group,
             }),
         };
