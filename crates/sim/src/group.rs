@@ -3394,7 +3394,7 @@ mod tests {
         s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
         let seed = s.rng.seed;
         // Frame 641: `(0 + 641) & 7 != 0`, no redraw.
-        assert_eq!(s.plane_air_physics(u, 641), crate::air::Flew::On);
+        assert_eq!(s.plane_air_physics(u, None, 641), crate::air::Flew::On);
         assert_eq!(s.rng.seed, seed, "no draw off the eighth frame");
         assert_eq!(s.units[u].pos, Pos::new(11664, 16262), "run223's 642");
         assert_eq!(s.units[u].movement.heading, Angle(1_419_725_301));
@@ -3424,16 +3424,16 @@ mod tests {
         };
         // 648: `(0 + 648) & 7 == 0` is the Bomber's, and it draws nothing.
         let seed = s.rng.seed;
-        s.plane_air_physics(b, 648);
+        s.plane_air_physics(b, None, 648);
         assert_eq!(s.rng.seed, seed, "a Bomber throws no redraw");
         assert_eq!(alt(&s, b), 0x640);
         // 648 is not the Fighter's (`o` 1): nothing.
-        s.plane_air_physics(f, 648);
+        s.plane_air_physics(f, None, 648);
         assert_eq!(s.rng.seed, seed, "off its eighth frame");
         // 647 is: `(1 + 647) & 7 == 0`.
         let mut probe = s.rng;
         let want = (probe.roll() % 7 + 13) * 100;
-        s.plane_air_physics(f, 647);
+        s.plane_air_physics(f, None, 647);
         assert_eq!(s.rng, probe, "one draw");
         assert_eq!(alt(&s, f), want);
     }
@@ -3450,7 +3450,7 @@ mod tests {
         let at = Pos::new(11424, 13920 + 100);
         let u = plane(&mut s, at, Angle(0), false);
         s.group_action_flight(&group_of(0, &[u]), Obj::Building(base), Flight::Home);
-        assert_eq!(s.plane_air_physics(u, 721), crate::air::Flew::Done);
+        assert_eq!(s.plane_air_physics(u, None, 721), crate::air::Flew::Done);
         assert!(s.units[u].orders.is_empty(), "the strafe home is gone");
         assert!(s.units[u].path.is_empty());
         assert_eq!(s.units[u].inside, Some(base));

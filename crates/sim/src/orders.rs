@@ -75,6 +75,11 @@ pub mod index {
     /// `Unit::add_strafe_order@005e48c0` (`docs/ORDERS.md` §32). `AirOrder`
     /// has no index of its own: it is this class's second base.
     pub const STRAFE: u8 = 16;
+    /// `AirPatrolOrder` — [`super::Body::AirPatrol`], which this crate
+    /// makes in one place: `Unit::do_strafe`'s arm for a strike whose
+    /// target it may not take, `add_air_patrol_order` over the strike's
+    /// point (`docs/ORDERS.md` §34).
+    pub const AIR_PATROL: u8 = 17;
 
     /// **The move family** — the seven kinds whose class derives from
     /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,
@@ -118,6 +123,8 @@ pub mod index {
                 | GROUP_ATTACK_TO
                 | GROUP_PATROL
                 | ATTACK_GROUND
+                | STRAFE
+                | AIR_PATROL
                 | GARRISON
                 | THINK
         )
@@ -543,6 +550,34 @@ pub struct StrafeOrder {
     pub at: Option<Pos>,
 }
 
+/// The fields of `AirPatrolOrder : PatrolOrder, AirOrder` (type 17,
+/// `docs/ORDERS.md` §34), as `Unit::add_air_patrol_order@005e4350` writes
+/// them and the dump prints them: the `PATROLORDER` base's point arrays
+/// and `waypoint`, and the `AIRORDER` row. `old` is the adder's 0 and is
+/// not carried.
+///
+/// SEAM: the arrays hold **one** point. `add_air_patrol_order` sets both
+/// lengths to exactly 1; only `Group::action_air_patrol`'s `QUEUE_LAST`
+/// append makes a second, and no command this crate enters issues one.
+/// And a home that is a unit (a carrier) stores the point relative to it,
+/// which no capture reaches.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AirPatrolOrder {
+    /// `x_pos[0]`/`y_pos[0]` (`+0x14`/`+0x30` lists): the point patrolled.
+    pub point: Pos,
+    /// `PatrolOrder::waypoint` (`+0x3c`).
+    pub waypoint: usize,
+    /// `AirOrder::oxx/whose` (`+0x44/+0x48`): the home base.
+    pub home: Option<usize>,
+    /// `AirOrder::cruising_alt` (`+0x4c`), [`CRUISING_ALT`] when added.
+    pub cruising_alt: i32,
+    /// `AirOrder::sharp_turn` (`+0x50`), the edge coin's ±1.
+    pub sharp_turn: i32,
+    /// `AirOrder::returning` (`+0x58`): 0 when added; `check_fuel` sets it
+    /// on an empty tank, which this crate does not carry (§32 piece 4).
+    pub returning: bool,
+}
+
 /// The fields of `AttackGroundOrder` (`docs/ORDERS.md` §1.2, §26):
 /// `+0x4 att_x, +0x8 att_y, +0xc accuracy, +0x10 attack_unit`, as the
 /// dump prints them.
@@ -579,6 +614,7 @@ pub enum Body {
     AttackGround(AttackGroundOrder),
     Patrol(PatrolOrder),
     Strafe(StrafeOrder),
+    AirPatrol(AirPatrolOrder),
     Think,
 }
 
@@ -626,6 +662,7 @@ impl Order {
             Body::AttackGround(_) => index::ATTACK_GROUND,
             Body::Patrol(_) => index::GROUP_PATROL,
             Body::Strafe(_) => index::STRAFE,
+            Body::AirPatrol(_) => index::AIR_PATROL,
             Body::Think => index::THINK,
         }
     }
@@ -1488,8 +1525,43 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
+    /// **`Unit::add_air_patrol_order(x, y, home_o, home_who, action,
+    /// queue)@005e4350`** (`docs/ORDERS.md` §34.1): for a plane, the old
+    /// orders go (`field_0xc0 = 0`, `close_orders`, `clear_partial_path`,
+    /// `update_action`) and one `AirPatrolOrder` is appended over the
+    /// point — `waypoint 0`, the home, `cruising_alt` 0x640, `sharp_turn`
+    /// and `returning` 0, the action bit as asked. The queue argument is
+    /// not read on this arm.
+    ///
+    /// SEAM: a helicopter (`unit_flags & 0x20`) is given a move instead,
+    /// and a home that is a unit stores the point relative to it; neither
+    /// is reached.
+    pub(crate) fn add_air_patrol_order(
+        &mut self,
+        u: usize,
+        point: Pos,
+        home: Option<usize>,
+        action: bool,
+    ) {
+        self.units[u].path.clear();
+        self.close_orders(u);
+        self.clear_partial_path(u);
+        self.update_action(u);
+        self.units[u].orders.push_back(Order {
+            flags: if action { flag::ACTION } else { 0 },
+            body: Body::AirPatrol(AirPatrolOrder {
+                point,
+                waypoint: 0,
+                home,
+                cruising_alt: CRUISING_ALT,
+                sharp_turn: 0,
+                returning: false,
+            }),
+        });
+    }
+
     /// `Unit::do_strafe@005eab00`, the air order a flight is
-    /// (`docs/ORDERS.md` §33).
+    /// (`docs/ORDERS.md` §33, §34).
     ///
     /// **A flight home** (`returning 1`, `+0x3c`) goes straight to
     /// `do_air_physics(order, −1, −1)` (`0x5eb0ae`) — [`crate::air`]'s
@@ -1497,22 +1569,183 @@ impl Sim {
     /// target sets `CHAR_WALK` a second time (`0x5eb0cd`), and the order
     /// count test at `0x5eb62b` returns for a single order.
     ///
-    /// SEAM: **a flight with a target is not flown** — the re-target
-    /// every sixteenth frame, the dead or unseen target turned into an
-    /// `AirPatrolOrder` over its point (run223's 666), the strike itself.
-    /// Such an aircraft holds the order where it stands and spends nothing.
+    /// **A strike** (`returning 0`, §34.2) first asks `valid_target` of
+    /// its target. One it may not take — dead, or unseen, as run223's
+    /// Barracks is on 665 — ends the strike: with another order behind it
+    /// the strafe is killed and `work` runs again; alone, it becomes an
+    /// `AirPatrolOrder` over the strike's point (`xx/yy`), with no action
+    /// bit (the `UnitOrder` slot `+0x2c` it passes is `xor eax, eax`), and
+    /// `work` runs the patrol in the same frame. One it may take is flown
+    /// at, and bombed once in range and within 15° of the heading
+    /// ([`Sim::strafe_attack`]).
+    ///
+    /// SEAM: a target that is an ally (the escort's sixteen-frame
+    /// re-target), a missile, a helicopter, a flying target's lead point,
+    /// and a strike with no point left (`is_valid(xx, yy)` false turns it
+    /// for home).
     fn do_strafe(&mut self, u: usize, frame: i64) {
         let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
+        let mut goal = None;
         if !sf.returning {
+            let Some(target) = sf.target else {
+                return;
+            };
+            let me = crate::combat::Obj::Unit(u);
+            let whom = self.owner_of(target);
+            if whom < crate::world::PLAYER_SLOTS && self.is_ally(self.units[u].owner, whom) {
+                return;
+            }
+            if !self.valid_target(me, target) {
+                if self.units[u].orders.len() > 1 {
+                    self.kill_current_order(u);
+                    self.set_anim(u, crate::anim::WALK, true, true);
+                    self.work(u, frame);
+                    return;
+                }
+                let Some(at) = sf.at else {
+                    return;
+                };
+                self.kill_current_order(u);
+                self.add_air_patrol_order(u, at, sf.home, false);
+                self.work(u, frame);
+                return;
+            }
+            goal = Some(self.pos_of(target));
+        }
+        if self.plane_air_physics(u, goal, frame) == crate::air::Flew::Done {
             return;
         }
-        if self.plane_air_physics(u, frame) == crate::air::Flew::Done {
+        let target = sf.target;
+        let me = crate::combat::Obj::Unit(u);
+        let live = target.filter(|&t| self.valid_target(me, t));
+        match live {
+            Some(t) if self.units[u].combat.recharging == 0 => {
+                if !self.strafe_attack(u, t, sf) {
+                    return;
+                }
+            }
+            _ => {
+                if let Some(t) = target
+                    && self.strafe_on_line(u, t)
+                {
+                    // `0x5eb62b` with the heading on the target.
+                } else if !self.is_bomber(u) {
+                    self.set_anim(u, crate::anim::WALK, false, true);
+                }
+            }
+        }
+        self.strafe_retarget(u, frame);
+    }
+
+    /// `do_strafe`'s arm for a strike it may take and is not reloading
+    /// (`0x5eb0f4`–`0x5eb62b`, `docs/ORDERS.md` §34.3). Returns false when
+    /// the strike was killed and the frame is over.
+    ///
+    /// - **The leash.** A strike that is not `mandatory`, on a target that
+    ///   does not fly, with an `AirPatrolOrder` behind it dies when the
+    ///   target is more than `AIRCRAFT_RESPOND_RANGE × 0x100` from the
+    ///   patrol's last point — the *target's* distance (`0x5eb22a`).
+    /// - **The release.** In range (`ObjectData::is_in_range@00648d70`,
+    ///   from the plane's own point) and within 15° of the heading — 60°
+    ///   for the `0x127` line — a Bomber plays `CHAR_ATTACK2` (the draw
+    ///   at `do_strafe+0x9d0`, chapter seventeen's 805) and reloads
+    ///   `recharge() + 1`.
+    ///
+    /// SEAM: the other order behind a strike (`+0x100`'s arm), the
+    /// `0x400000` type arm, a non-bomber's `fire_ammo`, the missile's
+    /// death, and `BOMBING_MANA_COST` (0 in the shipped rules, and the
+    /// tank is not carried).
+    fn strafe_attack(&mut self, u: usize, t: crate::combat::Obj, sf: StrafeOrder) -> bool {
+        let air_target = matches!(self.profile(t).domain, crate::attrition::Domain::Air);
+        if !air_target && self.units[u].orders.len() > 1 && !sf.mandatory {
+            if let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) {
+                let at = self.pos_of(t);
+                let d = crate::world::vector_dist(at.x - p.point.x, at.y - p.point.y);
+                if d > self.tuning.aircraft_respond_range * 0x100 {
+                    self.kill_current_order(u);
+                    return false;
+                }
+            }
+        }
+        let off = self.strafe_off_line(u, t);
+        if !self.is_in_range(crate::combat::Obj::Unit(u), t) {
+            return true;
+        }
+        if off >= 0x0aaa_aaaa && (!self.is_fighter_line(u) || off > 0x2aaa_aaaa) {
+            return true;
+        }
+        self.mark(crate::air::SITE_STRAFE_BOMB);
+        self.set_anim(u, crate::anim::ATTACK2, false, true);
+        self.units[u].combat.recharging = self.reload_frames(u) + 1;
+        true
+    }
+
+    /// `fold(heading − find_angle(target − plane))`, the angle
+    /// `do_strafe` measures its target off the nose with (`0x5eb3ef`).
+    fn strafe_off_line(&self, u: usize, t: crate::combat::Obj) -> u32 {
+        let (at, to) = (self.units[u].pos, self.pos_of(t));
+        let bearing = crate::movement::find_angle(to.x - at.x, to.y - at.y);
+        let d = (self.units[u].movement.heading.0 as u32).wrapping_sub(bearing.0 as u32);
+        if d > 0x8000_0000 { !d } else { d }
+    }
+
+    /// The reloading arm's test (`0x5eb54c`): the target within 30° of
+    /// the heading, 90° for the `0x127` line, skips the `CHAR_WALK`.
+    fn strafe_on_line(&self, u: usize, t: crate::combat::Obj) -> bool {
+        let lim = if self.is_fighter_line(u) {
+            0x4000_0000
+        } else {
+            0x1555_5555
+        };
+        self.strafe_off_line(u, t) <= lim
+    }
+
+    /// **`do_strafe`'s tail, `0x5eb62b`** (`docs/ORDERS.md` §34.4): a
+    /// strike that is not alone and not `mandatory`, on every frame
+    /// `(frame + 2·o) & 31 == 0`, asks the order behind it for a target —
+    /// an `AirPatrolOrder`'s search at its last point — and is re-pointed
+    /// at a valid one, or killed.
+    ///
+    /// SEAM: the fuel test at its head (`type +0x2ec` and `mana_left`),
+    /// and an order behind that is not a patrol (`+0x100`'s arm, which
+    /// kills and walks).
+    fn strafe_retarget(&mut self, u: usize, frame: i64) {
+        if self.units[u].orders.len() < 2 {
             return;
         }
-        if self.units[u].combat.recharging == 0 && !self.is_bomber(u) {
-            self.set_anim(u, crate::anim::WALK, false, true);
+        let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
+            return;
+        };
+        if sf.mandatory || sf.returning || sf.target.is_none() {
+            return;
+        }
+        if (frame + 2 * i64::from(self.units[u].index)) & 31 != 0 {
+            return;
+        }
+        let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) else {
+            return;
+        };
+        let found = if self.is_bomber(u) {
+            self.find_new_bomber_target(u, p.point)
+        } else {
+            None
+        };
+        let me = crate::combat::Obj::Unit(u);
+        match found.filter(|&t| self.valid_target(me, t)) {
+            Some(t) => {
+                // `ox/whom/uid` and `returning 0`; `xx/yy` stand.
+                if let Some(Order {
+                    body: Body::Strafe(sf),
+                    ..
+                }) = self.units[u].orders.front_mut()
+                {
+                    sf.target = Some(t);
+                    sf.returning = false;
+                }
+            }
+            None => self.kill_current_order(u),
         }
     }
 
@@ -1843,6 +2076,7 @@ impl Sim {
             Some(Body::AttackGround(_)) => self.do_attack_ground(u, frame),
             Some(Body::Patrol(p)) => self.do_patrol(u, p),
             Some(Body::Strafe(_)) => self.do_strafe(u, frame),
+            Some(Body::AirPatrol(_)) => self.do_air_patrol(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }
