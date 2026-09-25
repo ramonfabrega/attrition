@@ -11226,18 +11226,21 @@ mod tests {
         assert_eq!((under, mid, firsts.len()), (422, 0, 422), "the floor");
     }
 
-    /// **run202 — Great Lakes' word 15383, widened whole, both directions**
-    /// (item 711). run196's line past its last block, over
+    /// **run202 — Great Lakes' word 15384, widened whole, both directions**
+    /// (item 711, and item 715's move inside it). run196's line past its last block, over
     /// [`WIDENING_GREAT_LAKES_MIRROR`]: six blocks shared with run196, the
     /// 151 up to the word, its block, and 56 past it. [`widen_great_lakes`]
     /// from run123's 11400 across eleven captures, with every player-1
     /// pool list from run135's first block.
     ///
-    /// The word's frame, 15383, writes block **15384**.
+    /// The word's frame, 15384, writes block **15385**; item 711's word,
+    /// 15383, wrote **15384**, and its value diff is kept here.
     #[test]
     fn run202_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
-        const WORD_BLOCK: i64 = GREAT_LAKES_MIRROR_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_RECRUIT_BLOCK;
+        /// Item 711's word's block, which item 715 moved off.
+        const OLD_BLOCK: i64 = GREAT_LAKES_MIRROR_BLOCK;
         /// run196's last block: everything above it is run202's.
         const RUN196_TAIL: i64 = WIDENING_GREAT_LAKES_PATRIOT.1;
         let Some(Widened {
@@ -11275,7 +11278,7 @@ mod tests {
             ],
             WIDENING_GREAT_LAKES_MIRROR,
             11_800,
-            &[WORD_BLOCK],
+            &[OLD_BLOCK, WORD_BLOCK],
         )
         else {
             return;
@@ -11294,53 +11297,72 @@ mod tests {
         }
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
-        // **Under the word, on run202's own blocks: three units and
-        // eleven keys.** The Despot `1/79`'s move order carries `facing`
-        // 1 here and 0 there from 15351: a value row that spends no draw.
-        // Then the word itself. On block 15383 the original's citizen
-        // `1/70` holds one order and ours holds none. On 15384 theirs is
-        // kind 3 and ours stands idle, which is the extra `Unit::do_idle`
-        // stand. Building `1/2022`'s gather list holds `1/70` here and
-        // `1/73` there. No mechanism is named (DECISIONS 42).
+        // **Under the word, on run202's own blocks: one unit and one key.**
+        // The Despot `1/79`'s move order carries `facing` 1 here and 0 there
+        // from 15351: a value row that spends no draw (parked 716).
         assert_eq!(
             own,
-            [
-                (15_351, 1, 79, 1),
-                (15_383, 1, 70, 2),
-                (15_384, 1, 70, 7),
-                (15_384, 1, 2022, 1),
-            ],
+            [(15_351, 1, 79, 1)],
             "who parts first on run202's own blocks up to the word's, and on how many keys"
+        );
+        // **Item 715's value diff.** Item 711's word was `1/70`'s order:
+        // on 15383 the original's citizen held one and ours none, and on
+        // 15384 ours stood idle, seven keys, with `1/2022`'s gather-chain
+        // head `1/70` here and `1/73` there. `Wall::process`'s recruiter
+        // hands `1/70` the Pyramids' build order on 15382, and none of the
+        // ten rows parts anywhere up to the new word's block.
+        let gone: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                (OLD_BLOCK - 1..=WORD_BLOCK).contains(f) && *w == 1 && (*o == 70 || *o == 2022)
+            })
+            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
+            .collect();
+        assert!(
+            gone.is_empty(),
+            "1/70 and 1/2022 hold on 15383..15385: {gone:?}"
+        );
+        assert!(
+            !firsts.values().any(|(f, _)| *f == WORD_BLOCK),
+            "nothing parts first on the word's own block, 15385"
+        );
+        // **The first rows past the word**, on 15386: the make list's
+        // second slot takes a Siege Factory (430) here and nothing there —
+        // the new word's third `create_buildings` draw is the producer's —
+        // and `1/75`'s figure clock. No mechanism is named (DECISIONS 42).
+        let next: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == WORD_BLOCK + 1)
+            .map(|((w, o, what), (_, r))| format!("{w}/{o} {what}: {r}"))
+            .collect();
+        assert_eq!(
+            next,
+            [
+                "1/-1 leader:MAKE[1].t: ours 430 theirs -1",
+                "1/75 g.cur_anim[0]: ours 31 theirs 29",
+                "1/75 g.end_time[0]: ours 80 theirs 30",
+            ],
+            "what parts first on 15386, one block past the word"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN196_TAIL).count();
         let mid = firsts
             .values()
             .filter(|(f, _)| (RUN196_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
-        let word: Vec<String> = firsts
-            .iter()
-            .filter(|((w, o, what), (f, _))| {
-                *f == WORD_BLOCK - 1 && (*w, *o) == (1, 70) && what.starts_with("order")
-            })
-            .map(|((w, o, what), (f, r))| format!("{f} {w}/{o} {what}: {r}"))
-            .collect();
+        // The floor's rows, standing: 327 on 15384 before item 715.
         assert_eq!(
-            word,
-            [
-                "15383 1/70 order:length: Length { ours: 0, theirs: 1 }",
-                "15383 1/70 orders.len: ours 0 theirs 1",
-            ],
-            "1/70 holds an order there and none here, on the word's own frame"
-        );
-        assert_eq!(
-            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            327,
-            "every row standing on 15384"
+            (
+                standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
+                standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            ),
+            (315, 316),
+            "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
-        // on run196's own blocks since item 711 — then run202's own
-        // eleven up to the word's block, and every key to the window's end.
-        assert_eq!((under, mid, firsts.len()), (422, 11, 840), "the floor");
+        // on run196's own blocks since item 711 — then run202's own one up
+        // to the word's block (item 715: `1/70`'s nine and `1/2022`'s one
+        // are gone), and every key to the window's end.
+        assert_eq!((under, mid, firsts.len()), (422, 1, 646), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

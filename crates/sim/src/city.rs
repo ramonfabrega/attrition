@@ -1945,6 +1945,15 @@ impl Sim {
                 bd.under_attack &= !0x2;
             }
         }
+        // The site recruiter (`crate::site_recruit`, `docs/AI.md` §69), in
+        // the same 32-frame block as the decay and **ahead of** the helpers
+        // reset below, so it reads the builders the site had last frame.
+        if phase & 31 == 0
+            && !self.buildings[b].active
+            && !self.nation[self.buildings[b].owner as usize].human
+        {
+            self.site_recruit(b);
+        }
         self.buildings[b].helpers = 0;
         // A building in enemy territory bleeds.
         let who = self.buildings[b].owner;
