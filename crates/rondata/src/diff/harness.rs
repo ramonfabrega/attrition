@@ -11999,7 +11999,12 @@ pub(crate) mod tests {
             "who=1's leader record agrees to the old word: {leader:?}"
         );
         // **The new word's own blocks** (item 757): what first parts on
-        // 17101..17129, by unit.
+        // 17101..17129, by unit. Only the two walks: `1/72`'s arrival
+        // (`move.dest` 17107) and mirror (17121), `1/9`'s arrival (17113)
+        // and first leg's tolerance (17114), and on the new word's block
+        // `1/9`'s second leg (`path[2].to` (41880, 13944) here against
+        // (42840, 15864), and its tolerance, 96 against 384) — the
+        // `Unit::do_move` the word's draw names, as a hypothesis.
         let mut past: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
         for ((w, o, _), (f, _)) in &firsts {
             if (WORD_BLOCK + 1..=GREAT_LAKES_PYRAMIDS_BLOCK).contains(f) {
@@ -12010,10 +12015,15 @@ pub(crate) mod tests {
             .into_iter()
             .map(|((f, w, o), n)| (f, w, o, n))
             .collect();
-        eprintln!("run226 past {past:?}");
         assert_eq!(
             past,
-            [],
+            [
+                (17_107, 1, 72, 1),
+                (17_113, 1, 9, 1),
+                (17_114, 1, 9, 1),
+                (17_121, 1, 72, 1),
+                (17_129, 1, 9, 2),
+            ],
             "who parts first on 17101..17129, the new word's block, and on how many keys"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count();
