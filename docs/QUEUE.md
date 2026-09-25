@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-25, the fourteenth Fable pass (Fable 5.1): **twenty landings,
-nineteen moved a word, 527 built; the loop resumes.** Workers 679 USD,
-33.9 a landing (the issuer chapters' price), the AI lane 0.055 a frame.
-Nothing is in flight. `docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50.*
+*2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **1 landing
+since 7958738**, a word. Lane att-723 (chapter fourteen) is live.*
 
-- **Both long words past 15,000** (Great Lakes +2848 in eight, East
-  Indies +2345 in two, past run78); **every golden chapter closed**, five
-  issuer chapters under the emulator first; the census's order row 44 →
-  50 cited of 410, its first move (CENSUS regenerated).
+- **Great Lakes 15384 → 15608** (722): `CityData::num_wonders` counts an
+  unfinished wonder site (CITIES §2.6.4, AI §70); run211 captured
+  [15435, 15860). East Indies holds at 15985, past run78.
+- **Every golden chapter closed**, five issuer chapters under the
+  emulator first; the census's order row 44 → 50 cited of 410.
 - **The compared recorder stands** (`diff::compared`; the pin in
   `coverage`, exact on the word's window): a parsed field nobody compares
   fails until pinned with its item; a landing that adds a comparison
@@ -28,16 +28,16 @@ Nothing is in flight. `docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50.*
 - **Ruled**: runway 250 blocks past the word (687); `waitrun.sh` reads
   the click-free receipts; a brief reserves the code module; a killer
   tests the claim's own unit; the chain deletes the lane's remote branch.
-- **Fable backlog: 4 Loop items** (677, 685, 697, 727 the remote sweep is
-  the user's); no `FABLE:` marker.
+- **Fable backlog: 5 Loop items** (677, 685, 697, 727 the remote sweep is
+  the user's, 730 a self-contradicting spec line); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w15985 of 24,000 · GreatLakes w15384 of 24,000
+Long captures: EastIndies w15985 of 24,000 · GreatLakes w15608 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · 723 next
-Endpoint 24001: EastIndies 55 off, 3 unlinked · GreatLakes 32 off, 0 unlinked
+Endpoint 24001: EastIndies 51 off, 4 unlinked · GreatLakes 45 off, 0 unlinked
 
-**Opener: 722 then 708 on the AI lane (Great Lakes is lower), 723 on the
-rules lane; the commander counts landings from this pass's commit. A
+**Opener: 723 is live on the rules lane; 729 then 708 on the AI lane
+(Great Lakes is lower); the commander counts landings from 7958738. A
 capture stanza carries 250 blocks of runway; a detached capture waits on
 `tools/gamelog/waitrun.sh` on either lane; a report quotes the gate's
 `Gate steps:` line; a journal's "for the Loop" line is filed at its
@@ -51,13 +51,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-722. **Great Lakes' word is 15384: who=1's wonder arm** (715 moved it 15383
-    → 15384: `Wall::process`'s site recruiter re-recruits a citizen for a
-    wonder or an undamaged fort, AI §69). On 15384 ours 51 draws against
-    46 at index 4: a third `Leader::create_buildings+0xffb`/`+0x1017` pair
-    (the wonder arm's `% 1000`, `% 300`), theirs `Animal::think_bird
-    +0x82`. On 15386 `MAKE[1]` is `SIEGEFACTORY` here, empty there. Inside
-    run202, widened. No mechanism.
+729. **Great Lakes' word is 15608: who=1's difficulty coin** (722 moved
+    it 15384 → 15608: `num_wonders` counts a site, AI §70). On 15608 ours
+    40 draws against 38 at index 0: ours `Army::find_target+0x410` (the
+    coin), theirs opens on `+0x7df`. Inside run211, widened (15607..15611).
+    On 15607 the escort `1/77`/`1/78` swap posts (716/717's family), but
+    its army 3 is mustering; armies 1 and 2 agree. No mechanism.
 
 708. **East Indies' word is 15985, past every capture** (706 moved it 15782
     → 15985 and closed 694: `1/60` is The Senator). On 15985 ours 5 draws

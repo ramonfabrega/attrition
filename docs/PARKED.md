@@ -879,6 +879,14 @@ classifier refused `git push --delete` as destructive — one command:
 origin --delete`, from any checkout, after `git fetch --prune`. Closes
 when the listing is empty.
 
+(730) **A spec line that names its own contradiction is a cheap catch**
+(722's Loop line, filed at its merge). CITIES §2.6.4 said `num_wonders`
+counts *finished* wonders beside §3.3's `≤ 1 + Egyptians`, which only
+reads right if a site counts itself; the filter stood on that line for
+the whole tranche. A reader, or a guard, that flags a count's stated
+domain against its own bound would have caught it. 722 also reports
+`waitrun.sh` exiting 0 cleanly on the queue lane: 656's sequel held.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
