@@ -1162,14 +1162,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
          retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: `queue` registers with a non-empty queue whose depths
-    // agree, and none stands on this window. **`orig_type`, `damage` and
-    // `damage_frac` no site compares** — the comparator's own comment
+    // agree, and none stands on this window. **`orig_type` no site
+    // compares** — the comparator's own comment
     // says `orig_type` was "parsed and neither compared" and is compared
     // now, and it is not: the position is. The pin's first catch, the
     // day it was built; parked for a widening rather than fixed here.
-    // Since item 763 the golden widenings compare `damage` and
-    // `damage_frac` (`widen_civilians`, run223's bombed Barracks); this
-    // instrument still does not.
+    // **Item 763 compares `damage` and `damage_frac`** (parked 728's
+    // two of three, run223's bombed Barracks); `orig_type` remains.
     // `flags`, `max_age`, `mtn`, `cliff`, `mining_size`,
     // `construct_hits`, `ever_seen` and `ever_seen_completed` no site
     // compares. `job_counter` is compared only while **both** sides call
@@ -1178,7 +1177,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // item 742; run218's 16459..16463 had one.
     (
         "BuildDump",
-        "cliff construct_hits damage damage_frac ever_seen ever_seen_completed flags \
+        "cliff construct_hits ever_seen ever_seen_completed flags \
          job_counter max_age mining_size mtn orig_type queue",
     ),
     // Registered with `BuildDump.queue`, on a queued build.

@@ -5652,45 +5652,6 @@ fn widen_civilians(
         // eleven's guard is the witness: its `near_o` goes 6 → −1 on
         // the block its attack ends, the one record that says a search
         // ran there and saw nothing.
-        // **A building's hit points, both directions** (item 763). The
-        // shared instrument parses `damage`/`damage_frac` on `BUILDDATA`
-        // and compares neither (`coverage.rs`'s pin, parked for a
-        // widening), so a building taking a bomb was a quiet field on
-        // every golden window: run223's Barracks goes to 45 on block
-        // 822. Linked on the building's own `(owner, index)`, as
-        // `widen_block`'s two building directions are.
-        for b in &frame.builds {
-            if !(0..players as i64).contains(&b.who) {
-                continue;
-            }
-            let Some(ours) = s
-                .built
-                .sim
-                .buildings
-                .iter()
-                .find(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o)
-            else {
-                continue;
-            };
-            for (field, mine, theirs) in [
-                ("build:damage", i64::from(ours.damage), b.damage),
-                (
-                    "build:damage_frac",
-                    i64::from(ours.damage_frac),
-                    b.damage_frac,
-                ),
-            ] {
-                let Some(theirs) = theirs else {
-                    continue;
-                };
-                rows += 1;
-                if mine != theirs {
-                    firsts
-                        .entry((b.who, b.o, field.into()))
-                        .or_insert((n, format!("ours {mine} theirs {theirs}")));
-                }
-            }
-        }
         let near = raw_near(&raw);
         for them in &frame.units {
             if !(0..players as i64).contains(&them.who) {
@@ -6981,7 +6942,7 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // strikes on 777 and 778 — whose `orders_x/y` needed the
     // `QUEUE_FIRST` push to skip `update_action` — and `0/8`'s bomb on
     // 806. What stands is the Barracks' `damage`/`damage_frac` on 822,
-    // compared here since this item (`widen_civilians`, both directions):
+    // compared by the shared instrument since this item (parked 728):
     // the bomb's round, which this crate does not release.
     let mut want: Vec<String> = [
         "611 0/6 form",

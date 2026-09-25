@@ -7087,7 +7087,7 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
 
 The widening, (605, 823), compares every field above on every block,
 both sides, and since this item a building's `damage`/`damage_frac`
-(`widen_civilians`), which parts on 822. Tests in `group::tests`:
+(the shared instrument's building row, parked 728), which part on 822. Tests in `group::tests`:
 `a_strike_it_may_not_take_is_a_patrol_flown_the_same_frame` (run223's
 665 → 666 for `0/7`, field for field),
 `the_patrol_s_search_pushes_its_strike_first_without_update_action`,
