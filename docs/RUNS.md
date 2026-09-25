@@ -6996,6 +6996,21 @@ with no human at the menu, while this lane worked. Waited on with
 | a `GROUPDATA` on every window block | **858** |
 | overlap with run211, nothing excluded | **6 in common (15854..15859), 0 differ** |
 | the coverage window | a set on all 9 frames 16456..16464 |
+
+**What it settled** (`run218_s_word_frame_is_widened_whole`,
+`docs/GROUPS.md` §26.4).
+- **R1 holds**: the checks above.
+- **R2 is killed.** The blocked step on 16460 is not the escort's. On the
+  word's block the original's `1/23`, a three-figure unit outside group
+  67, carries `collide_o 79, collide_who 1`: it is blocked by The
+  Despot. No escort member parts.
+- **R3 is killed.** Nothing parts on 15860..16459. The first unit to
+  part is `1/23`, on block 16460 (sim-frame 16459, a frame before the
+  word): it stands stopped at (41632, 21466) in the original, and walks
+  on here to (41632, 21440). It is not a member of group 67.
+- The floor is run211's walk (398, nothing on run211's own blocks since
+  item 736), then `1/23`'s 43 keys on 16460..16461, and 957 to the
+  window's end. 355 rows stand on the word's block.
 ## run215 — chapter fifteen, the group attack (2026-09-25, item 731)
 
 `docs/GOLDEN.md` §23, `tools/gamelog/golden/chapter15.cmd`. The cast is

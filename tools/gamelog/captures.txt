@@ -6143,3 +6143,11 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # - the pool on every block;
 # - 6 blocks shared with run211 (15854..15859), 0 differing;
 # - a coverage set on all 9 frames 16456..16464.
+#
+# **The readings, decided on the walk**
+# (`run218_s_word_frame_is_widened_whole`):
+# - **R1 holds**, by the checks above.
+# - **R2 is killed.** The original's `1/23`, outside the escort, carries
+#   `collide_o 79` on 16461: The Despot blocks it. No escort member parts.
+# - **R3 is killed.** The first unit to part on run218's own blocks is
+#   `1/23`, on 16460, and it is not in group 67.

@@ -3586,6 +3586,12 @@ without it (`Some(true)`).
 parting at index 1. The original spends `Guy::set_anim+0x97a <
 Unit::move_step+0x823`, a blocked step again, which ours does not. That
 is past run211 (15859), so run218 was taken (`docs/RUNS.md`).
+Its widening (`run218_s_word_frame_is_widened_whole`) finds nothing on
+15860..16459. On block 16460, a frame before the word, `1/23` (three
+figures, outside group 67) stands stopped in the original at (41632,
+21466) and walks on here to (41632, 21440). On the word's block the
+original's carries `collide_o 79`: **The Despot blocks it**. No escort
+member parts, and no mechanism is named.
 
 - **East Indies holds at 15985.**
 - **Every closed golden chapter holds**, and all twenty word tests pass
