@@ -1944,6 +1944,38 @@ mod tests {
         assert!(listed(&sim, 0, t.wonder).is_none());
     }
 
+    /// `CityData::num_wonders` counts a wonder **site** (`docs/AI.md` §70):
+    /// an unfinished wonder of one type shuts its city out of every other
+    /// wonder, while a second city still values them. Great Lakes 15384:
+    /// who=1's Pyramids site took the Hanging Gardens and the Colossus out
+    /// of its city, two (city, wonder) pairs and four draws. The Silo stands
+    /// in for the second wonder type, so its own site drops it everywhere
+    /// through the ally walk and the count is the only thing left to test.
+    #[test]
+    fn an_unfinished_wonder_site_shuts_its_city_out_of_the_other_wonders() {
+        let (mut sim, t) = sim();
+        sim.build_types[t.silo].wonder = true;
+        let a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        sim.lobby.difficulty = 3;
+        let site = sim
+            .place_building(0, t.silo, tile_pos(48, 40))
+            .expect("the second wonder's site places");
+        assert!(!sim.buildings[site].active, "a site, never finished");
+        assert_eq!(sim.buildings[site].city, Some(a));
+        assert_eq!(sim.num_wonders(a, true), 1, "the site counts");
+        let before = sim.rng;
+        sim.create_buildings(0);
+        let mut probe = before;
+        let mut n = 0;
+        while probe != sim.rng {
+            probe.roll();
+            n += 1;
+            assert!(n < 20, "too many draws");
+        }
+        assert_eq!(n, 2, "the other city's wonder alone");
+    }
+
     #[test]
     fn a_wonder_a_rival_is_a_quarter_through_is_abandoned() {
         let (mut sim, t) = sim();

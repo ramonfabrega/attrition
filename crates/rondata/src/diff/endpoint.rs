@@ -549,7 +549,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // this map's holds at 15985. Measured after item 714's merge. The
         // unlinked are still player 1's `80`..`82`. DECISIONS 36: the
         // number, not a trade.
-        off: 55,
+        // **55 → 51 off, 3 → 4 unlinked, 1 → 3 build_unlinked, 16 → 10
+        // build_diverged** on item 722: `CityData::num_wonders` counts a
+        // wonder site (`docs/AI.md` §70), which moves Great Lakes' word
+        // 15384 → 15608; this map's holds at 15985 with its delta. The
+        // unlinked are player 1's `79`..`82`. Measured on the spawn base,
+        // `2355946`. DECISIONS 36: the number, not a trade.
+        off: 51,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -576,7 +582,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **10 → 0** on item 688, beside `off` above.
         // **0 → 7** on item 706, beside `off` above.
         // **7 → 3** on item 711, beside `off` above.
-        unlinked: 3,
+        // **3 → 4** on item 722, beside `off` above.
+        unlinked: 4,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -594,7 +601,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 1** on item 643, beside `off` above.
         // **1 → 2** on item 688, beside `off` above.
         // **2 → 1** on item 706, beside `off` above.
-        build_unlinked: 1,
+        // **1 → 3** on item 722, beside `off` above.
+        build_unlinked: 3,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
@@ -604,7 +612,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **18 → 16** on item 688, beside `off` above.
         // **16 → 15** on item 706, beside `off` above.
         // **15 → 16** on item 711, beside `off` above.
-        build_diverged: 16,
+        // **16 → 10** on item 722, beside `off` above.
+        build_diverged: 10,
         city_unlinked: 3,
         city_diverged: 0,
     },
@@ -1310,7 +1319,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 15384. Measured after item 714's merge. The 24,000th frame is
         // 8,616 frames past the new word. DECISIONS 36: the number, not a
         // trade.
-        off: 32,
+        // **32 → 45 off, 0 → 4 extra** on item 722: `CityData::num_wonders`
+        // counts a wonder site (`docs/AI.md` §70), which moves this map's
+        // word 15384 → 15608. The extras are `1/81`..`1/83`, Citizens, and
+        // `1/84`, a Merchant. The 24,000th frame is 8,392 frames past the
+        // new word. Measured on the spawn base, `2355946`. DECISIONS 36:
+        // the number, not a trade.
+        off: 45,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1330,7 +1345,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 1 extra** on item 706, beside `off` above: `1/81`.
         // **1 → 2** on item 711, beside `off` above.
         // **2 → 0** on item 715, beside `off` above.
-        extra: 0,
+        // **0 → 4** on item 722, beside `off` above.
+        extra: 4,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
