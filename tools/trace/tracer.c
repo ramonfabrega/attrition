@@ -514,12 +514,13 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Three verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Four verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
  *   `@guard <who> <ox> <whom> <o> [<o> ...]` the charge's id and owner in
  *                                         place of the point, issue_guard
+ *   `@follow <who> <ox> <whom> <o> [<o> ...]` the leader's, issue_follow
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -544,6 +545,13 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * group (item 696, `docs/GOLDEN.md` §19). The charge is not checked here:
  * `Group::action_guard` asks it, at process time, what the chapter measures.
  *
+ * `@follow` calls `CommandManager::issue_follow@00941e70(&command_manager,
+ * group, ox, whom, QUEUE_NEW 2)` — what `Options::picked_spot@00721c40`
+ * passes through `GroupOut::issue_follow@00708980` for an unmodified pick —
+ * and appends a 13-byte `follow` (type 0x1e, `[ox][whom][queued]`) behind
+ * the group (item 714, `docs/GOLDEN.md` §20). As for the guard, the leader
+ * is `Group::action_follow`'s to ask at process time.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -559,6 +567,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_MOVE_TO 0x541720u
 #define RVA_ISSUE_PATROL 0x541800u
 #define RVA_ISSUE_GUARD 0x541ed0u
+#define RVA_ISSUE_FOLLOW 0x541e70u
 #define ISSUE_MAX 32
 static u8 g_groupout[0x9d0];
 
@@ -585,9 +594,14 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
     const u16 *t = text;
-    /* 0 `move`, 1 `patrol`, 2 `guard`: the issuer, its prologue and its
-     * command's size. A guard's two numbers are the charge's `ox` and `whom`. */
-    i32 verb = issue_verb(&t, "move ") ? 0 : issue_verb(&t, "patrol ") ? 1 : issue_verb(&t, "guard ") ? 2 : -1;
+    /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`: the issuer, its prologue
+     * and its command's size. A guard's two numbers are the charge's `ox`
+     * and `whom`, a follow's the leader's. */
+    i32 verb = issue_verb(&t, "move ")     ? 0
+               : issue_verb(&t, "patrol ") ? 1
+               : issue_verb(&t, "guard ")  ? 2
+               : issue_verb(&t, "follow ") ? 3
+                                           : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x, y, ids[ISSUE_MAX];
     u32 n = 0;
@@ -603,13 +617,17 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         return;
     }
     /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
-     * issue_patrol's and issue_guard's; each then loads `&command_manager`
-     * into ecx. */
-    static const u8 prologue[3][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * issue_patrol's, issue_guard's and issue_follow's; each then loads
+     * `&command_manager` into ecx. */
+    static const u8 prologue[4][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
-    u32 rva = verb == 2 ? RVA_ISSUE_GUARD : verb ? RVA_ISSUE_PATROL : RVA_ISSUE_MOVE_TO;
-    u32 size = verb == 2 ? 0x0d : verb ? 0x0a : 0x16;
+    u32 rva = verb == 3   ? RVA_ISSUE_FOLLOW
+              : verb == 2 ? RVA_ISSUE_GUARD
+              : verb      ? RVA_ISSUE_PATROL
+                          : RVA_ISSUE_MOVE_TO;
+    u32 size = verb >= 2 ? 0x0d : verb ? 0x0a : 0x16;
     for (u32 i = 0; i < sizeof prologue[0]; i++)
         if (*(u8 *)(g_base + rva + i) != prologue[verb][i]) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
@@ -641,8 +659,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
     if (verb) {
-        /* issue_patrol(group, x, y, queue) and issue_guard(group, ox, whom,
-         * queue) share one shape: two ints and QUEUE_NEW. */
+        /* issue_patrol(group, x, y, queue), issue_guard(group, ox, whom,
+         * queue) and issue_follow(group, ox, whom, queue) share one shape:
+         * two ints and QUEUE_NEW. */
         typedef void(__thiscall *patrol_fn)(void *, void *, i32, i32, i32);
         ((patrol_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
     } else {
