@@ -767,17 +767,33 @@ impl Sim {
         if let Some((c, _)) = found {
             self.ai[w].city_ai[c].busy -= 1;
         }
+        // **A gatherer counts in its building's city, not the nearest one**
+        // (item 752, `docs/AI.md` §73). The listing keeps the found city in
+        // `edi` and overwrites it with the target building's `+0x72` city
+        // at `6babfb` (`movswl 0x72(%eax), %edi`), once the building is
+        // the leader's own and its city is not negative; `+0x5c`'s
+        // increment at `6bac3c` and the `peasant_dist` minimum after it
+        // index `edi`. The decompiler prints the same reuse as `iVar25`.
+        // The distance stays the found city's, `objects+0x1fc`.
+        let mut counted = found.map(|(c, _)| c);
         if let Some(b) = target
             && self.buildings[b].owner == who
             && let Some(tc) = self.buildings[b].city
         {
             self.ai[w].city_ai[tc].busy += 1;
+            counted = Some(tc);
         }
         self.ai[w].census.gatherers += 1;
-        if let Some((c, dist)) = found {
+        if let Some(c) = counted {
             let rec = &mut self.ai[w].city_ai[c];
             rec.gatherers += 1;
-            rec.peasant_dist = rec.peasant_dist.min(dist / CELL);
+            // SEAM: a gatherer with no friendly city in its region but a
+            // target in one reads the search's untouched `find_dist`
+            // (99,999,999) truncated to a short; no capture has one, so
+            // its minimum is skipped.
+            if let Some((_, dist)) = found {
+                rec.peasant_dist = rec.peasant_dist.min(dist / CELL);
+            }
         }
         if land_reg {
             self.ai[w].census.reg_gatherers[r] += 1;
@@ -1587,6 +1603,37 @@ mod tests {
         assert_eq!(rec.busy, 5);
         assert_eq!(rec.gatherers, 5);
         assert!(rec.peasant_dist < PEASANT_DIST_NONE, "a citizen was found");
+    }
+
+    /// **A gatherer counts in its building's city, not its nearest**
+    /// (item 752, `docs/AI.md` §73). `plan_strategy` overwrites the found
+    /// city with the target building's at `6babfb`, so `gatherers` and
+    /// `peasant_dist` follow `busy` there. run227's woodcutters `1/50` and
+    /// `1/61` stand nearer London and work a camp of who=1's second city:
+    /// the original counts them in the second, 10 and 12 against this
+    /// crate's 11 and 11, and the crossing rule in `find_gather_spot` read
+    /// the difference on East Indies 16594.
+    #[test]
+    fn a_gatherer_counts_in_its_building_s_city_not_the_nearest() {
+        let mut f = fix();
+        let near_b = build(&mut f.sim, 1, f.village, 20, 20);
+        let near = f.sim.buildings[near_b].city.expect("a city record");
+        let far_b = build(&mut f.sim, 1, f.village, 44, 20);
+        let far = f.sim.buildings[far_b].city.expect("a city record");
+        f.sim.plant_camp_forest(tile_pos(30, 26));
+        let wood_b = build(&mut f.sim, 1, f.woodcutter, 30, 26);
+        f.sim.buildings[wood_b].gather_max = Some(5);
+        f.sim.buildings[wood_b].city = Some(far);
+        // Nearer the first city, working the second's camp.
+        let u = spawn(&mut f.sim, 1, f.citizen, 24, 22);
+        f.sim.units[u].orders.push_back(gather_order(wood_b));
+
+        f.sim.census(1);
+        let (n, fa) = (f.sim.ai[1].city_ai[near], f.sim.ai[1].city_ai[far]);
+        assert_eq!((n.busy, n.gatherers), (0, 0), "not the nearest city");
+        assert_eq!((fa.busy, fa.gatherers), (1, 1), "the building's city");
+        assert!(fa.peasant_dist < PEASANT_DIST_NONE, "its distance goes too");
+        assert_eq!(n.peasant_dist, PEASANT_DIST_NONE);
     }
 
     /// `gather_slots` comes off the buildings, `filled_gather_slots` off

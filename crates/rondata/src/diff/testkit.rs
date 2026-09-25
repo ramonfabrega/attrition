@@ -813,10 +813,32 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// +0x1ae` where the original spends `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`: six `Guy::inc_time` wraps there before the farm's
 /// draw against ours' five (`1/18` twice, `1/19`, `1/20`, `1/54`), so one
-/// figure's wrap is missing here, whose is the capture's to say. **Past
+/// figure's wrap is missing here, whose is the capture's to say. ~~**Past
 /// run221** (block 16684 against its last, 16236): no widening names its
-/// block yet.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 16_683;
+/// block yet.~~
+///
+/// **16683 → 16982 on item 752, and the frame was the census's per-city
+/// gatherer count.** run227 over [16230, 16935) said whose wrap it was:
+/// who=1's citizen `1/46`, idle since 16529 on a 123-frame `CHAR_IDLE`,
+/// rolls on the original's 16683. Ours' had left on 16594, when
+/// `find_gather_spot` sent it across to the woodcutter `1/2009` of who=1's
+/// second city: the crossing rule reads each city's `free + gatherers`,
+/// London 14 against 10 here and 12 against 12 there. `plan_strategy`
+/// counts a gatherer in its **building's** city — the listing overwrites
+/// the found city with the target's `+0x72` at `6babfb` — and this crate
+/// counted it in the nearest, so two woodcutters standing nearer London
+/// were London's (`docs/AI.md` §73). **The move's value diff (the word's
+/// delta, here; its block is the widening's):** the two cities' counts on
+/// the window's first block, `1/46`'s 24 rows, `1/2009`'s chain head and
+/// `1/54`'s two on the word's block go, and the 554 rows past the word
+/// (`run227_s_word_frame_is_widened_whole`, floor 286/333/866 →
+/// 284/306/312). **The new word's delta: ours 10 draws and the original
+/// 15, parting at index 4**: the original spends `Leader::make_stuff
+/// +0x63d`, a bought slot's expiry roll, where ours spends `Animal::do_idle
+/// +0x83`. Under it on 16779 who=1's make-list slot 1 reads `val` 22784
+/// here against 91136. **Past run227** (block 16983 against its last,
+/// 16934): no widening names its block yet.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 16_982;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -3961,6 +3983,16 @@ pub(crate) const WIDENING_EAST_INDIES_SLOT: (i64, i64) = (15_894, 16_236);
 /// buy and its `make_stuff+0x63d` expiry roll, writes block 15986. The
 /// coverage driver reads run221 around it.
 pub(crate) const EAST_INDIES_SLOT_BLOCK: i64 = 15_986;
+/// `run227_s_word_frame_is_widened_whole`'s window (item 752): run227
+/// whole, 16230..16934 — seven blocks shared with run221, the 447 up to
+/// the word 16683, its block, and 250 of runway past it. The floor is the
+/// capture's first block, which carries every key standing on run221's
+/// last.
+pub(crate) const WIDENING_EAST_INDIES_WRAPWORD: (i64, i64) = (16_230, 16_934);
+/// The word 16683's block on run227: its frame, six `Guy::inc_time`
+/// idle wraps there against five here, writes block 16684. The coverage
+/// driver reads run227 around it.
+pub(crate) const EAST_INDIES_WRAPWORD_BLOCK: i64 = 16_684;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4077,11 +4109,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (16236): the commerce cap's republic term (`docs/AI.md` §72).
     // run221's test keeps the move's value diff. Item 752 owes the capture
     // over the new word.
+    //
+    // **Item 752 paid it**: run227 is run221's line over [16230, 16934],
+    // seven blocks shared with run221 and 250 past the word, and
+    // `run227_s_word_frame_is_widened_whole` walks it through the same
+    // walk, gaia and the pool included, and pins the word's block, 16684:
+    // the sixth wrap is the idle citizen `1/46`, which ours had sent to a
+    // woodcutter on 16594. **The same item moved it 16683 → 16982**, past
+    // run227's last block (16934): the census counts a gatherer in its
+    // building's city (`docs/AI.md` §73). run227's test keeps the move's
+    // value diff. Item 767 owes the capture over the new word.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         None,
-        752,
+        767,
         None,
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
