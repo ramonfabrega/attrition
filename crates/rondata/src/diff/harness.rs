@@ -11963,83 +11963,58 @@ pub(crate) mod tests {
         }
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
-        eprintln!(
-            "run226 own {own:?} standing {} {} floor {:?}",
-            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            standing
-                .get(&GREAT_LAKES_PYRAMIDS_BLOCK)
-                .map_or(0, BTreeMap::len),
-            (
-                firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count(),
-                firsts
-                    .values()
-                    .filter(|(f, _)| (RUN218_TAIL + 1..=WORD_BLOCK).contains(f))
-                    .count(),
-                firsts.len()
-            )
-        );
-        // **On run226's own blocks up to the word: who=1's economy, from
-        // 17086.** Nothing parts on 16712..17085. On block 17086 — sim-frame
-        // 17085, where both sides make the same purchase (`leftover`
-        // parts only on 17088) — the original's `resource_cap` for food and
-        // wealth is 4800 (300 a good) and ours 4000 (250) — +50 a good,
-        // the size of `docs/AI.md` §72's republic term, whose frame §72.6
-        // left open (a hypothesis, not a cause). On the same block
-        // who=1 re-deals four citizens: the original sends `1/70` and
-        // `1/72` to `1/2022` and keeps `1/3` and `1/5` on `1/2002` and
-        // `1/2004`; ours the other way round (`gather.dist_mod`, `target`,
-        // the three buildings' `gather_down`). Their walks part from 17087
-        // and `1/9`'s from 17088. **On the word's block** the original's
-        // `1/5` stands stopped with `collide_o 3` (no `collide_frame`
-        // stamp) and walks on here, which reads as the word's
-        // `Unit::move_step+0x823`. No mechanism is named (item 742 hands
-        // it on).
+        // **On run226's own blocks up to the old word: two walks, from
+        // 17088.** Item 742 left who=1's economy parting on 17086: the
+        // original's `resource_cap` for food and wealth was 4800 against
+        // 4000 here, after the Pyramids `1/2026` activated on sim-frame
+        // 17084, and four citizens were re-dealt on the same block.
+        // **Item 757 built the wonders' two terms** (`docs/ECONOMY.md`
+        // §15): `PYRAMIDS_COMMERCE` on the two caps and `PYRAMIDS_FOOD`
+        // on 17087's reassembly (food 1920 against 1600). The cap, the
+        // re-deal and every row of `1/3`, `1/5` and `1/70` go. What stands
+        // is `1/9` and `1/72` walking other paths to the same targets
+        // from 17088 (`path:length` 2 against 4 and 3 against 9,
+        // `path_recursion`, `tolerance`). No mechanism is named.
         assert_eq!(
             own,
             [
-                (17_086, 1, -1, 2),
-                (17_086, 1, 3, 1),
-                (17_086, 1, 5, 1),
-                (17_086, 1, 70, 2),
-                (17_086, 1, 72, 2),
-                (17_086, 1, 2002, 1),
-                (17_086, 1, 2004, 1),
-                (17_086, 1, 2022, 1),
-                (17_087, 1, 3, 8),
-                (17_087, 1, 5, 8),
-                (17_087, 1, 70, 8),
-                (17_087, 1, 72, 7),
-                (17_088, 1, -1, 3),
-                (17_088, 1, 3, 14),
-                (17_088, 1, 5, 15),
                 (17_088, 1, 9, 17),
-                (17_088, 1, 70, 20),
                 (17_088, 1, 72, 19),
                 (17_089, 1, 9, 1),
-                (17_089, 1, 70, 1),
-                (17_092, 1, 70, 1),
-                (17_094, 1, 72, 1),
-                (17_097, 1, 72, 1),
-                (17_100, 1, 5, 10),
-                (17_100, 1, 70, 1),
-                (17_100, 1, 72, 1),
+                (17_091, 1, 72, 1),
             ],
-            "who parts first on run226's own blocks up to the word's, and on how many keys"
+            "who parts first on run226's own blocks up to the old word's, and on how many keys"
         );
-        let cap: Vec<String> = firsts
+        // **The move's value diff**: no leader row parts under the old
+        // word, the caps least of all.
+        let leader: Vec<String> = firsts
             .iter()
-            .filter(|((w, o, what), (f, _))| {
-                (*w, *o) == (1, -1) && *f == 17_086 && what.starts_with("leader:resource_cap")
+            .filter(|((w, o, _), (f, _))| {
+                (*w, *o) == (1, -1) && *f <= WORD_BLOCK && *f > RUN218_TAIL
             })
-            .map(|((_, _, what), (_, r))| format!("{what}: {r}"))
+            .map(|((_, _, what), (f, r))| format!("{f} {what}: {r}"))
             .collect();
+        assert!(
+            leader.is_empty(),
+            "who=1's leader record agrees to the old word: {leader:?}"
+        );
+        // **The new word's own blocks** (item 757): what first parts on
+        // 17101..17129, by unit.
+        let mut past: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (WORD_BLOCK + 1..=GREAT_LAKES_PYRAMIDS_BLOCK).contains(f) {
+                *past.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let past: Vec<(i64, i64, i64, usize)> = past
+            .into_iter()
+            .map(|((f, w, o), n)| (f, w, o, n))
+            .collect();
+        eprintln!("run226 past {past:?}");
         assert_eq!(
-            cap,
-            [
-                "leader:resource_cap[0:food]: ours 4000 theirs 4800",
-                "leader:resource_cap[2:wealth]: ours 4000 theirs 4800",
-            ],
-            "the leader's two capped goods, 250 here and 300 there"
+            past,
+            [],
+            "who parts first on 17101..17129, the new word's block, and on how many keys"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count();
         let mid = firsts
@@ -12047,14 +12022,19 @@ pub(crate) mod tests {
             .filter(|(f, _)| (RUN218_TAIL + 1..=WORD_BLOCK).contains(f))
             .count();
         assert_eq!(
-            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            456,
-            "every row standing on the word's block, 17100"
+            (
+                standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+                standing
+                    .get(&GREAT_LAKES_PYRAMIDS_BLOCK)
+                    .map_or(0, BTreeMap::len),
+            ),
+            (349, 344),
+            "every row standing on the old word's block, 17100, and the new word's, 17129"
         );
         // **The floor**: run218's walk (398, nothing on run211's or
-        // run218's own blocks since item 742), then the 147 keys of 17086
-        // up to the word's block, and every key to the window's end.
-        assert_eq!((under, mid, firsts.len()), (398, 147, 1382), "the floor");
+        // run218's own blocks since item 742), then the 38 keys of 17088
+        // up to the old word's block, and every key to the window's end.
+        assert_eq!((under, mid, firsts.len()), (398, 38, 1256), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
