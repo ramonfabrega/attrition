@@ -22,6 +22,22 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 731, 2026-09-25 — the group attack's loose ends
+
+(739) **`compare`'s death `extra` direction reads a record the capture may
+not have asked for**: a golden pool capture turns `DEATHS` off, and
+`DEATH_OBJS` cannot say it was off. Either the capture records its levels
+where the harness reads them, or the direction is gated per capture.
+
+(740) **`rondata::gamelog` keys type 20 on `GROUPATTACKORDER`**, a spelling
+no dump carries (`GroupAttackOrder::log_data@00485140` prints
+`GroupAttackOrder`). Harmless while none exists; a one-line fix when a
+save-loaded game is diffed.
+
+(741) **`docs/GROUPS.md` §3.2 says `copy_group` "copies nine things"**; it
+also stamps `+0x14` with the frame. A clause, amended in place by whoever
+next holds GROUPS.
+
 ## Parked by item 723, 2026-09-25 — the formation's other edges
 
 (732) **Great Lakes' `1/0` mirror from 6864, 275's remainder.** 723's
@@ -33,6 +49,7 @@ on 6910..6938, run99 net +1. The non-scoring `facing`; no draw parts.
 (733) **run210 printed no `GROUPDATA`**, the third golden capture to lose
 the pool; `GUYS=2` is the hypothesis. A capture at `GUYS=4` settles it and
 gives the chapters the pool's `facing`, `o`, `o_angle` and slot bytes.
+**Closed by 731**: run215 at `GUYS=4` printed 330,240 `GROUPDATA` lines.
 
 (734) **`action_form`'s negative formations** (−1, −2, −3) and a plain
 move's `orig`: named seams, reached by no capture.
@@ -906,7 +923,8 @@ domain against its own bound would have caught it. 722 also reports
 (735) **`golden_capture.sh` should refuse a capture that asked for `GROUPS`
 and printed no `GROUPDATA`**, as `groupfacing.py` does (723's Loop line,
 filed at its merge). run210 is the third capture to lose the pool
-silently (733).
+silently (733). 731 found it still missing and checked run215 by hand
+(`grep -c`); run215 at `GUYS=4` is the first pool capture that printed.
 
 (737) **A booking that names a value cites the gate's terms in order, and
 greps the dump for each, before naming an instrument** (729's Loop line,
