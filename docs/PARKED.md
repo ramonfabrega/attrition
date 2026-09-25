@@ -22,6 +22,15 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 711, 2026-09-24 — under Great Lakes' 15383
+
+(716) **`1/79`'s move `facing`**, 1 here against 0 in the original from
+15351: a value row, no draw.
+
+(717) **The mirror bit's two unwired readers**: `set_new_location` at
+`5f9290` and `Guy::set_anim` at `5dafad` read `unit_masks & 2`, and this
+crate carries the bit now (GROUPS §25) but neither reader.
+
 ## Parked by item 706, 2026-09-24 — the patriot arm's seams
 
 (712) **Three seams of the Senate's patriot** (`docs/TECH.md`, "The

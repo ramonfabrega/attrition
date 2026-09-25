@@ -13,12 +13,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-24, the commander (Opus 5.5) after the thirteenth Fable pass:
-**16 landings since 29a46bd**, every one a word or a chapter. Lanes
-att-711 (Great Lakes) and att-714 (chapter twelve) are live.*
+**17 landings since 29a46bd**, every one a word or a chapter. Lanes
+att-715 (Great Lakes) and att-714 (chapter twelve) are live.*
 
-- **Great Lakes 12536 → 15175 in six landings**: the retry's gate, a
-  resumed search, a city's halving, the stray-road sweep, the gather park
-  (COLLISION §15), and the graft table with the Senate's patriot (706).
+- **Great Lakes 12536 → 15383 in seven landings**: the retry's gate, a
+  resumed search, a city's halving, the stray-road sweep, the gather park,
+  the graft table and Senate patriot (706), the target's mirror (711).
 - **East Indies 13640 → 15985 in two**: animation names case-folded (643,
   ANIM §12), then 706's graft and patriot. The word is past run78 (708).
 - **Chapter six-b closed** at 1250 (651, 680): a captain's attack on a
@@ -31,12 +31,12 @@ att-711 (Great Lakes) and att-714 (chapter twelve) are live.*
   692 the census's row, 697 `cover=1` hangs); no `FABLE:` marker.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w15985 of 24,000 · GreatLakes w15175 of 24,000
+Long captures: EastIndies w15985 of 24,000 · GreatLakes w15383 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · 714 next
-Endpoint 24001: EastIndies 47 off, 7 unlinked · GreatLakes 47 off, 0 unlinked
+Endpoint 24001: EastIndies 52 off, 3 unlinked · GreatLakes 27 off, 0 unlinked
 
-**Opener: 714 is live on the rules lane and 711 on the AI lane (Great
-Lakes is the lower map); 708 follows 711. A detached capture waits on
+**Opener: 714 is live on the rules lane and 715 on the AI lane (Great
+Lakes is the lower map); 708 follows 715. A detached capture waits on
 `tools/gamelog/waitrun.sh`; a report quotes the gate's `Gate steps:` line.**
 
 ## The queue
@@ -47,12 +47,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-711. **Great Lakes' word is 15175: the free Longbowmen's guard posts** (706
-    moved it 14982 → 15175: `Tribe::graft` and the Senate's patriot, TECH).
-    On 15175 ours 4 draws against 3 at index 2: an extra `Guy::set_anim
-    +0x97a < Unit::do_guard+0x7f4`. Inside run196, widened (block 15176).
-    Under it on 15095 the three free Longbowmen take their guard posts
-    the other way round, `1/77` and `1/78` swapped. No mechanism.
+715. **Great Lakes' word is 15383: the citizen `1/70`'s order** (711 moved
+    it 15175 → 15383: `do_guard` reads its target's mirror, `unit_masks &
+    2`, GROUPS §25). On 15383 ours 4 draws against 3 at index 1: an extra
+    `Unit::do_idle+0x7d` stand. On block 15383 `1/70` holds one order in
+    the original and none here, and `1/2022`'s gather list holds 70 here
+    and 73 there. Inside run202 (to 15439), widened. No mechanism.
 
 708. **East Indies' word is 15985, past every capture** (706 moved it 15782
     → 15985 and closed 694: `1/60` is The Senator). On 15985 ours 5 draws
