@@ -14913,18 +14913,22 @@ pub(crate) mod tests {
                 eprintln!("  first {r}");
             }
         }
-        // **Under the word and on it, both directions.** The word's figure
-        // is who=1's citizen `1/46`: on the original's 16683 its idle
-        // (`cur_anim 3`, `end_time 123`, standing since 16529) runs out and
-        // rolls, the sixth wrap, where ours' `1/46` is walking. It parts on
-        // 16595: on tick 16594, its seventh idle count, `think_peasant`'s
-        // `find_gather_spot` sends ours to the woodcutter `1/2009` (its
-        // `gather_down` head, 46 against 61) and finds nothing there. The
-        // rest are the parked families — 646's `form`, 679's hits and LOS
-        // on the newborn `1/61`–`1/63` — who=1's leader rows (699's
-        // `known_rares`, the make list's `city` shift, 753's `peasants`),
-        // the scout `1/0`'s speed, and the draw `1/46` shifted onto `1/54`'s
-        // roll on the word's block.
+        // **Under the word and on it, both directions — and the move's
+        // value diff (item 752; the word's delta is in
+        // `LONG_WORD_EAST_INDIES`' comment, its block here).** The word's
+        // figure was who=1's citizen `1/46`: on the original's 16683 its
+        // idle (`cur_anim 3`, `end_time 123`, standing since 16529) runs out
+        // and rolls, the sixth wrap, where ours' `1/46` was walking. It
+        // parted on 16595: on tick 16594, its seventh idle count,
+        // `think_peasant`'s `find_gather_spot` sent ours to the woodcutter
+        // `1/2009` (its `gather_down` head, 46 against 61) and the
+        // original's found nothing. 49 rows stood here; 24 of `1/46`, the
+        // chain head, and `1/54`'s two on the word's block, where the extra
+        // draw moved its roll, went with the census fix below. What stands
+        // are the parked families — 646's `form`, 679's hits and LOS on the
+        // newborn `1/61`–`1/63` — who=1's leader rows (699's `known_rares`,
+        // the make list's `city` shift, 753's `peasants`), and the scout
+        // `1/0`'s speed.
         let under: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -14944,32 +14948,6 @@ pub(crate) mod tests {
                 "16528 1/-1 leader:territory: ours 305 theirs 302",
                 "16681 1/0 g.avg_speed[0]: ours 23 theirs 17",
                 "16681 1/0 g.avg_speed[1]: ours 23 theirs 17",
-                "16596 1/46 dest_angle: ours -12582912 theirs 1972699136",
-                "16597 1/46 g.angle[0]: ours -36765696 theirs 1972699136",
-                "16597 1/46 g.avg_speed[0]: ours 6 theirs 0",
-                "16597 1/46 g.cur_anim[0]: ours 8 theirs 3",
-                "16597 1/46 g.cur_time[0]: ours 1 theirs 36",
-                "16597 1/46 g.des_angle[0]: ours -36765696 theirs 1972699136",
-                "16597 1/46 g.des_x[0]: ours 38086 theirs 38088",
-                "16597 1/46 g.des_y[0]: ours 39072 theirs 39096",
-                "16597 1/46 g.end_time[0]: ours 15 theirs 123",
-                "16597 1/46 g.last_speed[0]: ours 24 theirs 0",
-                "16597 1/46 g.last_time[0]: ours 0 theirs 35",
-                "16597 1/46 g.stopped[0]: ours 0 theirs 1",
-                "16597 1/46 g.x[0]: ours 38086 theirs 38088",
-                "16597 1/46 g.y[0]: ours 39072 theirs 39096",
-                "16597 1/46 heading: ours -36765696 theirs 1972699136",
-                "16596 1/46 idle: ours 0 theirs 7",
-                "16597 1/46 mirror: ours 0 theirs 1",
-                "16595 1/46 order:length: Length { ours: 1, theirs: 0 }",
-                "16595 1/46 orders.len: ours 1 theirs 0",
-                "16596 1/46 orders_x: ours 38040 theirs 38088",
-                "16596 1/46 orders_y: ours 36744 theirs 39096",
-                "16597 1/46 path:length: PathLength { ours: 2, theirs: 0 }",
-                "16597 1/46 pos: ours (38086,39072) theirs (38088,39096)",
-                "16597 1/46 tolerance: ours 384 theirs 0",
-                "16684 1/54 g.cur_anim[0]: ours 2 theirs 0",
-                "16684 1/54 g.end_time[0]: ours 81 theirs 36",
                 "16363 1/61 form: ours -1 theirs 9",
                 "16363 1/61 hits:myhits: ours 40 theirs 50",
                 "16363 1/61 hits_left: ours 40 theirs 50",
@@ -14981,17 +14959,19 @@ pub(crate) mod tests {
                 "16544 1/62 myhits: ours 40 theirs 50",
                 "16544 1/62 mylos: ours 2 theirs 4",
                 "16681 1/63 form: ours -1 theirs 0",
-                "16595 1/2009 gather:gather_down[-1]: ours 46 theirs 61",
             ],
             "the rows under the word and on it"
         );
         // **The census, on the window's first block** (the floor's): who=1's
-        // two cities count their gatherers 11 and 11 here against 10 and 12
-        // there, the same 22 split differently. That is what sends `1/46`:
-        // `find_gather_spot`'s crossing rule walks to another city's
-        // building only when its own city's `free + gatherers` is more than
-        // two above the other's, and on 16594 ours reads London 14 against
-        // 10 where the original reads 12 against 12.
+        // two cities counted their gatherers 11 and 11 here against 10 and
+        // 12 there, the same 22 split differently, until item 752. That was
+        // what sent `1/46`: `find_gather_spot`'s crossing rule walks to
+        // another city's building only when its own city's `free +
+        // gatherers` is more than two above the other's, and on 16594 ours
+        // read London 14 against 10 where the original read 12 against 12.
+        // `plan_strategy` counts a gatherer in its building's city
+        // (`6babfb`), and this crate counted it in the nearest
+        // (`docs/AI.md` §73).
         let census: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -15001,16 +14981,15 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             census,
-            [
-                "16230 1/2000 city:gatherers: ours 11 theirs 10",
-                "16230 1/2007 city:gatherers: ours 11 theirs 12",
-            ],
+            Vec::<String>::new(),
             "who=1's cities on the window's first block"
         );
-        // The readings (the stanza's): **R2 holds** — its figure is `1/46`,
-        // whose record parts first on its order, not on its clock; **R3 is
-        // killed** — no figure is on one side only, and the roster agrees;
+        // The readings (the stanza's): **R2 held** — its figure was `1/46`,
+        // whose record parted first on its order, not on its clock; **R3 is
+        // killed** — no figure was on one side only, and the roster agrees;
         // **R4 is killed** — no farm and no farmer parts under the word.
+        // Before the fix six figures changed animation on one side on the
+        // word's blocks, `1/46` the original's; none does now.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
@@ -15018,29 +14997,48 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             word,
-            [
-                (16684, 1, 46, true, false),
-                (16684, 1, 54, false, true),
-                (16685, 1, 24, false, true),
-                (16685, 1, 28, false, true),
-                (16685, 1, 37, false, true),
-                (16686, 1, 48, false, true),
-            ],
+            Vec::<(i64, i64, i64, bool, bool)>::new(),
             "a figure's animation changes on one side only"
         );
         assert_eq!(
             (WORD_BLOCK - 1..=WORD_BLOCK)
                 .map(|b| standing.get(&b).map_or(0, |m| m.len()))
                 .collect::<Vec<_>>(),
-            [319, 321],
+            // 319 and 321 before item 752's fix: `1/46`'s 24 rows, the
+            // woodcutter's chain head and the two cities' counts, and on
+            // the block `1/54`'s two.
+            [293, 293],
             "every row standing on the word's pre-state and its block"
         );
-        // **The floor**: 286 keys standing on the window's first block —
+        // **Past the word to the window's end** (the word left for 16982,
+        // past run227): who=1's make-list slot 1 on 16779, 22784 here
+        // against 91136 there, and the scout `1/0`'s order point and
+        // formation mirror from 16782 (743's family).
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .map(row)
+            .collect();
+        assert_eq!(
+            past,
+            [
+                "16779 1/-1 leader:MAKE[1].val: ours 22784 theirs 91136",
+                "16782 1/0 dest_angle: ours -2143223808 theirs -2147483648",
+                "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
+                "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
+                "16782 1/0 mirror: ours 0 theirs 1",
+                "16782 1/0 orders_y: ours 38040 theirs 29304",
+            ],
+            "every key first parting past the word"
+        );
+        // **The floor**: 284 keys standing on the window's first block —
         // everything standing on run221's last block, which run227 shares
-        // — 333 before the word's frame, 866 in all.
+        // — 306 before the word's frame, 312 in all. It was 286/333/866
+        // before item 752's fix: the two cities' counts, `1/46`'s rows and
+        // the 554 rows past the word that its walk parted.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (286, 333, 866), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 306, 312), "the floor");
     }
 
     /// **run152 — East Indies' word 10982, widened whole, both directions**

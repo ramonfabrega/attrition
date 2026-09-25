@@ -213,7 +213,7 @@ ocean is 65) and are stored `% 0x3f` in the 63-entry arrays.
       building's type (`0x1a1` food, `0x1a2` wood, `0x1a3` metal,
       `0x1a5/0x1a6` oil; knowledge is the university above), `city.busy--`
       and the *target building's* city `busy++`, `gatherers++`,
-      `city.gatherers++`, `peasant_dist` as above, `reg_gatherers[r]++`;
+      its `gatherers++` and `peasant_dist` (§73), `reg_gatherers[r]++`;
       `8` or `0xe` (build/repair through a boarded transport) →
       `reg_xport_peasants`, `xport_peasants++`.
 11. **The building census** — every active building of mine (the build
@@ -9099,3 +9099,104 @@ knowledge untouched).
 - **Coverage**: the term is diff-backed by run221's `resource_cap` rows
   and by the draw stream through 16682. The has-preq order (3, 2, 1) is a
   reading, and with equal constants no run can falsify it.
+
+## 73. A gatherer counts in its building's city, and the word moves to 16982 (2026-09-25, item 752)
+
+East Indies' word was **16683**: ours 6 draws against 7, parting at index
+5. The original spends six `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+idle wraps before `Farms::inc_time+0x1ae`; ours spends five (`1/18`'s two
+crew figures, `1/19`, `1/20`, `1/54`). No dump held the frame, so run227
+was taken over it ([16230, 16935), `docs/RUNS.md`).
+
+### 73.1 What the disk said before the capture
+
+The stream agrees in count and sequence on every frame to 16682 and again
+on 16684. Four of ours' five wraps are three-frame crew idles that wrapped
+on 16680 too. A `cover=0` trace names no unit, so the original's sixth has
+no owner there. run221's last block, 16236, holds every figure's `GUY`
+record, and no figure clock parts on it. The two city rows that do part
+there were read as floor rows and not as a cause; §73.3 is the correction.
+
+### 73.2 The readings, and what killed each
+
+Written in run227's stanza before launch. Each killer tests the figure,
+not the first row.
+
+- **R2, a figure both sides hold wraps there and not here, because its
+  clock or state differs.** Holds. On block 16684 the original's `1/46`, a
+  citizen idle since 16529 (`cur_anim 3`, `end_time 123`), has rolled
+  `cur_anim 2`, while ours is walking. Its record parts first on 16595,
+  on its order, not on its clock. On tick 16594, its seventh idle count
+  (`think_peasant`'s `idle − 2 ≡ 0 mod 5` gate, `docs/ORDERS.md` §5.9),
+  ours' `find_gather_spot` sends it to the woodcutter `1/2009`. The
+  original's finds nothing and leaves it standing to 16934.
+- **R3, the original holds one more figure.** Killed: no figure's
+  animation changes on one side only other than these, and the roster
+  agrees.
+- **R4, the farm's tick differs.** Killed by the stream (both farms' draws
+  follow every wrap on 16683) and by the record: no farm and no farmer
+  parts under the word.
+
+### 73.3 Why ours crosses and the original does not
+
+`find_gather_spot` walks to a building of another city only when its own
+city's `free + gatherers` (`CityData +0x5a`, `+0x5c`) is more than two
+above the other's (`crosses_to`). ours' census on 16594 read London `1 +
+13` against the second city's `0 + 10` and crossed. The dump reads `1 + 11`
+against `0 + 12` and does not. The totals agree (23). The split does not,
+and it had not for as long as run221 prints it: `city:gatherers` 11/11
+here against 10/12 on the window's first block, a floor row.
+
+Two woodcutters make the split, `1/50` and `1/61`. Both stand nearer
+London than their camp's city, and both work `1/2009`, the second city's.
+This crate counted a gatherer in the **nearest** city,
+`census_find_city`'s. `plan_strategy@006b9620` counts it in its
+**building's** city.
+The decompiler shows it as a reuse of `iVar25`. The listing is plain:
+`edi` holds the found city through the arm, and `6babfb`
+`movswl 0x72(%eax), %edi` overwrites it with the target building's `city`
+once the building is the leader's own and its `city` is not negative. Then
+`busy++` at `6bac19`, `gatherers++` (`incb 0x5c`) at `6bac3c` and the
+`peasant_dist` minimum after it all index `edi`. The distance written is
+still the found city's, `objects+0x1fc`. §2.3 step 10's line said
+"the target building's city" and then "`city.gatherers++`", and the code
+had read the second `city` as the found one. The line is amended.
+
+### 73.4 The fix
+
+`Sim::census_citizen`'s GATHER arm keeps the found city and replaces it
+with the target building's city under the listing's conditions. `busy`,
+`gatherers` and `peasant_dist` then go to that city. The unit test is
+`a_gatherer_counts_in_its_building_s_city_not_the_nearest`, made to fail
+on the old rule first.
+
+### 73.5 What it moved
+
+- **The value diff** (run227, the word's own frame and the block before).
+  The two cities' counts on the window's first block go. So do `1/46`'s 24
+  rows from 16595, `1/2009`'s `gather_down` head (46 against 61) and
+  `1/54`'s two rows on the word's block, where the extra draw had moved
+  its roll. No figure's animation changes on one side on the word's
+  blocks. The 554 rows past the word go too. The floor goes 286/333/866 →
+  284/306/312.
+- **East Indies 16683 → 16982**, past run227's last block (16934). On
+  16982 ours spends 10 draws against 15, parting at index 4: the original
+  spends `Leader::make_stuff+0x63d`, a bought slot's expiry roll, where
+  ours spends `Animal::do_idle+0x83`. Under it on 16779, who=1's make-list
+  slot 1 reads `val` 22784 here against 91136 there. No mechanism is named.
+- run227's other rows past the word: the scout `1/0`'s order point and
+  formation mirror from 16782 (743's family).
+
+### 73.6 What this has *not* established
+
+- **A gatherer with no friendly city in its region, working a building
+  that has one.** The original counts it in the building's city, and this
+  crate does too. Its `peasant_dist` would read the search's untouched
+  `find_dist`, 99,999,999, truncated to a short. That is a seam, skipped
+  here: no capture has one.
+- **When the split first parted.** It stands on run221's first block,
+  15894, and on its last. The earlier captures' floors are not read for it.
+- **Coverage**: the rule is diff-backed. run227's `city:gatherers` rows
+  agree on every block, and `1/46` does not leave. The listing settles
+  the register. `busy`'s move to the building's city was already built and
+  agreeing.
