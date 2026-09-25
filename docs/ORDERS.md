@@ -1629,7 +1629,11 @@ has no gate. An AI-controlled citizen (`unit_masks &
 site that is not active and whose owner is not human wants `max(4, helpers)`
 builders (more for a wonder) and recruits with `find_unit(SEARCH_FRIENDLY,
 0xf00, FILTER_TYPE PEASANTS, FILTER_NOT_BUSY)` → `add_build_order(site,
-QUEUE_NEW, 0)`. The same function resets `helpers` and `build_masks & 0x800`
+QUEUE_NEW, 0)`. ~~(any site)~~ **Only a wonder or an undamaged fort
+recruits** — `is_wonder() || (ptype.is_fort() && damage == 0)`, Build
+vslot `+0x2c` and `ObjectTypeData` vslot `+0xfc` by the PDB — a gatherer
+counts as not busy, and `helpers` is read *before* the reset below: item
+715, `docs/AI.md` §69. The same function resets `helpers` and `build_masks & 0x800`
 every frame (`docs/CITIES.md` §3.3).
 
 ---
