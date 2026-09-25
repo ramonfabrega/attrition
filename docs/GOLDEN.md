@@ -1295,8 +1295,8 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | MoveOrder, GroupMoveOrder | `CommandManager::issue_move_to@00941720` | 9, the first issuer chapter (§17; the lab validated the issuer) |
 | ExploreToOrder, FleeToOrder | the same entry point, trailing selector: `issue_move_to` copies the `orders` byte, and `add_move_facing_order@005e55c0` picks the class at process time; a squad gets one a member and no group order | 16, explore and flee (§24) |
 | PatrolOrder, GroupPatrolOrder | `CommandManager::issue_patrol@00941800`; `PatrolOrder` is never constructed alone (`docs/ORDERS.md` §7.7) | 10, the patrol line (§18) |
-| AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860` | 6 |
-| AirOrder | `CommandManager::issue_flight@00941d40` | — |
+| AirPatrolOrder | **channel** (`bird`), and `CommandManager::issue_launch_patrol@00941860`; and a player's strike at a target it cannot see (`Unit::do_strafe@005eab00`) | 6; 17, the flight line (§25) |
+| AirOrder | ~~`CommandManager::issue_flight@00941d40`~~ **no class of its own**: `AirOrder` is a base, printed as the `AIRORDER` block of a `STRAFEORDER` or an `AIRPATROLORDER` (`docs/ORDERS.md` §32) | 17, the flight line (§25), under both |
 | AirAttackGroundOrder, AttackGroundOrder | `CommandManager::issue_attack_ground@009417a0`; AttackGroundOrder also auto, `Unit::fight`'s siege arm (`docs/COMBAT.md` §57) | 3 (the restage) |
 | GuardOrder | `CommandManager::issue_guard@00941ed0`; also an army's escort (`docs/ORDERS.md` §24) | 4 (the AI's escort); 11, the guard line (§19) |
 | FollowOrder | `CommandManager::issue_follow@00941e70` | 12, the follow line (§20) |
@@ -1308,7 +1308,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | CastOrder | `CommandManager::issue_spell@00941b80` | 8 stages the Spy; the cast needs the issuer |
 | RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
 | BoardOrder, AwaitBoardOrder | `CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer | unresolved |
-| StrafeOrder | no command type of its own; a mounted or air attack on the move | unresolved |
+| StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
 | SpecialAnimOrder | **not** `anim`, which pokes `Guy::set_anim@005da300` | unresolved |
 | UnitOrder, GroupOrder, ThinkOrder | base classes, entered by everything | all |
 
@@ -1359,6 +1359,7 @@ below without a run take their number at booking (the eleventh pass).
 | 210 | fourteen, the formation line | `[605, 1150)` | an issuer the AI never uses: a three-squad group told Envelop standing and Line on the move through `issue_form` from the DLL, with `GROUPS=1` for the pool (§22) — **run 2026-09-25 (item 723), 97 MB, 284 s; the pool did not come out; falsifier 4 fired in its letter: the re-form on the spot is a plain `MOVEORDER` a member, not a `GroupMoveOrder`; no `FORMORDER` anywhere; the walking group halted and replayed in Line as read, arriving 905–926; word ~~631~~, closed at 1150 (item 723: the command entered, an equal group's record kept by `push_group`, the replay to `orig`)** |
 | 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
 | 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
+| 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3240,3 +3241,208 @@ where the original reads `order_type() == FLEE_TO`; the scratch walk with
 it corrected was identical, because neither flee path crosses a seen
 cell whose extra is above 0. A flee over seen rough ground, or past an
 enemy's danger, would reach it.
+
+## 25. Chapter seventeen — the flight line, an issuer the AI rarely takes (item 746)
+
+**Premise.** `CommandManager::issue_flight@00941d40` makes **one
+`StrafeOrder` (type 16) an aircraft, never a bare `AirOrder`**. `AirOrder`
+has no `OrderIndex` of its own. It is a base of `StrafeOrder : AttackOrder,
+AirOrder`, of `AirPatrolOrder` and of `AirAttackGroundOrder`, and the
+dump prints it as the `AIRORDER` block inside a `STRAFEORDER`
+(`StrafeOrder::log_data@0047fd80`, `AirOrder::log_data@0047fa40`).
+- A flight to one's own Airbase (`MOVE_TO`) is a target-less strafe home,
+  `returning 1`.
+- A flight at an enemy (`ATTACK`) re-points a strafe already flying.
+- **An aircraft `add` placed on the ground takes no strike at all.**
+
+Three of the last four premises died on the class, so the emulator went
+first. `tools/gamelog/golden/chapter17.cmd` has the reading, citation by
+citation.
+
+**The issuer, under the emulator first**, on
+`tools/explore/command_oracle.py`'s fixture widened to who=0's objects 6
+and 7 as captains (a scratch script in the job's tmp dir).
+- **One call appends a 25-byte `flight`** (type 0x1c, `[ox][whom][shift]
+  [ctrl][alt][orders]`) behind a fresh `group`: 5 bytes for one aircraft
+  (30 in all), 7 for the pair (32). A repeated selection is the 3-byte
+  reuse (28).
+- `MOVE_TO` (1) and `ATTACK` (10) differ in the `orders` word alone. The
+  issuer tests neither the target nor the aircraft, and a target of −1
+  rides through.
+- A non-captain is dropped. `use_mp_playback`, `semaphore & 0x10` and
+  `semaphore & 4` each append nothing.
+- **It writes** the package and the selection caches and nothing else,
+  as in §17 and §24: no order, no unit, no draw.
+- **What the emulator cannot reach** is the class:
+  `CommandPackage::process_flight@00947db0` → `Group::action_flight@
+  006fb260` → `Unit::add_strafe_order@005e48c0`, at process time.
+- **The DLL's two new verbs.** `@flight` and `@strike` call `issue_flight`
+  with `MOVE_TO` and `ATTACK`. These are what `Console::execute_at_cursor@
+  007c6630:2849` and `:2835` pass through `GroupOut::issue_flight@
+  00708b10`: a right-click on one's own base, and a right-click on an
+  enemy. Both compile `-Werror`, plain and under `RON_AUTOSTART`.
+
+**The reading** (`chapter17.cmd` has it whole).
+- **`action_flight`'s member loop** skips a member that already stands in
+  the base.
+  - A member already on a `STRAFE` has that order re-pointed. `ATTACK`
+    writes the target, and with fuel left `returning 0`, `mandatory 1`
+    and the action bit.
+  - Any other member needs to be "inside" for `ATTACK`: the home of an
+    `AIR_PATROL` or `AIR_ATTACK_GROUND`, or else
+    `ObjectData::get_inside@00651a80`, which is −1 for an aircraft `add`
+    placed. `MOVE_TO` does not need it.
+- **The home.** `MOVE_TO` gives `add_strafe_order(−1, −1, base, who, 1,
+  QUEUE_NEW, 1)`: a strafe with no target, `returning 1`, `cruising_alt`
+  0x640, home `oxx/whose` the base.
+- **The flight** is `Unit::do_strafe@005eab00` → `Unit::do_air_physics@
+  005e86d0`.
+  - On every eighth frame, `(o + frame) & 7 == 0`, a **non-bomber**
+    redraws `cruising_alt` from `Random::get(0, 0xffff)`. A Bomber
+    (`is(BOMBER)`) does not.
+  - `Unit::check_fuel@005e9be0` aims a returning plane at its base.
+  - `Unit::land_plane@005e9950` clears the strafe and adds a
+    `SpecialAnimOrder` (type 25) on the base, which ends in `go_inside`.
+- **The tank.** `mana_burn` climbs one a frame outside and refills 2
+  inside. `check_fuel` sets `returning` when the tank is empty: the
+  Bombers on **1212** and **1214**.
+- **An idle plane in its base stays there.** `Object::do_launch@0064f3b0`
+  launches only a plane with an order and a full tank.
+
+**The cast**, on chapter nine's open ground north of Napata (BASELAND,
+owner −1, no border). No enemy is within twelve tiles of the pad.
+- who=0's Airbase at tile (60, 72), **`0/2007`**: the id run175 gave
+  who=0's first staged building.
+- a Fighter `0/6` on the pad at tile (60, 84);
+- a Bomber pair, `0/7` at (52, 84) and `0/8` at (68, 84);
+- who=1's Barracks at tile (110, 86), **`1/2006`**, ~42 tiles from the pad.
+
+**Lines.**
+- `0 !ai off`; `600 library who=0 6` for the Modern age.
+- `606 add airbase who=0 60,72`; `610 add fighter`, `612` and `614 add
+  bomber`, all `who=0`; `616 add barracks who=1 110,86`.
+- `620 @strike 0 2006 1 7 8`: the pair on the ground, at the enemy.
+- `640 @flight 0 2007 0 6`: the Fighter home to its base.
+- `660 @flight 0 2007 0 7 8`: the pair home.
+- `664 @strike 0 2006 1 7 8`: the pair, now flying, at the enemy.
+
+A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1400)`, beside run105's `start:`
+set: run215's levels, the line whose pool printed (parked 733). The window
+reaches the pair's landing after their tanks run dry.
+
+**The premise's killer, and its writers** (§3, point 5).
+- **The order stack of each commanded aircraft on its processed block**:
+  anything but one `STRAFEORDER` where one is predicted, or any order where
+  none is.
+- The class's writer on this path is `add_strafe_order`'s
+  `get_obj(STRAFE)`. Its target and `returning` are rewritten by
+  `action_flight`'s STRAFE arm, by `do_strafe` and by `check_fuel`.
+  - `do_strafe` turns a dead target with a valid point into an
+    `AirPatrolOrder` over it, and re-targets a live one `QUEUE_FIRST` by
+    `find_new_bomber_target` every sixteenth frame.
+  - The one other air strike, `add_air_attack_ground_order`, needs a
+    missile's `0x8000000` and is not reached.
+- **The loops' bounds.** `action_flight`'s member loop runs to
+  `group.num`: 1 and 2. `check_fuel`'s base search runs over `objects`
+  2000..`[who]+0x184` and 0..`[who]+0x15c`. `do_launch` walks its chain
+  to the first −1.
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frames 620, 640, 660 and
+   664: an `INFO 17` with a refusal, or no processed `flight` on the next
+   frame (`COMMANDMANAGER`).
+2. **An unbased aircraft takes a strike.** Block 622: `0/7` or `0/8` with
+   any order.
+3. **The class is not a strafe, or not home.** Block 642: `0/6` without
+   exactly one `STRAFEORDER` (type 16), target −1, `mandatory 1`, the
+   action bit, and an `AIRORDER` naming `0/2007` with `returning 1`.
+   Block 662: the same for `0/7` and `0/8`.
+4. **The strike is a new order, or not the target's.** Block 666: either
+   bomber with a second order, a target other than `1/2006`, `returning`
+   not 0, or a home other than `0/2007`.
+5. **The aircraft does not fly.** From 642 and 662: a pad never left, or
+   an air altitude that stays 0.
+6. **The landing is not the base's.** No `SPECIALANIMORDER` on `0/2007`
+   before `inside_up` reads 2007; `0/6` not inside by block 760.
+7. **The strike does not reach the point.** No damage on `1/2006` by
+   block 900.
+8. **They do not come home.** `returning` not set on the pair by 1230;
+   `0/7` and `0/8` not inside by 1400; fewer than three planes inside
+   `0/2007` at the end.
+
+**Where it should part.** This crate does not enter the flight command:
+the harness skips `@flight` and `@strike` by name. The Fighter's first
+`cruising_alt` draw would be block 642, `(6 + 642) & 7 == 0`, if
+`do_strafe` runs on the processed frame. So the first parting expected
+is 642: a draw the original spends and this crate does not, with the
+Fighter's order stack beside it.
+
+**Run 2026-09-25 as run223 (item 746)** (`docs/RUNS.md` has the tables;
+the second take, since the first stalled in DXVK's device setup).
+- **The premise's class holds.** All four commands reached the pump on
+  the next frame (`process_flight 621`, `641`, `661`, `665`). On 642 and
+  662 each aircraft holds exactly one `STRAFEORDER` (16): target −1,
+  `mandatory 1`, flags 4, `AIRORDER` `oxx 2007 whose 0 cruising_alt 1600
+  returning 1`, `xx/yy −1`. **No bare `AirOrder`, anywhere**; the class
+  that carries it is the strafe.
+- **The strike from the ground took nothing** (falsifier 2 did not fire):
+  no order on either bomber on 622.
+- **Falsifier 4 fired: the flying strike became a patrol.** On 666 each
+  bomber holds one **`AIRPATROLORDER` (17)** over (21120, 16512), the
+  Barracks' point, home `0/2007`, `returning 0`, flags 0. The STRAFE arm
+  did re-point the order, since the patrol carries its point.
+  `do_strafe`'s first step then found `valid_target` false and took its
+  dead-target arm: `kill_current_order` and `add_air_patrol_order(xx,
+  yy, home)`. The Barracks is unseen by who=0 on 665. **So a player's
+  strike at an enemy it cannot see is a patrol over the point, and the
+  patrol's own search takes the target once seen**: a `STRAFEORDER` on
+  `1/2006`, `mandatory 0`, no action bit, current in front of the patrol
+  on 777 (`0/8`) and 778 (`0/7`).
+- **At the point.** Bombs land from 822 (damage 285 on 850, 951 on
+  1000); the Barracks is gone on **1080**, the strafe drops on 1081 and
+  the patrol resumes.
+- **Home again.** The Fighter flies 642–721 (guy `z` to ~550;
+  `cruising_alt` redrawn 1600 → 1300 on 643, 1500 on 659) and is inside
+  `0/2007` on **722** with an empty stack, refuelled 2 a frame to 0 by
+  778. **No `SPECIALANIMORDER` is ever dumped** (falsifier 6 fired in
+  its letter): the landing's animation starts and ends inside one frame.
+  The pair's tanks run dry on 1212 and 1214 (`returning 1`, as read),
+  and both are **still flying home on 1399** (falsifier 8 fired on the
+  landing). The base's count at the end is one, `0/6`.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_SEVENTEEN` = 642, open.**
+As predicted, 642 is the first frame of the Fighter's strafe home. The
+original spends its `cruising_alt` redraw, `Random::get` at
+`Unit::do_air_physics+0xba` (`0x5e878a`): 7 draws against 5 + 1, parting
+at draw 0. The first pin had the harness skip both verbs by name. Its
+widening over (605, 645) named the pushed selections, the pair's `group`
+on 622, and the Fighter standing with no order on 642.
+- **The command entered** (item 746, `docs/ORDERS.md` §32):
+  `input::group_flight` → `Sim::group_action_flight`, and the strafe's
+  row compared.
+- On the widening, now (605, 667), every `STRAFEORDER` row agrees on 642
+  and 662, the pushes with them.
+- **What stands is the flight**:
+  - each aircraft's first step on its processed block;
+  - the Fighter's redraw on 643 (1600 → 1300);
+  - the strike turned `AIRPATROLORDER` on 666, a class this crate has no
+    body for;
+  - past the word, the one-draw shift in the citizens' and the scout's
+    rows;
+  - in the pool, the pushed groups' point, (0, 0) there and (−1, −1)
+    here, and item 738's `get_num` speeds.
+
+**What moving the word takes is the flight**, bigger than an item and
+listed in `docs/ORDERS.md` §32:
+- the `cruising_alt` draw with the climb (`pitch_aircraft`) and the step,
+  built onto the bird's bank in `crate::air`;
+- `check_fuel`'s approach, `land_plane` and `go_inside` for a plane, and
+  the tank;
+- the `AirPatrolOrder` a dead or unseen target becomes, with the patrol's
+  search and its bombing.
+
+A draw alone would move the word with the positions already parted, which
+is the trap DECISIONS 42 names, so it was not taken.

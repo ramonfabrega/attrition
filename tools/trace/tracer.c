@@ -514,7 +514,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Nine verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Thirteen verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -531,6 +531,11 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@amove <who> <x> <y> <o> [<o> ...]`  `@move`'s fields, ATTACK_TO
  *   `@explore <who> <x> <y> <o> [<o> ...]` `@move`'s fields, EXPLORE_TO
  *   `@flee <who> <x> <y> <o> [<o> ...]`   `@move`'s fields, FLEE_TO
+ *   `@flight <who> <ox> <whom> <o> [<o> ...]` an aircraft's flight to one's
+ *                                         own base or carrier, issue_flight
+ *                                         with MOVE_TO
+ *   `@strike <who> <ox> <whom> <o> [<o> ...]` an aircraft's flight at an
+ *                                         enemy, issue_flight with ATTACK
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -606,6 +611,15 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * friendly building's point, before a QUEUE_LAST `issue_garrison` of that
  * building; the verb issues the move alone, to the point it is given.
  *
+ * `@flight` and `@strike` call `CommandManager::issue_flight@00941d40(
+ * &command_manager, group, ox, whom, orders, shift 0, ctrl 0, alt 0)` and
+ * append a 25-byte `flight` (type 0x1c, `[ox][whom][shift][ctrl][alt]
+ * [orders]`) behind the group (item 746, `docs/GOLDEN.md` §25). `Console::
+ * execute_at_cursor@007c6630:2849` passes MOVE_TO through `GroupOut::
+ * issue_flight@00708b10` for aircraft right-clicked on their own base, and
+ * `:2835` ATTACK for aircraft right-clicked on an enemy. The target is not
+ * checked here: `Group::action_flight@006fb260` asks it at process time.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -627,6 +641,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_EJECT_ALL 0x541ca0u
 #define RVA_ISSUE_FORM 0x541580u
 #define RVA_ISSUE_ATTACK 0x5415e0u
+#define RVA_ISSUE_FLIGHT 0x541d40u
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -657,7 +672,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u32 before = *pkg_size;
     const u16 *t = text;
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
-     * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`:
+     * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
+     * 11 `flight`, 12 `strike`:
      * the issuer, its prologue
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -674,6 +690,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "amove ")    ? 8
                : issue_verb(&t, "explore ")  ? 9
                : issue_verb(&t, "flee ")     ? 10
+               : issue_verb(&t, "flight ")   ? 11
+               : issue_verb(&t, "strike ")   ? 12
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, ids[ISSUE_MAX];
@@ -695,8 +713,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * `&command_manager` into ecx. issue_attack's `sub esp, 0x14` is
      * followed by `push esi; mov esi, [ebp+0xc]`: it tests `ox` and
      * `whom` before it asks `check_accept_issue`. `@amove`, `@explore` and
-     * `@flee` are issue_move_to. */
-    static const u8 prologue[11][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * `@flee` are issue_move_to. issue_flight's is `sub esp, 0x1c`, for its
+     * 0x19-byte command; `@flight` and `@strike` are issue_flight. */
+    static const u8 prologue[13][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -706,10 +725,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
-    u32 rva = verb >= 8   ? RVA_ISSUE_MOVE_TO
+    u32 rva = verb >= 11  ? RVA_ISSUE_FLIGHT
+              : verb >= 8 ? RVA_ISSUE_MOVE_TO
               : verb == 7 ? RVA_ISSUE_ATTACK
               : verb == 6 ? RVA_ISSUE_FORM
               : verb == 5 ? RVA_ISSUE_EJECT_ALL
@@ -718,7 +740,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb >= 8   ? 0x16
+    u32 size = verb >= 11  ? 0x19
+               : verb >= 8 ? 0x16
                : verb == 7 ? 0x11
                : verb == 5 ? 0x11
                : verb >= 2 ? 0x0d
@@ -758,7 +781,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 5) {
+    if (verb >= 11) {
+        /* issue_flight(group, ox, whom, orders, shift 0, ctrl 0, alt 0):
+         * MOVE_TO (1) for `@flight`, ATTACK (10) for `@strike`. */
+        typedef void(__thiscall *flight_fn)(void *, void *, i32, i32, i32, i32, i32, i32);
+        ((flight_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
+                                    verb == 12 ? 10 : 1, 0, 0, 0);
+    } else if (verb == 5) {
         /* issue_eject_all(group, back_to_work 0, who -1, eject_o -1,
          * eject_who -1): the Eject button's bytes. */
         typedef void(__thiscall *eject_fn)(void *, void *, i32, i32, i32, i32);

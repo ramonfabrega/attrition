@@ -70,6 +70,11 @@ pub mod index {
     /// crate issues from one place: `Unit::fight`'s siege arm, an
     /// unpacked packer's shot at a unit (`docs/COMBAT.md` §57).
     pub const ATTACK_GROUND: u8 = 23;
+    /// `StrafeOrder` — [`super::Body::Strafe`], the one class
+    /// `CommandManager::issue_flight@00941d40` makes, through
+    /// `Unit::add_strafe_order@005e48c0` (`docs/ORDERS.md` §32). `AirOrder`
+    /// has no index of its own: it is this class's second base.
+    pub const STRAFE: u8 = 16;
 
     /// **The move family** — the seven kinds whose class derives from
     /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,
@@ -504,6 +509,35 @@ pub struct GuardOrder {
     pub retry: i32,
 }
 
+/// `AirOrder::cruising_alt` as `Unit::add_strafe_order@005e48c0` writes
+/// it (`+0x30`, 0x640): the altitude a flight climbs to before
+/// `do_air_physics` redraws it (`docs/ORDERS.md` §32).
+pub const CRUISING_ALT: i32 = 0x640;
+
+/// The fields of `StrafeOrder : AttackOrder, AirOrder` (0x54,
+/// `docs/ORDERS.md` §1.1, §32), as `Unit::add_strafe_order@005e48c0`
+/// writes them and the dump prints them: the `TARGETORDER` row, the
+/// `ATTACKORDER`'s `mandatory`, the `AIRORDER` row and the strafe's own
+/// `xx yy`. `sharp_turn` and `old` are the constructor's 0 on every
+/// order this crate makes, so they are not carried.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StrafeOrder {
+    /// `TargetOrder::ox/whom` (`+0x8/+0xc`): what it strikes, `None` (−1)
+    /// for a flight home.
+    pub target: Option<Obj>,
+    /// `AttackOrder::mandatory` (`+0x1c`).
+    pub mandatory: bool,
+    /// `AirOrder::oxx/whose` (`+0x28/+0x2c`): the home base.
+    pub home: Option<usize>,
+    /// `AirOrder::cruising_alt` (`+0x30`), [`CRUISING_ALT`] when added.
+    pub cruising_alt: i32,
+    /// `AirOrder::returning` (`+0x3c`): 1 for a flight with no target.
+    pub returning: bool,
+    /// `StrafeOrder::xx/yy` (`+0x40/+0x44`): the target's point, `None`
+    /// (−1) without one.
+    pub at: Option<Pos>,
+}
+
 /// The fields of `AttackGroundOrder` (`docs/ORDERS.md` §1.2, §26):
 /// `+0x4 att_x, +0x8 att_y, +0xc accuracy, +0x10 attack_unit`, as the
 /// dump prints them.
@@ -539,6 +573,7 @@ pub enum Body {
     Follow(FollowOrder),
     AttackGround(AttackGroundOrder),
     Patrol(PatrolOrder),
+    Strafe(StrafeOrder),
     Think,
 }
 
@@ -585,6 +620,7 @@ impl Order {
             Body::Follow(_) => index::FOLLOW,
             Body::AttackGround(_) => index::ATTACK_GROUND,
             Body::Patrol(_) => index::GROUP_PATROL,
+            Body::Strafe(_) => index::STRAFE,
             Body::Think => index::THINK,
         }
     }
@@ -1411,6 +1447,55 @@ impl Sim {
         self.update_action(u);
     }
 
+    /// `Unit::add_strafe_order(ox, whom, home_o, home_who, mandatory,
+    /// queue, action)@005e48c0` (`docs/ORDERS.md` §32): a `StrafeOrder`
+    /// with the target, its point in `xx/yy`, `returning` set exactly when
+    /// there is no target, the home base, `cruising_alt` 0x640, and the
+    /// action bit as asked. The `QUEUE_NEW` head and the `QUEUE_FIRST`
+    /// rotation are [`Self::enqueue`]'s, as for `add_guard_order`.
+    ///
+    /// SEAM: the missile arm at its head — a type with `unit_flags &
+    /// 0x8000000` and a valid target becomes `add_air_attack_ground_order`
+    /// at the target's point — is not taken: no missile reaches a flight
+    /// here.
+    pub fn add_strafe_order(
+        &mut self,
+        u: usize,
+        target: Option<Obj>,
+        home: Option<usize>,
+        mandatory: bool,
+        pos: QueuePos,
+        action: bool,
+    ) {
+        let at = target.map(|t| self.pos_of(t));
+        let order = Order {
+            flags: if action { flag::ACTION } else { 0 },
+            body: Body::Strafe(StrafeOrder {
+                target,
+                mandatory,
+                home,
+                cruising_alt: CRUISING_ALT,
+                returning: target.is_none(),
+                at,
+            }),
+        };
+        self.enqueue(u, order, pos);
+    }
+
+    /// `Unit::do_strafe@005eab00`, the air order a flight is.
+    ///
+    /// SEAM: **the flight is not modelled** (`docs/ORDERS.md` §32,
+    /// `docs/GOLDEN.md` §25). The original flies the order through
+    /// `Unit::do_air_physics@005e86d0`: a non-bomber's `cruising_alt`
+    /// redraw on every eighth frame (`Random::get` at `+0xba`, the draw
+    /// chapter seventeen's word 642 is), the climb, the bank and the step;
+    /// `Unit::check_fuel@005e9be0`'s approach and `Unit::land_plane@
+    /// 005e9950`'s landing inside the base; a dead or unseen target turned
+    /// into an `AirPatrolOrder` over its point; and the re-targeting. This
+    /// crate's aircraft holds the order where it stands and spends
+    /// nothing: no idle, no draw.
+    fn do_strafe(&mut self, _u: usize) {}
+
     /// `UnitData::find_def_pos`: an existing DEFENSIVE attack's post, else a
     /// head move carrying the post flag, else the unit's own quarter-tile
     /// centre.
@@ -1737,6 +1822,7 @@ impl Sim {
             Some(Body::Follow(f)) => self.do_follow(u, f, frame),
             Some(Body::AttackGround(_)) => self.do_attack_ground(u, frame),
             Some(Body::Patrol(p)) => self.do_patrol(u, p),
+            Some(Body::Strafe(_)) => self.do_strafe(u),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
     }
