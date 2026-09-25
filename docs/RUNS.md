@@ -6909,3 +6909,52 @@ point lies within `0x5ff` of the leader (`ungroup_move_order`, its tail).
 A re-form on the spot always does. **A hypothesis, not a finding**: the
 orders were laid grouped on 621 and ungrouped on their first step. This
 crate models both `do_group_move` and the ungroup, so its walk will say.
+## run211 — Great Lakes' word 15608, past run202's last block (2026-09-25, item 722)
+
+**What it is.** run202's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[15435, 15860)`, plus `rontrace.cfg` `cover=1` and `window=15604-15612`
+over the word. `!quit` at 15870, through `viadriver.sh` with no human at
+the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 722
+```
+
+**Why it was owed.** Item 722 moved Great Lakes' word 15384 → 15608:
+`CityData::num_wonders` counts a wonder site (`docs/AI.md` §70). run202
+ends on block 15440, so the word's block 15609 is on no disk. On 15608
+ours spends 40 draws against 38, parting at index 0: ours throws
+`Army::find_target+0x410`, the difficulty gate's coin, where the
+original's first draw is the per-candidate score `+0x7df`. **Sized with
+250 blocks of runway** (DECISIONS 50 §7): six blocks shared with run202,
+the 168 up to the word, its block, and 250 above it. The readings and
+their kills are in the stanza.
+
+**Taken whole.** 933.7 MB of dump and 20.9 MB of trace, 425 blocks
+15435..15859. About 35 minutes from launch (06:54) to archive (07:29),
+with no human at the menu. Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 15,871 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **425 blocks, 15435..15859, no gap** |
+| a `GROUPDATA` on every window block | **425** |
+| overlap with run202, nothing excluded | **6 in common (15435..15440), 0 differ** |
+| the coverage window | a set on all 9 frames 15604..15612 |
+
+**What it settled** (`run211_s_word_frame_is_widened_whole`,
+`docs/AI.md` §70.5).
+- **R1 holds**: the checks above.
+- **R2 is not killed, and not shown.** Its killer did not fire: the
+  escort `1/77`/`1/78`, army 3's, parts in position on 15607. But army 3
+  is mustering, so the escort cannot be `find_aggressive_army`'s answer;
+  armies 1 and 2 are the candidates, and none of their units parts before
+  15609. The claim's own unit is an army's `pos` and its cell's owner,
+  which the dump does not print — a packet's question (run212).
+- **R3 holds.** Nothing parts on 15441..15606; the first rows, on 15607,
+  are the escort's (group 67, army 3), trading guard posts.
+- The floor is run202's walk (401, nothing on run202's runway since item
+  722), then 78 keys on run211's own blocks up to the word, and 1003 to
+  the window's end.

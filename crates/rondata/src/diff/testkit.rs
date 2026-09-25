@@ -2086,7 +2086,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// (block 15385 against its last, 15440); the new word's block is in
 /// `run202_s_word_frame_is_widened_whole` (the widening test), which also
 /// keeps the move's value diff on 15383 and 15384.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_384;
+///
+/// ~~**15384 is who=1's wonder arm.**~~ **Item 722 moved it 15384 →
+/// 15608, and the mechanism was `CityData::num_wonders`** (`docs/AI.md`
+/// §70): it counts a wonder *site*, and this crate counted finished
+/// wonders. On 15384's second `create_buildings` pass who=1's Pyramids
+/// site shuts its city out of the Colossus and the Hanging Gardens, so the
+/// original values two (city, wonder) pairs and this crate valued four.
+/// **The new word's delta (this constant's comment): ours 40 draws and
+/// the original 38, parting at index 0**: ours throws
+/// `Army::find_target+0x410`, the difficulty gate's coin, where the
+/// original's first draw is the score, `+0x7df`. **Past run202** (block
+/// 15609 against its last, 15440), so item 722 took **run211**; the new
+/// word's block is in `run211_s_word_frame_is_widened_whole` (the
+/// widening test), and `run202_s_word_frame_is_widened_whole` keeps the
+/// move's value diff: nothing parts on 15385..15440.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 15_608;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3638,6 +3653,14 @@ pub(crate) const GREAT_LAKES_MIRROR_BLOCK: i64 = 15_384;
 /// [`WIDENING_GREAT_LAKES_MIRROR`]; the coverage driver reads run202 from
 /// two blocks under [`GREAT_LAKES_MIRROR_BLOCK`] to two over this one.
 pub(crate) const GREAT_LAKES_RECRUIT_BLOCK: i64 = 15_385;
+/// `run211_s_word_frame_is_widened_whole`'s window (item 722):
+/// [`WIDENING_GREAT_LAKES_MIRROR`]'s chain, then run211 from run202's last
+/// block to its own, 15859 — 250 blocks of runway past the word's block.
+pub(crate) const WIDENING_GREAT_LAKES_WONDER: (i64, i64) = (11_400, 15_859);
+/// The block [`WIDENING_GREAT_LAKES_WONDER`] was taken to widen: the word
+/// 15608's frame writes block 15609, past run202. The coverage driver
+/// reads run211 around it.
+pub(crate) const GREAT_LAKES_WONDER_BLOCK: i64 = 15_609;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4079,12 +4102,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **Item 715 moved it 15383 → 15384**, inside run202: `Wall::process`'s
     // site recruiter (`docs/AI.md` §69). The same test pins the new word's
     // block, 15385, and keeps the move's value diff on 15383 and 15384.
+    //
+    // **Item 722 moved it 15384 → 15608**, past run202's last block
+    // (15440): `CityData::num_wonders` counts a wonder site (`docs/AI.md`
+    // §70). run202's test keeps the move's value diff on 15385..15440.
+    // **Item 722 paid it**: run211 is run202's line over [15435, 15859],
+    // and `run211_s_word_frame_is_widened_whole` walks it from run123's
+    // 11400 across twelve captures, so the window is
+    // [`WIDENING_GREAT_LAKES_WONDER`] and the test pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run202_s_word_frame_is_widened_whole"),
-        715,
-        Some(WIDENING_GREAT_LAKES_MIRROR),
+        Some("run211_s_word_frame_is_widened_whole"),
+        722,
+        Some(WIDENING_GREAT_LAKES_WONDER),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

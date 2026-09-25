@@ -8681,3 +8681,157 @@ owed. The coverage driver reads run202 15382..15387.
   block 15383 and every row of the widening to 15385. The gate's other arms
   — a fort, `helpers ≥ 4`, the rival count, a gatherer taken — rest on the
   reading and the unit test alone.
+
+## 70. A wonder site holds its city's wonder slot, and the word moves to 15608 (2026-09-25, item 722)
+
+Great Lakes' word was **15384**. On it this crate spent 51 draws against
+the original's 46, parting at index 4 on a third
+`Leader::create_buildings+0xffb`/`+0x1017` pair (§2.19's wonder arm) where
+the original's draw is `Animal::think_bird+0x82`. On block 15386 the make
+list's `MAKE[1].t` was 430 `SIEGEFACTORY` here and −1 there (run202,
+widened by item 715, §69.6).
+
+### 70.1 The frame, read whole before any reading
+
+run53's draw stream with `RON_DEBUG_SITES` and `RON_DEBUG_LEADER` over
+15376..15386, both sides:
+
+- **15384 is the step machine's second pass on both sides.** who=1 goes
+  8 → 9 on 15382 (the make step places the Pyramids `1/2026` and spends
+  three `use_market`, two `produce_building` and three `make_stuff`
+  draws), 9 → 10 on 15383 and runs `create_buildings` again on 15384
+  (§2.4's step 10). The first pass, on 15381, spent **six** pairs on both
+  sides: three wonder types (Pyramids 526, Colossus 527, Hanging Gardens
+  528) in two cities.
+- **On 15384 ours spends four pairs and the original two**, then the same
+  eleven birds. So the parting is a count of (city, wonder) pairs, not an
+  order: the original spends no third pair anywhere on the frame.
+- The Pyramids' own pairs are gone on both sides — who=1 has a site of
+  that type, and the ally walk drops it (`create_buildings@006c1be0:1360`,
+  `*local_18 != 0` on an ally, itself included). What remains is the Colossus and
+  the Hanging Gardens: four pairs here, two there. **Two pairs are one
+  city's.**
+- Ours also spends a third `Guy::set_anim+0x104b` at index 48 against the
+  original's two. It went with the pairs (§70.4), so it was their
+  consequence, not a second parting.
+- `MAKE[1]` on 15386 was the pairs' product: it went with them (§70.4).
+
+### 70.2 The readings, and what would kill each
+
+Written after the frame and before the fix. **`num_wonders` had been read
+by then** (the gate's one call), so R1 is not blind; it is stated with the
+killer it had to survive.
+
+- **R1: a gate the wonder arm reads for one city differs.** The arm's
+  city gate is `semaphore & 2 == 0 && num_wonders(city, 1) == 0 &&
+  (starting_resources != 7 || city_count > 1)` (`006c1be0:1293–1302`),
+  evaluated once per (city, wonder type) — the loop's bound is the
+  leader's cities times the wonder types the tree offers, six on 15381.
+  Killed if every field the gate reads agrees for who=1 on 15384 *and*
+  both sides' readers of those fields agree. **The fields agree**: the
+  site `1/2026` is on city 0's chain in the dump (`city 0`, and `1/2022`'s
+  `city_down` is 2026), unfinished (`frame_started −1`, `job_counter 0`)
+  on both sides. **The readers do not**: `CityData::num_wonders@007382b0`
+  walks the chain and counts every object whose Build vslot `+0x2c`
+  (`BuildData::is_wonder`, `vtables.txt`) answers — a type range,
+  the wonders, `0x20e..0x21e` — that is not the Red Fort and, with the flag,
+  not the city building (`+8 & 0x20`). **Nothing reads `is_active`.**
+  This crate's `num_wonders` filtered `bd.active`. R1 survives, as a
+  reader difference.
+- **R2: the count is right and the order differs, so the bird draw is
+  displaced rather than missing.** Killed if the original spends its own
+  `create_buildings` pair later on 15384. **Killed by the trace**: its 46
+  draws hold two pairs, at 0–3, and none after.
+- **R3: 715's recruiter changed `1/70`, and that sends the leader into the
+  arm.** Killed if `1/70` agrees field for field on 15383. **Killed by the
+  pinned widening**: `run202_s_word_frame_is_widened_whole` asserts
+  nothing of `1/70` parts on 15383..15385.
+
+### 70.3 The fix
+
+`City::num_wonders` (`crates/sim/src/city.rs`) drops its `active` filter.
+Its three readers are the original's three that this crate carries, and
+all three move with it:
+
+- `create_buildings`' wonder gate (§2.19): a city with a wonder site
+  values no wonder at all;
+- `blocked_site`'s wonder clause (`docs/CITIES.md` §2.6.4, `> Egyptians`):
+  a second wonder cannot be placed in a city whose first is a site;
+- `do_construct`'s start test (`docs/CITIES.md` §3.3, `≤ 1 + Egyptians`):
+  the bound was always written for a site that counts itself, and with
+  the old filter it admitted one wonder too many.
+
+`Army::find_target`'s `num_wonders(city, 0)` (the `× 10` clause, `docs/ARMY.md`
+§12) is not carried; it is gated on `wonderwin_timer`, which is not
+either (§69.7).
+
+`ai_build::tests::an_unfinished_wonder_site_shuts_its_city_out_of_the_other_wonders`
+places a site of a second wonder type in one of two cities and counts two
+draws, the other city's. It was made to fail with the filter restored
+("the site counts").
+
+### 70.4 What it moved
+
+Measured on `745c91f`, based on `2355946`:
+
+- **Great Lakes 15384 → 15608.** On 15384 both sides spend 46 draws
+  draw for draw, and 15385 and 15386 agree too. On 15608 this crate
+  spends 40 against the original's 38, parting at index 0: ours throws
+  `Army::find_target+0x410`, the difficulty gate's coin (`docs/ARMY.md`
+  §12), where the original's first draw is the per-candidate score
+  `+0x7df`. The coin is thrown only when `find_aggressive_army` answers −1.
+- **East Indies holds at 15985**, its delta unchanged (ours 5 against 6,
+  parting at index 4).
+- **The value diff** (`run202_s_word_frame_is_widened_whole`): the three
+  rows on 15386 are gone, and **so is every key that first-parted on
+  run202's runway**. Nothing first-parts on 15385..15440, and the floor
+  goes 400/1/624 → 400/1/401. The rows standing on 15384 and 15385 are
+  unchanged (315, 316): they are the floor's.
+
+### 70.5 The new word's block, 15609, on run211
+
+15609 is past run202's last block, so run211 was taken: run202's line
+over [15435, 15860), 250 blocks of runway (`docs/RUNS.md`).
+`run211_s_word_frame_is_widened_whole` walks it from run123's 11400
+across twelve captures. Floor 401/78/1003: run202's 401, then run211's
+own 78 up to the word's block.
+
+- **Nothing parts on 15441..15606.**
+- **On 15607 the Despot's escort trades posts.** The Longbowmen `1/77`
+  and `1/78` — group 67, who=1's army 3 with The Despot `1/79` and
+  `1/76` — each walk toward the post the other holds in the original:
+  `1/77`'s `orders_x`/`orders_y` are (41976, 21672) here, `1/78`'s there,
+  and the reverse. On 15608 their `GUARDORDER`s carry the swapped posts.
+  That is item 711's shape (`docs/GROUPS.md` §25) and sits beside
+  parked 716 (`1/79`'s move `facing`) and 717 (the mirror bit's unwired
+  readers).
+- **On 15609** `1/3`'s move target and `1/61`'s clock part.
+- **The coin is probably not the escort's.** `find_aggressive_army`
+  wants an army with two captains, not mustering, outside its own land.
+  This crate's who=1 armies on 15608 (`RON_DEBUG_ARMIES`): army 3, the
+  escort, is status 17 (mustering); armies 1 and 2 are status 18 with
+  three and eight captains, and none of their units parts before the
+  word's block (`1/61`, army 2's, parts on it — a clock). So what the
+  predicate reads differently is an army's own `pos` or the owner of
+  its cell, and neither is dumped per frame. **A packet at 15607
+  (run212, `docs/EMULATOR.md` §8) reads the original's army records.**
+  No mechanism is named (DECISIONS 42).
+
+The coverage driver reads run211 15607..15611, and the compared pin walks
+the same window: `OrderDump.coll_x`/`coll_y` are compared there and left
+the pin.
+
+### 70.6 What this has *not* established
+
+- **The other two readers are not diffed.** `blocked_site`'s wonder
+  clause and `do_construct`'s start test move with the count, and no
+  widening on file was checked for a frame that exercises either (a
+  second wonder placed in a city holding a site, or started beside a
+  finished one). Reading-only: the decompile's
+  `num_wonders` and the two comparisons in `docs/CITIES.md` §2.6.4 and
+  §3.3.
+- **`find_target`'s `num_wonders(city, 0)`** is not carried (§70.3).
+- **Coverage**: the wonder gate on 15384 is diff-backed, by the draw
+  stream (four pairs → two) and by every row of run202's runway. The
+  unit test covers a site of a second type; a site of the same type is
+  the ally walk's, already covered.
