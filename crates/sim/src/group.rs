@@ -975,6 +975,26 @@ impl Sim {
             .map_or(-1, |s| who * 64 + i64::from(s))
     }
 
+    /// The record half of `who`'s pool slot `s` — an army's or a pushed
+    /// group's, whichever [`Sim::pool_list`] would list — for a widening
+    /// that compares the dump's `GROUPDATA` whole (`docs/GOLDEN.md` §23).
+    pub fn pool_state(&self, who: Player, s: u8) -> Option<&GroupState> {
+        let w = who as usize;
+        let army = self
+            .armies
+            .get(w)
+            .into_iter()
+            .flat_map(|x| x.list.iter())
+            .find(|a| a.valid && a.group.pool == Some(s))
+            .map(|a| &a.group);
+        army.or_else(|| {
+            self.pushed
+                .iter()
+                .find(|p| p.who == who && p.state.pool == Some(s) && !p.list.is_empty())
+                .map(|p| &p.state)
+        })
+    }
+
     /// The member list of the seat on `who`'s pool slot `s`, as object
     /// numbers in list order — what the dump's `GROUPDATA` prints under
     /// `id who·64 + s`. Empty for a slot nothing holds. For the diff

@@ -2985,3 +2985,23 @@ where the original's six charge and this crate's walk on.
   exactly the six points this crate predicted.
 - **The pool printed**: 330,240 `GROUPDATA` at `GUYS=4`, where run210's
   `GUYS=2` printed none.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_FIFTEEN` = 753, open.**
+The harness skipped `@attack`, so this crate's six walked on under the
+right-click where the original's charged from 736. The charge spends no
+draw until **753**: 6 draws against 7, parting at draw 0 on the
+original's `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+- **The widening** over (605, 755) holds the standing rows on 605, the
+  births' `form`, the right-click's group `id` on 622 (parked 689), and
+  on 736 105 keys of the six, every one of them the skipped attack's.
+  It failed first on an empty pin.
+- **The pool's widening**, `widen_pool`, is the first on a golden
+  capture: who=0's 64 slots, both directions, on what each holds. Slot 1
+  is the pushed selection from 621. Its **`stamp` (`+0x14`) is 621 in
+  the dump and 0 here**: this crate's pushed record never writes it. The
+  rest is the skipped attack's (`order_num`, `facing` on 736, `curr` on
+  738).
+- **The coverage pin** failed first on `process_attack`, pinned unread
+  beside its siblings. Its driver takes 620..624, 734..738, 751..755,
+  807..811, 860..864 and 1058..1062.

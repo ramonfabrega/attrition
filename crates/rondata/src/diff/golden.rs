@@ -608,6 +608,40 @@ fn chapter_fourteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter fifteen, pinned** — the group attack, an issuer the AI
+/// rarely takes whole (`docs/GOLDEN.md` §23, item 731, run215). Seven
+/// staged lines: `!ai off`, two Hoplite squads on 610 and 612 and a who=1
+/// Chariot on 614; a right-click `@move` on 620, an `@attack` on 734 and
+/// an `@amove` on 860.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run215): all three commands processed on the next frame; six
+/// `ATTACKORDER`s, `mandatory 1`, the action bit, on 736, and no
+/// `GroupAttackOrder` anywhere; the target last prints on 808; six
+/// `GROUPATTACKTOORDER`s on 862, standing on their points from 1080.
+///
+/// `GOLDEN_WORD_CHAPTER_FIFTEEN` carries what stands at the word.
+#[test]
+fn chapter_fifteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch15", "chapter15", 15, 7, 1250) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FIFTEEN,
+        "chapter fifteen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FIFTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FIFTEEN,
+        "chapter fifteen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §23"
+    );
+    eprintln!(
+        "chapter fifteen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6388,6 +6422,263 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
     .collect();
     want.sort();
     assert_eq!(got, want, "ch14: what parts under the word moved");
+}
+
+/// **One golden capture's `GROUPDATA` pool, widened whole, both
+/// directions** (item 731): on every block of `[first, last)`, each of
+/// `who`'s 64 slots that either side holds — the dump's record by its
+/// `id − who·64`, this crate's by [`sim::Sim::pool_state`] and
+/// [`sim::Sim::pool_list`] — compared on what the slot holds: the member
+/// list, the scalars this crate carries (`num`, `form`, `order_num`,
+/// `ox`/`oy`, `o_dist`, `o_angle`, `facing`, `form_num`, `speed`,
+/// `new_speed`, `stamp`) and each member's `off`, `curr` and `angle`.
+/// A slot one side holds alone is a `held` row. Returns each parted key's
+/// first block and row, keyed `(slot, key)`; `None` when the capture is
+/// not on disk. `id` is not compared: this crate numbers a pushed group
+/// by its seat (parked 689). `army`, `ox`'s AI fields `priority`, `role`,
+/// `think_frame`, `buildings` and `disband` are the AI's and a player's
+/// group writes none of them.
+#[allow(clippy::type_complexity)]
+fn widen_pool(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+    who: i64,
+) -> Option<std::collections::BTreeMap<(i64, String), (i64, String)>> {
+    use std::collections::BTreeMap;
+    let mut s = stage_script(run, stem)?;
+    let mut firsts: BTreeMap<(i64, String), (i64, String)> = BTreeMap::new();
+    let (mut blocks, mut records, mut rows) = (0usize, 0usize, 0usize);
+    for _ in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = s.built.sim.frame;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let flog = Log::parse(&raw);
+        let Some((_, block)) = flog.frames().into_iter().find(|(f, _)| *f == n) else {
+            continue;
+        };
+        let pool = crate::gamelog::groups(block);
+        assert_eq!(pool.len(), 512, "{run} block {n}: the pool is 512 records");
+        blocks += 1;
+        let w = sim::Player::try_from(who).unwrap();
+        for slot in 0..64u8 {
+            let id = who * 64 + i64::from(slot);
+            let theirs = pool.iter().find(|g| g.id == id).filter(|g| g.num > 0);
+            let list = s.built.sim.pool_list(w, slot);
+            let ours = s.built.sim.pool_state(w, slot);
+            if theirs.is_none() && list.is_empty() {
+                continue;
+            }
+            records += 1;
+            let slot = i64::from(slot);
+            let mut row = |key: String, o: String, t: String| {
+                rows += 1;
+                if o != t {
+                    firsts
+                        .entry((slot, key))
+                        .or_insert((n, format!("ours {o} theirs {t}")));
+                }
+            };
+            let (Some(t), Some(o)) = (theirs, ours) else {
+                row(
+                    "held".into(),
+                    format!("{list:?}"),
+                    format!(
+                        "{:?}",
+                        theirs.map(|t| t.members.iter().map(|m| m.o).collect::<Vec<_>>())
+                    ),
+                );
+                continue;
+            };
+            let tl: Vec<i64> = t.members.iter().map(|m| m.o).take(t.num as usize).collect();
+            let ol: Vec<i64> = list.iter().map(|&x| i64::from(x)).collect();
+            row("list".into(), format!("{ol:?}"), format!("{tl:?}"));
+            for (k, ov, tv) in [
+                ("num", ol.len() as i64, t.num),
+                ("form", i64::from(o.form), t.form),
+                ("order_num", i64::from(o.order_num), t.order_num),
+                ("ox", i64::from(o.o.x), t.ox),
+                ("oy", i64::from(o.o.y), t.oy),
+                ("o_dist", i64::from(o.o_dist), t.o_dist),
+                ("o_angle", i64::from(o.o_angle.0), t.o_angle),
+                ("facing", i64::from(o.facing), t.facing),
+                ("form_num", i64::from(o.form_num), t.form_num),
+                ("speed", i64::from(o.speed), t.speed),
+                ("new_speed", i64::from(o.new_speed), t.new_speed),
+                ("stamp", o.stamp, t.stamp),
+            ] {
+                row(k.into(), ov.to_string(), tv.to_string());
+            }
+            let slots = (o.form_num.max(0) as usize).max(t.form_num.max(0) as usize);
+            for i in 0..slots {
+                let tm = t.members.get(i);
+                row(
+                    format!("off[{i}]"),
+                    format!("{:?}", o.off.get(i)),
+                    format!("{:?}", tm.map(|m| (m.off_x, m.off_y))),
+                );
+                row(
+                    format!("curr[{i}]"),
+                    format!("{:?}", o.curr.get(i).map(|p| (p.x, p.y))),
+                    format!("{:?}", tm.map(|m| (m.curr_x, m.curr_y))),
+                );
+                row(
+                    format!("angle[{i}]"),
+                    format!("{:?}", o.angles.get(i)),
+                    format!("{:?}", tm.map(|m| m.angle)),
+                );
+            }
+        }
+    }
+    assert!(blocks > 0, "{run}: no block of the pool window was read");
+    eprintln!(
+        "{run} pool: {blocks} block(s), {records} slot record(s), {rows} row(s), \
+         {} key(s) part",
+        firsts.len()
+    );
+    Some(firsts)
+}
+
+/// **Chapter fifteen's word, widened whole, both directions** (item
+/// 731). Every record run215 carries on every block of
+/// [`WIDENING_CHAPTER_FIFTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the two squads `0/6`–`0/11` under their player move, attack
+/// and attack-move, and the Chariot `1/6` — every building, both leaders
+/// at `LEADERS=2`; and who=0's `GROUPDATA` pool by [`widen_pool`], the
+/// first golden capture whose pool printed (`GUYS=4`, `docs/RUNS.md`
+/// run215). run215 dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_fifteen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch15",
+        "chapter15",
+        WIDENING_CHAPTER_FIFTEEN,
+        1250,
+        0,
+        (751, 754),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch15 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_FIFTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch15: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_FIFTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch15", "chapter15", WIDENING_CHAPTER_FIFTEEN, 0)
+        .expect("run215 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch15 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §23). Each staged unit's `form` on its birth block, the standing
+    // family, and the right-click's group move `id` on 622, this crate's
+    // numbering of a pushed group (parked 689).
+    //
+    // **The first pin, word 753**: this crate could not take the attack
+    // command, and the harness skipped `@attack`. On 736 each of the
+    // original's six held an `ATTACKORDER` on `1/6` over an approach leg,
+    // where this crate's still walked the right-click's group move: 105
+    // keys of the six members part on that block, every one of them
+    // theirs. The rest follow from it: `0/11`'s step on 737, two
+    // `half_step`s on 742, and on 754 `0/9` stopped against `0/10`, the
+    // block after the word's extra `Unit::move_step+0x823` roll.
+    let charge: Vec<&String> = got.iter().filter(|r| r.starts_with("736 ")).collect();
+    assert!(
+        charge.len() == 105
+            && charge.iter().all(|r| {
+                let who_o = r.split_whitespace().nth(1).unwrap_or("");
+                matches!(who_o, "0/6" | "0/7" | "0/8" | "0/9" | "0/10" | "0/11")
+            }),
+        "ch15: the skipped attack's block moved ({}): {charge:?}",
+        charge.len()
+    );
+    got.retain(|r| !r.starts_with("736 "));
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "611 0/7 form",
+        "611 0/8 form",
+        "613 0/10 form",
+        "613 0/11 form",
+        "613 0/9 form",
+        "615 1/6 form",
+        "622 0/10 order:group.id",
+        "622 0/11 order:group.id",
+        "622 0/6 order:group.id",
+        "622 0/7 order:group.id",
+        "622 0/8 order:group.id",
+        "622 0/9 order:group.id",
+        "737 0/11 g.des_y[0]",
+        "737 0/11 g.y[0]",
+        "742 0/10 half_step",
+        "742 0/7 half_step",
+        "754 0/9 collide_guy",
+        "754 0/9 collide_o",
+        "754 0/9 collide_who",
+        "754 0/9 g.cur_anim[0]",
+        "754 0/9 g.cur_time[0]",
+        "754 0/9 g.end_time[0]",
+        "754 0/9 g.last_time[0]",
+        "754 0/9 g.stopped[0]",
+        "754 0/9 path:length",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch15: what parts under the word moved");
+    // **What parts in the pool.** Slot 1 is the pushed selection from
+    // 621 on. Its `stamp` (`GroupData +0x14`, the frame its membership
+    // last changed) is 621 in the dump and 0 here from the first block:
+    // this crate's pushed record never writes it. On 736 the skipped
+    // attack's `order_num` bump and the mirror `facing`, and on 738 the
+    // slot offsets `curr` rotated by a leader heading that is still the
+    // walk's here.
+    let mut want_pool: Vec<String> = [
+        "622 slot 1 stamp",
+        "736 slot 1 facing",
+        "736 slot 1 order_num",
+        "738 slot 1 curr[1]",
+        "738 slot 1 curr[2]",
+        "738 slot 1 curr[3]",
+        "738 slot 1 curr[4]",
+        "738 slot 1 curr[5]",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch15: what parts in the pool moved");
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).
