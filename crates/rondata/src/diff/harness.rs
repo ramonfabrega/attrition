@@ -2209,7 +2209,7 @@ pub(crate) mod tests {
 
     /// **The Great Lakes word's own window, walked by the shared
     /// instrument** (parked 527): the chain every widening past run196
-    /// replays, from run53's start through eleven captures, and the
+    /// replays, from run53's start through twelve captures, and the
     /// word's block with two on either side. `run202_s_word_frame_is_
     /// widened_whole` walks the whole window from the same chain;
     /// `coverage`'s compared pin walks only these blocks, with the
@@ -2243,6 +2243,10 @@ pub(crate) mod tests {
                 "gamelog-run202-greatlakes-mirrorword.txt",
                 WIDENING_GREAT_LAKES_PATRIOT.1 + 1,
             ),
+            (
+                "gamelog-run211-greatlakes-wonderword.txt",
+                WIDENING_GREAT_LAKES_MIRROR.1 + 1,
+            ),
         ]
     }
 
@@ -2250,7 +2254,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_RECRUIT_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_WONDER_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -11535,6 +11539,93 @@ pub(crate) mod tests {
         // key that first-parted on 15386..15440 was the wonder pairs'
         // (`docs/AI.md` §70), and nothing arrived.
         assert_eq!((under, mid, firsts.len()), (400, 1, 401), "the floor");
+    }
+
+    /// **run211 — Great Lakes' word 15608, widened whole, both directions**
+    /// (item 722). run202's line past its last block, over
+    /// [`WIDENING_GREAT_LAKES_WONDER`]: six blocks shared with run202, the
+    /// 168 up to the word, its block, and 250 past it. [`widen_great_lakes`]
+    /// from run123's 11400 across twelve captures, with every player-1
+    /// pool list from run135's first block.
+    ///
+    /// The word's frame, 15608, writes block **15609**.
+    #[test]
+    fn run211_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_WONDER_BLOCK;
+        /// run202's last block: everything above it is run211's.
+        const RUN202_TAIL: i64 = WIDENING_GREAT_LAKES_MIRROR.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run211",
+            &great_lakes_word_chain(),
+            WIDENING_GREAT_LAKES_WONDER,
+            11_800,
+            &[WORD_BLOCK - 1, WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (WIDENING_GREAT_LAKES_WONDER.1 - WIDENING_GREAT_LAKES_WONDER.0 + 1) as usize,
+            "the walk is whole"
+        );
+        let mut own: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            if (RUN202_TAIL + 1..=WORD_BLOCK).contains(f) {
+                *own.entry((*f, *w, *o)).or_default() += 1;
+            }
+        }
+        let own: Vec<(i64, i64, i64, usize)> =
+            own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
+        // **On run211's own blocks up to the word: the Despot's escort,
+        // then `1/3`.** Nothing parts on 15441..15606. On 15607 the
+        // Longbowmen `1/77` and `1/78` — group 67, who=1's army 3 with
+        // The Despot `1/79` and `1/76` — trade guard posts: each walks to
+        // the post the other holds in the original (item 711's shape,
+        // beside parked 716 and 717). On 15608 their guard orders carry the
+        // swapped posts, and on 15609 `1/3`'s move and `1/61`'s clock part.
+        // The word's coin is `find_aggressive_army`'s, whose candidates are
+        // armies 1 and 2 (not mustering, three and eight captains), and no
+        // unit of either parts before the word's block — `1/61`, army 2's,
+        // parts on it, a clock. The escort's army 3 is mustering. No
+        // mechanism is named (DECISIONS 42).
+        assert_eq!(
+            own,
+            [
+                (15_607, 1, 77, 22),
+                (15_607, 1, 78, 22),
+                (15_608, 1, 77, 12),
+                (15_608, 1, 78, 12),
+                (15_609, 1, 3, 8),
+                (15_609, 1, 61, 2),
+            ],
+            "who parts first on run211's own blocks up to the word's, and on how many keys"
+        );
+        let under = firsts.values().filter(|(f, _)| *f <= RUN202_TAIL).count();
+        let mid = firsts
+            .values()
+            .filter(|(f, _)| (RUN202_TAIL + 1..=WORD_BLOCK).contains(f))
+            .count();
+        assert_eq!(
+            (
+                standing.get(&(WORD_BLOCK - 1)).map_or(0, BTreeMap::len),
+                standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            ),
+            (364, 374),
+            "every row standing on 15608 and on the word's block, 15609"
+        );
+        // **The floor**: run202's walk exactly (400/1/401 — its runway
+        // parts nowhere since item 722), then run211's own 78 up to the
+        // word's block, and every key to the window's end.
+        assert_eq!((under, mid, firsts.len()), (401, 78, 1003), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
