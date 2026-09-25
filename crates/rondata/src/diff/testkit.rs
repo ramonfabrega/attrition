@@ -3071,6 +3071,28 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SIXTEEN: i64 = 1250;
 /// who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_SIXTEEN: (i64, i64) = (605, 1251);
 
+/// **Chapter seventeen's golden word** — the flight line (`docs/GOLDEN.md`
+/// §25, item 746, run223): a Fighter and a Bomber pair sent home to a
+/// staged Airbase through the DLL's `@flight`, and at who=1's Barracks
+/// through `@strike`, both `CommandManager::issue_flight@00941d40`.
+///
+/// **The first walk, 642, open.** The harness skips both verbs by name,
+/// since this crate does not enter the flight command. On 642, the first
+/// frame of `0/6`'s `StrafeOrder` home, the original spends the Fighter's
+/// `cruising_alt` redraw — `Random::get` at `Unit::do_air_physics+0xba`
+/// (`0x5e878a`), which a non-bomber throws when `(o + frame) & 7 == 0` —
+/// 7 draws against this crate's 6, parting at draw 0. On 644 this crate
+/// spends an idle roll for the Fighter, standing without an order, that
+/// the original does not.
+///
+/// **The delta**, this constant's: the first pin, 642, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 642;
+
+/// `chapter_seventeen_s_word_frame_is_widened_whole`'s window: (605,
+/// 645), the word 642 and the blocks either side (item 746). Its pool
+/// half, `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 645);
+
 /// **Chapter ten's golden word** — the patrol line, an issuer the AI
 /// never uses (`docs/GOLDEN.md` §18, run184): **1250 of 1250, closed**.
 /// 1250 is run184's trace end, and nothing parts on any frame of it:
@@ -4483,6 +4505,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_sixteen_s_word_frame_is_widened_whole"),
         738,
         Some(WIDENING_CHAPTER_SIXTEEN),
+    ),
+    // Item 746: run223, chapter seventeen's first walk at 642, on the
+    // flight this crate does not take: the Fighter's first
+    // `cruising_alt` draw on its strafe home.
+    (
+        "GOLDEN_WORD_CHAPTER_SEVENTEEN",
+        GOLDEN_WORD_CHAPTER_SEVENTEEN,
+        Some("chapter_seventeen_s_word_frame_is_widened_whole"),
+        746,
+        Some(WIDENING_CHAPTER_SEVENTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

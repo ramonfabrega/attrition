@@ -3379,3 +3379,36 @@ the harness skips `@flight` and `@strike` by name. The Fighter's first
 `do_strafe` runs on the processed frame. So the first parting expected
 is 642: a draw the original spends and this crate does not, with the
 Fighter's order stack beside it.
+
+**Run 2026-09-25 as run223 (item 746)** (`docs/RUNS.md` has the tables;
+the second take, since the first stalled in DXVK's device setup).
+- **The premise's class holds.** All four commands reached the pump on
+  the next frame (`process_flight 621`, `641`, `661`, `665`). On 642 and
+  662 each aircraft holds exactly one `STRAFEORDER` (16): target −1,
+  `mandatory 1`, flags 4, `AIRORDER` `oxx 2007 whose 0 cruising_alt 1600
+  returning 1`, `xx/yy −1`. **No bare `AirOrder`, anywhere**; the class
+  that carries it is the strafe.
+- **The strike from the ground took nothing** (falsifier 2 did not fire):
+  no order on either bomber on 622.
+- **Falsifier 4 fired: the flying strike became a patrol.** On 666 each
+  bomber holds one **`AIRPATROLORDER` (17)** over (21120, 16512), the
+  Barracks' point, home `0/2007`, `returning 0`, flags 0. The STRAFE arm
+  did re-point the order, since the patrol carries its point.
+  `do_strafe`'s first step then found `valid_target` false and took its
+  dead-target arm: `kill_current_order` and `add_air_patrol_order(xx,
+  yy, home)`. The Barracks is unseen by who=0 on 665. **So a player's
+  strike at an enemy it cannot see is a patrol over the point, and the
+  patrol's own search takes the target once seen**: a `STRAFEORDER` on
+  `1/2006`, `mandatory 0`, no action bit, current in front of the patrol
+  on 777 (`0/8`) and 778 (`0/7`).
+- **At the point.** Bombs land from 822 (damage 285 on 850, 951 on
+  1000); the Barracks is gone on **1080**, the strafe drops on 1081 and
+  the patrol resumes.
+- **Home again.** The Fighter flies 642–721 (guy `z` to ~550;
+  `cruising_alt` redrawn 1600 → 1300 on 643, 1500 on 659) and is inside
+  `0/2007` on **722** with an empty stack, refuelled 2 a frame to 0 by
+  778. **No `SPECIALANIMORDER` is ever dumped** (falsifier 6 fired in
+  its letter): the landing's animation starts and ends inside one frame.
+  The pair's tanks run dry on 1212 and 1214 (`returning 1`, as read),
+  and both are **still flying home on 1399** (falsifier 8 fired on the
+  landing). The base's count at the end is one, `0/6`.

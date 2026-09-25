@@ -254,10 +254,42 @@ const UNREAD: &[(&str, &str)] = &[
     // and with its 702 window the right-click's `process_move_to` and
     // `process_move_to_2` lines, which no chapter's window had held.
     // **Item 731's run215 windows `process_attack`** (`ox whom ignore
-    // queued frame`), the first player's attack on disk.
+    // queued frame`), the first player's attack on disk. **Item 746's
+    // run223 windows `process_flight`**, the frame alone, the same shape.
     (
         "GAME",
-        "process_attack process_eject_all process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
+        "process_attack process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
+    ),
+    // **Item 746's run223 windows are the first to print a player's air
+    // order**: the `STRAFEORDER` a flight home builds and the
+    // `AIRPATROLORDER` a strike on an unseen target becomes
+    // (`docs/GOLDEN.md` §25). Each carries an `AIRORDER` block —
+    // `oxx`/`whose`, the home base, `cruising_alt`, `sharp_turn`, `old`,
+    // `returning`, and its own `UNITORDER` copy — and the strafe its
+    // `xx`/`yy`, the target's point. This crate carries no air order yet,
+    // so nothing reads them: owed by item 746's command entry. The
+    // patrol's arrays are read as the ground patrol's are; their `size`,
+    // `increment` and `flags` are the allocation, as above.
+    (
+        "GAME/FRAME/UNITDATA/AIRPATROLORDER/AIRORDER",
+        "cruising_alt old oxx returning sharp_turn whose",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/AIRPATROLORDER/AIRORDER/UNITORDER",
+        "flags",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/AIRPATROLORDER/PATROLORDER",
+        "flags increment size",
+    ),
+    ("GAME/FRAME/UNITDATA/STRAFEORDER", "xx yy"),
+    (
+        "GAME/FRAME/UNITDATA/STRAFEORDER/AIRORDER",
+        "cruising_alt old oxx returning sharp_turn whose",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/STRAFEORDER/AIRORDER/UNITORDER",
+        "flags",
     ),
     (
         "GAME/FRAME/UNITDATA/OBJECT",
@@ -486,6 +518,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch14 = golden_dump("ch14");
     let ch15 = golden_dump("ch15");
     let ch16 = golden_dump("ch16");
+    let ch17 = golden_dump("ch17");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
     let r174 = crate::testenv::dump("gamelog-run174-greatlakes-civicword.txt");
@@ -924,6 +957,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 642, 685, 730, 804, 838, 902, 1002] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter sixteen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter seventeen's word, on run223** (item 746): the first
+    // player's aircraft on disk under an air order, and the first
+    // `STRAFEORDER`, `AIRORDER` and player's `AIRPATROLORDER` records in
+    // any capture. 622, the strike from the ground that gives no order;
+    // 642, the word and the Fighter's strafe home; 662, the pair's; 666,
+    // the strike turned patrol; 722, the Fighter inside its base; 778, the
+    // patrol's strafe on the Barracks; 822, its first damage; 1081, the
+    // Barracks gone; 1212, the first empty tank.
+    if let Some(p) = &ch17 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_SEVENTEEN;
+        for w in [622, 642, 662, 666, 722, 778, 822, 1081, 1212] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter seventeen carries the window's five blocks");
             frames += n;
         }
     }

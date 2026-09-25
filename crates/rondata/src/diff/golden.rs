@@ -676,6 +676,41 @@ fn chapter_sixteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter seventeen, pinned** — the flight line, an issuer the AI
+/// rarely takes (`docs/GOLDEN.md` §25, item 746, run223). Eleven staged
+/// lines: `!ai off`, `library who=0 6`, who=0's Airbase on 606, a
+/// Fighter on 610 and a Bomber pair on 612 and 614, who=1's Barracks on
+/// 616; and four issuer lines through `issue_flight@00941d40` — `@strike`
+/// on 620 and 664, `@flight` on 640 and 660.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run223): the strike on the ground took no order; each flight home is
+/// one `STRAFEORDER`, `returning 1`, home `0/2007`; the flying pair's
+/// strike became an `AIRPATROLORDER` over the unseen Barracks' point; the
+/// Fighter inside its base on 722.
+///
+/// `GOLDEN_WORD_CHAPTER_SEVENTEEN` carries what stands at the word.
+#[test]
+fn chapter_seventeen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch17", "chapter17", 17, 11, 1399) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_SEVENTEEN,
+        "chapter seventeen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_SEVENTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_SEVENTEEN,
+        "chapter seventeen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §25"
+    );
+    eprintln!(
+        "chapter seventeen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -6794,6 +6829,126 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     .collect();
     want_pool.sort();
     assert_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
+}
+
+/// **Chapter seventeen's word, widened whole, both directions** (item
+/// 746). Every record run223 carries on every block of
+/// [`WIDENING_CHAPTER_SEVENTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the Fighter `0/6` on its strafe home, the Bomber pair `0/7`,
+/// `0/8` on their pads — every building, the two staged ones among them,
+/// both leaders at `LEADERS=2`; and who=0's `GROUPDATA` pool by
+/// [`widen_pool`], where each command's pushed selection sits. run223
+/// dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_seventeen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch17",
+        "chapter17",
+        WIDENING_CHAPTER_SEVENTEEN,
+        1399,
+        0,
+        (640, 644),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch17 f{f} {w}/{o} {what}: {row}");
+    }
+    // `g.gpiece` is chapter one's age bracket (`library who=0 6` on 600,
+    // before the window): the pre-existing citizens' art, which the
+    // stand-up does not carry.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SEVENTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch17: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_SEVENTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch17", "chapter17", WIDENING_CHAPTER_SEVENTEEN, 0)
+        .expect("run223 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch17 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §25). **The first pin, word 642, open** (605, 645):
+    // - each staged unit's `form` on its birth block, and chapter one's
+    //   `g.end_time` on two citizens beside the age bracket;
+    // - **622, the pair's `group`**: `process_group` pushed the refused
+    //   strike's selection (theirs 1, ours −1), and `action_flight` then
+    //   skipped both members; this crate skips the command by name;
+    // - **642, the Fighter**: the original's `0/6` holds its
+    //   `STRAFEORDER` home and has taken its first step — its figure's
+    //   point, speed, heading and anim — where this crate's stands, idle,
+    //   with no order and no path; and on 643 its `orders_x/y` and
+    //   `dest_angle`.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "615 0/8 form",
+        "617 0/1 g.end_time[0]",
+        "622 0/7 group",
+        "622 0/8 group",
+        "623 0/2 g.end_time[0]",
+        "642 0/6 g.angle[0]",
+        "642 0/6 g.avg_speed[0]",
+        "642 0/6 g.cur_anim[0]",
+        "642 0/6 g.cur_time[0]",
+        "642 0/6 g.des_angle[0]",
+        "642 0/6 g.des_x[0]",
+        "642 0/6 g.des_y[0]",
+        "642 0/6 g.last_speed[0]",
+        "642 0/6 g.last_time[0]",
+        "642 0/6 g.stopped[0]",
+        "642 0/6 g.x[0]",
+        "642 0/6 g.y[0]",
+        "642 0/6 group",
+        "642 0/6 heading",
+        "642 0/6 idle",
+        "642 0/6 order:length",
+        "642 0/6 orders.len",
+        "642 0/6 path:length",
+        "642 0/6 pos",
+        "643 0/6 dest_angle",
+        "643 0/6 orders_x",
+        "643 0/6 orders_y",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch17: what parts under the word moved");
+    // **What parts in the pool**: each command's pushed selection, which
+    // `process_group` seats before `action_flight` runs — the refused
+    // strike's pair in slot 1 on 622, and the Fighter's flight in slot 0
+    // on 642 — where this crate, skipping the command, pushed neither.
+    let mut want_pool: Vec<String> = ["622 slot 1 held", "642 slot 0 held"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
 }
 
 /// **Chapter ten's word, widened whole, both directions** (item 693).
