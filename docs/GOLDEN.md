@@ -4677,7 +4677,10 @@ in the coverage driver (768, 778, 924, 1178, 1385).
     node. It walks each landing `(cur/end − 0.3)·6·192` along the
     heading and 48 to the node's side. Ours fires one, on the target.
     Parked, for `anim.rs`'s release walk (§39.3).
-  - **The landed plane's patrol**, `0/6` on 1385 and `0/7` on 1489: one
+  - ~~**The landed plane's patrol**, `0/6` on 1385 and `0/7` on 1489: one
     order there, none here. `land_plane` keeps the order under a home
     whose `build_masks & 0x80` is set (`has_repeat_air`), which run265's
-    Airbase carries (4232). `Building` carries no `build_masks`. Parked.
+    Airbase carries (4232). `Building` carries no `build_masks`. Parked.~~
+    Closed by item 854 (ORDERS §40): `Building::repeat_air`, set by
+    `Build::init` for every `can_carry(AIR)` building. Both patrols now
+    agree, flags 0.

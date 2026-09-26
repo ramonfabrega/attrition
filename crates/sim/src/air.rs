@@ -993,7 +993,7 @@ impl Sim {
         // **The home's vslot `0xf0`** (`005e9a43`): `WallData::has_repeat_air
         // @00472410`, `build_masks & 0x80` (`docs/ORDERS.md` §40). Set, the
         // stack stays and, unless the strafe above went, the order it holds
-        // loses its action bit (`update_order(this)->flags &= 0xfb`);
+        // loses its action bit (`update_order(this)->flags &= ~4`);
         // clear, the path and every order go. run265's Airbase reads 4232:
         // the Fighter is inside on 1385 and the Bomber on 1489 each with
         // its `AIRPATROLORDER`, flags 0.
