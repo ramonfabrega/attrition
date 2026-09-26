@@ -22,9 +22,17 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 824, 2026-09-26 — the gather group's edges
+
+(833) **`think_peasant`'s deselect** (`5f58d2`–`5f58fd`): on a found
+gather the original also drops the citizen from the console player's
+select list. A UI selection this crate does not model; a SEAM in the
+comment. Names no score.
+
 ## Parked by item 813, 2026-09-26 — the repair line's edges
 
-(825) **`was_builder` is never cleared**: the original clears
+(825) **`was_builder` is never cleared** (824: not chapter twenty-one's
+cause): the original clears
 `unit_masks & 0x400` in `add_gather_order@0061a5c0` and in
 `think_peasant@005f5760`'s failed arm, and this crate never does
 (`orders.rs`). It reaches every human citizen that has ever built.
@@ -1185,7 +1193,9 @@ floor tuple in a test is none of them. The pin is one low until then.
 **813 found two more** (its Loop line): chapter twenty-one's pinned rows
 `1206 …` and `1153 …` spell ANIM.md's `0x4b6` and ORDERS.md's `0x481`.
 A pinned widening row is a string of frame numbers, and every chapter
-adds some.
+adds some. **824's close deleted those two rows**, and `UNBUILT` went
+back up, ANIM 2 → 3 and ORDERS 7 → 8: a pin that rises when a widening
+row goes is the guard's defect showing, not an unbuild.
 
 (821) **A staging walk by the dump alone may be cheaper than a staging
 packet** (803's Loop line, filed at its merge): run250 was a staging run
@@ -1216,6 +1226,14 @@ first killer is the gap's" paid on its first run, and what answered it
 was `RON_STANDING` over the capture's first block, which the widening
 test's own assertions never print. A capture's first block is where a
 cause upstream in an uncompared gap first shows.
+
+(834) **A standing row set aside as "not on this chain" is the checklist's
+row five** (824's Loop line, filed at its merge): 813's widening listed
+the idle gathers' `group` (1083, 1129, 1130) among rows not on the
+word's chain, and it was the cause — the gather approach's collision
+test reads it. Row five, applied as a grep of the reader of each
+standing row, found it. A worker's "not on this chain" wants the reader
+named, not the row's distance from the word.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

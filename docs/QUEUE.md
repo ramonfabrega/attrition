@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
 DECISIONS 51; the gate green on 9bd334e8). Since it: 800, 811, 822 (East
-Indies 17403 → 18938), 803 (ch20 closed at 1300), 813 (ch21 open at
-1141); 824 in flight.*
+Indies 17403 → 18938), 803, 813, 824 (ch20 and ch21 closed at 1300);
+829 in flight.*
 
 - **Great Lakes 20568 of 24,000; East Indies 18938 and the lower map.**
   The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
@@ -30,15 +30,15 @@ Indies 17403 → 18938), 803 (ch20 closed at 1300), 813 (ch21 open at
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 12 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830).
+- **Fable backlog: 13 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830, 834).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w18938 of 24,000 · GreatLakes w20568 of 24,000
-Golden: ch21 w1141 of 1300 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · 824 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · 832 next
 Endpoint 24001: EastIndies 41 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 829 on the AI lane (East Indies is lower), 795 after it, and
-824 on the rules lane; the briefs against the checklist. A capture is
+**Opener: 829 on the AI lane (East Indies is lower), 795 then 831 after
+it, and 832 on the rules lane; the briefs against the checklist. A capture is
 sized to its word — six blocks before, 250 after — and waited on with
 `tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
 values, never a row count.**
@@ -64,12 +64,19 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
-824. **Chapter twenty-one's word is 1141** (813 opened it: a player's
-    repair is `swarm_around` with `REPAIR`, GOLDEN §29). Past the repair,
-    in `0/7`'s idle gather approach on 1131: its `MOVEORDER` x is 4104
-    here against 4296 there. Three idle citizens sent to `0/2001` share
-    (4296, 28824) in the original, and ours moves the third a tile west.
-    Inside run255, widened. No mechanism.
+831. **Twelve long floors: `do_non_flat_gather`'s `group` write** (824
+    measured it: `Unit::do_non_flat_gather@005f0170` writes `group` −1
+    on every call, AI included, `5f023e`). Both words and `ENDPOINTS`
+    hold; twelve floors fall (run257 320 → 306, run227 293 → 283), and
+    pool slots renumber (run78 `1/60` 69 → 68 against 70). Journal
+    824's table. The AI lane's, after its word; its pins are that lane's.
+
+832. **Chapter twenty-two, the special-anim line — a reading first**
+    (GOLDEN §13's last `unresolved` row: `SpecialAnimOrder`, "not
+    `anim`, which pokes `Guy::set_anim`"; 824 closed twenty-one at
+    1300). Read what builds a `SpecialAnimOrder` (ORDERS §5's type 25,
+    the strafe's `go_inside` tail) and whether the DLL can reach it. If
+    it can, the chapter; GOLDEN §30, run263. If not, §13's row says so.
 
 ## How to maintain this file
 
