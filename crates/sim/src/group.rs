@@ -4722,14 +4722,21 @@ mod tests {
             Some(vec![c]),
             "and the second is its own"
         );
-        // `Groups::get_open_slot`: a slot whose members are all gone is
-        // taken before a third is appended.
+        // `Groups::get_open_slot` (§3.1, §28.4): a slot whose `get_num`
+        // is zero is taken before a new one — but never `last_group`, and
+        // the dead group's slot is `last_group` until another push moves
+        // it. So the third push takes a fresh slot, and the fourth
+        // recycles the dead one.
         s.units[c].health = 0;
         let d = spawn(&mut s, 1, t, Pos::new(0x5000, 0x5000));
         let mut third = group_of(1, &[d]);
         assert!(s.push_group(&mut third, true));
-        assert_eq!(third.pushed, Some(1), "the dead group's slot is recycled");
-        assert_eq!(s.pushed.len(), 2, "and the pool does not grow");
+        assert_eq!(third.pushed, Some(2), "`last_group` is not recycled");
+        let e = spawn(&mut s, 1, t, Pos::new(0x6000, 0x6000));
+        let mut fourth = group_of(1, &[e]);
+        assert!(s.push_group(&mut fourth, true));
+        assert_eq!(fourth.pushed, Some(1), "the dead group's slot is recycled");
+        assert_eq!(s.pushed.len(), 3, "and the pool does not grow");
     }
 
     /// **A seated group's move is a `GroupMoveOrder`, and an in-danger
