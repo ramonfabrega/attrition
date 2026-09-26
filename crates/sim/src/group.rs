@@ -2853,8 +2853,13 @@ impl Sim {
             }
             let inside = self.units[u].inside;
             match kind {
-                // SEAM: a strike from inside a base (above).
-                Flight::Strike => {}
+                // A strike from inside a base: `crate::air`'s inside arm
+                // (`docs/ORDERS.md` §38.2, item 836).
+                Flight::Strike => {
+                    if let Some(b) = inside {
+                        self.strike_from_inside(u, b, target);
+                    }
+                }
                 Flight::Home => {
                     if inside != base {
                         self.add_strafe_order(u, None, base, true, QueuePos::New, true);

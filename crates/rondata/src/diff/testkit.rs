@@ -3437,6 +3437,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_ONE: i64 = 1300;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_ONE: (i64, i64) = (605, 1301);
 
+/// **Chapter twenty-two's golden word** — the launch line: a strike from
+/// inside a base (`docs/GOLDEN.md` §31, item 836, run265). ~~778, open, on
+/// the first walk~~: the original spent the launched Fighter's
+/// `cruising_alt` redraw (`do_air_physics+0xba`), 5 draws against 4, with
+/// `0/6`'s stack parted on 768 (a `STRAFEORDER` laid inside there, none
+/// here). **923, open** (item 836, the launch line built): the strike
+/// laid inside, the tank's gate, `do_launch`, the EXIT at an Airbase and
+/// the flight agree through 797; on 798 the climb's `pitch` parts, 40.0
+/// here against 38.0 there, and on 923 the original's Fighter plays its
+/// attack (`Guy::set_anim+0xf2f < Unit::set_anim+0x56`), 6 draws against
+/// 5 at draw 0.
+///
+/// **The delta**, this constant's: +145, 778 → 923, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_TWO: i64 = 923;
+
+/// `chapter_twenty_two_s_word_frame_is_widened_whole`'s window.
+pub(crate) const WIDENING_CHAPTER_TWENTY_TWO: (i64, i64) = (605, 1501);
+
 /// `run235_s_bombs_are_the_original_s_record_for_record`'s window
 /// (item 770): run235's blocks from the first bomb's release, 805, to its
 /// last, 1100 — the four attacks on the Barracks and its death on 1080.
@@ -3921,6 +3939,13 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_seventeen_holds_to_the_golden_word", 34),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
+    // Chapter twenty-two is chapter seventeen's game with the Fighter
+    // launched: the pair's same 49 bombs, and the launch's one read of
+    // the ground under the Airbase's point, (11616, 13920), the EXIT's
+    // `find_data_z` (item 836).
+    ("chapter_twenty_two_holds_to_the_golden_word", 35),
+    ("chapter_twenty_two_s_word_frame_is_widened_whole", 35),
+    ("run265_s_launch_is_the_original_s_field_for_field", 35),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -5112,6 +5137,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_one_s_word_frame_is_widened_whole"),
         824,
         Some(WIDENING_CHAPTER_TWENTY_ONE),
+    ),
+    // Item 836: run265, chapter twenty-two's first walk, open at 778:
+    // the launched Fighter's first redraw; the launch line built in the
+    // same item moved it to 923, the Fighter's first attack. The widening
+    // is run265 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_TWO",
+        GOLDEN_WORD_CHAPTER_TWENTY_TWO,
+        Some("chapter_twenty_two_s_word_frame_is_widened_whole"),
+        836,
+        Some(WIDENING_CHAPTER_TWENTY_TWO),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

@@ -789,6 +789,10 @@ pub struct Tuning {
     /// (`docs/TRANSPORT.md` §6.4). `3/1 tile`, the same as the boarding
     /// distance and a different constant.
     pub unit_disembark_distance: i32,
+    /// An aircraft's refill inside its base, `mana_burn` down this much a
+    /// frame (`Unit::process@00610bc0`'s air arm, `docs/ORDERS.md` §38).
+    /// `2 craft per frame`.
+    pub air_unit_mana_recharge: i32,
     /// Whether Lakota razing is charged — when non-zero, a Lakota disband refunds in full and a Lakota kill of its own building plunders nothing.
     pub lakota_raze_price: i32,
 }
@@ -1126,6 +1130,7 @@ impl Tuning {
         boat_train_max_distance: 1536,
         unit_board_distance: 576,
         unit_disembark_distance: 576,
+        air_unit_mana_recharge: 2,
         lakota_raze_price: 0,
     };
 
@@ -1135,7 +1140,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 317] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 318] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1783,6 +1788,10 @@ impl Tuning {
             (
                 "UNIT_DISEMBARK_DISTANCE",
                 Slot::Ratio192(T.unit_disembark_distance),
+            ),
+            (
+                "AIR_UNIT_MANA_RECHARGE",
+                Slot::Value(T.air_unit_mana_recharge),
             ),
             ("LAKOTA_RAZE_PRICE", Slot::Value(T.lakota_raze_price)),
         ]

@@ -6789,9 +6789,10 @@ original it flies through `Unit::do_air_physics@005e86d0`:
    point less 0xc0. At 1.5 steps `Unit::land_plane@005e9950` clears the
    strafe and adds a `SpecialAnimOrder` that ends in `go_inside` within the
    same frame. No `SPECIALANIMORDER` is ever dumped; `0/6` is inside on 722.
-4. **The tank**: `mana_burn` one a frame outside and refilled 2 a frame
+4. ~~**The tank**: `mana_burn` one a frame outside and refilled 2 a frame
    inside (`Unit::process@00610bc0`). This crate carries no fuel, so the
-   empty-tank arms here and in `check_fuel` are seams.
+   empty-tank arms here and in `check_fuel` are seams.~~ Built by item
+   836, §38.1.
 5. **A dead or unseen target becomes an `AirPatrolOrder` over its point**
    (`do_strafe`'s `valid_target == 0` arm; run223's 666). The patrol's own
    search then takes the target once seen, as a `QUEUE_FIRST` strafe with
@@ -6802,9 +6803,11 @@ original it flies through `Unit::do_air_physics@005e86d0`:
 - the `NUCLEARMISSILE` arm and the missile arm of each gate;
 - the `FIGHTERBOMBER` `home_base` gate, and a carrier as the base;
 - an air patrol's home as the "inside";
-- **a strike from inside a base**, whose `valid_target`,
+- ~~**a strike from inside a base**, whose `valid_target`,
   `MISSILE_DEFENSE_BONUS`, reach (`dist ≤ mana · vslot 0x17c`) and war
-  tests are not built: such a member takes no order here.
+  tests are not built: such a member takes no order here.~~ Built by
+  item 836, §38.2 (`valid_target` and the reach; the other two stay
+  SEAMs).
 
 ## 33. The flight home, flown (item 759, 2026-09-25)
 
@@ -6927,9 +6930,10 @@ that one frame to an aircraft alone (`Sim::process_unit`).
   frame)**, the release — are §32's piece 5, unbuilt.~~ Flown by item
   763, §34, to the release; the target-ahead doubling and the escort's
   re-target are §34.7's.
-- **The tank** (§32 piece 4): `mana_burn` is not carried, so a flight
+- ~~**The tank** (§32 piece 4): `mana_burn` is not carried, so a flight
   with a target never turns for home on an empty tank (`check_fuel`'s
-  first arm), and the refill inside is not modelled.
+  first arm), and the refill inside is not modelled.~~ Built by item
+  836, §38.1.
 - SEAMs: a helicopter (hover arms at `0x20`); a home that is dead, full or
   missing (the nearest-base search, and the out-of-fuel death); a carrier
   as home (the `+0x100000` mark, `local_2c`, the carrier's landing
@@ -7405,3 +7409,118 @@ directions):
   own Counterintelligence on a valid target in range, and a computer's
   Bribe and Counterintelligence — is still a seam (`docs/SCOUT.md` §13).
 
+
+## 38. The launch line: a strike from inside a base, the launch and the tank (item 836, 2026-09-26)
+
+`docs/GOLDEN.md` §31 is the chapter and run265 the capture: chapter
+seventeen's Fighter, inside its Airbase since 722, struck at the Barracks
+on 766 with its tank at 24. Built in `crate::air` (`strike_from_inside`,
+`do_launch`, `exit_at_airbase`, the empty-tank arm and `land_plane` for
+any air order) and `crate::cast` (the tank), entered from
+`Sim::group_action_flight`'s `Flight::Strike` arm, `process_building` for
+a hangar, and `come_out`'s tail. It builds parked 761 and 765.
+
+**How it was established, and how confident.** Read from the decompile
+of `Group::action_flight@006fb260`, `Object::do_launch@0064f3b0`,
+`Unit::process@00610bc0`, `Unit::check_fuel@005e9be0` and
+`Unit::land_plane@005e9950`, and from the listings where a register
+argument or a slot needed it (`action_flight`'s reach, `6fbc6b`–`6fbd3a`;
+`do_spec_anim`'s EXIT at an Airbase, `5e59cb`–`5e5ad7`); built, then
+diffed on run265 whole. **Diff-backed**, by the widening and
+`run265_s_launch_is_the_original_s_field_for_field` (39,793 rows): the
+strike's record on 768, the tank on every block of every aircraft, the
+inside state, every base's `launch_frames`, and the launch's whole record
+on 778. **Reading only**: every SEAM below.
+
+### 38.1 The tank
+
+`Unit::process`'s air arm, taken for a type of domain 2 (and never the
+caster's, which a plane is not): **on the map** (`inside_up < 0`) the
+plane burns one a frame while `mana_left@00609a30` is above 0; **inside**,
+it refills `AIR_UNIT_MANA_RECHARGE` (2) a frame, floored at 0. The tank's
+size is the type's `MANA` (`UnitData::mana@00609a50`): 400 for the
+Fighter, 600 for the Bomber. run223 and run265: the Fighter's 1 on 611,
+the block after its `add`; 112 on its landing; 0 on 778; 400 on 1178.
+
+`check_fuel`'s first arm: a type with a tank, not a missile, whose
+`mana_left` is 0 sets `returning` on the order it flies, which turns a
+strike or a patrol for home — run223's pair on 1212 and 1214, run265's
+Fighter on 1178. Its flight home is §33's.
+
+**`land_plane`** clears `returning` on whatever air order it holds, and
+only a strafe with no live target goes: run265's Fighter comes home under
+the `AirPatrolOrder` its dead target left (§34), and is inside on 1385
+with the patrol on its stack. The patrol has no action bit, so the next
+full tank would see `do_launch` kill it (§38.3).
+
+### 38.2 `action_flight`'s inside arm
+
+For a member not already on a strafe, its "inside" is
+`ObjectData::get_inside@00651a80`. An `ATTACK` then needs, in order:
+- `Object::valid_target@00648ba0`: the target seen (a building's
+  `ever_seen`), and an air-domain attacker is not refused a building;
+- the target's leader without `MISSILE_DEFENSE_BONUS`, unless it is one's
+  own (SEAM here);
+- **the reach**, `vector_dist(base − target) ≤ mana · get_speed(x, y, 1)`,
+  the plane's own point (run265: 9857 against 400 × 75);
+- not a `NUCLEARMISSILE`, then `is_ally || war_allowed` (SEAM: always).
+
+It gives `add_strafe_order(target, base, 1, QUEUE_NEW, 1)`: a strafe on
+the target, home the base, `mandatory 1`, the action bit, `returning 0`,
+`xx/yy` the target's point. **The plane stays inside**: `Unit::process`
+runs no `work` for a unit inside anything.
+
+### 38.3 `Object::do_launch`
+
+Called from `Build::process@0061edf0` for `build_masks & 8`, a hangar. The
+whole of it sits under `inside_down ≥ 0`, **the counter included**: an
+empty base's `launch_frames` stands (run265: 0 from 778 on; the chapter's
+reading had put the increment outside, and falsifier 4 said otherwise).
+Then `launch_frames` counts up, and once it was at
+`FRAMES_BETWEEN_LAUNCHES` (15, the PE's `.data` at `0xc06248`) it
+saturates there and the chain is walked:
+- no order, or **`mana_burn ≠ 0`**: passed over. **The tank gates the
+  launch**: run265's strike, laid on 767, waits inside to 778, the block
+  the tank first reads 0 (units are processed before buildings, so the
+  refill and the launch share it);
+- the front order's action bit (or the base's vslot `0xf0`, a SEAM): a
+  targeted strike whose target is invalid and whose point is off the
+  world is killed; a patrol's `returning` is cleared; the plane joins
+  `launching` (`+0x44`), and the first of the call is `come_out(0)` and
+  `launch_frames` 0;
+- no action bit: `kill_current_order`, and out of `launching`.
+
+The chain appends at its tail, as the garrison list does here: run265's
+`0/7`, landing behind `0/6` on 1489, prints `inside_up` 6.
+
+### 38.4 The EXIT at an Airbase
+
+`come_out`'s tail (`619fe2`) hands an EXIT to `do_spec_anim` (§30), and at
+an `AIRBASE` it is the launch: `Unit::set_angle(0, ·, 1)`,
+`Unit::set_new_location(base.x − 0xc0, base.y, 1, 1)`, guy 0's
+`Guy::set_new_z(TerrainOut::find_data_z(base.x, base.y), 1)` (`z` and
+`last_z` both), the figure's bank and pitch moved to `last_*` and zeroed,
+the kill (out of `launching`), then **`work`** — the strike's first step
+in the same call. Nothing resets the figure's `avg_speed`, which this
+crate's `come_out` placement rebuilds from rest: it is handed back.
+run265's 778: the figure on (11424, 13920) at `last_z` 157, `last_bank`
+and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
+13845), and the redraw `(6 + 778) & 7 == 0` the word was.
+
+### 38.5 What is not established
+
+- **The climb out of the base**: run265's 798, `pitch` 40.0 here against
+  38.0 there, the first value parting and the cause of chapter
+  twenty-two's word at 923 (the release a frame apart). `pitch_aircraft`'s
+  non-returning arm from the ground has never been read against a dump.
+- **A Fighter's round**: `do_strafe`'s `fire_ammo` for a non-bomber, the
+  36 rounds run265 prints from 924. Not built.
+- SEAMs: `MISSILE_DEFENSE_BONUS`, `war_allowed`, the `NUCLEARMISSILE`
+  arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`;
+  a strafe home to another, full base turned `AirPatrolOrder`; two planes
+  launched from one base in one call (`launching` holding the second);
+  a helicopter's EXIT (two draws, 200 over the ground); the heal inside
+  (`aircraft_heal_rate`); a carrier's launch from `Unit::work`.
+- **Trained aircraft** leave an Airbase through the same EXIT. No
+  capture has trained one; the long captures have no Airbase in their
+  word windows.

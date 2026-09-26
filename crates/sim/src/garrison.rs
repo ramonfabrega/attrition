@@ -344,6 +344,9 @@ impl Sim {
             return false;
         };
         self.buildings[b].garrison.retain(|&c| c != captain);
+        // A plane's figure keeps its running average through a launch
+        // (run265's 778: 25, the value it stood inside with).
+        let avg = self.units[captain].movement.body.avg_speed;
         self.come_out_place(captain, spot, None);
         // The captain's `orders_x/y` and `dest_angle` are its new place
         // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
@@ -372,6 +375,18 @@ impl Sim {
             && let Some(c) = self.buildings[b].city
         {
             self.cities[c].alarm = false;
+        }
+        // **The tail's `SpecialAnimOrder`** (`619fe2`, `docs/GOLDEN.md`
+        // §30): an EXIT on a frame past 0, which away from an Airbase
+        // leaves nothing this crate carries, and at one is the launch —
+        // [`Sim::exit_at_airbase`], the base's point less `0xc0` and the
+        // plane's first step (run265's 778, item 836).
+        if self.frame != 0
+            && self.buildings[b].ty.is_some_and(|t| {
+                crate::build::is(&self.build_types, t, crate::build::Ident::Airbase)
+            })
+        {
+            self.exit_at_airbase(captain, b, avg);
         }
         // The function's own tail: the army coin, thrown once the unit is
         // out and by the scout lines alone ([`Sim::come_out_join_army`],

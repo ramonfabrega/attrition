@@ -8138,3 +8138,58 @@ Waited on with `waitrun.sh`, exit 0.
   old-army `group` row is the same seat one id higher here (689). The
   floor is 318 keys on the first block, 1 past it, 316 on 18683 and 319
   in all.
+
+## run265 — chapter twenty-two, the launch line (2026-09-26, item 836)
+
+`docs/GOLDEN.md` §31, `tools/gamelog/golden/chapter22.cmd`: chapter
+seventeen's cast and eleven lines, and **`766 @strike 0 2006 1 6`**, the
+Fighter alone, inside its Airbase `0/2007`, at the Barracks `1/2006`,
+with its tank at 24. The chapter and its falsifiers were committed
+before the run (`4a28fa6a`). The lane lock named att-829's run261, whose
+holder had exited; the launch took it over.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch22 \
+    --map 14 --end-frame 1500 --log-window 605 1500 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter22.cmd
+```
+
+**One take** at `cover=0`: launched 08:26, **1,046 s** launch to exit,
+**365 MB** of dump, 895 blocks. The receipt says `success: true`, exit
+0, 1,501 frames, `MAP_STYLE 14`, seed 12345. `waitrun.sh` exited 0.
+`cmdsran.py` has the nine console and chat lines returning 1.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run223's trace | the same game through 778 in its numbering, 784 frames identical; the first difference is its 779, the Fighter's first redraw (the harness's frame 778) |
+| a `GROUPDATA` on every window block | **458,240**, 512 on each of the 895 |
+| `SPECIALANIMORDER` anywhere | **none** |
+
+### The issuer's own records
+
+- Trace frame 766 (`0x2fe`): `INFO 18` for `0/6`, uid 14, at (11424,
+  14005), inside; `INFO 17` line 12, refusal 0, package 10 → 40 bytes,
+  one object.
+- `process_group, new 0 1 767` and `process_flight 767`.
+
+### §31's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | processed on 767 | as predicted |
+| 2, the inside strike | block 768: one `STRAFEORDER` on `1/2006`, `mandatory 1`, flags 4, `AIRORDER oxx 2007 whose 0 cruising_alt 1600 returning 0`, `xx/yy` (21120, 16512), `inside_up 2007` | **exactly so** |
+| 3, the tank's gate | out on 778, not 768 or 779 | **on 778**: `inside_up 2007` and the order on 768–777 while `mana_burn` falls 20 → 2; `inside_up −1` on 778, the block it first reads 0 |
+| 4, the placement | 778: within 112 of (11424, 13920); `launch_frames` 0 on 778 and 1–15 on 779–793; no `SPECIALANIMORDER` | the figure at (11424, 13920), `last_z` 157 (the ground), `last_bank` and `last_pitch` 0.0, `angle 0`; the unit one step north at (11424, 13845); no `SPECIALANIMORDER`. **Fired on `launch_frames`**: 0 on 778 and **0 on every block after**, since the whole of `do_launch`, its counter included, is under `inside_down ≥ 0`, and the base is empty |
+| 5, the strike | the strafe current from 778; a round of `0/6`'s on `1/2006` by 1178 | the strafe current 778–1080; **36 rounds** of `0/6`'s on `1/2006` from 924, a point of damage each; the Barracks gone on 1080 as in run223, and the strafe an `AIRPATROLORDER` from 1081 |
+| 6, the tank | `mana_burn` 1 on 779, 400 on 1178, `returning 1` on 1178 | **exactly so**: the patrol's `returning` 1 on 1178 at (20182, 14744) |
+| 7, home | inside `0/2007` by 1499 | **inside on 1385**, at (11426, 14018), its `AIRPATROLORDER` still on the stack; refilled 2 a block after it |
+
+**Whether `Object::do_launch` executed**: yes, by the dump, not by a
+coverage trace (run265 ran at `cover=0`, and no `cover=1` re-run was
+taken, Loop 697): the base's `launch_frames` 15 → 0 and `inside_down` 6
+→ −1 on 778, and the plane on the EXIT's own point on the same block.
+The pair's tanks run dry on 1212 and 1214 as in run223, and both are
+still flying home on 1480.
