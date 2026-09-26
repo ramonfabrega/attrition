@@ -7799,6 +7799,72 @@ which exited 0. The dump is archived as
 - With the arm, all 28,828 steps agree, and the word moved 17189 → 17403.
 - The packet was not read: the dump and the trace answered every term.
 
+## run250 — chapter twenty's staging, to 646 (2026-09-26, item 803)
+
+**What it is.** `chapter20.cmd`'s first eight lines — `!ai off`, `library
+who=0 1`, a Dock, two Chariots, `@settransport 0 0 7` on 620 and both
+moves onto lake 70 on 640 and 642 — to 646, dumped over `[605, 646)`.
+92 s launch to exit, `success: true`, 647 frames, 20,992 `GROUPDATA`.
+The lane lock named pid 97451, which had exited. No packet: every
+predicate the staging asks is a field the dump prints.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-26-run250 \
+    --map 14 --end-frame 646 --log-window 605 646 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <chapter20.cmd's first eight lines>
+```
+
+**What the disk could not answer.** Whether `library who=0 1` and an
+`add`ed Dock grant a human the transport level, whether the DLL's
+`@settransport` clears the bit, and what plan each Chariot's move takes to
+the water: no capture on disk had a human's Dock or the toggle.
+
+**What it answered** (`docs/GOLDEN.md` §28): `leader_flags` 1799
+— the three level bits — from 605; `0x800000` on every who=0 unit; `process_set_transport
+621` and `0/7`'s `unit_masks` 8388608 → 0 on 622, stack empty; on 642
+`0/6`'s six-entry plan with the embark (flags 4) at (8856, 34200); on 644
+`0/7`'s six-entry plan onto the water with no embark and no pull-back.
+This crate walks it whole: eight lines ran, nothing parts to 646.
+
+## run249 — chapter twenty, the board line (2026-09-26, item 803)
+
+**What it is.** `chapter20.cmd` whole — `!ai off`, `library who=0 1`, a
+Dock, two Chariots, and six issuer lines: `@settransport 0 0 7` on 620,
+both moves onto lake 70 on 640 and 642, `@settransport 0 1 7` on 800,
+`0/7`'s move again on 820, and barge `0/8` to the east bank on 900 —
+dumped over `[605, 1300)`, 695 blocks, at `cover=0`. The lane lock named
+pid 73860, run250's own game, which had exited.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch20 \
+    --map 14 --end-frame 1300 --log-window 605 1300 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter20.cmd
+```
+
+**Taken whole, one take.** 836 s launch to exit, 285.8 MB of dump and
+10.8 MB of trace, `success: true`, 1301 frames. Waited on with
+`waitrun.sh`, which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run250's trace | **0 differing**, 647 identical |
+| `MAP_STYLE` and seed from the receipt | 14, 12345 |
+| `GROUPDATA` (the receipt's count) | **355,840**, 512 on each of 695 blocks |
+| `process_set_transport` / `process_move_to` | 621, 801 / 641, 643, 821, 901 |
+| `BOARDORDER` or `AWAITBOARDORDER` | **0** |
+
+**What it settled** (`docs/GOLDEN.md` §28): no falsifier fired. `0/7`'s
+bit off on 622 and on on 802; `0/6`'s Transport `CASTORDER` (650) on 703
+and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829
+and barge `0/9` on 830; `0/6` ashore on 1160 with `0/8` gone. This crate
+walks it whole — eleven lines, and no draw or `game_random` word parts to
+1300.
 ## run251 — East Indies' word 17501, sized to the word (2026-09-26, item 800)
 
 **What it is.** run233's line, unchanged,

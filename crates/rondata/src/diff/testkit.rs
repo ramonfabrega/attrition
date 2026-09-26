@@ -3327,6 +3327,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_NINETEEN: i64 = 1100;
 /// `chapter_nineteen_s_word_frame_is_widened_whole`'s window.
 pub(crate) const WIDENING_CHAPTER_NINETEEN: (i64, i64) = (605, 1101);
 
+/// **Chapter twenty's golden word** — the board line: the transport
+/// toggle and the move it gates (`docs/GOLDEN.md` §28, item 803, run249).
+/// **1300, closed on the first walk**: the command's entry,
+/// `input::group_set_transport` over `Sim::set_transport`, landed with the
+/// chapter before the capture, and the stream agrees to run249's end — the
+/// toggle, both plans, the unflagged Chariot stopping at the shore, the two
+/// Transport casts and barges, and the disembark on the east bank.
+///
+/// **The delta**, this constant's: 1300 at its first pin, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY: i64 = 1300;
+
+/// `chapter_twenty_s_word_frame_is_widened_whole`'s window: **run249
+/// whole**, (605, 1301). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY: (i64, i64) = (605, 1301);
+
 /// `run235_s_bombs_are_the_original_s_record_for_record`'s window
 /// (item 770): run235's blocks from the first bomb's release, 805, to its
 /// last, 1100 — the four attacks on the Barracks and its death on 1080.
@@ -4919,6 +4935,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_nineteen_s_word_frame_is_widened_whole"),
         790,
         Some(WIDENING_CHAPTER_NINETEEN),
+    ),
+    // Item 803: run249, chapter twenty's first walk, closed at 1300: the
+    // set-transport command entered with the chapter, before the capture;
+    // the widening is run249 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY",
+        GOLDEN_WORD_CHAPTER_TWENTY,
+        Some("chapter_twenty_s_word_frame_is_widened_whole"),
+        803,
+        Some(WIDENING_CHAPTER_TWENTY),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

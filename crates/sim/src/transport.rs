@@ -1120,10 +1120,15 @@ impl Sim {
             .filter(|&i| self.units[i].inside_unit == Some(boat))
             .collect();
         for r in riders {
-            // 1. the `param_4` arm.
+            // 1. the `param_4` arm, `update_action` its last call
+            //    (`eject_contents@0064cd20`:115) — on a passenger still at
+            //    its boarding point with an empty list, so `orders_x/y`
+            //    are that point and step 4 does not move them: run249's
+            //    `0/6` prints (8428, 34200) ashore on 1160.
             self.units[r].path.clear();
             self.close_orders(r);
             self.clear_partial_path(r);
+            self.update_action(r);
             // 2. `come_out`.
             // **The ring is the boat's and the arm is the passenger's.**
             // `come_out`'s host branch reads `+0x240` off the *host's* type
@@ -1145,9 +1150,11 @@ impl Sim {
             // `Movement::at` alone would zero the speed and the turn rate,
             // and a unit put ashore with no speed stands there for ever;
             // `come_out`'s building arm carries the same two across.
+            // `dest_angle` (`+0x58`) is step 1's, below.
             self.units[r].movement = crate::Movement {
                 speed: self.units[r].movement.speed,
                 turning: self.units[r].movement.turning,
+                des_angle: self.units[r].movement.des_angle,
                 ..crate::Movement::at(at)
             };
             self.units[r].on_map = true;
@@ -1159,7 +1166,14 @@ impl Sim {
             // dog on the track offset the original prints. run57 block 3979
             // reads `angle -13303808` on the scout, the barge's own heading
             // at the frame it ejects.
+            //
+            // `Unit::set_angle@00605400` writes `+0x50` and the guys and
+            // not `+0x58`, so `dest_angle` stays what step 1's
+            // `update_action` seeded it with, the heading the passenger
+            // boarded on: run249's `0/6` prints 1073741824 on 1160.
+            let des_angle = self.units[r].movement.des_angle;
             self.units[r].movement.set_facing(bearing);
+            self.units[r].movement.des_angle = des_angle;
             // `set_new_location`'s `param_3` reaches `Guy::set_new_location(0,
             // pos, 1)`, which seats the crew **on** its track offset rather
             // than letting it walk there from wherever it boarded. Without
@@ -1182,7 +1196,6 @@ impl Sim {
                     top.flags &= !crate::orders::path_flag::TRANSPORT;
                 }
                 self.units[r].path = path;
-                self.update_action(r);
             }
         }
         self.units[boat].health = 0;
@@ -1671,6 +1684,10 @@ mod tests {
             tolerance: 0,
             flags: crate::orders::path_flag::TRANSPORT,
         });
+        f.sim.units[rider]
+            .movement
+            .set_facing(crate::movement::Angle::INITIAL);
+        let boarded = f.sim.units[rider].pos;
         f.sim.board(rider, boat);
 
         let before = f.sim.rng.seed;
@@ -1711,6 +1728,16 @@ mod tests {
             "the boat's stack, in order, with the top's `flags & 4` gone"
         );
         assert!(!f.sim.units[boat].alive());
+        // `update_action` is step 1's (item 803): on the passenger at its
+        // boarding point with an empty list, so `orders_x/y` stay that
+        // point once the boat's move comes back, and `dest_angle` the
+        // heading it boarded on while `come_out` snaps its facing west.
+        assert_eq!(f.sim.units[rider].orders_pos, boarded);
+        assert_eq!(f.sim.units[rider].movement.heading, west);
+        assert_eq!(
+            f.sim.units[rider].movement.des_angle,
+            crate::movement::Angle::INITIAL
+        );
     }
 
     /// §7: the island search picks a coastal cell of another region that
@@ -1774,6 +1801,51 @@ mod tests {
         assert_eq!(f.sim.needs_transport(land, water), EMBARK);
         assert_eq!(f.sim.needs_transport(water, land), DISEMBARK);
         assert_eq!(f.sim.needs_transport(water, water), 0);
+    }
+
+    /// **`snap_center`'s dock arm** (item 803, `docs/GOLDEN.md` §28): a
+    /// Dock whose centred tile `blocked_site` refuses takes the first tile
+    /// of the `move_x/move_y` spiral that it clears, in the spiral's own
+    /// order; a clear tile, or one with nothing clear within four, stays;
+    /// and nobody's shore clears nothing.
+    #[test]
+    fn a_dock_asked_off_its_shore_moves_along_the_spiral() {
+        let mut f = fix();
+        let placed = |f: &Fix, tx: i32| {
+            f.sim
+                .snap_center_placed(f.dock, tile_pos(tx, 15), Some(0))
+                .tile()
+        };
+        // Unowned ground: every site is refused, so every Dock stays.
+        assert_eq!(placed(&f, 32), Pos::new(32, 15));
+        for y in 0..8 {
+            for x in 0..12 {
+                f.sim.world.set_owner(
+                    Cell::new(x, y),
+                    crate::world::Owner::Player(0),
+                    crate::world::Owner::None,
+                );
+            }
+        }
+        // Clear where asked.
+        assert_eq!(
+            f.sim.blocked_site(Some(0), f.dock, tile_pos(33, 15), None),
+            crate::place::Blocked::Clear
+        );
+        assert_eq!(placed(&f, 33), Pos::new(33, 15));
+        // Too little water: north-east, index 3, before east, index 4.
+        assert_eq!(placed(&f, 32), Pos::new(33, 14));
+        // Too much: west and south, index 18, before west and north.
+        assert_eq!(placed(&f, 36), Pos::new(34, 16));
+        // Four tiles out, the radius-4 ring's index 57.
+        assert_eq!(placed(&f, 29), Pos::new(33, 11));
+        // Five tiles out: nothing in reach, so it stays.
+        assert_eq!(placed(&f, 28), Pos::new(28, 15));
+        // The plain snap never moves.
+        assert_eq!(
+            f.sim.snap_center(f.dock, tile_pos(32, 15)).tile(),
+            Pos::new(32, 15)
+        );
     }
 
     #[test]

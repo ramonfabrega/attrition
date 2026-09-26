@@ -1223,3 +1223,48 @@ against the decompile and the listing. `docs/audit/2026-08-25-transport.md`
 is the record, verdict by verdict; the reports are at
 `~/ghidra-projects/reading/transport-2026-08-25/`. The corrections above
 carry their audit row (`A.23`, `B.13`, `B.51`, …) where they stand.
+
+## 15. The player's toggle and the board line, measured (item 803, 2026-09-26)
+
+`docs/GOLDEN.md` §28 is chapter twenty. It issued the toggle through the
+original's own `CommandManager::issue_set_transport@00941910` on run249,
+and this section records what that established about the mechanic.
+
+- **§3.4's toggle is the whole command.** `process_set_transport
+  @00948f60` → `Group::action_set_transport@007024b0` sets or clears the
+  member's `unit_masks & 0x800000` and lays no order. The Chariot `0/7`:
+  8388608 → 0 on 622, and back on 802. This crate's entry is
+  `input::group_set_transport` → `Sim::set_transport`.
+- **`BoardOrder` and `AwaitBoardOrder` are built by nothing a game
+  reaches.** Their adders are reached only from `Group::action_board_ship
+  @00700010`, which the never-issued `board_ship` command and
+  `finish_insert`'s replay call, and from `Unit::check_meet_ship
+  @00604550` under a `BoardOrder`'s own step. No dump on disk prints one.
+  §6's Transport cast is what boards.
+- **A human's move onto water without the bit.** The world plan runs
+  straight onto the lake, with no pull-back and no embark flag. The unit
+  walks it to the last land cell and its path and order end there: `0/7`
+  at (8265, 35365) on 719. Nothing converts the step.
+- **§6.4's step 1 is where `update_action` runs** (`Object::eject_contents
+  @0064cd20`:115). It runs on the passenger at its boarding point with an
+  empty list, and no second call follows when the boat's orders come back.
+  So `orders_x/y` stay the boarding point and `dest_angle` the boarding
+  heading. `come_out`'s `Unit::set_angle@00605400` writes `+0x50` and the
+  guys, never `+0x58`. run249's `0/6` on 1160 shows both: (8428, 34200)
+  and 1073741824. `crate::transport::disembark` has both.
+- **A Dock placed on a refused tile moves along the spiral**
+  (`BuildTypeData::snap_center@00636190`). A building of the Dock's
+  lineage whose centred tile `blocked_site` refuses takes the first of
+  `move_x/move_y`'s offsets 1–80 that clears. run249's Dock, asked at
+  tile (53, 153), stands at (56, 155), offset 36. This crate has it as
+  `Sim::snap_center_placed`, called from the harness's `add`.
+  `Sim::init_build` keeps the plain snap. The same arm for a player's
+  Woodcutter's Camp or Mine, and the oil types' cell snap, are not built.
+
+**Not established.**
+- Whether `init_build`'s callers other than the console's `add` — the
+  AI's Dock and a player's `issue_build` — ever ask for a refused tile.
+- The boarding frame's figure update: the original ages `avg_speed` once
+  more before the passenger freezes inside.
+- The disembarked figure's first animation and turn (run249 1162, 1165).
+

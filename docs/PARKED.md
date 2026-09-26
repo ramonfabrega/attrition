@@ -22,6 +22,35 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 803, 2026-09-26 — the board line's edges
+
+(814) **`Sim::init_build` does not call `snap_center_placed`**: a
+one-line change in `city.rs`, reaching the AI's Docks and a player's
+`@build`, so both words measured. The Woodcutter's Camp and Mine arm
+(a player's, `blocked_site`-refused) and the oil types' cell snap are
+not built either.
+
+(815) **The boarding frame's `avg_speed`**: the original's figure ages
+once more before the passenger freezes — `Guy::move` against
+`go_inside` in `lib.rs`'s order.
+
+(816) **The disembarked figure's first animation and turn** (run249
+1162, 1165), in `anim.rs` and `movement.rs`.
+
+(817) **The move group's `speed`/`new_speed`** on run249's 644 (pool
+slot 0: 30 there, 0 here), in `group.rs`.
+
+(818) **`widen_block` compares two bits of `unit_masks`**: the
+auto-transport bit `0x800000` is read only by chapter twenty's raw test;
+folding it in reaches the long widenings.
+
+(819) **The AI scout's order point on the disembark frame**: after 803's
+fix `dest_angle` agrees on run78's, run99's and run227's `1/0`, and
+`orders_x/y` still part — written later in the disembark's frame in the
+original, by something this crate does not do. run99's moved away
+(ours (23223, 17572), theirs (28680, 12792)); run78's and run227's
+closer. No draw on any word.
+
 ## Parked by item 800, 2026-09-26 — the stack sort's edges
 
 (812) **`stack_sort`'s pointer writes**: the original's sort writes the
@@ -1120,6 +1149,23 @@ when att-800's run251 launched while att-803's run249 held RonDriver
 (pid 92698); the commander sequenced the two by message. The shape: the
 script refuses, or waits under `RON_LANE_WAIT`, while a `RonDriver`
 process is live, and a test makes it fail first on a running fixture.
+
+(820) **The constant guard's decimal rule banks a floor pin** (803's
+landing, found by the commander at its merge, 2026-09-26): 803 re-pinned
+run78's widening floor to `(434, 438)` in `harness.rs`, and 438 is
+`0x1b6`, `docs/AI.md`'s governments building type, so the guard counted
+it built and forced `AI.md`'s `UNBUILT` row 22 → 21. Nothing was built.
+The decimal form (802, the fifteenth pass) needs a context — a named
+constant, a `match` arm, a comparison — not any integer literal; a
+floor tuple in a test is none of them. The pin is one low until then.
+
+(821) **A staging walk by the dump alone may be cheaper than a staging
+packet** (803's Loop line, filed at its merge): run250 was a staging run
+to a few frames past the command, dumped, 92 s and no packet. It
+answered every predicate and gave this crate's forward walk a start
+that matched run249 to the block. When every predicate is a printed
+field, that is the cheaper default; the brief checklist's staging row
+says a packet.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
