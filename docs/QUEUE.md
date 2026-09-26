@@ -14,8 +14,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
-DECISIONS 51; the gate green on 9bd334e8). Since it: 800 and 811 (East
-Indies 17403 → 17501 → 18182), 803 (chapter twenty closed at 1300); 813
+DECISIONS 51; the gate green on 9bd334e8). Since it: 800, 811 (East Indies
+17403 → 18182), 803 (ch20 closed at 1300), 813 (ch21 open at 1141); 822
 in flight.*
 
 - **Great Lakes 20568 of 24,000; East Indies 18182 and the lower map.**
@@ -30,15 +30,15 @@ in flight.*
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 10 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823).
+- **Fable backlog: 11 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w18182 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · 813 next
+Golden: ch21 w1141 of 1300 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · 824 next
 Endpoint 24001: EastIndies 42 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
 **Opener: 822 on the AI lane (East Indies is lower), 795 after it, and
-813 on the rules lane; the briefs against the checklist. A capture is
+824 on the rules lane; the briefs against the checklist. A capture is
 sized to its word — six blocks before, 250 after — and waited on with
 `tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
 values, never a row count.**
@@ -64,13 +64,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
-813. **Chapter twenty-one, the repair line — a reading first** (GOLDEN
-    §13's `RepairOrder` row: the `repair` command type has no
-    `CommandManager` issuer in the export; 803 closed chapter twenty at
-    1300). Read what builds a `RepairOrder` and whether the DLL can reach
-    it (parked 791: a computer's `REPAIR` swarm is `MOVE_TO`). If it can,
-    the chapter under the emulator and a staging walk; takes GOLDEN §29
-    and run255. If it cannot, say so and §13's row stays unresolved.
+824. **Chapter twenty-one's word is 1141** (813 opened it: a player's
+    repair is `swarm_around` with `REPAIR`, GOLDEN §29). Past the repair,
+    in `0/7`'s idle gather approach on 1131: its `MOVEORDER` x is 4104
+    here against 4296 there. Three idle citizens sent to `0/2001` share
+    (4296, 28824) in the original, and ours moves the third a tile west.
+    Inside run255, widened. No mechanism.
 
 ## How to maintain this file
 

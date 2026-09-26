@@ -439,6 +439,47 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **Piece 120, a British player's Bowmen: run256's twelve arrows**
+    // (`docs/GOLDEN.md` §29, item 813). Its release events are 472's —
+    // frame 12 on `CHAR_ATTACK1`, 9 on `CHAR_ATTACK2`, 15 on
+    // `CHAR_ATTACK3` — and 472's nodes put every arrow within one to
+    // four units of the dump, a frame of flight on the first, so the
+    // piece is measured on its own. Three bowmen at three facings
+    // (−999686144, −987168768, −885391360) give seven distinct launch
+    // points; each row is the centroid of the region of integer `(right,
+    // fwd)` that reproduces every point of its key exactly under the
+    // whole-degree rotation, and `dz` is `sz` less the figure's own `z`,
+    // the same on every arrow of the key.
+    (
+        120,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_706,
+            fwd: 88_958,
+            dz: 163,
+        },
+    ),
+    (
+        120,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 118,
+            fwd: 87_244,
+            dz: 164,
+        },
+    ),
+    (
+        120,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_536,
+            fwd: 66_509,
+            dz: 164,
+        },
+    ),
     (
         254,
         crate::anim::ATTACK2,
@@ -673,6 +714,109 @@ mod tests {
         assert_eq!(M.len(), 49);
         assert_eq!(whole_degrees(Angle(1_003_487_232)), 83);
         assert_eq!(release_dz(254, crate::anim::ATTACK2, 21), Some(-19));
+    }
+
+    /// **Every distinct launch point of run256's twelve Bowman arrows**,
+    /// piece 120, reproduced exactly (item 813): `(anim, starttime, figure
+    /// x, y, angle, figure z, sx, sy, sz)`, the dump's own columns — the
+    /// `GUY` record on the block before the arrow's first and the `AMMO`
+    /// record's launch. Three facings, so a row that were a stored world
+    /// vector would fail on at least one.
+    #[test]
+    fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Row] = &[
+            (
+                crate::anim::ATTACK2,
+                9,
+                6792,
+                32760,
+                -999_686_144,
+                92,
+                6706,
+                32751,
+                256,
+            ),
+            (
+                crate::anim::ATTACK2,
+                9,
+                6648,
+                32760,
+                -987_168_768,
+                119,
+                6562,
+                32750,
+                283,
+            ),
+            (
+                crate::anim::ATTACK2,
+                9,
+                6696,
+                32904,
+                -885_391_360,
+                107,
+                6612,
+                32882,
+                271,
+            ),
+            (
+                crate::anim::ATTACK1,
+                12,
+                6696,
+                32904,
+                -885_391_360,
+                107,
+                6610,
+                32883,
+                270,
+            ),
+            (
+                crate::anim::ATTACK1,
+                12,
+                6792,
+                32760,
+                -999_686_144,
+                92,
+                6704,
+                32753,
+                255,
+            ),
+            (
+                crate::anim::ATTACK3,
+                15,
+                6648,
+                32760,
+                -987_168_768,
+                119,
+                6584,
+                32743,
+                283,
+            ),
+            (
+                crate::anim::ATTACK3,
+                15,
+                6792,
+                32760,
+                -999_686_144,
+                92,
+                6727,
+                32744,
+                256,
+            ),
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 120, anim, t);
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 120 anim {anim} t {t} facing {ga}"
+            );
+            assert_eq!(
+                gz + release_dz(120, anim, t).unwrap(),
+                sz,
+                "piece 120 anim {anim} dz"
+            );
+        }
     }
 
     #[test]

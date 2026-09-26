@@ -22,6 +22,22 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 813, 2026-09-26 — the repair line's edges
+
+(825) **`was_builder` is never cleared**: the original clears
+`unit_masks & 0x400` in `add_gather_order@0061a5c0` and in
+`think_peasant@005f5760`'s failed arm, and this crate never does
+(`orders.rs`). It reaches every human citizen that has ever built.
+
+(826) **`build_ids` has no fallback for a building born after the
+start**, so `target_ids` leaves every such building target uncompared
+in every widening. Item 462 fixed the same for units; adding it adds
+rows to the long widenings.
+
+(827) **`think_peasant`'s arm calls `find_repair_spot`** where this
+crate's ORDERS §5.9 comment names `find_build_spot`. Read, not
+reconciled.
+
 ## Parked by item 803, 2026-09-26 — the board line's edges
 
 (814) **`Sim::init_build` does not call `snap_center_placed`**: a
@@ -110,6 +126,8 @@ wonders and an unbuilt wonder's value in `create_buildings`' arm.
 (791) **A computer's `REPAIR` swarm is `MOVE_TO` in the original**
 (`local_40` is set only for `BUILD_AT`) and `EXPLORE_TO` here. The AI
 repairs on both long captures, so a fix wants both words measured.
+**Confirmed by 813's reading** (GOLDEN §29, "What the arm does with
+`REPAIR`"); nothing built.
 
 (792) **The pool's `ox`/`oy` on a pushed selection whose action writes no
 point**: (0, 0) there, (−1, −1) here, on chapters seventeen and eighteen —
@@ -1160,6 +1178,10 @@ it built and forced `AI.md`'s `UNBUILT` row 22 → 21. Nothing was built.
 The decimal form (802, the fifteenth pass) needs a context — a named
 constant, a `match` arm, a comparison — not any integer literal; a
 floor tuple in a test is none of them. The pin is one low until then.
+**813 found two more** (its Loop line): chapter twenty-one's pinned rows
+`1206 …` and `1153 …` spell ANIM.md's `0x4b6` and ORDERS.md's `0x481`.
+A pinned widening row is a string of frame numbers, and every chapter
+adds some.
 
 (821) **A staging walk by the dump alone may be cheaper than a staging
 packet** (803's Loop line, filed at its merge): run250 was a staging run
@@ -1175,6 +1197,14 @@ whole clue to a move issued twice, and one scratch print of every group
 action on the word's tick, with each record's `o` and `order_num`
 beside it, named the cause in one run. No brief line points a worker at
 a counter's writers; a checklist row candidate.
+
+(828) **A chapter whose precondition is staged by combat walks its
+staging before it designs the rest** (813's Loop line, filed at its
+merge): a building must be damaged for a repair, and three of four
+staging takes died on something other than the chapter — target
+validity, a fenced walk draw, an unmeasured launch piece. Walking the
+crate on each take within minutes of it landing let four takes run in
+28 minutes. A checklist row candidate beside the staging row.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
