@@ -1378,6 +1378,7 @@ below without a run take their number at booking (the eleventh pass).
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
 | 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
+| 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4684,3 +4685,145 @@ in the coverage driver (768, 778, 924, 1178, 1385).
     Closed by item 854 (ORDERS §40): `Building::repeat_air`, set by
     `Build::init` for every `can_carry(AIR)` building. Both patrols now
     agree, flags 0.
+
+## 32. Chapter twenty-three — the repeat line: an Airbase's repeat toggled off between two landings (item 867)
+
+**Premise.** The player's repeat button on an Airbase **clears its
+`build_masks & 0x80`**, and a base without it keeps no air order: **a
+plane that lands there loses its orders at the landing**
+(`Unit::land_plane@005e9950`'s clear arm, `docs/ORDERS.md` §40.1), and **a
+plane already inside with an unflagged order loses it at its full tank**
+(`Object::do_launch@0064f3b0`'s kill, §38.3), and stays inside. The one
+in-game writer of the bit is this button:
+`Options::set_air_repeat@0071c740` → `GroupOut::issue_buildmask@00708820`
+→ `CommandManager::issue_buildmask@00941f80` →
+`CommandPackage::process_buildmask@00947680` →
+`Group::action_buildmask@006fc9a0` (and `WallData::valid_buildmask@0063e2a0`).
+
+**The booking's premise was one arm of this.** It read the unflagged
+patrol off a non-repeating base as killed at a full tank. That is
+`do_launch`'s arm, and it needs a plane that is inside with its order when
+the bit goes; a plane that lands after never reaches it, because
+`land_plane` closes its orders first. So the toggle is placed **between**
+chapter twenty-two's two landings, and one lever reaches both arms: `0/6`
+landed on 1385 under the bit with its patrol kept, and `0/7` lands on 1489
+without it.
+
+**The issuer, under the emulator first** (a scratch script on
+`tools/explore/command_oracle.py`'s fixture, with a building on
+`Build::vftable` in who=0's registry).
+- `issue_buildmask(group [b], 0x80, set)` appends 14 bytes: the 5-byte
+  `group` and a 9-byte `buildmask`, type 0x21, `[mask i32][set i32]`. The
+  reuse is 12. **The wire's `set` is 1 whatever the third argument**:
+  `941fa6` stores the constant, and the listing never reads `[ebp+0x10]`.
+  A unit and a building in one selection both enter the `group`. It
+  writes no object.
+- **`action_buildmask` toggles; it does not set.** On a group whose
+  `buildings` byte (`+0x49`) is 1, with `can_carry(AIR)`
+  (`ObjectData::can_carry@00646c40`, hooked) answering 1: 4232 → 4104 and
+  4104 → 4232, **with `set` 1 or 0** (the listing never reads
+  `[ebp+0xc]`). Each member `valid_buildmask` admits is set if it lacks the
+  bit and every member before it was set; otherwise it is cleared, and so
+  is every member after it. With `buildings` 0, with `can_carry(AIR)` 0,
+  or with the mask 0x08, it writes nothing.
+- **What the emulator could not reach**: `process_group`'s `Group::add@
+  00714350` (which sets `buildings` from the member's vslot `0x1c`) and its
+  `Groups::push_group@0070f9e0` of the building group, and
+  `process_buildmask`'s logging, all at process time.
+
+**The staging, read off run265** (chapter twenty-two's capture, the same
+game to 1500; parked 821: every predicate is a printed field, so no
+staging run was taken and run282 was not used).
+- `0/2007`: `build_masks` 4232 on every block.
+- `0/6`: inside `0/2007` from 1385 at `mana_burn` 400, **286 on 1442**,
+  −2 a block, so **0 first on 1585**. One `AIRPATROLORDER`, flags 0, `oxx`
+  2007, point (21120, 16512), `cruising_alt` 1400, `returning` 0: kept by
+  `land_plane` under the bit.
+- `0/7`, `0/8`: on the map on 1442, each an `AIRPATROLORDER` home with
+  `returning 1` and `mana_burn` 600, the Bomber's cap. `0/7` is inside on
+  1489 in run265 (then 600, full near 1789); `0/8` is not inside by 1499.
+
+**The reading.**
+- **The toggle.** `process_group` builds and pushes a group of the one
+  building (force 1). `process_buildmask` logs `unitmask: 128 set: 1` and
+  calls `action_buildmask(0x80, 1)`: the Airbase can carry aircraft, its
+  bit is set, so it is cleared. `build_masks` 4104 from 1442.
+- **The pool.** `push_group` takes a fresh who=0 slot for the building
+  group (`Groups::get_open_slot@006fa460`), and `GROUPDATA` prints it with
+  `buildings 1` and `[2007]`. `get_open_slot` counts a slot whose
+  `buildings` byte is set as open, so the next push may take it back. No
+  push follows here.
+- **`land_plane` off a non-repeating base** (`005e9a43`, vslot `0xf0`
+  clear): `unit_masks &= ~0x4000000`, the path emptied, `close_orders`,
+  `clear_partial_path`, `update_action`; then the `SpecialAnimOrder` and
+  `go_inside` as always. `0/7` is inside on 1489 with no order, and `0/8`
+  likewise on its landing.
+- **`do_launch` at a full tank**: once `launch_frames` is saturated, a
+  plane in the chain with an order and `mana_burn` 0 is launched only if
+  `has_repeat_air() || flags & 4`; otherwise `kill_current_order` and out
+  of `launching`. `0/6`'s patrol has flags 0, so it goes on 1585 (units
+  are processed before buildings, SYNC §3.2), and `0/6` stays inside with
+  no order. `0/7` at its full tank has none to fly.
+
+**The cast** is chapter twenty-two's (§31). **Lines**: `chapter22.cmd`'s
+twelve, and **`1440 @buildmask 0 128 2007`**: the repeat button on the
+Airbase alone. The DLL's `@buildmask <who> <mask> <b>…` is new
+(`tools/trace/tracer.c`, verb 17): the registry check is `@eject`'s (a
+live `Build` of `who` with that id), the prologue `55 8b ec 83 ec 0c b9
+60 ff e8 00`, the command 9 bytes, and `set` 1.
+
+**The capture must dump** run265's line,
+`end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5` and
+`misc:COMMANDMANAGER=1`, over **`[605, 1840)`**: 1,235 blocks. The
+toggle is on 1442 and the last falsifier is `0/6`'s full tank on 1585,
+so the runway past it is **255 blocks**; `0/7`'s full tank near 1789 is
+inside the window.
+
+**The premise's killer, and its writers** (§3, point 5): `0/7`'s order
+stack on its landing block and `0/6`'s on 1585. The writers: `land_plane`'s
+clear arm and its keep (`flags &= ~4`); `do_launch`'s kill and its launch
+(`come_out`); no command after 1440. **The writers of `build_masks &
+0x80`**, grepped by `+0x60` in every spelling (`build_masks`,
+`field_0x60`, `(x + 0x60)`; parked 869): `Build::init@00629740:280` (`|=
+0x88`), `action_buildmask`, `ScenarioFuncSet::repeat_orders_enable@
+009f99e0` and `_disable@009f9ad0`, `UnitBalance::next@009b8ac0`, the
+zeroing `Wall::Wall@0063e390`, `Wall::init@0063e9b0` and
+`BuildData::BuildData@0062f370`, and `Wall::swap_team@00640c00`'s copy.
+`Wall::process@00640450`'s whole-word store at line 52 keeps the bit
+(it touches `0x10` and `0x20`). Only `action_buildmask` runs in the window.
+**The loops**: `action_buildmask`'s members to `group.num` (1);
+`do_launch`'s chain from `inside_down` to the first −1 (`0/6`, then `0/7`
+and `0/8` as they land).
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frame 1440: an `INFO 17`
+   with a refusal, or no `process_buildmask unitmask: 128` on 1441.
+2. **The toggle is not the reading's.** `0/2007`'s `build_masks` on 1442.
+   It splits three readings: 4232 (no toggle: `set` read as a value, or
+   the base refused), 4104 (the reading), or any other value (another
+   bit). And it must stay 4104 to the end.
+3. **A landing off a non-repeating base keeps its order.** `0/7`, inside
+   on 1489. It splits three readings: no order (the reading); its
+   `AIRPATROLORDER` kept with flags 0 and killed at its full tank (the
+   booking's reading); or kept and relaunched then (the bit is no gate).
+   The same for `0/8` at its landing.
+4. **The waiting patrol is not killed at its tank.** `0/6`'s patrol, flags
+   0. It splits four readings: gone on 1442 (the toggle kills it); kept to
+   1584 and gone on 1585 with `0/6` still `inside_up 2007` (the reading);
+   launched on 1585 (`inside_up` −1, on the EXIT's point); or kept past
+   1585.
+5. **Something launches.** Any aircraft out of `0/2007` after 1442, or any
+   `SPECIALANIMORDER` on any block.
+
+Falsifiers 3 and 4 test the premise's own unit, each plane's stack on its
+own block (711), and each splits the readings (parked 789).
+
+**Where it should part.** This crate has no entry for the command, so
+without it the first value parting is **1442**, the harness's
+`0/2007 build:repeat_air` (ours 1, theirs 0), and then **1489**, `0/7`'s
+stack (ours the kept patrol, theirs none). The pool gains a slot this
+crate does not seat. On 1585 this crate's `do_launch` already kills an
+unflagged order whatever the bit (§40.3), so `0/6` agrees there. No
+draw is expected to part: neither `close_orders` nor `kill_current_order`
+draws, and no plane flies. With the command entered, the reading says
+this crate agrees on every plane.
