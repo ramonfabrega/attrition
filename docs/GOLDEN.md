@@ -1309,7 +1309,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | RepairOrder | ~~the `repair` command type has no `CommandManager` issuer in the export~~ **a player's repair is `swarm_around`** (§29): `Console::execute_at_cursor@007c6630` and `Options::picked_spot@00721c40` → `CommandManager::issue_swarm_around@009416b0` with `REPAIR` → `Group::action_swarm_around@0070fbe0` → `Unit::add_repair_order@005e4ff0`, a `MOVEORDER` and the `RepairOrder` behind it; the `repair` command (`process_repair@00948cb0` → `Group::action_repair@007020c0`) is issued by nothing; also auto, a computer's (`do_gather`, `Build::process`) | 21, the repair line (§29) |
 | BoardOrder, AwaitBoardOrder | ~~`CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer~~ **no issuer makes one** (§28): `issue_set_transport@00941910` → `Group::action_set_transport@007024b0` is the auto-transport toggle and lays no order; the one adder of each, `Unit::add_board_order@005e4d10` and `Unit::add_await_board_order@005e4c80`, is reached only from `Group::action_board_ship@00700010` (the never-issued `board_ship`, and `finish_insert`'s replay) and `Unit::check_meet_ship@00604550` under a `BoardOrder`'s own step. What boards is the Transport `CastOrder` | 20, the board line (§28), which measures the absence |
 | StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
-| SpecialAnimOrder | **not** `anim`, which pokes `Guy::set_anim@005da300` | unresolved |
+| SpecialAnimOrder | ~~**not** `anim`, which pokes `Guy::set_anim@005da300`~~ **auto, and no issuer makes one** (§30): its one adder, `Unit::add_spec_anim_order@005e4160`, is called by `Unit::land_plane@005e9950` (type 0, a plane into its base) and `Unit::come_out@00617c10` (type 1, every unit out of a building on a frame past 0), and `do_spec_anim@005e5880` kills each in the call that adds it, so no dump prints one; the launch arm (type 1 at an `AIRBASE`) is parked 761's route and no game reaches it | 13 (the eject, 902–903) and 17 (the landing, 722), and every trained unit (§30) |
 | UnitOrder, GroupOrder, ThinkOrder | base classes, entered by everything | all |
 
 **The conclusion this table is for.** Seven of the eight chapters below
@@ -1337,7 +1337,10 @@ reorder. Of its three `unresolved` rows one has an issuer —
 `issue_set_transport` (item 803, chapter twenty, §28) — and the other
 two, `RepairOrder` and `SpecialAnimOrder`, have none, so after 803 they
 are readings before they are chapters: what builds each, from the
-export, and whether the DLL can reach it. `AirAttackGroundOrder`,
+export, and whether the DLL can reach it. **Both are read**: a player's
+repair is `swarm_around` (§29, a chapter), and a `SpecialAnimOrder` is
+the engine's own, entered by chapters thirteen and seventeen (§30, no
+chapter). `AirAttackGroundOrder`,
 `AirPatrolOrder` and `TradeOrder` are the cited-zero rows a run enters
 and no document names — the blind list's, not a chapter's.
 
@@ -4333,3 +4336,118 @@ walk-step draws (`Guy::set_anim` < `Unit::move_step`), and this crate
 - **What is not compared**: the Barracks' `helpers` is 0 on every block
   of both sides (the step's own counter, reset before the dump), and
   stays pinned unread.
+
+## 30. The special-anim line — a reading, and no chapter (item 832)
+
+**The reading first** (the fifteenth pass: §13's last `unresolved` row,
+`SpecialAnimOrder`, was a reading before it was a chapter). **No command
+builds one, and two closed chapters already enter both of its live
+arms.** The class is the engine's one-call wrapper round a unit entering
+or leaving a building: each is added and killed inside one call, so no
+dump prints one, and a chapter would measure only what chapters thirteen
+and seventeen already measure.
+
+**What builds one.** The constructor,
+`SpecialAnimOrder::SpecialAnimOrder@00484f10`, has one call site,
+`get_new_order@00730550` (`73095b`), the order pool's factory. `get_obj(SPECIAL_ANIM)` has one caller,
+`Unit::add_spec_anim_order@005e4160`, and the listing calls that twice,
+at `5e9aca` and `61a00d`; the export agrees. `copy_order@0072f900`
+(`Group::set_up_insert`, the save walk) copies one, and none is ever in a
+list to copy.
+
+The adder, from the listing (`5e4160`–`5e41b9`): it writes `type`
+(`+0x8`), `data1` (`+0x14`), `data2` (`+0x18`) and the action bit, and
+**`LinkListBase::add@0046d5a0` inserts at the head**, so the new order is
+the current one. Then `clear_partial_path`, the cursor, `update_action`.
+Its fourth argument is never read (`retl $0x10`). The caller writes
+`data3` to `whom` through `update_order` after it (`SpecialAnimOrder`,
+`types.txt`).
+
+| route | `type` (the PDB's `SpecialType`) | caller, call site | what reaches it | run by | entered |
+|---|---|---|---|---|---|
+| the landing | 0 `SPECIAL_ENTER`: `data1` the base's vslot `+0x34`, `data2` 3 for a helicopter (the type's `+0x2b4` bit `& 0x20`) else 1, `data3`/`data4` the base's `o`/`who` | `Unit::land_plane@005e9950`, `5e9aca` | `Unit::do_air_physics@005e86d0`: a returning plane within a step and a half of its point, a flight home (`issue_flight@00941d40`, §25) | the `work` at `land_plane`'s tail (vslot `+0x188`) | **chapter seventeen**: run223, block 722, the Fighter `0/6` |
+| the exit | 1 `SPECIAL_EXIT`: `data1` the host's `+0x34`, `data2` 0, `data3`/`data4` the host's point, `ox`/`whom` the host | `Unit::come_out@00617c10`, `61a00d` | every `come_out` that reaches its tail (`619fe2`) while the host's `+0x34` is non-zero and `Game::frame` is not 0: `Build::train@0062f9b0` (every trained unit), `Build::process_ejection@006201e0` and `Object::eject_contents@0064cd20` (the eject), `Object::do_launch@0064f3b0` (a plane leaving its base), `CommandPackage::process_come_out@009465d0`, `do_cast`'s unload, the deaths that empty a container | `do_spec_anim` called directly, `61a0b1` | **every long capture**: run53 from frame 99 and run54 from 274 (coverage traces; the frame `Build::train` is first entered); **chapter thirteen**, run208 902 and 903, by reading |
+| the default | 2 `SPECIAL_UNIT`, what `SpecialAnimOrder::clear@00484ec0` and the constructor write | none | nothing passes 2 | `do_spec_anim` returns at once | never |
+
+Setup's births (`Setup::build_units`, `place_unit`) call `come_out` on
+frame 0, and the gate refuses them.
+
+**No issuer builds one.** Every command that reaches the adder does so
+through an arm that belongs to another command: a flight home
+(`issue_flight`, §25), the eject (`issue_eject_all@00941ca0`, §21),
+`issue_come_out@00942c90` (one unit leaving what it is in: the garrison's
+other arm, parked 724), and a strike from inside a base (parked 761).
+The console's `anim` pokes `Guy::set_anim@005da300` and builds none. So
+the row is **auto**.
+
+**What `Unit::do_spec_anim@005e5880` does** (listing `5e5880`–`5e5bc4`):
+- `type` 2 returns.
+- It writes `frames` 10 and `started` 1, then asks whether `started`
+  is below a 0 or a 1 (`jl` at `5e5906`). **The progress arm is never
+  taken** (`5e5ada`–`5e5bbf`, which would move the unit a step a frame
+  and count `started` up), so every order ends in its first call.
+- **ENTER**: if the base is active (vslot `+0x10`) or an
+  `AIRCRAFTCARRIER`, then `go_inside(data3, data4, 0)` and the kill;
+  otherwise the kill and a death.
+- **EXIT**: unless the host (`ox`, `whom`) is an `AIRBASE`, the order is
+  killed and nothing else. At an Airbase, a launch:
+  - the unit faces 0;
+  - it is placed at the base's point less `0xc0` in `x`. A helicopter
+    instead draws two offsets, `Random::get(0, 0xffff) % 11` each, for
+    `x` in −197..−187 and `y` in −5..5, and flies 200 above the ground;
+  - its figure's bank and pitch (`+0x44`, `+0x4c`) are zeroed, the old
+    kept (`+0x48`, `+0x50`);
+  - the kill, then vslot `+0x188`.
+- **The kill** (`Unit::kill_current_order@005e2cb0`):
+  - `unit_masks &= ~0x20000`;
+  - for an EXIT, while playing and not loading, the host's `launching`
+    list (`ObjectData +0x44`, which only `do_launch` fills) drops the
+    unit;
+  - `remove_current`, `give_obj`, `update_action`.
+
+So away from an Airbase an EXIT leaves nothing on the unit but an
+`update_action` and the clear of a caster's bit.
+
+**What enters it, and what compares it.** No `SPECIALANIMORDER` block is
+in any of the 43 golden dumps or the 155 logged runs on disk (a grep,
+2026-09-26), as the reading predicts.
+- **ENTER, chapter seventeen, block 722.** This crate folds it into
+  `crate::air`'s `land_plane` → `go_inside` (`docs/ORDERS.md` §33.5).
+  The widening compares its effect on 722: `0/6`'s order stack empty
+  (`compare_orders`), the figure's standing arm (`last_speed` 0,
+  `stopped` 1), and `last_z = z` from 723. The container link itself,
+  `up`/`up_who`, no site compares (`diff::coverage`'s `UnitDump` row).
+- **EXIT, chapter thirteen, blocks 902 and 903**, and every long
+  capture's trained units. `crate::garrison`'s `come_out` lays no order.
+  What the arm leaves is its `update_action`, which `come_out` calls, and
+  the `0x20000` clear, which a unit coming out never needs. The effect is
+  compared by the ejected and born units' `action` and orders on their
+  first block; chapter thirteen closed at 1000 with them agreeing. The
+  `0x20000` bit is compared on chapter nineteen alone.
+- **A block that printed one would fail a standing guard.**
+  `rondata::diff::coverage`'s `every_key_the_dump_prints_is_read_or_pinned`
+  drives ch17's 720–724 and ch13's 900–904, and nothing reads the class's
+  keys (`started`, `frames`, `data1`…).
+
+**The arm no game reaches is EXIT at an Airbase: the launch.** None of
+the three coverage traces enters `Object::do_launch`, and no chapter
+launches a plane (§25: an idle plane in its base stays there). Its route
+is parked 761's, a strike from inside a base, which this crate does not
+build (`docs/ORDERS.md` §32's SEAMs).
+
+**What a staging would take.** Chapter seventeen's cast to 722, and the
+Fighter's tank refilled inside (2 a frame, `Unit::process@00610bc0`).
+Then `@strike` on `0/6` alone: `do_launch` would `come_out` it through
+the arm above, onto the base's point less `0xc0`, facing 0. A Fighter
+draws nothing there; a helicopter would draw twice. It needs 761 and the
+tank (765) built first, and it names no score until then.
+
+**What is not established.**
+- **Chapter thirteen's EXIT rests on the reading.** No draw is made off
+  an Airbase, so the draw stream cannot see it, and run208 ran at
+  `cover=0`. The train route is backed by the coverage traces.
+- **The vslot `+0x34` gate.** The folded COMDAT names it
+  `WallOut::get_gpiece@006424d0` (`render_gpiece`, `+0x68`). A host
+  without a piece skips the order, and nothing else changes.
+- **`data1` and `data2` are never read by `do_spec_anim`.** What they
+  cue is the renderer's.
