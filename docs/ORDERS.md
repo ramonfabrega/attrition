@@ -7633,11 +7633,28 @@ against 572 + 0 there. Both sides are now 571 + 8/16 on 927 and
 `GraphicEvent` (`init_unit_events@008e2520`), and
 `execute_game_events@008e48e0` fires each one the clock crosses. So
 `FIGHTER`'s eight frames on node 0 and the same eight on node 1 are two
-rounds a frame. `piece_releases` now keeps `(frame, node)` in the file's
-order, which is the order the walk takes. Only a pair repeated at one
-node is kept once: the install has 54 such pairs, and each pairs a
-damaging round with a `do_damage="0"` one, or two of the latter. SEAM:
-`do_damage` is unread, so a kept `NoDamage` event fires a damaging round.
+rounds a frame. `piece_releases` now keeps every event as
+`(frame, node, harmless)`, in the file's order, which is the order the
+walk takes.
+
+**A `do_damage="0"` round flies and does nothing.** Three `<AMMO>` names
+carry it (`NoDamage Tracer`, `NoDamage ArcherArrow`, `ThrowingDagger`):
+- `GraphicPieces::init_ammo_piece_ranges@008f6140` reads the attribute
+  with a default of 1 and keeps a zero as `ammo_flags & 0x80`;
+- `Ammo::init` sets the round's flag `0x10` from it (`init:151`);
+- `Ammo::inc_time@0067d380:260` closes a `0x10` round at its end instead
+  of calling `Ammo::do_damage`: no damage, no splash, no puncture draw.
+  The round still takes its pool slot and its `Ammo::init` draws.
+
+This crate carries it as `Projectile::harmless`. The harness compares
+`flags & 16` on every `AMMO` walk. SEAM: the flag's other writer,
+`init:226`, a roll against the target type's `+0x250`/`+0x254`, is not
+built.
+
+So the install's 54 pairs repeated at one node, each pairing a damaging
+round with a harmless one or two harmless, fire both rounds.
+`FIGHTERBOMBER`'s sixteen a swing are ten damaging and six harmless, as
+in the original.
 
 **The node reaches two places:**
 - **the launch point.** `get_position(node)` is measured as a `Bay` per
@@ -7687,7 +7704,7 @@ nodes sit on distinct frames.
 **Not established:**
 - the other Fighter-line pieces' guns. They launch from the figure,
   since only piece 239 is measured;
-- `do_damage` (above), which reaches `FIGHTERBOMBER`'s cross-node pairs;
+- `init:226`, `0x10`'s second writer (above);
 - the walk against a flying target, which is refused, and against an
   attack-ground order. Both rest on the listing alone.
 
