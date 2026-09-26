@@ -393,13 +393,22 @@ pub enum Issued {
         at: Pos,
         objects: Vec<i16>,
     },
+    /// `@settransport <who> <flag> <o>…` — `issue_set_transport@00941910(
+    /// group, flag)`: the transport button's toggle (`Options::
+    /// do_transport@0071c500`), item 803, `docs/GOLDEN.md` §28.
+    SetTransport {
+        who: i32,
+        flag: i32,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
-/// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build` or
-/// `spell`, a `who` outside `0..8`, fewer than three numbers (one for
-/// `eject`, four for `build`, six for `spell`), or no object.
+/// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build`,
+/// `spell` or `settransport`, a `who` outside `0..8`, fewer than three
+/// numbers (one for `eject`, two for `settransport`, four for `build`, six
+/// for `spell`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
@@ -420,6 +429,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "strike"
             | "build"
             | "spell"
+            | "settransport"
     ) {
         return None;
     }
@@ -437,6 +447,21 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Eject { who, buildings });
+    }
+    // `@settransport`'s one number is the flag.
+    if verb == "settransport" {
+        let [who, flag, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        let objects: Vec<i16> = objects
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if objects.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::SetTransport { who, flag, objects });
     }
     // `@spell`'s craft and target come before its point.
     if verb == "spell" {
@@ -661,6 +686,13 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             at,
             objects,
         }) => crate::input::group_spell(built, who, &objects, spell, ox, whom, at),
+        // `@settransport` is `issue_set_transport@00941910`, a `group` and a
+        // `set_transport`, whose entry is
+        // [`crate::input::group_set_transport`] (item 803, `docs/GOLDEN.md`
+        // §28).
+        Some(Issued::SetTransport { who, flag, objects }) => {
+            crate::input::group_set_transport(built, who, &objects, flag)
+        }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1285,6 +1317,31 @@ mod tests {
         );
         assert_eq!(parse_issuer("@spell 0 639 2006 1 15360 15360"), None);
         assert_eq!(parse_issuer("@spell 0 639 2006 1 15360"), None);
+    }
+
+    /// **A set-transport line is the DLL's toggle** (item 803): `who`, the
+    /// flag and the objects; the DLL refuses a line with no object by its
+    /// refusal 5.
+    #[test]
+    fn a_set_transport_line_is_the_dll_s_toggle() {
+        assert_eq!(
+            parse_issuer("@settransport 0 0 7"),
+            Some(Issued::SetTransport {
+                who: 0,
+                flag: 0,
+                objects: vec![7],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@settransport 0 1 6 7"),
+            Some(Issued::SetTransport {
+                who: 0,
+                flag: 1,
+                objects: vec![6, 7],
+            })
+        );
+        assert_eq!(parse_issuer("@settransport 0 1"), None);
+        assert_eq!(parse_issuer("@settransport 9 1 6"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,

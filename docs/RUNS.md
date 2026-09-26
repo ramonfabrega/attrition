@@ -7798,3 +7798,33 @@ which exited 0. The dump is archived as
   under an `ATTACK_TO` order, and this crate did not.
 - With the arm, all 28,828 steps agree, and the word moved 17189 → 17403.
 - The packet was not read: the dump and the trace answered every term.
+
+## run250 — chapter twenty's staging, to 646 (2026-09-26, item 803)
+
+**What it is.** `chapter20.cmd`'s first eight lines — `!ai off`, `library
+who=0 1`, a Dock, two Chariots, `@settransport 0 0 7` on 620 and both
+moves onto lake 70 on 640 and 642 — to 646, dumped over `[605, 646)`.
+92 s launch to exit, `success: true`, 647 frames, 20,992 `GROUPDATA`.
+The lane lock named pid 97451, which had exited. No packet: every
+predicate the staging asks is a field the dump prints.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-26-run250 \
+    --map 14 --end-frame 646 --log-window 605 646 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <chapter20.cmd's first eight lines>
+```
+
+**What the disk could not answer.** Whether `library who=0 1` and an
+`add`ed Dock grant a human the transport level, whether the DLL's
+`@settransport` clears the bit, and what plan each Chariot's move takes to
+the water: no capture on disk had a human's Dock or the toggle.
+
+**What it answered** (`docs/GOLDEN.md` §28): `leader_flags` 1799
+— the three level bits — from 605; `0x800000` on every who=0 unit; `process_set_transport
+621` and `0/7`'s `unit_masks` 8388608 → 0 on 622, stack empty; on 642
+`0/6`'s six-entry plan with the embark (flags 4) at (8856, 34200); on 644
+`0/7`'s six-entry plan onto the water with no embark and no pull-back.
+This crate walks it whole: eight lines ran, nothing parts to 646.
