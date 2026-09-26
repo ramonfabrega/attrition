@@ -4688,8 +4688,10 @@ in the coverage driver (768, 778, 924, 1178, 1385).
 
 ## 32. Chapter twenty-three — the repeat line: an Airbase's repeat toggled off between two landings (item 867)
 
-**Premise.** The player's repeat button on an Airbase **clears its
-`build_masks & 0x80`**, and a base without it keeps no air order: **a
+**Premise.** The player's repeat button on an Airbase **toggles its
+`build_masks & 0x80`**, off here (under the emulator,
+`Group::action_buildmask` takes 4232 → 4104 and 4104 → 4232, whatever
+`set` says), and a base without it keeps no air order, by two arms: **a
 plane that lands there loses its orders at the landing**
 (`Unit::land_plane@005e9950`'s clear arm, `docs/ORDERS.md` §40.1), and **a
 plane already inside with an unflagged order loses it at its full tank**
