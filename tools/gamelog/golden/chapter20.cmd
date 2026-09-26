@@ -18,6 +18,15 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter20.cmd
 #
+#   Run 2026-09-26: 836 s, 286 MB, the same game as run250 for all 647
+#   frames they share, 355,840 GROUPDATA (512 a block). No falsifier fired:
+#   0/7's bit off on 622 and on again on 802, no order laid by either
+#   toggle; 0/6's Transport CASTORDER (650, flags 0) on 703 and barge 0/8
+#   on 704 with 0/6 inside; 0/7's stack empty at the shore on 719, no
+#   barge; its cast on 829 and barge 0/9 on 830; 0/8 at its point on 856
+#   and 0/9 on 967; 0/6 ashore on 1160, 0/8 gone. No BOARDORDER or
+#   AWAITBOARDORDER on any block. docs/RUNS.md, run249.
+#
 # `GUYS=4` with `GROUPS=1`: every golden capture's level since run215, the
 # line whose pool printed. `LEADERS=2` prints `leader_flags`, whose `0x700`
 # is the transport level; `UNITS=3` prints each unit's `unit_masks`, whose

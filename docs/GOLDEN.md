@@ -1307,7 +1307,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | TradeOrder | auto (a Caravan under AI), `CommandManager::issue_trade@00941960` | 7 (the control) |
 | CastOrder | `CommandManager::issue_spell@00941b80` → `Group::action_spell@006fe1a0` → `Unit::add_cast_order@005e4a60`; also auto (`think_fish`, the unpacks, the transport; `think_spellcaster`'s Counterintelligence) | 19, the cast line (§27): the Informer on an enemy Barracks, `do_cast`'s targeted arm |
 | RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
-| BoardOrder, AwaitBoardOrder | `CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer | unresolved |
+| BoardOrder, AwaitBoardOrder | ~~`CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer~~ **no issuer makes one** (§28): `issue_set_transport@00941910` → `Group::action_set_transport@007024b0` is the auto-transport toggle and lays no order; the one adder of each, `Unit::add_board_order@005e4d10` and `Unit::add_await_board_order@005e4c80`, is reached only from `Group::action_board_ship@00700010` (the never-issued `board_ship`, and `finish_insert`'s replay) and `Unit::check_meet_ship@00604550` under a `BoardOrder`'s own step. What boards is the Transport `CastOrder` | 20, the board line (§28), which measures the absence |
 | StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
 | SpecialAnimOrder | **not** `anim`, which pokes `Guy::set_anim@005da300` | unresolved |
 | UnitOrder, GroupOrder, ThinkOrder | base classes, entered by everything | all |
@@ -1372,7 +1372,7 @@ below without a run take their number at booking (the eleventh pass).
 | 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
-| 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **not yet run** |
+| 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4026,3 +4026,33 @@ blocks past 718 is 968, and the window runs to the disembark plus 140.
 7. **The disembark.** `0/8` not putting `0/6` ashore on the east bank, or
    surviving it (this crate: 1159); or the 900 line refused (`INFO 17`,
    refusal 3: `0/8` is not the barge).
+
+**run249, and which falsifier fired: none** (`docs/RUNS.md` run249; 836
+s, the same game as run250 for the 647 frames they share, 355,840
+`GROUPDATA`).
+
+- **The toggle.** `process_set_transport 621` and `801`. `0/7`'s
+  `unit_masks` 8388608 → 0 on 622 and 0 → 8388608 on 802, its stack empty
+  on both. No order anywhere from either line.
+- **The flagged Chariot boards by a cast.** `0/6` walks its plan to
+  (8428, 34200); on 703 it holds the `MOVEORDER` and a `CASTORDER` —
+  spell 650, `UNITORDER` flags 0, `paid` 0, no target — and on 704 it is
+  inside `0/8` (`inside_up 8`), off the map, and `0/8` holds the
+  `MOVEORDER` and four of the path's entries, born at (8588, 34379). `0/8`
+  reaches (11904, 34944) on 856.
+- **The unflagged Chariot stops at the shore.** `0/7` walks its six-entry
+  plan to (8265, 35365) — cell (10, 46), the last land cell — and its path
+  and stack are empty on 719. No cast, no new unit.
+- **Re-flagged, it boards.** On 822 `0/7` holds the 820 move and a fresh
+  four-entry plan; on 829 the `CASTORDER` at (8440, 35478); on 830 it is
+  inside `0/9`, which reaches (11904, 36480) on 967.
+- **The disembark.** The 900 line names `0/8`, the barge (`process_group
+  … 901`). It sails to the east bank; on 1160 `0/6` is ashore at (18168,
+  34152) holding the `MOVEORDER` to (19608, 34968) and `0/8` is gone. `0/6`
+  arrives on 1222.
+- **The absence.** No `BOARDORDER` or `AWAITBOARDORDER` on any of the 695
+  blocks. §13's row is struck through to this section.
+
+This crate's prediction, written before the run, is the original's to the
+block: 703, 704, 719, 802, 829, 830, 856, 967, 1160.
+
