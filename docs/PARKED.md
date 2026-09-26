@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 867, 2026-09-26 — the repeat line's edges
+
+(876) **`do_launch`'s repeat arm, the launch half**: built by 867, and no
+capture measures it (chapter twenty-three measures the kill).
+
+(878) **A carrier's `0x200000`** in `build_masks`: unread, unbuilt.
+
 ## Parked by item 865, 2026-09-26 — the pool's other arms
 
 (871) **Great Lakes' pool numbering is not walked**: 865's branch walked
@@ -434,7 +441,11 @@ East Indies 17405. **865 finds the root and promotes it to 870**: the
 AI scripts' `train_unit*` and `research_tech_with_cost` push a building
 group before `action_queue_up`, and the pool numbering parts from block
 239; `att-865-pool-wip` models those pushes and the `get_num` rule, and
-holds both words. **829 adds** a closed army's orphan group's scalars
+holds both words. **867 adds** a player's building group:
+`CommandPackage::process_group@0094a0c0` pushes it at 0x94a6cf when the
+group is the package's own player's and one listed object survives
+`Group::add` (chapter twenty-three's 1442, slot 0 held; its reader is
+`get_open_slot`, and no later slot parts). **829 adds** a closed army's orphan group's scalars
 on East Indies 19000 — `order_num` 0 against 12, `o` (−1, −1) against
 (0, 0), `form_num` 0 against 1 — which no capture compares and no
 reader on the word's path reads (ARMY §22).
@@ -1406,6 +1417,12 @@ field to its spellings.
 merge): the commander's brief named the unit records on block 20002, and
 the pool record — slot 69's `facing` and `order_num` — answered the gap
 without a capture. A checklist row candidate beside row four.
+
+(879) **A lever placed between two staged events buys both arms in one
+capture** (867's Loop line, filed at its merge): the repeat toggle on
+1440, between chapter twenty-two's two landings, reached `land_plane`'s
+clear arm and `do_launch`'s kill in one run. A premise that names an arm
+asks which event each arm needs, and where a lever sits between them.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
