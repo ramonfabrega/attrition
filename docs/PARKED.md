@@ -329,8 +329,10 @@ AI's pushed groups on both long captures, so it wants both words
 measured. Likely 674's cause (an order's group id). **800 adds** the
 squad's birth push on East Indies 17363: the original's new squad takes
 its own pool slot for a block and ours does not; no draw spends on it.
-811's column parts on an order's `group.id` from 17405, so 811 may
-promote this family.
+811 closed the `order_num` half of an order's id on both maps (a
+retarget formed the army twice, ARMY §21); what stands is the pool id,
+the army's slot here and the pool slot there, and no step read it on
+East Indies 17405.
 
 (690) **`input::Stream`'s recorded `MoveTo`** still gives each unit
 `add_move_order` and bypasses the group; `input::group_move_to` is the
@@ -1166,6 +1168,13 @@ answered every predicate and gave this crate's forward walk a start
 that matched run249 to the block. When every predicate is a printed
 field, that is the cheaper default; the brief checklist's staging row
 says a packet.
+
+(823) **Count the writers of the counter that parted** (811's Loop line,
+filed at its merge): the order's `order_num` parting in the dump was the
+whole clue to a move issued twice, and one scratch print of every group
+action on the word's tick, with each record's `o` and `order_num`
+beside it, named the cause in one run. No brief line points a worker at
+a counter's writers; a checklist row candidate.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
