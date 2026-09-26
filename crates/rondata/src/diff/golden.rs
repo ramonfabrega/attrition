@@ -7208,14 +7208,17 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
 // **What parts under the word** on run249, the draw word closed at 1300.
 // - The births' `form`, the standing family: the Chariots and the barges.
 // - **The passenger's figures on boarding**: `avg_speed` 20 here against
-//   15 there on `0/6` (704) and 18 against 13 on `0/7` (830).
-// - **The disembark**: on 1160 `0/6`'s `orders_x/y`, (19608, 34968) here
-//   and (8428, 34200) there, its boarding point; on 1162 its figures'
-//   animation, `cur_anim` 7 here against 8 and `end_time` 89 against 22;
-//   and on 1165 its facing, −1581692416 here against −1518063274.
+//   15 there on `0/6` (704) and 18 against 13 on `0/7` (830) — the
+//   original ages it once more on the boarding frame (27 → 20 → 15, a
+//   quarter a frame) before the figures stand still inside; the order of
+//   `Guy::move` against `go_inside` in the frame, not this item's module.
+// - **The disembarked figure**: on 1162 `0/6`'s animation, `cur_anim` 7
+//   here against 8 and `end_time` 89 against 22; on 1165 its facing,
+//   −1581692416 here against −1518063274 (`crate::anim` and
+//   `crate::movement`, fenced to this item).
+// ~~On 1160 `0/6`'s `orders_x/y` and `dest_angle`~~: `eject_contents`'s
+// `update_action` is step 1's, before the orders come back (item 803).
 const WANT_CH20: &[&str] = &[
-    "1160 0/6 orders_x",
-    "1160 0/6 orders_y",
     "1162 0/6 g.cur_anim[0]",
     "1162 0/6 g.cur_anim[1]",
     "1162 0/6 g.end_time[0]",
