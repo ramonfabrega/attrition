@@ -452,6 +452,17 @@ impl Sim {
             })
     }
 
+    /// A unit whose type strafes: `unit_flags & 0x400000`, flag `w`
+    /// (the Fighter line; `docs/ORDERS.md` §39). A building is not.
+    pub(crate) fn strafes(&self, o: crate::combat::Obj) -> bool {
+        let crate::combat::Obj::Unit(u) = o else {
+            return false;
+        };
+        self.units[u].ty.is_some_and(|t| {
+            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::STRAFES != 0
+        })
+    }
+
     /// `ObjectData::is(0x130)`, the Bomber line.
     pub(crate) fn is_bomber(&self, u: usize) -> bool {
         self.air_line_is(u, BOMBER)
@@ -1149,19 +1160,66 @@ impl Sim {
         af.bank = roll.neg();
     }
 
+    /// **The altitude a plane with a point wants over the ground ahead**
+    /// (`pitch_aircraft`'s non-returning arm, `0x5e9001`–`0x5e920b`;
+    /// `docs/ORDERS.md` §39): its `cruising_alt`, unless it is a type that
+    /// strafes (`unit_flags & 0x400000`, flag `w`) on a strike, which
+    /// wants **half** of it (`cdq; sub; sar`, toward zero). The strike is
+    /// the front order's `is_attack` (vslot `+0x18`: a `StrafeOrder` 1,
+    /// an `AirPatrolOrder` 0), whose target stands
+    /// (`TargetOrder::target_exists@0072ff10`), is no ally's, does not
+    /// fly (`ObjectTypeData +0x218`, the domain, not 2), and lies within
+    /// 90° of the heading (`fold(heading − find_angle(dx, dy)) ≤
+    /// 0x40000000`, `0x5e9091`–`0x5e90ae`). run265's Fighter on 798:
+    /// pitch 40 → 38 with `z` 677 under 800 + 191, where the whole 1600
+    /// would have held it at 40.
+    ///
+    /// SEAM: a **flying** target's arm, which wants the target figure's
+    /// own `z` less or plus `min(300, max(0, (0x600 − dist)·5))` by the
+    /// order of the two objects' numbers (`0x5e9114`–`0x5e9206`); it is
+    /// flown here on the whole `cruising_alt`.
+    fn strike_altitude(&self, u: usize, dx: i32, dy: i32, cruise: i32) -> i32 {
+        let strafes = self.strafes(crate::combat::Obj::Unit(u));
+        let Some(t) = self
+            .current_strafe(u)
+            .filter(|_| strafes)
+            .and_then(|sf| sf.target)
+        else {
+            return cruise;
+        };
+        if !self.obj_alive(t) {
+            return cruise;
+        }
+        let whom = self.owner_of(t);
+        if whom < crate::world::PLAYER_SLOTS && self.is_ally(self.units[u].owner, whom) {
+            return cruise;
+        }
+        let heading = self.units[u].movement.heading;
+        let off = fold((heading.0 as u32).wrapping_sub(find_angle(dx, dy).0 as u32));
+        if off > 0x4000_0000 {
+            return cruise;
+        }
+        if matches!(self.profile(t).domain, crate::attrition::Domain::Air) {
+            return cruise;
+        }
+        cruise / 2
+    }
+
     /// **`Unit::pitch_aircraft(dx, dy, z, &speed)@005e8de0` for a plane**
     /// (`docs/ORDERS.md` §33.4): the altitude it wants, the pitch that
     /// climbs or dives toward it two a frame, the step of altitude the
     /// pitch makes, and the two speed cuts.
     ///
     /// **Not returning** (§34.6): the altitude wanted is `cruising_alt`
-    /// over the ground ahead; there is no halving; the floor is the
+    /// over the ground ahead — half of it for a strafing type on a strike
+    /// ([`Sim::strike_altitude`], §39); there is no halving of the speed; the floor is the
     /// ground here plus 200; `extra` is 0; and the rate's divisor is
     /// `0x240 / speed` — the listing's `[ebp−0x18]` keeps the `0x240`
     /// `project` was handed, because only the returning arm overwrites it
     /// with the distance (`0x5e8fae`).
     ///
-    /// SEAM: the `0x400000` type arm (the Bomber has only `h`).
+    /// SEAM: the `0x400000` type arm's flying target
+    /// ([`Sim::strike_altitude`]).
     fn pitch_plane(
         &mut self,
         u: usize,
@@ -1190,7 +1248,7 @@ impl Sim {
             }
             (want, dist)
         } else {
-            (cruise + ahead, 0x240)
+            (self.strike_altitude(u, dx, dy, cruise) + ahead, 0x240)
         };
         let want = want.min(cruise + ahead);
         let ground = self.world.tile_z(at.tile());
