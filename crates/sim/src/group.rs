@@ -914,6 +914,45 @@ impl Sim {
         }
     }
 
+    /// `Group::sort@00708090` on a group **on the stack** (§27): the same
+    /// walk as [`Self::seat_sort`], over the value's own list. The `kill`
+    /// takes the follower's whole squad out and the `add` brings it back
+    /// whole at the end.
+    ///
+    /// SEAM: the stack group carries its parent's `id`, so the original's
+    /// `kill` clears `+0x80` on a squad member that names it, and its
+    /// `normalize` prunes by that id. Neither is written here. No capture
+    /// has a sub-group that needs sorting: every siege arm on file has one
+    /// anchor, and one member sorts to itself.
+    pub(crate) fn stack_sort(&self, g: &mut Group) {
+        for _ in 0..256 {
+            let mut last: Option<usize> = None;
+            let mut bad = None;
+            for &m in &g.list {
+                if self.units[m].captain {
+                    last = Some(m);
+                    continue;
+                }
+                match last {
+                    Some(l) if self.top_captain(m) == l => {}
+                    _ => {
+                        bad = Some(m);
+                        break;
+                    }
+                }
+            }
+            let Some(m) = bad else { return };
+            let cap = self.top_captain(m);
+            let before = g.list.len();
+            g.list.retain(|&x| self.top_captain(x) != cap);
+            self.group_add(g, m);
+            if g.list.len() < before {
+                // A re-add the list refused: stop rather than loop.
+                return;
+            }
+        }
+    }
+
     /// `UnitData::get_captain` (vslot `+0xe4`): up `o_up` (`+0x8e`) to the
     /// figure that has none.
     pub(crate) fn top_captain(&self, u: usize) -> usize {
@@ -1903,6 +1942,11 @@ impl Sim {
         }
 
         let to = self.restrict_pos(to);
+        // A value that names a seat but holds another list is a group on
+        // the stack carrying the seat's record — `action_siege_attack_to`'s
+        // sub-group (§26, §27). Read before the clear, which can move the
+        // seat's list.
+        let stack = Self::seat_of_group(g).is_some_and(|seat| *self.seat_list(seat) != g.list);
 
         // §6.3: the formation angle. With `set_angle` the caller's stands;
         // without it, the direction from the group's own location to the
@@ -2032,11 +2076,27 @@ impl Sim {
         // therefore walk the **sorted** list. A member the sort brought in
         // was not in the list the clear walked, so it is decided now, as
         // the order loop's own second reading would.
-        let resorted = Self::seat_of_group(g).and_then(|seat| {
-            let before = self.seat_list(seat).clone();
-            self.seat_sort(seat);
-            (*self.seat_list(seat) != before).then(|| self.seat_group(seat))
-        });
+        //
+        // **A stack group sorts its own list** (§27): the siege arm's
+        // sub-group carries the parent's `army` so that it reads and writes
+        // a record, but `Group::sort` runs on the stack copy and the army's
+        // list is never touched. Sorting the seat here handed a one-anchor
+        // sub-group the whole army whenever the army's list held a squad
+        // follower ahead of its captain — East Indies 17402, army 1's
+        // `[60, 69]`.
+        let resorted = match Self::seat_of_group(g) {
+            Some(_) if stack => {
+                let mut ng = g.clone();
+                self.stack_sort(&mut ng);
+                (ng.list != g.list).then_some(ng)
+            }
+            Some(seat) => {
+                let before = self.seat_list(seat).clone();
+                self.seat_sort(seat);
+                (*self.seat_list(seat) != before).then(|| self.seat_group(seat))
+            }
+            None => None,
+        };
         let (g, plan) = match &resorted {
             Some(ng) => {
                 let p: Vec<Member> = ng
@@ -5619,6 +5679,57 @@ mod tests {
             (after.o, after.o_angle, after.order_num),
             (before.o, before.o_angle, before.order_num),
             "and the sub-group's layout is not written onto the army's record"
+        );
+    }
+
+    /// **The anchor's sub-group sorts its own list, not the army's**
+    /// (`docs/GROUPS.md` §27, East Indies 17402). The army holds a wagon, a
+    /// fighter and a squad's tail without its captain — the list
+    /// `Group::sort` re-seats. The siege arm's sub-group is the wagon
+    /// alone, so its sort is a no-op: the wagon takes a **plain**
+    /// `ATTACK_TO`, and the army's list is left as it was. Made to fail on
+    /// purpose by sorting the seat: the army's list comes back re-seated
+    /// and the wagon walks under a `GROUP_ATTACK_TO` of five.
+    #[test]
+    fn the_anchor_s_sub_group_sorts_its_own_list_and_walks_alone() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, foot, Pos::new(0x1100, 0x1000));
+        let cap = spawn(&mut s, 1, foot, Pos::new(0x2000, 0x2000));
+        let mid = spawn(&mut s, 1, foot, Pos::new(0x2030, 0x2000));
+        let tail = spawn(&mut s, 1, foot, Pos::new(0x2060, 0x2000));
+        for (f, up) in [(mid, cap), (tail, mid)] {
+            s.units[f].captain = false;
+            s.units[f].o_up = Some(up);
+            s.units[up].o_down = Some(f);
+        }
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, w);
+        s.army_add_unit(1, slot, b);
+        let mut sq = Group::stack(1);
+        s.group_add(&mut sq, cap);
+        assert!(s.push_group(&mut sq, true));
+        s.army_add_unit(1, slot, tail);
+        assert_eq!(
+            s.armies[1].list[slot].units,
+            vec![w, b, tail],
+            "the stray tail"
+        );
+        let g = s.army_group(1, slot);
+        s.group_action_siege_attack_to(&g, Pos::new(0x1400, 0x4000), Angle::NORTH);
+        let m = s.current_move(w).expect("the wagon walks in");
+        assert_eq!(m.kind, MoveKind::AttackTo);
+        assert!(
+            m.group.is_none(),
+            "a sub-group of one lays out a plain move: {:?}",
+            m.group
+        );
+        assert_eq!(
+            s.armies[1].list[slot].units,
+            vec![w, b, tail],
+            "and the army's list is not the one sorted"
         );
     }
 
