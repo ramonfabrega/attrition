@@ -431,14 +431,24 @@ pub enum Issued {
         num: i32,
         buildings: Vec<i16>,
     },
+    /// `@unqueue <who> <p> <b>…` — `CommandManager::issue_unqueue@
+    /// 00942c40(b, p)` once per building, as `Options::exec@007188c0`'s
+    /// option 0xa6 loops a selection: the cancel (item 884,
+    /// `docs/GOLDEN.md` §34). `p` is a slot, or −1 the last, −5 five, −10
+    /// all. The command carries no `group`.
+    Unqueue {
+        who: i32,
+        p: i32,
+        buildings: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
 /// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build`,
-/// `spell`, `settransport`, `repair`, `buildmask` or `queueup`, a `who`
+/// `spell`, `settransport`, `repair`, `buildmask`, `queueup` or `unqueue`, a `who`
 /// outside `0..8`, fewer than three numbers (one for `eject`, two for
-/// `settransport` and `buildmask`, four for `build` and `queueup`, six for
+/// `settransport`, `buildmask` and `unqueue`, four for `build` and `queueup`, six for
 /// `spell`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
@@ -464,6 +474,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "repair"
             | "buildmask"
             | "queueup"
+            | "unqueue"
     ) {
         return None;
     }
@@ -500,6 +511,22 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             mask,
             buildings,
         });
+    }
+    // `@unqueue`'s one number is the selector, and its objects are
+    // buildings, each its own command.
+    if verb == "unqueue" {
+        let [who, p, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Unqueue { who, p, buildings });
     }
     // `@queueup`'s two numbers are the type and the count, and its objects
     // are buildings.
@@ -802,6 +829,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             num,
             buildings,
         }) => crate::input::group_queue_up(built, who, &buildings, ty, num),
+        // `@unqueue` is `issue_unqueue@00942c40` once per building, an
+        // `unqueue` with no `group` (item 884, `docs/GOLDEN.md` §34).
+        // SEAM: not entered yet — chapter twenty-five's floor is measured
+        // with the cancel skipped, and [`crate::input::unqueue`] is the
+        // entry the build wires here.
+        Some(Issued::Unqueue { .. }) => {
+            done.skip(&word, "the cancel is not entered in the harness");
+            return;
+        }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1311,6 +1347,10 @@ mod tests {
         // lines with the infinite-queue mask 0x40 on a Barracks, the queue
         // line (item 877, `docs/GOLDEN.md` §33).
         ("chapter24.cmd", &[]),
+        // Chapter twenty-five: three `@queueup` lines, four `@unqueue`
+        // lines and a `@buildmask` 0x40 on a Barracks, the cancel line
+        // (item 884, `docs/GOLDEN.md` §34).
+        ("chapter25.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
@@ -1507,6 +1547,23 @@ mod tests {
         );
         assert_eq!(parse_issuer("@queueup 0 132 1"), None);
         assert_eq!(parse_issuer("@queueup 9 132 1 2007"), None);
+    }
+
+    /// **An unqueue line is the DLL's cancel** (item 884): `who`, the
+    /// selector (a slot, or a negative) and the buildings; a line with no
+    /// building is the DLL's refusal 5.
+    #[test]
+    fn an_unqueue_line_is_the_dll_s_cancel() {
+        assert_eq!(
+            parse_issuer("@unqueue 0 -1 2007"),
+            Some(Issued::Unqueue {
+                who: 0,
+                p: -1,
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(parse_issuer("@unqueue 0 0"), None);
+        assert_eq!(parse_issuer("@unqueue 9 0 2007"), None);
     }
 
     /// **A repair line is the DLL's swarm** (item 813): `who`, the

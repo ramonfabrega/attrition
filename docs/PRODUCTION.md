@@ -770,6 +770,37 @@ one building with an empty queue first; it is read and not built.
 is in `air.rs`; `do_queue`'s read-before-unqueue is `Sim::advance_slot`'s
 `Handover::Trained` arm. The harness compares the bit beside 0x80.
 
+## The player's cancel (item 884)
+
+`CommandPackage::process_unqueue@009466f0` → `Build::action_unqueue@
+00620280(p)`. The command is `CommandManager::issue_unqueue@00942c40(b,
+p)`, 15 bytes `[who][o][p][uid]` and **no `group`**, so it seats nothing
+in the pool (`docs/COMMANDS.md` §3). `docs/GOLDEN.md` §34 is the chapter;
+every clause below is read off the listing and run under the emulator, and
+says when a capture backs it.
+
+```
+forward to the first library, as `unqueue` does, unless slot p is DISBAND
+if queued == 0: return                         # the bit too is left
+if build_masks & 0x40:
+    build_masks &= ~0x40                       # and the console's feedback
+    if p >= -1: return                         # a single cancel: nothing removed
+if p <= -10:   while queued: unqueue(queued - 1, 1)
+elif p <= -5:  repeat min(queued, 5): unqueue(queued - 1, 1)
+else:          unqueue(p if p >= 0 else queued - 1, 1)
+```
+
+The interface's `p` is `Options::exec@007188c0`'s option 0xa6 `object`:
+a slot, or −5 and −10 (`~PAPYRUS`) under its two modifiers.
+`unqueue(i, 1)` is "Cancelling refunds exactly what was paid" above: the
+walk over the run, the recorded pairs refunded, `num_queued` and the AI
+tallies taken down (neither below 0), `queued` less one and the tail
+copied down; a slot past the end is nothing.
+
+**In the code**: `Sim::action_unqueue` in `crates/sim/src/production.rs`
+over `Sim::cancel`; `input::unqueue` is the command's entry, and the
+recorded stream's `Unqueue` goes through it (no kept stream carries one).
+
 ## What is not established
 
 - **Nine of `train_time`'s ten national arms**, and everything after them.

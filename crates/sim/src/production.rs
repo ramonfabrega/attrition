@@ -708,6 +708,58 @@ impl crate::Sim {
         }
         laid
     }
+
+    /// **`Build::action_unqueue@00620280(p)`**, the player's cancel, from
+    /// `CommandPackage::process_unqueue@009466f0` (`docs/PRODUCTION.md`,
+    /// "The player's cancel"; `docs/GOLDEN.md` §34). `p` is the command's
+    /// selector, read off the listing (`6203c1`..`620470`) and run under
+    /// the emulator:
+    ///
+    /// - an empty queue: nothing, **whatever the bit** (`620353`);
+    /// - with `build_masks & 0x40` set: the bit is cleared first, and for
+    ///   `p >= -1` that is all — **a single cancel on an infinite queue
+    ///   removes nothing** (`6203c1`);
+    /// - `p <= -10`: `unqueue(queued - 1, 1)` until the queue is empty;
+    /// - `-10 < p <= -5`: the same, `min(queued, 5)` times;
+    /// - otherwise `unqueue(p, 1)`, with a negative `p` read as the last
+    ///   slot, `queued - 1` (`62045d`). A slot past the end is nothing.
+    ///
+    /// Each `unqueue` with its refund walks forward over a run of the
+    /// entry's type and refunds the recorded price ([`Sim::cancel`]).
+    /// Returns the entries removed.
+    ///
+    /// SEAM: the forward to the first library skips a slot holding
+    /// `DISBAND` (0x29a); this crate queues no such entry.
+    pub fn action_unqueue(&mut self, at: usize, p: i32) -> usize {
+        let at = self.queue_home(at);
+        let len = |sim: &crate::Sim| sim.buildings[at].queue.items.len();
+        if len(self) == 0 {
+            return 0;
+        }
+        if self.buildings[at].queue.infinite {
+            self.buildings[at].queue.infinite = false;
+            if p >= -1 {
+                return 0;
+            }
+        }
+        let times = if p <= -10 {
+            len(self)
+        } else if p <= -5 {
+            len(self).min(5)
+        } else {
+            let slot = if p < 0 { len(self) - 1 } else { p as usize };
+            return usize::from(self.cancel(at, slot).is_some());
+        };
+        let mut removed = 0;
+        for _ in 0..times {
+            if len(self) == 0 {
+                break;
+            }
+            let last = len(self) - 1;
+            removed += usize::from(self.cancel(at, last).is_some());
+        }
+        removed
+    }
 }
 
 #[cfg(test)]
@@ -1146,5 +1198,81 @@ mod infinite_tests {
         let q = &s.buildings[b].queue;
         assert!(q.items.is_empty(), "the re-queue is refused");
         assert!(!q.infinite, "and the bit goes with it");
+    }
+
+    /// **The player's cancel reads its selector** (`Build::action_unqueue@
+    /// 00620280`, under the emulator on a synthesized Barracks, item 884):
+    /// a slot in a run removes the run's last and keeps the head's
+    /// progress, refunding what that entry recorded; a single cancel on an
+    /// infinite queue only clears the bit; −1 removes the last slot; −2
+    /// clears the bit *and* removes; −5 removes five from the end; −10
+    /// empties; an empty queue keeps its bit. Made to fail with the bit's
+    /// early return dropped, and with a negative `p` read as slot 0.
+    #[test]
+    fn the_player_s_cancel_reads_its_selector() {
+        let (mut s, b, rec) = barracks(true);
+        for _ in 0..3 {
+            s.queue_up(b, rec).expect("queued");
+        }
+        s.buildings[b].queue.items[0].job_counter = 5000;
+        let wealth = crate::economy::Resource::Wealth.index();
+        let paid = |s: &Sim, i: usize| i32::from(s.buildings[b].queue.items[i].cost[0]);
+        let (before, second) = (s.ledgers[0].bucket[wealth], paid(&s, 1));
+        assert_eq!(s.action_unqueue(b, 0), 1);
+        let q = &s.buildings[b].queue;
+        assert_eq!(q.items.len(), 2, "one of the run");
+        assert_eq!(q.items[0].job_counter, 5000, "the head keeps its progress");
+        assert_eq!(
+            s.ledgers[0].bucket[wealth],
+            before + second,
+            "the recorded price"
+        );
+        s.action_buildmask(&[b], 0x40);
+        assert!(s.buildings[b].queue.infinite);
+        let before = s.ledgers[0].bucket[wealth];
+        assert_eq!(s.action_unqueue(b, -1), 0, "a single cancel on 4160");
+        assert!(!s.buildings[b].queue.infinite, "4160 -> 4096");
+        assert_eq!(s.buildings[b].queue.items.len(), 2, "and nothing removed");
+        assert_eq!(s.ledgers[0].bucket[wealth], before, "nor refunded");
+        assert_eq!(s.action_unqueue(b, -1), 1, "the bit off: the last goes");
+        assert_eq!(
+            s.buildings[b].queue.items[0].job_counter, 5000,
+            "the head stays"
+        );
+        s.queue_up(b, rec).expect("queued");
+        s.action_buildmask(&[b], 0x40);
+        assert_eq!(s.action_unqueue(b, -2), 1, "-2 clears the bit and removes");
+        assert!(!s.buildings[b].queue.infinite);
+        for _ in 0..6 {
+            s.queue_up(b, rec).expect("queued");
+        }
+        assert_eq!(s.action_unqueue(b, -5), 5, "five from the end");
+        assert_eq!(s.buildings[b].queue.items.len(), 2);
+        assert_eq!(s.buildings[b].queue.items[0].job_counter, 5000);
+        assert_eq!(s.action_unqueue(b, 7), 0, "a slot past the end");
+        assert_eq!(s.action_unqueue(b, -10), 2, "all");
+        assert!(s.buildings[b].queue.items.is_empty());
+        s.buildings[b].queue.infinite = true;
+        assert_eq!(s.action_unqueue(b, -1), 0);
+        assert!(
+            s.buildings[b].queue.infinite,
+            "an empty queue keeps its bit"
+        );
+        // Two types: −1 is the last slot, not slot 0's run.
+        s.buildings[b].queue.infinite = false;
+        let mut other = crate::UnitType::default();
+        other.price.pop = 1;
+        other.price.base[crate::economy::Resource::Food.index()] = 30;
+        let rec2 = s.add_unit_type(other);
+        s.muster[0].researched[rec2] = true;
+        s.queue_up(b, rec).expect("queued");
+        s.queue_up(b, rec2).expect("queued");
+        s.buildings[b].queue.items[0].job_counter = 700;
+        assert_eq!(s.action_unqueue(b, -1), 1);
+        let q = &s.buildings[b].queue;
+        assert_eq!(
+            (q.items.len(), q.items[0].ty, q.items[0].job_counter),
+            (1, rec, 700)
+        );
     }
 }

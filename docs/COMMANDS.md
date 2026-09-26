@@ -235,7 +235,9 @@ are the PDB's: `int` i32, `Coord` i32 (world coordinates, `docs/ORDERS.md`),
   **gather_point** `[x][y][action i32][add_to_end i32]`.
 - **disband** `[all i32]`; **queue_up** `[type i32][num i32]`;
   **build** `[x][y][x2][y2][type][queued]`; **unqueue**
-  `[who i32][o i32][type i32][uid i16]`; **come_out** `[who][o][uid i16]`.
+  `[who i32][o i32][type i32][uid i16]` (`type` is `Build::action_unqueue`'s
+  selector — a slot, or −1 the last, −5 five, −10 all — and no `group`
+  precedes it: `docs/PRODUCTION.md`, "The player's cancel", item 884); **come_out** `[who][o][uid i16]`.
 - **eject_all** `[back_to_work i32][who i32][eject_o i32][eject_who i32]`;
   **flight** `[ox][whom][shift][ctrl][alt][orders OrderIndex]`.
 - **spell** `[ox][whom][type i32][x][y]`.
