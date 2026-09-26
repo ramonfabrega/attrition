@@ -3643,10 +3643,12 @@ So there is nothing to wire. **717 closes on this reading**, and
   nothing back, and before this item it wrote the whole layout onto the
   parent's record instead. The parent's `GROUPDATA` (its `o`, `o_angle`
   and `order_num`) is printed on every block but not compared.
-- **`Form::categorize`'s sort** runs on the stack sub-group in the
+- ~~**`Form::categorize`'s sort** runs on the stack sub-group in the
   original. This crate's `group_action_move_to` sorts the **seat's**
   list. A one-member sub-group's sort is a no-op, but a sub-group of two
-  or more siege would sort the whole army here.
+  or more siege would sort the whole army here.~~ Worse than that: the
+  seat's sort swapped the whole army in for a one-member sub-group
+  whenever the army's list needed re-seating. Built by item 800 (§27).
 - **An anchor that leads its parent.** If its dying move is handed back
   inside the sub-group's clear loop, this crate writes it onto the
   swapped-in stack record, and the original onto the parent (`+0x80`).
@@ -3661,3 +3663,132 @@ positions; nothing parting on 15441..15859.
 **Reading only**: the stack record's other cleared fields (§26.6), and
 §26.5's two unreachable readers (backed by the dump's `guy_mark` and the
 install's packets, not by a run that reaches them).
+
+## 27. A stack sub-group sorts its own list — East Indies 17403 → 17501 (item 800, 2026-09-26)
+
+*Established by run233's dump and the widening, with a scratch print of
+the call that issued the order. Diff-backed on every block of run233.*
+
+### 27.1 The frame, read whole first
+
+On 17403 ours spent 7 draws against 6, parting at index 0: ours
+`Unit::do_move+0xe84`, the original `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. run233's widening, with `RON_ROW_WALK` on `1/60`
+and `1/67`..`1/69` and the dump's own records for 17340..17410:
+
+- **`1/67`..`1/69` are one squad born on tick 17362** (absent to block
+  17362, `o_up`/`o_down` 67 → 68 → 69). On their birth block, 17363, the
+  original pushes them into pool slot 69 (`stamp 17362`, `form 0`) and
+  ours leaves them group-less. On 17364 both sides add them to army 1,
+  and from there to the window's end they part on nothing but the pool
+  id (`group` 69 here, 71 there: 689). **Not on the chain.**
+- **`1/60` parts on nothing but the pool id until block 17403.** It is
+  army 1's other member: a unit of three figures that walks as the siege
+  arm's anchor (§9), a supply wagon or a hero.
+- **Block 17403**, the state after tick 17402: army 1 attack-moves. The
+  first parting's field list is `1/60`'s order block and every field of
+  its walk:
+
+  | `1/60` on 17403 | theirs | ours (before) |
+  |---|---|---|
+  | order type | 2, `ATTACK_TO` | 21, `GROUP_ATTACK_TO`, flags 5 |
+  | `x`, `y` (the slot) | (38136, 42024) | (37992, 41784) |
+  | `orig_x/y` | (38122, 42017) | (38122, 42017) |
+  | `angle` | 1745223680 | 1745223680 |
+  | position | (34408, 41098), `last_speed 41` | (34368, 41088), stopped |
+  | `unit_masks` | 0x840008 (no `& 4`) | not in danger |
+
+  The squad's escort posts (`GUARDORDER`) part by 48 on the same block,
+  because they are laid out on the anchor where it stands.
+
+### 27.2 The readings, and what killed each
+
+Written from the rows, before the call was printed. Each killer tests its
+own reading's unit, the anchor's order:
+
+- **R1, the in-danger gate** (§6.6 step 6, `unit_masks & 4`) gave the
+  original a plain move. Killed if the original's `1/60` carries no
+  `& 4` on 17403. **Killed**: 0x840008.
+- **R2, the original issued a group move and ungrouped it on the same
+  frame** (`ungroup_move_order`, ORDERS §8.3). Killed if the order
+  carries `dest 1` or an `orig` other than its `x/y`, which the ungroup
+  writes. **Killed**: `dest 1`, `orig` (38122, 42017) against `x/y`
+  (38136, 42024).
+- **R3, the anchor's sub-group is laid out with more than one member
+  here.** Killed if the print of ours' `group_action_move_to` shows the
+  sub-group of one. **Holds**: it shows `[60, 67, 68, 69]`, called from
+  `group_action_siege_attack_to`, where the sub-group built at its head
+  was `[60]`.
+
+### 27.3 The cause
+
+Army 1's list is **`[60, 69]`** on both sides: `1/69` is the squad's
+tail, listed without its captain `1/67` (§23's shape). The siege arm
+builds its sub-group `[60]` carrying the parent's `army`, so it reads
+and writes a record (§26). `Form::categorize` begins with
+`Group::sort@00708090`, which runs **on the group being laid out**, and
+in the original that is the stack sub-group of one: a no-op.
+
+This crate's `group_action_move_to` sorted **the seat's** list. `1/69`
+comes after no captain of its own, so the sort killed the squad and
+re-added it whole, `[60, 67, 68, 69]`. And a sort that changed the list
+handed the layout the seat's group, so the sub-group became the whole
+army. `1/60` was laid out as slot 0 of four, a `GROUP_ATTACK_TO`, and
+stood as a leader waiting for its followers.
+
+**Built** (`crates/sim/src/group.rs`): a value that names a seat but
+holds another list is a group on the stack, read at entry, before the
+clear. Its sort is `Sim::stack_sort`, over its own list. The seat's sort
+still runs for a seated group. `the_anchor_s_sub_group_sorts_its_own_
+list_and_walks_alone` fails with the seat's sort: the wagon walks under
+a group order and the army's list comes back re-seated.
+
+### 27.4 What it moved
+
+**East Indies 17403 → 17501. Great Lakes holds at 20568.**
+
+**The value diff, on 17403** (`run233_s_word_frame_is_widened_whole`):
+`1/60` holds an `ATTACK_TO` to (38136, 42024) on both sides, and its
+position, path and `orders_x/y` agree. Army 1's list, compared on
+`(who, army)` and never the slot, is `[60, 69]` on both sides on 17401
+to 17405. Before the fix it was `[60, 67, 68, 69]` here. All 52 of
+`1/60`'s rows go, and so do `1/15`'s two and the squad's escort rows.
+The window's floor goes 293/312/324/1,036 → 293/312/324/446.
+
+**The new word, 17501**: ours 13 draws against 11, parting at index 3.
+Ours spends `Guy::set_anim+0x97a < Guy::move+0x19f` where the original
+spends `< Unit::do_idle+0x7d`. A scratch print of ours' sites names
+**`1/57`'s walk step**, and one more gaia clock (`9/9` twice and `9/15`
+here, two there). `1/57` is army 0's column. **What stands under it on
+run233**: from block 17405 the column `1/48`..`1/58` parts on the order
+army 0 issues on tick 17404. Its group id is 17404000 here and 17410801
+there, which is 674's shape: `(id + frame·10)·100 + order_num` with id 0
+and `order_num` 0 against 68 and 1. Their positions and headings part on
+the same block. It is past run233's end, so run251 was taken
+(`docs/RUNS.md`). No mechanism is named.
+
+### 27.5 What this has *not* established
+
+- **The stack sort's pointer writes.** The original's `kill` on the
+  stack group clears `+0x80` on a squad member that names the group's
+  id, which is the parent's. `normalize` prunes by that id.
+  `stack_sort` writes neither. No capture has a sub-group that needs
+  sorting: every siege arm on file has one anchor.
+- **A seatless group's sort.** `Form::categorize` sorts every group it
+  lays out. This crate sorts a seated group and a stack group that
+  carries a seat, and never a player's selection or `action_guard`'s
+  local group. The latter is built captain-first by `group_add`, so its
+  sort is a no-op.
+- **The squad's birth push** (17363): the original's new squad sits in a
+  pool slot of its own for a block before the army takes it. That is
+  689's family and spends no draw.
+- 744's other seams, the slot angles, the copy-back and the anchor that
+  leads its parent (§26.6), are not touched.
+
+### 27.6 Coverage
+
+**Diff-backed** (run233, every block 16929..17440): the anchor's plain
+order and its walk on 17403, the escort's posts, army 1's list on
+17401..17405 and nothing of `1/60` or the squad parting after 17364 but
+the pool id. **Reading only**: §27.5's pointer writes, which no run
+reaches.
