@@ -6652,3 +6652,96 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - **R3's killer fires.** 59 rows part on 20500 outside run226's 307
 #   standing: `1/40`, `1/41`, `1/42` and `1/60` on long walks, `1/80`'s
 #   formation and who=1's `SITE[1].reg`. The gap is not quiet.
+
+run: 251
+tag: eastindies-columnword
+item: 800
+why: East Indies' long word is 17501 (item 800), where ours spends 13 draws against 11, parting at index 3 — ours spends `Guy::set_anim+0x97a < Guy::move+0x19f` where the original spends `< Unit::do_idle+0x7d` — and run233, the last capture on this map below 23960, ends on block 17440, so the word's block 17502 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 800): every
+# `gamelog-*eastindies*` by its block range. run233 holds 16929..17440,
+# run248 a packet's `WORLD` at 17145..17147, run96 from 23960; run54
+# prints only its draw stream. None holds 17501 or 17502. **What the disk
+# does answer.** A scratch print of ours' sites (`RON_DEBUG_SITES=17500-
+# 17501`) names ours' extra draws on 17501: **`1/57`'s walk step**
+# (`Guy::move+0x19f`) and one more gaia clock (`9/9` twice and `9/15`
+# here against two there). `1/57` is army 0's column. run233's walk with
+# item 800's fix parts on the column from block 17405 — the order the
+# army issues on tick 17404, its `group.id` 17404000 here against
+# 17410801 there (674's shape), with `1/48`, `1/49`, `1/53`, `1/55`,
+# `1/57` and `1/58`'s positions — and `1/57`'s own rows from 17410 to
+# its last block. **What the disk could not answer**: every record on
+# 17441..17502 — where `1/57` and the animals stand and walk, which
+# record parts first on the word's block, and whether the original's
+# `1/57` is idle on 17501.
+#
+# **Sized to the word** (DECISIONS 50 §7): six blocks before it
+# (17496..17501), its block 17502, and 250 above it (17503..17752) —
+# **257 blocks, 17496..17752**. No overlap with run233 (it ends on 17440),
+# so **blocks 17441..17495 are compared by no dump**; the same game is
+# the draw stream's word against run54.
+#
+# **The readings, each with what kills it** (block = frame + 1). Each
+# killer tests the claim's own unit and splits the readings:
+#
+# - **R1 — this is run54's game to 17763.** Killed if the trace differs
+#   from run54's on any frame, or agrees on fewer than 17,764.
+# - **R2 — ours' extra step is `1/57`'s, carried in from the column's
+#   parting on 17405.** Its unit is `1/57`: killed if `1/57` agrees on
+#   position, orders, path and move state on every block 17496..17501,
+#   compared on (who, o). R3 predicts it agrees.
+# - **R3 — the parting is new on the window, not the column's.** Its unit
+#   is the column `1/48`..`1/58` on 17496, the window's first block:
+#   killed if any of them parts there outside the pool id `group` and the
+#   order's `group.id`. R2 predicts that it does.
+# - **R4 — the gaia clock is its own parting.** Its unit is `9/9` and
+#   `9/15`: killed if both agree on position and their first figure's
+#   `cur_anim` and `cur_time` on every block 17496..17501.
+#
+# **run233's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the pool lands (no `DEATHS`). Not a round, so no `AMMO`.
+frames: 17763
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **17496..17752, 257 blocks**: six up to the word, its block 17502, and
+# 250 of runway above it.
+frame_window: 17496 17753
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run233**: 2.4 MB a block, so 257 blocks is ~0.6 GB.
+# run233 took 42 minutes for 512 blocks to 17451; this plays 312 frames
+# further unlogged and logs half as many. 300 polls is 100 minutes.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run251.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=17764)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run251-eastindies-columnword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 257 blocks, 17496..17752, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run251-eastindies-columnword.txt" | awk '{v=$3+0; if(v>=17496&&v<17753) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==17496 && hi==17752)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run251-eastindies-columnword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=17496&&v<17753)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run251-eastindies-columnword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=17496&&v<17753)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 618,867,338 bytes of dump and 23,722,688 of trace, **257 blocks
+# 17496..17752**, with a `GROUPDATA` and a `GUY` on every one. The first
+# launch (02:57) was dropped silently: att-803's golden capture held
+# RonDriver, and `open -a` starts no second instance. It was relaunched at
+# 03:10 when that pid exited and archived at 03:35, about 25 minutes, with
+# no human at the menu. `waitrun.sh` exited 0. All five checks were green:
+# - 17,764 frames identical to run54, 0 differing;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run251_s_word_frame_is_widened_whole`, `docs/GROUPS.md` §27.4):
+# - **R1 holds**, by the checks above.
+# - **R2 holds.** `1/57` parts on position from 17496. On 17501 ours'
+#   stands with one path entry against two, and on 17502 the original's
+#   sets off toward (31451, ·).
+# - **R3's killer fires**: the column parts on 17496 on positions, not
+#   only on the ids.
+# - **R4's killer fires**: `9/9` and `9/15` agree on every gaia row to
+#   the word.

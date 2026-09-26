@@ -22,6 +22,12 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 800, 2026-09-26 — the stack sort's edges
+
+(812) **`stack_sort`'s pointer writes**: the original's sort writes the
+list's links as it goes, and no capture reaches the arm where those
+writes differ from a sort by value. Names no score.
+
 ## Parked by the fifteenth Fable pass, 2026-09-25 — names no score
 
 (809) **Thirty-five constants a comment alone carried.** The constant
@@ -182,7 +188,8 @@ Neither names a score.
 
 (744) **The stack sub-group's other seams** (GROUPS §26.6): its
 uninitialised slot angles, `replace_form_id`'s copy-back,
-`Form::categorize` sorting the seat's list rather than the stack group's,
+~~`Form::categorize` sorting the seat's list rather than the stack group's~~
+(**closed by 800**, GROUPS §27: East Indies 17403 → 17501),
 and an anchor that leads its parent.
 
 ## Parked by item 731, 2026-09-25 — the group attack's loose ends
@@ -290,7 +297,11 @@ reads 641000 against 647600, and chapter ten's patrol ids the same
 (693); 718's `come_out` squad push and the eject's building group are
 pool slots of the same family. No step reads it, but the fix reaches the
 AI's pushed groups on both long captures, so it wants both words
-measured. Likely 674's cause (an order's group id).
+measured. Likely 674's cause (an order's group id). **800 adds** the
+squad's birth push on East Indies 17363: the original's new squad takes
+its own pool slot for a block and ours does not; no draw spends on it.
+811's column parts on an order's `group.id` from 17405, so 811 may
+promote this family.
 
 (690) **`input::Stream`'s recorded `MoveTo`** still gives each unit
 `add_move_order` and bypasses the group; `input::group_move_to` is the
