@@ -1377,7 +1377,7 @@ below without a run take their number at booking (the eleventh pass).
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
-| 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, then 923, open (item 836: the launch line built, ORDERS §38)** |
+| 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4640,5 +4640,44 @@ in the coverage driver (768, 778, 924, 1178, 1385).
 - **The first value parting is 798**, before the word: the climb out of
   the base, `0/6`'s `pitch` 40.0 here against 38.0 there (bits 1109393408
   / 1108869120), `last_speed` 38 against 40, its point a unit or two off;
-  its heading parts on 813 (1390007340 / 1391742680). **798 is the
-  chapter's next frame**, in `pitch_aircraft`'s non-returning arm.
+  its heading parts on 813 (1390007340 / 1391742680). ~~**798 is the
+  chapter's next frame**, in `pitch_aircraft`'s non-returning arm.~~
+  Upstream of the word, by item 842 (below).
+
+**The strafer built: `GOLDEN_WORD_CHAPTER_TWENTY_TWO` = 1500, closed**
+(item 842, `docs/ORDERS.md` §39).
+- **Whose sixth draw on 923**: the original's. Its Fighter plays
+  `CHAR_ATTACK2` from `do_strafe+0x9d0` (`Guy::set_anim+0xf2f`); ours was
+  still 387 units short, at (19523, 15869) against (19910, 16016), and
+  released on 929.
+- **The chain from 798.** The Fighter's type carries flag `w`
+  (`unit_flags & 0x400000`, "strafes targets"). On a strike at a
+  standing ground target within 90° of the nose, `pitch_aircraft` wants
+  **half** its `cruising_alt` over the ground ahead (`0x5e90ff`–`0x5e910c`).
+  - On 797 both sides stand at `z` 677, pitch 40.0, `cruising_alt`
+    1600, heading 361709932.
+  - On 798 the original's rate is `((800 + 191 − 677) / 25 · 20) / 7` =
+    34, so its pitch falls 40 → 38. Ours wanted 1791, rate 125, and held
+    40.
+  - Ours then climbed longer under the pitch speed cut (`last_speed` 38
+    against 40), fell behind, and released six frames late.
+- **The value diff on the word's frames, both sides, after the build**:
+  - on 798, `0/6`'s `pitch` 38.0 (bits 1108869120), `z` 724,
+    `last_speed` 40, at (11504, 12621);
+  - on 924, `cur_anim` 12, `end_time` 30, `recharging` 31, at (19979,
+    16045);
+  - on 923, the draws `Guy::set_anim+0xf2f`, then five
+    `Farms::inc_time`.
+  - With the half alone, 923 parted at draw 1: ours then spent two
+    `Ammo::init` scatter draws (`+0xcd9`, `+0xd0b`) that the original
+    does not. A strafer's round is exact (`0x67c33a`).
+- **The stream agrees to run265's end.** What the widening still parts:
+  - **The Barracks' `damage` on 928**, ours 571 + 8/16 against 572 + 0.
+    The original fires **two** rounds a release event, one per gun
+    node. It walks each landing `(cur/end − 0.3)·6·192` along the
+    heading and 48 to the node's side. Ours fires one, on the target.
+    Parked, for `anim.rs`'s release walk (§39.3).
+  - **The landed plane's patrol**, `0/6` on 1385 and `0/7` on 1489: one
+    order there, none here. `land_plane` keeps the order under a home
+    whose `build_masks & 0x80` is set (`has_repeat_air`), which run265's
+    Airbase carries (4232). `Building` carries no `build_masks`. Parked.

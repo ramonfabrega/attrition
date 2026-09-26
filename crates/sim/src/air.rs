@@ -452,6 +452,17 @@ impl Sim {
             })
     }
 
+    /// A unit whose type strafes: `unit_flags & 0x400000`, flag `w`
+    /// (the Fighter line; `docs/ORDERS.md` §39). A building is not.
+    pub(crate) fn strafes(&self, o: crate::combat::Obj) -> bool {
+        let crate::combat::Obj::Unit(u) = o else {
+            return false;
+        };
+        self.units[u].ty.is_some_and(|t| {
+            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::STRAFES != 0
+        })
+    }
+
     /// `ObjectData::is(0x130)`, the Bomber line.
     pub(crate) fn is_bomber(&self, u: usize) -> bool {
         self.air_line_is(u, BOMBER)
@@ -1149,19 +1160,66 @@ impl Sim {
         af.bank = roll.neg();
     }
 
+    /// **The altitude a plane with a point wants over the ground ahead**
+    /// (`pitch_aircraft`'s non-returning arm, `0x5e9001`–`0x5e920b`;
+    /// `docs/ORDERS.md` §39): its `cruising_alt`, unless it is a type that
+    /// strafes (`unit_flags & 0x400000`, flag `w`) on a strike, which
+    /// wants **half** of it (`cdq; sub; sar`, toward zero). The strike is
+    /// the front order's `is_attack` (vslot `+0x18`: a `StrafeOrder` 1,
+    /// an `AirPatrolOrder` 0), whose target stands
+    /// (`TargetOrder::target_exists@0072ff10`), is no ally's, does not
+    /// fly (`ObjectTypeData +0x218`, the domain, not 2), and lies within
+    /// 90° of the heading (`fold(heading − find_angle(dx, dy)) ≤
+    /// 0x40000000`, `0x5e9091`–`0x5e90ae`). run265's Fighter on 798:
+    /// pitch 40 → 38 with `z` 677 under 800 + 191, where the whole 1600
+    /// would have held it at 40.
+    ///
+    /// SEAM: a **flying** target's arm, which wants the target figure's
+    /// own `z` less or plus `min(300, max(0, (0x600 − dist)·5))` by the
+    /// order of the two objects' numbers (`0x5e9114`–`0x5e9206`); it is
+    /// flown here on the whole `cruising_alt`.
+    fn strike_altitude(&self, u: usize, dx: i32, dy: i32, cruise: i32) -> i32 {
+        let strafes = self.strafes(crate::combat::Obj::Unit(u));
+        let Some(t) = self
+            .current_strafe(u)
+            .filter(|_| strafes)
+            .and_then(|sf| sf.target)
+        else {
+            return cruise;
+        };
+        if !self.obj_alive(t) {
+            return cruise;
+        }
+        let whom = self.owner_of(t);
+        if whom < crate::world::PLAYER_SLOTS && self.is_ally(self.units[u].owner, whom) {
+            return cruise;
+        }
+        let heading = self.units[u].movement.heading;
+        let off = fold((heading.0 as u32).wrapping_sub(find_angle(dx, dy).0 as u32));
+        if off > 0x4000_0000 {
+            return cruise;
+        }
+        if matches!(self.profile(t).domain, crate::attrition::Domain::Air) {
+            return cruise;
+        }
+        cruise / 2
+    }
+
     /// **`Unit::pitch_aircraft(dx, dy, z, &speed)@005e8de0` for a plane**
     /// (`docs/ORDERS.md` §33.4): the altitude it wants, the pitch that
     /// climbs or dives toward it two a frame, the step of altitude the
     /// pitch makes, and the two speed cuts.
     ///
     /// **Not returning** (§34.6): the altitude wanted is `cruising_alt`
-    /// over the ground ahead; there is no halving; the floor is the
+    /// over the ground ahead — half of it for a strafing type on a strike
+    /// ([`Sim::strike_altitude`], §39); there is no halving of the speed; the floor is the
     /// ground here plus 200; `extra` is 0; and the rate's divisor is
     /// `0x240 / speed` — the listing's `[ebp−0x18]` keeps the `0x240`
     /// `project` was handed, because only the returning arm overwrites it
     /// with the distance (`0x5e8fae`).
     ///
-    /// SEAM: the `0x400000` type arm (the Bomber has only `h`).
+    /// SEAM: the `0x400000` type arm's flying target
+    /// ([`Sim::strike_altitude`]).
     fn pitch_plane(
         &mut self,
         u: usize,
@@ -1190,7 +1248,7 @@ impl Sim {
             }
             (want, dist)
         } else {
-            (cruise + ahead, 0x240)
+            (self.strike_altitude(u, dx, dy, cruise) + ahead, 0x240)
         };
         let want = want.min(cruise + ahead);
         let ground = self.world.tile_z(at.tile());
@@ -1685,6 +1743,102 @@ mod launch_tests {
             Some(Body::Strafe(_))
         ));
         let _ = Angle(0);
+    }
+
+    /// A Fighter out of `base` on a strike at `target`, its type flagged
+    /// `w` when `strafes`, heading straight at the Barracks.
+    fn striking_fighter(s: &mut Sim, strafes: bool) -> (usize, usize, i32, i32) {
+        let (base, target) = base_and_target(s);
+        let u = fighter_inside(s, base, 400);
+        if strafes {
+            let ty = s.units[u].ty.unwrap();
+            s.unit_types[ty].cols.unit_flags |= crate::ai_load::uflags::STRAFES;
+        }
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+        s.come_out(u);
+        let (at, to) = (s.units[u].pos, s.buildings[target].pos);
+        let (dx, dy) = (to.x - at.x, to.y - at.y);
+        s.units[u].movement.heading = crate::movement::find_angle(dx, dy);
+        (u, target, dx, dy)
+    }
+
+    /// **A strafing type on a strike wants half its cruising altitude**
+    /// (`pitch_aircraft`, `0x5e9001`–`0x5e920b`, `docs/ORDERS.md` §39),
+    /// and every predicate of the arm gives the whole back: the flag, the
+    /// target standing, the 90° off the nose. Made to fail with the flag
+    /// test dropped (the second assertion) and with the angle's bound at
+    /// 180° (the fourth).
+    #[test]
+    fn a_strafing_type_on_a_strike_wants_half_its_cruising_altitude() {
+        let mut s = sim();
+        let (u, target, dx, dy) = striking_fighter(&mut s, true);
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600), 800, "half, on a strike");
+        let mut plain = sim();
+        let (v, _, vdx, vdy) = striking_fighter(&mut plain, false);
+        assert_eq!(
+            plain.strike_altitude(v, vdx, vdy, 1600),
+            1600,
+            "no w, no half"
+        );
+        let h = s.units[u].movement.heading;
+        s.units[u].movement.heading = Angle(h.0.wrapping_add(0x4000_0000));
+        assert_eq!(s.strike_altitude(u, dx, dy, 1600), 800, "90° off is inside");
+        s.units[u].movement.heading = Angle(h.0.wrapping_add(0x4000_0000 + 0x100_0000));
+        assert_eq!(
+            s.strike_altitude(u, dx, dy, 1600),
+            1600,
+            "past 90°, the whole"
+        );
+        s.units[u].movement.heading = h;
+        s.buildings[target].alive = false;
+        assert_eq!(
+            s.strike_altitude(u, dx, dy, 1300),
+            1300,
+            "no target, the whole"
+        );
+    }
+
+    /// **run265's 798**: the Fighter at pitch 40 and `z` 677 comes down
+    /// two, where the whole 1600 over the ground held it at 40 (40.0 here
+    /// against 38.0 there, before item 842). Flat ground at 0: the target
+    /// is 800, `((800 − 677) / 25 · 20) / (0x240 / 75)` = 11, 29 under
+    /// the pitch. Made to fail with `strike_altitude` returning the whole.
+    #[test]
+    fn run265_s_climb_comes_down_at_the_strafers_half() {
+        let mut s = sim();
+        let (u, _, dx, dy) = striking_fighter(&mut s, true);
+        s.units[u].airframe.pitch = crate::single::Single::from_i32(40);
+        s.units[u].airframe.z = 677;
+        let mut speed = 75;
+        s.pitch_plane(u, dx, dy, 0, &mut speed, false);
+        assert_eq!(s.units[u].airframe.pitch.to_i32(), 38);
+        assert_eq!(s.units[u].airframe.last_pitch.to_i32(), 40);
+        let mut plain = sim();
+        let (v, _, vdx, vdy) = striking_fighter(&mut plain, false);
+        plain.units[v].airframe.pitch = crate::single::Single::from_i32(40);
+        plain.units[v].airframe.z = 677;
+        let mut speed = 75;
+        plain.pitch_plane(v, vdx, vdy, 0, &mut speed, false);
+        assert_eq!(plain.units[v].airframe.pitch.to_i32(), 40, "no w, it holds");
+    }
+
+    /// **A strafer's round is exact** (`Ammo::init@0067bbf0`, `0x67c33a`):
+    /// no scatter, so neither of the two draws a land shot spends. run265's
+    /// 923: the original's Fighter plays its attack and spends nothing
+    /// else. Made to fail with `exact` false at the call.
+    #[test]
+    fn a_strafers_round_spends_no_draw() {
+        let mut s = sim();
+        let (u, target, _, _) = striking_fighter(&mut s, true);
+        let ty = s.units[u].ty.unwrap();
+        s.unit_types[ty].combat.to_hit = 50;
+        s.units[u].kind = s.unit_types[ty].kind;
+        let before = s.rng;
+        let at = s.units[u].pos;
+        let n = s.projectiles.len();
+        s.fire_ammo_pub(Obj::Unit(u), Obj::Building(target), Angle(0), 923, at, 870);
+        assert_eq!(s.projectiles.len(), n + 1, "a round");
+        assert_eq!(s.rng, before, "and no draw");
     }
 
     /// **An empty base counts nothing** (run265: `launch_frames` 0 from
