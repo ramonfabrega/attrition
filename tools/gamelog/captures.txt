@@ -6805,3 +6805,23 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run253-eastindies-marketword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18177&&v<18434)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run253-eastindies-marketword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18177&&v<18434)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 621,364,612 bytes of dump and 24,307,424 of trace, **257 blocks
+# 18177..18433**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 04:26 through `viadriver.sh` (no RonDriver running, the lane free),
+# start clicked 04:27, archived 04:50: about 24 minutes, with no human at
+# the menu. `waitrun.sh` exited 0. All five checks were green:
+# - 18,445 frames identical to run54, 0 differing;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run253_s_word_frame_is_widened_whole`, `docs/ARMY.md` §21.4):
+# - **R1 holds**, by the checks above.
+# - **R2 holds.** who=1's make list parts first, on 18181: `MAKE[0]` is
+#   type 61 (cat 4, val 952380) here against 590 (cat 8, val 22784)
+#   there, and `MAKE[4]` a second 61 here against an empty slot.
+# - **R3's killer fires**: every stockpile row but the wealth floor's
+#   agrees on 18182.

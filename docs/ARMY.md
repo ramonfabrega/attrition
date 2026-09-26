@@ -2155,3 +2155,120 @@ and the old word's block agree, and the new word's chain is pinned from
 on run163. **Listing- and type-backed**: the field at `+0xe8`, the key,
 and the two reads in `release_mustering` (`6f8997`, `6f89c3`). **Inferred
 from the move**: army 2's status on 12024 (§20.1, step 3).
+
+## 21. A retarget forms the army twice — East Indies 17501 → 18182 (item 811, 2026-09-26)
+
+§9 reads the retarget arm as "found → `status |= 0x10`, `do_forming()`,
+return", and so does `do_marching@006f3df0`. `Army::process@006f93d0`'s
+dispatch (§6 step 6) then re-reads the status, finds `& 0x10`, and calls
+`do_forming` **again** (`process:180`). So on the tick an army retargets,
+every group is moved twice, with the same point and angle. This crate's
+arm set `0x10` and returned without the call, so it formed the army once.
+
+### 21.1 The frame, read whole first
+
+The word was 17501: `1/57`'s walk step (GROUPS §27.4). Under it, on
+run233, army 0's column `1/48`..`1/58` parted from block 17405, the state
+after tick 17404. That tick is army 0's (`17404 ≡ 252 mod 256`, §5), and
+ours' `do_marching` retargets on it (`find_target` → `Building(1)`, by a
+scratch print). **The first parting's field list** on block 17405, from
+run233's widening:
+
+| on 17405 | theirs | ours (before) |
+|---|---|---|
+| `1/48`'s `path:length` | 9 | 8 |
+| `1/48`'s order `dest_y` (its first leg) | 38232 | 39000 |
+| `1/48`'s heading | −2051932160 | −2108882944 |
+| `1/49`, `1/53`, `1/55`, `1/57`, `1/58`: order `dest_x/y` (the slot waypoint) | e.g. `1/57` (30392, 37387) | (30365, 37336) |
+| the same five's heading | e.g. `1/57` 473300992 | 450297856 |
+| every column order's `group.id` | 17410801 | 17404000 |
+
+Positions part a block later, on 17406. **The upstream row is `1/48`'s
+path.** `1/48` is the group's leader, and every follower's slot waypoint
+and heading hang off the leader's walk (GROUPS §6.7). The two chains agree
+leg for leg except that the original's has one more, nearest the leader:
+(29688, 38232), world cell (38, 49). That is the cell `1/48` stands in,
+at (29769, 37687).
+
+### 21.2 The readings, and what killed each
+
+A world search never emits its own root (`reconstruct`), so the original's
+search did not start in (38, 49). The start is the leader's top of stack
+if it has one, and `get_loc`'s answer otherwise (`7060a8`–`7060cd`; GROUPS
+§6.7). `get_loc` runs at `705133`, before the clear. `compute_form` reads
+the location's address and never writes it.
+
+- **R1, the id is the cause.** Something reads the order's `group.id`.
+  Killed if, with the double form built, `1/48`'s path and the column's
+  positions agree on 17405–17406 while `order:group.id` still parts.
+  **Killed**: they agree, and the id stands at 17404001 against 17410801.
+- **R2, the id is a symptom of a second move.** The pool slot 68 reads
+  `order_num` 0 on block 17404 and 2 on 17405. The order carries 1. Only
+  `action_move_near`, `action_attack` and `action_patrol` write
+  `order_num` (+0x2c), after their order loops. So the original moved the
+  group twice on the tick, and the column holds the second move. The
+  second move's `get_loc` meets the first's `(ox, oy)`, (34360, 39606),
+  and `1/48`'s first order to (34296, 39768), 174 apart. That is inside
+  `0x180`, so arm 2 fires: `leader − order + o` = (29833, 37525), cell
+  (38, 48), and the first leg out of it is (38, 49). Killed if a double
+  form does not give `1/48` the original's nine-leg chain on 17405.
+  **Holds**: a scratch print of the second plan shows `from` (29833,
+  37525) and the chain ending in (29688, 38232).
+
+### 21.3 The cause, and this crate
+
+`Sim::do_marching`'s retarget arm now calls `do_forming` after setting
+`FORMING`, as §9 and the decompile say, and `army_tick`'s dispatch forms
+the army again. The second move's `get_loc` reads the first's record,
+which `group_loc` already models (GROUPS §12.5).
+`a_retarget_forms_the_army_inside_do_marching` fails with the call
+removed: `do_marching` then leaves the members with no order.
+
+### 21.4 What it moved
+
+**East Indies 17501 → 18182. Great Lakes holds at 20568.**
+
+**The value diff, on block 17405** (`run233_s_word_frame_is_widened_whole`):
+`1/48`, `1/49`, `1/53`, `1/55`, `1/57` and `1/58` agree on `path:length`,
+the order's `dest_x/y`, heading and position. Their order's `group.id` is
+17404001 against 17410801: `order_num` now agrees at 1, the second
+move's, and the pool id is the army's slot 0 here and the pool's 68 there
+(689). run233's floor goes 293/312/324/446 → 293/312/324/330.
+On run251, the eleven rows under the old word (`1/57`'s stand and path,
+`1/58`'s and `1/54`'s) are gone, no figure changes animation on one side
+near it, and the floor goes 350/11/361/1,314 → 313/0/313/337. On run174
+(Great Lakes), group 66's order id on 12537 now agrees on `order_num`
+(12536207 against 12542607, where it read 12536206).
+
+**The new word, 18182** (block 18183), is past run251's end, so run253 was
+taken (`docs/RUNS.md`). There, ours spends 9 draws against 11, parting at
+index 0: ours spends `Leader::make_stuff+0x221` where the original spends
+`Leader::use_market+0x1ed`. **Under it** (`run253_s_word_frame_is_widened_whole`),
+who=1's make list parts first, on 18181 (tick 18180). `MAKE[0]` holds type
+61 (cat 4, val 952380) here against 590 (cat 8, val 22784) there, and
+`MAKE[4]` holds a second 61 here against an empty slot. Every stockpile
+row outside the standing wealth family agrees on 18182, and no unit parts
+under the word. On 18183 the original has been to the market, and ours
+has queued at `1/2013`. No mechanism is named.
+
+### 21.5 What this has *not* established
+
+- **The other retarget ticks.** Every retarget on both maps now forms
+  twice: army 1's at 15610 and 16890 on East Indies among them. Only
+  17404's second move is compared by a dump; the rest are carried by the
+  long words holding or moving, and Great Lakes holds.
+- **The pool id.** The order's `group.id` still parts on its high part:
+  the army's slot here, the pool slot there (689). No step read it on
+  17405.
+- **17753..18176** is compared by no dump, so the make list's parting on
+  18181 is the first a dump shows, not necessarily the first there is.
+
+### 21.6 Coverage
+
+**Diff-backed**: the double form on 17404 through its effects on 17405
+(run233), and the column's walk through the old word (run251). **Decompile-
+and listing-backed**: the retarget arm's `do_forming` (`006f3df0`), the
+dispatch's second call (`006f93d0:180`), `get_loc`'s call before the
+clear (`705133`) and `compute_form`'s read-only use of the location.
+**Built** (`army.rs`): `a_retarget_forms_the_army_inside_do_marching`,
+made to fail with the call removed.

@@ -15664,6 +15664,138 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run253 — East Indies' word 18182, widened whole, both directions**
+    /// (item 811). run251's line over [`WIDENING_EAST_INDIES_MARKETWORD`]:
+    /// the six blocks before the word's, its block, and 250 past it. No
+    /// capture shares a block with it, so 17753..18176 is compared by no
+    /// dump, and the floor is its first block. [`widen_east_indies`] with
+    /// gaia's animals.
+    ///
+    /// The word's frame, 18182, writes block **18183**.
+    #[test]
+    fn run253_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_MARKETWORD.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_MARKETWORD.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_MARKETWORD_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            army_lists,
+            ..
+        }) = widen_east_indies(
+            "run253",
+            "gamelog-run253-eastindies-marketword.txt",
+            WIDENING_EAST_INDIES_MARKETWORD,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **Under the word, the first row of each key past the floor**
+        // (item 811): who=1's make list and nothing else to the word's
+        // frame. From 18181 (tick 18180) ours holds a type-61 order, cat 4,
+        // in slots 0 and 4, where the original holds 590, cat 8, in slot 0
+        // and nothing in slot 4. On 18183 the original has been to the
+        // market (`use_market`, the word's first draw: `leftover[2]` 6862
+        // → 560, standing) and ours has queued at `1/2013`. R2 of run253's
+        // stanza holds; R3's killer fires — every stockpile row but the
+        // wealth floor's agrees on 18182. No unit parts under the word.
+        assert_eq!(
+            rows,
+            [
+                "18181 1/-1 leader:MAKE[0].cat: ours 4 theirs 8",
+                "18181 1/-1 leader:MAKE[0].city: ours 1 theirs -1",
+                "18181 1/-1 leader:MAKE[0].t: ours 61 theirs 590",
+                "18181 1/-1 leader:MAKE[0].val: ours 952380 theirs 22784",
+                "18182 1/-1 leader:MAKE[1].city: ours 2 theirs 1",
+                "18182 1/-1 leader:MAKE[2].city: ours 2 theirs 1",
+                "18182 1/-1 leader:MAKE[3].city: ours 2 theirs 1",
+                "18181 1/-1 leader:MAKE[4].cat: ours 4 theirs 0",
+                "18181 1/-1 leader:MAKE[4].city: ours 1 theirs -1",
+                "18181 1/-1 leader:MAKE[4].escrow: ours 1 theirs 0",
+                "18181 1/-1 leader:MAKE[4].t: ours 61 theirs -1",
+                "18181 1/-1 leader:MAKE[4].val: ours 952380 theirs -1",
+                "18182 1/-1 leader:MAKE[7].city: ours 1 theirs 0",
+                "18183 1/-1 leader:MAKE[8].t: ours 590 theirs -1",
+                "18183 1/-1 leader:bucket[1:timber]: ours 27 theirs 77",
+                "18183 1/-1 leader:num_queued[11]: ours 1 theirs 0",
+                "18183 1/-1 leader:production_step: ours 9 theirs 0",
+                "18183 1/2013 queue:queued: ours 1 theirs 0",
+            ],
+            "each key's first row under the word"
+        );
+        // R3's unit: who=1's stockpile on 18182, every good but wealth.
+        let stock: Vec<String> = standing
+            .get(&(WORD_BLOCK - 1))
+            .into_iter()
+            .flat_map(|m| m.keys())
+            .filter(|(w, o, k)| {
+                *w == 1
+                    && *o == -1
+                    && (k.starts_with("leader:resources[") || k.starts_with("leader:leftover["))
+                    && !k.contains(":wealth]")
+            })
+            .map(|(_, _, k)| k.clone())
+            .collect();
+        assert_eq!(stock, Vec::<String>::new(), "who=1's stockpile on 18182");
+        let word: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        // Past the word, ours' `0/0` sets `cur_anim` 2 on 18185 where the
+        // original's stays at 0 — two blocks after the market, unread here.
+        assert_eq!(
+            word,
+            [(18185, 0, 0, false, true)],
+            "a figure's animation changes on one side only"
+        );
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        assert_eq!(lists_part, [], "no army's list parts near the word");
+        // **The floor**: every key standing on the first block (nothing
+        // shared, so everything standing when the walk arrives), the keys
+        // first parting under the word, the rows standing on the word's
+        // block, and every key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (310, 18, 327, 977),
+            "the floor"
+        );
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the
