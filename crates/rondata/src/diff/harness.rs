@@ -10427,10 +10427,12 @@ pub(crate) mod tests {
         assert_eq!(
             pair,
             [
+                // Item 882: `group` on 11424 agrees, 69 on both sides
+                // (ours −1 before), `come_out`'s push (parked 561,
+                // `docs/GROUPS.md` §31). `form` and `1/64`'s `orders_x/y`
+                // are `Unit::init`'s birth values (646).
                 "11424 1/62 form",
-                "11424 1/62 group",
                 "11424 1/64 form",
-                "11424 1/64 group",
                 "11424 1/64 orders_x",
                 "11424 1/64 orders_y",
             ],
@@ -15702,9 +15704,12 @@ pub(crate) mod tests {
         // block's seventeen `group` rows (`1/0` 70 here against 69, `1/11`
         // 64 against −1, army 0's `1/48`..`1/60` 65 against 64) and the
         // squad `1/64`..`1/66`'s on 17113, 69 against 68 (`docs/GROUPS.md` §29).
+        // Item 882 took 277/289/299/305 → 277/289/296/302: `1/67`..`1/69`'s
+        // `group` on 17363, 69 on both sides (ours −1 before), the squad's
+        // birth push, `come_out`'s (parked 689, `docs/GROUPS.md` §31).
         assert_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (277, 289, 299, 305),
+            (277, 289, 296, 302),
             "the floor"
         );
     }
