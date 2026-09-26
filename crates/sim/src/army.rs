@@ -416,8 +416,30 @@ impl Sim {
             let mut g = crate::group::Group::stack(who);
             self.group_add(&mut g, u);
             let chain = g.list;
+            let last = self.last_group[w];
+            let equal = !chain.is_empty() && self.pool_members(who, last) == chain;
             let s = self.pool_slot_for(who, &chain);
-            self.armies[w].list[slot].group.pool = Some(s);
+            // `push_group`'s `copy_group` into the slot's own record
+            // (`docs/GROUPS.md` §30): the army's group **is** the pool
+            // record, so it keeps the previous occupant's `order_num`,
+            // `facing`, `form`, `form_num`, `new_speed` and `march`, as a
+            // pushed group does. An equal group is not copied at all.
+            let prev = self.pool_record(who, s).1;
+            // The walk's kill half: the group each figure's `+0x80` names
+            // loses the squad, and is cleared if that empties it.
+            for a in self.kill_from_named(who, &chain, s) {
+                if a != slot {
+                    self.army_normalize(who, a);
+                }
+            }
+            self.armies[w].list[slot].group = if equal {
+                crate::group::GroupState {
+                    pool: Some(s),
+                    ..prev
+                }
+            } else {
+                crate::group::GroupState::copied(prev, s, self.frame)
+            };
             for f in chain {
                 let captain = self.is_captain(f);
                 let a = &mut self.armies[w].list[slot];

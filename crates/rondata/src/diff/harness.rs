@@ -16791,20 +16791,66 @@ pub(crate) mod tests {
         }
         let last = (*at.keys().last().unwrap_or(&0)).min(stop);
         let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let sib_text = crate::capture::read(&sib);
-        let log = Log::parse(&text);
-        let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().expect("run38 is a start dump");
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &[&sib_init]);
-        borrow_pasture(&mut init, &tr);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // `RON_POOL_WALK_MAP=greatlakes` walks run53's game instead, with
+        // Great Lakes' dumps in `RON_POOL_WALK` (item 880: the brief's
+        // "Great Lakes on every step" wants this instrument, 881).
+        let great_lakes = std::env::var("RON_POOL_WALK_MAP").is_ok_and(|m| m == "greatlakes");
+        let mut built = if great_lakes {
+            let Some(gl) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
+                return;
+            };
+            let texts = sibling_texts();
+            let text = crate::capture::read(&gl);
+            let log = Log::parse(&text);
+            let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+            let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+            let refs: Vec<&Initial> = inits.iter().collect();
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &refs);
+            build_sim(&loaded, &init, Tuning::RON)
+        } else {
+            let text = crate::capture::read(&path);
+            let sib_text = crate::capture::read(&sib);
+            let log = Log::parse(&text);
+            let sib_log = Log::parse(&sib_text);
+            let sib_init = sib_log.initial().expect("run38 is a start dump");
+            let mut init = log.initial().unwrap();
+            borrow_from_siblings(&mut init, &[&sib_init]);
+            borrow_pasture(&mut init, &tr);
+            build_sim(&loaded, &init, Tuning::RON)
+        };
         let mut reported = vec![false; caps.len()];
         let mut agreed = vec![0usize; caps.len()];
+        let hist: Option<u8> = std::env::var("RON_POOL_WALK_HIST")
+            .ok()
+            .and_then(|x| x.parse().ok());
+        let mut hist_last: Vec<String> = vec![String::new(); 64];
         for f in 0..last {
             built.tick();
             let n = f + 1;
+            if let Some(hw) = hist {
+                for s in 0..16u8 {
+                    let recs = built.sim.pool_records(hw, s);
+                    let line = recs
+                        .iter()
+                        .map(|(st, l)| {
+                            format!(
+                                "(on {} fc {} st {} fm {} {:?})",
+                                st.order_num,
+                                u8::from(st.facing),
+                                st.stamp,
+                                st.form,
+                                l
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join(" ");
+                    if line != hist_last[s as usize] {
+                        eprintln!("HIST {n} slot {} {line}", 64 * u32::from(hw) + u32::from(s));
+                        hist_last[s as usize] = line;
+                    }
+                }
+            }
             let Some(&(ci, fi)) = at.get(&n) else {
                 continue;
             };
