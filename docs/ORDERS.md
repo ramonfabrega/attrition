@@ -7545,6 +7545,10 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
 `crate::air` (`Sim::strafes`, `Sim::strike_altitude`, `pitch_plane`) and
 `crate::fight` (`fire_ammo_aim`'s scatter); the flag is
 `ai_load::uflags::STRAFES`. It closed chapter twenty-two, 923 → 1500.
+Item 853 built §39.5, the second gun and the walk, in `crate::fight`
+(`Sim::strafe_walk`), `crate::launch` (`GUNS`) and
+`rondata::artdata::piece_releases`; it closed the chapter's `damage`
+floor on 928.
 
 **How it was established, and how confident.**
 - Found by reading run265's Fighter whole on 776..931, both sides.
@@ -7562,6 +7566,9 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
   `xor eax, eax`.
 - **Diff-backed** on run265 whole: `0/6`'s record agrees on every block
   of the climb and the strike, and the draw stream agrees to 1500.
+- **Diff-backed since item 853**: §39.5 on every Fighter round of
+  run265, record for record
+  (`run265_s_rounds_are_the_original_s_record_for_record`).
 - **Reading only**: the flying-target arm (§39.1); every predicate's
   refusing side (by `air::launch_tests`, not a capture); §39.3.
 
@@ -7602,25 +7609,8 @@ capture reaches that arm.
 
 ### 39.3 What is not established
 
-- **The second gun and the walk** (parked). `unit_graphics.xml` gives
-  `FIGHTER` sixteen `RELEASEEVENT`s on `CHAR_ATTACK2`: eight frames, each
-  on node 0 and node 1. run265 prints both rounds of every event.
-  `rondata::artdata::piece_releases` dedups the frames and drops the
-  node, so this crate fires one.
-- Then `Ammo::init` (`0x67c9b2`–`0x67cb1a`), for a strafer whose target
-  does not fly and whose guy 0 plays `CHAR_ATTACK2`, moves the landing
-  in two steps:
-  - `project`ed along the shooter's heading by
-    `trunc(((float)cur_time / (float)end_time − 0.3f) · 6 · 192)`;
-  - then 48 to the side, `heading − 90°` for an odd node and `+ 90°` for
-    an even one (`execute_game_events` puts the event's node,
-    `+0x23`, in the package's `angle` before `add_ammo`).
-- run265's first pair on 923 fits exactly: at `cur_time` 1 of 30, −307
-  along the heading, landing on (20816, 16440) and (20853, 16351).
-- The Barracks' `damage` parts on 928: half a point a round, two rounds
-  there against one here.
-- Building it changes `ArtTables.releases` (`anim.rs`), whose release
-  walk every ranged unit on both long captures goes through.
+- ~~**The second gun and the walk** (parked)~~: built, §39.5 (item
+  853).
 - **The landed patrol** (§38.1): `has_repeat_air`, a `build_masks` bit
   that `Building` does not carry. Its writer is unread.
 - The flying-target arm of §39.1.
@@ -7628,6 +7618,76 @@ capture reaches that arm.
 ### 39.4 Coverage
 
 `pitch_aircraft@005e8de0` and `Ammo::init@0067bbf0` were executed in
-earlier traced games, and run265's dump backs both arms named here. The
-two guns and the walk rest on `unit_graphics.xml` and the listing. They
-are fitted to run265's `AMMO` records by hand, not by a test.
+earlier traced games, and run265's dump backs both arms named here.
+~~The two guns and the walk rest on `unit_graphics.xml` and the listing.
+They are fitted to run265's `AMMO` records by hand, not by a test.~~
+Since item 853 they are built and diff-backed (§39.5).
+
+### 39.5 The second gun and the walk (item 853, 2026-09-26)
+
+**The row it closed**: the Barracks' `damage` on 928, 571 + 8/16 here
+against 572 + 0 there. Both sides are now 571 + 8/16 on 927 and
+572 + 0 on 928.
+
+**Two rounds a frame.** Every `<RELEASEEVENT>` is its own
+`GraphicEvent` (`init_unit_events@008e2520`), and
+`execute_game_events@008e48e0` fires each one the clock crosses. So
+`FIGHTER`'s eight frames on node 0 and the same eight on node 1 are two
+rounds a frame. `piece_releases` now keeps `(frame, node)` in the file's
+order, which is the order the walk takes. Only a pair repeated at one
+node is kept once: the install has 54 such pairs, and each pairs a
+damaging round with a `do_damage="0"` one, or two of the latter. SEAM:
+`do_damage` is unread, so a kept `NoDamage` event fires a damaging round.
+
+**The node reaches two places:**
+- **the launch point.** `get_position(node)` is measured as a `Bay` per
+  node for piece 239 (`launch::GUNS`): right −74.266 and 73.493, forward
+  39.505 and 39.462, one unit over the figure. All 36 rounds of run265
+  are reproduced to the unit at eleven headings
+  (`run265_s_fighter_rounds_leave_from_its_two_guns`);
+- **the package's `angle`**, which `Ammo::init` reads for the side.
+
+**`Ammo::init`'s walk** (`0x67c9b2`–`0x67cb1a`, the listing). It runs
+after the scatter and `ez` and before the world's clamp, when all of
+these hold:
+- the shooter is a unit whose type has `0x400000`;
+- the target is not flying (`+0x218` domain 2). A round with no target
+  object is walked;
+- guy 0's `UnitAnimCat[cur_anim]` is 12, the attack category.
+
+The landing is then `project`ed twice:
+1. along `UnitData +0x50` (the heading) by
+   `cvttss2si(((f32)cur_time / (f32)end_time − 0.3f) · 6.0f · 192.0f)`,
+   guy 0's clocks, as `divss`, `subss`, `mulss`, `mulss`. The constants
+   are read from the PE: `0x3e99999a`, `0x40c00000`, `0x43400000`. It is
+   done in `single::Single`, the original's arithmetic to the bit. An
+   exact rational agrees at 0, 1, 4, 9 and 30 of 30, the boundaries a
+   Fighter's swing reaches, but it is not the arithmetic, and nothing
+   has shown it agrees at every `end_time`;
+2. then `0x30` along `heading + 0x40000000` for an even node and
+   `− 0x40000000` for an odd one (`test byte [package+0x1c], 1`).
+
+run265's first pair, at 1 of 30, is −307 along and lands on
+(20816, 16440) and (20853, 16351).
+
+**Measured** (item 853's journal has the table):
+- `run265_s_rounds_are_the_original_s_record_for_record`: 562 rounds on
+  each side, and every field of every Fighter round agrees.
+- What stands is the Bombers' own seams: a bomb's `accuracy`, which the
+  slot keeps from the round before (§35.3), and 1080's cleared targets.
+- The chapter's widening falls 15 → 13 rows.
+
+**The reach.** 18 unit graphs gain a round, and 13 of them are the
+Fighter line's eight a swing. The rest are `ADVFIGHTER`,
+`STRATEGICBOMBER` (both styles), `ADVANCEDBATTLESHIP` and
+`MISSILECRUISER`. No other capture on this disk fires one. The walk
+reaches every type with `w`. A Bomber's releases do not change: its
+nodes sit on distinct frames.
+
+**Not established:**
+- the other Fighter-line pieces' guns. They launch from the figure,
+  since only piece 239 is measured;
+- `do_damage` (above), which reaches `FIGHTERBOMBER`'s cross-node pairs;
+- the walk against a flying target, which is refused, and against an
+  attack-ground order. Both rest on the listing alone.
+
