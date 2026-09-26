@@ -56,13 +56,6 @@ pub(crate) const UNMODELLED: &[(&str, &str)] = &[
         "`Holdings::handicap` is the income percentage, a different field",
     ),
     ("multi_diff", "the lobby difficulty is an input, not state"),
-    (
-        "wonder_mark",
-        "`Census::wonder_mark` has no writer here and the original DOES move \
-         it — 1 on forty of run80's records — so the row would be a \
-         constant against a moving field, which is worse than not \
-         comparing it. It returns when the wonder bookkeeping lands.",
-    ),
     ("DIPLOMACY", "the diplomacy block is not modelled"),
     ("num_bonus_cards", "bonus cards are Conquer-the-World's"),
     ("average_*_rate", "the combat averages are score counters"),
@@ -232,6 +225,7 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         ("merchant_high", c.merchant_high),
         ("caravan_high", c.caravan_high),
         ("village_num", c.village_num),
+        ("wonder_mark", c.wonder_mark),
         ("territory", h.territory),
     ] {
         out.push((k.to_string(), i64::from(v)));
@@ -593,6 +587,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "merchant_high",
         "caravan_high",
         "village_num",
+        "wonder_mark",
         "territory",
         "city_num",
         "known_rares",

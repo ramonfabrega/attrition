@@ -546,9 +546,18 @@ pub struct Census {
     /// kind the simulation founds, so this stays 0 (run8 shows it 0 with a
     /// Small City standing).
     pub village_num: i32,
-    /// `LeaderData::wonder_mark` (+0x424): the wonder bookkeeping's
-    /// cursor; no writer is modelled.
+    /// `LeaderData::wonder_mark` (+0x424): one past the highest entry of
+    /// the leader's wonder list in use — written by
+    /// `Wonders::init_wonder@0073c860` when a wonder activates and walked
+    /// back by `close_wonder@0073c7e0` when one closes
+    /// ([`Sim::note_wonders`], `docs/AI.md` §75).
+    ///
+    /// [`Sim::note_wonders`]: crate::Sim::note_wonders
     pub wonder_mark: i32,
+    /// The leader's wonder list (`wonders.list[who]`), by building index:
+    /// an entry is the wonder it was written for, or `None` once closed.
+    /// Entries at and above [`Census::wonder_mark`] are all `None`.
+    pub wonder_slots: Vec<Option<usize>>,
     // Per region, one slot per sim region.
     pub reg_active: Vec<i32>,
     pub reg_combat: Vec<i32>,
@@ -810,6 +819,7 @@ impl Leader {
                 escrow_rate: [0; RESOURCES],
                 village_num: 0,
                 wonder_mark: 0,
+                wonder_slots: Vec::new(),
                 reg_active: Vec::new(),
                 reg_combat: Vec::new(),
                 reg_attack: Vec::new(),
