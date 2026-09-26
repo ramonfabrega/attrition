@@ -8408,7 +8408,8 @@ lines returning 1.
 | 7, the gate on an empty queue | 4096 on 1302 | **4096** |
 | 8, the finish trains | a squad born on each finish | **three Hoplites `0/10`–`0/12` on 856, three Bowmen `0/13`–`0/15` on 1060 and `0/16`–`0/18` on 1272**, each squad in a pool group (0, 2, 1) |
 
-**No falsifier fired.** The reading's three arms hold as read; this
-crate's staging walk had the clocks early: the Hoplites by 8 blocks, the
-first Bowmen by 8, the second by 8, and the second Bowmen's target is 750
-above the first's (the ramp).
+**No falsifier fired.** The reading's three arms hold as read. The
+staging walk had each finish 8 blocks early; ~~a clock this crate runs
+short~~ with the commands entered the crate agrees on every block
+(`docs/GOLDEN.md` §33), so the 8 blocks were the scratch walk's own. The
+second Bowmen's target is 750 above the first's.

@@ -5067,10 +5067,14 @@ One take, `cover=0`, the same game as run208 to 640.
 - **The trains** (8 did not fire): three Hoplites on 856 and three Bowmen
   on 1060 and on 1272, each squad in a pool group.
 
-The staging walk had every finish 8 blocks early (848, 1052, 1264): a
-clock this crate runs short, which the widening names. The arms did not
-depend on it: the toggle stood 46 blocks after the Hoplites' finish and
-158 before the Bowmen's.
+The staging walk had every finish 8 blocks early (848, 1052, 1264). ~~A
+clock this crate runs short, which the widening names.~~ **Not this
+crate's clock**: with the commands entered, the queue agrees with run285
+on every block (below), so the 8 blocks were the scratch walk's own — it
+queued by hand outside the command and did not stage chapter thirteen's
+lines past 619 the same way; which difference it was is not established.
+The arms did not depend on it: the toggle stood 46 blocks after the
+Hoplites' finish and 158 before the Bowmen's.
 
 **Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_FOUR` = 855,
 open, on the first walk**, with both `@queueup` lines skipped and
@@ -5085,3 +5089,47 @@ partings**, both sides:
 - **856**, `0/10`–`0/12`, the trained Hoplites: the dump holds them alone.
 The pool: the building group `[2007]` in who=0's slot 1 on 622, and the
 trained squad `[10, 11, 12]` in slot 0 on 856, neither seated here.
+
+**The commands entered: `GOLDEN_WORD_CHAPTER_TWENTY_FOUR` = 1560,
+closed** (item 877, `docs/PRODUCTION.md` "The infinite queue"):
+`input::group_queue_up` → `Sim::action_queue_up`; the 0x40 arm of
+`Sim::action_buildmask`, gated by `Sim::can_infinite`; `Queue::infinite`,
+cleared by `Queue::unqueue` on the empty queue; and `do_queue`'s re-queue,
+the bit read before the unqueue and `Sim::requeue_infinite` after the
+train. The stream agrees to run285's end. **The value diff, both sides**,
+on the blocks the reading named:
+- **622**: `0/2007` `[132]` at 100; food 203, timber 203 on both (ours
+  was 254 and 241 before the build).
+- **642**: `[132, 170]`; wealth 61 on both (ours was 114).
+- **856**, the old word's block: `[170]` at 0 and 4096 on both; the
+  Hoplites `0/10`–`0/12` at (2712, 14904), (2712, 15048), (2856, 15000)
+  on both (the dump held them alone before).
+- **902**: 4160 on both.
+- **1060**: `[170]` at 0, timber 143, wealth 14, 4160 on both; the Bowmen
+  `0/13`–`0/15` born.
+- **1272**: `[]`, 4096, wealth 19 on both; `0/16`–`0/18` born.
+- **1302**: 4096 on both.
+
+The widening is **run285 whole**, (605, 1561), with eight windows in the
+coverage driver (622, 642, 855, 902, 1060, 1272, 1302, 1557). What stands,
+34 rows: chapter thirteen's births' `form` (611, 615), and on each trained
+squad (856, 1060, 1272) `Unit::come_out@00617c10`'s human arm — a squad
+type (`+0x308` > 1) coming out of a building is `Group::add`ed and
+`Groups::push_group`ed, so the original's members read `group` (the pool
+slot: 0, 2, 1), `form` 0, and the followers' `orders_x/y` (2712, 14232)
+against the Barracks' point (2688, 14208) here. This crate's pool does not
+seat that push. The stream agrees to 1560 with it standing; the named
+reader of `orders_x` is `Unit::check_target_path@005e22d0`, and nothing
+targets these squads. **The pool**, four rows, each a push not seated
+here: the building group `[2007]` in slot 1 on 622 and slot 3 on 1302,
+the squads in slot 0 on 856 and slot 2 on 1060. The third squad takes
+slot 1 back on 1272 (`Groups::get_open_slot@006fa460` counts the
+building group's slot as open), which is why the second press's building
+group lands in slot 3.
+
+**Mutations**, each restored from git and `touch`ed: the bit read after
+the unqueue fails `a_finished_train_job_requeues_under_the_bit` and drops
+the word to 1271 (the second Bowmen never re-queued); `can_infinite`
+answering for any queue fails `the_infinite_button_needs_a_train_job`
+and parts the widening on **1302**, `0/2007 build:infinite_queue` ours 1
+theirs 0 — the compare is read.
