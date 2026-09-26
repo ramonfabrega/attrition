@@ -268,9 +268,20 @@ impl Sim {
         self.armies[who as usize].list[slot] = a;
     }
 
-    /// `Army::close`: `Group::action_halt(g, 0)` on the one group — the
-    /// units stop where they are (`docs/GROUPS.md` §7) — then the slot is
-    /// freed.
+    /// `Army::close@006f8ea0`: `Group::action_halt(g, 0)` on the one group
+    /// — the units stop where they are (`docs/GROUPS.md` §7) — then the
+    /// slot is freed.
+    ///
+    /// **The group is not freed** (`docs/ARMY.md` §22). `close` writes the
+    /// group's `army` (`+8`) to −1 and halts it, and nothing else: the
+    /// record, its pool index and its list stay in the pool, and every
+    /// member's `+0x80` still names it. So the group moves to a
+    /// [`crate::group::Pushed`] seat on the same index, orphaned, and the
+    /// next `get_open_slot` passes it by while a member still points at
+    /// it. East Indies' army 1 closed on 18682 from `find_target`, and the
+    /// original's group 71 still lists `1/69` and `1/72` on 18933; the
+    /// wagon's new army took another slot, and the escort's stale pointers
+    /// at 71 are what its collisions read on 18938.
     pub fn close_army(&mut self, who: Player, slot: usize) {
         if !self.armies[who as usize].list[slot].valid {
             return;
@@ -281,8 +292,11 @@ impl Sim {
         a.valid = false;
         a.status = 0;
         a.human_frame = 0;
-        a.units.clear();
-        a.group.pool = None;
+        let list = std::mem::take(&mut a.units);
+        let state = std::mem::take(&mut a.group);
+        if state.pool.is_some() && list.iter().any(|&u| self.units[u].alive()) {
+            self.seat_orphan(who, list, state);
+        }
     }
 
     // ---- membership and the counts (§3) ----
