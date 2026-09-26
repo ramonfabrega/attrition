@@ -1460,6 +1460,36 @@ mod tests {
         assert_eq!(s.ai[1].census.reg_known_rares[land], 0);
     }
 
+    /// A border fix between the census and `calc_gather`'s recompute
+    /// zeroes the array, so the recompute sums 0 and the Merchant arm is
+    /// shut until the next sweep counts again — East Indies 18182's make
+    /// list (`docs/AI.md` §76). `Region::fix_borders` →
+    /// `check_borders` → `compute_reg_territory:76–105`.
+    #[test]
+    fn a_border_fix_zeroes_the_rares_until_the_next_census() {
+        let mut f = fix();
+        let s = &mut f.sim;
+        let g = s.world.add_good(crate::world::Good {
+            pos: tile_pos(2 * TILES_PER_CELL, 2 * TILES_PER_CELL),
+            ty: 20,
+            alive: true,
+        });
+        s.ai[1].new_rares = vec![g];
+        let land = s.world.region_of(Cell::new(2, 2)).expect("land") as usize;
+        s.census(1);
+        assert_eq!(s.ai[1].census.reg_known_rares[land], 1, "counted");
+        s.sync_territory();
+        assert_eq!(
+            s.ai[1].census.reg_known_rares[land], 0,
+            "the fix zeroes every region"
+        );
+        s.assemble_holdings(1);
+        assert_eq!(s.ai[1].known_rares, 0, "the recompute sums the zero");
+        s.census(1);
+        s.assemble_holdings(1);
+        assert_eq!(s.ai[1].known_rares, 1, "the next sweep counts it again");
+    }
+
     fn finish(sim: &mut Sim, b: usize) {
         let mut guard = 0;
         while !sim.buildings[b].active && sim.buildings[b].alive {
