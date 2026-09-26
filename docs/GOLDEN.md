@@ -1303,7 +1303,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | FormOrder | **no issuer makes one**: `CommandManager::issue_form@00941580` → `Group::action_form@00707220` writes each member's `form` and lays out a group move; only `copy_order` and the save loader build a `FormOrder` | 14, the formation line (§22), which measures the absence |
 | GarrisonOrder | `CommandManager::issue_garrison@00941a70`; the way out is `CommandManager::issue_eject_all@00941ca0` | 13, the garrison line (§21) |
 | GatherOrder | auto (starting citizens), `CommandManager::issue_gather@00941a20` | 7 (the control) |
-| BuildOrder | `CommandManager::issue_build@00941c30` | — |
+| BuildOrder | `CommandManager::issue_build@00941c30` → `Group::action_build@00707510` → `Group::action_swarm_around@0070fbe0`: a `MOVEORDER` for a human (an `EXPLORETOORDER` for a computer) and the `BuildOrder` behind it; the AI's own builders come through its planner | 18, the build line (§26) |
 | TradeOrder | auto (a Caravan under AI), `CommandManager::issue_trade@00941960` | 7 (the control) |
 | CastOrder | `CommandManager::issue_spell@00941b80` | 8 stages the Spy; the cast needs the issuer |
 | RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
@@ -1360,6 +1360,7 @@ below without a run take their number at booking (the eleventh pass).
 | 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
 | 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
 | 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
+| 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3509,3 +3510,175 @@ The stream agrees to run223's end, 1400, with no value part.
 - **run235** is this game again at `AMMO=5`, to 1100. All 49 bombs
   agree field for field on 800–1100, except the target a round in
   flight keeps when the Barracks dies (chapter three's family).
+
+## 26. Chapter eighteen — the build line, an issuer the AI takes through its own planner (item 779)
+
+**Premise.** `CommandManager::issue_build@00941c30` on a human's citizens
+places **one site, paid once**, and gives **each citizen a `MOVEORDER`
+then a `BuildOrder` (type 6, flags 4) on it** — the approach is a plain
+move for a human, where the AI's is an `EXPLORETOORDER`. The AI's
+citizens reach `BuildOrder` through its planner (`Leader::
+create_buildings`, `crate::ai_place`) and never through this command, so
+this crate carries the construction and not the command. Three of the
+last six premises died on the class, so the emulator went first.
+`tools/gamelog/golden/chapter18.cmd` has the reading, citation by
+citation.
+
+**The issuer, under the emulator first**, on
+`tools/explore/command_oracle.py`'s fixture widened to who=0's objects
+6–9 as captains and 5 as a non-captain (a scratch script in the job's
+tmp dir).
+- **One call appends a 25-byte `build`** (type 0x19, `[x][y][x2][y2]
+  [type][queued]`, each as passed) behind a fresh `group`: 5 bytes for
+  one citizen (30 in all), 9 for three (34). A repeated selection is the
+  3-byte reuse (28); a non-captain is dropped.
+- `use_mp_playback`, `semaphore & 0x10` and `semaphore & 4` each append
+  nothing. The issuer tests neither the point, the type nor the
+  builders.
+- **It writes** the package and the selection caches (`last_who_sent`,
+  `last_num_sent`, the objects and uids lists) and nothing else, as in
+  §17 and §25: no site, no price, no order, no draw.
+- **What the emulator cannot reach** is everything the chapter measures:
+  `CommandPackage::process_build@00948110` → `Group::action_build@
+  00707510` → `Group::action_swarm_around@0070fbe0`, at process time, on
+  the game's state.
+- **The DLL's new verb.** `@build <who> <x> <y> <type> <o>…` calls
+  `issue_build(group, x, y, x, y, type, QUEUE_NEW)`, what
+  `Options::picked_spot@00721c40:531` passes through
+  `GroupOut::issue_build@00708c60` for an unmodified drop with no drag.
+  `action_build` reads only the first point. It compiles `-Werror`, plain
+  and under `RON_AUTOSTART`.
+
+**The reading** (`chapter18.cmd` has it whole).
+- **The site.** `action_build` needs the group on the map,
+  `GroupData::validate_build@00708620` (snap, `blocked_site` clear, the
+  price affordable), `num_valid > 0`, the city limit for a city and
+  `type_avail(type, 1) == 4`. Its `PathData` stack holds one point and
+  is popped once: `snap_center`, `blocked_site`, the price paid, and
+  `Objects::init_build(who, type, x, y, 0, −1)`.
+- **The builders.** `action_swarm_around(site, who, QUEUE_NEW, BUILD_AT,
+  1)` walks the members twice (land, sea; air never) to `group.num`. Each
+  citizen gets a ring spot, `find_nearby_spot(site, R)` with `R =
+  min(xs, ys) × 0x60 + 0x30`, nudged 0x30 off the site. Then
+  `add_move_facing_order(spot, facing, local_40, 0, QUEUE_NEW, 0, …)` and
+  `add_build_order@005e5210(site, who, QUEUE_LAST, 1)`. For `BUILD_AT`,
+  `local_40 = ~(leader_flags >> 1) & 2 | 1`: **1, `MOVE_TO`, for a
+  human** (`leader_flags & 4`, `LeaderData::is_human`'s whole body, read inline) and 3,
+  `EXPLORE_TO`, for a computer.
+- **The walk and the build** are `Unit::do_build@005eebf0` (`docs/
+  ORDERS.md` §5.2): not adjacent, re-swarm at `QUEUE_FIRST` with the same
+  `local_40`; adjacent, `CHAR_BUILD` and `ACCEL_CONSTRUCT` a frame into
+  `Wall::do_construct`.
+- **Finished**, a non-gather building's builder goes to
+  `Unit::build_done@00603bf0` (§5.5): a human of stance 1 tries
+  `find_build_spot`, then `find_gather_spot`.
+
+**The cast**, on who=0's open ground south-east of Napata (run223's
+start `WORLD`: cells x 5–10, y 44–50, BASELAND owned by 0).
+`library who=0 2` holds The Art of War, so both types are available; on
+619 who=0 holds 240 timber, 113 wealth and 100 metal.
+- `0/6` at tile (24, 184); `0/7`, `0/8`, `0/9` at (24, 196), (26, 196)
+  and (28, 196).
+- `0/6` drops a **Barracks** (427, 120 timber) at (7296, 34176):
+  **`0/2007`**.
+- The three drop a **Siege Factory** (430, 60 timber and 60 metal) at
+  (7296, 36864): **`0/2008`**. A second Barracks would be 145 timber
+  against 122 in hand.
+
+**Lines.** `0 !ai off`; `600 library who=0 2`; `610`–`616 add citizen
+who=0`; `620 @build 0 7296 34176 427 6`; `640 @build 0 7296 36864 430 7
+8 9`. A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1450)`, beside run105's `start:`
+set: run223's levels, the line whose pool printed (parked 733).
+
+**The premise's killer, and its writers** (§3, point 5).
+- **Each commanded citizen's order stack on its processed block**:
+  anything but a `MOVEORDER` then a `BUILDORDER` (flags 4) on the new
+  site.
+- The class's one constructor on this path is `add_build_order`'s
+  `get_obj(BUILD_AT)`. Its other callers are `check_build_order`,
+  `Wall::process`'s AI recruiter and `come_out`, none reached by a staged
+  human. The approach's class is `add_move_facing_order`'s switch on
+  `local_40`. `do_build` and `check_build_order` kill the order.
+- **The loops' bounds.** `action_build`'s stack holds one push;
+  `action_swarm_around` makes two passes over `group.num`, 1 and 3;
+  `find_nearby_spot`'s ring runs to `R`, 432 for a 4×4.
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frames 620 and 640: an
+   `INFO 17` with a refusal, or no `process_build` on 621 and 641.
+2. **No site, or not paid.** Block 622: no `BUILDDATA` `0/2007` with
+   `orig_type 427`, unstarted, or timber not down by 120. Block 642: no
+   `0/2008` `orig_type 430`, or timber and metal not down by 60 each.
+3. **The class is not a build, or the approach not a move.** Block 622
+   for `0/6`, 642 for `0/7`–`0/9`: anything but a `MOVEORDER` (flags 0)
+   then a `BUILDORDER` (flags 4) on the site. An `EXPLORETOORDER` says
+   `local_40` is not the human flag.
+4. **The walk does not end at the site.** No builder constructing
+   (`frame_started` set, `construct_hits` rising) by block 760, or a
+   second approach (a `QUEUE_FIRST` re-swarm) on any.
+5. **The rate is not one builder's, or three's.** The Barracks under one
+   not finished by 1200; the Siege Factory under three not by 1000.
+6. **The builders do not let go.** A builder still holding its
+   `BUILDORDER` past its site's last frame of construction.
+
+**This crate's prediction**, from a scratch walk of the script stood up
+on run223's start with a prototype of the command's entry: both sites
+paid and placed on the processed frames; `0/6` constructing from ~735,
+the Barracks finished ~1160 at one builder's rate; the three
+constructing from ~720 and the Siege Factory finished ~955; then `0/8`
+takes the Barracks by `find_build_spot` on ~1090.
+
+**Where it should part.** This crate does not enter the build command:
+the harness skips `@build` by name. So the first parting expected is
+621: the command's processing, with `0/6`'s first step of the walk the
+original spends and this crate does not, and on block 622 the site, the
+price and the two orders.
+
+**Run 2026-09-25 as run241 (item 779)** (`docs/RUNS.md` has the tables).
+- **No falsifier fired, and the premise's class holds.** Both commands
+  reached the pump on the next frame. On 622 `0/6` holds a `MOVEORDER`
+  to its ring spot (6840, 34440) and a `BUILDORDER` (flags 4) on
+  `0/2007`, and timber is down 120. On 642 each of the three holds a
+  `MOVEORDER` to its own spot and a `BUILDORDER` on `0/2008`, and
+  timber and metal are down 60 each. No `EXPLORETOORDER` anywhere on a
+  builder: `local_40` is the human flag. Falsifier 3's "flags 0" is the
+  adder's; on the processed block the move already carries the path
+  bit of its first step.
+- **The build.** The three start on 709 and finish the Siege Factory on
+  **948**; `0/6` starts on 721 and finishes the Barracks on **1141**.
+  Each builder's stack is empty on its site's last frame.
+- **After.** On **1097** `0/8`, idle since 948, takes `find_build_spot`'s
+  help: a `MOVEORDER` and a `BUILDORDER` with flags 0 on `0/2007`. It is
+  still walking on 1141 and stands idle from ~1200.
+- **The scratch walk's prediction held on every block read** except the
+  help's class, an `EXPLORETOORDER` there: this crate's one-unit
+  `swarm_around` never asks whose builder it is.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_EIGHTEEN` = 642, open.**
+The harness skips both `@build` lines, as §25's first pin skipped its
+verbs. Nothing spends a draw on the lone builder's walk until 642, where
+the original spends 6 draws against 7 here, parting at draw 0 on an
+idle citizen's roll this crate spends (`Guy::set_anim+0x97a <
+Guy::inc_time+0x271`) and the walking one does not. The widening over
+(605, 645), both directions, names what stands: the births' `form`; on
+622 the Barracks, which the dump holds alone, the 120 timber, and `0/6`
+idle with no order; on 642 the Siege Factory, its 60 metal, and the
+three idle; in the pool, each command's pushed selection.
+
+**The build command entered: `GOLDEN_WORD_CHAPTER_EIGHTEEN` = 1450,
+closed** (item 779, `docs/ORDERS.md` §36). `input::group_build` →
+`Sim::group_action_build` places and pays once and swarms at
+`QUEUE_NEW`, a `MOVEORDER` for a human's builder; the one-unit swarm
+asks whose builder it is. The stream agrees to run241's end, 1450, with
+no value part.
+- **The value diff on the old word's frame**, block 642, both sides:
+  `0/7` at (4751, 37744), `0/8` at (5136, 37748) and `0/9` at (5520,
+  37746), each on its first step to (6840, 37032), (6840, 36792) and
+  (7128, 37320) with a `BUILDORDER` (flags 4) on `0/2008`; timber 62,
+  metal 40.
+- **The widening is run241 whole**, (605, 1451). Past the births only
+  the pool's `ox`/`oy` on each pushed selection stands: (0, 0) there and
+  (−1, −1) here, as on §25's flight groups, a point no build reads.

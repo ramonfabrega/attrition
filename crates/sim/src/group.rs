@@ -1603,8 +1603,14 @@ impl Sim {
     // The actions
     // ------------------------------------------------------------------
 
-    /// `Group::action_swarm_around@0070fbe0` at **`QUEUE_LAST`** — the
-    /// position `finish_insert` re-issues a build or a repair at (§24).
+    /// `Group::action_swarm_around@0070fbe0` at **`QUEUE_NEW`** or
+    /// **`QUEUE_LAST`** — the position a player's drop issues a build at
+    /// (`Group::action_build@00707510`, `docs/GOLDEN.md` §26) and the one
+    /// `finish_insert` re-issues a build or a repair at (§24). The two
+    /// are one arm of the original: the member's approach is
+    /// `add_move_facing_order` at the swarm's own position (`QVar16 =
+    /// param_3`), so `QUEUE_NEW` clears each member's list first, and the
+    /// order goes in behind it at `QUEUE_LAST` either way.
     ///
     /// The members are walked twice, land (`domain` 0) first and sea
     /// second; an air member is never taken. A citizen (`0x32`/`0x33`)
@@ -1620,8 +1626,19 @@ impl Sim {
     /// the gather filter (`local_30`, the group's idle citizens, against a
     /// member whose action is a gather); and `is_busy`, a member mid-cast
     /// or boarding. `finish_insert`'s one reach on file is a goody box's
-    /// one-member group whose member was just halted.
-    fn group_action_swarm_around_last(&mut self, g: &Group, b: usize, body: Body, action: bool) {
+    /// one-member group whose member was just halted. **`QUEUE_FIRST`**
+    /// is the original's re-entry (`set_up_insert`, `action_halt`, this
+    /// arm at `QUEUE_NEW`, `finish_insert`), which a group command on file
+    /// never passes; it is taken here member by member through
+    /// [`Sim::swarm_around`], the shape `do_build`'s re-entry has.
+    fn group_action_swarm_around(
+        &mut self,
+        g: &Group,
+        b: usize,
+        pos: QueuePos,
+        body: Body,
+        action: bool,
+    ) {
         use crate::attrition::Domain;
         if !self.group_is_on_map(g) || !self.buildings.get(b).is_some_and(|bd| bd.alive) {
             return;
@@ -1642,9 +1659,47 @@ impl Sim {
                 if domain != layer || self.worker_of(u) != crate::orders::Worker::Citizen {
                     continue;
                 }
-                self.swarm_around_last(u, b, body, action, kind);
+                if pos == QueuePos::First {
+                    self.swarm_around(u, b, body, action);
+                } else {
+                    self.swarm_around_last(u, b, body, action, kind, pos);
+                }
             }
         }
+    }
+
+    /// `Group::action_build@00707510` (`docs/GOLDEN.md` §26): a player's
+    /// drop. The group must be on the map; the type must be available
+    /// (`LeaderData::type_avail(t, 1) == 4`); then the site, the city
+    /// limit and the price are [`Sim::place_building`]'s, in the
+    /// original's order of refusal — `validate_build`'s snap,
+    /// `blocked_site` and `can_afford`, the city limit, and the loop's
+    /// snap, `blocked_site`, price and `Objects::init_build`. The loop
+    /// runs once: `action_build` pushes one `PathData`, the first point,
+    /// and nothing else pushes. A placed site is swarmed at the command's
+    /// position with `BUILD_AT` and the action bit
+    /// ([`Self::group_action_swarm_around`]). Returns the site.
+    ///
+    /// SEAM: the scenario's free-building semaphore, the feedback and
+    /// the sounds, and `ignore_orders`; none is reached by a capture on
+    /// file.
+    pub fn group_action_build(
+        &mut self,
+        g: &Group,
+        at: Pos,
+        ty: usize,
+        pos: QueuePos,
+    ) -> Option<usize> {
+        if !self.group_is_on_map(g) || !g.list.iter().any(|&u| self.units[u].alive()) {
+            return None;
+        }
+        let tree = self.build_types[ty].tree?;
+        if self.type_avail(g.who, tree) != crate::tech::AVAILABLE {
+            return None;
+        }
+        let b = self.place_building(g.who, ty, at).ok()?;
+        self.group_action_swarm_around(g, b, pos, Body::Build(b), true);
+        Some(b)
     }
 
     /// `Group::set_up_insert@0070e520` (§6.2, §17): the **leader's**
@@ -1714,7 +1769,13 @@ impl Sim {
                 // the original keeps the build behind the box's walk
                 // (§24).
                 Body::Build(b) | Body::Repair(b) => {
-                    self.group_action_swarm_around_last(g, b, o.body, o.has(flag::ACTION));
+                    self.group_action_swarm_around(
+                        g,
+                        b,
+                        QueuePos::Last,
+                        o.body,
+                        o.has(flag::ACTION),
+                    );
                 }
                 // Case `0x16`: `redo_patrol_order(group, order,
                 // QUEUE_LAST)` — every member's patrol rebuilt from

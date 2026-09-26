@@ -601,6 +601,107 @@ fn a_group_s_queue_first_keeps_the_build_behind_the_walk() {
     assert_eq!(sim.units[u].form, -1, "and the citizen's form is not");
 }
 
+/// **A human's drop places and pays for one site and gives each citizen a
+/// move, then the build** (item 779, `docs/GOLDEN.md` §26, run241).
+/// `Group::action_build@00707510` pays once and `action_swarm_around(site,
+/// who, QUEUE_NEW, BUILD_AT, 1)` gives each member its ring spot's
+/// approach and a `BUILDORDER` with the action bit behind it; the
+/// approach is `local_40`'s class, `MOVE_TO` for a human and `EXPLORE_TO`
+/// for a computer. The list each citizen held before is cleared.
+///
+/// Made to fail once with the approach's kind forced to `EXPLORE_TO`
+/// (the human's class), and once with `QUEUE_NEW` passed as `QUEUE_LAST`
+/// (the stale order survives).
+#[test]
+fn a_human_s_build_drop_gives_each_citizen_a_move_then_the_build() {
+    use crate::tech::{TechTree, TypeDef};
+    for human in [true, false] {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let mut tree = TechTree::new();
+        let barracks_t = tree.add(TypeDef::building("Barracks"));
+        sim.set_tech_tree(tree);
+        sim.build_types[t.barracks].tree = Some(barracks_t);
+        let _ = city_at(&mut sim, &t, 0, 32, 32);
+        sim.nation[0].human = human;
+        let mut ct = citizen_type(t.village);
+        ct.worker = Worker::Citizen;
+        let citizen = sim.add_unit_type(ct);
+        let us: Vec<usize> = [44, 46, 48]
+            .iter()
+            .map(|&x| spawn(&mut sim, 0, citizen, tile_pos(x, 44)))
+            .collect();
+        // A stale order the drop must clear.
+        sim.add_move_facing_order(
+            us[0],
+            tile_pos(20, 20),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            true,
+            movement::Angle(0),
+            None,
+            false,
+        );
+        let price = sim.building_price(0, t.barracks);
+        let before = sim.ledgers[0].bucket;
+        let mut g = crate::group::Group::stack(0);
+        for &u in &us {
+            sim.group_add(&mut g, u);
+        }
+        assert!(sim.push_group(&mut g, true));
+        let b = sim
+            .group_action_build(&g, tile_pos(40, 40), t.barracks, QueuePos::New)
+            .expect("the site is placed");
+        for (r, (was, cost)) in before.iter().zip(price).enumerate() {
+            assert_eq!(
+                sim.ledgers[0].bucket[r],
+                was - cost,
+                "paid once, resource {r}"
+            );
+        }
+        let want = if human {
+            MoveKind::MoveTo
+        } else {
+            MoveKind::ExploreTo
+        };
+        for &u in &us {
+            let orders = &sim.units[u].orders;
+            assert_eq!(orders.len(), 2, "the approach and the build: {orders:?}");
+            assert!(
+                matches!(orders[0].body, Body::Move(m) if m.kind == want && m.dest != tile_pos(20, 20)),
+                "human {human}: the approach is {want:?}: {orders:?}"
+            );
+            assert!(!orders[0].has(crate::orders::flag::ACTION));
+            assert!(matches!(orders[1].body, Body::Build(x) if x == b));
+            assert!(orders[1].has(crate::orders::flag::ACTION));
+        }
+    }
+}
+
+/// **A human's one-unit swarm walks under a move** (item 779, run241's
+/// `0/8` on 1097). `find_build_spot`'s help and `do_build`'s re-entry are
+/// `action_swarm_around` on one citizen, and its approach is `local_40`'s
+/// class like the group's: `MOVE_TO` for a human. Made to fail once with
+/// the kind fixed at `EXPLORE_TO`, as this crate had it.
+#[test]
+fn a_human_s_one_unit_swarm_walks_under_a_move() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    for (human, want) in [(true, MoveKind::MoveTo), (false, MoveKind::ExploreTo)] {
+        sim.nation[0].human = human;
+        let u = spawn(&mut sim, 0, citizen, tile_pos(30, 44));
+        sim.swarm_around(u, b, Body::Build(b), false);
+        assert!(
+            matches!(sim.units[u].orders[0].body, Body::Move(m) if m.kind == want),
+            "human {human}: {:?}",
+            sim.units[u].orders
+        );
+    }
+}
+
 /// **A closed site's builder walks on until its number is reused** (item
 /// 644). `Unit::work@0060d180:319` ends the action on a `uid` mismatch,
 /// and a closed building keeps its uid until `Objects::find_free` hands the

@@ -7211,3 +7211,79 @@ any other.
 - Three mutations fail the first test: the strafe dropped from the gate
   (no round), the ground's height for the plane's (`sz`), and the
   scatter arm kept for a Bomber (two draws).
+
+## 36. The build command, entered: a human's builder walks under a move (item 779, 2026-09-25)
+
+**What it is.** `CommandManager::issue_build@00941c30` appends a `build`
+(type 0x19, `[x][y][x2][y2][type][queued]`) behind a `group`, and the
+turn pump's `CommandPackage::process_build@00948110` hands it to
+`Group::action_build@00707510`. The AI never reaches it: its builders come
+through its planner (`crate::ai_place`, §5.4's `QUEUE_NEW` swarm on one
+citizen). `docs/GOLDEN.md` §26 is the chapter; run241 is its capture.
+
+**`action_build`**, in order, each refusal giving nothing:
+1. the group on the map; `GroupData::validate_build@00708620` — the snap,
+   `blocked_site` clear, the price affordable; `num_valid > 0`;
+2. for a city type other than the Forbidden City, the city limit;
+3. `action_begin` (`+0x28 = 0`), then `LeaderData::type_avail(type, 1)
+   == 4`;
+4. its `PathData` stack, **one push, one pop**: `snap_center`,
+   `blocked_site`, the price (`+0x84` can-afford, `+0xd4` pay) unless the
+   scenario builds free, and `Objects::init_build(who, type, x, y, 0,
+   −1)`;
+5. `action_swarm_around(site, who, queued, BUILD_AT, 1)`.
+
+Only the first point is read; `x2`/`y2` ride in the command unused.
+
+**`action_swarm_around` at `QUEUE_NEW`** is the `QUEUE_LAST` arm (§5.4)
+with the command's position passed to the approach: each citizen's
+`add_move_facing_order(spot, facing, local_40, 0, QUEUE_NEW, 0, …)` clears
+its list, and `add_build_order(site, who, QUEUE_LAST, 1)` goes behind it.
+**The approach's class is `local_40`**, 1 (`MOVE_TO`) unless the swarm is
+`BUILD_AT` for a computer, when it is 3 (`EXPLORE_TO`): `~(leader_flags
+>> 1) & 2 | 1`, with `leader_flags & 4` the human bit. The `QUEUE_FIRST`
+arm re-enters at `QUEUE_NEW` with the same `local_40`, so `do_build`'s
+re-swarm and `find_build_spot`'s help (§5.5) walk a human's builder
+under a `MOVEORDER` too. The approach carries neither the action bit nor
+the path bit when it is laid; its first step sets the path bit.
+
+**In this crate.**
+- `rondata::input::group_build` is the command's entry: the group,
+  forced into the pool as `process_group` does, then
+  `Sim::group_action_build`. The `@build` issuer line of
+  `crate::golden::Script` reaches it (`TypeIndex − 0x19e` is the building
+  record).
+- `Sim::group_action_build` is steps 1–5, with the site, the city limit
+  and the price in `Sim::place_building`.
+- `Sim::group_action_swarm_around` takes `QUEUE_NEW` and `QUEUE_LAST`
+  through `Sim::swarm_around_last`, now given the position; `QUEUE_FIRST`
+  goes member by member through `Sim::swarm_around`.
+- `Sim::swarm_around`, the one-unit arm, now asks whose builder it is:
+  `MOVE_TO` for a human, `EXPLORE_TO` otherwise.
+
+**Diff-backed** (run241, `chapter_eighteen_s_word_frame_is_widened_whole`,
+run241 whole, both directions):
+- each citizen's `MOVEORDER` and `BUILDORDER` on 622 and 642, the ring
+  spots (6840, 34440), (6840, 37032), (6840, 36792) and (7128, 37320);
+- the price once: timber 241 → 121 on 622, timber 122 → 62 and metal
+  100 → 40 on 642;
+- the walks, the first frames of construction on 709 and 721,
+  `construct_hits` on every block, the completions on 948 and 1141;
+- `0/8`'s help on 1097: a `MOVEORDER` to (7176, 34632) and a
+  `BUILDORDER` with flags 0.
+
+**Not established.** The scratch group a non-citizen member goes into,
+`is_busy`, the gather filter (`local_30`) for a gather building, the
+city-limit and cannot-afford refusals, and the free-building semaphore:
+none is reached by run241. **A computer's `REPAIR` swarm** is `MOVE_TO`
+in the original (`local_40` is set only for `BUILD_AT`) and an
+`EXPLORE_TO` in this crate's one-unit arm. The AI repairs on both long
+captures, so it is left for an item that measures both words with it.
+
+**Tests.**
+- `a_human_s_build_drop_gives_each_citizen_a_move_then_the_build` fails
+  with the group's approach fixed at `EXPLORE_TO`, and with `QUEUE_NEW`
+  passed as `QUEUE_LAST` (the stale order survives).
+- `a_human_s_one_unit_swarm_walks_under_a_move` fails with the one-unit
+  kind fixed at `EXPLORE_TO`.
+- `chapter_eighteen_holds_to_the_golden_word` pins 1450, closed.
