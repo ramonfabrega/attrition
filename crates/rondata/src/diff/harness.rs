@@ -9561,14 +9561,13 @@ pub(crate) mod tests {
             None,
             "1/64's first step after the order"
         );
-        // The pool pointers had parted once before, on 11424, when the
+        // ~~The pool pointers had parted once before, on 11424, when the
         // original's `1/62`..`1/64` arrived in pool group 69 and this
-        // crate's in none; they agreed again from 11425 to 11512.
-        assert_eq!(
-            first(1, 64, "group"),
-            Some((11_424, "ours -1 theirs 69".into())),
-            "army 2's first pool parting"
-        );
+        // crate's in none; they agreed again from 11425 to 11512.~~ Since
+        // item 882 `Unit::come_out` pushes the trained squad (`618900`,
+        // `docs/GROUPS.md` §31), and 11424 reads 69 on both sides (ours
+        // −1 before): army 2's pool pointers never part in the window.
+        assert_eq!(first(1, 64, "group"), None, "army 2's first pool parting");
         // **The order's block, both sides whole** (`docs/COMBAT.md`
         // §44.2.1): the stance reaches `1/60`, `1/61`, `1/64` and `1/65`
         // and not `1/62` or `1/63`, and `1/64` is left naming no pool
@@ -9710,20 +9709,13 @@ pub(crate) mod tests {
             .iter()
             .map(|(n, what, o, t)| format!("{n} {what}: ours {o} theirs {t}"))
             .collect();
-        // The one residue: on 11424 the original's `1/62`..`1/64` stand in
+        // ~~The one residue: on 11424 the original's `1/62`..`1/64` stand in
         // their `come_out` group 69 for one block (`Unit::come_out`'s own
         // push on frame 11423 — run134's coverage), which this crate does
-        // not make. A pointer that names **any** other group at 11424's add
-        // leaves the same list, so the residue moves nothing.
-        assert_eq!(
-            rows,
-            [
-                "11424 1/62 group: ours Some(-1) theirs Some(69)",
-                "11424 1/63 group: ours Some(-1) theirs Some(69)",
-                "11424 1/64 group: ours Some(-1) theirs Some(69)",
-            ],
-            "run134's pool parts"
-        );
+        // not make.~~ Built by item 882 (parked 561, `docs/GROUPS.md` §31):
+        // `1/62`..`1/64` read 69 on 11424 on both sides (ours −1 before),
+        // and the pool agrees on every block of the window.
+        assert_eq!(rows, Vec::<String>::new(), "run134's pool parts");
     }
 
     /// **run135 — Great Lakes' word 11806, widened whole, both directions**
@@ -10423,7 +10415,8 @@ pub(crate) mod tests {
         // **Item 723 took one (212 → 211)**: the scout's formation mirror
         // (parked 275), once `push_group` keeps an equal group's record.
         // **Item 729 took one more (211 → 210)**: `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!(under, 210, "the floor under the word");
+        // **Item 882 took three (210 → 207)**: `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!(under, 207, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -10925,7 +10918,8 @@ pub(crate) mod tests {
         // Item 723 took one (212/228 → 211/227): the scout's formation
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (211/227 → 210/226): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, firsts.len()), (210, 226), "the floor");
+        // Item 882 took three (210/226 → 207/223): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, firsts.len()), (207, 223), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -11129,7 +11123,8 @@ pub(crate) mod tests {
         // Item 723 took one (228/360 → 227/359): the scout's formation
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (227/359 → 226/358): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, firsts.len()), (226, 358), "the floor");
+        // Item 882 took three (226/358 → 223/355): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, firsts.len()), (223, 355), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11358,7 +11353,9 @@ pub(crate) mod tests {
             // Item 718: six trained units' `orders_x`/`orders_y`; item 729
             // took one more (359/36/395 → 358/36/394), `0/frame_attacked`
             // (`Object::take_damage`'s stamp, `docs/AI.md` §71).
-            (358, 36, 394),
+            // Item 882 took three (358/36/394 → 355/36/391): the squad's
+            // 11424 `group` rows, `come_out`'s push (`docs/GROUPS.md` §31).
+            (355, 36, 391),
             "the floor"
         );
     }
@@ -11491,7 +11488,8 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one: `0/frame_attacked`, `Object::take_damage`'s
         // stamp (`docs/AI.md` §71).
-        assert_eq!((under, own.len(), firsts.len()), (394, 4, 398), "the floor");
+        // Item 882 took three (394/4/398 → 391/4/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, own.len(), firsts.len()), (391, 4, 395), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11605,7 +11603,8 @@ pub(crate) mod tests {
         // Item 723 took one (400/0/400 → 399/0/399): the scout's formation
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (399/0/399 → 398/0/398): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+        // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11741,7 +11740,8 @@ pub(crate) mod tests {
         // **Item 736 took the last one (398/1/399 → 398/0/398)**: `1/79`'s
         // move `facing` on 15351 (parked 716), the siege arm's sub-group
         // laying out on its own cleared record (`docs/GROUPS.md` §26).
-        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+        // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11881,7 +11881,8 @@ pub(crate) mod tests {
         // arm's sub-group lays out on its own cleared record
         // (`docs/GROUPS.md` §26). Nothing parts on 15441..15859; the word
         // left run211 for 16460 (run218).
-        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+        // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -11988,7 +11989,8 @@ pub(crate) mod tests {
         // above them went with the give-up's step (`docs/COLLISION.md`
         // §17), nothing arriving — **nothing parts on 15860..16711**, and
         // the word left run218 for 17099.
-        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+        // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12120,7 +12122,8 @@ pub(crate) mod tests {
         // word's block since item 776 (38 keys of 17088 before it), and
         // every key to the window's end (1256 before item 776, 876 before
         // item 785 — none since, to 17350).
-        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+        // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
+        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -15549,9 +15552,13 @@ pub(crate) mod tests {
             ("17113 1/64 form: ours -1 theirs 0", 1),
             ("17113 1/65 form: ours -1 theirs 0", 1),
             ("17113 1/66 form: ours -1 theirs 0", 1),
-            ("17363 1/67 form: ours -1 theirs 0", 2),
-            ("17363 1/68 form: ours -1 theirs 0", 4),
-            ("17363 1/69 form: ours -1 theirs 0", 4),
+            // Item 882 took one each from `1/67`..`1/69` (2/4/4 → 1/3/3):
+            // their `group` on 17363, 69 on both sides (ours −1 before) —
+            // the trained squad's birth push, `come_out`'s (parked 689,
+            // `docs/GROUPS.md` §31). `form` is `Unit::init`'s (646).
+            ("17363 1/67 form: ours -1 theirs 0", 1),
+            ("17363 1/68 form: ours -1 theirs 0", 3),
+            ("17363 1/69 form: ours -1 theirs 0", 3),
         ]
         .iter()
         .map(|(r, n)| ((*r).to_string(), *n))
@@ -15824,7 +15831,11 @@ pub(crate) mod tests {
             // Item 870: 308/0/308/330 → 285/0/285/307, the first block's
             // 23 `group` rows (`1/11` 64 against −1, army 1's 69 against
             // 68, the old army's 72 against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-            (285, 0, 285, 307),
+            // Item 882: 285/0/285/307 → 285/0/285/304, `1/70`..`1/72`'s
+            // `group` on 17575, 64 on both sides (ours −1 before): the
+            // trained squad's birth push, `come_out`'s (parked 689,
+            // `docs/GROUPS.md` §31).
+            (285, 0, 285, 304),
             "the floor"
         );
     }
