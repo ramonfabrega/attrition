@@ -3103,4 +3103,112 @@ mod tests {
         let (s, _, us) = university(&[0x19, 0x1d, 0x20]);
         assert_eq!(s.scholar_slot(us[1], 3), 0x1d);
     }
+
+    /// **§15: a unit that goes inside in its own work still takes its
+    /// figures' frame.** `Unit::process@00610bc0` runs the work (`+0x188`)
+    /// and then `Guy::process` on every figure under the entry's
+    /// `inside_up < 0` test alone, so a walker that casts its boat at the
+    /// shore (`crate::Sim::cast_transport`) and is cargo by the work's end
+    /// still has its figures moved once: a crew figure standing on its
+    /// `des` writes `last_speed` 0, decays its average and turns to
+    /// `des_angle`, paying the turn's `set_anim`. East Indies' `1/77` on
+    /// 19413 is the case (run269), with the angles here.
+    #[test]
+    fn a_walker_that_boards_its_boat_moves_its_figures_that_frame() {
+        use crate::movement::{Angle, Body};
+        use crate::world::{Cell, Terrain, UNITS_PER_TILE, tile};
+        let tile_pos = |tx: i32, ty: i32| {
+            Pos::new(
+                tx * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+                ty * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+            )
+        };
+        // `transport.rs`'s shore: land on the left eight cells, ocean on
+        // the right four, the shore column flagged with the sea beside it.
+        let mut w = World::new(12, 8);
+        w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let sea = w.fill_region(Terrain::Sea, Cell::new(8, 0), Cell::new(11, 7));
+        for y in 0..8 {
+            for x in 0..12 {
+                let c = Cell::new(x, y);
+                let mut d = w.cell_data(c);
+                if x >= 8 {
+                    d.land = 2;
+                    for tx in x * 4..x * 4 + 4 {
+                        for ty in y * 4..y * 4 + 4 {
+                            w.set_tile_field(Pos::new(tx, ty), tile::SURFACE, tile::SURFACE_OCEAN);
+                        }
+                    }
+                } else if x == 7 {
+                    d.flags |= 0x100;
+                    d.region2 = Some(sea);
+                }
+                w.set_cell_data(c, d);
+            }
+        }
+        let mut s = Sim::new(Tuning::RON, w, 2);
+        s.nation[1].human = false;
+        let walker = s.add_unit_type(UnitType {
+            hits: 40,
+            ..UnitType::default()
+        });
+        let mut barge = UnitType {
+            hits: 50,
+            moves: 25,
+            ..UnitType::default()
+        };
+        barge.combat.domain = crate::attrition::Domain::Sea;
+        barge.combat.block_radius = 48;
+        let b = s.add_unit_type(barge);
+        s.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
+        s.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
+        let index = s.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE).unwrap();
+        let mut unit = Unit::new(1, index, tile_pos(30, 14), 40);
+        unit.ty = Some(walker);
+        let u = s.add_unit(unit);
+        s.init_guys(u, Some(walker));
+        // The second figure: standing on its `des`, a step's speed still
+        // on it, owed the turn run269's `1/77` took on 19413.
+        let at = Pos::new(tile_pos(30, 14).x - 48, tile_pos(30, 14).y - 192);
+        let mut crew = s.units[u].guys[0];
+        crew.follow = Some(Follow {
+            body: Body {
+                pos: at,
+                last_speed: 1,
+                avg_speed: 16,
+            },
+            des: at,
+            facing: Angle(-541_917_184),
+            des_angle: Angle(-901_447_680),
+            track: (-48, -192),
+        });
+        s.units[u].guys.push(crew);
+        s.units[u].auto_transport = true;
+        s.add_move_order(
+            u,
+            tile_pos(40, 14),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        s.units[u].path.push(crate::orders::PathData {
+            to: tile_pos(33, 14),
+            tolerance: 0,
+            flags: crate::orders::path_flag::TRANSPORT,
+        });
+        assert!(!s.set_new_location(u, tile_pos(33, 14), false));
+
+        s.trace_phases = true;
+        let mut events = Vec::new();
+        s.process_unit(u, 1, &mut events);
+        assert!(s.units[u].inside_unit.is_some(), "the walker is cargo");
+        let f = s.units[u].guys[1].follow.expect("the crew figure");
+        assert_eq!(f.facing, f.des_angle, "it turned, as the original's did");
+        assert_eq!(f.body.last_speed, 0, "`Guy::move`'s standing arm");
+        assert_eq!(f.body.avg_speed, 12, "(16 × 3 + 0) / 4");
+        assert!(
+            s.phase_marks.iter().any(|(l, _)| l == SITE_TURN_STAND),
+            "the turn's draw"
+        );
+    }
 }

@@ -4295,12 +4295,17 @@ impl Sim {
             // `last_speed 0`, `stopped 1` of run223's 722 — and never
             // again, the inside arm writing only `last_z` from then on.
             //
-            // SEAM: **only an aircraft is given the frame.** A squad that
-            // garrisons in its own `work` is owed the same `Guy::process`
-            // by the reading, and this crate has always returned here for
-            // it; no capture has been measured on that frame.
-            if self.units[i].inside.is_some() && self.units[i].kind.domain == attrition::Domain::Air
-            {
+            // **And so is every unit that went inside in its own work**,
+            // not an aircraft alone (item 850, `docs/ANIM.md` §15): a
+            // walker that casts its barge at the shore is cargo by the
+            // work's end, and its figures still take the standing arm —
+            // East Indies' Merchant `1/77` on 19413, whose second figure
+            // turns to its `des_angle` and pays the turn's draw.
+            //
+            // SEAM: a squad that garrisons in its own `work` takes the
+            // same frame by the reading; no widening names its figures on
+            // that frame yet.
+            if self.units[i].inside.is_some() || self.units[i].inside_unit.is_some() {
                 self.process_movement(i);
             }
             return;

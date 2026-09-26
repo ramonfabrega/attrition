@@ -987,7 +987,26 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// Guy::turn_towards+0x69` where ours spends its next `Guy::set_anim+0x97a
 /// < Guy::inc_time+0x271`. Past run257's end; run269 was taken for it and
 /// its block 19414 is widened there.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_413;
+///
+/// **19413 → 19509 on item 850, and the frame was 19413's cast.** `1/77`,
+/// a Merchant walking to the shore, casts its barge `1/78` in its own
+/// work on tick 19413 and is cargo by the work's end. `Unit::process@
+/// 00610bc0` runs `Guy::process` on every figure after the work under the
+/// entry's `inside_up < 0` test alone, so the original's figures take
+/// their frame once more: the second, standing on its `des`, writes
+/// `last_speed` 0 and turns to `des_angle` (`Guy::turn_towards`, the
+/// draw). Ours gave that frame to an aircraft alone (`docs/ANIM.md` §15).
+/// **The move's value diff (the word's delta, here; its block is
+/// `run269_s_word_frame_is_widened_whole`'s):** on block 19414 `1/77`'s
+/// `g.angle[1]` went −541917184 against −901447680 → −901447680 on both,
+/// `g.avg_speed[0]` 15 against 11 → 11, `g.avg_speed[1]` 16 against 12 →
+/// 12 and `g.last_speed[1]` 1 against 0 → 0; the draws on 19413 went 5
+/// against 6 → 6 against 6. **The new word's delta: ours 10 draws and the
+/// original 9, parting at index 3**: ours spends `1/71`'s
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original spends
+/// its next `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run269;
+/// its block 19510 is widened there.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_509;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4431,6 +4450,10 @@ pub(crate) const WIDENING_EAST_INDIES_TURNWORD: (i64, i64) = (19_408, 19_664);
 /// original spends a turn's `Guy::set_anim` and ours a wrap, writes block
 /// 19414. The coverage driver reads run269 around it.
 pub(crate) const EAST_INDIES_TURNWORD_BLOCK: i64 = 19_414;
+/// The word 19509's block on run269 (item 850): its frame, where ours
+/// spends `1/71`'s walk start (`Unit::move_step+0x823`) and the original a
+/// wrap, writes block 19510. The coverage driver reads run269 around it.
+pub(crate) const EAST_INDIES_WALKWORD_BLOCK: i64 = 19_510;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4611,11 +4634,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // territory tax twice (`docs/ECONOMY.md` §16), 19182 → 19413. run257's
     // test keeps the move's value diff (19177 and 19183), and run269 was
     // taken to widen the new word's block, 19414.
+    //
+    // **Item 850 moved it inside run269**: a unit that goes inside in its
+    // own work takes its figures' frame (`docs/ANIM.md` §15), 19413 →
+    // 19509. run269's test keeps the move's value diff (19414, `1/77`) and
+    // pins the new word's block, 19510, in the same walk.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         Some("run269_s_word_frame_is_widened_whole"),
-        839,
+        850,
         Some(WIDENING_EAST_INDIES_TURNWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
