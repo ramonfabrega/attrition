@@ -2326,6 +2326,14 @@ pub(crate) mod tests {
                 "gamelog-run226-greatlakes-giveupword.txt",
                 WIDENING_GREAT_LAKES_ESCORT.1 + 1,
             ),
+            // Sized to the word (item 785): nothing is on disk between
+            // run226's last block, 17350, and this one's first, 20500. It
+            // takes over from 17351 as each capture does from the last
+            // one's tail, so run226's partial `!quit` block is never read.
+            (
+                "gamelog-run243-greatlakes-standword.txt",
+                WIDENING_GREAT_LAKES_GIVEUP.1 + 1,
+            ),
         ]
     }
 
@@ -2333,7 +2341,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_FOREST_CELL_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_STAND_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -4974,14 +4982,20 @@ pub(crate) mod tests {
         // the comparison against the original's passed unchanged. The word
         // walked past **13555** and **13736** when a resumed 48-grid search
         // came to read the blocks it had copied (`docs/PATHFINDER.md` §26).
+        //
+        // **Thirteen → fourteen on item 785**, a fourth time: the word
+        // walked past **17570** when an easy AI's wonder arm came to read
+        // `wonder_mark` (`docs/AI.md` §75), and the comparison against the
+        // original's passed unchanged.
         assert_eq!(
             seatings,
             vec![
                 8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306,
-                13_555, 13_736
+                13_555, 13_736, 17_570
             ],
-            "below the word Great Lakes seats thirteen scholars, on 8272, 8680, \
-             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306, 13555 and 13736"
+            "below the word Great Lakes seats fourteen scholars, on 8272, 8680, \
+             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306, 13555, 13736 \
+             and 17570"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
@@ -11997,11 +12011,13 @@ pub(crate) mod tests {
         // **Item 757's word's blocks and item 776's**: what first parts on
         // 17101..17182, by unit. Item 757 left only the two walks here
         // (`1/72`'s arrival and mirror, `1/9`'s legs); item 776 took them,
-        // and **nothing parts until the new word's block, 17182**, where
-        // who=1's leader record parts on twelve keys: the `MAKE` list's
-        // slots 0, 1, 2 and 8 carry three wonders here (types 526, 528 and
-        // 527, category 8) and nothing there — `create_buildings`' extra
-        // draws, as a hypothesis.
+        // and nothing parted until 776's word's block, 17182, where who=1's
+        // `MAKE` slots 0, 1, 2 and 8 carried three wonders here (526, 528
+        // and 527) and nothing there. **Item 785** took them: an easy AI's
+        // wonder arm refuses once `wonder_mark` is up, and the Pyramids
+        // raised it on 17085 (`docs/AI.md` §75). **Nothing parts on
+        // run226's own blocks at all**, to its last, 17350 (the floor
+        // below), and the word left run226 for 20568.
         let mut past: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
         for ((w, o, _), (f, _)) in &firsts {
             if (WORD_BLOCK + 1..=GREAT_LAKES_FOREST_CELL_BLOCK).contains(f) {
@@ -12014,7 +12030,7 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             past,
-            [(17_182, 1, -1, 12)],
+            [],
             "who parts first on 17101..17182, the new word's block, and on how many keys"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count();
@@ -12033,17 +12049,168 @@ pub(crate) mod tests {
                     .map_or(0, BTreeMap::len),
             ),
             // 349 and 344 before item 776, whose searches took the two
-            // walks' rows off both; 17182 is the floor's 311 and the
-            // `MAKE` list's twelve.
-            (311, 311, 323),
+            // walks' rows off both. 17182 was the floor's 311 and the
+            // `MAKE` list's twelve (323) until item 785: the twelve went,
+            // and so did four standing rows the wonder pass had kept —
+            // `MAKE[0]`, `[1]` and `[8]`'s `city` and `SITE[1].reg`.
+            (311, 311, 307),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
         // **The floor**: run218's walk (398, nothing on run211's or
         // run218's own blocks since item 742), nothing up to the old
         // word's block since item 776 (38 keys of 17088 before it), and
-        // every key to the window's end (1256 before item 776).
-        assert_eq!((under, mid, firsts.len()), (398, 0, 876), "the floor");
+        // every key to the window's end (1256 before item 776, 876 before
+        // item 785 — none since, to 17350).
+        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
+    }
+
+    /// **run243 — Great Lakes' word 20568, widened whole, both directions**
+    /// (item 785). run226's line over [`WIDENING_GREAT_LAKES_STAND`]:
+    /// run226's last six blocks, then run243 whole — 68 blocks into the
+    /// word, its block, and 250 of runway. **Sized to the word, not to the
+    /// gap**: no dump holds 17351..20499, so the walk compares nothing
+    /// there, and what first parts on 20500 is either standing on 17350 or
+    /// the gap's.
+    ///
+    /// The word's frame, 20568, writes block **20569**.
+    #[test]
+    fn run243_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const WORD_BLOCK: i64 = GREAT_LAKES_STAND_BLOCK;
+        const RUN226_TAIL: i64 = WIDENING_GREAT_LAKES_GIVEUP.1;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run243",
+            &great_lakes_word_chain(),
+            WIDENING_GREAT_LAKES_STAND,
+            11_800,
+            &[RUN226_TAIL, GREAT_LAKES_STAND_FIRST + 2, WORD_BLOCK],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        assert_eq!(
+            blocks,
+            (RUN226_TAIL - WIDENING_GREAT_LAKES_STAND.0 + 1 + WIDENING_GREAT_LAKES_STAND.1
+                - GREAT_LAKES_STAND_FIRST
+                + 1) as usize,
+            "the walk is whole on both captures: six of run226's, 319 of run243's"
+        );
+        let mut by: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            *by.entry((*f, *w, *o)).or_default() += 1;
+        }
+        // **What the gap carried in** (R3, the stanza's): the rows standing
+        // on run243's first block that were not standing on run226's last.
+        // Four walkers on long paths — `1/40`, `1/41`, `1/42` and `1/60`,
+        // each some cells off the original — `1/80`'s formation, and
+        // who=1's `SITE[1].reg`. **R3's killer fires**: the gap is not
+        // quiet, and no dump says where in 17351..20499 any of them parts.
+        let head: Vec<(i64, i64, usize)> = by
+            .iter()
+            .filter(|((f, _, _), _)| *f == GREAT_LAKES_STAND_FIRST)
+            .map(|((_, w, o), n)| (*w, *o, *n))
+            .collect();
+        assert_eq!(
+            head,
+            [
+                (1, -1, 1),
+                (1, 40, 8),
+                (1, 41, 14),
+                (1, 42, 9),
+                (1, 60, 23),
+                (1, 80, 4)
+            ],
+            "who the gap carried onto 20500, and on how many keys"
+        );
+        let tail = standing.get(&RUN226_TAIL).map_or(0, BTreeMap::len);
+        let carried = standing.get(&GREAT_LAKES_STAND_FIRST).map_or(0, |h| {
+            h.keys()
+                .filter(|k| {
+                    !standing
+                        .get(&RUN226_TAIL)
+                        .is_some_and(|t| t.contains_key(*k))
+                })
+                .count()
+        });
+        assert_eq!(
+            (tail, carried),
+            (307, 59),
+            "run226's standing rows on its last block, and the gap's on run243's first"
+        );
+        // **Up to the word, on run243's own blocks**: only the gap's four
+        // walkers' later fields, and on the word's block **`1/40` stands
+        // blocked in the original and not here** (R2 holds): `collide 1`,
+        // `collide_who 8`, `collide_o 0` and `stopped 1` there, a figure
+        // clock mid-walk here. It is the original's `move_step+0x823`.
+        let own: Vec<(i64, i64, i64, usize)> = by
+            .iter()
+            .filter(|((f, _, _), _)| (GREAT_LAKES_STAND_FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(|((f, w, o), n)| (*f, *w, *o, *n))
+            .collect();
+        assert_eq!(
+            own,
+            [
+                (20_501, 1, 41, 1),
+                (20_503, 1, 40, 1),
+                (20_503, 1, 42, 1),
+                (20_504, 1, 40, 2),
+                (20_505, 1, 40, 1),
+                (20_510, 1, 60, 1),
+                (20_529, 1, 42, 2),
+                (20_530, 1, 42, 2),
+                (20_531, 1, 41, 1),
+                (20_536, 1, 40, 2),
+                (20_541, 1, 42, 1),
+                (20_563, 1, 41, 2),
+                (20_569, 1, 40, 9),
+            ],
+            "who first parts on 20501..20569, the word's block, and on how many keys"
+        );
+        // **The value diff on the word's block**: the stand's own fields.
+        let stand = |what: &str| {
+            firsts
+                .get(&(1, 40, what.to_string()))
+                .map(|(f, r)| format!("{f} {r}"))
+        };
+        assert_eq!(
+            (stand("collide_who"), stand("collide_o")),
+            (
+                Some("20569 ours -1 theirs 8".to_string()),
+                Some("20569 ours -1 theirs 0".to_string())
+            ),
+            "1/40 is blocked by 8/0 on the word's block, in the original alone"
+        );
+        let within = |lo: i64, hi: i64| {
+            firsts
+                .values()
+                .filter(|(f, _)| (lo..=hi).contains(f))
+                .count()
+        };
+        // **The floor**: run226's 307 standing, the gap's 59, the 26 up to
+        // the word, and the runway's 502.
+        assert_eq!(
+            (
+                within(WIDENING_GREAT_LAKES_STAND.0, RUN226_TAIL),
+                within(GREAT_LAKES_STAND_FIRST, GREAT_LAKES_STAND_FIRST),
+                within(GREAT_LAKES_STAND_FIRST + 1, WORD_BLOCK),
+                firsts.len(),
+            ),
+            (307, 59, 26, 894),
+            "the floor"
+        );
+        assert_eq!(
+            standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
+            376,
+            "every row standing on the word's block"
+        );
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
@@ -14073,8 +14240,9 @@ pub(crate) mod tests {
         }
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
-        // on run139's record, both leaders, all forty blocks.
-        assert_eq!(leader_rows, 84_400, "40 blocks x 2 leaders x 1,055 keys");
+        // on run139's record, both leaders, all forty blocks. 1,055 before
+        // item 785, which compares `wonder_mark` (`docs/AI.md` §75).
+        assert_eq!(leader_rows, 84_480, "40 blocks x 2 leaders x 1,056 keys");
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -14194,8 +14362,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "250 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "250 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14327,8 +14495,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "630 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "630 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14582,8 +14750,8 @@ pub(crate) mod tests {
         };
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "120 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "120 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
         // are who=1's make list (`MAKE[].city`) and the human's
@@ -14791,8 +14959,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "343 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "343 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -14976,8 +15144,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "705 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "705 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -15160,8 +15328,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "512 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "512 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -15331,8 +15499,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "170 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "170 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -15468,8 +15636,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "150 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "150 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -15956,8 +16124,8 @@ pub(crate) mod tests {
         // 592, the census's 21 per-region arrays (`leader::REGION_ARRAYS`,
         // 1,531 keys a leader), which no widening had read.
         assert_eq!(
-            leader_rows, 1_861_920,
-            "360 blocks x 2 leaders x (1,055 + 1,531) keys"
+            leader_rows, 1_862_640,
+            "360 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value

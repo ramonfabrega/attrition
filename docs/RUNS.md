@@ -7695,3 +7695,52 @@ and what `action_spell` and the first `do_cast` write: no dump prints
 `Unit::do_cast` on a pool `Group` of `[6]`: a `CastOrder`, `paid` 1,
 `mana_burn` 991, every bucket rewritten unchanged, and a `MOVEORDER` to
 (14232, 15528). `docs/GOLDEN.md` §27.
+## run243 — Great Lakes' word 20568, sized to the word (2026-09-25, item 785)
+
+**What it is.** run226's line and lobby,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[20500, 20819)`, with `rontrace.cfg` `cover=0`. `!quit` at 20829,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 785
+```
+
+**Why it was owed.** Item 785 moved Great Lakes' word 17181 → 20568:
+`wonder_mark`'s writer (`docs/AI.md` §75). run226 ends on block 17350
+and run80 starts on 23960, so no dump holds the word's block, 20569.
+On 20568 ours spends 37 draws against 38, parting at index 31. Ours
+spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`, and the original
+spends `< Unit::move_step+0x823`, a blocked step.
+
+**Sized to the word, not to the gap** (DECISIONS 50 §7; the
+commander's ruling on item 785). A capture contiguous with run226
+would be ~3,470 blocks and ~4.5 hours. This one is 319 blocks: 68 into
+the word, its block 20569, and 250 of runway above it. **No dump
+compares a value over 17351..20499.** The draw stream agrees across
+that range in count and sequence, and nothing else is known of it.
+The same game is shown by the draw stream against run53, not by a dump
+overlap. The readings and their killers are in the stanza.
+
+**Taken whole.** 706.8 MB of dump and 23.9 MB of trace, 319 blocks
+20500..20818. About 26 minutes from launch (19:56) to archive (20:22),
+with no human at the menu. The lane lock was stale: pid 41224 was dead.
+Waited on with `waitrun.sh`, which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 20,830 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **319 blocks, 20500..20818, no gap** |
+| a `GROUPDATA` and a `GUY` on every window block | **319** each |
+
+**What it settled** (`run243_s_word_frame_is_widened_whole`,
+`docs/AI.md` §75.6).
+- **R1 holds**: the checks above.
+- **R2 holds.** On the word's block, `1/40` stands blocked by `8/0` in
+  the original (`collide 1`, `stopped 1`) and walks here. Its own walk
+  had already parted on run243's first block.
+- **R3's killer fires.** 59 rows part on 20500 that were not standing on
+  run226's last block. They are four who=1 walkers (`1/40`, `1/41`,
+  `1/42`, `1/60`), `1/80`'s formation and `SITE[1].reg`. Where in
+  17351..20499 any of them first parts is on no disk.

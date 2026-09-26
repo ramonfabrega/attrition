@@ -2239,7 +2239,22 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run226_s_word_frame_is_widened_whole` pins the new word's block (the
 /// widening test) and keeps the move's value diff: nothing parts on
 /// 17088..17181.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 17_181;
+///
+/// ~~**17181 is who=1's wonder offers.**~~ **Item 785 moved it 17181 →
+/// 20568, and the mechanism was `wonder_mark`** (`docs/AI.md` §75):
+/// `Wonders::init_wonder` raises it when a wonder activates, and
+/// `create_buildings`' wonder arm refuses for an easy AI outside a wonder
+/// victory once it is up. who=1's Pyramids raised it on 17085, and this
+/// crate read it as zero, so on 17181 ours spent three (city, wonder)
+/// pairs the original did not. **The new word's delta (this constant's
+/// comment): ours 37 draws and the original 38, parting at index 31**:
+/// ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+/// original spends `< Unit::move_step+0x823`, a blocked step. **Past
+/// run226** (block 20569 against its last, 17350): run243 is captured
+/// over [20500, 20819), sized to the word, and no dump compares a value
+/// on 17351..20499. `run226_s_word_frame_is_widened_whole` keeps the
+/// move's value diff: nothing parts on run226's own blocks, to 17350.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 20_568;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3374,8 +3389,9 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHT: i64 = 900;
 pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 
 /// The leader keys chapter eight's dump prints and the leader diff reads:
-/// 94 until item 706 read `gov` (95).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 95;
+/// 94 until item 706 read `gov` (95), and 96 since item 785 compares
+/// `wonder_mark` (`docs/AI.md` §75).
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 96;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
 /// player: the goods block's 88, and `gov` since item 706.
 pub(crate) const LEADERS_TWO_KEYS: usize = 89;
@@ -4020,6 +4036,19 @@ pub(crate) const GREAT_LAKES_PYRAMIDS_BLOCK: i64 = 17_129;
 /// word 17181's frame writes block 17182, inside run226. The coverage
 /// driver reads run226 around it too.
 pub(crate) const GREAT_LAKES_FOREST_CELL_BLOCK: i64 = 17_182;
+/// `run243_s_word_frame_is_widened_whole`'s window (item 785): run226's
+/// last six blocks (17345..17350), then run243 whole, 20500..20818 — 68
+/// blocks into the word 20568, its block, and 250 of runway past it.
+/// **Sized to the word, not to the gap**: no dump holds 17351..20499, so
+/// the walk reads nothing there, and its first run243 block carries
+/// whatever the gap left.
+pub(crate) const WIDENING_GREAT_LAKES_STAND: (i64, i64) = (17_345, 20_818);
+/// run243's first block.
+pub(crate) const GREAT_LAKES_STAND_FIRST: i64 = 20_500;
+/// The word 20568's block on run243: its frame, the original's blocked
+/// step (`Unit::move_step+0x823`) where ours spends an idle roll, writes
+/// block 20569. The coverage driver reads run243 around it.
+pub(crate) const GREAT_LAKES_STAND_BLOCK: i64 = 20_569;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4558,12 +4587,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // cell arm under `valid_wcoord` (`docs/PATHFINDER.md` §27). The same
     // test pins the new word's block, 17182, and keeps the move's value
     // diff (nothing parts on 17088..17181).
+    //
+    // **Item 785 moved it 17181 → 20568**, past run226's last block:
+    // `wonder_mark`'s writer (`docs/AI.md` §75). run226's test keeps the
+    // move's value diff (nothing parts on run226's own blocks). **Item 785
+    // paid it**: run243 is run226's line over [20500, 20819), sized to the
+    // word with no dump over 17351..20499, and
+    // `run243_s_word_frame_is_widened_whole` walks run226's last six
+    // blocks and run243 whole and pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run226_s_word_frame_is_widened_whole"),
-        776,
-        Some(WIDENING_GREAT_LAKES_GIVEUP),
+        Some("run243_s_word_frame_is_widened_whole"),
+        785,
+        Some(WIDENING_GREAT_LAKES_STAND),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

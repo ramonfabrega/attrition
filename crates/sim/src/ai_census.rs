@@ -1190,6 +1190,68 @@ impl Sim {
     }
 }
 
+impl Sim {
+    /// `LeaderData::wonder_mark`'s writers, on every leader: the entry
+    /// `Wonders::close_wonder@0073c7e0` clears when a wonder closes, and
+    /// the one `Wonders::init_wonder@0073c860` writes when one activates
+    /// (`Build::activate`'s wonder arm, after `remove_unbuilt_wonder`).
+    ///
+    /// - **A close** clears its entry and walks the mark down while the
+    ///   entry under it is clear, so the mark is one past the highest
+    ///   entry in use.
+    /// - **An activation** takes the first clear entry under the mark, or
+    ///   the one at it, and raises the mark past it.
+    ///
+    /// The original writes both inside the objects' pass, so this runs at
+    /// that pass's end: a wonder that activates on sim-frame N is on the
+    /// dump's block N + 1 and is read by the next frame's
+    /// `create_buildings` (`docs/AI.md` §75). It is derived from the
+    /// buildings rather than called from the activation, in building
+    /// order. A wonder closes when it is no longer an alive, activated
+    /// wonder of the leader's; a capture is not read.
+    pub fn note_wonders(&mut self) {
+        for w in 0..self.ai.len() {
+            let who = w as Player;
+            let standing: Vec<usize> = (0..self.buildings.len())
+                .filter(|&b| {
+                    let bd = &self.buildings[b];
+                    bd.alive
+                        && bd.active
+                        && bd.owner == who
+                        && bd.ty.is_some_and(|t| self.build_types[t].wonder)
+                })
+                .collect();
+            let cs = &mut self.ai[w].census;
+            // `close_wonder`: clear, then walk the mark down.
+            for e in &mut cs.wonder_slots {
+                if e.is_some_and(|b| !standing.contains(&b)) {
+                    *e = None;
+                }
+            }
+            while cs.wonder_mark > 0 && cs.wonder_slots[cs.wonder_mark as usize - 1].is_none() {
+                cs.wonder_mark -= 1;
+            }
+            // `init_wonder`: the first clear entry under the mark, else the
+            // mark's own.
+            for b in standing {
+                if cs.wonder_slots.contains(&Some(b)) {
+                    continue;
+                }
+                let mark = cs.wonder_mark as usize;
+                let i = cs.wonder_slots[..mark]
+                    .iter()
+                    .position(Option::is_none)
+                    .unwrap_or(mark);
+                if cs.wonder_slots.len() <= i {
+                    cs.wonder_slots.resize(i + 1, None);
+                }
+                cs.wonder_slots[i] = Some(b);
+                cs.wonder_mark = cs.wonder_mark.max(i as i32 + 1);
+            }
+        }
+    }
+}
+
 /// Step 3: the scalars the sweep zeroes. `control`, `pop`, `scouts`, the
 /// maxima and the `reg_*` arrays the building lifecycle keeps are all
 /// deliberately absent.
