@@ -1131,6 +1131,9 @@ impl ScriptHost<'_> {
     /// already researching) for everything else. A refused `queue_up` is
     /// silent, as it is in the original.
     fn action_queue_up(&mut self, w: Player, b: usize, what: QueueType, num: i32) {
+        // The building group every caller pushes first (`009f4595`,
+        // `009ee881`, …; `docs/GROUPS.md` §28.4): it takes a pool slot.
+        self.sim.push_building_group(w, b);
         match what {
             QueueType::Unit(rec, t) if self.sim.tech[w as usize].tech[t] => {
                 for _ in 0..num {

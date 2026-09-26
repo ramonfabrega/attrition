@@ -14086,7 +14086,13 @@ pub(crate) mod tests {
         // its own work takes its figures' frame (`docs/ANIM.md` §15). Three
         // keys leave 7993 and two of them first part on 8242, the scout
         // `1/0`'s disembark; one each leaves 9815, 9878 and 9879.
-        assert_eq!(under, 181, "the floor under the word");
+        // **Item 870 took seven (181 → 174)**: `1/11`'s `group` on 7880
+        // (64 here, 65 there), the scout `1/0`'s on 7969 (66 against 68)
+        // and its `mirror` on 9960, and `order:move.facing` on `1/22` and
+        // `1/29`: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29). The scout's `order:move.facing` now first
+        // parts on 8481, 0 here against 1 there: the slot's kept `facing`
+        // (§28), not built.
+        assert_eq!(under, 174, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -14112,7 +14118,8 @@ pub(crate) mod tests {
             birth,
             [
                 "10187 1/32 form: ours -1 theirs 0",
-                "10188 1/32 group: ours 68 theirs 66",
+                // Item 870: the navy's `group` on 10188, 68 here against
+                // 66, agrees (`docs/GROUPS.md` §29).
             ],
             "the warship's birth"
         );
@@ -14313,7 +14320,10 @@ pub(crate) mod tests {
                 // against 24 and `g.stopped[1]` 0 against 1, standing from
                 // the first block, agree: a unit that goes inside in its
                 // own work takes its figures' frame (`docs/ANIM.md` §15).
-                (9960, 109),
+                // **Item 870: 109 → 105**: `1/0`'s `group` (66 here, 65
+                // there) and `mirror` (1, 0), `1/11`'s `group` (64, −1) and
+                // `1/29`'s `order:move.facing` (1, 0): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+                (9960, 105),
                 (9982, 7),
                 (9992, 1),
             ],
@@ -14492,7 +14502,11 @@ pub(crate) mod tests {
         // (`docs/ORDERS.md` §29), and nothing arrived.
         // **Item 723 took one (223/223/231 → 222/222/230)**: the scout's
         // formation mirror (parked 275), an equal group's record kept.
-        assert_eq!((first, under_n, firsts.len()), (222, 222, 230), "the floor");
+        // **Item 870 took seven (222/222/230 → 215/215/223)**: the
+        // first block's `group` rows — `1/0` 70 here against 69, `1/11` 64
+        // against −1, `1/31` 66 against 65 and `1/32`..`1/38` 68 against
+        // 66: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (215, 215, 223), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -14744,7 +14758,11 @@ pub(crate) mod tests {
         // **Item 850 took three past the word (227/245/249 →
         // 227/245/246)**: the scout `1/0`'s `g.avg_speed[0]`, `[1]` and
         // `g.stopped[1]` on 11793, agreeing (`docs/ANIM.md` §15).
-        assert_eq!((first, under_n, firsts.len()), (227, 245, 246), "the floor");
+        // **Item 870 took seven (227/245/246 → 220/238/239)**: the first
+        // block's `group` rows — `1/0` 65 here against 64, `1/11` 64
+        // against −1, `1/31` 66 against 65, `1/32`..`1/38` 68 against 66:
+        // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (220, 238, 239), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -14822,7 +14840,9 @@ pub(crate) mod tests {
                 "13582 1/-1 leader:MAKE[7].city: ours 1 theirs 0",
                 "13582 1/-1 leader:MAKE[8].city: ours 1 theirs 0",
                 "13593 1/53 form: ours -1 theirs 0",
-                "13594 1/53 group: ours 69 theirs 68",
+                // Item 870: `1/53`'s `group` on 13594, 69 here against 68,
+                // agrees — who=1's pool numbering is the original's
+                // (`docs/GROUPS.md` §29).
             ],
             "the rows under the word and on it"
         );
@@ -14889,7 +14909,11 @@ pub(crate) mod tests {
         // Item 752 took two (269/279/279 → 267/277/277): who=1's two
         // cities' `gatherers` on the first block, counted in the building's
         // city (`docs/AI.md` §73).
-        assert_eq!((first, under_n, firsts.len()), (267, 277, 277), "the floor");
+        // Item 870 took ten on the first block and eleven in all (267/277/277
+        // → 257/266/266): the `group` rows — `1/0` 70 here against 69,
+        // `1/11` 64 against −1, `1/32`..`1/38` 68 against 66, `1/48`,
+        // `1/49`, `1/52` 69 against 68, and `1/53`'s on 13594 (`docs/GROUPS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (257, 266, 266), "the floor");
     }
 
     /// **run78 — East Indies' old word 15782, the move's value diff**
@@ -14948,8 +14972,10 @@ pub(crate) mod tests {
                 "15783 1/60 form: ours -1 theirs 0",
                 // Item 829: the pool id reads 71 here where it read 69 —
                 // a closed army's group now holds its slot (`docs/ARMY.md`
-                // §22), so the wagon's new one takes a later index.
-                "15784 1/60 group: ours 71 theirs 70",
+                // §22), so the wagon's new one takes a later index. Item
+                // 870: `1/60`'s `group` on 15784, 71 here against 70,
+                // agrees — who=1's pool numbering is the original's
+                // (`docs/GROUPS.md` §29).
             ],
             "every key first parting past the window's first block"
         );
@@ -14957,8 +14983,10 @@ pub(crate) mod tests {
             standing.get(&15_783).map_or(0, |m| m.len()),
             // Item 718: `1/60`'s order point, two rows fewer; item 723 one
             // more, the scout's formation mirror (parked 275); item 752 two
-            // fewer, who=1's cities' `gatherers` (`docs/AI.md` §73).
-            435,
+            // fewer, who=1's cities' `gatherers` (`docs/AI.md` §73). Item
+            // 870 sixteen fewer: the `group` rows, `1/11` 64 against −1 and
+            // army 0's `1/48`..`1/58` 69 against 68 among them (`docs/GROUPS.md` §29).
+            419,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -14971,7 +14999,10 @@ pub(crate) mod tests {
         // Item 752: 434/439, who=1's two cities' `gatherers` on the first
         // block, counted in the building's city (`docs/AI.md` §73).
         // Item 803: 434/438, `1/0`'s `dest_angle` on 15800 agreeing.
-        assert_eq!((first, firsts.len()), (434, 438), "the floor");
+        // Item 870: 418/421, the first block's sixteen `group` rows (`1/0`
+        // 70 here against 69, `1/11` 64 against −1, army 0's `1/48`..`1/58`
+        // 69 against 68) and `1/60`'s on 15784 (`docs/GROUPS.md` §29).
+        assert_eq!((first, firsts.len()), (418, 421), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
@@ -15075,7 +15106,9 @@ pub(crate) mod tests {
         // each is a parked family, not a term the region scan's stride
         // reads: `form` (parked 646), the pool `group` (674), and
         // `myhits`, `hits_left` and `mylos` (679). Its position and
-        // orders agree through the word.
+        // orders agree through the word. Item 870 took the pool `group`,
+        // 66 here against 65: who=1's numbering is the original's
+        // (`docs/GROUPS.md` §29).
         let scout: Vec<String> = firsts
             .iter()
             .filter(|((w, o, _), (f, _))| *w == 1 && *o == 31 && *f <= WORD_BLOCK + 2)
@@ -15085,7 +15118,6 @@ pub(crate) mod tests {
             scout,
             [
                 "15894 1/31 form: ours -1 theirs 9",
-                "15894 1/31 group: ours 66 theirs 65",
                 "15894 1/31 hits:myhits: ours 40 theirs 50",
                 "15894 1/31 hits_left: ours 40 theirs 50",
                 "15894 1/31 myhits: ours 40 theirs 50",
@@ -15100,7 +15132,8 @@ pub(crate) mod tests {
                 .flatten()
                 .filter(|((w, o, _), _)| *w == 1 && *o == 31)
                 .count(),
-            6,
+            // Item 870: 6 → 5, its `group` agreeing (`docs/GROUPS.md` §29).
+            5,
             "1/31's rows standing on 15985, the word's pre-state"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
@@ -15117,8 +15150,11 @@ pub(crate) mod tests {
             standing.get(&WORD_BLOCK).map_or(0, |m| m.len()),
             // 295 before item 708's fix: the fifteen under the word and
             // the five caps went, the newborn row came. Item 752 took two,
-            // who=1's cities' `gatherers` (`docs/AI.md` §73).
-            279,
+            // who=1's cities' `gatherers` (`docs/AI.md` §73). Item 870
+            // took seventeen: the `group` rows, `1/0` 70 here against 69,
+            // `1/11` 64 against −1, army 1's `1/48`..`1/60` 71 against 70
+            // (`docs/GROUPS.md` §29).
+            262,
             "every row standing on the word's block"
         );
         // **Past the word to the window's end** (the word left for 16683,
@@ -15157,7 +15193,10 @@ pub(crate) mod tests {
         // Item 752 took two (280/280/290 → 278/278/288): who=1's two
         // cities' `gatherers` on the first block, counted in the building's
         // city (`docs/AI.md` §73).
-        assert_eq!((first, under_n, firsts.len()), (278, 278, 288), "the floor");
+        // Item 870 took seventeen (278/278/288 → 261/261/271): the first
+        // block's `group` rows (`1/0` 70 here against 69, `1/11` 64 against
+        // −1, army 1's `1/48`..`1/60` 71 against 70) (`docs/GROUPS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (261, 261, 271), "the floor");
     }
 
     /// **run227 — East Indies' word 16683, widened whole, both directions**
@@ -15310,8 +15349,11 @@ pub(crate) mod tests {
             // `group`, 70 here against 69, the pool id (689) — a closed
             // army's group now holds its slot (`docs/ARMY.md` §22). Item 850
             // two fewer on each: the scout `1/0`'s `g.avg_speed[0]` and
-            // `[1]`, standing from 16681, agree (`docs/ANIM.md` §15).
-            [292, 292],
+            // `[1]`, standing from 16681, agree (`docs/ANIM.md` §15). Item
+            // 870 seventeen fewer on each: the `group` rows, `1/0` 69 here
+            // against 68, `1/11` 64 against −1, army 1's `1/48`..`1/60` 71
+            // against 70 among them — who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+            [275, 275],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -15359,7 +15401,11 @@ pub(crate) mod tests {
         // disembark, 16782 (`docs/ANIM.md` §15).
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 301, 307), "the floor");
+        // Item 870 took seventeen on the first block (284/301/307 →
+        // 267/284/290): the `group` rows — `1/0` 69 here against 68,
+        // `1/11` 64 against −1, army 1's `1/48`..`1/60` 71 against 70
+        // (`docs/GROUPS.md` §29).
+        assert_eq!((first, under_n, firsts.len()), (267, 284, 290), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -15462,9 +15508,12 @@ pub(crate) mod tests {
             // holds its slot (`docs/ARMY.md` §22), and the pool id is one
             // higher here from the window's start (689).
             ("16971 1/63 form: ours -1 theirs 9", 5),
-            ("17113 1/64 form: ours -1 theirs 0", 2),
-            ("17113 1/65 form: ours -1 theirs 0", 2),
-            ("17113 1/66 form: ours -1 theirs 0", 2),
+            // Item 870 took one each from `1/64`..`1/66` (2 → 1): their
+            // `group` on 17113, 69 here against 68, agrees — who=1's pool
+            // numbering is the original's (`docs/GROUPS.md` §29).
+            ("17113 1/64 form: ours -1 theirs 0", 1),
+            ("17113 1/65 form: ours -1 theirs 0", 1),
+            ("17113 1/66 form: ours -1 theirs 0", 1),
             ("17363 1/67 form: ours -1 theirs 0", 2),
             ("17363 1/68 form: ours -1 theirs 0", 4),
             ("17363 1/69 form: ours -1 theirs 0", 4),
@@ -15479,7 +15528,9 @@ pub(crate) mod tests {
         // `1/67`..`1/69` is their birth block, 17363 — `group` −1 here and
         // 69 there, `form`, and two `orders_x/y` — and nothing after it but
         // the pool id `group`, 69 here and 71 there (689), which `firsts`
-        // does not count past the first.
+        // does not count past the first. Since item 870 only the birth
+        // block's `group` stands: the original's one-block birth push, which
+        // this crate does not make (`docs/GROUPS.md` §29).
         assert_eq!(
             got, want,
             "each unit's first row under the word, and its count"
@@ -15583,8 +15634,10 @@ pub(crate) mod tests {
             // Item 839: 307/307/311/311 → 304/304/306/306, who=1's wealth
             // family — three rows standing on 17189 (`income`,
             // `resources`, `leftover`), five on 17403 — agrees
-            // (`docs/ECONOMY.md` §16).
-            [304, 304, 306, 306],
+            // (`docs/ECONOMY.md` §16). Item 870: → 284/284/283/283, the
+            // `group` rows of `1/0`, `1/11`, `1/31`..`1/38`, army 0's
+            // column and the squad (`docs/GROUPS.md` §29).
+            [284, 284, 283, 283],
             "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
@@ -15603,9 +15656,13 @@ pub(crate) mod tests {
         // the British territory tax (`docs/ECONOMY.md` §16).
         let before = |b: i64| firsts.values().filter(|(f, _)| *f < b - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        // Item 870 took 294/309/319/325 → 277/289/299/305: the first
+        // block's seventeen `group` rows (`1/0` 70 here against 69, `1/11`
+        // 64 against −1, army 0's `1/48`..`1/60` 65 against 64) and the
+        // squad `1/64`..`1/66`'s on 17113, 69 against 68 (`docs/GROUPS.md` §29).
         assert_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (294, 309, 319, 325),
+            (277, 289, 299, 305),
             "the floor"
         );
     }
@@ -15729,7 +15786,10 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (308, 0, 308, 330),
+            // Item 870: 308/0/308/330 → 285/0/285/307, the first block's
+            // 23 `group` rows (`1/11` 64 against −1, army 1's 69 against
+            // 68, the old army's 72 against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+            (285, 0, 285, 307),
             "the floor"
         );
     }
@@ -15877,7 +15937,10 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (305, 4, 309, 315),
+            // Item 870: 305/4/309/315 → 276/4/280/286, the first block's
+            // 29 `group` rows (`1/11` 64 against −1, `1/48`..`1/71` 72
+            // against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+            (276, 4, 280, 286),
             "the floor"
         );
     }
@@ -15942,15 +16005,17 @@ pub(crate) mod tests {
         // (`docs/ARMY.md` §22). They read 72 against 71 now: the same
         // group, the old army 1's, holding `[69, 72]` on both sides — the
         // index is one higher here, as every pool id of who=1 is from
-        // `1/11`'s up (689).
+        // `1/11`'s up (689). **Item 870**: the index is the original's, 71
+        // on both sides — who=1's pool numbering agrees
+        // (`docs/GROUPS.md` §29) — so no `group` row stands.
         let first_block = standing.get(&FIRST).cloned().unwrap_or_default();
         for o in 67..=72 {
             assert_eq!(
                 first_block
                     .get(&(1, o, "group".to_string()))
                     .map(String::as_str),
-                Some("ours 72 theirs 71"),
-                "`1/{o}` points at the old army 1's group on both sides"
+                None,
+                "`1/{o}` points at the old army 1's group, the same index on both sides"
             );
         }
         // **And on the old word's block** (items 822 and 829): until the
@@ -15999,10 +16064,11 @@ pub(crate) mod tests {
             .filter(|((w, o, _), _)| *w == 1 && *o == 67)
             .map(|((_, _, k), v)| (k.as_str(), v.as_str()))
             .collect();
+        // Item 870: the pool id agrees too (`docs/GROUPS.md` §29).
         assert_eq!(
             suspended,
-            [("group", "ours 72 theirs 71")],
-            "`1/67` agrees on {FIG_BLOCK} but for its pool id"
+            Vec::<(&str, &str)>::new(),
+            "`1/67` agrees on {FIG_BLOCK}, its pool id included"
         );
         let rows: Vec<String> = firsts
             .iter()
@@ -16112,9 +16178,13 @@ pub(crate) mod tests {
         // food and four of the wealth family (`leftover` stands), the
         // eight rows of the purchase under the word go, and 68 keys past
         // it with them.
+        // **Item 870** took it 317/1/318/319 → 288/1/289/290: the first
+        // block's 29 `group` rows (`1/0` 71 here against 70, `1/11` 64
+        // against −1, army 0's 65 against 64, the old army's 72 against
+        // 71) (`docs/GROUPS.md` §29).
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (317, 1, 318, 319),
+            (288, 1, 289, 290),
             "the floor"
         );
     }
@@ -16257,7 +16327,10 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (318, 0, 319, 320),
+            // Item 870: 318/0/319/320 → 289/0/290/291, the first block's
+            // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
+            // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+            (289, 0, 290, 291),
             "the floor"
         );
     }
@@ -16395,7 +16468,11 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (352, 21, 371, 948),
+            // Item 870: 352/21/371/948 → 323/21/342/916, the first block's
+            // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
+            // −1, army 1's `1/48`..`1/66` 71 against 68) and three past it:
+            // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+            (323, 21, 342, 916),
             "the floor"
         );
     }
@@ -16413,8 +16490,10 @@ pub(crate) mod tests {
     /// (`facing 0`, `order_num 0 → 1`) and mirrors. Both sides' values are
     /// pinned here. **This crate's half is the residue**: a slot keeps
     /// what `copy_group` does not copy only once the pool's numbering is
-    /// the original's, and it parts on block 239
-    /// (`east_indies_pool_numbering_parts_on_who_1_s_building_groups`).
+    /// the original's. It parted on block 239
+    /// (`east_indies_pool_numbering_takes_who_1_s_building_groups`), and
+    /// since item 870 it agrees through this block; the slot records'
+    /// own `order_num` still part from run221's 15894 (§29).
     #[test]
     fn east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held() {
         let Some(inst) = install() else { return };
@@ -16513,45 +16592,41 @@ pub(crate) mod tests {
             })
             .collect();
         assert_eq!(ours, [Some(true); 3], "this crate's orders: mirrored");
-        // The squad's own record here: slot 69 as well, but fresh, beside
-        // the closed army 0's orphan this crate keeps on the same index.
-        // The members already point at army 1's slot, 71 here.
+        // The squad's own record here: slot 69 as well, and since item 870
+        // the index's only record (one entry per pool index, and the
+        // numbering the original's), but fresh: `order_num` 1 and `facing`
+        // 0 against the original's 6 and 1. Before 870 it sat beside army
+        // 0's orphan on the same index, and the members pointed at army
+        // 1's slot 71 against the original's 68.
         let recs: Vec<(i64, i32, bool, Vec<i16>)> = built
             .sim
             .pool_records(1, 5)
             .into_iter()
             .map(|(st, l)| (st.stamp, st.order_num, st.facing, l))
             .collect();
-        assert_eq!(s, 7, "1/65 points at army 1's slot, 71 here");
+        assert_eq!(s, 4, "1/65 points at army 1's slot, 68 on both sides");
         assert_eq!(
             recs,
-            [
-                (
-                    19_706,
-                    0,
-                    false,
-                    vec![48, 49, 52, 53, 54, 55, 56, 57, 58, 74, 75, 76]
-                ),
-                (20_000, 1, false, vec![64, 65, 66]),
-            ],
-            "this crate's slot 69: army 0's orphan and the squad's fresh record"
+            [(20_000, 1, false, vec![64, 65, 66])],
+            "this crate's slot 69: the squad's fresh record, alone"
         );
     }
 
-    /// **East Indies' pool numbering parts on block 239** (item 865,
-    /// `docs/GROUPS.md` §28.4): the first `group` a who=1 unit holds
-    /// differently, and the root of every pool-id row since (parked 689).
-    /// run45 prints the pool from frame 1. The original pushes who=1's
-    /// **building groups**: `[2005]` onto 64 on frame 1, and `[2000]` onto
-    /// 66 on frame 176. So `think_scout`'s repush of `[0]` on tick 238 does
-    /// not equal `last_group` (66). `get_open_slot` takes 64, a building
-    /// group that is not `last_group`, and 1/0 moves 65 → 64. This crate
-    /// pushes no building group, so the repush equals `last_group` (65)
-    /// and stays. The pushes are the AI scripts' `train_unit*` and
-    /// `research_tech_with_cost`: each pushes the producing building
-    /// before `Group::action_queue_up` (§28.4).
+    /// **East Indies' pool numbering takes who=1's building groups**
+    /// (items 865 and 870, `docs/GROUPS.md` §28.4, §29): block 239 was the
+    /// first `group` a who=1 unit held differently, and the root of every
+    /// pool-id row after it (parked 689). run45 prints the pool from the
+    /// first frame. The original pushes who=1's **building groups**:
+    /// `[2005]` onto 64 on frame 1, and `[2000]` onto 66 on frame 176. So `think_scout`'s
+    /// repush of `[0]` on tick 238 does not equal `last_group` (66).
+    /// `get_open_slot` takes 64, a building group that is not
+    /// `last_group`, and 1/0 moves 65 → 64. The pushes are the AI
+    /// scripts' `train_unit*` and `research_tech_with_cost`: each pushes
+    /// the producing building before `Group::action_queue_up` (§28.4).
+    /// Until item 870 this crate pushed none, so the repush equalled
+    /// `last_group` (65) and stayed: `1/0` on 65 here against 64 there.
     #[test]
-    fn east_indies_pool_numbering_parts_on_who_1_s_building_groups() {
+    fn east_indies_pool_numbering_takes_who_1_s_building_groups() {
         let Some(inst) = install() else { return };
         let (Some(r45), Some(path), Some(sib), Some(tr)) = (
             dump("gamelog-run45-islands-groups.txt"),
@@ -16607,14 +16682,174 @@ pub(crate) mod tests {
             built.tick();
         }
         let scout = built.sim.unit_by_o(1, 0).expect("1/0");
+        let rec = |s: u8| -> Vec<(i64, Vec<i16>)> {
+            built
+                .sim
+                .pool_records(1, s)
+                .into_iter()
+                .map(|(st, l)| (st.stamp, l))
+                .collect()
+        };
         assert_eq!(
-            (
-                built.sim.pool_group_of(scout),
-                built.sim.pool_records(1, 0).len()
-            ),
-            (65, 0),
-            "this crate: 1/0 stays on 65, and slot 64 holds nothing"
+            (built.sim.pool_group_of(scout), rec(0), rec(2)),
+            (64, vec![(238, vec![0])], vec![(176, vec![])]),
+            "this crate: 1/0 moves onto 64, stamped 238, and 66 holds the \
+             building group stamped 176"
         );
+    }
+
+    /// **The pool walk** (item 870, `docs/GROUPS.md` §29): run54's game
+    /// ticked once, and on every block any listed East Indies dump holds,
+    /// who=0's and who=1's `UnitData::group` (`+0x80`) against this crate's
+    /// [`sim::Sim::pool_group_of`], each dump's first parting printed with
+    /// its units. `RON_POOL_WALK_RECORDS=1` adds each `GROUPDATA` slot's
+    /// `facing` and `order_num` against [`sim::Sim::pool_records`], and a
+    /// slot holding more than one record here. A probe, not a pin:
+    ///
+    /// ```text
+    /// RON_POOL_WALK=gamelog-run98-eastindies-valuewindow.txt,… \
+    ///   [RON_POOL_WALK_STOP=<block>] [RON_POOL_WALK_ALL=1] \
+    ///   cargo test --release -p rondata --lib east_indies_pool_walk -- --ignored --nocapture
+    /// ```
+    ///
+    /// The first capture listed that holds a block reads it, so list them
+    /// in run order. 865's scratch comparison reached 8369 in a minute, and
+    /// 870 walked every East Indies dump with it, pointers and records.
+    #[test]
+    #[ignore]
+    fn east_indies_pool_walk() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            return;
+        };
+        let names: Vec<String> = std::env::var("RON_POOL_WALK")
+            .unwrap_or_default()
+            .split(',')
+            .filter(|x| !x.is_empty())
+            .map(String::from)
+            .collect();
+        let stop: i64 = std::env::var("RON_POOL_WALK_STOP")
+            .ok()
+            .and_then(|x| x.parse().ok())
+            .unwrap_or(24_000);
+        let mut caps = Vec::new();
+        for n in &names {
+            let Some(pth) = dump(n) else {
+                eprintln!("no {n}");
+                continue;
+            };
+            caps.push((
+                n.clone(),
+                crate::capture::indexed::IndexedCapture::open(&pth).unwrap(),
+            ));
+        }
+        // block -> (cap, frame index), first capture listed wins
+        let mut at: std::collections::BTreeMap<i64, (usize, usize)> = Default::default();
+        for (ci, (_, ix)) in caps.iter().enumerate() {
+            for (fi, fr) in ix.frames().iter().enumerate() {
+                at.entry(fr.number).or_insert((ci, fi));
+            }
+        }
+        let last = (*at.keys().last().unwrap_or(&0)).min(stop);
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut reported = vec![false; caps.len()];
+        let mut agreed = vec![0usize; caps.len()];
+        for f in 0..last {
+            built.tick();
+            let n = f + 1;
+            let Some(&(ci, fi)) = at.get(&n) else {
+                continue;
+            };
+            let frame = caps[ci].1.frame_state(fi).unwrap();
+            let mut bad = Vec::new();
+            for t in &frame.units {
+                if t.who > 1 {
+                    continue;
+                }
+                let Some(u) = built.sim.unit_by_o(t.who as u8, t.o as i16) else {
+                    continue;
+                };
+                if !built.sim.units[u].alive() {
+                    continue;
+                }
+                let ours = built.sim.pool_group_of(u);
+                if let Some(th) = t.group
+                    && th != ours
+                {
+                    bad.push(format!("{}/{} ours {ours} theirs {th}", t.who, t.o));
+                }
+            }
+            if std::env::var("RON_POOL_WALK_RECORDS").is_ok() {
+                let raw = caps[ci].1.read_frame(fi).unwrap();
+                let flog = Log::parse(&raw);
+                let Some((_, blk)) = flog.frames().into_iter().find(|(x, _)| *x == n) else {
+                    continue;
+                };
+                for g in crate::gamelog::groups(blk) {
+                    if g.who > 1 {
+                        continue;
+                    }
+                    let slot = (g.id - g.who * 64) as u8;
+                    let recs = built.sim.pool_records(g.who as u8, slot);
+                    let theirs_l: Vec<i64> = g.members.iter().map(|m| m.o).collect();
+                    let (of, on, os, ol) = recs.first().map_or((0, 0, -1, vec![]), |(st, l)| {
+                        (
+                            i64::from(st.facing),
+                            i64::from(st.order_num),
+                            st.stamp,
+                            l.iter().map(|&x| i64::from(x)).collect::<Vec<_>>(),
+                        )
+                    });
+                    let mut d = Vec::new();
+                    if of != g.facing {
+                        d.push(format!("facing {of}/{}", g.facing));
+                    }
+                    if on != g.order_num {
+                        d.push(format!("order_num {on}/{}", g.order_num));
+                    }
+                    if !d.is_empty() || recs.len() > 1 {
+                        bad.push(format!(
+                            "REC {} [{}] {} (stamp {os}/{}, list {ol:?}/{theirs_l:?})",
+                            g.id,
+                            recs.len(),
+                            d.join(" "),
+                            g.stamp
+                        ));
+                    }
+                }
+            }
+            if bad.is_empty() {
+                agreed[ci] += 1;
+            } else {
+                if !reported[ci] || std::env::var("RON_POOL_WALK_ALL").is_ok() {
+                    eprintln!(
+                        "POOL {} parting on block {n} after {} agreeing blocks: {}",
+                        caps[ci].0,
+                        agreed[ci],
+                        bad.join(", ")
+                    );
+                }
+                reported[ci] = true;
+            }
+        }
+        for (ci, (name, _)) in caps.iter().enumerate() {
+            if !reported[ci] {
+                eprintln!("POOL {name} agrees on all {} blocks walked", agreed[ci]);
+            }
+        }
     }
 
     /// **run261 — East Indies' gap over army 1's close, widened whole, both
@@ -16703,19 +16938,14 @@ pub(crate) mod tests {
         // listed, so the close is tick 18682, ours' tick, and the group
         // survives it. Army 0's new group takes fifteen of them on the
         // same tick. On 18683 every `group` row of the old army's units is
-        // the same seat on both sides, one index higher here (689): the
-        // orphan 72 against 71, army 0's 65 against 64.
-        let mut want: Vec<String> = [64, 65, 66, 74, 75, 76]
-            .iter()
-            .map(|o| format!("1/{o} ours 65 theirs 64"))
-            .chain(
-                [60, 67, 68, 69, 70, 71, 72]
-                    .iter()
-                    .map(|o| format!("1/{o} ours 72 theirs 71")),
-            )
-            .collect();
-        want.sort_by_key(|r| r[2..].split(' ').next().unwrap().parse::<i64>().unwrap());
-        assert_eq!(escort, want, "the old army's pointers on {CLOSE}");
+        // the same seat on both sides. Until item 870 it was one index
+        // higher here (689): the orphan 72 against 71, army 0's 65 against
+        // 64. Since 870 the index agrees too (`docs/GROUPS.md` §29).
+        assert_eq!(
+            escort,
+            Vec::<String>::new(),
+            "the old army's pointers on {CLOSE}"
+        );
         assert_eq!(lists_part, [], "no army's list parts around the close");
         // **The floor**: every key standing on the first block (run253's
         // floor, carried), the keys past it, the rows standing on the
@@ -16726,7 +16956,10 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_close.len(), firsts.len()),
-            (314, 2, 313, 316),
+            // Item 870: → 285/2/284/287, the first block's 29 `group` rows
+            // (`1/11` 64 against −1, `1/48`..`1/71` 72 against 71)
+            // (`docs/GROUPS.md` §29).
+            (285, 2, 284, 287),
             "the floor"
         );
     }
@@ -16870,7 +17103,10 @@ pub(crate) mod tests {
         // `g.avg_speed[0]`, 15 against 11 standing from the first block,
         // agrees until the disembark on 10875, where it
         // reads ours 0 against 11 (`docs/ANIM.md` §15).
-        assert_eq!((first, under, firsts.len()), (218, 229, 231), "the floor");
+        // **Item 870 took seven (218/229/231 → 211/222/224)**: the first
+        // block's `group` rows (`1/0` 70 here against 69, `1/11` 64
+        // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+        assert_eq!((first, under, firsts.len()), (211, 222, 224), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -17011,7 +17247,10 @@ pub(crate) mod tests {
         // `1/31`'s `g.avg_speed[0]`, 15 against 11 standing from the first block,
         // agrees until the disembark on 10875, where it
         // reads ours 0 against 11 (`docs/ANIM.md` §15).
-        assert_eq!((first, under, firsts.len()), (219, 219, 227), "the floor");
+        // **Item 870 took seven (219/219/227 → 212/212/220)**: the first
+        // block's `group` rows (`1/0` 70 here against 69, `1/11` 64
+        // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+        assert_eq!((first, under, firsts.len()), (212, 212, 220), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -17640,7 +17879,11 @@ pub(crate) mod tests {
         // **Item 850 took one (213/241/250 → 213/240/249)**: `1/31`'s
         // `g.avg_speed[0]`, 15 against 11 on 10486,
         // agrees (`docs/ANIM.md` §15).
-        assert_eq!((first, under, firsts.len()), (213, 240, 249), "the floor");
+        // **Item 870 took six from the first block and nine in all
+        // (213/240/249 → 207/232/240)**: `group` rows (`1/0` 66 here
+        // against 65, `1/11` 64 against −1, `1/35`, `1/38` 68 against 66)
+        // and the scout's `mirror` and `order:move.facing`: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
+        assert_eq!((first, under, firsts.len()), (207, 232, 240), "the floor");
     }
 
     #[test]
@@ -20540,7 +20783,10 @@ pub(crate) mod tests {
                 // Item 723 added the scout's formation mirror (parked 275),
                 // 0 against the original's 1 from 6864, once `push_group`
                 // keeps an equal group's record: non-scoring, no draw.
-                (1, 0, "Move.facing".into(), 52, 6_864),
+                // Item 870 took it: the AI's building groups number who=1's
+                // pool as the original's do, so the scout's push on this
+                // map takes a fresh slot where the original's does
+                // (`docs/GROUPS.md` §29).
                 (1, 23, "Action".into(), 52, 6_864),
                 (1, 23, "Flags".into(), 52, 6_864),
                 (1, 23, "Move.angle".into(), 52, 6_864),

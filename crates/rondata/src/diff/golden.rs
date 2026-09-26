@@ -6564,8 +6564,12 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
     for ((run, firsts), (floor, under_want)) in summaries
         .iter()
         // run142's 32 lost the scout's `order:move.facing` (parked 275)
-        // when `push_group` kept an equal group's record (item 723).
-        .zip([(27usize, &[][..] as &[i64]), (31usize, &[][..])])
+        // when `push_group` kept an equal group's record (item 723). Its
+        // 31 lost the control scout `1/0`'s `group` on block 605, 65 here
+        // against 64 there (a05f90a6, item 870): who=1's building groups
+        // take a pool slot before the scout's first push, as the
+        // original's do (`docs/GROUPS.md` §28.4, §29).
+        .zip([(27usize, &[][..] as &[i64]), (30usize, &[][..])])
     {
         let at_floor: Vec<&String> = firsts
             .iter()
@@ -9152,8 +9156,11 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .collect();
         // The control's 32 was 31 and the scout's `order:move.facing`
         // (parked 275), gone since `push_group` keeps an equal group's
-        // record (item 723).
-        let floor = if run == "ch7b" { 27 } else { 31 };
+        // record (item 723). Its 31 was 30 and the control scout `1/0`'s
+        // `group` on block 605, 65 here against 64 there, gone since
+        // who=1's building groups take a pool slot first (a05f90a6, item
+        // 870; `docs/GROUPS.md` §29).
+        let floor = if run == "ch7b" { 27 } else { 30 };
         assert!(
             at_floor
                 .iter()
@@ -9199,12 +9206,12 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
             .collect();
         got.sort();
         // run156's scout row on 847 (parked 275) is gone since
-        // `push_group` keeps an equal group's record (item 723).
-        let want: &[&str] = if run == "ch7b" {
-            &[]
-        } else {
-            &["990 1/1 group"]
-        };
+        // `push_group` keeps an equal group's record (item 723). The
+        // control's `1/1` `group` on 990, 64 here against 65 there — §24's
+        // two-slot permutation — agrees since a05f90a6 (item 870): who=1's
+        // building groups take their pool slots first, as the original's
+        // do (`docs/GROUPS.md` §29).
+        let want: &[&str] = &[];
         assert_eq!(got, want, "{run}: what parts under the word moved");
         assert!(
             !firsts

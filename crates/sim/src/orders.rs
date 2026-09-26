@@ -6650,6 +6650,15 @@ impl Sim {
             self.buildings[b].recharging += 1;
             self.buildings[b].gather_bumped = true;
         }
+        // **Every call drops the gatherer's group**, a computer's too
+        // (`5f0237` `orl $-1`, `5f023e` `movw %ax, 0x80(%ebx)`: both
+        // paths from the entry join there, before the `goto_build`
+        // branch). The pool keeps listing the unit; only the back-pointer
+        // goes, as in `think_peasant`'s human arm. On East Indies' block
+        // 8369 it is `1/11`'s `group` 65 → −1, the first pool parting
+        // once the AI's building groups number the pool
+        // (`docs/GROUPS.md` §29).
+        self.units[u].group_ptr = None;
         let bpos = self.buildings[b].pos;
         let here = self.units[u].pos;
         let (xs, ys) = self.buildings[b].ty.map_or((1, 1), |t| {
