@@ -675,6 +675,51 @@ pub fn group_set_transport(built: &mut Built, who: i32, objects: &[i16], flag: i
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `swarm_around` (0x06) behind it
+/// (`docs/COMMANDS.md` §3; `docs/GOLDEN.md` §29) — [`group_spell`]'s
+/// group, then `CommandPackage::process_swarm_around@00949970`'s one call,
+/// `Group::action_swarm_around(ox, whom, queued, orders, 1)` when the
+/// target is `(−1, −1)` or active ([`sim::Sim::group_swarm_around`]). A
+/// player's repair is this command with `orders` `REPAIR` (13).
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation.
+pub fn group_swarm_around(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    ox: i32,
+    whom: i32,
+    queued: i32,
+    orders: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let site = i16::try_from(ox)
+        .ok()
+        .and_then(|o| built.sim.building_by_o(whom as sim::Player, o));
+    if let (Some(b), Ok(orders)) = (site, u8::try_from(orders)) {
+        built
+            .sim
+            .group_swarm_around(&g, b, queue_pos(queued), orders);
+    }
+    g.list.len()
+}
+
 /// A `group` of buildings (0x00) and the `eject_all` (0x1a) behind it —
 /// `CommandPackage::process_eject_all@00947fe0`'s one call,
 /// `Group::action_eject_all(g, back_to_work, who, eject_o, eject_who)`

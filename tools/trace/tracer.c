@@ -543,6 +543,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         picked at the point, issue_spell
  *   `@settransport <who> <flag> <o> [<o> ...]` the auto-transport toggle,
  *                                         issue_set_transport
+ *   `@repair <who> <ox> <whom> <o> [<o> ...]` the building's id and owner,
+ *                                         issue_swarm_around with REPAIR
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -657,6 +659,17 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * `Group::action_set_transport@007024b0`'s to apply at process time,
  * forced to 0 there when the leader's transport level is 0.
  *
+ * `@repair` calls `CommandManager::issue_swarm_around@009416b0(
+ * &command_manager, group, ox, whom, QUEUE_NEW 2, REPAIR 13)` and appends
+ * a 17-byte `swarm_around` (type 0x06, `[ox][whom][queued][orders]`)
+ * behind the group (item 813, `docs/GOLDEN.md` §29). `Console::
+ * execute_at_cursor@007c6630` passes those arguments through `GroupOut::
+ * issue_swarm_around@0070afc0` for an unmodified right-click on a damaged,
+ * finished building of one's own or an ally's; `Options::picked_spot@
+ * 00721c40` passes the same for the Repair pick. The DLL skips the
+ * cursor's damage test: `Group::action_swarm_around@0070fbe0` takes the
+ * members at process time and `Unit::do_repair@005ee420` asks the damage.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -682,6 +695,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_BUILD 0x541c30u
 #define RVA_ISSUE_SPELL 0x541b80u
 #define RVA_ISSUE_SET_TRANSPORT 0x541910u
+#define RVA_ISSUE_SWARM_AROUND 0x5416b0u
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -714,12 +728,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
      * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
-     * `settransport`:
+     * `settransport`, 16 `repair`:
      * the issuer, its prologue
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
-     * attack's the target's, a form's the formation and the rotation; an
-     * eject has none. */
+     * attack's and a repair's the target's, a form's the formation and
+     * the rotation; an eject has none. */
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "patrol ")   ? 1
                : issue_verb(&t, "guard ")    ? 2
@@ -736,6 +750,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "build ")    ? 13
                : issue_verb(&t, "spell ")    ? 14
                : issue_verb(&t, "settransport ") ? 15
+               : issue_verb(&t, "repair ")   ? 16
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
@@ -767,8 +782,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * 0x19-byte command; `@flight` and `@strike` are issue_flight.
      * issue_build's is the same `sub esp, 0x1c`, for its 0x19-byte
      * command. issue_spell's is `sub esp, 0x18`, for its 0x15-byte one.
-     * issue_set_transport's is `sub esp, 8`, for its 5-byte one. */
-    static const u8 prologue[16][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * issue_set_transport's is `sub esp, 8`, for its 5-byte one.
+     * issue_swarm_around's is issue_attack's to the byte: it tests `ox`
+     * and `whom` first too, for its 0x11-byte command. */
+    static const u8 prologue[17][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -783,10 +800,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6}};
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
-    u32 rva = verb == 15  ? RVA_ISSUE_SET_TRANSPORT
+    u32 rva = verb == 16  ? RVA_ISSUE_SWARM_AROUND
+              : verb == 15  ? RVA_ISSUE_SET_TRANSPORT
               : verb == 14  ? RVA_ISSUE_SPELL
               : verb == 13  ? RVA_ISSUE_BUILD
               : verb >= 11 ? RVA_ISSUE_FLIGHT
@@ -799,7 +818,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb == 15  ? 0x05
+    u32 size = verb == 16  ? 0x11
+               : verb == 15  ? 0x05
                : verb == 14  ? 0x15
                : verb >= 11 ? 0x19
                : verb >= 8 ? 0x16
@@ -842,7 +862,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 15) {
+    if (verb == 16) {
+        /* issue_swarm_around(group, ox, whom, QUEUE_NEW 2, REPAIR 13): a
+         * right-click on a damaged friendly building. */
+        typedef void(__thiscall *swarm_fn)(void *, void *, i32, i32, i32, i32);
+        ((swarm_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 13);
+    } else if (verb == 15) {
         /* issue_set_transport(group, flag): the transport button's
          * toggle, or OPTION_DISEMBARK's 1. */
         typedef void(__thiscall *set_transport_fn)(void *, void *, i32);

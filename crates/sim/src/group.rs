@@ -1670,7 +1670,7 @@ impl Sim {
     /// arm at `QUEUE_NEW`, `finish_insert`), which a group command on file
     /// never passes; it is taken here member by member through
     /// [`Sim::swarm_around`], the shape `do_build`'s re-entry has.
-    fn group_action_swarm_around(
+    pub(crate) fn group_action_swarm_around(
         &mut self,
         g: &Group,
         b: usize,

@@ -4084,3 +4084,71 @@ word parts on any of the 695 blocks.
     7 against 8) and its facing on 1165.
   - In the pool, the toggle's pushed selection's `ox`/`oy` and the 642
     move's group `speed`.
+
+## 29. Chapter twenty-one — the repair line: a right-click on a damaged building (item 813)
+
+**The reading first** (the fifteenth pass: after §28, §13's `RepairOrder`
+row was a reading before it was a chapter). The row said the `repair`
+command type has no `CommandManager` issuer. That is true, and it is not
+the route: **a player's repair is the `swarm_around` command** (type
+`0x06`, 17 bytes, `docs/COMMANDS.md` §3) with `orders` `REPAIR` (13), and
+the DLL can call its issuer.
+
+**What builds a `RepairOrder`.** `OrdersMemManager::get_obj(REPAIR)` has
+one caller, `Unit::add_repair_order@005e4ff0`. Its five callers are the
+whole list, and each is a route:
+
+| route | caller of `add_repair_order` | reached from | whose |
+|---|---|---|---|
+| the right-click | `Group::action_swarm_around@0070fbe0`, its `REPAIR` arm, `QUEUE_LAST`, the command's action bit | `CommandPackage::process_swarm_around@00949970` ← `CommandManager::issue_swarm_around@009416b0` ← `GroupOut::issue_swarm_around@0070afc0` ← `Console::execute_at_cursor@007c6630` (a right-click on a damaged, finished building of one's own or an ally's) and `Options::picked_spot@00721c40` (the Repair pick) | a player's, **the chapter's** |
+| the re-entry | the same arm | `Unit::do_repair@005ee420`: a repairer not adjacent kills its order and swarms again at `QUEUE_FIRST` (a halt, the arm at `QUEUE_NEW`, `finish_insert`); `Unit::find_repair_spot@00604320` for a computer's | the order's own step |
+| the replay | the same arm | `Group::finish_insert@0070e620`, cases 6 and `0xd` | a halted group's |
+| the `repair` command | `Group::action_repair@007020c0` | `CommandPackage::process_repair@00948cb0` (command `0x10`, which **nothing issues**: `docs/COMMANDS.md` §6's sweep of every `add_command` caller) and `ScenarioData::issue_order@00996ac0` (the trigger system, cut from v1) | nobody a game reaches |
+| the gatherer's | `Unit::do_gather@005ef2a0` | a computer-driven gatherer (`unit_masks & 0x40000`), difficulty above 1, one frame in 256 (`(o + frame + who) & 0xff == 0`), its building damaged and its city's flag 2 clear, at `QUEUE_NEW` without the action bit | a computer's |
+| the building's call | `Build::process@0061edf0` | a building damaged past half its hits, its owner not human (`leader_flags & 4` clear), difficulty above 1, no enemy capturing it: the idle friendly `PEASANTS` (`0x32`) `find_unit` returns within `0x1e00`, at `QUEUE_NEW` | a computer's |
+| the rally | `Unit::come_out@00617c10` | a unit coming out of a building whose destination object is a building with damage (`+0x24`), `QUEUE_LAST`, no action bit: the gather point's arm, read no further than the call | no command |
+
+`Group::action_repair` is a citizen-only walk (`PEASANTS`/`PEASANTSKOREAN`)
+gated on `Region::is_coast`, with `add_repair_order` at `QUEUE_NEW` or
+`QUEUE_LAST`; no game reaches it. `ScenarioFuncSet::citizen_repair_order@
+009f85b0` calls `action_swarm_around` for the trigger system and is cut
+with it.
+
+**The issuer's two callers pass the same bytes.** `execute_at_cursor`
+picks `REPAIR` when the building under the cursor is finished (vslot
+`0x4c`; unfinished is its `BUILD_AT` arm) and damaged (`+0x24`), on a cell
+whose owner is nobody, the player or an ally; `picked_spot` asks the
+same of its pick. The queue is `QUEUE_NEW` unmodified, `QUEUE_LAST` with shift,
+`QUEUE_FIRST` with shift and alt (`GetKeyState(0x10)`, `(0x12)`). A
+`BUILD_AT` swarm is the same issuer on an unfinished building, which is
+how a player sends citizens to help a site.
+
+**What the arm does with `REPAIR`**, the same member arm as §26's build
+(`docs/ORDERS.md` §5.4), with four differences read off the function:
+
+- **the approach is a `MOVE_TO` for everyone.** `local_40` is 1 and is
+  rewritten only on the `BUILD_AT` arm (`~(leader_flags >> 1) & 2 | 1`).
+  So **parked 791 is confirmed by the reading**: a computer's `REPAIR`
+  swarm walks under a `MOVEORDER`, where this crate's single-unit
+  `Sim::swarm_around` gives it an `EXPLORETOORDER`;
+- no gather filter (`local_30` is 0 unless `BUILD_AT` on a gather
+  building);
+- no farm halving of the ring, and **no `0x30` nudge**: the `REPAIR` arm
+  jumps past the second `find_nearby_spot` to the queue test;
+- `add_repair_order(o, who, QUEUE_LAST, action)` behind the approach,
+  with the `CIVILIANSPELL` (`0x293`) cast ahead of it for a member that can
+  cast it; no `build_masks` write.
+
+**`add_repair_order` itself** (`005e4ff0`): at `QUEUE_NEW` it clears
+`unit_masks & 0x4000000`, zeroes `+0xc0`, closes the orders, clears the
+partial path and updates the action; it always sets `unit_masks & 0x400`
+(the builder bit); it writes the target's `o`, `who` and `uid` into the
+order, the action bit into its flags, and sets the auto-transport bit
+`0x800000` when the target is in another region the unit's transport
+level can reach; then it adds the order at the end of the list (there is
+no `QUEUE_FIRST` tail) and updates the action.
+
+**So the DLL can reach it.** `issue_swarm_around`'s prologue is
+`issue_attack`'s to the byte (`55 8b ec 83 ec 14 56 8b 75 0c c6`: it
+tests `ox` and `whom` before `check_accept_issue`), and the DLL gained
+`@repair <who> <ox> <whom> <o>…`, which passes `QUEUE_NEW` and `REPAIR`.

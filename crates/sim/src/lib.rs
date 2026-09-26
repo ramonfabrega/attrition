@@ -93,6 +93,7 @@ pub mod single;
 pub mod site_recruit;
 pub mod stance;
 pub mod supply;
+pub mod swarm;
 pub mod tech;
 pub mod terrain;
 pub mod territory;

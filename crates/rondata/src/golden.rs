@@ -401,12 +401,22 @@ pub enum Issued {
         flag: i32,
         objects: Vec<i16>,
     },
+    /// `@repair <who> <ox> <whom> <o>…` — `issue_swarm_around@009416b0(
+    /// group, ox, whom, QUEUE_NEW, REPAIR)`: an unmodified right-click on
+    /// a damaged friendly building (`Console::execute_at_cursor@007c6630`),
+    /// item 813, `docs/GOLDEN.md` §29.
+    Repair {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
 /// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build`,
-/// `spell` or `settransport`, a `who` outside `0..8`, fewer than three
+/// `spell`, `settransport` or `repair`, a `who` outside `0..8`, fewer than three
 /// numbers (one for `eject`, two for `settransport`, four for `build`, six
 /// for `spell`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
@@ -430,6 +440,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "build"
             | "spell"
             | "settransport"
+            | "repair"
     ) {
         return None;
     }
@@ -556,6 +567,12 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             who,
             to,
             build,
+            objects,
+        },
+        "repair" => Issued::Repair {
+            who,
+            ox: x,
+            whom: y,
             objects,
         },
         _ => Issued::Move { who, to, objects },
@@ -693,6 +710,16 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         Some(Issued::SetTransport { who, flag, objects }) => {
             crate::input::group_set_transport(built, who, &objects, flag)
         }
+        // `@repair` is `issue_swarm_around@009416b0` with `QUEUE_NEW` and
+        // `REPAIR`, a `group` and a `swarm_around`, whose entry is
+        // [`crate::input::group_swarm_around`] (item 813, `docs/GOLDEN.md`
+        // §29).
+        Some(Issued::Repair {
+            who,
+            ox,
+            whom,
+            objects,
+        }) => crate::input::group_swarm_around(built, who, &objects, ox, whom, 2, 13),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1350,6 +1377,23 @@ mod tests {
         );
         assert_eq!(parse_issuer("@settransport 0 1"), None);
         assert_eq!(parse_issuer("@settransport 9 1 6"), None);
+    }
+
+    /// **A repair line is the DLL's swarm** (item 813): `who`, the
+    /// building's `ox` and `whom`, then the objects; a line with no object
+    /// is the DLL's refusal 5.
+    #[test]
+    fn a_repair_line_is_the_dll_s_swarm() {
+        assert_eq!(
+            parse_issuer("@repair 0 2006 0 6 7"),
+            Some(Issued::Repair {
+                who: 0,
+                ox: 2006,
+                whom: 0,
+                objects: vec![6, 7],
+            })
+        );
+        assert_eq!(parse_issuer("@repair 0 2006 0"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,
