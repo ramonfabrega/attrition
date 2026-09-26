@@ -22,6 +22,11 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 842, 2026-09-26 — the Fighter's other arms
+
+(855) **ORDERS §39.1's flying-target arm**: a strike on a target in the
+air aims at its `z` ± `min(300, …)`. No capture reaches it.
+
 ## Parked by item 839, 2026-09-26 — the tax's remainder
 
 (851) **who=1's `leftover[2:wealth]`**, eight sixteenths over from
@@ -1299,6 +1304,13 @@ tax" section stated the British modifier as read for a month while
 `BRITISH_TAXATION` was absent from `ron_slots` and the code had no such
 term. A guard: every `UPPER_CASE` constant a specification calls "read"
 has a slot, made to fail first on the pre-839 tree.
+
+(856) **A grant named by function is the previous item's hypothesis**
+(842's Loop line, filed at its merge): the commander's brief granted
+`do_strafe`'s non-bomber `fire_ammo` from 836's reading, and the round's
+path was the release events, not that function. A grant, like a title
+(DECISIONS 42), names a module and a frame, and the worker asks for the
+function when it finds it.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
