@@ -621,7 +621,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // before this one. The two unlinked are unchanged. Measured on
         // base `082ba455` (829's booking). DECISIONS 36: the number, not a
         // trade.
-        off: 41,
+        // **41 → 44 off, 2 → 0 unlinked, 1 → 6 build_diverged** on item
+        // 839: the British take the territory tax twice
+        // (`docs/ECONOMY.md` §16), which moves this map's word 19182 →
+        // 19413, 4,588 frames before this one. DECISIONS 36: the number,
+        // not a trade.
+        off: 44,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -653,7 +658,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 3** on item 767, beside `off` above; **3 → 1** on item 773.
         // **1 → 3** on item 800, beside `off` above.
         // **3 → 2** on item 811, beside `off` above.
-        unlinked: 2,
+        // **2 → 0** on item 839, beside `off` above.
+        unlinked: 0,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -700,7 +706,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **3 → 6** on item 822, beside `off` above.
         // **6 → 4** on item 829, beside `off` above.
         // **4 → 1** on item 837, beside `off` above.
-        build_diverged: 1,
+        // **1 → 6** on item 839, beside `off` above.
+        build_diverged: 6,
         city_unlinked: 3,
         city_diverged: 0,
     },

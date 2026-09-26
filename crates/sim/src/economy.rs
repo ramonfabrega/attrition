@@ -690,12 +690,24 @@ pub fn calc_rare(
 /// `f * TERRITORY_TAXES[level]` wealth per thirty seconds. This is the one
 /// place in the game where territory pays rather than merely hurting whoever
 /// stands in it — the economic mirror of `docs/ATTRITION.md`.
+///
+/// **The British take the rate `(BRITISH_TAXATION + 100) / 100` times**,
+/// truncating on the rate before the territory multiplies it
+/// (`Leader::calc_gather@006ceee0`, listing `0x6cf64a..0x6cf6b7`; as
+/// shipped, doubled). Without it East Indies' British AI earned one tax
+/// where the original earns two from its Taxation on tick 17183, 1234
+/// wealth against 1380 (`docs/ECONOMY.md` §16). The Conquer-the-World
+/// arm beside it (`CTW_MISSIONARIES_BONUS`) is cut with CtW.
 pub fn territory_tax(t: &Tuning, h: &Holdings) -> i32 {
     if h.land_size <= 0 {
         return 0;
     }
     let level = h.taxation.min(t.territory_taxes.len() - 1);
-    h.territory * t.territory_taxes[level] * RATE_SCALE / h.land_size
+    let mut rate = t.territory_taxes[level];
+    if h.british {
+        rate = (t.british_taxation + 100) * rate / 100;
+    }
+    h.territory * rate * RATE_SCALE / h.land_size
 }
 
 /// The commerce cap for one resource, in sixteenths — `Leader::calc_resource_caps`.
@@ -1260,6 +1272,21 @@ mod tests {
         assert_eq!(territory_tax(&t, &h), 60 * RATE_SCALE);
         h.taxation = 0;
         assert_eq!(territory_tax(&t, &h), 0);
+    }
+
+    /// **The British double it** (`docs/ECONOMY.md` §16): East Indies'
+    /// British AI on tick 17183, Taxation held, 305 of 1669 tiles — one
+    /// tax is 146 sixteenths and the original's rate rose by 292.
+    #[test]
+    fn the_british_take_the_territory_tax_twice() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.land_size = 1669;
+        h.territory = 305;
+        h.taxation = 1; // 50%
+        assert_eq!(territory_tax(&t, &h), 146);
+        h.british = true;
+        assert_eq!(territory_tax(&t, &h), 292);
     }
 
     #[test]
