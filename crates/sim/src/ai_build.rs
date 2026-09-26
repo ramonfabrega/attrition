@@ -2023,22 +2023,24 @@ mod tests {
     #[test]
     fn the_wonder_mark_is_one_past_the_highest_entry_in_use() {
         let (mut sim, t) = sim();
+        // One wonder a city (`blocked_site`'s wonder clause), so two.
         let _a = city(&mut sim, &t, 0, 40, 40);
-        let wonder = |sim: &mut Sim, x: i32| {
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        let wonder = |sim: &mut Sim, x: i32, y: i32| {
             let b = sim
-                .place_building(0, t.wonder, tile_pos(x, 40))
+                .place_building(0, t.wonder, tile_pos(x, y))
                 .expect("a wonder places");
             finish(sim, b);
             b
         };
-        let one = wonder(&mut sim, 44);
-        let two = wonder(&mut sim, 52);
+        let one = wonder(&mut sim, 48, 40);
+        let two = wonder(&mut sim, 88, 40);
         sim.note_wonders();
         assert_eq!(sim.ai[0].census.wonder_mark, 2);
         sim.buildings[one].alive = false;
         sim.note_wonders();
         assert_eq!(sim.ai[0].census.wonder_mark, 2, "entry 0 clears under 1");
-        let three = wonder(&mut sim, 60);
+        let three = wonder(&mut sim, 48, 48);
         sim.note_wonders();
         assert_eq!(sim.ai[0].census.wonder_slots, [Some(three), Some(two)]);
         sim.buildings[two].alive = false;

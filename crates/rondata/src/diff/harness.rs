@@ -11997,11 +11997,13 @@ pub(crate) mod tests {
         // **Item 757's word's blocks and item 776's**: what first parts on
         // 17101..17182, by unit. Item 757 left only the two walks here
         // (`1/72`'s arrival and mirror, `1/9`'s legs); item 776 took them,
-        // and **nothing parts until the new word's block, 17182**, where
-        // who=1's leader record parts on twelve keys: the `MAKE` list's
-        // slots 0, 1, 2 and 8 carry three wonders here (types 526, 528 and
-        // 527, category 8) and nothing there — `create_buildings`' extra
-        // draws, as a hypothesis.
+        // and nothing parted until 776's word's block, 17182, where who=1's
+        // `MAKE` slots 0, 1, 2 and 8 carried three wonders here (526, 528
+        // and 527) and nothing there. **Item 785** took them: an easy AI's
+        // wonder arm refuses once `wonder_mark` is up, and the Pyramids
+        // raised it on 17085 (`docs/AI.md` §75). **Nothing parts on
+        // run226's own blocks at all**, to its last, 17350 (the floor
+        // below), and the word left run226 for 20568.
         let mut past: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
         for ((w, o, _), (f, _)) in &firsts {
             if (WORD_BLOCK + 1..=GREAT_LAKES_FOREST_CELL_BLOCK).contains(f) {
@@ -12014,7 +12016,7 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             past,
-            [(17_182, 1, -1, 12)],
+            [],
             "who parts first on 17101..17182, the new word's block, and on how many keys"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count();
@@ -12033,17 +12035,20 @@ pub(crate) mod tests {
                     .map_or(0, BTreeMap::len),
             ),
             // 349 and 344 before item 776, whose searches took the two
-            // walks' rows off both; 17182 is the floor's 311 and the
-            // `MAKE` list's twelve.
-            (311, 311, 323),
+            // walks' rows off both. 17182 was the floor's 311 and the
+            // `MAKE` list's twelve (323) until item 785: the twelve went,
+            // and so did four standing rows the wonder pass had kept —
+            // `MAKE[0]`, `[1]` and `[8]`'s `city` and `SITE[1].reg`.
+            (311, 311, 307),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
         // **The floor**: run218's walk (398, nothing on run211's or
         // run218's own blocks since item 742), nothing up to the old
         // word's block since item 776 (38 keys of 17088 before it), and
-        // every key to the window's end (1256 before item 776).
-        assert_eq!((under, mid, firsts.len()), (398, 0, 876), "the floor");
+        // every key to the window's end (1256 before item 776, 876 before
+        // item 785 — none since, to 17350).
+        assert_eq!((under, mid, firsts.len()), (398, 0, 398), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
@@ -14073,8 +14078,9 @@ pub(crate) mod tests {
         }
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         // **The leader half is whole**: every key `leader::rows` carries is
-        // on run139's record, both leaders, all forty blocks.
-        assert_eq!(leader_rows, 84_400, "40 blocks x 2 leaders x 1,055 keys");
+        // on run139's record, both leaders, all forty blocks. 1,055 before
+        // item 785, which compares `wonder_mark` (`docs/AI.md` §75).
+        assert_eq!(leader_rows, 84_480, "40 blocks x 2 leaders x 1,056 keys");
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -14194,8 +14200,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "250 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "250 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14327,8 +14333,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "630 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "630 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -14582,8 +14588,8 @@ pub(crate) mod tests {
         };
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "120 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "120 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
         // are who=1's make list (`MAKE[].city`) and the human's
@@ -14791,8 +14797,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "343 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "343 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -14976,8 +14982,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "705 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "705 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -15160,8 +15166,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "512 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "512 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -15331,8 +15337,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "170 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "170 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -15468,8 +15474,8 @@ pub(crate) mod tests {
         assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_055 + 1_531),
-            "150 blocks x 2 leaders x (1,055 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "150 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(
             missing,
@@ -15956,8 +15962,8 @@ pub(crate) mod tests {
         // 592, the census's 21 per-region arrays (`leader::REGION_ARRAYS`,
         // 1,531 keys a leader), which no widening had read.
         assert_eq!(
-            leader_rows, 1_861_920,
-            "360 blocks x 2 leaders x (1,055 + 1,531) keys"
+            leader_rows, 1_862_640,
+            "360 blocks x 2 leaders x (1,056 + 1,531) keys"
         );
         assert_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value
