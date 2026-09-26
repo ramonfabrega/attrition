@@ -160,6 +160,29 @@ pub struct Search {
     avoid_sea: i32,
 }
 
+#[cfg(test)]
+impl Search {
+    /// An empty stash, for a test that needs a unit to be holding one.
+    pub(crate) fn suspended_for_test() -> Self {
+        Search {
+            nodes: Vec::new(),
+            open: BTreeMap::new(),
+            open_by_metric: BTreeMap::new(),
+            closed: BTreeMap::new(),
+            valid_memo: BTreeMap::new(),
+            block_copies: BTreeMap::new(),
+            seq: 0,
+            tol: 0,
+            pref: 0,
+            goal: Pos::new(0, 0),
+            start_dist: 0,
+            traversed: 0,
+            avoid_land: 0,
+            avoid_sea: 0,
+        }
+    }
+}
+
 /// One search node — `PathNode`, minus the allocator.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Node {

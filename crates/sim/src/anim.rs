@@ -1244,9 +1244,19 @@ impl Sim {
                 && self.packet_has(u, guy.gpiece, GROUP_IDLE2);
             let mut v = DEFAULT;
             if !gate {
-                // `openlist == 0`: a unit with a suspended search does not
-                // draw. The sim keeps no suspended search (`path.rs`).
-                let p = self.rng.roll() % 100;
+                // `openlist == 0` (`UnitData +0x104`, `5dac5f`): a unit
+                // holding a suspended search takes `CHAR_DEFAULT` for its
+                // roll and spends no draw — `p` reads as 0 through the
+                // variant ladder below, the scholar's offset included. The
+                // suspend is [`Sim::units`]' `search` (`path.rs`); this
+                // arm read it as always empty until item 837, the stash
+                // having been wired after it was written (`docs/ANIM.md`
+                // §14).
+                let p = if self.units[u].search.is_some() {
+                    0
+                } else {
+                    self.rng.roll() % 100
+                };
                 if cur_cat == 0 && p3 {
                     let peasant_on_masked = self.is_peasant(u) && self.on_masked_tile(u);
                     // `guy_flags & 0x20` is **the guy's**, and only
@@ -2848,6 +2858,36 @@ mod tests {
         let (a, b) = (s.units[u].guys[0], s.units[u].guys[1]);
         assert_eq!((a.anim, a.end_time), (IDLE1, 80), "guy 0 is flagged");
         assert_eq!((b.anim, b.end_time), (IDLE2, 71), "the crew is not");
+    }
+
+    /// **A unit holding a suspended search idles without a draw**
+    /// (`docs/ANIM.md` §14). `Guy::set_anim`'s roll is `openlist == 0 ?
+    /// rand % 100 : CHAR_DEFAULT` (`5dac5f`), so a wrap on a unit whose
+    /// search suspended plays `DEFAULT` and leaves the stream alone. East
+    /// Indies' 18999: `1/67`, suspended since 18969 (`start_dist 480`,
+    /// `collide 31` on run257's block 19000), wraps its idle beside four
+    /// others, and the original spends four draws where this crate spent
+    /// five.
+    #[test]
+    fn a_suspended_search_idles_without_a_draw() {
+        // A roll that would take `IDLE3` if it were spent.
+        let seed = (1u32..).find(|&x| Rng::new(x).roll() % 100 > 95).unwrap();
+        let mut s = sim_at(seed);
+        for (slot, len) in [(DEFAULT, 31), (IDLE1, 80), (IDLE2, 70), (IDLE3, 40)] {
+            s.art.lengths.insert((145, slot), len);
+        }
+        let u = animal(&mut s, 0, 67, 145, DEFAULT, 31, 31);
+        s.units[u].search = Some(Box::new(crate::path::Search::suspended_for_test()));
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, seed, "no draw while the search is suspended");
+        let g = s.units[u].guys[0];
+        assert_eq!((g.anim, g.cur_time, g.end_time), (DEFAULT, 0, 31));
+        // The same wrap with the stash freed rolls, and the roll is `IDLE3`.
+        s.units[u].search = None;
+        s.units[u].guys[0].cur_time = 31;
+        s.set_default_anim(u);
+        assert_eq!(s.rng.seed, stepped(seed, 1), "one draw once it is freed");
+        assert_eq!(s.units[u].guys[0].anim, IDLE3);
     }
 
     /// The idle roll's thresholds, and `init_real`'s.

@@ -1534,8 +1534,9 @@ crew of more than one figure, which no capture reaches.
 
 - **`Sim::guy_set_anim`** — §4 whole, minus the boat-crew offsets and the
   squad's group-idle synchronisation (a one-guy unit has no partner). The
-  draw is `rng.roll() % 100`; the `openlist` gate is always open (the sim
-  keeps no suspended search, `docs/PATHFINDER.md`).
+  draw is `rng.roll() % 100`; ~~the `openlist` gate is always open (the sim
+  keeps no suspended search, `docs/PATHFINDER.md`)~~ the `openlist` gate
+  reads the unit's suspended search (§14).
 - **The lengths.** `Sim::slot_length` answers "how many frames" and
   `Sim::packet_has` answers "does the packet name this slot at all" — two
   questions the crate ran together until 2026-08-29, when the install's
@@ -2323,3 +2324,53 @@ the re-roll on 1139 and run190's whole trace
 `a_crew_figure_rolls_its_idle_without_the_danger_flag`, made to fail by
 reading the flag for every figure. *Listing-backed*: the single writer
 and its loop bound, and the per-guy clear.
+
+## 14. A unit holding a suspended search idles without a draw (item 837, 2026-09-26)
+
+§4's idle roll draws only while the unit's `openlist` (`UnitData
++0x104`) is null. The listing at `5dac5f` is `cmpl $0x0, 0x104(%eax)`;
+its `jne` goes to `5dac89`, which zeroes the roll with no call. Below
+the compare, `5dac75` calls `Random::get`, whose return
+address `5dac7a` is `set_anim+0x97a`, the idle roll's draw site. So a
+unit that holds a suspended search takes the variant ladder with `p =
+0`: `CHAR_DEFAULT`, or slot `0x19` for a scholar, and spends nothing.
+
+`openlist` is non-null exactly while a search is suspended. `Unit::init`
+and the `UnitData` constructor zero it. `astar_path`'s suspend block hands
+the open list to the unit, and `Unit::clear_partial_path@005e3920` frees
+it (`docs/PATHFINDER.md` §18.3, which counts the same writers). In this
+crate that state is `Unit::search`, wired since 2026-09-17. This arm was
+written before then, and it read the stash as always empty.
+
+**How it was established.** From the draw stream and run257's dump,
+before any reading. On East Indies' 18999 this crate spent 7 draws
+against the original's 6, with five `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` against four (`RON_DEBUG_SITES`). Ours' five
+belong to `1/19`, `1/20`, `1/29`, `1/67` and `1/69`, and run257's block
+19000 shows all five wrapping on the original's side too (`cur_time 0`,
+`last_time −1`). So one wrap there drew nothing. Of the five, only `1/67`
+carries a suspend's stamps on that block: `start_dist 480`,
+`collide_frame 18969`, `collide 31`, with a move order still at its
+head. Its guy 0 reads `cur_anim 0`, `end_time 31` on both sides. The
+decompile of `set_anim` named the field, and the listing named the
+address.
+
+**What it moved.** East Indies' long word, **18999 → 19182**, inside
+run257. With a scratch print on the gate, it fired on one unit in
+18990..19000, `1/67` on 18999. Great Lakes holds at 20568. On run257,
+`1/9`'s `cur_anim` 36 → 8 on 19002 had changed on the original's side
+alone, and now changes on both. The walk's floor goes 322/1/323/863 →
+322/9/355/387.
+
+**What is not established.**
+- **The other arms of `set_anim`.** The attack roll (`+0xf2f`) and
+  `init_real`'s variant have no `openlist` test in the export. Only the
+  idle roll's gate is read here.
+- **A suspended scholar.** The ladder with `p = 0` gives slot `0x19` by
+  the code. No capture has one.
+
+**Coverage.** *Diff-backed*: the draw count on 18999, from run54's
+trace, and `1/67`'s stamps and clock on block 19000
+(`run257_s_word_frame_is_widened_whole`). *Unit test*:
+`a_suspended_search_idles_without_a_draw`, made to fail without the
+gate. *Listing-backed*: the compare and its branch at `5dac5f`.

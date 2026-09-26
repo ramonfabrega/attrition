@@ -947,7 +947,27 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// ours spends a fifth `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`1/69`'s)
 /// where the original spends `Guy::set_anim+0x104b`. Inside run257; its
 /// block 19000 is widened there.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 18_999;
+///
+/// **18999 → 19182 on item 837, and the frame was the word's own.** Of
+/// the five figures that wrap their idle on 18999 — `1/19`, `1/20`,
+/// `1/29`, `1/67`, `1/69`, all five on both sides — `1/67` holds a
+/// suspended search, and `Guy::set_anim`'s roll is `openlist == 0 ? rand
+/// % 100 : CHAR_DEFAULT` (`5dac5f`): the original's wrap takes `DEFAULT`
+/// with no draw (`docs/ANIM.md` §14). This crate kept the stash since
+/// 2026-09-17 and its idle roll never read it. **The move's value diff
+/// (the word's delta, here; its block, 19000, is
+/// `run257_s_word_frame_is_widened_whole`'s):** on 18999 the draws went
+/// 7 against 6 → 6 against 6, and on block 19000 `1/67` reads `start_dist`
+/// 480, `collide` 31 and `collide_frame` 18969 on both sides, the one
+/// suspended unit of the five, with guy 0 at `cur_anim` 0, `cur_time` 0,
+/// `end_time` 31, `last_time` −1 on both; on 19002 `1/9`'s `cur_anim`
+/// 36 → 8 was the original's alone and is now both sides'. **The new
+/// word's delta: ours 14 draws and the original 5, parting at index 0**:
+/// ours spends `Leader::use_market+0x1ed` (two), `produce_building+0x1805`
+/// (three) and `make_stuff+0x221` (three) where the original spends its
+/// first `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run257; its
+/// block 19183 is widened there, six blocks from the capture's end.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_182;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4349,6 +4369,11 @@ pub(crate) const EAST_INDIES_CLOSE_BLOCK: i64 = 18_683;
 /// `Guy::set_anim+0x104b`, writes block 19000. The coverage driver reads
 /// run257 around it.
 pub(crate) const EAST_INDIES_FIGUREWORD_BLOCK: i64 = 19_000;
+/// The word 19182's block on run257 (item 837): its frame, where ours
+/// spends `Leader::use_market+0x1ed` and the original a first
+/// `Guy::inc_time` wrap, writes block 19183. The coverage driver reads
+/// run257 around it.
+pub(crate) const EAST_INDIES_LEADERWORD_BLOCK: i64 = 19_183;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4518,6 +4543,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the pool (`docs/ARMY.md` §22), 18938 → 18999. run257's test keeps
     // the move's value diff (18933 and 18939) and pins the new word's
     // block, 19000, in the same walk.
+    //
+    // **Item 837 moved it inside run257 again**: a unit holding a
+    // suspended search idles without a draw (`docs/ANIM.md` §14), 18999
+    // → 19182. run257's test keeps the move's value diff (19000, `1/67`)
+    // and pins the new word's block, 19183, six blocks from the
+    // capture's end.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
