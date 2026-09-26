@@ -361,7 +361,10 @@ its own pool slot for a block and ours does not; no draw spends on it.
 811 closed the `order_num` half of an order's id on both maps (a
 retarget formed the army twice, ARMY §21); what stands is the pool id,
 the army's slot here and the pool slot there, and no step read it on
-East Indies 17405.
+East Indies 17405. **829 adds** a closed army's orphan group's scalars
+on East Indies 19000 — `order_num` 0 against 12, `o` (−1, −1) against
+(0, 0), `form_num` 0 against 1 — which no capture compares and no
+reader on the word's path reads (ARMY §22).
 
 (690) **`input::Stream`'s recorded `MoveTo`** still gives each unit
 `add_move_order` and bypasses the group; `input::group_move_to` is the
@@ -1243,6 +1246,12 @@ whose regexes want the address on the `@`'s line. 832's first draft of
 §30 did it and the census counted one function for two. Standing across
 `docs/`: 35 (GOLDEN 18, ORDERS 8, JOURNAL 5, AI, ANIM, ECONOMY and SYNC
 one each). A guard that joins the break, made to fail first on them.
+
+(838) **A `group` row with −1 on one side is membership, not a pool id**
+(829's Loop line, filed at its merge): the pool-id rows (689) print as
+ordinary `group` rows, so a content difference (−1 against 71) sat in
+822's floor among forty id shifts and read as noise. Split the two in
+the floor: a row whose one side is −1 is its own family.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
