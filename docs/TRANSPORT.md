@@ -1264,7 +1264,9 @@ and this section records what that established about the mechanic.
 **Not established.**
 - Whether `init_build`'s callers other than the console's `add` — the
   AI's Dock and a player's `issue_build` — ever ask for a refused tile.
-- The boarding frame's figure update: the original ages `avg_speed` once
-  more before the passenger freezes inside.
+- ~~The boarding frame's figure update: the original ages `avg_speed` once
+  more before the passenger freezes inside.~~ `Unit::process` gives every
+  unit that goes inside in its own work its figures' frame
+  (`docs/ANIM.md` §15, item 850).
 - The disembarked figure's first animation and turn (run249 1162, 1165).
 

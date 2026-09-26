@@ -14065,7 +14065,11 @@ pub(crate) mod tests {
         // `set_angle` leaves `+0x58` (`docs/TRANSPORT.md` §15). Its
         // `orders_x/y` there still part, ours (29592, 11160) → (23223,
         // 17572) against (28680, 12792): a later write in the frame.
-        assert_eq!(under, 185, "the floor under the word");
+        // **Item 850 took four (185 → 181)**: a unit that goes inside in
+        // its own work takes its figures' frame (`docs/ANIM.md` §15). Three
+        // keys leave 7993 and two of them first part on 8242, the scout
+        // `1/0`'s disembark; one each leaves 9815, 9878 and 9879.
+        assert_eq!(under, 181, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -14287,7 +14291,12 @@ pub(crate) mod tests {
                 // **Item 736: 111 → 112**, the new `mirror` row
                 // (`unit_masks & 2`, `docs/GROUPS.md` §26.4): `1/0`, the
                 // scout, ours 1 against 0, with or without the item's fix.
-                (9960, 112),
+                // **Item 850: 112 → 109**: the scout `1/0`'s
+                // `g.avg_speed[0]` 24 against 18, `g.avg_speed[1]` 32
+                // against 24 and `g.stopped[1]` 0 against 1, standing from
+                // the first block, agree: a unit that goes inside in its
+                // own work takes its figures' frame (`docs/ANIM.md` §15).
+                (9960, 109),
                 (9982, 7),
                 (9992, 1),
             ],
@@ -14677,9 +14686,9 @@ pub(crate) mod tests {
         assert_eq!(
             past,
             [
-                "11793 1/0 g.avg_speed[0]: ours 25 theirs 18",
-                "11793 1/0 g.avg_speed[1]: ours 24 theirs 18",
-                "11793 1/0 g.stopped[1]: ours 0 theirs 1",
+                // Item 850: the scout `1/0`'s `g.avg_speed[0]` 25 against
+                // 18, `g.avg_speed[1]` 24 against 18 and `g.stopped[1]` 0
+                // against 1, agree (`docs/ANIM.md` §15).
                 "11793 1/44 form: ours -1 theirs 0",
                 // Item 723: `1/44`'s formation mirror (parked 275) is gone.
             ],
@@ -14715,7 +14724,10 @@ pub(crate) mod tests {
         // Item 723 took one under and one past (228/246/251 →
         // 227/245/249): the formation mirror (parked 275) on `1/44` and
         // the scout, an equal group's record kept.
-        assert_eq!((first, under_n, firsts.len()), (227, 245, 249), "the floor");
+        // **Item 850 took three past the word (227/245/249 →
+        // 227/245/246)**: the scout `1/0`'s `g.avg_speed[0]`, `[1]` and
+        // `g.stopped[1]` on 11793, agreeing (`docs/ANIM.md` §15).
+        assert_eq!((first, under_n, firsts.len()), (227, 245, 246), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -15217,8 +15229,8 @@ pub(crate) mod tests {
                 "16582 1/-1 leader:MAKE[7].city: ours 2 theirs 1",
                 "16363 1/-1 leader:peasants: ours 26 theirs 27",
                 "16528 1/-1 leader:territory: ours 305 theirs 302",
-                "16681 1/0 g.avg_speed[0]: ours 23 theirs 17",
-                "16681 1/0 g.avg_speed[1]: ours 23 theirs 17",
+                // Item 850: the scout `1/0`'s `g.avg_speed[0]` and `[1]`,
+                // 23 against 17, agree (`docs/ANIM.md` §15).
                 "16363 1/61 form: ours -1 theirs 9",
                 "16363 1/61 hits:myhits: ours 40 theirs 50",
                 "16363 1/61 hits_left: ours 40 theirs 50",
@@ -15279,8 +15291,10 @@ pub(crate) mod tests {
             // woodcutter's chain head and the two cities' counts, and on
             // the block `1/54`'s two. Item 829 one more on each: `1/0`'s
             // `group`, 70 here against 69, the pool id (689) — a closed
-            // army's group now holds its slot (`docs/ARMY.md` §22).
-            [294, 294],
+            // army's group now holds its slot (`docs/ARMY.md` §22). Item 850
+            // two fewer on each: the scout `1/0`'s `g.avg_speed[0]` and
+            // `[1]`, standing from 16681, agree (`docs/ANIM.md` §15).
+            [292, 292],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -15302,6 +15316,11 @@ pub(crate) mod tests {
                 // against −2147483648) is gone, the disembark's
                 // `update_action` being step 1's (`docs/TRANSPORT.md` §15);
                 // its `orders_y` moved from 38040 and still parts.
+                // Item 850: the scout's `g.avg_speed`, agreeing from its
+                // boarding now (`docs/ANIM.md` §15), first parts on its
+                // disembark, where ours seats the figures at 0.
+                "16782 1/0 g.avg_speed[0]: ours 0 theirs 17",
+                "16782 1/0 g.avg_speed[1]: ours 0 theirs 17",
                 "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
                 "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
                 "16782 1/0 mirror: ours 0 theirs 1",
@@ -15317,10 +15336,13 @@ pub(crate) mod tests {
         // one past the word (312 → 311): `MAKE[1].val` on 16779. Item 803
         // took one (311 → 310): `1/0`'s `dest_angle` on 16782. Item 822
         // took three (306/310 → 303/307): who=1's `known_rares` and
-        // `reg_known_rares[7]`/`[11]`, the border fix's zero.
+        // `reg_known_rares[7]`/`[11]`, the border fix's zero. Item 850
+        // moved two past the word (303/307 → 301/307): the scout `1/0`'s
+        // `g.avg_speed[0]`/`[1]` agree from 16681 and first part on its
+        // disembark, 16782 (`docs/ANIM.md` §15).
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 303, 307), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 301, 307), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -15683,12 +15705,14 @@ pub(crate) mod tests {
         // it 313/0/313/337 → 308/0/308/332: who=1's wealth family —
         // `bucket`, `income`, `leftover`, `rate` and `resources` of wealth
         // — agrees once the British take the territory tax twice
-        // (`docs/ECONOMY.md` §16).
+        // (`docs/ECONOMY.md` §16). **Item 850** took it 308/0/308/332 →
+        // 308/0/308/330: the scout `1/0`'s `g.avg_speed[0]` and `[1]`, 24
+        // against 18 on 17750, agree (`docs/ANIM.md` §15).
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (308, 0, 308, 332),
+            (308, 0, 308, 330),
             "the floor"
         );
     }
@@ -16087,7 +16111,8 @@ pub(crate) mod tests {
     fn run269_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_TURNWORD.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_TURNWORD.1;
-        const WORD_BLOCK: i64 = EAST_INDIES_TURNWORD_BLOCK;
+        const TURN: i64 = EAST_INDIES_TURNWORD_BLOCK;
+        const WORD_BLOCK: i64 = EAST_INDIES_WALKWORD_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -16101,7 +16126,7 @@ pub(crate) mod tests {
             "run269",
             "gamelog-run269-eastindies-turnword.txt",
             WIDENING_EAST_INDIES_TURNWORD,
-            &[FIRST, WORD_BLOCK],
+            &[FIRST, TURN, WORD_BLOCK],
             true,
         )
         else {
@@ -16121,39 +16146,97 @@ pub(crate) mod tests {
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
         };
-        let rows: Vec<String> = firsts
-            .iter()
-            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
-            .map(row)
-            .collect();
-        // **Under the word and on it, the first row of each key**: nothing
-        // parts on 19409..19413, and on the word's block 19414 `1/77`'s
-        // second figure — a two-figure unit inside `1/78`
-        // (`inside_up 78`), a transport whose record starts on the same
-        // block — carries another `angle` and another pace here, and
-        // `1/78`'s `form` reads −1 here against 0 there, the standing
-        // shape of every group member's (`1/1`..`1/15`'s 9). The draw
-        // stream parts on 19413 on a figure's `turn_towards` the original
-        // spends and ours does not. No mechanism is named.
+        let under = |lo: i64, hi: i64| -> Vec<String> {
+            firsts
+                .iter()
+                .filter(|(_, (f, _))| (lo..=hi).contains(f))
+                .map(row)
+                .collect()
+        };
+        // **Under the old word and on it — the move's value diff** (item
+        // 850). Nothing parts on 19409..19413. On 19414 `1/77`, the
+        // Merchant that cast its barge `1/78` in its own work on tick
+        // 19413, read `g.angle[1]` −541917184 against −901447680,
+        // `g.avg_speed[0]` 15 against 11, `g.avg_speed[1]` 16 against 12
+        // and `g.last_speed[1]` 1 against 0 until its figures took the
+        // frame `Unit::process` gives them after the work (`docs/ANIM.md`
+        // §15); all four agree now. `1/78`'s `form` reads −1 here against
+        // 0 there, the standing shape of every group member's.
+        assert_eq!(
+            under(FIRST + 1, TURN),
+            ["19414 1/78 form: ours -1 theirs 0"],
+            "the keys first parting under the old word"
+        );
+        // **Under the new word and on it** (item 850): on 19499 the
+        // original's `1/71` hard-collides with `1/75` (`collide 11`,
+        // `collide_o 75`, `collide_who 1`) and ours does not; from 19500
+        // its figure stands there and ours walks on. On 19509 ours spends
+        // `1/71`'s walk start (`Unit::move_step+0x823`), and `1/23`'s idle
+        // roll on block 19510 reads the stream one draw on. No mechanism
+        // is named.
+        let rows = under(TURN + 1, WORD_BLOCK);
         assert_eq!(
             rows,
             [
-                "19414 1/77 g.angle[1]: ours -541917184 theirs -901447680",
-                "19414 1/77 g.avg_speed[0]: ours 15 theirs 11",
-                "19414 1/77 g.avg_speed[1]: ours 16 theirs 12",
-                "19414 1/77 g.last_speed[1]: ours 1 theirs 0",
-                "19414 1/78 form: ours -1 theirs 0",
+                "19510 1/23 g.cur_anim[0]: ours 26 theirs 25",
+                "19510 1/23 g.end_time[0]: ours 100 theirs 30",
+                "19508 1/70 g.angle[0]: ours -794558464 theirs -794951680",
+                "19507 1/70 g.avg_speed[0]: ours 23 theirs 19",
+                "19508 1/70 g.des_angle[0]: ours -794558464 theirs -794951680",
+                "19507 1/70 g.des_x[0]: ours 36958 theirs 36973",
+                "19507 1/70 g.des_y[0]: ours 41837 theirs 41843",
+                "19507 1/70 g.last_speed[0]: ours 32 theirs 16",
+                "19507 1/70 g.x[0]: ours 36958 theirs 36973",
+                "19507 1/70 g.y[0]: ours 41837 theirs 41843",
+                "19506 1/70 half_step: ours 0 theirs 1",
+                "19508 1/70 heading: ours -794558464 theirs -794951680",
+                "19507 1/70 pos: ours (36958,41837) theirs (36973,41843)",
+                "19499 1/71 collide: ours 0 theirs 11",
+                "19499 1/71 collide_o: ours -1 theirs 75",
+                "19499 1/71 collide_who: ours -1 theirs 1",
+                "19500 1/71 g.angle[0]: ours -499908608 theirs -462094336",
+                "19500 1/71 g.avg_speed[0]: ours 8 theirs 0",
+                "19500 1/71 g.cur_anim[0]: ours 7 theirs 0",
+                "19500 1/71 g.cur_time[0]: ours 1 theirs 12",
+                "19500 1/71 g.des_angle[0]: ours -499908608 theirs -462094336",
+                "19500 1/71 g.des_x[0]: ours 36866 theirs 36888",
+                "19500 1/71 g.des_y[0]: ours 41713 theirs 41736",
+                "19500 1/71 g.end_time[0]: ours 13 theirs 31",
+                "19500 1/71 g.last_speed[0]: ours 33 theirs 0",
+                "19500 1/71 g.last_time[0]: ours 0 theirs 11",
+                "19500 1/71 g.stopped[0]: ours 0 theirs 1",
+                "19500 1/71 g.x[0]: ours 36866 theirs 36888",
+                "19500 1/71 g.y[0]: ours 41713 theirs 41736",
+                "19500 1/71 heading: ours -499908608 theirs -462094336",
+                "19510 1/71 order:coll: Coll { ours: Some((36712, 41547)), theirs: (36846, 41734) }",
+                "19500 1/71 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
+                "19510 1/71 order:move.dest_x: Move { field: \"dest_x\", ours: 36696, theirs: 36504 }",
+                "19510 1/71 order:move.dest_y: Move { field: \"dest_y\", ours: 41592, theirs: 41304 }",
+                "19501 1/71 order:move.pause: Move { field: \"pause\", ours: 2, theirs: 3 }",
+                "19500 1/71 order:move.timer: Move { field: \"timer\", ours: 47, theirs: 48 }",
+                "19510 1/71 path:length: PathLength { ours: 2, theirs: 1 }",
+                "19500 1/71 pos: ours (36866,41713) theirs (36888,41736)",
             ],
-            "the keys first parting under the word"
+            "the keys first parting under the new word"
         );
-        // No figure changes animation on one side only near the word, and
-        // no army's list parts.
+        // `1/71` is the one figure whose animation changes on one side
+        // only near the word: the original's on 19509, where it stands
+        // after the collision, and ours on 19510 and 19511, walking on.
+        // No army's list parts.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
             .copied()
             .collect();
-        assert_eq!(word, [], "a figure's animation changes on one side only");
+        assert_eq!(
+            word,
+            [
+                (19_509, 1, 71, true, false),
+                (19_510, 1, 71, false, true),
+                (19_511, 1, 71, false, true),
+            ],
+            "a figure's animation changes on one side only"
+        );
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
             .iter()
             .flat_map(|(b, m)| {
@@ -16163,11 +16246,14 @@ pub(crate) mod tests {
             })
             .collect();
         assert_eq!(lists_part, [], "no army's list parts near the word");
-        // **The first block's gap rows** (19190..19407, which no dump
-        // compares): who=1's twenty-nine citizens hold `hits_left` 40 here
-        // against 50 there, with `myhits` beside it, and `mylos` 2 against
-        // 4; who=1's `leftover[2:wealth]` is eight sixteenths over, as on
-        // run253 and run257.
+        // **The first block's standing rows**: who=1's twenty-nine
+        // citizens hold `hits_left` 40 here against 50 there, with
+        // `myhits` beside it, and `mylos` 2 against 4. They are not the
+        // gap's (19190..19407, which no dump compares): the same 29 stand
+        // on run257's first and last blocks, 18933 and 19189, and on this
+        // map since 10165 (parked 679). No reader of either field is on
+        // the draw of 19413 (item 850). who=1's `leftover[2:wealth]` is
+        // eight sixteenths over, as on run253 and run257.
         let first_block = standing.get(&FIRST).cloned().unwrap_or_default();
         let hits: usize = first_block
             .iter()
@@ -16176,12 +16262,16 @@ pub(crate) mod tests {
         assert_eq!(hits, 29, "who=1's citizens' hits_left on the first block");
         // **The floor**: every key standing on the first block, the keys
         // first parting under the word, the rows standing on the word's
-        // block, and every key in all.
+        // block, and every key in all. **Item 850** took it 318/5/323/1,433
+        // → 318/38/352/1,207: the word's block is 19510 now, so the keys
+        // under it are counted from 19415 (`1/70`, `1/71` and `1/23`'s 38)
+        // and on it; `1/77`'s four go, and 226 fewer keys part in all
+        // behind the turn on 19413 the original spends and ours now does.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (318, 5, 323, 1_433),
+            (318, 38, 352, 1_207),
             "the floor"
         );
     }
@@ -16435,7 +16525,11 @@ pub(crate) mod tests {
         // this crate flips the bit on and the original does not.
         // **Item 803 took three (219/232/234 → 219/229/231)**: run149's
         // three on `1/31`'s disembark on 10875, the same game.
-        assert_eq!((first, under, firsts.len()), (219, 229, 231), "the floor");
+        // **Item 850 took one from the first block (219 → 218)**: `1/31`'s
+        // `g.avg_speed[0]`, 15 against 11 standing from the first block,
+        // agrees until the disembark on 10875, where it
+        // reads ours 0 against 11 (`docs/ANIM.md` §15).
+        assert_eq!((first, under, firsts.len()), (218, 229, 231), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -16572,7 +16666,11 @@ pub(crate) mod tests {
         // 34561) — agreeing now: `eject_contents`' `update_action` is step
         // 1's and `come_out`'s `set_angle` leaves `+0x58`
         // (`docs/TRANSPORT.md` §15).
-        assert_eq!((first, under, firsts.len()), (220, 220, 227), "the floor");
+        // **Item 850 took one from the first block (220/220 → 219/219)**:
+        // `1/31`'s `g.avg_speed[0]`, 15 against 11 standing from the first block,
+        // agrees until the disembark on 10875, where it
+        // reads ours 0 against 11 (`docs/ANIM.md` §15).
+        assert_eq!((first, under, firsts.len()), (219, 219, 227), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -17198,7 +17296,10 @@ pub(crate) mod tests {
         // the census's recount (2) and the original's waits for 10439 —
         // who=1's `gather_stamp`, 10335 against 10343 from the first
         // block, is the recompute's timing and not the zero's.
-        assert_eq!((first, under, firsts.len()), (213, 241, 250), "the floor");
+        // **Item 850 took one (213/241/250 → 213/240/249)**: `1/31`'s
+        // `g.avg_speed[0]`, 15 against 11 on 10486,
+        // agrees (`docs/ANIM.md` §15).
+        assert_eq!((first, under, firsts.len()), (213, 240, 249), "the floor");
     }
 
     #[test]

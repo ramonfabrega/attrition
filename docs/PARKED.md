@@ -22,6 +22,16 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 850, 2026-09-26 — going inside in one's own work
+
+(858) **The disembark seats figures at `avg_speed` 0** where the
+original keeps the frozen value: chapter twenty's `0/6` on 1160, `1/31`
+on 10875, `1/0` on 16782 (`transport.rs`).
+
+(859) **The garrison arm of 850's gate is unmeasured**: a unit that goes
+inside a building in its own work takes `Guy::process` that frame; only
+the transport cast's arm is on a capture.
+
 ## Parked by item 842, 2026-09-26 — the Fighter's other arms
 
 (855) **ORDERS §39.1's flying-target arm**: a strike on a target in the
@@ -420,7 +430,9 @@ axis (GOLDEN §13).
 (679) **who=1's citizens hold `myhits` 40 against 50 and `mylos` 2
 against 4 from block 12564**, and the newborn `1/69` on 12566 the same.
 No draw; it reads as an upgrade the original applies and this crate does
-not (`docs/journal/2026-09-23-item-673.md`).
+not (`docs/journal/2026-09-23-item-673.md`). **850**: the same citizens'
+`hits_left` 40 against 50 on East Indies 19408 stand since 10165, not
+from 19190..19407's gap, and are beside that word's chain.
 
 ## Parked by item 669, 2026-09-23 — under Great Lakes' 12536
 
@@ -1311,6 +1323,14 @@ has a slot, made to fail first on the pre-839 tree.
 path was the release events, not that function. A grant, like a title
 (DECISIONS 42), names a module and a frame, and the worker asks for the
 function when it finds it.
+
+(860) **A `SEAM:` comment on the draw's call chain names the word** (850's
+Loop line, filed at its merge): the word sat exactly on a `SEAM` in
+`process_unit` that said no capture had been measured on that frame. A
+grep of the `SEAM` comments on the call chain (`do_cast` →
+`process_unit`) names such a word before any reading; a checklist row
+candidate. And a widening could print whether each first-block row also
+stands on the previous capture's last block (830's sibling).
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
