@@ -1261,6 +1261,22 @@ impl Sim {
         c != ucell(self.units[u].pos) && self.collide_here(u, c, nocoll).is_some()
     }
 
+    /// `do_move`'s blocker probe (`docs/COLLISION.md` §18):
+    /// `detect_unit_collision(coll_x, coll_y, quick 1, boats 1, 0,
+    /// nocoll 0, top_only 1)` at `005f7dab`. It is the quick form, so it
+    /// names nobody, asks no corner and writes nothing: a hit returns 1
+    /// before the ladder and a miss returns 0 before the bookkeeping, and
+    /// `collide_o` keeps the blocker the repath named. `top_only` skips
+    /// the second arm, so a ship, a hero, a supply wagon and a siege
+    /// engine scan here like anyone else.
+    pub(crate) fn blocker_still_there(&self, u: usize, at: Pos) -> bool {
+        if !self.detect_gates(u) {
+            return false;
+        }
+        let c = ucell(at);
+        c != ucell(self.units[u].pos) && self.collide_here(u, c, false).is_some()
+    }
+
     /// The full form: find the cell, name the unit, apply the exemption
     /// ladder and the corner rule, and record the result. `Some(other)` is
     /// a hard collision.

@@ -3430,11 +3430,13 @@ impl Sim {
                 self.kill_current_order(u);
                 return Did::Nothing;
             }
+            // The probe is the **quick** form (`docs/COLLISION.md` §18,
+            // item 857): an occupied cell is the blocker still there, with
+            // no corner rule and no write to `collide_o`. East Indies'
+            // `1/71` on 19498 met `1/75`'s corner at `coll`, which the full
+            // form let pass and the original counts.
             let coll = mo.coll.unwrap_or(self.units[u].pos);
-            if elapsed > 3
-                && (elapsed - 1) % 2 == 0
-                && self.detect_unit_collision(u, coll).is_none()
-            {
+            if elapsed > 3 && (elapsed - 1) % 2 == 0 && !self.blocker_still_there(u, coll) {
                 // The blocker has gone: drop the search and re-plan next
                 // frame off the stack as it stands.
                 mo.has_waypoint = false;

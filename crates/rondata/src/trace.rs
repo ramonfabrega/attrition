@@ -307,6 +307,12 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x005e_6596), // `Unit::do_guard+0x926`
         sim::orders::SITE_GUARD_DEAD,
     ),
+    // `Unit::do_guard@005e5c70+0x8fb` — the `retry` roll itself,
+    // `Random::get(0, 0xffff) % 3 + 6` at `5e6566`, its own address. Item
+    // 567 named it on the sim's side only, so until item 857 the trace
+    // spelled the original's as a bare `5e656b`: East Indies 19606 parted
+    // on the spelling, one draw against the same draw.
+    (0x005e_656b, None, sim::orders::SITE_GUARD_RETRY),
     // `Unit::do_follow@005e65d0`'s stand within the standoff (item 714,
     // `docs/ORDERS.md` §28).
     (
