@@ -220,7 +220,8 @@ pub(crate) mod loc {
 
 /// The cell flags a boat's disembark tile may not carry —
 /// `invalid_loc@00607c30`'s `WData.flags & 0x70` on the sea arm: mountain
-/// (`0x10`), forest (`0x20`) and the unnamed `0x40` beside them.
+/// (`0x10`), forest (`0x20`) and the unnamed `0x40` beside them. The land
+/// arm reads the same three for a world probe (item 776).
 const SEA_REFUSES: u16 = 0x70;
 
 /// **The unit-grid search's retry roll, open-list-exhausted tail** —
@@ -320,6 +321,24 @@ impl Sim {
             // is_cliff_at(t)) { if (surface != 0x30) return 2; if
             // (!forest_walker) return 2; }`.
             crate::attrition::Domain::Land => {
+                // **The cell first** (`00607e6f`–`00607ead`, item 776): a
+                // cell flagged mountain, forest or `0x40`
+                // (`WData.flags & 0x70`) refuses when the caller passes
+                // both `param_3` and `param_6` — `valid_wcoord`'s probe, so
+                // the world search walks round a forest *cell* where the
+                // tile test would only refuse its forest *tiles* — unless
+                // it is forest and the unit a forest-walker.
+                let cf = self
+                    .world
+                    .cell_data(crate::world::World::cell_of_tile(t))
+                    .flags;
+                if cf & SEA_REFUSES != 0
+                    && (cf & crate::world::cell::FOREST == 0 || !forest_walker)
+                    && ignore_buildings
+                    && transport_a
+                {
+                    return loc::TERRAIN;
+                }
                 if (surface == tile::SURFACE_FOREST && !forest_walker)
                     || mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
                     || mask & tile::OBJECT == tile::OBJECT_CLIFF
@@ -2681,6 +2700,50 @@ mod tests {
         assert_eq!(
             sim.invalid_loc(u, t, true, true, false, true, false),
             loc::TERRAIN
+        );
+    }
+
+    /// **`invalid_loc`'s cell arm** (item 776, `00607e6f`–`00607ead`): on
+    /// the land domain, a tile whose **cell** carries mountain, forest or
+    /// `0x40` (`WData.flags & 0x70`) refuses with 2 when the caller passes
+    /// both `param_3` and `param_6` — which is `valid_wcoord`'s probe, and
+    /// no other caller's unless a transport-flagged path top forces
+    /// `param_6`. A forest-walker is let through a forest cell. The tile
+    /// itself is plain ground here, so the tile arm below passes it: run226's
+    /// `1/72` was planned through cell (56, 18), forest-flagged, where the
+    /// original's world search refused it (`docs/PATHFINDER.md` §27).
+    #[test]
+    fn a_world_probe_refuses_a_forest_cell_on_plain_ground() {
+        let mut sim = lake_sim();
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let c = Cell::new(7, 7);
+        let mut d = sim.world.cell_data(c);
+        d.flags |= crate::world::cell::FOREST;
+        sim.world.set_cell_data(c, d);
+        let t = Pos::new(7 * TILES_PER_CELL + 1, 7 * TILES_PER_CELL + 2);
+        assert_eq!(sim.world.tile_mask(t) & tile::SURFACE, 0, "plain ground");
+        assert_eq!(
+            sim.invalid_loc(u, t, true, false, false, true, false),
+            loc::TERRAIN,
+            "`valid_wcoord`'s flags read the cell"
+        );
+        assert_eq!(
+            sim.invalid_loc(u, t, false, false, false, true, false),
+            loc::VALID,
+            "without `param_3` the cell is not read"
+        );
+        assert_eq!(
+            sim.invalid_loc(u, t, true, false, false, false, false),
+            loc::VALID,
+            "without `param_6` the cell is not read"
+        );
+        let mut d = sim.world.cell_data(c);
+        d.flags = (d.flags & !crate::world::cell::FOREST) | crate::world::cell::MOUNTAIN;
+        sim.world.set_cell_data(c, d);
+        assert_eq!(
+            sim.invalid_loc(u, t, true, false, false, true, false),
+            loc::TERRAIN,
+            "a mountain cell refuses the same way"
         );
     }
 

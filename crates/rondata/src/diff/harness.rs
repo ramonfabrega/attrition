@@ -2333,7 +2333,7 @@ pub(crate) mod tests {
     /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
     /// is not on this machine.
     pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_PYRAMIDS_BLOCK;
+        const WORD_BLOCK: i64 = GREAT_LAKES_FOREST_CELL_BLOCK;
         widen_great_lakes(
             "the word's window",
             &great_lakes_word_chain(),
@@ -11944,7 +11944,11 @@ pub(crate) mod tests {
             &great_lakes_word_chain(),
             WIDENING_GREAT_LAKES_GIVEUP,
             11_800,
-            &[WORD_BLOCK, GREAT_LAKES_PYRAMIDS_BLOCK],
+            &[
+                WORD_BLOCK,
+                GREAT_LAKES_PYRAMIDS_BLOCK,
+                GREAT_LAKES_FOREST_CELL_BLOCK,
+            ],
         )
         else {
             return;
@@ -11963,26 +11967,18 @@ pub(crate) mod tests {
         }
         let own: Vec<(i64, i64, i64, usize)> =
             own.into_iter().map(|((f, w, o), n)| (f, w, o, n)).collect();
-        // **On run226's own blocks up to the old word: two walks, from
-        // 17088.** Item 742 left who=1's economy parting on 17086: the
-        // original's `resource_cap` for food and wealth was 4800 against
-        // 4000 here, after the Pyramids `1/2026` activated on sim-frame
-        // 17084, and four citizens were re-dealt on the same block.
-        // **Item 757 built the wonders' two terms** (`docs/ECONOMY.md`
-        // §15): `PYRAMIDS_COMMERCE` on the two caps and `PYRAMIDS_FOOD`
-        // on 17087's reassembly (food 1920 against 1600). The cap, the
-        // re-deal and every row of `1/3`, `1/5` and `1/70` go. What stands
-        // is `1/9` and `1/72` walking other paths to the same targets
-        // from 17088 (`path:length` 2 against 4 and 3 against 9,
-        // `path_recursion`, `tolerance`). No mechanism is named.
+        // **On run226's own blocks up to the old word: nothing.** Item 742
+        // left who=1's economy parting on 17086; item 757 built the
+        // Pyramids' two terms (`docs/ECONOMY.md` §15) and left `1/9` and
+        // `1/72` walking other paths to `1/2022` from 17088. **Item 776**:
+        // both world searches of tick 17087 refused no cell the original
+        // refused — `invalid_loc`'s cell arm, a forest-flagged cell under
+        // `valid_wcoord`'s probe (`docs/PATHFINDER.md` §27) — and with it
+        // all 303 priced steps of the tick are the original's
+        // (`run240_s_world_at_17087_is_the_original_s`), and both walks go.
         assert_eq!(
             own,
-            [
-                (17_088, 1, 9, 17),
-                (17_088, 1, 72, 19),
-                (17_089, 1, 9, 1),
-                (17_091, 1, 72, 1),
-            ],
+            [],
             "who parts first on run226's own blocks up to the old word's, and on how many keys"
         );
         // **The move's value diff**: no leader row parts under the old
@@ -11998,16 +11994,17 @@ pub(crate) mod tests {
             leader.is_empty(),
             "who=1's leader record agrees to the old word: {leader:?}"
         );
-        // **The new word's own blocks** (item 757): what first parts on
-        // 17101..17129, by unit. Only the two walks: `1/72`'s arrival
-        // (`move.dest` 17107) and mirror (17121), `1/9`'s arrival (17113)
-        // and first leg's tolerance (17114), and on the new word's block
-        // `1/9`'s second leg (`path[2].to` (41880, 13944) here against
-        // (42840, 15864), and its tolerance, 96 against 384) — the
-        // `Unit::do_move` the word's draw names, as a hypothesis.
+        // **Item 757's word's blocks and item 776's**: what first parts on
+        // 17101..17182, by unit. Item 757 left only the two walks here
+        // (`1/72`'s arrival and mirror, `1/9`'s legs); item 776 took them,
+        // and **nothing parts until the new word's block, 17182**, where
+        // who=1's leader record parts on twelve keys: the `MAKE` list's
+        // slots 0, 1, 2 and 8 carry three wonders here (types 526, 528 and
+        // 527, category 8) and nothing there — `create_buildings`' extra
+        // draws, as a hypothesis.
         let mut past: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
         for ((w, o, _), (f, _)) in &firsts {
-            if (WORD_BLOCK + 1..=GREAT_LAKES_PYRAMIDS_BLOCK).contains(f) {
+            if (WORD_BLOCK + 1..=GREAT_LAKES_FOREST_CELL_BLOCK).contains(f) {
                 *past.entry((*f, *w, *o)).or_default() += 1;
             }
         }
@@ -12017,14 +12014,8 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             past,
-            [
-                (17_107, 1, 72, 1),
-                (17_113, 1, 9, 1),
-                (17_114, 1, 9, 1),
-                (17_121, 1, 72, 1),
-                (17_129, 1, 9, 2),
-            ],
-            "who parts first on 17101..17129, the new word's block, and on how many keys"
+            [(17_182, 1, -1, 12)],
+            "who parts first on 17101..17182, the new word's block, and on how many keys"
         );
         let under = firsts.values().filter(|(f, _)| *f <= RUN218_TAIL).count();
         let mid = firsts
@@ -12037,14 +12028,22 @@ pub(crate) mod tests {
                 standing
                     .get(&GREAT_LAKES_PYRAMIDS_BLOCK)
                     .map_or(0, BTreeMap::len),
+                standing
+                    .get(&GREAT_LAKES_FOREST_CELL_BLOCK)
+                    .map_or(0, BTreeMap::len),
             ),
-            (349, 344),
-            "every row standing on the old word's block, 17100, and the new word's, 17129"
+            // 349 and 344 before item 776, whose searches took the two
+            // walks' rows off both; 17182 is the floor's 311 and the
+            // `MAKE` list's twelve.
+            (311, 311, 323),
+            "every row standing on 17100 (item 742's word's block), 17129 \
+             (757's) and 17182 (776's)"
         );
         // **The floor**: run218's walk (398, nothing on run211's or
-        // run218's own blocks since item 742), then the 38 keys of 17088
-        // up to the old word's block, and every key to the window's end.
-        assert_eq!((under, mid, firsts.len()), (398, 38, 1256), "the floor");
+        // run218's own blocks since item 742), nothing up to the old
+        // word's block since item 776 (38 keys of 17088 before it), and
+        // every key to the window's end (1256 before item 776).
+        assert_eq!((under, mid, firsts.len()), (398, 0, 876), "the floor");
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and
