@@ -4337,6 +4337,13 @@ pub(crate) const WIDENING_EAST_INDIES_GUARDWORD: (i64, i64) = (18_933, 19_189);
 /// spends `Unit::do_guard+0x8fb` and the original `Guy::set_anim+0x104b`,
 /// writes block 18939. The coverage driver reads run257 around it.
 pub(crate) const EAST_INDIES_GUARDWORD_BLOCK: i64 = 18_939;
+/// `run261_s_gap_is_widened_whole`'s window (item 829): run261 whole,
+/// 18428..18684 — six blocks before the gap 18434..18932 that no dump had
+/// compared, and 250 into it, over army 1's close on tick 18682.
+pub(crate) const WIDENING_EAST_INDIES_CLOSE: (i64, i64) = (18_428, 18_684);
+/// The block after army 1's close on run261 (item 829): tick 18682 writes
+/// block 18683, where the original's group 71 first reads `army −1`.
+pub(crate) const EAST_INDIES_CLOSE_BLOCK: i64 = 18_683;
 /// The word 18999's block on run257 (item 829): its frame, where ours
 /// spends a fifth `Guy::inc_time` wrap and the original
 /// `Guy::set_anim+0x104b`, writes block 19000. The coverage driver reads

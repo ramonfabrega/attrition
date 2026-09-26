@@ -15976,6 +15976,109 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run261 — East Indies' gap over army 1's close, widened whole, both
+    /// directions** (item 829). run253's line over
+    /// [`WIDENING_EAST_INDIES_CLOSE`]: its last six blocks and 250 into the
+    /// gap 18434..18932, which run253 and run257 leave uncompared. Army 1
+    /// closes on tick 18682 (`find_target`, `docs/ARMY.md` §22), and the
+    /// original's group 71 reads `army −1` from block 18683 with its list
+    /// kept. [`widen_east_indies`] with gaia's animals.
+    #[test]
+    fn run261_s_gap_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_CLOSE.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_CLOSE.1;
+        const CLOSE: i64 = EAST_INDIES_CLOSE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            standing,
+            army_lists,
+            ..
+        }) = widen_east_indies(
+            "run261",
+            "gamelog-run261-eastindies-closeword.txt",
+            WIDENING_EAST_INDIES_CLOSE,
+            &[CLOSE],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > FIRST)
+            .map(row)
+            .collect();
+        let on_close = standing.get(&CLOSE).cloned().unwrap_or_default();
+        let escort: Vec<String> = (60..=76)
+            .filter_map(|o| {
+                on_close
+                    .get(&(1, o, "group".to_string()))
+                    .map(|r| format!("1/{o} {r}"))
+            })
+            .collect();
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        // **One key parts past the first block** in 257: the human
+        // leader's `production_step` on 18601. Everything else standing
+        // is the first block's, run253's floor carried on.
+        assert_eq!(
+            rows,
+            ["18601 0/-1 leader:production_step: ours 0 theirs 1"],
+            "the keys first parting past the window's first block"
+        );
+        // **R2 and R3** (the stanza's): the original's group 71 reads
+        // `army 1` on 18682 and `army −1` on 18683 with 17 of its 18 still
+        // listed, so the close is tick 18682, ours' tick, and the group
+        // survives it. Army 0's new group takes fifteen of them on the
+        // same tick. On 18683 every `group` row of the old army's units is
+        // the same seat on both sides, one index higher here (689): the
+        // orphan 72 against 71, army 0's 65 against 64.
+        let mut want: Vec<String> = [64, 65, 66, 74, 75, 76]
+            .iter()
+            .map(|o| format!("1/{o} ours 65 theirs 64"))
+            .chain(
+                [60, 67, 68, 69, 70, 71, 72]
+                    .iter()
+                    .map(|o| format!("1/{o} ours 72 theirs 71")),
+            )
+            .collect();
+        want.sort_by_key(|r| r[2..].split(' ').next().unwrap().parse::<i64>().unwrap());
+        assert_eq!(escort, want, "the old army's pointers on {CLOSE}");
+        assert_eq!(lists_part, [], "no army's list parts around the close");
+        // **The floor**: every key standing on the first block (run253's
+        // floor, carried), the keys past it, the rows standing on the
+        // close's block, and every key in all.
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_close.len(), firsts.len()),
+            (318, 1, 316, 319),
+            "the floor"
+        );
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the

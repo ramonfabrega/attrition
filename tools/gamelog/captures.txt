@@ -6950,3 +6950,24 @@ check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/R
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | awk '{v=$3+0; if(v>=18428&&v<18685) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==18428 && hi==18684)}'
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18428&&v<18685)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18428&&v<18685)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 623,446,659 bytes of dump and 24,502,816 of trace, **257 blocks
+# 18428..18684**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 07:26 through `viadriver.sh` (no RonDriver running; the lane lock named
+# att-822's dead 06:07 pid), start clicked 07:27, archived 07:50.
+# `waitrun.sh` exited 0, and all five checks were green:
+# - 18,696 frames identical to run54, 0 differing, 18,696 in common;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings** (`run261_s_gap_is_widened_whole`, `docs/ARMY.md` §22):
+# - **R1 holds**, by the checks above.
+# - **R2 holds.** Group 71 lists all eighteen with `army 1` on 18682, and
+#   reads `army -1` with seventeen on 18683 (`1/48`, the first joiner,
+#   left through `push_group`). Army 0's new group 64 holds fifteen.
+# - **R3 holds**: the close is tick 18682, ours' tick.
+# - Past the first block one key parts in 257 blocks (the human leader's
+#   `production_step` on 18601). On 18683 army 0's list agrees, and every
+#   `group` row of the old army is the same seat one id higher here (689).

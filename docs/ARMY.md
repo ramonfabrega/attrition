@@ -2401,8 +2401,14 @@ No mechanism is named.
   `GroupState` is what closes, so this is the army group's record, which
   §17 already says is partly carried.
 - **The other closes.** Every close on both maps now leaves an orphan.
-  Only the effect of 18682's is compared, and that only on 18933 (run261
-  covers the close's own block, §22.6).
+  Only 18682's is compared: its block on run261 and its effect on 18933
+  on run257.
+- **The first joiner.** On 18683 the original's 71 lists seventeen:
+  `1/48`, which army 0's `push_group` took first, has left the list,
+  and the other fourteen stay listed while pointing at 64. Ours' orphan
+  keeps all eighteen until `groups_process` prunes it, because
+  `army_add_unit`'s fresh-army arm does not unseat. No comparison reads
+  an `army −1` list, and the prune agrees by 18933.
 - **18685..18932** is compared by no dump, and neither is the wagon's new
   army on 18692.
 - **Both of `close`'s loops** read the army's group list. This crate's
@@ -2410,8 +2416,9 @@ No mechanism is named.
 
 ### 22.6 Coverage
 
-**Diff-backed**: the escort's pointers and the old group's list on 18933,
-and the guard's walk on 18939 (run257). **Decompile-backed**:
+**Diff-backed**: the close's tick and the old army's pointers and lists
+on 18683 (run261, `run261_s_gap_is_widened_whole`); the escort's pointers
+and the old group's list on 18933, and the guard's walk on 18939 (run257). **Decompile-backed**:
 `Army::close@006f8ea0` (the `army = −1` write, the halt, and no free) and
 `Army::add_unit@006f9f40` (`push_group` for a fresh army). **Built**
 (`army.rs`, `group.rs`), with
