@@ -460,6 +460,11 @@ impl Guy {
     }
 }
 
+/// One `<RELEASEEVENT>`, as [`Art::releases`] holds it: the game frame it
+/// fires on, its node, and whether its ammo is harmless (`do_damage="0"`)
+/// — item 853, `docs/ORDERS.md` §39.5.
+pub type Release = (u32, i8, bool);
+
 /// The art the clock reads — an input, like the map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Art {
@@ -526,7 +531,13 @@ pub struct Art {
     ///
     /// Empty when the install was not read, and a piece absent from it
     /// does not shoot through this path at all.
-    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<u32>>>,
+    ///
+    /// Each entry is `(frame, node, harmless)`, in the file's order (item
+    /// 853, `docs/ORDERS.md` §39.5): two events on one frame are two
+    /// rounds, the Fighter's two guns; the node is what the launch point
+    /// and a strafer's landing are taken from; and `harmless` is the
+    /// ammo's `do_damage="0"`, a round that lands without damage.
+    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<Release>>>,
     /// `TypeIndex → (node → (minangle, maxangle))` — the unit types whose
     /// figure carries a **pivot**, read from `unit_graphics.xml`'s
     /// `<RESTRICTION>` rows (`rondata::artdata::pivot_restrictions`,
@@ -1660,7 +1671,7 @@ impl Sim {
             // is the guy's, forced to `-1` while the clock reads zero.
             let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
-            for t in times {
+            for (t, node, harmless) in times {
                 let start = t;
                 let t = i64::from(t);
                 if i64::from(last) < t && t <= cur {
@@ -1707,6 +1718,7 @@ impl Sim {
                                 guy.gpiece,
                                 guy.anim,
                                 start,
+                                node,
                             ),
                             // And it leaves from the node's height over
                             // the figure's own `z` (`docs/COMBAT.md`
@@ -1716,7 +1728,8 @@ impl Sim {
                             // surface rather than the lake bed under it
                             // (§50.3, run127's trireme rounds at `sz` 88
                             // over a bed at −273).
-                            crate::launch::release_dz(guy.gpiece, guy.anim, start).unwrap_or(0),
+                            crate::launch::release_dz(guy.gpiece, guy.anim, start, node)
+                                .unwrap_or(0),
                         ),
                     };
                     // A plane's figure flies at its own `z` (`GuyData +0x14`,
@@ -1741,10 +1754,18 @@ impl Sim {
                         (None, None) => unreachable!(),
                     };
                     let angle = crate::movement::find_angle(to.x - from.x, to.y - from.y);
+                    // The event's node rides in the package's `angle`
+                    // (`execute_game_events`' `param_1->angle = node`
+                    // before `add_ammo`), where `Ammo::init` reads a
+                    // strafer's side from it (`docs/ORDERS.md` §39.3).
                     let me = crate::combat::Obj::Unit(u);
                     match (target, ground) {
-                        (Some(t), _) => self.fire_ammo_pub(me, t, angle, frame, from, sz),
-                        (None, Some(g)) => self.fire_ammo_ground(me, g, angle, frame, from, sz),
+                        (Some(t), _) => {
+                            self.fire_ammo_pub(me, t, angle, frame, from, sz, node, harmless)
+                        }
+                        (None, Some(g)) => {
+                            self.fire_ammo_ground(me, g, angle, frame, from, sz, node, harmless)
+                        }
                         (None, None) => unreachable!(),
                     }
                 }

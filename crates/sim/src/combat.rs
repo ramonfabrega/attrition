@@ -393,6 +393,15 @@ pub struct Projectile {
     /// `Ammo::inc_time`, and it is what stops `hit_target`/`check_hit`
     /// being tried a second time.
     pub missed: bool,
+    /// `Ammo` flag **0x10**, `Ammo::init@0067bbf0:151`: the round's ammo
+    /// piece carries `ammo_flags & 0x80`, the `do_damage="0"` of
+    /// `effects_graphics.xml`. It flies and is stepped like any other, and
+    /// at its end `Ammo::inc_time@0067d380:260` closes it instead of
+    /// calling `Ammo::do_damage` — no damage, no splash, no puncture draw
+    /// (`docs/ORDERS.md` §39.5). SEAM: `init:226`, the flag's other
+    /// writer (a roll against the target type's `+0x250`/`+0x254`), is
+    /// not built.
+    pub harmless: bool,
     /// `AmmoData::sz` and `ez` — the height the shot leaves from and the
     /// one it is aimed to come down at (`docs/COMBAT.md` §46.1). Only a
     /// rolled shot reads them, through [`arc_z`].

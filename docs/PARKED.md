@@ -22,6 +22,20 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 853, 2026-09-26 — the Fighter's rounds' edges
+
+(861) **A bomb's recycled `accuracy`**: a bomb takes its slot's last
+round's value, where this crate writes 0. Visible on run265 (27 standing
+rows) and read only by a unit target's hit test; carrying it needs a
+per-slot field on `Sim` (`lib.rs`).
+
+(862) **The other Fighter-line pieces' guns are unmeasured**: they fire
+both rounds from the figure's point, as the Fighter does.
+
+(863) **`Ammo::init:226`, the harmless flag's other writer** (a roll on
+the target type's `+0x250`/`+0x254`, ORDERS §39.5): not built,
+reading-only; no capture reaches it.
+
 ## Parked by item 850, 2026-09-26 — going inside in one's own work
 
 (858) **The disembark seats figures at `avg_speed` 0** where the
@@ -1331,6 +1345,17 @@ grep of the `SEAM` comments on the call chain (`do_cast` →
 `process_unit`) names such a word before any reading; a checklist row
 candidate. And a widening could print whether each first-block row also
 stands on the previous capture's last block (830's sibling).
+
+(864) **A floor row can be several causes, each leaving it standing
+alone** (853's Loop line, filed at its merge): chapter twenty-two's
+damage row was the round count, the landing walk and the launch; the
+brief's first two readings were each half the cause, and a killer per
+reading run as a mutation on the built tree showed it. A brief for a
+floor row asks for that mutation per reading. And the commander's
+question at the merge turned a park into a build: 853's first landing
+introduced a Fighter-Bomber over-count (16 damaging rounds a swing
+against 10) and named it as a park; a landing that introduces a
+divergence it can see builds it or says so as a regression.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

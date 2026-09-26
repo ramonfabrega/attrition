@@ -3871,7 +3871,18 @@ mod tests {
             piece,
             [(
                 crate::anim::ATTACK2,
-                vec![1, 2, 5, 8, 10, 13, 16, 18, 21, 24],
+                vec![
+                    (1, 0, false),
+                    (2, 1, false),
+                    (5, 0, false),
+                    (8, 1, false),
+                    (10, 0, false),
+                    (13, 1, false),
+                    (16, 0, false),
+                    (18, 1, false),
+                    (21, 0, false),
+                    (24, 1, false),
+                ],
             )]
             .into_iter()
             .collect(),
@@ -3895,14 +3906,14 @@ mod tests {
         let from = s.units[u].pos;
         assert_eq!(
             p.launch,
-            crate::launch::launch_point(from, Angle::EAST, piece, crate::anim::ATTACK2, 1)
+            crate::launch::launch_point(from, Angle::EAST, piece, crate::anim::ATTACK2, 1, 0)
         );
         // The figure's altitude as the release reads it, after `work`'s
         // climb: not the ground's.
         assert_eq!(
             p.sz,
             s.units[u].airframe.z
-                + crate::launch::release_dz(piece, crate::anim::ATTACK2, 1).unwrap_or(0)
+                + crate::launch::release_dz(piece, crate::anim::ATTACK2, 1, 0).unwrap_or(0)
         );
         assert!(p.sz > 1500);
         assert_eq!(p.landing, Pos::new(p.launch.x + 192, p.launch.y));
