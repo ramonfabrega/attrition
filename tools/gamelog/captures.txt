@@ -7095,3 +7095,14 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run277-eastindies-blockedwalk.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20002&&v<20259)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run277-eastindies-blockedwalk.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20002&&v<20259)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 627,351,134 bytes of dump and 25,719,712 of trace, **257 blocks
+# 20002..20258**. Launched 11:23 through `viadriver.sh`, the lane lock
+# stale (att-839's pid gone) and no RonDriver running; archived 11:46;
+# `waitrun.sh` exited 0. All five checks were green:
+# - 20,270 frames identical to run54, 0 differing (rngcmp's count, one
+#   ahead of the harness's frame, parked 845);
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.

@@ -8245,3 +8245,41 @@ exited 0.
   who=1's twenty-nine citizens at `hits_left` 40 against 50, and
   `leftover[2:wealth]` eight sixteenths over. The floor is 318 on the
   first block, 5 under the word, 323 on its block and 1,433 in all.
+
+## run277 — East Indies' word 20007, sized to the word (2026-09-26, item 857)
+
+**What it is.** run269's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[20002, 20259)`, at `cover=0`: a draw-stream trace. `!quit` at 20269,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 857
+```
+
+**Why it was owed.** Item 857 moved East Indies' word 19509 → 20007
+(the blocker probe is the quick form, `docs/COLLISION.md` §18, and the
+trace names `Unit::do_guard+0x8fb`). run269 ends on block 19664, so the
+word's block 20008 is on no disk: every `*eastindies*` and `*islands*`
+dump was grepped by its block range first. On 20007 ours spends 8 draws
+against 7, parting at index 0 on `1/67`'s `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. **What the disk could not answer**: why `1/67`
+stands blocked on 20007, and every unit, figure and leader record on
+20002..20008. **Sized to the word** (DECISIONS 50 §7): six blocks
+before its block, the block, and 250 above it, 257 blocks. No capture
+shares a block with it, so **19665..20001 is compared by no dump**. The
+same game is shown by the draw stream against run54.
+
+**Taken whole.** 627.4 MB of dump and 25.7 MB of trace, 257 blocks
+20002..20258. Launched 11:23. The lane lock was stale and no RonDriver
+was running. Archived 11:46. It was waited on with `waitrun.sh`, which
+exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 20,270 identical (rngcmp numbers one ahead of the harness, parked 845) |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 20002..20258, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run277_s_word_frame_is_widened_whole`): RUN277_SETTLED
