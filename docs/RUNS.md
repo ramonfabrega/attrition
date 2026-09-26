@@ -8350,3 +8350,65 @@ draw stream is the same game (below).
 **The pool.** The building group takes who=0's **slot 0** on 1442 (`num
 1`, `buildings 1`, `stamp 1441`) and holds it to 1839. Slots 1 (`[6]`,
 767) and 2 (`[7, 8]`, 661) are chapter twenty-two's, unchanged.
+
+## run285 — chapter twenty-four, the queue line (2026-09-26, item 877)
+
+`docs/GOLDEN.md` §33, `tools/gamelog/golden/chapter24.cmd`: chapter
+thirteen's cast to 619 (a Barracks `0/2007` for who=0, a Chariot, a
+Hoplite squad, `!ai off`), then **`620 @queueup 0 132 1 2007`** and
+**`640 @queueup 0 170 1 2007`** (Hoplites, then Bowmen, through the DLL's
+new verb 18, `CommandManager::issue_queue_up@00941be0`), **`900 @buildmask
+0 64 2007`** (the infinite-queue button, between the two finishes) and
+**`1300 @buildmask 0 64 2007`** (the same button on the empty queue). The
+chapter and its eight falsifiers were committed before the run
+(`a14e1e37`). No `RonDriver` was running and the lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch24 \
+    --map 14 --end-frame 1560 --log-window 605 1560 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter24.cmd
+```
+
+**One take** at `cover=0`: launched 14:01, **1,164 s** in all (1,141
+launch to exit), **403 MB** of dump and 11 MB of trace, 955 blocks. The
+receipt says `success: true`, exit 0, 1,561 frames, `MAP_STYLE 14`, seed
+12345. `waitrun.sh` exited 0. `cmdsran.py` has the six console and chat
+lines returning 1.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run208's trace | the same game on its first 640 frames (the first frame it prints differing is 641; it numbers one ahead, parked 845): chapter thirteen's garrison is not in this script |
+| a `GROUPDATA` on every window block | **488,960**, 512 on each of the 955 |
+
+### The issuers' own records
+
+- `INFO 18` for `0/2007`, uid 13, at (2688, 14208), on each of 620, 640,
+  900 and 1300.
+- `INFO 17`, refusal 0 on all four: the package 10 → 24 bytes on 620 (a
+  fresh 5-byte `group` and the 9-byte `queue_up`, the emulator's 14) and
+  10 → 22 on 640, 900 and 1300 (the 3-byte reuse and 9).
+- `process_group, new 0 1 621` and `process_queue_up 132 1 621`;
+  `process_group, repeat 0 0 641` and `process_queue_up 170 1 641`;
+  `process_group, repeat 0 0 901` and `process_buildmask 901`; the same on
+  1301.
+
+### §33's falsifiers
+
+| check | predicted (this crate's walk) | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 621, 641, 901, 1301 | as predicted |
+| 2, the queue-up | `[132]` at 100 on 622, `[132, 170]` on 642 | **as predicted**; food 253 → 203, timber 239 → 203 on 622; timber → 161, wealth 113 → 61 on 642 |
+| 3, a finish with the bit clear | `[170]` alone on 848 | **`[170]` alone on 856**, `build_masks` 4096: the Hoplites ran to 23310 (a final step of 10) on 855 |
+| 4, the toggle | 4160 on 902 | **4096 → 4160 on 902** |
+| 5, a finish with the bit set | `[170]` at 0 on 1052, paid again, 4160 | **on 1060**: the Bowmen ran to 20280 on 1059; `[170]` at 0, timber 189 → 143 and wealth 70 → 14, **4160** |
+| 6, a refused re-queue | `[]` and 4096 on 1264, wealth unspent | **on 1272**: the second Bowmen ran to 21030 on 1271; `[]`, **4096**, wealth 19 unspent |
+| 7, the gate on an empty queue | 4096 on 1302 | **4096** |
+| 8, the finish trains | a squad born on each finish | **three Hoplites `0/10`–`0/12` on 856, three Bowmen `0/13`–`0/15` on 1060 and `0/16`–`0/18` on 1272**, each squad in a pool group (0, 2, 1) |
+
+**No falsifier fired.** The reading's three arms hold as read; this
+crate's staging walk had the clocks early: the Hoplites by 8 blocks, the
+first Bowmen by 8, the second by 8, and the second Bowmen's target is 750
+above the first's (the ramp).

@@ -1379,7 +1379,7 @@ below without a run take their number at booking (the eleventh pass).
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
 | 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
 | 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) — **run 2026-09-26 (item 867), 498 MB, 1,505 s; the pool printed; no falsifier fired: `build_masks` 4232 → 4104 on 1442; `0/7` inside with no order on 1489 and `0/8` on 1513; `0/6`'s kept patrol killed on 1585, its tank's first 0, and `0/6` still inside; nothing launches to 1839; the building group in pool slot 0** |
-| 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) |
+| 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -5045,3 +5045,29 @@ timber; the draw stream should first part at the Hoplite's training
 (~848), a birth this crate does not make. The pool gains a building group
 at each command, which this crate's pool of units does not seat (§32's
 standing row).
+
+**Run 2026-09-26 as run285 (item 877)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run208 to 640.
+- **The issues** (1 did not fire): `INFO 17` refusal 0 on all four;
+  `process_queue_up 132 1 621`, `170 1 641`, `process_buildmask` on 901
+  and 1301.
+- **The queue-up** (2 did not fire): `[132]` at 100 on 622, `[132, 170]`
+  on 642, each paid once.
+- **The finish with the bit clear** (3 did not fire): the Hoplites run to
+  23310 on 855 and leave on **856**; `[170]` alone, 4096.
+- **The toggle** (4 did not fire; it split the readings to the second):
+  4096 → **4160 on 902**.
+- **The finish with the bit set** (5 did not fire; it split the three
+  readings to the third): the Bowmen run to 20280 on 1059; on **1060**
+  `[170]` at 0, timber 189 → 143 and wealth 70 → 14, **4160**. The re-queue
+  survived `unqueue`'s empty clear.
+- **The refused re-queue** (6 did not fire): the second Bowmen run to
+  21030 on 1271; on **1272** `[]`, **4096**, wealth 19 unspent.
+- **The gate on an empty queue** (7 did not fire): 4096 on 1302.
+- **The trains** (8 did not fire): three Hoplites on 856 and three Bowmen
+  on 1060 and on 1272, each squad in a pool group.
+
+The staging walk had every finish 8 blocks early (848, 1052, 1264): a
+clock this crate runs short, which the widening names. The arms did not
+depend on it: the toggle stood 46 blocks after the Hoplites' finish and
+158 before the Bowmen's.
