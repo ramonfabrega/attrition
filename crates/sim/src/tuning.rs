@@ -280,6 +280,11 @@ pub struct Tuning {
     pub commerce_cap: [i32; 8],
     /// Percentage the British add to every commerce cap.
     pub british_commerce: i32,
+    /// Percentage the British add to the territory tax's rate —
+    /// `Leader::calc_gather@006ceee0`'s `has_tribe_bonus(0xb)` arm,
+    /// `(BRITISH_TAXATION + 100) × TERRITORY_TAXES[level] / 100`
+    /// (`docs/ECONOMY.md` §16). Ships as 100: the tax doubled.
+    pub british_taxation: i32,
     /// Percentage off the British price of the four taxation techs,
     /// Taxation through Income Tax — `get_cost`'s `TVar21 − TAXATION < 4`
     /// with `has_tribe_bonus(0xb)` (`docs/AI.md` §74).
@@ -900,6 +905,7 @@ impl Tuning {
         territory_taxes: [0, 50, 100, 200, 300],
         commerce_cap: [70, 100, 150, 200, 260, 320, 400, 500],
         british_commerce: 25,
+        british_taxation: 100,
         british_taxation_discount: 50,
         egyptian_food_commerce: 10,
         french_timber_commerce: 10,
@@ -1140,7 +1146,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 318] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 319] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1241,6 +1247,7 @@ impl Tuning {
             ("UNIT_PACK_TURN_BONUS", Slot::Value(T.unit_pack_turn_bonus)),
             ("GATHER_RATE", Slot::Value(T.gather_rate)),
             ("BRITISH_COMMERCE", Slot::Value(T.british_commerce)),
+            ("BRITISH_TAXATION", Slot::Value(T.british_taxation)),
             (
                 "BRITISH_TAXATION_DISCOUNT",
                 Slot::Value(T.british_taxation_discount),

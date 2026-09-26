@@ -381,7 +381,8 @@ is the one place in the game where territory pays rather than merely hurting
 whoever stands in it, and it is the economic mirror of `docs/ATTRITION.md`.
 
 Three modifiers sit on it, all read: the British scale `TERRITORY_TAXES` by
-`(BRITISH_TAXATION + 100) / 100`, which as shipped doubles it; a Conquer-the-World
+`(BRITISH_TAXATION + 100) / 100`, which as shipped doubles it (~~read and not
+built~~ — built and diff-backed by item 839, §16); a Conquer-the-World
 conquest bonus scales it by `CTW_MISSIONARIES_BONUS`; and the Mongols
 additionally take **food** from the same ratio, `num_nations * territory * 800
 / land_size / MONGOL_NOMADIC_FOOD`, which is the one term in the economy that
@@ -2386,3 +2387,116 @@ Conquer-the-World arm (`conquest_wonders`) is cut from v1.
   diff-backed by run226's `resource_cap` and `income` rows. The rest is a
   reading alone, owed a second reader.
 
+
+## 16. The British take the territory tax twice: East Indies 19182 → 19413 (2026-09-26, item 839)
+
+East Indies' word was **19182**: ours 14 draws against 5, parting at
+index 0, ours `Leader::use_market+0x1ed`, `produce_building+0x1805` and
+`make_stuff+0x221` where the original spends its first wrap. run257
+holds it, widened. Under it, on block 19177, who=1's `bucket[1:timber]`
+read **149 here against 49 there**, and on 19182 its make list parted
+(`MAKE[0].val` 1531 against 0).
+
+### 16.1 The frame, and the purse behind it
+
+Block 19177 is tick 19176's, and on it who=1's `production_step` goes
+1 → 3 on both sides: step 2, `production_ai_setup`, whose last act is
+`market_speculation@006c8110` (§13). Ours' `bucket[2:wealth]` goes
+150 → 15 and its timber 49 → 149: a hundred timber bought for **135**.
+The original's wealth stays 67, its timber 49. The buy pass takes a
+good under 100 at any price under 201 that the unescrowed purse covers,
+so **the purse decided it**. The dump prints no market price, and no
+price in (67, 150] would have let the original buy.
+
+The purse had stood apart since run257's first block, 116 here against
+27 there, beside **`income[2:wealth]` 1543 against 1838** and
+`bucket[0:food]` 114 against 214, all from the gap 18685..18932. On
+run233 the income row first parts on block **17184**, 1234 against
+1380. Before that, both read 992.
+
+### 16.2 The writer, counted
+
+A scratch print of `Holdings` for who=1 over 17170..17186 shows what
+changed at ours' reassembly on tick 17183: `taxation` 0 → 1 (Taxation
+held), the rares' merchant bonus (+32 on food, timber and metal, +96 on
+wealth), and nothing else. The territory term is `305 × 50 × 16 / 1669`
+= **146**. Ours' income went 992 + 96 + 146 = **1234**, and the
+original's went 992 + 96 + **292 = 1380**: the territory tax twice. The
+dump's `trade_val` (176 on both of who=1's cities) and `territory` 305
+agree on both sides.
+
+`Leader::calc_gather@006ceee0` reads, and the listing confirms
+(`0x6cf64a..0x6cf6b7`):
+
+```
+rate = TERRITORY_TAXES[get_taxation()]
+if has_tribe_bonus(0xb):  rate = (BRITISH_TAXATION + 100) * rate / 100    # 6cf65c..6cf66d
+if semaphore[2] & 2 and has_conquest_bonus(0x20):
+                          rate = (CTW_MISSIONARIES_BONUS + 100) * rate / 100
+wealth += (territory * rate << 4) / land_size                             # 6cf69d..6cf6b7
+```
+
+Each `/ 100` is a signed `idiv`. The British bonus truncates on the
+**rate**, before the territory multiplies it. `BRITISH_TAXATION` is
+`rules.xml`'s "100% increase". The "Territory tax" section above named
+the modifier from the first reading, but `sim::economy::territory_tax`
+never carried it. who=1 on East Indies is British (`tribe 11`,
+`Nation::british`), and 17183 is the first frame its taxation level is
+non-zero.
+
+### 16.3 The readings, and what killed each
+
+- **R1, the wood differs by one write ours makes and the original does
+  not.** Killed if the original's timber moves on 19177. It does not
+  (49 → 49), and ours' does (+100, with wealth −135). **R1 holds, on
+  the disk.**
+- **R2, the wood differs by a price.** It would need the original's
+  timber price in reach of 67 and ours' out of reach of 150. The disk
+  cannot answer it (no price is printed). Killed if the purse fix alone
+  puts the timber in agreement. **Killed**: with the fix, ours' purse
+  reads 67 on 19177 and nothing is bought.
+- **R3, who=0's `production_step` (0 against 1 on 19001) is upstream of
+  the wood.** Its readers in the export are `Leader::plan_strategy@006b9620`
+  (line 72: a non-zero step runs `production_ai` and returns),
+  `production_ai@006c1960` (which bails a human to 0) and `log_data`.
+  Both run on who=0's own leader. **Killed**: beside the chain, and it
+  stands after the fix.
+
+### 16.4 What it moved
+
+- **East Indies 19182 → 19413. Great Lakes holds at 20568.**
+- **The value diff**:
+  - run233, 17184: who=1's `income` and `resources[2:wealth]` read
+    1234 against 1380 before the fix, and agree after. `leftover`,
+    `bucket` and `rate` of wealth agree after it on every block of the
+    run.
+  - run257, 18933: `bucket[2:wealth]` 116 against 27 and `bucket[0:food]`
+    114 against 214 before; both agree after. The original's hundred food,
+    bought in the gap, is ours' too now.
+  - Block 19177: `bucket[1:timber]` 149 against 49 → **49 on both**, and
+    `bucket[2:wealth]` 15 against 67 → **67 on both**.
+  - Block 19182: `MAKE[0].val` 1531 against 0 → **0 on both**, and
+    `MAKE[1].t` 427 against 528 → **528 on both**. The draws went 14
+    against 5 → 5 against 5.
+- **The new word, 19413**, block 19414, past run257's end. run269 was
+  taken for it (`docs/RUNS.md`). Ours spends 5 draws against 6, parting
+  at index 3: the original spends `Guy::set_anim+0x97a < Guy::do_turn+0x4a
+  < Guy::turn_towards+0x69`. On 19414, `1/77`'s second figure (the unit
+  is inside `1/78`) reads `angle` −541917184 here against −901447680
+  there, with `avg_speed` 15/16 against 11/12. No mechanism is named.
+
+### 16.5 What this has *not* established
+
+- **Eight sixteenths of `leftover[2:wealth]`** stand from 18177 (run253's
+  first block, 2380 against 2372) to 19664, and carry the purse one over
+  on 18511 (run261). They are born in 17753..18176, which no dump
+  compares. The rate agrees on every compared block, so a transient in
+  the gap is the likeliest source (a reassembly one frame apart around
+  822's border fix on 18032). That is a guess.
+- **The Conquer-the-World arm** (`CTW_MISSIONARIES_BONUS`) is cut with
+  CtW. **The Mongol food term** beside it is still not built. No capture
+  holds a Mongol player.
+- **Coverage**: §16.2's British arm is diff-backed by run233's `income`
+  row on 17184 and by every wealth row on run251, run253, run257, run261
+  and run269. The truncation order is from the listing, and at these
+  numbers (50 → 100) it cannot part either way.

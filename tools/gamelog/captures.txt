@@ -6971,3 +6971,70 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - Past the first block one key parts in 257 blocks (the human leader's
 #   `production_step` on 18601). On 18683 army 0's list agrees, and every
 #   `group` row of the old army is the same seat one id higher here (689).
+
+run: 269
+tag: eastindies-turnword
+item: 839
+why: East Indies' long word is 19413 (item 839: the British take the territory tax twice, ECONOMY §16), where ours spends 5 draws against 6, parting at index 3 — the original spends `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69` where ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` — and run257, the last capture on this map below 23960, ends on block 19189, so the word's block 19414 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 839): every
+# `gamelog-*eastindies*` and `*islands*` by its block range. run257
+# holds 18933..19189, run261 18428..18684, run253 18177..18433; run21,
+# run23, run54 and run96 print nothing below 23960 past their starts.
+# None holds a block in 19190..19664. **What the disk does answer**:
+# run257's walk with 839's fix agrees on every who=1 economy key but
+# `leftover[2:wealth]` (8 sixteenths) to its end. **What the disk could
+# not answer**: which figure turns on 19413, and every unit, figure and
+# leader record on 19408..19414.
+#
+# **Sized to the word** (DECISIONS 50 §7): six blocks before it
+# (19408..19413), its block 19414, and 250 above it (19415..19664) —
+# **257 blocks, 19408..19664**. No overlap with run257 (it ends on
+# 19189), so **blocks 19190..19407 are compared by no dump**; the same
+# game is the draw stream's word against run54.
+#
+# **The readings, each with what kills it** (block = frame + 1). Each
+# killer tests the claim's own unit and splits the readings:
+#
+# - **R1 — this is run54's game to 19675.** Killed if the trace differs
+#   from run54's on any frame, or agrees on fewer than 19,676.
+# - **R2 — a unit's order, target or heading parts before the figure's
+#   turn.** Its unit is every `UNITDATA`'s order block, target and
+#   heading on 19408..19414: killed if all agree on the word's block.
+# - **R3 — only a figure's clock parts.** Its unit is every `GUY`'s
+#   `cur_anim`/`cur_time`/`end_time`: killed if all agree on 19414.
+#
+# **run257's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the pool lands (no `DEATHS`). Not a round (a turn), so no `AMMO`.
+frames: 19675
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **19408..19664, 257 blocks**: six up to the word, its block 19414, and
+# 250 of runway above it.
+frame_window: 19408 19665
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run257**: 2.4 MB a block, so 257 blocks is ~0.6 GB, and
+# 475 more frames played unlogged than run257's 23 minutes.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run269.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=19676)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run269-eastindies-turnword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 257 blocks, 19408..19664, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run269-eastindies-turnword.txt" | awk '{v=$3+0; if(v>=19408&&v<19665) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==19408 && hi==19664)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run269-eastindies-turnword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=19408&&v<19665)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run269-eastindies-turnword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=19408&&v<19665)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 628,508,169 bytes of dump and 25,274,400 of trace, **257 blocks
+# 19408..19664**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 09:16 through `viadriver.sh` (the lane lock stale, no RonDriver
+# running), archived 09:40, with no human at the menu. `waitrun.sh`
+# exited 0. All five checks were green:
+# - 19,676 frames identical to run54, 0 differing;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.

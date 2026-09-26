@@ -8193,3 +8193,55 @@ taken, Loop 697): the base's `launch_frames` 15 → 0 and `inside_down` 6
 → −1 on 778, and the plane on the EXIT's own point on the same block.
 The pair's tanks run dry on 1212 and 1214 as in run223, and both are
 still flying home on 1480.
+
+## run269 — East Indies' word 19413, sized to the word (2026-09-26, item 839)
+
+**What it is.** run257's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[19408, 19665)`, at `cover=0`: a draw-stream trace. `!quit` at 19675,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 839
+```
+
+**Why it was owed.** Item 839 moved East Indies' word 19182 → 19413
+(the British take the territory tax twice, `docs/ECONOMY.md` §16).
+run257 ends on block 19189, so the word's block 19414 is on no disk:
+every `*eastindies*` and `*islands*` dump was grepped by its block range
+first. On 19413 ours spends 5 draws against 6, parting at index 3: the
+original spends `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69`. **What the disk could not answer**: which
+figure turns on 19413, and every unit, figure and leader record on
+19408..19414. **Sized to the word** (DECISIONS 50 §7): six blocks before
+its block, the block, and 250 above it, 257 blocks. No capture shares a
+block with it, so **19190..19407 is compared by no dump**. The same game
+is shown by the draw stream against run54.
+
+**Taken whole.** 628.5 MB of dump and 25.3 MB of trace, 257 blocks
+19408..19664. Launched 09:16. The lane lock was stale and no RonDriver
+was running. Archived 09:40. It was waited on with `waitrun.sh`, which
+exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 19,676 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 19408..19664, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run269_s_word_frame_is_widened_whole`,
+`docs/ECONOMY.md` §16.4):
+- **R1 holds**, by the checks above.
+- **R2 and R3**, on the word's own block. Nothing parts on
+  19409..19413. On 19414, `1/77` (a two-figure unit inside `1/78`)
+  differs on its second figure: `angle` −541917184 here against
+  −901447680 there, and its pace (`avg_speed` 15/16 against 11/12,
+  `last_speed[1]` 1 against 0). `1/78`'s `form` reads −1 against 0.
+  Its orders and target agree, so R2 is dead. The figure's heading
+  parts before any clock does, which is R3's shape but on the angle
+  rather than the clock.
+- The first block's floor (318 keys) carries two groups from the gap:
+  who=1's twenty-nine citizens at `hits_left` 40 against 50, and
+  `leftover[2:wealth]` eight sixteenths over. The floor is 318 on the
+  first block, 5 under the word, 323 on its block and 1,433 in all.
