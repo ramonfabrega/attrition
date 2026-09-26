@@ -4274,7 +4274,11 @@ failures were the re-pins below and the thread-width guard).
 
 **The new word, 20782**: ours spends 8 draws against 1 at index 0, ours
 `Leader::use_market+0x1ed` and theirs `Farms::inc_time+0x1ae`. It is
-past run277's end; run289 was taken for it (`docs/RUNS.md`).
+past run277's end; run289 was taken for it (`docs/RUNS.md`,
+`run289_s_word_frame_is_widened_whole`). The first keys to part under it
+are who=1's make list on 20782 (three city-1 entries here, empty there),
+then this crate's extra building `1/2030` on 20783. **It is not a pool
+mechanism**, and it makes Great Lakes (20568) the lower map.
 
 ### 30.5 What this has *not* established
 

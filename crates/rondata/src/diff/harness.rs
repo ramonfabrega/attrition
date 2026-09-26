@@ -16492,6 +16492,107 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run289 — East Indies' word 20782, widened whole, both directions**
+    /// (item 880). run277's line over [`WIDENING_EAST_INDIES_USEMARKET`]:
+    /// six blocks up to the word's block 20783, the block, and 250 past it.
+    /// run277 ends on 20258, so 20259..20776 is compared by no dump; the
+    /// same game is the draw stream's word against run54. [`widen_east_indies`]
+    /// with gaia's animals.
+    #[test]
+    fn run289_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_USEMARKET.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_USEMARKET.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_USEMARKET_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run289",
+            "gamelog-run289-eastindies-marketword.txt",
+            WIDENING_EAST_INDIES_USEMARKET,
+            &[FIRST, WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **The first keys to part under the word are who=1's make list,
+        // on block 20782**: three entries for city 1 here, valued 486, 398
+        // and 486, where the original's are empty. On 20783 this crate
+        // places a building the original does not (`1/2030`, and
+        // `1/2023`'s `city_down`), sends the citizen `1/12` to build it
+        // (`order:kind` 3 against 7) and spends timber, metal and wealth —
+        // the word's `Leader::use_market+0x1ed`. The readings the stanza
+        // wrote (`tools/gamelog/captures.txt`, run289): **R1 holds**
+        // (21,045 frames identical to run54). **R2 stands on one row**:
+        // who=1's only resource row parting before 20782 is the standing
+        // `leftover[2:wealth]`, 2108 here against 2100 on the first block
+        // (parked 851), and nothing else of its stock parts; **R3** has no
+        // clock row parting either. No mechanism is named.
+        let make: Vec<&String> = rows.iter().filter(|r| r.starts_with("20782 ")).collect();
+        assert_eq!(
+            make,
+            [
+                "20782 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
+                "20782 1/-1 leader:MAKE[0].val: ours 486 theirs 0",
+                "20782 1/-1 leader:MAKE[1].city: ours 1 theirs 0",
+                "20782 1/-1 leader:MAKE[1].val: ours 398 theirs 0",
+                "20782 1/-1 leader:MAKE[8].city: ours 1 theirs 0",
+                "20782 1/-1 leader:MAKE[8].val: ours 486 theirs 0",
+            ],
+            "the make list parts first, on the word's frame"
+        );
+        assert!(
+            rows.iter().all(|r| r.starts_with("20782 ") || r.starts_with("20783 ")),
+            "nothing parts on 20778..20781: {rows:?}"
+        );
+        let wealth = standing
+            .get(&FIRST)
+            .and_then(|m| m.get(&(1, -1, "leader:leftover[2:wealth]".to_string())))
+            .cloned();
+        assert_eq!(
+            wealth.as_deref(),
+            Some("ours 2108 theirs 2100"),
+            "who=1's standing wealth row (parked 851)"
+        );
+        // **The floor**: every key standing on the first block, the keys
+        // first parting under the word, the rows standing on the word's
+        // block, and every key in all. The first block's 284 are the gap's
+        // (20259..20776, which no dump compares): `form`, who=1's
+        // citizens' hits and sight, the leader rows, and fourteen units'
+        // orders and headings.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (284, 42, 326, 1_222),
+            "the floor"
+        );
+    }
+
     /// **The squad push on tick 20000 reads the record its pool slot last
     /// held** (item 865, `docs/GROUPS.md` §28). The first killer of
     /// East Indies' word 20007 is `1/65` and `1/66` in each other's slots

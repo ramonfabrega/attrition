@@ -7165,3 +7165,13 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run289-eastindies-marketword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20777&&v<21034)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run289-eastindies-marketword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20777&&v<21034)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 630,518,780 bytes of dump and 26,345,632 of trace, **257 blocks
+# 20777..21033**, launched 17:32 and archived 17:57, waited on with
+# `waitrun.sh` (exit 0). Every check passed:
+# - 21,045 frames identical to run54, 0 differing (rngcmp's count, one
+#   ahead of the harness's frame, parked 845);
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.

@@ -1028,7 +1028,22 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// step's idle, where the original spends its first `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`. Past run269's end (19664); run277 was taken for
 /// it.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 20_007;
+///
+/// **20007 → 20782 on item 880, and the frame was tick 20000's push.**
+/// `Group::kill` clears a pool record its last member leaves, and an
+/// army's group is its slot's record (`Army::add_unit`'s `push_group`),
+/// so the slot records' history is the original's and 865's kept fields
+/// (`copy_group` leaves `facing` and `order_num`) land (`docs/GROUPS.md`
+/// §30). **The move's value diff (the word's delta, here; its blocks are
+/// `run277_s_word_frame_is_widened_whole`'s):** on block 20002 slot 69
+/// reads `order_num` 6 and `facing` 1 on both sides (ours was 1 and 0),
+/// and `1/64`..`1/66`'s orders' `facing` 0 on both (ours was 1); the draws
+/// on 20007 went 8 against 7 → 7 against 7. **The new word's delta: ours
+/// 8 draws and the original 1, parting at index 0**: ours spends
+/// `Leader::use_market+0x1ed` where the original spends
+/// `Farms::inc_time+0x1ae`. Past run277's end (20258); run289 was taken for
+/// it, and `run289_s_word_frame_is_widened_whole` widens its block 20783.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 20_782;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4540,6 +4555,15 @@ pub(crate) const WIDENING_EAST_INDIES_BLOCKEDWALK: (i64, i64) = (20_002, 20_258)
 /// a first wrap, writes block 20008. The coverage driver reads run277
 /// around it.
 pub(crate) const EAST_INDIES_BLOCKEDWALK_BLOCK: i64 = 20_008;
+/// `run289_s_word_frame_is_widened_whole`'s window (item 880): run289
+/// whole, 20777..21033 — six blocks before the word 20782's block and 250
+/// past it. run277 ends on 20258, so 20259..20776 is compared by no dump.
+pub(crate) const WIDENING_EAST_INDIES_USEMARKET: (i64, i64) = (20_777, 21_033);
+/// The word 20782's block on run289 (item 880): its frame, where ours
+/// spends `Leader::use_market+0x1ed` and the original a farm's
+/// `Farms::inc_time+0x1ae`, writes block 20783. The coverage driver reads
+/// run289 around it.
+pub(crate) const EAST_INDIES_USEMARKET_BLOCK: i64 = 20_783;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4731,12 +4755,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `Unit::do_guard+0x8fb`, 19509 → 20007. run269's test keeps the
     // move's value diff (19499, `1/71`), and run277 was taken to widen the
     // new word's block, 20008.
+    //
+    // **Item 880 moved it past run277's end**: `Group::kill` clears an
+    // emptied pool record and an army's group is its slot's record
+    // (`docs/GROUPS.md` §30), 20007 → 20782. run277's test keeps the
+    // move's value diff (20002, slot 69 and `1/64`..`1/66`), and run289 was
+    // taken to widen the new word's block, 20783.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run277_s_word_frame_is_widened_whole"),
-        857,
-        Some(WIDENING_EAST_INDIES_BLOCKEDWALK),
+        Some("run289_s_word_frame_is_widened_whole"),
+        880,
+        Some(WIDENING_EAST_INDIES_USEMARKET),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
