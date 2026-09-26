@@ -3904,7 +3904,7 @@ word:
   slot at once. **Alone, it holds 20007.**
 
 Both rules need **the original's numbering**, and East Indies' parts on
-**block 239** (`east_indies_pool_numbering_parts_on_who_1_s_building_groups`,
+**block 239** (`east_indies_pool_numbering_takes_who_1_s_building_groups`,
 run45). The original's who=1 pushes **building groups**, `[2005]` onto
 64 on frame 1 and `[2000]` onto 66 on frame 176. So `think_scout`'s
 repush of `[0]` on tick 238 does not equal `last_group`, and
@@ -3984,7 +3984,7 @@ which is what one entry per index replaces.
 two records on the index
 (`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`),
 and the pool on frames 2, 238 and 239 against this crate's `1/0` on 239
-(`east_indies_pool_numbering_parts_on_who_1_s_building_groups`).
+(`east_indies_pool_numbering_takes_who_1_s_building_groups`).
 **Decompile-backed**: `copy_group@006fa690`'s nine fields,
 `get_open_slot@006fa460`, `get_num@00714700`, `equals_group@00708000`.
 **Listing-backed**: `action_queue_up`'s six call sites and the
