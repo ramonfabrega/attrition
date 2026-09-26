@@ -8297,6 +8297,56 @@ exited 0.
   by `1/65` (`collide_o` 65) and stands.
 - The floor is 352/21/371/948.
 
+## run289 — East Indies' word 20782, sized to the word (2026-09-26, item 880)
+
+**What it is.** run277's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[20777, 21034)`, at `cover=0`: a draw-stream trace. `!quit` at 21044,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 880
+```
+
+**Why it was owed.** Item 880 moved East Indies' word 20007 → 20782
+(`Group::kill` clears an emptied pool record, and an army's group is
+its slot's record, `docs/GROUPS.md` §30). run277 ends on block 20258,
+so the word's block 20783 is on no disk: every `*eastindies*` and
+`*islands*` dump was grepped by its block range first. On 20782 ours
+spends 8 draws against 1, parting at index 0: ours
+`Leader::use_market+0x1ed`, the original `Farms::inc_time+0x1ae`.
+**What the disk could not answer**: why who=1's leader reaches
+`use_market` on 20782, and every leader, unit, figure and pool record on
+20777..20783. **Sized to the word** (DECISIONS 50 §7): six blocks before
+its block, the block, and 250 above it, 257 blocks. No capture shares a
+block with it, so **20259..20776 is compared by no dump**. The brief's
+other booking for run289, a `GROUPS=1` capture over 6216..15893, was not
+needed: the slot records agree on every dump without it (§30).
+
+**Taken whole.** 630.5 MB of dump and 26.3 MB of trace, 257 blocks
+20777..21033. Launched 17:32. The lane lock was stale (its pid gone) and
+no RonDriver was running. Archived 17:57. It was waited on with
+`waitrun.sh`, which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 21,045 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 20777..21033, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run289_s_word_frame_is_widened_whole`):
+- **R1 holds**, by the checks above.
+- **The first keys to part under the word are who=1's make list on
+  20782**: `MAKE[0]`, `[1]` and `[8]` name city 1 here, valued 486, 398
+  and 486, and are empty there. On 20783 ours places `1/2030`, which the
+  original does not, sends `1/12` to build it, and spends timber, metal
+  and wealth. Nothing parts on 20778..20781.
+- **R2 stands on one row**: who=1's only resource row parting before
+  the word is the standing `leftover[2:wealth]`, 2108 here against 2100
+  (parked 851). **R3**: no clock row parts. No mechanism is named.
+- The floor is 284/42/326/1,222.
+
 ## run281 — chapter twenty-three, the repeat line (2026-09-26, item 867)
 
 `docs/GOLDEN.md` §32, `tools/gamelog/golden/chapter23.cmd`: chapter
