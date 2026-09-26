@@ -7915,3 +7915,51 @@ pid exited. Waited on with `waitrun.sh`, exit 0.
   word, so the extra clock is not an animal's own parting.
 - Every army's list agrees on the word's blocks. The floor is 350 keys on
   the first block, 11 under the word, 361 on its block and 1,314 in all.
+
+## run253 — East Indies' word 18182, sized to the word (2026-09-26, item 811)
+
+**What it is.** run251's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[18177, 18434)`, at `cover=0`: a draw-stream trace. `!quit` at 18444,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 811
+```
+
+**Why it was owed.** Item 811 moved East Indies' word 17501 → 18182 (a
+retarget forms the army twice, `docs/ARMY.md` §21). run251 ends on block
+17752, so the word's block 18183 is on no disk: every `*eastindies*` and
+`*islands*` dump was grepped by its block range first. On 18182 ours
+spends 9 draws against 11, parting at index 0: ours spends
+`Leader::make_stuff+0x221` where the original spends
+`Leader::use_market+0x1ed`. **What the disk could not answer**: who=1's
+make list and stockpile on the word's blocks. **Sized to the word**
+(DECISIONS 50 §7): the six blocks before its block, the block, and 250
+above it, 257 blocks. No capture shares a block with it, so
+**17753..18176 is compared by no dump**, and the same game is the draw
+stream's word against run54.
+
+**Taken whole.** 621.4 MB of dump and 24.3 MB of trace, 257 blocks
+18177..18433. About 24 minutes from launch (04:26) to archive (04:50),
+with no human at the menu. Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 18,445 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 18177..18433, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run253_s_word_frame_is_widened_whole`,
+`docs/ARMY.md` §21.4):
+- **R2 holds**: who=1's make list parts first, on 18181. `MAKE[0]` is
+  type 61 (cat 4, val 952380) here against 590 (cat 8, val 22784)
+  there, and `MAKE[4]` holds a second 61 here against an empty slot.
+- **R3's killer fires**: every stockpile row but the wealth floor's
+  agrees on 18182. On 18183 the original has been to the market
+  (`leftover[2:wealth]` 6862 → 560) and ours has queued at `1/2013`.
+- No unit parts under the word. Past it, ours' `0/0` sets `cur_anim` 2
+  on 18185 where the original's stays at 0.
+- The floor is 310 keys on the first block, 18 under the word, 327 on
+  its block and 977 in all.

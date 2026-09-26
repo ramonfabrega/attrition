@@ -1165,7 +1165,13 @@ impl Sim {
                 return;
             }
             if self.armies[w].list[slot].target.is_some() {
+                // **The arm forms the army itself** (`006f3df0`: `status |=
+                // 0x10; do_forming(this); return`), and `process`'s dispatch
+                // reads `& 0x10` and forms it again on the same tick — two
+                // moves, the second planned from the first's `(ox, oy)`
+                // (§21, item 811: East Indies 17404, army 0).
                 self.armies[w].list[slot].status |= status::FORMING;
+                self.do_forming(who, slot);
                 return;
             }
             self.armies[w].list[slot].status = status::NO_TARGET;
@@ -3047,6 +3053,51 @@ mod tests {
             // (`docs/ORDERS.md` §4.3).
             assert_eq!(m.dest.x.div_euclid(0x30), want.x.div_euclid(0x30));
             assert_eq!(m.dest.y.div_euclid(0x30), want.y.div_euclid(0x30));
+        }
+    }
+
+    /// **The retarget forms the army itself** (§9, item 811):
+    /// `do_marching@006f3df0`'s retarget arm is `find_target(); if found
+    /// { status |= 0x10; do_forming(); return; }`, and `Army::process`'s
+    /// dispatch then reads `& 0x10` and forms it **again** on the same
+    /// tick. So on a retarget tick the army's group is moved twice, and the
+    /// second move's `get_loc` reads the first one's `(ox, oy)` and order
+    /// (`docs/ARMY.md` §21). Made to fail first: with the arm's
+    /// `do_forming` removed, `do_marching` leaves the members with no order.
+    #[test]
+    fn a_retarget_forms_the_army_inside_do_marching() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        // An enemy city for `find_target` to pick.
+        let foe_pos = Pos::new(0x6000, 0x3000);
+        let fb = sim.add_building(0, foe_pos, 1);
+        let mut foe = sim.cities[c].clone();
+        foe.owner = 0;
+        foe.building = fb;
+        foe.pos = foe_pos;
+        foe.capital = true;
+        let fc = sim.cities.len();
+        sim.cities.push(foe);
+        sim.buildings[fb].city = Some(fc);
+        sim.declare_war(1, 0);
+        let slot = sim.init_army(1, Some(c));
+        let a = put(&mut sim, 1, t, Pos::new(0x1000, 0x1000));
+        let b = put(&mut sim, 1, t, Pos::new(0x1200, 0x1000));
+        sim.army_add_unit(1, slot, a);
+        sim.army_add_unit(1, slot, b);
+        sim.armies[1].list[slot].target = None;
+        sim.armies[1].list[slot].status = status::MARCHING;
+        sim.do_marching(1, slot);
+        assert!(
+            sim.armies[1].list[slot].target.is_some(),
+            "the fixture: `find_target` found the enemy city"
+        );
+        assert_ne!(sim.armies[1].list[slot].status & status::FORMING, 0);
+        for u in [a, b] {
+            let o = sim
+                .current_order(u)
+                .expect("`do_marching`'s retarget formed the army itself");
+            assert_eq!(o.index(), crate::orders::index::GROUP_ATTACK_TO);
         }
     }
 
