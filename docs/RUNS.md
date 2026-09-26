@@ -8413,3 +8413,63 @@ staging walk had each finish 8 blocks early; ~~a clock this crate runs
 short~~ with the commands entered the crate agrees on every block
 (`docs/GOLDEN.md` §33), so the 8 blocks were the scratch walk's own. The
 second Bowmen's target is 750 above the first's.
+
+## run292 — chapter twenty-five, the cancel line (2026-09-26, item 884)
+
+`docs/GOLDEN.md` §34, `tools/gamelog/golden/chapter25.cmd`: chapter
+thirteen's cast to 619 (a Barracks `0/2007` for who=0, a Chariot, a
+Hoplite squad, `!ai off`), then **`620 @queueup 0 132 2 2007`**, **`640
+@queueup 0 170 1 2007`**, **`700 @unqueue 0 0 2007`** (arm a), **`760
+@unqueue 0 0 2007`** (arm b), **`800 @buildmask 0 64 2007`**, **`840
+@unqueue 0 -1 2007`** (arm c), **`980 @queueup 0 132 1 2007`**, **`990
+@queueup 0 170 1 2007`** and **`1000 @unqueue 0 -1 2007`** (arm d), the
+cancels through the DLL's new verb 19, `CommandManager::issue_unqueue@
+00942c40`. The chapter and its nine falsifiers were committed before the
+run (`5fd7e0cc`). No `RonDriver` was running and the lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch25 \
+    --map 14 --end-frame 1466 --log-window 605 1466 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter25.cmd
+```
+
+**One take** at `cover=0`: launched 18:38, **1,099 s** in all (1,078
+launch to exit), **359 MB** of dump and 11 MB of trace, 861 blocks. The
+receipt says `success: true`, exit 0, 1,467 frames, `MAP_STYLE 14`, seed
+12345. `waitrun.sh` exited 0. `cmdsran.py` has the six console and chat
+lines returning 1.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run285's trace | the same game to 855 (the first frame it prints differing is 856, one ahead, parked 845): run285's first Hoplite is born there and this run cancelled it |
+| a `GROUPDATA` on every window block | **440,832**, 512 on each of the 861 |
+
+### The issuers' own records
+
+- `INFO 18` for `0/2007`, uid 13, on each of the nine issuer frames.
+- `INFO 17`, refusal 0 on all nine. The package grows 10 → 25 on 700,
+  760, 840 and 1000: **15 bytes, no group**, the emulator's `unqueue`. It
+  grows 10 → 24 on 620 (a fresh group and the `queue_up`) and 10 → 22 on
+  640, 800, 980 and 990.
+- `process_queue_up 132 2 621`, `170 1 641`, `132 1 981` and `170 1 991`;
+  `process_buildmask 801`; **`process_unqueue 2007 0 701`, `2007 0 761`,
+  `2007 -1 841`, `2007 -1 1001`** (`o`, `p`, frame).
+
+### §34's falsifiers
+
+| check | predicted (this crate's walk) | observed |
+| --- | --- | --- |
+| 2, the queue-up | `[132 at 100, 132]` paid 51/38 and 53/41 on 622; `[132, 132, 170]` on 642 | **as predicted**; food 254 → 150, timber 241 → 162 on 622; timber → 117, wealth → 58 on 642 |
+| 3, a cancel inside a run | `[132 at 8100, 170]`, food +53, timber +41 on 702 | **as predicted**: food 157 → 210, timber 121 → 162 |
+| 4, a cancel across two types | `[170 at 100]`, food +51, timber +38 on 762 | **as predicted**: the head at 13900 on 760 gone; food 216 → 267, timber 166 → 204 |
+| 6, a single cancel on 4160 | 4160 on 802; 4096 and `[170 at 8100]`, nothing refunded, on 842 | **as predicted** |
+| 7, the bit gone at the finish | `[]`, 4096, no re-queue on 965 | **as predicted**: the Bowmen at 20200 on 963, `[]` on 965 |
+| 8, −1 is the last slot | `[132 at 2100]`, timber +46, wealth +56 on 1002 | **as predicted**: timber 133 → 179, wealth 10 → 66 |
+| 9, the trains | the Hoplites' last run out on 1216 | `[132 at 23310]` on 1215, `[]` on 1216 |
+
+**No falsifier fired**, and every predicted value is on its predicted
+block: the staging walk went through the commands' own entries (parked
+885). Falsifiers 1 and 5 and the births are read in `docs/GOLDEN.md` §34.
