@@ -15413,7 +15413,11 @@ pub(crate) mod tests {
         let got: Vec<(String, usize)> = per_unit.into_values().map(|((_, r), n)| (r, n)).collect();
         let want: Vec<(String, usize)> = [
             ("17001 0/-1 leader:production_step: ours 0 theirs 1", 1),
-            ("16971 1/-1 leader:scholars: ours 13 theirs 14", 8),
+            // who=1's wealth family (`income`, `resources`, `leftover`,
+            // `bucket` and `rate` of wealth, 1234 against 1380 from 17184)
+            // left with item 839: the British take the territory tax twice
+            // (`docs/ECONOMY.md` §16).
+            ("16971 1/-1 leader:scholars: ours 13 theirs 14", 3),
             // `1/0`'s `group` (71 against 70 from 17139) left with item
             // 829 for the first block, 70 against 69: a closed army's group
             // holds its slot (`docs/ARMY.md` §22), and the pool id is one
@@ -15499,7 +15503,8 @@ pub(crate) mod tests {
             );
         }
         // who=1's leader, whole: the make list's `city` shift (the floor's
-        // family), wealth, and `scholars` from 16971.
+        // family) and `scholars` from 16971. The wealth family went with
+        // item 839 (the British territory tax, `docs/ECONOMY.md` §16).
         let leader: Vec<String> = firsts
             .iter()
             .filter(under)
@@ -15511,11 +15516,6 @@ pub(crate) mod tests {
             [
                 "17181 1/-1 leader:MAKE[1].city: ours 1 theirs 0",
                 "17181 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
-                "17196 1/-1 leader:bucket[2:wealth]: ours 20 theirs 21",
-                "17184 1/-1 leader:income[2:wealth]: ours 1234 theirs 1380",
-                "17184 1/-1 leader:leftover[2:wealth]: ours 4226 theirs 4321",
-                "17377 1/-1 leader:rate[2:wealth]: ours 77 theirs 86",
-                "17184 1/-1 leader:resources[2:wealth]: ours 1234 theirs 1380",
                 "16971 1/-1 leader:scholars: ours 13 theirs 14",
             ],
             "who=1's leader under the word"
@@ -15541,7 +15541,11 @@ pub(crate) mod tests {
                 .collect::<Vec<_>>(),
             // Item 800: 418/439 → 311/311 on 17403's pre-state and block —
             // run227's 307 and the pool id `group` of `1/60` and the squad.
-            [307, 307, 311, 311],
+            // Item 839: 307/307/311/311 → 304/304/306/306, who=1's wealth
+            // family — three rows standing on 17189 (`income`,
+            // `resources`, `leftover`), five on 17403 — agrees
+            // (`docs/ECONOMY.md` §16).
+            [304, 304, 306, 306],
             "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
@@ -15554,12 +15558,15 @@ pub(crate) mod tests {
         // Item 811 took 116 past the new word (446 → 330): army 0's column
         // from 17405, once it is formed twice on its retarget tick. Item
         // 829 moved `1/0`'s `group` from 17139 to the first block (293 →
-        // 294), the pool id one higher (`docs/ARMY.md` §22).
+        // 294), the pool id one higher (`docs/ARMY.md` §22). Item 839
+        // took 294/312/324/330 → 294/309/319/325: who=1's wealth family
+        // from 17184 goes (three rows before the old word, five in all),
+        // the British territory tax (`docs/ECONOMY.md` §16).
         let before = |b: i64| firsts.values().filter(|(f, _)| *f < b - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (294, 312, 324, 330),
+            (294, 309, 319, 325),
             "the floor"
         );
     }
@@ -15672,12 +15679,16 @@ pub(crate) mod tests {
         // in it), the keys first parting under the word, the rows standing
         // on the word's block, and every key in all. **Item 811** took it
         // 350/11/361/1,314 → 313/0/313/337: the column's walk from 17405
-        // agrees, on the first block and past the word.
+        // agrees, on the first block and past the word. **Item 839** took
+        // it 313/0/313/337 → 308/0/308/332: who=1's wealth family —
+        // `bucket`, `income`, `leftover`, `rate` and `resources` of wealth
+        // — agrees once the British take the territory tax twice
+        // (`docs/ECONOMY.md` §16).
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (313, 0, 313, 337),
+            (308, 0, 308, 332),
             "the floor"
         );
     }
@@ -15815,12 +15826,17 @@ pub(crate) mod tests {
         // block, and every key in all. **Item 822** took it
         // 310/18/327/977 → 309/4/313/319: `known_rares` leaves the first
         // block, the Merchant's fourteen rows under the word go, and 658
-        // keys past it with them.
+        // keys past it with them. **Item 839** took it 309/4/313/319 →
+        // 305/4/309/315: who=1's `bucket`, `income`, `rate` and
+        // `resources` of wealth agree (the British territory tax,
+        // `docs/ECONOMY.md` §16). `leftover[2:wealth]` stands, 2380
+        // against 2372 on the first block: eight sixteenths from the gap
+        // 17753..18176, which no dump compares.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (309, 4, 313, 319),
+            (305, 4, 309, 315),
             "the floor"
         );
     }
@@ -15843,6 +15859,9 @@ pub(crate) mod tests {
         const OLD_BLOCK: i64 = EAST_INDIES_GUARDWORD_BLOCK;
         const FIG_BLOCK: i64 = EAST_INDIES_FIGUREWORD_BLOCK;
         const WORD_BLOCK: i64 = EAST_INDIES_LEADERWORD_BLOCK;
+        /// The block after tick 19176, when ours bought the timber (item
+        /// 839).
+        const PURCHASE: i64 = 19_177;
         let Some(Widened {
             firsts,
             missing,
@@ -15856,7 +15875,7 @@ pub(crate) mod tests {
             "run257",
             "gamelog-run257-eastindies-guardword.txt",
             WIDENING_EAST_INDIES_GUARDWORD,
-            &[FIRST, OLD_BLOCK, FIG_BLOCK, WORD_BLOCK],
+            &[FIRST, OLD_BLOCK, FIG_BLOCK, PURCHASE, WORD_BLOCK],
             true,
         )
         else {
@@ -15949,29 +15968,57 @@ pub(crate) mod tests {
             .filter(|(_, (f, _))| (FIG_BLOCK + 1..WORD_BLOCK).contains(f))
             .map(row)
             .collect();
-        // **Under the new word, the first row of each key past item 829's
-        // word** (item 837): who=0's `production_step` on 19001, who=1's
-        // timber bucket on 19177, and its make list on 19182. The draw
-        // stream parts on 19182, where ours runs who=1's market, building
-        // and make passes the original does not. No mechanism is named.
+        // **Under item 837's word, 19182, the first row of each key past
+        // item 829's word.** Until item 839 they were who=0's
+        // `production_step` on 19001, who=1's timber bucket on 19177 (149
+        // against 49) and its make list on 19182 (`MAKE[0].val` 1531
+        // against 0, `MAKE[1].t` 427 against 528, …): ours'
+        // `market_speculation` bought a hundred timber for 135 wealth on
+        // tick 19176 out of a purse of 150, where the original's held 67.
+        // The purse was the territory tax: the British take it twice
+        // (`docs/ECONOMY.md` §16). who=0's `production_step` stands; its
+        // readers are who=0's own `plan_strategy` and `production_ai`.
         assert_eq!(
             rows,
-            [
-                "19001 0/-1 leader:production_step: ours 0 theirs 1",
-                "19182 1/-1 leader:MAKE[0].val: ours 1531 theirs 0",
-                "19182 1/-1 leader:MAKE[1].cat: ours 7 theirs 8",
-                "19182 1/-1 leader:MAKE[1].t: ours 427 theirs 528",
-                "19182 1/-1 leader:MAKE[1].val: ours 1531 theirs 0",
-                "19182 1/-1 leader:MAKE[2].t: ours 528 theirs 527",
-                "19182 1/-1 leader:MAKE[3].t: ours 527 theirs 526",
-                "19182 1/-1 leader:MAKE[7].val: ours 1531 theirs 0",
-                "19177 1/-1 leader:bucket[1:timber]: ours 149 theirs 49",
-            ],
-            "the keys first parting under the new word"
+            ["19001 0/-1 leader:production_step: ours 0 theirs 1"],
+            "the keys first parting under item 837's word"
+        );
+        // **Item 839's value diff.** who=1's purse and wood on 19176 and
+        // 19177 (the tick of the purchase), and the whole wealth family and
+        // the food on the first block, which stood 116 against 27 and 114
+        // against 214 from the gap 18685..18932 (the original's hundred
+        // food bought with the tax ours did not collect). Only
+        // `leftover[2:wealth]` stands, eight sixteenths over from the gap
+        // 17753..18176.
+        let economy = |b: i64| -> Vec<String> {
+            standing
+                .get(&b)
+                .into_iter()
+                .flatten()
+                .filter(|((w, o, k), _)| {
+                    *w == 1
+                        && *o == -1
+                        && ["bucket", "income", "resources", "rate", "leftover"]
+                            .iter()
+                            .any(|p| k.starts_with(&format!("leader:{p}[")))
+                })
+                .map(|((_, _, k), v)| format!("{k}: {v}"))
+                .collect()
+        };
+        assert_eq!(
+            economy(FIRST),
+            ["leader:leftover[2:wealth]: ours 3588 theirs 3580"],
+            "who=1's economy on the first block"
+        );
+        assert_eq!(
+            economy(PURCHASE),
+            ["leader:leftover[2:wealth]: ours 6924 theirs 6916"],
+            "who=1's purse and wood on the purchase's block"
         );
         let on_word_firsts = firsts.values().filter(|(f, _)| *f == WORD_BLOCK).count();
+        // Item 839 took it 24 → 0: nothing parts first on 19183 now.
         assert_eq!(
-            on_word_firsts, 24,
+            on_word_firsts, 0,
             "the keys first parting on the word's block"
         );
         // The figures that change animation on one side only, near either
@@ -15987,16 +16034,10 @@ pub(crate) mod tests {
             .copied()
             .collect();
         // Until item 837, `1/9` on 19002 was the original's only: its
-        // `cur_anim` 36 → 8 is both sides' now. Past the new word ours
-        // alone changes `0/0` on 19183 and `1/7` on 19184.
-        assert_eq!(
-            word,
-            [
-                (WORD_BLOCK, 0, 0, false, true),
-                (WORD_BLOCK + 1, 1, 7, false, true)
-            ],
-            "a figure's animation changes on one side only"
-        );
+        // `cur_anim` 36 → 8 is both sides' now. Until item 839 ours alone
+        // changed `0/0` on 19183 and `1/7` on 19184, past the purchase;
+        // none does now.
+        assert_eq!(word, [], "a figure's animation changes on one side only");
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
             .iter()
             .flat_map(|(b, m)| {
@@ -16025,10 +16066,14 @@ pub(crate) mod tests {
         // they read −1. **Item 837** took it 322/1/323/863 →
         // 322/9/355/387: the word's block is 19183 now, so the middle two
         // count under it (from 19001) and on it, and 476 keys that parted
-        // behind the extra draw on 18999 agree.
+        // behind the extra draw on 18999 agree. **Item 839** took it
+        // 322/9/355/387 → 317/1/318/319: the first block loses who=1's
+        // food and four of the wealth family (`leftover` stands), the
+        // eight rows of the purchase under the word go, and 68 keys past
+        // it with them.
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (322, 9, 355, 387),
+            (317, 1, 318, 319),
             "the floor"
         );
     }
@@ -16101,9 +16146,17 @@ pub(crate) mod tests {
         // **One key parts past the first block** in 257: the human
         // leader's `production_step` on 18601. Everything else standing
         // is the first block's, run253's floor carried on.
+        // **Item 839**: who=1's wealth family agrees on the first block
+        // now (the British territory tax, `docs/ECONOMY.md` §16), all but
+        // `leftover[2:wealth]`, eight sixteenths over from the gap
+        // 17753..18176, whose carry puts the purse one wealth over on
+        // 18511.
         assert_eq!(
             rows,
-            ["18601 0/-1 leader:production_step: ours 0 theirs 1"],
+            [
+                "18601 0/-1 leader:production_step: ours 0 theirs 1",
+                "18511 1/-1 leader:bucket[2:wealth]: ours 108 theirs 107",
+            ],
             "the keys first parting past the window's first block"
         );
         // **R2 and R3** (the stanza's): the original's group 71 reads
@@ -16127,11 +16180,14 @@ pub(crate) mod tests {
         assert_eq!(lists_part, [], "no army's list parts around the close");
         // **The floor**: every key standing on the first block (run253's
         // floor, carried), the keys past it, the rows standing on the
-        // close's block, and every key in all.
+        // close's block, and every key in all. **Item 839** took it
+        // 318/1/316/319 → 314/2/313/316: who=1's wealth `bucket`,
+        // `income`, `rate` and `resources` leave the first block, and the
+        // purse's one-wealth carry on 18511 arrives past it.
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_close.len(), firsts.len()),
-            (318, 1, 316, 319),
+            (314, 2, 313, 316),
             "the floor"
         );
     }

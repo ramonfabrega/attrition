@@ -381,7 +381,8 @@ is the one place in the game where territory pays rather than merely hurting
 whoever stands in it, and it is the economic mirror of `docs/ATTRITION.md`.
 
 Three modifiers sit on it, all read: the British scale `TERRITORY_TAXES` by
-`(BRITISH_TAXATION + 100) / 100`, which as shipped doubles it; a Conquer-the-World
+`(BRITISH_TAXATION + 100) / 100`, which as shipped doubles it (~~read and not
+built~~ — built and diff-backed by item 839, §16); a Conquer-the-World
 conquest bonus scales it by `CTW_MISSIONARIES_BONUS`; and the Mongols
 additionally take **food** from the same ratio, `num_nations * territory * 800
 / land_size / MONGOL_NOMADIC_FOOD`, which is the one term in the economy that
