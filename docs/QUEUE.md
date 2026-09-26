@@ -29,7 +29,7 @@ pass and none was meant to. Nothing is in flight.*
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 6 Loop items** (677, 685, 697, 745, 775, 799).
+- **Fable backlog: 7 Loop items** (677, 685, 697, 745, 775, 799, 810).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w17403 of 24,000 · GreatLakes w20568 of 24,000
