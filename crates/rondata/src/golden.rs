@@ -1186,6 +1186,9 @@ mod tests {
         ("chapter18.cmd", &[]),
         ("chapter19.cmd", &[]),
         ("chapter2.cmd", &[]),
+        // Chapter twenty: two `@settransport` lines, three `@move`s and a
+        // Dock, the board line (item 803, `docs/GOLDEN.md` §28).
+        ("chapter20.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
