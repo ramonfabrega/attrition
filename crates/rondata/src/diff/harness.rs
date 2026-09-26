@@ -762,6 +762,23 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     theirs,
                 });
             }
+            // **And `& 0x40`, the infinite queue** (item 877,
+            // `docs/GOLDEN.md` §33): only the player's button sets it,
+            // on a training building with a train job queued; the
+            // queue's own finish, refusal and emptying clear it. On
+            // every dump before run285 it is clear on every building.
+            let theirs = i64::from(mask & 0x40 != 0);
+            let mine = i64::from(ours.queue.infinite);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field: "infinite_queue",
+                    ours: mine,
+                    theirs,
+                });
+            }
         }
         // **And the city it belongs to, and the chain it sits on** (item
         // 661). `city` is the slot in the owner's own city array and

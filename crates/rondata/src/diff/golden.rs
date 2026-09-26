@@ -903,6 +903,31 @@ fn chapter_twenty_three_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty-four, pinned** — the queue line: a Barracks' infinite
+/// queue toggled on between two finishes (`docs/GOLDEN.md` §33, item 877,
+/// run285). Eight staged lines: chapter thirteen's four to 614, two
+/// `@queueup`s on 620 and 640, and two `@buildmask` 0x40 on 900 and 1300.
+#[test]
+fn chapter_twenty_four_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch24", "chapter24", 24, 8, 1559) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_FOUR,
+        "chapter twenty-four's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_FOUR}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_FOUR,
+        "chapter twenty-four's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §33"
+    );
+    eprintln!(
+        "chapter twenty-four: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run255's repair, unit for unit, both directions** (item 813,
 /// `docs/GOLDEN.md` §29). On every block of
 /// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
@@ -8614,6 +8639,136 @@ const WANT_CH23_POOL: &[&str] = &[
     "666 slot 2 new_speed",
     "666 slot 2 speed",
     "1442 slot 0 held",
+];
+
+/// **run285 whole, both directions** (item 877, `docs/GOLDEN.md` §33):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_twenty_four_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch24",
+        "chapter24",
+        WIDENING_CHAPTER_TWENTY_FOUR,
+        1559,
+        0,
+        (853, 857),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch24 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter thirteen's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_FOUR.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch24: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_FOUR.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch24", "chapter24", WIDENING_CHAPTER_TWENTY_FOUR, 0)
+        .expect("run285 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch24 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH24.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch24: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH24_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch24: what parts in the pool moved");
+}
+
+// **What parts under the word** on run285, chapter twenty-four. ~~The
+// first walk, with both `@queueup` lines skipped and `@buildmask` 0x40
+// writing nothing: on 622 the Hoplites' queue-up, `0/2007`'s `queued`
+// and the food and timber it paid; on 642 the Bowmen's wealth; on 856 the
+// Hoplites the original trained.~~ **The commands entered** (item 877,
+// [`crate::input::group_queue_up`] → `Sim::action_queue_up`, the 0x40
+// toggle and `do_queue`'s re-queue): 622, 642 and 856's `unlinked` agree,
+// and the three trained squads are born on 856, 1060 and 1272 on both
+// sides. What stands is chapter thirteen's births' `form` (611, 615), and
+// on each trained squad, `Unit::come_out@00617c10`'s human arm: a squad
+// type (`+0x308` > 1) coming out of a building is `Group::add`ed and
+// `Groups::push_group`ed (force 1), so the original's members read
+// `group` (the pool slot: 0, 2, 1), `form` 0, and the followers'
+// `orders_x/y` (2712, 14232) against the Barracks' point (2688, 14208)
+// here. This crate's pool of units does not seat it (`group.rs`, the
+// pool lane's); the stream agrees to 1560 with it standing. The named
+// reader of `orders_x` is `Unit::check_target_path@005e22d0`, a target's
+// path; nothing targets these squads in run285.
+const WANT_CH24: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "856 0/10 form",
+    "856 0/10 group",
+    "856 0/11 form",
+    "856 0/11 group",
+    "856 0/11 orders_x",
+    "856 0/11 orders_y",
+    "856 0/12 form",
+    "856 0/12 group",
+    "856 0/12 orders_x",
+    "856 0/12 orders_y",
+    "1060 0/13 form",
+    "1060 0/13 group",
+    "1060 0/14 form",
+    "1060 0/14 group",
+    "1060 0/14 orders_x",
+    "1060 0/14 orders_y",
+    "1060 0/15 form",
+    "1060 0/15 group",
+    "1060 0/15 orders_x",
+    "1060 0/15 orders_y",
+    "1272 0/16 form",
+    "1272 0/16 group",
+    "1272 0/17 form",
+    "1272 0/17 group",
+    "1272 0/17 orders_x",
+    "1272 0/17 orders_y",
+    "1272 0/18 form",
+    "1272 0/18 group",
+    "1272 0/18 orders_x",
+    "1272 0/18 orders_y",
+];
+
+// **What parts in the pool** on run285, all pushes this crate does not
+// seat: the building group `[2007]` the original's `process_group` pushes
+// into who=0's slot 1 on 622 (§32's standing row), and again into slot 3
+// on 1302 (the second press); the trained squads `[10, 11, 12]` in slot 0
+// on 856 and `[13, 14, 15]` in slot 2 on 1060 (`come_out`'s push). The
+// third squad, on 1272, takes slot 1 back: `Groups::get_open_slot@
+// 006fa460` counts the building group's slot as open, which is why the
+// building group moves to slot 3 on 1302. Slot 1's first parting is 622.
+const WANT_CH24_POOL: &[&str] = &[
+    "622 slot 1 held",
+    "856 slot 0 held",
+    "1060 slot 2 held",
+    "1302 slot 3 held",
 ];
 
 #[test]

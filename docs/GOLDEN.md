@@ -1379,6 +1379,7 @@ below without a run take their number at booking (the eleventh pass).
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
 | 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
 | 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) — **run 2026-09-26 (item 867), 498 MB, 1,505 s; the pool printed; no falsifier fired: `build_masks` 4232 → 4104 on 1442; `0/7` inside with no order on 1489 and `0/8` on 1513; `0/6`'s kept patrol killed on 1585, its tank's first 0, and `0/6` still inside; nothing launches to 1839; the building group in pool slot 0** |
+| 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4876,3 +4877,259 @@ keeps chapter twenty-two's ten rows and one more, **1442 slot 0 held**
 `Groups::get_open_slot@006fa460`, which counts the slot as open to the
 next push, and no push follows; no later slot parts by it. The word
 stays **1840, closed**.
+
+## 33. Chapter twenty-four — the queue line: a Barracks' infinite queue toggled on between two finishes (item 877)
+
+**Premise.** The player's infinite-queue button on a production building
+**toggles its `build_masks & 0x40`**, and only while a **train job** is
+queued there: `WallData::valid_buildmask@0063e2a0` admits 0x40 when
+`BuildData::can_infinite@0062d4d0` finds a unit type (0x32..0x19d) with
+its availability bit set in the queue of a training building
+(`BuildTypeData::is_training_building`, `build_flags & 0x80000000`).
+With the bit set, **a finished train job re-queues itself at the end of
+the queue, paid again**, and the bit survives the queue emptying under it;
+a re-queue the stockpile refuses leaves the bit off. This is
+`Build::do_queue@0061e410`'s arm at `61ec24` (`docs/PRODUCTION.md`,
+"Completion"): the word is read after `finished` answers > 0 and before
+`unqueue(i, 0)`, which clears 0x40 when `queued` reaches 0
+(`Build::unqueue@006207c0`); then, for a train job with the bit read,
+`&= ~0x40`, `Build::queue_up@00620f40(type, 0)`, and `|= 0x40` on
+success. The in-game writers of the bit are this button —
+`Options::exec@007188c0`'s option 0x40 → `GroupOut::issue_buildmask@
+00708820` → `CommandManager::issue_buildmask@00941f80` →
+`CommandPackage::process_buildmask@00947680` → `Group::action_buildmask@
+006fc9a0` — and the queue's own clears (`unqueue`, `clean_queue@00620b60`,
+`action_unqueue@00620280`). No AI function reads or writes it.
+
+**A claim checked, not a premise**: the booking's reading, that `0x40`
+is the player's repeat production and that a finished unit re-queues
+itself under it, is the listing's; the emulator adds the gate. The
+premise names three arms of the completion, and **the toggle is placed
+between two finishes** (parked 879) so one capture buys all three: a
+finish with the bit clear (the Hoplites, 848), a finish with it set and
+the re-queue paid (the Bowmen, 1052), and a finish with it set and the
+re-queue refused (the Bowmen again, 1264). A fourth line buys the gate's
+refusal: the same button on an empty queue (1302).
+
+**The issuers, under the emulator first** (a scratch script on
+`tools/explore/command_oracle.py`'s fixture, with a `Build` on
+`Build::vftable` in who=0's registry, its `BuildTypeData`, the type list
+and the leader's bitmask synthesized).
+- `CommandManager::issue_queue_up@00941be0(group [b], type, num)`
+  appends the 5-byte `group` and a 9-byte `queue_up` (type 0x18,
+  `[type i32][num i32]`), 14 bytes, each as passed. It tests nothing of
+  the type. It writes no object.
+- `issue_buildmask(group [b], 0x40, set)`: 14 bytes with `set` 1,
+  whatever the third argument (§32 again).
+- **`valid_buildmask`'s answer, by state** (the masks 0x40, 0x80, 0xc0,
+  0x08, 0x100):
+
+  | the building | 0x40 | 0x80 |
+  | --- | --- | --- |
+  | not a training building, a train job queued | 0 | 0 (1 with `can_carry(AIR)`) |
+  | training, queue empty | 0 | 0 |
+  | training, one research entry (the bit clear) | 0 | 0 |
+  | training, one train job (the bit set) | **1** | 0 |
+  | training, a research entry then a train job | **1** | 0 |
+  | training, one tech entry (type 0x250, its bit set) | 0 | 0 |
+
+  0xc0 answers as 0x40 or 0x80 does; 0x08 and 0x100 are never admitted.
+- **`action_buildmask(0x40)` toggles**: on an admitted Barracks 4104 →
+  4168 and 4168 → 4104 with `set` 1 or 0; 4296 → 4232 (0x80 untouched).
+  With only a research entry, or an empty queue with the bit set (4168),
+  it writes nothing.
+- **`Build::unqueue(0, 0)`**: a one-entry queue with 0x40 empties and the
+  bit clears (4168 → 4104); on a two-entry queue the bit stays.
+- **What the emulator could not reach**: `do_queue`'s completion arm (it
+  trains a unit), read from the listing (`61ec17` `finished`, `61ec24`
+  the word, `61ec35` `unqueue(i, 0)`, `61ec4f` the clear, `61ec59`
+  `queue_up(type, 0)`, `61ec66` the set); `Group::action_queue_up@
+  006fdbb0` (it sorts the members by `queued`, then calls
+  `Build::queue_up(type, 1)` on each active, finished member `num` times,
+  a missile silo asking `can_carry(type)` first); and `process_group`'s
+  push of each building group, at process time.
+
+**The readers of `build_masks & 0x40`**, by `+0x60` in every spelling
+(parked 869): `do_queue`, `unqueue`, `clean_queue`, `action_unqueue`
+(the player's cancel clears the bit and, for a single cancel, returns
+without removing the entry), `ScenarioFuncSet::toggle_infinite_queue@
+009f45e0` (out of v1), and the interface's `IFaceSelected::update_queue`,
+`IFaceOptions::setup_button`, `GroupData::get_infinite_queue` and
+`GroupOut::issue_queue_up`'s queue-full message. **None is the AI's.**
+The other `&= ~0x40` stores in `come_out`, `action_alarm`, `Wall::start_me` and
+`BuildType::mask_me` are a city flag or a tile mask.
+
+**The cast** is chapter thirteen's to 619 (run208 is this game there):
+`!ai off`, who=0's Barracks `0/2007` at tile (14, 74), `build_masks` 4096,
+a Chariot and a Hoplite squad. The Barracks trains Scouts, Slingers,
+Hoplites (132) and Bowmen (170), each with its availability bit set, so
+every entry here is a train job. **Lines**: `620 @queueup 0 132 1 2007`;
+`640 @queueup 0 170 1 2007`; `900 @buildmask 0 64 2007`; `1300
+@buildmask 0 64 2007`. The DLL's `@queueup <who> <type> <num> <b>…` is new
+(`tools/trace/tracer.c`, verb 18): `@buildmask`'s registry check, the
+prologue `55 8b ec 83 ec 0c b9 60 ff e8 00`, the command 9 bytes. An `@`
+line on trace frame F is on block F+2 (§17).
+
+**The staging, walked by this crate on run208's start** (a scratch walk:
+`Sim::queue_up` by hand on the processed frames, the re-queue emulated;
+run286 was not used). Every value below is this crate's:
+- 619: who=0 holds 253 food, 240 timber, 113 wealth; pop 8 of 25.
+- **622**: `[132]`, `job_counter` 100; food 204, timber 204.
+- **642**: `[132, 170]`; wealth 63.
+- **848**: the Hoplites out, a Hoplite trained; `[170]` at 0; no re-queue.
+- **902**: `build_masks` 4160.
+- **1052**: the Bowmen out, a Bowman trained; `[170]` at 0, paid 46
+  timber and 56 wealth out of 72; `build_masks` 4160.
+- **1264**: the Bowmen out again; 24 wealth against 56: refused; the
+  queue empty; `build_masks` 4096.
+- **1302**: the second press on the empty queue: 4096.
+
+The margins are what the staging rests on: the toggle is 54 blocks after
+the Hoplites' finish and 150 before the Bowmen's (a train job's clock is
+~226 blocks here and is compared on every capture), and the first re-queue
+has 16 wealth over, the second 32 short.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over **`[605, 1560)`**: 955 blocks. The last
+falsifier is 1302's, so the runway past it is **258 blocks**.
+
+**The premise's killer, and its writers** (§3, point 5): `0/2007`'s
+`build_masks` and `BUILDQUEUE` on 848, 902, 1052, 1264 and 1302, and
+who=0's `bucket`s there. The writers of the bit are listed above; of the
+queue, `queue_up` (the command's and the re-queue's), `unqueue` (the
+finish's), and nothing else in the window: no cancel, no capture, no
+defeat. **The loops**: `action_buildmask`'s and `action_queue_up`'s
+members to `group.num` (1); `num` 1; `can_infinite`'s entries to
+`queued` (1 or 2).
+
+**What would falsify it, and where each could first fire.**
+1. **The issues do not reach the pump.** Trace frames 620, 640, 900,
+   1300: an `INFO 17` with a refusal; or no `process_queue_up type: 132
+   num: 1` on 621, `170` on 641, no `process_buildmask unitmask: 64` on
+   901 and 1301.
+2. **The queue-up is not the reading's.** `0/2007`'s `BUILDQUEUE` on 622
+   and 642: anything but `[132]` then `[132, 170]`, each paid once
+   (`queue[k].cost`), `queue[0].job_counter` 100 on 622.
+3. **A finish with the bit clear re-queues** (arm 1). The block the
+   Hoplites' entry leaves (848 by this crate): `[170]` alone. It splits
+   two readings: a 132 behind the 170 (every train job repeats, or the
+   bit is read as set), or none (the reading).
+4. **The toggle is not the gate's.** `build_masks` on 902. It splits
+   three readings: 4096 (refused: the Bowmen not a train job, or
+   `can_infinite` not the gate), 4160 (the reading), or another value.
+5. **A finish with the bit set does not re-queue, or loses the bit**
+   (arm 2). The block the Bowmen's entry leaves (1052 by this crate): it
+   splits three readings: `[]` and 4096 (the bit is no gate), `[170]` at
+   0, paid again, and 4096 (the re-queue made but `unqueue`'s empty clear
+   left standing), `[170]` at 0, paid again, and 4160 (the reading). A
+   re-queue at the front against the end cannot be split here: the queue
+   is empty when it is made.
+6. **A refused re-queue keeps the bit** (arm 3). The block the second
+   Bowmen's entry leaves (1264): `[]` with 4096 and wealth unspent (the
+   reading); `[]` with 4160 (the bit kept on a refusal); or `[170]` (the
+   price not asked).
+7. **The gate admits an empty queue.** `build_masks` on 1302: 4096 (the
+   reading) or 4160.
+8. **The finish does not train.** A new who=0 Hoplite on 848 and a new
+   Bowman on 1052 and 1264, each out of the Barracks. The arm
+   independent of the bit: trained whether or not re-queued.
+
+Falsifiers 3, 5 and 6 test the premise's own unit, one entry's finish on
+its own block (711), and each splits the readings (parked 789).
+
+**Where it should part.** This crate enters neither command: the harness
+skips `@queueup` and `@buildmask` 0x40 writes nothing
+(`Sim::action_buildmask` carries 0x80 alone). So the first value parting
+is **622**, `0/2007`'s `queued` (ours 0, theirs 1) and who=0's food and
+timber; the draw stream should first part at the Hoplite's training
+(~848), a birth this crate does not make. The pool gains a building group
+at each command, which this crate's pool of units does not seat (§32's
+standing row).
+
+**Run 2026-09-26 as run285 (item 877)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run208 to 640.
+- **The issues** (1 did not fire): `INFO 17` refusal 0 on all four;
+  `process_queue_up 132 1 621`, `170 1 641`, `process_buildmask` on 901
+  and 1301.
+- **The queue-up** (2 did not fire): `[132]` at 100 on 622, `[132, 170]`
+  on 642, each paid once.
+- **The finish with the bit clear** (3 did not fire): the Hoplites run to
+  23310 on 855 and leave on **856**; `[170]` alone, 4096.
+- **The toggle** (4 did not fire; it split the readings to the second):
+  4096 → **4160 on 902**.
+- **The finish with the bit set** (5 did not fire; it split the three
+  readings to the third): the Bowmen run to 20280 on 1059; on **1060**
+  `[170]` at 0, timber 189 → 143 and wealth 70 → 14, **4160**. The re-queue
+  survived `unqueue`'s empty clear.
+- **The refused re-queue** (6 did not fire): the second Bowmen run to
+  21030 on 1271; on **1272** `[]`, **4096**, wealth 19 unspent.
+- **The gate on an empty queue** (7 did not fire): 4096 on 1302.
+- **The trains** (8 did not fire): three Hoplites on 856 and three Bowmen
+  on 1060 and on 1272, each squad in a pool group.
+
+The staging walk had every finish 8 blocks early (848, 1052, 1264). ~~A
+clock this crate runs short, which the widening names.~~ **Not this
+crate's clock**: with the commands entered, the queue agrees with run285
+on every block (below), so the 8 blocks were the scratch walk's own — it
+queued by hand outside the command and did not stage chapter thirteen's
+lines past 619 the same way; which difference it was is not established.
+The arms did not depend on it: the toggle stood 46 blocks after the
+Hoplites' finish and 158 before the Bowmen's.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_FOUR` = 855,
+open, on the first walk**, with both `@queueup` lines skipped and
+`@buildmask` 0x40 writing nothing: on 855 the original's Hoplites finish
+and train a squad this crate never queued, and the draws part there. The
+widening, (605, 858), in `WIDENINGS`, with three windows in the coverage
+driver (622, 642, 855) and `process_queue_up` pinned there. **The value
+partings**, both sides:
+- **622**, `0/2007`'s `queued`: ours 0, theirs 1; who=0's food and
+  timber, ours 254 and 241, theirs 203 and 203;
+- **642**, wealth: ours 114, theirs 61;
+- **856**, `0/10`–`0/12`, the trained Hoplites: the dump holds them alone.
+The pool: the building group `[2007]` in who=0's slot 1 on 622, and the
+trained squad `[10, 11, 12]` in slot 0 on 856, neither seated here.
+
+**The commands entered: `GOLDEN_WORD_CHAPTER_TWENTY_FOUR` = 1560,
+closed** (item 877, `docs/PRODUCTION.md` "The infinite queue"):
+`input::group_queue_up` → `Sim::action_queue_up`; the 0x40 arm of
+`Sim::action_buildmask`, gated by `Sim::can_infinite`; `Queue::infinite`,
+cleared by `Queue::unqueue` on the empty queue; and `do_queue`'s re-queue,
+the bit read before the unqueue and `Sim::requeue_infinite` after the
+train. The stream agrees to run285's end. **The value diff, both sides**,
+on the blocks the reading named:
+- **622**: `0/2007` `[132]` at 100; food 203, timber 203 on both (ours
+  was 254 and 241 before the build).
+- **642**: `[132, 170]`; wealth 61 on both (ours was 114).
+- **856**, the old word's block: `[170]` at 0 and 4096 on both; the
+  Hoplites `0/10`–`0/12` at (2712, 14904), (2712, 15048), (2856, 15000)
+  on both (the dump held them alone before).
+- **902**: 4160 on both.
+- **1060**: `[170]` at 0, timber 143, wealth 14, 4160 on both; the Bowmen
+  `0/13`–`0/15` born.
+- **1272**: `[]`, 4096, wealth 19 on both; `0/16`–`0/18` born.
+- **1302**: 4096 on both.
+
+The widening is **run285 whole**, (605, 1561), with eight windows in the
+coverage driver (622, 642, 855, 902, 1060, 1272, 1302, 1557). What stands,
+34 rows: chapter thirteen's births' `form` (611, 615), and on each trained
+squad (856, 1060, 1272) `Unit::come_out@00617c10`'s human arm — a squad
+type (`+0x308` > 1) coming out of a building is `Group::add`ed and
+`Groups::push_group`ed, so the original's members read `group` (the pool
+slot: 0, 2, 1), `form` 0, and the followers' `orders_x/y` (2712, 14232)
+against the Barracks' point (2688, 14208) here. This crate's pool does not
+seat that push. The stream agrees to 1560 with it standing; the named
+reader of `orders_x` is `Unit::check_target_path@005e22d0`, and nothing
+targets these squads. **The pool**, four rows, each a push not seated
+here: the building group `[2007]` in slot 1 on 622 and slot 3 on 1302,
+the squads in slot 0 on 856 and slot 2 on 1060. The third squad takes
+slot 1 back on 1272 (`Groups::get_open_slot@006fa460` counts the
+building group's slot as open), which is why the second press's building
+group lands in slot 3.
+
+**Mutations**, each restored from git and `touch`ed: the bit read after
+the unqueue fails `a_finished_train_job_requeues_under_the_bit` and drops
+the word to 1271 (the second Bowmen never re-queued); `can_infinite`
+answering for any queue fails `the_infinite_button_needs_a_train_job`
+and parts the widening on **1302**, `0/2007 build:infinite_queue` ours 1
+theirs 0 — the compare is read.

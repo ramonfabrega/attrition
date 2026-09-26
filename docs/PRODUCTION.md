@@ -501,7 +501,8 @@ library and everything else.
   the entry was a train job and the building's `build_masks & 0x40` — the
   **infinite-queue** flag — is set, the bit is cleared, `queue_up(type, 0)` is
   tried, and the bit is set back on success; `unqueue` clears it when the
-  queue empties. Not modelled.
+  queue empties. ~~Not modelled.~~ Built and diff-backed: "The infinite
+  queue" below (item 877, run285).
 - **zero or negative, at any slot but 0** — nothing. The entry stays at full
   progress and the attempt repeats next frame.
 - **zero or negative, at slot 0** — the entry stays, and the building looks
@@ -706,6 +707,69 @@ past it the two streams are running on draws that are nobody's, and the
 238 fields that disagree there are all `1/2010`'s and all downstream of
 `Unit::think_fish`.
 
+## The infinite queue (item 877)
+
+`WallData::build_masks & 0x40`, the player's repeat-production button
+(`Options::exec@007188c0`'s option 0x40 on a selection of buildings →
+`GroupOut::issue_buildmask@00708820` → `CommandManager::issue_buildmask@
+00941f80` → `CommandPackage::process_buildmask@00947680` →
+`Group::action_buildmask@006fc9a0`). `docs/GOLDEN.md` §33 is the chapter
+and run285 its capture; every clause below is diff-backed there unless it
+says otherwise.
+
+**The gate.** `WallData::valid_buildmask@0063e2a0` admits 0x40 on a
+member whose `BuildData::can_infinite@0062d4d0` answers: the building is a
+training building (`BuildTypeData::is_training_building`, `build_flags &
+0x80000000` on the root type) and **a train job is queued there**, an
+entry whose type is a unit type with its availability bit set. A research
+entry, a technology and an empty queue do not admit it (under the
+emulator; run285's second press, on an empty queue, leaves 4096).
+`action_buildmask` then **toggles** the bit off the first admitted
+member's state, whatever the command's `set` (`docs/GOLDEN.md` §32).
+
+**The re-queue.** In `Build::do_queue@0061e410`, once `finished` answers
+> 0 for slot `i`:
+
+```
+was_train = the entry was a unit type with its bit set before `finished`
+word      = build_masks                      # 61ec24, before the unqueue
+unqueue(i, 0)                                 # clears 0x40 if queued -> 0
+if was_train and word & 0x40:
+    build_masks &= ~0x40
+    if queue_up(type, 0) == 0:                # paid; appended at the end
+        build_masks |= 0x40
+```
+
+So the finished unit's type goes to the **end** of the queue at its
+current price, the bit survives the queue emptying under it, and a
+re-queue the stockpile refuses leaves the bit off with the queue as it
+is. run285: the Bowmen out on 1060 and re-queued at 0, 46 timber and 56
+wealth, 4160; out again on 1272, refused on 19 wealth, the queue empty and
+4096. A research entry's completion (`gain_tech`) never re-queues.
+
+**The other clears**, reading-only (no capture reaches them):
+`Build::clean_queue@00620b60` (a closed, captured or defeated building's
+queue) clears the bit when it empties; `Build::action_unqueue@00620280`,
+the player's cancel, clears it first, and for a single cancel returns
+without removing the entry — the first cancel on an infinite queue only
+turns it off. No AI function reads or writes the bit, and no dump before
+run285 holds it on any building.
+
+**The command that fills the queue** is `CommandPackage::process_queue_up@
+00948230` → `Group::action_queue_up@006fdbb0(type, num)`: the members are
+sorted by `queued`, least first, then `num` times over each live, finished
+member gets `Build::queue_up(type, 1)`, whose answer is not read (a missile
+silo asks `can_carry(type)` first). The research arm — a unit type whose
+bit is clear, or a technology — goes through `LeaderData::researching` and
+one building with an empty queue first; it is read and not built.
+
+**In the code**: `production::Queue::infinite` is the bit, and
+`Queue::unqueue` clears it on the empty queue; `Sim::can_infinite`,
+`Sim::requeue_infinite` and `Sim::action_queue_up` are in
+`crates/sim/src/production.rs`; the 0x40 arm of `Sim::action_buildmask`
+is in `air.rs`; `do_queue`'s read-before-unqueue is `Sim::advance_slot`'s
+`Handover::Trained` arm. The harness compares the bit beside 0x80.
+
 ## What is not established
 
 - **Nine of `train_time`'s ten national arms**, and everything after them.
@@ -783,7 +847,8 @@ past it the two streams are running on draws that are nobody's, and the
   caravan-limit and aircraft-pad refusals (`finished` returning -1) and the
   `get_next_non_caravan` / `get_next_helicopter` fallback that follows them,
   because the simulation has neither caravans nor aircraft; the missile-silo
-  gate in `do_queue`; the infinite-queue flag; the University's six-scholar
+  gate in `do_queue`; ~~the infinite-queue flag~~ (built, "The infinite
+  queue"); the University's six-scholar
   rule; the library quirk that removes an entry on a negative answer. Each is
   named where it belongs above and each is a small addition once the thing it
   depends on exists.

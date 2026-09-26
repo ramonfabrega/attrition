@@ -139,6 +139,15 @@ pub struct Queue {
     pub capacity: usize,
     /// The live entries, in order. Length is the original's `queued`.
     pub items: Vec<Item>,
+    /// **`WallData::build_masks & 0x40`, the infinite queue**
+    /// (`docs/PRODUCTION.md`, "The infinite queue"; `docs/GOLDEN.md`
+    /// §33). The player's button sets and clears it
+    /// ([`Sim::action_buildmask`](crate::Sim::action_buildmask)), a train
+    /// job that finishes under it re-queues itself
+    /// ([`Sim::requeue_infinite`](crate::Sim::requeue_infinite)), and
+    /// [`Queue::unqueue`] clears it when the queue empties. It lives on the
+    /// queue because every writer but the button is the queue's own.
+    pub infinite: bool,
 }
 
 impl Queue {
@@ -146,6 +155,7 @@ impl Queue {
         Queue {
             capacity,
             items: Vec::new(),
+            infinite: false,
         }
     }
 
@@ -220,7 +230,13 @@ impl Queue {
         if refund {
             unpay(&self.items[i], ledger);
         }
-        Some(self.items.remove(i))
+        let item = self.items.remove(i);
+        // `Build::unqueue@006207c0`'s tail: `queued` reaching 0 clears
+        // `build_masks & 0x40` (under the emulator, 4168 → 4104).
+        if self.items.is_empty() {
+            self.infinite = false;
+        }
+        Some(item)
     }
 }
 
@@ -606,6 +622,94 @@ pub fn reprice(item: &mut Item, discount: i32, levels: i32, ledger: &mut Ledger)
     refunded
 }
 
+/// The infinite queue and the player's queue-up (`docs/PRODUCTION.md`,
+/// "The infinite queue"; `docs/GOLDEN.md` §33, run285).
+impl crate::Sim {
+    /// **`BuildData::can_infinite@0062d4d0`** — the gate
+    /// `WallData::valid_buildmask@0063e2a0` asks for 0x40: a training
+    /// building (`BuildTypeData::is_training_building`, `build_flags &
+    /// 0x80000000`) with **a train job** in its queue, a unit type whose
+    /// availability bit is set. A research entry, a tech entry and an
+    /// empty queue answer 0 (under the emulator, and run285's 1302).
+    pub fn can_infinite(&self, at: usize) -> bool {
+        let b = &self.buildings[at];
+        let Some(rec) = b.ty else {
+            return false;
+        };
+        if !crate::build::is_training_building(&self.build_types, rec) {
+            return false;
+        }
+        let researched = &self.muster[b.owner as usize].researched;
+        b.queue
+            .items
+            .iter()
+            .any(|i| i.tech.is_none() && researched[i.ty])
+    }
+
+    /// **`Build::do_queue@0061e410`'s re-queue**, at `61ec24`: after a
+    /// train job's `finished` answered > 0, the word is read before
+    /// `unqueue(i, 0)` — which clears 0x40 when the queue empties — and
+    /// with the bit read, `&= ~0x40`, `Build::queue_up@00620f40(type, 0)`,
+    /// and `|= 0x40` on success. So the re-queue goes to the end, is paid
+    /// again, and survives the empty queue's clear; a refusal leaves the
+    /// bit off. `was` is the bit as read before the unqueue. run285: the
+    /// Bowmen out on 1060, re-queued with 46 timber and 56 wealth, 4160;
+    /// out again on 1272, refused on 19 wealth, 4096.
+    pub fn requeue_infinite(&mut self, at: usize, ty: usize, was: bool) {
+        if !was {
+            return;
+        }
+        self.buildings[at].queue.infinite = false;
+        if self.queue_up(at, ty).is_ok() {
+            self.buildings[at].queue.infinite = true;
+        }
+    }
+
+    /// **`Group::action_queue_up@006fdbb0`** for a train job — a unit
+    /// type whose availability bit is set — on a group of buildings, from
+    /// `CommandPackage::process_queue_up@00948230`. The members are first
+    /// sorted by `queued`, least first (a selection sort from each live
+    /// member's slot); then `num` times over, each live, finished member
+    /// gets `Build::queue_up(type, 1)`, whose answer is not read. A
+    /// missile silo asks `can_carry(type)` first; no silo is carried here.
+    /// Returns the entries laid.
+    ///
+    /// SEAM: the other arm, a research entry (a unit type whose bit is
+    /// clear, or a technology): `LeaderData::researching`, then one
+    /// building with an empty queue first. No capture reaches it.
+    pub fn action_queue_up(&mut self, buildings: &[usize], ty: usize, num: i32) -> usize {
+        let who = match buildings.first() {
+            Some(&b) => self.buildings[b].owner,
+            None => return 0,
+        };
+        if !self.muster[who as usize].researched[ty] {
+            return 0;
+        }
+        let mut list = buildings.to_vec();
+        let live = |sim: &crate::Sim, b: usize| sim.buildings[b].alive && sim.buildings[b].active;
+        for i in 0..list.len().saturating_sub(1) {
+            if !live(self, list[i]) {
+                continue;
+            }
+            for j in i + 1..list.len() {
+                let queued = |b: usize| self.buildings[b].queue.items.len();
+                if queued(list[j]) < queued(list[i]) {
+                    list.swap(i, j);
+                }
+            }
+        }
+        let mut laid = 0;
+        for _ in 0..num {
+            for &b in &list {
+                if live(self, b) && self.queue_up(b, ty).is_ok() {
+                    laid += 1;
+                }
+            }
+        }
+        laid
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -928,5 +1032,119 @@ mod tests {
         assert!(q.has_room());
         q.push(1, &c);
         assert!(!q.has_room());
+    }
+}
+
+/// The infinite queue on a Sim (item 877, `docs/GOLDEN.md` §33).
+#[cfg(test)]
+mod infinite_tests {
+    use crate::build::{BuildType, Ident, flags};
+    use crate::economy::RESOURCES;
+    use crate::{Sim, tech};
+
+    /// A Barracks (a training building) and one unit type it trains.
+    fn barracks(researched: bool) -> (Sim, usize, usize) {
+        let mut w = crate::world::World::new(16, 16);
+        w.fill_region(
+            crate::world::Terrain::Land,
+            crate::world::Cell::new(0, 0),
+            crate::world::Cell::new(15, 15),
+        );
+        let mut sim = Sim::new(crate::Tuning::RON, w, 1);
+        let mut tree = tech::TechTree::new();
+        for n in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
+            tree.add(tech::TypeDef::good(n));
+        }
+        let unit = tree.add(tech::TypeDef::unit("Bowmen", tech::UnitTraits::default()));
+        let build = tree.add(tech::TypeDef::building("Barracks"));
+        tree.types[unit].where_ = Some(build);
+        tree.finalize();
+        sim.set_tech_tree(tree);
+        sim.tech[0].tech[unit] = true;
+        sim.tech[0].tech[build] = true;
+        let mut ty = crate::UnitType {
+            tree: Some(unit),
+            ..crate::UnitType::default()
+        };
+        ty.price.pop = 1;
+        ty.price.base[crate::economy::Resource::Wealth.index()] = 50;
+        let rec = sim.add_unit_type(ty);
+        sim.muster[0].researched[rec] = researched;
+        let brec = sim.build_types.len();
+        sim.build_types.push(BuildType {
+            ident: Ident::Barracks,
+            tree: Some(build),
+            flags: flags::TRAINS,
+            x_size: 2,
+            y_size: 2,
+            hits: 100,
+            ..BuildType::default()
+        });
+        let b = sim.add_building(0, crate::Pos::new(4 * 256, 4 * 256), 20);
+        sim.buildings[b].ty = Some(brec);
+        sim.muster[0].cap = 100;
+        sim.ledgers[0].bucket = [10_000; RESOURCES];
+        sim.holdings[0].available = [true; RESOURCES];
+        (sim, b, rec)
+    }
+
+    /// **The button needs a train job** (`BuildData::can_infinite@
+    /// 0062d4d0`, under the emulator): nothing on an empty queue or a
+    /// research entry, a toggle on a train job, and the queue's emptying
+    /// clears it. Made to fail with the gate answering for any queue.
+    #[test]
+    fn the_infinite_button_needs_a_train_job() {
+        let (mut s, b, rec) = barracks(false);
+        assert_eq!(s.action_buildmask(&[b], 0x40), 0, "an empty queue");
+        s.queue_up(b, rec).expect("a research entry");
+        assert_eq!(s.action_buildmask(&[b], 0x40), 0, "a research entry");
+        let (mut s, b, rec) = barracks(true);
+        s.queue_up(b, rec).expect("a train job");
+        assert_eq!(s.action_buildmask(&[b], 0x40), 1);
+        assert!(s.buildings[b].queue.infinite, "4096 -> 4160");
+        assert_eq!(s.action_buildmask(&[b], 0x40), 1);
+        assert!(!s.buildings[b].queue.infinite, "4160 -> 4096");
+        s.action_buildmask(&[b], 0x40);
+        let mut ledger = crate::economy::Ledger::default();
+        s.buildings[b].queue.unqueue(0, false, &mut ledger);
+        assert!(!s.buildings[b].queue.infinite, "the empty queue clears it");
+    }
+
+    /// **A train job finished under the bit re-queues itself, paid again,
+    /// until the stockpile refuses** (`do_queue`'s `61ec24`, run285's 1060
+    /// and 1272). Made to fail with the bit read after the unqueue, and
+    /// with the re-queue skipped.
+    #[test]
+    fn a_finished_train_job_requeues_under_the_bit() {
+        let (mut s, b, rec) = barracks(true);
+        s.queue_up(b, rec).expect("queued");
+        s.action_buildmask(&[b], 0x40);
+        let finish = |s: &mut Sim| {
+            let n = s.buildings[b].queue.items.len();
+            for _ in 0..100_000 {
+                let trained = !s.process_queues().is_empty();
+                if trained || s.buildings[b].queue.items.len() != n {
+                    return trained;
+                }
+            }
+            panic!("the entry never finished");
+        };
+        assert!(finish(&mut s), "the first trains");
+        let q = &s.buildings[b].queue;
+        assert_eq!(q.items.len(), 1, "re-queued");
+        assert_eq!(q.items[0].job_counter, 0);
+        assert!(q.infinite, "the bit survives the empty queue's clear");
+        assert_ne!(q.items[0].cost, [0; super::PAIRS], "paid again");
+        // A stockpile short of the next price in every resource it costs.
+        let price = s.price_of(0, rec);
+        for (r, p) in price.iter().enumerate() {
+            if *p > 0 {
+                s.ledgers[0].bucket[r] = p - 1;
+            }
+        }
+        assert!(finish(&mut s), "the second trains");
+        let q = &s.buildings[b].queue;
+        assert!(q.items.is_empty(), "the re-queue is refused");
+        assert!(!q.infinite, "and the bit goes with it");
     }
 }

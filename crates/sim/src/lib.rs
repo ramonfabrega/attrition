@@ -2616,10 +2616,14 @@ impl Sim {
                 // No refund on completion, and no skip-forward: the original
                 // passes false for both, and they are the same argument.
                 let mut ledger = economy::Ledger::default();
+                // `61ec24`: the infinite queue is read before the unqueue.
+                let infinite = self.buildings[at].queue.infinite;
                 self.buildings[at].queue.unqueue(slot, false, &mut ledger);
                 self.muster[who as usize].queued_by_type[ty] -= 1;
                 self.track_tree_queued(who, ty, -1);
-                Advanced::Trained(self.build_train(at, ty))
+                let trained = self.build_train(at, ty);
+                self.requeue_infinite(at, ty, infinite);
+                Advanced::Trained(trained)
             }
         }
     }

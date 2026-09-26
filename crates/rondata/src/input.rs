@@ -769,6 +769,35 @@ pub fn group_buildmask(built: &mut Built, who: i32, buildings: &[i16], mask: i32
     list.len()
 }
 
+/// **`CommandPackage::process_queue_up@00948230`** on a group of the
+/// player's own buildings: `process_group`'s group, then
+/// `Group::action_queue_up@006fdbb0(type, num)` — a unit's button
+/// (`GroupOut::issue_queue_up@00708c90`, item 877, `docs/GOLDEN.md` §33).
+/// `ty` is the original's `TypeIndex`, mapped onto this crate's unit type
+/// through the tree the harness built.
+///
+/// SEAM: a technology's `TypeIndex` is not mapped (no capture queues one
+/// through the command), and the command's building group is not seated
+/// in the pool, as for [`group_buildmask`].
+///
+/// Returns the entries laid.
+pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, num: i32) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    let Some(unit) = (0..built.unit_tree.len())
+        .find(|&t| built.type_index.get(built.unit_tree[t]).copied() == Some(ty))
+    else {
+        return 0;
+    };
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.action_queue_up(&list, unit, num)
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {

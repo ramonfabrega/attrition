@@ -3540,6 +3540,31 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_THREE: i64 = 1840;
 /// who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_THREE: (i64, i64) = (605, 1841);
 
+/// **Chapter twenty-four's golden word** — the queue line: a Barracks'
+/// infinite queue toggled on between two finishes (`docs/GOLDEN.md` §33,
+/// item 877, run285). **855, open, on the first walk**, with both
+/// `@queueup` lines skipped and `@buildmask` 0x40 writing nothing: on 855
+/// the original's Hoplites finish and train a squad this crate does not
+/// make (it queued nothing), and the draws part there. What parts before
+/// it is values, by the widening: 622, `0/2007`'s `queued` (ours 0,
+/// theirs 1) and who=0's food and timber (254 and 241 here, 203 and 203
+/// there); 642, wealth (114 against 61); 856, the three Hoplites the dump
+/// holds alone. **1560, closed** (the commands entered in the same item:
+/// `input::group_queue_up` → `Sim::action_queue_up`, the 0x40 toggle in
+/// `Sim::action_buildmask`, and `do_queue`'s re-queue,
+/// `Sim::requeue_infinite`, `docs/PRODUCTION.md` "The infinite queue"):
+/// the three finishes, the re-queue and its refusal agree, and the stream
+/// agrees to run285's end.
+///
+/// **The delta**, this constant's: +705, 855 → 1560, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_FOUR: i64 = 1560;
+
+/// `chapter_twenty_four_s_word_frame_is_widened_whole`'s window: ~~run285
+/// from its first block to two past the first walk's word, (605, 858)~~
+/// **run285 whole**, (605, 1561), once the word closed. Its pool half,
+/// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_FOUR: (i64, i64) = (605, 1561);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5289,6 +5314,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_three_s_word_frame_is_widened_whole"),
         867,
         Some(WIDENING_CHAPTER_TWENTY_THREE),
+    ),
+    // Item 877: run285, chapter twenty-four's first walk, open at 855:
+    // the Hoplites' training, which this crate did not queue; the
+    // commands entered in the same item closed it at 1560. The widening
+    // is run285 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_FOUR",
+        GOLDEN_WORD_CHAPTER_TWENTY_FOUR,
+        Some("chapter_twenty_four_s_word_frame_is_widened_whole"),
+        877,
+        Some(WIDENING_CHAPTER_TWENTY_FOUR),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
