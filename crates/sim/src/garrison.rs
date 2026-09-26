@@ -369,6 +369,21 @@ impl Sim {
                 self.come_out_place(f, s, Some(host_angle));
             }
         }
+        // **The squad's push** (`618900`..`6189aa`, `docs/GOLDEN.md` §33):
+        // a captain whose host is a building (vslot `0x20`) and whose type's
+        // `uber_size` (`+0x308`) is over 1 is `Group::add`ed — the captain
+        // and its `o_down` chain — and `push_group(who, g, 1)`ed, after the
+        // members' own exits. There is no owner test: a human's trained
+        // squad and a computer's alike take a slot of their own, which the
+        // computer's army takes a block later (East Indies 17363, 17575).
+        if self.units[captain]
+            .ty
+            .is_some_and(|t| self.unit_types[t].combat.uber_size > 1)
+        {
+            let mut g = crate::group::Group::stack(self.units[captain].owner);
+            self.group_add(&mut g, captain);
+            self.push_group(&mut g, true);
+        }
         // The city alarm clears when the city empties.
         if self.building_is_city(b)
             && self.buildings[b].garrison.is_empty()
@@ -394,6 +409,47 @@ impl Sim {
         // `Build::train`, which is what run54's two `+0x25b0` draws are.
         self.come_out_join_army(captain);
         true
+    }
+
+    /// `CommandPackage::process_group@0094a0c0`'s push of a player's
+    /// command group of buildings (`0x94a6cf`, `Groups::push_group(who, g,
+    /// 1)`), before the command behind it — an eject, a build mask, a
+    /// queue-up — runs (`docs/GOLDEN.md` §32, §33). One building is
+    /// [`Sim::push_building_group`]'s group.
+    ///
+    /// SEAM: a group of two or more buildings is not seated; no capture
+    /// selects more than one.
+    pub fn push_command_buildings(&mut self, who: crate::world::Player, list: &[usize]) {
+        if let [b] = list {
+            self.push_building_group(who, *b);
+        }
+    }
+
+    /// The building group `who`'s pool slot `s` holds, if it holds one and
+    /// no army: its record and its buildings' object numbers, as the dump's
+    /// `GROUPDATA` lists them (`buildings 1`). [`Sim::pool_list`] and
+    /// [`Sim::pool_state`] list units alone. For a widening.
+    pub fn pool_building_group(
+        &self,
+        who: Player,
+        s: u8,
+    ) -> Option<(&crate::group::GroupState, Vec<i16>)> {
+        let army = self
+            .armies
+            .get(who as usize)
+            .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(s)));
+        if army {
+            return None;
+        }
+        self.pushed
+            .iter()
+            .find(|p| {
+                p.who == who && p.state.pool == Some(s) && p.list.is_empty() && !p.builds.is_empty()
+            })
+            .map(|p| {
+                let o = p.builds.iter().map(|&b| self.buildings[b].index).collect();
+                (&p.state, o)
+            })
     }
 
     /// One unit's exit spot: the ring around its trainer, swept from due

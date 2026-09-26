@@ -12,35 +12,31 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-26, the sixteenth Fable pass (Fable 5.1, the main thread): **no
-score moved; none was meant to.** Nothing is in flight; the count
-restarts at the pass's commit, named in the opener.*
+*2026-09-26, the commander (Opus 5.5), one landing since the sixteenth
+pass: **882 landed; no long word moved and none was meant to.** 880 is
+in flight on the AI lane and reports East Indies 20007 → 20782 on its
+branch, not yet gated; 884 is next on the rules lane.*
 
-- **East Indies 17403 → 20007 in the tranche** (800, 811, 822, 829, 837,
-  839, 850, 857); 865 and 870 named 20007's cause (GROUPS §28–§29) and
-  the pool agrees to 20257. **Great Lakes held at 20568**; 795 was never
-  spawned, East Indies being the lower map throughout. Chapters twenty
-  to twenty-four closed; the order row 65 cited.
-- **The pass built eight**: `viadriver.sh` opens a new instance (810),
-  the decimal clause reads `crates/sim` alone and `UNBUILT` is 139 (820),
-  a split citation is joined (835), a journal guard (841), `rngcmp.py`'s
-  harness word (845), the `Golden:` list guard (846), the `SITES` guard
-  (866, the bomb's row parked as 886), the first parting block's
-  standing rows by default (830) — and twelve Loop lines are checklist
-  rows. DECISIONS 52.
-- **Fable backlog: 8 Loop items** (677, 685, 697, 745, 775, 799, 838, 852).
+- **882** built `Unit::come_out`'s push for every owner's trained squad
+  and the command's building group (GROUPS §31): chapter twenty-four's
+  standing rows 34 → 25, thirteen long floor pins and run134's pool pin
+  closed and none opened; 561 closed and 689's birth-push half built. The
+  booking's "human arm" was 877's hypothesis and the listing killed it.
+- **What stands on chapter twenty-four** is `Unit::init`'s birth values
+  (646) and the push record's `o` (887, the AI lane's), both parked.
+- **Fable backlog: 9 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w20007 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · 882 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · 884 next
 Endpoint 24001: EastIndies 40 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 880 on the AI lane (East Indies is lower) — the 6164 parting
-on disk first, the capture after; 882 on the rules lane, fenced to
-`come_out`'s push; 795 after 880. A brief names only the fenced modules;
-a capture is sized to its word and waited on with
+**Opener: 880 is live on the AI lane (ref f1b7d1ff); merge it when it
+reports. 884 on the rules lane: the cancel's arithmetic under the emulator
+first, its staging off run285's start, then run292. 795 after 880. A
+brief names only the fenced modules; a capture is waited on with
 `tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
-its merge. The count runs from f0b9d296.**
+its merge. The count runs from f0b9d296: one landing.**
 
 ## The queue
 
@@ -65,12 +61,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
-882. **Chapter twenty-four's floor: a trained squad's pool push** (877
-    closed the chapter at 1560, GOLDEN §33). 30 of its 34 standing rows
-    are `Unit::come_out`'s human push of a trained squad into the pool:
-    `group`, `form` 0, and the followers' `orders_x/y`. In `group.rs`
-    beside 880: **882 owns `come_out`'s push, 880 the slot's kept
-    fields**, and each brief names the other. Inside run285.
+884. **Chapter twenty-five: the cancel line — an issuer, no capture yet**
+    (877's park). The player's `action_unqueue` on a Barracks queue of
+    two, and a single cancel on an infinite queue, which 877 read as
+    turning the bit off and removing nothing: a claim to check, not a
+    premise. The refund's arithmetic under the emulator first, and
+    `input::Stream`'s skipped `QueueUp`/`Unqueue` beside it. **run292**
+    the capture, run293 a staging run. GOLDEN §34. 883 (the research arm) after.
 
 ## How to maintain this file
 

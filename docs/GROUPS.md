@@ -3779,9 +3779,10 @@ the same block. It is past run233's end, so run251 was taken
   carries a seat, and never a player's selection or `action_guard`'s
   local group. The latter is built captain-first by `group_add`, so its
   sort is a no-op.
-- **The squad's birth push** (17363): the original's new squad sits in a
+- ~~**The squad's birth push** (17363): the original's new squad sits in a
   pool slot of its own for a block before the army takes it. That is
-  689's family and spends no draw.
+  689's family and spends no draw.~~ `Unit::come_out`'s push, built by
+  item 882 (§31).
 - 744's other seams, the slot angles, the copy-back and the anchor that
   leads its parent (§26.6), are not touched.
 
@@ -4061,11 +4062,12 @@ every East Indies dump, run42 to run277. With 29.1 and 29.2:
 
 - **Every dump agrees on every block to 20257**, run277's last, but two
   blocks.
-- **17363** (run233): `1/67`..`1/69` read −1 here and 69 there on their
+- ~~**17363** (run233): `1/67`..`1/69` read −1 here and 69 there on their
   birth block. The original seats a new squad in a pool slot of its own
-  for one block (§27.5), and this crate does not. The next block agrees.
-- **17575** (run251): `1/70`..`1/72` do the same, on 64 there. The next
-  block agrees.
+  for one block (§27.5), and this crate does not. The next block agrees.~~
+- ~~**17575** (run251): `1/70`..`1/72` do the same, on 64 there. The next
+  block agrees.~~ Both agree since item 882: the push is `come_out`'s
+  (§31).
 - run96's 23960 is past the word.
 
 On block 20002, `1/64`..`1/66` point at 68 on both sides, and slot 69
@@ -4133,9 +4135,9 @@ against 65, §24's permutation) close.
 
 ### 29.6 What this has *not* established
 
-- **The squads' birth push** (17363, 17575): which call seats a new
+- ~~**The squads' birth push** (17363, 17575): which call seats a new
   squad for one block. It is 689's family, one block each, and spends no
-  draw.
+  draw.~~ `Unit::come_out@00617c10` (§31, item 882).
 - ~~**Where the slot records' `order_num` part in 6216..15893.**~~ No
   capture was needed: the records part on block 377, and with §30 they
   agree on every dump, 15894 included.
@@ -4309,3 +4311,121 @@ and run277's and run99's floors. **Decompile-backed**: `Group::kill`,
 `Army::add_unit`, `Army::add_group`, `push_group`. **Listing-backed**:
 `Group::clear`. **Measured, not asserted**: the walk's partings in 30.3,
 and Great Lakes' walk.
+
+## 31. A trained squad's pool push, and a command's building group — chapter twenty-four's `group` and pool rows (item 882, 2026-09-26)
+
+*Established by the listing at `618900`..`6189aa` and `617c33`, the
+decompiles of `Unit::come_out@00617c10`, `Group::add@00714350`,
+`Groups::push_group@0070f9e0` and `Unit::init@00612100`, and run285's
+`UNITDATA` and `GROUPDATA` (`docs/GOLDEN.md` §33). Diff-backed on every
+block of run285 and run208. The golden words hold: chapter twenty-four
+at 1560, thirteen at 1000, twenty-three at 1840.*
+
+### 31.1 The push
+
+**The booking's "human arm" was
+877's hypothesis, and the listing killed it.** `come_out`'s push is
+`618900`..`6189aa`: the unit is a captain (vslot `0xe8`, `o_up < 0`), its
+host index is ≥ 0 and the host's vslot `0x20` answers (a building, not a
+transport), and the type's `uber_size` (`+0x308`) is over 1; then
+`Group::add(o, who, 0, 0)` (the captain and its `o_down` chain) into the
+stack group `Group::clear` opened at `617c33`, and `push_group(who, g,
+1)`. **There is no owner test**: a computer's trained squad takes its own
+slot the same way, which is East Indies' one-block birth rows on 17363
+and 17575 (`docs/GROUPS.md` §27.5, §29.3, parked 689). The push follows
+the members' own exits (`:535`'s recursion runs first) and precedes the
+gather-point block (`BuildData +0xcc`), which no command in run285 sets,
+so `come_out` issues the group no order here. **The writers on the birth
+block, counted by offset** (823, 869): `+0x80` — `push_group`'s second
+walk, and nothing else in `come_out`; `+0xaa` (`form`) —
+`Unit::init@00612100` (9 for types `0x32`–`0x35`, 0 for the rest),
+`Group::action_move_near@00704990`, `Group::action_form@00707220`,
+`Unit::do_form_change@005e8670` and the cast and scenario writers, and
+no layout or cast reaches these units in run285, which leaves `init`; `+0x70`/`+0x74` (`orders_x/y`) —
+`Unit::init`'s zeroing and its `update_action`, which sets them to the
+point it inits the unit at, tile-centred (`div_3(x >> 4)·0x30 + 0x18`),
+and `come_out`'s `update_action` on the captain.
+
+### 31.2 Two events, and which row needs which
+
+**So the slot numbers need two events**, and each row was asked which:
+the Barracks' building group at each command (`CommandPackage::
+process_group@0094a0c0`, `0x94a6cf`; §32's standing row) and the squad's
+push. Without the first, the Hoplites take slot 1 (ours) against 0
+(theirs): slot 0 is `last_group`'s. **Built**: `Sim::come_out` pushes
+the squad (`crates/sim/src/garrison.rs`), and
+`Sim::push_command_buildings` seats a one-building command group through
+`push_building_group` before the eject, the build mask and the queue-up
+(`crates/rondata/src/input.rs`). The pool widening reads a building group
+(`Sim::pool_building_group`), which it could not see before.
+
+### 31.3 What it moved
+
+**The value diff, both sides** (run285 and this crate):
+
+| block | unit or slot | `group` / held, theirs | ours before | ours now |
+| --- | --- | --- | --- | --- |
+| 622 | slot 1 | `[2007]`, `buildings 1`, stamp 621 | empty | `[2007]` |
+| 856 | `0/10`–`0/12` | 0 | −1 | 0 |
+| 856 | slot 0 | `[10, 11, 12]`, stamp 855 | empty | the same |
+| 1060 | `0/13`–`0/15` | 2 | −1 | 2 |
+| 1060 | slot 1 | `[2007]`, stamp 901 (the press on 900 re-seats it) | empty | `[2007]` |
+| 1060 | slot 2 | `[13, 14, 15]`, stamp 1059 | empty | the same |
+| 1272 | `0/16`–`0/18` | 1 | −1 | 1 |
+| 1302 | slot 3 | `[2007]`, stamp 1301 | empty | `[2007]` |
+
+With the push alone the squads read 1, 0 and 2: the first measure, which
+named the building group. **The widening goes 34 → 25 rows and the pool
+4 → 8**, all of one mechanism each, and none is the push:
+
+- **25 rows, `Unit::init`'s** (parked 646, not built: it re-pins `form`
+  on every birth of both long captures, which is att-880's harness):
+  `form` 0 there and −1 here on chapter thirteen's four births and the
+  nine trained (13); and the six followers' `orders_x/y`, (2712, 14232)
+  there — the Barracks' point (2688, 14208) tile-centred — against the
+  point itself here (12), kept only until the follower's own `work` on
+  the next block, where both sides read its position. Readers: `form`
+  the next layout (`action_move_near`, `action_form`), none in run285;
+  `orders_x` `Unit::check_target_path@005e22d0`, and nothing targets
+  these squads.
+- **8 pool rows, the push record's `o`**: every slot's `ox`/`oy` on its
+  first seat (622, 856, 1060, 1302) prints 0 there and −1 here. That is
+  `push_group`'s record (`GroupState::default().o`), att-880's fence;
+  chapter twenty-three's six `ox`/`oy` rows are the same shape. Its reader is a layout's
+  `o`, and no group here is laid out.
+
+Chapter thirteen's three `903 group` rows and chapter twenty-three's
+`1442 slot 0 held` close with it, and on the long captures (every row
+closing, none opening): Great Lakes' `1/62`..`1/64` on 11424 (69, parked
+561) and East Indies' `1/67`..`1/69` on 17363 (69) and `1/70`..`1/72` on
+17575 (64), the birth push of §27.5 and §29.3. Both long words hold,
+East Indies 20007 and Great Lakes 20568. The word stays **1560,
+closed**.
+
+### 31.4 What this has *not* established
+
+- **A command group of two or more buildings.** `process_group` seats
+  one group of every listed building; this crate seats one building
+  (`Sim::push_command_buildings`, a `SEAM:`). No capture selects two.
+- **The gather-point arms** of `come_out` (`BuildData +0xcc`), which
+  move the pushed group with `Group::action_move_to@0070fba0` (the calls at
+  `6190ce`, `619a04` and `619e98`): no capture sets a gather point.
+- **`Unit::init`'s birth values** (parked 646): `form` and the
+  tile-centred point, above. Not built; both reach every birth on the
+  long captures.
+- **The push record's `o`** on a slot no layout has touched: −1 here, 0
+  there. `push_group`'s record, not built here.
+- **A transport's `come_out`** (vslot `0x20` answering 0): no push, by
+  the listing. This crate's disembark is `transport.rs`'s and pushes
+  nothing, which agrees; no capture compares it.
+
+### 31.5 Coverage
+
+**Diff-backed**: every `group` row and pool slot of run285 (956 blocks)
+and run208 (903), the long captures' 11424, 17363 and 17575 blocks, and
+the pinned floors that carry them. The mutation (the push dropped) puts
+every one back. **Listing-backed**: `618900`..`6189aa` (the four tests,
+the `Group::add` and `push_group` calls and their arguments).
+**Decompile-backed**: `Group::add`'s chain walk, `push_group`'s second
+walk, and `Unit::init`'s `form` and position writes. **Unit-tested**:
+`a_trained_squad_is_pushed_into_a_pool_slot_of_its_own_and_a_single_unit_is_not`.

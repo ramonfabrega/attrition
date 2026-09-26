@@ -1205,6 +1205,50 @@ fn a_squad_comes_out_one_member_at_a_time_and_no_two_share_a_spot() {
     );
 }
 
+/// **`come_out`'s push** (`618900`..`6189aa`, item 882, `docs/GOLDEN.md`
+/// §33): a trained squad — the captain out of a building, its type's
+/// `uber_size` over 1 — is `Group::add`ed and `push_group(who, g, 1)`ed,
+/// so every member names one pool slot and the slot lists the squad in
+/// `captain, o_down…` order. There is no owner test: a computer's squad
+/// is pushed exactly as a human's. A one-object type is not pushed.
+#[test]
+fn a_trained_squad_is_pushed_into_a_pool_slot_of_its_own_and_a_single_unit_is_not() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    squad.combat.block_radius = 48;
+    let squad = sim.add_unit_type(squad);
+    let single = sim.add_unit_type(hoplite_type(t.barracks));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+
+    let lone = sim.build_train(b, single).unit;
+    assert_eq!(sim.pool_group_of(lone), -1, "uber_size 1 takes no slot");
+
+    let cap = sim.build_train(b, squad).unit;
+    let members = sim.squad_members(cap);
+    assert_eq!(members.len(), 3);
+    let g = sim.pool_group_of(cap);
+    assert!(g >= 0, "the captain names a slot");
+    for &m in &members {
+        assert_eq!(sim.pool_group_of(m), g, "every member names the same slot");
+    }
+    let listed: Vec<i16> = members.iter().map(|&m| sim.units[m].index).collect();
+    assert_eq!(
+        sim.pool_list(0, g as u8),
+        listed,
+        "the slot lists the squad"
+    );
+
+    // A second squad takes a fresh slot: the first is live and is
+    // `last_group`'s.
+    let cap2 = sim.build_train(b, squad).unit;
+    let g2 = sim.pool_group_of(cap2);
+    assert!(g2 >= 0 && g2 != g);
+}
+
 /// **A player's garrison command, and the building's eject** (item 718,
 /// `docs/ORDERS.md` §29, run208). `Group::action_garrison` gives each
 /// member that `can_garrison` the building one GARRISON with the action
