@@ -7787,12 +7787,14 @@ Each ran on the built tree against
 
 ### 40.3 What is not established
 
-- **`do_launch`'s side of the bit** (§38.3; parked 844). With the bit
+- ~~**`do_launch`'s side of the bit** (§38.3; parked 844). With the bit
   set, a plane whose front order has no action bit is launched, not
   killed. So run265's patrols would fly out again at a full tank, about
-  1585 for `0/6`, past the capture. This crate still kills them there.
-- The toggle, `Group::action_buildmask`, and `Wall::swap_team`'s copy of
-  the word (a captured Airbase gets `init_build`'s value here).
+  1585 for `0/6`, past the capture. This crate still kills them there.~~
+  Built by item 867 (§41.2); its kill half is diff-backed on run281.
+- ~~The toggle, `Group::action_buildmask`~~ (entered by item 867, §41.1),
+  and `Wall::swap_team`'s copy of the word (a captured Airbase gets
+  `init_build`'s value here).
 - A carrier home's `unit_masks & 0x200000`.
 
 ### 40.4 Coverage
@@ -7802,3 +7804,77 @@ from this item. Tests in `air::launch_tests`:
 `a_plane_landing_at_a_repeating_base_keeps_its_order_unflagged` and
 `a_killed_strafe_home_leaves_the_order_behind_it_flagged`, each made to
 fail with its arm changed.
+
+## 41. The repeat button, entered: a toggle, and `do_launch`'s repeat arm (item 867, 2026-09-26)
+
+`docs/GOLDEN.md` §32 is the chapter and run281 the capture: the Airbase's
+repeat toggled off on 1440, between chapter twenty-two's two landings.
+This enters the command and builds the arm §40.3 left: `Sim::action_buildmask`
+and `do_launch`'s bit, in `crate::air`; `rondata::input::group_buildmask`
+and the harness's `@buildmask`.
+
+**How it was established, and how confident.**
+- **The issuer under the emulator** (`tools/explore/command_oracle.py`'s
+  fixture): `CommandManager::issue_buildmask@00941f80` appends a 5-byte
+  `group` and a 9-byte `buildmask` (type 0x21, `[mask i32][set i32]`);
+  `set` is the constant 1 (`941fa6`), whatever the third argument.
+  run281's own package grew 10 → 24 on the DLL's call.
+- **The toggle, under the emulator and the listing**:
+  `Group::action_buildmask@006fc9a0` never reads its `set` (`[ebp+0xc]`),
+  and 4232 → 4104 → 4232 on two calls with `set` 1 and 0 alike.
+- **The capture**: run281's `build_masks` 4232 → 4104 on 1442; `0/7` and
+  `0/8` inside with no order on 1489 and 1513; `0/6`'s kept patrol killed
+  on 1585. No falsifier of §32 fired.
+- **Diff-backed**: the toggle (the harness's `build_masks & 0x80` against
+  `repeat_air`), both landings off the non-repeating base, and the kill
+  at a full tank. **Reading only**: the launch under the bit (no capture
+  has a repeating base at a plane's full tank), and the toggle on more
+  than one member.
+
+### 41.1 `Group::action_buildmask`
+
+Reached from `CommandPackage::process_buildmask@00947680` with the
+package's group, which `process_group` builds and pushes (`Group::add@
+00714350` sets `buildings` from the member's vslot `0x1c`). Only on a
+group whose `buildings` byte is set. For each member that is active and
+that `WallData::valid_buildmask@0063e2a0` admits (`0x40`: vslot `0x20`
+and `BuildData::can_infinite`; `0x80`: `can_carry(AIR)`): **set** the
+mask if the member lacks it and every admitted member before it was set;
+otherwise **clear** it, and clear every admitted member after it. The
+`0x40` toggle adds a message and a sound for the console's player.
+
+Built for `0x80` alone, on `Building::repeat_air`; any other mask writes
+nothing (SEAM: the infinite queue is not carried). Test:
+`air::launch_tests::the_repeat_button_toggles_off_the_first_member`, made
+to fail with the bit set whatever it held (which also re-parts run281's
+1442, 1489 and 1513) and with a clear not carried to later members.
+
+**The pool.** The command's `process_group` pushes the building group
+(`Groups::push_group@0070f9e0`, called at `0x94a6cf`, force 1): run281's
+who=0 slot 0 holds `[2007]`, `buildings 1`, from 1442. This crate's pool
+holds units only, so the slot is a standing row. Its reader is
+`Groups::get_open_slot@006fa460`, which counts a slot with `buildings`
+set as open to the next push; no push follows on run281.
+
+### 41.2 `do_launch`'s repeat arm
+
+`Object::do_launch@0064f3b0` (decompile line 113): a plane with an order
+and `mana_burn` 0 stays in the launch when `has_repeat_air() || flags &
+4`, and is `kill_current_order`ed otherwise. Built as the base's
+`repeat_air` beside the action bit. run281's `0/6`, whose patrol
+`land_plane` kept with flags 0 under the bit on 1385, loses it on 1585,
+the block its tank first reads 0, and stays inside. Test:
+`air::launch_tests::a_full_tank_launches_an_unflagged_patrol_only_under_the_bit`,
+made to fail with the kill unconditional and with the bit read as always
+set; the second also launches run281's `0/6` on 1585 (22 keys part there,
+and the draw stream by 1616).
+
+### 41.3 What is not established
+
+- The launch half: an unflagged order flown out of a repeating base at a
+  full tank. run265 ends at 1500, before `0/6`'s tank fills.
+- The toggle on a selection of several buildings, and a unit selection's
+  `0x200000` (a carrier's repeat, `UnitData::has_repeat_air@0046cec0`).
+- The building group's pool slot (§41.1), and whether a later push reuses
+  it.
+

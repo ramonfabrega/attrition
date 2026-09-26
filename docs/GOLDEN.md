@@ -4848,3 +4848,31 @@ share (`rngcmp.py`: 0 differing).
   `SPECIALANIMORDER`.
 - **The pool**: the building group takes who=0's slot 0 on 1442 (`num 1`,
   `buildings 1`, `stamp 1441`) and keeps it to 1839.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_THREE` = 1840,
+closed, on the first walk**, as predicted: with the `@buildmask` line
+skipped, nothing draws. The widening, run281 whole, (605, 1841), in
+`WIDENINGS`, with five windows in the coverage driver (1442, 1489, 1513,
+1585, 1837) and `process_buildmask` pinned there. **The value partings**,
+both sides:
+- **1442**, `0/2007`'s `build_masks & 0x80`: ours 1 (`repeat_air`),
+  theirs 0 (4104);
+- **1489**, `0/7`'s stack: ours its `AIRPATROLORDER` (flags 0), theirs
+  none;
+- **1513**, `0/8`'s stack: the same.
+- 1585 agreed already: this crate's `do_launch` killed an unflagged order
+  whatever the bit.
+
+**The command entered** (item 867, `docs/ORDERS.md` §41): `Sim::
+action_buildmask`, the toggle, from `input::group_buildmask`; and
+`do_launch`'s repeat arm, `has_repeat_air() || flags & 4`. **The value
+diff after, both sides**: on 1442 `0/2007`'s bit is 0 on both (theirs
+4104); on 1489 `0/7` is inside `0/2007` with no order on both, and on
+1513 `0/8` likewise; on 1585 `0/6` is inside with no order and
+`mana_burn` 0 on both. The widening goes **14 → 9 rows**: what stands is
+chapter twenty-two's births and chapter one's clocks (611–655). The pool
+keeps chapter twenty-two's ten rows and one more, **1442 slot 0 held**
+(theirs `[2007]`): this crate's pool holds units only. Its reader is
+`Groups::get_open_slot@006fa460`, which counts the slot as open to the
+next push, and no push follows; no later slot parts by it. The word
+stays **1840, closed**.
