@@ -1120,7 +1120,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter twenty-one's word, on run255** (item 813): the first
     // player's repair on disk. 650, the first arrow into the Barracks;
     // 782, `0/6`'s swarm; 802, the trio's; 930, the repair; 968, a late
-    // order dying; 1131, `0/7`'s gather approach; 1141, the word.
+    // order dying; 1131, `0/7`'s gather approach; 1141, the first word
+    // (closed at 1300 by item 824, a human's found gather dropping its group).
     if let Some(p) = &ch21 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_ONE;
         for w in [650, 782, 802, 930, 968, 1131, 1141] {
