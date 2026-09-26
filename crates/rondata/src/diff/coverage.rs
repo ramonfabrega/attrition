@@ -283,10 +283,12 @@ const UNREAD: &[(&str, &str)] = &[
     // toggle; the flag it carries is read off the units' `unit_masks`.
     // **Item 813's run255 windows `process_swarm_around`** (`ox whom
     // queued orders frame`), the first player's repair; the orders it
-    // lays are read off the citizens' stacks.
+    // lays are read off the citizens' stacks. **Item 867's run281 windows
+    // `process_buildmask`** (`frame`), the first player's repeat button;
+    // the mask it toggles is read off the building's `build_masks`.
     (
         "GAME",
-        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_set_transport process_spell process_swarm_around",
+        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_set_transport process_spell process_swarm_around",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -540,6 +542,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch20 = golden_dump("ch20");
     let ch21 = golden_dump("ch21");
     let ch22 = golden_dump("ch22");
+    let ch23 = golden_dump("ch23");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1190,6 +1193,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [768, 778, 798, 924, 1178, 1385, 1497] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-two carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty-three's word, on run281** (item 867): the first
+    // Airbase on disk whose repeat bit goes. 1442, the toggle and the
+    // building group's pool slot; 1489 and 1513, the landings off the
+    // non-repeating base; 1585, `0/6`'s kill at its full tank; 1837, the
+    // closed word's last blocks.
+    if let Some(p) = &ch23 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_THREE;
+        for w in [1442, 1489, 1513, 1585, 1837] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-three carries the window's five blocks");
             frames += n;
         }
     }

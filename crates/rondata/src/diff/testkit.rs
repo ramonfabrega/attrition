@@ -3520,6 +3520,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_TWO: i64 = 1500;
 /// `chapter_twenty_two_s_word_frame_is_widened_whole`'s window.
 pub(crate) const WIDENING_CHAPTER_TWENTY_TWO: (i64, i64) = (605, 1501);
 
+/// **Chapter twenty-three's golden word** — the repeat line: an Airbase's
+/// repeat toggled off between two landings (`docs/GOLDEN.md` §32, item
+/// 867, run281). **1840, closed, on the first walk**, with the
+/// `@buildmask` line skipped: the toggle, the landings off the
+/// non-repeating base and `0/6`'s kill at its full tank draw nothing, so
+/// the stream agrees to run281's end (it is run265's game on all 1,501
+/// frames the two share). What parts is values, by the widening: 1442,
+/// `0/2007`'s `build:repeat_air` (ours 1, theirs 0); 1489 and 1513, `0/7`'s
+/// and `0/8`'s kept patrol here against none there.
+///
+/// **The delta**, this constant's: 1840 on the first walk, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_THREE: i64 = 1840;
+
+/// `chapter_twenty_three_s_word_frame_is_widened_whole`'s window:
+/// **run281 whole**, (605, 1841). Its pool half, `widen_pool`, reads
+/// who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_THREE: (i64, i64) = (605, 1841);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4017,6 +4035,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_twenty_two_s_word_frame_is_widened_whole", 35),
     ("run265_s_launch_is_the_original_s_field_for_field", 35),
     ("run265_s_rounds_are_the_original_s_record_for_record", 35),
+    // Chapter twenty-three is chapter twenty-two's game to 1840 (item
+    // 867): the same 35, and nothing past 1500 flies.
+    ("chapter_twenty_three_holds_to_the_golden_word", 35),
+    ("chapter_twenty_three_s_word_frame_is_widened_whole", 35),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -5257,6 +5279,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_two_s_word_frame_is_widened_whole"),
         836,
         Some(WIDENING_CHAPTER_TWENTY_TWO),
+    ),
+    // Item 867: run281, chapter twenty-three's first walk.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_THREE",
+        GOLDEN_WORD_CHAPTER_TWENTY_THREE,
+        Some("chapter_twenty_three_s_word_frame_is_widened_whole"),
+        867,
+        Some(WIDENING_CHAPTER_TWENTY_THREE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
