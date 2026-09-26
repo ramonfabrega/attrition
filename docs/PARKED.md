@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 865, 2026-09-26 — the pool's other arms
+
+(871) **Great Lakes' pool numbering is not walked**: 865's branch walked
+East Indies' dumps to block 8369; Great Lakes' are unread.
+
+(872) **`get_num`'s own prune**: it writes the pool list, and 865's
+branch only counts it.
+
+(873) **A building's `+0x80` in a building group**: its reader is
+unread.
+
+(874) **The army path's `copy_group`**: 865 built the squad's `go_to`
+push; the army's own push through `copy_group` is not checked for kept
+fields.
+
 ## Parked by item 854, 2026-09-26 — the repeat bit's edges
 
 (868) **`Wall::swap_team` copies `build_masks`**: a building that changes
@@ -415,7 +430,11 @@ its own pool slot for a block and ours does not; no draw spends on it.
 811 closed the `order_num` half of an order's id on both maps (a
 retarget formed the army twice, ARMY §21); what stands is the pool id,
 the army's slot here and the pool slot there, and no step read it on
-East Indies 17405. **829 adds** a closed army's orphan group's scalars
+East Indies 17405. **865 finds the root and promotes it to 870**: the
+AI scripts' `train_unit*` and `research_tech_with_cost` push a building
+group before `action_queue_up`, and the pool numbering parts from block
+239; `att-865-pool-wip` models those pushes and the `get_num` rule, and
+holds both words. **829 adds** a closed army's orphan group's scalars
 on East Indies 19000 — `order_num` 0 against 12, `o` (−1, −1) against
 (0, 0), `form_num` 0 against 1 — which no capture compares and no
 reader on the word's path reads (ARMY §22).
@@ -1381,6 +1400,12 @@ found three readers and no writer; by offset (`field_0x60`,
 "grep the writers of every field you call frozen" wants the offset's
 spellings named; a checklist row candidate, or a tool that expands a
 field to its spellings.
+
+(875) **When a first killer is a group move, the brief names the slot's
+`GROUPDATA` on both sides of the gap** (865's Loop line, filed at its
+merge): the commander's brief named the unit records on block 20002, and
+the pool record — slot 69's `facing` and `order_num` — answered the gap
+without a capture. A checklist row candidate beside row four.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
