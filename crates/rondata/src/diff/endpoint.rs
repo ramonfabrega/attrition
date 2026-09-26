@@ -604,7 +604,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // one. The two unlinked are player 1's `78` and `82`. Measured on
         // base `3422203` (803's booking). DECISIONS 36: the number, not a
         // trade.
-        off: 42,
+        // **42 → 41 off, 3 → 6 build_diverged** on item 822: a border fix
+        // zeroes `reg_known_rares` until the next census (`docs/AI.md`
+        // §76), which moves this map's word 18182 → 18938, 5,063 frames
+        // before this one. The two unlinked are unchanged. Measured on
+        // base `f224f1a` (811's booking). DECISIONS 36: the number, not a
+        // trade.
+        off: 41,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -680,7 +686,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **9 → 3** on item 767, beside `off` above; **3 → 6** on item 773.
         // **6 → 9** on item 800, beside `off` above.
         // **9 → 3** on item 811, beside `off` above.
-        build_diverged: 3,
+        // **3 → 6** on item 822, beside `off` above.
+        build_diverged: 6,
         city_unlinked: 3,
         city_diverged: 0,
     },

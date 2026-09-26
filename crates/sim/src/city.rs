@@ -864,10 +864,25 @@ impl Sim {
     /// Every [`Sim::sync_territory`] is a fix: its call sites are the
     /// original's (`Build::activate`, `Build::finished`, `Build::close`,
     /// `City::check_upgrade`, `City::assimilate`, `gain_tech`'s Civic arm,
-    /// `calc_gather`'s rare arm). The zero lands on the fix's own frame
-    /// here and on the next `check_borders` there, which is the same frame
-    /// or the one after.
+    /// `calc_gather`'s rare arm). The fix only raises
+    /// [`Sim::borders_fixed`]; the zero is [`Sim::check_borders`]', at the
+    /// daemon's point in the tick. A fix raised by an object therefore
+    /// zeroes on the next frame, after that frame's `calc_gather` and
+    /// census, and East Indies' run227 shows it there: the original's
+    /// `reg_known_rares[7]` and `[11]` go to 0 on block 16529, one after
+    /// the fix's own.
     pub(crate) fn fix_borders(&mut self) {
+        self.borders_fixed = true;
+    }
+
+    /// `GameDaemon::check_borders@00732060`'s one modelled effect: after
+    /// a fix, every leader's `reg_known_rares` is zeroed. The original
+    /// zeroes a region again on every frame its pass has not yet reached
+    /// under the 256-cell budget; this crate zeroes once (§76.5).
+    pub(crate) fn check_borders(&mut self) {
+        if !std::mem::take(&mut self.borders_fixed) {
+            return;
+        }
         for a in &mut self.ai {
             a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
         }

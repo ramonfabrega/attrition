@@ -1480,8 +1480,13 @@ mod tests {
         assert_eq!(s.ai[1].census.reg_known_rares[land], 1, "counted");
         s.sync_territory();
         assert_eq!(
+            s.ai[1].census.reg_known_rares[land], 1,
+            "the fix only marks the regions"
+        );
+        s.check_borders();
+        assert_eq!(
             s.ai[1].census.reg_known_rares[land], 0,
-            "the fix zeroes every region"
+            "the next check_borders zeroes every region"
         );
         s.assemble_holdings(1);
         assert_eq!(s.ai[1].known_rares, 0, "the recompute sums the zero");

@@ -11215,7 +11215,13 @@ pub(crate) mod tests {
         // (`docs/CITIES.md` §15). Its territory is recomputed at once here
         // and over sixteen frames there (`docs/ATTRITION.md`, "Territory"),
         // so who=0's `gather_stamp` is re-stamped on 14536 here and 14544
-        // there. `known_rares` on 14536 parts with or without it.
+        // there. ~~`known_rares` on 14536 parts with or without it~~ —
+        // **item 822 moved it to 14584**: the Senate's border fix zeroes
+        // `reg_known_rares` (`docs/AI.md` §76), and both recomputes then
+        // sum 0 from 14535. What stands is who=1's own recompute on 14583
+        // here against 14543 there (its `gather_stamp` row, standing from
+        // 14544): ours sums the census's recount of 14575, 4, and the
+        // original waits for its recompute on 14631 (parked 701's shape).
         // ~~And on 14650 `1/43`, the word's gatherer~~ — gone with item
         // 698 (below): eight rows, `collide` 7 against 6 among them, which
         // is the counter and not a partner.
@@ -11233,7 +11239,7 @@ pub(crate) mod tests {
                 "12976 1/-1 leader:SITE[8].val: ours 95326 theirs 191650",
                 "12976 1/-1 leader:SITE[8].wx: ours 47 theirs 44",
                 "12976 1/-1 leader:SITE[8].wy: ours 33 theirs 30",
-                "14536 1/-1 leader:known_rares: ours 4 theirs 0",
+                "14584 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
                 "13163 1/71 form: ours -1 theirs 9",
                 "13163 1/71 hits:myhits: ours 40 theirs 50",
@@ -15188,9 +15194,12 @@ pub(crate) mod tests {
         // chain head, and `1/54`'s two on the word's block, where the extra
         // draw moved its roll, went with the census fix below. What stands
         // are the parked families — 646's `form`, 679's hits and LOS on the
-        // newborn `1/61`–`1/63` — who=1's leader rows (699's `known_rares`,
-        // the make list's `city` shift, 753's `peasants`), and the scout
-        // `1/0`'s speed.
+        // newborn `1/61`–`1/63` — who=1's leader rows (the make list's
+        // `city` shift, 753's `peasants`), and the scout `1/0`'s speed.
+        // **Item 822 took 699's three**: `reg_known_rares[7]` and `[11]` on
+        // 16529 and `known_rares` on 16536. The border fix of tick 16527
+        // zeroes the array at the next frame's `check_borders`, block
+        // 16529, on both sides now (`docs/AI.md` §76).
         let under: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -15203,10 +15212,7 @@ pub(crate) mod tests {
                 "16401 0/-1 leader:production_step: ours 0 theirs 1",
                 "16382 1/-1 leader:MAKE[4].city: ours 2 theirs 1",
                 "16582 1/-1 leader:MAKE[7].city: ours 2 theirs 1",
-                "16536 1/-1 leader:known_rares: ours 2 theirs 0",
                 "16363 1/-1 leader:peasants: ours 26 theirs 27",
-                "16529 1/-1 leader:reg_known_rares[11]: ours 1 theirs 0",
-                "16529 1/-1 leader:reg_known_rares[7]: ours 1 theirs 0",
                 "16528 1/-1 leader:territory: ours 305 theirs 302",
                 "16681 1/0 g.avg_speed[0]: ours 23 theirs 17",
                 "16681 1/0 g.avg_speed[1]: ours 23 theirs 17",
@@ -15304,10 +15310,12 @@ pub(crate) mod tests {
         // before item 752's fix: the two cities' counts, `1/46`'s rows and
         // the 554 rows past the word that its walk parted. Item 767 took
         // one past the word (312 → 311): `MAKE[1].val` on 16779. Item 803
-        // took one (311 → 310): `1/0`'s `dest_angle` on 16782.
+        // took one (311 → 310): `1/0`'s `dest_angle` on 16782. Item 822
+        // took three (306/310 → 303/307): who=1's `known_rares` and
+        // `reg_known_rares[7]`/`[11]`, the border fix's zero.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 306, 310), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 303, 307), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -15717,37 +15725,48 @@ pub(crate) mod tests {
             .collect();
         // **Under the word, the first row of each key past the floor**
         // (item 811): who=1's make list and nothing else to the word's
-        // frame. From 18181 (tick 18180) ours holds a type-61 order, cat 4,
-        // in slots 0 and 4, where the original holds 590, cat 8, in slot 0
-        // and nothing in slot 4. On 18183 the original has been to the
-        // market (`use_market`, the word's first draw: `leftover[2]` 6862
-        // → 560, standing) and ours has queued at `1/2013`. R2 of run253's
-        // stanza holds; R3's killer fires — every stockpile row but the
-        // wealth floor's agrees on 18182. No unit parts under the word.
+        // frame. From 18181 (tick 18180) ours held a type-61 order — the
+        // Merchant — cat 4, in slots 0 and 4, where the original held 590,
+        // cat 8, in slot 0 and nothing in slot 4. **Item 822 took them**:
+        // the original's `known_rares` was 0 from its recompute on 18071,
+        // summing an array a border fix had zeroed (the Civic epoch of tick
+        // 18032, `docs/AI.md` §76), so its Merchant arm was shut. What
+        // stands is the make list's `city` shift, the floor's.
         assert_eq!(
             rows,
             [
-                "18181 1/-1 leader:MAKE[0].cat: ours 4 theirs 8",
-                "18181 1/-1 leader:MAKE[0].city: ours 1 theirs -1",
-                "18181 1/-1 leader:MAKE[0].t: ours 61 theirs 590",
-                "18181 1/-1 leader:MAKE[0].val: ours 952380 theirs 22784",
                 "18182 1/-1 leader:MAKE[1].city: ours 2 theirs 1",
                 "18182 1/-1 leader:MAKE[2].city: ours 2 theirs 1",
                 "18182 1/-1 leader:MAKE[3].city: ours 2 theirs 1",
-                "18181 1/-1 leader:MAKE[4].cat: ours 4 theirs 0",
-                "18181 1/-1 leader:MAKE[4].city: ours 1 theirs -1",
-                "18181 1/-1 leader:MAKE[4].escrow: ours 1 theirs 0",
-                "18181 1/-1 leader:MAKE[4].t: ours 61 theirs -1",
-                "18181 1/-1 leader:MAKE[4].val: ours 952380 theirs -1",
                 "18182 1/-1 leader:MAKE[7].city: ours 1 theirs 0",
-                "18183 1/-1 leader:MAKE[8].t: ours 590 theirs -1",
-                "18183 1/-1 leader:bucket[1:timber]: ours 27 theirs 77",
-                "18183 1/-1 leader:num_queued[11]: ours 1 theirs 0",
-                "18183 1/-1 leader:production_step: ours 9 theirs 0",
-                "18183 1/2013 queue:queued: ours 1 theirs 0",
             ],
             "each key's first row under the word"
         );
+        // **Item 822's value diff** (the word's delta is in
+        // `LONG_WORD_EAST_INDIES`' comment, the old word's block here):
+        // who=1's `known_rares` read 3 here against 0 there from the first
+        // block, 18177, and now parts on no block of the walk; `MAKE[0]`
+        // and `MAKE[4]` read (61, cat 4, val 952,380) here against (590,
+        // cat 8, val 22,784) and the fresh slot there on 18181, and now
+        // agree in every field but `city`.
+        assert!(
+            !firsts.contains_key(&(1, -1, "leader:known_rares".to_string())),
+            "who=1's known_rares parts nowhere on run253"
+        );
+        for k in ["t", "val", "cat", "escrow", "num"] {
+            for i in [0, 4] {
+                assert_eq!(
+                    standing.get(&(WORD_BLOCK - 2)).and_then(|m| m.get(&(
+                        1,
+                        -1,
+                        format!("leader:MAKE[{i}].{k}")
+                    ))),
+                    None,
+                    "who=1's MAKE[{i}].{k} on block {}",
+                    WORD_BLOCK - 2
+                );
+            }
+        }
         // R3's unit: who=1's stockpile on 18182, every good but wealth.
         let stock: Vec<String> = standing
             .get(&(WORD_BLOCK - 1))
@@ -15767,13 +15786,10 @@ pub(crate) mod tests {
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
             .copied()
             .collect();
-        // Past the word, ours' `0/0` sets `cur_anim` 2 on 18185 where the
-        // original's stays at 0 — two blocks after the market, unread here.
-        assert_eq!(
-            word,
-            [(18185, 0, 0, false, true)],
-            "a figure's animation changes on one side only"
-        );
+        // Until item 822, ours' `0/0` set `cur_anim` 2 on 18185 where the
+        // original's stayed at 0, two blocks after the market; with the
+        // Merchant gone no figure changes on one side near the word.
+        assert_eq!(word, [], "a figure's animation changes on one side only");
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
             .iter()
             .flat_map(|(b, m)| {
@@ -15786,12 +15802,15 @@ pub(crate) mod tests {
         // **The floor**: every key standing on the first block (nothing
         // shared, so everything standing when the walk arrives), the keys
         // first parting under the word, the rows standing on the word's
-        // block, and every key in all.
+        // block, and every key in all. **Item 822** took it
+        // 310/18/327/977 → 309/4/313/319: `known_rares` leaves the first
+        // block, the Merchant's fourteen rows under the word go, and 658
+        // keys past it with them.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (310, 18, 327, 977),
+            (309, 4, 313, 319),
             "the floor"
         );
     }
@@ -16686,7 +16705,15 @@ pub(crate) mod tests {
         // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on `1/0`, the scout (parked 275's family), ours 1
         // against 0, and it parts so with or without item 736's fix: a turn
         // this crate flips the bit on and the original does not.
-        assert_eq!((first, under, firsts.len()), (214, 241, 250), "the floor");
+        // **Item 822 took one (214/241/250 → 213/241/250)**: who=1's
+        // `known_rares`, 2 against 0 on the first block, now agreeing — a
+        // border fix zeroes `reg_known_rares` until the next census
+        // (`docs/AI.md` §76). The two counts past it are unchanged: the
+        // key parts again on 10384, where ours' recompute of 10383 sums
+        // the census's recount (2) and the original's waits for 10439 —
+        // who=1's `gather_stamp`, 10335 against 10343 from the first
+        // block, is the recompute's timing and not the zero's.
+        assert_eq!((first, under, firsts.len()), (213, 241, 250), "the floor");
     }
 
     #[test]
