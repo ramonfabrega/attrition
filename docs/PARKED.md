@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 785, 2026-09-25 — the gap and the wonder bookkeeping
+
+(796) **No dump compares a value on Great Lakes' 17351..20499**: run226
+ends on 17350 and run243, sized to the word, starts on 20500, where 59
+rows arrive parted (`1/40` among them). The draw stream agrees across the
+gap; the values under it are unread. A capture over it is ~4.5 h.
+
+(797) **`already_built`** (`Game::wonders`, `type_avail`) is dormant here.
+
+(798) **The rest of the wonder bookkeeping**: a team's and an enemy's
+wonders and an unbuilt wonder's value in `create_buildings`' arm.
+
 ## Parked by item 779, 2026-09-25 — the build line's edges
 
 (791) **A computer's `REPAIR` swarm is `MOVE_TO` in the original**
@@ -1141,6 +1153,15 @@ priced steps named the refusing cell in one test, before any reading.
 stood up on an existing capture's start with a prototype of the command's
 entry, showed the second Barracks refused and the Tower unavailable before
 a 17-minute capture was spent, and predicted run241 block for block.
+
+(799) **An `UNMODELLED` line is a standing instruction not to look** (785's
+Loop line, filed at its merge): it said "no writer here" of `wonder_mark`,
+which the original moves on forty of run80's records, and hid 785's cause
+from every widening since. A field is unmodelled because it has no writer
+here, which is where a missing writer hides; the ledger could carry "the
+original moves it" as a fail-when-it-parts note. And the commander's
+brief asked a contiguous overlap for a +3387 jump where DECISIONS 50 says
+a window sized to the word; the brief template should say which.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

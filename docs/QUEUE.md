@@ -13,13 +13,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **17 landings
-since 7958738**, eleven words and six chapters. Lane att-785 (Great Lakes) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **18 landings
+since 7958738**, twelve words and six chapters. Lane att-790 (chapter nineteen) is live.*
 
-- **Great Lakes 15384 → 17181** in six: `num_wonders` (722),
-  `frame_attacked` (729), the siege sub-group (736), `move_step`'s give-up
-  (742; run226 to 17350), the Pyramids (757) and `invalid_loc`'s cell arm
-  (776, PATHFINDER §27). **Great Lakes is the lower map.**
+- **Great Lakes 15384 → 20568** in seven, the last +3387: `wonder_mark`'s
+  writer (785, AI §75; run243 over [20500, 20819) alone, so no dump
+  compares a value on 17351..20499, 796). **East Indies is the lower map.**
 - **East Indies 15985 → 17189** in three: the republic's commerce cap
   (708), a gatherer counted in its building's city (752), and the British
   Taxation discount (767, AI §74; run233 captured [16929, 17441)).
@@ -30,16 +29,16 @@ since 7958738**, eleven words and six chapters. Lane att-785 (Great Lakes) is li
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 22 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–794 filed from this tranche's journals).
+- **Fable backlog: 23 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–799 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w17189 of 24,000 · GreatLakes w17181 of 24,000
+Long captures: EastIndies w17189 of 24,000 · GreatLakes w20568 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · 790 next
-Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 43 off, 0 unlinked
+Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 785 is live on the AI lane (Great Lakes is lower), 773 after
-it; 790 on the rules lane; landings count from 7958738. A capture carries
+**Opener: 773 on the AI lane (East Indies is lower), 795 after it; 790
+is live on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -47,16 +46,9 @@ it; 790 on the rules lane; landings count from 7958738. A capture carries
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — Great Lakes (a guard reads this line). Take the first
+lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-785. **Great Lakes' word is 17181: who=1's wonder offers** (776 moved it
-    17128 → 17181: `invalid_loc`'s cell arm under `valid_wcoord`,
-    PATHFINDER §27). On 17181 ours 11 draws against 5 at index 0: three
-    `Leader::create_buildings+0xffb`/`+0x1017` pairs. On 17182 who=1's
-    `MAKE` list offers wonders 526/528/527 here, none there. Inside run226,
-    widened. 777 (the Pyramids' readers) may be its family. No mechanism.
 
 773. **East Indies' word is 17189** (767 moved it 16982 → 17189: the
     British Taxation discount in `get_cost`, AI §74). On 17189 ours spends
@@ -64,6 +56,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     spends on 17190. Under it `1/55`'s `half_step` from 17182, `1/57`'s
     from 17161, `1/58`'s path from 17147, who=1's `scholars` from 16971.
     Inside run233, widened. No mechanism.
+
+795. **Great Lakes' word is 20568** (785 moved it 17181 → 20568:
+    `Wonders::init_wonder` raises `wonder_mark`, AI §75). On 20568 ours 37
+    draws against 38 at index 31: the original's is `1/40`'s blocked step
+    by `8/0`. `1/40` is already off on 20500, run243's first block (the
+    gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
 790. **Chapter nineteen, the cast line — an issuer, no capture yet**
     (DECISIONS 49; GOLDEN §13's next `—` row; 779 closed chapter eighteen
