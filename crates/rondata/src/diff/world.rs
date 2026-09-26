@@ -2639,29 +2639,40 @@ mod tests {
             tile_bad.len(),
             danger_bad.len()
         );
-        if std::env::var_os("RON_WORLD_ROWS").is_some() {
-            eprintln!("  cells {cell_bad:?}");
-            eprintln!(
-                "  tiles not 0x4: {:?}",
-                tile_bad
-                    .iter()
-                    .filter(|&&(_, _, o, t)| o ^ t != 0x4)
-                    .collect::<Vec<_>>()
-            );
-            eprintln!("  danger {danger_bad:?}");
-            eprintln!("  fog {fog_bad:?}");
-        }
-        if std::env::var_os("RON_CELLS").is_some() {
-            for y in 40..57 {
-                let row: Vec<String> = (36..50)
-                    .map(|x| {
-                        let c = cell_row(x, y);
-                        format!("{:>3x}/{:>2}/{:>2}", c.0, c.1, c.2)
-                    })
-                    .collect();
-                eprintln!("  cells y{y}: {}", row.join(" "));
-            }
-        }
+        // **W's killer fires: the world is the original's.** No cell and
+        // no danger value parts, every tile mask that parts parts on `0x4`
+        // alone (run240's residue), and the fog parts on 16 half-cells,
+        // all who=1's bit there and not here; no search of the tick prices
+        // one, since all its steps agree below.
+        assert_eq!(cell_bad, Vec::new(), "the cells at 17146");
+        assert!(
+            tile_bad.iter().all(|&(_, _, o, t)| o ^ t == 0x4),
+            "a tile parts on more than `0x4`"
+        );
+        assert_eq!(tile_bad.len(), 264, "the `0x4` residue at 17146");
+        assert_eq!(danger_bad, Vec::<String>::new(), "the danger map");
+        assert_eq!(
+            fog_bad,
+            [
+                (86, 59, 0, 2),
+                (79, 60, 0, 2),
+                (80, 60, 0, 2),
+                (86, 60, 0, 2),
+                (81, 61, 0, 2),
+                (86, 61, 0, 2),
+                (81, 62, 0, 2),
+                (86, 62, 0, 2),
+                (91, 62, 0, 2),
+                (81, 63, 0, 2),
+                (87, 63, 0, 2),
+                (88, 63, 0, 2),
+                (89, 63, 0, 2),
+                (90, 63, 0, 2),
+                (99, 91, 0, 2),
+                (102, 92, 0, 2),
+            ],
+            "the fog at 17146"
+        );
         built.sim.trace_costs = true;
         built.sim.cost_marks.clear();
         built.tick();
@@ -2701,10 +2712,18 @@ mod tests {
                 );
             }
         }
-        eprintln!(
-            "tick {BLOCK}: parts at {at:?}, {} here, {} there",
-            ours.len(),
-            theirs.len()
+        // **P holds, and the planner was one arm of `no_danger`.** The 32nd
+        // priced step, `1/48`'s into (34176, 38016), was 60 here and 116
+        // there: who=1's danger / 8 at region (22, 24), −450 / 8 = −56, and
+        // every later difference in the search is the same term. The column
+        // walks under an `ATTACK_TO`, and `astar_path@00683770`'s prologue
+        // sets `no_danger` for that order (`006838a3`, `docs/PATHFINDER.md`
+        // §28). With the arm **all 28,828 priced steps of the tick** agree,
+        // key and price, `1/58`'s search among them.
+        assert_eq!(
+            (at, ours.len(), theirs.len()),
+            (None, 28_828, 28_828),
+            "tick 17146's priced steps part at {at:?}"
         );
     }
 

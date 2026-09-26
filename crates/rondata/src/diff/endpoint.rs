@@ -586,6 +586,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // this map's word 16982 → 17189, 6,812 frames before this one. The
         // three unlinked are player 1's `80`..`82`. Measured on base
         // `84c1549`. DECISIONS 36: the number, not a trade.
+        // **3 → 1 unlinked, 2 → 1 build_unlinked, 3 → 6 build_diverged**
+        // on item 773, `off` holding at 47: an army under an attack-to
+        // plans without the danger map (`docs/PATHFINDER.md` §28), which
+        // moves this map's word 17189 → 17403, 6,598 frames before this
+        // one. The one unlinked is player 1's `82`. Measured on base
+        // `1335ccc`. DECISIONS 36: the number, not a trade.
         off: 47,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
@@ -615,8 +621,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **7 → 3** on item 711, beside `off` above.
         // **3 → 4** on item 722, beside `off` above.
         // **4 → 0** on item 708, beside `off` above.
-        // **0 → 3** on item 767, beside `off` above.
-        unlinked: 3,
+        // **0 → 3** on item 767, beside `off` above; **3 → 1** on item 773.
+        unlinked: 1,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -640,8 +646,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 1** on item 706, beside `off` above.
         // **1 → 3** on item 722, beside `off` above.
         // **3 → 1** on item 752, beside `off` above.
-        // **1 → 2** on item 767, beside `off` above.
-        build_unlinked: 2,
+        // **1 → 2** on item 767, beside `off` above; **2 → 1** on item 773.
+        build_unlinked: 1,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
@@ -656,8 +662,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **12 → 8** on item 708, beside `off` above.
         // **8 → 7** on item 742, beside `off` above.
         // **7 → 9** on item 752, beside `off` above.
-        // **9 → 3** on item 767, beside `off` above.
-        build_diverged: 3,
+        // **9 → 3** on item 767, beside `off` above; **3 → 6** on item 773.
+        build_diverged: 6,
         city_unlinked: 3,
         city_diverged: 0,
     },

@@ -857,7 +857,30 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// ~~**Past run227** (block 17190 against its last, 16934): no widening
 /// names its block yet.~~ run233 over [16929, 17440] widens it
 /// (`run233_s_word_frame_is_widened_whole`).
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_189;
+///
+/// **17189 → 17403 on item 773, and the frame was `no_danger`'s order
+/// arm.** run233 said whose stand it was: `1/55`, half a step ahead from
+/// 17182, because the column's `1/58` was not beside it. Tick 17146 gave
+/// the column an `ATTACK_TO`, and ours' `1/58` planned its world path
+/// north out of the column while the original's went round the west in
+/// it. run248 printed the world on 17146, and it agreed; its proxies put
+/// the first priced step to part as `1/48`'s, 60 here and 116 there, which
+/// is who=1's danger / 8. `astar_path` sets `no_danger` for an
+/// `ATTACK_TO` or `GROUP_ATTACK_TO` current order and for gaia, as well
+/// as for an attack action, and this crate carried only the last
+/// (`docs/PATHFINDER.md` §28). **The move's value diff (the word's delta,
+/// here; its block is the widening's):** all 28,828 priced steps of tick
+/// 17146 agree (`run248_s_world_at_17146_is_the_original_s`), and every
+/// row of `1/55`, `1/57` and `1/58` goes: 22, 13 and 25, with `1/55`'s
+/// stand on 17190 on both sides (`run233_s_word_frame_is_widened_whole`,
+/// floor 293/363/1,139 → 293/312/1,036). **The new word's delta: ours 7
+/// draws and the original 6, parting at index 0**: ours spends
+/// `Unit::do_move+0xe84` where the original spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. Under it on 17403, `1/60` walks under an
+/// `ATTACK_TO` there and a `GROUP_ATTACK_TO` here, to another spot, and
+/// `1/67`..`1/69` part on `group` from 17363. It is inside run233, and
+/// the widening pins its block, 17404.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_403;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4162,6 +4185,12 @@ pub(crate) const WIDENING_EAST_INDIES_BLOCKWORD: (i64, i64) = (16_929, 17_440);
 /// (`Unit::move_step+0x823`) a frame before the original's, writes block
 /// 17190. The coverage driver reads run233 around it.
 pub(crate) const EAST_INDIES_BLOCKWORD_BLOCK: i64 = 17_190;
+/// The word 17403's block on run233 (item 773): its frame, ours'
+/// `Unit::do_move+0xe84` where the original spends a `Guy::inc_time`
+/// wrap, writes block 17404. Under it, on 17403, the original gives `1/60`
+/// an `ATTACK_TO` where ours gives a `GROUP_ATTACK_TO`. The coverage
+/// driver reads run233 around it.
+pub(crate) const EAST_INDIES_GROUPWORD_BLOCK: i64 = 17_404;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4298,11 +4327,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // who=1's `1/55` takes its blocked stand by `1/60` a frame early here,
     // a half step ahead from 17182. run227's test keeps the move's value
     // diff.
+    //
+    // **Item 773 moved it inside the window**: `no_danger`'s order arm
+    // (`docs/PATHFINDER.md` §28) moved the word 17189 → 17403, and run233
+    // still carries 36 blocks past it. The same test pins the new word's
+    // block, 17404, beside the old one's value diff.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         Some("run233_s_word_frame_is_widened_whole"),
-        767,
+        773,
         Some(WIDENING_EAST_INDIES_BLOCKWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

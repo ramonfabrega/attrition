@@ -15295,13 +15295,18 @@ pub(crate) mod tests {
     /// six blocks shared with run227, the 255 up to the word, its block,
     /// and 250 past it. [`widen_east_indies`] with gaia's animals.
     ///
-    /// The word's frame, 17189, writes block **17190**.
+    /// The word's frame, 17189, writes block **17190**. Item 773 moved the
+    /// word to **17403**, block **17404**, still inside the window: this
+    /// test keeps the move's value diff on 17190 and pins the new word's
+    /// block beside it.
     #[test]
     fn run233_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_BLOCKWORD.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_BLOCKWORD.1;
         /// The block run233 was taken to widen, the word 17189's.
-        const WORD_BLOCK: i64 = EAST_INDIES_BLOCKWORD_BLOCK;
+        const OLD_BLOCK: i64 = EAST_INDIES_BLOCKWORD_BLOCK;
+        /// The word 17403's block (item 773).
+        const WORD_BLOCK: i64 = EAST_INDIES_GROUPWORD_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -15314,7 +15319,7 @@ pub(crate) mod tests {
             "run233",
             "gamelog-run233-eastindies-blockword.txt",
             WIDENING_EAST_INDIES_BLOCKWORD,
-            &[WORD_BLOCK],
+            &[OLD_BLOCK, WORD_BLOCK],
             true,
         )
         else {
@@ -15342,15 +15347,25 @@ pub(crate) mod tests {
         let under = |(_, (f, _)): &(&(i64, i64, String), &(i64, String))| {
             (FIRST + 1..=WORD_BLOCK).contains(f)
         };
-        // **Under the word and on it, both directions** (item 767). The
-        // word's unit is who=1's `1/55`, one of a column walking with
-        // `1/57` and `1/58`. Ours' stands blocked by `1/60` on frame 17189
-        // (block 17190: `collide_o 60`); on block 17189 it already stands
-        // at (34471, 41185), which the original's reaches on 17190. It is
-        // a step ahead. It parts first on 17182, on `half_step`, 0 here and
-        // 1 there, and on 17183 its `last_speed` reads 30 against 15: the
-        // original's took a half step where ours took a whole one. `1/57`
-        // does the same from 17161, and `1/58`'s path parts from 17147.
+        let on = |b: i64, w: i64, o: i64, k: &str| {
+            standing
+                .get(&b)
+                .and_then(|m| m.get(&(w, o, k.to_string())))
+                .cloned()
+        };
+        // **The move's value diff (item 773).** On 17189 ours' `1/55` stood
+        // blocked by `1/60` a frame before the original's, a half step
+        // ahead from 17182. That was the column's `1/58`: tick 17146 gave
+        // `1/55`, `1/57` and `1/58` an `ATTACK_TO`, and ours' `1/58` priced
+        // its world path with who=1's danger, which `no_danger` switches off
+        // under an attack-to (`docs/PATHFINDER.md` §28), and cut north out
+        // of the column that gives `1/55` its half steps. With the arm, every
+        // row of the three goes — 22, 13 and 25 of them — and the stand is
+        // on 17190 on both sides.
+        for (b, k) in [(OLD_BLOCK, "collide_o"), (OLD_BLOCK + 1, "collide_o")] {
+            assert_eq!(on(b, 1, 55, k), None, "`1/55`'s {k} on block {b}");
+        }
+        // **Under the new word and on it, both directions** (item 773).
         // Each unit's first row, and how many of its keys part by the
         // word's block.
         let mut per_unit: std::collections::BTreeMap<(i64, i64), ((i64, String), usize)> =
@@ -15364,29 +15379,35 @@ pub(crate) mod tests {
         let got: Vec<(String, usize)> = per_unit.into_values().map(|((_, r), n)| (r, n)).collect();
         let want: Vec<(String, usize)> = [
             ("17001 0/-1 leader:production_step: ours 0 theirs 1", 1),
-            ("16971 1/-1 leader:scholars: ours 13 theirs 14", 6),
+            ("16971 1/-1 leader:scholars: ours 13 theirs 14", 8),
             ("17139 1/0 group: ours 71 theirs 70", 1),
-            ("17182 1/55 half_step: ours 0 theirs 1", 22),
-            ("17161 1/57 half_step: ours 0 theirs 1", 13),
+            ("17404 1/15 g.cur_anim[0]: ours 1 theirs 0", 2),
             (
-                "17147 1/58 path:length: PathLength { ours: 10, theirs: 18 }",
-                25,
+                "17403 1/60 g.angle[0]: ours 1073741824 theirs 1233059840",
+                52,
             ),
-            ("16971 1/63 form: ours -1 theirs 9", 7),
+            ("16971 1/63 form: ours -1 theirs 9", 5),
             ("17113 1/64 form: ours -1 theirs 0", 2),
             ("17113 1/65 form: ours -1 theirs 0", 2),
             ("17113 1/66 form: ours -1 theirs 0", 2),
+            ("17363 1/67 form: ours -1 theirs 0", 25),
+            ("17363 1/68 form: ours -1 theirs 0", 25),
+            ("17363 1/69 form: ours -1 theirs 0", 38),
         ]
         .iter()
         .map(|(r, n)| ((*r).to_string(), *n))
         .collect();
+        // `1/55`, `1/57` and `1/58` are gone. The new word's unit is `1/60`:
+        // on block 17403 the original's walks under an `ATTACK_TO` (2) and
+        // ours' under a `GROUP_ATTACK_TO` (21), to another spot, and it is
+        // the first row on the block. Before it, from 17363, `1/67`..`1/69`
+        // part on `group` (−1 here, 69 there) and their orders.
         assert_eq!(
             got, want,
             "each unit's first row under the word, and its count"
         );
         // who=1's leader, whole: the make list's `city` shift (the floor's
-        // family), wealth after the column's rows, and `scholars` from
-        // 16971, the first row on the window that is no floor family's.
+        // family), wealth, and `scholars` from 16971.
         let leader: Vec<String> = firsts
             .iter()
             .filter(under)
@@ -15398,68 +15419,74 @@ pub(crate) mod tests {
             [
                 "17181 1/-1 leader:MAKE[1].city: ours 1 theirs 0",
                 "17181 1/-1 leader:MAKE[6].city: ours 1 theirs 0",
+                "17196 1/-1 leader:bucket[2:wealth]: ours 20 theirs 21",
                 "17184 1/-1 leader:income[2:wealth]: ours 1234 theirs 1380",
                 "17184 1/-1 leader:leftover[2:wealth]: ours 4226 theirs 4321",
+                "17377 1/-1 leader:rate[2:wealth]: ours 77 theirs 86",
                 "17184 1/-1 leader:resources[2:wealth]: ours 1234 theirs 1380",
                 "16971 1/-1 leader:scholars: ours 13 theirs 14",
             ],
             "who=1's leader under the word"
         );
-        // The readings (the stanza's). **R1 holds**, by its checks. **R2
-        // holds**: the original's `1/55` takes the same stand by `1/60` a
-        // frame later — `collide_o 60` on block 17191 there, where ours'
-        // has already cleared it.
-        let on = |b: i64, k: &str| {
-            standing
-                .get(&b)
-                .and_then(|m| m.get(&(1, 55, k.to_string())))
-                .cloned()
-        };
-        assert_eq!(
-            on(WORD_BLOCK, "collide_o").as_deref(),
-            Some("ours 60 theirs -1")
-        );
-        assert_eq!(
-            on(WORD_BLOCK + 1, "collide_o").as_deref(),
-            Some("ours -1 theirs 60")
-        );
-        // **R3 holds**: the pair's `1/55` parts before the word, on
-        // `half_step` (above); `1/60` parts on nothing but the pool's
-        // `group` (689). **R4's killer fires**: the first row on the window
-        // that is no floor family's is who=1's `scholars` on 16971, not
-        // the pair's, and `1/58`'s path parts on 17147 before either.
-        // Figures whose animation changes on one side on the word's blocks.
+        // Figures whose animation changes on one side on either word's
+        // blocks: none on the old word's now; on the new one, `1/60` sets
+        // off there a block before ours, and the column after it.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
-            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .filter(|c| {
+                c.3 != c.4
+                    && [OLD_BLOCK, WORD_BLOCK]
+                        .iter()
+                        .any(|b| (b - 2..=b + 2).contains(&c.0))
+            })
             .copied()
             .collect();
         assert_eq!(
             word,
             [
-                (17188, 1, 55, true, false),
-                (17190, 1, 55, false, true),
-                (17190, 1, 63, true, false),
-                (17192, 1, 55, true, false),
+                (17403, 1, 60, true, false),
+                (17404, 1, 15, true, false),
+                (17404, 1, 60, false, true),
+                (17405, 1, 48, false, true),
+                (17405, 1, 49, false, true),
+                (17405, 1, 53, false, true),
+                (17405, 1, 54, false, true),
+                (17405, 1, 55, false, true),
+                (17405, 1, 56, false, true),
+                (17405, 1, 57, false, true),
+                (17405, 1, 58, false, true),
+                (17405, 1, 65, true, false),
+                (17405, 1, 66, true, false),
+                (17406, 1, 48, false, true),
+                (17406, 1, 49, false, true),
+                (17406, 1, 54, false, true),
+                (17406, 1, 55, false, true),
+                (17406, 1, 57, false, true),
+                (17406, 1, 58, false, true),
+                (17406, 1, 64, true, false),
             ],
             "a figure's animation changes on one side only"
         );
         assert_eq!(
-            (WORD_BLOCK - 1..=WORD_BLOCK)
-                .map(|b| standing.get(&b).map_or(0, |m| m.len()))
+            [OLD_BLOCK - 1, OLD_BLOCK, WORD_BLOCK - 1, WORD_BLOCK]
+                .iter()
+                .map(|b| standing.get(b).map_or(0, |m| m.len()))
                 .collect::<Vec<_>>(),
-            [346, 359],
-            "every row standing on the word's pre-state and its block"
+            [307, 307, 418, 439],
+            "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
         // everything standing on run227's last block, which run233 shares
-        // — 363 before the word's frame, 1,139 in all: past the word the
-        // column's stand parts the human's citizens and who=1's army.
-        let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
+        // — then the rows before the old word's frame, before the new
+        // word's, and in all. Item 773 took it 293/363/-/1,139 →
+        // 293/312/324/1,036: before the old word the column's rows go
+        // and `1/63` loses two, and past it the stand's wake goes;
+        // `1/67`..`1/69` from 17363 and `1/60` on 17403 are the new rows.
+        let before = |b: i64| firsts.values().filter(|(f, _)| *f < b - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
-            (first, under_n, firsts.len()),
-            (293, 363, 1_139),
+            (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
+            (293, 312, 324, 1_036),
             "the floor"
         );
     }

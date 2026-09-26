@@ -7657,3 +7657,57 @@ Waited on with `waitrun.sh`, which exited 0.
   run226's last block. They are four who=1 walkers (`1/40`, `1/41`,
   `1/42`, `1/60`), `1/80`'s formation and `SITE[1].reg`. Where in
   17351..20499 any of them first parts is on no disk.
+
+## run248 — East Indies' world at 17146, a packet at logger frame 17146 (2026-09-25, item 773)
+
+**What it is.** The long game on the click-free lane to 17152. It carries
+a `RON_STATE_FRAME=17146` packet: the state after trace tick 17145, with
+tick 17146's world searches for army 0's column still ahead of it. It also
+carries a `WORLD=6` dump over [17145, 17148) beside run233's line. The
+trace's proxies were live all game (`callwin 0–17152`), so every
+`calc_cost` is on it.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-25-run248 \
+    --map 18 --end-frame 17152 --timeout 3600 --log-window 17145 17148 \
+    --detail end:MISC,WORLD=6,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=17146 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is 597's, reused as run150 and run240 reused it
+(`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+
+**Why a packet, and what the disk could not answer.** On tick 17146
+the original's `1/58` plans another world path than ours. Whether the two
+plan over another world or with another planner is a value the original
+holds. No East Indies dump on disk carries a whole `WORLD` past its
+start: each holds 21,600 `danger[who][scan]` lines, the start's three
+scans. run233's trace, and run227's, are `cover=0`: the draw stream, with
+no proxies.
+
+**Taken whole.** `success: true`, exit 0, `MAP_STYLE 18` and seed 12345
+read back, five settings files restored. **98 s launch to exit, 107 s in
+all**, with an 858,021,144-byte packet, 17 MB of dump and 69 MB of trace.
+The lane lock was stale: pid 62503 was dead. Waited on with `waitrun.sh`,
+which exited 0. The dump is archived as
+`gamelog-run248-eastindies-worldword.txt`, and the trace as
+`rontrace-run248.log`. The packet stays at
+`~/ron-data/lab-captures/2026-09-25-run248/map-18`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run54.log` | **0 differing**, 17,153 identical |
+| the window | `WORLD` on blocks 17145..17147, 3,600 cells and 57,600 tile masks |
+| the proxies | tick 17146 holds 28,828 priced steps |
+
+**What it settled** (`docs/PATHFINDER.md` §28,
+`run248_s_world_at_17146_is_the_original_s`).
+- **The world agrees.** No cell and no danger value parts. The tile
+  masks part on `0x4` alone (264). The fog parts on 16 half-cells of
+  who=1's bit, and no search of the tick prices one.
+- **The planner parts on the 32nd priced step**, `1/48`'s, 60 here
+  against 116 there: who=1's danger / 8. `astar_path` sets `no_danger`
+  under an `ATTACK_TO` order, and this crate did not.
+- With the arm, all 28,828 steps agree, and the word moved 17189 → 17403.
+- The packet was not read: the dump and the trace answered every term.

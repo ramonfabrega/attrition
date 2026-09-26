@@ -2718,3 +2718,109 @@ Under the tile-only rule it fails on its first assertion.
 **Listing-backed**: the clause's operands (`00607e8f`–`00607ead`).
 
 **Reading only**: the `0x40` bit and the walker exemption (§27.4).
+
+## 28. An army under an attack-to plans without the danger map: `no_danger`'s order arm (item 773, 2026-09-25)
+
+**Established** by a diff against the original's own priced steps, and
+the listing. **High** confidence for the `ATTACK_TO` arm, which run248
+exercises. The `GROUP_ATTACK_TO` and gaia arms rest on the listing alone
+(§28.4).
+
+### 28.1 The word, and what the disk said
+
+East Indies' word 17189 was `1/55`'s blocked stand by `1/60`, a frame
+before the original's. Under it, army 0's column (`1/55`, `1/57` and
+`1/58`) takes an `ATTACKTOORDER` on tick 17146 to three formation slots
+eight cells north, and each plans a world path. `1/55`'s and `1/57`'s
+agree. **`1/58`'s parts on block 17147**: the original's goes round the
+west in 18 entries, in the column; ours went straight north up
+x = 35592 in 10. The original's `1/58` then walks 104..290 from `1/57`
+and `1/55`, and it is the nearest unit on `1/55`'s half steps of 17183
+and 17185 (247, 275). Ours' was a thousand away, so ours' `1/55` took
+whole steps, came 30 ahead, and stood on `1/60` a frame early.
+
+**run248** (`docs/RUNS.md`) printed the world on block 17146 and proxied
+every `calc_cost` of the game. `run248_s_world_at_17146_is_the_original_s`
+reads both.
+
+- **The world is the original's.** No cell, no danger value and no tile
+  mask beyond run240's `0x4` residue parts. The fog parts on 16
+  half-cells, far from these searches.
+- **The first priced step to part is the 32nd of tick 17146**, in `1/48`'s
+  search: into (34176, 38016), 60 here against 116 there. Every
+  difference in that search is who=1's danger / 8 at the step's region:
+  −450 / 8 = −56 at (22, 24), and −312 / 8 = −39 at (22, 23). The
+  original priced the step without the danger map, and ours with it.
+
+### 28.2 The clause
+
+`astar_path`'s prologue writes `no_danger` (`+0x7c`, §2's table) from
+four terms, in this order (listing `00683866`–`006838a3`):
+
+```
+a = UnitData::get_action(unit)                    ; 00608450
+if a && a->get_type() == ATTACK (0xa)  -> 1      ; 683873 / 683876
+if who >= 8 (unsigned)                 -> 1      ; 68387b
+if order_type(unit) == ATTACK_TO (2)   -> 1      ; 683888
+if order_type(unit) == GROUP_ATTACK_TO (0x15) -> 1 ; 683895
+else                                   -> 0      ; 68389a
+```
+
+The decompile says the same (`astar_path@00683770:119-127`), and so does
+§2's table row. This crate carried the first term only
+(`Sim::no_danger_mode`, `crates/sim/src/path.rs`). An army under an
+attack-to therefore priced its own city's negative danger. Near who=1's
+city that makes a step up to 56 cheaper, which is enough to open the
+straight road north for `1/58`.
+
+**Pinned capture-free**:
+`path::tests::an_attack_to_order_plans_without_the_danger_map`. Under the
+one-term rule it fails on its first case.
+
+### 28.3 What moved
+
+- **All 28,828 priced steps of tick 17146** agree with the original's,
+  key and price: every world search of the tick, `1/58`'s among them.
+  The first 31 agreed before the arm.
+- **The value diff** (`run233_s_word_frame_is_widened_whole`): every row
+  of `1/55`, `1/57` and `1/58` goes (22, 13 and 25), and `1/55`'s stand
+  by `1/60` falls on 17190 on both sides. `1/63` loses two rows. The
+  floor goes 293/363/1,139 → 293/312/1,036.
+- **East Indies 17189 → 17403**, inside run233. On 17403 ours spends 7
+  draws against 6, parting at index 0: ours spends `Unit::do_move+0xe84`,
+  and the original a `Guy::inc_time` wrap. Under it on 17403 the
+  original's `1/60` walks under an `ATTACK_TO` and ours' under a
+  `GROUP_ATTACK_TO`, to another spot. From 17363, `1/67`..`1/69` part on
+  `group` (−1 here, 69 there). Those are rows, not a cause.
+- Great Lakes holds at 20568. The East Indies endpoint moves 3 → 1
+  unlinked, 2 → 1 and 3 → 6 on the buildings, with `off` holding at 47.
+
+### 28.4 What is not established
+
+- **The `GROUP_ATTACK_TO` arm.** It rests on the listing (`683895`). The
+  column's order on 17146 is an ungrouped `ATTACK_TO`, and no search in
+  run248 is known to run under the grouped one.
+- **The gaia arm.** It also rests on the listing (`68387b`). An animal's
+  world search never priced danger in a diff before, and none is on
+  run248's tick.
+- **The 16 fog half-cells** where the original's who=1 bit is set and
+  ours is not. No search of tick 17146 prices one, so they changed no
+  step here. Their writer is not read.
+
+### 28.5 Coverage
+
+**Diff-backed**:
+
+- the `ATTACK_TO` arm and the world on block 17146, by
+  `run248_s_world_at_17146_is_the_original_s`;
+- the move, by `run233_s_word_frame_is_widened_whole`;
+- the long word, by
+  `run54_s_24000_frames_are_where_the_second_map_s_word_now_parts`.
+
+**Listing-backed**: the four terms and their order
+(`00683866`–`006838a3`).
+
+**Reading only**: the grouped and gaia arms (§28.4).
+
+**Unit-tested, made to fail on purpose**:
+`path::tests::an_attack_to_order_plans_without_the_danger_map`.
