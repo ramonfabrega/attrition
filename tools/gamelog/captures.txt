@@ -6825,3 +6825,60 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 #   there, and `MAKE[4]` a second 61 here against an empty slot.
 # - **R3's killer fires**: every stockpile row but the wealth floor's
 #   agrees on 18182.
+
+run: 257
+tag: eastindies-guardword
+item: 822
+why: East Indies' long word is 18938 (item 822: a border fix zeroes `reg_known_rares` until the next census, AI §76), where ours spends 7 draws against 4, parting at index 1 — ours spends `Unit::do_guard+0x8fb` where the original spends `Guy::set_anim+0x104b` — and run253, the last capture on this map below 23960, ends on block 18433, so the word's block 18939 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 822): every
+# `gamelog-*eastindies*` and `*islands*` by its block range. run253
+# holds 18177..18433, run251 17496..17752, run233 16929..17440; run21,
+# run23, run54 and run96 print nothing below 23960 past their starts.
+# None holds 18938 or 18939. **What the disk does answer**: the draw
+# stream names the parting as a unit's guard step on our side and a
+# figure's animation on theirs, and run253's walk (with 822's fix) has
+# eleven keys parting past its first block, none a unit's. **What the
+# disk could not answer**: which unit guards on 18938, and every unit,
+# figure and leader record on 18933..18939.
+#
+# **Sized to the word** (DECISIONS 50 §7): six blocks before it
+# (18933..18938), its block 18939, and 250 above it (18940..19189) —
+# **257 blocks, 18933..19189**. No overlap with run253 (it ends on
+# 18433), so **blocks 18434..18932 are compared by no dump**; the same
+# game is the draw stream's word against run54.
+#
+# **The readings, each with what kills it** (block = frame + 1). Each
+# killer tests the claim's own unit and splits the readings:
+#
+# - **R1 — this is run54's game to 19200.** Killed if the trace differs
+#   from run54's on any frame, or agrees on fewer than 19,201.
+# - **R2 — a unit's order or target parts before the figure does.** Its
+#   unit is every `UNITDATA`'s order block and target on 18933..18939:
+#   killed if all agree on the word's block 18939. R3 predicts that.
+# - **R3 — only a figure's clock parts.** Its unit is every `GUY`'s
+#   `cur_anim`/`cur_time`/`end_time`: killed if all agree on 18939.
+#
+# **run253's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the pool lands (no `DEATHS`). Not a round (a guard step), so no `AMMO`.
+frames: 19200
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **18933..19189, 257 blocks**: six up to the word, its block 18939, and
+# 250 of runway above it.
+frame_window: 18933 19190
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run253**: 2.4 MB a block, so 257 blocks is ~0.6 GB, and
+# 756 more frames played unlogged than run253's 24 minutes.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run257.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=19201)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run257-eastindies-guardword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 257 blocks, 18933..19189, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run257-eastindies-guardword.txt" | awk '{v=$3+0; if(v>=18933&&v<19190) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==18933 && hi==19189)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run257-eastindies-guardword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18933&&v<19190)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run257-eastindies-guardword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18933&&v<19190)n++} print "blocks with a GUY: "n; exit !(n==257)}'
