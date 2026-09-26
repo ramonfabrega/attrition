@@ -3798,6 +3798,34 @@ mod tests {
         );
     }
 
+    /// §18: `do_move`'s blocker probe is the **quick** form. East Indies'
+    /// `1/71` on 19498 stands a cell east of the point it was refused, and
+    /// `1/75` has walked on until only its north-east corner touches the
+    /// proposal's south-west. The full form lets the two slip past, names
+    /// nobody and clears `collide_o`. The original's quick form stops at
+    /// the occupied cell, and the blocker is still there.
+    #[test]
+    fn the_blocker_probe_counts_a_corner_the_step_would_slip_past() {
+        let at_cell = |x: i32, y: i32| ucell_centre(Pos::new(x, y));
+        let (mut sim, x, y) = pair(at_cell(30, 30), at_cell(27, 32));
+        let coll = at_cell(29, 30);
+        sim.units[x].collide_o = sim.units[y].index;
+        assert!(
+            sim.blocker_still_there(x, coll),
+            "the quick form: an occupied cell is the blocker, corner or not"
+        );
+        assert_eq!(
+            sim.units[x].collide_o, sim.units[y].index,
+            "and it writes nothing"
+        );
+        assert_eq!(
+            sim.detect_unit_collision(x, coll),
+            None,
+            "the full form lets the corners pass, as a step would"
+        );
+        assert_eq!(sim.units[x].collide_o, -1, "and clears the blocker");
+    }
+
     /// §4.1: `safe` — the cooldown a failed 48-grid search buys — turns the
     /// test off entirely while it runs, and `Unit::work` counts it down.
     #[test]
