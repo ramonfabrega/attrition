@@ -47,7 +47,7 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_GROUPWORD_BLOCK, EAST_INDIES_GUARDWORD_BLOCK,
     EAST_INDIES_IDLE_BLOCK, EAST_INDIES_LEADERWORD_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MARKETWORD_BLOCK, EAST_INDIES_MERCS_BLOCK, EAST_INDIES_SLOT_BLOCK,
-    EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_WALKWORD_BLOCK, EAST_INDIES_WRAP_BLOCK,
+    EAST_INDIES_BLOCKEDWALK_BLOCK, EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_WALKWORD_BLOCK, EAST_INDIES_WRAP_BLOCK,
     EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
     GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
     GREAT_LAKES_ATTACKED_BLOCK, GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK,
@@ -565,6 +565,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r253 = crate::testenv::dump("gamelog-run253-eastindies-marketword.txt");
     let r257 = crate::testenv::dump("gamelog-run257-eastindies-guardword.txt");
     let r269 = crate::testenv::dump("gamelog-run269-eastindies-turnword.txt");
+    let r277 = crate::testenv::dump("gamelog-run277-eastindies-blockedwalk.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -899,6 +900,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r269 {
         let n = drive_capture(p, eww - 2, eww + 2, &mut paths);
         assert_eq!(n, 5, "run269 carries item 850's word's five blocks");
+        frames += n;
+    }
+    // Item 857 moved the word to 20007, past run269's end, and run277 is
+    // run269's line over [20002, 20259), taken to widen it.
+    let ebw = EAST_INDIES_BLOCKEDWALK_BLOCK;
+    if let Some(p) = &r277 {
+        let n = drive_capture(p, ebw - 2, ebw + 2, &mut paths);
+        assert_eq!(n, 5, "run277 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

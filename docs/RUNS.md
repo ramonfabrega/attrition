@@ -8282,4 +8282,17 @@ exited 0.
 | the window, block for block | **257 blocks, 20002..20258, no gap** |
 | a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
 
-**What it settled** (`run277_s_word_frame_is_widened_whole`): RUN277_SETTLED
+**What it settled** (`run277_s_word_frame_is_widened_whole`):
+- **R1 holds**, by the checks above.
+- **R3 holds, from the gap.** The first block's floor is 352 keys, and
+  run269's standing set (`form`, `group`, who=1's citizens' hits, the
+  leader rows) is 319 of them. The rest is new since 19664: who=1's army
+  group, 68 there and 71 here, holds a group move whose slots `1/65` and
+  `1/66` hold the other way round (`off` (504, 648) there against (696,
+  456) here, and the reverse; `facing` 0 against 1 on `1/64`..`1/66`),
+  so `1/65` walks to (35838, 42137) there and (36017, 41910) here.
+- **R2 holds** on the word's block. `1/65`'s walk animation is 7 here
+  against 8 there from 20005. On 20008 the original's `1/65` takes a half
+  step and its `1/67` walks on to (34821, 40956), while ours is refused
+  by `1/65` (`collide_o` 65) and stands.
+- The floor is 352/21/371/948.

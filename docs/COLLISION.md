@@ -3393,7 +3393,12 @@ with `top_only`. `Sim::do_move`'s suspended block asks it.
   parting at index 0 on `1/67`'s `Guy::set_anim+0x97a <
   Unit::move_step+0x823`, a blocked step's idle, where the original
   spends a `Guy::inc_time+0x271` wrap. Past run269's end; run277 was
-  captured over it (`docs/RUNS.md`). RUN277_RESULT
+  captured over it (`docs/RUNS.md`) and widened
+  (`run277_s_word_frame_is_widened_whole`). Its first block already
+  carries the gap 19665..20001: who=1's army group (68 there, 71 here)
+  holds a group move, and `1/65` and `1/66` hold each other's slots. On
+  20008 the original's `1/67` walks past `1/65`, which takes a half step,
+  and ours is refused by it. No mechanism is named.
 - `collide::tests::the_blocker_probe_counts_a_corner_the_step_would_slip_past`
   pins the verdict and the silence. It was made to fail with the probe
   answering the full form's verdict.
