@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
 DECISIONS 51; the gate green on 9bd334e8). Since it: 800, 811, 822, 829, 837, 839,
-850, 857, 865 (East Indies 17403 → 20007), 803, 813, 824, 832, 836, 842, 853, 854, 867
-(ch20 to ch23 closed); nothing in flight.*
+850, 857, 865, 870 (East Indies 17403 → 20007), 803, 813, 824, 832, 836, 842, 853, 854, 867
+(ch20 to ch23 closed); 877 in flight.*
 
 - **Great Lakes 20568 of 24,000; East Indies 20007 and the lower map.**
   The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
@@ -30,15 +30,14 @@ DECISIONS 51; the gate green on 9bd334e8). Since it: 800, 811, 822, 829, 837, 83
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 26 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860, 864, 866, 869, 875, 879).
+- **Fable backlog: 27 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860, 864, 866, 869, 875, 879, 881).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w20007 of 24,000 · GreatLakes w20568 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · 877 next
-Endpoint 24001: EastIndies 38 off, 0 unlinked · GreatLakes 11 off, 0 unlinked
+Endpoint 24001: EastIndies 40 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 870 on the AI lane (East Indies is lower), 795 then 831 after
-it, and 877 on the rules lane; the briefs against the checklist. A capture is
+**Opener: 880 on the AI lane (East Indies is lower), 795 after it, and 877 on the rules lane; the briefs against the checklist. A capture is
 sized to its word — six blocks before, 250 after — and waited on with
 `tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
 values, never a row count.**
@@ -51,25 +50,18 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-870. **East Indies' word is 20007: the pool numbering** (865 named it,
-    GROUPS §28: `copy_group` keeps slot 69's `facing` 1 and `order_num`,
-    and ours seats a fresh record; the kept fields alone drop the words
-    to 17530/7213, the pool parting from block 239). From
-    `att-865-pool-wip`'s a05f90a6 (both words hold, who=1's pool agrees to
-    block 8369): `1/11`'s `group` 65 → −1 on 8369 (run98) first. 689's.
+880. **East Indies' word is 20007: the slot records' history** (870:
+    every `group` pointer agrees to 20257, 831 built; 30e5b464's kept
+    fields still drop the words to 17530/7213). run277 holds the word;
+    the slot records' `order_num` agree to 6215 and part by 15894, and
+    no dump prints `GROUPDATA` in 6216..15893. A `GROUPS=1` capture over
+    that gap, walked in record mode; then the kept fields (GROUPS §29.4).
 
 795. **Great Lakes' word is 20568** (785 moved it 17181 → 20568:
     `Wonders::init_wonder` raises `wonder_mark`, AI §75). On 20568 ours 37
     draws against 38 at index 31: the original's is `1/40`'s blocked step
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
-
-831. **Twelve long floors: `do_non_flat_gather`'s `group` write** (824
-    measured it: `Unit::do_non_flat_gather@005f0170` writes `group` −1
-    on every call, AI included, `5f023e`). Both words and `ENDPOINTS`
-    hold; twelve floors fall (run257 320 → 306, run227 293 → 283), and
-    pool slots renumber (run78 `1/60` 69 → 68 against 70). Journal
-    824's table. The AI lane's, after its word; its pins are that lane's.
 
 877. **Chapter twenty-four, the queue line — an issuer, no capture
     yet** (867 closed twenty-three at 1840: `issue_buildmask` toggles,
