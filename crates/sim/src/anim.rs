@@ -460,6 +460,11 @@ impl Guy {
     }
 }
 
+/// One `<RELEASEEVENT>`, as [`Art::releases`] holds it: the game frame it
+/// fires on, its node, and whether its ammo is harmless (`do_damage="0"`)
+/// — item 853, `docs/ORDERS.md` §39.5.
+pub type Release = (u32, i8, bool);
+
 /// The art the clock reads — an input, like the map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Art {
@@ -532,7 +537,7 @@ pub struct Art {
     /// rounds, the Fighter's two guns; the node is what the launch point
     /// and a strafer's landing are taken from; and `harmless` is the
     /// ammo's `do_damage="0"`, a round that lands without damage.
-    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool)>>>,
+    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<Release>>>,
     /// `TypeIndex → (node → (minangle, maxangle))` — the unit types whose
     /// figure carries a **pivot**, read from `unit_graphics.xml`'s
     /// `<RESTRICTION>` rows (`rondata::artdata::pivot_restrictions`,
