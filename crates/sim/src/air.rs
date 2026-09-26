@@ -1485,3 +1485,236 @@ mod tests {
         assert!(s.units[b].pos.y < 19_700, "north, at its own speed");
     }
 }
+
+/// The launch line (item 836, `docs/ORDERS.md` §38): chapter seventeen's
+/// cast on a world large enough to hold the base's point.
+#[cfg(test)]
+mod launch_tests {
+    use crate::attrition::Domain;
+    use crate::combat::{self, Obj};
+    use crate::group::{Flight, Group};
+    use crate::movement::Angle;
+    use crate::orders::{Body, flag};
+    use crate::world::Pos;
+    use crate::{Player, Sim, Unit, UnitType};
+
+    fn sim() -> Sim {
+        let mut s = Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(128, 128),
+            2,
+        );
+        s.nation[0].human = true;
+        s.nation[1].human = false;
+        s.at_war[0][1] = true;
+        s.at_war[1][0] = true;
+        s.frame = 766;
+        s
+    }
+
+    /// who=0's Airbase at run223's point, and who=1's Barracks, finished
+    /// and seen by who=0 (`ever_seen` 3 from 762).
+    fn base_and_target(s: &mut Sim) -> (usize, usize) {
+        let airbase = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::Airbase,
+            ..crate::build::BuildType::default()
+        });
+        let base = s.add_building(0, Pos::new(11616, 13920), 0);
+        s.buildings[base].ty = Some(airbase);
+        let target = s.add_building(1, Pos::new(21120, 16512), 0);
+        s.buildings[target].started = true;
+        s.buildings[target].active = true;
+        s.buildings[target].combat = Some(combat::Profile::default());
+        s.buildings[target].health = 1200;
+        s.buildings[target].ever_seen = 3;
+        (base, target)
+    }
+
+    /// A Fighter with the `FIGHTER` row's tank, 400, standing inside `base`.
+    fn fighter_inside(s: &mut Sim, base: usize, mana: i32) -> usize {
+        let t = UnitType {
+            hits: 100,
+            moves: 75,
+            mana,
+            turn_speed: crate::movement::degrees_to_angle(10).0,
+            kind: crate::attrition::UnitKind {
+                domain: Domain::Air,
+                ..crate::attrition::UnitKind::default()
+            },
+            combat: combat::Profile {
+                attack: 15,
+                uber_size: 1,
+                max_range: 7 * 192,
+                domain: Domain::Air,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        };
+        let ty = s.add_unit_type(t);
+        let index = i16::try_from(s.units.len()).unwrap();
+        let mut u = Unit::new(0, index, Pos::new(11424, 14005), 100);
+        u.ty = Some(ty);
+        u.on_map = true;
+        let u = s.add_unit(u);
+        s.units[u].kind = s.unit_types[ty].kind;
+        s.units[u].movement.speed = 75;
+        s.units[u].movement.turning = crate::turning_of(&s.unit_types[ty]);
+        s.init_guys(u, Some(ty));
+        s.go_inside(u, base);
+        s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
+        u
+    }
+
+    fn group_of(who: Player, list: &[usize]) -> Group {
+        Group {
+            who,
+            army: None,
+            pushed: None,
+            list: list.to_vec(),
+        }
+    }
+
+    /// **The tank** (`Unit::process@00610bc0`'s air arm): one a frame on
+    /// the map while any is left, to the type's `MANA` and no further;
+    /// inside, `AIR_UNIT_MANA_RECHARGE` a frame, to 0. run265: 1 on 779,
+    /// 400 on 1178; −2 a block inside. Made to fail with the refill at 1
+    /// (the third assertion) and with the burn unbounded (the second).
+    #[test]
+    fn a_plane_burns_one_a_frame_on_the_map_and_refills_two_inside() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        s.units[u].mana_burn = 0;
+        s.recover_mana(u, 779);
+        assert_eq!(s.units[u].mana_burn, 1, "one a frame on the map");
+        s.units[u].mana_burn = 399;
+        s.recover_mana(u, 1178);
+        s.recover_mana(u, 1179);
+        assert_eq!(
+            s.units[u].mana_burn, 400,
+            "the tank's own size, and no more"
+        );
+        s.go_inside(u, base);
+        s.units[u].mana_burn = 24;
+        s.recover_mana(u, 767);
+        assert_eq!(s.units[u].mana_burn, 22, "two a frame inside");
+        s.units[u].mana_burn = 1;
+        s.recover_mana(u, 768);
+        assert_eq!(s.units[u].mana_burn, 0, "and never below 0");
+    }
+
+    /// **A strike from inside a base** (`Group::action_flight@006fb260`'s
+    /// inside arm, run265's 768): one `StrafeOrder` on the target, home
+    /// the base, `mandatory`, the action bit, `returning` 0 — and the
+    /// plane still inside. Made to fail with the reach against `mana`
+    /// alone (no order: 9857 > 400).
+    #[test]
+    fn a_strike_on_a_plane_inside_its_base_is_a_strafe_home_to_it() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+        let o = s.units[u].orders.front().copied().expect("a strike");
+        assert_eq!(o.flags & flag::ACTION, flag::ACTION);
+        let Body::Strafe(sf) = o.body else {
+            panic!("a strafe")
+        };
+        assert_eq!(sf.target, Some(Obj::Building(target)));
+        assert_eq!(sf.home, Some(base));
+        assert!(sf.mandatory && !sf.returning);
+        assert_eq!(sf.at, Some(Pos::new(21120, 16512)));
+        assert_eq!(s.units[u].inside, Some(base), "it waits in the base");
+    }
+
+    /// **Out of reach, no strike**: `vector_dist(base − target)` 9857
+    /// against a tank of 100 at 75 a frame. Made to fail by dropping the
+    /// reach test.
+    #[test]
+    fn a_strike_beyond_the_tank_s_reach_lays_nothing() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 100);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+        assert!(s.units[u].orders.is_empty());
+    }
+
+    /// **The tank gates the launch, and the launch is the EXIT's**
+    /// (`Object::do_launch@0064f3b0`, `do_spec_anim@005e5880`; run265's
+    /// 768–778). While `mana_burn` is above 0 the plane stays inside with
+    /// its strike; on the call it reads 0 it comes out onto the base's
+    /// point less `0xc0`, turned to 0, its figure on the ground with
+    /// `last_bank`/`last_pitch` 0, and flies its first step north; the
+    /// base's `launch_frames` is 0 and `launching` empty. Made to fail
+    /// without the tank's test (out on the first call) and without the
+    /// EXIT (the ring's spot, south of the base).
+    #[test]
+    fn a_strike_from_inside_waits_for_the_tank_and_leaves_on_the_exit() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.units[u].mana_burn = 22;
+        s.units[u].airframe.pitch = crate::single::Single::from_i32(8);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+        for f in 768..778 {
+            s.frame = f;
+            s.recover_mana(u, f);
+            s.do_launch(base);
+            assert_eq!(s.units[u].inside, Some(base), "{f}: the tank is not full");
+            assert_eq!(
+                s.buildings[base].launch_frames,
+                super::FRAMES_BETWEEN_LAUNCHES
+            );
+        }
+        s.frame = 778;
+        s.recover_mana(u, 778);
+        assert_eq!(s.units[u].mana_burn, 0);
+        s.do_launch(base);
+        assert_eq!(s.units[u].inside, None, "out on the tank's first 0");
+        assert!(s.units[u].on_map);
+        assert_eq!(s.buildings[base].launch_frames, 0);
+        assert!(s.buildings[base].launching.is_empty());
+        let at = s.units[u].pos;
+        assert_eq!(at.x, 11424, "the base's point less 0xc0");
+        assert!(at.y < 13920 && 13920 - at.y <= 75, "one step north: {at:?}");
+        let af = s.units[u].airframe;
+        assert_eq!(af.last_bank.bits(), 0);
+        assert_eq!(af.last_pitch.bits(), 0, "the pitch moved and zeroed");
+        assert!(matches!(
+            s.units[u].orders.front().map(|o| o.body),
+            Some(Body::Strafe(_))
+        ));
+        let _ = Angle(0);
+    }
+
+    /// **An empty base counts nothing** (run265: `launch_frames` 0 from
+    /// 778 on): the whole of `do_launch` is under `inside_down ≥ 0`. Made
+    /// to fail with the counter above the test.
+    #[test]
+    fn an_empty_hangar_s_launch_counter_stands() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        for _ in 0..20 {
+            s.do_launch(base);
+        }
+        assert_eq!(s.buildings[base].launch_frames, 0);
+    }
+
+    /// **The empty tank turns a strike for home** (`Unit::check_fuel@
+    /// 005e9be0`'s first arm; run265's 1178, run223's 1212): `returning`
+    /// set on the order flown. Made to fail without the arm.
+    #[test]
+    fn an_empty_tank_turns_a_strike_for_home() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
+        s.come_out(u);
+        s.units[u].mana_burn = 400;
+        s.plane_air_physics(u, Some(Pos::new(21120, 16512)), 1178);
+        let Some(Body::Strafe(sf)) = s.units[u].orders.front().map(|o| o.body) else {
+            panic!("a strafe")
+        };
+        assert!(sf.returning);
+    }
+}
