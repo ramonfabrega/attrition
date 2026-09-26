@@ -7165,14 +7165,9 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
     for ((w, o, what), (f, row)) in &firsts {
         eprintln!("  ch20 f{f} {w}/{o} {what}: {row}");
     }
-    // The staged Dock's centre, `0/2007`, parts on the first block:
-    // `snap_center`'s dock arm is not in this crate yet (the floor, before
-    // the fix).
     let standing = |what: &str| {
         what == "form"
             || what == "build:extra"
-            || what == "build:x_internal"
-            || what == "build:y_internal"
             || what.starts_with("leader:filled_gather_slots")
             || what.starts_with("g.gpiece")
     };

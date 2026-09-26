@@ -12,6 +12,21 @@ use crate::build::{self, BuildDomain, Ident, flags};
 use crate::world::{Cell, Owner, Pos, TILES_PER_CELL, Terrain, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Sim};
 
+/// `move_x[0..=80]` / `move_y[0..=80]` — the offset spiral read from
+/// `.rdata` at `0x00adcaf0` and `0x00adc400` (`crate::ai_sites` carries
+/// its first 25 and its radius-5 ring): the centre, then rings of radius 1
+/// to 4, which `snap_center`'s dock arm walks from index 1.
+const SPIRAL_X: [i32; 81] = [
+    0, -1, 0, 1, 1, 1, 0, -1, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -2, 2, 2, -2, -3, -2,
+    -1, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -3, -3, -4, -3, -2, -1, 0,
+    1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -4, -4, -4,
+];
+const SPIRAL_Y: [i32; 81] = [
+    0, -1, -1, -1, 0, 1, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, 2, 2, -3, -3,
+    -3, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4,
+    -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3,
+];
+
 /// Why a placement was refused — the PDB's `BlockIndex`, by value. `Clear`
 /// is the original's 0. The names read inverted in two places (`Seen` is
 /// returned for an *unseen* tile); the numbers are what the code returns.
@@ -83,7 +98,7 @@ impl Sim {
 
     /// `BuildTypeData::snap_center`'s last step: an odd footprint centres on a
     /// tile centre, an even one on a tile corner. The oil and dock searches
-    /// are not modelled.
+    /// are [`Sim::snap_center_placed`]'s.
     pub fn snap_center(&self, ty: usize, pos: Pos) -> Pos {
         let b = &self.build_types[ty];
         let t = pos.tile();
@@ -91,6 +106,49 @@ impl Sim {
             t.x * UNITS_PER_TILE + if b.x_size & 1 == 1 { 96 } else { 0 },
             t.y * UNITS_PER_TILE + if b.y_size & 1 == 1 { 96 } else { 0 },
         )
+    }
+
+    /// `BuildTypeData::snap_center@00636190(x, y, &x, &y, who)` with its
+    /// **dock arm** (item 803, `docs/GOLDEN.md` §28). A building of the
+    /// Dock's lineage (`is(0x1b0)`) whose centred tile `blocked_site`
+    /// refuses for `who` is moved to the first tile of the spiral
+    /// `move_x/move_y[1..=80]` round it that the same test clears, and then
+    /// snapped as [`Sim::snap_center`] snaps; with none, it stays. Only the
+    /// row is bounds-checked, as the listing has it. `Objects::init_build@
+    /// 0065d190` calls it with the building's owner, so the console's `add
+    /// dock` on a shore tile lands on the water beside it: run249's Dock,
+    /// asked at tile (53, 153), stands at (56, 155), `move_x/y[36]`.
+    ///
+    /// SEAM, none reached by a capture on file: the same arm for a
+    /// Woodcutter's Camp or a Mine (`0x1a2`, `0x1a3`) placed by a player,
+    /// and the Oil Well's and Oil Platform's (`0x1a5`, `0x1a6`) snap to a
+    /// seen cell flagged `0x800`. `Sim::init_build` still takes the plain
+    /// snap; the harness's `add` is this function's one caller.
+    pub fn snap_center_placed(&self, ty: usize, pos: Pos, who: Option<Player>) -> Pos {
+        if build::is_dock(&self.build_types, ty) {
+            let t = pos.tile();
+            let centre = |x: i32, y: i32| {
+                Pos::new(
+                    x * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+                    y * UNITS_PER_TILE + UNITS_PER_TILE / 2,
+                )
+            };
+            if self.blocked_site(who, ty, centre(t.x, t.y), None) != Blocked::Clear {
+                let rows = self.world.height() * TILES_PER_CELL;
+                let cols = self.world.width() * TILES_PER_CELL;
+                for k in 1..=80 {
+                    let y = t.y + SPIRAL_Y[k];
+                    if y < 0 || y >= rows || y >= cols {
+                        continue;
+                    }
+                    let at = centre(t.x + SPIRAL_X[k], y);
+                    if self.blocked_site(who, ty, at, None) == Blocked::Clear {
+                        return self.snap_center(ty, at);
+                    }
+                }
+            }
+        }
+        self.snap_center(ty, pos)
     }
 
     /// `BuildTypeData::tile_corner`: the top-left tile of the footprint of a

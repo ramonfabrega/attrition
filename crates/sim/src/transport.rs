@@ -1776,6 +1776,51 @@ mod tests {
         assert_eq!(f.sim.needs_transport(water, water), 0);
     }
 
+    /// **`snap_center`'s dock arm** (item 803, `docs/GOLDEN.md` §28): a
+    /// Dock whose centred tile `blocked_site` refuses takes the first tile
+    /// of the `move_x/move_y` spiral that it clears, in the spiral's own
+    /// order; a clear tile, or one with nothing clear within four, stays;
+    /// and nobody's shore clears nothing.
+    #[test]
+    fn a_dock_asked_off_its_shore_moves_along_the_spiral() {
+        let mut f = fix();
+        let placed = |f: &Fix, tx: i32| {
+            f.sim
+                .snap_center_placed(f.dock, tile_pos(tx, 15), Some(0))
+                .tile()
+        };
+        // Unowned ground: every site is refused, so every Dock stays.
+        assert_eq!(placed(&f, 32), Pos::new(32, 15));
+        for y in 0..8 {
+            for x in 0..12 {
+                f.sim.world.set_owner(
+                    Cell::new(x, y),
+                    crate::world::Owner::Player(0),
+                    crate::world::Owner::None,
+                );
+            }
+        }
+        // Clear where asked.
+        assert_eq!(
+            f.sim.blocked_site(Some(0), f.dock, tile_pos(33, 15), None),
+            crate::place::Blocked::Clear
+        );
+        assert_eq!(placed(&f, 33), Pos::new(33, 15));
+        // Too little water: north-east, index 3, before east, index 4.
+        assert_eq!(placed(&f, 32), Pos::new(33, 14));
+        // Too much: west and south, index 18, before west and north.
+        assert_eq!(placed(&f, 36), Pos::new(34, 16));
+        // Four tiles out, the radius-4 ring's index 57.
+        assert_eq!(placed(&f, 29), Pos::new(33, 11));
+        // Five tiles out: nothing in reach, so it stays.
+        assert_eq!(placed(&f, 28), Pos::new(28, 15));
+        // The plain snap never moves.
+        assert_eq!(
+            f.sim.snap_center(f.dock, tile_pos(32, 15)).tile(),
+            Pos::new(32, 15)
+        );
+    }
+
     #[test]
     fn dock_tiles_are_water_cells_on_a_free_shore() {
         let mut f = fix();

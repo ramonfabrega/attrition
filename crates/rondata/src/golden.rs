@@ -1091,6 +1091,11 @@ fn add(
         // price and leaves an unstarted site, so run132's Temple never set
         // its city's temple bit and the border never moved. `NEW`, the
         // unfinished form, is not parsed; no chapter uses it.
+        // `init_build`'s own `snap_center`, with its dock arm (item 803):
+        // an `add dock` on a shore tile lands on the water beside it.
+        let at = built
+            .sim
+            .snap_center_placed(ty, at, Some(who as sim::Player));
         let b = built.sim.init_build(who as sim::Player, ty, at, false);
         built.sim.activate(b, false, false);
         done.buildings += 1;
