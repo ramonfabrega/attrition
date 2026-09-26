@@ -16,6 +16,12 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter22.cmd
 #
+#   Run 2026-09-26, one take: 1,046 s, 365 MB, 458,240 GROUPDATA. The
+#   strike on 768, the launch on 778 (the tank's first 0), 36 rounds from
+#   924, returning on 1178, inside again on 1385. Falsifier 4 fired on
+#   `launch_frames` alone: it stays 0 once the base is empty (do_launch's
+#   counter is under `inside_down >= 0`). docs/RUNS.md, run265.
+#
 # `GUYS=4` with `GROUPS=1`, and `AMMO=5`: a strike is a round (parked 783),
 # and the Fighter's rounds on the Barracks are the strike's only mark on it.
 # The window is 895 blocks: the first parting is expected on 768 (a value)

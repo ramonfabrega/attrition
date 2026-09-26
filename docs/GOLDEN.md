@@ -1377,7 +1377,7 @@ below without a run take their number at booking (the eleventh pass).
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
-| 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **to be run** |
+| 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4430,9 +4430,12 @@ in any of the 43 golden dumps or the 155 logged runs on disk (a grep,
   drives ch17's 720–724 and ch13's 900–904, and nothing reads the class's
   keys (`started`, `frames`, `data1`…).
 
-**The arm no game reaches is EXIT at an Airbase: the launch.** None of
+~~**The arm no game reaches is EXIT at an Airbase: the launch.** None of
 the three coverage traces enters `Object::do_launch`, and no chapter
-launches a plane (§25: an idle plane in its base stays there). Its route
+launches a plane (§25: an idle plane in its base stays there).~~ **run265
+enters it** (§31, item 836): chapter seventeen's Fighter, struck out of
+its base on 766, launches on 778 onto the base's point less `0xc0`; the
+dump shows it, since the run is `cover=0`. Its route
 is parked 761's, a strike from inside a base, which this crate does not
 build (`docs/ORDERS.md` §32's SEAMs).
 
@@ -4444,6 +4447,9 @@ draws nothing there; a helicopter would draw twice. It needs 761 and the
 tank (765) built first, and it names no score until then.
 
 **What is not established.**
+- ~~**The launch arm is entered by no run.**~~ run265's 778 (§31): the
+  placement, `last_bank`/`last_pitch` 0.0 and the figure on the ground,
+  diff-backed once the chapter's widening compares it.
 - **Chapter thirteen's EXIT rests on the reading.** No draw is made off
   an Airbase, so the draw stream cannot see it, and run208 ran at
   `cover=0`. The train route is backed by the coverage traces.
@@ -4580,3 +4586,29 @@ builds no `do_launch`. So the first value parting expected is **768**,
 `0/6`'s stack, and the first draw parting **778**: the Fighter's
 `cruising_alt` redraw at `Unit::do_air_physics+0xba`, `(6 + 778) & 7 ==
 0`, a draw the original spends and this crate does not.
+
+**Run 2026-09-26 as run265 (item 836)** (`docs/RUNS.md` has the
+tables). One take, `cover=0`, the same game as run223 to 778.
+- **The premise holds.** `process_flight 767`; on 768 `0/6` holds one
+  `STRAFEORDER` on `1/2006` (`mandatory 1`, flags 4, `AIRORDER oxx 2007
+  whose 0 cruising_alt 1600 returning 0`, `xx/yy` (21120, 16512)) and is
+  still inside (falsifier 2 did not fire).
+- **The tank gates the launch** (falsifier 3 split the readings): inside
+  with its order on 768–777 while `mana_burn` falls 20 → 2, and out on
+  **778**, the block it first reads 0 — not 768, not 779.
+- **The EXIT's placement** (falsifier 4): the figure on (11424, 13920),
+  `last_z` 157, `last_bank` and `last_pitch` 0.0, `angle 0`; the unit one
+  step north at (11424, 13845); no `SPECIALANIMORDER` on any block.
+  **Its `launch_frames` clause fired**: the base reads 0 on 778 and on
+  every block after, because the whole of `do_launch`, the counter
+  included, sits under `inside_down ≥ 0` and the base is empty. The
+  reading had put the increment outside that test.
+- **The strike, the tank and home** (5 to 7 did not fire): 36 rounds of
+  `0/6`'s on `1/2006` from 924, a point of damage each; the Barracks
+  gone on 1080 as in run223, and the strafe an `AIRPATROLORDER` from
+  1081 (§25's dead-target arm); `mana_burn` 1 on 779 and 400 on 1178,
+  with `returning 1` that block; **inside `0/2007` again on 1385**, the
+  patrol still on its stack.
+- **`Object::do_launch` executed**, by the dump (the base's
+  `launch_frames` 15 → 0 and `inside_down` 6 → −1 on 778); run265's trace
+  is `cover=0`, so no coverage names it.
