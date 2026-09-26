@@ -15,10 +15,11 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
 DECISIONS 51; the gate green on 9bd334e8). Twenty landings ruled, nineteen moved a word; no score moved in the
-pass and none was meant to. Since it: 800 landed (East Indies 17403 →
-17501) and 803 (chapter twenty closed at 1300); 811 is in flight.*
+pass and none was meant to. Since it: 800 and 811 landed (East Indies
+17403 → 17501 → 18182) and 803 (chapter twenty closed at 1300); 813 is
+in flight.*
 
-- **Great Lakes 20568 of 24,000; East Indies 17501 and the lower map.**
+- **Great Lakes 20568 of 24,000; East Indies 18182 and the lower map.**
   The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
   a grep); the rules lane rose to 48.0 a landing on three stalls.
 - **Landed by the pass, each made to fail first**: the execute-bit guard
@@ -30,14 +31,14 @@ pass and none was meant to. Since it: 800 landed (East Indies 17403 →
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 9 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821).
+- **Fable backlog: 10 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w17501 of 24,000 · GreatLakes w20568 of 24,000
+Long captures: EastIndies w18182 of 24,000 · GreatLakes w20568 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · 813 next
-Endpoint 24001: EastIndies 43 off, 3 unlinked · GreatLakes 11 off, 0 unlinked
+Endpoint 24001: EastIndies 42 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 811 on the AI lane (East Indies is lower), 795 after it, and
+**Opener: 822 on the AI lane (East Indies is lower), 795 after it, and
 813 on the rules lane; the briefs against the checklist. A capture is
 sized to its word — six blocks before, 250 after — and waited on with
 `tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
@@ -51,13 +52,12 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-811. **East Indies' word is 17501** (800 moved it 17403 → 17501: the
-    stack sub-group's sort, GROUPS §27). On 17501 ours 13 draws against
-    11 at index 3: ours `Guy::move+0x19f`, `1/57`'s walk step. Army 0's
-    column parts from 17405 on its order's `group.id` (17404000 against
-    17410801; 674's shape, a hypothesis) and on position the same block.
-    Inside run251 ([17496, 17752)), widened; 17441..17495 is compared by
-    no dump. No mechanism.
+822. **East Indies' word is 18182** (811 moved it 17501 → 18182: a
+    retarget forms the army twice, ARMY §21). On 18182 ours 9 draws
+    against 11 at index 0: ours `make_stuff+0x221`, the original's
+    `use_market+0x1ed`. who=1's `MAKE[0]` parts first on 18181: type 61
+    here against 590 there. Inside run253 ([18177, 18433]), widened. No
+    mechanism.
 
 795. **Great Lakes' word is 20568** (785 moved it 17181 → 20568:
     `Wonders::init_wonder` raises `wonder_mark`, AI §75). On 20568 ours 37
