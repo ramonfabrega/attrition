@@ -516,7 +516,7 @@ impl Sim {
         // entry whose members happen to be gone. East Indies' tick 20000
         // pushes `1/64`..`1/66` onto the slot army 1's closed group last
         // held, and the layout reads that group's `facing` (§28).
-        let (slot, _prev) = self.pool_record(g.who, pool);
+        let (slot, prev) = self.pool_record(g.who, pool);
         let state = GroupState {
             pool: Some(pool),
             stamp: self.frame,
@@ -528,7 +528,7 @@ impl Sim {
             off: Vec::new(),
             curr: Vec::new(),
             angles: Vec::new(),
-            ..GroupState::default()
+            ..prev
         };
         let entry = crate::group::Pushed {
             who: g.who,
@@ -1193,7 +1193,7 @@ impl Sim {
         }
         let pool = self.open_slot(who);
         self.last_group[w] = pool;
-        let (slot, _prev) = self.pool_record(who, pool);
+        let (slot, prev) = self.pool_record(who, pool);
         let state = GroupState {
             pool: Some(pool),
             stamp: self.frame,
@@ -1204,7 +1204,7 @@ impl Sim {
             off: Vec::new(),
             curr: Vec::new(),
             angles: Vec::new(),
-            ..GroupState::default()
+            ..prev
         };
         let entry = crate::group::Pushed {
             who,
