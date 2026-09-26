@@ -104,3 +104,12 @@ file; each one is a ten-minute read of the code the row names.
   (`docs/TECH.md`, "The government patriot"). Its value diff is
   `run78_s_old_word_keeps_its_value_diff`
   (`docs/journal/2026-09-24-item-706.md`).
+
+## Closed by another item's landing, 2026-09-26
+
+- **831** landed with item 870: `Unit::do_non_flat_gather@005f0170`'s
+  every-call `group` −1 write (`5f0237`/`5f023e`), measured by 824 and
+  queued for the AI lane, was the writer of `1/11`'s `group` on East
+  Indies block 8369 (run98), and 870 built it on that chain. Its twelve
+  floors are among 870's re-pins (`docs/GROUPS.md` §29,
+  `docs/journal/2026-09-26-item-870.md`).
