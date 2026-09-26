@@ -6937,7 +6937,7 @@ that one frame to an aircraft alone (`Sim::process_unit`).
 - SEAMs: a helicopter (hover arms at `0x20`); a home that is dead, full or
   missing (the nearest-base search, and the out-of-fuel death); a carrier
   as home (the `+0x100000` mark, `local_2c`, the carrier's landing
-  point); the `0x400000` type arm of the pitch; a Gull (`0x193`).
+  point); ~~the `0x400000` type arm of the pitch~~ (§39.1, item 842); a Gull (`0x193`).
 - **A squad garrisoning in its own `work`** is owed `Guy::process` on
   that frame by the same reading of `Unit::process`; this crate still
   returns for it, and no capture has measured that frame.
@@ -7066,8 +7066,8 @@ altitude 0; no landing test; the keep-heading radius is `min_range ·
 0xc0 + 0x300`. **The bank** of a player's plane wants 0 while `|guy.z −
 find_tcoord_z| ≤ 199` (`0x5e9700`), else the bird's want clamped at 55,
 with none of the returning arms. **The pitch** wants `cruising_alt` over
-the ground ahead, is floored at the ground here plus 200, takes `extra`
-0 and no halving, and divides its rate by `0x240 / speed`: the
+the ground ahead (half of it for a strafing type on a strike, §39.1),
+is floored at the ground here plus 200, takes `extra` 0 and no halving, and divides its rate by `0x240 / speed`: the
 listing's `[ebp−0x18]` keeps the `0x240` handed to `project`, since only
 the returning arm overwrites it with the distance (`0x5e8fae`). run223's
 `0/7` on 666: bank 40 → 30, pitch 8 → 10, `z` 24 → 36.
@@ -7088,8 +7088,9 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
 - SEAMs: a non-bomber's `find_new_air_target` and the `semaphore & 2`
   fallback; the `FIGHTERBOMBER` and carrier-relative points;
   `find_new_bomber_target`'s `param_3 ≥ 0` arm and its `0x40000` arm;
-  `find_builds`' ring order, taken here as building order; the
-  `0x400000` pitch arm (the Bomber has only `h`); the tank (§32 piece 4).
+  `find_builds`' ring order, taken here as building order; ~~the
+  `0x400000` pitch arm (the Bomber has only `h`)~~ (§39.1: the Fighter
+  line's `w`); the tank (§32 piece 4).
 
 ### 34.8 Coverage
 
@@ -7451,7 +7452,15 @@ Fighter on 1178. Its flight home is §33's.
 only a strafe with no live target goes: run265's Fighter comes home under
 the `AirPatrolOrder` its dead target left (§34), and is inside on 1385
 with the patrol on its stack. The patrol has no action bit, so the next
-full tank would see `do_launch` kill it (§38.3).
+full tank would see `do_launch` kill it (§38.3). **The order survives
+only under a repeating base** (item 842, the listing's tail of
+`005e9950`): the home's vslot `0xf0` is `WallData::has_repeat_air
+@00472410`, `build_masks & 0x80`. When it is set, the order stays with its
+action bit cleared (`flags &= ~4`). When it is clear, `close_orders`,
+the partial path and `update_action` follow. run265's Airbase reads 4232,
+whose bit 7 is set. This crate closes the orders always
+(`Building` carries no `build_masks`, `lib.rs`), which is the widening's
+one order on 1385 and 1489. Parked.
 
 ### 38.2 `action_flight`'s inside arm
 
@@ -7483,7 +7492,8 @@ saturates there and the chain is walked:
   launch**: run265's strike, laid on 767, waits inside to 778, the block
   the tank first reads 0 (units are processed before buildings, so the
   refill and the launch share it);
-- the front order's action bit (or the base's vslot `0xf0`, a SEAM): a
+- the front order's action bit (or the base's vslot `0xf0`,
+  `has_repeat_air`, `build_masks & 0x80`, §38.1; a SEAM): a
   targeted strike whose target is invalid and whose point is off the
   world is killed; a patrol's `returning` is cleared; the plane joins
   `launching` (`+0x44`), and the first of the call is `come_out(0)` and
@@ -7509,12 +7519,16 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
 
 ### 38.5 What is not established
 
-- **The climb out of the base**: run265's 798, `pitch` 40.0 here against
+- ~~**The climb out of the base**: run265's 798, `pitch` 40.0 here against
   38.0 there, the first value parting and the cause of chapter
   twenty-two's word at 923 (the release a frame apart). `pitch_aircraft`'s
-  non-returning arm from the ground has never been read against a dump.
-- **A Fighter's round**: `do_strafe`'s `fire_ammo` for a non-bomber, the
-  36 rounds run265 prints from 924. Not built.
+  non-returning arm from the ground has never been read against a dump.~~
+  The strafer's half altitude: §39.1, item 842.
+- ~~**A Fighter's round**: `do_strafe`'s `fire_ammo` for a non-bomber, the
+  36 rounds run265 prints from 924. Not built.~~ A Fighter strafes (`w`),
+  so `do_strafe` plays `CHAR_ATTACK2` and the release events fire, as a
+  Bomber's do. Its round is exact (§39.2). Its second gun and the
+  landing's walk are §39.3, parked.
 - SEAMs: `MISSILE_DEFENSE_BONUS`, `war_allowed`, the `NUCLEARMISSILE`
   arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`;
   a strafe home to another, full base turned `AirPatrolOrder`; two planes
@@ -7524,3 +7538,96 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
 - **Trained aircraft** leave an Airbase through the same EXIT. No
   capture has trained one; the long captures have no Airbase in their
   word windows.
+
+## 39. The strafer: half the altitude on a strike, and an exact round (item 842, 2026-09-26)
+
+`docs/GOLDEN.md` §31 is the chapter and run265 the capture. Built in
+`crate::air` (`Sim::strafes`, `Sim::strike_altitude`, `pitch_plane`) and
+`crate::fight` (`fire_ammo_aim`'s scatter); the flag is
+`ai_load::uflags::STRAFES`. It closed chapter twenty-two, 923 → 1500.
+
+**How it was established, and how confident.**
+- Found by reading run265's Fighter whole on 776..931, both sides.
+  Our inputs to `pitch_plane` agreed through 797. The original's 797 →
+  798 → 799 pitches (40, 38, 36) fit only a rate divisor of 23 at 1600,
+  or the listing's halved altitude at the divisor 7 this crate already
+  had.
+- Then read from the listing: `pitch_aircraft` `0x5e9001`–`0x5e920b`,
+  `Ammo::init` `0x67c33a` and `0x67c9b2`–`0x67cb1a`, `execute_game_events`
+  `0x8e48e0`.
+- The vtables are resolved from the PE: `StrafeOrder`'s `UnitOrder`
+  `+0x18` is `mov eax, 1`, and its `+0xb4` is `get_attack_order`
+  (`this − 0x4c`). Slot `+4` of the object that returns is
+  `TargetOrder::target_exists@0072ff10`. `AirPatrolOrder`'s `+0x18` is
+  `xor eax, eax`.
+- **Diff-backed** on run265 whole: `0/6`'s record agrees on every block
+  of the climb and the strike, and the draw stream agrees to 1500.
+- **Reading only**: the flying-target arm (§39.1); every predicate's
+  refusing side (by `air::launch_tests`, not a capture); §39.3.
+
+### 39.1 `pitch_aircraft`'s strike arm
+
+Not returning, the altitude wanted is `cruising_alt` over the ground
+`0x240` ahead. **A type with `unit_flags & 0x400000`** (flag `w`,
+`unitrules.xml`'s "Unit 'strafes' targets", which the Fighter line
+carries and the Bomber does not) wants **`cruising_alt / 2`** over the
+ground instead, toward zero (`cdq; sub; sar`), when all of these hold:
+- the front order `is_attack` (a strafe; a patrol is not);
+- its target `target_exists`: `ox, whom ≥ 0`, the object's `flags & 1`,
+  and the `uid` unchanged;
+- it is no ally's (`LeaderData::is_ally`);
+- `fold(heading − find_angle(dx, dy)) ≤ 0x40000000`: the point the plane
+  flies at is within 90° of the nose;
+- the target's `ObjectTypeData +0x218` domain is not 2.
+
+The `min` with `cruising_alt + ahead` and the rest of the arm are §34.6's.
+
+**A flying target** (domain 2) wants the target figure's own `z` instead,
+plus or less `min(300, max(0, (0x600 − dist)·5))`. The side is by the
+order of the two objects' numbers: the lower `o` climbs, and on equal
+`o` the lower `who`. It is **not built** (SEAM): such a plane flies on
+the whole `cruising_alt`.
+
+### 39.2 `Ammo::init` for a strafer
+
+A unit shooter (vslot `+0x18`) whose type has `0x400000` takes a scatter
+radius of 0. That means no near-face aim and none of the two draws a
+land shot spends (`combat::scatter`'s `exact`). run265's 923: the
+original spends `set_anim` and the farms, and no `Ammo::init`.
+
+**`do_strafe`'s release for a strafer is the animation** (`0x5eb4c3`),
+not `fire_ammo`. `Object::fire_ammo` is the arm for a type with neither
+`w` nor the Bomber's `is(0x130)`, and with an ammo piece (`+0x2cc`). No
+capture reaches that arm.
+
+### 39.3 What is not established
+
+- **The second gun and the walk** (parked). `unit_graphics.xml` gives
+  `FIGHTER` sixteen `RELEASEEVENT`s on `CHAR_ATTACK2`: eight frames, each
+  on node 0 and node 1. run265 prints both rounds of every event.
+  `rondata::artdata::piece_releases` dedups the frames and drops the
+  node, so this crate fires one.
+- Then `Ammo::init` (`0x67c9b2`–`0x67cb1a`), for a strafer whose target
+  does not fly and whose guy 0 plays `CHAR_ATTACK2`, moves the landing
+  in two steps:
+  - `project`ed along the shooter's heading by
+    `trunc(((float)cur_time / (float)end_time − 0.3f) · 6 · 192)`;
+  - then 48 to the side, `heading − 90°` for an odd node and `+ 90°` for
+    an even one (`execute_game_events` puts the event's node,
+    `+0x23`, in the package's `angle` before `add_ammo`).
+- run265's first pair on 923 fits exactly: at `cur_time` 1 of 30, −307
+  along the heading, landing on (20816, 16440) and (20853, 16351).
+- The Barracks' `damage` parts on 928: half a point a round, two rounds
+  there against one here.
+- Building it changes `ArtTables.releases` (`anim.rs`), whose release
+  walk every ranged unit on both long captures goes through.
+- **The landed patrol** (§38.1): `has_repeat_air`, a `build_masks` bit
+  that `Building` does not carry. Its writer is unread.
+- The flying-target arm of §39.1.
+
+### 39.4 Coverage
+
+`pitch_aircraft@005e8de0` and `Ammo::init@0067bbf0` were executed in
+earlier traced games, and run265's dump backs both arms named here. The
+two guns and the walk rest on `unit_graphics.xml` and the listing. They
+are fitted to run265's `AMMO` records by hand, not by a test.

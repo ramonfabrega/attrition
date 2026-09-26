@@ -407,7 +407,7 @@ impl Sim {
     }
 
     /// Is the object still standing?
-    fn obj_alive(&self, t: Obj) -> bool {
+    pub(crate) fn obj_alive(&self, t: Obj) -> bool {
         match t {
             Obj::Unit(v) => self.units.get(v).is_some_and(|x| x.alive()),
             Obj::Building(b) => self.buildings.get(b).is_some_and(|x| x.alive),

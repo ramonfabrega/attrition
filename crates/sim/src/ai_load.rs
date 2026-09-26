@@ -116,6 +116,12 @@ pub mod uflags {
     /// ships)". `Unit::fight@005fd4d0:698–714` turns such a unit a quarter
     /// turn off the bearing to its target (`docs/COMBAT.md` §49).
     pub const SIDEWAYS: u32 = 0x40;
+    /// `w` — `unitrules.xml`'s own legend: "Unit \"strafes\" targets". The
+    /// Fighter line carries it and the Bomber does not.
+    /// `Unit::pitch_aircraft@005e8de0` reads it at `0x5e9009`: a striking
+    /// plane of the kind wants half its cruising altitude
+    /// (`docs/ORDERS.md` §39).
+    pub const STRAFES: u32 = 0x40_0000;
 }
 
 /// The bits of `unit_flags2` (`+0x2b8`).

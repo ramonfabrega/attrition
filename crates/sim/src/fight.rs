@@ -1497,10 +1497,15 @@ impl Sim {
             Some(t) => combat::accuracy(p.to_hit, p.attenuate, self.attack_dist(shooter, t)),
         };
         let land_unit = matches!(target, Some(Obj::Unit(_))) && matches!(tp.domain, Domain::Land);
+        // **A strafing type's round is exact** (`0x67c33a`): a unit
+        // shooter with `unit_flags & 0x400000` (flag `w`, the Fighter
+        // line) takes no scatter and no draw, whatever it aims at
+        // (`docs/ORDERS.md` §39).
+        let strafes = self.strafes(shooter);
         let s = match ground {
             Some(g) if g.sea => 0,
-            Some(_) => combat::scatter(&self.tuning, acc, true, false, false),
-            None => combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), false),
+            Some(_) => combat::scatter(&self.tuning, acc, true, false, strafes),
+            None => combat::scatter(&self.tuning, acc, land_unit, p.has(mask::MISSILE), strafes),
         };
         // A building target shot by a non-siege unit: aim at the near face.
         let mut aim = target_pos;
