@@ -1377,6 +1377,7 @@ below without a run take their number at booking (the eleventh pass).
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
+| 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **to be run** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4451,3 +4452,131 @@ tank (765) built first, and it names no score until then.
   without a piece skips the order, and nothing else changes.
 - **`data1` and `data2` are never read by `do_spec_anim`.** What they
   cue is the renderer's.
+
+## 31. Chapter twenty-two — the launch line: a strike from inside a base (item 836)
+
+**Premise.** A player's strike on an aircraft standing in its own Airbase
+is **a `StrafeOrder` on the target, laid while the plane is inside, and
+the base launches it only on a full tank**: `Object::do_launch@0064f3b0`
+puts it out through `Unit::come_out@00617c10`'s tail, `do_spec_anim`'s EXIT
+at an `AIRBASE` (§30), onto the base's point less `0xc0`, and it flies the
+strike in the same call. This is the arm of `SpecialAnimOrder` no traced
+game reaches (§30), and parked 761's route and 765's tank are its build.
+
+**The issuer, under the emulator first** (a scratch script on
+`tools/explore/command_oracle.py`'s fixture). `issue_flight(group, 2006,
+1, ATTACK, 0, 0, 0)` appends the same 30 bytes whether the captain stands
+on the map (`inside_up` −1), inside `0/2007` at `mana_burn` 24, or inside
+full: the 5-byte `group` and the 25-byte `flight` (0x1c), as §25 found.
+It writes no unit; the reuse is 28 bytes; `use_mp_playback`, `semaphore &
+0x10` and `semaphore & 4` append nothing. **What the emulator cannot
+reach** is all of the chapter: `Group::action_flight@006fb260`'s inside
+arm at process time, and `do_launch` in the base's `Build::process`.
+
+**The staging, read off run223** (chapter seventeen's capture, the same
+game to 764; parked 821: every predicate is a printed field, so no
+staging run was taken and run266 was not used).
+- `0/6` is inside `0/2007` from block 722 (`inside_up 2007`) at (11424,
+  14005). The base stands at (11616, 13920) with `inside_down 6`,
+  `launch_frames 15` and `build_masks` 4232, whose bit 8 is what makes
+  `Build::process@0061edf0` call `do_launch`.
+- **The tank** (`mana_burn`): +1 a block on the map from the `add` (1 on
+  611), 112 on 722, −2 a block inside, 24 on 766, **0 first on 778**.
+- **The Barracks `1/2006`**: `ever_seen` 2 from 618 and **3 from 762**
+  (who=0's bit, set while the pair patrol); damage from 822; gone on 1080.
+- **The reach**: `vector_dist(9504, 2592)` = 9857, against `mana` 400
+  (the `FIGHTER` row, type 289) times `get_speed` 75.
+
+**The reading.**
+- **`action_flight`'s inside arm** (listing `6fbbb0`–`6fbea0`): a member
+  not on a strafe takes its "inside" from `ObjectData::get_inside@00651a80`,
+  here 2007. An `ATTACK` then needs, in order:
+  - `Object::valid_target@00648ba0`: `ObjectData::valid_target_const@006472c0`
+    asks the target's `BuildData::is_seen@0062e1a0`, the `ever_seen`
+    byte; an air-domain attacker is not refused a building (the
+    `ANTI_AIR` refusal is for a land or building attacker), and a
+    Barracks is not capture-eligible;
+  - the target's leader without `MISSILE_DEFENSE_BONUS` (`has_preq`,
+    0x2b5), unless the target is one's own;
+  - the reach: `vector_dist(base − target) ≤ UnitData::mana@00609a50 ×
+    get_speed(x, y, 1)` (vslot `0x17c`, its three pushes at `6fbcd2`);
+  - not a `NUCLEARMISSILE` (`is(0x13b)`), then `is_ally ||
+    war_allowed`.
+  It gives `add_strafe_order(2006, 1, 2007, 0, 1, QUEUE_NEW, 1)`: a
+  strafe on the Barracks, `mandatory 1`, flags 4, home the base,
+  `returning 0`, `xx/yy` the target's point.
+- **A plane inside runs no `work`**: `Unit::process@00610bc0` takes its
+  inside arm (the tank's refill and `last_z = z`) and returns.
+- **`do_launch`** (the decompile, and the listing where it names a slot):
+  `launch_frames` (`+0x41`) is counted up and, once at
+  `FRAMES_BETWEEN_LAUNCHES` (15, the PE's `.data` at `0xc06248`),
+  saturates there while the chain is walked from `inside_down`:
+  - a plane with no order, or with `mana_burn ≠ 0`, is passed over;
+  - one whose current order has the action bit (or a base whose vslot
+    `0xf0` says so) stays: a targeted strafe is killed only if its target
+    is invalid **and** its point is off the world; it joins `launching`
+    (`+0x44`), and the first of the call is `come_out(0)` and
+    `launch_frames` 0;
+  - one without is `kill_current_order`ed and dropped from `launching`.
+  Units are processed before buildings (`Objects::process_all`, SYNC
+  §3.2), so the launch shares the block the tank first reads 0.
+- **`come_out`** places the plane off the building's ring, spares a
+  fixed-wing plane its orders (`close_orders` is for a non-air type or a
+  helicopter), draws nothing for a unit without `unit_masks & 0x40000`,
+  and hands its tail to `do_spec_anim`: the plane faces 0, is placed at
+  (11424, 13920), its figure's bank and pitch zeroed; the kill drops it
+  from `launching`; then `work`, and `do_strafe` flies the first step.
+- **The tank again**: +1 a block from 779; 400 on 1178, when
+  `Unit::check_fuel@005e9be0` sets `returning 1`; the flight home and a
+  second `land_plane`.
+
+**The cast** is chapter seventeen's (§25). **Lines**: `chapter17.cmd`'s
+eleven, and **`766 @strike 0 2006 1 6`**: the Fighter alone, inside, at
+the Barracks, with its tank at 24.
+
+**The capture must dump**
+`end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5` and
+`misc:COMMANDMANAGER=1` over `[605, 1500)`, beside run105's `start:` set:
+run255's line. 895 blocks; the parting is expected on 768 and 778, so
+the runway past it is 722 blocks, and the last falsifier is the second
+landing, near 1330 by the reading.
+
+**The premise's killer, and its writers** (§3, point 5): `0/6`'s order
+stack and `inside_up` on blocks 768–778. The class's one adder for a
+plane inside is `action_flight`'s inside arm; `do_launch` kills an
+unflagged order and an invalid strike; `come_out`'s `close_orders`
+spares a fixed-wing plane. **The loops**: `action_flight`'s members to
+`group.num` (1); `do_launch`'s chain from `inside_down` to the first −1
+(`0/6` alone).
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frame 766: an `INFO 17`
+   with a refusal, or no `process_flight` on 767.
+2. **The inside strike is refused.** Block 768: `0/6` with no order, or
+   anything but one `STRAFEORDER` on `1/2006`, `mandatory 1`, flags 4,
+   `AIRORDER oxx 2007 whose 0 cruising_alt 1600 returning 0`, `xx/yy`
+   (21120, 16512), with `0/6` still `inside_up 2007`.
+3. **The tank does not gate the launch.** It splits three readings:
+   `0/6` on the map on 768 (no gate), on 778 (the reading), or on 779
+   (the gate a frame behind).
+4. **The launch is not the EXIT's placement.** Block 778: `0/6` more
+   than a step and a half (112) from (11424, 13920); `0/2007`'s
+   `launch_frames` not 0 on 778 and 1 to 15 on 779 to 793; any
+   `SPECIALANIMORDER` on any block.
+5. **The strike does not fly at its target.** From 778: `0/6`'s current
+   order not its `STRAFEORDER` on `1/2006` while the Barracks stands and
+   the tank lasts; no round of `0/6`'s on `1/2006` (`AMMO`) by 1178.
+6. **The tank is not the reading's.** `0/6`'s `mana_burn` not 1 on 779
+   and 400 on 1178, or `returning` not 1 on 1178.
+7. **It does not come home.** `0/6` not inside `0/2007` again by 1499.
+
+Falsifiers 2 to 4 test the premise's own unit, `0/6`'s stack and
+`inside_up` on its own blocks (711), and 3 splits the readings (parked
+789).
+
+**Where it should part.** This crate gives a member inside a base no
+strike (`docs/ORDERS.md` §32's SEAM), carries no `launch_frames` and
+builds no `do_launch`. So the first value parting expected is **768**,
+`0/6`'s stack, and the first draw parting **778**: the Fighter's
+`cruising_alt` redraw at `Unit::do_air_physics+0xba`, `(6 + 778) & 7 ==
+0`, a draw the original spends and this crate does not.
