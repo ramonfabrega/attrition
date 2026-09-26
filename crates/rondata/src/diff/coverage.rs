@@ -269,10 +269,12 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 779's run241 windows `process_build`** (`x y x2 y2 type
     // queued frame`), the first player's build on disk. **Item 790's
     // run245 windows `process_spell`** (`type ox whom frame`), the first
-    // player's craft.
+    // player's craft. **Item 803's run249 windows
+    // `process_set_transport`** (`frame`), the first player's transport
+    // toggle; the flag it carries is read off the units' `unit_masks`.
     (
         "GAME",
-        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_spell",
+        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_set_transport process_spell",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -523,6 +525,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch17 = golden_dump("ch17");
     let ch18 = golden_dump("ch18");
     let ch19 = golden_dump("ch19");
+    let ch20 = golden_dump("ch20");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1064,6 +1067,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 669, 756, 795] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter nineteen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty's word, on run249** (item 803): the first player's
+    // transport toggle and Transport casts on disk. 622, `0/7`'s bit off;
+    // 703, `0/6`'s cast; 704, barge `0/8`; 719, `0/7` stopped at the shore;
+    // 802, its bit on; 830, barge `0/9`; 1160, the disembark.
+    if let Some(p) = &ch20 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY;
+        for w in [622, 703, 704, 719, 802, 830, 1160] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty carries the window's five blocks");
             frames += n;
         }
     }

@@ -781,6 +781,43 @@ fn chapter_nineteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty, pinned** — the board line: the transport toggle and
+/// the move it gates (`docs/GOLDEN.md` §28, item 803, run249). Eleven
+/// staged lines: `!ai off`, `library who=0 1`, a who=0 Dock on 604, two
+/// Chariots on 610 and 612, and six issuer lines — `@settransport` 0 on
+/// `0/7` on 620, both Chariots moved onto lake 70 on 640 and 642,
+/// `@settransport` 1 on `0/7` on 800, its move again on 820, and the barge
+/// `0/8` to the east bank on 900.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run249): `0/7`'s bit cleared on 622 and set on 802, no order laid by
+/// either; `0/6`'s Transport `CASTORDER` (650, flags 0) on 703 and barge
+/// `0/8` on 704; `0/7`'s stack empty at the shore on 719; its cast on 829
+/// and barge `0/9` on 830; `0/6` ashore on 1160, `0/8` gone. No
+/// `BOARDORDER` or `AWAITBOARDORDER` on any block.
+///
+/// `GOLDEN_WORD_CHAPTER_TWENTY` carries what stands at the word.
+#[test]
+fn chapter_twenty_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch20", "chapter20", 20, 11, 1299) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY,
+        "chapter twenty's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY,
+        "chapter twenty's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §28"
+    );
+    eprintln!(
+        "chapter twenty: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run235's bombs, record for record** (item 770, `docs/ORDERS.md` §35).
 /// run235 is run223's game again — the same seed, script and detail line —
 /// with `AMMO=5`, to 1100: every bomb the pair drop on the Barracks is a
@@ -7103,6 +7140,115 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch19: what parts in the pool moved");
 }
 
+/// **Chapter twenty's word, widened whole, both directions** (item 803).
+/// Every record run249 carries on every block of
+/// [`WIDENING_CHAPTER_TWENTY`], by [`widen_civilians`]: every unit and
+/// figure — the Chariots `0/6` and `0/7` and the barges `0/8` and `0/9`
+/// while they live — every building, the staged Dock among them, both
+/// leaders at `LEADERS=2`, whose `leader_flags` carry the transport level;
+/// and who=0's `GROUPDATA` pool by [`widen_pool`], where each command's
+/// pushed selection sits. run249 dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_twenty_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch20",
+        "chapter20",
+        WIDENING_CHAPTER_TWENTY,
+        1299,
+        0,
+        (702, 705),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch20 f{f} {w}/{o} {what}: {row}");
+    }
+    // The staged Dock's centre, `0/2007`, parts on the first block:
+    // `snap_center`'s dock arm is not in this crate yet (the floor, before
+    // the fix).
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what == "build:x_internal"
+            || what == "build:y_internal"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch20: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch20", "chapter20", WIDENING_CHAPTER_TWENTY, 0)
+        .expect("run249 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch20 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH20.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch20: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH20_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch20: what parts in the pool moved");
+}
+
+// **What parts under the word** on run249, the draw word closed at 1300.
+// - The births' `form`, the standing family: the Chariots and the barges.
+// - **The passenger's figures on boarding**: `avg_speed` 20 here against
+//   15 there on `0/6` (704) and 18 against 13 on `0/7` (830).
+// - **The disembark**: on 1160 `0/6`'s `orders_x/y`, (19608, 34968) here
+//   and (8428, 34200) there, its boarding point; on 1162 its figures'
+//   animation, `cur_anim` 7 here against 8 and `end_time` 89 against 22;
+//   and on 1165 its facing, −1581692416 here against −1518063274.
+const WANT_CH20: &[&str] = &[
+    "1160 0/6 orders_x",
+    "1160 0/6 orders_y",
+    "1162 0/6 g.cur_anim[0]",
+    "1162 0/6 g.cur_anim[1]",
+    "1162 0/6 g.end_time[0]",
+    "1162 0/6 g.end_time[1]",
+    "1165 0/6 angle:Facing",
+    "1165 0/6 g.angle[0]",
+    "1165 0/6 g.angle[1]",
+    "1165 0/6 g.des_angle[1]",
+    "611 0/6 form",
+    "613 0/7 form",
+    "704 0/6 g.avg_speed[0]",
+    "704 0/6 g.avg_speed[1]",
+    "704 0/8 form",
+    "830 0/7 g.avg_speed[0]",
+    "830 0/7 g.avg_speed[1]",
+    "830 0/9 form",
+];
+// **What parts in the pool**: the 620 toggle's pushed selection's
+// `ox`/`oy`, (0, 0) there and (−1, −1) here, chapter nineteen's standing
+// family; and the 642 move's group, slot 0, whose `speed`/`new_speed` are
+// 30 there and 0 here on 644 (`crate::group`'s, fenced to this item).
+const WANT_CH20_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "644 slot 0 new_speed",
+    "644 slot 0 speed",
+];
+
 /// The first occurrence of every integer key in each `UNITDATA` and
 /// `BUILDDATA` record of one block, keyed on `(kind, who, o)` — the raw
 /// read [`raw_near`] makes, for fields no parser carries.
@@ -7326,6 +7472,159 @@ fn run245_s_cast_is_the_original_s_field_for_field() {
     assert_eq!(
         got, want,
         "run245: what parts in the cast's own fields moved"
+    );
+}
+
+/// **run249's transport, unit for unit, both directions** (item 803,
+/// `docs/GOLDEN.md` §28). The state the toggle writes and the board reads,
+/// which [`crate::diff::harness::widen_block`] does not compare — it reads
+/// `unit_masks` for the packed and half-step bits only, and the long
+/// captures' widenings share it — read raw from every block of
+/// [`WIDENING_CHAPTER_TWENTY`]: on every unit of either player the
+/// auto-transport bit, `unit_masks & 0x800000`, against
+/// [`sim::Unit::auto_transport`]; on each leader the transport level,
+/// `leader_flags & 0x700`, against [`sim::Sim::transport`]; on every
+/// `CASTORDER` either side holds its craft and its `UNITORDER` flags; and
+/// no `BOARDORDER` or `AWAITBOARDORDER` on the original's side, which this
+/// crate cannot hold.
+#[test]
+fn run249_s_transport_is_the_original_s_unit_for_unit() {
+    use std::collections::BTreeMap;
+    let Some(mut s) = stage_script("ch20", "chapter20") else {
+        return;
+    };
+    let (first, last) = WIDENING_CHAPTER_TWENTY;
+    let players = s.built.sim.players.len() as i64;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut rows, mut casts, mut boards) = (0usize, 0usize, 0usize);
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        let sim = &s.built.sim;
+        let mut alone: Vec<(i64, i64, &str, &str)> = Vec::new();
+        let mut note = |who: i64, o: i64, what: &str, ours: i64, theirs: Option<i64>| {
+            let Some(theirs) = theirs else {
+                return;
+            };
+            rows += 1;
+            if ours != theirs {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {ours} theirs {theirs}")));
+            }
+        };
+        for l in &frame.leaders {
+            let Some(t) = usize::try_from(l.who)
+                .ok()
+                .and_then(|w| sim.transport.get(w))
+            else {
+                continue;
+            };
+            let ours =
+                i64::from(t.civilian) << 8 | i64::from(t.military) << 9 | i64::from(t.scout) << 10;
+            note(
+                l.who,
+                -1,
+                "leader_flags & 0x700",
+                ours,
+                Some(l.leader_flags & 0x700),
+            );
+        }
+        for them in &frame.units {
+            boards += them
+                .orders
+                .iter()
+                .filter(|x| x.kind == "BOARDORDER" || x.kind == "AWAITBOARDORDER")
+                .count();
+            if !(0..players).contains(&them.who) {
+                continue;
+            }
+            let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = sim.unit_by_o(w, o) else {
+                alone.push((them.who, them.o, "unit", "the dump holds it alone"));
+                continue;
+            };
+            let un = &sim.units[u];
+            note(
+                them.who,
+                them.o,
+                "auto_transport",
+                i64::from(un.auto_transport),
+                them.unit_masks.map(|m| i64::from(m & 0x80_0000 != 0)),
+            );
+            let ours_cast = un.orders.iter().find_map(|x| match x.body {
+                sim::orders::Body::Cast(c) => Some((c, x.flags)),
+                _ => None,
+            });
+            let theirs_cast = them.orders.iter().find(|x| x.kind == "CASTORDER");
+            match (ours_cast, theirs_cast) {
+                (Some((c, flags)), Some(t)) => {
+                    casts += 1;
+                    note(
+                        them.who,
+                        them.o,
+                        "cast.spell",
+                        i64::from(c.spell),
+                        t.cast_spell,
+                    );
+                    note(
+                        them.who,
+                        them.o,
+                        "cast.flags",
+                        i64::from(flags),
+                        Some(t.flags),
+                    );
+                }
+                (None, None) => {}
+                (mine, _) => alone.push((
+                    them.who,
+                    them.o,
+                    "cast",
+                    if mine.is_some() {
+                        "this crate holds it alone"
+                    } else {
+                        "the dump holds it alone"
+                    },
+                )),
+            }
+        }
+        for (who, o, what, side) in alone {
+            firsts
+                .entry((who, o, what.into()))
+                .or_insert((n, side.into()));
+        }
+    }
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run249 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!(
+        "run249's transport: {rows} rows compared, {casts} casts, {} parted",
+        firsts.len()
+    );
+    assert!(rows > 0, "run249 carries the fields it prints");
+    assert_eq!(casts, 2, "run249 holds each Transport cast on one block");
+    assert_eq!(
+        boards, 0,
+        "run249 prints a BOARDORDER or an AWAITBOARDORDER"
+    );
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    let want: Vec<String> = Vec::new();
+    assert_eq!(
+        got, want,
+        "run249: what parts in the transport's own state moved"
     );
 }
 
