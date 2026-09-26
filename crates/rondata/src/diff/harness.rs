@@ -16306,10 +16306,7 @@ pub(crate) mod tests {
         let first_block = standing.get(&FIRST).cloned().unwrap_or_default();
         let slot = |o: i64, k: &str| first_block.get(&(1, o, k.to_string())).cloned();
         assert_eq!(
-            (
-                slot(65, "order:move.off_x"),
-                slot(66, "order:move.off_x")
-            ),
+            (slot(65, "order:move.off_x"), slot(66, "order:move.off_x")),
             (
                 Some("Move { field: \"off_x\", ours: 696, theirs: 504 }".to_string()),
                 Some("Move { field: \"off_x\", ours: 504, theirs: 696 }".to_string())
