@@ -1253,6 +1253,15 @@ ordinary `group` rows, so a content difference (−1 against 71) sat in
 822's floor among forty id shifts and read as noise. Split the two in
 the floor: a row whose one side is −1 is its own family.
 
+(841) **A comment that says "the sim keeps no X" outlives its wiring**
+(837's Loop line, filed at its merge): the idle roll's gate read a
+state this crate did not keep when it was written, and the comment
+saying so stood nine days after the state was wired. A guard could
+check such a comment against the crate's own fields. And the same
+landing's journal arrived with two stray tool-call tags (`</content>`,
+`</invoke>`) that no guard caught; the commander removed them at the
+merge. A journal guard for markup outside fences would have.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
