@@ -598,6 +598,23 @@ impl Sim {
     // The pool's numbering and its per-frame pass (§19)
     // ------------------------------------------------------------------
 
+    /// A closed army's group, kept in the pool on its own index
+    /// (`Army::close@006f8ea0` writes only its `army` to −1; `docs/ARMY.md`
+    /// §22). It takes a [`Pushed`] entry whose members are all gone, as
+    /// `push_group` does, else a new one; its record and list are the
+    /// army's, and [`Sim::groups_process`] prunes it from then on.
+    pub(crate) fn seat_orphan(&mut self, who: Player, list: Vec<usize>, state: GroupState) {
+        let entry = crate::group::Pushed { who, list, state };
+        match self
+            .pushed
+            .iter()
+            .position(|x| x.list.iter().all(|&u| !self.units[u].alive()))
+        {
+            Some(i) => self.pushed[i] = entry,
+            None => self.pushed.push(entry),
+        }
+    }
+
     /// The live members of whichever seat of `who` holds pool slot `s` —
     /// an army's group or a pushed one — in join order.
     ///

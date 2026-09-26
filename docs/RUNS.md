@@ -8094,3 +8094,47 @@ exited), start clicked 06:08, archived 06:30. Waited on with
   (320 keys) adds who=1's `bucket[0:food]`, 114 against 214, from the gap.
 - The floor is 320 keys on the first block, 103 under the word, 423 on
   its block and 1,265 in all.
+
+## run261 — East Indies' gap over army 1's close (2026-09-26, item 829)
+
+**What it is.** run253's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[18428, 18685)`, at `cover=0`: a draw-stream trace. `!quit` at 18695,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 829
+```
+
+**Why it was owed.** Item 829's first killer fired on run257's first
+block. On 18933 `1/67`..`1/72` carry `group` −1 here against 71 there, a
+row standing from the gap 18434..18932, which no dump compares (run253
+ends on 18433). The disk answered what the original's group held on
+18933: `[69, 72]` with `army −1`. **What it could not answer**: on which
+tick army 1 closed, and whether its group survived the close. **Sized
+over the gap** (the brief's step 6): six blocks before 18434 and 250 into
+it, 257 blocks. Ours' close is tick 18682 (block 18683), inside. The
+wagon's new army on tick 18692 is outside, and **18685..18932 stays
+compared by no dump**.
+
+**Taken whole.** 623.4 MB of dump and 24.5 MB of trace, 257 blocks
+18428..18684. Launched 07:26, start clicked 07:27, archived 07:50.
+Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 18,696 identical, 18,696 in common |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 18428..18684, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run261_s_gap_is_widened_whole`, `docs/ARMY.md` §22):
+- **R2 holds.** Group 71 lists all eighteen with `army 1` on 18682. On
+  18683 it reads `army −1` with seventeen (`1/48` left through army 0's
+  `push_group`), and army 0's new group 64 holds fifteen.
+- **R3 holds**: the close is tick 18682, as ours' is.
+- One key parts past the first block in 257 blocks: who=0's
+  `production_step` on 18601. On 18683 army 0's list agrees, and every
+  old-army `group` row is the same seat one id higher here (689). The
+  floor is 318 keys on the first block, 1 past it, 316 on 18683 and 319
+  in all.

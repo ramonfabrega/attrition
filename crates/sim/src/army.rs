@@ -268,9 +268,20 @@ impl Sim {
         self.armies[who as usize].list[slot] = a;
     }
 
-    /// `Army::close`: `Group::action_halt(g, 0)` on the one group — the
-    /// units stop where they are (`docs/GROUPS.md` §7) — then the slot is
-    /// freed.
+    /// `Army::close@006f8ea0`: `Group::action_halt(g, 0)` on the one group
+    /// — the units stop where they are (`docs/GROUPS.md` §7) — then the
+    /// slot is freed.
+    ///
+    /// **The group is not freed** (`docs/ARMY.md` §22). `close` writes the
+    /// group's `army` (`+8`) to −1 and halts it, and nothing else: the
+    /// record, its pool index and its list stay in the pool, and every
+    /// member's `+0x80` still names it. So the group moves to a
+    /// [`crate::group::Pushed`] seat on the same index, orphaned, and the
+    /// next `get_open_slot` passes it by while a member still points at
+    /// it. East Indies' army 1 closed on 18682 from `find_target`, and the
+    /// original's group 71 still lists `1/69` and `1/72` on 18933; the
+    /// wagon's new army took another slot, and the escort's stale pointers
+    /// at 71 are what its collisions read on 18938.
     pub fn close_army(&mut self, who: Player, slot: usize) {
         if !self.armies[who as usize].list[slot].valid {
             return;
@@ -281,8 +292,11 @@ impl Sim {
         a.valid = false;
         a.status = 0;
         a.human_frame = 0;
-        a.units.clear();
-        a.group.pool = None;
+        let list = std::mem::take(&mut a.units);
+        let state = std::mem::take(&mut a.group);
+        if state.pool.is_some() && list.iter().any(|&u| self.units[u].alive()) {
+            self.seat_orphan(who, list, state);
+        }
     }
 
     // ---- membership and the counts (§3) ----
@@ -3570,6 +3584,56 @@ mod tests {
         assert_eq!(
             a.rally_dist, 0x1200,
             "close clears valid, status, human_frame and the groups only"
+        );
+    }
+
+    /// **A closed army's group stays in the pool** (§22, item 829).
+    /// `Army::close@006f8ea0` writes the group's `army` to −1 and halts it;
+    /// the record, its index and its list stay, and so does every member's
+    /// `+0x80`. So a new army formed from one of them takes **another**
+    /// slot, and `get_open_slot`'s tail clears nobody's pointer. East
+    /// Indies' army 1 closed on 18682, the wagon formed army 1 again on
+    /// 18692, and the escort's pointers at the old group are what the
+    /// collision on 18938 read. Made to fail first: with the group dropped
+    /// at close, the new army takes the old slot and the two left behind
+    /// point at nothing.
+    #[test]
+    fn a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let units: Vec<usize> = (0..3)
+            .map(|i| put(&mut sim, 1, t, Pos::new(0x1000 + 0x100 * i, 0x1000)))
+            .collect();
+        for &u in &units {
+            sim.army_add_unit(1, slot, u);
+        }
+        let pool = sim.units[units[0]].group_ptr.expect("the army's slot");
+        sim.close_army(1, slot);
+        assert!(!sim.armies[1].list[slot].valid);
+        assert_eq!(
+            sim.pool_list(1, pool),
+            units
+                .iter()
+                .map(|&u| sim.units[u].index)
+                .collect::<Vec<_>>(),
+            "the group is still listed on its own index"
+        );
+        assert!(
+            units.iter().all(|&u| sim.units[u].group_ptr == Some(pool)),
+            "and every member still names it"
+        );
+        assert_eq!(sim.army_of(units[0]), None, "in no army");
+        // The first of them forms a new army: it takes another slot.
+        let s2 = sim.init_army(1, Some(c));
+        sim.army_add_unit(1, s2, units[0]);
+        let fresh = sim.units[units[0]].group_ptr.expect("the new army's slot");
+        assert_ne!(fresh, pool, "the old slot is still held");
+        assert!(
+            units[1..]
+                .iter()
+                .all(|&u| sim.units[u].group_ptr == Some(pool)),
+            "the two left behind still point at the old group"
         );
     }
 
