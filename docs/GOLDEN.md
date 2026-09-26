@@ -4056,3 +4056,31 @@ s, the same game as run250 for the 647 frames they share, 355,840
 This crate's prediction, written before the run, is the original's to the
 block: 703, 704, 719, 802, 829, 830, 856, 967, 1160.
 
+
+**The word: `GOLDEN_WORD_CHAPTER_TWENTY` = 1300, closed on the first
+walk.** The command's entry, `input::group_set_transport` →
+`Sim::set_transport` (`docs/TRANSPORT.md` §15), landed with the chapter
+before the capture, and no draw count, draw sequence or `game_random`
+word parts on any of the 695 blocks.
+- **The value diff under a closed word** (DECISIONS 51.2). The widening
+  over (605, 1301) parted first on block 605: the staged Dock `0/2007` at
+  (10176, 29376) here and (10752, 29760) there. That is `snap_center`'s
+  dock arm, now built (`Sim::snap_center_placed`). On block 1160 it parted
+  on `0/6`'s `orders_x/y`, (19608, 34968) here and (8428, 34200) there,
+  and then its `dest_angle`, 671481856 here and 1073741824 there — the
+  disembark's `update_action` and `come_out`'s angle, now built. All three
+  agree now.
+- **The toggle's own field**: nothing in the widening compared it —
+  `widen_block` reads two other bits of `unit_masks` — so
+  `run249_s_transport_is_the_original_s_unit_for_unit` reads it raw on
+  every block, beside the leader's level, the casts and the absent
+  `BOARDORDER`: 12,036 rows, none parted.
+- **What stands.**
+  - The births' `form`.
+  - The passengers' figures' `avg_speed` on the boarding frame: 20 here
+    against 15 there on 704, and 18 against 13 on 830. The original ages
+    it once more before the figures freeze inside.
+  - On the disembarked `0/6`: its figures' animation on 1162 (`cur_anim`
+    7 against 8) and its facing on 1165.
+  - In the pool, the toggle's pushed selection's `ox`/`oy` and the 642
+    move's group `speed`.
