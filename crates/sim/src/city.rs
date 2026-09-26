@@ -771,6 +771,7 @@ impl Sim {
     /// records — and the borders recomputed wholesale (`docs/ATTRITION.md`'s
     /// stated simplification).
     pub fn sync_territory(&mut self) {
+        self.fix_borders();
         // `World::compute_reg_territory` rebuilds its whole per-player table
         // at the top of every region pass (`006b0bb0` lines 125–260) rather
         // than caching it, so the Civic level a leader holds *now* is what
@@ -843,6 +844,49 @@ impl Sim {
         }
         self.recompute_territory();
         self.update_territory_holdings();
+    }
+
+    /// `Region::fix_borders@00680f60` (and `Regions::fix_all_borders`,
+    /// the same loop): every region's resume index (`Region::borders`,
+    /// `+0x2c`) goes to 0. Its one effect this crate keeps beyond the
+    /// wholesale recompute is the **zero of `reg_known_rares`**:
+    /// `GameDaemon::check_borders@00732060` runs every frame and calls
+    /// `World::compute_reg_territory@006b0bb0` on each unfinished region,
+    /// and that call, when the region's index is 0, zeroes `reg_terr[r]`
+    /// and `reg_known_rares[r]` for every live leader **before** its
+    /// 256-cell budget test (`:76–105`). So the first `check_borders`
+    /// after a fix zeroes the whole array, and only the census's step 9
+    /// counts it again. A `calc_gather` recompute in between sums 0 into
+    /// `known_rares`, and `create_units`' Merchant arm reads that sum
+    /// (`docs/AI.md` §76). `reg_terr`'s zero is the transient this crate's
+    /// wholesale recompute does not model (parked 568).
+    ///
+    /// Every [`Sim::sync_territory`] is a fix: its call sites are the
+    /// original's (`Build::activate`, `Build::finished`, `Build::close`,
+    /// `City::check_upgrade`, `City::assimilate`, `gain_tech`'s Civic arm,
+    /// `calc_gather`'s rare arm). The fix only raises
+    /// [`Sim::borders_fixed`]; the zero is [`Sim::check_borders`]', at the
+    /// daemon's point in the tick. A fix raised by an object therefore
+    /// zeroes on the next frame, after that frame's `calc_gather` and
+    /// census, and East Indies' run227 shows it there: the original's
+    /// `reg_known_rares[7]` and `[11]` go to 0 on block 16529, one after
+    /// the fix's own.
+    pub(crate) fn fix_borders(&mut self) {
+        self.borders_fixed = true;
+    }
+
+    /// `GameDaemon::check_borders@00732060`'s one modelled effect: after
+    /// a fix, every leader's `reg_known_rares` is zeroed. The original
+    /// zeroes a region again on every frame its pass has not yet reached
+    /// under the 256-cell budget; this crate zeroes once (§76.5).
+    pub(crate) fn check_borders(&mut self) {
+        if !self.borders_fixed {
+            return;
+        }
+        self.borders_fixed = false;
+        for a in &mut self.ai {
+            a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
+        }
     }
 
     fn remove_source_of_city(&mut self, c: usize) {

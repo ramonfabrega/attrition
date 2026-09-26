@@ -1127,6 +1127,10 @@ pub struct Sim {
     /// building's clock re-baked and every building's hit points refreshed —
     /// before any object is processed. `docs/CITIES.md` §3.2.
     pub wall_stats_dirty: Vec<bool>,
+    /// Every region's `Region::borders` resume index reset since the last
+    /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
+    /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
+    pub borders_fixed: bool,
     /// One per player: the object-number marks [`Sim::find_free`] allocates
     /// against.
     pub marks: Vec<Marks>,
@@ -1513,6 +1517,7 @@ impl Sim {
             building_high: vec![Vec::new(); players],
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
+            borders_fixed: false,
             // Ten slots, not `players`: gaia's animals and birds are units
             // of owners 8 and 9 and take numbers from their own bands.
             marks: vec![Marks::default(); players.max(10)],
@@ -3979,6 +3984,12 @@ impl Sim {
         // cycle, between the AI and the objects (`docs/SYNC.md` §3.1). On
         // frame 0 it is eighteen draws, the frame's 2nd to 19th.
         self.calc_markets(frame);
+
+        // `GameDaemon::process_all` → `check_borders`, after the market and
+        // before the pool: a border fix since the last one zeroes every
+        // leader's `reg_known_rares` (`docs/AI.md` §76). The cells
+        // themselves were recomputed wholesale at the fix (parked 568).
+        self.check_borders();
 
         // `GameDaemon::process_all` → `Groups::process`, its last act: one
         // pool slot per player has its prune and its speed reset

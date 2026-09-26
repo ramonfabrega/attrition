@@ -6730,8 +6730,10 @@ Zeroing the array in `Sim::sync_territory` **reproduces the zero** on
 move the word. This crate recomputes every region at once, on the event,
 and the original schedules a budgeted pass (`GameDaemon::check_borders`,
 256 cells a frame), so the frame the zero lands on belongs to a transient
-this crate does not model (`docs/ATTRITION.md`, "Territory"). The writer is
-named here and not implemented. `1/known_rares` on run91 is the only row it
+this crate does not model (`docs/ATTRITION.md`, "Territory"). ~~The writer
+is named here and not implemented.~~ **Implemented by item 822, §76**: the
+fix raises a flag and the next frame's `check_borders` zeroes the array,
+which is the frame run227 dates. `1/known_rares` on run91 is the only row it
 leaves, and it does not reach the Merchant slots on any block.
 
 ### 55.4 What it moved
@@ -6775,9 +6777,11 @@ past run123's last. No dump reaches it, so its widening is owed a capture.
 
 ### 55.5 What this has *not* established
 
-- **The frame of the territory zero** (§55.3). Its writer is read. Placing
+- ~~**The frame of the territory zero** (§55.3). Its writer is read. Placing
   it needs `check_borders`' budgeted schedule, which this crate does not
-  model.
+  model.~~ **Answered by §76**: the first `check_borders` after a fix
+  zeroes every region, before its budget test. Only the re-zero of regions
+  the pass has not reached is unmodelled (§76.6).
 - **The Mathematics-or-knowledge gate is reading-only.** No capture was
   checked for which operand holds at the first offer, and no block on
   disk separates the gate from its absence.
@@ -9525,3 +9529,197 @@ runway's 502.
   on run226 from its 0 → 1 on 17085. The arm's last gate is diff-backed
   by the draw stream on 17181. Entry reuse and the walk-down are
   reading-only.
+
+## 76. A border fix zeroes the rares until the next census, and the word moves to 18938 (2026-09-26, item 822)
+
+East Indies' word was **18182**. On it this crate spent 9 draws against
+the original's 11, parting at index 0: ours `Leader::make_stuff+0x221`
+(the head's expiry), the original `Leader::use_market+0x1ed` (a sale's
+`rand % 6`, §2.15). On block 18181 who=1's make list parted: `MAKE[0]`
+held the **Merchant** (`t 61`, cat 4, val 952,380) here against 590 (cat
+8, val 22,784) there, and `MAKE[4]` a second Merchant here against the
+fresh slot there (run253, widened by item 811).
+
+### 76.1 The frame, read whole before any reading
+
+run253's who=1 leader record, whole, on 18177..18184 (`RON_STANDING`,
+`RON_MAKE`):
+
+- **`known_rares` parts on the first block, 18177: 3 here, 0 there**, and
+  stands to the word. It is the one input of `create_units`' Merchant arm
+  (§55.2) that parts. Every other compared field the arm reads agrees
+  (`effective_pop` 70 and `pop_cap` 100 among them).
+- The original's own array reads 3 on every block of the window
+  (`reg_known_rares` {7: 1, 9: 1, 11: 1}), and its `gather_stamp` is
+  **18071**, as ours is. So its recompute at 18071 summed an array that
+  read 0 then, and its census at 18175 has since counted 3.
+- run251 (17496..17764) has the sum at 2 from the recompute at 17207 and
+  3 from the one at 17656, and `reg_terr[8]` at 8. On 18177
+  `reg_terr[8]` is 11: a border moved in the gap, 17753..18176, which no
+  dump compares.
+- Standing beside it and not on the list's path: the wealth family,
+  `SITE[0].reg`, `scouts` 0/3, `tech_frame` and `tech_cat_frame[0..3]`.
+
+### 76.2 The readings, and what killed each
+
+Written before the build; each killer tests the claim's own unit.
+
+- **R1, the Merchant arm's gate wrote the list differently on tick
+  18180.** Killed if, with `known_rares` at the original's 0, `MAKE[0]`
+  and `MAKE[4]` still part on 18181. **Holds**: they agree in every field
+  but the standing `city` shift.
+- **R2, the list was written the same and cleared differently.**
+  **Killed on the disk**: the original's `MAKE[4]` is the fresh record
+  on 18181, so no Merchant was offered after step 2's clear.
+- **R3, the wealth family feeds it.** The arm reads no wealth, and the
+  list parts before any `use_market` of the rotation. **Killed**: the
+  list agrees with the wealth rows still standing.
+- **R4, the census at 17975 counted 0.** Ours' census at 17975 counts 3
+  (a scratch print of every write), and the zero built below reproduces
+  the original's 0. **Killed as the cause**; the original's own 17975
+  count is in the gap and no dump shows it.
+- **R5, a border fix between the census at 17975 and the recompute at
+  18071.** **Holds.** A scratch print of every writer on 17900..18200:
+  the census writes {8, 10, 12} on 17975 and 18175, the recomputes on
+  18039 and 18071 sum 3, and `sync_territory` runs once, on **18032**,
+  from `gain_tech`'s Civic arm.
+
+### 76.3 The writer this crate did not carry
+
+`reg_known_rares` (`LeaderData +0x4d4`) has two writers in play: the
+census (`plan_strategy`'s steps 8 and 9, §55.1) and
+**`World::compute_reg_territory@006b0bb0:76–105`** (§55.3, parked 534).
+`known_rares` (`+0x6d4`) has `Leader::init` and `calc_gather`.
+
+- `Region::fix_borders@00680f60` and `Regions::fix_all_borders@0067f7d0`
+  are the same loop: **every** region's resume index (`Region::borders`,
+  `+0x2c`) goes to 0. Their callers are `Build::activate` (two sites),
+  `Build::finished`, `Build::close` (two), `City::check_upgrade`,
+  `City::assimilate`, `SpellType::cast_assimilate`, `Forts::close_fort`,
+  `gain_tech` (the Civic epoch, two bonus-type ranges, and tribe bonus
+  `0xd`), `calc_gather`'s rare arm (a rare bit changing) and
+  `fix_tech_flags`.
+- `GameDaemon::check_borders@00732060` runs every frame from
+  `GameDaemon::process_all@00732700` (after `calc_markets`, before
+  `Groups::process`). It calls `compute_reg_territory(r, 0)` on every
+  region with `borders < size`.
+- `compute_reg_territory`, when the region's index is 0, zeroes
+  `reg_terr[r]` and `reg_known_rares[r]` for every live leader and
+  clears every city's `bordering`, **before** its 256-cell budget test.
+  So the first `check_borders` after a fix zeroes every region, and only
+  the census's step 9 counts it again. A `calc_gather` recompute in
+  between sums 0.
+
+§55.3 read the writer and did not build it: zeroing in `sync_territory`
+reproduced run91's zero and cost `gather_stamp` elsewhere. It was built
+on the fix's own frame there. run227 dates the zero: the original's
+`reg_known_rares[7]` and `[11]` go to 0 on block **16529**, one after the
+fix's own, 16528.
+
+### 76.4 The fix
+
+- `Sim::fix_borders` (`crates/sim/src/city.rs`) is called from the head
+  of `Sim::sync_territory`, whose call sites are the original's fixes. It
+  raises `Sim::borders_fixed`.
+- `Sim::check_borders` consumes the flag at the daemon's point in the
+  tick, after `calc_markets` and before `groups_process`, and zeroes
+  every leader's `reg_known_rares`. A fix raised by an object zeroes on
+  the next frame, after that frame's recompute and census, as run227
+  shows.
+- `ai_census::tests::a_border_fix_zeroes_the_rares_until_the_next_census`:
+  the fix only marks, the next `check_borders` zeroes, the recompute sums
+  0, the next census counts again. Made to fail twice: with the call
+  removed from `sync_territory`, and with the zero removed from
+  `check_borders`.
+
+### 76.5 What it moved
+
+Measured on `59aafe06`, based on `f224f1a7` (811's booking):
+
+- **The value diff, on run253** (`run253_s_word_frame_is_widened_whole`):
+  - who=1's `known_rares` on block 18177: **3/0 before, 0/0 after**. It
+    parts on no block of run253 now.
+  - who=1's `MAKE[0]` on 18181: (61, cat 4, val 952,380) against (590,
+    cat 8, val 22,784) before; **590, cat 8, val 22,784 on both sides**
+    after. `MAKE[4]`: the Merchant against the fresh slot before; **the
+    fresh slot on both** after. Only `city` stands, the floor's shift.
+  - The floor goes 310/18/327/977 → **309/4/313/319**: 658 keys past the
+    word go with the Merchant.
+- **East Indies 18182 → 18938**, past run253's last block. On 18938 ours
+  spends 7 draws against 4, parting at index 1: ours
+  `Unit::do_guard+0x8fb`, the original `Guy::set_anim+0x104b`.
+- **The fix's first write in the gap** is tick **18032**: `gain_tech` →
+  `sync_territory` → `fix_borders`, zeroed at 18033's `check_borders`.
+  Both recomputes that follow, 18039 and 18071, sum 0 as the original's
+  18071 does. 17753..18176 is still compared by no dump.
+- **run227**: `reg_known_rares[7]`/`[11]` on 16529 and `known_rares` on
+  16536 go (parked 699's three); the floor 306/310 → 303/307.
+- **run143**: `known_rares` leaves the first block (214 → 213). It parts
+  again on 10384, where ours' recompute of 10383 sums the census's
+  recount and the original's waits for 10439: who=1's `gather_stamp`
+  (10335 against 10343 from the first block).
+- **run178 (Great Lakes)**: `known_rares` first parts on **14584** where
+  it parted on 14536. The Senate's fix now zeroes both sides from 14535;
+  what stands is who=1's recompute on 14583 here against 14543 there
+  (parked 701's shape).
+- **Great Lakes holds at 20568**, and its endpoint at 11 off, 0
+  unlinked. **East Indies' endpoint**: 42 → 41 off, 3 → 6
+  build-diverged, 2 unlinked.
+
+### 76.6 What this has *not* established
+
+- **The budgeted re-zero.** The original zeroes a region on every frame
+  its pass has not yet reached, so a census inside a pass is undone for
+  the regions still waiting. This crate zeroes once. Where a census
+  falls inside a pass (a large map, a fix just before a sweep), the two
+  part. No block on file shows it; it is parked 568's transient.
+- **The trigger set.** Every `sync_territory` is taken as a fix. The
+  original's `gain_tech` fixes on a Civic epoch and two bonus-type
+  ranges whether or not the border table changes; ours' `apply_gained`
+  calls `sync_territory` only when it does. A tech that fixes and
+  changes nothing would zero there and not here. No capture separates
+  them.
+- **The recompute's timing** stands where it stood (run143's 10383,
+  run178's 14583): the zero is right on both sides, and the sum then
+  follows whichever recompute comes first.
+- **17753..18176** is compared by no dump. The 18032 fix and the zero
+  are ours; the original's are inferred from its 18071 sum.
+
+### 76.7 The new word's block, 18939, on run257
+
+18939 is past run253's last block, so run257 was taken over [18933,
+19190), sized to the word (DECISIONS 50 §7). **No dump compares a value
+over 18434..18932**; the draw stream agrees across it.
+`run257_s_word_frame_is_widened_whole` walks run257 whole, and the
+coverage driver reads 18937..18941.
+
+- **Nothing parts on 18934..18938.** The first block carries 320
+  standing keys. Among them are who=1's wealth family, the make list's
+  `city` shift, and a new `bucket[0:food]`, 114 against 214, from the
+  gap. who=1's `known_rares` agrees on every block.
+- **On the word's block four of who=1's units part whole**: `1/67`,
+  `1/68`, `1/70` and `1/71`, 25 or 26 keys each. Ours stand under a
+  `GUARD` (kind 12, one order, `tolerance` 144, stopped, `collide_*` on a
+  neighbour). The original's walk under an `ATTACK_TO` (kind 2, two
+  orders, a one-leg path), given on tick 18938. `1/67`: ours (34632,
+  41112), `cur_anim` 3; theirs (34644, 41125), `cur_anim` 7. No army's
+  list parts.
+- **No mechanism is named** (DECISIONS 42). The four are one order's
+  members on the original's side; who gave it on 18938 is the next
+  item's question.
+
+### 76.8 Coverage
+
+**Diff-backed**:
+- the zero's effect on the sum, on run253 (18177..18433, `known_rares`
+  and the make list), run227 (the zero's frame, 16529), run143 and
+  run178 (the sum between the zero and the next census);
+- run257's word block.
+
+**Decompile-backed and reading-only**: the writer at
+`compute_reg_territory:76–105`, `check_borders`' order in
+`process_all`, and the fix's callers (§76.3). None is owed a blind
+second reading: the zero, its frame and its reader are diff-backed.
+
+**Built**: `a_border_fix_zeroes_the_rares_until_the_next_census`, made
+to fail twice (§76.4).
