@@ -1360,7 +1360,7 @@ below without a run take their number at booking (the eleventh pass).
 | 215 | fifteen, the group attack | `[605, 1250)` | a player's attack on an enemy and an attack-move on the ground, `issue_attack` and `issue_move_to(ATTACK_TO)` through the DLL's `@attack` and `@amove`, with `GROUPS=1` at `GUYS=4` for the pool (§23) — **run 2026-09-25 (item 731), 269 MB, ~13 min; no falsifier fired: six `AttackOrder`s, `mandatory 1`, on 736 and no `GroupAttackOrder` anywhere; `1/6` last prints on 808; six `GroupAttackToOrder`s on 862, arriving on the predicted points from 1080; the pool printed; word ~~753~~, closed at 1250 (item 731: the attack command entered, a fresh slot's stamp)** |
 | 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
 | 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
-| 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) |
+| 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3636,3 +3636,23 @@ the harness skips `@build` by name. So the first parting expected is
 621: the command's processing, with `0/6`'s first step of the walk the
 original spends and this crate does not, and on block 622 the site, the
 price and the two orders.
+
+**Run 2026-09-25 as run241 (item 779)** (`docs/RUNS.md` has the tables).
+- **No falsifier fired, and the premise's class holds.** Both commands
+  reached the pump on the next frame. On 622 `0/6` holds a `MOVEORDER`
+  to its ring spot (6840, 34440) and a `BUILDORDER` (flags 4) on
+  `0/2007`, and timber is down 120. On 642 each of the three holds a
+  `MOVEORDER` to its own spot and a `BUILDORDER` on `0/2008`, and
+  timber and metal are down 60 each. No `EXPLORETOORDER` anywhere on a
+  builder: `local_40` is the human flag. Falsifier 3's "flags 0" is the
+  adder's; on the processed block the move already carries the path
+  bit of its first step.
+- **The build.** The three start on 709 and finish the Siege Factory on
+  **948**; `0/6` starts on 721 and finishes the Barracks on **1141**.
+  Each builder's stack is empty on its site's last frame.
+- **After.** On **1097** `0/8`, idle since 948, takes `find_build_spot`'s
+  help: a `MOVEORDER` and a `BUILDORDER` with flags 0 on `0/2007`. It is
+  still walking on 1141 and stands idle from ~1200.
+- **The scratch walk's prediction held on every block read** except the
+  help's class, an `EXPLORETOORDER` there: this crate's one-unit
+  `swarm_around` never asks whose builder it is.

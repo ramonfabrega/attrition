@@ -7486,3 +7486,71 @@ the launch line does. It was waited on with `waitrun.sh`, exit 0.
 - With the bays built, all 784 records agree field for field
   (`run235_s_bombs_are_the_original_s_record_for_record`), except the
   target a round in flight keeps past the Barracks' death on 1080.
+
+## run241 — chapter eighteen, the build line (2026-09-25, item 779)
+
+`docs/GOLDEN.md` §26, `tools/gamelog/golden/chapter18.cmd`. The cast:
+four citizens of who=0 staged on 610–616, `0/6` alone and `0/7`–`0/9`
+together. Two **player commands** go through `issue_build@00941c30`
+from the DLL's `@build`:
+- on 620, `0/6` drops a Barracks (427) at (7296, 34176);
+- on 640, the three drop a Siege Factory (430) at (7296, 36864).
+
+The chapter, its premise's killer and the falsifiers were committed before
+the run (`c0a7a0a6`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch18 \
+    --map 14 --end-frame 1450 --log-window 605 1450 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter18.cmd
+```
+
+**One take at `cover=0`**: 1,002 s from launch (19:12) to exit, 348 MB
+of dump and 11.3 MB of trace, 847 blocks. The lane lock named pid 7640,
+which had exited, so the launch took it over. It was waited on with
+`zsh tools/gamelog/waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| receipt | `success: true`, exit 0, 1,451 frames, seed 12345, `MAP_STYLE 14` |
+| `cmdsran.py` | all eight cheat lines returned 1 |
+| `rngcmp.py` vs run223's trace | the same game to 614; the first difference is 615, the frame after the third staged unit |
+| `GROUPDATA` | **432,640 records**, 512 on each of the 845 window blocks: the pool printed |
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` / `17` | `0/6` uid 13 at (4728, 35448); line 7, refusal 0, 10 → 40 bytes: a 5-byte `group` and the 25-byte `build` |
+| 640 | `INFO 18` ×3 / `17` | `0/7` uid 14 at (4728, 37752), `0/8` uid 15 at (5112, 37752), `0/9` uid 16 at (5496, 37752); line 8, refusal 0, 10 → 44: a 9-byte `group` of three and the `build` |
+
+Each command is processed on the next frame: `process_group, new 0 1 621`
+and `process_build 7296 34176 7296 34176 427 2 621`; `new 0 3 641` and
+`process_build 7296 36864 7296 36864 430 2 641`.
+
+### §26's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | both processed on the next frame | as predicted |
+| 2, the site and the price | `0/2007` `orig_type 427` on 622, timber −120; `0/2008` `orig_type 430` on 642, timber and metal −60 | **exactly so**: timber 241 → 121 on 622; 122 → 62 and metal 100 → 40 on 642; both sites `construct_hits 1`, `frame_started −1` |
+| 3, the class | a `MOVEORDER` then a `BUILDORDER` (flags 4) on each | **the class holds**: `0/6` on 622, a `MOVEORDER` to (6840, 34440) and a `BUILDORDER` on `0/2007`, uid 17; `0/7`, `0/8`, `0/9` on 642, each a `MOVEORDER` to its own ring spot, (6840, 37032), (6840, 36792), (7128, 37320), and a `BUILDORDER` on `0/2008`. No `EXPLORETOORDER`. The move reads **flags 1**, not 0, on the processed block: its first step has already set the path bit. `0/8`'s later move shows the adder's 0 on the block it is laid (1097) and 1 the next |
+| 4, the walk | constructing by 760 | the Siege Factory from **709** (`0/9` first), the Barracks from **721**; no re-swarm |
+| 5, the rate | the Barracks by 1200, the Factory by 1000 | `construct_hits` 1200 on **948** (the Factory) and **1141** (the Barracks) |
+| 6, letting go | no `BUILDORDER` past the last frame | the three's stacks are empty on 948, `0/6`'s on 1141 |
+
+**After the builds.** The three stand idle from 948. On **1097** `0/8`
+takes a `MOVEORDER` to (7176, 34632) and a `BUILDORDER` on `0/2007` with
+**flags 0**, `find_build_spot`'s help. It is still walking when the
+Barracks is finished on 1141, reaches its spot on ~1200 and stands idle.
+No builder gathers to 1449.
+
+**This crate's prediction held on every block read**: the ring spots, the
+starts on 709 and 721, `construct_hits` block for block (53 and 116 on
+740, 110 and 220 on 760), the completions, and the help on ~1097. The one
+row it had wrong is the help's class: the prototype laid an
+`EXPLORETOORDER` where the original lays a `MOVEORDER`, because this
+crate's one-unit `swarm_around` never asks whose builder it is.

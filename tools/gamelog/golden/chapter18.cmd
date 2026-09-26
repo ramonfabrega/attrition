@@ -16,6 +16,13 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter18.cmd
 #
+#   Run 2026-09-25: 1,002 s, 348 MB, the same game as run223 to 614,
+#   432,640 GROUPDATA. Both commands processed on the next frame. No
+#   falsifier fired: a MOVEORDER and a BUILDORDER (flags 4) a citizen on
+#   622 and 642, both sites paid; the Siege Factory finished on 948 and
+#   the Barracks on 1141; 0/8 helps the Barracks from 1097 with a
+#   MOVEORDER. docs/RUNS.md, run241.
+#
 # `GUYS=4` with `GROUPS=1`: run215's, run219's and run223's levels, the
 # line whose pool printed (run210 at `GUYS=2` did not). `LEADERS=2` prints
 # the buckets the price comes out of; `BUILDS=7` prints each site's
