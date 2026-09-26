@@ -3377,17 +3377,22 @@ pub(crate) const WIDENING_CHAPTER_TWENTY: (i64, i64) = (605, 1301);
 
 /// **Chapter twenty-one's golden word** — the repair line: a player's
 /// right-click on a damaged building (`docs/GOLDEN.md` §29, item 813,
-/// run255). **1141, open, on the first walk**: the command's entry,
+/// run255). ~~1141, open, on the first walk~~: the command's entry,
 /// `input::group_swarm_around` over `Sim::group_swarm_around`, and piece
 /// 120's launch bays landed with the chapter before the capture, and the
-/// stream agrees through the whole repair line — the arrows, the peace,
+/// stream agreed through the whole repair line — the arrows, the peace,
 /// both swarms, the repair on 930–931 and the three late orders dying on
 /// 968, 969 and 1023 — to the idle citizens' own gather walks, where on
-/// 1141 the original's `0/7` spends a walk step's animation draw beside
-/// `0/8`'s and ours does not.
+/// 1141 the original's `0/7` spent a walk step's animation draw beside
+/// `0/8`'s and ours did not. **1300, closed** (item 824): a human's found
+/// gather drops its group (`think_peasant@005f5760`'s `+0x80` write at
+/// `5f590c`), so `0/7`'s camp approach on 1131 is no longer refused the
+/// spot `0/8` was sent to by `find_ordered_collision`'s own-group arm —
+/// `MOVEORDER` `x` 4104 here against 4296 there, from `group` 0 here
+/// against −1 there on 1130.
 ///
-/// **The delta**, this constant's: 1141 at its first pin.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_ONE: i64 = 1141;
+/// **The delta**, this constant's: +159, 1141 → 1300, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_ONE: i64 = 1300;
 
 /// `chapter_twenty_one_s_word_frame_is_widened_whole`'s window: **run255
 /// whole**, (605, 1301). Its pool half, `widen_pool`, reads who=0's
@@ -5032,13 +5037,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // Item 813: run255, chapter twenty-one's first walk, open at 1141:
     // the swarm command entered with the chapter, before the capture; the
-    // word is past the repair, in the idle citizens' gather walks; the
+    // word past the repair, in the idle citizens' gather walks. Item 824
+    // closed it at 1300: a human's found gather drops its group. The
     // widening is run255 whole.
     (
         "GOLDEN_WORD_CHAPTER_TWENTY_ONE",
         GOLDEN_WORD_CHAPTER_TWENTY_ONE,
         Some("chapter_twenty_one_s_word_frame_is_widened_whole"),
-        813,
+        824,
         Some(WIDENING_CHAPTER_TWENTY_ONE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
