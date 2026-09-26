@@ -745,6 +745,23 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                     theirs,
                 });
             }
+            // **And `& 0x80`, repeat air** (item 854, `docs/ORDERS.md`
+            // §40): `Build::init@00629740:280` sets it with `0x8` on every
+            // `can_carry(AIR)` building, and only the player's
+            // repeat-orders toggle clears it. On all 201 dumps it is on
+            // the five Airbases alone, from `BEGIN GAME` to the end.
+            let theirs = i64::from(mask & 0x80 != 0);
+            let mine = i64::from(ours.repeat_air);
+            if mine != theirs {
+                r.build_diverged.push(BuildDivergence {
+                    frame: frame.n,
+                    who: b.who,
+                    o: b.o,
+                    field: "repeat_air",
+                    ours: mine,
+                    theirs,
+                });
+            }
         }
         // **And the city it belongs to, and the chain it sits on** (item
         // 661). `city` is the slot in the owner's own city array and

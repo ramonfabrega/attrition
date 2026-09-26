@@ -1319,6 +1319,14 @@ pub struct Building {
     pub started: bool,
     /// `build_masks & 0x1000`: has been activated at some point.
     pub activated: bool,
+    /// `build_masks & 0x80`: **repeat air** — `WallData::has_repeat_air
+    /// @00472410`, the base's vslot `0xf0`. A plane that lands here keeps
+    /// its order with the action bit cleared (`Unit::land_plane`), and
+    /// `Object::do_launch` launches an unflagged order from it.
+    /// `Build::init@00629740` sets it, with `0x8`, on every building that
+    /// `can_carry(AIR)`; only the player's repeat-orders toggle
+    /// (`Group::action_buildmask(0x80)`) clears it (`docs/ORDERS.md` §40).
+    pub repeat_air: bool,
     /// `build_masks & 0x100`: this building's roads want replanning, and
     /// `Build::process` will replan them on the frame `(frame + o) % 16`
     /// picks out. Set by `City::regen_roads` — `crate::roads` §1.
@@ -2109,6 +2117,7 @@ impl Sim {
             health: 0,
             damage_frac: 0,
             active: true,
+            repeat_air: false,
             regen_roads: false,
             garrison_attack: 0,
             recharging: 0,
