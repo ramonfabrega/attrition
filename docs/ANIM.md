@@ -2374,3 +2374,64 @@ trace, and `1/67`'s stamps and clock on block 19000
 (`run257_s_word_frame_is_widened_whole`). *Unit test*:
 `a_suspended_search_idles_without_a_draw`, made to fail without the
 gate. *Listing-backed*: the compare and its branch at `5dac5f`.
+
+## 15. A unit that goes inside in its own work still takes its figures' frame (item 850, 2026-09-26)
+
+`Unit::process@00610bc0` tests `inside_up < 0` (`+0x82`) once, on entry.
+Under it, it runs the work, the vtable's `+0x188`, and then
+`Guy::process` on every figure: first the squad (`+0xb5` figures), then
+the crew from the type's `+0x304` up to `+0xe8` (lines 538–549 of the
+export). **Nothing re-tests inside between the work and the figures.** A
+unit whose own work puts it inside a transport or a building still has
+its figures moved once on that frame. After that the inside arm (`else`)
+writes only `last_z` from `z`.
+
+This crate gave that frame to an aircraft alone. The SEAM in
+`Sim::process_unit` said a squad that garrisons was owed it by the
+reading, and that no capture had measured it. Now it is given to every
+unit that went inside in its own work (`inside` or `inside_unit` set by
+the work's end). What the frame does is `Guy::move`'s standing arm on a
+body already at its `des`. It writes `last_speed` 0, ages `avg_speed`
+(`(avg × 3 + 0) / 4`), and turns a figure owed a turn toward
+`des_angle`: `Guy::turn_towards → do_turn`, whose `set_anim` falls back
+to the idle roll, the draw (§4.8).
+
+**How it was established.** From the draw stream, then the dump, then
+the decompile. On East Indies' 19413 this crate spent 5 draws against
+the original's 6, parting at index 3. Both spent `1/77`'s two
+`Guy::set_anim+0x97a < do_cast` and the barge's `Guy::init_real+0x52`.
+The original then spent `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Guy::turn_towards+0x69` (`RON_DEBUG_SITES`). `1/77` is a Merchant (type
+61, two figures) casting its barge `1/78` at the shore (`docs/TRANSPORT.md`
+§6). run269's block 19414 has its second figure standing on its `des`
+(28037, 34244) with `last_speed` 0 and `angle` = `des_angle` −901447680,
+where it read −541917184 and `last_speed` 1 on 19413. Both figures' `avg_speed`
+go 15 → 11 and 16 → 12. Ours printed the 19413 values unchanged: its
+figures had not moved at all (`RON_DEBUG_UNIT`).
+
+**What it moved.** East Indies' long word, **19413 → 19509**, inside
+run269. The four figure rows on 19414 agree. Great Lakes holds at 20568.
+Chapter twenty (run249), where the Chariots `0/6` and `0/7` board their
+barges on 704 and 830, loses four standing rows. `0/6`'s `avg_speed`,
+20 against 15, had stood 704..1169, and now stands only on 1160..1169,
+where our disembark seats the figures on a zero average and the original
+brings out the 15 it froze with. `0/7`'s, 18 against 13, had stood
+830..1299, and is gone. The older East Indies widenings lose keys the
+same way (item 850's journal).
+
+**What is not established.**
+- **A garrison on its arrival frame.** The same gate now gives it the
+  frame by the reading. No widening names a garrisoning squad's figures
+  on that frame.
+- **The disembark's figure bodies.** run249's `0/6` comes out of its
+  barge on 1160 with `avg_speed` 15 on both figures. Ours seats them at
+  0 (`Sim::seat_guys`' `Body::at`). The original's `Guy::set_new_location(…,
+  1)` is not read here.
+
+**Coverage.** *Diff-backed*: the draw count on 19413, from run54's
+trace, and `1/77`'s figures on block 19414
+(`run269_s_word_frame_is_widened_whole`), with chapter twenty's rows on
+704 and 830 (`chapter_twenty_s_word_frame_is_widened_whole`). *Unit
+test*: `a_walker_that_boards_its_boat_moves_its_figures_that_frame`,
+made to fail on the aircraft-only gate. *Decompile-backed*: the entry's
+single `inside_up` test and the figure loops after `+0x188`.

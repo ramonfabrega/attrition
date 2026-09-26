@@ -47,7 +47,7 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_GROUPWORD_BLOCK, EAST_INDIES_GUARDWORD_BLOCK,
     EAST_INDIES_IDLE_BLOCK, EAST_INDIES_LEADERWORD_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MARKETWORD_BLOCK, EAST_INDIES_MERCS_BLOCK, EAST_INDIES_SLOT_BLOCK,
-    EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK,
+    EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_WALKWORD_BLOCK, EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK,
     GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
@@ -892,6 +892,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r269 {
         let n = drive_capture(p, etw - 2, etw + 2, &mut paths);
         assert_eq!(n, 5, "run269 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 850 moved the word to 19509, inside run269 still.
+    let eww = EAST_INDIES_WALKWORD_BLOCK;
+    if let Some(p) = &r269 {
+        let n = drive_capture(p, eww - 2, eww + 2, &mut paths);
+        assert_eq!(n, 5, "run269 carries item 850's word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

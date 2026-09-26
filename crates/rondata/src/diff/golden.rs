@@ -7514,11 +7514,15 @@ const WANT_CH21_POOL: &[&str] = &[
 
 // **What parts under the word** on run249, the draw word closed at 1300.
 // - The births' `form`, the standing family: the Chariots and the barges.
-// - **The passenger's figures on boarding**: `avg_speed` 20 here against
+// - ~~**The passenger's figures on boarding**: `avg_speed` 20 here against
 //   15 there on `0/6` (704) and 18 against 13 on `0/7` (830) — the
 //   original ages it once more on the boarding frame (27 → 20 → 15, a
 //   quarter a frame) before the figures stand still inside; the order of
-//   `Guy::move` against `go_inside` in the frame, not this item's module.
+//   `Guy::move` against `go_inside` in the frame, not this item's module.~~
+//   Item 850: `Unit::process` runs `Guy::process` after the work whether
+//   or not the work put the unit inside (`docs/ANIM.md` §15). What is left
+//   is `0/6` on 1160, its disembark: ours seats its figures at 0, the
+//   original keeps the 15.
 // - **The disembarked figure**: on 1162 `0/6`'s animation, `cur_anim` 7
 //   here against 8 and `end_time` 89 against 22; on 1165 its facing,
 //   −1581692416 here against −1518063274 (`crate::anim` and
@@ -7526,6 +7530,14 @@ const WANT_CH21_POOL: &[&str] = &[
 // ~~On 1160 `0/6`'s `orders_x/y` and `dest_angle`~~: `eject_contents`'s
 // `update_action` is step 1's, before the orders come back (item 803).
 const WANT_CH20: &[&str] = &[
+    // Item 850: a unit that goes inside in its own work takes its figures'
+    // frame (`docs/ANIM.md` §15). The Chariots' `g.avg_speed`, 20 against
+    // 15 (`0/6`, from 704) and 18 against 13 (`0/7`, from 830), stood from
+    // each one's boarding frame; `0/7`'s agrees now, and `0/6`'s first
+    // parts on its disembark, 1160, ours 0 against 15, with the values it
+    // read there before.
+    "1160 0/6 g.avg_speed[0]",
+    "1160 0/6 g.avg_speed[1]",
     "1162 0/6 g.cur_anim[0]",
     "1162 0/6 g.cur_anim[1]",
     "1162 0/6 g.end_time[0]",
@@ -7536,11 +7548,7 @@ const WANT_CH20: &[&str] = &[
     "1165 0/6 g.des_angle[1]",
     "611 0/6 form",
     "613 0/7 form",
-    "704 0/6 g.avg_speed[0]",
-    "704 0/6 g.avg_speed[1]",
     "704 0/8 form",
-    "830 0/7 g.avg_speed[0]",
-    "830 0/7 g.avg_speed[1]",
     "830 0/9 form",
 ];
 // **What parts in the pool**: the 620 toggle's pushed selection's
