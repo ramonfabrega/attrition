@@ -47,7 +47,7 @@ use super::testkit::{
     EAST_INDIES_GATHER_BLOCK, EAST_INDIES_GROUPWORD_BLOCK, EAST_INDIES_GUARDWORD_BLOCK,
     EAST_INDIES_IDLE_BLOCK, EAST_INDIES_LEADERWORD_BLOCK, EAST_INDIES_MAKE_BLOCK,
     EAST_INDIES_MARKETWORD_BLOCK, EAST_INDIES_MERCS_BLOCK, EAST_INDIES_SLOT_BLOCK,
-    EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
+    EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
     GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
@@ -564,6 +564,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r251 = crate::testenv::dump("gamelog-run251-eastindies-columnword.txt");
     let r253 = crate::testenv::dump("gamelog-run253-eastindies-marketword.txt");
     let r257 = crate::testenv::dump("gamelog-run257-eastindies-guardword.txt");
+    let r269 = crate::testenv::dump("gamelog-run269-eastindies-turnword.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -883,6 +884,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r257 {
         let n = drive_capture(p, elw - 2, elw + 2, &mut paths);
         assert_eq!(n, 5, "run257 carries item 837's word's five blocks");
+        frames += n;
+    }
+    // Item 839 moved the word to 19413, past run257's end, and run269 is
+    // run257's line over [19408, 19665), taken to widen it.
+    let etw = EAST_INDIES_TURNWORD_BLOCK;
+    if let Some(p) = &r269 {
+        let n = drive_capture(p, etw - 2, etw + 2, &mut paths);
+        assert_eq!(n, 5, "run269 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

@@ -967,7 +967,27 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// (three) and `make_stuff+0x221` (three) where the original spends its
 /// first `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run257; its
 /// block 19183 is widened there, six blocks from the capture's end.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_182;
+///
+/// **19182 → 19413 on item 839, and the frame was 19176's purchase.**
+/// who=1, British, took Taxation on tick 17183, and `Leader::calc_gather`
+/// scales `TERRITORY_TAXES[level]` by `(BRITISH_TAXATION + 100) / 100`
+/// for the British: the original's wealth rate rose 992 → 1380 there,
+/// ours 992 → 1234, one tax of 146 sixteenths short (305 of 1669 tiles
+/// at 50%; `docs/ECONOMY.md` §16). The purse that followed bought the
+/// original a hundred food in the gap 18685..18932 and bought ours a
+/// hundred timber on tick 19176, for 135 of a purse of 150, where the
+/// original's held 67. **The move's value diff (the word's delta, here;
+/// its blocks are `run257_s_word_frame_is_widened_whole`'s):** on block
+/// 19177 who=1's `bucket[1:timber]` went 149 against 49 → 49 on both and
+/// `bucket[2:wealth]` 15 against 67 → 67 on both; on 19182 `MAKE[0].val`
+/// 1531 against 0 → 0 on both and `MAKE[1].t` 427 against 528 → 528 on
+/// both; the draws on 19182 went 14 against 5 → 5 against 5. **The new
+/// word's delta: ours 5 draws and the original 6, parting at index 3**:
+/// the original spends `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+/// Guy::turn_towards+0x69` where ours spends its next `Guy::set_anim+0x97a
+/// < Guy::inc_time+0x271`. Past run257's end; run269 was taken for it and
+/// its block 19414 is widened there.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_413;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4399,6 +4419,14 @@ pub(crate) const EAST_INDIES_FIGUREWORD_BLOCK: i64 = 19_000;
 /// `Guy::inc_time` wrap, writes block 19183. The coverage driver reads
 /// run257 around it.
 pub(crate) const EAST_INDIES_LEADERWORD_BLOCK: i64 = 19_183;
+/// `run269_s_word_frame_is_widened_whole`'s window (item 839): run269
+/// whole, 19408..19664 — six blocks before the word 19413's block and 250
+/// past it. run257 ends on 19189, so 19190..19407 is compared by no dump.
+pub(crate) const WIDENING_EAST_INDIES_TURNWORD: (i64, i64) = (19_408, 19_664);
+/// The word 19413's block on run269 (item 839): its frame, where the
+/// original spends a turn's `Guy::set_anim` and ours a wrap, writes block
+/// 19414. The coverage driver reads run269 around it.
+pub(crate) const EAST_INDIES_TURNWORD_BLOCK: i64 = 19_414;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4574,12 +4602,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // → 19182. run257's test keeps the move's value diff (19000, `1/67`)
     // and pins the new word's block, 19183, six blocks from the
     // capture's end.
+    //
+    // **Item 839 moved it past run257's end**: the British take the
+    // territory tax twice (`docs/ECONOMY.md` §16), 19182 → 19413. run257's
+    // test keeps the move's value diff (19177 and 19183), and run269 was
+    // taken to widen the new word's block, 19414.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run257_s_word_frame_is_widened_whole"),
-        829,
-        Some(WIDENING_EAST_INDIES_GUARDWORD),
+        Some("run269_s_word_frame_is_widened_whole"),
+        839,
+        Some(WIDENING_EAST_INDIES_TURNWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

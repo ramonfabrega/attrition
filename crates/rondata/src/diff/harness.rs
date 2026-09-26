@@ -16078,6 +16078,114 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run269 — East Indies' word 19413, widened whole, both directions**
+    /// (item 839). run257's line over [`WIDENING_EAST_INDIES_TURNWORD`]:
+    /// the six blocks before the word's block, the block, and 250 past it.
+    /// run257 ends on 19189, so 19190..19407 is compared by no dump.
+    /// [`widen_east_indies`] with gaia's animals.
+    #[test]
+    fn run269_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_TURNWORD.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_TURNWORD.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_TURNWORD_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            army_lists,
+            ..
+        }) = widen_east_indies(
+            "run269",
+            "gamelog-run269-eastindies-turnword.txt",
+            WIDENING_EAST_INDIES_TURNWORD,
+            &[FIRST, WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **Under the word and on it, the first row of each key**: nothing
+        // parts on 19409..19413, and on the word's block 19414 `1/77`'s
+        // second figure — a two-figure unit inside `1/78`
+        // (`inside_up 78`), a transport whose record starts on the same
+        // block — carries another `angle` and another pace here, and
+        // `1/78`'s `form` reads −1 here against 0 there, the standing
+        // shape of every group member's (`1/1`..`1/15`'s 9). The draw
+        // stream parts on 19413 on a figure's `turn_towards` the original
+        // spends and ours does not. No mechanism is named.
+        assert_eq!(
+            rows,
+            [
+                "19414 1/77 g.angle[1]: ours -541917184 theirs -901447680",
+                "19414 1/77 g.avg_speed[0]: ours 15 theirs 11",
+                "19414 1/77 g.avg_speed[1]: ours 16 theirs 12",
+                "19414 1/77 g.last_speed[1]: ours 1 theirs 0",
+                "19414 1/78 form: ours -1 theirs 0",
+            ],
+            "the keys first parting under the word"
+        );
+        // No figure changes animation on one side only near the word, and
+        // no army's list parts.
+        let word: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        assert_eq!(word, [], "a figure's animation changes on one side only");
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        assert_eq!(lists_part, [], "no army's list parts near the word");
+        // **The first block's gap rows** (19190..19407, which no dump
+        // compares): who=1's twenty-nine citizens hold `hits_left` 40 here
+        // against 50 there, with `myhits` beside it, and `mylos` 2 against
+        // 4; who=1's `leftover[2:wealth]` is eight sixteenths over, as on
+        // run253 and run257.
+        let first_block = standing.get(&FIRST).cloned().unwrap_or_default();
+        let hits: usize = first_block
+            .iter()
+            .filter(|((w, _, k), v)| *w == 1 && k == "hits_left" && *v == "ours 40 theirs 50")
+            .count();
+        assert_eq!(hits, 29, "who=1's citizens' hits_left on the first block");
+        // **The floor**: every key standing on the first block, the keys
+        // first parting under the word, the rows standing on the word's
+        // block, and every key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (318, 5, 323, 1_433),
+            "the floor"
+        );
+    }
+
     /// **run261 — East Indies' gap over army 1's close, widened whole, both
     /// directions** (item 829). run253's line over
     /// [`WIDENING_EAST_INDIES_CLOSE`]: its last six blocks and 250 into the
