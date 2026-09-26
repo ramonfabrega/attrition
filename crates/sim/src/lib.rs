@@ -4299,8 +4299,7 @@ impl Sim {
             // garrisons in its own `work` is owed the same `Guy::process`
             // by the reading, and this crate has always returned here for
             // it; no capture has been measured on that frame.
-            if self.units[i].inside.is_some() && self.units[i].kind.domain == attrition::Domain::Air
-            {
+            if self.units[i].inside.is_some() || self.units[i].inside_unit.is_some() {
                 self.process_movement(i);
             }
             return;
