@@ -2162,8 +2162,15 @@ also holds **the lane lock**: `ron_wine` writes the launched game's pid to
 name, to launch while that pid is alive — the one case the human protocol
 (astra asks, Ramon relays, the commander holds) could not cover. The lock
 releases itself when the game exits; `RON_LANE_FORCE=1` overrides it for a
-human who knows the other game is theirs to kill; a launch that does not go
-through `ron_wine` is not covered.
+human who knows the other game is theirs to kill; `RON_LANE_WAIT=<seconds>`
+waits that long for a live holder to exit before refusing, for a capture
+queued behind another lane's game (the fifteenth pass, parked 758;
+`tools/explore/test_lane_lock.py`); a launch that does not go through
+`ron_wine` is not covered. On the click-free lane the runner also
+relaunches once when no gamelog has appeared by `--stall-seconds` (300;
+parked 762, DXVK's device setup stalled twice), and its receipt refuses a
+capture that asked for `GROUPS` and printed no `GROUPDATA`
+(`groupdata_blocks`; parked 735, the pool lost silently twice).
 
 ### What runs, established by running it
 

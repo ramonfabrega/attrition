@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-25, the commander (Opus 5.5): **twenty landings since 7958738, by
-`git log`; the fifteenth Fable pass is due.** Thirteen words and seven
-chapters; every landing moved a word or closed a chapter. Nothing is in
-flight; no lane was spawned past the twentieth.*
+*2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
+this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`, DECISIONS
+51). Twenty landings ruled, nineteen moved a word; no score moved in the
+pass and none was meant to. Nothing is in flight.*
 
-- **Great Lakes 15384 → 20568** in seven, the last +3387 (785's
-  `wonder_mark`, AI §75; run243 sized to the word, so no dump compares a
-  value on 17351..20499, 796). **East Indies 15985 → 17403** in five
-  (708, 752, 767, 773; AI §72–§74, PATHFINDER §28), and is the lower map.
-- **Every golden chapter closed**: fourteen to nineteen (723, 731, 738;
-  seventeen in four, 746–770; 779; 790's cast, §27). The census's order
-  row 50 → 60. GOLDEN §13 has no plain unrun issuer row left: 803 books
-  the nearest unresolved one, and the pass may reorder the table.
-- **For the pass**: the stale lane lock (758) was met on most captures;
-  one DXVK startup stall (762); `waitrun.sh` committed `100644` (756);
-  three function carve-outs inside a held module (`do_guard`,
-  `group_action_siege_attack_to`, `guy_release_events`), none collided.
-- **Fable backlog: 25 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–808 filed from this tranche's journals).
+- **Great Lakes 20568 of 24,000; East Indies 17403 and the lower map.**
+  The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
+  a grep); the rules lane rose to 48.0 a landing on three stalls.
+- **Landed by the pass, each made to fail first**: the execute-bit guard
+  (756; 751 with it), `RON_LANE_WAIT` (758), the pool receipt (735),
+  `--stall-seconds` (762), `frame.py`'s indentation (755), the
+  comment-blind constant guard (802; 72 → 104, the arrivals are 809).
+  The remote swept (727). **The brief checklist** is in
+  `docs/audit/README.md`; a brief is composed against it.
+- **For the next pass**: the value diff beside every word (eight of
+  twenty reported a row count); the checklist's rows in the briefs;
+  `UNBUILT` at 104; the order row at 60.
+- **Fable backlog: 6 Loop items** (677, 685, 697, 745, 775, 799).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w17403 of 24,000 · GreatLakes w20568 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · 803 next
 Endpoint 24001: EastIndies 47 off, 1 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: the fifteenth Fable pass (twenty landings since 7958738). After
-it, 800 on the AI lane (East Indies is lower), 795 after it, and 803 on
-the rules lane. A capture is sized to its word and waited on with `zsh
-tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
-its merge.**
+**Opener: 800 on the AI lane (East Indies is lower), 795 after it, and
+803 on the rules lane; the briefs against the checklist. A capture is
+sized to its word — six blocks before, 250 after — and waited on with
+`tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
+values, never a row count.**
 
 ## The queue
 

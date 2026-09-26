@@ -1331,6 +1331,16 @@ before the pair; its section is §17, the worker's. The census's
 order-family row (`docs/CENSUS.md`) is the counter, and it is expected to
 move for the first time since it was built.
 
+**Read again by the fifteenth pass (2026-09-25)**, with chapters fourteen
+to nineteen closed and the order row at 60 cited: the table needs no
+reorder. Of its three `unresolved` rows one has an issuer —
+`issue_set_transport` (item 803, chapter twenty, §28) — and the other
+two, `RepairOrder` and `SpecialAnimOrder`, have none, so after 803 they
+are readings before they are chapters: what builds each, from the
+export, and whether the DLL can reach it. `AirAttackGroundOrder`,
+`AirPatrolOrder` and `TradeOrder` are the cited-zero rows a run enters
+and no document names — the blind list's, not a chapter's.
+
 ## 14. The running order, and the run numbers
 
 ~~Reserved for this design: **run112–run119**.~~ The reservation was spent:

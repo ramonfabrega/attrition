@@ -66,6 +66,30 @@ class RunnerTest(unittest.TestCase):
         log.write_text('MAP_STYLE 18\n')
         with self.assertRaises(ValueError):runner.verify_game(log,18,36)
 
+    def test_a_stall_is_no_gamelog_at_all(self):
+        # Parked 762: the two stalls on record had no gamelog.txt; a game
+        # past the device has bytes there and is the timeout's to judge.
+        log=self.root/'gamelog.txt'
+        self.assertTrue(runner.stalled_before_frame_zero(log))
+        log.write_text('')
+        self.assertTrue(runner.stalled_before_frame_zero(log))
+        log.write_text(' MAP_STYLE 18\n')
+        self.assertFalse(runner.stalled_before_frame_zero(log))
+
+    def test_a_groups_capture_must_print_groupdata(self):
+        # Parked 735: run210, run215 and run223 asked for `GROUPS` and two
+        # of them printed no `GROUPDATA` block, silently; the pool is what
+        # the chapter was captured for.
+        log=self.root/'game.log'
+        log.write_text(' MAP_STYLE 18\nBEGIN FRAME 37\n GameInfo closing\n')
+        self.assertEqual(runner.verify_game(log,18,36,detail=['end:GUYS=4'])['groupdata_blocks'],0)
+        with self.assertRaises(ValueError):runner.verify_game(log,18,36,detail=['end:GUYS=4,GROUPS=1'])
+        log.write_text(' MAP_STYLE 18\nBEGIN FRAME 36\n  BEGIN GROUPDATA\n  END GROUPDATA\nBEGIN FRAME 37\n GameInfo closing\n')
+        self.assertEqual(runner.verify_game(log,18,36,detail=['end:GROUPS=1'])['groupdata_blocks'],1)
+        # A level of zero asks for nothing.
+        log.write_text(' MAP_STYLE 18\nBEGIN FRAME 37\n GameInfo closing\n')
+        self.assertEqual(runner.verify_game(log,18,36,detail=['end:GROUPS=0'])['groupdata_blocks'],0)
+
     def test_one_map_and_the_staged_knobs_reach_the_receipt(self):
         # The golden record is one map, a late window and a command file; the
         # receipt must say what ran, not what the caller typed.

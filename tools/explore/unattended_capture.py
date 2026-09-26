@@ -51,12 +51,24 @@ def mute(profile):
     path.write_bytes(text.encode('utf-8'))
 
 
-def verify_game(path, style, end, seed=None):
+def stalled_before_frame_zero(gamelog):
+    """True while the game has written no gamelog at all — what a launch
+    stalled in DXVK's device setup looks like (parked 762). A gamelog with
+    any bytes is a game past the device, and it is left alone: the
+    per-frame wait is the caller's `--timeout`."""
+    try:
+        return gamelog.stat().st_size == 0
+    except FileNotFoundError:
+        return True
+
+
+def verify_game(path, style, end, seed=None, detail=None):
     # Read back the game's identity, never infer it from requested settings.
     styles = set()
     seeds = set()
     closing = False
     frame = None
+    groupdata = 0
     with path.open(errors='strict') as f:
         for line in f:
             m = re.fullmatch(r'\s*MAP_STYLE (\d+)\s*', line)
@@ -67,11 +79,20 @@ def verify_game(path, style, end, seed=None):
             if m: frame = int(m[1])
             if line.strip() == 'GameInfo closing' and frame == end + 1:
                 closing = True
+            if line.strip() == 'BEGIN GROUPDATA':
+                groupdata += 1
     if styles != {style} or not closing:
         raise ValueError(f'game identity/closing dump mismatch: maps={styles}, closing={closing}')
     if seed is not None and seeds != {seed}:
         raise ValueError(f'seed read-back mismatch: {seeds}')
-    return {'map_style': style, 'closing_frame': end+1, 'seed_observed': sorted(seeds)}
+    # A capture that asked for the group pool and printed none of it is a
+    # failed capture (parked 735): run210 and run223 lost the pool silently,
+    # and the chapters they were run for are about the pool.
+    asked = any(cats.get('GROUPS', 0) > 0 for cats in live_session.parse_detail(detail or ()).values())
+    if asked and groupdata == 0:
+        raise ValueError('GROUPS was asked for and no GROUPDATA block was printed (parked 735)')
+    return {'map_style': style, 'closing_frame': end+1, 'seed_observed': sorted(seeds),
+            'groupdata_blocks': groupdata}
 
 
 def verify_restored(output, profile):
@@ -163,13 +184,39 @@ def capture(args, output, style):
         report['launch_args'] = LAUNCH_ARGS[:]
         report['wine_debug'] = os.environ.get('WINEDEBUG', '-all')
         launch = time.monotonic()
-        process = subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
+        def start():
+            return subprocess.Popen(['zsh','-c',LAUNCH,'unattended',str(ROOT/'tools/gamelog/winelaunch.sh'),
                                     str(output/'wine.log'),str(output/'riseofnations_trace.exe'),*LAUNCH_ARGS],
                                    cwd=output, start_new_session=True)
-        report['exit_code'] = process.wait(timeout=args.timeout)
+        process = start()
+        # A launch that has written no gamelog by `--stall-seconds` is
+        # DXVK's device setup stalled before frame 0 (parked 762: run157 and
+        # run223 each sat for the whole timeout with `wine.log` ending at
+        # MoltenVK's VkInstance); it is killed and started once more.
+        stall = getattr(args, 'stall_seconds', 0) or 0
+        deadline = launch + args.timeout
+        while True:
+            try:
+                report['exit_code'] = process.wait(timeout=5)
+                break
+            except subprocess.TimeoutExpired:
+                pass
+            now = time.monotonic()
+            if stall and 'relaunched_after_seconds' not in report and now - launch >= stall \
+                    and stalled_before_frame_zero(output/'gamelog.txt'):
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait(timeout=10)
+                (output/'wine.log').replace(output/'wine-stalled.log')
+                report['relaunched_after_seconds'] = now - launch
+                launch = time.monotonic()
+                process = start()
+                continue
+            if now >= deadline:
+                raise subprocess.TimeoutExpired(LAUNCH, args.timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
         report.update(receipt_file(output/'rontrace.log',args.end_frame,report['exit_code']))
-        report.update(verify_game(output/'gamelog.txt',style,args.end_frame,args.seed))
+        report.update(verify_game(output/'gamelog.txt',style,args.end_frame,args.seed,
+                                  detail=getattr(args, 'detail', None) or live_session.DEFAULT_DETAIL))
         report['map_verified'] = True
         report['seed_requested'] = args.seed
         report['success'] = True
@@ -226,6 +273,8 @@ def main():
     ap.add_argument('--end-frame',type=int,default=36)
     ap.add_argument('--seed',type=int,default=12345)
     ap.add_argument('--timeout',type=int,default=180)
+    ap.add_argument('--stall-seconds',type=int,default=300,
+                    help='relaunch once when no gamelog has appeared by then (0 disables; parked 762)')
     ap.add_argument('--startup-probe',action='store_true',help='observe WinMain Media Foundation calls')
     ap.add_argument('--map',type=int,action='append',dest='maps',metavar='STYLE',
                     help='map style, repeatable; default 14 then 18')

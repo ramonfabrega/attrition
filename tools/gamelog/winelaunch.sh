@@ -41,8 +41,10 @@ RON_WINEPREFIX=${RON_WINEPREFIX:-$HOME/wine-ron}
 # refuses with exit 75 and names the holder. `RON_LANE_HOLDER` names this
 # launch in the file (default: the sourcing script); `RON_LANE_FORCE=1`
 # ignores a live lock, for the human who knows the other game is theirs to
-# kill. A launch that does not go through this function is not covered,
-# which is the same limit the protocol had.
+# kill; `RON_LANE_WAIT=<seconds>` waits that long for a live holder to exit
+# before refusing (parked 758, the fifteenth pass; `tools/explore/
+# test_lane_lock.py`). A launch that does not go through this function is
+# not covered, which is the same limit the protocol had.
 RON_LANE_LOCK=${RON_LANE_LOCK:-$RON_WINEPREFIX/.lane.lock}
 
 ron_wine () {
@@ -52,8 +54,21 @@ ron_wine () {
     held_pid=$(sed -n 1p "$RON_LANE_LOCK")
     held_by=$(sed -n 2p "$RON_LANE_LOCK")
     if [[ "$held_pid" == <-> ]] && kill -0 "$held_pid" 2>/dev/null; then
-      print -u2 "ron_wine: the lane is held by $held_by (pid $held_pid, $RON_LANE_LOCK); refusing to launch a second game. RON_LANE_FORCE=1 overrides."
-      return 75
+      # `RON_LANE_WAIT=<seconds>` waits for the holder to exit rather than
+      # refusing (parked 758): a capture queued behind another lane's game
+      # was waited for with a hand-rolled `kill -0` loop, once.
+      local wait_for=${RON_LANE_WAIT:-0} waited=0
+      if (( wait_for > 0 )); then
+        print -u2 "ron_wine: the lane is held by $held_by (pid $held_pid); waiting up to ${wait_for}s for it (RON_LANE_WAIT)."
+        while (( waited < wait_for )) && kill -0 "$held_pid" 2>/dev/null; do
+          sleep 1
+          (( waited += 1 ))
+        done
+      fi
+      if kill -0 "$held_pid" 2>/dev/null; then
+        print -u2 "ron_wine: the lane is held by $held_by (pid $held_pid, $RON_LANE_LOCK); refusing to launch a second game. RON_LANE_FORCE=1 overrides; RON_LANE_WAIT=<seconds> waits."
+        return 75
+      fi
     fi
   fi
   export WINEPREFIX="$RON_WINEPREFIX"

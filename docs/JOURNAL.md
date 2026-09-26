@@ -20669,3 +20669,33 @@ closed on a measurement (`LEADERDATA` is 67% of a block; runway 250),
 692 on the counter that moved, 726 and 711 as clauses; 677, 685 and 697
 stay priced. **DECISIONS 50.** Four Loop items remain (677, 685, 697,
 727). `docs/audit/2026-09-25-fable-pass-14.md`.
+
+## 2026-09-25 — the fifteenth Fable pass: twenty landings, both maps past 17,000, and the lane's stalls made the runner's (Fable 5.1, steering)
+
+Twenty landings since the fourteenth pass, all twenty on Opus 5.5 by
+transcript, spawned 11:45 to 01:49 local; nineteen moved a word.
+**Great Lakes 15,384 → 20,568**, **East Indies 15,985 → 17,403**,
+chapters fourteen to nineteen closed — every golden chapter — six issuer
+chapters each run under the emulator before the pair, four staged before
+the capture, and the census's order row 50 → 60 cited. Workers 680 USD,
+34.0 a landing against 33.9; the AI lane fell to 0.038 a frame against
+0.055 because eight packets were booked and each replaced by a grep of
+a field the dump already prints, and the rules lane rose to 48.0 on a
+DXVK stall, a waiter that could not start and chapter nineteen's
+packet-and-capture. What the pass could see and no landing could: eight
+of twenty landed with a widening's row count where the value diff
+belongs — a clause; eleven "for the Loop" lines, every one filed at the
+merge, nine naming what a *brief* omitted — one document now, the brief
+checklist in `docs/audit/README.md`, which `CLAUDE.md` points at; the
+lane's three stalls, each worked around in a journal — the waiter's mode
+bit (a guard, failed first on seven scripts), the lock nobody waited on
+(`RON_LANE_WAIT`, four tests), DXVK's device setup (`--stall-seconds`,
+a relaunch) — and the pool lost silently twice (the receipt refuses);
+the slicer that flattened a block (`frame.py`); the constant guard that
+read comments — measured three ways, comment-blind now, 72 → 104, the
+thirty-five it caught parked as 809. The remote swept by the pass —
+the classifier refuses `xargs`, not the deletion — and the chain's
+clause held: none of the tranche's twenty stood. 745, 775 and 799 stay
+refined; 677, 685 and 697 stay priced; 796 is the closing item's.
+**DECISIONS 51.** Six Loop items remain.
+`docs/audit/2026-09-25-fable-pass-15.md`.

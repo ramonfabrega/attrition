@@ -1038,23 +1038,33 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// count is the day's; a file may only shrink, and a file that grows names
 /// a constant read but not built — build it, spell an offset `+0x..`, or
 /// raise the pin on purpose with the reason beside it.
+///
+/// **Re-pinned 2026-09-25, the fifteenth pass (parked 802)**: the code
+/// side is comment-blind now — a comment counts only for the `+0x..`
+/// offset spelling — and accepts the decimal spelling of a value past a
+/// byte. 72 → 104: the 35 that arrived are constants a comment alone
+/// carried, and three (CITIES, TRANSPORT) were banked by the decimal, listed in `docs/audit/2026-09-25-fable-pass-15.md` and parked
+/// as one ordinary item to build or to name.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 18),
-    ("ANIM.md", 1),
-    ("ARMY.md", 5),
-    ("CITIES.md", 6),
-    ("COMBAT.md", 2),
-    ("COSTS.md", 1),
-    ("ECONOMY.md", 5),
+    ("AI.md", 22),
+    ("ANIM.md", 3),
+    ("ARMY.md", 8),
+    ("CITIES.md", 4),
+    ("COLLISION.md", 1),
+    ("COMBAT.md", 4),
+    ("COSTS.md", 4),
+    ("ECONOMY.md", 10),
+    ("GOLDEN.md", 1),
     ("GOODY.md", 5),
-    ("GROUPS.md", 3),
+    ("GROUPS.md", 4),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 8),
-    ("PRODUCTION.md", 4),
+    ("PATHFINDER.md", 1),
+    ("PRODUCTION.md", 7),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 5),
-    ("TRANSPORT.md", 2),
+    ("TECH.md", 11),
+    ("TRANSPORT.md", 1),
     ("VISION.md", 2),
 ];
 
@@ -1116,24 +1126,52 @@ fn a_constant_a_document_names_is_built_or_pinned() {
             if path.is_dir() {
                 stack.push(path);
             } else if path.extension().is_some_and(|e| e == "rs") {
-                code.push_str(&std::fs::read_to_string(&path).expect("read").to_lowercase());
-                code.push('\n');
+                // Code, and of a comment only the offset spelling (`+0x7c`,
+                // `-0x10`) this guard's contract names: a bare `0x..` in
+                // prose counted as building the constant (parked 802, the
+                // fifteenth pass), and that path would bank one nobody
+                // built. Stripping comments whole was measured first: it
+                // raised the pin from 72 constants to ~260, because the
+                // honest offset comments are most of what the pin holds.
+                for line in std::fs::read_to_string(&path).expect("read").lines() {
+                    let (code_only, comment) = line.split_once("//").unwrap_or((line, ""));
+                    code.push_str(&code_only.to_lowercase());
+                    for word in comment.split(|c: char| !(c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '_'))) {
+                        if word.starts_with("+0x") || word.starts_with("-0x") {
+                            code.push(' ');
+                            code.push_str(&word[1..].to_lowercase());
+                        }
+                    }
+                    code.push('\n');
+                }
             }
         }
     }
     let built = |hex: &str| {
         let trimmed = hex.trim_start_matches('0');
+        // The decimal spelling too, for a value past a byte: a type index
+        // the document writes `0x1a1` is `417` in a table here, and the
+        // hex forms alone read it as unbuilt. Below 0x100 the decimal is
+        // any small number and is not accepted.
+        let decimal = u32::from_str_radix(hex, 16)
+            .ok()
+            .filter(|v| *v >= 0x100)
+            .map(|v| v.to_string())
+            .unwrap_or_default();
         let forms = [
             format!("0x{hex}"),
             format!("0x{hex:0>4}"),
             format!("0x{trimmed}"),
+            decimal,
         ];
         forms.iter().any(|f| {
             f.len() > 2 && {
-                // A whole token: the next byte is not a hex digit or an identifier.
+                // A whole token: neither byte beside it is a digit or an identifier.
                 code.match_indices(f.as_str()).any(|(i, _)| {
                     let next = code.as_bytes().get(i + f.len()).copied().unwrap_or(b' ');
+                    let prev = if i == 0 { b' ' } else { code.as_bytes()[i - 1] };
                     !(next.is_ascii_alphanumeric() || next == b'_')
+                        && !(prev.is_ascii_alphanumeric() || prev == b'_' || prev == b'.')
                 })
             }
         })
@@ -1333,5 +1371,45 @@ fn every_decision_has_an_index_row() {
     assert!(
         missing.is_empty() && extra.is_empty(),
         "docs/DECISIONS.md's index and its entries disagree: entries with no row {missing:?}, rows with no entry {extra:?}"
+    );
+}
+
+/// **A script with a shebang under `tools/` is executable** (parked 756,
+/// the fifteenth pass). `tools/gamelog/waitrun.sh` was committed `100644`,
+/// so the invocation `CLAUDE.md` spells — the bare path — exited 126 at
+/// once, and a backgrounded wait on a running capture reported "completed"
+/// in seconds (parked 751); four workers found it and each wrote `zsh …`
+/// in front. The mode bit is git's to keep and this is what keeps it: the
+/// first run failed on seven scripts.
+#[test]
+fn every_shell_script_under_tools_is_executable() {
+    use std::os::unix::fs::PermissionsExt;
+    let tools = docs().join("..").join("tools");
+    let mut stack = vec![tools];
+    let mut bad = Vec::new();
+    while let Some(dir) = stack.pop() {
+        for entry in std::fs::read_dir(&dir).expect("tools/") {
+            let path = entry.expect("entry").path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if path.extension().is_none_or(|e| e != "sh") {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).unwrap_or_default();
+            if !text.starts_with("#!") {
+                continue;
+            }
+            let mode = std::fs::metadata(&path).expect("stat").permissions().mode();
+            if mode & 0o111 == 0 {
+                bad.push(path.display().to_string());
+            }
+        }
+    }
+    bad.sort();
+    assert!(
+        bad.is_empty(),
+        "scripts with a shebang and no execute bit (`chmod +x`, and git keeps it): {bad:#?}"
     );
 }

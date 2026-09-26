@@ -20,6 +20,7 @@ SUITES = (
     'test_live_session',
     'test_rngcmp',
     'test_unattended_capture',
+    'test_lane_lock',
     'test_release_gate',
     'test_memcap',
     'test_lab_demo',

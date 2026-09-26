@@ -21,6 +21,58 @@ here is a source to implement from. What they are for:
 - **Closed open questions**, where the second reader settled something the
   first had listed as not established.
 
+## The brief checklist
+
+What a commander's brief carries, one line each, and the landing that
+paid for it (the fifteenth Fable pass, 2026-09-25, from the tranche's
+"for the Loop" lines; `CLAUDE.md`, "Fan-out rules"). A row is added by
+a pass, never by a worker; a worker's Loop line names the omission.
+
+- **The frame and the draw delta, and the previous item's hypothesis
+  written as one** (DECISIONS 42) — and **an event the brief names is
+  cited with the record that shows it**: 742's journal read a fall on
+  17085 as "a purchase", 757's brief carried it as the cause's frame, and
+  it was a building's activation, one grep of `BUILDDATA` away (778).
+- **A value the booking names is grepped in the dump first**, the gate's
+  terms in order, before any instrument is booked: 722 booked a packet
+  for `frame_attacked`, which `LeaderData::log_data` prints every block
+  (737); eight packets of one tranche were reserved and replaced by a
+  grep.
+- **The window is sized to the word: the six blocks before it for
+  `samegame.py`, 250 blocks after it** (DECISIONS 50 §7); a brief that
+  asks a contiguous overlap for a +3,000 jump has said the wrong thing
+  (799). **A word that is a round carries `AMMO` in the capture line**
+  (783). The stanza states the window in blocks.
+- **The first parting's field list, not its unit**: 736's widening showed
+  the give-up's stores agreeing on 16459, one field from the mechanism
+  (758).
+- **The compared pin is grepped for the word's record**: chapter
+  seventeen's word was a building's first damage, and `BuildDump.damage`
+  stood "parked for a widening" until 763 looked (772). **A standing
+  floor row whose field has a live reader is named**: `RON_STANDING`
+  printed 280 rows on run227's block and the cause was two of them (769).
+- **Arithmetic reads the listing first**: five functions in a row hit the
+  decompiler's dropped-register trap; 759 lost nothing because every
+  reading went to the listing (766). **A spec line that states a count's
+  domain against its own bound is a cheap catch**: CITIES §2.6.4 stood on
+  one for a tranche (730).
+- **A killer tests a claim the readings disagree on**: 776's killer for
+  the planner reading was predicted false by both, and only the world diff
+  split them (789). On a golden-lane word that is a plan, the trace
+  proxies `calc_cost` by default: the priced steps name the refusing cell
+  before any reading.
+- **An issuer chapter's staging is walked before its capture**, on an
+  existing capture's start with a prototype of the command's entry (794),
+  or a **staging-only packet** where the class is decided at process time
+  (808; 790's 59 s of lane answered every predicate before a word was
+  written).
+- **The module is reserved when two items sit in one, and the fence
+  lifts at the other lane's merge** (726); a module the brief neither
+  gave nor fenced is named in the landing ("say if it should move").
+- **The restore in a mutation run comes from version control, or is
+  `touch`ed**: a `shutil.move` from a copy puts back the older mtime and
+  cargo does not rebuild (784).
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

@@ -165,7 +165,10 @@ something else spawns its successors in the parked file, and a session
 that moved no score says so in the handoff. **A word that moved lands with the
 value diff beside it** — the dump's own coordinates on the frame it moved —
 because a draw stream can agree on a wrong destination for a long time,
-and only a value comparison tells the two apart. This is the stopping rule
+and only a value comparison tells the two apart — **and a widening's row
+count is not one**: the value diff names the record, the field and both
+sides' values on the word's frame, and eight of one tranche's twenty
+landings reported a floor triple in its place. This is the stopping rule
 for the long middle: the residue chase is productive and unbounded, and
 only the number says whether the whole is converging. **A residue item is
 booked by its frame and its draw delta**; a mechanism its title names is
@@ -389,6 +392,12 @@ names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
 when its evidence is measured and its source named, filing a `FABLE:` row
 the same day; everything else in this file waits for the pass.
+
+**A brief is composed against the checklist in `docs/audit/README.md`**
+("The brief checklist"): what a brief cites, reserves and sizes, one line
+each, every line a landing that paid for it. The checklist is the pass's
+to grow; a worker's "for the Loop" line that names a brief's omission is
+a candidate row.
 
 **A worker's landing is verified by refs and announced by the worker.**
 Before reporting, a worker states its tip SHA and that `git log

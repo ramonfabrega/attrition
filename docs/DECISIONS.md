@@ -61,7 +61,8 @@ is append-only and amended in place, as it always was.
 - 47 standing — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
 - 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
 - 49 standing — The rules track's next axis is the issuer, and the day's holes are guards
-- 50 standing — The instrument records what it compares, and the chain reaps the remote
+- 50 extended by 51 — The instrument records what it compares, and the chain reaps the remote
+- 51 standing — The brief is a checklist, and the lane's stalls are the runner's
 
 ## 1. Fidelity before divergence
 
@@ -3018,3 +3019,78 @@ against 369/25 and the ledger against 10/36; every stanza's runway at
 250 and no capture run to the gap; the golden lane waited on by the
 receipt; a journal's Loop line filed at its merge; the remote listing
 empty; the price per landing against 33.9; and the count at twenty.
+
+## 51. The brief is a checklist, and the lane's stalls are the runner's
+
+**Decided 2026-09-25**, the fifteenth Fable pass, in the main thread
+(`docs/audit/2026-09-25-fable-pass-15.md`). Extends entries 42, 45 and
+50; overturns nothing.
+
+**What was measured.** Twenty landings since the fourteenth pass by
+`git log`, spawned 11:45 to 01:49 local, one commander and every worker
+on Opus 5.5 by transcript. Nineteen moved a word: **Great Lakes 15,384 →
+20,568**, **East Indies 15,985 → 17,403**, chapters fourteen to nineteen
+closed — every golden chapter — six issuer chapters each run under the
+emulator before its pair, and the census's order row 50 → 60 cited of
+410. Workers 680 USD, 34.0 a landing against 33.9: the AI lane at 22.6
+a landing and **0.038 a frame** against 0.055, the rules lane at 48.0
+against 35.5 — a DXVK stall, a waiter that could not start, a packet
+and a new module. **Eight of the twenty landed with a row count where
+the value diff belongs.** Nine of twenty turned on an instrument that
+was not looking, against fifteen; the eleven "for the Loop" lines were
+each filed at the merge and each named a brief's omission or a tool's
+defect; eight packets were reserved and replaced by a grep; the
+detached-capture waiter could not start (`100644`) and every worker
+after the one who found it wrote `zsh` in front; the lane lock was
+taken over stale seven times and waited on by hand once; two captures
+had lost the group pool silently; the constant guard read comments.
+
+**The decisions.**
+
+1. **A brief is composed against a checklist**, `docs/audit/README.md`
+   "The brief checklist" — eleven rows from the tranche's Loop lines
+   (730, 737, 766, 769, 772, 778, 783, 784, 789, 794, 808), each with
+   the landing that paid for it; `CLAUDE.md` points at it. A row is a
+   pass's to add; a worker's Loop line names the omission.
+2. **A widening's row count is not the value diff** — a clause in
+   `CLAUDE.md`'s booking rule: the value diff names the record, the
+   field and both sides' values on the word's frame.
+3. **The lane's stalls are the runner's, not a worker's.** Built and
+   made to fail first: a script with a shebang under `tools/` is
+   executable (756; seven failed, and 751's early notice was this);
+   `RON_LANE_WAIT=<seconds>` waits for a live lock's holder (758,
+   `tools/explore/test_lane_lock.py`); the click-free runner relaunches
+   once when no gamelog has appeared by `--stall-seconds` (762); its
+   receipt refuses a capture that asked for `GROUPS` and printed no
+   `GROUPDATA` (735); `frame.py` keeps a slice's indentation so
+   `leader.py` reads it (755, checked on run221).
+4. **The constant guard is comment-blind** (802): a comment counts only
+   for the `+0x..` offset spelling its contract names, and the decimal
+   form of a value past a byte counts. Measured three ways — comments
+   stripped whole raised the pin 72 → ~260, the offset rule → ~161, the
+   decimal form → 104 — and re-pinned at 104 with the thirty-five
+   arrivals parked as item 809, to build or to name.
+5. **The remote is swept** (727): the classifier refuses `xargs` and
+   accepts literal names; thirty-seven deleted, the listing empty, and
+   the chain's clause held — none of this tranche's twenty stood.
+6. **745, 775 and 799 stay**, each refined: the ledger's 255 are the
+   dump's side and the crate's has no pin; one probe is not a third
+   reach; the `UNMODELLED` guard's shape is named. **677, 685 and 697
+   stay** priced. **796 stays**: Great Lakes' 17351..20499 is paid by
+   the item that closes the map, not before.
+
+**Not taken**: the thesis sentence, again; 697's three probes, a third
+pass running; the estimate — Great Lakes 3,432 short of 24,000 and East
+Indies 6,597, and at this tranche's rate the first closes next tranche
+and the second in three to five, which the next pass checks.
+
+**The measure for the next pass**: whether 800 and 795 moved their
+words and at what price against 0.038 a frame; whether 803 ran
+`issue_set_transport` under the emulator before its pair and which
+falsifier fired; every landing with the value diff beside the word,
+against twelve of twenty; the brief checklist's rows in the briefs;
+`UNBUILT` against 104 and 809's progress; the coverage pin against
+378/28, the compared pin against 8/103, the ledger against 10/36; the
+census's order row against 60; the remote listing empty; no stall
+older than `--stall-seconds`; the price per landing against 34.0; and
+the count at twenty.

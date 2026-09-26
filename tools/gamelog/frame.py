@@ -41,7 +41,11 @@ with open(path, errors="replace") as fh, open(out, "w") as w:
         elif s == stop:
             break
         if keep:
-            w.write(s + "\n")
+            # Keep the indentation: `leader.py` cuts a block by it, and a
+            # slice that flattened every line ended the LEADERDATA block on
+            # its first line — "no LEADERDATA for who 1" on a frame that
+            # held four (parked 755). `objs.py` and `one.py` strip per line.
+            w.write(line.rstrip("\r\n") + "\n")
             n += 1
 
 print(f"{out}: {n} lines")

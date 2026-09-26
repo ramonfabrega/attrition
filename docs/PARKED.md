@@ -22,6 +22,21 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by the fifteenth Fable pass, 2026-09-25 — names no score
+
+(809) **Thirty-five constants a comment alone carried.** The constant
+guard (`docs_guard::a_constant_a_document_names_is_built_or_pinned`)
+is comment-blind since this pass — a comment counts only for the
+`+0x..` offset spelling, and the decimal form of a value past a byte
+counts — and its pin rose 72 → 104 (three banked by the decimal): the
+arrivals are constants a
+specification names that the code carries in a comment's prose and
+nowhere else, per file in `docs/audit/2026-09-25-fable-pass-15.md`.
+Each is built, or the document says why it is not, and the pin
+lowers with each; the largest holders are `AI.md` (22), `TECH.md`
+(11), `ECONOMY.md` (10). Names no score; a worker takes it beside a
+word whose document it shrinks.
+
 ## Parked by item 790, 2026-09-25 — the cast's other callers
 
 (804) **`think_spellcaster`** (SCOUT §13, its tenth entry) is buildable on
@@ -986,7 +1001,18 @@ a comparison the code does not make (728) — and ruled 687, 692 and 726
 table (656's sequel, made to fail first 2/2/2 → 0/1/2), the killer clause
 (711), the chain's remote branch (727), and a journal's Loop line filed
 at its merge; 677, 685 and 697 stay, each with its next step named
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50).
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50). The
+fifteenth, 2026-09-25, **built six** — the execute-bit guard (756,
+made to fail first on seven scripts; 751 closes with it), the lane
+lock's wait (758, `RON_LANE_WAIT`, four tests, the wait's failed first),
+the pool receipt (735, a capture that asked for `GROUPS` and printed
+no `GROUPDATA` fails), the stall relaunch (762, `--stall-seconds`),
+the slicer's indentation (755) and the comment-blind constant guard
+(802, 72 → 104, the arrivals parked as 809) — swept the remote (727),
+and moved eleven brief clauses into `docs/audit/README.md`'s brief
+checklist (730, 737, 766, 769, 772, 778, 783, 784, 789, 794, 808);
+677, 685, 697, 745, 775 and 799 stay
+(`docs/audit/2026-09-25-fable-pass-15.md`, DECISIONS 51).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -1051,129 +1077,18 @@ three six-second probes — `window=0-3` + `cover=1` under
 `callwin` proxies, which is what run185 added over the `cover=1` runs
 that work on the queue lane. Stays; the cited column moves without it.
 
-(727) **Thirty-seven merged `origin/worktree-att-*` branches stood on
-2026-09-25** — every one 0 unmerged. A worker pushes its branch, `ccc rm`
-deletes the worktree and the local branch, and nothing in the chain
-deleted the remote one; the user saw `att-673` from a phone. The chain
-clause is in `CLAUDE.md`; **the sweep is the user's** — the pass's
-classifier refused `git push --delete` as destructive — one command:
-`git branch -r | grep worktree-att- | sed 's|origin/||' | xargs git push
-origin --delete`, from any checkout, after `git fetch --prune`. Closes
-when the listing is empty.
-
-(730) **A spec line that names its own contradiction is a cheap catch**
-(722's Loop line, filed at its merge). CITIES §2.6.4 said `num_wonders`
-counts *finished* wonders beside §3.3's `≤ 1 + Egyptians`, which only
-reads right if a site counts itself; the filter stood on that line for
-the whole tranche. A reader, or a guard, that flags a count's stated
-domain against its own bound would have caught it. 722 also reports
-`waitrun.sh` exiting 0 cleanly on the queue lane: 656's sequel held.
-
-(735) **`golden_capture.sh` should refuse a capture that asked for `GROUPS`
-and printed no `GROUPDATA`**, as `groupfacing.py` does (723's Loop line,
-filed at its merge). run210 is the third capture to lose the pool
-silently (733). 731 found it still missing and checked run215 by hand
-(`grep -c`); run215 at `GUYS=4` is the first pool capture that printed.
-
-(737) **A booking that names a value cites the gate's terms in order, and
-greps the dump for each, before naming an instrument** (729's Loop line,
-filed at its merge). 722 booked a packet (run212) for `frame_attacked`,
-which `LeaderData::log_data` prints every block; one `grep` of run211
-answered it. A packet is a capture: the disk rule applies to it too.
-
 (745) **Nothing pins that each field the simulation carries has a widening
 row** (736's Loop line, filed at its merge). `diff::compared` pins the
 dump's side; `Movement::mirror` sat a tranche carried and read, with no
 row, and was caught only because a brief named the bit. The crate's side
-of the recorder is the same blind spot as a parsed-and-uncompared field.
-
-(751) **A background task's exit notice can arrive before the task has
-ended** (738's Loop line, filed at its merge): an exit-0 "completed" for a
-backgrounded `waitrun.sh`, and a Monitor event naming a banner the log did
-not yet hold. The worker read the log before acting; nothing says to.
-
-(755) **`tools/gamelog/leader.py` answers "no LEADERDATA for who 1" on a
-`frame.py` slice of run221** whose block holds four `LEADERDATA` records
-(708's Loop line, filed at its merge). The worker read the make list with
-awk instead. The slicer may key on a `who` line that `LEADERS=9` prints
-elsewhere; a graduated tool that fails on its own sibling's output.
-
-(756) **`tools/gamelog/waitrun.sh` is committed `100644`**, so the
-invocation `CLAUDE.md` and `docs/ORACLE.md` spell — the path, bare —
-exits 126 at once ("permission denied"), and the backgrounded task reports
-"completed" (746, run223; very likely 751's early notice). `zsh
-tools/gamelog/waitrun.sh` works, and the commander's briefs say so until
-the pass sets the mode bit or the text. A waiter that cannot fail loudly
-when it cannot start is 656's shape again.
-
-(758) **Nothing waits on a lane lock's release** (742's Loop line, filed
-at its merge): `winelaunch.sh` refuses rather than queues, and 742 chained
-`waitrun.sh` behind a hand-rolled `kill -0` wait on another lane's pid.
-The same line asks that a brief carry the first parting's *field list*,
-not its unit: 736's widening already showed the give-up's stores agreeing
-on 16459, one field from the mechanism.
-
-(762) **The click-free lane stalls in DXVK's device setup** (746's Loop
-line, filed at its merge): run223's first take hung for the whole 3600 s
-with `wine.log` ending at MoltenVK's `VkInstance` and no `gamelog.txt`,
-the second such stall after run157's; the second take captured. No game
-process, display asleep or dialog was found. A launch that times out
-before frame 0 could be retried once by the runner rather than a worker.
-
-(766) **The decompiler's dropped register arguments** (759's Loop line,
-filed at its merge): five functions in a row hit `tools/ghidra/README.md`'s
-one trap; 759 lost nothing because every reading went to the listing
-first. A brief that says "the listing first" for arithmetic is cheaper
-than a trap a worker meets.
-
-(769) **A standing floor row whose field has a live reader is a cause
-waiting for its frame** (752's Loop line, filed at its merge).
-`RON_STANDING` printed 280 floor rows on run227's block, and the cause —
-two `city:gatherers` rows, read by `find_gather_spot` and `create_units` —
-was filtered out among them. 745's sweep could rank floor rows by reader.
-
-(772) **A parked blind field under a live word is worth a check at
-booking** (763's Loop line, filed at its merge): the compared pin named
-`BuildDump.damage` "parked for a widening" (728), and chapter seventeen's
-word was a building's first damage; it stood on that blind field until
-763 looked. A booking could grep the compared pin for the word's record.
+of the recorder is the same blind spot as a parsed-and-uncompared field. **The fifteenth pass read the ledger**: `rondata::ledger`'s 255 fields are the dump's records as `gamelog.rs` parses them, so the crate's own carried fields have no pin on either side; stays, and the shape is a list of `sim`'s state structs against the widening rows, hand-kept and exact.
 
 (775) **A hand-written probe prices the wrong tech** (767's Loop line,
 filed at its merge): the harness maps this crate's tech ids to the dump's
 through `diff::leader`'s `ti`, off by one, and a scratch probe does not;
 767's first probe priced the wrong two techs, caught only by an empty
 `make_me`. A `RON_PRICE`-style probe keyed on the dump's `TypeIndex`
-would close the trap.
-
-(778) **A brief that names an event cites the record that shows it**
-(757's Loop line, filed at its merge). 742's journal read `leftover`'s fall
-on 17085 as "a purchase both sides make", and the commander's brief for
-757 carried it as the cause's frame; it was a building's activation, one
-grep of `BUILDDATA` away (`flags 3 → 7`). An event in a brief is a
-hypothesis the way DECISIONS 42 makes a mechanism one.
-
-(783) **A chapter whose word is a round wants `AMMO` in its capture line
-from the start** (770's first Loop line, filed at its merge): the draw
-stream agreed to run223's end while one fringe count on 842 stood; only
-a whole-run widening showed it and only run235 at `AMMO=5` answered it.
-
-(784) **A mutation run that restores a file with `shutil.move` from a copy
-puts back the older mtime, so cargo does not rebuild** (770's second Loop
-line): its first gate ran `sim`'s tests on the last mutant and failed its
-own test. `touch` after a restore, or restore from version control.
-
-(789) **A killer that fires on neither reading splits nothing** (776's
-Loop line, filed at its merge): the brief's killer for the planner reading
-("the first node agrees") was predicted false by both readings, so only
-the world diff could split them. And a golden-lane capture's trace
-proxies `calc_cost` all game by default: on a word that is a plan, the
-priced steps named the refusing cell in one test, before any reading.
-
-(794) **An issuer chapter's staging can be walked before its capture**
-(779's Loop line, filed at its merge): a scratch walk of the new script,
-stood up on an existing capture's start with a prototype of the command's
-entry, showed the second Barracks refused and the Tower unavailable before
-a 17-minute capture was spent, and predicted run241 block for block.
+would close the trap. **One probe so far** (the fifteenth pass): a shape graduates into `tools/` on its third reach; stays until then.
 
 (799) **An `UNMODELLED` line is a standing instruction not to look** (785's
 Loop line, filed at its merge): it said "no writer here" of `wonder_mark`,
@@ -1182,19 +1097,7 @@ from every widening since. A field is unmodelled because it has no writer
 here, which is where a missing writer hides; the ledger could carry "the
 original moves it" as a fail-when-it-parts note. And the commander's
 brief asked a contiguous overlap for a +3387 jump where DECISIONS 50 says
-a window sized to the word; the brief template should say which.
-
-(802) **`docs_guard`'s constant check reads Rust comments** (773's Loop
-line, filed at its merge): a doc comment that spells a field offset
-(`+0x7c`) counts as building the constant. 773's was honest — the comment
-names the field — but the same path would bank a constant nobody built.
-
-(808) **A chapter whose class is decided at process time could take a
-staging-only packet by default** (790's Loop line, filed at its merge):
-the packet rung answered the premise's own predicates — which craft,
-which target, the range, the price, the approach spot — before a word
-was written, in 59 s of lane and one scratch script: 794's scratch walk
-made of the original itself.
+a window sized to the word; the brief template should say which. **The fifteenth pass split it**: the brief half is a row of the brief checklist (`docs/audit/README.md`); the guard half stays — an `UNMODELLED` key whose value the original moves across the word's own capture must say "the original moves it", read off the `LEADERDATA` blocks of the chain's last dump, with the table's non-literal names (`misc_stamps`, `DIPLOMACY`) expanded by prefix.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
