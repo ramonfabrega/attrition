@@ -8012,3 +8012,34 @@ Bowmen off from 765; `process_swarm_around 2007 0 2 13 781` and `… 801`;
 on 782 `0/6`'s `unit_masks` 0 → 1034 and a `MOVEORDER` (flags 1) to (5736,
 33096) with a `REPAIRORDER` (flags 4, `ox 2007`, `uid 13`) behind it; on
 802 the same on `0/7`..`0/9`.
+
+## run255 — chapter twenty-one, the repair line (2026-09-26, item 813)
+
+**What it is.** `chapter21.cmd` whole — `!ai off`, `library` 2 and 3, a
+who=0 Barracks, who=1 Bowmen, `peace 1` on 760, four citizens and two
+issuer lines, `@repair 0 2007 0 6` on 780 and `@repair 0 2007 0 7 8 9` on
+800 — dumped over `[605, 1300)`, 695 blocks, at `cover=0`. The lane was
+free (run256's take 4 had exited).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch21 \
+    --map 14 --end-frame 1300 --log-window 605 1300 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter21.cmd
+```
+
+**One take.** 884 s launch to exit, 296 MB, `success: true`, 1301 frames.
+`waitrun.sh` exited 0. **The pool printed**: 355,840 `GROUPDATA`, 512 on
+each of the 695 blocks. It is the same game as run256's take 4 for the
+831 frames they share (this crate walks both without a parting there).
+
+**What it answered** (`docs/GOLDEN.md` §29; no falsifier fired):
+`process_swarm_around 2007 0 2 13` on 781 and 801; on 782 `0/6` under a
+`MOVEORDER` (flags 1) to (5736, 33096) and a `REPAIRORDER` (flags 4, `ox
+2007`); on 802 `0/7`, `0/8` and `0/9` the same to (5688, 33048), (5880,
+33048) and (5352, 32808); the Barracks 3 → 1 → 0 on 930 and 931, timber
+261 → 260 on 931, `0/6`'s stack empty on 932; the trio's `REPAIRORDER`s
+dying on 968, 969 and 1023 with nothing behind them; the citizens' own
+`GATHERORDER`s on `0/2001` from 1083.

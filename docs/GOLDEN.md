@@ -1373,7 +1373,7 @@ below without a run take their number at booking (the eleventh pass).
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
-| 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) |
+| 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4282,3 +4282,25 @@ nothing issues. `unit_masks & 0x400`'s writers include
 5. **The three spots are not three.** Two of `0/7`..`0/9`'s `MOVEORDER`
    points equal on 802: `find_nearby_spot`'s occupancy test is what
    spreads them (`docs/ORDERS.md` §5.4).
+
+**run255, and which falsifier fired: none** (`docs/RUNS.md` run255; 884
+s, the same game as run256's take 4 for the 831 frames they share,
+355,840 `GROUPDATA`).
+
+- **The swarm.** `process_swarm_around 2007 0 2 13` on 781 and 801. On
+  782 `0/6`'s `unit_masks` 0 → 1034 and its stack a `MOVEORDER` (flags 1)
+  to (5736, 33096) with the `REPAIRORDER` (flags 4, `ox 2007`, `whom 0`)
+  behind it. On 802 the trio's the same, to (5688, 33048), (5880, 33048)
+  and (5352, 32808): three spots.
+- **The repair.** `0/6` stands at its spot on 929; the Barracks' `damage`
+  goes 3 → 1 on 930 and 1 → 0 on 931, with timber 261 → 260 on 931, the
+  price; `0/6`'s stack is empty on 932.
+- **The late orders.** `0/7` and `0/8` reach a whole Barracks on 967 and
+  968 and `0/9` on 1022; each `REPAIRORDER` is gone the next block (968,
+  969, 1023), with nothing behind it.
+- **After.** The four take `GATHERORDER`s on `0/2001` of their own on
+  1083, 1129, 1130 and 1176.
+
+This crate's prediction, written before the run, is the original's to the
+block: 782, 802, 929, 930, 931, 932, 968, 969, 1023, 1083.
+
