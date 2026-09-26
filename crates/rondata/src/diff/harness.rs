@@ -14127,7 +14127,11 @@ pub(crate) mod tests {
         // `1/29`: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29). The scout's `order:move.facing` now first
         // parts on 8481, 0 here against 1 there: the slot's kept `facing`
         // (§28), not built.
-        assert_eq!(under, 174, "the floor under the word");
+        // **Item 880 took that one (174 → 173)**: the scout `1/0`'s
+        // `order:move.facing` on 8481, 0 here against 1 there, agrees now —
+        // the slot keeps its record's `facing` and the record's history is
+        // the original's (`Group::kill`'s clear, `docs/GROUPS.md` §30).
+        assert_eq!(under, 173, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -16421,55 +16425,36 @@ pub(crate) mod tests {
                 .collect()
         };
         // **The first block, from the gap** (19665..20001, which no dump
-        // compares): who=1's army group, 68 there and 71 here, holds a
-        // group move whose slots `1/65` and `1/66` hold the other way round
-        // — `off` (504, 648) there against (696, 456) here, and the
-        // reverse — with `facing` 0 there against 1 here on `1/64`..`1/66`.
-        // The rest of the block is the standing set run269 ended on:
-        // `form`, `group` (the pool id, 689), who=1's citizens' hits, and
-        // the leader rows.
+        // compares). Until item 880 who=1's army group, 68 there and 71
+        // here, held a group move whose slots `1/65` and `1/66` held the
+        // other way round — `off` (504, 648) there against (696, 456) here,
+        // and the reverse — with `facing` 0 there against 1 here on
+        // `1/64`..`1/66` (item 857). **Item 880 closed all 37 of those
+        // rows**: the push on tick 20000 keeps slot 69's record, `facing`
+        // 1 and `order_num` 6 on both sides, so the layout is square on
+        // both (`docs/GROUPS.md` §30). The rest of the block is the
+        // standing set run269 ended on: `form`, who=1's citizens' hits,
+        // and the leader rows.
         let first_block = standing.get(&FIRST).cloned().unwrap_or_default();
         let slot = |o: i64, k: &str| first_block.get(&(1, o, k.to_string())).cloned();
         assert_eq!(
-            (slot(65, "order:move.off_x"), slot(66, "order:move.off_x")),
             (
-                Some("Move { field: \"off_x\", ours: 696, theirs: 504 }".to_string()),
-                Some("Move { field: \"off_x\", ours: 504, theirs: 696 }".to_string())
+                slot(64, "order:move.facing"),
+                slot(65, "order:move.off_x"),
+                slot(66, "order:move.off_x"),
+                slot(65, "pos")
             ),
-            "the two slots, swapped"
+            (None, None, None, None),
+            "the two slots agree: square on both sides"
         );
-        // **Under the word and on it** (item 857). `1/65`'s walk animation
-        // is 7 here against 8 there from 20005. On 20008 the original's
-        // `1/65` takes a half step and its `1/67` walks on to (34821,
-        // 40956); ours is refused by `1/65` (`collide_o` 65) and stands,
-        // which is the word's `Unit::move_step+0x823` on 20007. No
-        // mechanism is named.
+        // **Under the word and on it** (item 857's). Every key that first
+        // parted on 20005..20008 — `1/65`'s walk animation, `1/67`'s
+        // refusal by `1/65` and its stand — closed with the slots (880):
+        // the word left run277 for 20782.
         let rows = under(FIRST + 1, WORD_BLOCK);
         assert_eq!(
             rows,
-            [
-                "20005 1/65 g.cur_anim[0]: ours 7 theirs 8",
-                "20008 1/65 half_step: ours 0 theirs 1",
-                "20008 1/67 collide_o: ours 65 theirs -1",
-                "20008 1/67 collide_who: ours 1 theirs -1",
-                "20008 1/67 g.avg_speed[0]: ours 24 theirs 33",
-                "20008 1/67 g.cur_anim[0]: ours 0 theirs 9",
-                "20008 1/67 g.cur_time[0]: ours 1 theirs 6",
-                "20008 1/67 g.des_x[0]: ours 34794 theirs 34821",
-                "20008 1/67 g.des_y[0]: ours 40932 theirs 40956",
-                "20008 1/67 g.end_time[0]: ours 31 theirs 12",
-                "20008 1/67 g.last_speed[0]: ours 0 theirs 37",
-                "20008 1/67 g.last_time[0]: ours 0 theirs 5",
-                "20008 1/67 g.stopped[0]: ours 1 theirs 0",
-                "20008 1/67 g.x[0]: ours 34794 theirs 34821",
-                "20008 1/67 g.y[0]: ours 40932 theirs 40956",
-                "20008 1/67 order:move.dest_x: Move { field: \"dest_x\", ours: 34824, theirs: 35928 }",
-                "20008 1/67 order:move.dest_y: Move { field: \"dest_y\", ours: 40920, theirs: 41928 }",
-                "20008 1/67 path:length: PathLength { ours: 2, theirs: 1 }",
-                "20008 1/67 pos: ours (34794,40932) theirs (34821,40956)",
-                "20008 1/76 g.cur_anim[0]: ours 1 theirs 0",
-                "20008 1/76 g.end_time[0]: ours 58 theirs 31",
-            ],
+            Vec::<String>::new(),
             "the keys first parting under the word"
         );
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
@@ -16477,16 +16462,7 @@ pub(crate) mod tests {
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
             .copied()
             .collect();
-        assert_eq!(
-            word,
-            [
-                (20_006, 1, 65, false, true),
-                (20_008, 1, 76, true, false),
-                (20_009, 1, 67, false, true),
-                (20_010, 1, 67, true, false),
-            ],
-            "a figure's animation changes on one side only"
-        );
+        assert_eq!(word, [], "no figure's animation changes on one side only");
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
             .iter()
             .flat_map(|(b, m)| {
@@ -16507,7 +16483,11 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
             // −1, army 1's `1/48`..`1/66` 71 against 68) and three past it:
             // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-            (323, 21, 342, 916),
+            // Item 880: 323/21/342/916 → 286/0/286/299, the first
+            // block's 37 slot-swap rows (`1/64`..`1/66`'s `facing`, `1/65`'s
+            // and `1/66`'s `off`, `x/y`, paths and `1/65`'s position) and
+            // 580 keys past it; none opened (`docs/GROUPS.md` §30).
+            (286, 0, 286, 299),
             "the floor"
         );
     }
@@ -16626,13 +16606,19 @@ pub(crate) mod tests {
                     })?
             })
             .collect();
-        assert_eq!(ours, [Some(true); 3], "this crate's orders: mirrored");
-        // The squad's own record here: slot 69 as well, and since item 870
-        // the index's only record (one entry per pool index, and the
-        // numbering the original's), but fresh: `order_num` 1 and `facing`
-        // 0 against the original's 6 and 1. Before 870 it sat beside army
-        // 0's orphan on the same index, and the members pointed at army
-        // 1's slot 71 against the original's 68.
+        // **Item 880: the value diff on the word's frame.** This crate's
+        // orders are laid out square too, `facing` 0 on all three, where
+        // they were mirrored (1) before: the push keeps the slot's record
+        // (`copy_group`), and the record's history is the original's since
+        // `Group::kill` clears an emptied slot and an army's group is its
+        // slot's record (`docs/GROUPS.md` §30).
+        assert_eq!(ours, [Some(false); 3], "this crate's orders: square");
+        // The squad's own record here: slot 69, the index's only record,
+        // **`order_num` 6 and `facing` 1 on both sides** — army 1's old
+        // record one move on. Before 880 it was fresh, `order_num` 1 and
+        // `facing` 0; before 870 it sat beside army 0's orphan on the same
+        // index, and the members pointed at army 1's slot 71 against the
+        // original's 68.
         let recs: Vec<(i64, i32, bool, Vec<i16>)> = built
             .sim
             .pool_records(1, 5)
@@ -16642,8 +16628,8 @@ pub(crate) mod tests {
         assert_eq!(s, 4, "1/65 points at army 1's slot, 68 on both sides");
         assert_eq!(
             recs,
-            [(20_000, 1, false, vec![64, 65, 66])],
-            "this crate's slot 69: the squad's fresh record, alone"
+            [(20_000, 6, true, vec![64, 65, 66])],
+            "this crate's slot 69: army 1's old record under the squad, alone"
         );
     }
 
@@ -16748,8 +16734,18 @@ pub(crate) mod tests {
     /// ```
     ///
     /// The first capture listed that holds a block reads it, so list them
-    /// in run order. 865's scratch comparison reached 8369 in a minute, and
-    /// 870 walked every East Indies dump with it, pointers and records.
+    /// in run order — **and a dump that prints `GROUPDATA` before one
+    /// that does not**, or the record mode is silent on the shared blocks
+    /// (run42 shadowed run45's 1..901 for item 870). 865's scratch
+    /// comparison reached 8369 in a minute, and 870 walked every East
+    /// Indies dump with it, pointers and records.
+    ///
+    /// `RON_POOL_WALK_HIST=<who>` prints this crate's slots `who·64 +
+    /// 0..16` every tick one changes — every record on the index, with
+    /// `order_num`, `facing`, `stamp`, `form` and the list — for the
+    /// history a parting needs (item 880, `docs/GROUPS.md` §30).
+    /// `RON_POOL_WALK_MAP=greatlakes` walks run53's game against Great
+    /// Lakes' dumps instead.
     #[test]
     #[ignore]
     fn east_indies_pool_walk() {
