@@ -891,17 +891,16 @@ impl Sim {
     /// - a plane with no order, or with `mana_burn ≠ 0`, is passed over —
     ///   **the tank gates the launch** (run265: the strike laid on 767
     ///   waits to 778, the block the tank first reads 0);
-    /// - one whose front order has the action bit stays: a strike whose
+    /// - one whose front order has the action bit, or whose base repeats
+    ///   (`has_repeat_air() || flags & 4`), stays: a strike whose
     ///   target is invalid and whose point is off the world is killed; a
     ///   patrol's `returning` is cleared; it joins `launching`, and the
     ///   first of the call comes out ([`Sim::come_out`], whose tail is
     ///   the EXIT, [`Sim::exit_at_airbase`]) and `launch_frames` is 0;
     /// - one without is killed, and leaves `launching`.
     ///
-    /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, the
-    /// base's vslot `0xf0` ([`Building::repeat_air`](crate::Building),
-    /// which launches an unflagged order: `docs/ORDERS.md` §40), a strafe
-    /// home to another, full base turned `AirPatrolOrder`, and the
+    /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, a
+    /// strafe home to another, full base turned `AirPatrolOrder`, and the
     /// chain's order, which is the garrison list's here (one plane in
     /// every capture).
     pub(crate) fn do_launch(&mut self, b: usize) {
@@ -925,7 +924,12 @@ impl Sim {
             if self.units[u].mana_burn != 0 {
                 continue;
             }
-            if front.flags & crate::orders::flag::ACTION == 0 {
+            // `0064f4b0`: the base's vslot `0xf0` ([`Building::repeat_air`]
+            // (crate::Building)) or the action bit keeps the order;
+            // neither kills it. run281's `0/6` on 1585: its unflagged
+            // patrol, kept by `land_plane` under the bit, is killed once
+            // the bit is gone (`docs/GOLDEN.md` §32).
+            if !self.buildings[b].repeat_air && front.flags & crate::orders::flag::ACTION == 0 {
                 self.kill_current_order(u);
                 self.buildings[b].launching.retain(|&x| x != u);
                 continue;
@@ -1779,6 +1783,36 @@ mod launch_tests {
                 assert!(!p.returning, "and `returning` cleared");
             } else {
                 assert!(s.units[u].orders.is_empty(), "no repeat: closed");
+            }
+        }
+    }
+
+    /// **`do_launch` keeps an unflagged order only under a repeating
+    /// base** (`Object::do_launch@0064f3b0`, `has_repeat_air() || flags &
+    /// 4`; `docs/GOLDEN.md` §32): at a full tank the kept patrol is
+    /// launched under the bit and killed without it, the plane staying
+    /// inside. Made to fail with the kill unconditional (the first arm)
+    /// and with the bit read as always set (the second).
+    #[test]
+    fn a_full_tank_launches_an_unflagged_patrol_only_under_the_bit() {
+        for repeat in [true, false] {
+            let mut s = sim();
+            let (base, _) = base_and_target(&mut s);
+            let u = fighter_inside(&mut s, base, 400);
+            s.come_out(u);
+            s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+            s.buildings[base].repeat_air = true;
+            s.land_plane(u);
+            s.buildings[base].repeat_air = repeat;
+            s.units[u].mana_burn = 0;
+            s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
+            s.do_launch(base);
+            if repeat {
+                assert_eq!(s.units[u].inside, None, "launched");
+                assert_eq!(s.units[u].orders.len(), 1, "on its patrol");
+            } else {
+                assert_eq!(s.units[u].inside, Some(base), "still inside");
+                assert!(s.units[u].orders.is_empty(), "the patrol killed");
             }
         }
     }
