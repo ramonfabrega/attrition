@@ -4074,6 +4074,10 @@ impl Sim {
         for b in 0..self.buildings.len() {
             self.process_building_combat(b, frame);
         }
+        // A wonder that activated in this pass takes its entry in its
+        // leader's wonder list, as `Build::activate` does
+        // (`Wonders::init_wonder`, `docs/AI.md` §75).
+        self.note_wonders();
 
         self.mark("gaia");
         // The tail of `Objects::process_all`: the birds' sampling every 32

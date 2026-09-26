@@ -6568,3 +6568,87 @@ check: python3 tools/gamelog/samegame.py gamelog-run227-eastindies-wrapword.txt 
 # - **R4's killer fires.** The first non-floor row is who=1's `scholars`,
 #   13 against 14 from 16971. `1/58`'s path parts from 17147 and `1/57`'s
 #   `half_step` from 17161, both before the pair.
+
+run: 243
+tag: greatlakes-standword
+item: 785
+why: Great Lakes' long word is 20568 (item 785), where ours spends 37 draws against 38, parting at index 31 — ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original spends `< Unit::move_step+0x823`, a blocked step — and no dump on this map holds a record between run226's last block, 17350, and run80's first, 23960
+# **THE DISK WAS GREPPED FIRST** (2026-09-25, item 785): every Great
+# Lakes stanza by its window. run226 holds 16706..17350, run80 23960..
+# 24000, and run53 prints its draw stream alone (`end: MISC`). None holds
+# 20568 or 20569. **What the disk does answer.** Item 785's
+# `wonder_mark` writer took every row of run226 off: nothing parts on
+# 17088..17350, and the draw stream (run53's trace against ours) agrees
+# in count and sequence on every frame to 20567. **What the disk could
+# not answer**: every record on 17351..20569 — which unit the original's
+# blocked step on 20568 is, whose step ours spends instead, and on which
+# block either first parts.
+#
+# **Sized to the word, not to the gap** (DECISIONS 50 §7; the
+# commander's ruling on item 785): a contiguous capture from run226's
+# tail would be ~3,470 blocks and ~4.5 hours. This is 68 blocks into the
+# word (20500..20567), its block 20569, and 250 of runway above it —
+# 319 blocks. **Values over 17351..20499 are compared by no dump**: the
+# draw stream agrees across them, and nothing else is known of them.
+#
+# **The readings, each with what kills it** (block = frame + 1, so block
+# 20569 is frame 20568's result). Each killer tests the claim's own unit:
+#
+# - **R1 — this is run53's game to 20829.** Killed if the trace differs
+#   from run53's on any frame, or agrees on fewer than 20,830. There is no
+#   dump overlap to count: the same game is the draw stream's word.
+# - **R2 — the original's blocked step is one unit's, whose own walk parts
+#   before the word.** Its unit is the unit whose `collide_frame` reads
+#   20568 on block 20569 in the original: killed if that unit agrees on
+#   position, orders, path, move state and every `collide_*` field on
+#   every block 20500..20568, compared on (who, o).
+# - **R3 — the parting is the gap's, carried in.** Its unit is block
+#   20500, run243's first: killed if nothing on it parts outside the
+#   floor's standing families (run226's 307 rows on 17180..17184).
+#
+# **run226's line and lobby** (no `cfg:`) and the same `end:`, so the
+# pool lands (no `DEATHS`).
+frames: 20829
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **20500..20818, 319 blocks**: 68 up to the word, its block 20569, and
+# 250 of runway above it.
+frame_window: 20500 20819
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run226**: 2.2 MB a block, so 319 blocks is ~0.7 GB.
+# run226 took 50 minutes for 645 blocks to 17361; this plays 3,470
+# frames further unlogged and logs half as many. 300 polls is 100 minutes.
+poll_max: 300
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run243.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=20830)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run243-greatlakes-standword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 319 blocks, 20500..20818, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run243-greatlakes-standword.txt" | awk '{v=$3+0; if(v>=20500&&v<20819) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==319 && lo==20500 && hi==20818)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run243-greatlakes-standword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20500&&v<20819)n++} print "blocks with a GROUPDATA: "n; exit !(n==319)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run243-greatlakes-standword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20500&&v<20819)n++} print "blocks with a GUY: "n; exit !(n==319)}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 706,792,774 bytes of dump and 23,878,656 of trace, **319 blocks
+# 20500..20818**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 19:56 through `viadriver.sh` with no human at the menu (the lane lock
+# was stale: pid 41224 dead), archived 20:22: about 26 minutes.
+# `waitrun.sh` exited 0. All five checks were green:
+# - 20,830 frames identical to run53, 0 differing;
+# - `MAP_STYLE 14`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run243_s_word_frame_is_widened_whole`):
+# - **R1 holds.**
+# - **R2 holds.** The unit standing blocked on block 20569 is `1/40`,
+#   by `8/0` (`collide 1`, `collide_who 8`, `collide_o 0`). Its
+#   position parts from run243's first block, 76 units off.
+# - **R3's killer fires.** 59 rows part on 20500 outside run226's 307
+#   standing: `1/40`, `1/41`, `1/42` and `1/60` on long walks, `1/80`'s
+#   formation and who=1's `SITE[1].reg`. The gap is not quiet.

@@ -36,8 +36,9 @@
 //! - the leader's known oil patches: none, so `oil_ok` is never true.
 //! - `GoodTypeData::largest_gather` (+0x2ec): 0.
 //! - the wonder bookkeeping — team, enemy and unbuilt wonder value,
-//!   `Game::wonder_winning`, `wonder_mark`, the wonder-win row's target and
-//!   a wonder type's value factor (vslot `+0x118`): 0, −1, 0, absent, 1.
+//!   `Game::wonder_winning`, the wonder-win row's target and a wonder
+//!   type's value factor (vslot `+0x118`): 0, −1, absent, 1.
+//!   `wonder_mark` has its writer ([`Sim::note_wonders`], §75).
 //! - `TERRACOTTA` / `STATUEOFLIBERTY` / `SPACEPROGRAM` have no [`Ident`], so
 //!   the tech-race lobby's ÷1000 never fires.
 //! - ~~`WorldData::danger` is per region here, not per half-cell.~~ It is
@@ -1246,9 +1247,10 @@ impl Sim {
             let team_value: i32 = 0;
             let ev: i32 = 0;
             let winning: i32 = -1;
-            // `LeaderData::wonder_mark` (+0x424) has no field here and reads
-            // zero, so an easy AI's non-wonder-victory gate always passes.
-            let wonder_mark = 0;
+            // `LeaderData::wonder_mark` (+0x424): one past the leader's
+            // highest wonder entry, so an easy AI outside a wonder victory
+            // wants no wonder once one of its own has activated (§75).
+            let wonder_mark = self.ai[w].census.wonder_mark;
             if diff < 2 {
                 let ok = if self.lobby.victory == 6 {
                     team_value < ev + 1
@@ -1974,6 +1976,77 @@ mod tests {
             assert!(n < 20, "too many draws");
         }
         assert_eq!(n, 2, "the other city's wonder alone");
+    }
+
+    /// Counts the sync-stream draws one `create_buildings` pass takes.
+    fn pass_draws(sim: &mut Sim, who: Player) -> usize {
+        let before = sim.rng;
+        sim.create_buildings(who);
+        let mut probe = before;
+        let mut n = 0;
+        while probe != sim.rng {
+            probe.roll();
+            n += 1;
+            assert!(n < 40, "too many draws");
+        }
+        n
+    }
+
+    /// `docs/AI.md` §75: an easy AI outside a wonder victory values no
+    /// wonder once one of its own has activated, because the arm's last
+    /// gate is `wonder_mark == 0` and `Wonders::init_wonder` raised it.
+    /// Great Lakes 17181: who=1's Pyramids activated on 17084, and the
+    /// original spends none of the three (city, wonder) pairs this crate
+    /// spent. A hard AI does not read the mark.
+    #[test]
+    fn an_easy_ai_wants_no_second_wonder_once_its_first_stands() {
+        let (mut sim, t) = sim();
+        sim.build_types[t.silo].wonder = true;
+        let _a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        sim.lobby.difficulty = 1;
+        let first = sim
+            .place_building(0, t.silo, tile_pos(48, 40))
+            .expect("the first wonder places");
+        finish(&mut sim, first);
+        assert!(pass_draws(&mut sim, 0) > 0, "no mark yet: the arm draws");
+        sim.note_wonders();
+        assert_eq!(sim.ai[0].census.wonder_mark, 1);
+        assert_eq!(pass_draws(&mut sim, 0), 0, "the mark closes the arm");
+        sim.lobby.difficulty = 2;
+        assert!(pass_draws(&mut sim, 0) > 0, "a hard AI does not read it");
+    }
+
+    /// `Wonders::init_wonder` takes the first clear entry under the mark,
+    /// and `close_wonder` walks the mark down only past clear entries at
+    /// its top: the mark is one past the highest entry in use, not a count.
+    #[test]
+    fn the_wonder_mark_is_one_past_the_highest_entry_in_use() {
+        let (mut sim, t) = sim();
+        // One wonder a city (`blocked_site`'s wonder clause), so two.
+        let _a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        let wonder = |sim: &mut Sim, x: i32, y: i32| {
+            let b = sim
+                .place_building(0, t.wonder, tile_pos(x, y))
+                .expect("a wonder places");
+            finish(sim, b);
+            b
+        };
+        let one = wonder(&mut sim, 48, 40);
+        let two = wonder(&mut sim, 88, 40);
+        sim.note_wonders();
+        assert_eq!(sim.ai[0].census.wonder_mark, 2);
+        sim.buildings[one].alive = false;
+        sim.note_wonders();
+        assert_eq!(sim.ai[0].census.wonder_mark, 2, "entry 0 clears under 1");
+        let three = wonder(&mut sim, 48, 48);
+        sim.note_wonders();
+        assert_eq!(sim.ai[0].census.wonder_slots, [Some(three), Some(two)]);
+        sim.buildings[two].alive = false;
+        sim.note_wonders();
+        assert_eq!(sim.ai[0].census.wonder_mark, 1, "the top clears and walks");
+        assert_eq!(sim.ai[1].census.wonder_mark, 0, "a leader's own list");
     }
 
     #[test]

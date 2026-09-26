@@ -1391,7 +1391,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // and `1/82`, a Merchant. The 24,000th frame is 6,819 frames past
         // the new word. Measured after `ccc update` onto `5f0b66b1`.
         // DECISIONS 36: the number, not a trade.
-        off: 43,
+        // **43 → 11 off, 2 → 1 extra** on item 785: `wonder_mark`'s writer
+        // (`docs/AI.md` §75), which moves this map's word 17181 → 20568.
+        // The extra is `1/81`, a Merchant. The 24,000th frame is 3,432
+        // frames past the new word. Measured on `771cddae`, based on
+        // `a1390a90`. DECISIONS 36: the number, not a trade.
+        off: 11,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1415,7 +1420,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **4 → 0** on item 729, beside `off` above.
         // **0 → 1** on item 757, beside `off` above: `1/81`.
         // **1 → 2** on item 776, beside `off` above: `1/81`, `1/82`.
-        extra: 2,
+        // **2 → 1** on item 785, beside `off` above: `1/81`.
+        extra: 1,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
