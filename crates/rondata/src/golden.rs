@@ -1217,6 +1217,10 @@ mod tests {
         // Dock, the board line (item 803, `docs/GOLDEN.md` §28).
         ("chapter20.cmd", &[]),
         ("chapter21.cmd", &[]),
+        // Chapter twenty-two: chapter seventeen and one more `@strike`, on
+        // the Fighter inside its base, the launch line (item 836,
+        // `docs/GOLDEN.md` §31).
+        ("chapter22.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),

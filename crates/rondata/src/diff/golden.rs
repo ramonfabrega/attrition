@@ -853,6 +853,31 @@ fn chapter_twenty_one_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty-two, pinned** — the launch line: a strike from inside
+/// a base (`docs/GOLDEN.md` §31, item 836, run265). Twelve staged lines:
+/// chapter seventeen's eleven and `@strike` on the Fighter `0/6`, inside
+/// `0/2007`, on 766.
+#[test]
+fn chapter_twenty_two_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch22", "chapter22", 22, 12, 1499) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_TWO,
+        "chapter twenty-two's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_TWO}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_TWO,
+        "chapter twenty-two's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §31"
+    );
+    eprintln!(
+        "chapter twenty-two: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run255's repair, unit for unit, both directions** (item 813,
 /// `docs/GOLDEN.md` §29). On every block of
 /// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
@@ -7755,6 +7780,132 @@ fn run245_s_cast_is_the_original_s_field_for_field() {
     );
 }
 
+/// **run265's launch and tank, field for field, both directions** (item
+/// 836, `docs/GOLDEN.md` §31, `docs/ORDERS.md` §38). The fields the launch
+/// line writes that no parser carries, read raw from every block of
+/// [`WIDENING_CHAPTER_TWENTY_TWO`]: on every unit of either player, the
+/// tank `mana_burn` and whether it stands inside (`inside_up ≥ 0`); on
+/// every building, `launch_frames`. Everything agrees to the word and
+/// past it, 39,793 rows; what parts is the Fighter's flight home, four
+/// blocks early from the climb's drift at 798 (the word's own cause). `mana_burn` and `launch_frames` stay
+/// pinned unread in `diff::coverage` for the widenings, which the long
+/// captures share.
+#[test]
+fn run265_s_launch_is_the_original_s_field_for_field() {
+    use std::collections::BTreeMap;
+    let Some(mut s) = stage_script("ch22", "chapter22") else {
+        return;
+    };
+    let (first, last) = WIDENING_CHAPTER_TWENTY_TWO;
+    let players = s.built.sim.players.len() as i64;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut rows = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        let raw = s.ix.read_frame(at).unwrap();
+        let recs = raw_records(&raw);
+        let sim = &s.built.sim;
+        let mut note = |who: i64, o: i64, what: &str, ours: i64, theirs: Option<i64>| {
+            let Some(theirs) = theirs else {
+                return;
+            };
+            rows += 1;
+            if ours != theirs {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {ours} theirs {theirs}")));
+            }
+        };
+        for them in &frame.units {
+            if !(0..players).contains(&them.who) {
+                continue;
+            }
+            let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = sim.unit_by_o(w, o) else {
+                continue;
+            };
+            let un = &sim.units[u];
+            let r = recs.get(&("UNITDATA", them.who, them.o));
+            let get = |k: &str| r.and_then(|r| r.get(k).copied());
+            note(
+                them.who,
+                them.o,
+                "mana_burn",
+                i64::from(un.mana_burn),
+                get("mana_burn"),
+            );
+            // `inside_up` is the chain's link, not the container: the
+            // head's is the base, and a plane landing behind another
+            // carries the one above it (run265's `0/7` on 1489 reads 6,
+            // behind `0/6`: the chain appends at its tail, as the
+            // garrison list does here). So the row is in or out.
+            note(
+                them.who,
+                them.o,
+                "inside",
+                i64::from(un.inside.is_some()),
+                get("inside_up").map(|x| i64::from(x >= 0)),
+            );
+        }
+        for ((kind, who, o), r) in &recs {
+            if *kind != "BUILDDATA" || !(0..players).contains(who) {
+                continue;
+            }
+            let (Ok(w), Ok(oo)) = (u8::try_from(*who), i16::try_from(*o)) else {
+                continue;
+            };
+            let Some(b) = sim.building_by_o(w, oo) else {
+                continue;
+            };
+            note(
+                *who,
+                *o,
+                "launch_frames",
+                i64::from(sim.buildings[b].launch_frames),
+                r.get("launch_frames").copied(),
+            );
+        }
+    }
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run265 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!(
+        "run265's launch: {rows} rows compared, {} parted",
+        firsts.len()
+    );
+    assert!(rows > 0, "run265 carries the fields it prints");
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    let mut got = got;
+    got.sort();
+    let mut want: Vec<String> = [
+        "1381 0/2007 launch_frames",
+        "1381 0/6 inside",
+        "1382 0/6 mana_burn",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(
+        got, want,
+        "run265: what parts in the launch's own fields moved"
+    );
+}
+
 /// **run249's transport, unit for unit, both directions** (item 803,
 /// `docs/GOLDEN.md` §28). The state the toggle writes and the board reads,
 /// which [`crate::diff::harness::widen_block`] does not compare — it reads
@@ -8032,6 +8183,415 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
 /// both leaders at `LEADERS=2`; and who=0's `GROUPDATA` pool by
 /// [`widen_pool`], where each command's pushed selection sits. run223
 /// dumps no `AMMO` and no `DEATHS`.
+/// **run265 whole, both directions** (item 836, `docs/GOLDEN.md` §31):
+/// every dumped record of either player on every block of
+/// [`WIDENING_CHAPTER_TWENTY_TWO`], and who=0's pool.
+#[test]
+fn chapter_twenty_two_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch22",
+        "chapter22",
+        WIDENING_CHAPTER_TWENTY_TWO,
+        1499,
+        0,
+        (776, 780),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch22 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_TWO.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch22: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_TWO.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch22", "chapter22", WIDENING_CHAPTER_TWENTY_TWO, 0)
+        .expect("run265 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch22 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH22.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch22: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH22_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch22: what parts in the pool moved");
+}
+
+// **What parts under the word** on run265, chapter twenty-two. ~~The
+// first pin, word 778: `0/6`'s stack on 768 (no strike here against the
+// original's `STRAFEORDER` laid inside) and the launch's 13 keys on 778.~~
+// **The launch line built** (item 836, `docs/ORDERS.md` §38): 768 and 778
+// agree whole — the strike laid inside and waiting on the tank, the EXIT
+// onto (11424, 13920) with its figure on the ground, `last_bank` and
+// `last_pitch` 0.0, `avg_speed` kept at 25, and the first step. **Word
+// 923, open.** The first value parting is **798**, the climb: `0/6`'s
+// `pitch` 40.0 here against 38.0 there (bits 1109393408 / 1108869120),
+// `last_speed` 38 against 40, its point a unit or two off; the heading
+// parts on 813 (1390007340 / 1391742680), and on 924 the original's
+// Fighter is in its attack (`cur_anim` 12, `recharging` 31) where ours is
+// not. From 924 the one-draw shift in the citizens' and scouts' legs.
+// The births' `form` and chapter one's clocks stand as in chapter
+// seventeen (611–655), and the pair's tank rows are gone with the tank.
+const WANT_CH22: &[&str] = &[
+    "1000 0/3 dest_angle",
+    "1000 0/3 order:move.angle",
+    "1000 0/3 order:move.off_x",
+    "1000 0/3 order:move.off_y",
+    "1000 0/3 order:move.x",
+    "1000 0/3 order:move.y",
+    "1000 0/3 orders_x",
+    "1000 0/3 orders_y",
+    "1001 0/3 g.angle[0]",
+    "1001 0/3 g.des_angle[0]",
+    "1001 0/3 g.des_x[0]",
+    "1001 0/3 g.des_y[0]",
+    "1001 0/3 g.last_speed[0]",
+    "1001 0/3 g.x[0]",
+    "1001 0/3 g.y[0]",
+    "1001 0/3 heading",
+    "1001 0/3 order:move.dest_x",
+    "1001 0/3 order:move.dest_y",
+    "1001 0/3 path[0].to",
+    "1001 0/3 pos",
+    "1004 0/3 g.avg_speed[0]",
+    "1023 0/3 order:kind",
+    "1023 0/3 order:length",
+    "1023 0/3 orders.len",
+    "1023 0/3 path:length",
+    "1024 0/3 g.cur_time[0]",
+    "1024 0/3 g.last_time[0]",
+    "1025 0/3 g.cur_anim[0]",
+    "1025 0/3 g.end_time[0]",
+    "1025 0/3 g.stopped[0]",
+    "1035 0/4 dest_angle",
+    "1035 0/4 order:move.angle",
+    "1035 0/4 order:move.off_x",
+    "1035 0/4 order:move.off_y",
+    "1035 0/4 order:move.x",
+    "1035 0/4 order:move.y",
+    "1035 0/4 orders_x",
+    "1035 0/4 orders_y",
+    "1036 0/4 g.angle[0]",
+    "1036 0/4 g.avg_speed[0]",
+    "1036 0/4 g.cur_anim[0]",
+    "1036 0/4 g.cur_time[0]",
+    "1036 0/4 g.des_angle[0]",
+    "1036 0/4 g.des_x[0]",
+    "1036 0/4 g.des_y[0]",
+    "1036 0/4 g.end_time[0]",
+    "1036 0/4 g.last_speed[0]",
+    "1036 0/4 g.last_time[0]",
+    "1036 0/4 g.stopped[0]",
+    "1036 0/4 g.x[0]",
+    "1036 0/4 g.y[0]",
+    "1036 0/4 heading",
+    "1036 0/4 mirror",
+    "1036 0/4 order:kind",
+    "1036 0/4 order:length",
+    "1036 0/4 orders.len",
+    "1036 0/4 path:length",
+    "1036 0/4 pos",
+    "1037 0/4 order:flags",
+    "1037 0/4 order:move.dest",
+    "1038 0/4 order:move.dest_x",
+    "1038 0/4 order:move.dest_y",
+    "1038 0/4 path[0].to",
+    "1039 1/4 order:move.off_x",
+    "1039 1/4 order:move.off_y",
+    "1039 1/4 order:move.x",
+    "1039 1/4 order:move.y",
+    "1039 1/4 orders_x",
+    "1039 1/4 orders_y",
+    "1040 1/4 dest_angle",
+    "1040 1/4 g.angle[0]",
+    "1040 1/4 g.avg_speed[0]",
+    "1040 1/4 g.cur_anim[0]",
+    "1040 1/4 g.cur_time[0]",
+    "1040 1/4 g.des_angle[0]",
+    "1040 1/4 g.des_x[0]",
+    "1040 1/4 g.des_y[0]",
+    "1040 1/4 g.end_time[0]",
+    "1040 1/4 g.last_speed[0]",
+    "1040 1/4 g.last_time[0]",
+    "1040 1/4 g.stopped[0]",
+    "1040 1/4 g.x[0]",
+    "1040 1/4 g.y[0]",
+    "1040 1/4 heading",
+    "1040 1/4 mirror",
+    "1040 1/4 order:kind",
+    "1040 1/4 order:length",
+    "1040 1/4 orders.len",
+    "1040 1/4 path:length",
+    "1040 1/4 pos",
+    "1041 1/4 order:flags",
+    "1041 1/4 order:move.dest",
+    "1052 1/3 mirror",
+    "1062 1/3 order:flags",
+    "1062 1/3 order:move.angle",
+    "1062 1/3 order:move.dest",
+    "1087 1/2 order:gather.wait",
+    "1111 1/5 dest_angle",
+    "1111 1/5 order:move.angle",
+    "1111 1/5 order:move.off_x",
+    "1111 1/5 order:move.off_y",
+    "1111 1/5 order:move.x",
+    "1111 1/5 order:move.y",
+    "1111 1/5 orders_x",
+    "1111 1/5 orders_y",
+    "1112 1/5 g.angle[0]",
+    "1112 1/5 g.des_angle[0]",
+    "1112 1/5 g.des_x[0]",
+    "1112 1/5 g.des_y[0]",
+    "1112 1/5 g.last_speed[0]",
+    "1112 1/5 g.x[0]",
+    "1112 1/5 g.y[0]",
+    "1112 1/5 heading",
+    "1112 1/5 order:move.dest_x",
+    "1112 1/5 order:move.dest_y",
+    "1112 1/5 path[0].to",
+    "1112 1/5 pos",
+    "1113 1/5 g.avg_speed[0]",
+    "1116 0/0 g.cur_anim[0]",
+    "1116 0/0 g.cur_anim[1]",
+    "1116 0/0 g.end_time[0]",
+    "1126 0/3 mirror",
+    "1129 0/3 order:flags",
+    "1129 0/3 order:move.dest",
+    "1133 1/5 order:kind",
+    "1133 1/5 order:length",
+    "1133 1/5 orders.len",
+    "1133 1/5 path:length",
+    "1134 1/5 g.cur_anim[0]",
+    "1134 1/5 g.cur_time[0]",
+    "1134 1/5 g.end_time[0]",
+    "1134 1/5 g.last_time[0]",
+    "1134 1/5 g.stopped[0]",
+    "1149 0/5 dest_angle",
+    "1149 0/5 order:move.angle",
+    "1149 0/5 order:move.off_x",
+    "1149 0/5 order:move.off_y",
+    "1149 0/5 order:move.x",
+    "1149 0/5 order:move.y",
+    "1149 0/5 orders_x",
+    "1149 0/5 orders_y",
+    "1150 0/5 g.angle[0]",
+    "1150 0/5 g.avg_speed[0]",
+    "1150 0/5 g.cur_anim[0]",
+    "1150 0/5 g.cur_time[0]",
+    "1150 0/5 g.des_angle[0]",
+    "1150 0/5 g.des_x[0]",
+    "1150 0/5 g.des_y[0]",
+    "1150 0/5 g.end_time[0]",
+    "1150 0/5 g.last_speed[0]",
+    "1150 0/5 g.last_time[0]",
+    "1150 0/5 g.stopped[0]",
+    "1150 0/5 g.x[0]",
+    "1150 0/5 g.y[0]",
+    "1150 0/5 heading",
+    "1150 0/5 mirror",
+    "1150 0/5 order:kind",
+    "1150 0/5 order:length",
+    "1150 0/5 orders.len",
+    "1150 0/5 path:length",
+    "1150 0/5 pos",
+    "1151 0/5 order:flags",
+    "1151 0/5 order:move.dest",
+    "1157 0/0 g.cur_time[0]",
+    "1157 0/0 g.cur_time[1]",
+    "1157 0/0 g.last_time[0]",
+    "1164 1/4 collide_o",
+    "1164 1/4 collide_who",
+    "1165 1/4 order:move.angle",
+    "1178 0/5 angle:Facing",
+    "1188 1/0 dest_angle",
+    "1188 1/0 order:move.angle",
+    "1188 1/0 order:move.x",
+    "1188 1/0 order:move.y",
+    "1188 1/0 orders_x",
+    "1188 1/0 orders_y",
+    "1188 1/0 path:length",
+    "1188 1/0 path[0].to",
+    "1188 1/0 path[1].to",
+    "1188 1/0 path[2].to",
+    "1188 1/0 path[3].to",
+    "1225 1/1 order:gather.wait",
+    "1254 0/2 order:gather.wait",
+    "1264 1/0 angle:Facing",
+    "1264 1/0 angle:Heading",
+    "1264 1/0 g.angle[0]",
+    "1264 1/0 g.des_angle[0]",
+    "1264 1/0 g.des_angle[1]",
+    "1264 1/0 heading",
+    "1264 1/0 order:move.dest_x",
+    "1264 1/0 order:move.dest_y",
+    "1264 1/0 tolerance",
+    "1279 1/0 g.angle[1]",
+    "1279 1/0 g.des_x[0]",
+    "1279 1/0 g.des_x[1]",
+    "1279 1/0 g.x[0]",
+    "1279 1/0 g.x[1]",
+    "1279 1/0 pos",
+    "1283 0/6 path[0].to",
+    "1295 1/0 order:move.dest",
+    "1296 1/0 g.avg_speed[1]",
+    "1296 1/0 g.des_y[0]",
+    "1296 1/0 g.des_y[1]",
+    "1296 1/0 g.last_speed[0]",
+    "1296 1/0 g.last_speed[1]",
+    "1296 1/0 g.y[0]",
+    "1296 1/0 g.y[1]",
+    "1298 1/4 order:move.dest_x",
+    "1298 1/4 order:move.dest_y",
+    "1298 1/4 path[0].to",
+    "1304 1/0 g.avg_speed[0]",
+    "1305 1/0 g.cur_anim[1]",
+    "1305 1/0 order:length",
+    "1305 1/0 orders.len",
+    "1306 1/0 g.cur_anim[0]",
+    "1306 1/0 g.cur_time[0]",
+    "1306 1/0 g.cur_time[1]",
+    "1306 1/0 g.last_time[0]",
+    "1306 1/0 g.last_time[1]",
+    "1306 1/0 idle",
+    "1306 1/0 order:move.facing",
+    "1316 0/4 angle:Facing",
+    "1316 0/4 angle:Heading",
+    "1336 1/0 path[4].to",
+    "1336 1/0 path[5].to",
+    "1336 1/0 path[6].to",
+    "1336 1/0 path[7].to",
+    "1336 1/0 path[8].to",
+    "1336 1/0 path[9].to",
+    "1337 1/0 mirror",
+    "1361 1/5 angle:Facing",
+    "1361 1/5 angle:Heading",
+    "1367 1/5 mirror",
+    "1381 0/6 g.stopped[0]",
+    "1381 0/6 inside",
+    "1381 0/6 order:length",
+    "1381 0/6 orders.len",
+    "1381 0/6 path:length",
+    "1396 0/5 order:move.dest_x",
+    "1396 0/5 order:move.dest_y",
+    "1396 0/5 path[0].to",
+    "1421 1/0 order:move.last_x",
+    "1421 1/0 order:move.last_y",
+    "1421 1/0 path[6].tolerance",
+    "1421 1/0 path_recursion",
+    "1450 0/1 order:gather.wait",
+    "1489 0/7 order:length",
+    "1489 0/7 orders.len",
+    "611 0/6 form",
+    "613 0/7 form",
+    "615 0/8 form",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+    "798 0/6 g.des_x[0]",
+    "798 0/6 g.des_y[0]",
+    "798 0/6 g.last_speed[0]",
+    "798 0/6 g.pitch[0]",
+    "798 0/6 g.x[0]",
+    "798 0/6 g.y[0]",
+    "798 0/6 g.z[0]",
+    "798 0/6 pos",
+    "799 0/6 g.avg_speed[0]",
+    "799 0/6 g.last_pitch[0]",
+    "799 0/6 g.last_z[0]",
+    "799 0/6 orders_x",
+    "799 0/6 orders_y",
+    "812 0/6 g.bank[0]",
+    "813 0/6 g.angle[0]",
+    "813 0/6 g.des_angle[0]",
+    "813 0/6 g.last_bank[0]",
+    "813 0/6 heading",
+    "814 0/6 dest_angle",
+    "924 0/6 g.cur_anim[0]",
+    "924 0/6 g.cur_time[0]",
+    "924 0/6 g.end_time[0]",
+    "924 0/6 g.last_time[0]",
+    "924 0/6 recharging",
+    "928 1/2006 build:damage",
+    "928 1/2006 build:damage_frac",
+    "931 0/6 order:air.cruising_alt",
+    "938 1/3 order:move.off_x",
+    "938 1/3 order:move.off_y",
+    "938 1/3 order:move.x",
+    "938 1/3 order:move.y",
+    "938 1/3 orders_x",
+    "938 1/3 orders_y",
+    "939 1/3 order:move.dest_x",
+    "939 1/3 order:move.dest_y",
+    "939 1/3 path[0].to",
+    "940 1/3 angle:Facing",
+    "940 1/3 angle:Heading",
+    "940 1/3 g.angle[0]",
+    "940 1/3 g.des_angle[0]",
+    "940 1/3 heading",
+    "944 1/3 g.avg_speed[0]",
+    "944 1/3 g.des_x[0]",
+    "944 1/3 g.last_speed[0]",
+    "944 1/3 g.x[0]",
+    "944 1/3 pos",
+    "947 1/3 g.des_y[0]",
+    "947 1/3 g.y[0]",
+    "949 1/3 dest_angle",
+    "949 1/3 order:kind",
+    "949 1/3 order:length",
+    "949 1/3 orders.len",
+    "949 1/3 path:length",
+    "950 1/3 g.cur_anim[0]",
+    "950 1/3 g.cur_time[0]",
+    "950 1/3 g.end_time[0]",
+    "950 1/3 g.last_time[0]",
+    "950 1/3 g.stopped[0]",
+];
+
+// **What parts in the pool** on run265: chapter seventeen's ten, the
+// pushed flight groups' point (parked 760) and item 738's `get_num` speeds;
+// the Fighter's selection on 767 agrees.
+const WANT_CH22_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "666 slot 2 new_speed",
+    "666 slot 2 speed",
+];
+
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {
     let Some(firsts) = widen_civilians(
@@ -8146,6 +8706,11 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     // on 1214 — `mana_burn` is not carried — and each plane's flight
     // home from then, which this crate does not turn for. No draw
     // follows from them to 1400.
+    //
+    // **The tank, built** (item 836, `docs/ORDERS.md` §38.1): `mana_burn`
+    // +1 a frame on the map, so `check_fuel`'s empty arm turns `0/7` for
+    // home on 1212 and `0/8` on 1214, `returning 1` on both sides, and
+    // each flight home agrees to 1400. What stands is the births' nine.
     let mut want: Vec<String> = [
         "611 0/6 form",
         "613 0/7 form",
@@ -8156,50 +8721,6 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         "650 0/1 g.last_time[0]",
         "655 0/2 g.cur_time[0]",
         "655 0/2 g.last_time[0]",
-        "1212 0/7 g.angle[0]",
-        "1212 0/7 g.avg_speed[0]",
-        "1212 0/7 g.des_angle[0]",
-        "1212 0/7 g.des_x[0]",
-        "1212 0/7 g.des_y[0]",
-        "1212 0/7 g.last_speed[0]",
-        "1212 0/7 g.x[0]",
-        "1212 0/7 g.y[0]",
-        "1212 0/7 heading",
-        "1212 0/7 order:air.returning",
-        "1212 0/7 path[0].to",
-        "1212 0/7 pos",
-        "1213 0/7 dest_angle",
-        "1213 0/7 orders_x",
-        "1213 0/7 orders_y",
-        "1214 0/8 g.angle[0]",
-        "1214 0/8 g.avg_speed[0]",
-        "1214 0/8 g.bank[0]",
-        "1214 0/8 g.des_angle[0]",
-        "1214 0/8 g.des_x[0]",
-        "1214 0/8 g.des_y[0]",
-        "1214 0/8 g.last_speed[0]",
-        "1214 0/8 g.pitch[0]",
-        "1214 0/8 g.x[0]",
-        "1214 0/8 g.y[0]",
-        "1214 0/8 g.z[0]",
-        "1214 0/8 heading",
-        "1214 0/8 order:air.returning",
-        "1214 0/8 path[0].to",
-        "1214 0/8 pos",
-        "1215 0/8 dest_angle",
-        "1215 0/8 g.last_bank[0]",
-        "1215 0/8 g.last_pitch[0]",
-        "1215 0/8 g.last_z[0]",
-        "1215 0/8 orders_x",
-        "1215 0/8 orders_y",
-        "1223 0/7 g.bank[0]",
-        "1224 0/7 g.last_bank[0]",
-        "1225 0/7 g.last_z[0]",
-        "1225 0/7 g.pitch[0]",
-        "1225 0/7 g.z[0]",
-        "1226 0/7 g.last_pitch[0]",
-        "1378 0/7 g.cur_anim[0]",
-        "1398 0/8 g.cur_anim[0]",
     ]
     .iter()
     .map(|r| r.to_string())

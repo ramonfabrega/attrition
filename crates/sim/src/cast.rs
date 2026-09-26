@@ -421,6 +421,10 @@ impl Sim {
     /// Memnon's rate, the supply wagon's gate, and the two other bits of
     /// the mask (`0x2000`, `0x8000`), none of which a capture holds.
     pub(crate) fn recover_mana(&mut self, u: usize, frame: i64) {
+        if !self.units[u].decoy && self.unit_domain_of(u) == crate::attrition::Domain::Air {
+            self.burn_fuel(u);
+            return;
+        }
         let unit = &self.units[u];
         if unit.mana_burn == 0 || unit.decoy || unit.casting {
             return;
@@ -428,5 +432,34 @@ impl Sim {
         let step = i16::try_from(((frame & 1) + 2) / 2).unwrap_or(1);
         let unit = &mut self.units[u];
         unit.mana_burn -= step.min(unit.mana_burn);
+    }
+
+    /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type
+    /// of domain 2 in place of the caster's (`docs/ORDERS.md` §38.1). On
+    /// the map (`inside_up < 0`) the plane burns one a frame while it has
+    /// any left, `mana_left@00609a30 != 0`; inside anything, it refills
+    /// [`Tuning::air_unit_mana_recharge`](crate::tuning::Tuning) a frame,
+    /// to 0. run223 and run265: the Fighter's 1 on 611, the block after
+    /// its `add`, 112 on its landing, −2 a block inside to 0 on 778, and
+    /// 400 — its `MANA` — on 1178.
+    ///
+    /// SEAM: the heal inside, `aircraft_heal_rate[heal level]` frames
+    /// apart on the unit's phase (two thirds of it for one type), and the
+    /// `+0x38` word it writes; no captured plane is ever damaged.
+    fn burn_fuel(&mut self, u: usize) {
+        let outside = self.units[u].inside.is_none() && self.units[u].inside_unit.is_none();
+        if outside {
+            if self.mana_left(u) != 0 {
+                self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
+            }
+        } else {
+            let r = i16::try_from(self.tuning.air_unit_mana_recharge).unwrap_or(i16::MAX);
+            let unit = &mut self.units[u];
+            unit.mana_burn = if unit.mana_burn > r {
+                unit.mana_burn - r
+            } else {
+                0
+            };
+        }
     }
 }
