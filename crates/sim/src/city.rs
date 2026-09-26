@@ -880,9 +880,10 @@ impl Sim {
     /// zeroes a region again on every frame its pass has not yet reached
     /// under the 256-cell budget; this crate zeroes once (§76.5).
     pub(crate) fn check_borders(&mut self) {
-        if !std::mem::take(&mut self.borders_fixed) {
+        if !self.borders_fixed {
             return;
         }
+        self.borders_fixed = false;
         for a in &mut self.ai {
             a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
         }
