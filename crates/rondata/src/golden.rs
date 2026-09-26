@@ -1099,6 +1099,9 @@ mod tests {
         // Chapter seventeen: two `@flight` and two `@strike` issuer lines,
         // the flight line (item 746, `docs/GOLDEN.md` §25).
         ("chapter17.cmd", &[]),
+        // Chapter eighteen: two `@build` issuer lines, the build line
+        // (item 779, `docs/GOLDEN.md` §26).
+        ("chapter18.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -1197,6 +1200,24 @@ mod tests {
                  re-pin CHAPTER_DEBT and say so in docs/GOLDEN.md"
             );
         }
+    }
+
+    /// **`@build` parses as the DLL reads it** (item 779): `who`, the
+    /// point, the `TypeIndex`, then the objects; three numbers and no
+    /// type, or a type and no object, is the DLL's refusal 5.
+    #[test]
+    fn a_build_line_is_the_dll_s_build() {
+        assert_eq!(
+            parse_issuer("@build 0 7296 36864 430 7 8 9"),
+            Some(Issued::Build {
+                who: 0,
+                to: Pos::new(7296, 36864),
+                build: 430,
+                objects: vec![7, 8, 9],
+            })
+        );
+        assert_eq!(parse_issuer("@build 0 7296 36864 430"), None);
+        assert_eq!(parse_issuer("@build 0 7296 36864"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,
