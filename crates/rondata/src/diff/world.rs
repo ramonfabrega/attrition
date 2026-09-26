@@ -2501,6 +2501,213 @@ mod tests {
         );
     }
 
+    /// **run248 — the world on East Indies' block 17146, and tick 17146's
+    /// world searches** (item 773). Tick 17146 moves army 0's column —
+    /// `1/55`, `1/57` and `1/58` — to three formation slots eight cells
+    /// north, and each plans a world path. `1/55`'s and `1/57`'s agree with
+    /// the original's; `1/58`'s parts on block 17147: ours goes straight
+    /// north in 10 entries, the original's round the west in 18, in the
+    /// column, where its `1/58` gives `1/55` the half steps of 17183 and
+    /// 17185 that put the word's stand on 17190.
+    #[test]
+    fn run248_s_world_at_17146_is_the_original_s() {
+        const BLOCK: i64 = 17_146;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(t54)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            eprintln!("skipping: no run54 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &t54);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Block N is the state after tick N − 1.
+        for _ in 0..BLOCK {
+            built.tick();
+        }
+        let w = &built.sim.world;
+        let cell_row = |x: i32, y: i32| {
+            let c = sim::world::Cell::new(x, y);
+            let d = w.cell_data(c);
+            let who = match w.owner(c) {
+                sim::world::Owner::Player(p) => i64::from(p),
+                _ => -1,
+            };
+            (
+                i64::from(d.flags),
+                who,
+                i64::from(d.blocked),
+                i64::from(d.solid),
+                i64::from(d.bad),
+            )
+        };
+        let Some(r248) = dump("gamelog-run248-eastindies-worldword.txt") else {
+            eprintln!("skipping: no run248 capture");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r248).unwrap();
+        let at = ix
+            .frames()
+            .iter()
+            .position(|f| f.number == BLOCK)
+            .expect("run248 has no block 17146");
+        let body = ix.read_frame(at).unwrap();
+        let parsed = Log::parse(&body);
+        let block = parsed
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == BLOCK)
+            .map(|(_, b)| b)
+            .expect("run248's block 17146 did not re-parse");
+        let world = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("block 17146 has no WORLD record");
+        let fields = world.fields().to_vec();
+        let theirs_fog = crate::gamelog::world_fog(&fields);
+        let theirs_tiles = crate::gamelog::world_tiles(&fields);
+        let theirs_cells = crate::gamelog::world_cells(&fields);
+        let theirs_danger = crate::gamelog::world_danger(&fields);
+        eprintln!(
+            "run248 WORLD: {} fog, {} tiles, {} cells, {} danger",
+            theirs_fog.len(),
+            theirs_tiles.len(),
+            theirs_cells.len(),
+            theirs_danger.len()
+        );
+        let (fw, fh) = (w.fog_xs(), w.fog_ys());
+        let fog_bad: Vec<(i32, i32, u8, u8)> = (0..fh)
+            .flat_map(|y| (0..fw).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let t = theirs_fog[(y * fw + x) as usize];
+                let o = w.seen2(x, y).unwrap_or(0);
+                (o != t).then_some((x, y, o, t))
+            })
+            .collect();
+        let cell_bad: Vec<(i32, i32, String)> = (0..w.height())
+            .flat_map(|y| (0..w.width()).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let t = &theirs_cells[(y * w.width() + x) as usize];
+                let ours = cell_row(x, y);
+                let theirs = (t.flags, t.who, t.blocked, t.solid, t.bad);
+                (ours != theirs).then(|| (x, y, format!("{ours:?} v {theirs:?}")))
+            })
+            .collect();
+        let (tw, th) = (w.width() * 4, w.height() * 4);
+        let tile_bad: Vec<(i32, i32, u16, u16)> = (0..th)
+            .flat_map(|y| (0..tw).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let t = theirs_tiles[(y * tw + x) as usize];
+                let o = w.tile_mask(sim::Pos::new(x, y));
+                (o != t).then_some((x, y, o, t))
+            })
+            .collect();
+        let reg = (w.reg_xs() * w.reg_ys()) as usize;
+        let mut danger_bad: Vec<String> = Vec::new();
+        for who in 0..8u8 {
+            let ours = w.danger_row(who);
+            for i in 0..reg {
+                let t = theirs_danger
+                    .get(who as usize * reg + i)
+                    .copied()
+                    .unwrap_or(0);
+                let o = i64::from(ours.get(i).copied().unwrap_or(0));
+                if t != o {
+                    danger_bad.push(format!(
+                        "leader {who} ({},{}): ours {o} theirs {t}",
+                        i as i32 % w.reg_xs(),
+                        i as i32 / w.reg_xs()
+                    ));
+                }
+            }
+        }
+        eprintln!(
+            "run248 17146: {} fog, {} cells, {} tiles, {} danger part",
+            fog_bad.len(),
+            cell_bad.len(),
+            tile_bad.len(),
+            danger_bad.len()
+        );
+        if std::env::var_os("RON_WORLD_ROWS").is_some() {
+            eprintln!("  cells {cell_bad:?}");
+            eprintln!(
+                "  tiles not 0x4: {:?}",
+                tile_bad
+                    .iter()
+                    .filter(|&&(_, _, o, t)| o ^ t != 0x4)
+                    .collect::<Vec<_>>()
+            );
+            eprintln!("  danger {danger_bad:?}");
+            eprintln!("  fog {fog_bad:?}");
+        }
+        if std::env::var_os("RON_CELLS").is_some() {
+            for y in 40..57 {
+                let row: Vec<String> = (36..50)
+                    .map(|x| {
+                        let c = cell_row(x, y);
+                        format!("{:>3x}/{:>2}/{:>2}", c.0, c.1, c.2)
+                    })
+                    .collect();
+                eprintln!("  cells y{y}: {}", row.join(" "));
+            }
+        }
+        built.sim.trace_costs = true;
+        built.sim.cost_marks.clear();
+        built.tick();
+        let ours: Vec<(sim::path::CostKey, i32, usize)> = built
+            .sim
+            .cost_marks
+            .iter()
+            .map(|m| (m.key(), m.cost, m.unit))
+            .collect();
+        if std::env::var_os("RON_COSTS").is_some() {
+            for (i, (k, c, u)) in ours.iter().enumerate() {
+                let x = &built.sim.units[*u];
+                eprintln!("  {i:>4} {}/{} {k:?} {c}", x.owner, x.index);
+            }
+        }
+        eprintln!("tick {BLOCK}: {} priced steps here", ours.len());
+        let Some(t248) = trace("rontrace-run248.log") else {
+            return;
+        };
+        let theirs: Vec<(sim::path::CostKey, i32)> = t248
+            .calls_in(BLOCK, crate::trace::call_site::CALC_COST)
+            .iter()
+            .filter_map(|c| Some((c.cost_key()?, c.ret)))
+            .collect();
+        let at = (0..ours.len().max(theirs.len()))
+            .find(|&i| ours.get(i).map(|o| (o.0, o.1)) != theirs.get(i).copied());
+        if let Some(i) = at {
+            for j in i.saturating_sub(6)..(i + 12).min(ours.len().max(theirs.len())) {
+                let who = ours.get(j).map(|o| {
+                    let u = &built.sim.units[o.2];
+                    (u.owner, u.index)
+                });
+                eprintln!(
+                    "  {j:>4} ours   {:?} {who:?}\n       theirs {:?}",
+                    ours.get(j).map(|o| (o.0, o.1)),
+                    theirs.get(j)
+                );
+            }
+        }
+        eprintln!(
+            "tick {BLOCK}: parts at {at:?}, {} here, {} there",
+            ours.len(),
+            theirs.len()
+        );
+    }
+
     /// **run73 — the caravan's own road on Great Lakes, node for node, and
     /// the road a farm takes away** (2026-09-03, item 206).
     ///
