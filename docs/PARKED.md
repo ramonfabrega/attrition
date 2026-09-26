@@ -195,7 +195,7 @@ arrival** (ORDERS §34.7) are built, and no capture distinguishes them.
 that frame** (`Unit::process@00610bc0`); this crate returns for it and
 gives the frame to a landed aircraft alone. No score names it yet.
 
-(765) **The tank, ORDERS §32's fourth piece**: fuel and its empty arms.
+(765) **The tank, ORDERS §32's fourth piece**: fuel and its empty arms. **Promoted to 836** with 761: the launch needs the tank refilled inside.
 It matters to chapter seventeen at 1212, not before.
 
 ## Parked by item 746, 2026-09-25 — the flight's corners
@@ -205,7 +205,8 @@ It matters to chapter seventeen at 1212, not before.
 
 (761) **A strike from inside a base**: its `valid_target`,
 `MISSILE_DEFENSE_BONUS`, reach and war tests are not built. No capture
-reaches it.
+reaches it. **Promoted to 836** (chapter twenty-two, the launch line;
+832's GOLDEN §30 writes the launch's end and its staging).
 
 ## Parked by item 708, 2026-09-25 — run221 past the word
 
@@ -1234,6 +1235,14 @@ word's chain, and it was the cause — the gather approach's collision
 test reads it. Row five, applied as a grep of the reader of each
 standing row, found it. A worker's "not on this chain" wants the reader
 named, not the row's distance from the word.
+
+(835) **A citation split across a line break is invisible** (832's Loop
+line, filed at its merge): `name@` on one line and `00xxxxxx` on the
+next escapes both `tools/census.py` and `docs_guard`'s address check,
+whose regexes want the address on the `@`'s line. 832's first draft of
+§30 did it and the census counted one function for two. Standing across
+`docs/`: 35 (GOLDEN 18, ORDERS 8, JOURNAL 5, AI, ANIM, ECONOMY and SYNC
+one each). A guard that joins the break, made to fail first on them.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
