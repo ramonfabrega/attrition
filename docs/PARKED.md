@@ -1099,6 +1099,17 @@ original moves it" as a fail-when-it-parts note. And the commander's
 brief asked a contiguous overlap for a +3387 jump where DECISIONS 50 says
 a window sized to the word; the brief template should say which. **The fifteenth pass split it**: the brief half is a row of the brief checklist (`docs/audit/README.md`); the guard half stays — an `UNMODELLED` key whose value the original moves across the word's own capture must say "the original moves it", read off the `LEADERDATA` blocks of the chain's last dump, with the table's non-literal names (`misc_stamps`, `DIPLOMACY`) expanded by prefix.
 
+(810) **`viadriver.sh` drops a second launch in silence** (800's Loop
+line, filed by the commander the turn it arrived, 2026-09-26): it
+starts the capture with a bare `open -a "$APP" --args …`, and on an app
+already running macOS activates the running `RonDriver` and discards the
+arguments. So a second lane's launch writes no log, never reaches
+`winelaunch.sh`'s lane lock, and `RON_LANE_WAIT` (758) never runs. Seen
+when att-800's run251 launched while att-803's run249 held RonDriver
+(pid 92698); the commander sequenced the two by message. The shape: the
+script refuses, or waits under `RON_LANE_WAIT`, while a `RonDriver`
+process is live, and a test makes it fail first on a running fixture.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
