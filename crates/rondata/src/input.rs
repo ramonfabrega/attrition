@@ -740,6 +740,7 @@ pub fn group_eject_all(built: &mut Built, who: i32, buildings: &[i16]) -> usize 
     if list.is_empty() {
         return 0;
     }
+    built.sim.push_command_buildings(player, &list);
     built.sim.action_eject_all(player, &list, -1, -1);
     list.len()
 }
@@ -765,6 +766,7 @@ pub fn group_buildmask(built: &mut Built, who: i32, buildings: &[i16], mask: i32
     if list.is_empty() {
         return 0;
     }
+    built.sim.push_command_buildings(player, &list);
     built.sim.action_buildmask(&list, mask);
     list.len()
 }
@@ -795,6 +797,7 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
     if list.is_empty() {
         return 0;
     }
+    built.sim.push_command_buildings(player, &list);
     built.sim.action_queue_up(&list, unit, num)
 }
 

@@ -1379,7 +1379,7 @@ below without a run take their number at booking (the eleventh pass).
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
 | 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
 | 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) — **run 2026-09-26 (item 867), 498 MB, 1,505 s; the pool printed; no falsifier fired: `build_masks` 4232 → 4104 on 1442; `0/7` inside with no order on 1489 and `0/8` on 1513; `0/6`'s kept patrol killed on 1585, its tank's first 0, and `0/6` still inside; nothing launches to 1839; the building group in pool slot 0** |
-| 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish** |
+| 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish; word ~~855, open~~, closed at 1560 (item 877: the queue commands entered); the squads' `group` and the pool's lists agree (item 882: `come_out`'s push and the command's building group, §33)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -2595,9 +2595,12 @@ widening named four things under it, each fixed:
 
 With these the walk agrees to run208's end: sequence 1000, no value part.
 The widening over run208 whole leaves the standing `form`s, parked 275's
-scout row on 847, and the squad's `group` on 903. `come_out` pushes a
+scout row on 847, and ~~the squad's `group` on 903. `come_out` pushes a
 squad that leaves a building into a fresh pool slot, behind the eject's
-own building group, and this crate carries neither (parked 689's family).
+own building group, and this crate carries neither (parked 689's
+family)~~ — **both carried since item 882** (§33): the eject seats
+`[2007]` in slot 2 and `come_out` pushes the squad into slot 3, and
+`0/7`–`0/9` read group 3 on 903 on both sides.
 A test in `sim::cities_tests` pins the command, the whole-squad door and
 the exit's angles. It fails with the one-unit kill, and again with the
 angles reset.
@@ -4872,11 +4875,13 @@ diff after, both sides**: on 1442 `0/2007`'s bit is 0 on both (theirs
 1513 `0/8` likewise; on 1585 `0/6` is inside with no order and
 `mana_burn` 0 on both. The widening goes **14 → 9 rows**: what stands is
 chapter twenty-two's births and chapter one's clocks (611–655). The pool
-keeps chapter twenty-two's ten rows and one more, **1442 slot 0 held**
+keeps chapter twenty-two's ten rows ~~and one more, **1442 slot 0 held**
 (theirs `[2007]`): this crate's pool holds units only. Its reader is
 `Groups::get_open_slot@006fa460`, which counts the slot as open to the
-next push, and no push follows; no later slot parts by it. The word
-stays **1840, closed**.
+next push, and no push follows; no later slot parts by it~~ — **the
+building group is seated since item 882** (`process_group`'s push at the
+command, §33), and slot 0 agrees on 1442. The word stays **1840,
+closed**.
 
 ## 33. Chapter twenty-four — the queue line: a Barracks' infinite queue toggled on between two finishes (item 877)
 
@@ -5133,3 +5138,17 @@ the word to 1271 (the second Bowmen never re-queued); `can_infinite`
 answering for any queue fails `the_infinite_button_needs_a_train_job`
 and parts the widening on **1302**, `0/2007 build:infinite_queue` ours 1
 theirs 0 — the compare is read.
+
+**The pool push built** (item 882, `docs/GROUPS.md` §31): `come_out`
+pushes every trained squad, a computer's too (the booking's "human arm"
+was 877's hypothesis, and the listing killed it), and the command's
+`process_group` seats the Barracks' building group. The squads read
+`group` 0, 2 and 1 and every slot's list and `stamp` agree. **34 → 25
+rows, and the pool 4 → 8**: the 25 are `Unit::init@00612100`'s (`form`,
+and the followers' tile-centred `orders_x/y`, parked 646). The 8 are
+**a divergence this landing introduces**, a row for att-880 and not
+built: each slot's `ox`/`oy` on its first seat (622, 856, 1060, 1302),
+`push_group`'s record `o`, −1 here against 0 there; before the push the
+slots were `held` rows and the record went uncompared. Its reader is a
+layout's `o`, and no group in run285 is laid out. The word stays
+**1560, closed**.
