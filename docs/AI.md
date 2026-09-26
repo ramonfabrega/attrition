@@ -9332,3 +9332,168 @@ Taxation now costs the British half.
 - **Coverage**: the term is diff-backed by run227's `MAKE[1].val` and by
   the draw stream to 17188. The window's other three techs are a reading
   of the listing; no capture has offered one.
+
+## 75. An easy AI builds one wonder, and the word moves to 20568 (2026-09-25, item 785)
+
+Great Lakes' word was **17181**. On it this crate spent 11 draws against
+the original's 5, parting at index 0. Ours spent three
+`Leader::create_buildings+0xffb`/`+0x1017` pairs (§2.19's wonder arm)
+that the original does not. On block 17182, who=1's `MAKE` slots 0, 1, 2
+and 8 held three wonders here (526, 528 and 527, category 8) and nothing
+there (run226, widened by item 776).
+
+### 75.1 The frame, read whole before any reading
+
+run226's who=1 leader record, whole, on 17170..17183
+(`tools/gamelog/leader.py`):
+
+- **`production_step` goes 7 → 8 on block 17182 on both sides**, and it
+  is compared and agrees. So the original's `create_buildings` runs on
+  sim-frame 17181 as ours does. **Its wonder arm is entered and
+  rejected; it is not skipped by the step machine.**
+- **The make list agrees until the pass.** The original holds 527 and 528
+  in city 1 (`val` 0, category 8) from a pass before run226 until block
+  17176, and clears them on 17177. Ours does the same. The parting is
+  what 17181's pass writes.
+- who=1 holds two cities. The Pyramids `1/2026` stand in city 0 and are
+  its only wonder (the dump's `BUILDDATA`, `otype 0x20e..0x21e`). So
+  city 0's gate (`num_wonders(city, 1) == 0`) is shut on both sides,
+  and the three pairs are city 1's.
+- **The first field to part is `wonder_mark`**, 0 here against **1**
+  there, from **block 17085**. That is the block `1/2026` activates on
+  (`flags 3 → 7`, item 757). It stays 1 to the word. The record prints
+  it, but `diff::leader` had it on `UNMODELLED` ("no writer here"), so
+  no widening could see it part.
+- `multi_diff` 0, `wonder_mod` 0 and `wonderwin_timer` 0 are the same on
+  both sides.
+
+### 75.2 The readings, and what would kill each
+
+Written after the arm's gate had been read (§2.19, the brief's reading
+list) and before the writer was read. They are not blind. Each killer
+tests the claim's own unit.
+
+- **R1: a finished wonder closes city 1 through its wonder count**
+  (`docs/CITIES.md` §2.6.4, §3.3). The unit is city 1's gate.
+  **Killed.** City 1 holds no wonder or wonder site on either side on
+  17180, and ours counts city 0's Pyramids (§70).
+- **R2: the Pyramids are offered again because this crate never marks
+  them built** (parked 777). The unit is type 526's candidacy. R2
+  predicts that the original still offers 527 and 528 in city 1 and
+  drops only 526. **The row that splits R2 from R3 is the original's
+  make list on 17182**, and it holds none of the three. So R2 cannot be
+  the cause. It can only be a part of it that the draws cannot see
+  (§75.6).
+- **R3: a gate with no wonder in it** (age, resources, `frame_attacked`).
+  The unit is the arm's gates, in order (`006c1be0:1287–1391`):
+  - `semaphore & 2`;
+  - `num_wonders(city, 1) == 0`;
+  - `starting_resources != 7 || city_num > 1`;
+  - the ally walk over `num_queued[t]`, with the rival's quarter;
+  - `wonder_mod == 0`;
+  - `get_diff() < 2`;
+  - `victory != 6`;
+  - **`wonder_mark == 0`**.
+
+  **Killed as stated**: the only input that parts on 17180 is
+  `wonder_mark`. And the killing term is a wonder's own.
+
+### 75.3 The writer this crate did not carry
+
+`LeaderData::wonder_mark` (+0x424) has two writers besides
+`Leader::init`'s zero. The ally walk runs over every leader slot to
+`0xe71af0`, and `init_wonder`'s search runs to the mark:
+
+- **`Wonders::init_wonder@0073c860`**, called from `Build::activate`'s
+  wonder arm after `remove_unbuilt_wonder`. It takes the first entry
+  under the mark whose in-use bit (`+0xc & 1`) is clear, or the entry at
+  the mark, and raises the mark past it. It also sets
+  `Game::wonders[t − 0x20e] |= 1`, which `already_built` reads (§75.6),
+  and ratchets `wonders_held` (+0x858).
+- **`Wonders::close_wonder@0073c7e0`**, called from `Build::close`. It
+  clears the entry's bit, then walks the mark down while the entry under
+  it is clear.
+
+So the mark is **one past the highest entry in use**, not a count.
+`has_wonder` and `get_wonder_value` walk the list to it.
+
+Under `create_buildings`' wonder arm, an easy leader (`get_diff() < 2`)
+outside a wonder victory goes on only while `wonder_mark == 0`
+(`LAB_006c3fbe` otherwise). **So an easy AI builds one wonder**: its
+first activation shuts the arm in every city for as long as the wonder
+stands.
+
+### 75.4 The fix
+
+- `Census::wonder_slots` carries the list, by building index.
+- `Sim::note_wonders` (`crates/sim/src/ai_census.rs`) derives both
+  writers off the buildings, for every leader. An entry closes when its
+  building is no longer an alive, activated wonder of the leader's. An
+  activation takes the first clear entry under the mark.
+- It runs **at the end of the buildings' pass**, where `Build::activate`
+  runs. A wonder that activates on sim-frame N is on block N + 1, as the
+  dump prints it, and the next frame's `create_buildings` reads it.
+- `wonder_value` reads the mark in place of its zero.
+- `build.rs` is not touched: the activation itself stays where it was.
+- `diff::leader` compares `wonder_mark` now. It left `UNMODELLED`, and
+  the coverage pin's `LEADERDATA` row.
+
+Two unit tests, both made to fail on the old rule first:
+
+- `an_easy_ai_wants_no_second_wonder_once_its_first_stands`: two
+  cities, one standing wonder. The pass draws before the mark and none
+  after it, and a hard AI still draws.
+- `the_wonder_mark_is_one_past_the_highest_entry_in_use`: a clear entry
+  under the top keeps the mark, a new wonder reuses that entry, and a
+  clear top walks the mark down.
+
+### 75.5 What it moved
+
+Measured on `7537de5a`, based on `a1390a90` (no `ccc update` since spawn):
+
+- **The value diff** (`run226_s_word_frame_is_widened_whole`). The
+  twelve `MAKE` rows on 17182 go, and so do four standing rows the
+  wonder pass had kept: `MAKE[0]`, `[1]` and `[8]`'s `city` and
+  `SITE[1].reg`. **Nothing parts on run226's own blocks, to its last,
+  17350.** The floor goes 398/0/876 → 398/0/398, and `wonder_mark`
+  itself agrees on every block of every leader window.
+- **Great Lakes 17181 → 20568**, past run226. On 20568 ours spends 37
+  draws against 38, parting at index 31. Ours spends `Guy::set_anim+0x97a
+  < Guy::inc_time+0x271`, where the original spends
+  `< Unit::move_step+0x823`, a blocked step. run53's draw stream agrees
+  in count and sequence on every frame between.
+- **Great Lakes' endpoint** at 24001: 43 → 11 off, 2 → 1 extra (`1/81`,
+  a Merchant).
+- **East Indies holds at 17189**, and so does every golden chapter.
+  Chapter eight's dump prints the new row, and it agrees.
+
+### 75.6 The new word's block, 20569, on run243
+
+RUN243_PLACEHOLDER
+
+### 75.7 What this has *not* established
+
+- **`already_built`.** `init_wonder` also sets `Game::wonders[t − 0x20e]
+  |= 1`, and `LeaderData::type_avail@006e33a0` answers 0 for a wonder
+  type any player has built (`BuildTypeData::already_built@0063ce10`).
+  This crate's `type_avail` has no such arm, so ours still lists the
+  Pyramids as a candidate after 17084. The mark closes the arm before it
+  draws, so no row sees it here. A hard AI, or a wonder victory, would
+  value the type again. Reading-only (parked 777's family, not the
+  cause).
+- **The rest of the wonder bookkeeping** still reads empty in
+  `wonder_value`: the team, enemy and unbuilt wonder values and
+  `Game::wonder_winning`. With a wonder standing, the original's team
+  value is no longer zero, so a hard AI's `% 1000 × % 300` product is
+  scaled by it. No capture on file has a hard AI.
+- **A close.** No capture on file loses a wonder, so the entry that
+  `close_wonder` clears and the walk-down are the reading and the unit
+  test alone. A captured wonder's entry is not read: `Build::swap_team`
+  and `check_capture` do not touch the list.
+- **Two activations on one frame** take entries in building order here.
+  The original's order is its objects' order. No capture has two.
+- `wonders_held` (+0x858) and `wonders_built` (+0x854) are not carried.
+- **Coverage**: `wonder_mark` is diff-backed on every leader window, and
+  on run226 from its 0 → 1 on 17085. The arm's last gate is diff-backed
+  by the draw stream on 17181. Entry reuse and the walk-down are
+  reading-only.

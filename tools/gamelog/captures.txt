@@ -6631,3 +6631,14 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run243-greatlakes-standword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20500&&v<20819)n++} print "blocks with a GROUPDATA: "n; exit !(n==319)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run243-greatlakes-standword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20500&&v<20819)n++} print "blocks with a GUY: "n; exit !(n==319)}'
+# ==== TAKEN 2026-09-25, **WHOLE** ====
+#
+# 706,792,774 bytes of dump and 23,878,656 of trace, **319 blocks
+# 20500..20818**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 19:56 through `viadriver.sh` with no human at the menu (the lane lock
+# was stale: pid 41224 dead), archived 20:22: about 26 minutes.
+# `waitrun.sh` exited 0. All five checks were green:
+# - 20,830 frames identical to run53, 0 differing;
+# - `MAP_STYLE 14`;
+# - the window whole;
+# - the pool and the figures on every block.

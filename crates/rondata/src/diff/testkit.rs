@@ -3998,6 +3998,19 @@ pub(crate) const GREAT_LAKES_PYRAMIDS_BLOCK: i64 = 17_129;
 /// word 17181's frame writes block 17182, inside run226. The coverage
 /// driver reads run226 around it too.
 pub(crate) const GREAT_LAKES_FOREST_CELL_BLOCK: i64 = 17_182;
+/// `run243_s_word_frame_is_widened_whole`'s window (item 785): run226's
+/// last six blocks (17345..17350), then run243 whole, 20500..20818 — 68
+/// blocks into the word 20568, its block, and 250 of runway past it.
+/// **Sized to the word, not to the gap**: no dump holds 17351..20499, so
+/// the walk reads nothing there, and its first run243 block carries
+/// whatever the gap left.
+pub(crate) const WIDENING_GREAT_LAKES_STAND: (i64, i64) = (17_345, 20_818);
+/// run243's first block.
+pub(crate) const GREAT_LAKES_STAND_FIRST: i64 = 20_500;
+/// The word 20568's block on run243: its frame, the original's blocked
+/// step (`Unit::move_step+0x823`) where ours spends an idle roll, writes
+/// block 20569. The coverage driver reads run243 around it.
+pub(crate) const GREAT_LAKES_STAND_BLOCK: i64 = 20_569;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4536,12 +4549,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // cell arm under `valid_wcoord` (`docs/PATHFINDER.md` §27). The same
     // test pins the new word's block, 17182, and keeps the move's value
     // diff (nothing parts on 17088..17181).
+    //
+    // **Item 785 moved it 17181 → 20568**, past run226's last block:
+    // `wonder_mark`'s writer (`docs/AI.md` §75). run226's test keeps the
+    // move's value diff (nothing parts on run226's own blocks). **Item 785
+    // paid it**: run243 is run226's line over [20500, 20819), sized to the
+    // word with no dump over 17351..20499, and
+    // `run243_s_word_frame_is_widened_whole` walks run226's last six
+    // blocks and run243 whole and pins the word's block.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run226_s_word_frame_is_widened_whole"),
-        776,
-        Some(WIDENING_GREAT_LAKES_GIVEUP),
+        Some("run243_s_word_frame_is_widened_whole"),
+        785,
+        Some(WIDENING_GREAT_LAKES_STAND),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one
