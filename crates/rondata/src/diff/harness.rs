@@ -10680,6 +10680,7 @@ pub(crate) mod tests {
             changed,
             housed,
             standing,
+            army_lists: ArmyLists::new(),
         })
     }
 
@@ -14482,6 +14483,7 @@ pub(crate) mod tests {
             changed,
             housed,
             standing,
+            ..
         }) = widen_east_indies(
             "run159",
             "gamelog-run159-eastindies-idleword.txt",
@@ -14729,6 +14731,7 @@ pub(crate) mod tests {
             changed,
             housed,
             standing,
+            ..
         }) = widen_east_indies(
             "run166",
             "gamelog-run166-eastindies-incword.txt",
@@ -15314,6 +15317,7 @@ pub(crate) mod tests {
             leader_rows,
             changed,
             standing,
+            army_lists,
             ..
         }) = widen_east_indies(
             "run233",
@@ -15381,31 +15385,55 @@ pub(crate) mod tests {
             ("17001 0/-1 leader:production_step: ours 0 theirs 1", 1),
             ("16971 1/-1 leader:scholars: ours 13 theirs 14", 8),
             ("17139 1/0 group: ours 71 theirs 70", 1),
-            ("17404 1/15 g.cur_anim[0]: ours 1 theirs 0", 2),
-            (
-                "17403 1/60 g.angle[0]: ours 1073741824 theirs 1233059840",
-                52,
-            ),
             ("16971 1/63 form: ours -1 theirs 9", 5),
             ("17113 1/64 form: ours -1 theirs 0", 2),
             ("17113 1/65 form: ours -1 theirs 0", 2),
             ("17113 1/66 form: ours -1 theirs 0", 2),
-            ("17363 1/67 form: ours -1 theirs 0", 25),
-            ("17363 1/68 form: ours -1 theirs 0", 25),
-            ("17363 1/69 form: ours -1 theirs 0", 38),
+            ("17363 1/67 form: ours -1 theirs 0", 2),
+            ("17363 1/68 form: ours -1 theirs 0", 4),
+            ("17363 1/69 form: ours -1 theirs 0", 4),
         ]
         .iter()
         .map(|(r, n)| ((*r).to_string(), *n))
         .collect();
-        // `1/55`, `1/57` and `1/58` are gone. The new word's unit is `1/60`:
-        // on block 17403 the original's walks under an `ATTACK_TO` (2) and
-        // ours' under a `GROUP_ATTACK_TO` (21), to another spot, and it is
-        // the first row on the block. Before it, from 17363, `1/67`..`1/69`
-        // part on `group` (−1 here, 69 there) and their orders.
+        // `1/55`, `1/57` and `1/58` are gone (item 773), and so are `1/60`'s
+        // 52 rows and `1/15`'s two (item 800). Item 773 left the word on
+        // 17403, where the original's `1/60` walked under an `ATTACK_TO` (2)
+        // and ours' stood under a `GROUP_ATTACK_TO` (21). What stands of
+        // `1/67`..`1/69` is their birth block, 17363 — `group` −1 here and
+        // 69 there, `form`, and two `orders_x/y` — and nothing after it but
+        // the pool id `group`, 69 here and 71 there (689), which `firsts`
+        // does not count past the first.
         assert_eq!(
             got, want,
             "each unit's first row under the word, and its count"
         );
+        // **Item 800's value diff, on block 17403** (the state after tick
+        // 17402, when army 1's siege arm issues). The sub-group sorts its
+        // own list (`docs/GROUPS.md` §27): `1/60` takes the dump's own
+        // `ATTACK_TO` to (38136, 42024) — before, a `GROUP_ATTACK_TO` of
+        // four to (37992, 41784) — and army 1's list is `[60, 69]` on both
+        // sides, where the seat's sort had re-seated the squad to `[60, 67,
+        // 68, 69]`.
+        for k in ["order:kind", "orders_x", "orders_y", "pos", "path:length"] {
+            assert_eq!(on(WORD_BLOCK - 1, 1, 60, k), None, "`1/60`'s {k} on 17403");
+        }
+        for b in WORD_BLOCK - 2..=WORD_BLOCK + 2 {
+            assert_eq!(
+                army_lists.get(&b).and_then(|m| m.get(&(1, 1))).cloned(),
+                Some((vec![60, 69], vec![60, 69])),
+                "army 1's list on block {b}, ours then theirs"
+            );
+        }
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        assert_eq!(lists_part, [], "no army's list parts near either word");
         // who=1's leader, whole: the make list's `city` shift (the floor's
         // family), wealth, and `scholars` from 16971.
         let leader: Vec<String> = firsts
@@ -15429,8 +15457,8 @@ pub(crate) mod tests {
             "who=1's leader under the word"
         );
         // Figures whose animation changes on one side on either word's
-        // blocks: none on the old word's now; on the new one, `1/60` sets
-        // off there a block before ours, and the column after it.
+        // blocks: none. Before item 800, on 17403, `1/60` set off there a
+        // block before ours, and the column after it.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
             .filter(|c| {
@@ -15441,38 +15469,15 @@ pub(crate) mod tests {
             })
             .copied()
             .collect();
-        assert_eq!(
-            word,
-            [
-                (17403, 1, 60, true, false),
-                (17404, 1, 15, true, false),
-                (17404, 1, 60, false, true),
-                (17405, 1, 48, false, true),
-                (17405, 1, 49, false, true),
-                (17405, 1, 53, false, true),
-                (17405, 1, 54, false, true),
-                (17405, 1, 55, false, true),
-                (17405, 1, 56, false, true),
-                (17405, 1, 57, false, true),
-                (17405, 1, 58, false, true),
-                (17405, 1, 65, true, false),
-                (17405, 1, 66, true, false),
-                (17406, 1, 48, false, true),
-                (17406, 1, 49, false, true),
-                (17406, 1, 54, false, true),
-                (17406, 1, 55, false, true),
-                (17406, 1, 57, false, true),
-                (17406, 1, 58, false, true),
-                (17406, 1, 64, true, false),
-            ],
-            "a figure's animation changes on one side only"
-        );
+        assert_eq!(word, [], "a figure's animation changes on one side only");
         assert_eq!(
             [OLD_BLOCK - 1, OLD_BLOCK, WORD_BLOCK - 1, WORD_BLOCK]
                 .iter()
                 .map(|b| standing.get(b).map_or(0, |m| m.len()))
                 .collect::<Vec<_>>(),
-            [307, 307, 418, 439],
+            // Item 800: 418/439 → 311/311 on 17403's pre-state and block —
+            // run227's 307 and the pool id `group` of `1/60` and the squad.
+            [307, 307, 311, 311],
             "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
@@ -15486,7 +15491,123 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (293, 312, 324, 1_036),
+            (293, 312, 324, 446),
+            "the floor"
+        );
+    }
+
+    /// **run251 — East Indies' word 17501, widened whole, both directions**
+    /// (item 800). run233's line over [`WIDENING_EAST_INDIES_COLUMNWORD`]:
+    /// the six blocks before the word's, its block, and 250 past it. No
+    /// capture shares a block with it, so 17441..17495 is compared by no
+    /// dump, and the floor is its first block. [`widen_east_indies`] with
+    /// gaia's animals.
+    ///
+    /// The word's frame, 17501, writes block **17502**.
+    #[test]
+    fn run251_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_COLUMNWORD.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_COLUMNWORD.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_COLUMNWORD_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            army_lists,
+            ..
+        }) = widen_east_indies(
+            "run251",
+            "gamelog-run251-eastindies-columnword.txt",
+            WIDENING_EAST_INDIES_COLUMNWORD,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // **Under the word, the first row of each key past the floor**:
+        // `1/57` stands on 17501 with one path entry where the original's
+        // holds two and walks on, and on the word's block the original's
+        // turns and sets off (`cur_anim 8`) toward (31451, ·) while ours
+        // has taken a leg to (30683, ·). `1/58` beside it, and `1/54`'s
+        // `dest`. Every other key of the column parts on the floor.
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            rows,
+            [
+                "17502 1/54 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
+                "17502 1/54 path:length: PathLength { ours: 3, theirs: 2 }",
+                "17502 1/57 g.cur_anim[0]: ours 0 theirs 8",
+                "17502 1/57 g.cur_time[0]: ours 1 theirs 2",
+                "17502 1/57 g.end_time[0]: ours 36 theirs 22",
+                "17502 1/57 g.last_time[0]: ours 0 theirs 1",
+                "17501 1/57 g.stopped[0]: ours 1 theirs 0",
+                "17502 1/57 order:move.dest_x: Move { field: \"dest_x\", ours: 30683, theirs: 31451 }",
+                "17501 1/57 path:length: PathLength { ours: 1, theirs: 2 }",
+                "17502 1/58 g.cur_anim[0]: ours 21 theirs 8",
+                "17502 1/58 g.end_time[0]: ours 46 theirs 22",
+            ],
+            "each key's first row under the word"
+        );
+        // The figures whose animation changes on one side near the word:
+        // ours' `1/57` and `1/58` on its block and the two after it.
+        let word: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        assert_eq!(
+            word,
+            [
+                (17502, 1, 57, false, true),
+                (17502, 1, 58, false, true),
+                (17503, 1, 57, false, true),
+                (17503, 1, 58, false, true),
+                (17504, 1, 57, false, true),
+                (17504, 1, 58, false, true),
+            ],
+            "a figure's animation changes on one side only"
+        );
+        // Every army's list, on what its slot holds, agrees near the word.
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        assert_eq!(lists_part, [], "no army's list parts near the word");
+        // **The floor**: every key standing on the first block (nothing
+        // shared, so the column's walk since 17405 and the pool ids are all
+        // in it), the keys first parting under the word, the rows standing
+        // on the word's block, and every key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (350, 11, 361, 1_314),
             "the floor"
         );
     }
@@ -15825,6 +15946,7 @@ pub(crate) mod tests {
         // word's blocks: `(block, who, o, theirs changed, ours changed)`.
         let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
         let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
+        let mut army_lists: ArmyLists = BTreeMap::new();
         for f in 0..=tail {
             built.tick();
             let n = f + 1;
@@ -16011,6 +16133,32 @@ pub(crate) mod tests {
                         .map(|(k, (_, row))| (k.clone(), row.clone()))
                         .collect(),
                 );
+                // The armies' lists, on what the slot holds (item 800).
+                let mut lists: BTreeMap<(i64, i64), (Vec<i64>, Vec<i64>)> = BTreeMap::new();
+                if let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
+                    for g in crate::gamelog::groups(block) {
+                        if g.army < 0 || g.members.is_empty() || g.who >= players as i64 {
+                            continue;
+                        }
+                        compared::note("GroupDump", &["who", "army", "members"]);
+                        compared::note("GroupMemberDump", &["o"]);
+                        lists.entry((g.who, g.army)).or_default().1 =
+                            g.members.iter().map(|m| m.o).collect();
+                    }
+                }
+                for (w, side) in built.sim.armies.iter().enumerate().take(players) {
+                    for (a, x) in side.list.iter().enumerate() {
+                        if !x.valid || x.units.is_empty() {
+                            continue;
+                        }
+                        lists.entry((w as i64, a as i64)).or_default().0 = x
+                            .units
+                            .iter()
+                            .map(|&u| i64::from(built.sim.units[u].index))
+                            .collect();
+                    }
+                }
+                army_lists.insert(n, lists);
             }
             for (k, v) in here {
                 firsts.entry(k).or_insert(v);
@@ -16081,6 +16229,7 @@ pub(crate) mod tests {
             changed,
             housed,
             standing,
+            army_lists,
         })
     }
 
@@ -16100,7 +16249,19 @@ pub(crate) mod tests {
         /// the word's own frame, which `firsts` cannot (item 642).
         pub(crate) standing:
             std::collections::BTreeMap<i64, std::collections::BTreeMap<(i64, i64, String), String>>,
+        /// Every army's member list on each block within two of a `near`
+        /// block, both sides, keyed on `(who, army)` — what the pool slot
+        /// holds, never its index (item 800): `(ours, theirs)` as unit
+        /// numbers in list order, an empty side for an army the other
+        /// side lacks. [`widen_east_indies`] alone fills it.
+        pub(crate) army_lists: ArmyLists,
     }
+
+    /// [`Widened::army_lists`]: block → `(who, army)` → `(ours, theirs)`.
+    pub(crate) type ArmyLists = std::collections::BTreeMap<
+        i64,
+        std::collections::BTreeMap<(i64, i64), (Vec<i64>, Vec<i64>)>,
+    >;
 
     /// **run143 — East Indies' word 10398, widened whole, both directions**
     /// (item 588). run99's line with `LEADERS` raised to 9 over

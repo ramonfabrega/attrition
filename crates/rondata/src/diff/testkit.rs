@@ -880,7 +880,24 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `ATTACK_TO` there and a `GROUP_ATTACK_TO` here, to another spot, and
 /// `1/67`..`1/69` part on `group` from 17363. It is inside run233, and
 /// the widening pins its block, 17404.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_403;
+///
+/// **17403 → 17501 on item 800, and the frame was the anchor's sort.**
+/// On tick 17402 army 1's siege arm built its sub-group of the anchor
+/// `1/60` alone, and ours sorted the **army's** list `[60, 69]` — the
+/// squad's tail without its captain — re-seated the squad and laid the
+/// whole army out as the sub-group, so `1/60` stood under a
+/// `GROUP_ATTACK_TO` of four. `Group::sort` runs on the stack group
+/// (`docs/GROUPS.md` §27). **The move's value diff (the word's delta,
+/// here; its block, 17404, is run233's widening's):** on block 17403
+/// `1/60` holds `ATTACK_TO` (2) to (38136, 42024) on both sides, against
+/// ours' 21 to (37992, 41784) before; army 1's list is `[60, 69]` on both
+/// sides, against `[60, 67, 68, 69]` here before; the window's floor goes
+/// 293/312/324/1,036 → 293/312/324/446. **The new word's delta: ours 13
+/// draws and the original 11, parting at index 3**: ours spends
+/// `Guy::set_anim+0x97a < Guy::move+0x19f` — `1/57`'s walk step, by a
+/// scratch print — where the original spends `< Unit::do_idle+0x7d`.
+/// Past run233's last block (17440); run251 widens its block, 17502.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 17_501;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4201,6 +4218,16 @@ pub(crate) const EAST_INDIES_BLOCKWORD_BLOCK: i64 = 17_190;
 /// an `ATTACK_TO` where ours gives a `GROUP_ATTACK_TO`. The coverage
 /// driver reads run233 around it.
 pub(crate) const EAST_INDIES_GROUPWORD_BLOCK: i64 = 17_404;
+/// `run251_s_word_frame_is_widened_whole`'s window (item 800): run251
+/// whole, 17496..17752 — the six blocks before the word 17501's block, its
+/// block, and 250 of runway past it. No dump shares a block with it:
+/// 17441..17495 is compared by none. The floor is the capture's first
+/// block, which carries every key standing when the walk arrives.
+pub(crate) const WIDENING_EAST_INDIES_COLUMNWORD: (i64, i64) = (17_496, 17_752);
+/// The word 17501's block on run251 (item 800): its frame, where ours
+/// spends `1/57`'s walk step (`Guy::move+0x19f`) and the original an idle
+/// roll, writes block 17502. The coverage driver reads run251 around it.
+pub(crate) const EAST_INDIES_COLUMNWORD_BLOCK: i64 = 17_502;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4342,12 +4369,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`docs/PATHFINDER.md` §28) moved the word 17189 → 17403, and run233
     // still carries 36 blocks past it. The same test pins the new word's
     // block, 17404, beside the old one's value diff.
+    //
+    // **Item 800 moved it past run233**: the anchor's sub-group sorts its
+    // own list (`docs/GROUPS.md` §27), 17403 → 17501, 61 blocks past
+    // run233's last. run233's test keeps the move's value diff; item 800
+    // owes run251 over the new word's block, 17502 — and paid it: run251
+    // is run233's line over [17496, 17752], six blocks before the word and
+    // 250 past it, and `run251_s_word_frame_is_widened_whole` walks it
+    // through the same walk, gaia and the pool included, and pins the
+    // word's block.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run233_s_word_frame_is_widened_whole"),
-        773,
-        Some(WIDENING_EAST_INDIES_BLOCKWORD),
+        Some("run251_s_word_frame_is_widened_whole"),
+        800,
+        Some(WIDENING_EAST_INDIES_COLUMNWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100
