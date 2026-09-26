@@ -2990,6 +2990,22 @@ impl Sim {
             return true;
         }
         if stance <= 1 && self.find_gather_spot(u, range) {
+            // **A human's found gather drops its group** (§5.9; the
+            // listing at `5f5900`–`5f590c`: `testl $0x40000, 0x68(%esi)`,
+            // and for a human `orl $-1` into `movw %ax, 0x80(%esi)`). The
+            // pool keeps listing the unit; only the back-pointer goes, so
+            // `find_ordered_collision`'s own-group arm stops seeing the
+            // swarm it came from. Without it, chapter twenty-one's `0/7`
+            // was refused the camp spot `0/8` was already sent to and
+            // walked a tile west (item 824, `docs/GOLDEN.md` §29).
+            //
+            // SEAM: the `deselect` ahead of it (`5f58d2`–`5f58fd`, the
+            // console player's select list, vslot `+0x10`, when it holds
+            // more than one) is the UI's selection, which this crate does
+            // not model.
+            if !ai {
+                self.units[u].group_ptr = None;
+            }
             return true;
         }
 
