@@ -7540,3 +7540,30 @@ which exited 0. The dump is archived as
 - With the clause, all 303 priced steps agree, and the word moved
   17128 → 17181.
 - The packet was not read: the dump and the trace answered every term.
+
+## run243 — Great Lakes' word 20568, sized to the word (2026-09-25, item 785)
+
+**What it is.** run226's line and lobby,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[20500, 20819)`, with `rontrace.cfg` `cover=0`. `!quit` at 20829,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 785
+```
+
+**Why it was owed.** Item 785 moved Great Lakes' word 17181 → 20568:
+`wonder_mark`'s writer (`docs/AI.md` §75). run226 ends on block 17350
+and run80 starts on 23960, so no dump holds the word's block, 20569.
+On 20568 ours spends 37 draws against 38, parting at index 31. Ours
+spends `Guy::set_anim+0x97a < Guy::inc_time+0x271`, and the original
+spends `< Unit::move_step+0x823`, a blocked step.
+
+**Sized to the word, not to the gap** (DECISIONS 50 §7; the
+commander's ruling on item 785). A capture contiguous with run226
+would be ~3,470 blocks and ~4.5 hours. This one is 319 blocks: 68 into
+the word, its block 20569, and 250 of runway above it. **No dump
+compares a value over 17351..20499.** The draw stream agrees across
+that range in count and sequence, and nothing else is known of it.
+The same game is shown by the draw stream against run53, not by a dump
+overlap. The readings and their killers are in the stanza.
