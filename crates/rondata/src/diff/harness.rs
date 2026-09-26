@@ -21521,9 +21521,14 @@ pub(crate) mod tests {
             .filter(|d| (d.who, d.o) == (1, 7))
             .map(|d| (d.frame, d.field, d.ours, d.theirs))
             .collect();
+        // **Item 857 took the last two**: on 7820 the original's `1/7` kept
+        // `collide_o` 6 and `collide_who` 1 across the blocker probe that
+        // abandons its search on 7819, and this crate cleared them. The
+        // probe is the quick form, which writes nothing
+        // (`docs/COLLISION.md` §18).
         assert_eq!(
             seven_coll,
-            vec![(7_820, "collide_o", -1, 6), (7_820, "collide_who", -1, 1),],
+            vec![],
             "`1/7`'s whole collision divergence over run90"
         );
 
@@ -21537,7 +21542,9 @@ pub(crate) mod tests {
         // angle, every order record and every draw count in these 111
         // blocks agrees, so nothing downstream of it is visible here. It
         // is pinned rather than scored, and it is the one row run90 has
-        // left to explain.
+        // left to explain. **Item 857 explained it**: the blocker probe is
+        // the quick form and writes nothing (`docs/COLLISION.md` §18), and
+        // the window's collision fields agree whole.
         let all_coll: Vec<(i64, i64, i64, &str, i64, i64)> = report
             .frames
             .iter()
@@ -21546,10 +21553,7 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             all_coll,
-            vec![
-                (7_820, 1, 7, "collide_o", -1, 6),
-                (7_820, 1, 7, "collide_who", -1, 1),
-            ],
+            vec![],
             "run90's collision fields, whole cast and whole window"
         );
 

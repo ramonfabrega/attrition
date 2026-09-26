@@ -3399,6 +3399,14 @@ with `top_only`. `Sim::do_move`'s suspended block asks it.
   holds a group move, and `1/65` and `1/66` hold each other's slots. On
   20008 the original's `1/67` walks past `1/65`, which takes a half step,
   and ours is refused by it. No mechanism is named.
+- **run90's last row goes** (parked 315): on 7820 the original's `1/7`
+  keeps `collide_o` 6 and `collide_who` 1 across the probe that abandons
+  its search on 7819, and now so does this crate's.
+  `run90_s_window_is_east_indies_shuffle`'s collision fields agree whole.
+- **East Indies' endpoint** at 24001: `off` holds at 38, `unlinked`
+  2 → 0, `extra` 0 → 3 (player 1's `83`..`85`, Citizens),
+  `build_unlinked` 2 → 0 and `build_diverged` 5 → 1. Great Lakes' word
+  (20568), its endpoint and every closed golden chapter hold.
 - `collide::tests::the_blocker_probe_counts_a_corner_the_step_would_slip_past`
   pins the verdict and the silence. It was made to fail with the probe
   answering the full form's verdict.
