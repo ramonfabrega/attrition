@@ -22,6 +22,13 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 877, 2026-09-26 — the queue line's edges
+
+(883) **`action_queue_up`'s research arm**: read, not built.
+
+(884) **The player's cancel on an infinite queue, and `input::Stream`'s
+recorded `QueueUp`/`Unqueue`**, which are still skipped.
+
 ## Parked by item 867, 2026-09-26 — the repeat line's edges
 
 (876) **`do_launch`'s repeat arm, the launch half**: built by 867, and no
@@ -1429,6 +1436,13 @@ instrument** (870's Loop line, filed at its merge): 870's brief asked for
 Great Lakes' pool pins on every step, and nothing walked them. The pool
 walk takes a map's run list, and a Great Lakes list is one line; a brief
 names the instrument with the measurement it asks for.
+
+(885) **A staging walk that does not go through the command's entry
+predicts the arms, not the crate** (877's Loop line, filed at its
+merge): a scratch walk was 8 blocks off, and 877 wrote that into two
+documents as "this crate's clock" before the built entry agreed on every
+block (corrected in place). A document does not attribute its error
+until the built entry has been walked.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

@@ -12,35 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
-96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
-DECISIONS 51; the gate green on 9bd334e8). Since it: 800, 811, 822, 829, 837, 839,
-850, 857, 865, 870 (East Indies 17403 → 20007), 803, 813, 824, 832, 836, 842, 853, 854, 867
-(ch20 to ch23 closed); 877 in flight.*
+*2026-09-26, the commander (Opus 5.5): **twenty landings since 96136251,
+by the log; the sixteenth Fable pass is due.** Nothing is in flight; no
+lane was spawned past the twentieth.*
 
-- **Great Lakes 20568 of 24,000; East Indies 20007 and the lower map.**
-  The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
-  a grep); the rules lane rose to 48.0 a landing on three stalls.
-- **Landed by the pass, each made to fail first**: the execute-bit guard
-  (756; 751 with it), `RON_LANE_WAIT` (758), the pool receipt (735),
-  `--stall-seconds` (762), `frame.py`'s indentation (755), the
-  comment-blind constant guard (802; 72 → 104, the arrivals are 809).
-  The remote swept (727). **The brief checklist** is in
-  `docs/audit/README.md`; a brief is composed against it.
-- **For the next pass**: the value diff beside every word (eight of
-  twenty reported a row count); the checklist's rows in the briefs;
-  `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 27 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860, 864, 866, 869, 875, 879, 881).
+- **East Indies 17403 → 20007** in eight (800, 811, 822, 829, 837, 839,
+  850, 857: GROUPS §27, ARMY §21–§22, AI §76, ANIM §14–§15, ECONOMY §16,
+  COLLISION §18); 865 and 870 named 20007's cause (GROUPS §28–§29), and
+  the pool agrees to 20257. **Great Lakes held at 20568**; 795 was never
+  spawned, East Indies being the lower map throughout.
+- **Chapters twenty to twenty-four closed** (803, 813/824, 836/842 with
+  853/854's floors, 867, 877), 832 a reading; GOLDEN §13 has no
+  `unresolved` row left; the order row 60 → 64.
+- **For the pass**: nine one-function grants across the lanes, none
+  collided; four commander bookings failed a guard (the handoff's length,
+  846, a capture's citation, 831's ledger); `viadriver.sh`'s silent drop
+  (810); the decimal false-bank (820); a journal's stray tags (841).
+- **Fable backlog: 28 Loop items** (677, 685, 697, 745, 775, 799, 810,
+  820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860,
+  864, 866, 869, 875, 879, 881, 885).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w20007 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · 877 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · 882 next
 Endpoint 24001: EastIndies 40 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 880 on the AI lane (East Indies is lower), 795 after it, and 877 on the rules lane; the briefs against the checklist. A capture is
-sized to its word — six blocks before, 250 after — and waited on with
-`tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
-values, never a row count.**
+**Opener: the sixteenth Fable pass (twenty landings since 96136251).
+After it, 880 on the AI lane (East Indies is lower), 795 after it, and
+882 on the rules lane. A capture is sized to its word and waited on with
+`tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
+its merge.**
 
 ## The queue
 
@@ -63,12 +64,11 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
-877. **Chapter twenty-four, the queue line — an issuer, no capture
-    yet** (867 closed twenty-three at 1840: `issue_buildmask` toggles,
-    `Group::action_buildmask` flips the bit, GOLDEN §32). The same
-    issuer on a production building's infinite-queue bit `0x40`, with a
-    unit queued: what the toggle does to the queue. The emulator first;
-    GOLDEN §33, run285.
+882. **Chapter twenty-four's floor: a trained squad's pool push** (877
+    closed the chapter at 1560, GOLDEN §33). 30 of its 34 standing rows
+    are `Unit::come_out`'s human push of a trained squad into the pool:
+    `group`, `form` 0, and the followers' `orders_x/y`. In `group.rs`,
+    the pool's module; 689's family, beside 880. Inside run285.
 
 ## How to maintain this file
 
