@@ -3498,6 +3498,11 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_TWO: i64 = 1500;
 /// `chapter_twenty_two_s_word_frame_is_widened_whole`'s window.
 pub(crate) const WIDENING_CHAPTER_TWENTY_TWO: (i64, i64) = (605, 1501);
 
+/// `run265_s_rounds_are_the_original_s_record_for_record`'s window
+/// (item 853): run265's blocks from the Fighter's first release, 923, to
+/// the capture's end.
+pub(crate) const RUN265_ROUNDS: (i64, i64) = (920, 1501);
+
 /// `run235_s_bombs_are_the_original_s_record_for_record`'s window
 /// (item 770): run235's blocks from the first bomb's release, 805, to its
 /// last, 1100 — the four attacks on the Barracks and its death on 1080.
@@ -3989,6 +3994,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_twenty_two_holds_to_the_golden_word", 35),
     ("chapter_twenty_two_s_word_frame_is_widened_whole", 35),
     ("run265_s_launch_is_the_original_s_field_for_field", 35),
+    ("run265_s_rounds_are_the_original_s_record_for_record", 35),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

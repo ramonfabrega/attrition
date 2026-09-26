@@ -1836,9 +1836,74 @@ mod launch_tests {
         let before = s.rng;
         let at = s.units[u].pos;
         let n = s.projectiles.len();
-        s.fire_ammo_pub(Obj::Unit(u), Obj::Building(target), Angle(0), 923, at, 870);
+        s.fire_ammo_pub(
+            Obj::Unit(u),
+            Obj::Building(target),
+            Angle(0),
+            923,
+            at,
+            870,
+            0,
+            false,
+        );
         assert_eq!(s.projectiles.len(), n + 1, "a round");
         assert_eq!(s.rng, before, "and no draw");
+    }
+
+    /// **A strafer's landing walks with its gun** (`Ammo::init`,
+    /// `0x67c9b2`–`0x67cb1a`, item 853): run265's first pair, released on
+    /// `cur_time` 1 of 30 at heading 1340473344 on the Barracks at
+    /// (21120, 16512), lands on (20816, 16440) from node 0 and
+    /// (20853, 16351) from node 1 — `trunc((1/30 − 0.3f)·6·192)` = −307
+    /// along the heading, then 48 to either side. Neither a figure out of
+    /// its attack nor a type that does not strafe is walked. Made to fail
+    /// with the node's sides swapped, and with the walk returning early.
+    #[test]
+    fn a_strafers_landing_walks_with_its_gun() {
+        let fire = |s: &mut Sim, u: usize, target: usize, node: i8| {
+            let at = s.units[u].pos;
+            s.fire_ammo_pub(
+                Obj::Unit(u),
+                Obj::Building(target),
+                Angle(0),
+                923,
+                at,
+                873,
+                node,
+                false,
+            );
+            s.projectiles.last().unwrap().landing
+        };
+        let mut s = sim();
+        let (u, target, _, _) = striking_fighter(&mut s, true);
+        s.units[u].movement.heading = Angle(1_340_473_344);
+        let g = &mut s.units[u].guys[0];
+        (g.anim, g.cur_time, g.end_time) = (crate::anim::ATTACK2, 1, 30);
+        assert_eq!(fire(&mut s, u, target, 0), Pos::new(20816, 16440), "node 0");
+        assert_eq!(fire(&mut s, u, target, 1), Pos::new(20853, 16351), "node 1");
+        let (me, it, at) = (
+            Obj::Unit(u),
+            Some(Obj::Building(target)),
+            Pos::new(21120, 16512),
+        );
+        s.units[u].guys[0].cur_time = 30;
+        assert_eq!(
+            s.strafe_walk(me, it, at, 0),
+            Pos::new(21847, 16865),
+            "806 past, at the swing's end"
+        );
+        s.units[u].guys[0].anim = crate::anim::WALK;
+        assert_eq!(s.strafe_walk(me, it, at, 0), at, "out of its attack");
+        let mut plain = sim();
+        let (v, target, _, _) = striking_fighter(&mut plain, false);
+        plain.units[v].movement.heading = Angle(1_340_473_344);
+        let g = &mut plain.units[v].guys[0];
+        (g.anim, g.cur_time, g.end_time) = (crate::anim::ATTACK2, 1, 30);
+        assert_eq!(
+            plain.strafe_walk(Obj::Unit(v), Some(Obj::Building(target)), at, 0),
+            at,
+            "no w, no walk"
+        );
     }
 
     /// **An empty base counts nothing** (run265: `launch_frames` 0 from
