@@ -3792,3 +3792,203 @@ order and its walk on 17403, the escort's posts, army 1's list on
 17401..17405 and nothing of `1/60` or the squad parting after 17364 but
 the pool id. **Reading only**: §27.5's pointer writes, which no run
 reaches.
+
+## 28. A pushed group keeps its slot's `facing` — East Indies 20007, named and not built (item 865, 2026-09-26)
+
+*Established by run269's and run277's `GROUPDATA`, `copy_group`'s
+listing, scratch prints and a payoff probe. Diff-backed on 19664 and
+20002. **Not built**: the build needs the pool's numbering. That parts on
+block 239, and on a branch (§28.4) it holds to 8369.*
+
+### 28.1 The frame, read whole first
+
+The word is 20007 (block 20008). Ours spends 8 draws against 7, parting
+at index 0: ours spends `1/67`'s `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, a blocked step. Under it, `1/65`'s walk animation
+is 7 here against 8 there from 20005. **The first killer is run277's
+first block, 20002**, with `RON_STANDING`. Its first parting's field list,
+on `1/64`..`1/66`'s `ATTACK_TO` orders:
+
+| on 20002 | theirs | ours |
+|---|---|---|
+| `1/64`..`1/66` order `facing` | 0, 0, 0 | 1, 1, 1 |
+| `1/65` order `x/y` (`off` (504, 648) / (696, 456)) | (35832, 42120) | (36024, 41928) |
+| `1/66` order `x/y` | (36024, 41928) | (35832, 42120) |
+| `1/65` `pos` | (34659, 40997) | (34663, 40991) |
+
+**On run269's last block, 19664, nothing of theirs parts but the pool
+id.** `1/64`..`1/66` sit in army 1's group, 69 there and 70 here (689).
+The gap 19665..20001 is on no disk. The move itself is on 20002's own
+`GROUPDATA`:
+
+| slot 69 | 19664 (run269) | 20002 (run277) |
+|---|---|---|
+| `army` | 1 | −1 |
+| list | sixteen, army 1's | `[64, 65, 66]` |
+| `stamp` | 18976 | 20000 |
+| `order_num` | 5 | **6** |
+| `facing` | 1 | **1** |
+
+Army 1 sits on 68 from `stamp 20000`, and who=1's `last_group` is 69.
+In ours, a scratch print: on tick 20000 `add_to_army` (a joiner walking
+to the army, ARMY §4.3) calls `go_to`, which pushes the squad `[64, 65,
+66]` and moves it with `set_angle 0`. The destination is (35928, 42024),
+the angle 1527906304 and the leader `1/64`'s heading −1093992448, so
+`compute_form`'s toggle holds (§6.3). The pushed record's `facing` is
+**0**, so the mirror is 1. Ours seats it on 69 too, over a fresh record.
+
+### 28.2 The readings, and what killed each
+
+Each killer tests its reading's own unit on tick 20000, the move's mirror
+and slot table:
+
+- **R1, the members' order into the seat differs.** Killed if both
+  lists are `[64, 65, 66]` with the same leader. **Killed**: the
+  original's slot 69 lists `[64, 65, 66]`, and ours' layout is called
+  with the same list and leader `1/64` at slot 0.
+- **R2, the seat's arithmetic differs on the same order.** Killed if,
+  with the mirror forced to the original's, every field of the three
+  agrees on 20002. **Killed** by the probe below: they agree whole.
+- **R3, the facing flips the slots.** Holds: the orders' `facing` is
+  the mirror the layout used (§6.3, run31), 0 there and 1 here, and a
+  mirror trades `1/65`'s slot for `1/66`'s exactly.
+
+**The writers of the slot on tick 20000, counted** (parked 823): one per
+member, `group_action_move_to`'s order loop. `1/65` gets (36017, 41910)
+and `off` (−144, 0) under `reverse`. Nothing rewrites the order before
+block 20001. **No `SEAM:` on the chain** (`add_to_army`, `go_to`,
+`push_group`, `pool_slot_for`, `group_action_move_to`) names what
+`copy_group` leaves in the slot. The one on `pool_slot_for` names the
+fallbacks.
+
+### 28.3 The cause
+
+`Groups::copy_group@006fa690` writes `who`, `num`, `ox`/`oy`, `o_dist`,
+`o_angle`, `buildings`, `speed`, `stamp = frame`, the list, the angle
+bytes and the four offset arrays. **It leaves `facing`, `order_num`,
+`form`, `form_num`, `new_speed` and `army`**, as §3.2 says. So a push
+onto a fresh slot inherits its previous occupant's `facing`. The
+original's 69 held army 1's closed group (ARMY §22), which kept
+`facing 1` and `order_num 5`. The go-to move reads `facing 1`. The
+toggle holds, so the layout is square (`facing` 0 on the orders), and
+the move counts `order_num` 6. The members join army 1 on the same tick
+(`Group::add` on the army's live group), so no leader turn toggles 69
+afterwards, and it prints its pre-call 1. Ours pushed a fresh record,
+`facing 0`, so the mirror was 1.
+
+**The payoff probe** changed only tick 20000's push, giving it `facing
+1` and `order_num 5`. The word goes **20007 → 20782**. On 20002 every
+field of `1/64`..`1/66` agrees, orders, path and position alike. Only
+the pool-id rows remain (`group` 71 here, 68 there).
+
+### 28.4 Why it is not built: the numbering parts on block 239
+
+The build is two rules, both faithful, and each was measured on run54's
+word:
+
+- **`copy_group` into the slot's own record.** A push onto index `s`
+  inherits that record's non-copied fields. The one entry per index is
+  the record: a closed army's orphan on its own index, and a push over
+  it. **Alone, or with the next rule, it breaks at 17530.** Bisected by
+  field, the break is `facing`. On tick 17363 the squad `[67, 68, 69]`
+  is pushed at its birth (§27.5). The original's slot 69 then held
+  `order_num 5`, `facing 0` (run233, block 17363). Ours takes slot 70,
+  which holds the tick-17146 `go_to` joiners' record, `order_num 12`,
+  `facing 1`. A faithful inheritance of the wrong record is worse than
+  a fresh one.
+- **`get_open_slot`'s `get_num` rule.** A slot is empty when
+  `Group::get_num@00714700` is zero. That is a `normalize` for a list of
+  fewer than four, and the dead alone dropped for four or more. So a
+  closed army's fifteen stale members hold its slot until the cursor
+  prunes them. Ours asks "no live member points here", which passes that
+  slot at once. **Alone, it holds 20007.**
+
+Both rules need **the original's numbering**, and East Indies' parts on
+**block 239** (`east_indies_pool_numbering_parts_on_who_1_s_building_groups`,
+run45). The original's who=1 pushes **building groups**, `[2005]` onto
+64 on frame 1 and `[2000]` onto 66 on frame 176. So `think_scout`'s
+repush of `[0]` on tick 238 does not equal `last_group`, and
+`get_open_slot` takes 64. That is a building group that is not
+`last_group`, taken at once (§3.1), and `1/0` moves 65 → 64. Ours pushes
+no building group, so the repush equals `last_group` and stays on 65.
+Every pool-id row since, 689's forty, descends from this.
+
+**The caller is the AI scripts.** In the listing, `Group::action_queue_up@006fdbb0`
+has six call sites. Five are `ScenarioFuncSet`'s `train_unit`,
+`train_unit_with_cost`, `train_unit_at`, `train_unit_at_with_cost` and
+`research_tech_with_cost`, and the sixth is `CommandPackage::process_queue_up`.
+Each script function first `Group::add`s the producing building to a
+stack group and calls `push_group(who, g, 1)` (`009f4595`, `009ee881`,
+…). run54's coverage enters `research_tech_with_cost` and
+`train_unit_at_with_cost` on frame 1, `Group::action_queue_up` on frame 1,
+and `process_queue_up` never. att-867's candidates are
+`Object::take_damage`'s two `action_alarm` sites (`0x652677`,
+`0x65284b`), with `CommandPackage::process_group` ruled out by the same
+lane. run54 never enters `take_damage` in 24,000 frames, so those are
+not the caller on this game. The fifteen `push_group` sites in the game's own
+code, from `5e5f9f` to `704cd2`, all pass `force 1`.
+
+**Built on a branch and measured, not landed** (`att-865-pool-wip`, two
+commits):
+
+1. **The numbering.** `ai_host`'s `action_queue_up` pushes the
+   building group first. `get_open_slot` takes a building group at
+   once, empties a slot by `get_num`, and skips the eviction on a
+   building group's slot. `Sim::pushed` holds one entry per pool index.
+   **East Indies holds 20007 and Great Lakes 20568.** who=1's `group`
+   agrees with every East Indies dump, pointer for pointer, up to block
+   **8369** (run98), where it had parted on 239. On 8369 the original's
+   `1/11` goes 65 → −1 and this crate's stays on 65. `1/11` is a
+   citizen of `think_civilian_transport`'s (flags 1) and prints nothing
+   else that parts. The writer is not found. The pool-id pins across the
+   suite were not re-pinned.
+2. **`copy_group`'s kept fields**, on top of the numbering: **East
+   Indies 17530 and Great Lakes 7213**, both on `facing` when bisected
+   by field. From 8369 a slot's previous occupant is often another
+   record.
+
+**What building it takes**: the writer of 8369's `1/11`, and then every
+later pool-id parting in turn. The comparison is a script,
+`group`-for-`group` against each East Indies dump in run order, first
+mismatch per dump, and it reached 8369 in a minute. Great Lakes wants
+the same walk. Then the kept fields, with both words measured. This
+crate's slot 69 holds **two** records on 20002, army 0's orphan and the
+squad
+(`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`),
+which is what one entry per index replaces.
+
+### 28.5 What this has *not* established
+
+- **The gap 19665..20001.** It is on no disk. The previous occupant of
+  69 is read from 19664's and 20002's records and `order_num`'s
+  arithmetic (5 → 6), not watched. In ours, army 1 closes on tick
+  19706, army 0 takes the fifteen, army 1 re-forms on `[60]` on 19717,
+  and army 0 closes on 19965. The original's 64 (`stamp 19706`, fifteen
+  listed, `army −1` on 20002) and 68 (army 1) are the same events on
+  other indices. No capture was taken (run283 and run284 are unused).
+  The probe answered the frame, and what stands, 8369's writer, is
+  already on run98's disk.
+- **`get_num`'s own prune.** The rule above counts and does not write
+  the list back.
+- **The army path.** `Army::add_unit`'s `push_group` for a fresh army
+  inherits the slot too. This crate's army record is its own.
+- **A building's own `+0x80`.** `push_group`'s second walk points the
+  building at its slot. The branch does not carry it.
+- **Great Lakes' numbering.** It is not walked. It holds 20568 with
+  the branch's numbering, and falls to 7213 with the kept fields.
+
+### 28.6 Coverage
+
+**Diff-backed**: slot 69's record on 19664 and 20002, who=1's
+`last_group`, the three orders' `facing` on both sides and this crate's
+two records on the index
+(`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`),
+and the pool on frames 2, 238 and 239 against this crate's `1/0` on 239
+(`east_indies_pool_numbering_parts_on_who_1_s_building_groups`).
+**Decompile-backed**: `copy_group@006fa690`'s nine fields,
+`get_open_slot@006fa460`, `get_num@00714700`, `equals_group@00708000`.
+**Listing-backed**: `action_queue_up`'s six call sites and the
+`push_group` sites' `force`. **Coverage-backed** (run54): the script
+functions entered on frame 1, and `take_damage` never. **Measured, not
+asserted**: 20007 → 20782 under the probe. On the branch, 20007/20568
+with the numbering, and 17530/7213 with the kept fields.

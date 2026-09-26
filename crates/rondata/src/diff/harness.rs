@@ -16400,6 +16400,223 @@ pub(crate) mod tests {
         );
     }
 
+    /// **The squad push on tick 20000 reads the record its pool slot last
+    /// held** (item 865, `docs/GROUPS.md` §28). The first killer of
+    /// East Indies' word 20007 is `1/65` and `1/66` in each other's slots
+    /// on run277's first block. The whole parting is the move's mirror.
+    /// `add_to_army`'s `go_to` pushes `1/64`..`1/66` onto slot 69, and
+    /// `Groups::copy_group@006fa690` leaves `facing` and `order_num` in the
+    /// slot. The original's 69 was army 1's group on run269's last block
+    /// (`facing 1`, `order_num 5`) and reads `facing 1`, `order_num 6` on
+    /// 20002, so `compute_form` toggled a `facing` of 1 against a leader 90°
+    /// off and laid out square. This crate's push seats a fresh record
+    /// (`facing 0`, `order_num 0 → 1`) and mirrors. Both sides' values are
+    /// pinned here. **This crate's half is the residue**: a slot keeps
+    /// what `copy_group` does not copy only once the pool's numbering is
+    /// the original's, and it parts on block 239
+    /// (`east_indies_pool_numbering_parts_on_who_1_s_building_groups`).
+    #[test]
+    fn east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held() {
+        let Some(inst) = install() else { return };
+        let (Some(r269), Some(r277), Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run269-eastindies-turnword.txt"),
+            dump("gamelog-run277-eastindies-blockedwalk.txt"),
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            eprintln!("skipping: no run269/run277/run54 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let slot_on = |path: &str, frame: i64, id: i64| {
+            let text = crate::capture::read(path);
+            let log = Log::parse(&text);
+            let (_, b) = log
+                .frames()
+                .into_iter()
+                .find(|(f, _)| *f == frame)
+                .expect("the block");
+            let g = crate::gamelog::groups(b)
+                .into_iter()
+                .find(|g| g.id == id)
+                .expect("the slot");
+            let last = crate::gamelog::last_group(b);
+            let (units, _, _) = crate::gamelog::records(b, false);
+            let facing: Vec<Option<i64>> = [64, 65, 66]
+                .iter()
+                .map(|&o| {
+                    units
+                        .iter()
+                        .find(|u| u.who == 1 && u.o == o)
+                        .and_then(|u| u.orders.last())
+                        .and_then(|x| x.facing)
+                })
+                .collect();
+            (g, last, facing)
+        };
+        // run269's last block: slot 69 is army 1's group.
+        let (before, _, _) = slot_on(&r269, 19_664, 69);
+        assert_eq!(
+            (before.army, before.num, before.order_num, before.facing),
+            (1, 16, 5, 1),
+            "slot 69 on 19664: army 1's group, facing 1, order_num 5"
+        );
+        // run277's first block: the squad on 69, army −1, the old record's
+        // `facing` and `order_num` one move on; its members' orders carry
+        // the unmirrored layout.
+        let (after, last, facing) = slot_on(&r277, 20_002, 69);
+        let members: Vec<i64> = after.members.iter().map(|m| m.o).collect();
+        assert_eq!(
+            (
+                after.army,
+                members,
+                after.stamp,
+                after.order_num,
+                after.facing
+            ),
+            (-1, vec![64, 65, 66], 20_000, 6, 1),
+            "slot 69 on 20002: the squad pushed on tick 20000 over army 1's old record"
+        );
+        assert_eq!(last.get(1), Some(&69), "who=1's last_group on 20002");
+        assert_eq!(
+            facing,
+            [Some(0), Some(0), Some(0)],
+            "the original's orders: laid out square"
+        );
+        // This crate, run to the same block.
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        for _ in 0..20_001 {
+            built.tick();
+        }
+        let u65 = built.sim.unit_by_o(1, 65).expect("1/65");
+        let s = built.sim.units[u65].group_ptr.expect("1/65 is seated");
+        let ours: Vec<Option<bool>> = [64, 65, 66]
+            .iter()
+            .map(|&o| {
+                let u = built.sim.unit_by_o(1, o).expect("the squad");
+                built.sim.units[u]
+                    .orders
+                    .iter()
+                    .find_map(|x| match &x.body {
+                        sim::orders::Body::Move(m) => Some(m.facing),
+                        _ => None,
+                    })?
+            })
+            .collect();
+        assert_eq!(ours, [Some(true); 3], "this crate's orders: mirrored");
+        // The squad's own record here: slot 69 as well, but fresh, beside
+        // the closed army 0's orphan this crate keeps on the same index.
+        // The members already point at army 1's slot, 71 here.
+        let recs: Vec<(i64, i32, bool, Vec<i16>)> = built
+            .sim
+            .pool_records(1, 5)
+            .into_iter()
+            .map(|(st, l)| (st.stamp, st.order_num, st.facing, l))
+            .collect();
+        assert_eq!(s, 7, "1/65 points at army 1's slot, 71 here");
+        assert_eq!(
+            recs,
+            [
+                (
+                    19_706,
+                    0,
+                    false,
+                    vec![48, 49, 52, 53, 54, 55, 56, 57, 58, 74, 75, 76]
+                ),
+                (20_000, 1, false, vec![64, 65, 66]),
+            ],
+            "this crate's slot 69: army 0's orphan and the squad's fresh record"
+        );
+    }
+
+    /// **East Indies' pool numbering parts on block 239** (item 865,
+    /// `docs/GROUPS.md` §28.4): the first `group` a who=1 unit holds
+    /// differently, and the root of every pool-id row since (parked 689).
+    /// run45 prints the pool from frame 1. The original pushes who=1's
+    /// **building groups**: `[2005]` onto 64 on frame 1, and `[2000]` onto
+    /// 66 on frame 176. So `think_scout`'s repush of `[0]` on tick 238 does
+    /// not equal `last_group` (66). `get_open_slot` takes 64, a building
+    /// group that is not `last_group`, and 1/0 moves 65 → 64. This crate
+    /// pushes no building group, so the repush equals `last_group` (65)
+    /// and stays. The pushes are the AI scripts' `train_unit*` and
+    /// `research_tech_with_cost`: each pushes the producing building
+    /// before `Group::action_queue_up` (§28.4).
+    #[test]
+    fn east_indies_pool_numbering_parts_on_who_1_s_building_groups() {
+        let Some(inst) = install() else { return };
+        let (Some(r45), Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run45-islands-groups.txt"),
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            eprintln!("skipping: no run45/run54 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let text = crate::capture::read(&r45);
+        let log = Log::parse(&text);
+        // `(frame, id, buildings, stamp, members)` for who=1's live slots.
+        let pool: Vec<(i64, i64, i64, i64, Vec<i64>)> = log
+            .frames()
+            .into_iter()
+            .filter(|(f, _)| [2, 238, 239].contains(f))
+            .flat_map(|(f, b)| {
+                crate::gamelog::groups(b)
+                    .into_iter()
+                    .filter(|g| g.who == 1 && g.num > 0)
+                    .map(move |g| {
+                        let l = g.members.iter().map(|m| m.o).collect();
+                        (f, g.id, g.buildings, g.stamp, l)
+                    })
+            })
+            .collect();
+        assert_eq!(
+            pool,
+            [
+                (2, 64, 1, 1, vec![2005]),
+                (2, 65, 0, 0, vec![0]),
+                (238, 64, 1, 1, vec![2005]),
+                (238, 65, 0, 0, vec![0]),
+                (238, 66, 1, 176, vec![2000]),
+                (239, 64, 0, 238, vec![0]),
+                (239, 66, 1, 176, vec![2000]),
+            ],
+            "the original's who=1 pool: two building groups, then 1/0 onto 64"
+        );
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().expect("run38 is a start dump");
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Block 239 is the state after tick 238.
+        for _ in 0..239 {
+            built.tick();
+        }
+        let scout = built.sim.unit_by_o(1, 0).expect("1/0");
+        assert_eq!(
+            (
+                built.sim.pool_group_of(scout),
+                built.sim.pool_records(1, 0).len()
+            ),
+            (65, 0),
+            "this crate: 1/0 stays on 65, and slot 64 holds nothing"
+        );
+    }
+
     /// **run261 — East Indies' gap over army 1's close, widened whole, both
     /// directions** (item 829). run253's line over
     /// [`WIDENING_EAST_INDIES_CLOSE`]: its last six blocks and 250 into the

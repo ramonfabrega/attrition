@@ -1068,6 +1068,29 @@ impl Sim {
         })
     }
 
+    /// Every record this crate holds on `who`'s pool slot `s` — an army's
+    /// group first, then each [`Pushed`] entry naming it, stale or not —
+    /// with its members as object numbers. The original has one record per
+    /// index; this crate can hold a closed army's orphan and a later push
+    /// on the same one (`docs/GROUPS.md` §28). For a widening.
+    pub fn pool_records(&self, who: Player, s: u8) -> Vec<(&GroupState, Vec<i16>)> {
+        let names = |l: &[usize]| l.iter().map(|&u| self.units[u].index).collect();
+        let w = who as usize;
+        let armies = self
+            .armies
+            .get(w)
+            .into_iter()
+            .flat_map(|x| x.list.iter())
+            .filter(|a| a.valid && a.group.pool == Some(s))
+            .map(|a| (&a.group, names(&a.units)));
+        let pushed = self
+            .pushed
+            .iter()
+            .filter(|p| p.who == who && p.state.pool == Some(s))
+            .map(|p| (&p.state, names(&p.list)));
+        armies.chain(pushed).collect()
+    }
+
     /// The member list of the seat on `who`'s pool slot `s`, as object
     /// numbers in list order — what the dump's `GROUPDATA` prints under
     /// `id who·64 + s`. Empty for a slot nothing holds. For the diff
