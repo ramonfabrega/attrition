@@ -929,7 +929,25 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `Unit::do_guard+0x8fb` where the original spends
 /// `Guy::set_anim+0x104b`. Past run253's last block (18433); run257
 /// widens its block, 18939.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 18_938;
+///
+/// **18938 → 18999 on item 829, and the frame was army 1's close on tick
+/// 18682**, in the gap no dump compares. `Army::close@006f8ea0` sets the
+/// group's `army` to −1 and keeps its record, index and list in the pool
+/// (`docs/ARMY.md` §22). This crate dropped the group, so on 18692 the
+/// wagon's new army took its slot and cleared the escort's pointers.
+/// **The move's value diff (the word's delta, here; its block, 18939, and
+/// run257's first block are `run257_s_word_frame_is_widened_whole`'s):**
+/// on block 18933 `1/67`..`1/72`'s `group` read −1 here against 71 there
+/// and now 72 against 71, the old group holding `[69, 72]` on both sides
+/// (the pool id is 689's); on 18939 `1/67`, `1/68`, `1/70` and `1/71` held
+/// `order:kind` 12 (`GUARD`, one order, stopped) here against 2 (the
+/// guard's `ATTACK_TO` leg) there, and now agree in every field: the leg
+/// no longer ends on a hard collision with `1/69`, a group-mate. **The new
+/// word's delta: ours 7 draws and the original 6, parting at index 4**:
+/// ours spends a fifth `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`1/69`'s)
+/// where the original spends `Guy::set_anim+0x104b`. Inside run257; its
+/// block 19000 is widened there.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 18_999;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4319,6 +4337,11 @@ pub(crate) const WIDENING_EAST_INDIES_GUARDWORD: (i64, i64) = (18_933, 19_189);
 /// spends `Unit::do_guard+0x8fb` and the original `Guy::set_anim+0x104b`,
 /// writes block 18939. The coverage driver reads run257 around it.
 pub(crate) const EAST_INDIES_GUARDWORD_BLOCK: i64 = 18_939;
+/// The word 18999's block on run257 (item 829): its frame, where ours
+/// spends a fifth `Guy::inc_time` wrap and the original
+/// `Guy::set_anim+0x104b`, writes block 19000. The coverage driver reads
+/// run257 around it.
+pub(crate) const EAST_INDIES_FIGUREWORD_BLOCK: i64 = 19_000;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4483,11 +4506,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // make list on 18181); run257 is run253's line over [18933, 19189],
     // six blocks before the word and 250 past it, and
     // `run257_s_word_frame_is_widened_whole` pins the word's block.
+    //
+    // **Item 829 moved it inside run257**: a closed army's group stays in
+    // the pool (`docs/ARMY.md` §22), 18938 → 18999. run257's test keeps
+    // the move's value diff (18933 and 18939) and pins the new word's
+    // block, 19000, in the same walk.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         Some("run257_s_word_frame_is_widened_whole"),
-        822,
+        829,
         Some(WIDENING_EAST_INDIES_GUARDWORD),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

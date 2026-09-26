@@ -14917,7 +14917,10 @@ pub(crate) mod tests {
                 "15800 1/0 orders_x: ours 8364 theirs 8088",
                 "15800 1/0 orders_y: ours 14588 theirs 17976",
                 "15783 1/60 form: ours -1 theirs 0",
-                "15784 1/60 group: ours 69 theirs 70",
+                // Item 829: the pool id reads 71 here where it read 69 —
+                // a closed army's group now holds its slot (`docs/ARMY.md`
+                // §22), so the wagon's new one takes a later index.
+                "15784 1/60 group: ours 71 theirs 70",
             ],
             "every key first parting past the window's first block"
         );
@@ -15274,8 +15277,10 @@ pub(crate) mod tests {
                 .collect::<Vec<_>>(),
             // 319 and 321 before item 752's fix: `1/46`'s 24 rows, the
             // woodcutter's chain head and the two cities' counts, and on
-            // the block `1/54`'s two.
-            [293, 293],
+            // the block `1/54`'s two. Item 829 one more on each: `1/0`'s
+            // `group`, 70 here against 69, the pool id (689) — a closed
+            // army's group now holds its slot (`docs/ARMY.md` §22).
+            [294, 294],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -15409,7 +15414,10 @@ pub(crate) mod tests {
         let want: Vec<(String, usize)> = [
             ("17001 0/-1 leader:production_step: ours 0 theirs 1", 1),
             ("16971 1/-1 leader:scholars: ours 13 theirs 14", 8),
-            ("17139 1/0 group: ours 71 theirs 70", 1),
+            // `1/0`'s `group` (71 against 70 from 17139) left with item
+            // 829 for the first block, 70 against 69: a closed army's group
+            // holds its slot (`docs/ARMY.md` §22), and the pool id is one
+            // higher here from the window's start (689).
             ("16971 1/63 form: ours -1 theirs 9", 5),
             ("17113 1/64 form: ours -1 theirs 0", 2),
             ("17113 1/65 form: ours -1 theirs 0", 2),
@@ -15544,12 +15552,14 @@ pub(crate) mod tests {
         // and `1/63` loses two, and past it the stand's wake goes;
         // `1/67`..`1/69` from 17363 and `1/60` on 17403 are the new rows.
         // Item 811 took 116 past the new word (446 → 330): army 0's column
-        // from 17405, once it is formed twice on its retarget tick.
+        // from 17405, once it is formed twice on its retarget tick. Item
+        // 829 moved `1/0`'s `group` from 17139 to the first block (293 →
+        // 294), the pool id one higher (`docs/ARMY.md` §22).
         let before = |b: i64| firsts.values().filter(|(f, _)| *f < b - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (293, 312, 324, 330),
+            (294, 312, 324, 330),
             "the floor"
         );
     }
@@ -15815,19 +15825,22 @@ pub(crate) mod tests {
         );
     }
 
-    /// **run257 — East Indies' word 18938, widened whole, both directions**
-    /// (item 822). run253's line over [`WIDENING_EAST_INDIES_GUARDWORD`]:
-    /// the six blocks before the word's, its block, and 250 past it. No
-    /// capture shares a block with it, so 18434..18932 is compared by no
-    /// dump, and the floor is its first block. [`widen_east_indies`] with
-    /// gaia's animals.
+    /// **run257 — East Indies' word 18999, widened whole, both directions**
+    /// (items 822 and 829). run253's line over
+    /// [`WIDENING_EAST_INDIES_GUARDWORD`]: the six blocks before the word
+    /// 18938's block, its block, and 250 past it. No capture shares a block
+    /// with it, so 18434..18932 is compared by no dump, and the floor is its
+    /// first block. [`widen_east_indies`] with gaia's animals.
     ///
-    /// The word's frame, 18938, writes block **18939**.
+    /// Item 822 took it for the word 18938 (block **18939**); item 829
+    /// moved the word to 18999 (block **19000**), inside it, and the walk
+    /// keeps the move's value diff.
     #[test]
     fn run257_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_GUARDWORD.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_GUARDWORD.1;
-        const WORD_BLOCK: i64 = EAST_INDIES_GUARDWORD_BLOCK;
+        const OLD_BLOCK: i64 = EAST_INDIES_GUARDWORD_BLOCK;
+        const WORD_BLOCK: i64 = EAST_INDIES_FIGUREWORD_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -15841,7 +15854,7 @@ pub(crate) mod tests {
             "run257",
             "gamelog-run257-eastindies-guardword.txt",
             WIDENING_EAST_INDIES_GUARDWORD,
-            &[WORD_BLOCK],
+            &[FIRST, OLD_BLOCK, WORD_BLOCK],
             true,
         )
         else {
@@ -15861,52 +15874,73 @@ pub(crate) mod tests {
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
         };
+        // **The move's value diff, on the first block** (item 829): the
+        // escort `1/67`..`1/72` read `group` −1 here against 71 there until
+        // `close_army` kept a closed army's group in the pool
+        // (`docs/ARMY.md` §22). They read 72 against 71 now: the same
+        // group, the old army 1's, holding `[69, 72]` on both sides — the
+        // index is one higher here, as every pool id of who=1 is from
+        // `1/11`'s up (689).
+        let first_block = standing.get(&FIRST).cloned().unwrap_or_default();
+        for o in 67..=72 {
+            assert_eq!(
+                first_block
+                    .get(&(1, o, "group".to_string()))
+                    .map(String::as_str),
+                Some("ours 72 theirs 71"),
+                "`1/{o}` points at the old army 1's group on both sides"
+            );
+        }
+        // **And on the old word's block** (items 822 and 829): until the
+        // fix `1/67`, `1/68`, `1/70` and `1/71` stood under a `GUARD` (kind
+        // 12, one order, `tolerance` 144, stopped) where the original's
+        // walk under its `ATTACK_TO` leg (kind 2, two orders, a one-leg
+        // path), because `1/69`, a group-mate, was a hard collision here
+        // and a soft one there. Nothing of the escort parts now.
+        let escort: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), (f, _))| {
+                *w == 1 && (67..=72).contains(o) && (FIRST + 1..=OLD_BLOCK).contains(f)
+            })
+            .map(row)
+            .collect();
+        assert_eq!(
+            escort,
+            Vec::<String>::new(),
+            "the escort agrees on {OLD_BLOCK}"
+        );
         let rows: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
             .map(row)
             .collect();
-        // **Under the word, the first row of each key past the floor**
-        // (item 822): nothing parts on 18934..18938, and on the word's own
-        // block four of who=1's units part whole — `1/67`, `1/68`, `1/70`
-        // and `1/71`, 25 or 26 keys each. Ours stand under a `GUARD` (kind
-        // 12, one order, `tolerance` 144, stopped) where the original's
-        // walk under an `ATTACK_TO` (kind 2, two orders, a one-leg path)
-        // given on tick 18938. No mechanism is named.
-        assert!(
-            rows.iter()
-                .all(|r| r.starts_with(&format!("{WORD_BLOCK} "))),
-            "nothing parts before the word's block: {rows:?}"
-        );
-        let units: std::collections::BTreeSet<&str> =
-            rows.iter().filter_map(|r| r.split(' ').nth(1)).collect();
+        // **Under the new word, the first row of each key past the floor**
+        // (item 829): who=1's `reg_unpack_merch[11]` on 18976, and nothing
+        // on the word's block. The draw stream parts there on a figure's
+        // wrap: ours spends five `Guy::inc_time` wraps and the original
+        // four, and `1/67` and `1/69` both wrap on 19000 on both sides. No
+        // mechanism is named.
         assert_eq!(
-            units.into_iter().collect::<Vec<_>>(),
-            ["1/67", "1/68", "1/70", "1/71"],
-            "the units under the word"
+            rows,
+            ["18976 1/-1 leader:reg_unpack_merch[11]: ours 2 theirs 1"],
+            "the keys first parting under the new word"
         );
-        for o in [67, 68, 70, 71] {
-            assert!(
-                rows.contains(&format!(
-                    "{WORD_BLOCK} 1/{o} order:kind: Kind {{ ours: 12, theirs: 2 }}"
-                )),
-                "`1/{o}` guards here and attacks there on {WORD_BLOCK}"
-            );
-        }
-        // The four figures change animation on the original's side only.
+        // The figures that change animation on one side only, near either
+        // word.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
-            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .filter(|c| {
+                c.3 != c.4
+                    && ((OLD_BLOCK - 2..=OLD_BLOCK + 2).contains(&c.0)
+                        || (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            })
             .copied()
             .collect();
+        // `1/9` on 19002, the original's only: its move parts on 19001,
+        // past the word.
         assert_eq!(
             word,
-            [
-                (WORD_BLOCK, 1, 67, true, false),
-                (WORD_BLOCK, 1, 68, true, false),
-                (WORD_BLOCK, 1, 70, true, false),
-                (WORD_BLOCK, 1, 71, true, false),
-            ],
+            [(WORD_BLOCK + 2, 1, 9, true, false)],
             "a figure's animation changes on one side only"
         );
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
@@ -15929,9 +15963,15 @@ pub(crate) mod tests {
         // word's block, and every key in all.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        // **Item 829** took it 320/103/423/1,265 → 322/1/323/863: the
+        // escort's four units leave the old word's block, and 402 keys
+        // past it with them; the first block gains `1/60`'s `group` (70
+        // against 69) and `1/0`'s (71 against 70), both the pool id one
+        // higher here (689), and `1/67`..`1/72`'s read 72 against 71 where
+        // they read −1.
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (320, 103, 423, 1_265),
+            (322, 1, 323, 863),
             "the floor"
         );
     }

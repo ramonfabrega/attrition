@@ -3587,6 +3587,56 @@ mod tests {
         );
     }
 
+    /// **A closed army's group stays in the pool** (§22, item 829).
+    /// `Army::close@006f8ea0` writes the group's `army` to −1 and halts it;
+    /// the record, its index and its list stay, and so does every member's
+    /// `+0x80`. So a new army formed from one of them takes **another**
+    /// slot, and `get_open_slot`'s tail clears nobody's pointer. East
+    /// Indies' army 1 closed on 18682, the wagon formed army 1 again on
+    /// 18692, and the escort's pointers at the old group are what the
+    /// collision on 18938 read. Made to fail first: with the group dropped
+    /// at close, the new army takes the old slot and the two left behind
+    /// point at nothing.
+    #[test]
+    fn a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let units: Vec<usize> = (0..3)
+            .map(|i| put(&mut sim, 1, t, Pos::new(0x1000 + 0x100 * i, 0x1000)))
+            .collect();
+        for &u in &units {
+            sim.army_add_unit(1, slot, u);
+        }
+        let pool = sim.units[units[0]].group_ptr.expect("the army's slot");
+        sim.close_army(1, slot);
+        assert!(!sim.armies[1].list[slot].valid);
+        assert_eq!(
+            sim.pool_list(1, pool),
+            units
+                .iter()
+                .map(|&u| sim.units[u].index)
+                .collect::<Vec<_>>(),
+            "the group is still listed on its own index"
+        );
+        assert!(
+            units.iter().all(|&u| sim.units[u].group_ptr == Some(pool)),
+            "and every member still names it"
+        );
+        assert_eq!(sim.army_of(units[0]), None, "in no army");
+        // The first of them forms a new army: it takes another slot.
+        let s2 = sim.init_army(1, Some(c));
+        sim.army_add_unit(1, s2, units[0]);
+        let fresh = sim.units[units[0]].group_ptr.expect("the new army's slot");
+        assert_ne!(fresh, pool, "the old slot is still held");
+        assert!(
+            units[1..]
+                .iter()
+                .all(|&u| sim.units[u].group_ptr == Some(pool)),
+            "the two left behind still point at the old group"
+        );
+    }
+
     #[test]
     fn release_mustering_wants_five_and_the_city_count_before_the_thresholds() {
         let (mut sim, c) = sim_with_city();
