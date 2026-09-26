@@ -514,7 +514,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Fourteen verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Fifteen verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -538,6 +538,9 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         enemy, issue_flight with ATTACK
  *   `@build <who> <x> <y> <type> <o> [<o> ...]` a building's `TypeIndex`
  *                                         placed at the point, issue_build
+ *   `@spell <who> <type> <ox> <whom> <x> <y> <o> [<o> ...]` a craft's
+ *                                         `TypeIndex` cast on the target
+ *                                         picked at the point, issue_spell
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -632,6 +635,16 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * reads only the first point. The site, the price and the builders are
  * `action_build`'s to decide at process time.
  *
+ * `@spell` calls `CommandManager::issue_spell@00941b80(&command_manager,
+ * group, type, ox, whom, x, y)` and appends a 21-byte `spell` (type 0x17,
+ * `[ox][whom][type][x][y]`) behind the group (item 790, `docs/GOLDEN.md`
+ * §27). `Options::picked_spot@00721c40:749` passes a targeted craft's
+ * `TypeIndex`, the object `SpellTypeData::find_target` found under the
+ * cursor and the cursor's own point through `Options::target_spell@
+ * 0071dda0` for an unmodified pick; the DLL skips `GroupOut::
+ * validate_spell`, which `Group::action_spell@006fe1a0` runs again at
+ * process time, where the caster, the target and the price are decided.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -655,6 +668,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_ATTACK 0x5415e0u
 #define RVA_ISSUE_FLIGHT 0x541d40u
 #define RVA_ISSUE_BUILD 0x541c30u
+#define RVA_ISSUE_SPELL 0x541b80u
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -686,7 +700,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     const u16 *t = text;
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
      * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
-     * 11 `flight`, 12 `strike`, 13 `build`:
+     * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`:
      * the issuer, its prologue
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -706,11 +720,15 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "flight ")   ? 11
                : issue_verb(&t, "strike ")   ? 12
                : issue_verb(&t, "build ")    ? 13
+               : issue_verb(&t, "spell ")    ? 14
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
-    i32 who, x = 0, y = 0, type = 0, ids[ISSUE_MAX];
+    i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
     u32 n = 0;
-    if (!issue_int(&t, &who) || (verb != 5 && (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
+    /* `@spell`'s craft and target come before its point. */
+    if (!issue_int(&t, &who) ||
+        (verb == 14 && (!issue_int(&t, &type) || !issue_int(&t, &ox) || !issue_int(&t, &whom))) ||
+        (verb != 5 && (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
         (verb == 13 && !issue_int(&t, &type))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
         return;
@@ -731,8 +749,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * `@flee` are issue_move_to. issue_flight's is `sub esp, 0x1c`, for its
      * 0x19-byte command; `@flight` and `@strike` are issue_flight.
      * issue_build's is the same `sub esp, 0x1c`, for its 0x19-byte
-     * command. */
-    static const u8 prologue[14][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * command. issue_spell's is `sub esp, 0x18`, for its 0x15-byte one. */
+    static const u8 prologue[15][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -745,10 +763,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
-    u32 rva = verb == 13  ? RVA_ISSUE_BUILD
+    u32 rva = verb == 14  ? RVA_ISSUE_SPELL
+              : verb == 13  ? RVA_ISSUE_BUILD
               : verb >= 11 ? RVA_ISSUE_FLIGHT
               : verb >= 8 ? RVA_ISSUE_MOVE_TO
               : verb == 7 ? RVA_ISSUE_ATTACK
@@ -759,7 +779,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb >= 11  ? 0x19
+    u32 size = verb == 14  ? 0x15
+               : verb >= 11 ? 0x19
                : verb >= 8 ? 0x16
                : verb == 7 ? 0x11
                : verb == 5 ? 0x11
@@ -800,7 +821,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 13) {
+    if (verb == 14) {
+        /* issue_spell(group, type, ox, whom, x, y): a targeted craft's
+         * unmodified pick. */
+        typedef void(__thiscall *spell_fn)(void *, void *, i32, i32, i32, i32, i32);
+        ((spell_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, type, ox, whom,
+                                   x, y);
+    } else if (verb == 13) {
         /* issue_build(group, x, y, x2 = x, y2 = y, type, QUEUE_NEW 2):
          * an unmodified drop with no drag. */
         typedef void(__thiscall *build_fn)(void *, void *, i32, i32, i32, i32, i32, i32);

@@ -145,6 +145,16 @@ pub mod spell {
     /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6).
     pub const TRANSPORT: i32 = 0x28a;
 
+    /// The Spy's three crafts (`FROM Spy`), each targeted: `BRIBE` (`fcbhm`,
+    /// `MANA 1000`), `COUNTERINTEL` (`febchm`, `MANA 500`; the one a human
+    /// Spy's `think_spellcaster` casts by itself) and `INFORMER` (`fbcml`,
+    /// `MANA 500`), which `SpellType::cast` hands to `cast_double_agent`
+    /// and `GroupOut::validate_spell` names `DOUBLE_AGENT`
+    /// (`docs/GOLDEN.md` §27).
+    pub const BRIBE: i32 = 0x275;
+    pub const COUNTERINTEL: i32 = 0x277;
+    pub const INFORMER: i32 = 0x27f;
+
     /// The four **pack** rows and the four **unpack** ones, in the pairs
     /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
     /// (the generic pair, and the one the file names `Catapult`), the
