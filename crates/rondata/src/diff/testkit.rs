@@ -3235,11 +3235,32 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 1400;
 pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 1401);
 
 /// **Chapter eighteen's golden word** — the build line, an issuer the AI
-/// takes through its own planner (`docs/GOLDEN.md` §26, item 779, run241).
-pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTEEN: i64 = 642;
+/// takes through its own planner (`docs/GOLDEN.md` §26, item 779,
+/// run241): **1450 of 1450, closed**. Sequence 1450, no value part.
+///
+/// **The first pin, 642, open**: the harness skipped both `@build` lines,
+/// the command having no entry into this simulation. On 642 this crate
+/// spent 7 draws against 6, parting at draw 0 on an idle citizen's roll
+/// (`Guy::set_anim+0x97a < Guy::inc_time+0x271`) that the original's,
+/// walking to its site, does not spend.
+///
+/// **The command entered, 1450, closed** (item 779, `docs/ORDERS.md`
+/// §36): `input::group_build` → `Sim::group_action_build` places and pays
+/// for the site once and swarms the group at `QUEUE_NEW` — a `MOVEORDER`
+/// for a human's builder and the `BUILDORDER` behind it — and the
+/// one-unit swarm asks whose builder it is, so `find_build_spot`'s help
+/// on 1097 is a `MOVEORDER` too. The walk agrees to run241's end: the
+/// ring spots, the first frames of construction on 709 and 721,
+/// `construct_hits` block for block, the completions on 948 and 1141.
+///
+/// **The delta**, this constant's: +808, 642 → 1450, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTEEN: i64 = 1450;
 
-/// `chapter_eighteen_s_word_frame_is_widened_whole`'s window.
-pub(crate) const WIDENING_CHAPTER_EIGHTEEN: (i64, i64) = (605, 645);
+/// `chapter_eighteen_s_word_frame_is_widened_whole`'s window: **run241
+/// whole**, (605, 1451), since the command entered; (605, 645) at the
+/// first pin, the word 642. Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_EIGHTEEN: (i64, i64) = (605, 1451);
 
 /// `run235_s_bombs_are_the_original_s_record_for_record`'s window
 /// (item 770): run235's blocks from the first bomb's release, 805, to its
@@ -4761,7 +4782,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 779: run241, chapter eighteen's first walk at 642, on the
     // build command this crate did not take: an idle citizen's animation
     // roll where the original's walks to its site; the sites, the prices
-    // and each builder's two orders on 622 and 642.
+    // and each builder's two orders on 622 and 642. Closed at 1450 by the
+    // same item (the command entered, a human's approach a move).
     (
         "GOLDEN_WORD_CHAPTER_EIGHTEEN",
         GOLDEN_WORD_CHAPTER_EIGHTEEN,

@@ -370,14 +370,25 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@build <who> <x> <y> <type> <o> [<o> …]`: a building's
+    /// `TypeIndex` dropped at the point, through
+    /// `CommandManager::issue_build@00941c30` with the point twice and
+    /// `QUEUE_NEW` — an unmodified drop with no drag
+    /// (`Options::picked_spot@00721c40:531`), item 779, `docs/GOLDEN.md`
+    /// §26.
+    Build {
+        who: i32,
+        to: Pos,
+        build: i32,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
-/// `attack`, `amove`, `explore`, `flee`, `flight` or `strike`, a `who`
-/// outside `0..8`, fewer
-/// than three numbers
-/// (one for `eject`), or no object.
+/// `attack`, `amove`, `explore`, `flee`, `flight`, `strike` or `build`, a
+/// `who` outside `0..8`, fewer than three numbers (one for `eject`, four
+/// for `build`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
@@ -396,6 +407,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "flee"
             | "flight"
             | "strike"
+            | "build"
     ) {
         return None;
     }
@@ -414,6 +426,14 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
         }
         return Some(Issued::Eject { who, buildings });
     }
+    let (build, nums) = if verb == "build" {
+        let [who, x, y, build, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        (build, [&[who, x, y][..], objects].concat())
+    } else {
+        (0, nums)
+    };
     let [who, x, y, ref objects @ ..] = nums[..] else {
         return None;
     };
@@ -471,6 +491,12 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             who,
             ox: x,
             whom: y,
+            objects,
+        },
+        "build" => Issued::Build {
+            who,
+            to,
+            build,
             objects,
         },
         _ => Issued::Move { who, to, objects },
@@ -581,6 +607,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_flight(built, who, &objects, ox, whom, 10),
+        // `@build` is `issue_build@00941c30` with the point twice and
+        // `QUEUE_NEW`, a `group` and a `build`, whose entry is
+        // [`crate::input::group_build`] (item 779, `docs/GOLDEN.md` §26).
+        Some(Issued::Build {
+            who,
+            to,
+            build,
+            objects,
+        }) => crate::input::group_build(built, who, &objects, to, build, 2),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
