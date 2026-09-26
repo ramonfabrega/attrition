@@ -7963,3 +7963,52 @@ with no human at the menu. Waited on with `waitrun.sh`, exit 0.
   on 18185 where the original's stays at 0.
 - The floor is 310 keys on the first block, 18 under the word, 327 on
   its block and 977 in all.
+
+## run256 — chapter twenty-one's staging, to 830, four takes (2026-09-26, item 813)
+
+**What it is.** `chapter21.cmd`'s twelve lines — `!ai off`, `library` for
+both, a who=0 Barracks, who=1 attackers, `peace 1` on 760, four citizens
+and the two `@repair` lines on 780 and 800 — to 830, dumped over
+`[605, 830)`. Four takes under one number, each a staging the one before
+refused; only take 4 is the chapter's. Each ran on a free lane (the lock
+was released by att-811's run253 before take 1), `success: true`.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-26-run256 \
+    --map 14 --end-frame 830 --log-window 605 830 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <chapter21.cmd's twelve lines>
+```
+
+**What the disk could not answer.** No dump on disk prints a human's
+`REPAIRORDER` (every golden capture greps to none), whether the DLL's
+`@repair` reaches `process_swarm_around`, or how a staged building takes
+damage a player can then mend.
+
+**The takes** (kept at `~/ron-data/lab-captures/2026-09-26-run256-take1`
+to `-take3`; take 4 is `2026-09-26-run256`):
+
+1. The Barracks on the neutral arena at tile (14, 74) and who=1 hoplites
+   at (20, 74), `AMMO` not asked (312 s). No blow: a building on an
+   unowned cell is no target (`docs/COMBAT.md` §12.2). The command was
+   processed anyway: `process_swarm_around 2007 0 2 13 781`, and `0/6`
+   under a `MOVEORDER` and a `REPAIRORDER` from 782.
+2. The Barracks at tile (30, 170) in who=0's territory, hoplites at (35,
+   170): they strike from 660, 4 a blow, `damage` 48 by 760. This crate
+   parts on 636, the first step's walk-animation draw.
+3. who=1 Bowmen at (34, 170), `library who=1 2`: they fire from where they
+   stand, `damage` 3 by 744. This crate parts on 650, the first arrow a
+   frame late: piece 120 had no measured bay.
+4. The same with `library who=1 3`, which changed nothing the dump
+   shows (the piece is 120 at both). Its twelve arrows measured piece
+   120's three bays (`docs/GOLDEN.md` §29), and with them **this crate
+   walks take 4 whole to 830**.
+
+**What take 4 answered** (`docs/GOLDEN.md` §29): the Barracks `0/2007` at
+(5760, 32640); arrows from 644, `damage` 0 → 3 (frac 12) by 744; the
+Bowmen off from 765; `process_swarm_around 2007 0 2 13 781` and `… 801`;
+on 782 `0/6`'s `unit_masks` 0 → 1034 and a `MOVEORDER` (flags 1) to (5736,
+33096) with a `REPAIRORDER` (flags 4, `ox 2007`, `uid 13`) behind it; on
+802 the same on `0/7`..`0/9`.
