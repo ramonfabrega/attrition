@@ -14724,7 +14724,10 @@ pub(crate) mod tests {
         // Item 723 took one under and one past (228/246/251 →
         // 227/245/249): the formation mirror (parked 275) on `1/44` and
         // the scout, an equal group's record kept.
-        assert_eq!((first, under_n, firsts.len()), (227, 245, 249), "the floor");
+        // **Item 850 took three past the word (227/245/249 →
+        // 227/245/246)**: the scout `1/0`'s `g.avg_speed[0]`, `[1]` and
+        // `g.stopped[1]` on 11793, agreeing (`docs/ANIM.md` §15).
+        assert_eq!((first, under_n, firsts.len()), (227, 245, 246), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -15288,8 +15291,10 @@ pub(crate) mod tests {
             // woodcutter's chain head and the two cities' counts, and on
             // the block `1/54`'s two. Item 829 one more on each: `1/0`'s
             // `group`, 70 here against 69, the pool id (689) — a closed
-            // army's group now holds its slot (`docs/ARMY.md` §22).
-            [294, 294],
+            // army's group now holds its slot (`docs/ARMY.md` §22). Item 850
+            // two fewer on each: the scout `1/0`'s `g.avg_speed[0]` and
+            // `[1]`, standing from 16681, agree (`docs/ANIM.md` §15).
+            [292, 292],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -15311,6 +15316,11 @@ pub(crate) mod tests {
                 // against −2147483648) is gone, the disembark's
                 // `update_action` being step 1's (`docs/TRANSPORT.md` §15);
                 // its `orders_y` moved from 38040 and still parts.
+                // Item 850: the scout's `g.avg_speed`, agreeing from its
+                // boarding now (`docs/ANIM.md` §15), first parts on its
+                // disembark, where ours seats the figures at 0.
+                "16782 1/0 g.avg_speed[0]: ours 0 theirs 17",
+                "16782 1/0 g.avg_speed[1]: ours 0 theirs 17",
                 "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
                 "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
                 "16782 1/0 mirror: ours 0 theirs 1",
@@ -15326,10 +15336,13 @@ pub(crate) mod tests {
         // one past the word (312 → 311): `MAKE[1].val` on 16779. Item 803
         // took one (311 → 310): `1/0`'s `dest_angle` on 16782. Item 822
         // took three (306/310 → 303/307): who=1's `known_rares` and
-        // `reg_known_rares[7]`/`[11]`, the border fix's zero.
+        // `reg_known_rares[7]`/`[11]`, the border fix's zero. Item 850
+        // moved two past the word (303/307 → 301/307): the scout `1/0`'s
+        // `g.avg_speed[0]`/`[1]` agree from 16681 and first part on its
+        // disembark, 16782 (`docs/ANIM.md` §15).
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 303, 307), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 301, 307), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
