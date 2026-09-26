@@ -1357,6 +1357,13 @@ introduced a Fighter-Bomber over-count (16 damaging rounds a swing
 against 10) and named it as a park; a landing that introduces a
 divergence it can see builds it or says so as a regression.
 
+(866) **A draw site this crate spells with no row in the trace's `SITES`
+prints bare and parts on its spelling** (857's Loop line, filed at its
+merge): `Unit::do_guard+0x8fb` printed as `5e656b`, and East Indies
+19606 parted on the label alone, one draw on both sides. A guard: every
+`sim` `SITE_*` constant has a `rondata::trace::SITES` row, made to fail
+first by removing 857's.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
@@ -1764,7 +1771,7 @@ score; 267 split the two mechanisms, so re-read that. **723 took the row
 off every widening; the remainder is 732.** **304 is the nearest
 live window** to this — a formation ending early on run76.
 
-(315) **run90's `1/7` names no blocker on 7820** — `collide_o` and
+(315) ~~**run90's `1/7` names no blocker on 7820** — `collide_o` and
 `collide_who` read −1 where the original has 6 and 1, with `collide`
 itself, the count, agreeing. New on 2026-09-17 with the suspend wiring
 (items 301/304), and the window cannot price it: every position, every
@@ -1772,7 +1779,9 @@ angle, every order record and every draw count over those 111 blocks
 agrees, and the two Merchant constants are the only parted units left.
 Pinned in `run90_s_window_is_east_indies_shuffle` so it cannot move in
 silence. Parked because it names no score — the falsifier is a capture
-where a missing blocker identity changes a decision.
+where a missing blocker identity changes a decision.~~ **Closed by 857**
+(COLLISION §18: the blocker probe's quick form); run90's 7820
+`collide_o` agrees.
 
 (316) **Sixty-two other callers of `clear_partial_path` are unchecked**
 — item 304 fixed `kill_current_path`'s and no capture reaches the rest.
