@@ -22,6 +22,12 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 854, 2026-09-26 — the repeat bit's edges
+
+(868) **`Wall::swap_team` copies `build_masks`**: a building that changes
+team carries its masks, the repeat bit with them. Not built; no capture
+swaps an Airbase's team.
+
 ## Parked by item 853, 2026-09-26 — the Fighter's rounds' edges
 
 (861) **A bomb's recycled `accuracy`**: a bomb takes its slot's last
@@ -64,7 +70,11 @@ one over on 18511. Names no score yet.
 captures' word windows hold no Airbase. Names no score.
 
 (844) **A landed patrol with no action bit**: at the next full tank
-`do_launch` kills it. No capture reaches it.
+`do_launch` kills it. No capture reaches it. **854's reading corrects
+it**: under a repeating base (every Airbase on disk) `do_launch`
+launches the unflagged patrol at a full tank rather than killing it,
+off run265's rows at about 1585; the kill is the non-repeating base's.
+**Promoted to 867** (chapter twenty-three, the repeat toggle).
 
 ## Parked by item 824, 2026-09-26 — the gather group's edges
 
@@ -1363,6 +1373,14 @@ merge): `Unit::do_guard+0x8fb` printed as `5e656b`, and East Indies
 19606 parted on the label alone, one draw on both sides. A guard: every
 `sim` `SITE_*` constant has a `rondata::trace::SITES` row, made to fail
 first by removing 857's.
+
+(869) **Grep a field's writers by its offset in every spelling, not by
+its name** (854's Loop line, filed at its merge): `build_masks` by name
+found three readers and no writer; by offset (`field_0x60`,
+`(ushort*)(x+0x60)`) it found `Build::init`'s `|= 0x88`. CLAUDE.md's
+"grep the writers of every field you call frozen" wants the offset's
+spellings named; a checklist row candidate, or a tool that expands a
+field to its spellings.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
