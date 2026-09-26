@@ -8043,3 +8043,54 @@ each of the 695 blocks. It is the same game as run256's take 4 for the
 261 → 260 on 931, `0/6`'s stack empty on 932; the trio's `REPAIRORDER`s
 dying on 968, 969 and 1023 with nothing behind them; the citizens' own
 `GATHERORDER`s on `0/2001` from 1083.
+
+## run257 — East Indies' word 18938, sized to the word (2026-09-26, item 822)
+
+**What it is.** run253's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[18933, 19190)`, at `cover=0`: a draw-stream trace. `!quit` at 19200,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 822
+```
+
+**Why it was owed.** Item 822 moved East Indies' word 18182 → 18938 (a
+border fix zeroes `reg_known_rares` until the next census, `docs/AI.md`
+§76). run253 ends on block 18433, so the word's block 18939 is on no
+disk: every `*eastindies*` and `*islands*` dump was grepped by its block
+range first. On 18938 ours spends 7 draws against 4, parting at index 1:
+ours `Unit::do_guard+0x8fb`, the original `Guy::set_anim+0x104b`. **What
+the disk could not answer**: which unit guards on 18938, and every unit,
+figure and leader record on 18933..18939. **Sized to the word**
+(DECISIONS 50 §7): six blocks before its block, the block, and 250 above
+it, 257 blocks. No capture shares a block with it, so **18434..18932 is
+compared by no dump**, and the same game is the draw stream's word
+against run54.
+
+**Taken whole.** 625.8 MB of dump and 24.9 MB of trace, 257 blocks
+18933..19189. Launched 06:07 with the lane free (att-813's RonDriver had
+exited), start clicked 06:08, archived 06:30. Waited on with
+`waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 19,201 identical, 19,201 in common |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 18933..19189, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run257_s_word_frame_is_widened_whole`,
+`docs/AI.md` §76.7):
+- **R1 holds**, by the checks above.
+- **R2 holds, and on the word's own block.** Nothing parts on
+  18934..18938. On 18939 four of who=1's units part whole: `1/67`,
+  `1/68`, `1/70` and `1/71` stand under a `GUARD` (kind 12, one order,
+  `tolerance` 144, stopped) here, and walk under an `ATTACK_TO` (kind 2,
+  two orders, a one-leg path) there.
+- **R3 is dead**: the four figures' clocks part, but with their orders,
+  not alone.
+- who=1's `known_rares` agrees on every block. The first block's floor
+  (320 keys) adds who=1's `bucket[0:food]`, 114 against 214, from the gap.
+- The floor is 320 keys on the first block, 103 under the word, 423 on
+  its block and 1,265 in all.

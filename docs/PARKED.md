@@ -325,7 +325,9 @@ both moving), is still not carried in `sim::collide` (COLLISION §4.3).
 ## Parked by item 695, 2026-09-24 — under Great Lakes' 14650
 
 (699) **who=1's `known_rares`**: ours 4 against 0 on 14536, with or
-without the Senate arm.
+without the Senate arm. **822** (AI §76) removed run227's three rows;
+what remains on run143 and run178 is the recompute's timing, so this
+is 701's now.
 
 (700) **`senates_built`**: the leader record prints it (0 → 1 on 14529)
 and nothing in this crate reads it.
@@ -772,11 +774,13 @@ the day a capture opens mid-fight. No window on disk does.
 
 ## Parked by item 327, 2026-09-22 — the second writer
 
-(534) **`compute_reg_territory` is a second writer of `reg_known_rares`**,
+(534) ~~**`compute_reg_territory` is a second writer of `reg_known_rares`**,
 and this crate's zero there is `docs/AI.md` §55.3's lag: it accounts for
 run91's one `known_rares` row (two `MAKE[0]` rows traded for it) and
 names no score. Promote it when a word's widening lands on a
-`known_rares` row.
+`known_rares` row.~~ **Closed by 822** (AI §76): a border fix zeroes the
+count at the next `check_borders` until the next census; East Indies
+18182 → 18938.
 
 ## Parked by item 445, 2026-09-22 — chapter one's widening floor
 
@@ -1205,6 +1209,13 @@ staging takes died on something other than the chapter — target
 validity, a fenced walk draw, an unmeasured launch piece. Walking the
 crate on each take within minutes of it landing let four takes run in
 28 minutes. A checklist row candidate beside the staging row.
+
+(830) **A widening could print its first block's standing leader rows
+by default** (822's Loop line, filed at its merge): the brief's "the
+first killer is the gap's" paid on its first run, and what answered it
+was `RON_STANDING` over the capture's first block, which the widening
+test's own assertions never print. A capture's first block is where a
+cause upstream in an uncompared gap first shows.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
