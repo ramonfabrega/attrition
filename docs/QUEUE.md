@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
 DECISIONS 51; the gate green on 9bd334e8). Since it: 800, 811, 822, 829, 837, 839,
-850 (East Indies 17403 → 19509), 803, 813, 824, 832, 836, 842 (ch20 to ch22
-closed); 853 in flight.*
+850 (East Indies 17403 → 19509), 803, 813, 824, 832, 836, 842, 853 (ch20
+to ch22 closed); 857 in flight.*
 
 - **Great Lakes 20568 of 24,000; East Indies 19509 and the lower map.**
   The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
@@ -30,15 +30,15 @@ closed); 853 in flight.*
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 21 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860).
+- **Fable backlog: 22 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860, 864).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w19509 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · 853 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · 854 next
 Endpoint 24001: EastIndies 38 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
 **Opener: 857 on the AI lane (East Indies is lower), 795 then 831 after
-it, and 853 on the rules lane; the briefs against the checklist. A capture is
+it, and 854 on the rules lane; the briefs against the checklist. A capture is
 sized to its word — six blocks before, 250 after — and waited on with
 `tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
 values, never a row count.**
@@ -69,13 +69,6 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     hold; twelve floors fall (run257 320 → 306, run227 293 → 283), and
     pool slots renumber (run78 `1/60` 69 → 68 against 70). Journal
     824's table. The AI lane's, after its word; its pins are that lane's.
-
-853. **Chapter twenty-two's floor: the Fighter's second gun** (842
-    closed the chapter at 1500, ORDERS §39). Its row is the Barracks'
-    `damage` on 928, 571 + 8/16 against 572 + 0. `FIGHTER` fires on
-    nodes 0 and 1 each `RELEASEEVENT`; `piece_releases` dedups and drops
-    the node, and `Ammo::init` walks the landing along the heading and 48
-    aside by node & 1. `anim.rs`, `artdata.rs`; reaches every ranged unit.
 
 854. **Chapter twenty-two's floor: the landed patrol** (842). `0/6` on
     1385 and `0/7` on 1489: `land_plane` keeps the order under a home
