@@ -880,9 +880,9 @@ target order decides its transit legs are stale.
    every 4 frames; a `GATHER` action within `vector_dist < 0x120` parks the
    unit (`avoid_x/y` = the move's `x/y`, gather reset, move dies;
    COLLISION §15); else
-   every other frame from 4 on, `detect_unit_collision(coll_x, coll_y, …) ==
-   0` → `dest = 0; clear_partial_path; flags |= 1; collide = 0; return 0` (the
-   blocker has gone — re-plan next frame); otherwise `collide++` and `dest =
+   every other frame from 4 on, the quick `detect_unit_collision(coll_x,
+   coll_y) == 0` (COLLISION §18) → `dest = 0; clear_partial_path; flags |= 1;
+   collide = 0; return 0` (the blocker has gone); otherwise `collide++` and `dest =
    0` **every frame** (the increment is outside the `& 0x80000003` test, which
    guards only `repaths[who]++`; run90's `collide` counts 1 → 9 one a block,
    `docs/COLLISION.md` §8.8), then `PathFinder::find_upath_restore` resumes

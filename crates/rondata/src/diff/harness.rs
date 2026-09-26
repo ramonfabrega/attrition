@@ -16167,76 +16167,41 @@ pub(crate) mod tests {
             ["19414 1/78 form: ours -1 theirs 0"],
             "the keys first parting under the old word"
         );
-        // **Under the new word and on it** (item 850): on 19499 the
-        // original's `1/71` hard-collides with `1/75` (`collide 11`,
-        // `collide_o 75`, `collide_who 1`) and ours does not; from 19500
-        // its figure stands there and ours walks on. On 19509 ours spends
-        // `1/71`'s walk start (`Unit::move_step+0x823`), and `1/23`'s idle
-        // roll on block 19510 reads the stream one draw on. No mechanism
-        // is named.
+        // **Under item 850's word and on it, the move's value diff** (item
+        // 857). On 19499 the original's `1/71`, suspended behind `1/75`,
+        // read `collide` 11 against 0, `collide_o` 75 against −1 and
+        // `collide_who` 1 against −1; from 19500 ours walked on (`pos`
+        // (36866, 41713) against (36888, 41736)), and `1/70` and `1/23`
+        // followed. `do_move`'s blocker probe is the quick form, so
+        // `1/75`'s corner at `coll` counts and nothing is written
+        // (`docs/COLLISION.md` §18). All 38 agree now: `1/71` reads
+        // `collide` 11, 12, 0 on 19499..19501 with `collide_o` 75, and
+        // walks from 19502 on both sides.
         let rows = under(TURN + 1, WORD_BLOCK);
         assert_eq!(
             rows,
-            [
-                "19510 1/23 g.cur_anim[0]: ours 26 theirs 25",
-                "19510 1/23 g.end_time[0]: ours 100 theirs 30",
-                "19508 1/70 g.angle[0]: ours -794558464 theirs -794951680",
-                "19507 1/70 g.avg_speed[0]: ours 23 theirs 19",
-                "19508 1/70 g.des_angle[0]: ours -794558464 theirs -794951680",
-                "19507 1/70 g.des_x[0]: ours 36958 theirs 36973",
-                "19507 1/70 g.des_y[0]: ours 41837 theirs 41843",
-                "19507 1/70 g.last_speed[0]: ours 32 theirs 16",
-                "19507 1/70 g.x[0]: ours 36958 theirs 36973",
-                "19507 1/70 g.y[0]: ours 41837 theirs 41843",
-                "19506 1/70 half_step: ours 0 theirs 1",
-                "19508 1/70 heading: ours -794558464 theirs -794951680",
-                "19507 1/70 pos: ours (36958,41837) theirs (36973,41843)",
-                "19499 1/71 collide: ours 0 theirs 11",
-                "19499 1/71 collide_o: ours -1 theirs 75",
-                "19499 1/71 collide_who: ours -1 theirs 1",
-                "19500 1/71 g.angle[0]: ours -499908608 theirs -462094336",
-                "19500 1/71 g.avg_speed[0]: ours 8 theirs 0",
-                "19500 1/71 g.cur_anim[0]: ours 7 theirs 0",
-                "19500 1/71 g.cur_time[0]: ours 1 theirs 12",
-                "19500 1/71 g.des_angle[0]: ours -499908608 theirs -462094336",
-                "19500 1/71 g.des_x[0]: ours 36866 theirs 36888",
-                "19500 1/71 g.des_y[0]: ours 41713 theirs 41736",
-                "19500 1/71 g.end_time[0]: ours 13 theirs 31",
-                "19500 1/71 g.last_speed[0]: ours 33 theirs 0",
-                "19500 1/71 g.last_time[0]: ours 0 theirs 11",
-                "19500 1/71 g.stopped[0]: ours 0 theirs 1",
-                "19500 1/71 g.x[0]: ours 36866 theirs 36888",
-                "19500 1/71 g.y[0]: ours 41713 theirs 41736",
-                "19500 1/71 heading: ours -499908608 theirs -462094336",
-                "19510 1/71 order:coll: Coll { ours: Some((36712, 41547)), theirs: (36846, 41734) }",
-                "19500 1/71 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "19510 1/71 order:move.dest_x: Move { field: \"dest_x\", ours: 36696, theirs: 36504 }",
-                "19510 1/71 order:move.dest_y: Move { field: \"dest_y\", ours: 41592, theirs: 41304 }",
-                "19501 1/71 order:move.pause: Move { field: \"pause\", ours: 2, theirs: 3 }",
-                "19500 1/71 order:move.timer: Move { field: \"timer\", ours: 47, theirs: 48 }",
-                "19510 1/71 path:length: PathLength { ours: 2, theirs: 1 }",
-                "19500 1/71 pos: ours (36866,41713) theirs (36888,41736)",
-            ],
-            "the keys first parting under the new word"
+            Vec::<String>::new(),
+            "the keys first parting under item 850's word"
         );
-        // `1/71` is the one figure whose animation changes on one side
-        // only near the word: the original's on 19509, where it stands
-        // after the collision, and ours on 19510 and 19511, walking on.
-        // No army's list parts.
+        // **And past it, to the capture's end** (item 857): the human
+        // leader's `production_step` on 19601, ours 0 against 1, is the one
+        // key. On 19606 both sides spend `1/64`'s `retry` roll
+        // (`Unit::do_guard+0x8fb`, which the trace printed bare as
+        // `5e656b`), and its guard's `retry` reads 8 on block 19607 on both.
+        assert_eq!(
+            under(WORD_BLOCK + 1, TAIL),
+            ["19601 0/-1 leader:production_step: ours 0 theirs 1"],
+            "the keys first parting past it"
+        );
+        // No figure's animation changes on one side only near item 850's
+        // word: item 857 took `1/71`'s three (19509 there, 19510 and 19511
+        // here) with the collision. No army's list parts.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
             .copied()
             .collect();
-        assert_eq!(
-            word,
-            [
-                (19_509, 1, 71, true, false),
-                (19_510, 1, 71, false, true),
-                (19_511, 1, 71, false, true),
-            ],
-            "a figure's animation changes on one side only"
-        );
+        assert_eq!(word, [], "a figure's animation changes on one side only");
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
             .iter()
             .flat_map(|(b, m)| {
@@ -16267,11 +16232,15 @@ pub(crate) mod tests {
         // under it are counted from 19415 (`1/70`, `1/71` and `1/23`'s 38)
         // and on it; `1/77`'s four go, and 226 fewer keys part in all
         // behind the turn on 19413 the original spends and ours now does.
+        // **Item 857** took it 318/38/352/1,207 → 318/0/319/320: the 38
+        // under item 850's word go with `1/71`'s collision, the block
+        // keeps the first block's 318 and `1/78`'s `form`, and 887 keys
+        // past it agree. The word itself is past this capture (run277).
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (318, 38, 352, 1_207),
+            (318, 0, 319, 320),
             "the floor"
         );
     }

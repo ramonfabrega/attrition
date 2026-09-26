@@ -1006,7 +1006,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original spends
 /// its next `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run269;
 /// its block 19510 is widened there.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_509;
+///
+/// **19509 → 20007 on item 857, and the frame was 19498's blocker probe.**
+/// `1/71`, its search suspended behind `1/75`, probes `coll` on the fifth
+/// frame after the collision. `Unit::do_move@005f7b30` calls
+/// `detect_unit_collision(coll, quick 1, boats 1, 0, nocoll 0, top_only 1)`
+/// at `005f7dab`: the quick form, so `1/75`'s north-east corner on the
+/// cell counts and nothing is written. Ours asked the full form, whose
+/// corner rule let the two pass and cleared `collide_o` (`docs/COLLISION.md`
+/// §18). **The move's value diff (the word's delta, here; its blocks are
+/// `run269_s_word_frame_is_widened_whole`'s):** on block 19499 `1/71`'s
+/// `collide` went 0 against 11 → 11 on both, `collide_o` −1 against 75 →
+/// 75 and `collide_who` −1 against 1 → 1; on 19500 its `pos` (36866,
+/// 41713) against (36888, 41736) → (36888, 41736) on both; the draws on
+/// 19509 went 10 against 9 → 9 against 9. **Then 19606, one draw against
+/// the same draw:** the trace printed `Unit::do_guard+0x8fb`, `1/64`'s
+/// `retry` roll, bare as `5e656b`; its guard's `retry` reads 8 on block
+/// 19607 on both sides, and `trace::SITES` names it now. **The new word's
+/// delta: ours 8 draws and the original 7, parting at index 0**: ours
+/// spends `1/67`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked
+/// step's idle, where the original spends its first `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. Past run269's end (19664); run277 was taken for
+/// it.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 20_007;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
