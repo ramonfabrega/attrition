@@ -16566,7 +16566,8 @@ pub(crate) mod tests {
             "the make list parts first, on the word's frame"
         );
         assert!(
-            rows.iter().all(|r| r.starts_with("20782 ") || r.starts_with("20783 ")),
+            rows.iter()
+                .all(|r| r.starts_with("20782 ") || r.starts_with("20783 ")),
             "nothing parts on 20778..20781: {rows:?}"
         );
         let wealth = standing
