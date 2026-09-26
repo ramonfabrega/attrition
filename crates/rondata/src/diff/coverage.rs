@@ -273,9 +273,12 @@ const UNREAD: &[(&str, &str)] = &[
     // player's craft. **Item 803's run249 windows
     // `process_set_transport`** (`frame`), the first player's transport
     // toggle; the flag it carries is read off the units' `unit_masks`.
+    // **Item 813's run255 windows `process_swarm_around`** (`ox whom
+    // queued orders frame`), the first player's repair; the orders it
+    // lays are read off the citizens' stacks.
     (
         "GAME",
-        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_set_transport process_spell",
+        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_set_transport process_spell process_swarm_around",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -527,6 +530,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch18 = golden_dump("ch18");
     let ch19 = golden_dump("ch19");
     let ch20 = golden_dump("ch20");
+    let ch21 = golden_dump("ch21");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1100,6 +1104,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 703, 704, 719, 802, 830, 1160] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty-one's word, on run255** (item 813): the first
+    // player's repair on disk. 650, the first arrow into the Barracks;
+    // 782, `0/6`'s swarm; 802, the trio's; 930, the repair; 968, a late
+    // order dying; 1131, `0/7`'s gather approach; 1141, the word.
+    if let Some(p) = &ch21 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_ONE;
+        for w in [650, 782, 802, 930, 968, 1131, 1141] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-one carries the window's five blocks");
             frames += n;
         }
     }

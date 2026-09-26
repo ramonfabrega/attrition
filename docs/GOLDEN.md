@@ -1306,7 +1306,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | BuildOrder | `CommandManager::issue_build@00941c30` → `Group::action_build@00707510` → `Group::action_swarm_around@0070fbe0`: a `MOVEORDER` for a human (an `EXPLORETOORDER` for a computer) and the `BuildOrder` behind it; the AI's own builders come through its planner | 18, the build line (§26) |
 | TradeOrder | auto (a Caravan under AI), `CommandManager::issue_trade@00941960` | 7 (the control) |
 | CastOrder | `CommandManager::issue_spell@00941b80` → `Group::action_spell@006fe1a0` → `Unit::add_cast_order@005e4a60`; also auto (`think_fish`, the unpacks, the transport; `think_spellcaster`'s Counterintelligence) | 19, the cast line (§27): the Informer on an enemy Barracks, `do_cast`'s targeted arm |
-| RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
+| RepairOrder | ~~the `repair` command type has no `CommandManager` issuer in the export~~ **a player's repair is `swarm_around`** (§29): `Console::execute_at_cursor@007c6630` and `Options::picked_spot@00721c40` → `CommandManager::issue_swarm_around@009416b0` with `REPAIR` → `Group::action_swarm_around@0070fbe0` → `Unit::add_repair_order@005e4ff0`, a `MOVEORDER` and the `RepairOrder` behind it; the `repair` command (`process_repair@00948cb0` → `Group::action_repair@007020c0`) is issued by nothing; also auto, a computer's (`do_gather`, `Build::process`) | 21, the repair line (§29) |
 | BoardOrder, AwaitBoardOrder | ~~`CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer~~ **no issuer makes one** (§28): `issue_set_transport@00941910` → `Group::action_set_transport@007024b0` is the auto-transport toggle and lays no order; the one adder of each, `Unit::add_board_order@005e4d10` and `Unit::add_await_board_order@005e4c80`, is reached only from `Group::action_board_ship@00700010` (the never-issued `board_ship`, and `finish_insert`'s replay) and `Unit::check_meet_ship@00604550` under a `BoardOrder`'s own step. What boards is the Transport `CastOrder` | 20, the board line (§28), which measures the absence |
 | StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
 | SpecialAnimOrder | **not** `anim`, which pokes `Guy::set_anim@005da300` | unresolved |
@@ -1373,6 +1373,7 @@ below without a run take their number at booking (the eleventh pass).
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
+| 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4084,3 +4085,255 @@ word parts on any of the 695 blocks.
     7 against 8) and its facing on 1165.
   - In the pool, the toggle's pushed selection's `ox`/`oy` and the 642
     move's group `speed`.
+
+## 29. Chapter twenty-one — the repair line: a right-click on a damaged building (item 813)
+
+**The reading first** (the fifteenth pass: after §28, §13's `RepairOrder`
+row was a reading before it was a chapter). The row said the `repair`
+command type has no `CommandManager` issuer. That is true, and it is not
+the route: **a player's repair is the `swarm_around` command** (type
+`0x06`, 17 bytes, `docs/COMMANDS.md` §3) with `orders` `REPAIR` (13), and
+the DLL can call its issuer.
+
+**What builds a `RepairOrder`.** `OrdersMemManager::get_obj(REPAIR)` has
+one caller, `Unit::add_repair_order@005e4ff0`. Its five callers are the
+whole list, and each is a route:
+
+| route | caller of `add_repair_order` | reached from | whose |
+|---|---|---|---|
+| the right-click | `Group::action_swarm_around@0070fbe0`, its `REPAIR` arm, `QUEUE_LAST`, the command's action bit | `CommandPackage::process_swarm_around@00949970` ← `CommandManager::issue_swarm_around@009416b0` ← `GroupOut::issue_swarm_around@0070afc0` ← `Console::execute_at_cursor@007c6630` (a right-click on a damaged, finished building of one's own or an ally's) and `Options::picked_spot@00721c40` (the Repair pick) | a player's, **the chapter's** |
+| the re-entry | the same arm | `Unit::do_repair@005ee420`: a repairer not adjacent kills its order and swarms again at `QUEUE_FIRST` (a halt, the arm at `QUEUE_NEW`, `finish_insert`); `Unit::find_repair_spot@00604320` for a computer's | the order's own step |
+| the replay | the same arm | `Group::finish_insert@0070e620`, cases 6 and `0xd` | a halted group's |
+| the `repair` command | `Group::action_repair@007020c0` | `CommandPackage::process_repair@00948cb0` (command `0x10`, which **nothing issues**: `docs/COMMANDS.md` §6's sweep of every `add_command` caller) and `ScenarioData::issue_order@00996ac0` (the trigger system, cut from v1) | nobody a game reaches |
+| the gatherer's | `Unit::do_gather@005ef2a0` | a computer-driven gatherer (`unit_masks & 0x40000`), difficulty above 1, one frame in 256 (`(o + frame + who) & 0xff == 0`), its building damaged and its city's flag 2 clear, at `QUEUE_NEW` without the action bit | a computer's |
+| the building's call | `Build::process@0061edf0` | a building damaged past half its hits, its owner not human (`leader_flags & 4` clear), difficulty above 1, no enemy capturing it: the idle friendly `PEASANTS` (`0x32`) `find_unit` returns within `0x1e00`, at `QUEUE_NEW` | a computer's |
+| the rally | `Unit::come_out@00617c10` | a unit coming out of a building whose destination object is a building with damage (`+0x24`), `QUEUE_LAST`, no action bit: the gather point's arm, read no further than the call | no command |
+
+`Group::action_repair` is a citizen-only walk (`PEASANTS`/`PEASANTSKOREAN`)
+gated on `Region::is_coast`, with `add_repair_order` at `QUEUE_NEW` or
+`QUEUE_LAST`; no game reaches it. `ScenarioFuncSet::citizen_repair_order@
+009f85b0` calls `action_swarm_around` for the trigger system and is cut
+with it.
+
+**The issuer's two callers pass the same bytes.** `execute_at_cursor`
+picks `REPAIR` when the building under the cursor is finished (vslot
+`0x4c`; unfinished is its `BUILD_AT` arm) and damaged (`+0x24`), on a cell
+whose owner is nobody, the player or an ally; `picked_spot` asks the
+same of its pick. The queue is `QUEUE_NEW` unmodified, `QUEUE_LAST` with shift,
+`QUEUE_FIRST` with shift and alt (`GetKeyState(0x10)`, `(0x12)`). A
+`BUILD_AT` swarm is the same issuer on an unfinished building, which is
+how a player sends citizens to help a site.
+
+**What the arm does with `REPAIR`**, the same member arm as §26's build
+(`docs/ORDERS.md` §5.4), with four differences read off the function:
+
+- **the approach is a `MOVE_TO` for everyone.** `local_40` is 1 and is
+  rewritten only on the `BUILD_AT` arm (`~(leader_flags >> 1) & 2 | 1`).
+  So **parked 791 is confirmed by the reading**: a computer's `REPAIR`
+  swarm walks under a `MOVEORDER`, where this crate's single-unit
+  `Sim::swarm_around` gives it an `EXPLORETOORDER`;
+- no gather filter (`local_30` is 0 unless `BUILD_AT` on a gather
+  building);
+- no farm halving of the ring, and **no `0x30` nudge**: the `REPAIR` arm
+  jumps past the second `find_nearby_spot` to the queue test;
+- `add_repair_order(o, who, QUEUE_LAST, action)` behind the approach,
+  with the `CIVILIANSPELL` (`0x293`) cast ahead of it for a member that can
+  cast it; no `build_masks` write.
+
+**`add_repair_order` itself** (`005e4ff0`): at `QUEUE_NEW` it clears
+`unit_masks & 0x4000000`, zeroes `+0xc0`, closes the orders, clears the
+partial path and updates the action; it always sets `unit_masks & 0x400`
+(the builder bit); it writes the target's `o`, `who` and `uid` into the
+order, the action bit into its flags, and sets the auto-transport bit
+`0x800000` when the target is in another region the unit's transport
+level can reach; then it adds the order at the end of the list (there is
+no `QUEUE_FIRST` tail) and updates the action.
+
+**The record the chapter reads.** `RepairOrder::log_data@00482720`
+prints `REPAIRORDER` and then `TargetOrder`'s fields — the target's `ox`,
+`whom` and `uid` — inside `UnitOrder`'s `flags`; `RepairOrder::get_type@
+004827a0` returns `REPAIR` (13), the `type` a repairer's action shows; and
+`RepairOrder::RepairOrder@00482330` leaves the target at (−1, −1) with
+`uid` `0xffff` until `add_repair_order` writes it.
+
+**So the DLL can reach it.** `issue_swarm_around`'s prologue is
+`issue_attack`'s to the byte (`55 8b ec 83 ec 14 56 8b 75 0c c6`: it
+tests `ox` and `whom` before `check_accept_issue`), and the DLL gained
+`@repair <who> <ox> <whom> <o>…`, which passes `QUEUE_NEW` and `REPAIR`.
+
+**The issuer, under the emulator.** A scratch script ran `issue_swarm_around
+(group, 2006, 0, QUEUE_NEW, REPAIR)` on `tools/explore/command_oracle.py`'s
+fixture.
+
+- **One call appends 22 bytes**: the 5-byte `group` and a 17-byte
+  `swarm_around`, type `0x06`, `[ox i32][whom i32][queued i32][orders
+  i32]`, every field as passed. The same selection again appends the
+  3-byte reuse (20 bytes); `BUILD_AT` and `QUEUE_LAST` change only their
+  own words.
+- **It refuses** a negative `ox` or `whom` (the listing's two `js` before
+  `check_accept_issue`), and appends nothing under `use_mp_playback` or
+  `semaphore & 0x10`.
+- **It writes** the package's size and data and the selection caches:
+  no unit, no order, no draw.
+- **What the emulator cannot reach**: `process_swarm_around@00949970`,
+  which logs `process_swarm_around <ox> <whom> <queued> <orders> <frame>`
+  and, for a target that is `(−1, −1)` or active, calls
+  `action_swarm_around(ox, whom, queued, orders, 1)`, read above; and
+  `Unit::do_repair`'s step, `docs/ORDERS.md` §5.6 and `docs/CITIES.md`
+  §9.3.
+
+**The premise.** A player's right-click repair **lays two orders a
+citizen**: a `MOVEORDER` to a free spot on the ring round the building,
+and a `REPAIRORDER` behind it with the action bit (flags 4). The citizen
+walks the ring, mends the damage at `do_repair`'s rate, and then, the
+building whole, **drops the order**; a citizen that reaches a building
+already whole drops it on arrival. No `repair` command, no
+`Group::action_repair`, no `EXPLORETOORDER`. The killer is the claim's
+own unit, the citizen's stack on the block after the command, and it
+splits the readings (parked 789): the table's reading (`action_repair`)
+lays a lone `REPAIRORDER`; the build line's shape for a computer lays an
+`EXPLORETOORDER` approach; this chapter's lays a `MOVEORDER` and a
+`REPAIRORDER`. **Parked 791 is not tested here**: the player is human, and
+a human's approach is a `MOVE_TO` under both readings of `local_40`.
+
+**The staging, walked before the capture** (run256, `chapter21.cmd`'s
+twelve lines to 830, four takes, each in `docs/RUNS.md` run256). A
+building must be damaged first. On the neutral arena a building is no
+target (`Object::check_target`, `docs/COMBAT.md` §12.2); in who=0's
+territory a walking attacker parts this crate on a fenced walk draw
+(636); so the attackers are who=1's Bowmen, who stand and shoot. Their
+piece, **120**, had no measured release bay, and take 4's twelve arrows
+measure its three (`sim::launch`'s `BAYS`, pinned by
+`launch::tests::run256_s_bowman_arrows_leave_from_the_measured_bays`;
+472's nodes put the same arrows one to four units out). With the bays,
+**this crate walks take 4 whole**: no draw count, sequence or
+`game_random` word parts to 830.
+
+What take 4 printed, each a field the chapter reads: the Barracks
+`0/2007` at (5760, 32640), `myhits` 1200; `peace 1` and the Bowmen walking
+off from 765, their action `type` 2 (`ATTACK_TO`); on 782 `0/6`'s `unit_masks` 0 →
+1034 (the `0x400` builder bit) and its stack a `MOVEORDER` (flags 1) to
+(5736, 33096), the ring's spot on the Barracks' south face, with the
+`REPAIRORDER` (flags 4, `ox 2007`, `whom 0`, `uid 13`) behind it; and on
+802 the same on `0/7`, `0/8` and `0/9`.
+
+**This crate's prediction**, a scratch walk forward from take 4's start:
+`0/6` reaches its spot and its `MOVEORDER` pops on 929; the Barracks goes
+3 → 1 → 0 on 930 and 931; `0/6`'s stack is empty on 932. `0/7` and `0/8`
+arrive on 967 and 968 and `0/9`, from the far side, on 1022; each drops
+its `REPAIRORDER` the block it arrives (968, 969, 1023) with nothing
+behind it. From 1083 the idle citizens take gather orders of their own.
+
+**The cast.** Chapter eighteen's citizens and chapter two's archers, in
+who=0's territory beside Napata (§4's free ground).
+
+**Lines.**
+
+- `0 !ai off`; `600 library who=0 2`; `602 library who=1 3`.
+- `606 add barracks who=0 30,170`: `0/2007` at (5760, 32640).
+- `610 add bowmen who=1 34,170`: `1/6`, `1/7`, `1/8`.
+- `760 peace 1`: the Bowmen stop.
+- `770`–`776 add citizen who=0`: `0/6` at tile (28, 190), `0/7`..`0/9` at
+  (26, 192), (28, 192), (30, 192).
+- `780 @repair 0 2007 0 6`; `800 @repair 0 2007 0 7 8 9`.
+
+A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,
+AMMO=5` and `misc:COMMANDMANAGER=1` over `[605, 1300)`, 695 blocks, beside
+run105's `start:` set. This crate's last event is `0/9`'s order dying on
+1023, and 250 blocks of runway past it end at 1273.
+
+**The premise's killer, and its writers** (§3, point 5). The citizen's
+stack on 782 and 802. `REPAIRORDER`'s one adder is `add_repair_order`, and
+of its five callers (the table above) only the swarm's arm can reach a
+who=0 citizen here: `do_gather`'s and `Build::process`'s need a computer,
+`come_out`'s a unit leaving a building, and `action_repair` the command
+nothing issues. `unit_masks & 0x400`'s writers include
+`add_repair_order` and `add_build_order`; no build is staged.
+
+**What would falsify it**, and where each would first fire.
+
+1. **The issue does not reach the pump.** Trace frame 780 or 800: an
+   `INFO 17` with a refusal; or no `process_swarm_around 2007 0 2 13` on
+   781 or 801 (`COMMANDMANAGER`).
+2. **The command is not the swarm.** Block 782 (802 for the trio): the
+   citizen's stack not a `MOVEORDER` to a ring spot with a `REPAIRORDER`
+   (flags 4, `ox 2007`) behind it — a lone `REPAIRORDER`, an
+   `EXPLORETOORDER` approach, or a `BUILDORDER` each fires it; or
+   `unit_masks & 0x400` clear on 782.
+3. **The repair does not happen.** `0/2007`'s `damage` still above 0 ten
+   blocks after `0/6` stands at its spot (this crate: 929; 3 → 1 → 0 on
+   930–931).
+4. **The late repair lives on.** `0/7`, `0/8` or `0/9` still holding a
+   `REPAIRORDER` the block after it arrives at the whole Barracks (this
+   crate: 968, 969, 1023), or taking a `GATHERORDER` at it (a Barracks is
+   no gather building).
+5. **The three spots are not three.** Two of `0/7`..`0/9`'s `MOVEORDER`
+   points equal on 802: `find_nearby_spot`'s occupancy test is what
+   spreads them (`docs/ORDERS.md` §5.4).
+
+**run255, and which falsifier fired: none** (`docs/RUNS.md` run255; 884
+s, the same game as run256's take 4 for the 831 frames they share,
+355,840 `GROUPDATA`).
+
+- **The swarm.** `process_swarm_around 2007 0 2 13` on 781 and 801. On
+  782 `0/6`'s `unit_masks` 0 → 1034 and its stack a `MOVEORDER` (flags 1)
+  to (5736, 33096) with the `REPAIRORDER` (flags 4, `ox 2007`, `whom 0`)
+  behind it. On 802 the trio's the same, to (5688, 33048), (5880, 33048)
+  and (5352, 32808): three spots.
+- **The repair.** `0/6` stands at its spot on 929; the Barracks' `damage`
+  goes 3 → 1 on 930 and 1 → 0 on 931, with timber 261 → 260 on 931, the
+  price; `0/6`'s stack is empty on 932.
+- **The late orders.** `0/7` and `0/8` reach a whole Barracks on 967 and
+  968 and `0/9` on 1022; each `REPAIRORDER` is gone the next block (968,
+  969, 1023), with nothing behind it.
+- **After.** The four take `GATHERORDER`s on `0/2001` of their own on
+  1083, 1129, 1130 and 1176.
+
+This crate's prediction, written before the run, is the original's to the
+block: 782, 802, 929, 930, 931, 932, 968, 969, 1023, 1083.
+
+
+**The word: `GOLDEN_WORD_CHAPTER_TWENTY_ONE` = 1141, open, on the first
+walk.** The command's entry — `input::group_swarm_around` →
+`Sim::group_swarm_around` (`crates/sim/src/swarm.rs`) →
+`group_action_swarm_around` — and piece 120's bays landed with the chapter
+before the capture, and no draw count, draw sequence or `game_random`
+word parts through the whole repair line: the arrows, the peace, both
+swarms, the repair and the three late orders. The word is past it. On
+1141 the original spends two walk-step animation draws (`Guy::set_anim` <
+`Unit::move_step`), `0/8`'s and `0/7`'s, and this crate spends `0/8`'s
+alone.
+
+- **The value diff at the word** (DECISIONS 51.2). The first record
+  that parts on a citizen is **`0/7`'s `MOVEORDER` on 1131**, the approach
+  to its idle gather on `0/2001`: `x` 4104 here and 4296 there, `off_x`
+  264 and 456, `angle` −237961216 and −211681280. The original sends
+  `0/6`, `0/8` and `0/7` all to (4296, 28824); this crate spreads `0/7` a
+  tile west. Its path parts on 1132, and on 1141 its step draws there
+  and not here. That is the gather approach (`gather.rs`), not this
+  item's module.
+- **The widening** over (605, 1301), both directions, with `AMMO`: the
+  births' `form`; chapter two's `order:target` on the Bowmen's attack
+  (635); chapter eight's `group.id` on their walk-off (1021); the idle
+  gathers' `group` (1083, 1129, 1130); and from 1131 `0/7`'s approach and
+  what follows it. **Every arrow agrees**, launch, landing and clock, on
+  every block. In the pool: the pushed selections' `ox`/`oy` on 782 and
+  802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
+  (chapter twenty's).
+- **The repair's own fields**, read raw in
+  `run255_s_repair_is_the_original_s_unit_for_unit`, because the widening
+  compares neither: `unit_masks & 0x400` (`widen_block` reads other bits)
+  and the `REPAIRORDER`'s target (`build_ids` names only the start dump's
+  buildings, so `target_ids` leaves a staged building's target
+  uncompared). 14,623 rows, 704 repair-order frames. They part on four
+  rows only: **the builder bit outlives the repair here**. The original
+  clears `0x400` in `Unit::add_gather_order@0061a5c0` and in
+  `Unit::think_peasant@005f5760`'s failed build arm; this crate's
+  `was_builder` is never cleared, so on each citizen's first gather (1083,
+  1129, 1130, 1176) ours is 1 and theirs 0. `orders.rs`, fenced. The test
+  failed first on the target, which read −1 through `build_ids`.
+- **What is not compared**: the Barracks' `helpers` is 0 on every block
+  of both sides (the step's own counter, reset before the dump), and
+  stays pinned unread.
