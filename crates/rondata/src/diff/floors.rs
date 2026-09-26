@@ -245,7 +245,7 @@ mod tests {
         let pinned: std::collections::BTreeSet<String> = testkit
             .lines()
             .filter(|l| l.contains("const GOLDEN_WORD_"))
-            .flat_map(|l| tokens(l))
+            .flat_map(&tokens)
             .collect();
         // The array's own declaration, not this test's mention of it.
         let needle = format!("const {}: [", "GOLDEN_WORDS");

@@ -40,7 +40,7 @@ on disk first, the capture after; 882 on the rules lane, fenced to
 `come_out`'s push; 795 after 880. A brief names only the fenced modules;
 a capture is sized to its word and waited on with
 `tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
-its merge. The count runs from PASS16SHA.**
+its merge. The count runs from f0b9d296.**
 
 ## The queue
 
