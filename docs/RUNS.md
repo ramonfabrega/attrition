@@ -7554,3 +7554,56 @@ starts on 709 and 721, `construct_hits` block for block (53 and 116 on
 row it had wrong is the help's class: the prototype laid an
 `EXPLORETOORDER` where the original lays a `MOVEORDER`, because this
 crate's one-unit `swarm_around` never asks whose builder it is.
+## run240 — Great Lakes' world at 17087, a packet at logger frame 17087 (2026-09-25, item 776)
+
+**What it is.** The long game on the click-free lane to 17093. It carries
+a `RON_STATE_FRAME=17087` packet: the state after trace tick 17086, with
+tick 17087's world searches for `1/9` and `1/72` still ahead of it. It
+also carries a `WORLD=6` dump over [17086, 17089) beside run226's line.
+The trace's proxies were live all game (`callwin 0–17093`), so every
+`calc_cost` and `astar_path` is on it.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-25-run240 \
+    --map 14 --end-frame 17093 --timeout 3600 --log-window 17086 17089 \
+    --detail end:MISC,WORLD=6,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=17087 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+The plan is the lab's Great Lakes plan, reused as run189 reused it
+(`~/ron-data/lab-experiments/2026-09-23-item-597/plan/`).
+
+**Why a packet, and what the disk could not answer.** On tick 17087 the
+original's `1/9` and `1/72` plan other world paths than ours to `1/2022`.
+Whether they plan over another world (cells, tile masks, danger, fog)
+or with another planner is a value the original holds. run226 prints no
+`WORLD`. run189's `WORLD` (14529, every tile mask agreeing) is older than
+the Pyramids' site (15382) and every building placed since.
+
+**Taken whole.** `success: true`, exit 0, `MAP_STYLE 14` and seed 12345
+read back, five settings files restored. **90 s launch to exit, 99 s in
+all**, with an 859,770,264-byte packet, 16 MB of dump and 69 MB of trace.
+The lane lock was stale: pid 62875 was dead. Waited on with `waitrun.sh`,
+which exited 0. The dump is archived as
+`gamelog-run240-greatlakes-worldword.txt`, and the trace as
+`rontrace-run240.log`. The packet stays at
+`~/ron-data/lab-captures/2026-09-25-run240/map-14`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run53.log` | **0 differing**, 17,094 identical |
+| the window | `WORLD` on block 17087, 3,600 cells and 57,600 tile masks |
+| the proxies | 740,390 calls; tick 17087 holds six world searches, 303 priced steps |
+
+**What it settled** (`docs/PATHFINDER.md` §27,
+`run240_s_world_at_17087_is_the_original_s`).
+- **The world agrees where the searches look.** The only cell that
+  parts is (2, 40). The tile masks part on `0x4` alone. who=1's danger
+  agrees whole.
+- **The planner parts on `1/9`'s first expansion.** The original's
+  validity probe refused forest-flagged cells (56, 18) and (55, 19):
+  `invalid_loc`'s cell arm under `valid_wcoord`'s flags.
+- With the clause, all 303 priced steps agree, and the word moved
+  17128 → 17181.
+- The packet was not read: the dump and the trace answered every term.

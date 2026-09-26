@@ -13,13 +13,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **15 landings
-since 7958738**, ten words and five chapters. Lane att-776 (Great Lakes) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **16 landings
+since 7958738**, eleven words and five chapters. Lane att-779 (chapter eighteen) is live.*
 
-- **Great Lakes 15384 → 17128** in five: `num_wonders` (722),
-  `frame_attacked` (729), the siege sub-group's record (736), `move_step`'s
-  give-up (742; run226 to 17350) and the Pyramids' cap and food terms (757,
-  ECONOMY §15). **Great Lakes is the lower map.**
+- **Great Lakes 15384 → 17181** in six: `num_wonders` (722),
+  `frame_attacked` (729), the siege sub-group (736), `move_step`'s give-up
+  (742; run226 to 17350), the Pyramids (757) and `invalid_loc`'s cell arm
+  (776, PATHFINDER §27). **Great Lakes is the lower map.**
 - **East Indies 15985 → 17189** in three: the republic's commerce cap
   (708), a gatherer counted in its building's city (752), and the British
   Taxation discount (767, AI §74; run233 captured [16929, 17441)).
@@ -30,16 +30,16 @@ since 7958738**, ten words and five chapters. Lane att-776 (Great Lakes) is live
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 20 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–784 filed from this tranche's journals).
+- **Fable backlog: 21 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–789 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w17189 of 24,000 · GreatLakes w17128 of 24,000
+Long captures: EastIndies w17189 of 24,000 · GreatLakes w17181 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · 779 next
-Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 46 off, 0 unlinked
+Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 43 off, 0 unlinked
 
-**Opener: 776 is live on the AI lane (Great Lakes is lower), 773 after
-it; 779 on the rules lane; landings count from 7958738. A capture carries
+**Opener: 785 on the AI lane (Great Lakes is lower), 773 after it; 779
+is live on the rules lane; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -51,12 +51,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-776. **Great Lakes' word is 17128** (757 moved it 17099 → 17128: the
-    Pyramids' commerce cap and food terms, `has_wonder` read live, ECONOMY
-    §15). On 17128 ours 37 draws against 34 at index 30: ours
-    `Unit::do_move+0xe84`, theirs `Guy::set_anim+0x97a < Unit::do_move
-    +0x11cf`. Under it `1/9` and `1/72` take other paths to the same
-    targets from 17088. Inside run226, widened. No mechanism.
+785. **Great Lakes' word is 17181: who=1's wonder offers** (776 moved it
+    17128 → 17181: `invalid_loc`'s cell arm under `valid_wcoord`,
+    PATHFINDER §27). On 17181 ours 11 draws against 5 at index 0: three
+    `Leader::create_buildings+0xffb`/`+0x1017` pairs. On 17182 who=1's
+    `MAKE` list offers wonders 526/528/527 here, none there. Inside run226,
+    widened. 777 (the Pyramids' readers) may be its family. No mechanism.
 
 773. **East Indies' word is 17189** (767 moved it 16982 → 17189: the
     British Taxation discount in `get_cost`, AI §74). On 17189 ours spends

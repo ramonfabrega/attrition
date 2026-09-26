@@ -524,7 +524,11 @@ owner test); `p6`/`p7` relax the water refusal for a transport-forced unit
 (`unit_masks & 0x800000`), and `p6` is also forced on when the unit's path
 top carries flag 4. Dispatch is on the type's domain (`+0x218`: 0 land, 1
 sea, 2 air — air is always valid); the land arm refuses forest (except
-forest-walkers, `unit_masks2 & 0x4000`), mountains, cliffs and water; the
+forest-walkers, `unit_masks2 & 0x4000`), mountains, cliffs and water, and
+**first**, when `p3` and `p6` are both set, a tile whose **cell** carries
+`WData.flags & 0x70` (mountain, forest, `0x40`): that is `valid_wcoord`'s
+probe, so the world search refuses a forest *cell* (§27; ~~the tile
+alone~~ was this crate's reading until item 776); the
 shared tail refuses a `0x4000`-blocked tile unless the unit itself stands
 on one. An eighth argument exists at every call site and is never read —
 a stale register.
@@ -2610,3 +2614,107 @@ stood".
 
 **Reading only**: none that the diff does not reach. The unwind probe's
 copies are carried, and no diff has isolated them.
+
+## 27. The world probe reads the cell: `invalid_loc`'s cell arm (item 776, 2026-09-25)
+
+**Established** by a diff against the original's own priced steps, and
+the listing. **High** confidence for the clause on forest cells. Its
+`0x40` bit and the forest-walker exemption rest on the listing alone
+(§27.4).
+
+### 27.1 The word, and what the disk said
+
+Great Lakes' word 17128 was `1/9`'s re-plan. Under it, `1/9` and `1/72`
+took other world paths to `1/2022` from tick 17087. The original's `1/72`
+went right round the Pyramids (`1/2026`) in nine entries, and ours cut
+north-west through cell (56, 18) in three. The original's `1/9` went by
+(55, 20), where ours went by (55, 19).
+
+**run240** (`docs/RUNS.md`) printed the world on block 17087, the state
+the tick plans over, and its trace proxied every `calc_cost` of the
+game. `run240_s_world_at_17087_is_the_original_s` reads both.
+
+- **The world is the original's where the searches look.**
+  - One cell of 3,600 parts: (2, 40).
+  - The tile masks part only on `0x4`, the residue run72's and run189's
+    pins carry.
+  - who=1's danger map agrees whole.
+  - The fog parts only on other players' bits, round the Pyramids.
+- **The first priced step to part is `1/9`'s first expansion.** The 82
+  steps before it agree.
+  - From its root, cell (56, 19), ours priced N into (56, 18) at 200 and
+    W into (55, 19) at 198.
+  - The original priced neither: its validity probe refused both.
+
+### 27.2 The clause
+
+`valid_wcoord` calls `invalid_loc(tile, 1, timeout > 1, 0, 1, 0)` (§6).
+Both probes land on plain tiles (city radius and `BAD_PATH`, one of
+them road), which every tile test passes. The refusal is the land arm's **first** test, in the listing
+at `00607e6f`–`00607ead`:
+
+```
+flags = cells[(ty >> 2) * xs + (tx >> 2)].flags      ; 0x1c stride, +0x134
+if (flags & 0x70)                                     ; mountain | forest | 0x40
+   && !((flags & 0x20) && (unit_masks2 & 0x4000))     ; a walker in a forest cell
+   && param_3 && param_6:
+    return 2
+```
+
+`param_6` is forced to 1 when the path's top entry carries `flags & 4`
+(the function's first statement). Cells (56, 18) and (55, 19) carry
+forest, road and `NEARBLOCK`. Cell (56, 19) carries road and `NEARBLOCK`
+without forest, so it passes.
+
+So the world search refuses a forest *cell*, where the tile test would
+only refuse its forest *tiles*. This crate's land arm began at the tile;
+`Sim::invalid_loc` (`crates/sim/src/path.rs`) now reads the cell first.
+
+The only caller that passes both flags is `valid_wcoord`. The others pass
+`param_6` only through a transport-flagged path top, as the original does.
+
+**Pinned capture-free**:
+`path::tests::a_world_probe_refuses_a_forest_cell_on_plain_ground`.
+Under the tile-only rule it fails on its first assertion.
+
+### 27.3 What moved
+
+- **All 303 priced steps of tick 17087** agree with the original's, key
+  and price: six world searches, among them `1/9`'s 42 and `1/72`'s 169.
+- **The value diff** (`run226_s_word_frame_is_widened_whole`): every row
+  of `1/9` and `1/72` from 17088 goes.
+  - **Nothing parts on 17088..17181.**
+  - The floor goes 398/38/1256 → 398/0/876.
+- **Great Lakes 17128 → 17181**, inside run226.
+  - On 17181 ours spends 11 draws against 5, parting at index 0: ours
+    spends three `Leader::create_buildings+0xffb`/`+0x1017` pairs the
+    original does not.
+  - Block 17182's first rows are who=1's `MAKE` slots 0, 1, 2 and 8.
+    Here they hold three wonders (types 526, 528 and 527, category 8);
+    there they hold nothing.
+  - That is a row, not a cause.
+
+### 27.4 What is not established
+
+- **The `0x40` bit.** Nothing names it (`crate::world::cell`). No cell a
+  run226 search reaches carries it without forest or mountain beside it.
+- **The forest-walker exemption.** It is read from the listing.
+  `forest_walker` is still this crate's seam (`unit_masks2 & 0x4000`,
+  the Iroquois), so the exemption never fires here.
+- **The other callers under a transport-flagged top.** Such a caller
+  passes `ignore_buildings` and a forced `param_6`. No capture on disk
+  plans a transport leg across a forest cell.
+
+### 27.5 Coverage
+
+**Diff-backed**:
+
+- the clause on forest cells, by
+  `run240_s_world_at_17087_is_the_original_s`: every priced step of tick
+  17087, and the world beside it;
+- the move, by `run226_s_word_frame_is_widened_whole`;
+- the long word, by `run53_s_24000_frames_put_the_ceiling_where_run33_did`.
+
+**Listing-backed**: the clause's operands (`00607e8f`–`00607ead`).
+
+**Reading only**: the `0x40` bit and the walker exemption (§27.4).
