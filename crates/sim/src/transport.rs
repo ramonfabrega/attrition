@@ -734,9 +734,8 @@ impl Sim {
         use crate::orders::spell;
         let s = order.spell;
         if self.spell(s).is_some_and(|d| d.targeted()) {
-            // The targeted half. Nothing here issues one, and letting it
-            // fall through the untargeted arm would be a fiction.
-            self.kill_current_order(u);
+            // The targeted half, `crate::cast` (item 790).
+            self.do_cast_targeted(u, order);
             return;
         }
         if !order.paid

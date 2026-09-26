@@ -748,6 +748,39 @@ fn chapter_eighteen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter nineteen, pinned** — the cast line, a Spy's Informer on an
+/// enemy building (`docs/GOLDEN.md` §27, item 790, run245). Six staged
+/// lines: `!ai off`, `library` for both sides, a who=1 Barracks on 606, a
+/// who=0 Spy on 610, and one issuer line through `issue_spell@00941b80` —
+/// `@spell` on 620, the Informer (639) on `1/2006`.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run245): a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to
+/// (14232, 15528) on 622, `mana_burn` +500; the Spy in range on 756 and the
+/// Barracks `infiltrated` on 795.
+///
+/// `GOLDEN_WORD_CHAPTER_NINETEEN` carries what stands at the word.
+#[test]
+fn chapter_nineteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch19", "chapter19", 19, 6, 1099) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_NINETEEN,
+        "chapter nineteen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_NINETEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_NINETEEN,
+        "chapter nineteen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §27"
+    );
+    eprintln!(
+        "chapter nineteen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run235's bombs, record for record** (item 770, `docs/ORDERS.md` §35).
 /// run235 is run223's game again — the same seed, script and detail line —
 /// with `AMMO=5`, to 1100: every bomb the pair drop on the Barracks is a
@@ -7005,6 +7038,110 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     want_pool.sort();
     assert_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
 }
+
+/// **Chapter nineteen's word, widened whole, both directions** (item
+/// 790). Every record run245 carries on every block of
+/// [`WIDENING_CHAPTER_NINETEEN`], by [`widen_civilians`]: every unit and
+/// figure — the Spy `0/6` — every building, the staged Barracks `1/2006`
+/// among them, both leaders at `LEADERS=2`; and who=0's `GROUPDATA` pool
+/// by [`widen_pool`], where the command's pushed selection sits. run245
+/// dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_nineteen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch19",
+        "chapter19",
+        WIDENING_CHAPTER_NINETEEN,
+        1099,
+        0,
+        (620, 623),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch19 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_NINETEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch19: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_NINETEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch19", "chapter19", WIDENING_CHAPTER_NINETEEN, 0)
+        .expect("run245 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch19 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH19.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch19: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH19_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch19: what parts in the pool moved");
+}
+
+// **What parts under the word**, by block and key (`docs/GOLDEN.md` §27).
+// **The first pin, word 669, open** (605, 672): the harness skips the
+// `@spell` line, the command having no entry into this simulation. So the
+// Spy's birth `form`; on 622 its stack, empty here where the original's
+// holds the `CASTORDER` and, at its head, the `MOVEORDER`, and the action
+// point and group that go with them; on 623 its first step. The word is
+// the draw an idle Spy spends on 669 (`Guy::set_anim+0x97a <
+// Guy::inc_time+0x271`) that the walking one does not.
+const WANT_CH19: &[&str] = &[
+    "611 0/6 form",
+    "622 0/6 dest_angle",
+    "622 0/6 group",
+    "622 0/6 idle",
+    "622 0/6 order:length",
+    "622 0/6 orders.len",
+    "622 0/6 orders_x",
+    "622 0/6 orders_y",
+    "623 0/6 g.angle[0]",
+    "623 0/6 g.avg_speed[0]",
+    "623 0/6 g.cur_anim[0]",
+    "623 0/6 g.cur_time[0]",
+    "623 0/6 g.des_angle[0]",
+    "623 0/6 g.des_x[0]",
+    "623 0/6 g.des_y[0]",
+    "623 0/6 g.end_time[0]",
+    "623 0/6 g.last_speed[0]",
+    "623 0/6 g.last_time[0]",
+    "623 0/6 g.stopped[0]",
+    "623 0/6 g.x[0]",
+    "623 0/6 g.y[0]",
+    "623 0/6 heading",
+    "623 0/6 path:length",
+    "623 0/6 path_recursion",
+    "623 0/6 pos",
+    "623 0/6 tolerance",
+];
+// **What parts in the pool**: the command's pushed selection, slot 1
+// `0/6` on 622, which the skipped command never pushed here.
+const WANT_CH19_POOL: &[&str] = &["622 slot 1 held"];
 
 /// **Chapter eighteen's word, widened whole, both directions** (item
 /// 779). Every record run241 carries on every block of

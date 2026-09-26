@@ -669,6 +669,17 @@ pub fn load_tables(
                 .and_then(|n| i16::try_from(n).ok())
                 .unwrap_or(0),
             flags: craft_flags(r.text("FLAGS").unwrap_or("")),
+            // `SpellType::init` keeps the range in internal units, a tile
+            // being 192 (run246's `get_range` of 960 is the Informer's 10
+            // tiles halved on a building).
+            range: int(r, "SPELL_RANGE").unwrap_or(0) as i32 * 192,
+            mana: int(r, "MANA").unwrap_or(0) as i32,
+            from: ["FROM", "FROM2"].map(|col| {
+                r.text(col)
+                    .map(str::trim)
+                    .and_then(uname)
+                    .map(|u| BASE_UNITTYPES as usize + u)
+            }),
         })
         .collect();
     let mut caster_seed = vec![false; unit_cols.len()];
@@ -1204,6 +1215,7 @@ pub fn load_tables(
             archer: unit_is(i, BOWMEN),
             anti_air: unit_is(i, ANTIAIRCRAFTGUN),
             cols: cols[i],
+            mana: int(r, "MANA").unwrap_or(0) as i32,
             gaia: i >= GAIA,
         });
     }

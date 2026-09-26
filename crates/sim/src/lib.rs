@@ -57,6 +57,7 @@ pub mod bhs;
 pub mod build;
 pub mod calc_gather;
 pub mod caravan;
+pub mod cast;
 pub mod city;
 pub mod collide;
 pub mod combat;
@@ -239,6 +240,28 @@ pub struct Unit {
     /// `docs/SYNC.md` §3.9). `Unit::init` clears it with `mana_burn`, so a
     /// bird starts at 0.
     pub spell_time: i16,
+    /// **`UnitData::mana_burn` (`+0x96`)** — the craft a caster has spent
+    /// and not yet recovered: `mana_left = mana − mana_burn`. `Unit::init`
+    /// starts a **spy** at half its `mana` (`is(SPY, 0)`, the only type it
+    /// names), `pay_cast_costs` adds a craft's `MANA`, and `Unit::process`
+    /// takes one back a frame while `unit_masks & 0x2a000` is clear
+    /// (`docs/GOLDEN.md` §27). SEAM: an aircraft's burn — `do_strafe`'s
+    /// `bombing_mana_cost` and `process`'s air recharge — is not carried.
+    pub mana_burn: i16,
+    /// **`UnitData::cavarch_o`/`cavarch_who` (`+0xa2`/`+0xa8`)** and the
+    /// uid beside them (`+0xa6`) — a caster's target, written by
+    /// `Group::action_spell` and again by each frame of `do_cast`'s
+    /// targeted arm (`docs/GOLDEN.md` §27). `None` is `(-1, -1)`.
+    pub cast_target: Option<combat::Obj>,
+    /// **`unit_masks & 0x20000`** — "the cast has started": set on a
+    /// targeted cast's first in-range frame, cleared by
+    /// `kill_current_order`, and one of the three bits that stop mana
+    /// recovering (`docs/GOLDEN.md` §27).
+    pub casting: bool,
+    /// **`ObjectData::infiltrated` (`+0x3a`)** — the players who have an
+    /// informer in this object, one bit per `who`: `cast_double_agent`
+    /// sets the caster's (`docs/GOLDEN.md` §27).
+    pub infiltrated: u8,
     /// **A plane's figure in the air** — guy 0's bank, pitch and altitude
     /// (`GuyData +0x44/+0x48/+0x4c/+0x50/+0x14/+0x70`), which
     /// `Unit::bank_aircraft` and `Unit::pitch_aircraft` step on every frame
@@ -702,6 +725,9 @@ pub struct UnitType {
     pub archer: bool,
     pub anti_air: bool,
     pub cols: ai_load::UnitCols,
+    /// `MANA` (`UnitTypeData +0x2ec`), the pool `UnitData::mana@00609a50`
+    /// reads for a caster. SEAM: its supply-upgrade, French and space arms.
+    pub mana: i32,
     /// One of the twelve gaia types (`BASE_GAIATYPES..END_GAIATYPES`, record
     /// `352..`). The animals are unit types with a `WHERE` of Large City, and
     /// several of the original's loops stop before them.
@@ -827,6 +853,10 @@ impl Unit {
             idle: 0,
             stance: 1,
             spell_time: 0,
+            mana_burn: 0,
+            cast_target: None,
+            casting: false,
+            infiltrated: 0,
             airframe: air::Airframe::default(),
             was_builder: false,
             carry: 0,
@@ -1275,6 +1305,10 @@ pub struct Building {
     pub orig_ty: Option<usize>,
     /// `flags & 1`: in use. A dead building keeps its slot (and ejects its
     /// garrison) until `hold_frames` runs out.
+    /// **`ObjectData::infiltrated` (`+0x3a`)** — the players with an
+    /// informer in this building (`cast_double_agent`, `docs/GOLDEN.md`
+    /// §27).
+    pub infiltrated: u8,
     pub alive: bool,
     /// `flags & 2`: `Wall::start` has run — the footprint is committed.
     pub started: bool,
@@ -2070,6 +2104,7 @@ impl Sim {
             targeted: 0,
             ty: None,
             orig_ty: None,
+            infiltrated: 0,
             alive: true,
             started: true,
             activated: true,
@@ -2698,6 +2733,11 @@ impl Sim {
             unit.movement.speed = self.type_speed(who, ty);
             unit.movement.turning = self.turning_for(ty);
             let u = self.add_unit(unit);
+            // `Unit::init@00612100:592`: a spy (`is(SPY, 0)`, the lineage)
+            // is born with half its pool spent.
+            if self.unit_is_spy(u) {
+                self.units[u].mana_burn = i16::try_from(self.unit_mana(u) / 2).unwrap_or(0);
+            }
             // `Unit::init` → `Guy::init_real`: the figure's one draw.
             // (The unit's `ty` stays unset here, as it always has; the
             // piece lookup takes the type directly.)
@@ -4144,6 +4184,9 @@ impl Sim {
             }
             return;
         }
+        // `Unit::process@00610bc0`'s head, a caster's arm: a point of
+        // craft back (`crate::cast`), before the heal and the work.
+        self.recover_mana(i, frame);
         // `process_healing` runs for every unit, inside or out; the
         // garrison branch is the only heal this mechanic owns.
         self.garrison_heal(i, frame);

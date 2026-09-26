@@ -267,10 +267,12 @@ const UNREAD: &[(&str, &str)] = &[
     // queued frame`), the first player's attack on disk. **Item 746's
     // run223 windows `process_flight`**, the frame alone, the same shape.
     // **Item 779's run241 windows `process_build`** (`x y x2 y2 type
-    // queued frame`), the first player's build on disk.
+    // queued frame`), the first player's build on disk. **Item 790's
+    // run245 windows `process_spell`** (`type ox whom frame`), the first
+    // player's craft.
     (
         "GAME",
-        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
+        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_spell",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -520,6 +522,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch16 = golden_dump("ch16");
     let ch17 = golden_dump("ch17");
     let ch18 = golden_dump("ch18");
+    let ch19 = golden_dump("ch19");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1033,6 +1036,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 642, 721, 948, 1097, 1141] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter eighteen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter nineteen's word, on run245** (item 790): the first
+    // player's targeted `CASTORDER` on disk. 622, the Spy's cast and move;
+    // 669, the word; 756, the first frame in range; 795, the cast and the
+    // Barracks `infiltrated`.
+    if let Some(p) = &ch19 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_NINETEEN;
+        for w in [622, 669, 756, 795] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter nineteen carries the window's five blocks");
             frames += n;
         }
     }

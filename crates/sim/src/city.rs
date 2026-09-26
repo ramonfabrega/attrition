@@ -1011,6 +1011,7 @@ impl Sim {
             targeted: 0,
             ty: Some(ty),
             orig_ty: Some(ty),
+            infiltrated: 0,
             alive: true,
             started: false,
             activated: false,
