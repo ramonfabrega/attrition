@@ -7458,9 +7458,10 @@ only under a repeating base** (item 842, the listing's tail of
 @00472410`, `build_masks & 0x80`. When it is set, the order stays with its
 action bit cleared (`flags &= ~4`). When it is clear, `close_orders`,
 the partial path and `update_action` follow. run265's Airbase reads 4232,
-whose bit 7 is set. This crate closes the orders always
+whose bit 7 is set. ~~This crate closes the orders always
 (`Building` carries no `build_masks`, `lib.rs`), which is the widening's
-one order on 1385 and 1489. Parked.
+one order on 1385 and 1489. Parked.~~ Built by item 854, §40:
+`Building::repeat_air`, and the rows agree.
 
 ### 38.2 `action_flight`'s inside arm
 
@@ -7493,7 +7494,8 @@ saturates there and the chain is walked:
   the tank first reads 0 (units are processed before buildings, so the
   refill and the launch share it);
 - the front order's action bit (or the base's vslot `0xf0`,
-  `has_repeat_air`, `build_masks & 0x80`, §38.1; a SEAM): a
+  `has_repeat_air`, `build_masks & 0x80`, §38.1 and §40; this arm is
+  still a SEAM here, parked 844): a
   targeted strike whose target is invalid and whose point is off the
   world is killed; a patrol's `returning` is cleared; the plane joins
   `launching` (`+0x44`), and the first of the call is `come_out(0)` and
@@ -7530,7 +7532,8 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
   Bomber's do. Its round is exact (§39.2). Its second gun and the
   landing's walk are §39.3, parked.
 - SEAMs: `MISSILE_DEFENSE_BONUS`, `war_allowed`, the `NUCLEARMISSILE`
-  arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`;
+  arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`
+  in `do_launch` (in `land_plane` it is built, §40);
   a strafe home to another, full base turned `AirPatrolOrder`; two planes
   launched from one base in one call (`launching` holding the second);
   a helicopter's EXIT (two draws, 200 over the ground); the heal inside
@@ -7611,8 +7614,9 @@ capture reaches that arm.
 
 - ~~**The second gun and the walk** (parked)~~: built, §39.5 (item
   853).
-- **The landed patrol** (§38.1): `has_repeat_air`, a `build_masks` bit
-  that `Building` does not carry. Its writer is unread.
+- ~~**The landed patrol** (§38.1): `has_repeat_air`, a `build_masks` bit
+  that `Building` does not carry. Its writer is unread.~~ Built, §40
+  (item 854): `Build::init` is the writer.
 - The flying-target arm of §39.1.
 
 ### 39.4 Coverage
@@ -7708,3 +7712,93 @@ nodes sit on distinct frames.
 - the walk against a flying target, which is refused, and against an
   attack-ground order. Both rest on the listing alone.
 
+
+## 40. The landed patrol: a repeating base keeps the order (item 854, 2026-09-26)
+
+`docs/GOLDEN.md` §31 is the chapter and run265 the capture. §38.1 read
+the tail of `Unit::land_plane@005e9950` and left the base's side unbuilt.
+This builds it: `Building::repeat_air` (`lib.rs`), set by `init_build`
+(`city.rs`), and the gate in `crate::air`'s `land_plane`. It closes
+chapter twenty-two's standing rows on 1385 and 1489.
+
+**How it was established, and how confident.**
+- **The writer**, by grepping every store to `WallData +0x60`
+  (`types.txt`: `build_masks`, a `short`) in the export.
+  `Build::init@00629740:280` ors in `0x88` for every building that
+  `ObjectData::can_carry(AIR)`: the hangar bit `0x8` and repeat air
+  `0x80`, together. `Wall::init` zeroes the word first.
+- **Its only gameplay clearer** is the player's repeat-orders toggle.
+  `Options::set_air_repeat@0071c740` issues `GroupOut::issue_buildmask(0x80)`
+  for a building selection, and `Group::action_buildmask@006fc9a0` flips
+  the bit on each member that `WallData::valid_buildmask` passes (`0x80`
+  needs `can_carry(AIR)`). The other writers are scenario functions and
+  `UnitBalance::next`, both out of v1. `Wall::swap_team` copies the word.
+- **The disk**: all 201 dumps (the kept logs and every golden run).
+  `0x80` is on the five Airbases alone (type 447: `0/2007` in ch6b,
+  ch17, ch17-ammo and ch22, and ch6b's `1/2006`), and each reads
+  `& 0x88` = 136
+  from `BEGIN GAME` to its last block. The bit is loaded, never written, on
+  every capture. Neither long capture has an Airbase.
+- **Diff-backed**: the harness compares `build_masks & 0x80` against
+  `repeat_air` on every building of every block, beside `0x100`; and
+  run265's widening agrees whole on both landings.
+- **Reading only**: the toggle and a base with the bit clear. No capture
+  holds one.
+
+### 40.1 `land_plane`'s tail, `005e9a43`
+
+After `returning` is cleared and a strafe with no live target goes
+(`clear_orders` for a mandatory one, else `kill_current_order`), the
+home's vslot `0xf0` is asked. For a building that is
+`WallData::has_repeat_air@00472410`, `build_masks & 0x80`. For a unit
+home it is `UnitData::has_repeat_air@0046cec0`, `unit_masks & 0x200000`
+(a carrier, not built).
+- **Clear**: `unit_masks &= ~0x4000000`, the path emptied,
+  `close_orders`, `clear_partial_path`, `update_action`.
+- **Set**, and the strafe did not go: `update_order(this)->flags &= ~4`.
+  The order stays with its action bit cleared, and so does the path.
+- **Set**, and the strafe went: nothing more. The order behind it keeps
+  its flags.
+
+The `SpecialAnimOrder` and `go_inside` follow either way (§33.5).
+
+**The value diff, both sides** (the order record on its block):
+- 1385, `0/6`: one `AIRPATROLORDER`, flags 0, `oxx` 2007, point
+  (21120, 16512), waypoint 0, `cruising_alt` 1400, `sharp_turn` 0,
+  `returning` 0, `inside_up` 2007. Before this item ours had no order.
+- 1489, `0/7`: the same order with `cruising_alt` 1600 and `inside_up` 6.
+
+Both patrols were already flags 0 (§34.2's refused strike gives
+`action` 0), so the kept bit is not visible on these rows. The
+`cruising_alt` of 1400 is the redraw's (§33.1), not a fresh patrol's
+`0x640`, so the order is the one kept, not a new one.
+
+### 40.2 What would kill the reading, run as mutations
+
+Each ran on the built tree against
+`chapter_twenty_two_s_word_frame_is_widened_whole`, restored from git:
+
+| reading | mutation | fired? |
+|---|---|---|
+| the bit is the gate | `repeat_air` never set | **yes**: 1385 and 1489 part again, and `build:repeat_air` parts on 607 |
+| another test in `land_plane`: the order type | keep a patrol whatever the bit, bit never set | **no**: the rows close; only the new compare parts. The capture cannot split this from the bit, and the listing does: `005e9a43` is the one branch to `close_orders` |
+| another test in `land_plane`: the strafe arm | no strafe kill | **yes, on 722, not the rows**: run223's strafe home lands with `mandatory 1` and the stack goes (`orders.len` 1 against 0), and on 768 its `cruising_alt` |
+| the patrol's later handling | `do_launch` returns after 1300 | **no**: the widening is unchanged, since the tank is not full before 1500 |
+
+### 40.3 What is not established
+
+- **`do_launch`'s side of the bit** (§38.3; parked 844). With the bit
+  set, a plane whose front order has no action bit is launched, not
+  killed. So run265's patrols would fly out again at a full tank, about
+  1585 for `0/6`, past the capture. This crate still kills them there.
+- The toggle, `Group::action_buildmask`, and `Wall::swap_team`'s copy of
+  the word (a captured Airbase gets `init_build`'s value here).
+- A carrier home's `unit_masks & 0x200000`.
+
+### 40.4 Coverage
+
+`build_masks` was already compared (its `0x100`); its `0x80` is compared
+from this item. Tests in `air::launch_tests`:
+`a_plane_landing_at_a_repeating_base_keeps_its_order_unflagged` and
+`a_killed_strafe_home_leaves_the_order_behind_it_flagged`, each made to
+fail with its arm changed.

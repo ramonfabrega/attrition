@@ -862,7 +862,8 @@ impl Sim {
     /// - one without is killed, and leaves `launching`.
     ///
     /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, the
-    /// base's vslot `0xf0` (which launches an unflagged order), a strafe
+    /// base's vslot `0xf0` ([`Building::repeat_air`](crate::Building),
+    /// which launches an unflagged order: `docs/ORDERS.md` §40), a strafe
     /// home to another, full base turned `AirPatrolOrder`, and the
     /// chain's order, which is the garrison list's here (one plane in
     /// every capture).
@@ -978,6 +979,7 @@ impl Sim {
         // target goes: run265's Fighter comes home under its patrol and
         // is inside on 1385 with the patrol still on its stack.
         self.set_returning(u, false);
+        let mut killed = false;
         if let Some(sf) = self.current_strafe(u)
             && sf.target.is_none()
         {
@@ -986,11 +988,25 @@ impl Sim {
             } else {
                 self.kill_current_order(u);
             }
+            killed = true;
         }
-        self.units[u].path.clear();
-        self.close_orders(u);
-        self.clear_partial_path(u);
-        self.update_action(u);
+        // **The home's vslot `0xf0`** (`005e9a43`): `WallData::has_repeat_air
+        // @00472410`, `build_masks & 0x80` (`docs/ORDERS.md` §40). Set, the
+        // stack stays and, unless the strafe above went, the order it holds
+        // loses its action bit (`update_order(this)->flags &= ~4`);
+        // clear, the path and every order go. run265's Airbase reads 4232:
+        // the Fighter is inside on 1385 and the Bomber on 1489 each with
+        // its `AIRPATROLORDER`, flags 0.
+        if self.buildings[home].repeat_air {
+            if !killed && let Some(o) = self.units[u].orders.front_mut() {
+                o.flags &= !crate::orders::flag::ACTION;
+            }
+        } else {
+            self.units[u].path.clear();
+            self.close_orders(u);
+            self.clear_partial_path(u);
+            self.update_action(u);
+        }
         self.go_inside(u, home);
     }
 
@@ -1695,6 +1711,67 @@ mod launch_tests {
         let u = fighter_inside(&mut s, base, 100);
         s.group_action_flight(&group_of(0, &[u]), Obj::Building(target), Flight::Strike);
         assert!(s.units[u].orders.is_empty());
+    }
+
+    /// **`land_plane` under a repeating base** (`Unit::land_plane
+    /// @005e9950`'s `005e9a43`, `docs/ORDERS.md` §40): with the home's
+    /// `build_masks & 0x80` set the plane goes inside with its patrol on
+    /// the stack and the action bit cleared — run265's Fighter on 1385 and
+    /// Bomber on 1489 — and with it clear the stack is closed. Made to fail
+    /// with the keep unconditional (the second arm keeps an order) and
+    /// with the flag left alone (the first arm's bit).
+    #[test]
+    fn a_plane_landing_at_a_repeating_base_keeps_its_order_unflagged() {
+        for repeat in [true, false] {
+            let mut s = sim();
+            let (base, _) = base_and_target(&mut s);
+            s.buildings[base].repeat_air = repeat;
+            let u = fighter_inside(&mut s, base, 400);
+            s.come_out(u);
+            s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+            s.set_returning(u, true);
+            s.land_plane(u);
+            assert_eq!(s.units[u].inside, Some(base), "{repeat}: inside");
+            if repeat {
+                assert_eq!(s.units[u].orders.len(), 1, "the patrol stays");
+                let o = s.units[u].orders.front().copied().unwrap();
+                assert_eq!(o.flags & flag::ACTION, 0, "its action bit cleared");
+                let Body::AirPatrol(p) = o.body else {
+                    panic!("a patrol")
+                };
+                assert!(!p.returning, "and `returning` cleared");
+            } else {
+                assert!(s.units[u].orders.is_empty(), "no repeat: closed");
+            }
+        }
+    }
+
+    /// **A strafe with no target goes, and the bit spares what is behind
+    /// it** (`005e9a43`'s `else if (!bVar2)`): under a repeating base the
+    /// killed strafe's successor keeps its action bit. Made to fail with
+    /// the flag cleared after the kill.
+    #[test]
+    fn a_killed_strafe_home_leaves_the_order_behind_it_flagged() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        s.buildings[base].repeat_air = true;
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+        s.add_strafe_order(
+            u,
+            None,
+            Some(base),
+            false,
+            crate::orders::QueuePos::First,
+            true,
+        );
+        assert_eq!(s.units[u].orders.len(), 2);
+        s.land_plane(u);
+        assert_eq!(s.units[u].orders.len(), 1, "the strafe went");
+        let o = s.units[u].orders.front().copied().unwrap();
+        assert!(matches!(o.body, Body::AirPatrol(_)));
+        assert_eq!(o.flags & flag::ACTION, flag::ACTION, "untouched");
     }
 
     /// **The tank gates the launch, and the launch is the EXIT's**

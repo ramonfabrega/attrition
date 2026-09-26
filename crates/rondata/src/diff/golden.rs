@@ -8448,13 +8448,13 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
 // both guns and `Ammo::init` walks a strafer's landing; 928's `damage`
 // is 572 + 0 on both sides, and every round is the dump's,
 // [`run265_s_rounds_are_the_original_s_record_for_record`]; 15 → 13);
-// and the landed patrols on 1385 and 1489, one order there and none
-// here (`has_repeat_air`, §38.1, parked).
+// ~~and the landed patrols on 1385 and 1489, one order there and none
+// here~~ (item 854, `docs/ORDERS.md` §40: the Airbase's `build_masks &
+// 0x80`, set by `Build::init`, keeps a landing plane's order with the
+// action bit cleared; on 1385 `0/6` and on 1489 `0/7` each hold one
+// `AIRPATROLORDER`, flags 0, `oxx` 2007, point (21120, 16512),
+// `returning` 0, `cruising_alt` 1400 and 1600, on both sides; 13 → 9).
 const WANT_CH22: &[&str] = &[
-    "1385 0/6 order:length",
-    "1385 0/6 orders.len",
-    "1489 0/7 order:length",
-    "1489 0/7 orders.len",
     "611 0/6 form",
     "613 0/7 form",
     "615 0/8 form",
