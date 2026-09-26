@@ -2221,7 +2221,25 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// run226** (block 17129 against its last, 17350);
 /// `run226_s_word_frame_is_widened_whole` pins the new word's block and
 /// keeps the move's value diff.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 17_128;
+///
+/// ~~**17128 is `1/9`'s re-plan.**~~ **Item 776 moved it 17128 → 17181,
+/// and the mechanism was `invalid_loc`'s cell arm**
+/// (`docs/PATHFINDER.md` §27): on the land domain, a tile whose cell is
+/// flagged mountain, forest or `0x40` (`WData.flags & 0x70`) refuses when
+/// the caller passes `param_3` and `param_6`, which is `valid_wcoord`'s
+/// probe. This crate read the tile alone, so tick 17087's world searches
+/// for `1/9` and `1/72` walked through forest-flagged cells (56, 18) and
+/// (55, 19) that the original's refused, and both took other paths to
+/// `1/2022`. run240 (a `WORLD` window and a packet at 17087) showed the
+/// world agreeing and its trace put all 303 of the tick's priced steps
+/// beside ours. **The new word's delta (this constant's comment): ours
+/// 11 draws and the original 5, parting at index 0**: ours spends three
+/// `Leader::create_buildings+0xffb`/`+0x1017` pairs the original does
+/// not. **Inside run226** (block 17182 against its last, 17350);
+/// `run226_s_word_frame_is_widened_whole` pins the new word's block (the
+/// widening test) and keeps the move's value diff: nothing parts on
+/// 17088..17181.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 17_181;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -3960,6 +3978,10 @@ pub(crate) const GREAT_LAKES_GIVEUP_BLOCK: i64 = 17_100;
 /// word 17128's frame writes block 17129, inside run226. The coverage
 /// driver reads run226 around it too.
 pub(crate) const GREAT_LAKES_PYRAMIDS_BLOCK: i64 = 17_129;
+/// The block [`WIDENING_GREAT_LAKES_GIVEUP`] widens since item 776: the
+/// word 17181's frame writes block 17182, inside run226. The coverage
+/// driver reads run226 around it too.
+pub(crate) const GREAT_LAKES_FOREST_CELL_BLOCK: i64 = 17_182;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4493,11 +4515,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **Item 757 moved it 17099 → 17128**, inside run226: the Pyramids'
     // commerce cap and food terms (`docs/ECONOMY.md` §15). The same test
     // pins the new word's block, 17129, and keeps the move's value diff.
+    //
+    // **Item 776 moved it 17128 → 17181**, inside run226: `invalid_loc`'s
+    // cell arm under `valid_wcoord` (`docs/PATHFINDER.md` §27). The same
+    // test pins the new word's block, 17182, and keeps the move's value
+    // diff (nothing parts on 17088..17181).
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run226_s_word_frame_is_widened_whole"),
-        757,
+        776,
         Some(WIDENING_GREAT_LAKES_GIVEUP),
     ),
     // Item 445 paid the widening chapter one had never had: the word

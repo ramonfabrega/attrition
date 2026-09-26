@@ -2281,6 +2281,226 @@ mod tests {
         );
     }
 
+    /// **run240 — the world on Great Lakes' block 17087, whole** (item
+    /// 776). Tick 17087 plans `1/9`'s and `1/72`'s walks to `1/2022` on the
+    /// world-cell grid, and the two plans part on block 17088. The
+    /// original's `1/72` goes right round the Pyramids where this crate's
+    /// cuts through cell (56, 18). Whether the two search over the same
+    /// world is this block's `WORLD` record: the fog, every cell, every
+    /// tile mask and the danger map, as they stand before the tick.
+    #[test]
+    fn run240_s_world_at_17087_is_the_original_s() {
+        const BLOCK: i64 = 17_087;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(t53), Some(r240)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            dump("gamelog-run240-greatlakes-worldword.txt"),
+        ) else {
+            eprintln!("skipping: no run53/run240 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let mut ix = crate::capture::indexed::IndexedCapture::open(&r240).unwrap();
+        let at = ix
+            .frames()
+            .iter()
+            .position(|f| f.number == BLOCK)
+            .expect("run240 has no block 17087");
+        let body = ix.read_frame(at).unwrap();
+        let parsed = Log::parse(&body);
+        let block = parsed
+            .frames()
+            .into_iter()
+            .find(|(n, _)| *n == BLOCK)
+            .map(|(_, b)| b)
+            .expect("run240's block 17087 did not re-parse");
+        let world = block
+            .kid("FULL DUMP")
+            .unwrap_or(block)
+            .kid("WORLD")
+            .expect("block 17087 has no WORLD record");
+        let fields = world.fields().to_vec();
+        let theirs_fog = crate::gamelog::world_fog(&fields);
+        let theirs_tiles = crate::gamelog::world_tiles(&fields);
+        let theirs_cells = crate::gamelog::world_cells(&fields);
+        let theirs_danger = crate::gamelog::world_danger(&fields);
+        assert_eq!(
+            (theirs_fog.len(), theirs_tiles.len(), theirs_cells.len()),
+            (14_400, 57_600, 3_600),
+            "run240's block 17087 does not carry a whole WORLD scan"
+        );
+
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &t53);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        // Block N is the state after tick N − 1.
+        for _ in 0..BLOCK {
+            built.tick();
+        }
+        let w = &built.sim.world;
+        let (fw, fh) = (w.fog_xs(), w.fog_ys());
+        let fog_bad: Vec<(i32, i32, u8, u8)> = (0..fh)
+            .flat_map(|y| (0..fw).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let t = theirs_fog[(y * fw + x) as usize];
+                let o = w.seen2(x, y).unwrap_or(0);
+                (o != t).then_some((x, y, o, t))
+            })
+            .collect();
+        let cell_bad: Vec<(i32, i32, String)> = (0..w.height())
+            .flat_map(|y| (0..w.width()).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let c = sim::world::Cell::new(x, y);
+                let d = w.cell_data(c);
+                let t = &theirs_cells[(y * w.width() + x) as usize];
+                let who = match w.owner(c) {
+                    sim::world::Owner::Player(p) => i64::from(p),
+                    _ => -1,
+                };
+                let ours = (
+                    i64::from(d.flags),
+                    who,
+                    i64::from(d.blocked),
+                    i64::from(d.solid),
+                    i64::from(d.bad),
+                );
+                let theirs = (t.flags, t.who, t.blocked, t.solid, t.bad);
+                (ours != theirs).then(|| (x, y, format!("{ours:?} v {theirs:?}")))
+            })
+            .collect();
+        let (tw, th) = (w.width() * 4, w.height() * 4);
+        let tile_bad: Vec<(i32, i32, u16, u16)> = (0..th)
+            .flat_map(|y| (0..tw).map(move |x| (x, y)))
+            .filter_map(|(x, y)| {
+                let t = theirs_tiles[(y * tw + x) as usize];
+                let o = w.tile_mask(sim::Pos::new(x, y));
+                (o != t).then_some((x, y, o, t))
+            })
+            .collect();
+        let reg = (w.reg_xs() * w.reg_ys()) as usize;
+        let mut danger_bad: Vec<String> = Vec::new();
+        for who in 0..8u8 {
+            let ours = w.danger_row(who);
+            for i in 0..reg {
+                let t = theirs_danger
+                    .get(who as usize * reg + i)
+                    .copied()
+                    .unwrap_or(0);
+                let o = i64::from(ours.get(i).copied().unwrap_or(0));
+                if t != o {
+                    danger_bad.push(format!(
+                        "leader {who} ({},{}): ours {o} theirs {t}",
+                        i as i32 % w.reg_xs(),
+                        i as i32 / w.reg_xs()
+                    ));
+                }
+            }
+        }
+        eprintln!(
+            "run240 17087: {} fog, {} cells, {} tiles, {} danger part",
+            fog_bad.len(),
+            cell_bad.len(),
+            tile_bad.len(),
+            danger_bad.len()
+        );
+        // **W's killer fires: the world is the original's where the two
+        // searches look.** Every cell of the map but one agrees, and that
+        // one is (2, 40), sixty cells west, on a bit the searches do not
+        // read (`0x2`).
+        assert_eq!(
+            cell_bad,
+            vec![(2, 40, "(128, 0, 0, 0, 4) v (130, 0, 0, 0, 4)".to_string())],
+            "the cells at 17087"
+        );
+        // Every tile mask that parts parts on `0x4` alone —
+        // `Wall::mark_behind_tiles`' residue, which `run72`'s and
+        // `run189`'s pins carry the same way — and `invalid_loc` reads the
+        // cell, not that bit (`docs/PATHFINDER.md` §27).
+        assert!(
+            tile_bad.iter().all(|&(_, _, o, t)| o ^ t == 0x4),
+            "a tile parts on more than `0x4`: {:?}",
+            tile_bad
+                .iter()
+                .filter(|&&(_, _, o, t)| o ^ t != 0x4)
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(tile_bad.len(), 262, "the `0x4` residue at 17087");
+        // who=1's danger map is the original's whole; the human's parts on
+        // nine half-cells of one corner, (27..29, 9..11), by 3 to 5.
+        assert!(
+            danger_bad.iter().all(|r| r.starts_with("leader 0 ")),
+            "who=1's danger map parts: {danger_bad:?}"
+        );
+        assert_eq!(danger_bad.len(), 9, "leader 0's nine half-cells");
+        // The fog parts on 44 half-cells round the Pyramids (`1/2026`,
+        // half-cell (116, 38)): every player's bit there, `0xff`, against
+        // who=1's alone here. who=1's own bit — the one `calc_cost`'s fog
+        // read asks — agrees on all 44.
+        assert!(
+            fog_bad.iter().all(|&(x, y, o, t)| (o ^ t) & 0x2 == 0
+                && (112..=118).contains(&x)
+                && (35..=42).contains(&y)),
+            "the fog parts outside the Pyramids' ring, or on who=1's bit: {fog_bad:?}"
+        );
+        assert_eq!(fog_bad.len(), 44, "the Pyramids' ring");
+
+        // Tick 17087's searches, step for step, against the original's own
+        // `calc_cost` calls (run240's trace proxied every one).
+        let Some(t240) = trace("rontrace-run240.log") else {
+            return;
+        };
+        built.sim.trace_costs = true;
+        built.sim.cost_marks.clear();
+        built.tick();
+        let ours: Vec<(sim::path::CostKey, i32, usize)> = built
+            .sim
+            .cost_marks
+            .iter()
+            .map(|m| (m.key(), m.cost, m.unit))
+            .collect();
+        let theirs: Vec<(sim::path::CostKey, i32)> = t240
+            .calls_in(BLOCK, crate::trace::call_site::CALC_COST)
+            .iter()
+            .filter_map(|c| Some((c.cost_key()?, c.ret)))
+            .collect();
+        let at = (0..ours.len().max(theirs.len()))
+            .find(|&i| ours.get(i).map(|o| (o.0, o.1)) != theirs.get(i).copied());
+        if let Some(i) = at {
+            for j in i.saturating_sub(6)..(i + 12).min(ours.len().max(theirs.len())) {
+                let who = ours.get(j).map(|o| {
+                    let u = &built.sim.units[o.2];
+                    (u.owner, u.index)
+                });
+                eprintln!(
+                    "  {j:>4} ours   {:?} {who:?}\n       theirs {:?}",
+                    ours.get(j).map(|o| (o.0, o.1)),
+                    theirs.get(j)
+                );
+            }
+        }
+        // **P holds, and the planner was one clause.** `1/9`'s first
+        // expansion from cell (56, 19) priced N and W here and not there:
+        // cells (56, 18) and (55, 19) are forest-flagged, and
+        // `invalid_loc@00607c30`'s land arm refuses a `WData.flags & 0x70`
+        // cell under `valid_wcoord`'s `param_3` and `param_6`. With the
+        // clause, **all 303 priced steps of the tick** — six searches,
+        // `1/9`'s 42 and `1/72`'s 169 among them — are the original's,
+        // key and price. 82 agreed before it; the 83rd was `1/9`'s N.
+        assert_eq!(
+            (at, ours.len(), theirs.len()),
+            (None, 303, 303),
+            "tick 17087's priced steps part at {at:?}"
+        );
+    }
+
     /// **run73 — the caravan's own road on Great Lakes, node for node, and
     /// the road a farm takes away** (2026-09-03, item 206).
     ///

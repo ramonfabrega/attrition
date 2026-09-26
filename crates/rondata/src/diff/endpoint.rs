@@ -1385,7 +1385,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 24,000th frame is 6,872 frames past the new word. Measured on
         // the spawn base, `7019d78`. DECISIONS 36: the number, not a
         // trade.
-        off: 46,
+        // **46 → 43 off, 1 → 2 extra** on item 776: `invalid_loc`'s cell
+        // arm under `valid_wcoord` (`docs/PATHFINDER.md` §27), which moves
+        // this map's word 17128 → 17181. The extras are `1/81`, a Citizen,
+        // and `1/82`, a Merchant. The 24,000th frame is 6,819 frames past
+        // the new word. Measured after `ccc update` onto `5f0b66b1`.
+        // DECISIONS 36: the number, not a trade.
+        off: 43,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1408,7 +1414,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 4** on item 722, beside `off` above.
         // **4 → 0** on item 729, beside `off` above.
         // **0 → 1** on item 757, beside `off` above: `1/81`.
-        extra: 1,
+        // **1 → 2** on item 776, beside `off` above: `1/81`, `1/82`.
+        extra: 2,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
