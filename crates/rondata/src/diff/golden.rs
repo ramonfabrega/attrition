@@ -8568,15 +8568,17 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch23: what parts in the pool moved");
 }
 
-// **What parts under the word** on run281, chapter twenty-three: the
-// first walk, with the `@buildmask` line skipped (the command has no entry
-// yet). The births' and chapter one's clocks stand as in chapter
-// twenty-two (611–655). **The command's three rows**: the toggle on 1442,
+// **What parts under the word** on run281, chapter twenty-three. ~~The
+// first walk, with the `@buildmask` line skipped: the toggle on 1442,
 // `0/2007`'s `build:repeat_air` ours 1 theirs 0 (`build_masks` 4232 →
-// 4104 there); and the two landings off the non-repeating base, `0/7` on
-// 1489 and `0/8` on 1513, each with its `AIRPATROLORDER` kept here (one
-// order) against none there (`land_plane`'s clear arm). 1585 agrees:
-// this crate's `do_launch` kills `0/6`'s unflagged patrol whatever the bit.
+// 4104 there), and the two landings off the non-repeating base, `0/7` on
+// 1489 and `0/8` on 1513, each with its `AIRPATROLORDER` kept here against
+// none there.~~ **The command entered** (item 867,
+// [`crate::input::group_buildmask`] → `Sim::action_buildmask`): 1442,
+// 1489 and 1513 agree, 14 → 9 rows. What stands is chapter twenty-two's:
+// the births' and chapter one's clocks (611–655). 1585 agrees on both
+// walks: this crate's `do_launch` kills `0/6`'s unflagged patrol, and
+// under the cleared bit so does the original's.
 const WANT_CH23: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
@@ -8587,17 +8589,15 @@ const WANT_CH23: &[&str] = &[
     "650 0/1 g.last_time[0]",
     "655 0/2 g.cur_time[0]",
     "655 0/2 g.last_time[0]",
-    "1442 0/2007 build:repeat_air",
-    "1489 0/7 order:length",
-    "1489 0/7 orders.len",
-    "1513 0/8 order:length",
-    "1513 0/8 orders.len",
 ];
 
 // **What parts in the pool** on run281: chapter twenty-two's ten, and the
 // building group `[2007]` the original's `process_group` pushes into
 // who=0's slot 0 on 1442 (`buildings 1`, stamp 1441), which this crate
-// does not seat.
+// does not seat. **Its reader** is `Groups::get_open_slot@006fa460`,
+// which counts a slot whose `buildings` byte is set as open for the next
+// push; no push follows on run281, so no later slot parts by it (the
+// pool's other ten rows are all before 1442).
 const WANT_CH23_POOL: &[&str] = &[
     "622 slot 1 ox",
     "622 slot 1 oy",

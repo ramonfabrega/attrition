@@ -3528,7 +3528,9 @@ pub(crate) const WIDENING_CHAPTER_TWENTY_TWO: (i64, i64) = (605, 1501);
 /// the stream agrees to run281's end (it is run265's game on all 1,501
 /// frames the two share). What parts is values, by the widening: 1442,
 /// `0/2007`'s `build:repeat_air` (ours 1, theirs 0); 1489 and 1513, `0/7`'s
-/// and `0/8`'s kept patrol here against none there.
+/// and `0/8`'s kept patrol here against none there. **The command entered
+/// in the same item** (`Sim::action_buildmask`, the repeat button's toggle)
+/// closes all three; the word does not move.
 ///
 /// **The delta**, this constant's: 1840 on the first walk, closed.
 pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_THREE: i64 = 1840;

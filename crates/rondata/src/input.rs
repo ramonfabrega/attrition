@@ -744,6 +744,31 @@ pub fn group_eject_all(built: &mut Built, who: i32, buildings: &[i16]) -> usize 
     list.len()
 }
 
+/// A `group` of buildings (0x00) and the `buildmask` (0x21) behind it —
+/// `CommandPackage::process_buildmask@00947680`'s one call,
+/// `Group::action_buildmask(g, buildmask, set)` ([`sim::Sim::action_buildmask`]),
+/// which toggles and never reads `set` (`docs/GOLDEN.md` §32). The repeat
+/// button's mask is 0x80.
+///
+/// SEAM: the command's `process_group` pushes the building group into the
+/// pool (`Groups::push_group@0070f9e0`, called at `0x94a6cf`), which this
+/// crate's pool of units does not hold: run281's slot 0 holds `[2007]`
+/// from 1442, a slot `Groups::get_open_slot@006fa460` counts as open.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_buildmask(built: &mut Built, who: i32, buildings: &[i16], mask: i32) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.action_buildmask(&list, mask);
+    list.len()
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {

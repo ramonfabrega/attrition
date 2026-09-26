@@ -1205,7 +1205,10 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_THREE;
         for w in [1442, 1489, 1513, 1585, 1837] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
-            assert_eq!(n, 5, "chapter twenty-three carries the window's five blocks");
+            assert_eq!(
+                n, 5,
+                "chapter twenty-three carries the window's five blocks"
+            );
             frames += n;
         }
     }

@@ -752,12 +752,14 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             objects,
         }) => crate::input::group_swarm_around(built, who, &objects, ox, whom, 2, 13),
         // `@buildmask` is `issue_buildmask@00941f80` on a group of
-        // buildings (item 867, `docs/GOLDEN.md` §32). The command has no
-        // entry into the simulation yet: the floor is pinned without one.
-        Some(Issued::Buildmask { .. }) => {
-            done.skip(&word, "the buildmask command has no entry yet");
-            return;
-        }
+        // buildings, a `group` and a `buildmask`, whose entry is
+        // [`crate::input::group_buildmask`] (item 867, `docs/GOLDEN.md`
+        // §32).
+        Some(Issued::Buildmask {
+            who,
+            mask,
+            buildings,
+        }) => crate::input::group_buildmask(built, who, &buildings, mask),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;

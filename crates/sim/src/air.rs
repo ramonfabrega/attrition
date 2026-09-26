@@ -844,6 +844,43 @@ impl Sim {
         );
     }
 
+    /// **`Group::action_buildmask@006fc9a0` on a group of buildings** —
+    /// the player's repeat button (`Options::set_air_repeat@0071c740`)
+    /// through `CommandPackage::process_buildmask@00947680`
+    /// (`docs/GOLDEN.md` §32). **It toggles; it does not set**: the
+    /// command's `set` is always 1 on the wire and the function never
+    /// reads it (the listing, and 4232 ↔ 4104 under the emulator). Each
+    /// member that is active and that `WallData::valid_buildmask@0063e2a0`
+    /// admits — for `0x80`, `can_carry(AIR)`, [`Sim::is_hangar`] — gets the
+    /// bit **set if it lacks it and every admitted member before it was
+    /// set; otherwise cleared**, and so is every admitted member after a
+    /// clear. run281's Airbase reads 4104 from 1442. Returns the members
+    /// written.
+    ///
+    /// SEAM: only the repeat bit is carried ([`Building::repeat_air`]
+    /// (crate::Building)); a mask with any other bit — `0x40`, the
+    /// infinite queue, `can_infinite` — writes nothing here, and the
+    /// message and sound the `0x40` toggle plays for the console's player
+    /// are the interface's.
+    pub fn action_buildmask(&mut self, buildings: &[usize], mask: i32) -> usize {
+        if mask != 0x80 {
+            return 0;
+        }
+        let mut all_set = true;
+        let mut written = 0;
+        for &b in buildings {
+            let bd = &self.buildings[b];
+            if !bd.alive || !bd.ty.is_some_and(|t| self.is_hangar(t)) {
+                continue;
+            }
+            let set = !bd.repeat_air && all_set;
+            self.buildings[b].repeat_air = set;
+            all_set = set;
+            written += 1;
+        }
+        written
+    }
+
     /// **`Object::do_launch@0064f3b0` for a building** — called from
     /// `Build::process@0061edf0` for a type with `build_masks & 8`, a
     /// hangar (`docs/ORDERS.md` §38.3). Only while something is inside:
@@ -1743,6 +1780,44 @@ mod launch_tests {
             } else {
                 assert!(s.units[u].orders.is_empty(), "no repeat: closed");
             }
+        }
+    }
+
+    /// **The repeat button toggles off the first member's state**
+    /// (`Group::action_buildmask@006fc9a0`, `docs/GOLDEN.md` §32): one base
+    /// goes 1 → 0 → 1; of two, the first's state decides and a clear
+    /// clears everything after it; a building that cannot carry aircraft
+    /// and any mask but `0x80` are passed over. Made to fail with the bit
+    /// set whatever it held (the toggle), and with `all_set` never cleared
+    /// (the second pair).
+    #[test]
+    fn the_repeat_button_toggles_off_the_first_member() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        // `Build::init`'s `|= 0x88`, which `add_building` does not run.
+        s.buildings[base].repeat_air = true;
+        assert_eq!(s.action_buildmask(&[base], 0x80), 1);
+        assert!(!s.buildings[base].repeat_air, "4232 -> 4104");
+        assert_eq!(s.action_buildmask(&[base], 0x80), 1);
+        assert!(s.buildings[base].repeat_air, "4104 -> 4232");
+        assert_eq!(s.action_buildmask(&[base], 0x40), 0, "not carried");
+        assert_eq!(s.action_buildmask(&[target], 0x80), 0, "no hangar");
+        let second = s.add_building(0, Pos::new(13824, 13920), 0);
+        s.buildings[second].ty = s.buildings[base].ty;
+        for (a, b, want) in [
+            (true, false, (false, false)),
+            (false, true, (true, false)),
+            (false, false, (true, true)),
+            (true, true, (false, false)),
+        ] {
+            s.buildings[base].repeat_air = a;
+            s.buildings[second].repeat_air = b;
+            s.action_buildmask(&[base, second], 0x80);
+            assert_eq!(
+                (s.buildings[base].repeat_air, s.buildings[second].repeat_air),
+                want,
+                "from ({a}, {b})"
+            );
         }
     }
 
