@@ -818,6 +818,181 @@ fn chapter_twenty_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty-one, pinned** — the repair line: a player's
+/// right-click on a damaged building (`docs/GOLDEN.md` §29, item 813,
+/// run255). Twelve staged lines: `!ai off`, `library` 2 and 3, a who=0
+/// Barracks on 606, who=1 Bowmen on 610, `peace 1` on 760, four citizens
+/// on 770–776, and two issuer lines — `@repair` on `0/6` on 780 and on
+/// `0/7 0/8 0/9` on 800.
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run255): `process_swarm_around 2007 0 2 13` on 781 and 801; each
+/// citizen a `MOVEORDER` to its own ring spot with a `REPAIRORDER` (flags
+/// 4) behind it; the Barracks 3 → 1 → 0 on 930–931 under `0/6`; the
+/// trio's orders dying on arrival on 968, 969 and 1023.
+///
+/// `GOLDEN_WORD_CHAPTER_TWENTY_ONE` carries what stands at the word.
+#[test]
+fn chapter_twenty_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch21", "chapter21", 21, 12, 1299) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_ONE,
+        "chapter twenty-one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_ONE,
+        "chapter twenty-one's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §29"
+    );
+    eprintln!(
+        "chapter twenty-one: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run255's repair, unit for unit, both directions** (item 813,
+/// `docs/GOLDEN.md` §29). On every block of
+/// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
+/// builder bit, `unit_masks & 0x400`, which `add_repair_order@005e4ff0`
+/// sets and `widen_block` does not read (it compares other bits of the
+/// word), against this crate's `was_builder`; and every `REPAIRORDER`'s
+/// flags and target, beside a count of them. The Barracks' `damage`,
+/// its target and the buckets the price comes out of are the widening's;
+/// its `helpers` is 0 on every block of both sides, the step's own
+/// counter, and stays unread.
+#[test]
+fn run255_s_repair_is_the_original_s_unit_for_unit() {
+    use std::collections::BTreeMap;
+    let Some(mut s) = stage_script("ch21", "chapter21") else {
+        return;
+    };
+    let (first, last) = WIDENING_CHAPTER_TWENTY_ONE;
+    let players = s.built.sim.players.len() as i64;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut rows, mut repairs) = (0usize, 0usize);
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        let sim = &s.built.sim;
+        let mut alone: Vec<(i64, i64, &str)> = Vec::new();
+        let mut note = |who: i64, o: i64, what: &str, ours: i64, theirs: Option<i64>| {
+            let Some(theirs) = theirs else {
+                return;
+            };
+            rows += 1;
+            if ours != theirs {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {ours} theirs {theirs}")));
+            }
+        };
+        for them in &frame.units {
+            if !(0..players).contains(&them.who) {
+                continue;
+            }
+            let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = sim.unit_by_o(w, o) else {
+                continue;
+            };
+            let un = &sim.units[u];
+            note(
+                them.who,
+                them.o,
+                "builder",
+                i64::from(un.was_builder),
+                them.unit_masks.map(|m| i64::from(m & 0x400 != 0)),
+            );
+            let ours = un.orders.iter().find_map(|x| match x.body {
+                sim::orders::Body::Repair(b) => Some((b, x.flags)),
+                _ => None,
+            });
+            let theirs = them.orders.iter().find(|x| x.kind == "REPAIRORDER");
+            match (ours, theirs) {
+                (Some((b, flags)), Some(t)) => {
+                    repairs += 1;
+                    note(
+                        them.who,
+                        them.o,
+                        "repair.flags",
+                        i64::from(flags),
+                        Some(t.flags),
+                    );
+                    // `build_ids` names only the buildings of the start
+                    // dump, and a staged one reads back `None` — which is
+                    // why `target_ids` leaves this order's target
+                    // uncompared in the widening. The identity is the
+                    // simulation's own `(owner, index)`, as `unit_ids`'
+                    // fallback has it for a unit (item 462).
+                    let bd = &sim.buildings[b];
+                    note(them.who, them.o, "repair.ox", i64::from(bd.index), t.ox);
+                    note(them.who, them.o, "repair.whom", i64::from(bd.owner), t.whom);
+                }
+                (None, None) => {}
+                (mine, _) => alone.push((
+                    them.who,
+                    them.o,
+                    if mine.is_some() {
+                        "this crate holds it alone"
+                    } else {
+                        "the dump holds it alone"
+                    },
+                )),
+            }
+        }
+        for (who, o, side) in alone {
+            firsts
+                .entry((who, o, "repair".into()))
+                .or_insert((n, side.into()));
+        }
+    }
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run255 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!(
+        "run255's repair: {rows} rows compared, {repairs} repair-order frames, {} parted",
+        firsts.len()
+    );
+    assert!(rows > 0, "run255 carries the fields it prints");
+    assert!(repairs > 0, "run255 holds its REPAIRORDERs");
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    // **The builder bit outlives the repair here.** The original clears
+    // `unit_masks & 0x400` in `Unit::add_gather_order@0061a5c0`, always,
+    // and in `Unit::think_peasant@005f5760` when its build-and-repair arm
+    // finds nothing; this crate sets `was_builder` in `add_build_order`
+    // and `add_repair_order` and never clears it. Each citizen's first
+    // gather is the block the original's goes to 0: `orders.rs`, not this
+    // item's module.
+    let want: Vec<String> = [
+        "1083 0/6 builder",
+        "1130 0/7 builder",
+        "1129 0/8 builder",
+        "1176 0/9 builder",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    assert_eq!(
+        got, want,
+        "run255: what parts in the repair's own state moved"
+    );
+}
+
 /// **run235's bombs, record for record** (item 770, `docs/ORDERS.md` §35).
 /// run235 is run223's game again — the same seed, script and detail line —
 /// with `AMMO=5`, to 1100: every bomb the pair drop on the Barracks is a
@@ -7204,6 +7379,381 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
     want_pool.sort();
     assert_eq!(got_pool, want_pool, "ch20: what parts in the pool moved");
 }
+
+/// **Chapter twenty-one's word, widened whole, both directions** (item
+/// 813). Every record run255 carries on every block of
+/// [`WIDENING_CHAPTER_TWENTY_ONE`], by [`widen_civilians`]: every unit and
+/// figure — the Bowmen `1/6`..`1/8` and the citizens `0/6`..`0/9` among
+/// them — every building, the staged Barracks among them, both leaders at
+/// `LEADERS=2`, and every live arrow's `AMMO` record; and who=0's
+/// `GROUPDATA` pool by [`widen_pool`], where each command's pushed
+/// selection sits.
+#[test]
+fn chapter_twenty_one_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch21",
+        "chapter21",
+        WIDENING_CHAPTER_TWENTY_ONE,
+        1299,
+        0,
+        (1139, 1142),
+        true,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch21 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_ONE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch21: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_ONE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch21", "chapter21", WIDENING_CHAPTER_TWENTY_ONE, 0)
+        .expect("run255 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch21 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH21.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch21: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH21_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch21: what parts in the pool moved");
+}
+
+// **What parts under the word** on run255, the draw word open at 1141.
+// Nothing of the repair line parts: both swarms, the ring spots, the
+// `REPAIRORDER`s, the Barracks' `damage` and `helpers`, the price and the
+// three late orders dying agree on every block.
+// - **The peace's attack-move**: the Bowmen's `group.id` on 1021, 1020001
+//   here against 1026401 there, chapter eight's family at the same frame.
+// - **The idle citizens' gathers**: `0/6`, `0/8` and `0/7` take their own
+//   `GATHERORDER`s on 1083, 1129 and 1130 with `group` −1 there and a
+//   group number here; and on 1131 `0/7`'s approach to its gather
+//   building is one tile west there: the `MOVEORDER`'s `x` 4104 here and
+//   4296 there, `off_x` 264 and 456, `angle` −237961216 and −211681280.
+//   That walk is the one whose step draws on 1141, the word: the gather
+//   approach (`gather.rs`), not this item's module.
+// - **Past the word**, everything is downstream of that walk and of the
+//   other idle units' own wanders: `0/7` and `0/8`'s collision on 1142,
+//   `1/4`, `1/5`, `0/3`, `0/4` and `0/5`'s moves from 1148.
+const WANT_CH21: &[&str] = &[
+    "1021 1/6 order:group.id",
+    "1021 1/7 order:group.id",
+    "1021 1/8 order:group.id",
+    "1083 0/6 group",
+    "1129 0/8 group",
+    "1130 0/7 group",
+    "1131 0/7 dest_angle",
+    "1131 0/7 order:move.angle",
+    "1131 0/7 order:move.off_x",
+    "1131 0/7 order:move.x",
+    "1131 0/7 orders_x",
+    "1132 0/7 path[0].to",
+    "1132 0/7 path[1].to",
+    "1132 0/7 path[2].to",
+    "1132 0/7 path[3].to",
+    "1132 0/7 path[4].to",
+    "1142 0/7 collide_o",
+    "1142 0/7 collide_who",
+    "1142 0/7 g.avg_speed[0]",
+    "1142 0/7 g.cur_anim[0]",
+    "1142 0/7 g.cur_time[0]",
+    "1142 0/7 g.des_x[0]",
+    "1142 0/7 g.des_y[0]",
+    "1142 0/7 g.end_time[0]",
+    "1142 0/7 g.last_speed[0]",
+    "1142 0/7 g.last_time[0]",
+    "1142 0/7 g.stopped[0]",
+    "1142 0/7 g.x[0]",
+    "1142 0/7 g.y[0]",
+    "1142 0/7 half_step",
+    "1142 0/7 order:coll",
+    "1142 0/7 order:move.dest_x",
+    "1142 0/7 order:move.dest_y",
+    "1142 0/7 path:length",
+    "1142 0/7 pos",
+    "1143 0/7 g.angle[0]",
+    "1143 0/7 g.des_angle[0]",
+    "1143 0/7 heading",
+    "1145 0/7 order:move.dest",
+    "1145 0/8 half_step",
+    "1146 0/7 path_recursion",
+    "1146 0/8 g.avg_speed[0]",
+    "1146 0/8 g.des_x[0]",
+    "1146 0/8 g.des_y[0]",
+    "1146 0/8 g.last_speed[0]",
+    "1146 0/8 g.x[0]",
+    "1146 0/8 g.y[0]",
+    "1146 0/8 pos",
+    "1147 0/8 g.angle[0]",
+    "1147 0/8 g.des_angle[0]",
+    "1147 0/8 heading",
+    "1148 1/4 dest_angle",
+    "1148 1/4 order:move.angle",
+    "1148 1/4 order:move.off_x",
+    "1148 1/4 order:move.off_y",
+    "1148 1/4 order:move.x",
+    "1148 1/4 order:move.y",
+    "1148 1/4 orders_x",
+    "1148 1/4 orders_y",
+    "1149 1/4 g.angle[0]",
+    "1149 1/4 g.avg_speed[0]",
+    "1149 1/4 g.cur_anim[0]",
+    "1149 1/4 g.cur_time[0]",
+    "1149 1/4 g.des_angle[0]",
+    "1149 1/4 g.des_x[0]",
+    "1149 1/4 g.des_y[0]",
+    "1149 1/4 g.end_time[0]",
+    "1149 1/4 g.last_speed[0]",
+    "1149 1/4 g.last_time[0]",
+    "1149 1/4 g.stopped[0]",
+    "1149 1/4 g.x[0]",
+    "1149 1/4 g.y[0]",
+    "1149 1/4 heading",
+    "1149 1/4 order:kind",
+    "1149 1/4 order:length",
+    "1149 1/4 orders.len",
+    "1149 1/4 path:length",
+    "1149 1/4 pos",
+    "1150 1/4 order:flags",
+    "1150 1/4 order:move.dest",
+    "1151 0/8 order:move.dest",
+    "1151 0/8 path:length",
+    "1151 1/4 collide_o",
+    "1151 1/4 collide_who",
+    "1152 0/8 path_recursion",
+    "1152 0/8 tolerance",
+    "1158 0/7 tolerance",
+    "1165 0/8 order:move.last_x",
+    "1165 0/8 order:move.last_y",
+    "1167 0/7 order:move.last_x",
+    "1167 0/7 order:move.last_y",
+    "1167 0/7 path[4].tolerance",
+    "1168 0/4 dest_angle",
+    "1168 0/4 order:move.angle",
+    "1168 0/4 order:move.off_x",
+    "1168 0/4 order:move.off_y",
+    "1168 0/4 order:move.x",
+    "1168 0/4 order:move.y",
+    "1168 0/4 orders_x",
+    "1168 0/4 orders_y",
+    "1169 0/4 g.angle[0]",
+    "1169 0/4 g.avg_speed[0]",
+    "1169 0/4 g.cur_anim[0]",
+    "1169 0/4 g.cur_time[0]",
+    "1169 0/4 g.des_angle[0]",
+    "1169 0/4 g.des_x[0]",
+    "1169 0/4 g.des_y[0]",
+    "1169 0/4 g.end_time[0]",
+    "1169 0/4 g.last_speed[0]",
+    "1169 0/4 g.last_time[0]",
+    "1169 0/4 g.stopped[0]",
+    "1169 0/4 g.x[0]",
+    "1169 0/4 g.y[0]",
+    "1169 0/4 heading",
+    "1169 0/4 mirror",
+    "1169 0/4 order:kind",
+    "1169 0/4 order:length",
+    "1169 0/4 orders.len",
+    "1169 0/4 path:length",
+    "1169 0/4 pos",
+    "1170 0/4 order:flags",
+    "1170 0/4 order:move.dest",
+    "1176 0/9 group",
+    "1177 0/9 dest_angle",
+    "1177 0/9 order:move.angle",
+    "1177 0/9 order:move.off_x",
+    "1177 0/9 order:move.off_y",
+    "1177 0/9 order:move.x",
+    "1177 0/9 order:move.y",
+    "1177 0/9 orders_x",
+    "1177 0/9 orders_y",
+    "1178 0/9 g.angle[0]",
+    "1178 0/9 g.des_angle[0]",
+    "1178 0/9 g.des_x[0]",
+    "1178 0/9 g.x[0]",
+    "1178 0/9 heading",
+    "1178 0/9 order:move.dest_x",
+    "1178 0/9 order:move.dest_y",
+    "1178 0/9 path[0].to",
+    "1178 0/9 path[1].to",
+    "1178 0/9 path[2].to",
+    "1178 0/9 path[3].to",
+    "1178 0/9 path[4].to",
+    "1178 0/9 pos",
+    "1178 1/5 dest_angle",
+    "1178 1/5 order:move.angle",
+    "1178 1/5 order:move.off_x",
+    "1178 1/5 order:move.off_y",
+    "1178 1/5 order:move.x",
+    "1178 1/5 order:move.y",
+    "1178 1/5 orders_x",
+    "1178 1/5 orders_y",
+    "1179 1/5 g.angle[0]",
+    "1179 1/5 g.avg_speed[0]",
+    "1179 1/5 g.cur_anim[0]",
+    "1179 1/5 g.cur_time[0]",
+    "1179 1/5 g.des_angle[0]",
+    "1179 1/5 g.des_x[0]",
+    "1179 1/5 g.des_y[0]",
+    "1179 1/5 g.end_time[0]",
+    "1179 1/5 g.last_speed[0]",
+    "1179 1/5 g.last_time[0]",
+    "1179 1/5 g.stopped[0]",
+    "1179 1/5 g.x[0]",
+    "1179 1/5 g.y[0]",
+    "1179 1/5 heading",
+    "1179 1/5 mirror",
+    "1179 1/5 order:kind",
+    "1179 1/5 order:length",
+    "1179 1/5 orders.len",
+    "1179 1/5 path:length",
+    "1179 1/5 pos",
+    "1180 1/5 order:flags",
+    "1180 1/5 order:move.dest",
+    "1181 1/5 order:move.dest_x",
+    "1181 1/5 order:move.dest_y",
+    "1181 1/5 path[0].to",
+    "1196 1/1 order:gather.wait",
+    "1198 0/8 order:move.dest_x",
+    "1198 0/8 order:move.dest_y",
+    "1201 0/8 order:coll",
+    "1205 0/9 g.avg_speed[0]",
+    "1205 0/9 g.des_y[0]",
+    "1205 0/9 g.last_speed[0]",
+    "1205 0/9 g.y[0]",
+    "1205 0/9 order:move.dest",
+    "1205 0/9 path:length",
+    "1206 0/9 path_recursion",
+    "1206 0/9 tolerance",
+    "1207 0/9 g.stopped[0]",
+    "1242 0/0 g.cur_anim[0]",
+    "1242 0/0 g.cur_anim[1]",
+    "1242 0/0 g.end_time[0]",
+    "1243 0/5 dest_angle",
+    "1243 0/5 order:move.angle",
+    "1243 0/5 order:move.off_x",
+    "1243 0/5 order:move.off_y",
+    "1243 0/5 order:move.x",
+    "1243 0/5 order:move.y",
+    "1243 0/5 orders_x",
+    "1243 0/5 orders_y",
+    "1244 0/5 g.angle[0]",
+    "1244 0/5 g.avg_speed[0]",
+    "1244 0/5 g.cur_anim[0]",
+    "1244 0/5 g.cur_time[0]",
+    "1244 0/5 g.des_angle[0]",
+    "1244 0/5 g.des_x[0]",
+    "1244 0/5 g.des_y[0]",
+    "1244 0/5 g.end_time[0]",
+    "1244 0/5 g.last_speed[0]",
+    "1244 0/5 g.last_time[0]",
+    "1244 0/5 g.stopped[0]",
+    "1244 0/5 g.x[0]",
+    "1244 0/5 g.y[0]",
+    "1244 0/5 heading",
+    "1244 0/5 mirror",
+    "1244 0/5 order:kind",
+    "1244 0/5 order:length",
+    "1244 0/5 orders.len",
+    "1244 0/5 path:length",
+    "1244 0/5 pos",
+    "1245 0/5 order:flags",
+    "1245 0/5 order:move.dest",
+    "1262 1/4 mirror",
+    "1276 0/3 dest_angle",
+    "1276 0/3 order:move.angle",
+    "1276 0/3 order:move.off_x",
+    "1276 0/3 order:move.off_y",
+    "1276 0/3 order:move.x",
+    "1276 0/3 order:move.y",
+    "1276 0/3 orders_x",
+    "1276 0/3 orders_y",
+    "1277 0/3 g.angle[0]",
+    "1277 0/3 g.des_angle[0]",
+    "1277 0/3 g.des_x[0]",
+    "1277 0/3 g.des_y[0]",
+    "1277 0/3 g.last_speed[0]",
+    "1277 0/3 g.x[0]",
+    "1277 0/3 g.y[0]",
+    "1277 0/3 heading",
+    "1277 0/3 order:move.dest_x",
+    "1277 0/3 order:move.dest_y",
+    "1277 0/3 path[0].to",
+    "1277 0/3 pos",
+    "1278 0/3 g.avg_speed[0]",
+    "1282 0/9 collide_guy",
+    "1282 0/9 collide_o",
+    "1282 0/9 collide_who",
+    "1282 0/9 g.cur_anim[0]",
+    "1282 0/9 g.cur_time[0]",
+    "1282 0/9 g.end_time[0]",
+    "1282 0/9 g.last_time[0]",
+    "1282 0/9 order:coll",
+    "1282 0/9 path[1].flags",
+    "1282 0/9 path[1].tolerance",
+    "1287 0/3 order:kind",
+    "1287 0/3 order:length",
+    "1287 0/3 orders.len",
+    "1287 0/3 path:length",
+    "1288 0/3 g.cur_anim[0]",
+    "1288 0/3 g.cur_time[0]",
+    "1288 0/3 g.end_time[0]",
+    "1288 0/3 g.last_time[0]",
+    "1288 0/3 g.stopped[0]",
+    "611 1/6 form",
+    "611 1/7 form",
+    "611 1/8 form",
+    "635 1/6 order:target",
+    "635 1/7 order:target",
+    "635 1/8 order:target",
+    "771 0/6 form",
+    "773 0/7 form",
+    "775 0/8 form",
+    "777 0/9 form",
+];
+// **What parts in the pool**: the pushed selections' `ox`/`oy` on 782 and
+// 802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on
+// 802 (chapter twenty's, the 642 move's), both before the word; the rest
+// is the idle gathers' groups past it.
+const WANT_CH21_POOL: &[&str] = &[
+    "1086 slot 1 facing",
+    "1090 slot 1 held",
+    "1153 slot 0 list",
+    "1153 slot 0 num",
+    "1217 slot 0 held",
+    "782 slot 1 ox",
+    "782 slot 1 oy",
+    "802 slot 0 ox",
+    "802 slot 0 oy",
+    "802 slot 1 new_speed",
+    "802 slot 1 speed",
+];
 
 // **What parts under the word** on run249, the draw word closed at 1300.
 // - The births' `form`, the standing family: the Chariots and the barges.

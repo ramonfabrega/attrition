@@ -4304,3 +4304,46 @@ s, the same game as run256's take 4 for the 831 frames they share,
 This crate's prediction, written before the run, is the original's to the
 block: 782, 802, 929, 930, 931, 932, 968, 969, 1023, 1083.
 
+
+**The word: `GOLDEN_WORD_CHAPTER_TWENTY_ONE` = 1141, open, on the first
+walk.** The command's entry — `input::group_swarm_around` →
+`Sim::group_swarm_around` (`crates/sim/src/swarm.rs`) →
+`group_action_swarm_around` — and piece 120's bays landed with the chapter
+before the capture, and no draw count, draw sequence or `game_random`
+word parts through the whole repair line: the arrows, the peace, both
+swarms, the repair and the three late orders. The word is past it. On
+1141 the original spends two walk-step animation draws (`Guy::set_anim` <
+`Unit::move_step`), `0/8`'s and `0/7`'s, and this crate spends `0/8`'s
+alone.
+
+- **The value diff at the word** (DECISIONS 51.2). The first record
+  that parts on a citizen is **`0/7`'s `MOVEORDER` on 1131**, the approach
+  to its idle gather on `0/2001`: `x` 4104 here and 4296 there, `off_x`
+  264 and 456, `angle` −237961216 and −211681280. The original sends
+  `0/6`, `0/8` and `0/7` all to (4296, 28824); this crate spreads `0/7` a
+  tile west. Its path parts on 1132, and on 1141 its step draws there
+  and not here. That is the gather approach (`gather.rs`), not this
+  item's module.
+- **The widening** over (605, 1301), both directions, with `AMMO`: the
+  births' `form`; chapter two's `order:target` on the Bowmen's attack
+  (635); chapter eight's `group.id` on their walk-off (1021); the idle
+  gathers' `group` (1083, 1129, 1130); and from 1131 `0/7`'s approach and
+  what follows it. **Every arrow agrees**, launch, landing and clock, on
+  every block. In the pool: the pushed selections' `ox`/`oy` on 782 and
+  802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
+  (chapter twenty's).
+- **The repair's own fields**, read raw in
+  `run255_s_repair_is_the_original_s_unit_for_unit`, because the widening
+  compares neither: `unit_masks & 0x400` (`widen_block` reads other bits)
+  and the `REPAIRORDER`'s target (`build_ids` names only the start dump's
+  buildings, so `target_ids` leaves a staged building's target
+  uncompared). 14,623 rows, 704 repair-order frames. They part on four
+  rows only: **the builder bit outlives the repair here**. The original
+  clears `0x400` in `Unit::add_gather_order@0061a5c0` and in
+  `Unit::think_peasant@005f5760`'s failed build arm; this crate's
+  `was_builder` is never cleared, so on each citizen's first gather (1083,
+  1129, 1130, 1176) ours is 1 and theirs 0. `orders.rs`, fenced. The test
+  failed first on the target, which read −1 through `build_ids`.
+- **What is not compared**: the Barracks' `helpers` is 0 on every block
+  of both sides (the step's own counter, reset before the dump), and
+  stays pinned unread.

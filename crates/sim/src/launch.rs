@@ -726,18 +726,96 @@ mod tests {
     fn run256_s_bowman_arrows_leave_from_the_measured_bays() {
         type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
         const M: &[Row] = &[
-            (crate::anim::ATTACK2, 9, 6792, 32760, -999_686_144, 92, 6706, 32751, 256),
-            (crate::anim::ATTACK2, 9, 6648, 32760, -987_168_768, 119, 6562, 32750, 283),
-            (crate::anim::ATTACK2, 9, 6696, 32904, -885_391_360, 107, 6612, 32882, 271),
-            (crate::anim::ATTACK1, 12, 6696, 32904, -885_391_360, 107, 6610, 32883, 270),
-            (crate::anim::ATTACK1, 12, 6792, 32760, -999_686_144, 92, 6704, 32753, 255),
-            (crate::anim::ATTACK3, 15, 6648, 32760, -987_168_768, 119, 6584, 32743, 283),
-            (crate::anim::ATTACK3, 15, 6792, 32760, -999_686_144, 92, 6727, 32744, 256),
+            (
+                crate::anim::ATTACK2,
+                9,
+                6792,
+                32760,
+                -999_686_144,
+                92,
+                6706,
+                32751,
+                256,
+            ),
+            (
+                crate::anim::ATTACK2,
+                9,
+                6648,
+                32760,
+                -987_168_768,
+                119,
+                6562,
+                32750,
+                283,
+            ),
+            (
+                crate::anim::ATTACK2,
+                9,
+                6696,
+                32904,
+                -885_391_360,
+                107,
+                6612,
+                32882,
+                271,
+            ),
+            (
+                crate::anim::ATTACK1,
+                12,
+                6696,
+                32904,
+                -885_391_360,
+                107,
+                6610,
+                32883,
+                270,
+            ),
+            (
+                crate::anim::ATTACK1,
+                12,
+                6792,
+                32760,
+                -999_686_144,
+                92,
+                6704,
+                32753,
+                255,
+            ),
+            (
+                crate::anim::ATTACK3,
+                15,
+                6648,
+                32760,
+                -987_168_768,
+                119,
+                6584,
+                32743,
+                283,
+            ),
+            (
+                crate::anim::ATTACK3,
+                15,
+                6792,
+                32760,
+                -999_686_144,
+                92,
+                6727,
+                32744,
+                256,
+            ),
         ];
         for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
             let got = launch_point(Pos::new(gx, gy), Angle(ga), 120, anim, t);
-            assert_eq!((got.x, got.y), (sx, sy), "piece 120 anim {anim} t {t} facing {ga}");
-            assert_eq!(gz + release_dz(120, anim, t).unwrap(), sz, "piece 120 anim {anim} dz");
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 120 anim {anim} t {t} facing {ga}"
+            );
+            assert_eq!(
+                gz + release_dz(120, anim, t).unwrap(),
+                sz,
+                "piece 120 anim {anim} dz"
+            );
         }
     }
 
