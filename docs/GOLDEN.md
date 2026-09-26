@@ -1373,7 +1373,7 @@ below without a run take their number at booking (the eleventh pass).
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
-| 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block** |
+| 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4295,33 +4295,29 @@ This crate's prediction, written before the run, is the original's to the
 block: 782, 802, 929, 930, 931, 932, 968, 969, 1023, 1083.
 
 
-**The word: `GOLDEN_WORD_CHAPTER_TWENTY_ONE` = 1141, open, on the first
-walk.** The command's entry — `input::group_swarm_around` →
-`Sim::group_swarm_around` (`crates/sim/src/swarm.rs`) →
-`group_action_swarm_around` — and piece 120's bays landed with the chapter
-before the capture, and no draw count, draw sequence or `game_random`
-word parts through the whole repair line: the arrows, the peace, both
-swarms, the repair and the three late orders. The word is past it. On
-1141 the original spends two walk-step animation draws (`Guy::set_anim` <
-`Unit::move_step`), `0/8`'s and `0/7`'s, and this crate spends `0/8`'s
-alone.
+**The word: `GOLDEN_WORD_CHAPTER_TWENTY_ONE` = 1300, closed** (item 824;
+~~1141, open, on the first walk~~, item 813). The command's entry —
+`input::group_swarm_around` → `Sim::group_swarm_around`
+(`crates/sim/src/swarm.rs`) → `group_action_swarm_around` — and piece
+120's bays landed with the chapter, and nothing of the repair line parts.
+813's word was past it: on 1141 the original spent `0/7`'s and `0/8`'s
+walk-step draws (`Guy::set_anim` < `Unit::move_step`), and this crate
+`0/8`'s alone.
 
-- **The value diff at the word** (DECISIONS 51.2). The first record
-  that parts on a citizen is **`0/7`'s `MOVEORDER` on 1131**, the approach
-  to its idle gather on `0/2001`: `x` 4104 here and 4296 there, `off_x`
-  264 and 456, `angle` −237961216 and −211681280. The original sends
-  `0/6`, `0/8` and `0/7` all to (4296, 28824); this crate spreads `0/7` a
-  tile west. Its path parts on 1132, and on 1141 its step draws there
-  and not here. That is the gather approach (`gather.rs`), not this
-  item's module.
+- **The value diff at 1141** (DECISIONS 51.2): `0/7`'s camp-approach
+  `MOVEORDER` on 1131, `x` 4104 here and 4296 there (`off_x` 264/456 and
+  `angle` follow from it). Its one writer is `do_non_flat_gather`'s
+  `find_nearby_spot`, and `find_ordered_collision` refused it 4296 through
+  its **own-group arm**: `0/8`, sent there on 1129, shared `0/7`'s group.
+  The input parted first: `group` on 1083 `0/6` (1 here, −1 there),
+  1129 `0/8` and 1130 `0/7` (0 here, −1 there). `Unit::think_peasant@
+  005f5760` writes it: on a found gather, a human's `+0x80` gets −1
+  (`5f5900`–`5f590c`; `docs/ORDERS.md` §5.9). This crate did not.
+  `was_builder` (parked 825) is not read on this path.
 - **The widening** over (605, 1301), both directions, with `AMMO`: the
-  births' `form`; chapter two's `order:target` on the Bowmen's attack
-  (635); chapter eight's `group.id` on their walk-off (1021); the idle
-  gathers' `group` (1083, 1129, 1130); and from 1131 `0/7`'s approach and
-  what follows it. **Every arrow agrees**, launch, landing and clock, on
-  every block. In the pool: the pushed selections' `ox`/`oy` on 782 and
-  802 (chapter seventeen's family) and slot 1's `speed`/`new_speed` on 802
-  (chapter twenty's).
+  births' `form`, `order:target` (635), `group.id` (1021), and in the
+  pool `ox`/`oy` on 782 and 802 and slot 1's `speed` on 802. Every row
+  from 1083 on is gone. **Every arrow agrees**.
 - **The repair's own fields**, read raw in
   `run255_s_repair_is_the_original_s_unit_for_unit`, because the widening
   compares neither: `unit_masks & 0x400` (`widen_block` reads other bits)
