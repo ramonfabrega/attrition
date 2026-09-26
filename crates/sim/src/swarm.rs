@@ -28,9 +28,10 @@ impl Sim {
     /// `MOVE_TO` for every repair: the swarm's `local_40` is 1 and is
     /// rewritten only on its `BUILD_AT` arm.
     ///
-    /// Returns whether the command reached the group. SEAM: `GATHER` (7),
-    /// the third order the entry takes, is not carried: no capture issues
-    /// it through this command.
+    /// Returns whether the command reached the group. Any other `orders`
+    /// gives nothing here; in the original a citizen member reaches
+    /// `Error::report("ILLEGAL SWARM AROUND ORDER")` (`docs/ORDERS.md`
+    /// §5.4), and no capture issues one.
     pub fn group_swarm_around(
         &mut self,
         g: &Group,
