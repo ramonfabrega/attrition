@@ -1166,6 +1166,7 @@ impl Sim {
             }
             if self.armies[w].list[slot].target.is_some() {
                 self.armies[w].list[slot].status |= status::FORMING;
+                self.do_forming(who, slot);
                 return;
             }
             self.armies[w].list[slot].status = status::NO_TARGET;
