@@ -598,7 +598,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 17501, 6,500 frames before this one. The three unlinked are
         // player 1's `80`..`82`. Measured on base `41385df`. DECISIONS 36: the
         // number, not a trade.
-        off: 43,
+        // **43 → 42 off, 3 → 2 unlinked, 9 → 3 build_diverged** on item
+        // 811: a retarget forms the army twice (`docs/ARMY.md` §21), which
+        // moves this map's word 17501 → 18182, 5,819 frames before this
+        // one. The two unlinked are player 1's `78` and `82`. Measured on
+        // base `3422203` (803's booking). DECISIONS 36: the number, not a
+        // trade.
+        off: 42,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -629,7 +635,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **4 → 0** on item 708, beside `off` above.
         // **0 → 3** on item 767, beside `off` above; **3 → 1** on item 773.
         // **1 → 3** on item 800, beside `off` above.
-        unlinked: 3,
+        // **3 → 2** on item 811, beside `off` above.
+        unlinked: 2,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -672,7 +679,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **7 → 9** on item 752, beside `off` above.
         // **9 → 3** on item 767, beside `off` above; **3 → 6** on item 773.
         // **6 → 9** on item 800, beside `off` above.
-        build_diverged: 9,
+        // **9 → 3** on item 811, beside `off` above.
+        build_diverged: 3,
         city_unlinked: 3,
         city_diverged: 0,
     },
