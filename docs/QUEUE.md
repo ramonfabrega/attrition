@@ -16,7 +16,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
 DECISIONS 51; the gate green on 9bd334e8). Twenty landings ruled, nineteen moved a word; no score moved in the
 pass and none was meant to. Since it: 800 landed (East Indies 17403 →
-17501); 803 is in flight on the rules lane.*
+17501) and 803 (chapter twenty closed at 1300); 811 is in flight.*
 
 - **Great Lakes 20568 of 24,000; East Indies 17501 and the lower map.**
   The AI lane's frame cost fell 0.055 → 0.038 (eight packets replaced by
@@ -30,15 +30,15 @@ pass and none was meant to. Since it: 800 landed (East Indies 17403 →
 - **For the next pass**: the value diff beside every word (eight of
   twenty reported a row count); the checklist's rows in the briefs;
   `UNBUILT` at 104; the order row at 60.
-- **Fable backlog: 7 Loop items** (677, 685, 697, 745, 775, 799, 810).
+- **Fable backlog: 9 Loop items** (677, 685, 697, 745, 775, 799, 810, 820, 821).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w17501 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · 803 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · 813 next
 Endpoint 24001: EastIndies 43 off, 3 unlinked · GreatLakes 11 off, 0 unlinked
 
 **Opener: 811 on the AI lane (East Indies is lower), 795 after it, and
-803 on the rules lane; the briefs against the checklist. A capture is
+813 on the rules lane; the briefs against the checklist. A capture is
 sized to its word — six blocks before, 250 after — and waited on with
 `tools/gamelog/waitrun.sh`; a word lands with the field and both sides'
 values, never a row count.**
@@ -65,12 +65,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
-803. **Chapter twenty, the board line — an issuer, no capture yet**
-    (DECISIONS 49; GOLDEN §13's first `unresolved` row with an issuer;
-    790 closed chapter nineteen at 1100). `CommandManager::
-    issue_set_transport@00941910` on a squad and a transport, 790's
-    harness. §13 says `board_ship` has no issuer: let the emulator say
-    what it builds. Takes GOLDEN §28; run249. The pass may reorder §13.
+813. **Chapter twenty-one, the repair line — a reading first** (GOLDEN
+    §13's `RepairOrder` row: the `repair` command type has no
+    `CommandManager` issuer in the export; 803 closed chapter twenty at
+    1300). Read what builds a `RepairOrder` and whether the DLL can reach
+    it (parked 791: a computer's `REPAIR` swarm is `MOVE_TO`). If it can,
+    the chapter under the emulator and a staging walk; takes GOLDEN §29
+    and run255. If it cannot, say so and §13's row stays unresolved.
 
 ## How to maintain this file
 
