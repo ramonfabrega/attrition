@@ -22,6 +22,22 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 790, 2026-09-25 — the cast's other callers
+
+(804) **`think_spellcaster`** (SCOUT §13, its tenth entry) is buildable on
+`crate::cast` now: a human Spy's own Counterintelligence, a computer's
+Bribe and Counterintelligence. It reaches both long captures' AI Spies,
+so it wants both words measured.
+
+(805) **Why the Informer's `COST` is not charged**: `TypeData::get_cost`'s
+`has_spell` arm, unread.
+
+(806) **The infiltrator's plane**: `update_seen`'s `set_seen2` over an
+infiltrated object's sight, and the caster's `flags & 0x80`.
+
+(807) **An aircraft's `mana_burn`**: `do_strafe`'s cost and `process`'s air
+recharge; the field is read only in chapter nineteen's test.
+
 ## Parked by item 773, 2026-09-25 — run248's other rows
 
 (801) **Sixteen of who=1's fog half-cells part on 17146** (run248's WORLD
@@ -1172,6 +1188,13 @@ a window sized to the word; the brief template should say which.
 line, filed at its merge): a doc comment that spells a field offset
 (`+0x7c`) counts as building the constant. 773's was honest — the comment
 names the field — but the same path would bank a constant nobody built.
+
+(808) **A chapter whose class is decided at process time could take a
+staging-only packet by default** (790's Loop line, filed at its merge):
+the packet rung answered the premise's own predicates — which craft,
+which target, the range, the price, the approach spot — before a word
+was written, in 59 s of lane and one scratch script: 794's scratch walk
+made of the original itself.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

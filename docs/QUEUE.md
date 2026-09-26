@@ -12,36 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **19 landings
-since 7958738**, thirteen words and six chapters. Lane att-790 (chapter nineteen) is
-live and is the twentieth: no lane is spawned past it.*
+*2026-09-25, the commander (Opus 5.5): **twenty landings since 7958738, by
+`git log`; the fifteenth Fable pass is due.** Thirteen words and seven
+chapters; every landing moved a word or closed a chapter. Nothing is in
+flight; no lane was spawned past the twentieth.*
 
-- **Great Lakes 15384 → 20568** in seven, the last +3387: `wonder_mark`'s
-  writer (785, AI §75; run243 over [20500, 20819) alone, so no dump
-  compares a value on 17351..20499, 796). **East Indies is the lower map.**
-- **East Indies 15985 → 17403** in four: the commerce cap (708), a
-  gatherer's city (752), the British Taxation discount (767; run233 to
-  17440), and `no_danger`'s order arm (773, PATHFINDER §28).
-- **Every golden chapter closed again**: fourteen to sixteen (723, 731,
-  738), seventeen 642 → 1400 in four (746–770: the flight and the bomb),
-  and eighteen, the build line, at 1450 (779, §26). Order row 50 → 57.
-- **Ruled at the pass**: the compared recorder (`diff::compared`, a
-  parsed field nobody compares fails until pinned); runway 250 blocks
-  (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
-  code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 24 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–802 filed from this tranche's journals).
+- **Great Lakes 15384 → 20568** in seven, the last +3387 (785's
+  `wonder_mark`, AI §75; run243 sized to the word, so no dump compares a
+  value on 17351..20499, 796). **East Indies 15985 → 17403** in five
+  (708, 752, 767, 773; AI §72–§74, PATHFINDER §28), and is the lower map.
+- **Every golden chapter closed**: fourteen to nineteen (723, 731, 738;
+  seventeen in four, 746–770; 779; 790's cast, §27). The census's order
+  row 50 → 60. GOLDEN §13 has no plain unrun issuer row left: 803 books
+  the nearest unresolved one, and the pass may reorder the table.
+- **For the pass**: the stale lane lock (758) was met on most captures;
+  one DXVK startup stall (762); `waitrun.sh` committed `100644` (756);
+  three function carve-outs inside a held module (`do_guard`,
+  `group_action_siege_attack_to`, `guy_release_events`), none collided.
+- **Fable backlog: 25 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–808 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w17403 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · 790 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · 803 next
 Endpoint 24001: EastIndies 47 off, 1 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 790 lands the twentieth; then the fifteenth Fable pass. After
-it, 800 on the AI lane (East Indies is lower), 795 after it; landings count from 7958738. A capture carries
-250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
-`Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
+**Opener: the fifteenth Fable pass (twenty landings since 7958738). After
+it, 800 on the AI lane (East Indies is lower), 795 after it, and 803 on
+the rules lane. A capture is sized to its word and waited on with `zsh
+tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
+its merge.**
 
 ## The queue
 
@@ -64,12 +64,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     by `8/0`. `1/40` is already off on 20500, run243's first block (the
     gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
-790. **Chapter nineteen, the cast line — an issuer, no capture yet**
-    (DECISIONS 49; GOLDEN §13's next `—` row; 779 closed chapter eighteen
-    at 1450). `CommandManager::issue_spell@00941b80` on chapter eight's
-    Spy from the tracer DLL, 779's harness. It should enter `CastOrder`.
-    The issuer under the emulator first, and the staging walked on an
-    existing capture before its own (794). Takes GOLDEN §27; run245.
+803. **Chapter twenty, the board line — an issuer, no capture yet**
+    (DECISIONS 49; GOLDEN §13's first `unresolved` row with an issuer;
+    790 closed chapter nineteen at 1100). `CommandManager::
+    issue_set_transport@00941910` on a squad and a transport, 790's
+    harness. §13 says `board_ship` has no issuer: let the emulator say
+    what it builds. Takes GOLDEN §28; run249. The pass may reorder §13.
 
 ## How to maintain this file
 
