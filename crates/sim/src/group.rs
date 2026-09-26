@@ -263,6 +263,11 @@ pub struct Pushed {
     pub list: Vec<usize>,
     /// The record half, the same one an army carries.
     pub state: GroupState,
+    /// A **building group**'s members, as indices into [`Sim::buildings`]
+    /// (`GroupData::buildings`, `+0x49`): the AI scripts' `train_unit*`
+    /// and `research_tech_with_cost` push the producing building before
+    /// `Group::action_queue_up` (§28.4). Empty for a group of units.
+    pub builds: Vec<usize>,
 }
 
 /// Where a group's record lives: an army's slot, or an entry of
@@ -499,35 +504,47 @@ impl Sim {
             return true;
         }
         self.unseat_group(g);
-        // The pool slot every member's `+0x80` then points at.
-        // `Groups::get_open_slot` recycles, so a slot whose members are
-        // all gone is taken before a new one is appended — without that
-        // the pool would grow without bound over a long game, and the
-        // original's is 64 entries.
-        let slot = self
-            .pushed
-            .iter()
-            .position(|x| x.list.iter().all(|&u| !self.units[u].alive()))
-            .unwrap_or_else(|| {
-                self.pushed.push(crate::group::Pushed {
-                    who: g.who,
-                    list: Vec::new(),
-                    state: GroupState::default(),
-                });
-                self.pushed.len() - 1
-            });
-        // `Groups::copy_group@006fa690` stamps the fresh slot with the
-        // frame (`+0x14 = game->frame`), whatever the stack group held:
-        // run215's slot 1 prints `stamp 621`, the frame its selection was
-        // processed (`docs/GOLDEN.md` §23).
-        self.pushed[slot] = crate::group::Pushed {
+        // `Groups::copy_group@006fa690` writes the stack group **into the
+        // slot's own record** (§28): `who`, `num`, `ox`/`oy`, `o_dist`,
+        // `o_angle`, `buildings`, `speed`, the list and its four offset
+        // arrays and the angle bytes, and `stamp = game->frame` (run215's
+        // slot 1 prints `stamp 621`, `docs/GOLDEN.md` §23). Everything
+        // else — `form`, `order_num`, `facing`, `form_num`, `new_speed`,
+        // `march` — is the previous occupant's. So the pool index is the
+        // record's identity: an entry of [`Sim::pushed`] is the one slot
+        // it names, and a push onto that index reuses it rather than any
+        // entry whose members happen to be gone. East Indies' tick 20000
+        // pushes `1/64`..`1/66` onto the slot army 1's closed group last
+        // held, and the layout reads that group's `facing` (§28).
+        let (slot, _prev) = self.pool_record(g.who, pool);
+        let state = GroupState {
+            pool: Some(pool),
+            stamp: self.frame,
+            // The stack group's own: `Group::clear(-1)` and nothing since.
+            o: GroupState::default().o,
+            o_dist: 0,
+            o_angle: Angle(0),
+            speed: 0,
+            off: Vec::new(),
+            curr: Vec::new(),
+            angles: Vec::new(),
+            ..GroupState::default()
+        };
+        let entry = crate::group::Pushed {
             who: g.who,
             list: g.list.clone(),
-            state: GroupState {
-                pool: Some(pool),
-                stamp: self.frame,
-                ..GroupState::default()
-            },
+            state,
+            builds: Vec::new(),
+        };
+        let slot = match slot {
+            Some(i) => {
+                self.pushed[i] = entry;
+                i
+            }
+            None => {
+                self.pushed.push(entry);
+                self.pushed.len() - 1
+            }
         };
         // The second walk's tail: `+0x80 = slot` on every active member.
         for &u in &g.list {
@@ -604,14 +621,81 @@ impl Sim {
     /// `push_group` does, else a new one; its record and list are the
     /// army's, and [`Sim::groups_process`] prunes it from then on.
     pub(crate) fn seat_orphan(&mut self, who: Player, list: Vec<usize>, state: GroupState) {
-        let entry = crate::group::Pushed { who, list, state };
-        match self
+        // The entry is the pool index's own record (§28): the orphan
+        // replaces whatever stale entry named its index, and never an entry
+        // that names another — that entry is another slot's record, which
+        // a later `copy_group` into that slot reads.
+        let at = self
             .pushed
             .iter()
-            .position(|x| x.list.iter().all(|&u| !self.units[u].alive()))
-        {
+            .position(|x| x.who == who && x.state.pool == state.pool);
+        let entry = crate::group::Pushed {
+            who,
+            list,
+            state,
+            builds: Vec::new(),
+        };
+        match at {
             Some(i) => self.pushed[i] = entry,
             None => self.pushed.push(entry),
+        }
+    }
+
+    /// The record pool slot `s` of `who` holds now — the army whose group
+    /// sits on it, else the [`Pushed`] entry that names it — as what
+    /// `copy_group` leaves behind (§28), with the entry to overwrite.
+    fn pool_record(&self, who: Player, s: u8) -> (Option<usize>, GroupState) {
+        let entry = self
+            .pushed
+            .iter()
+            .position(|x| x.who == who && x.state.pool == Some(s));
+        let army = self.armies.get(who as usize).and_then(|x| {
+            x.list
+                .iter()
+                .find(|a| a.valid && a.group.pool == Some(s))
+                .map(|a| a.group.clone())
+        });
+        let prev = army
+            .or_else(|| entry.map(|i| self.pushed[i].state.clone()))
+            .unwrap_or_default();
+        (entry, prev)
+    }
+
+    /// The members slot `s`'s record lists, alive or not: the army's
+    /// group on it, else its [`Pushed`] entry.
+    fn pool_record_list(&self, who: Player, s: u8) -> &[usize] {
+        let w = who as usize;
+        if let Some(a) = self
+            .armies
+            .get(w)
+            .and_then(|x| x.list.iter().find(|a| a.valid && a.group.pool == Some(s)))
+        {
+            return &a.units;
+        }
+        self.pushed
+            .iter()
+            .find(|x| x.who == who && x.state.pool == Some(s))
+            .map_or(&[], |x| &x.list)
+    }
+
+    /// `Group::get_num@00714700` on slot `s`, the count `get_open_slot`
+    /// tests for zero (§3.1, §28). A record of fewer than four is
+    /// `normalize`d first — the dead and every member whose `+0x80` names
+    /// another slot drop — and one of four or more drops **only the
+    /// dead**: a closed army's group whose fifteen members all point at
+    /// the new army still counts fifteen until `Groups::process`'s cursor
+    /// prunes it. The count is taken, the prune is not written back.
+    ///
+    /// SEAM: `get_num`'s own prune writes the list; this reads it.
+    fn pool_get_num(&self, who: Player, s: u8) -> usize {
+        let list = self.pool_record_list(who, s);
+        let alive = |u: usize| self.units[u].alive();
+        if list.len() < 4 {
+            list.iter()
+                .filter(|&&u| alive(u) && self.units[u].group_ptr == Some(s))
+                .count()
+        } else {
+            list.iter().filter(|&&u| alive(u)).count()
         }
     }
 
@@ -1020,23 +1104,118 @@ impl Sim {
         let s = if !list.is_empty() && self.pool_members(who, last) == list {
             last
         } else {
-            let s = (0..46u8)
-                .find(|&s| s != last && self.pool_members(who, s).is_empty())
-                .unwrap_or(45);
-            // `get_open_slot`'s tail (§3.1): every unit of `who` whose
-            // `+0x80` names the slot is cleared before the new group moves
-            // in. A slot is chosen because nothing live both lists and
-            // names it, so what this reaches is a pointer its list
-            // dropped — the stale half §23 is about.
-            for x in &mut self.units {
-                if x.owner == who && x.group_ptr == Some(s) {
-                    x.group_ptr = None;
-                }
-            }
-            s
+            self.open_slot(who)
         };
         self.last_group[w] = s;
         s
+    }
+
+    /// `Groups::get_open_slot@006fa460` (§3.1, §28): the slot a group that
+    /// does not equal `last_group` is copied into, with its tail's
+    /// eviction. `last_group` is the caller's to write.
+    fn open_slot(&mut self, who: Player) -> u8 {
+        let last = self.last_group[who as usize];
+        {
+            // The first slot whose `get_num` is zero (§3.1, §28) — not
+            // "nothing live points at it", which takes a closed army's
+            // group of fifteen stale members before the cursor has pruned
+            // it. Failing that, the oldest single-captain group, the last
+            // of equal stamps winning; failing that, the last slot not
+            // `last_group`.
+            // A **building group** is taken at once, whatever it holds.
+            let s = (0..46u8)
+                .find(|&s| {
+                    s != last
+                        && (self.pool_is_building_group(who, s) || self.pool_get_num(who, s) == 0)
+                })
+                .unwrap_or_else(|| {
+                    let mut best = None;
+                    let mut stamp = self.frame;
+                    for s in (0..46u8).filter(|&s| s != last) {
+                        let st = self.pool_record(who, s).1.stamp;
+                        let caps = self
+                            .pool_record_list(who, s)
+                            .iter()
+                            .filter(|&&u| self.units[u].alive() && self.is_captain(u))
+                            .count();
+                        if st <= stamp && caps == 1 {
+                            stamp = st;
+                            best = Some(s);
+                        }
+                    }
+                    best.unwrap_or(if last == 45 { 44 } else { 45 })
+                });
+            // `get_open_slot`'s tail (§3.1): unless the slot holds a
+            // building group, every unit of `who` whose `+0x80` names it
+            // is cleared before the new group moves in. What this reaches
+            // is a pointer its list dropped — the stale half §23 is about.
+            if !self.pool_is_building_group(who, s) {
+                for x in &mut self.units {
+                    if x.owner == who && x.group_ptr == Some(s) {
+                        x.group_ptr = None;
+                    }
+                }
+            }
+            s
+        }
+    }
+
+    /// Does slot `s` of `who` hold a building group now?
+    fn pool_is_building_group(&self, who: Player, s: u8) -> bool {
+        let army = self
+            .armies
+            .get(who as usize)
+            .is_some_and(|x| x.list.iter().any(|a| a.valid && a.group.pool == Some(s)));
+        !army
+            && self
+                .pushed
+                .iter()
+                .any(|x| x.who == who && x.state.pool == Some(s) && !x.builds.is_empty())
+    }
+
+    /// `Groups::push_group(who, g, 1)` for the one-building group the AI
+    /// scripts' `train_unit*` and `research_tech_with_cost` build before
+    /// `Group::action_queue_up` (§28.4). A group equal to `last_group`'s
+    /// — the same building — reuses it; otherwise `get_open_slot` and
+    /// `copy_group` seat it, and it takes every later push's slot first.
+    /// A building's own `+0x80` is not carried.
+    pub(crate) fn push_building_group(&mut self, who: Player, b: usize) {
+        let w = who as usize;
+        let last = self.last_group[w];
+        let equal = self.pushed.iter().any(|x| {
+            x.who == who && x.state.pool == Some(last) && x.builds == [b] && x.list.is_empty()
+        }) && !self.armies[w]
+            .list
+            .iter()
+            .any(|a| a.valid && a.group.pool == Some(last));
+        if equal {
+            return;
+        }
+        let pool = self.open_slot(who);
+        self.last_group[w] = pool;
+        let (slot, _prev) = self.pool_record(who, pool);
+        let state = GroupState {
+            pool: Some(pool),
+            stamp: self.frame,
+            o: GroupState::default().o,
+            o_dist: 0,
+            o_angle: Angle(0),
+            speed: 0,
+            off: Vec::new(),
+            curr: Vec::new(),
+            angles: Vec::new(),
+            ..GroupState::default()
+        };
+        let entry = crate::group::Pushed {
+            who,
+            list: Vec::new(),
+            state,
+            builds: vec![b],
+        };
+        match slot {
+            Some(i) => self.pushed[i] = entry,
+            None => self.pushed.push(entry),
+        }
     }
 
     /// The pool slot `u` points at, as the dump prints it — `who·64 + s`,
@@ -4543,14 +4722,21 @@ mod tests {
             Some(vec![c]),
             "and the second is its own"
         );
-        // `Groups::get_open_slot`: a slot whose members are all gone is
-        // taken before a third is appended.
+        // `Groups::get_open_slot` (§3.1, §28.4): a slot whose `get_num`
+        // is zero is taken before a new one — but never `last_group`, and
+        // the dead group's slot is `last_group` until another push moves
+        // it. So the third push takes a fresh slot, and the fourth
+        // recycles the dead one.
         s.units[c].health = 0;
         let d = spawn(&mut s, 1, t, Pos::new(0x5000, 0x5000));
         let mut third = group_of(1, &[d]);
         assert!(s.push_group(&mut third, true));
-        assert_eq!(third.pushed, Some(1), "the dead group's slot is recycled");
-        assert_eq!(s.pushed.len(), 2, "and the pool does not grow");
+        assert_eq!(third.pushed, Some(2), "`last_group` is not recycled");
+        let e = spawn(&mut s, 1, t, Pos::new(0x6000, 0x6000));
+        let mut fourth = group_of(1, &[e]);
+        assert!(s.push_group(&mut fourth, true));
+        assert_eq!(fourth.pushed, Some(1), "the dead group's slot is recycled");
+        assert_eq!(s.pushed.len(), 3, "and the pool does not grow");
     }
 
     /// **A seated group's move is a `GroupMoveOrder`, and an in-danger

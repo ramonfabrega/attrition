@@ -1424,6 +1424,12 @@ capture** (867's Loop line, filed at its merge): the repeat toggle on
 clear arm and `do_launch`'s kill in one run. A premise that names an arm
 asks which event each arm needs, and where a lever sits between them.
 
+(881) **A brief's "measure the other map on every step" needs an
+instrument** (870's Loop line, filed at its merge): 870's brief asked for
+Great Lakes' pool pins on every step, and nothing walked them. The pool
+walk takes a map's run list, and a Great Lakes list is one line; a brief
+names the instrument with the measurement it asks for.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

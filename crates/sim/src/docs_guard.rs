@@ -1048,8 +1048,10 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 const UNBUILT: &[(&str, usize)] = &[
     // 22 → 21 on item 803, and not a build: run78's floor re-pinned to
     // `(434, 438)` spells 438, the decimal of `0x1b6`, which the rule
-    // counts (the fifteenth pass's decimal clause).
-    ("AI.md", 21),
+    // counts (the fifteenth pass's decimal clause). Back to 22 on item
+    // 870, and not an unbuild: run78's floor re-pinned to `(418, 421)`
+    // no longer spells 438 (parked 820).
+    ("AI.md", 22),
     // 3 → 2 and ORDERS.md's 8 → 7 on item 813, and neither is a build:
     // chapter twenty-one's pinned widening rows name frames 1206 and 1153,
     // the decimals of ANIM.md's `0x4b6` and ORDERS.md's `0x481`, which
@@ -1061,14 +1063,18 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COLLISION.md", 1),
     ("COMBAT.md", 4),
     ("COSTS.md", 4),
-    ("ECONOMY.md", 10),
+    // 10 → 9 on item 870, and not a build: a re-pinned widening row
+    // spells one of its constants (parked 820); which one is not traced.
+    ("ECONOMY.md", 9),
     ("GOLDEN.md", 1),
     ("GOODY.md", 5),
     ("GROUPS.md", 4),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 8),
     ("PATHFINDER.md", 1),
-    ("PRODUCTION.md", 7),
+    // 7 → 8 on item 870, and not an unbuild: run78's re-pinned
+    // standing count 435 → 419 no longer spells `0x1b3` (parked 820).
+    ("PRODUCTION.md", 8),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
     ("TECH.md", 11),

@@ -3904,7 +3904,7 @@ word:
   slot at once. **Alone, it holds 20007.**
 
 Both rules need **the original's numbering**, and East Indies' parts on
-**block 239** (`east_indies_pool_numbering_parts_on_who_1_s_building_groups`,
+**block 239** (`east_indies_pool_numbering_takes_who_1_s_building_groups`,
 run45). The original's who=1 pushes **building groups**, `[2005]` onto
 64 on frame 1 and `[2000]` onto 66 on frame 176. So `think_scout`'s
 repush of `[0]` on tick 238 does not equal `last_group`, and
@@ -3947,6 +3947,10 @@ commits):
    by field. From 8369 a slot's previous occupant is often another
    record.
 
+**Item 870 landed the numbering** (§29): 8369's writer was
+`do_non_flat_gather`'s every-call drop, and the pool agrees to the word.
+The kept fields still fall to 17530/7213 (§29.4).
+
 **What building it takes**: the writer of 8369's `1/11`, and then every
 later pool-id parting in turn. The comparison is a script,
 `group`-for-`group` against each East Indies dump in run order, first
@@ -3984,7 +3988,7 @@ which is what one entry per index replaces.
 two records on the index
 (`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`),
 and the pool on frames 2, 238 and 239 against this crate's `1/0` on 239
-(`east_indies_pool_numbering_parts_on_who_1_s_building_groups`).
+(`east_indies_pool_numbering_takes_who_1_s_building_groups`).
 **Decompile-backed**: `copy_group@006fa690`'s nine fields,
 `get_open_slot@006fa460`, `get_num@00714700`, `equals_group@00708000`.
 **Listing-backed**: `action_queue_up`'s six call sites and the
@@ -3992,3 +3996,162 @@ and the pool on frames 2, 238 and 239 against this crate's `1/0` on 239
 functions entered on frame 1, and `take_damage` never. **Measured, not
 asserted**: 20007 → 20782 under the probe. On the branch, 20007/20568
 with the numbering, and 17530/7213 with the kept fields.
+
+## 29. The pool's numbering is the original's to East Indies' word — the building groups and the gatherer's `group` (item 870, 2026-09-26)
+
+*Established by run98's records, the listing at `5f0170`–`5f0245`, and a
+walk of who=0's and who=1's `group` against every East Indies dump.
+Diff-backed on every block of those dumps. **The word does not move**:
+East Indies holds at 20007 and Great Lakes at 20568. §28's kept fields are
+still not built.*
+
+### 29.1 The numbering (from §28.4's branch)
+
+865's first commit (`a05f90a6`) lands as it was measured:
+
+- `ScriptHost::action_queue_up` pushes the producing building as a group
+  first (`Sim::push_building_group`), as the scripts' `train_unit*` and
+  `research_tech_with_cost` do.
+- `open_slot` is §3.1 whole: an empty slot is one whose `get_num` is 0 (§28.4's
+  rule), a building group is taken at once, the fallback is the oldest
+  single-captain slot, and a building group's slot skips the eviction.
+- `Sim::pushed` holds one entry per pool index. `seat_orphan` replaces
+  its own index's entry.
+
+Alone it holds both words, and who=1's `group` agrees with every East
+Indies dump until block 8369.
+
+### 29.2 Block 8369: the gatherer drops its group
+
+On run98's 8369, `1/11` (a citizen, flags 1) reads `group` 65 → −1. **The
+whole cast on the frame**: three of who=1's citizens, `1/2`, `1/6` and
+`1/11`, each get a `MOVEORDER` pushed on top of their gather.
+
+| | `1/2` | `1/6` | `1/11` |
+|---|---|---|---|
+| move `x`, `y` | (34872, 36984) | (37800, 36408) | (37800, 36456) |
+| `angle` | −541917184 | 1325793280 | 1179123712 |
+| `facing`, `dest` | −1, 0 | −1, 0 | −1, 0 |
+| `group` on 8368 → 8369 | −1 → −1 | −1 → −1 | **65 → −1** |
+
+Only `1/11` had a group to lose. This crate pushed the same three moves
+on the same tick, with the same destinations and angles, from
+`do_non_flat_gather`'s `add_move_order`, and kept `1/11` on 65.
+
+**The writers of `+0x80`, counted by the offset**: `Group::action_move_near`,
+`Group::kill`, `get_open_slot`, `push_group`, `Unit::~Unit`, `build_done`,
+`do_attack`, `do_build`, `do_group_move`, `do_non_flat_gather`,
+`Unit::init`, `set_group` and `think_peasant`. On tick 8368 `1/11`'s only
+order is the gather it was given on 8367, so its own call reaches
+`do_non_flat_gather` and none of the others. The listing is plain:
+`Unit::do_non_flat_gather@005f0170` branches on `been_there` at `5f01ba`,
+and both paths join at `5f0237` (`orl $-1, %eax`) and `5f023e` (`movw
+%ax, 0x80(%ebx)`), before the `goto_build` test. **Every call drops the
+gatherer's group, a computer's too.** That is parked 831, 824's measured
+writer. The pool keeps listing the unit, and only the back-pointer goes,
+as with `think_peasant`'s human arm.
+
+**Built** (`crates/sim/src/orders.rs`, the head of `do_non_flat_gather`).
+
+### 29.3 The walk
+
+`east_indies_pool_walk` (an ignored probe in the harness) ticks run54's
+game once and compares who=0's and who=1's `group` on every block of
+every East Indies dump, run42 to run277. With 29.1 and 29.2:
+
+- **Every dump agrees on every block to 20257**, run277's last, but two
+  blocks.
+- **17363** (run233): `1/67`..`1/69` read −1 here and 69 there on their
+  birth block. The original seats a new squad in a pool slot of its own
+  for one block (§27.5), and this crate does not. The next block agrees.
+- **17575** (run251): `1/70`..`1/72` do the same, on 64 there. The next
+  block agrees.
+- run96's 23960 is past the word.
+
+On block 20002, `1/64`..`1/66` point at 68 on both sides, and slot 69
+holds the squad `[64, 65, 66]` on both sides. This crate now keeps one
+record there, not §28's two.
+
+### 29.4 The slot records: where §28's kept fields stand
+
+The walk's second mode compares each `GROUPDATA` slot's `facing` and
+`order_num` with this crate's record. Without the kept fields (a fresh
+record on every push):
+
+- they agree on all of run45 (blocks 1..901), run64 and run65
+  (6164..6215);
+- they first part on run221's first block, **15894**:
+
+  | slot | list, `stamp` (both sides) | `order_num` here | there |
+  |---|---|---|---|
+  | 64 | `[48]`, 15888 | 1 | 6 |
+  | 65 | `[31]`, 10952 | 1 | 3 |
+  | 70 | army 0's ten, 15888 | 0 | 6 |
+  | 71 | stamp 15887 | 1 | 8 |
+
+  That is the previous occupant's `order_num`, kept by `copy_group`. The
+  gap 6216..15893 prints no `GROUPDATA`.
+
+With 865's second commit (`30e5b464`, `..prev` for the fresh record)
+**on top of 29.1 and 29.2**, the words fall to **17530 and 7213**, as on
+865's branch. The records part earlier, on **6164**: slot 64 (`[15]`,
+stamp 5937) reads `order_num` 13 here against 1, and slot 68 (`[0]`)
+reads `facing` 0 against 1. So this crate's kept-field accounting
+carries a history the original's slots do not. The candidates are this
+crate's army records, which are their own and not a pool slot's (§28.5,
+parked 874), and the orphan seat. Neither is walked. The kept fields
+stay unbuilt.
+
+### 29.5 What it moved
+
+Both long words hold: East Indies 20007 and Great Lakes 20568. Every
+golden chapter holds. **The value diff at the item's own frame**, block
+8369: `1/11`'s `group` −1 there, 65 here before, and −1 here now. On block 239
+(run45), `1/0` is on 64 on both sides, slot 64 is stamped 238, and 66
+holds the building group stamped 176.
+
+Across the moved widenings, **302 parted keys close and none opens**:
+
+- 295 `group` rows. Examples: `1/11` 64 against −1 on every East Indies
+  window from 9960, `1/0` 66 against 65, `1/32`..`1/38` 68 against 66,
+  and army 1's column 71 against 70 on 15894;
+- five `order:move.facing` and two `mirror`, the scout's and `1/22`'s
+  and `1/29`'s layouts.
+
+run99's scout `order:move.facing` now first parts on **8481**, 0 here
+against 1 there. That is the kept `facing` (§28), and it is past the
+records' agreement. On Great Lakes, run79's 29 scout-mirror rows and
+run83's `Move.facing` family close. On the golden controls, ch7c's and
+ch7bc's `1/0` `group` on 605 (65 against 64) and ch7bc's `1/1` on 990 (64
+against 65, §24's permutation) close.
+
+**ENDPOINTS**: East Indies moves 38 → 40 off and 0 → 2 unlinked (`1/81`,
+`1/82`), 3,994 frames past the word. Great Lakes holds 11/0.
+
+### 29.6 What this has *not* established
+
+- **The squads' birth push** (17363, 17575): which call seats a new
+  squad for one block. It is 689's family, one block each, and spends no
+  draw.
+- **Where the slot records' `order_num` part in 6216..15893.** No dump
+  prints `GROUPDATA` there. The kept fields need that history. A
+  `GROUPS=1` capture over the gap, walked with the probe's record mode,
+  is the cheapest reading.
+- **Great Lakes' pool** (871). Its pins moved toward the original's and
+  its word holds. It is not walked.
+- **`get_num`'s own prune** (parked 872) and a building's `+0x80`
+  (parked 873), as §28.5 says.
+
+### 29.7 Coverage
+
+**Diff-backed**:
+- `1/11`'s `group` on 8369 and every East Indies dump's `group` rows
+  (the widenings, the walk);
+- the block-239 pool
+  (`east_indies_pool_numbering_takes_who_1_s_building_groups`);
+- slot 69 on 20002
+  (`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`).
+
+**Listing-backed**: `5f01ba`, `5f0237` and `5f023e`. **Measured, not
+asserted**: the kept fields' 17530/7213 on this tree, and the record walk's
+15894 and 6164.

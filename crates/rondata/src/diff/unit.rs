@@ -2028,11 +2028,14 @@ mod tests {
         // mirror `facing`, 0 against the original's 1 on 6910..6938, until
         // its 6939 push takes a fresh slot. `push_group` now keeps an equal
         // group's record, and the scout's kept record carries a mirror the
-        // original's does not (parked 275). Non-scoring; no draw.
+        // original's does not (parked 275). Non-scoring; no draw. **Item
+        // 870 took all 29**: who=1's building groups number the pool as
+        // the original's do, so the scout's pushes take the original's
+        // slots (`docs/GROUPS.md` §29). The window parts on nothing.
         let mirror = "1/0 order: Move { field: \"facing\", ours: 0, theirs: 1 }";
         let other: Vec<&String> = wrong.iter().filter(|w| !w.ends_with(mirror)).collect();
         assert!(
-            other.is_empty() && wrong.len() == 29,
+            other.is_empty() && wrong.is_empty(),
             "run79's window parted on {} rows ({} not the scout's mirror), first twenty-four printed above",
             wrong.len(),
             other.len()
