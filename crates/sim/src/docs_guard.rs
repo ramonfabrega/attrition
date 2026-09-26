@@ -1050,7 +1050,11 @@ const UNBUILT: &[(&str, usize)] = &[
     // `(434, 438)` spells 438, the decimal of `0x1b6`, which the rule
     // counts (the fifteenth pass's decimal clause).
     ("AI.md", 21),
-    ("ANIM.md", 3),
+    // 3 → 2 and ORDERS.md's 8 → 7 on item 813, and neither is a build:
+    // chapter twenty-one's pinned widening rows name frames 1206 and 1153,
+    // the decimals of ANIM.md's `0x4b6` and ORDERS.md's `0x481`, which
+    // the decimal clause counts.
+    ("ANIM.md", 2),
     ("ARMY.md", 8),
     ("CITIES.md", 4),
     ("COLLISION.md", 1),
@@ -1061,7 +1065,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOODY.md", 5),
     ("GROUPS.md", 4),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 8),
+    ("ORDERS.md", 7),
     ("PATHFINDER.md", 1),
     ("PRODUCTION.md", 7),
     ("ROADS.md", 1),

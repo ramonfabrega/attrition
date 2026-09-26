@@ -4197,34 +4197,17 @@ lays a lone `REPAIRORDER`; the build line's shape for a computer lays an
 a human's approach is a `MOVE_TO` under both readings of `local_40`.
 
 **The staging, walked before the capture** (run256, `chapter21.cmd`'s
-twelve lines to 830, four takes; `docs/RUNS.md` run256). A building must
-be damaged first, and the damage came from three staging mistakes.
-
-- **Take 1**, the Barracks on the neutral arena: the hoplites never struck
-  it. `Object::check_target` refuses a building that neither
-  `build_flags & 0x10` (buildable outside a city) nor an owned cell
-  allows (`docs/COMBAT.md` §12.2). The `@repair` line was processed all
-  the same: `process_swarm_around 2007 0 2 13 781`, and `0/6` on 782
-  under a `MOVEORDER` and a `REPAIRORDER`.
-- **Take 2**, in who=0's territory beside Napata: the hoplites strike, 4 a
-  blow, `damage` 48 by 760. This crate parts on 636, a walk animation's
-  draw on the first step toward the building (`Guy::set_anim` <
-  `Unit::move_step`), in `movement.rs` and `anim.rs`, fenced and not the
-  chapter's. So the attackers became archers who stand.
-- **Takes 3 and 4**, who=1's Bowmen at three tiles: they fire from where
-  they stand and the Barracks takes `damage` 3 (frac 12) by 744. This
-  crate parted on 650, the first arrow a frame late: who=1's Bowman is
-  **piece 120**, whose release bays nobody had measured, so its arrows
-  left the figure's own point, 86 units behind the bow hand. Take 4's
-  twelve arrows measure all three of its releases (`sim::launch`'s
-  `BAYS`: `(120, ATTACK1, 12)`, `(120, ATTACK2, 9)`, `(120, ATTACK3,
-  15)`, each the centroid of the integer region that reproduces every
-  launch point of its key exactly, `dz` 163, 164, 164), and
-  `launch::tests::run256_s_bowman_arrows_leave_from_the_measured_bays`
-  pins the seven distinct points and their `sz`. 472's nodes, the
-  Nubian bowman's, put the same arrows one to four units out.
-- **With the bays, this crate walks take 4 whole**: no draw count,
-  sequence or `game_random` word parts to 830.
+twelve lines to 830, four takes, each in `docs/RUNS.md` run256). A
+building must be damaged first. On the neutral arena a building is no
+target (`Object::check_target`, `docs/COMBAT.md` §12.2); in who=0's
+territory a walking attacker parts this crate on a fenced walk draw
+(636); so the attackers are who=1's Bowmen, who stand and shoot. Their
+piece, **120**, had no measured release bay, and take 4's twelve arrows
+measure its three (`sim::launch`'s `BAYS`, pinned by
+`launch::tests::run256_s_bowman_arrows_leave_from_the_measured_bays`;
+472's nodes put the same arrows one to four units out). With the bays,
+**this crate walks take 4 whole**: no draw count, sequence or
+`game_random` word parts to 830.
 
 What take 4 printed, each a field the chapter reads: the Barracks
 `0/2007` at (5760, 32640), `myhits` 1200; `peace 1` and the Bowmen walking
