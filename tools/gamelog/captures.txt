@@ -7106,3 +7106,62 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - `MAP_STYLE 18`;
 # - the window whole;
 # - the pool and the figures on every block.
+
+run: 289
+tag: eastindies-marketword
+item: 880
+why: East Indies' long word is 20782 (item 880: `Group::kill` clears an emptied pool record, and an army's group is its slot's record, GROUPS §30), where ours spends 8 draws against 1, parting at index 0 — ours spends `Leader::use_market+0x1ed` where the original spends `Farms::inc_time+0x1ae` — and run277, the last capture on this map below 23960, ends on block 20258, so the word's block 20783 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 880): every
+# `gamelog-*eastindies*` and `*islands*` by its block range. run277
+# holds 20002..20258 and is the newest on this map; run96 starts at
+# 23960, and run21, run23 and run54 print nothing between. None holds a
+# block in 20259..21033. **What the disk does answer**: with 880's
+# fix, every `GROUPDATA` `facing` and `order_num` on every East Indies
+# dump agrees to 20257, and every unit's `group` too. **What the disk
+# could not answer**: why who=1's leader reaches `use_market` on 20782,
+# and every leader, unit, figure and pool record on 20777..20783.
+#
+# **Sized to the word** (DECISIONS 50 §7): six blocks before it
+# (20777..20782), its block 20783, and 250 above it (20784..21033) —
+# **257 blocks, 20777..21033**. No overlap with run277 (it ends on
+# 20258), so **blocks 20259..20776 are compared by no dump**; the same
+# game is the draw stream's word against run54.
+#
+# **The readings, each with what kills it** (block = frame + 1). Each
+# killer tests the claim's own unit and splits the readings:
+#
+# - **R1 — this is run54's game to 21044.** Killed if the trace differs
+#   from run54's on any frame, or agrees on fewer than 21,045 (rngcmp's
+#   count, one ahead of the harness's frame, parked 845).
+# - **R2 — who=1's stock or wealth parts before the market's test.** Its
+#   unit is who=1's `LEADERDATA` resource and market fields on
+#   20777..20783: killed if every one agrees on the word's block.
+# - **R3 — the stocks agree and the market's own clock parts.** Its unit
+#   is who=1's leader clock fields (the market's think frame) on the
+#   same blocks: killed if they agree on the word's block and R2 is
+#   killed too.
+#
+# **run277's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the pool lands (no `DEATHS`). Not a round, so no `AMMO`.
+frames: 21044
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **20777..21033, 257 blocks**: six up to the word, its block 20783, and
+# 250 of runway above it.
+frame_window: 20777 21034
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run277**: 2.4 MB a block, so 257 blocks is ~0.6 GB, and
+# 775 more frames played unlogged than run277's.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run289.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=21045)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run289-eastindies-marketword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 257 blocks, 20777..21033, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run289-eastindies-marketword.txt" | awk '{v=$3+0; if(v>=20777&&v<21034) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==20777 && hi==21033)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run289-eastindies-marketword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20777&&v<21034)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run289-eastindies-marketword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=20777&&v<21034)n++} print "blocks with a GUY: "n; exit !(n==257)}'
