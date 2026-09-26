@@ -5071,3 +5071,17 @@ The staging walk had every finish 8 blocks early (848, 1052, 1264): a
 clock this crate runs short, which the widening names. The arms did not
 depend on it: the toggle stood 46 blocks after the Hoplites' finish and
 158 before the Bowmen's.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_FOUR` = 855,
+open, on the first walk**, with both `@queueup` lines skipped and
+`@buildmask` 0x40 writing nothing: on 855 the original's Hoplites finish
+and train a squad this crate never queued, and the draws part there. The
+widening, (605, 858), in `WIDENINGS`, with three windows in the coverage
+driver (622, 642, 855) and `process_queue_up` pinned there. **The value
+partings**, both sides:
+- **622**, `0/2007`'s `queued`: ours 0, theirs 1; who=0's food and
+  timber, ours 254 and 241, theirs 203 and 203;
+- **642**, wealth: ours 114, theirs 61;
+- **856**, `0/10`–`0/12`, the trained Hoplites: the dump holds them alone.
+The pool: the building group `[2007]` in who=0's slot 1 on 622, and the
+trained squad `[10, 11, 12]` in slot 0 on 856, neither seated here.

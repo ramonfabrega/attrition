@@ -286,9 +286,12 @@ const UNREAD: &[(&str, &str)] = &[
     // lays are read off the citizens' stacks. **Item 867's run281 windows
     // `process_buildmask`** (`frame`), the first player's repeat button;
     // the mask it toggles is read off the building's `build_masks`.
+    // **Item 877's run285 windows `process_queue_up`** (`type num
+    // frame`), the first player's production; the entries it lays are
+    // read off the building's `BUILDQUEUE`.
     (
         "GAME",
-        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_set_transport process_spell process_swarm_around",
+        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -543,6 +546,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch21 = golden_dump("ch21");
     let ch22 = golden_dump("ch22");
     let ch23 = golden_dump("ch23");
+    let ch24 = golden_dump("ch24");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1209,6 +1213,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
                 n, 5,
                 "chapter twenty-three carries the window's five blocks"
             );
+            frames += n;
+        }
+    }
+    // **Chapter twenty-four's word, on run285** (item 877): the first
+    // production queue a player fills on disk. 622 and 642, the two
+    // queue-ups and the building group's pool slot; 855, the word, the
+    // Hoplites' finish and training.
+    if let Some(p) = &ch24 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_FOUR;
+        for w in [622, 642, 855] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-four carries the window's five blocks");
             frames += n;
         }
     }
