@@ -3162,9 +3162,7 @@ mod tests {
         let b = s.add_unit_type(barge);
         s.unit_types[b].tree = Some(crate::transport::ty::TRANSPORTBARGE);
         s.unit_types[b].type_index = crate::transport::ty::TRANSPORTBARGE as i32;
-        let index = s
-            .find_free(1, crate::UNIT_BASE, crate::BUILD_BASE)
-            .unwrap();
+        let index = s.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE).unwrap();
         let mut unit = Unit::new(1, index, tile_pos(30, 14), 40);
         unit.ty = Some(walker);
         let u = s.add_unit(unit);
