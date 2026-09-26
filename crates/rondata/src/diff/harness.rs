@@ -11024,12 +11024,15 @@ pub(crate) mod tests {
         // **The move's value diff**: the 33 rows are gone, and `1/27` is the
         // dump's own on 12537 (`retry` 6, `dest_x` 40456, `coll` (36485,
         // 23365)). What stands is the group-id row, parked 674's, which
-        // spends no draw.
+        // spends no draw. **Item 811 took its `order_num`** (…206 →
+        // …207, the original's 7): an army's retarget forms it twice on
+        // one tick (`docs/ARMY.md` §21), so the group's count stands one
+        // higher; the pool id (2 here, 66 there) is 689's.
         assert_eq!(
             mid,
             [
-                "12537 1/61 order:group.id: Group { field: \"id\", ours: 12536206, theirs: 12542607 }",
-                "12537 1/66 order:group.id: Group { field: \"id\", ours: 12536206, theirs: 12542607 }",
+                "12537 1/61 order:group.id: Group { field: \"id\", ours: 12536207, theirs: 12542607 }",
+                "12537 1/66 order:group.id: Group { field: \"id\", ours: 12536207, theirs: 12542607 }",
             ],
             "the rows above run163, to the old word's block"
         );
@@ -15448,6 +15451,37 @@ pub(crate) mod tests {
             })
             .collect();
         assert_eq!(lists_part, [], "no army's list parts near either word");
+        // **Item 811's value diff, on block 17405** (the state after tick
+        // 17404, army 0's retarget tick). The original forms the army twice
+        // there — `do_marching`'s retarget arm and then the dispatch
+        // (`docs/ARMY.md` §21) — so the second move's `get_loc` takes its
+        // arm 2 off the first's `(ox, oy)` (34360, 39606) and `1/48`'s order
+        // (34296, 39768), and plans from (29833, 37525): cell (38, 48), and
+        // the leader's chain gains the leg (29688, 38232) the original
+        // walks first. Before, ours planned once, from `1/48` itself: a
+        // chain of 8 against 9, `dest_y` 39000 against 38232, and every
+        // follower's slot waypoint and heading off it.
+        let col = [48, 49, 53, 55, 57, 58];
+        for o in col {
+            for k in [
+                "path:length",
+                "order:move.dest_x",
+                "order:move.dest_y",
+                "heading",
+                "pos",
+            ] {
+                assert_eq!(on(WORD_BLOCK + 1, 1, o, k), None, "`1/{o}`'s {k} on 17405");
+            }
+            // What stands is the pool id, 689's: the order's `group.id` is
+            // `(id + frame × 10) × 100 + order_num`, and its `order_num`
+            // now agrees (1, the second move's) where the id is the army's
+            // slot 0 here and the pool's 68 there.
+            assert_eq!(
+                on(WORD_BLOCK + 1, 1, o, "order:group.id").as_deref(),
+                Some("Group { field: \"id\", ours: 17404001, theirs: 17410801 }"),
+                "`1/{o}`'s order id on 17405"
+            );
+        }
         // who=1's leader, whole: the make list's `city` shift (the floor's
         // family), wealth, and `scholars` from 16971.
         let leader: Vec<String> = firsts
@@ -15501,11 +15535,13 @@ pub(crate) mod tests {
         // 293/312/324/1,036: before the old word the column's rows go
         // and `1/63` loses two, and past it the stand's wake goes;
         // `1/67`..`1/69` from 17363 and `1/60` on 17403 are the new rows.
+        // Item 811 took 116 past the new word (446 → 330): army 0's column
+        // from 17405, once it is formed twice on its retarget tick.
         let before = |b: i64| firsts.values().filter(|(f, _)| *f < b - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (293, 312, 324, 446),
+            (293, 312, 324, 330),
             "the floor"
         );
     }
@@ -15556,12 +15592,15 @@ pub(crate) mod tests {
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
         };
-        // **Under the word, the first row of each key past the floor**:
-        // `1/57` stands on 17501 with one path entry where the original's
-        // holds two and walks on, and on the word's block the original's
-        // turns and sets off (`cur_anim 8`) toward (31451, ·) while ours
-        // has taken a leg to (30683, ·). `1/58` beside it, and `1/54`'s
-        // `dest`. Every other key of the column parts on the floor.
+        // **Under the word, the first row of each key past the floor.**
+        // Until item 811 eleven stood: `1/57` stood on 17501 with one path
+        // entry where the original's held two and walked on, and on the
+        // word's block the original's set off (`cur_anim 8`) toward
+        // (31451, ·) while ours took a leg to (30683, ·); `1/58` beside it,
+        // and `1/54`'s `dest`. **Item 811 took all eleven**: army 0 is
+        // formed twice on its retarget tick 17404 (`docs/ARMY.md` §21), so
+        // its leader `1/48` plans from `get_loc`'s second arm and the
+        // column walks the original's route in.
         let rows: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
@@ -15569,40 +15608,37 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             rows,
-            [
-                "17502 1/54 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
-                "17502 1/54 path:length: PathLength { ours: 3, theirs: 2 }",
-                "17502 1/57 g.cur_anim[0]: ours 0 theirs 8",
-                "17502 1/57 g.cur_time[0]: ours 1 theirs 2",
-                "17502 1/57 g.end_time[0]: ours 36 theirs 22",
-                "17502 1/57 g.last_time[0]: ours 0 theirs 1",
-                "17501 1/57 g.stopped[0]: ours 1 theirs 0",
-                "17502 1/57 order:move.dest_x: Move { field: \"dest_x\", ours: 30683, theirs: 31451 }",
-                "17501 1/57 path:length: PathLength { ours: 1, theirs: 2 }",
-                "17502 1/58 g.cur_anim[0]: ours 21 theirs 8",
-                "17502 1/58 g.end_time[0]: ours 46 theirs 22",
-            ],
+            Vec::<String>::new(),
             "each key's first row under the word"
         );
+        // **Item 811's value diff on the old word's block, 17502**: the keys
+        // that parted there, each now absent on both sides.
+        for (o, k) in [
+            (54, "order:move.dest"),
+            (54, "path:length"),
+            (57, "g.cur_anim[0]"),
+            (57, "g.stopped[0]"),
+            (57, "order:move.dest_x"),
+            (57, "path:length"),
+            (58, "g.cur_anim[0]"),
+        ] {
+            assert_eq!(
+                standing
+                    .get(&WORD_BLOCK)
+                    .and_then(|m| m.get(&(1, o, k.to_string()))),
+                None,
+                "`1/{o}`'s {k} on block {WORD_BLOCK}"
+            );
+        }
         // The figures whose animation changes on one side near the word:
-        // ours' `1/57` and `1/58` on its block and the two after it.
+        // none. Until item 811, ours' `1/57` and `1/58` on its block and
+        // the two after it.
         let word: Vec<(i64, i64, i64, bool, bool)> = changed
             .iter()
             .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
             .copied()
             .collect();
-        assert_eq!(
-            word,
-            [
-                (17502, 1, 57, false, true),
-                (17502, 1, 58, false, true),
-                (17503, 1, 57, false, true),
-                (17503, 1, 58, false, true),
-                (17504, 1, 57, false, true),
-                (17504, 1, 58, false, true),
-            ],
-            "a figure's animation changes on one side only"
-        );
+        assert_eq!(word, [], "a figure's animation changes on one side only");
         // Every army's list, on what its slot holds, agrees near the word.
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
             .iter()
@@ -15616,12 +15652,14 @@ pub(crate) mod tests {
         // **The floor**: every key standing on the first block (nothing
         // shared, so the column's walk since 17405 and the pool ids are all
         // in it), the keys first parting under the word, the rows standing
-        // on the word's block, and every key in all.
+        // on the word's block, and every key in all. **Item 811** took it
+        // 350/11/361/1,314 → 313/0/313/337: the column's walk from 17405
+        // agrees, on the first block and past the word.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (350, 11, 361, 1_314),
+            (313, 0, 313, 337),
             "the floor"
         );
     }
