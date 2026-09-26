@@ -46,7 +46,15 @@ echo "log: $log"
 # --args goes to RonDriver as <cwd> <logfile> <program> [args...]; `open`
 # launches through LaunchServices, which is what makes the bundle — rather than
 # whatever spawned this script — the responsible process.
-open -a "$APP" --args "$W" "$log" /bin/zsh "$script" "$@"
+#
+# `-n` is load-bearing (parked 810, the sixteenth pass): without it, `open`
+# on a bundle that is already running *activates* the running instance and
+# drops the arguments, so a second lane's launch wrote no log, never reached
+# `winelaunch.sh`'s lane lock, and its `RON_LANE_WAIT` never ran. A new
+# instance carries its arguments, and the lock — keyed on the game's own pid
+# — is what refuses or waits, in this log, where the caller can read it.
+# `tools/explore/test_viadriver.py` launches a fixture bundle twice.
+open -n -a "$APP" --args "$W" "$log" /bin/zsh "$script" "$@"
 
 echo "launched through $APP"
 echo "tail -f $log"

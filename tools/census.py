@@ -30,7 +30,10 @@ from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPORT = os.path.join(HERE, "trace", "report.py")
-CITE = re.compile(r"[A-Za-z_][A-Za-z0-9_:~]*@(00[0-9a-f]{6})")
+# A citation broken after its `@` — `name@` ending a line, the address
+# opening the next — is joined (parked 835): 49 stood across `docs/` and
+# each counted as two functions.
+CITE = re.compile(r"[A-Za-z_][A-Za-z0-9_:~]*@(?:\n[ \t]*)?(00[0-9a-f]{6})")
 ENTERED = re.compile(r"^([0-9a-f]{8})\s")
 NOISE = ("LinkList", "Recycler", "Array", "Stack", "SimpleArray", "Tree_", "allocator", "_dynamic")
 

@@ -73,6 +73,53 @@ a pass, never by a worker; a worker's Loop line names the omission.
   `touch`ed**: a `shutil.move` from a copy puts back the older mtime and
   cargo does not rebuild (784).
 
+The sixteenth pass (2026-09-26) added the rows below from the tranche's
+twenty "for the Loop" lines and one measurement of its own.
+
+- **A brief names the fenced modules and nothing else**: a module no
+  other lane holds is the worker's to touch and to name in the landing,
+  and a grant is asked only for a fenced one — seven of twenty landings
+  stopped for a mid-item grant and eight more said "not named in the
+  brief" of a module nobody else held (the sixteenth pass).
+- **A grant, like a title, names a module and a frame, never a
+  function** (856): 842's brief granted `do_strafe`'s `fire_ammo` from
+  836's reading, and the round's path was the release events.
+- **The writers of the counter that parted are counted** (823): one
+  scratch print of every group action on the word's tick, each record's
+  `order_num` beside it, named 811's cause in one run. **And a field's
+  writers are grepped by its offset in every spelling** (`field_0x60`,
+  `(ushort*)(x+0x60)`), never by its name alone (869): `build_masks` by
+  name found three readers and no writer.
+- **A standing row set aside as "not on this chain" names its reader**
+  (834): 813's widening listed the idle gathers' `group` among rows off
+  the chain, and the gather approach's collision test reads it.
+- **A `SEAM:` on the draw's call chain is grepped before any reading**
+  (860): 850's word sat on one that said no capture had been measured on
+  that frame. The widening prints the first parting block's standing
+  rows by default now (830).
+- **A first killer that is a group move names the slot's `GROUPDATA` on
+  both sides of the gap** (875): slot 69's `facing` and `order_num`
+  answered 865 without a capture.
+- **A floor row's brief asks for a killer per reading, run as a mutation
+  on the built tree** (864): chapter twenty-two's damage row was three
+  causes and each reading was half of one. **A landing that introduces a
+  divergence it can see builds it or names it as a regression**, never
+  as a park.
+- **Staging is walked off an existing dump when every predicate is a
+  printed field** (821; run250 was 92 s and no packet), a packet only
+  otherwise; **a chapter whose precondition is staged by combat walks
+  its staging first** (828; three of four takes died on something other
+  than the chapter); **a staging walk goes through the command's own
+  entry** before any document attributes a difference to the crate
+  (885; a scratch walk was eight blocks off and two documents said "this
+  crate's clock").
+- **A premise that names an arm asks which event each arm needs, and
+  where a lever between two staged events buys both in one capture**
+  (879).
+- **A measurement the brief asks for names its instrument** (881):
+  "measure the other map on every step" walked nothing until a run list
+  existed, and a Great Lakes list is one line.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",

@@ -447,6 +447,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // spent before either suppression is read (`docs/COMBAT.md` §8.2
     // step 0). One caller, so no chain is needed.
     (0x005f_de80, None, sim::fight::SITE_FIGHT_RESEARCH),
+    // `Unit::fight@005fd4d0+0x824` — the AI guard's charge roll
+    // (`docs/COMBAT.md` §63.2), `sim` marking it since item 857 with no
+    // row here, so the original's draw printed bare (parked 866, the
+    // sixteenth pass). One caller, no chain.
+    (0x005f_dcf4, None, sim::fight::SITE_FIGHT_GUARD_ROLL),
     // `Ammo::init@0067bbf0` — the landing scatter's two draws, the whole
     // cost of a shot that hits open ground or a building
     // (`docs/COMBAT.md` §9.1). Both reach here through
@@ -1525,5 +1530,96 @@ mod tests {
     fn something_that_is_not_a_trace_is_refused() {
         assert!(Trace::parse(b"not a trace at all, no header here").is_none());
         assert!(Trace::parse(b"short").is_none());
+    }
+}
+
+#[cfg(test)]
+mod site_rows {
+    /// **Every `SITE_*` label `sim` marks has a row above, or is named
+    /// here as why not** (parked 866, the sixteenth pass). A label with
+    /// no row prints bare on the original's side and parts on its
+    /// spelling alone: `Unit::do_guard+0x8fb` stood as `5e656b` from item
+    /// 567 to 857, and East Indies 19606 parted on the label. Made to
+    /// fail first on `SITE_FIGHT_GUARD_ROLL` and `SITE_STRAFE_BOMB`.
+    ///
+    /// The exception list is not a parking place: a label sits here only
+    /// with the reason a row cannot be written yet, and the item that owes
+    /// it.
+    const UNROWED: &[(&str, &str)] = &[(
+        "SITE_STRAFE_BOMB",
+        "its draw is `Guy::set_anim+0xf2f` under `Unit::set_anim+0x56`, an \
+         address six chain rows already claim and the first match wins \
+         (`SITE_ATTACK_FIGHT`); a row needs the strafe's own `via` placed \
+         before them, and a golden diff to say the labels then agree \
+         (parked 886)",
+    )];
+
+    #[test]
+    fn every_site_label_the_simulation_marks_has_a_row() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../sim/src");
+        let mut labels = std::collections::BTreeMap::new();
+        let mut stack = vec![std::path::PathBuf::from(root)];
+        while let Some(dir) = stack.pop() {
+            for entry in std::fs::read_dir(&dir).expect("crates/sim/src") {
+                let path = entry.expect("entry").path();
+                if path.is_dir() {
+                    stack.push(path);
+                    continue;
+                }
+                if !path.extension().is_some_and(|e| e == "rs") {
+                    continue;
+                }
+                let text = std::fs::read_to_string(&path).expect("read");
+                for line in text.lines() {
+                    let Some(rest) = line.trim_start().strip_prefix("pub const SITE_") else {
+                        continue;
+                    };
+                    let name: String = "SITE_".to_string()
+                        + &rest
+                            .chars()
+                            .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                            .collect::<String>();
+                    if rest[name.len() - 5..].trim_start().starts_with(": &str") {
+                        labels.insert(
+                            name,
+                            path.file_name().unwrap().to_string_lossy().to_string(),
+                        );
+                    }
+                }
+            }
+        }
+        assert!(
+            labels.len() > 50,
+            "the scan found {} labels; the spelling moved",
+            labels.len()
+        );
+        let table = include_str!("trace.rs");
+        let (_, rows) = table
+            .split_once("pub const SITES:")
+            .expect("`pub const SITES:` in trace.rs");
+        let (rows, _) = rows.split_once("\n];").expect("the table's end");
+        let missing: Vec<String> = labels
+            .iter()
+            .filter(|(name, _)| !rows.contains(name.as_str()))
+            .filter(|(name, _)| !UNROWED.iter().any(|(n, _)| n == name))
+            .map(|(name, file)| format!("{name} ({file})"))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "`sim` marks these labels and `SITES` has no row for them, so the original's \
+             draw prints bare and parts on the spelling; add the row (the offset is the \
+             label's, the address `INDEX.tsv`'s), or name it in UNROWED with its reason: \
+             {missing:#?}"
+        );
+        for (name, _) in UNROWED {
+            assert!(
+                labels.contains_key(*name),
+                "UNROWED names {name}, which `sim` no longer marks"
+            );
+            assert!(
+                !rows.contains(name),
+                "UNROWED names {name}, which has a row now; delete the exception"
+            );
+        }
     }
 }

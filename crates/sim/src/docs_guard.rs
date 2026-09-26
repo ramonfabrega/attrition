@@ -851,16 +851,32 @@ fn strip_templates(name: &str) -> String {
 /// Every `name@00xxxxxx` in a document, as `(line, name, address)`. The
 /// name is the run of identifier characters (plus `:` and `~`) before the
 /// `@`; a citation wrapped across a line break yields the suffix that
-/// survived, which the ends-with match accepts.
+/// survived, which the ends-with match accepts. **A break after the `@`
+/// is joined** (parked 835, the sixteenth pass): `name@` ending a line
+/// and `00xxxxxx` opening the next were invisible here and to
+/// `tools/census.py` — 49 citations across `docs/` when the pass counted,
+/// each unchecked against the index and each counted as two functions.
 fn cites(text: &str) -> Vec<(usize, String, u32)> {
     let mut out = Vec::new();
-    for (i, line) in text.lines().enumerate() {
+    let lines: Vec<&str> = text.lines().collect();
+    for (i, line) in lines.iter().enumerate() {
         let bytes = line.as_bytes();
         for (at, _) in line.match_indices('@') {
-            let hex: String = line[at + 1..]
+            let mut hex: String = line[at + 1..]
                 .chars()
                 .take_while(|c| c.is_ascii_hexdigit())
                 .collect();
+            if hex.is_empty() && line[at + 1..].trim().is_empty() {
+                hex = lines
+                    .get(i + 1)
+                    .map(|next| {
+                        next.trim_start()
+                            .chars()
+                            .take_while(|c| c.is_ascii_hexdigit())
+                            .collect()
+                    })
+                    .unwrap_or_default();
+            }
             if hex.len() != 8 || !hex.starts_with("00") {
                 continue;
             }
@@ -1045,40 +1061,35 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// byte. 72 → 104: the 35 that arrived are constants a comment alone
 /// carried, and three (CITIES, TRANSPORT) were banked by the decimal, listed in `docs/audit/2026-09-25-fable-pass-15.md` and parked
 /// as one ordinary item to build or to name.
+///
+/// **Re-pinned 2026-09-26, the sixteenth pass (parked 820)**: the decimal
+/// spelling counts from `crates/sim` alone. Four landings of the tranche
+/// had moved these pins on harness integers — a floor tuple, two pinned
+/// widening rows, a standing count — with nothing built or unbuilt, and
+/// measured whole the harness was banking **39** constants: 27 by
+/// `rondata/src/diff` (pins and comparator tables) and 5 by the data layer
+/// (`306`, `620`, `787`, `1023`, `7680`), none a mechanic carried. 100 →
+/// 139; the arrivals are on the same ordinary item as 802's (809).
 const UNBUILT: &[(&str, usize)] = &[
-    // 22 → 21 on item 803, and not a build: run78's floor re-pinned to
-    // `(434, 438)` spells 438, the decimal of `0x1b6`, which the rule
-    // counts (the fifteenth pass's decimal clause). Back to 22 on item
-    // 870, and not an unbuild: run78's floor re-pinned to `(418, 421)`
-    // no longer spells 438 (parked 820).
-    ("AI.md", 22),
-    // 3 → 2 and ORDERS.md's 8 → 7 on item 813, and neither is a build:
-    // chapter twenty-one's pinned widening rows name frames 1206 and 1153,
-    // the decimals of ANIM.md's `0x4b6` and ORDERS.md's `0x481`, which
-    // the decimal clause counts. Back to 3 and 8 on item 824, and neither
-    // is an unbuild: closing chapter twenty-one deleted those two rows.
-    ("ANIM.md", 3),
-    ("ARMY.md", 8),
-    ("CITIES.md", 4),
+    ("AI.md", 31),
+    ("ANIM.md", 4),
+    ("ARMY.md", 10),
+    ("CITIES.md", 7),
     ("COLLISION.md", 1),
-    ("COMBAT.md", 4),
+    ("COMBAT.md", 9),
     ("COSTS.md", 4),
-    // 10 → 9 on item 870, and not a build: a re-pinned widening row
-    // spells one of its constants (parked 820); which one is not traced.
-    ("ECONOMY.md", 9),
-    ("GOLDEN.md", 1),
+    ("ECONOMY.md", 14),
+    ("GOLDEN.md", 4),
     ("GOODY.md", 5),
-    ("GROUPS.md", 4),
+    ("GROUPS.md", 5),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 8),
+    ("ORDERS.md", 12),
     ("PATHFINDER.md", 1),
-    // 7 → 8 on item 870, and not an unbuild: run78's re-pinned
-    // standing count 435 → 419 no longer spells `0x1b3` (parked 820).
-    ("PRODUCTION.md", 8),
+    ("PRODUCTION.md", 10),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 11),
-    ("TRANSPORT.md", 1),
+    ("TECH.md", 13),
+    ("TRANSPORT.md", 3),
     ("VISION.md", 2),
 ];
 
@@ -1132,7 +1143,15 @@ fn short_constants(text: &str) -> Vec<String> {
 #[test]
 fn a_constant_a_document_names_is_built_or_pinned() {
     let crates = docs().join("..").join("crates");
+    let sim = crates.join("sim");
     let mut code = String::new();
+    // The simulation's own source alone, for the decimal spelling: the
+    // harness's numbers are frames, floors and counts, and four landings
+    // of one tranche moved `UNBUILT` on them with nothing built or unbuilt
+    // — 803's floor `(434, 438)` spelt `0x1b6`, 813's pinned rows `1206`
+    // and `1153` spelt `0x4b6` and `0x481`, 824 undid both by closing the
+    // chapter, 870 moved three files (parked 820, the sixteenth pass).
+    let mut sim_code = String::new();
     let mut stack = vec![crates];
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("crates/") {
@@ -1147,19 +1166,24 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                 // built. Stripping comments whole was measured first: it
                 // raised the pin from 72 constants to ~260, because the
                 // honest offset comments are most of what the pin holds.
+                let mut file_code = String::new();
                 for line in std::fs::read_to_string(&path).expect("read").lines() {
                     let (code_only, comment) = line.split_once("//").unwrap_or((line, ""));
-                    code.push_str(&code_only.to_lowercase());
+                    file_code.push_str(&code_only.to_lowercase());
                     for word in comment.split(|c: char| {
                         !(c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '_'))
                     }) {
                         if word.starts_with("+0x") || word.starts_with("-0x") {
-                            code.push(' ');
-                            code.push_str(&word[1..].to_lowercase());
+                            file_code.push(' ');
+                            file_code.push_str(&word[1..].to_lowercase());
                         }
                     }
-                    code.push('\n');
+                    file_code.push('\n');
                 }
+                if path.starts_with(&sim) {
+                    sim_code.push_str(&file_code);
+                }
+                code.push_str(&file_code);
             }
         }
     }
@@ -1168,29 +1192,32 @@ fn a_constant_a_document_names_is_built_or_pinned() {
         // The decimal spelling too, for a value past a byte: a type index
         // the document writes `0x1a1` is `417` in a table here, and the
         // hex forms alone read it as unbuilt. Below 0x100 the decimal is
-        // any small number and is not accepted.
+        // any small number and is not accepted — and it is accepted from
+        // `crates/sim` alone, never from the harness, whose integers are
+        // frames and floors (parked 820).
         let decimal = u32::from_str_radix(hex, 16)
             .ok()
             .filter(|v| *v >= 0x100)
             .map(|v| v.to_string())
             .unwrap_or_default();
-        let forms = [
-            format!("0x{hex}"),
-            format!("0x{hex:0>4}"),
-            format!("0x{trimmed}"),
-            decimal,
-        ];
-        forms.iter().any(|f| {
-            f.len() > 2 && {
-                // A whole token: neither byte beside it is a digit or an identifier.
-                code.match_indices(f.as_str()).any(|(i, _)| {
-                    let next = code.as_bytes().get(i + f.len()).copied().unwrap_or(b' ');
-                    let prev = if i == 0 { b' ' } else { code.as_bytes()[i - 1] };
+        // A whole token: neither byte beside it is a digit or an identifier.
+        let whole = |hay: &str, f: &str| {
+            f.len() > 2
+                && hay.match_indices(f).any(|(i, _)| {
+                    let next = hay.as_bytes().get(i + f.len()).copied().unwrap_or(b' ');
+                    let prev = if i == 0 { b' ' } else { hay.as_bytes()[i - 1] };
                     !(next.is_ascii_alphanumeric() || next == b'_')
                         && !(prev.is_ascii_alphanumeric() || prev == b'_' || prev == b'.')
                 })
-            }
-        })
+        };
+        [
+            format!("0x{hex}"),
+            format!("0x{hex:0>4}"),
+            format!("0x{trimmed}"),
+        ]
+        .iter()
+        .any(|f| whole(&code, f))
+            || whole(&sim_code, &decimal)
     };
     let mut per_file: Vec<(String, Vec<String>)> = Vec::new();
     for entry in std::fs::read_dir(docs()).expect("docs/") {
@@ -1427,5 +1454,53 @@ fn every_shell_script_under_tools_is_executable() {
     assert!(
         bad.is_empty(),
         "scripts with a shebang and no execute bit (`chmod +x`, and git keeps it): {bad:#?}"
+    );
+}
+
+/// **A journal carries no tool-call markup outside a fence** (parked 841,
+/// the sixteenth pass): 837's arrived with two stray tags (`</content>`,
+/// `</invoke>`) that no guard caught, and the commander removed them at
+/// the merge. Inside a code fence anything goes; outside one, the
+/// harness's own tag names are a transcript leaking into the record.
+#[test]
+fn a_journal_carries_no_tool_call_markup() {
+    const TAGS: &[&str] = &[
+        "<invoke",
+        "</invoke>",
+        "<parameter",
+        "</parameter>",
+        "<function_calls>",
+        "</function_calls>",
+        "<content>",
+        "</content>",
+        "<antml",
+    ];
+    let mut found = Vec::new();
+    for entry in std::fs::read_dir(docs().join("journal")).expect("docs/journal/") {
+        let path = entry.expect("entry").path();
+        if !path.extension().is_some_and(|e| e == "md") {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).expect("read");
+        let mut fenced = false;
+        for (i, line) in text.lines().enumerate() {
+            if line.trim_start().starts_with("```") {
+                fenced = !fenced;
+                continue;
+            }
+            if fenced {
+                continue;
+            }
+            if let Some(tag) = TAGS.iter().find(|t| line.contains(*t)) {
+                let name = path.file_name().unwrap().to_string_lossy().to_string();
+                found.push(format!("{name}:{}: {tag}", i + 1));
+            }
+        }
+    }
+    assert!(
+        found.is_empty(),
+        "tool-call markup outside a fence in docs/journal/ — a transcript leaked into \
+         the record; delete it:\n{}",
+        found.join("\n")
     );
 }

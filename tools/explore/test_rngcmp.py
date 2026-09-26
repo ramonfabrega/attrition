@@ -46,6 +46,8 @@ class RngcmpTest(unittest.TestCase):
         trace(b, [(1, 111), (2, 999), (3, 333)])
         done = self.run_cmp(a, b)
         self.assertIn('differing frames: 1 first: [2]', done.stdout)
+        # The trace numbers frames one ahead of the harness (parked 845).
+        self.assertIn('harness word: 1', done.stdout)
         self.assertEqual(done.returncode, 1)
 
     def test_nothing_in_common_is_not_agreement(self):

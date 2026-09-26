@@ -12,36 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-26, the commander (Opus 5.5): **twenty landings since 96136251,
-by the log; the sixteenth Fable pass is due.** Nothing is in flight; no
-lane was spawned past the twentieth.*
+*2026-09-26, the sixteenth Fable pass (Fable 5.1, the main thread): **no
+score moved; none was meant to.** Nothing is in flight; the count
+restarts at the pass's commit, named in the opener.*
 
-- **East Indies 17403 → 20007** in eight (800, 811, 822, 829, 837, 839,
-  850, 857: GROUPS §27, ARMY §21–§22, AI §76, ANIM §14–§15, ECONOMY §16,
-  COLLISION §18); 865 and 870 named 20007's cause (GROUPS §28–§29), and
+- **East Indies 17403 → 20007 in the tranche** (800, 811, 822, 829, 837,
+  839, 850, 857); 865 and 870 named 20007's cause (GROUPS §28–§29) and
   the pool agrees to 20257. **Great Lakes held at 20568**; 795 was never
-  spawned, East Indies being the lower map throughout.
-- **Chapters twenty to twenty-four closed** (803, 813/824, 836/842 with
-  853/854's floors, 867, 877), 832 a reading; GOLDEN §13 has no
-  `unresolved` row left; the order row 60 → 64.
-- **For the pass**: nine one-function grants across the lanes, none
-  collided; four commander bookings failed a guard (the handoff's length,
-  846, a capture's citation, 831's ledger); `viadriver.sh`'s silent drop
-  (810); the decimal false-bank (820); a journal's stray tags (841).
-- **Fable backlog: 28 Loop items** (677, 685, 697, 745, 775, 799, 810,
-  820, 821, 823, 828, 830, 834, 835, 838, 841, 845, 846, 852, 856, 860,
-  864, 866, 869, 875, 879, 881, 885).
+  spawned, East Indies being the lower map throughout. Chapters twenty
+  to twenty-four closed; the order row 65 cited.
+- **The pass built eight**: `viadriver.sh` opens a new instance (810),
+  the decimal clause reads `crates/sim` alone and `UNBUILT` is 139 (820),
+  a split citation is joined (835), a journal guard (841), `rngcmp.py`'s
+  harness word (845), the `Golden:` list guard (846), the `SITES` guard
+  (866, the bomb's row parked as 886), the first parting block's
+  standing rows by default (830) — and twelve Loop lines are checklist
+  rows. DECISIONS 52.
+- **Fable backlog: 8 Loop items** (677, 685, 697, 745, 775, 799, 838, 852).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w20007 of 24,000 · GreatLakes w20568 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · 882 next
 Endpoint 24001: EastIndies 40 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: the sixteenth Fable pass (twenty landings since 96136251).
-After it, 880 on the AI lane (East Indies is lower), 795 after it, and
-882 on the rules lane. A capture is sized to its word and waited on with
+**Opener: 880 on the AI lane (East Indies is lower) — the 6164 parting
+on disk first, the capture after; 882 on the rules lane, fenced to
+`come_out`'s push; 795 after 880. A brief names only the fenced modules;
+a capture is sized to its word and waited on with
 `tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
-its merge.**
+its merge. The count runs from PASS16SHA.**
 
 ## The queue
 
@@ -53,10 +52,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
 880. **East Indies' word is 20007: the slot records' history** (870:
     every `group` pointer agrees to 20257, 831 built; 30e5b464's kept
-    fields still drop the words to 17530/7213). run277 holds the word;
-    the slot records' `order_num` agree to 6215 and part by 15894, and
-    no dump prints `GROUPDATA` in 6216..15893. A `GROUPS=1` capture over
-    that gap, walked in record mode; then the kept fields (GROUPS §29.4).
+    fields still drop the words to 17530/7213). run277 holds the word.
+    **On disk first**: with the kept fields the slot records part on 6164
+    (run64) — slot 64 `order_num` 13 against 1, slot 68 `facing` 0 against
+    1 — and §29.4 names the candidates, the army records and the orphan
+    seat, neither walked. The `GROUPS=1` capture over 6216..15893 only if
+    6164 closes and 15894 stands (§29.6). Owns the slot's kept fields.
 
 795. **Great Lakes' word is 20568** (785 moved it 17181 → 20568:
     `Wonders::init_wonder` raises `wonder_mark`, AI §75). On 20568 ours 37
@@ -67,8 +68,9 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 882. **Chapter twenty-four's floor: a trained squad's pool push** (877
     closed the chapter at 1560, GOLDEN §33). 30 of its 34 standing rows
     are `Unit::come_out`'s human push of a trained squad into the pool:
-    `group`, `form` 0, and the followers' `orders_x/y`. In `group.rs`,
-    the pool's module; 689's family, beside 880. Inside run285.
+    `group`, `form` 0, and the followers' `orders_x/y`. In `group.rs`
+    beside 880: **882 owns `come_out`'s push, 880 the slot's kept
+    fields**, and each brief names the other. Inside run285.
 
 ## How to maintain this file
 

@@ -8,6 +8,11 @@ compared without being filed first.
 **Nothing in common is not agreement.** Two traces with no frame number in
 common once read as "0 differing"; the common count is printed and an empty
 intersection exits non-zero.
+
+**The trace's frame runs one ahead of the harness's word** for the same
+stream (item 836, run265: this tool's first difference 779 was the harness's
+778), so a booking that cites the frame printed here is one late. The
+`harness word:` line is the number the queue and the floors use (parked 845).
 """
 import os, struct, sys
 L = os.environ.get("RON_GAMELOG_DIR",
@@ -35,6 +40,8 @@ common = sorted(set(a) & set(b))
 print("frames in common:", len(common))
 diff = sorted(k for k in common if a[k] != b[k])
 print("differing frames:", len(diff), "first:", diff[:8])
+if diff:
+    print("harness word:", diff[0] - 1)
 same = sum(1 for k in common if a[k] == b[k])
 print("identical frames:", same)
 sys.exit(1 if not common or diff else 0)

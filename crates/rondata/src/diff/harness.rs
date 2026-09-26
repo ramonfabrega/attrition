@@ -10171,8 +10171,18 @@ pub(crate) mod tests {
             }
             // `RON_STANDING=<lo>-<hi>`: every row parting on each block of
             // the window, not only the first — a standing parting keeps
-            // its first block in `firsts` and is invisible there.
-            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+            // its first block in `firsts` and is invisible there. **And the
+            // first parting block prints by default** (parked 830, the
+            // sixteenth pass): five landings of one tranche misread a
+            // standing row — set aside as "not on this chain", read as
+            // noise, or called "from the gap" off the first block alone —
+            // and what answered each was `RON_STANDING` over the first
+            // block, which the assertions never print. `firsts` is empty
+            // exactly there; a passing test captures the lines, a failing
+            // one shows them.
+            if firsts.is_empty()
+                || site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n))
+            {
                 for ((w, o, what), (_, row)) in &here {
                     eprintln!("  standing {n} {w}/{o} {what}: {row}");
                 }
@@ -10629,7 +10639,11 @@ pub(crate) mod tests {
                     *e = now;
                 }
             }
-            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+            // The first parting block prints by default (parked 830, the
+            // sixteenth pass; the note at the first of these four sites).
+            if firsts.is_empty()
+                || site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n))
+            {
                 for ((w, o, what), (_, row)) in &here {
                     eprintln!("  standing {n} {w}/{o} {what}: {row}");
                 }
@@ -13817,7 +13831,11 @@ pub(crate) mod tests {
                     *e = now;
                 }
             }
-            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+            // The first parting block prints by default (parked 830, the
+            // sixteenth pass; the note at the first of these four sites).
+            if firsts.is_empty()
+                || site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n))
+            {
                 for ((w, o, what), (_, row)) in &here {
                     eprintln!("  standing {n} {w}/{o} {what}: {row}");
                 }
@@ -17512,7 +17530,11 @@ pub(crate) mod tests {
                     *e = now;
                 }
             }
-            if site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n)) {
+            // The first parting block prints by default (parked 830, the
+            // sixteenth pass; the note at the first of these four sites).
+            if firsts.is_empty()
+                || site_window_named("RON_STANDING").is_some_and(|(a, b)| (a..=b).contains(&n))
+            {
                 for ((w, o, what), (_, row)) in &here {
                     eprintln!("  standing {n} {w}/{o} {what}: {row}");
                 }

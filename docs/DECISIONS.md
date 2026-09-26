@@ -63,6 +63,7 @@ is append-only and amended in place, as it always was.
 - 49 standing — The rules track's next axis is the issuer, and the day's holes are guards
 - 50 extended by 51 — The instrument records what it compares, and the chain reaps the remote
 - 51 standing — The brief is a checklist, and the lane's stalls are the runner's
+- 52 standing — The harness's numbers are not builds, and the first block prints itself
 
 ## 1. Fidelity before divergence
 
@@ -3093,4 +3094,92 @@ against twelve of twenty; the brief checklist's rows in the briefs;
 378/28, the compared pin against 8/103, the ledger against 10/36; the
 census's order row against 60; the remote listing empty; no stall
 older than `--stall-seconds`; the price per landing against 34.0; and
+the count at twenty.
+
+## 52. The harness's numbers are not builds, and the first block prints itself
+
+**Decided 2026-09-26**, the sixteenth Fable pass, in the main thread
+(`docs/audit/2026-09-26-fable-pass-16.md`). Extends entries 42, 50 and
+51; overturns nothing.
+
+**What was measured.** Twenty landings since the fifteenth pass by the
+log from `96136251`, every worker on Opus 5.5 by transcript, one
+commander session of 337 requests. **East Indies 17,403 → 20,007**
+over eight; Great Lakes held at 20,568 with 795 never spawned, East
+Indies being the lower map throughout; chapters twenty to twenty-four
+closed, five issuer chapters each run under the emulator before the
+pair; the order row 60 → 64 cited. Workers 554 USD, **27.7 a landing
+against 34.0**; the AI lane 23.0 a landing and 0.088 a frame against
+0.038 — eight moves averaging 325 frames where the last tranche's
+averaged 600. **Twenty of twenty landed with the value diff beside the
+word**, against twelve: the clause paid on its first tranche. No packet
+was taken; seven booked were replaced by the disk; eighteen of twenty
+reserved a run number they never used. Eight of twenty turned on a field
+nothing compared or a comparator that looked at part of one; five on a
+specification line or comment the code had outgrown; seven briefs
+carried a mechanism, a grant or a premise that was the previous item's
+hypothesis and was wrong or half right. Seven landings stopped for a
+mid-item module grant. All twenty "for the Loop" lines were filed at
+the merge; the `FABLE:` batch is empty for the seventh pass running;
+the remote listing was empty.
+
+**What the pass could see and no landing could.** (1) The constant
+guard's decimal clause was reading the harness: four landings moved
+`UNBUILT` on a floor tuple, two pinned widening rows and a standing
+count, each with a comment saying "not a build", and measured whole the
+harness was banking thirty-nine constants — twenty-seven in
+`rondata/src/diff`. (2) Five landings misread a standing row on the
+first block — set aside as "not on this chain", read as noise, called
+"from the gap" — and each was answered by `RON_STANDING` over that
+block, which no assertion prints. (3) A lane's second launch was
+dropped in silence by `open -a`, below the lock the last pass built.
+(4) A citation broken after its `@` was invisible to the census and the
+address guard, forty-nine of them. (5) A new golden constant was
+invisible to the `Golden:` guard, and a sim site to the trace's table,
+each by a rule that was prose.
+
+**Decided.**
+
+1. **The decimal spelling counts from `crates/sim` alone** (820). A
+   specification's constant is built when the simulation carries it;
+   the harness's integers are frames, floors and counts. `UNBUILT` is
+   re-pinned 100 → 139, and the thirty-nine join item 809.
+2. **The first parting block prints its standing rows by default**
+   (830, with 860's half), at each of the four walkers; a passing test
+   captures the lines and a failing one shows them.
+3. **`viadriver.sh` opens a new instance** (810): `-n`, and a test that
+   launches a fixture bundle twice, failed first on the old line. The
+   lock keyed on the game's pid is what refuses or waits, in the log.
+4. **Three guards and a tool, each made to fail first**: every pinned
+   golden word is on the `Golden:` line's list (846, on `ch22` removed);
+   every `SITE_*` label has a `SITES` row or a named reason (866, on the
+   guard roll and the bomb; the roll's row written, the bomb's a parked
+   item because its address is six other rows'); a journal carries no
+   tool-call markup outside a fence (841, on an injected tag); a split
+   citation is joined by `cites()` and the census (835, the order row
+   64 → 65 on the join, and all forty-nine name their functions).
+   `rngcmp.py` prints the harness's word (845).
+5. **Twelve Loop lines are brief-checklist rows**, and one is the
+   pass's own: a brief names the fenced modules and nothing else, since
+   a module nobody else holds is the worker's to touch and to name.
+6. **880 is re-worded**: with the kept fields the slot records part on
+   6164, which is on disk, before any capture over 6216..15893. **882
+   and 880 share `group.rs`** and the fence is written into both.
+7. **677, 685, 697, 745, 775, 799 stay** as the fifteenth pass left
+   them; **838 and 852 stay** with their shapes, one reach each.
+
+**Not taken**: the thesis sentence; 697's probes; the bomb's row
+without a golden diff; a build of 745 or 799. The estimate from entry
+51 was wrong on one side: Great Lakes did not close because it was
+never run — the lower-map rule held East Indies in front — and East
+Indies closed 2,604 of its 6,597; at this rate it is 3,993 short, a
+tranche and a half.
+
+**The measure for the next pass**: whether 880 moved East Indies past
+20,007 off the 6164 parting or the capture, and at what price against
+0.088 a frame; whether 882 kept its fence; the value diff twenty of
+twenty again; how many landings stopped for a grant against seven; the
+first-block print in the journals; `UNBUILT` against 139 and 809's
+progress; the census's order row against 65; the remote listing empty;
+`FABLE:` rows against zero; the price per landing against 27.7; and
 the count at twenty.

@@ -20699,3 +20699,37 @@ clause held: none of the tranche's twenty stood. 745, 775 and 799 stay
 refined; 677, 685 and 697 stay priced; 796 is the closing item's.
 **DECISIONS 51.** Six Loop items remain.
 `docs/audit/2026-09-25-fable-pass-15.md`.
+
+## 2026-09-26 — the sixteenth Fable pass: twenty landings, East Indies past 20,000, and the harness's numbers are not builds (Fable 5.1, steering)
+
+Twenty landings since the fifteenth pass, all twenty on Opus 5.5 by
+transcript; seventeen moved a word or closed a floor row, 832 was a
+reading, 865 and 870 named East Indies' cause and moved nothing.
+**East Indies 17,403 → 20,007** over eight; Great Lakes held at 20,568,
+795 never spawned because the lower map stayed in front; chapters
+twenty to twenty-four closed, five issuer chapters each run under the
+emulator before the pair, and the order row 60 → 64 cited. Workers 554
+USD, 27.7 a landing against 34.0; the AI lane 0.088 a frame against
+0.038 on moves a third the size. **Twenty of twenty landed with the
+value diff beside the word**, against twelve — the clause paid at
+once. No packet was taken all tranche and eighteen run numbers were
+minted for nothing. What the pass could see and no landing could: the
+constant guard's decimal clause was reading the harness, four landings
+moving `UNBUILT` on frames and floors with a comment saying so, and
+measured whole it banked thirty-nine — `crates/sim` alone counts now,
+100 → 139; five landings misread a standing row on the first block and
+`RON_STANDING` answered each — the first parting block prints by
+default; a lane's second launch dropped in silence under the lock the
+last pass built — `open -n`, failed first on a fixture bundle;
+forty-nine citations broken after their `@`, invisible to census and
+guard, joined and all naming their functions, the order row 64 → 65 on
+the join alone; a golden constant the `Golden:` guard could not see and
+a sim site the trace's table did not hold — a guard each, failed first,
+the bomb's row parked as 886 because its address is six other rows'; a
+journal's stray tags — a guard; `rngcmp.py`'s frame one ahead — it
+prints the harness's word. Twelve Loop lines are brief-checklist rows
+now, with one of the pass's own: a brief names the fenced modules and
+nothing else, seven landings having stopped for a grant. 880 is
+re-worded to the parting on disk; 882's fence with it is written.
+**DECISIONS 52.** Eight Loop items remain.
+`docs/audit/2026-09-26-fable-pass-16.md`.

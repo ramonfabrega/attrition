@@ -225,6 +225,50 @@ mod tests {
         }
     }
 
+    /// **Every `GOLDEN_WORD_*` pinned in `testkit.rs` is on `GOLDEN_WORDS`**
+    /// (parked 846, the sixteenth pass). The rule above was prose: 836
+    /// pinned chapter twenty-two's word and widening and not this row, and
+    /// its gate passed with the chapter open and the line reading `every
+    /// chapter closed`; the commander added the row in the booking. Made to
+    /// fail first by removing `ch22`.
+    #[test]
+    fn every_pinned_golden_word_is_on_the_line_s_list() {
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/");
+        let testkit = std::fs::read_to_string(format!("{dir}testkit.rs")).expect("testkit.rs");
+        let floors = std::fs::read_to_string(format!("{dir}floors.rs")).expect("floors.rs");
+        let tokens = |text: &str| -> Vec<String> {
+            text.split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
+                .filter(|t| t.starts_with("GOLDEN_WORD_"))
+                .map(str::to_string)
+                .collect()
+        };
+        let pinned: std::collections::BTreeSet<String> = testkit
+            .lines()
+            .filter(|l| l.contains("const GOLDEN_WORD_"))
+            .flat_map(|l| tokens(l))
+            .collect();
+        // The array's own declaration, not this test's mention of it.
+        let needle = format!("const {}: [", "GOLDEN_WORDS");
+        let list = floors
+            .split_once(needle.as_str())
+            .and_then(|(_, rest)| rest.split_once("\n    ];"))
+            .map(|(block, _)| block)
+            .expect("floors.rs holds the GOLDEN_WORDS array");
+        let listed: std::collections::BTreeSet<String> = tokens(list).into_iter().collect();
+        let missing: Vec<&String> = pinned.difference(&listed).collect();
+        assert!(
+            missing.is_empty(),
+            "pinned in testkit.rs and not on floors.rs's GOLDEN_WORDS, so the `Golden:` \
+             line guard cannot see them — add the row in the landing that pins the word: \
+             {missing:?}"
+        );
+        let stale: Vec<&String> = listed.difference(&pinned).collect();
+        assert!(
+            stale.is_empty(),
+            "on GOLDEN_WORDS and pinned nowhere: {stale:?}"
+        );
+    }
+
     /// `(name on the line, word, widening window)` — closed when the word
     /// is the window's last block.
     const GOLDEN_WORDS: [(&str, i64, (i64, i64)); 28] = [
