@@ -527,11 +527,12 @@ pub struct Art {
     /// Empty when the install was not read, and a piece absent from it
     /// does not shoot through this path at all.
     ///
-    /// Each entry is `(frame, node)`, in the file's order (item 853,
-    /// `docs/ORDERS.md` §39.3): two events on one frame at two nodes are
-    /// two rounds, the Fighter's two guns, and the node is what the
-    /// launch point and a strafer's landing are taken from.
-    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8)>>>,
+    /// Each entry is `(frame, node, harmless)`, in the file's order (item
+    /// 853, `docs/ORDERS.md` §39.5): two events on one frame are two
+    /// rounds, the Fighter's two guns; the node is what the launch point
+    /// and a strafer's landing are taken from; and `harmless` is the
+    /// ammo's `do_damage="0"`, a round that lands without damage.
+    pub releases: BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool)>>>,
     /// `TypeIndex → (node → (minangle, maxangle))` — the unit types whose
     /// figure carries a **pivot**, read from `unit_graphics.xml`'s
     /// `<RESTRICTION>` rows (`rondata::artdata::pivot_restrictions`,
@@ -1665,7 +1666,7 @@ impl Sim {
             // is the guy's, forced to `-1` while the clock reads zero.
             let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
-            for (t, node) in times {
+            for (t, node, harmless) in times {
                 let start = t;
                 let t = i64::from(t);
                 if i64::from(last) < t && t <= cur {
@@ -1754,9 +1755,11 @@ impl Sim {
                     // strafer's side from it (`docs/ORDERS.md` §39.3).
                     let me = crate::combat::Obj::Unit(u);
                     match (target, ground) {
-                        (Some(t), _) => self.fire_ammo_pub(me, t, angle, frame, from, sz, node),
+                        (Some(t), _) => {
+                            self.fire_ammo_pub(me, t, angle, frame, from, sz, node, harmless)
+                        }
                         (None, Some(g)) => {
-                            self.fire_ammo_ground(me, g, angle, frame, from, sz, node)
+                            self.fire_ammo_ground(me, g, angle, frame, from, sz, node, harmless)
                         }
                         (None, None) => unreachable!(),
                     }

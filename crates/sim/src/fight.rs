@@ -1043,7 +1043,7 @@ impl Sim {
         }
         let from = self.units[i].pos;
         let sz = self.ground_z(from) + 100;
-        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0);
+        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0, false);
     }
 
     /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
@@ -1395,8 +1395,18 @@ impl Sim {
         launch: Pos,
         sz: i32,
         node: i8,
+        harmless: bool,
     ) {
-        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz, node);
+        self.fire_ammo_aim(
+            shooter,
+            Aim::At(target),
+            angle,
+            frame,
+            launch,
+            sz,
+            node,
+            harmless,
+        );
     }
 
     /// `Objects::add_ammo@00658b10`: the shot takes the **lowest free
@@ -1460,7 +1470,7 @@ impl Sim {
         launch: Pos,
         sz: i32,
     ) {
-        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz, 0);
+        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz, 0, false);
     }
 
     /// A round at the shooter's **attack-ground order's point**
@@ -1477,8 +1487,18 @@ impl Sim {
         launch: Pos,
         sz: i32,
         node: i8,
+        harmless: bool,
     ) {
-        self.fire_ammo_aim(shooter, Aim::Ground(g), angle, frame, launch, sz, node);
+        self.fire_ammo_aim(
+            shooter,
+            Aim::Ground(g),
+            angle,
+            frame,
+            launch,
+            sz,
+            node,
+            harmless,
+        );
     }
 
     /// `Ammo::init@0067bbf0`, for either aim.
@@ -1505,6 +1525,7 @@ impl Sim {
         launch: Pos,
         sz: i32,
         node: i8,
+        harmless: bool,
     ) {
         let p = self.profile(shooter);
         let (target, ground) = match aim {
@@ -1549,6 +1570,7 @@ impl Sim {
                 num_guys: 1,
                 rolling: false,
                 missed: false,
+                harmless,
                 air: target.is_some() && matches!(tp.domain, Domain::Air),
                 sz,
                 ez,
@@ -1677,6 +1699,7 @@ impl Sim {
             // never reaches the question.
             rolling,
             missed: false,
+            harmless,
             air: target.is_some() && matches!(tp.domain, Domain::Air),
             sz,
             ez,
@@ -2997,6 +3020,7 @@ impl Sim {
                 // is zero and the flag turns on the target alone.
                 rolling: land_unit,
                 missed: false,
+                harmless: false,
                 air: matches!(tp.domain, Domain::Air),
                 sz,
                 ez,
@@ -3089,7 +3113,11 @@ impl Sim {
                 }
             }
             let p = self.projectiles.remove(i);
-            self.land(p, frame);
+            // `inc_time:260`: a round with flag `0x10` is closed, and
+            // `Ammo::do_damage` is never called for it (§39.5).
+            if !p.harmless {
+                self.land(p, frame);
+            }
         }
     }
 
@@ -4453,6 +4481,7 @@ mod tests {
             num_guys: 1,
             rolling: false,
             missed: false,
+            harmless: false,
             air: false,
             sz: 0,
             ez: 0,
@@ -4575,6 +4604,7 @@ mod tests {
             num_guys: 1,
             rolling: true,
             missed: false,
+            harmless: false,
             air: false,
             sz,
             ez,
@@ -4615,6 +4645,43 @@ mod tests {
             slots(&sim),
             vec![(0, 7), (1, 5), (2, 6)],
             "the freed slot, stepped first"
+        );
+    }
+
+    /// **A `do_damage="0"` round lands and does nothing** (item 853,
+    /// `docs/ORDERS.md` §39.5): `Ammo::inc_time@0067d380:260` closes a
+    /// round with flag `0x10` instead of calling `Ammo::do_damage`. The
+    /// same round without the flag hits its target; with it the target
+    /// keeps its health, the round is gone, and a ground shot spends no
+    /// puncture draw. Made to fail with `process_projectiles` landing it
+    /// regardless.
+    #[test]
+    fn a_harmless_round_lands_without_damage() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let (a, b) = (Pos::new(0x1000, 0x1000), Pos::new(0x1400, 0x1000));
+        let foe = put(&mut sim, 1, ty, b);
+        let aimed = |harmless: bool| {
+            let mut p = shot(me, a, b, 1, 0, 0);
+            (p.target, p.rolling, p.harmless) = (Some(Obj::Unit(foe)), false, harmless);
+            p
+        };
+        let full = sim.units[foe].health;
+        sim.add_ammo(aimed(true));
+        sim.process_projectiles(0);
+        assert!(sim.projectiles.is_empty(), "the round is closed");
+        assert_eq!(sim.units[foe].health, full, "and does no damage");
+        let before = sim.rng;
+        let mut ground = shot(me, a, Pos::new(0x1000, 0x1400), 1, 0, 0);
+        (ground.rolling, ground.harmless) = (false, true);
+        sim.add_ammo(ground);
+        sim.process_projectiles(0);
+        assert_eq!(sim.rng, before, "no puncture draw");
+        sim.add_ammo(aimed(false));
+        sim.process_projectiles(0);
+        assert!(
+            sim.units[foe].health < full,
+            "the same round, harmful, hits"
         );
     }
 

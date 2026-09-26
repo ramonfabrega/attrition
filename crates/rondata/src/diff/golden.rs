@@ -9479,10 +9479,13 @@ struct ChapterThreeWidening {
 fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
-) -> [(&'static str, i64, i64); 3] {
+) -> [(&'static str, i64, i64); 4] {
     [
         ("flags&4", if p.rolling { 4 } else { 0 }, a.flags & 4),
         ("flags&8", if p.missed { 8 } else { 0 }, a.flags & 8),
+        // `Ammo::init`'s bit `0x10`, a `do_damage="0"` round (item 853,
+        // `docs/ORDERS.md` §39.5).
+        ("flags&16", if p.harmless { 16 } else { 0 }, a.flags & 16),
         ("rolling", 0, a.rolling),
     ]
 }

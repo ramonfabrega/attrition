@@ -358,13 +358,43 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 /// guy's current animation's event list and fires every `type 1` event the
 /// clock has just crossed.
 ///
-/// **Each entry is `(frame, node)`** (item 853, `docs/ORDERS.md` §39.3):
-/// every `<RELEASEEVENT>` is its own `GraphicEvent`, and the walk fires
-/// each one it crosses, so two events on one frame at two nodes are two
-/// rounds — the Fighter's two guns. The node is the event's `+0x23`, which
+/// **Each entry is `(frame, node, harmless)`** (item 853, `docs/ORDERS.md`
+/// §39.5): every `<RELEASEEVENT>` is its own `GraphicEvent`, and the walk
+/// fires each one it crosses, so two events on one frame are two rounds —
+/// the Fighter's two guns. The node is the event's `+0x23`, which
 /// `execute_game_events` hands to `get_position` for the launch point and
-/// to `Ammo::init` in the package's `angle`.
-pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8)>>>;
+/// to `Ammo::init` in the package's `angle`. `harmless` is the event's
+/// ammo's `do_damage="0"` (`effects_graphics.xml`), which
+/// `GraphicPieces::init_ammo_piece_ranges@008f6140` keeps as
+/// `ammo_flags & 0x80` and `Ammo::init` turns into the round's flag `0x10`:
+/// the round flies, and lands without `Ammo::do_damage`.
+pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool)>>>;
+
+/// The `<AMMO>` names of `effects_graphics.xml` whose `do_damage` is 0.
+///
+/// `init_ammo_piece_ranges` reads the attribute with a default of **1**
+/// and sets `ammo_flags |= 0x80` when it reads zero; the name is what a
+/// `<RELEASEEVENT type=>` is matched against (`init_unit_events`' walk of
+/// `ammo_names`, `String::operator==`). The install names three:
+/// `NoDamage Tracer`, `NoDamage ArcherArrow` and `ThrowingDagger`.
+pub fn harmless_ammo(install: &Install) -> std::collections::BTreeSet<String> {
+    let path = install.data("effects_graphics.xml");
+    let Ok(text) = crate::read(&path) else {
+        return Default::default();
+    };
+    let Ok(doc) = crate::parse(&path, &text) else {
+        return Default::default();
+    };
+    doc.descendants()
+        .filter(|n| n.has_tag_name("AMMO"))
+        .filter(|n| {
+            n.attribute("do_damage")
+                .and_then(|v| v.trim().parse::<i32>().ok())
+                .is_some_and(|v| v == 0)
+        })
+        .filter_map(|n| n.attribute("name").map(str::to_string))
+        .collect()
+}
 
 /// `TypeIndex → (node → (minangle, maxangle))`: `unit_graphics.xml`'s
 /// `<RESTRICTION>` rows, `GraphicPieces::pivot_restrictions` as
@@ -455,22 +485,18 @@ pub const fn release_frame(ms: u32) -> u32 {
 ///
 /// `graphs` is the same `GRAPH` column [`piece_lengths`] takes and the
 /// name walk is [`piece_tracks`]'s. Only the rows whose `anim` names a
-/// slot this crate knows are kept, and each is `(frame, node)` **in the
-/// file's order**, which is the order `init_unit_events` appends them and
-/// `execute_game_events` walks them — so two rounds on one frame take
-/// their pool slots in that order.
+/// slot this crate knows are kept, and each is `(frame, node, harmless)`
+/// **in the file's order**, which is the order `init_unit_events` appends
+/// them and `execute_game_events` walks them — so two rounds on one frame
+/// take their pool slots in that order. **Every event is kept**, a
+/// repeated `(frame, node)` too: the original creates a round for each.
 ///
 /// ~~The frames of one slot came back sorted and deduplicated, and the
 /// node was dropped~~ (item 853): `FIGHTER`'s sixteen events are eight
 /// frames on node 0 and the same eight on node 1, and this crate fired
-/// one gun. **A pair repeated at the same node is still kept once.** 54
-/// such pairs stand in the install (the armoured cars', the machine
-/// guns', the infantry's), and every one pairs a damaging round with a
-/// `do_damage="0"` one or two of the latter (`effects_graphics.xml`), so
-/// one round keeps each frame's damaging count. SEAM: `do_damage` is
-/// unread, so a `NoDamage` event this keeps fires a damaging round —
-/// the `FIGHTERBOMBER`'s cross-node pairs among them — and the pair's
-/// second round, which the original creates, is not.
+/// one gun. The 54 pairs repeated at one node (the armoured cars', the
+/// machine guns', the infantry's) each carry a `do_damage="0"` round,
+/// which is `harmless` here ([`harmless_ammo`]).
 ///
 /// A piece with no `<RELEASEEVENT>` at all is absent, which is the answer
 /// for every melee type: `docs/COMBAT.md` §9.0's SEAM — this crate has no
@@ -492,6 +518,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         }
         by_graph.entry(g.trim()).or_default().push(ty);
     }
+    let harmless = harmless_ammo(install);
     let mut out = PieceReleases::new();
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
@@ -503,7 +530,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(types) = by_graph.get(p.graph) else {
             continue;
         };
-        let mut rows: BTreeMap<i8, Vec<(u32, i8)>> = BTreeMap::new();
+        let mut rows: BTreeMap<i8, Vec<(u32, i8, bool)>> = BTreeMap::new();
         for e in u.children().filter(|n| n.has_tag_name("RELEASEEVENT")) {
             let (Some(anim), Some(start)) = (e.attribute("anim"), e.attribute("starttime")) else {
                 continue;
@@ -519,11 +546,10 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
                 .attribute("node")
                 .and_then(|v| v.trim().parse::<i8>().ok())
                 .unwrap_or(-1);
-            let row = (release_frame(ms), node);
-            let v = rows.entry(slot).or_default();
-            if !v.contains(&row) {
-                v.push(row);
-            }
+            let quiet = e.attribute("type").is_some_and(|t| harmless.contains(t));
+            rows.entry(slot)
+                .or_default()
+                .push((release_frame(ms), node, quiet));
         }
         if rows.is_empty() {
             continue;
@@ -878,6 +904,46 @@ mod tests {
         );
         let rows: usize = pivots.values().map(|n| n.len()).sum();
         assert!(rows > 60, "most of the 81 rows bind: {rows}");
+    }
+
+    /// **Every release event is a round, and a `do_damage="0"` one is
+    /// harmless** (item 853): `FIGHTER` fires eight frames on each of two
+    /// nodes, all damaging; `FIGHTERBOMBER` the same sixteen with six
+    /// `NoDamage Tracer`s among them, so ten damage a swing as in the
+    /// original. Made to fail with the flag read as always false.
+    #[test]
+    fn a_release_keeps_its_node_and_its_ammo_s_damage() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let units = inst.units().expect("unitrules.xml");
+        let graphs: Vec<String> = units
+            .records
+            .iter()
+            .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+            .collect();
+        let quiet = harmless_ammo(&inst);
+        assert_eq!(quiet.len(), 3, "{quiet:?}");
+        let rel = piece_releases(&inst, &graphs);
+        let piece = |g: &str| {
+            let ty = 0x32
+                + graphs
+                    .iter()
+                    .position(|x| x.eq_ignore_ascii_case(g))
+                    .expect("a graph") as i32;
+            PieceName::parse(&format!("{g}-DEFAULT-AGE0"))
+                .unwrap()
+                .piece(ty)
+        };
+        let swing = |g: &str| rel[&piece(g)][&sim::anim::ATTACK2].clone();
+        let fighter = swing("FIGHTER");
+        assert_eq!(fighter.len(), 16);
+        assert_eq!(fighter.iter().filter(|r| r.1 == 1).count(), 8);
+        assert!(fighter.iter().all(|r| !r.2));
+        let fb = swing("FIGHTERBOMBER");
+        assert_eq!(fb.len(), 16);
+        assert_eq!(fb.iter().filter(|r| !r.2).count(), 10, "ten damage");
     }
 
     /// The `<UNIT>` name grammar, and the piece each coordinate lands on.

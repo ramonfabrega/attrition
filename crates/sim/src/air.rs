@@ -1844,6 +1844,7 @@ mod launch_tests {
             at,
             870,
             0,
+            false,
         );
         assert_eq!(s.projectiles.len(), n + 1, "a round");
         assert_eq!(s.rng, before, "and no draw");
@@ -1869,6 +1870,7 @@ mod launch_tests {
                 at,
                 873,
                 node,
+                false,
             );
             s.projectiles.last().unwrap().landing
         };
