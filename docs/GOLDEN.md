@@ -1307,7 +1307,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | TradeOrder | auto (a Caravan under AI), `CommandManager::issue_trade@00941960` | 7 (the control) |
 | CastOrder | `CommandManager::issue_spell@00941b80` → `Group::action_spell@006fe1a0` → `Unit::add_cast_order@005e4a60`; also auto (`think_fish`, the unpacks, the transport; `think_spellcaster`'s Counterintelligence) | 19, the cast line (§27): the Informer on an enemy Barracks, `do_cast`'s targeted arm |
 | RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
-| BoardOrder, AwaitBoardOrder | `CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer | unresolved |
+| BoardOrder, AwaitBoardOrder | ~~`CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer~~ **no issuer makes one** (§28): `issue_set_transport@00941910` → `Group::action_set_transport@007024b0` is the auto-transport toggle and lays no order; the one adder of each, `Unit::add_board_order@005e4d10` and `Unit::add_await_board_order@005e4c80`, is reached only from `Group::action_board_ship@00700010` (the never-issued `board_ship`, and `finish_insert`'s replay) and `Unit::check_meet_ship@00604550` under a `BoardOrder`'s own step. What boards is the Transport `CastOrder` | 20, the board line (§28), which measures the absence |
 | StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
 | SpecialAnimOrder | **not** `anim`, which pokes `Guy::set_anim@005da300` | unresolved |
 | UnitOrder, GroupOrder, ThinkOrder | base classes, entered by everything | all |
@@ -1372,6 +1372,7 @@ below without a run take their number at booking (the eleventh pass).
 | 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
 | 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
+| 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3868,3 +3869,218 @@ casts it. The stream agrees to run245's end, 1100.
   `mana_burn`, `spell_time`, `cavarch_o`/`cavarch_who`, the started bit,
   `visible`, the Barracks' `infiltrated`, the order's target, point, craft
   and `paid` — 46,540 rows, none parted.
+
+## 28. Chapter twenty — the board line: the transport toggle, and the move it gates (item 803)
+
+**Premise.** The player's transport command, issued through the original's
+own issuer, **is a toggle and makes no order**. It sets or clears each
+member's auto-transport bit (`unit_masks & 0x800000`, `docs/TRANSPORT.md`
+§3.4), and that bit alone decides what a move across water does at the
+shore: with it, the step onto the water becomes a **Transport cast**
+(`CASTORDER`, craft 650) and a barge; without it, the unit stops on the
+shore. The booked premise was §13's row, `BoardOrder` and
+`AwaitBoardOrder` through `issue_set_transport`. The reading kills that
+before the run: neither class is built by anything a game reaches, and
+this chapter measures their absence beside the toggle's effect.
+`tools/gamelog/golden/chapter20.cmd` has the reading with its citations.
+
+**The issuer, under the emulator first.** A scratch script ran on
+`tools/explore/command_oracle.py`'s fixture.
+
+- **`CommandManager::issue_set_transport@00941910(group, flag)` appends
+  10 bytes**: the 5-byte `group` and a 5-byte `set_transport`, type
+  `0x0e`, `[flag i32]` (`docs/COMMANDS.md` §3), flag 1 and 0 as passed.
+  The same selection again appends the 3-byte reuse (8 bytes).
+- **`GroupOut::issue_set_transport@0070ad10`**, the UI's wrapper, appends
+  the same 10 bytes, and nothing under `semaphore & 0x10`; the manager's
+  form appends nothing under `use_mp_playback`.
+- **It writes** the package's size and data and the selection caches, and
+  nothing else: no unit, no order, no draw. Its prologue is `55 8b ec 83
+  ec 08 b9 60 ff e8 00`, `sub esp, 8` for the 5-byte command.
+- **Its callers.** `Options::do_transport@0071c500` passes
+  `!GroupData::can_transport()` for the transport button, so a press flips
+  the selection. `Options::picked_spot@00721c40`'s `OPTION_DISEMBARK`
+  passes 1 and then an `issue_move_to` with `disembark 1`. The DLL's
+  `@settransport <who> <flag> <o>…` passes the flag it is given.
+- **What the emulator cannot reach**: `process_set_transport@00948f60` →
+  `Group::action_set_transport@007024b0`, read instead. `action_begin`
+  (it zeroes the group's `+0x28`); then, for a group that is not
+  buildings, the flag is forced to 0 when the leader's level is 0; then
+  each of the group's `num` members that is active and
+  `can_ever_transport` has `0x800000` set or cleared. The loop's bound
+  is the group's `+0xc`, one member here.
+
+**The reading.**
+
+- **No `BoardOrder`, no `AwaitBoardOrder`.** `OrdersMemManager::get_obj
+  (BOARD_SHIP)` has one caller, `Unit::add_board_order@005e4d10`, whose one
+  caller is `Group::action_board_ship@00700010`. That is reached from
+  `CommandPackage::process_board_ship@00948e00`, the `board_ship` command
+  (0x0f), which no call site in the export issues (`docs/COMMANDS.md` §6's
+  sweep of every `add_command` caller), and from `Group::finish_insert@
+  0070e620`'s case 8, which replays a `BoardOrder` that already exists.
+  `get_obj(AWAIT_BOARD)` has one caller, `Unit::add_await_board_order@
+  005e4c80`; its callers are `action_board_ship` and `Unit::
+  check_meet_ship@00604550`, which only `Unit::do_board@005ed1f0` — a
+  `BoardOrder`'s own step — calls. `copy_order@0072f900` and
+  `get_new_order@00730550` copy or load an order that exists.
+- **The disk agrees.** No dump on disk prints either label: the 149
+  gamelogs of the `Logs` archive (50 GB, both long maps' AI transport rides
+  among them — run86 prints 41 `CASTORDER`s and no `BOARDORDER`) and the
+  60 golden and lab captures.
+- **What boards is a cast** (`docs/TRANSPORT.md` §6.1). A step of a unit
+  that `can_transport` onto a water tile is converted by
+  `Unit::set_new_location@005f8d20` into `add_cast_order(−1, −1, −1, −1,
+  0x28a, QUEUE_FIRST, 0)` — the Transport craft, flags 0 — and the unit's
+  frame ends; the next frame `Unit::do_cast` → `SpellType::cast_transport
+  @00670db0` makes the barge, which takes the unit's orders and its path.
+- **Without the bit** the land arm of `UnitData::invalid_loc@00607c30`
+  refuses the water tile, and nothing converts the step.
+
+**The staging, walked before the capture** (run250, this file's first
+eight lines to 646; `docs/RUNS.md` run250). Every predicate the premise
+rests on is a field the dump prints:
+
+- **The level**: `leader_flags` 1799 (the three level bits `0x100`, `0x200`, `0x400` set) from 605. `library who=0 1`
+  gains Written Word, `TRANSPORT_BONUS`'s prerequisite
+  (`docs/TRANSPORT.md` §13), and the Dock on 604 (`orig_type 432`) is the
+  dock `Leader::check_transport` counts.
+- **The bits**: every who=0 unit carries `0x800000` on 605; `0/6` and
+  `0/7` are born with it (`Unit::init`).
+- **The toggle**: `process_set_transport 621`; `0/7`'s `unit_masks`
+  8388608 → 0 on 622, its stack empty before and after.
+- **The shore the move reaches.** On 642 `0/6` holds a `MOVEORDER` (flags
+  5) to (11904, 34944) and a six-entry plan whose (8856, 34200) — cell
+  (11, 44), the lake's first water cell — carries flags 4, the embark. On
+  644 `0/7` holds the same order to (11904, 36480) and a six-entry plan
+  **straight onto the water with no flags-4 entry**: the world search did
+  not pull the goal back to land for the unit without the bit, so what it
+  does at the waterline is the step's to decide, not the plan's.
+- **This crate walks run250 whole**: all eight lines, and no draw or
+  `game_random` word parts to 646.
+
+**The cast.** Two Chariots on the west shore of lake 70 (§4: sea region
+70; land to x 10 on rows 44–47, water from x 11), a Dock on its north-west
+shore, and the toggle on `0/7` alone.
+
+**Lines.**
+
+- `0 !ai off`; `600 library who=0 1`; `604 add dock who=0 53,153`.
+- `610 add chariot who=0 34,177` (`0/6`) and `612 add chariot who=0
+  34,189` (`0/7`).
+- `620 @settransport 0 0 7`: `0/7`'s bit off.
+- `640 @move 0 11904 34944 6` and `642 @move 0 11904 36480 7`: both onto
+  the lake's deep cells (15, 45) and (15, 47).
+- `800 @settransport 0 1 7` and `820 @move 0 11904 36480 7`: `0/7`'s bit
+  on, and the same move again.
+- `900 @move 0 19584 34944 8`: `0/8` — the barge this crate expects
+  `0/6`'s cast to make — to dry ground on the east shore, cell (25, 45).
+
+A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1300)`, 695 blocks, beside
+run105's `start:` set: chapter nineteen's line. **This crate's prediction**,
+a scratch walk forward from run250's start: `0/6` lays the cast on 702 at
+(8428, 34200) and is inside barge `0/8` on 703, which reaches the point on
+855; `0/7`'s path runs out on 718 at (8265, 35365), its stack empty, no
+barge; `0/7` re-flagged on 801 casts on 828 and is inside `0/9` on 829;
+`0/8` takes the 900 move and puts `0/6` ashore at (18168, 34152) on 1159,
+dying there. The first parting is expected between 702 and 718; 250
+blocks past 718 is 968, and the window runs to the disembark plus 140.
+
+**The premise's killer, and its writers** (§3, point 5).
+
+- **A `BOARDORDER` or `AWAITBOARDORDER`** on any unit on any block. Its
+  builders are the two adders above and nothing else.
+- **`0/7`'s bit on 622 and on 802** — the claim's own unit and field, not
+  the first row (711). The bit's writers are `Unit::init`,
+  `Leader::check_transport` (at a dock's activation or loss and at every
+  `gain_tech`: none after 604 here, with the AI off), `action_set_
+  transport`, `cast_transport` (the barge's) and `eject_contents` (the
+  passenger's, back), and `ScenarioFuncSet::force_transport_ability`.
+- **The killer splits the readings** (parked 789): the table's reading
+  puts a `BOARDORDER` on `0/6` or `0/7`; this chapter's puts a `CASTORDER`
+  on `0/6` and nothing on `0/7`; a third — the toggle as a no-op on a
+  unit that already holds the bit — leaves `0/7`'s bit set on 622.
+
+**What would falsify it**, and where each would first fire.
+
+1. **The issue does not reach the pump.** Trace frame 620 or 800: an
+   `INFO 17` with a refusal; or no `process_set_transport` on 621 or 801
+   (`COMMANDMANAGER`).
+2. **The toggle is not the bit.** Block 622: `0/7`'s `unit_masks` still
+   holding `0x800000`; block 802: without it.
+3. **The toggle builds an order.** `0/7`'s stack not empty on 622 or 802;
+   or falsifier-killer one, any block.
+4. **The unflagged unit boards.** `0/7` holding a `CASTORDER`, or a who=0
+   unit born, before 800 — first on the block its step reaches the
+   waterline (this crate: 716–718).
+5. **The flagged unit does not board by a cast.** `0/6`'s stack, on the
+   block before its step crosses (this crate: 702), not a `CASTORDER`
+   (spell 650, flags 0) ahead of the `MOVEORDER`; or, the next block, no
+   `0/8` of the barge type holding that `MOVEORDER`, with `0/6` off the
+   map.
+6. **The re-flagged unit does not board.** After 820, `0/7` stopping at
+   the shore again with no `CASTORDER` (this crate: 828).
+7. **The disembark.** `0/8` not putting `0/6` ashore on the east bank, or
+   surviving it (this crate: 1159); or the 900 line refused (`INFO 17`,
+   refusal 3: `0/8` is not the barge).
+
+**run249, and which falsifier fired: none** (`docs/RUNS.md` run249; 836
+s, the same game as run250 for the 647 frames they share, 355,840
+`GROUPDATA`).
+
+- **The toggle.** `process_set_transport 621` and `801`. `0/7`'s
+  `unit_masks` 8388608 → 0 on 622 and 0 → 8388608 on 802, its stack empty
+  on both. No order anywhere from either line.
+- **The flagged Chariot boards by a cast.** `0/6` walks its plan to
+  (8428, 34200); on 703 it holds the `MOVEORDER` and a `CASTORDER` —
+  spell 650, `UNITORDER` flags 0, `paid` 0, no target — and on 704 it is
+  inside `0/8` (`inside_up 8`), off the map, and `0/8` holds the
+  `MOVEORDER` and four of the path's entries, born at (8588, 34379). `0/8`
+  reaches (11904, 34944) on 856.
+- **The unflagged Chariot stops at the shore.** `0/7` walks its six-entry
+  plan to (8265, 35365) — cell (10, 46), the last land cell — and its path
+  and stack are empty on 719. No cast, no new unit.
+- **Re-flagged, it boards.** On 822 `0/7` holds the 820 move and a fresh
+  four-entry plan; on 829 the `CASTORDER` at (8440, 35478); on 830 it is
+  inside `0/9`, which reaches (11904, 36480) on 967.
+- **The disembark.** The 900 line names `0/8`, the barge (`process_group
+  … 901`). It sails to the east bank; on 1160 `0/6` is ashore at (18168,
+  34152) holding the `MOVEORDER` to (19608, 34968) and `0/8` is gone. `0/6`
+  arrives on 1222.
+- **The absence.** No `BOARDORDER` or `AWAITBOARDORDER` on any of the 695
+  blocks. §13's row is struck through to this section.
+
+This crate's prediction, written before the run, is the original's to the
+block: 703, 704, 719, 802, 829, 830, 856, 967, 1160.
+
+
+**The word: `GOLDEN_WORD_CHAPTER_TWENTY` = 1300, closed on the first
+walk.** The command's entry, `input::group_set_transport` →
+`Sim::set_transport` (`docs/TRANSPORT.md` §15), landed with the chapter
+before the capture, and no draw count, draw sequence or `game_random`
+word parts on any of the 695 blocks.
+- **The value diff under a closed word** (DECISIONS 51.2). The widening
+  over (605, 1301) parted first on block 605: the staged Dock `0/2007` at
+  (10176, 29376) here and (10752, 29760) there. That is `snap_center`'s
+  dock arm, now built (`Sim::snap_center_placed`). On block 1160 it parted
+  on `0/6`'s `orders_x/y`, (19608, 34968) here and (8428, 34200) there,
+  and then its `dest_angle`, 671481856 here and 1073741824 there — the
+  disembark's `update_action` and `come_out`'s angle, now built. All three
+  agree now.
+- **The toggle's own field**: nothing in the widening compared it —
+  `widen_block` reads two other bits of `unit_masks` — so
+  `run249_s_transport_is_the_original_s_unit_for_unit` reads it raw on
+  every block, beside the leader's level, the casts and the absent
+  `BOARDORDER`: 12,036 rows, none parted.
+- **What stands.**
+  - The births' `form`.
+  - The passengers' figures' `avg_speed` on the boarding frame: 20 here
+    against 15 there on 704, and 18 against 13 on 830. The original ages
+    it once more before the figures freeze inside.
+  - On the disembarked `0/6`: its figures' animation on 1162 (`cur_anim`
+    7 against 8) and its facing on 1165.
+  - In the pool, the toggle's pushed selection's `ox`/`oy` and the 642
+    move's group `speed`.
