@@ -265,9 +265,11 @@ const UNREAD: &[(&str, &str)] = &[
     // **Item 731's run215 windows `process_attack`** (`ox whom ignore
     // queued frame`), the first player's attack on disk. **Item 746's
     // run223 windows `process_flight`**, the frame alone, the same shape.
+    // **Item 779's run241 windows `process_build`** (`x y x2 y2 type
+    // queued frame`), the first player's build on disk.
     (
         "GAME",
-        "process_attack process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
+        "process_attack process_build process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -516,6 +518,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch15 = golden_dump("ch15");
     let ch16 = golden_dump("ch16");
     let ch17 = golden_dump("ch17");
+    let ch18 = golden_dump("ch18");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1010,6 +1013,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 642, 662, 666, 722, 778, 805, 822, 1081, 1212, 1397] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter seventeen carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter eighteen's word, on run241** (item 779): the first
+    // player's `BUILDORDER` on disk and the first human builders. 622,
+    // `0/6`'s orders and the Barracks placed and paid; 642, the word and
+    // the three's orders on the Siege Factory; 721, the Barracks' first
+    // frame of construction; 948, the Factory finished; 1097, `0/8`'s
+    // help; 1141, the Barracks finished.
+    if let Some(p) = &ch18 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_EIGHTEEN;
+        for w in [622, 642, 721, 948, 1097, 1141] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter eighteen carries the window's five blocks");
             frames += n;
         }
     }

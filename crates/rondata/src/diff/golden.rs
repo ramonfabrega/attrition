@@ -714,6 +714,40 @@ fn chapter_seventeen_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter eighteen, pinned** — the build line, an issuer the AI takes
+/// through its own planner (`docs/GOLDEN.md` §26, item 779, run241).
+/// Eight staged lines: `!ai off`, `library who=0 2`, four citizens of
+/// who=0 on 610–616, and two issuer lines through `issue_build@00941c30`
+/// — `@build` on 620 (`0/6`, a Barracks) and 640 (`0/7`–`0/9`, a Siege
+/// Factory).
+///
+/// **What the capture established before this walk ran** (`docs/RUNS.md`,
+/// run241): each citizen a `MOVEORDER` and a `BUILDORDER` (flags 4) on its
+/// processed block, both sites paid; the Siege Factory finished on 948
+/// and the Barracks on 1141; `0/8`'s `find_build_spot` help on 1097.
+///
+/// `GOLDEN_WORD_CHAPTER_EIGHTEEN` carries what stands at the word.
+#[test]
+fn chapter_eighteen_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch18", "chapter18", 18, 8, 1449) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_EIGHTEEN,
+        "chapter eighteen's golden word fell to {} from {GOLDEN_WORD_CHAPTER_EIGHTEEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_EIGHTEEN,
+        "chapter eighteen's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §26"
+    );
+    eprintln!(
+        "chapter eighteen: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run235's bombs, record for record** (item 770, `docs/ORDERS.md` §35).
 /// run235 is run223's game again — the same seed, script and detail line —
 /// with `AMMO=5`, to 1100: every bomb the pair drop on the Barracks is a
@@ -6970,6 +7004,199 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     .collect();
     want_pool.sort();
     assert_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
+}
+
+/// **Chapter eighteen's word, widened whole, both directions** (item
+/// 779). Every record run241 carries on every block of
+/// [`WIDENING_CHAPTER_EIGHTEEN`], by [`widen_civilians`]: every unit and
+/// figure — the lone builder `0/6` and the three `0/7`–`0/9` — every
+/// building, the two staged sites among them, both leaders at
+/// `LEADERS=2`, whose buckets carry the price; and who=0's `GROUPDATA`
+/// pool by [`widen_pool`], where each command's pushed selection sits.
+/// run241 dumps no `AMMO` and no `DEATHS`.
+#[test]
+fn chapter_eighteen_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch18",
+        "chapter18",
+        WIDENING_CHAPTER_EIGHTEEN,
+        1449,
+        0,
+        (620, 623),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch18 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_EIGHTEEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch18: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_EIGHTEEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch18", "chapter18", WIDENING_CHAPTER_EIGHTEEN, 0)
+        .expect("run241 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch18 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    // **What parts under the word**, by block and key (`docs/GOLDEN.md`
+    // §26). **The first pin, word 642, open** (605, 645): the harness
+    // skips both `@build` lines, the command having no entry into this
+    // simulation. So the births' `form`; on 622 the Barracks `0/2007`,
+    // which the dump holds alone, the 120 timber it cost, and `0/6`
+    // standing idle with no order where the original's holds its
+    // `MOVEORDER` and `BUILDORDER` and has taken its first step; on 642
+    // the same for the Siege Factory `0/2008`, its 60 metal (its 60
+    // timber is in the timber row that parted on 622), and the three. The
+    // word is
+    // the draw an idle citizen spends on 642 (`Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`) that the walking one does not.
+    let mut want: Vec<String> = [
+        "611 0/6 form",
+        "613 0/7 form",
+        "615 0/8 form",
+        "617 0/9 form",
+        "622 0/-1 leader:bucket[1:timber]",
+        "622 0/2007 build:unlinked",
+        "642 0/-1 leader:bucket[4:metal]",
+        "642 0/2008 build:unlinked",
+        "622 0/6 dest_angle",
+        "622 0/6 g.angle[0]",
+        "622 0/6 g.avg_speed[0]",
+        "622 0/6 g.cur_anim[0]",
+        "622 0/6 g.cur_time[0]",
+        "622 0/6 g.des_angle[0]",
+        "622 0/6 g.des_x[0]",
+        "622 0/6 g.des_y[0]",
+        "622 0/6 g.end_time[0]",
+        "622 0/6 g.last_speed[0]",
+        "622 0/6 g.last_time[0]",
+        "622 0/6 g.stopped[0]",
+        "622 0/6 g.x[0]",
+        "622 0/6 g.y[0]",
+        "622 0/6 group",
+        "622 0/6 heading",
+        "622 0/6 idle",
+        "622 0/6 order:length",
+        "622 0/6 orders.len",
+        "622 0/6 orders_x",
+        "622 0/6 orders_y",
+        "622 0/6 path:length",
+        "622 0/6 path_recursion",
+        "622 0/6 pos",
+        "622 0/6 tolerance",
+        "642 0/7 dest_angle",
+        "642 0/7 g.angle[0]",
+        "642 0/7 g.avg_speed[0]",
+        "642 0/7 g.cur_anim[0]",
+        "642 0/7 g.cur_time[0]",
+        "642 0/7 g.des_angle[0]",
+        "642 0/7 g.des_x[0]",
+        "642 0/7 g.des_y[0]",
+        "642 0/7 g.end_time[0]",
+        "642 0/7 g.last_speed[0]",
+        "642 0/7 g.last_time[0]",
+        "642 0/7 g.stopped[0]",
+        "642 0/7 g.x[0]",
+        "642 0/7 g.y[0]",
+        "642 0/7 group",
+        "642 0/7 heading",
+        "642 0/7 idle",
+        "642 0/7 order:length",
+        "642 0/7 orders.len",
+        "642 0/7 orders_x",
+        "642 0/7 orders_y",
+        "642 0/7 path:length",
+        "642 0/7 path_recursion",
+        "642 0/7 pos",
+        "642 0/8 dest_angle",
+        "642 0/8 g.angle[0]",
+        "642 0/8 g.avg_speed[0]",
+        "642 0/8 g.cur_anim[0]",
+        "642 0/8 g.cur_time[0]",
+        "642 0/8 g.des_angle[0]",
+        "642 0/8 g.des_x[0]",
+        "642 0/8 g.des_y[0]",
+        "642 0/8 g.end_time[0]",
+        "642 0/8 g.last_speed[0]",
+        "642 0/8 g.last_time[0]",
+        "642 0/8 g.stopped[0]",
+        "642 0/8 g.x[0]",
+        "642 0/8 g.y[0]",
+        "642 0/8 group",
+        "642 0/8 heading",
+        "642 0/8 idle",
+        "642 0/8 order:length",
+        "642 0/8 orders.len",
+        "642 0/8 orders_x",
+        "642 0/8 orders_y",
+        "642 0/8 path:length",
+        "642 0/8 path_recursion",
+        "642 0/8 pos",
+        "642 0/8 tolerance",
+        "642 0/9 dest_angle",
+        "642 0/9 g.angle[0]",
+        "642 0/9 g.avg_speed[0]",
+        "642 0/9 g.cur_anim[0]",
+        "642 0/9 g.cur_time[0]",
+        "642 0/9 g.des_angle[0]",
+        "642 0/9 g.des_x[0]",
+        "642 0/9 g.des_y[0]",
+        "642 0/9 g.end_time[0]",
+        "642 0/9 g.last_speed[0]",
+        "642 0/9 g.last_time[0]",
+        "642 0/9 g.stopped[0]",
+        "642 0/9 g.x[0]",
+        "642 0/9 g.y[0]",
+        "642 0/9 group",
+        "642 0/9 heading",
+        "642 0/9 idle",
+        "642 0/9 order:length",
+        "642 0/9 orders.len",
+        "642 0/9 orders_x",
+        "642 0/9 orders_y",
+        "642 0/9 path:length",
+        "642 0/9 path_recursion",
+        "642 0/9 pos",
+    ]
+    .iter()
+    .map(|r| r.to_string())
+    .collect();
+    want.sort();
+    assert_eq!(got, want, "ch18: what parts under the word moved");
+    // **What parts in the pool**: each command's pushed selection, slot 1
+    // `0/6` on 622 and slot 0 the three on 642, which the skipped command
+    // never pushed here.
+    let mut want_pool: Vec<String> = ["622 slot 1 held", "642 slot 0 held"]
+        .iter()
+        .map(|r| r.to_string())
+        .collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch18: what parts in the pool moved");
 }
 
 /// **Chapter seventeen's word, widened whole, both directions** (item

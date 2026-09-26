@@ -3656,3 +3656,14 @@ price and the two orders.
 - **The scratch walk's prediction held on every block read** except the
   help's class, an `EXPLORETOORDER` there: this crate's one-unit
   `swarm_around` never asks whose builder it is.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_EIGHTEEN` = 642, open.**
+The harness skips both `@build` lines, as §25's first pin skipped its
+verbs. Nothing spends a draw on the lone builder's walk until 642, where
+the original spends 6 draws against 7 here, parting at draw 0 on an
+idle citizen's roll this crate spends (`Guy::set_anim+0x97a <
+Guy::inc_time+0x271`) and the walking one does not. The widening over
+(605, 645), both directions, names what stands: the births' `form`; on
+622 the Barracks, which the dump holds alone, the 120 timber, and `0/6`
+idle with no order; on 642 the Siege Factory, its 60 metal, and the
+three idle; in the pool, each command's pushed selection.

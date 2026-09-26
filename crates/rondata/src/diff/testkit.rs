@@ -3216,6 +3216,13 @@ pub(crate) const GOLDEN_WORD_CHAPTER_SEVENTEEN: i64 = 1400;
 /// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_SEVENTEEN: (i64, i64) = (605, 1401);
 
+/// **Chapter eighteen's golden word** — the build line, an issuer the AI
+/// takes through its own planner (`docs/GOLDEN.md` §26, item 779, run241).
+pub(crate) const GOLDEN_WORD_CHAPTER_EIGHTEEN: i64 = 642;
+
+/// `chapter_eighteen_s_word_frame_is_widened_whole`'s window.
+pub(crate) const WIDENING_CHAPTER_EIGHTEEN: (i64, i64) = (605, 645);
+
 /// `run235_s_bombs_are_the_original_s_record_for_record`'s window
 /// (item 770): run235's blocks from the first bomb's release, 805, to its
 /// last, 1100 — the four attacks on the Barracks and its death on 1080.
@@ -4723,6 +4730,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seventeen_s_word_frame_is_widened_whole"),
         770,
         Some(WIDENING_CHAPTER_SEVENTEEN),
+    ),
+    // Item 779: run241, chapter eighteen's first walk at 642, on the
+    // build command this crate did not take: an idle citizen's animation
+    // roll where the original's walks to its site; the sites, the prices
+    // and each builder's two orders on 622 and 642.
+    (
+        "GOLDEN_WORD_CHAPTER_EIGHTEEN",
+        GOLDEN_WORD_CHAPTER_EIGHTEEN,
+        Some("chapter_eighteen_s_word_frame_is_widened_whole"),
+        779,
+        Some(WIDENING_CHAPTER_EIGHTEEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
