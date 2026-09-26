@@ -6730,8 +6730,10 @@ Zeroing the array in `Sim::sync_territory` **reproduces the zero** on
 move the word. This crate recomputes every region at once, on the event,
 and the original schedules a budgeted pass (`GameDaemon::check_borders`,
 256 cells a frame), so the frame the zero lands on belongs to a transient
-this crate does not model (`docs/ATTRITION.md`, "Territory"). The writer is
-named here and not implemented. `1/known_rares` on run91 is the only row it
+this crate does not model (`docs/ATTRITION.md`, "Territory"). ~~The writer
+is named here and not implemented.~~ **Implemented by item 822, §76**: the
+fix raises a flag and the next frame's `check_borders` zeroes the array,
+which is the frame run227 dates. `1/known_rares` on run91 is the only row it
 leaves, and it does not reach the Merchant slots on any block.
 
 ### 55.4 What it moved
@@ -6775,9 +6777,11 @@ past run123's last. No dump reaches it, so its widening is owed a capture.
 
 ### 55.5 What this has *not* established
 
-- **The frame of the territory zero** (§55.3). Its writer is read. Placing
+- ~~**The frame of the territory zero** (§55.3). Its writer is read. Placing
   it needs `check_borders`' budgeted schedule, which this crate does not
-  model.
+  model.~~ **Answered by §76**: the first `check_borders` after a fix
+  zeroes every region, before its budget test. Only the re-zero of regions
+  the pass has not reached is unmodelled (§76.6).
 - **The Mathematics-or-knowledge gate is reading-only.** No capture was
   checked for which operand holds at the first offer, and no block on
   disk separates the gate from its absence.
@@ -9680,3 +9684,42 @@ Measured on `59aafe06`, based on `f224f1a7` (811's booking):
   follows whichever recompute comes first.
 - **17753..18176** is compared by no dump. The 18032 fix and the zero
   are ours; the original's are inferred from its 18071 sum.
+
+### 76.7 The new word's block, 18939, on run257
+
+18939 is past run253's last block, so run257 was taken over [18933,
+19190), sized to the word (DECISIONS 50 §7). **No dump compares a value
+over 18434..18932**; the draw stream agrees across it.
+`run257_s_word_frame_is_widened_whole` walks run257 whole, and the
+coverage driver reads 18937..18941.
+
+- **Nothing parts on 18934..18938.** The first block carries 320
+  standing keys. Among them are who=1's wealth family, the make list's
+  `city` shift, and a new `bucket[0:food]`, 114 against 214, from the
+  gap. who=1's `known_rares` agrees on every block.
+- **On the word's block four of who=1's units part whole**: `1/67`,
+  `1/68`, `1/70` and `1/71`, 25 or 26 keys each. Ours stand under a
+  `GUARD` (kind 12, one order, `tolerance` 144, stopped, `collide_*` on a
+  neighbour). The original's walk under an `ATTACK_TO` (kind 2, two
+  orders, a one-leg path), given on tick 18938. `1/67`: ours (34632,
+  41112), `cur_anim` 3; theirs (34644, 41125), `cur_anim` 7. No army's
+  list parts.
+- **No mechanism is named** (DECISIONS 42). The four are one order's
+  members on the original's side; who gave it on 18938 is the next
+  item's question.
+
+### 76.8 Coverage
+
+**Diff-backed**:
+- the zero's effect on the sum, on run253 (18177..18433, `known_rares`
+  and the make list), run227 (the zero's frame, 16529), run143 and
+  run178 (the sum between the zero and the next census);
+- run257's word block.
+
+**Decompile-backed and reading-only**: the writer at
+`compute_reg_territory:76–105`, `check_borders`' order in
+`process_all`, and the fix's callers (§76.3). None is owed a blind
+second reading: the zero, its frame and its reader are diff-backed.
+
+**Built**: `a_border_fix_zeroes_the_rares_until_the_next_census`, made
+to fail twice (§76.4).
