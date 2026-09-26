@@ -5639,19 +5639,26 @@ impl Sim {
 
     /// `Group::action_swarm_around` for one unit: the approach move in
     /// front, then the order re-queued with the same action bit.
+    ///
+    /// The approach's class is `add_move_facing_order`'s switch on
+    /// `local_40`, which is 1 (`MOVE_TO`) unless the swarm is `BUILD_AT`
+    /// for a computer, when it is 3 (`EXPLORE_TO`): `~(leader_flags >> 1)
+    /// & 2 | 1`, `leader_flags & 4` being the human bit. So a human's
+    /// builder walks under a `MOVEORDER` — run241's `0/8` taking
+    /// `find_build_spot`'s help on 1097 (`docs/GOLDEN.md` §26).
+    ///
+    /// SEAM: a computer's `REPAIR` swarm is `MOVE_TO` in the original and
+    /// an `EXPLORE_TO` here; the AI repairs on both long captures, so the
+    /// change is held until both words are measured with it.
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
         let building = matches!(body, Body::Build(_));
+        let kind = if self.nation[self.units[u].owner as usize].human {
+            MoveKind::MoveTo
+        } else {
+            MoveKind::ExploreTo
+        };
         if let Some((spot, facing)) = self.swarm_spot(u, b, building) {
-            self.add_move_facing_order(
-                u,
-                spot,
-                MoveKind::ExploreTo,
-                QueuePos::First,
-                false,
-                facing,
-                None,
-                false,
-            );
+            self.add_move_facing_order(u, spot, kind, QueuePos::First, false, facing, None, false);
         }
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
@@ -5683,6 +5690,7 @@ impl Sim {
         body: Body,
         action: bool,
         kind: MoveKind,
+        pos: QueuePos,
     ) {
         let building = matches!(body, Body::Build(_));
         let Some((spot, facing)) = self.swarm_spot(u, b, building) else {
@@ -5691,10 +5699,10 @@ impl Sim {
         let gathering = self
             .action_of(u)
             .is_some_and(|i| self.units[u].orders[i].index() == index::GATHER);
-        let pos = if gathering && action {
+        let pos = if pos == QueuePos::Last && gathering && action {
             QueuePos::New
         } else {
-            QueuePos::Last
+            pos
         };
         self.add_move_facing_order(u, spot, kind, pos, false, facing, None, false);
         // SEAM: `is_castable(0x293)` and its `add_cast_order` ahead of the

@@ -536,6 +536,55 @@ pub fn group_flight(
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `build` (0x19) behind it, into the
+/// simulation the way the turn pump walks them (`docs/COMMANDS.md` §3;
+/// `docs/GOLDEN.md` §26) — [`group_attack`]'s group, then
+/// `CommandPackage::process_build@00948110`'s one call,
+/// `Group::action_build(g, x, y, x2, y2, type, queued)`
+/// ([`sim::Sim::group_action_build`]).
+///
+/// `build` is the command's `TypeIndex`; the building record is its
+/// offset from [`crate::load::BASE_BUILDTYPES`], since the loader keeps
+/// record index as identity. `action_build` reads only the first point,
+/// so the command's `x2`/`y2` are not carried. A type that is no
+/// building record gives no site, and the group is still pushed, as
+/// `process_group` forces it.
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation.
+pub fn group_build(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    at: Pos,
+    build: i32,
+    queued: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let record = usize::try_from(build - crate::load::BASE_BUILDTYPES)
+        .ok()
+        .filter(|&r| r < built.sim.build_types.len());
+    if let Some(ty) = record {
+        built.sim.group_action_build(&g, at, ty, queue_pos(queued));
+    }
+    g.list.len()
+}
+
 /// A `group` of buildings (0x00) and the `eject_all` (0x1a) behind it —
 /// `CommandPackage::process_eject_all@00947fe0`'s one call,
 /// `Group::action_eject_all(g, back_to_work, who, eject_o, eject_who)`
