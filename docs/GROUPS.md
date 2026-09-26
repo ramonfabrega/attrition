@@ -3797,8 +3797,8 @@ reaches.
 
 *Established by run269's and run277's `GROUPDATA`, `copy_group`'s
 listing, scratch prints and a payoff probe. Diff-backed on 19664 and
-20002. **Not built**: the build needs the pool's numbering, which parts
-on block 239 (§28.4).*
+20002. **Not built**: the build needs the pool's numbering. That parts on
+block 239, and on a branch (§28.4) it holds to 8369.*
 
 ### 28.1 The frame, read whole first
 
@@ -3911,26 +3911,51 @@ repush of `[0]` on tick 238 does not equal `last_group`, and
 `get_open_slot` takes 64. That is a building group that is not
 `last_group`, taken at once (§3.1), and `1/0` moves 65 → 64. Ours pushes
 no building group, so the repush equals `last_group` and stays on 65.
-Every pool-id row since, 689's forty, descends from this. **The pushes'
-caller is not identified.** Two candidates for `[2000]` come from
-att-867 (item 867's reading): `Object::take_damage@00652020`'s two
-`action_alarm` sites, `0x652677` and `0x65284b`, the second gated on a
-computer leader with `get_diff > 1`. `CommandPackage::process_group`
-was ruled out by the same lane: it pushes only for the package's own
-player, from the UI. `[2005]` on frame 1 has no candidate. **And run54, the same game with
-`cover=1` over 24,000 frames, never enters either function.** Neither
-is on its excluded list, and `Unit::fight` is entered from 10324. So the
-`take_damage` candidate fails on this game, and the caller of both
-pushes is still to find: `report.py … functions` names every function
-entered by frame 1 and by 176.
+Every pool-id row since, 689's forty, descends from this.
 
-**What building it takes**: the building-group pushes, with their
-caller found, from frame 1, and then both rules above. Also a pool
-whose index is the record (one per `who·64 + s`, the army's group
-included, `army` kept by `copy_group`). Then measure both words. This
+**The caller is the AI scripts.** In the listing, `Group::action_queue_up@006fdbb0`
+has six call sites. Five are `ScenarioFuncSet`'s `train_unit`,
+`train_unit_with_cost`, `train_unit_at`, `train_unit_at_with_cost` and
+`research_tech_with_cost`, and the sixth is `CommandPackage::process_queue_up`.
+Each script function first `Group::add`s the producing building to a
+stack group and calls `push_group(who, g, 1)` (`009f4595`, `009ee881`,
+…). run54's coverage enters `research_tech_with_cost` and
+`train_unit_at_with_cost` on frame 1, `Group::action_queue_up` on frame 1,
+and `process_queue_up` never. att-867's candidates are
+`Object::take_damage`'s two `action_alarm` sites (`0x652677`,
+`0x65284b`), with `CommandPackage::process_group` ruled out by the same
+lane. run54 never enters `take_damage` in 24,000 frames, so those are
+not the caller on this game. The fifteen `push_group` sites in the game's own
+code, from `5e5f9f` to `704cd2`, all pass `force 1`.
+
+**Built on a branch and measured, not landed** (`att-865-pool-wip`, two
+commits):
+
+1. **The numbering.** `ai_host`'s `action_queue_up` pushes the
+   building group first. `get_open_slot` takes a building group at
+   once, empties a slot by `get_num`, and skips the eviction on a
+   building group's slot. `Sim::pushed` holds one entry per pool index.
+   **East Indies holds 20007 and Great Lakes 20568.** who=1's `group`
+   agrees with every East Indies dump, pointer for pointer, up to block
+   **8369** (run98), where it had parted on 239. On 8369 the original's
+   `1/11` goes 65 → −1 and this crate's stays on 65. `1/11` is a
+   citizen of `think_civilian_transport`'s (flags 1) and prints nothing
+   else that parts. The writer is not found. The pool-id pins across the
+   suite were not re-pinned.
+2. **`copy_group`'s kept fields**, on top of the numbering: **East
+   Indies 17530 and Great Lakes 7213**, both on `facing` when bisected
+   by field. From 8369 a slot's previous occupant is often another
+   record.
+
+**What building it takes**: the writer of 8369's `1/11`, and then every
+later pool-id parting in turn. The comparison is a script,
+`group`-for-`group` against each East Indies dump in run order, first
+mismatch per dump, and it reached 8369 in a minute. Great Lakes wants
+the same walk. Then the kept fields, with both words measured. This
 crate's slot 69 holds **two** records on 20002, army 0's orphan and the
-squad (`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`).
-That is the pool this would replace.
+squad
+(`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`),
+which is what one entry per index replaces.
 
 ### 28.5 What this has *not* established
 
@@ -3940,12 +3965,17 @@ That is the pool this would replace.
   19706, army 0 takes the fifteen, army 1 re-forms on `[60]` on 19717,
   and army 0 closes on 19965. The original's 64 (`stamp 19706`, fifteen
   listed, `army −1` on 20002) and 68 (army 1) are the same events on
-  other indices. No capture was taken: the probe answered the frame, and
-  what stands is at frame 1.
+  other indices. No capture was taken (run283 and run284 are unused).
+  The probe answered the frame, and what stands, 8369's writer, is
+  already on run98's disk.
 - **`get_num`'s own prune.** The rule above counts and does not write
   the list back.
 - **The army path.** `Army::add_unit`'s `push_group` for a fresh army
   inherits the slot too. This crate's army record is its own.
+- **A building's own `+0x80`.** `push_group`'s second walk points the
+  building at its slot. The branch does not carry it.
+- **Great Lakes' numbering.** It is not walked. It holds 20568 with
+  the branch's numbering, and falls to 7213 with the kept fields.
 
 ### 28.6 Coverage
 
@@ -3957,5 +3987,8 @@ and the pool on frames 2, 238 and 239 against this crate's `1/0` on 239
 (`east_indies_pool_numbering_parts_on_who_1_s_building_groups`).
 **Decompile-backed**: `copy_group@006fa690`'s nine fields,
 `get_open_slot@006fa460`, `get_num@00714700`, `equals_group@00708000`.
-**Probe-backed, not asserted**: 20007 → 20782 with the inherited
-`facing`, and 17530 for the unnumbered build.
+**Listing-backed**: `action_queue_up`'s six call sites and the
+`push_group` sites' `force`. **Coverage-backed** (run54): the script
+functions entered on frame 1, and `take_damage` never. **Measured, not
+asserted**: 20007 → 20782 under the probe. On the branch, 20007/20568
+with the numbering, and 17530/7213 with the kept fields.

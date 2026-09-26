@@ -16547,9 +16547,9 @@ pub(crate) mod tests {
     /// not equal `last_group` (66). `get_open_slot` takes 64, a building
     /// group that is not `last_group`, and 1/0 moves 65 → 64. This crate
     /// pushes no building group, so the repush equals `last_group` (65)
-    /// and stays. The pushes' caller is not identified here; att-867 names
-    /// `Object::take_damage@00652020`'s two `action_alarm` sites as
-    /// candidates for `[2000]`, and `[2005]` on frame 1 has none.
+    /// and stays. The pushes are the AI scripts' `train_unit*` and
+    /// `research_tech_with_cost`: each pushes the producing building
+    /// before `Group::action_queue_up` (§28.4).
     #[test]
     fn east_indies_pool_numbering_parts_on_who_1_s_building_groups() {
         let Some(inst) = install() else { return };
