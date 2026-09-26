@@ -162,9 +162,15 @@ const UNREAD: &[(&str, &str)] = &[
         "GAME/FRAME/BUILDDATA/WALLDATA",
         "demolition frame_started gpiece helpers job_counter_2",
     ),
+    // **Item 836 added `flags increment length size`**: an Airbase's
+    // `launching` array (`ObjectData +0x44`), which `Object::do_launch`
+    // mallocs on its first launch and `kill_current_order` empties when
+    // the EXIT's order dies, so it prints from run265's 778 with `length
+    // 0` and nothing reads it. It reaches a comparison only when two
+    // planes launch from one base in one call, which no capture holds.
     (
         "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
-        "down down_who healing hold_frames infiltrated inside_down inside_down_who launch_frames myhits mylos near_o near_who uid up up_who visible",
+        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length myhits mylos near_o near_who size uid up up_who visible",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
     (
@@ -531,6 +537,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch19 = golden_dump("ch19");
     let ch20 = golden_dump("ch20");
     let ch21 = golden_dump("ch21");
+    let ch22 = golden_dump("ch22");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1135,6 +1142,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [650, 782, 802, 930, 968, 1131, 1141] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-one carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty-two's word, on run265** (item 836): the first
+    // plane launched out of a base on disk. 768, the strike laid inside;
+    // 778, the word and the launch; 924, the Fighter's first round; 1178,
+    // its empty tank; 1385, its second landing.
+    if let Some(p) = &ch22 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_TWO;
+        for w in [768, 778, 924, 1178, 1385] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-two carries the window's five blocks");
             frames += n;
         }
     }
