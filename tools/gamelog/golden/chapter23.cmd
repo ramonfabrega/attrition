@@ -17,6 +17,12 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter23.cmd
 #
+#   Run 2026-09-26, one take: 1,505 s, 498 MB, 632,320 GROUPDATA. No
+#   falsifier fired: build_masks 4232 -> 4104 on 1442; 0/7 inside with no
+#   order on 1489 and 0/8 on 1513; 0/6's kept patrol killed on 1585 (its
+#   tank's first 0), still inside; nothing launches to 1839. The building
+#   group sits in who=0's pool slot 0. docs/RUNS.md, run281.
+#
 # The window is 1,235 blocks. The toggle is on 1442 and the last falsifier
 # is `0/6`'s full tank on 1585 (286 on 1442, -2 a block): 1840 leaves 255
 # blocks past it, and takes `0/7`'s full tank (~1789) in as well.

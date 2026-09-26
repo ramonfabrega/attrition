@@ -1378,7 +1378,7 @@ below without a run take their number at booking (the eleventh pass).
 | 249 | twenty, the board line | `[605, 1300)` | `issue_set_transport` through the DLL's `@settransport` on a Chariot beside a flagged one, both moved onto lake 70 behind a staged Dock, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run250, to 646 (§28) — **run 2026-09-26 (item 803), 286 MB, 836 s; the pool printed; no falsifier fired: `0/7`'s bit off on 622 and on on 802, no order from either toggle; `0/6`'s Transport `CASTORDER` on 703 and barge `0/8` on 704; `0/7` stopped at the shore on 719; its cast on 829 and barge `0/9` on 830; `0/6` ashore on 1160; no `BOARDORDER` or `AWAITBOARDORDER` on any block** |
 | 255 | twenty-one, the repair line | `[605, 1300)` | `issue_swarm_around` with `REPAIR` through the DLL's `@repair` on a lone citizen and a trio, at a who=0 Barracks who=1's Bowmen damaged before a peace, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked first on run256, to 830, four takes (§29) — **run 2026-09-26 (item 813), 296 MB, 884 s; the pool printed; no falsifier fired: `0/6`'s `MOVEORDER` and `REPAIRORDER` (flags 4) on 782, the trio's on 802 at three spots; the Barracks 3 → 0 on 930–931; the trio's orders dying on arrival on 968, 969 and 1023, each on this crate's predicted block; word 1141 (item 813: `0/7`'s camp approach a tile west), closed at 1300 (item 824: a human's found gather drops its group, ORDERS §5.9)** |
 | 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
-| 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) |
+| 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) — **run 2026-09-26 (item 867), 498 MB, 1,505 s; the pool printed; no falsifier fired: `build_masks` 4232 → 4104 on 1442; `0/7` inside with no order on 1489 and `0/8` on 1513; `0/6`'s kept patrol killed on 1585, its tank's first 0, and `0/6` still inside; nothing launches to 1839; the building group in pool slot 0** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -4829,3 +4829,22 @@ unflagged order whatever the bit (§40.3), so `0/6` agrees there. No
 draw is expected to part: neither `close_orders` nor `kill_current_order`
 draws, and no plane flies. With the command entered, the reading says
 this crate agrees on every plane.
+
+**Run 2026-09-26 as run281 (item 867)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run265 on all 1,501 frames the two
+share (`rngcmp.py`: 0 differing).
+- **The issue** (1 did not fire): `INFO 17` refusal 0, the package 10 →
+  24 bytes; `process_group, new 0 1 1441`, `process_buildmask 1441`.
+- **The toggle** (2 did not fire; it split the readings to the second):
+  `build_masks` 4232 → **4104 on 1442**, and 4104 to the end.
+- **The landings** (3 did not fire): `0/7` inside on **1489** with no
+  order, and `0/8` inside on **1513** with none. `land_plane`'s clear arm;
+  the booking's reading (kept, then killed at the tank) is killed.
+- **The waiting patrol** (4 did not fire): `0/6`'s `AIRPATROLORDER`, flags
+  0, on every block 1385–1584; on **1585**, the block its `mana_burn`
+  first reads 0, no order and still `inside_up 2007`. `do_launch`'s kill.
+- **Nothing launches** (5 did not fire): `inside_down` 6 on every block
+  from 1385; `0/7` full on 1789 and `0/8` on 1813, neither out; no
+  `SPECIALANIMORDER`.
+- **The pool**: the building group takes who=0's slot 0 on 1442 (`num 1`,
+  `buildings 1`, `stamp 1441`) and keeps it to 1839.
