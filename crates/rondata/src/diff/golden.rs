@@ -878,6 +878,31 @@ fn chapter_twenty_two_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty-three, pinned** — the repeat line: an Airbase's repeat
+/// toggled off between two landings (`docs/GOLDEN.md` §32, item 867,
+/// run281). Thirteen staged lines: chapter twenty-two's twelve and
+/// `@buildmask` on the Airbase `0/2007` on 1440.
+#[test]
+fn chapter_twenty_three_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch23", "chapter23", 23, 13, 1839) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_THREE,
+        "chapter twenty-three's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_THREE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_THREE,
+        "chapter twenty-three's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §32"
+    );
+    eprintln!(
+        "chapter twenty-three: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run255's repair, unit for unit, both directions** (item 813,
 /// `docs/GOLDEN.md` §29). On every block of
 /// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
@@ -8480,6 +8505,111 @@ const WANT_CH22_POOL: &[&str] = &[
     "662 slot 2 oy",
     "666 slot 2 new_speed",
     "666 slot 2 speed",
+];
+
+/// **run281 whole, both directions** (item 867, `docs/GOLDEN.md` §32):
+/// every dumped record of either player on every block of
+/// [`WIDENING_CHAPTER_TWENTY_THREE`], and who=0's pool.
+#[test]
+fn chapter_twenty_three_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch23",
+        "chapter23",
+        WIDENING_CHAPTER_TWENTY_THREE,
+        1839,
+        0,
+        (1440, 1444),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch23 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-two's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_THREE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch23: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_THREE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch23", "chapter23", WIDENING_CHAPTER_TWENTY_THREE, 0)
+        .expect("run281 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch23 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH23.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch23: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH23_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch23: what parts in the pool moved");
+}
+
+// **What parts under the word** on run281, chapter twenty-three. ~~The
+// first walk, with the `@buildmask` line skipped: the toggle on 1442,
+// `0/2007`'s `build:repeat_air` ours 1 theirs 0 (`build_masks` 4232 →
+// 4104 there), and the two landings off the non-repeating base, `0/7` on
+// 1489 and `0/8` on 1513, each with its `AIRPATROLORDER` kept here against
+// none there.~~ **The command entered** (item 867,
+// [`crate::input::group_buildmask`] → `Sim::action_buildmask`): 1442,
+// 1489 and 1513 agree, 14 → 9 rows. What stands is chapter twenty-two's:
+// the births' and chapter one's clocks (611–655). 1585 agrees on both
+// walks: this crate's `do_launch` kills `0/6`'s unflagged patrol, and
+// under the cleared bit so does the original's.
+const WANT_CH23: &[&str] = &[
+    "611 0/6 form",
+    "613 0/7 form",
+    "615 0/8 form",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+];
+
+// **What parts in the pool** on run281: chapter twenty-two's ten, and the
+// building group `[2007]` the original's `process_group` pushes into
+// who=0's slot 0 on 1442 (`buildings 1`, stamp 1441), which this crate
+// does not seat. **Its reader** is `Groups::get_open_slot@006fa460`,
+// which counts a slot whose `buildings` byte is set as open for the next
+// push; no push follows on run281, so no later slot parts by it (the
+// pool's other ten rows are all before 1442).
+const WANT_CH23_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "666 slot 2 new_speed",
+    "666 slot 2 speed",
+    "1442 slot 0 held",
 ];
 
 #[test]

@@ -411,14 +411,25 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@buildmask <who> <mask> <b>…` — `issue_buildmask@00941f80(group,
+    /// mask, 1)` on a group of the player's own buildings: the repeat
+    /// button's 0x80 (`Options::set_air_repeat@0071c740`), item 867,
+    /// `docs/GOLDEN.md` §32. The wire's `set` is always 1 and
+    /// `Group::action_buildmask@006fc9a0` reads neither: it toggles.
+    Buildmask {
+        who: i32,
+        mask: i32,
+        buildings: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
 /// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build`,
-/// `spell`, `settransport` or `repair`, a `who` outside `0..8`, fewer than three
-/// numbers (one for `eject`, two for `settransport`, four for `build`, six
-/// for `spell`), or no object.
+/// `spell`, `settransport`, `repair` or `buildmask`, a `who` outside
+/// `0..8`, fewer than three numbers (one for `eject`, two for
+/// `settransport` and `buildmask`, four for `build`, six for `spell`), or
+/// no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
@@ -441,6 +452,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "spell"
             | "settransport"
             | "repair"
+            | "buildmask"
     ) {
         return None;
     }
@@ -458,6 +470,25 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Eject { who, buildings });
+    }
+    // `@buildmask`'s one number is the mask, and its objects are buildings.
+    if verb == "buildmask" {
+        let [who, mask, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Buildmask {
+            who,
+            mask,
+            buildings,
+        });
     }
     // `@settransport`'s one number is the flag.
     if verb == "settransport" {
@@ -720,6 +751,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_swarm_around(built, who, &objects, ox, whom, 2, 13),
+        // `@buildmask` is `issue_buildmask@00941f80` on a group of
+        // buildings, a `group` and a `buildmask`, whose entry is
+        // [`crate::input::group_buildmask`] (item 867, `docs/GOLDEN.md`
+        // §32).
+        Some(Issued::Buildmask {
+            who,
+            mask,
+            buildings,
+        }) => crate::input::group_buildmask(built, who, &buildings, mask),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1221,6 +1261,10 @@ mod tests {
         // the Fighter inside its base, the launch line (item 836,
         // `docs/GOLDEN.md` §31).
         ("chapter22.cmd", &[]),
+        // Chapter twenty-three: chapter twenty-two and one `@buildmask`, the
+        // Airbase's repeat toggled off between the landings (item 867,
+        // `docs/GOLDEN.md` §32).
+        ("chapter23.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
@@ -1382,6 +1426,23 @@ mod tests {
         );
         assert_eq!(parse_issuer("@settransport 0 1"), None);
         assert_eq!(parse_issuer("@settransport 9 1 6"), None);
+    }
+
+    /// **A buildmask line is the DLL's repeat button** (item 867): `who`,
+    /// the mask and the buildings; a line with no building is the DLL's
+    /// refusal 5.
+    #[test]
+    fn a_buildmask_line_is_the_dll_s_repeat_button() {
+        assert_eq!(
+            parse_issuer("@buildmask 0 128 2007"),
+            Some(Issued::Buildmask {
+                who: 0,
+                mask: 128,
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(parse_issuer("@buildmask 0 128"), None);
+        assert_eq!(parse_issuer("@buildmask 9 128 2007"), None);
     }
 
     /// **A repair line is the DLL's swarm** (item 813): `who`, the

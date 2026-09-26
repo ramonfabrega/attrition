@@ -514,7 +514,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Fifteen verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Eighteen verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -545,6 +545,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         issue_set_transport
  *   `@repair <who> <ox> <whom> <o> [<o> ...]` the building's id and owner,
  *                                         issue_swarm_around with REPAIR
+ *   `@buildmask <who> <mask> <b> [<b> ...]` building ids, issue_buildmask
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -670,13 +671,24 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * cursor's damage test: `Group::action_swarm_around@0070fbe0` takes the
  * members at process time and `Unit::do_repair@005ee420` asks the damage.
  *
+ * `@buildmask` calls `CommandManager::issue_buildmask@00941f80(
+ * &command_manager, group, mask, 1)` and appends a 9-byte `buildmask` (type
+ * 0x21, `[mask i32][set i32]`) behind a group of buildings (item 867,
+ * `docs/GOLDEN.md` §32). `Options::set_air_repeat@0071c740` passes 0x80
+ * through `GroupOut::issue_buildmask@00708820` for the repeat button on a
+ * selection of buildings. The issuer writes `set` 1 whatever its third
+ * argument (the listing never reads `[ebp+0x10]`), and
+ * `Group::action_buildmask@006fc9a0` reads neither: it toggles the bit off
+ * the first member's state, on each member `WallData::valid_buildmask@
+ * 0063e2a0` admits, at process time.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
  * group to `is_team` and drops it); 2 the issuer's prologue is not the
  * shipped one; 3 an object is out of the registry, not active, not `who`'s,
  * not that id, or not a captain (`add_group` would drop it silently) — for
- * `@eject`, not a building; 4 the
+ * `@eject` and `@buildmask`, not a building; 4 the
  * package cannot hold a fresh group and the move (the issuer returns void and
  * appends nothing); 5 the text did not parse; 6 the package did not grow. */
 #define RVA_CONSOLE 0x806210u /* MiscAccess::console, VA 0xc06210 (Console *) */
@@ -696,6 +708,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_ISSUE_SPELL 0x541b80u
 #define RVA_ISSUE_SET_TRANSPORT 0x541910u
 #define RVA_ISSUE_SWARM_AROUND 0x5416b0u
+#define RVA_ISSUE_BUILDMASK 0x541f80u
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -728,7 +741,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
      * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
-     * `settransport`, 16 `repair`:
+     * `settransport`, 16 `repair`, 17 `buildmask`:
      * the issuer, its prologue
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -751,16 +764,18 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "spell ")    ? 14
                : issue_verb(&t, "settransport ") ? 15
                : issue_verb(&t, "repair ")   ? 16
+               : issue_verb(&t, "buildmask ") ? 17
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
     u32 n = 0;
     /* `@spell`'s craft and target come before its point;
-     * `@settransport` has one number, the flag, which rides in `x`. */
+     * `@settransport` has one number, the flag, which rides in `x`, and
+     * `@buildmask` one, the mask, likewise. */
     if (!issue_int(&t, &who) ||
         (verb == 14 && (!issue_int(&t, &type) || !issue_int(&t, &ox) || !issue_int(&t, &whom))) ||
-        (verb == 15 && !issue_int(&t, &x)) ||
-        (verb != 5 && verb != 15 && (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
+        ((verb == 15 || verb == 17) && !issue_int(&t, &x)) ||
+        (verb != 5 && verb != 15 && verb != 17 && (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
         (verb == 13 && !issue_int(&t, &type))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
         return;
@@ -784,8 +799,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * command. issue_spell's is `sub esp, 0x18`, for its 0x15-byte one.
      * issue_set_transport's is `sub esp, 8`, for its 5-byte one.
      * issue_swarm_around's is issue_attack's to the byte: it tests `ox`
-     * and `whom` first too, for its 0x11-byte command. */
-    static const u8 prologue[17][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+     * and `whom` first too, for its 0x11-byte command. issue_buildmask's
+     * is `sub esp, 0xc`, for its 9-byte one. */
+    static const u8 prologue[18][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -801,10 +817,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
                                        {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6}};
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6},
+                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
-    u32 rva = verb == 16  ? RVA_ISSUE_SWARM_AROUND
+    u32 rva = verb == 17  ? RVA_ISSUE_BUILDMASK
+              : verb == 16  ? RVA_ISSUE_SWARM_AROUND
               : verb == 15  ? RVA_ISSUE_SET_TRANSPORT
               : verb == 14  ? RVA_ISSUE_SPELL
               : verb == 13  ? RVA_ISSUE_BUILD
@@ -818,7 +836,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
               : verb == 2 ? RVA_ISSUE_GUARD
               : verb      ? RVA_ISSUE_PATROL
                           : RVA_ISSUE_MOVE_TO;
-    u32 size = verb == 16  ? 0x11
+    u32 size = verb == 17  ? 0x09
+               : verb == 16  ? 0x11
                : verb == 15  ? 0x05
                : verb == 14  ? 0x15
                : verb >= 11 ? 0x19
@@ -833,17 +852,18 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
             return;
         }
-    /* A unit verb names live captains, from `units`; `@eject` names live
-     * buildings, from `objects`, on `Build::vftable`. */
-    u8 *objects = verb == 5 ? *(u8 **)(g_base + RVA_OBJECTS) : 0;
-    u8 *band = verb == 5 ? (objects ? objects + 4 + (u32)who * 0x1c : 0)
-                         : (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
+    /* A unit verb names live captains, from `units`; `@eject` and
+     * `@buildmask` name live buildings, from `objects`, on `Build::vftable`. */
+    i32 on_buildings = verb == 5 || verb == 17;
+    u8 *objects = on_buildings ? *(u8 **)(g_base + RVA_OBJECTS) : 0;
+    u8 *band = on_buildings ? (objects ? objects + 4 + (u32)who * 0x1c : 0)
+                            : (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
     u32 length = band ? *(u32 *)(band + 4) : 0;
     u8 **slots = band ? *(u8 ***)(band + 0x10) : 0;
     for (u32 j = 0; j < n; j++) {
         u8 *unit = (ids[j] >= 0 && (u32)ids[j] < length && slots) ? slots[ids[j]] : 0;
         if (!unit || !(unit[8] & 1) || unit[9] != (u8)who || *(u16 *)(unit + 0xa) != (u16)ids[j] ||
-            (verb == 5 ? *(u32 *)unit != g_base + RVA_BUILD_VFTABLE : !(*(u16 *)(unit + 0x8e) & 0x8000))) {
+            (on_buildings ? *(u32 *)unit != g_base + RVA_BUILD_VFTABLE : !(*(u16 *)(unit + 0x8e) & 0x8000))) {
             emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(3) << 16), before, (u32)ids[j], n);
             return;
         }
@@ -862,7 +882,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 16) {
+    if (verb == 17) {
+        /* issue_buildmask(group, mask, set 1): the repeat button's 0x80 on
+         * a selection of buildings. */
+        typedef void(__thiscall *buildmask_fn)(void *, void *, i32, i32);
+        ((buildmask_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, 1);
+    } else if (verb == 16) {
         /* issue_swarm_around(group, ox, whom, QUEUE_NEW 2, REPAIR 13): a
          * right-click on a damaged friendly building. */
         typedef void(__thiscall *swarm_fn)(void *, void *, i32, i32, i32, i32);

@@ -844,6 +844,43 @@ impl Sim {
         );
     }
 
+    /// **`Group::action_buildmask@006fc9a0` on a group of buildings** —
+    /// the player's repeat button (`Options::set_air_repeat@0071c740`)
+    /// through `CommandPackage::process_buildmask@00947680`
+    /// (`docs/GOLDEN.md` §32). **It toggles; it does not set**: the
+    /// command's `set` is always 1 on the wire and the function never
+    /// reads it (the listing, and 4232 ↔ 4104 under the emulator). Each
+    /// member that is active and that `WallData::valid_buildmask@0063e2a0`
+    /// admits — for `0x80`, `can_carry(AIR)`, [`Sim::is_hangar`] — gets the
+    /// bit **set if it lacks it and every admitted member before it was
+    /// set; otherwise cleared**, and so is every admitted member after a
+    /// clear. run281's Airbase reads 4104 from 1442. Returns the members
+    /// written.
+    ///
+    /// SEAM: only the repeat bit is carried ([`Building::repeat_air`]
+    /// (crate::Building)); a mask with any other bit — `0x40`, the
+    /// infinite queue, `can_infinite` — writes nothing here, and the
+    /// message and sound the `0x40` toggle plays for the console's player
+    /// are the interface's.
+    pub fn action_buildmask(&mut self, buildings: &[usize], mask: i32) -> usize {
+        if mask != 0x80 {
+            return 0;
+        }
+        let mut all_set = true;
+        let mut written = 0;
+        for &b in buildings {
+            let bd = &self.buildings[b];
+            if !bd.alive || !bd.ty.is_some_and(|t| self.is_hangar(t)) {
+                continue;
+            }
+            let set = !bd.repeat_air && all_set;
+            self.buildings[b].repeat_air = set;
+            all_set = set;
+            written += 1;
+        }
+        written
+    }
+
     /// **`Object::do_launch@0064f3b0` for a building** — called from
     /// `Build::process@0061edf0` for a type with `build_masks & 8`, a
     /// hangar (`docs/ORDERS.md` §38.3). Only while something is inside:
@@ -854,17 +891,16 @@ impl Sim {
     /// - a plane with no order, or with `mana_burn ≠ 0`, is passed over —
     ///   **the tank gates the launch** (run265: the strike laid on 767
     ///   waits to 778, the block the tank first reads 0);
-    /// - one whose front order has the action bit stays: a strike whose
+    /// - one whose front order has the action bit, or whose base repeats
+    ///   (`has_repeat_air() || flags & 4`), stays: a strike whose
     ///   target is invalid and whose point is off the world is killed; a
     ///   patrol's `returning` is cleared; it joins `launching`, and the
     ///   first of the call comes out ([`Sim::come_out`], whose tail is
     ///   the EXIT, [`Sim::exit_at_airbase`]) and `launch_frames` is 0;
     /// - one without is killed, and leaves `launching`.
     ///
-    /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, the
-    /// base's vslot `0xf0` ([`Building::repeat_air`](crate::Building),
-    /// which launches an unflagged order: `docs/ORDERS.md` §40), a strafe
-    /// home to another, full base turned `AirPatrolOrder`, and the
+    /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, a
+    /// strafe home to another, full base turned `AirPatrolOrder`, and the
     /// chain's order, which is the garrison list's here (one plane in
     /// every capture).
     pub(crate) fn do_launch(&mut self, b: usize) {
@@ -888,7 +924,12 @@ impl Sim {
             if self.units[u].mana_burn != 0 {
                 continue;
             }
-            if front.flags & crate::orders::flag::ACTION == 0 {
+            // `0064f4b0`: the base's vslot `0xf0` ([`Building::repeat_air`]
+            // (crate::Building)) or the action bit keeps the order;
+            // neither kills it. run281's `0/6` on 1585: its unflagged
+            // patrol, kept by `land_plane` under the bit, is killed once
+            // the bit is gone (`docs/GOLDEN.md` §32).
+            if !self.buildings[b].repeat_air && front.flags & crate::orders::flag::ACTION == 0 {
                 self.kill_current_order(u);
                 self.buildings[b].launching.retain(|&x| x != u);
                 continue;
@@ -1743,6 +1784,74 @@ mod launch_tests {
             } else {
                 assert!(s.units[u].orders.is_empty(), "no repeat: closed");
             }
+        }
+    }
+
+    /// **`do_launch` keeps an unflagged order only under a repeating
+    /// base** (`Object::do_launch@0064f3b0`, `has_repeat_air() || flags &
+    /// 4`; `docs/GOLDEN.md` §32): at a full tank the kept patrol is
+    /// launched under the bit and killed without it, the plane staying
+    /// inside. Made to fail with the kill unconditional (the first arm)
+    /// and with the bit read as always set (the second).
+    #[test]
+    fn a_full_tank_launches_an_unflagged_patrol_only_under_the_bit() {
+        for repeat in [true, false] {
+            let mut s = sim();
+            let (base, _) = base_and_target(&mut s);
+            let u = fighter_inside(&mut s, base, 400);
+            s.come_out(u);
+            s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+            s.buildings[base].repeat_air = true;
+            s.land_plane(u);
+            s.buildings[base].repeat_air = repeat;
+            s.units[u].mana_burn = 0;
+            s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
+            s.do_launch(base);
+            if repeat {
+                assert_eq!(s.units[u].inside, None, "launched");
+                assert_eq!(s.units[u].orders.len(), 1, "on its patrol");
+            } else {
+                assert_eq!(s.units[u].inside, Some(base), "still inside");
+                assert!(s.units[u].orders.is_empty(), "the patrol killed");
+            }
+        }
+    }
+
+    /// **The repeat button toggles off the first member's state**
+    /// (`Group::action_buildmask@006fc9a0`, `docs/GOLDEN.md` §32): one base
+    /// goes 1 → 0 → 1; of two, the first's state decides and a clear
+    /// clears everything after it; a building that cannot carry aircraft
+    /// and any mask but `0x80` are passed over. Made to fail with the bit
+    /// set whatever it held (the toggle), and with `all_set` never cleared
+    /// (the second pair).
+    #[test]
+    fn the_repeat_button_toggles_off_the_first_member() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        // `Build::init`'s `|= 0x88`, which `add_building` does not run.
+        s.buildings[base].repeat_air = true;
+        assert_eq!(s.action_buildmask(&[base], 0x80), 1);
+        assert!(!s.buildings[base].repeat_air, "4232 -> 4104");
+        assert_eq!(s.action_buildmask(&[base], 0x80), 1);
+        assert!(s.buildings[base].repeat_air, "4104 -> 4232");
+        assert_eq!(s.action_buildmask(&[base], 0x40), 0, "not carried");
+        assert_eq!(s.action_buildmask(&[target], 0x80), 0, "no hangar");
+        let second = s.add_building(0, Pos::new(13824, 13920), 0);
+        s.buildings[second].ty = s.buildings[base].ty;
+        for (a, b, want) in [
+            (true, false, (false, false)),
+            (false, true, (true, false)),
+            (false, false, (true, true)),
+            (true, true, (false, false)),
+        ] {
+            s.buildings[base].repeat_air = a;
+            s.buildings[second].repeat_air = b;
+            s.action_buildmask(&[base, second], 0x80);
+            assert_eq!(
+                (s.buildings[base].repeat_air, s.buildings[second].repeat_air),
+                want,
+                "from ({a}, {b})"
+            );
         }
     }
 

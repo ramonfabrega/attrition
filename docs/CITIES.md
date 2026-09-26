@@ -156,7 +156,7 @@ A building has three states: *placed* (`0x1`), *started* (`0x3`), *active*
 | `0x8` | launch pending (airbase/carrier/silo) | `Build::init` (`|0x88` for `can_carry(AIR)`) | `Build::process` → `Object::do_launch` |
 | `0x10`, `0x20` | **under attack**, two-stage | `Object::take_damage` ors `0x30` on a hit by another player | `is_under_attack` = `& 0x20`; `Wall::process` every 32 frames (phased by `o`): `0x10` set → clear it, else clear `0x20` — so "under attack" lasts 32–64 frames after the last hit; `do_build`/`do_repair` quarter their rate on it |
 | `0x40` | infinite queue | `docs/PRODUCTION.md` | |
-| `0x80` | **repeat air** (`WallData::has_repeat_air@00472410`, vslot `0xf0`) | `Build::init` (`|0x88` for `can_carry(AIR)`); cleared only by the player's repeat-orders toggle (`Options::set_air_repeat` → `Group::action_buildmask(0x80)`) | `Unit::land_plane` keeps the order, `Object::do_launch` launches an unflagged one (`docs/ORDERS.md` §40) |
+| `0x80` | **repeat air** (`WallData::has_repeat_air@00472410`, vslot `0xf0`) | `Build::init` (`|0x88` for `can_carry(AIR)`); toggled, never set or cleared by value, by the player's repeat-orders button (`Options::set_air_repeat` → `Group::action_buildmask(0x80)`; `docs/ORDERS.md` §41, run281) | `Unit::land_plane` keeps the order, `Object::do_launch` launches an unflagged one (`docs/ORDERS.md` §40, §41) |
 | `0x100` | roads need re-laying | `City::regen_roads` | `Build::process` every 16 frames |
 | `0x200` | was neutralized last frame | `Build::process` | toggles the city's temple/lumber/granary/market flags |
 | `0x400` | had a builder last frame | `Wall::process` | UI |

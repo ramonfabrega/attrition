@@ -8296,3 +8296,57 @@ exited 0.
   step and its `1/67` walks on to (34821, 40956), while ours is refused
   by `1/65` (`collide_o` 65) and stands.
 - The floor is 352/21/371/948.
+
+## run281 — chapter twenty-three, the repeat line (2026-09-26, item 867)
+
+`docs/GOLDEN.md` §32, `tools/gamelog/golden/chapter23.cmd`: chapter
+twenty-two's cast and twelve lines, and **`1440 @buildmask 0 128 2007`**,
+the repeat button on the Airbase `0/2007` alone, through the DLL's new
+verb 17 (`CommandManager::issue_buildmask@00941f80`). By 1440 the Fighter
+`0/6` has been inside since 1385 with its kept patrol; the Bombers `0/7`
+and `0/8` are flying home. The chapter and its five falsifiers were
+committed before the run (`fcb23eae`). No `RonDriver` was running and the
+lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch23 \
+    --map 14 --end-frame 1840 --log-window 605 1840 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter23.cmd
+```
+
+**One take** at `cover=0`: launched 12:39, **1,505 s** launch to exit,
+**498 MB** of dump and 12 MB of trace, 1,235 blocks. The receipt says
+`success: true`, exit 0, 1,841 frames, `MAP_STYLE 14`, seed 12345.
+`waitrun.sh` exited 0. `cmdsran.py` has the eight console and chat lines
+returning 1. The runner staged `37 !ffwd 3` where run265's staged 2; the
+draw stream is the same game (below).
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run265's trace | **0 differing, 1,501 identical**: the toggle, the landings and the kill draw nothing |
+| a `GROUPDATA` on every window block | **632,320**, 512 on each of the 1,235 |
+| `SPECIALANIMORDER` anywhere | **none** |
+
+### The issuer's own records
+
+- Trace frame 1440: `INFO 18` for `0/2007`, uid 13, at (11616, 13920);
+  `INFO 17` line 13, refusal 0, package 10 → 24 bytes: the 5-byte
+  `group` and the 9-byte `buildmask`, the emulator's 14.
+- `process_group, new 0 1 1441` and `process_buildmask 1441`.
+
+### §32's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | processed on 1441 | as predicted |
+| 2, the toggle | `build_masks` 4104 on 1442 and to the end | **4232 → 4104 on 1442**, 4104 to 1839 |
+| 3, a landing off the base | `0/7` inside on 1489 with no order; `0/8` likewise | **`0/7` inside on 1489, `orders []`**, `mana_burn` 600; **`0/8` inside on 1513**, `orders []`; neither has an order to its end |
+| 4, the waiting patrol | `0/6`'s patrol kept to 1584, gone on 1585, `inside_up 2007` | **exactly so**: `AIRPATROLORDER` flags 0 on 1385–1584, `orders []` on 1585 (the block `mana_burn` first reads 0), still inside |
+| 5, nothing launches | no aircraft out after 1442, no `SPECIALANIMORDER` | `inside_down` 6 on every block from 1385; `launch_frames` saturated at 15; `0/7` full on 1789 and `0/8` on 1813, and neither leaves |
+
+**The pool.** The building group takes who=0's **slot 0** on 1442 (`num
+1`, `buildings 1`, `stamp 1441`) and holds it to 1839. Slots 1 (`[6]`,
+767) and 2 (`[7, 8]`, 661) are chapter twenty-two's, unchanged.
