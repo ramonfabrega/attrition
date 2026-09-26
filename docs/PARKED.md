@@ -37,12 +37,23 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 882, 2026-09-26 — the push's edges
+
+(887) **A pushed record's `o`**: −1 here against 0 there on a slot never
+laid out; chapter twenty-four's 8 and chapter twenty-three's 6 `ox`/`oy`
+pool rows. The original's `Group::clear@00713e80` writes 0 at 0x18 and
+0x1c (713eb4, 713ebb) and `copy_group` copies the stack group's 0; this
+crate's `GroupState::default().o` is (−1, −1), which `group_o` reads as
+"never moved". Changing it touches that reader, unmeasured (880's
+answer). The AI lane's: `group.rs`'s pool record.
+
+(888) **A command group of two or more buildings is not seated**: a
+`SEAM:` on `Sim::push_command_buildings` (GROUPS §31). No capture
+selects more than one.
+
 ## Parked by item 877, 2026-09-26 — the queue line's edges
 
 (883) **`action_queue_up`'s research arm**: read, not built.
-
-(884) **The player's cancel on an infinite queue, and `input::Stream`'s
-recorded `QueueUp`/`Unqueue`**, which are still skipped.
 
 ## Parked by item 867, 2026-09-26 — the repeat line's edges
 
@@ -475,7 +486,8 @@ group is the package's own player's and one listed object survives
 `get_open_slot`, and no later slot parts). **829 adds** a closed army's orphan group's scalars
 on East Indies 19000 — `order_num` 0 against 12, `o` (−1, −1) against
 (0, 0), `form_num` 0 against 1 — which no capture compares and no
-reader on the word's path reads (ARMY §22).
+reader on the word's path reads (ARMY §22). **882 built the birth
+push** (GROUPS §31; 17363 and 17575 close); what stands is the pool id.
 
 (690) **`input::Stream`'s recorded `MoveTo`** still gives each unit
 `add_move_order` and bypasses the group; `input::group_move_to` is the
@@ -582,7 +594,10 @@ residue); its order's `facing` 0 against 1, inherited from the scout's
 first-block row; the scout's `avg_speed` 25/24 against 18/18 and its
 `stopped[1]` 0 against 1. 657 read the `form` residue: `Unit::init@00612100`
 writes `+0xaa` as 9 for types `0x32`–`0x35` and 0 otherwise, and `+0xab`
-as −1; building it re-pins `form` rows across a dozen widenings. The human's census still does not run
+as −1; building it re-pins `form` rows across a dozen widenings. **882
+adds** `Unit::init`'s tile-centred point (`div_3(x>>4)*0x30+0x18`), which
+a follower keeps as `orders_x/y` on its birth block: 12 of chapter
+twenty-four's 25 rows, and run251's `1/71`/`1/72` on 17575. The human's census still does not run
 (`docs/AI.md` §23.1): the first-block `0/-1` leader and `0/2000` city rows
 stand.
 698 found the same shape on Great Lakes: three newborns' `form` −1
@@ -809,10 +824,6 @@ one-shot is set only when the sweep ends without a hard hit,
 `docs/COLLISION.md` §12) does not depend on it. No score names it.
 
 ## Parked by item 557, 2026-09-22 — the pool's other writers
-
-(561) **`Unit::come_out`'s own push of its squad** (group 69 on 11423),
-the only residue of run134's pool dump; the list it leaves at 11424's
-add is the same either way. Pinned in `run134_s_pool_list_is_the_original_s`.
 
 (562) **Five unmodelled writers of `+0x80 = −1`**: `do_build`,
 `build_done`, `do_attack`, `do_non_flat_gather` and `think_peasant`. They
@@ -1329,6 +1340,13 @@ has a slot, made to fail first on the pre-839 tree. **The sixteenth
 pass**: stays with its shape — "read" is prose, and the guard needs the
 list of words a specification uses for a loaded constant; one landing
 so far.
+
+(889) **A booking that counts rows under one mechanism counts the
+writers of each field first** (882's Loop line, filed at its merge):
+chapter twenty-four's 30 rows were booked as `come_out`'s "human arm" on
+877's reading; the listing had no owner test, and 25 of the 30 belonged
+to `Unit::init`. Ten minutes of writer-counting split the rows three
+ways before any build.
 
 
 
