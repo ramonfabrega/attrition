@@ -1905,10 +1905,21 @@ impl Sim {
         armed && !worker && !river
     }
 
-    /// The `no_danger` mode: the danger map is ignored when attacking.
+    /// The `no_danger` mode (`PathFinderData +0x7c`), `astar_path@00683770:
+    /// 119-127`: the danger map is ignored when the action is an attack
+    /// (its `get_type` is `ATTACK`), when the owner is gaia (`who >= 8`),
+    /// **or when the current order is `ATTACK_TO` or `GROUP_ATTACK_TO`**
+    /// (`UnitData::order_type`). The last two arms were missing, so an
+    /// army walking under an attack-to priced its own city's negative
+    /// danger and cut through it (`docs/PATHFINDER.md` §28).
     fn no_danger_mode(&self, u: usize) -> bool {
         self.action_of(u)
             .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)))
+            || self.units[u].owner >= 8
+            || matches!(
+                self.order_type(u),
+                orders::index::ATTACK_TO | orders::index::GROUP_ATTACK_TO
+            )
     }
 }
 
@@ -1957,6 +1968,40 @@ mod tests {
         let i = sim.units.len();
         sim.units.push(u);
         i
+    }
+
+    /// `astar_path@00683770:119-127`'s `no_danger`: an attack action, a
+    /// gaia owner, **or a current order of `ATTACK_TO`/`GROUP_ATTACK_TO`**
+    /// (`docs/PATHFINDER.md` §28). East Indies' army column on tick 17146
+    /// walks under an `ATTACK_TO` and the original prices its world steps
+    /// without who=1's danger; ours read it, and `1/58` cut north.
+    #[test]
+    fn an_attack_to_order_plans_without_the_danger_map() {
+        for (kind, action, want) in [
+            (MoveKind::AttackTo, true, true),
+            (MoveKind::AttackTo, false, true),
+            (MoveKind::MoveTo, true, false),
+            (MoveKind::MoveTo, false, false),
+        ] {
+            let mut sim = flat_sim(12);
+            let u = walker(&mut sim, Pos::new(0x180, 0x180));
+            sim.add_move_order(
+                u,
+                Pos::new(0x180 + 6 * 0x300, 0x180),
+                kind,
+                crate::orders::QueuePos::New,
+                action,
+            );
+            assert_eq!(
+                sim.no_danger_mode(u),
+                want,
+                "{kind:?}, action {action}: no_danger"
+            );
+        }
+        let mut sim = flat_sim(12);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        sim.units[u].owner = 8;
+        assert!(sim.no_danger_mode(u), "gaia plans without danger");
     }
 
     fn push_goal(sim: &mut Sim, u: usize, to: Pos) {

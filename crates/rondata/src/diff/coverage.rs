@@ -43,10 +43,10 @@ use crate::gamelog::{Block, Log, reads};
 
 use super::testkit::{
     EAST_INDIES_BARK_BLOCK, EAST_INDIES_BLOCKWORD_BLOCK, EAST_INDIES_CAST_BLOCK,
-    EAST_INDIES_EXPLORE_BLOCK, EAST_INDIES_GATHER_BLOCK, EAST_INDIES_IDLE_BLOCK,
-    EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MERCS_BLOCK, EAST_INDIES_SLOT_BLOCK,
-    EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
-    GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
+    EAST_INDIES_EXPLORE_BLOCK, EAST_INDIES_GATHER_BLOCK, EAST_INDIES_GROUPWORD_BLOCK,
+    EAST_INDIES_IDLE_BLOCK, EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MERCS_BLOCK,
+    EAST_INDIES_SLOT_BLOCK, EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK,
+    GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
     GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_FOREST_CELL_BLOCK,
@@ -810,6 +810,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r233 {
         let n = drive_capture(p, ebw - 2, ebw + 2, &mut paths);
         assert_eq!(n, 5, "run233 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 773 moved the word to 17403, still inside run233, so the new
+    // word's own blocks are driven on the same capture.
+    let egw = EAST_INDIES_GROUPWORD_BLOCK;
+    if let Some(p) = &r233 {
+        let n = drive_capture(p, egw - 2, egw + 2, &mut paths);
+        assert_eq!(n, 5, "run233 carries the new word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
