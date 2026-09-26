@@ -548,10 +548,6 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
 /// nothing, when an object is not a live captain of `who`. So the command
 /// that reaches the pump is a `group` of exactly those captains and a
 /// `move_to`, and [`crate::input::group_move_to`] is its entry.
-/// Whether the harness enters `@spell` (item 790's floor is pinned with it
-/// off).
-const SPELL_ENTERED: bool = false;
-
 fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
     let word = command_word(&line.text);
     // `@patrol` is `issue_patrol@00941800` with `QUEUE_NEW`, a `group` and
@@ -664,8 +660,8 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             at,
             objects,
-        }) if SPELL_ENTERED => crate::input::group_spell(built, who, &objects, spell, ox, whom, at),
-        Some(Issued::Spell { .. }) | None => {
+        }) => crate::input::group_spell(built, who, &objects, spell, ox, whom, at),
+        None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
         }

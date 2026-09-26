@@ -672,8 +672,8 @@ pub fn load_tables(
             // `SpellType::init` keeps the range in internal units, a tile
             // being 192 (run246's `get_range` of 960 is the Informer's 10
             // tiles halved on a building).
-            range: int(r, "SPELL_RANGE").unwrap_or(0) as i32 * 192,
-            mana: int(r, "MANA").unwrap_or(0) as i32,
+            range: int(r, "SPELL_RANGE").unwrap_or(0) * 192,
+            mana: int(r, "MANA").unwrap_or(0),
             from: ["FROM", "FROM2"].map(|col| {
                 r.text(col)
                     .map(str::trim)
@@ -1215,7 +1215,7 @@ pub fn load_tables(
             archer: unit_is(i, BOWMEN),
             anti_air: unit_is(i, ANTIAIRCRAFTGUN),
             cols: cols[i],
-            mana: int(r, "MANA").unwrap_or(0) as i32,
+            mana: int(r, "MANA").unwrap_or(0),
             gaia: i >= GAIA,
         });
     }

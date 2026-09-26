@@ -3829,3 +3829,32 @@ which the original spends and this crate does not.
 - **The prediction** from the Spy's `MOVES` was a walk to ~715 and a cast
   near 755; the Spy walks slower, 20 units a frame, and both came forty
   frames later.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_NINETEEN` = 669, open.**
+The harness skipped the `@spell` line. Nothing spends a draw on the Spy's
+walk until 669, where the original spends 7 draws against 9 here, parting
+at draw 0 on an idle Spy's roll this crate spends (`Guy::set_anim+0x97a
+< Guy::inc_time+0x271`) and the walking one does not. The widening over
+(605, 672), both directions, names what stands: the Spy's birth `form`;
+on 622 its stack, empty here, with the action point and group; on 623 its
+first step; in the pool, the command's pushed selection.
+
+**The spell command entered: `GOLDEN_WORD_CHAPTER_NINETEEN` = 1100,
+closed** (item 790, `docs/ORDERS.md` §37). `input::group_spell` →
+`Sim::group_action_spell` lays the cast; `crate::cast` walks, holds and
+casts it. The stream agrees to run245's end, 1100.
+- **The value diff on the old word's frame**, block 669, both sides: `0/6`
+  at (12551, 15616) on its walk to (14232, 15528), a `CASTORDER` (flags 4,
+  `paid` 1) behind the `MOVEORDER`, `mana_burn` 941.
+- **One row fell to a reading on the way**: on 756 the figure's `stopped`
+  was a frame late here. `Unit::set_angle(angle, target, 1)`'s third
+  argument writes guy 0's `angle` and `last_angle` outright
+  (`Guy::set_angle@005d9010`), so the figure stands facing the target on
+  its first frame in range.
+- **The widening is run245 whole**, (605, 1101): past the births nothing
+  stands but the pool's `ox`/`oy` on the pushed selection, (0, 0) there and
+  (−1, −1) here, as on §25's and §26's. `run245_s_cast_is_the_original_s_
+  field_for_field` reads the cast's own fields raw on every block —
+  `mana_burn`, `spell_time`, `cavarch_o`/`cavarch_who`, the started bit,
+  `visible`, the Barracks' `infiltrated`, the order's target, point, craft
+  and `paid` — 46,540 rows, none parted.

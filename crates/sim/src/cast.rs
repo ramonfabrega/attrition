@@ -354,7 +354,14 @@ impl Sim {
             self.units[u].visible |= Self::who_bit(whom);
             let there = self.pos_of(t);
             let angle = crate::movement::find_angle(there.x - here.x, there.y - here.y);
+            // `Unit::set_angle(angle, target, 1)`: the third argument is
+            // `Guy::set_angle@005d9010`'s, and set it writes guy 0's
+            // `angle` and `last_angle` outright — the figure faces the
+            // target this frame rather than turning to it, so it stands
+            // (`stopped` 1) on the first frame in range. run245's 756.
             self.unit_set_angle(u, angle);
+            self.units[u].movement.facing = angle;
+            self.units[u].movement.frame_facing = angle;
         }
         // The spy's animations (`is(SPY, 0)`): Bribe `CHAR_ATTACK3`, the
         // Informer `CHAR_ATTACKWALK`, anything else `CHAR_ATTACK2` on a

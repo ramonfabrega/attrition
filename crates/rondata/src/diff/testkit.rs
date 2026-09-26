@@ -3264,10 +3264,13 @@ pub(crate) const WIDENING_CHAPTER_EIGHTEEN: (i64, i64) = (605, 1451);
 
 /// **Chapter nineteen's golden word** — the cast line, a Spy's Informer
 /// on an enemy building (`docs/GOLDEN.md` §27, item 790, run245).
-pub(crate) const GOLDEN_WORD_CHAPTER_NINETEEN: i64 = 669;
+/// ~~669, open~~ with the harness skipping `@spell`: an idle Spy's
+/// animation roll where the original's walks to its ring spot. **1100,
+/// closed**, the spell command entered (`docs/ORDERS.md` §37).
+pub(crate) const GOLDEN_WORD_CHAPTER_NINETEEN: i64 = 1100;
 
 /// `chapter_nineteen_s_word_frame_is_widened_whole`'s window.
-pub(crate) const WIDENING_CHAPTER_NINETEEN: (i64, i64) = (605, 672);
+pub(crate) const WIDENING_CHAPTER_NINETEEN: (i64, i64) = (605, 1101);
 
 /// `run235_s_bombs_are_the_original_s_record_for_record`'s window
 /// (item 770): run235's blocks from the first bomb's release, 805, to its
@@ -4801,6 +4804,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 790: run245, chapter nineteen's first walk at 669, on the spell
     // command this crate did not take: an idle Spy's animation roll where
     // the original's walks to its ring spot; its cast and move on 622.
+    // Closed at 1100 with the command entered; the widening is run245
+    // whole.
     (
         "GOLDEN_WORD_CHAPTER_NINETEEN",
         GOLDEN_WORD_CHAPTER_NINETEEN,
