@@ -15815,6 +15815,127 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run257 — East Indies' word 18938, widened whole, both directions**
+    /// (item 822). run253's line over [`WIDENING_EAST_INDIES_GUARDWORD`]:
+    /// the six blocks before the word's, its block, and 250 past it. No
+    /// capture shares a block with it, so 18434..18932 is compared by no
+    /// dump, and the floor is its first block. [`widen_east_indies`] with
+    /// gaia's animals.
+    ///
+    /// The word's frame, 18938, writes block **18939**.
+    #[test]
+    fn run257_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_GUARDWORD.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_GUARDWORD.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_GUARDWORD_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            army_lists,
+            ..
+        }) = widen_east_indies(
+            "run257",
+            "gamelog-run257-eastindies-guardword.txt",
+            WIDENING_EAST_INDIES_GUARDWORD,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **Under the word, the first row of each key past the floor**
+        // (item 822): nothing parts on 18934..18938, and on the word's own
+        // block four of who=1's units part whole — `1/67`, `1/68`, `1/70`
+        // and `1/71`, 25 or 26 keys each. Ours stand under a `GUARD` (kind
+        // 12, one order, `tolerance` 144, stopped) where the original's
+        // walk under an `ATTACK_TO` (kind 2, two orders, a one-leg path)
+        // given on tick 18938. No mechanism is named.
+        assert!(
+            rows.iter()
+                .all(|r| r.starts_with(&format!("{WORD_BLOCK} "))),
+            "nothing parts before the word's block: {rows:?}"
+        );
+        let units: std::collections::BTreeSet<&str> =
+            rows.iter().filter_map(|r| r.split(' ').nth(1)).collect();
+        assert_eq!(
+            units.into_iter().collect::<Vec<_>>(),
+            ["1/67", "1/68", "1/70", "1/71"],
+            "the units under the word"
+        );
+        for o in [67, 68, 70, 71] {
+            assert!(
+                rows.contains(&format!(
+                    "{WORD_BLOCK} 1/{o} order:kind: Kind {{ ours: 12, theirs: 2 }}"
+                )),
+                "`1/{o}` guards here and attacks there on {WORD_BLOCK}"
+            );
+        }
+        // The four figures change animation on the original's side only.
+        let word: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        assert_eq!(
+            word,
+            [
+                (WORD_BLOCK, 1, 67, true, false),
+                (WORD_BLOCK, 1, 68, true, false),
+                (WORD_BLOCK, 1, 70, true, false),
+                (WORD_BLOCK, 1, 71, true, false),
+            ],
+            "a figure's animation changes on one side only"
+        );
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        assert_eq!(lists_part, [], "no army's list parts near the word");
+        // who=1's `known_rares` agrees on every block (item 822's zero).
+        assert!(
+            !firsts.contains_key(&(1, -1, "leader:known_rares".to_string())),
+            "who=1's known_rares parts nowhere on run257"
+        );
+        // **The floor**: every key standing on the first block (nothing
+        // shared, so everything the gap 18434..18932 left standing), the
+        // keys first parting under the word, the rows standing on the
+        // word's block, and every key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (320, 103, 423, 1_265),
+            "the floor"
+        );
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the
