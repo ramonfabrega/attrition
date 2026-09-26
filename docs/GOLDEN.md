@@ -4149,6 +4149,13 @@ order, the action bit into its flags, and sets the auto-transport bit
 level can reach; then it adds the order at the end of the list (there is
 no `QUEUE_FIRST` tail) and updates the action.
 
+**The record the chapter reads.** `RepairOrder::log_data@00482720`
+prints `REPAIRORDER` and then `TargetOrder`'s fields — the target's `ox`,
+`whom` and `uid` — inside `UnitOrder`'s `flags`; `RepairOrder::get_type@
+004827a0` returns `REPAIR` (13), the `type` a repairer's action shows; and
+`RepairOrder::RepairOrder@00482330` leaves the target at (−1, −1) with
+`uid` `0xffff` until `add_repair_order` writes it.
+
 **So the DLL can reach it.** `issue_swarm_around`'s prologue is
 `issue_attack`'s to the byte (`55 8b ec 83 ec 14 56 8b 75 0c c6`: it
 tests `ox` and `whom` before `check_accept_issue`), and the DLL gained

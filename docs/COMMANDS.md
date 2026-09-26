@@ -339,7 +339,10 @@ draws. An SP recording has neither.
   `CommandManager`: **nothing emits them at all.** `move_near`, `repair`,
   `board_ship`, `begin` and `cheat_init_unit` are dispatched-but-never-
   issued — legacy or cut paths. Their wire formats stay pinned by their
-  `process_*` sizes.
+  `process_*` sizes. **A player's repair is not one of them**: it travels as
+  `swarm_around` (0x06) with `orders` `REPAIR`, issued by the right-click
+  and the Repair pick through `CommandManager::issue_swarm_around@009416b0`
+  (`docs/GOLDEN.md` §29).
 - `CommandPackage.group` and the embedded `Random` are per-process state a
   *recording* never stores (`write_package`'s 18-byte head puts `frame`
   where `group` sits — `docs/RECGAME.md` §4.3). A **save game** is
