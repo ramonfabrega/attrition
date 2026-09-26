@@ -13,15 +13,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-09-25, the commander (Opus 5.5) after the fourteenth Fable pass
-(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **18 landings
-since 7958738**, twelve words and six chapters. Lane att-790 (chapter nineteen) is live.*
+(`docs/audit/2026-09-25-fable-pass-14.md`, DECISIONS 50): **19 landings
+since 7958738**, thirteen words and six chapters. Lane att-790 (chapter nineteen) is
+live and is the twentieth: no lane is spawned past it.*
 
 - **Great Lakes 15384 → 20568** in seven, the last +3387: `wonder_mark`'s
   writer (785, AI §75; run243 over [20500, 20819) alone, so no dump
   compares a value on 17351..20499, 796). **East Indies is the lower map.**
-- **East Indies 15985 → 17189** in three: the republic's commerce cap
-  (708), a gatherer counted in its building's city (752), and the British
-  Taxation discount (767, AI §74; run233 captured [16929, 17441)).
+- **East Indies 15985 → 17403** in four: the commerce cap (708), a
+  gatherer's city (752), the British Taxation discount (767; run233 to
+  17440), and `no_danger`'s order arm (773, PATHFINDER §28).
 - **Every golden chapter closed again**: fourteen to sixteen (723, 731,
   738), seventeen 642 → 1400 in four (746–770: the flight and the bomb),
   and eighteen, the build line, at 1450 (779, §26). Order row 50 → 57.
@@ -29,16 +30,16 @@ since 7958738**, twelve words and six chapters. Lane att-790 (chapter nineteen) 
   parsed field nobody compares fails until pinned); runway 250 blocks
   (687); `waitrun.sh` reads the click-free receipts; a brief reserves the
   code module; the chain deletes the lane's remote branch.
-- **Fable backlog: 23 Loop items** (677, 685, 697, 727 is the user's
-  sweep, 730–799 filed from this tranche's journals).
+- **Fable backlog: 24 Loop items** (677, 685, 697, 727 is the user's
+  sweep, 730–802 filed from this tranche's journals).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w17189 of 24,000 · GreatLakes w20568 of 24,000
+Long captures: EastIndies w17403 of 24,000 · GreatLakes w20568 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · 790 next
-Endpoint 24001: EastIndies 47 off, 3 unlinked · GreatLakes 11 off, 0 unlinked
+Endpoint 24001: EastIndies 47 off, 1 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 773 on the AI lane (East Indies is lower), 795 after it; 790
-is live on the rules lane; landings count from 7958738. A capture carries
+**Opener: 790 lands the twentieth; then the fifteenth Fable pass. After
+it, 800 on the AI lane (East Indies is lower), 795 after it; landings count from 7958738. A capture carries
 250 blocks of runway and is waited on with `waitrun.sh`; a report quotes
 `Gate steps:`; a journal's "for the Loop" line is filed at its merge.**
 
@@ -50,12 +51,12 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-773. **East Indies' word is 17189** (767 moved it 16982 → 17189: the
-    British Taxation discount in `get_cost`, AI §74). On 17189 ours spends
-    a blocked stand (`move_step+0x823`, `1/55` by `1/60`) the original
-    spends on 17190. Under it `1/55`'s `half_step` from 17182, `1/57`'s
-    from 17161, `1/58`'s path from 17147, who=1's `scholars` from 16971.
-    Inside run233, widened. No mechanism.
+800. **East Indies' word is 17403: the group seam** (773 moved it 17189
+    → 17403: `no_danger`'s order arm, PATHFINDER §28). On 17403 ours 7
+    draws against 6 at index 0: ours `Unit::do_move+0xe84`. Under it
+    `1/60` walks under `GROUP_ATTACK_TO` here and `ATTACK_TO` there, and
+    `1/67`..`1/69` part on `group` from 17363. Inside run233, widened
+    (to 17440). `group.rs` was fenced from 773. No mechanism.
 
 795. **Great Lakes' word is 20568** (785 moved it 17181 → 20568:
     `Wonders::init_wonder` raises `wonder_mark`, AI §75). On 20568 ours 37

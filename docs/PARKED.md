@@ -22,6 +22,11 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 773, 2026-09-25 — run248's other rows
+
+(801) **Sixteen of who=1's fog half-cells part on 17146** (run248's WORLD
+window). No search prices them: all 28,828 priced steps agree.
+
 ## Parked by item 785, 2026-09-25 — the gap and the wonder bookkeeping
 
 (796) **No dump compares a value on Great Lakes' 17351..20499**: run226
@@ -1162,6 +1167,11 @@ here, which is where a missing writer hides; the ledger could carry "the
 original moves it" as a fail-when-it-parts note. And the commander's
 brief asked a contiguous overlap for a +3387 jump where DECISIONS 50 says
 a window sized to the word; the brief template should say which.
+
+(802) **`docs_guard`'s constant check reads Rust comments** (773's Loop
+line, filed at its merge): a doc comment that spells a field offset
+(`+0x7c`) counts as building the constant. 773's was honest — the comment
+names the field — but the same path would bank a constant nobody built.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
