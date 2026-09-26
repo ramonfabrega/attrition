@@ -22,6 +22,19 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 779, 2026-09-25 — the build line's edges
+
+(791) **A computer's `REPAIR` swarm is `MOVE_TO` in the original**
+(`local_40` is set only for `BUILD_AT`) and `EXPLORE_TO` here. The AI
+repairs on both long captures, so a fix wants both words measured.
+
+(792) **The pool's `ox`/`oy` on a pushed selection whose action writes no
+point**: (0, 0) there, (−1, −1) here, on chapters seventeen and eighteen —
+760's family, now on a second chapter.
+
+(793) **`action_build`'s unreached arms**: non-citizen members, `is_busy`,
+the gather filter, and the city-limit and cannot-afford refusals.
+
 ## Parked by item 776, 2026-09-25 — run240's other rows
 
 (786) **A finished wonder's fog ring**: at 17087 the 44 half-cells round
@@ -1122,6 +1135,12 @@ Loop line, filed at its merge): the brief's killer for the planner reading
 the world diff could split them. And a golden-lane capture's trace
 proxies `calc_cost` all game by default: on a word that is a plan, the
 priced steps named the refusing cell in one test, before any reading.
+
+(794) **An issuer chapter's staging can be walked before its capture**
+(779's Loop line, filed at its merge): a scratch walk of the new script,
+stood up on an existing capture's start with a prototype of the command's
+entry, showed the second Barracks refused and the Tower unavailable before
+a 17-minute capture was spent, and predicted run241 block for block.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
