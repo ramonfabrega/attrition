@@ -7062,19 +7062,20 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     //
     // **Built → 1000, closed** (`docs/ORDERS.md` §29): the two entries,
     // `check_target_path`'s GARRISON arm, the door as `adjacent_to`, the
-    // chain's kill, and `come_out`'s angles. What stays is the squad's
+    // chain's kill, and `come_out`'s angles. ~~What stays is the squad's
     // pool slot on 903: `come_out` pushes a squad that leaves a building
     // into a fresh group (`Groups::push_group(…, 1)`, type `+0x308 > 1`),
     // slot 3 behind the eject's own building group in 2. Neither is
-    // carried here (parked 689's family).
+    // carried here (parked 689's family).~~ **Both built** (item 882,
+    // `docs/GOLDEN.md` §33): the eject's `process_group` seats `[2007]` in slot 2
+    // and `come_out` pushes the squad, and `0/7`–`0/9` read group 3 on 903
+    // on both sides. What stays is the births' `form`, `Unit::init`'s
+    // (parked 646).
     let mut want: Vec<String> = [
         "611 0/6 form",
         "615 0/7 form",
         "615 0/8 form",
         "615 0/9 form",
-        "903 0/7 group",
-        "903 0/8 group",
-        "903 0/9 group",
     ]
     .iter()
     .map(|r| r.to_string())
@@ -7215,8 +7216,17 @@ fn widen_pool(
         for slot in 0..64u8 {
             let id = who * 64 + i64::from(slot);
             let theirs = pool.iter().find(|g| g.id == id).filter(|g| g.num > 0);
-            let list = s.built.sim.pool_list(w, slot);
-            let ours = s.built.sim.pool_state(w, slot);
+            let mut list = s.built.sim.pool_list(w, slot);
+            let mut ours = s.built.sim.pool_state(w, slot);
+            // A building group (`process_group`'s push at a command on a
+            // building, item 882): its buildings are the list.
+            if list.is_empty()
+                && ours.is_none()
+                && let Some((st, b)) = s.built.sim.pool_building_group(w, slot)
+            {
+                list = b;
+                ours = Some(st);
+            }
             if theirs.is_none() && list.is_empty() {
                 continue;
             }
@@ -8620,13 +8630,12 @@ const WANT_CH23: &[&str] = &[
     "655 0/2 g.last_time[0]",
 ];
 
-// **What parts in the pool** on run281: chapter twenty-two's ten, and the
+// **What parts in the pool** on run281: chapter twenty-two's ten. ~~And the
 // building group `[2007]` the original's `process_group` pushes into
 // who=0's slot 0 on 1442 (`buildings 1`, stamp 1441), which this crate
-// does not seat. **Its reader** is `Groups::get_open_slot@006fa460`,
-// which counts a slot whose `buildings` byte is set as open for the next
-// push; no push follows on run281, so no later slot parts by it (the
-// pool's other ten rows are all before 1442).
+// does not seat.~~ Seated since item 882
+// ([`crate::input::group_buildmask`] → `Sim::push_command_buildings`),
+// and slot 0 agrees on 1442 whole: its `ox`/`oy` first part on 642.
 const WANT_CH23_POOL: &[&str] = &[
     "622 slot 1 ox",
     "622 slot 1 oy",
@@ -8638,7 +8647,6 @@ const WANT_CH23_POOL: &[&str] = &[
     "662 slot 2 oy",
     "666 slot 2 new_speed",
     "666 slot 2 speed",
-    "1442 slot 0 held",
 ];
 
 /// **run285 whole, both directions** (item 877, `docs/GOLDEN.md` §33):
@@ -8709,66 +8717,73 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
 // [`crate::input::group_queue_up`] → `Sim::action_queue_up`, the 0x40
 // toggle and `do_queue`'s re-queue): 622, 642 and 856's `unlinked` agree,
 // and the three trained squads are born on 856, 1060 and 1272 on both
-// sides. What stands is chapter thirteen's births' `form` (611, 615), and
-// on each trained squad, `Unit::come_out@00617c10`'s human arm: a squad
-// type (`+0x308` > 1) coming out of a building is `Group::add`ed and
-// `Groups::push_group`ed (force 1), so the original's members read
-// `group` (the pool slot: 0, 2, 1), `form` 0, and the followers'
-// `orders_x/y` (2712, 14232) against the Barracks' point (2688, 14208)
-// here. This crate's pool of units does not seat it (`group.rs`, the
-// pool lane's); the stream agrees to 1560 with it standing. The named
-// reader of `orders_x` is `Unit::check_target_path@005e22d0`, a target's
-// path; nothing targets these squads in run285.
+// sides. ~~What stands is chapter thirteen's births' `form` (611, 615), and
+// on each trained squad, `Unit::come_out@00617c10`'s human arm: … `group`
+// (the pool slot: 0, 2, 1), `form` 0, and the followers' `orders_x/y`.~~
+// **The push built** (item 882, `docs/GOLDEN.md` §33): `come_out` pushes
+// every trained squad — `618900`..`6189aa` test the captain, a building
+// host and `uber_size` (`+0x308`) > 1, and no owner — and the command's
+// `process_group` seats the Barracks' group, so the squads' `group` reads
+// 0, 2 and 1 on both sides. The listing killed the "human arm". What
+// stands is **`Unit::init@00612100`'s**, a birth mechanism and not the
+// push (parked 646): `form` 0 on every non-citizen it makes (611, 615,
+// and the three squads), ours −1; and the followers' `orders_x/y`, the
+// tile-centred point it inits a unit at, (2712, 14232) there against the
+// Barracks' point (2688, 14208) here — kept until the follower's own next
+// `work` on the block after, where both sides agree. The captain's is
+// rewritten by `come_out`'s `update_action`. **Readers**: `form` by the
+// next `Group::action_move_near`/`action_form` layout (none in run285),
+// `orders_x` by `Unit::check_target_path@005e22d0` (nothing targets
+// these squads).
 const WANT_CH24: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
     "615 0/8 form",
     "615 0/9 form",
     "856 0/10 form",
-    "856 0/10 group",
     "856 0/11 form",
-    "856 0/11 group",
     "856 0/11 orders_x",
     "856 0/11 orders_y",
     "856 0/12 form",
-    "856 0/12 group",
     "856 0/12 orders_x",
     "856 0/12 orders_y",
     "1060 0/13 form",
-    "1060 0/13 group",
     "1060 0/14 form",
-    "1060 0/14 group",
     "1060 0/14 orders_x",
     "1060 0/14 orders_y",
     "1060 0/15 form",
-    "1060 0/15 group",
     "1060 0/15 orders_x",
     "1060 0/15 orders_y",
     "1272 0/16 form",
-    "1272 0/16 group",
     "1272 0/17 form",
-    "1272 0/17 group",
     "1272 0/17 orders_x",
     "1272 0/17 orders_y",
     "1272 0/18 form",
-    "1272 0/18 group",
     "1272 0/18 orders_x",
     "1272 0/18 orders_y",
 ];
 
-// **What parts in the pool** on run285, all pushes this crate does not
-// seat: the building group `[2007]` the original's `process_group` pushes
-// into who=0's slot 1 on 622 (§32's standing row), and again into slot 3
-// on 1302 (the second press); the trained squads `[10, 11, 12]` in slot 0
-// on 856 and `[13, 14, 15]` in slot 2 on 1060 (`come_out`'s push). The
-// third squad, on 1272, takes slot 1 back: `Groups::get_open_slot@
-// 006fa460` counts the building group's slot as open, which is why the
-// building group moves to slot 3 on 1302. Slot 1's first parting is 622.
+// **What parts in the pool** on run285. ~~All pushes this crate does not
+// seat: the building group `[2007]` in slot 1 on 622 and slot 3 on 1302,
+// the squads in slot 0 on 856 and slot 2 on 1060.~~ **Both pushes built**
+// (item 882): the building group `[2007]` (`process_group`, at each
+// command) and each trained squad (`come_out`) are seated, and every
+// slot holds the original's list, `num`, `stamp`, `speed` and
+// `new_speed` on every block — the third squad takes slot 1 back on 1272
+// because `Groups::get_open_slot@006fa460` counts the building group's
+// slot as open, and the second press's group lands in slot 3. What stands
+// is each slot's `ox`/`oy` on its first seat, ours −1 and theirs 0:
+// `push_group`'s record `o`, which this crate seats as −1 (the pool
+// record's, att-880's fence). Its reader is a layout's `o` — none here.
 const WANT_CH24_POOL: &[&str] = &[
-    "622 slot 1 held",
-    "856 slot 0 held",
-    "1060 slot 2 held",
-    "1302 slot 3 held",
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "856 slot 0 ox",
+    "856 slot 0 oy",
+    "1060 slot 2 ox",
+    "1060 slot 2 oy",
+    "1302 slot 3 ox",
+    "1302 slot 3 oy",
 ];
 
 #[test]
