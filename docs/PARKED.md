@@ -22,6 +22,18 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 776, 2026-09-25 — run240's other rows
+
+(786) **A finished wonder's fog ring**: at 17087 the 44 half-cells round
+`1/2026` read `0xff` in the original (every player's bit) against who=1's
+`0x2` here. Something reveals a wonder to all; no who=1 search reads
+another player's bit.
+
+(787) **Leader 0's danger map**: nine half-cells (27..29, 9..11) read 3 to
+5 above ours at 17087.
+
+(788) **Cell (2, 40)'s `0x2`**: flags 130 there against 128 here.
+
 ## Parked by item 770, 2026-09-25 — the bomb's other edges
 
 (780) **A round in flight forgets a dead target here and keeps it there**
@@ -1103,6 +1115,13 @@ a whole-run widening showed it and only run235 at `AMMO=5` answered it.
 puts back the older mtime, so cargo does not rebuild** (770's second Loop
 line): its first gate ran `sim`'s tests on the last mutant and failed its
 own test. `touch` after a restore, or restore from version control.
+
+(789) **A killer that fires on neither reading splits nothing** (776's
+Loop line, filed at its merge): the brief's killer for the planner reading
+("the first node agrees") was predicted false by both readings, so only
+the world diff could split them. And a golden-lane capture's trace
+proxies `calc_cost` all game by default: on a word that is a plan, the
+priced steps named the refusing cell in one test, before any reading.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
