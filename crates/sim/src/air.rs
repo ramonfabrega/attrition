@@ -862,7 +862,8 @@ impl Sim {
     /// - one without is killed, and leaves `launching`.
     ///
     /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, the
-    /// base's vslot `0xf0` (which launches an unflagged order), a strafe
+    /// base's vslot `0xf0` ([`Building::repeat_air`](crate::Building),
+    /// which launches an unflagged order: `docs/ORDERS.md` §40), a strafe
     /// home to another, full base turned `AirPatrolOrder`, and the
     /// chain's order, which is the garrison list's here (one plane in
     /// every capture).

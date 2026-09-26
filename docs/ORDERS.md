@@ -7458,9 +7458,10 @@ only under a repeating base** (item 842, the listing's tail of
 @00472410`, `build_masks & 0x80`. When it is set, the order stays with its
 action bit cleared (`flags &= ~4`). When it is clear, `close_orders`,
 the partial path and `update_action` follow. run265's Airbase reads 4232,
-whose bit 7 is set. This crate closes the orders always
+whose bit 7 is set. ~~This crate closes the orders always
 (`Building` carries no `build_masks`, `lib.rs`), which is the widening's
-one order on 1385 and 1489. Parked.
+one order on 1385 and 1489. Parked.~~ Built by item 854, §40:
+`Building::repeat_air`, and the rows agree.
 
 ### 38.2 `action_flight`'s inside arm
 
@@ -7493,7 +7494,8 @@ saturates there and the chain is walked:
   the tank first reads 0 (units are processed before buildings, so the
   refill and the launch share it);
 - the front order's action bit (or the base's vslot `0xf0`,
-  `has_repeat_air`, `build_masks & 0x80`, §38.1; a SEAM): a
+  `has_repeat_air`, `build_masks & 0x80`, §38.1 and §40; this arm is
+  still a SEAM here, parked 844): a
   targeted strike whose target is invalid and whose point is off the
   world is killed; a patrol's `returning` is cleared; the plane joins
   `launching` (`+0x44`), and the first of the call is `come_out(0)` and
@@ -7530,7 +7532,8 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
   Bomber's do. Its round is exact (§39.2). Its second gun and the
   landing's walk are §39.3, parked.
 - SEAMs: `MISSILE_DEFENSE_BONUS`, `war_allowed`, the `NUCLEARMISSILE`
-  arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`;
+  arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`
+  in `do_launch` (in `land_plane` it is built, §40);
   a strafe home to another, full base turned `AirPatrolOrder`; two planes
   launched from one base in one call (`launching` holding the second);
   a helicopter's EXIT (two draws, 200 over the ground); the heal inside
@@ -7611,8 +7614,9 @@ capture reaches that arm.
 
 - ~~**The second gun and the walk** (parked)~~: built, §39.5 (item
   853).
-- **The landed patrol** (§38.1): `has_repeat_air`, a `build_masks` bit
-  that `Building` does not carry. Its writer is unread.
+- ~~**The landed patrol** (§38.1): `has_repeat_air`, a `build_masks` bit
+  that `Building` does not carry. Its writer is unread.~~ Built, §40
+  (item 854): `Build::init` is the writer.
 - The flying-target arm of §39.1.
 
 ### 39.4 Coverage
