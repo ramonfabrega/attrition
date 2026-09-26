@@ -3467,10 +3467,14 @@ pub(crate) const WIDENING_CHAPTER_TWENTY_ONE: (i64, i64) = (605, 1301);
 /// the flight agree through 797; on 798 the climb's `pitch` parts, 40.0
 /// here against 38.0 there, and on 923 the original's Fighter plays its
 /// attack (`Guy::set_anim+0xf2f < Unit::set_anim+0x56`), 6 draws against
-/// 5 at draw 0.
+/// 5 at draw 0. **1500, closed** (item 842, `docs/ORDERS.md` §39): the
+/// Fighter's type strafes (`w`, `unit_flags & 0x400000`), so on its strike
+/// `pitch_aircraft` wants half the `cruising_alt` — 798's `pitch` 38.0 on
+/// both sides — and its round takes no scatter, so 923 is `set_anim` and
+/// five `Farms::inc_time` on both. The stream agrees to run265's end.
 ///
-/// **The delta**, this constant's: +145, 778 → 923, open.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_TWO: i64 = 923;
+/// **The delta**, this constant's: +577, 923 → 1500, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_TWO: i64 = 1500;
 
 /// `chapter_twenty_two_s_word_frame_is_widened_whole`'s window.
 pub(crate) const WIDENING_CHAPTER_TWENTY_TWO: (i64, i64) = (605, 1501);
@@ -5173,8 +5177,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // Item 836: run265, chapter twenty-two's first walk, open at 778:
     // the launched Fighter's first redraw; the launch line built in the
-    // same item moved it to 923, the Fighter's first attack. The widening
-    // is run265 whole.
+    // same item moved it to 923, the Fighter's first attack. Item 842
+    // closed it at 1500: the strafer's half altitude and exact round. The
+    // widening is run265 whole.
     (
         "GOLDEN_WORD_CHAPTER_TWENTY_TWO",
         GOLDEN_WORD_CHAPTER_TWENTY_TWO,

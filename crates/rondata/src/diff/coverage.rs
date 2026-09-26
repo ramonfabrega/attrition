@@ -1166,10 +1166,11 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter twenty-two's word, on run265** (item 836): the first
     // plane launched out of a base on disk. 768, the strike laid inside;
     // 778, the word and the launch; 924, the Fighter's first round; 1178,
-    // its empty tank; 1385, its second landing.
+    // its empty tank; 1385, its second landing. Item 842: 798, the climb's
+    // first parting, and 1497, the closed word's last blocks.
     if let Some(p) = &ch22 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_TWO;
-        for w in [768, 778, 924, 1178, 1385] {
+        for w in [768, 778, 798, 924, 1178, 1385, 1497] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-two carries the window's five blocks");
             frames += n;
