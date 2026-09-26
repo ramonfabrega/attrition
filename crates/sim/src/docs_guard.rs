@@ -1046,7 +1046,10 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// carried, and three (CITIES, TRANSPORT) were banked by the decimal, listed in `docs/audit/2026-09-25-fable-pass-15.md` and parked
 /// as one ordinary item to build or to name.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 22),
+    // 22 → 21 on item 803, and not a build: run78's floor re-pinned to
+    // `(434, 438)` spells 438, the decimal of `0x1b6`, which the rule
+    // counts (the fifteenth pass's decimal clause).
+    ("AI.md", 21),
     ("ANIM.md", 3),
     ("ARMY.md", 8),
     ("CITIES.md", 4),
