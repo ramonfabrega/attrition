@@ -1344,6 +1344,13 @@ pub struct Building {
     pub city: Option<usize>,
     /// The garrison chain — squad captains, in the order they entered.
     pub garrison: Vec<usize>,
+    /// `ObjectData::launch_frames` (`+0x41`): a hangar's frames since its
+    /// last launch, saturating at `FRAMES_BETWEEN_LAUNCHES`
+    /// (`crate::air`'s `do_launch`, `docs/ORDERS.md` §38).
+    pub launch_frames: i32,
+    /// `ObjectData::launching` (`+0x44`): the planes `do_launch` has let
+    /// go and whose EXIT has not yet killed its order.
+    pub launching: Vec<usize>,
     /// `BuildData::founder`.
     pub founder: Player,
     /// The four per-call construction-clock clauses, as inputs.
@@ -2125,6 +2132,8 @@ impl Sim {
             hold_frames: 0,
             city: None,
             garrison: Vec::new(),
+            launch_frames: 0,
+            launching: Vec::new(),
             founder: owner,
             clock: build::ClockMods::default(),
             hit_frame: None,

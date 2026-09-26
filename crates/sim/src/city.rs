@@ -1071,6 +1071,8 @@ impl Sim {
             hold_frames: 0,
             city: None,
             garrison: Vec::new(),
+            launch_frames: 0,
+            launching: Vec::new(),
             founder: who,
             clock: build::ClockMods::default(),
             hit_frame: None,
@@ -2026,6 +2028,11 @@ impl Sim {
         }
         if self.buildings[b].eject_pending {
             self.process_ejection(b);
+        }
+        // `Build::process@0061edf0`'s `build_masks & 8`: a hangar launches
+        // (`crate::air`, `docs/ORDERS.md` §38.3, item 836).
+        if self.buildings[b].ty.is_some_and(|t| self.is_hangar(t)) {
+            self.do_launch(b);
         }
         // The capture re-test, twice a second, with the nearest enemy land
         // unit within sixteen tiles.

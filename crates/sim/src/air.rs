@@ -65,6 +65,11 @@ const SNAP_WITHIN: u32 = 0x038e_38e3;
 /// keeps the heading it has rather than swinging round.
 const HALF_QUARTER: u32 = 0x2000_0000;
 
+/// `FRAMES_BETWEEN_LAUNCHES`, the PE's `.data` at `0xc06248`: the frames a
+/// hangar waits between two launches, and where its `launch_frames`
+/// saturates (run223's Airbase reads 15 from its landing on).
+pub const FRAMES_BETWEEN_LAUNCHES: i32 = 15;
+
 // The banking's constants, by their bits — `single::Single` exists so that
 // none of them is a float.
 const F2: Single = Single::from_bits(0x4000_0000);
@@ -531,11 +536,27 @@ impl Sim {
     /// arm, §32 piece 4); a home that is not a live building, whose
     /// nearest-base search is not built; and a carrier as the home.
     pub(crate) fn plane_air_physics(&mut self, u: usize, goal: Option<Pos>, frame: i64) -> Flew {
-        let Some(air) = self.current_air(u) else {
+        let Some(mut air) = self.current_air(u) else {
             return Flew::Done;
         };
         if self.is_helicopter(u) {
             return Flew::Done;
+        }
+        // **`check_fuel`'s first arm, the empty tank** (`docs/ORDERS.md`
+        // §38.1): a type with a tank (`MANA` ≠ 0), not a missile, whose
+        // `mana_left` is 0 turns for home — `returning` set on the order
+        // it flies. The redraw below does not read it, so it is taken
+        // here, ahead of the aim. run223's pair on 1212 and 1214, run265's
+        // Fighter on 1178.
+        if !air.returning
+            && self.unit_mana(u) != 0
+            && self.mana_left(u) == 0
+            && !self
+                .profile(crate::combat::Obj::Unit(u))
+                .has(crate::combat::mask::MISSILE)
+        {
+            self.set_returning(u, true);
+            air.returning = true;
         }
         let aim = if air.returning {
             let Some(home) = air.home.filter(|&b| self.buildings[b].alive) else {
@@ -774,14 +795,181 @@ impl Sim {
     ///
     /// SEAM: a strafe with a live target keeps its order here (the
     /// original re-reads it after the landing), and a carrier home.
+    /// **`Group::action_flight@006fb260`'s inside arm** — a player's
+    /// strike on a plane standing in a base (`docs/ORDERS.md` §38.2,
+    /// the listing `6fbbb0`–`6fbea0`; run265's 768). The plane's "inside"
+    /// is `base`; the strike needs, in order, a target
+    /// `Object::valid_target@00648ba0` passes, and the reach
+    /// `vector_dist(base − target) ≤ mana · get_speed(x, y, 1)`, and then
+    /// is `add_strafe_order(target, base, 1, QUEUE_NEW, 1)`: a strafe on
+    /// the target, home the base, `returning 0`. The plane stays inside;
+    /// [`Sim::do_launch`] puts it out.
+    ///
+    /// SEAM: the target's `MISSILE_DEFENSE_BONUS` against a missile, the
+    /// `NUCLEARMISSILE` arm (`can_nuke`, once a call), `Game::war_allowed`
+    /// (always allowed here), `Object::valid_target`'s capture arm, and an
+    /// air patrol's home standing for the "inside"; no capture reaches
+    /// any of them.
+    pub(crate) fn strike_from_inside(&mut self, u: usize, base: usize, target: crate::combat::Obj) {
+        let me = crate::combat::Obj::Unit(u);
+        if self.profile(me).has(crate::combat::mask::MISSILE) {
+            return;
+        }
+        if !self.valid_target(me, target) {
+            return;
+        }
+        let (b, t) = (self.buildings[base].pos, self.pos_of(target));
+        let reach = self.unit_mana(u) * self.get_speed(u, 1);
+        if vector_dist(b.x - t.x, b.y - t.y) > reach {
+            return;
+        }
+        self.add_strafe_order(
+            u,
+            Some(target),
+            Some(base),
+            true,
+            crate::orders::QueuePos::New,
+            true,
+        );
+    }
+
+    /// **`Object::do_launch@0064f3b0` for a building** — called from
+    /// `Build::process@0061edf0` for a type with `build_masks & 8`, a
+    /// hangar (`docs/ORDERS.md` §38.3). Only while something is inside:
+    /// the counter is under `inside_down ≥ 0` with the rest (run265: an
+    /// emptied base reads `launch_frames 0` from 778 on). `launch_frames`
+    /// counts up, and once it was at [`FRAMES_BETWEEN_LAUNCHES`] it
+    /// saturates there and the chain is walked:
+    /// - a plane with no order, or with `mana_burn ≠ 0`, is passed over —
+    ///   **the tank gates the launch** (run265: the strike laid on 767
+    ///   waits to 778, the block the tank first reads 0);
+    /// - one whose front order has the action bit stays: a strike whose
+    ///   target is invalid and whose point is off the world is killed; a
+    ///   patrol's `returning` is cleared; it joins `launching`, and the
+    ///   first of the call comes out ([`Sim::come_out`], whose tail is
+    ///   the EXIT, [`Sim::exit_at_airbase`]) and `launch_frames` is 0;
+    /// - one without is killed, and leaves `launching`.
+    ///
+    /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, the
+    /// base's vslot `0xf0` (which launches an unflagged order), a strafe
+    /// home to another, full base turned `AirPatrolOrder`, and the
+    /// chain's order, which is the garrison list's here (one plane in
+    /// every capture).
+    pub(crate) fn do_launch(&mut self, b: usize) {
+        if self.buildings[b].garrison.is_empty() {
+            return;
+        }
+        let was = self.buildings[b].launch_frames;
+        self.buildings[b].launch_frames = was + 1;
+        if was < FRAMES_BETWEEN_LAUNCHES {
+            return;
+        }
+        self.buildings[b].launch_frames = FRAMES_BETWEEN_LAUNCHES;
+        let mut launched = false;
+        for u in self.buildings[b].garrison.clone() {
+            if self.units[u].inside != Some(b) || !self.units[u].alive() {
+                continue;
+            }
+            let Some(front) = self.units[u].orders.front().copied() else {
+                continue;
+            };
+            if self.units[u].mana_burn != 0 {
+                continue;
+            }
+            if front.flags & crate::orders::flag::ACTION == 0 {
+                self.kill_current_order(u);
+                self.buildings[b].launching.retain(|&x| x != u);
+                continue;
+            }
+            match front.body {
+                crate::orders::Body::Strafe(sf) => {
+                    if let Some(t) = sf.target
+                        && !self.buildings[b].launching.contains(&u)
+                        && !self.valid_target(crate::combat::Obj::Unit(u), t)
+                        && sf.at.is_none_or(|p| !self.in_world(p))
+                    {
+                        self.kill_current_order(u);
+                        continue;
+                    }
+                }
+                crate::orders::Body::AirPatrol(_) => self.set_returning(u, false),
+                _ => {}
+            }
+            if !self.buildings[b].launching.contains(&u) {
+                self.buildings[b].launching.push(u);
+            }
+            if !launched {
+                if !self
+                    .profile(crate::combat::Obj::Unit(u))
+                    .has(crate::combat::mask::MISSILE)
+                {
+                    self.come_out(u);
+                }
+                self.buildings[b].launch_frames = 0;
+            }
+            launched = true;
+        }
+    }
+
+    /// **`Unit::do_spec_anim@005e5880`'s EXIT at an `AIRBASE`** — the
+    /// tail `Unit::come_out@00617c10` hands a unit leaving a building
+    /// with a piece on a frame past 0 (`docs/GOLDEN.md` §30,
+    /// `docs/ORDERS.md` §38.4; the listing `5e59cb`–`5e5ad7`). The plane
+    /// is turned to 0 (`Unit::set_angle`), put on the base's point less
+    /// `0xc0` (`set_new_location(·, ·, 1, 1)`), its figure on the ground
+    /// there (`Guy::set_new_z(find_data_z, 1)`), its bank and pitch moved
+    /// to `last_*` and zeroed; the order's kill takes it out of the
+    /// base's `launching`; and then its `work` — the strike's first step,
+    /// in the same call. run265's 778: the figure on (11424, 13920) at
+    /// `last_z` 157, `last_bank` and `last_pitch` 0.0, the unit one step
+    /// north. Nothing in the arm resets the figure's running
+    /// `avg_speed`, which [`Sim::come_out`]'s placement rebuilds from rest:
+    /// it is handed back (25 on 778, the value it stood inside with).
+    ///
+    /// SEAM: a helicopter's two draws (`x` −197..−187, `y` −5..5) and its
+    /// 200 over the ground; no capture holds one.
+    pub(crate) fn exit_at_airbase(&mut self, u: usize, host: usize, avg_speed: i32) {
+        let at = self.buildings[host].pos;
+        let spot = Pos::new(at.x - 0xc0, at.y);
+        {
+            let m = &mut self.units[u].movement;
+            m.heading = Angle(0);
+            m.facing = Angle(0);
+            m.frame_facing = Angle(0);
+            m.des_angle = Angle(0);
+        }
+        let from = self.units[u].pos;
+        self.set_new_location(u, spot, true);
+        self.units[u].movement.body.avg_speed = avg_speed;
+        self.moved_to(u, from, false);
+        let z = self.ground_z(at);
+        let af = &mut self.units[u].airframe;
+        af.z = z;
+        af.last_z = z;
+        af.last_pitch = af.pitch;
+        af.pitch = Single::ZERO;
+        af.last_bank = af.bank;
+        af.bank = Single::ZERO;
+        // The kill's `unit_masks &= ~0x20000` is a caster's bit, which a
+        // plane never holds.
+        self.buildings[host].launching.retain(|&x| x != u);
+        self.update_action(u);
+        let frame = self.frame;
+        self.work(u, frame);
+    }
+
     fn land_plane(&mut self, u: usize) {
-        let Some(sf) = self.current_strafe(u) else {
+        let Some(home) = self.current_air(u).and_then(|a| a.home) else {
             return;
         };
-        let Some(home) = sf.home else {
-            return;
-        };
-        if sf.target.is_none() {
+        // **Every air order lands with `returning` cleared** (`+0x18` of
+        // the `AirOrder`, `005e9950`), and only a strafe with no live
+        // target goes: run265's Fighter comes home under its patrol and
+        // is inside on 1385 with the patrol still on its stack.
+        self.set_returning(u, false);
+        if let Some(sf) = self.current_strafe(u)
+            && sf.target.is_none()
+        {
             if sf.mandatory {
                 self.clear_orders(u);
             } else {
@@ -827,6 +1015,22 @@ impl Sim {
         match self.units[u].orders.front_mut().map(|o| &mut o.body) {
             Some(crate::orders::Body::Strafe(sf)) => f(&mut sf.cruising_alt, &mut sf.sharp_turn),
             Some(crate::orders::Body::AirPatrol(p)) => f(&mut p.cruising_alt, &mut p.sharp_turn),
+            _ => {}
+        }
+    }
+
+    /// `WorldData::is_valid`: a point on the world.
+    fn in_world(&self, p: Pos) -> bool {
+        let xs = self.world.width() * UNITS_PER_CELL;
+        let ys = self.world.height() * UNITS_PER_CELL;
+        p.x >= 0 && p.y >= 0 && p.x < xs && p.y < ys
+    }
+
+    /// The front air order's `returning` (`AirOrder +0x18`).
+    fn set_returning(&mut self, u: usize, on: bool) {
+        match self.units[u].orders.front_mut().map(|o| &mut o.body) {
+            Some(crate::orders::Body::Strafe(sf)) => sf.returning = on,
+            Some(crate::orders::Body::AirPatrol(p)) => p.returning = on,
             _ => {}
         }
     }
