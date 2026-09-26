@@ -1136,7 +1136,9 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                 for line in std::fs::read_to_string(&path).expect("read").lines() {
                     let (code_only, comment) = line.split_once("//").unwrap_or((line, ""));
                     code.push_str(&code_only.to_lowercase());
-                    for word in comment.split(|c: char| !(c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '_'))) {
+                    for word in comment.split(|c: char| {
+                        !(c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '_'))
+                    }) {
                         if word.starts_with("+0x") || word.starts_with("-0x") {
                             code.push(' ');
                             code.push_str(&word[1..].to_lowercase());
