@@ -20,6 +20,7 @@ use crate::anim;
 use crate::attrition::Domain;
 use crate::combat::{self, Obj, Profile, Side, Sixteenths, Stance, Taken, mask, role};
 use crate::movement::{Angle, find_angle};
+use crate::single::Single;
 use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE, vector_dist};
 use crate::{Player, Sim};
 
@@ -1042,7 +1043,7 @@ impl Sim {
         }
         let from = self.units[i].pos;
         let sz = self.ground_z(from) + 100;
-        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz);
+        self.fire_ammo_ground(Obj::Unit(i), g, direct, frame, from, sz, 0);
     }
 
     /// **`Unit::set_attack@005fce70`** — aim the unit's own figures at
@@ -1286,6 +1287,68 @@ impl Sim {
             .is_some_and(|g| self.art.releases.contains_key(&g.gpiece))
     }
 
+    /// **A strafer's landing walks with its gun** (`Ammo::init`,
+    /// `0x67c9b2`–`0x67cb1a`; `docs/ORDERS.md` §39.3, item 853). After
+    /// the scatter and `ez`, before the world's clamp, for a unit shooter
+    /// whose type strafes (`0x400000`), whose target is not a flying one
+    /// (a target of either index −1 — an attack-ground round — is walked
+    /// too), and whose **guy 0** plays an animation of `CHAR_ATTACK2`'s
+    /// category (`UnitAnimCat[cur_anim] == 12`), the landing is
+    /// `project`ed twice:
+    ///
+    /// - along the shooter's heading (`UnitData +0x50`, [`crate::Movement::heading`]) by
+    ///   `trunc(((float)cur_time / (float)end_time − 0.3f) · 6 · 192)`,
+    ///   guy 0's clocks, in singles: `divss`, `subss 0x3e99999a`, `mulss
+    ///   6`, `mulss 192`, `cvttss2si`. So the rounds sweep from 345 short
+    ///   of the target to 806 past it across the swing;
+    /// - then 48 across it: `heading + 90°` for an even node, `− 90°` for
+    ///   an odd one (`test byte [package +0x1c], 1`).
+    ///
+    /// Done in [`Single`], which is the original's arithmetic to the bit
+    /// (`CLAUDE.md`, the hard constraints). SEAM: an `end_time` of zero,
+    /// whose quotient is not a number, is refused rather than walked; an
+    /// attack animation never has one.
+    pub(crate) fn strafe_walk(&self, shooter: Obj, target: Option<Obj>, at: Pos, node: i8) -> Pos {
+        const F0_3: Single = Single::from_bits(0x3e99_999a);
+        const F6: Single = Single::from_bits(0x40c0_0000);
+        const F192: Single = Single::from_bits(0x4340_0000);
+        let Obj::Unit(u) = shooter else {
+            return at;
+        };
+        if !self.strafes(shooter) {
+            return at;
+        }
+        if target.is_some_and(|t| matches!(self.profile(t).domain, Domain::Air)) {
+            return at;
+        }
+        let Some(g) = self.units[u].guys.first() else {
+            return at;
+        };
+        if crate::anim::category(g.anim) != crate::anim::ATTACK2 || g.end_time == 0 {
+            return at;
+        }
+        let along = Single::from_u32(g.cur_time)
+            .divss(Single::from_u32(g.end_time))
+            .subss(F0_3)
+            .mulss(F6)
+            .mulss(F192)
+            .to_i32();
+        let heading = self.units[u].movement.heading;
+        let project = |a: Angle, d: i32, p: Pos| {
+            Pos::new(
+                p.x + crate::movement::sin_component(a, d),
+                p.y - crate::movement::cos_component(a, d),
+            )
+        };
+        let at = project(heading, along, at);
+        let side = if node & 1 == 0 {
+            Angle(heading.0.wrapping_add(0x4000_0000))
+        } else {
+            Angle(heading.0.wrapping_sub(0x4000_0000))
+        };
+        project(side, 0x30, at)
+    }
+
     /// The landing scatter's two draws, under the original's own site
     /// names — `Ammo::init+0xcd9` and `+0xd0b` (§9.1).
     ///
@@ -1318,6 +1381,11 @@ impl Sim {
     /// `sz` is the height it leaves from: the figure's ground plus the
     /// release node's `dz`, or plus 100 for a unit that fires from its
     /// square (§46.1).
+    ///
+    /// `node` is the release event's node, which `execute_game_events`
+    /// puts in the package's `angle` for `Ammo::init` (a strafer's side,
+    /// `docs/ORDERS.md` §39.3).
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn fire_ammo_pub(
         &mut self,
         shooter: Obj,
@@ -1326,8 +1394,9 @@ impl Sim {
         frame: i64,
         launch: Pos,
         sz: i32,
+        node: i8,
     ) {
-        self.fire_ammo(shooter, target, angle, frame, launch, sz);
+        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz, node);
     }
 
     /// `Objects::add_ammo@00658b10`: the shot takes the **lowest free
@@ -1378,6 +1447,10 @@ impl Sim {
         z.max(0)
     }
 
+    /// `Object::fire_ammo`'s round, from `Unit::fight`. SEAM: the package
+    /// it hands `Ammo::init` is unread here, so its `angle` is taken as 0;
+    /// only a strafer's landing reads it, and a strafer's round is its
+    /// animation's (`docs/ORDERS.md` §39.2), never this one.
     fn fire_ammo(
         &mut self,
         shooter: Obj,
@@ -1387,13 +1460,14 @@ impl Sim {
         launch: Pos,
         sz: i32,
     ) {
-        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz);
+        self.fire_ammo_aim(shooter, Aim::At(target), angle, frame, launch, sz, 0);
     }
 
     /// A round at the shooter's **attack-ground order's point**
     /// (`docs/COMBAT.md` §57.4) — the release event's arm for a unit
     /// whose current order is `ATTACK_GROUND`, and `do_attack_ground`'s
     /// own shot for a unit no animation launches.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn fire_ammo_ground(
         &mut self,
         shooter: Obj,
@@ -1402,8 +1476,9 @@ impl Sim {
         frame: i64,
         launch: Pos,
         sz: i32,
+        node: i8,
     ) {
-        self.fire_ammo_aim(shooter, Aim::Ground(g), angle, frame, launch, sz);
+        self.fire_ammo_aim(shooter, Aim::Ground(g), angle, frame, launch, sz, node);
     }
 
     /// `Ammo::init@0067bbf0`, for either aim.
@@ -1420,6 +1495,7 @@ impl Sim {
     /// siege packer at a unit — and aimed it at the unit's position on the
     /// release frame, seventeen frames after the original fixed its point
     /// (run146's catapult, §57.4).
+    #[allow(clippy::too_many_arguments)]
     fn fire_ammo_aim(
         &mut self,
         shooter: Obj,
@@ -1428,6 +1504,7 @@ impl Sim {
         frame: i64,
         launch: Pos,
         sz: i32,
+        node: i8,
     ) {
         let p = self.profile(shooter);
         let (target, ground) = match aim {
@@ -1522,6 +1599,7 @@ impl Sim {
             (SITE_AMMO_SCATTER_X, SITE_AMMO_SCATTER_Y)
         };
         let landing = self.scatter_landing(aim, s, sites);
+        let landing = self.strafe_walk(shooter, target, landing, node);
         let clamp = |q: Pos, w: &crate::World| {
             Pos::new(
                 q.x.clamp(0, w.width() * UNITS_PER_CELL - 1),

@@ -1156,6 +1156,182 @@ fn run235_s_bombs_are_the_original_s_record_for_record() {
     assert_eq!(got, want, "run235: what parts on the bombs moved");
 }
 
+/// Every live round of either side on every block of `window`, keyed on
+/// its shooter and pool slot, both directions, and every `AMMO` field this
+/// crate carries — run235's walk ([`run235_s_bombs_are_the_original_s_record_for_record`])
+/// over any `AMMO=5` capture. Returns each key's first parting with the
+/// value diff beside it, and the rounds read on each side.
+#[allow(clippy::type_complexity)]
+fn rounds_record_for_record(
+    name: &str,
+    script: &str,
+    window: (i64, i64),
+    show: &[i64],
+) -> Option<(
+    std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    usize,
+    usize,
+)> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let mut s = stage_script(name, script)?;
+    let (first, last) = window;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut theirs_n, mut ours_n) = (0usize, 0usize);
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0)
+            .map(|(a, _)| ((a.who, a.o, a.index), a))
+            .collect();
+        let sim = &s.built.sim;
+        let ident = |o: sim::combat::Obj| match o {
+            sim::combat::Obj::Unit(u) => {
+                (i64::from(sim.units[u].owner), i64::from(sim.units[u].index))
+            }
+            sim::combat::Obj::Building(b) => (
+                i64::from(sim.buildings[b].owner),
+                i64::from(sim.buildings[b].index),
+            ),
+        };
+        let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .projectiles
+            .iter()
+            .map(|p| {
+                let (w, o) = ident(p.shooter);
+                ((w, o, i64::from(p.slot)), *p)
+            })
+            .collect();
+        theirs_n += theirs.len();
+        ours_n += ours.len();
+        if show.contains(&n) {
+            for (k, a) in &theirs {
+                eprintln!("  {name} block {n} theirs {k:?} {a:?}");
+            }
+            for (k, p) in &ours {
+                eprintln!("  {name} block {n} ours   {k:?} {p:?}");
+            }
+        }
+        let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+        for key @ (who, o, slot) in keys {
+            let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                let side = if theirs.contains_key(&key) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                firsts
+                    .entry((who, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+                continue;
+            };
+            let target = p.target.map_or((-1, -1), ident);
+            for (field, mine, dumped) in [
+                ("cur_time", i64::from(p.cur_time), a.cur_time),
+                ("total_time", i64::from(p.total_time), a.total_time),
+                ("sx", i64::from(p.launch.x), a.sx),
+                ("sy", i64::from(p.launch.y), a.sy),
+                ("ex", i64::from(p.landing.x), a.ex),
+                ("ey", i64::from(p.landing.y), a.ey),
+                ("whom", target.0, a.whom),
+                ("ox", target.1, a.ox),
+                ("accuracy", i64::from(p.accuracy), a.accuracy),
+                ("splash_area", i64::from(p.splash_area), a.splash_area),
+                ("num_guys", i64::from(p.num_guys), a.num_guys),
+                ("sz", i64::from(p.sz), a.sz),
+                ("ez", i64::from(p.ez), a.ez),
+                ("angle", i64::from(p.angle.0), a.angle),
+                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
+                if mine != dumped {
+                    firsts
+                        .entry((who, o, format!("ammo[{slot}].{field}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+    }
+    Some((firsts, theirs_n, ours_n))
+}
+
+/// **run265's rounds, record for record** (item 853, `docs/ORDERS.md`
+/// §39.3): every round the Fighter `0/6` strafes the Barracks with, from
+/// its first release on 923 to the capture's end.
+#[test]
+fn run265_s_rounds_are_the_original_s_record_for_record() {
+    let Some((firsts, theirs_n, ours_n)) =
+        rounds_record_for_record("ch22", "chapter22", RUN265_ROUNDS, &[924, 926])
+    else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run265 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!("run265: {theirs_n} dumped rounds, {ours_n} of ours");
+    assert!(theirs_n > 0, "run265 dumps the Fighter's rounds");
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let mut want: Vec<String> = WANT_RUN265_ROUNDS.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "run265: what parts on the rounds moved");
+}
+
+// **What stands on run265's rounds** (item 853). The Fighter `0/6`'s
+// every round agrees whole: 36 rounds, two guns, the walked landing, the
+// flight time. Two families of the Bombers' stand, both seams this crate
+// names elsewhere:
+//
+// - a bomb's `accuracy`, 0 here against the slot's last round's there:
+//   the bomb's arm writes none (`docs/ORDERS.md` §35.3's SEAM), and since
+//   the Fighter's rounds use the pool, the recycled value shows. Only a
+//   unit target's hit test reads it, and a bomb's is a building;
+// - on 1080 the rounds in flight at the Barracks' death keep it there
+//   and lose it here — run235's standing family.
+const WANT_RUN265_ROUNDS: &[&str] = &[
+    "1000 0/7 ammo[7].accuracy",
+    "1003 0/7 ammo[6].accuracy",
+    "1061 0/8 ammo[5].accuracy",
+    "1064 0/8 ammo[6].accuracy",
+    "1069 0/8 ammo[4].accuracy",
+    "1072 0/8 ammo[7].accuracy",
+    "1080 0/8 ammo[0].ox",
+    "1080 0/8 ammo[0].whom",
+    "1080 0/8 ammo[1].ox",
+    "1080 0/8 ammo[1].whom",
+    "1080 0/8 ammo[2].ox",
+    "1080 0/8 ammo[2].whom",
+    "1080 0/8 ammo[3].ox",
+    "1080 0/8 ammo[3].whom",
+    "1080 0/8 ammo[4].ox",
+    "1080 0/8 ammo[4].whom",
+    "1080 0/8 ammo[7].ox",
+    "1080 0/8 ammo[7].whom",
+    "935 0/8 ammo[2].accuracy",
+    "936 0/8 ammo[3].accuracy",
+    "939 0/8 ammo[0].accuracy",
+    "942 0/8 ammo[1].accuracy",
+    "980 0/7 ammo[0].accuracy",
+    "981 0/7 ammo[1].accuracy",
+    "984 0/7 ammo[2].accuracy",
+    "987 0/7 ammo[3].accuracy",
+    "995 0/7 ammo[5].accuracy",
+];
+
 /// **Chapter ten, pinned** — the patrol line, an issuer the AI never uses
 /// (`docs/GOLDEN.md` §18, item 693, run184). Five staged lines: `!ai
 /// off`, a Chariot on 610, a Hoplite squad on 612, and two `@patrol`
@@ -8258,11 +8434,14 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
 // **Item 842, closed at 1500** (`docs/ORDERS.md` §39): the Fighter strafes
 // (`w`), so its strike wants half its `cruising_alt` and 798 agrees
 // (`pitch` 38.0 both sides), and its round is exact, so 923 spends no
-// scatter. 315 rows → 15. What stands: the births' (611–655); the
+// scatter. 315 rows → 15. What stands: the births' (611–655); ~~the
 // Barracks' `damage` on 928, 571 + 8/16 here against 572 + 0, the
-// second gun and the landing's walk (§39.3, parked: `anim.rs`'s release
-// walk); and the landed patrols on 1385 and 1489, one order there and
-// none here (`has_repeat_air`, §38.1, parked).
+// second gun and the landing's walk~~ (item 853, §39.3: `FIGHTER` fires
+// both guns and `Ammo::init` walks a strafer's landing; 928's `damage`
+// is 572 + 0 on both sides, and every round is the dump's,
+// [`run265_s_rounds_are_the_original_s_record_for_record`]; 15 → 13);
+// and the landed patrols on 1385 and 1489, one order there and none
+// here (`has_repeat_air`, §38.1, parked).
 const WANT_CH22: &[&str] = &[
     "1385 0/6 order:length",
     "1385 0/6 orders.len",
@@ -8277,8 +8456,6 @@ const WANT_CH22: &[&str] = &[
     "650 0/1 g.last_time[0]",
     "655 0/2 g.cur_time[0]",
     "655 0/2 g.last_time[0]",
-    "928 1/2006 build:damage",
-    "928 1/2006 build:damage_frac",
 ];
 
 // **What parts in the pool** on run265: chapter seventeen's ten, the

@@ -582,18 +582,57 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     ),
 ];
 
-/// The bay a piece releases from, or `None` when none is measured.
-pub fn bay(gpiece: i32, anim: i8, starttime: u32) -> Option<Bay> {
+/// `(piece, animation slot, node)` → bay, for a piece whose every event
+/// on a node leaves from the same point — **piece 239, the Fighter's two
+/// guns** (item 853, `docs/ORDERS.md` §39.3). `FIGHTER`'s `CHAR_ATTACK2`
+/// fires its eight frames on node 0 and on node 1, and run265 dumps all
+/// 36 of its rounds on the Barracks (first printed on blocks 924–1076):
+/// each row is the centre of the region that reproduces every round of
+/// its node to the unit, from the `GUY` record on the round's own first
+/// block, at eleven whole-degree headings between 94 and 255. Node 0 is
+/// the left gun and node 1 the right; both leave one unit over the
+/// figure.
+const GUNS: &[(i32, i8, i8, Bay)] = &[
+    (
+        239,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -74_266,
+            fwd: 39_505,
+            dz: 1,
+        },
+    ),
+    (
+        239,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 73_493,
+            fwd: 39_462,
+            dz: 1,
+        },
+    ),
+];
+
+/// The bay a piece releases from, or `None` when none is measured: a
+/// [`BAYS`] row by the event's frame, or a [`GUNS`] row by its node.
+pub fn bay(gpiece: i32, anim: i8, starttime: u32, node: i8) -> Option<Bay> {
     BAYS.iter()
         .find(|(p, a, t, _)| *p == gpiece && *a == anim && *t == starttime)
         .map(|(_, _, _, b)| *b)
+        .or_else(|| {
+            GUNS.iter()
+                .find(|(p, a, n, _)| *p == gpiece && *a == anim && *n == node)
+                .map(|(_, _, _, b)| *b)
+        })
 }
 
 /// The release height over the figure, from whichever table measures it.
-pub fn release_dz(gpiece: i32, anim: i8, starttime: u32) -> Option<i32> {
-    bay(gpiece, anim, starttime)
+pub fn release_dz(gpiece: i32, anim: i8, starttime: u32, node: i8) -> Option<i32> {
+    bay(gpiece, anim, starttime, node)
         .map(|b| b.dz)
-        .or_else(|| node(gpiece, anim, starttime).map(|n| n.dz))
+        .or_else(|| self::node(gpiece, anim, starttime).map(|n| n.dz))
 }
 
 /// The node a piece releases from, or `None` when nothing has measured it.
@@ -616,11 +655,18 @@ pub fn point(pos: Pos, facing: Angle, n: Node) -> Pos {
 
 /// [`Bay::point`] or [`point`] for a piece that has a row, and `pos` for
 /// one that does not.
-pub fn launch_point(pos: Pos, facing: Angle, gpiece: i32, anim: i8, starttime: u32) -> Pos {
-    if let Some(b) = bay(gpiece, anim, starttime) {
+pub fn launch_point(
+    pos: Pos,
+    facing: Angle,
+    gpiece: i32,
+    anim: i8,
+    starttime: u32,
+    node: i8,
+) -> Pos {
+    if let Some(b) = bay(gpiece, anim, starttime, node) {
         return b.point(pos, facing);
     }
-    match node(gpiece, anim, starttime) {
+    match self::node(gpiece, anim, starttime) {
         Some(n) => point(pos, facing, n),
         None => pos,
     }
@@ -708,12 +754,71 @@ mod tests {
             (21, 20501, 16659, -1227423744, 20453, 16744),
         ];
         for &(t, x, y, a, sx, sy) in M {
-            let p = launch_point(Pos::new(x, y), Angle(a), 254, crate::anim::ATTACK2, t);
+            let p = launch_point(Pos::new(x, y), Angle(a), 254, crate::anim::ATTACK2, t, 0);
             assert_eq!((p.x, p.y), (sx, sy), "frame {t} at {a}");
         }
         assert_eq!(M.len(), 49);
         assert_eq!(whole_degrees(Angle(1_003_487_232)), 83);
-        assert_eq!(release_dz(254, crate::anim::ATTACK2, 21), Some(-19));
+        assert_eq!(release_dz(254, crate::anim::ATTACK2, 21, 1), Some(-19));
+    }
+
+    /// **run265's 36 Fighter rounds leave from its two guns** (item 853,
+    /// `docs/ORDERS.md` §39.3): `(block, node, figure x, y, angle, figure
+    /// z, sx, sy, sz)`, the `GUY` record and the `AMMO` record on the
+    /// round's first block. Eleven headings, so a stored world vector
+    /// fails; and two rows on every block, so a table keyed on the frame
+    /// alone fails. Made to fail with the node dropped from [`bay`].
+    #[test]
+    fn run265_s_fighter_rounds_leave_from_its_two_guns() {
+        type Row = (i32, i8, i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Row] = &[
+            (924, 0, 19979, 16045, 1340473344, 872, 20042, 15990, 873),
+            (924, 1, 19979, 16045, 1340473344, 872, 19989, 16127, 873),
+            (926, 0, 20117, 16103, 1339752448, 850, 20180, 16048, 851),
+            (926, 1, 20117, 16103, 1339752448, 850, 20127, 16185, 851),
+            (930, 0, 20393, 16219, 1337327616, 788, 20456, 16164, 789),
+            (930, 1, 20393, 16219, 1337327616, 788, 20403, 16301, 789),
+            (934, 0, 20669, 16333, 1333657600, 754, 20732, 16278, 755),
+            (934, 1, 20669, 16333, 1333657600, 754, 20679, 16415, 755),
+            (937, 0, 20876, 16417, 1330708480, 752, 20939, 16362, 753),
+            (937, 1, 20876, 16417, 1330708480, 752, 20886, 16499, 753),
+            (990, 0, 22125, 15956, -1255828824, 1921, 22107, 16037, 1922),
+            (990, 1, 22125, 15956, -1255828824, 1921, 22068, 15896, 1922),
+            (992, 0, 21988, 16020, -1401597384, 1879, 21988, 16104, 1880),
+            (992, 1, 21988, 16020, -1401597384, 1879, 21919, 15974, 1880),
+            (996, 0, 21755, 16171, -1466021880, 1765, 21763, 16254, 1766),
+            (996, 1, 21755, 16171, -1466021880, 1765, 21682, 16133, 1766),
+            (1000, 0, 21568, 16278, -1410491000, 1611, 21570, 16362, 1612),
+            (1000, 1, 21568, 16278, -1410491000, 1611, 21498, 16235, 1612),
+            (1003, 0, 21459, 16336, -1402404864, 1469, 21459, 16420, 1470),
+            (1003, 1, 21459, 16336, -1402404864, 1469, 21390, 16290, 1470),
+            (1007, 0, 21327, 16406, -1397555200, 1269, 21327, 16490, 1270),
+            (1007, 1, 21327, 16406, -1397555200, 1269, 21258, 16360, 1270),
+            (1011, 0, 21162, 16491, -1390804992, 1095, 21161, 16575, 1096),
+            (1011, 1, 21162, 16491, -1390804992, 1095, 21094, 16444, 1096),
+            (1059, 0, 19852, 16317, 1193875480, 1511, 19903, 16251, 1512),
+            (1059, 1, 19852, 16317, 1193875480, 1511, 19878, 16396, 1512),
+            (1061, 0, 19997, 16355, 1252877040, 1513, 20053, 16293, 1514),
+            (1061, 1, 19997, 16355, 1252877040, 1513, 20017, 16435, 1514),
+            (1065, 0, 20289, 16419, 1179233548, 1489, 20338, 16351, 1490),
+            (1065, 1, 20289, 16419, 1179233548, 1489, 20317, 16497, 1490),
+            (1069, 0, 20585, 16454, 1142554624, 1425, 20632, 16385, 1426),
+            (1069, 1, 20585, 16454, 1142554624, 1425, 20616, 16531, 1426),
+            (1072, 0, 20802, 16478, 1142685696, 1351, 20849, 16409, 1352),
+            (1072, 1, 20802, 16478, 1142685696, 1351, 20833, 16555, 1352),
+            (1076, 0, 21040, 16504, 1139998720, 1217, 21084, 16433, 1218),
+            (1076, 1, 21040, 16504, 1139998720, 1217, 21074, 16580, 1218),
+        ];
+        assert_eq!(M.len(), 36);
+        for &(n, node, x, y, a, z, sx, sy, sz) in M {
+            let p = launch_point(Pos::new(x, y), Angle(a), 239, crate::anim::ATTACK2, 1, node);
+            assert_eq!((p.x, p.y), (sx, sy), "block {n} node {node}");
+            assert_eq!(
+                z + release_dz(239, crate::anim::ATTACK2, 1, node).unwrap(),
+                sz,
+                "block {n} node {node}"
+            );
+        }
     }
 
     /// **Every distinct launch point of run256's twelve Bowman arrows**,
@@ -805,14 +910,14 @@ mod tests {
             ),
         ];
         for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
-            let got = launch_point(Pos::new(gx, gy), Angle(ga), 120, anim, t);
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 120, anim, t, 0);
             assert_eq!(
                 (got.x, got.y),
                 (sx, sy),
                 "piece 120 anim {anim} t {t} facing {ga}"
             );
             assert_eq!(
-                gz + release_dz(120, anim, t).unwrap(),
+                gz + release_dz(120, anim, t, 0).unwrap(),
                 sz,
                 "piece 120 anim {anim} dz"
             );
@@ -887,7 +992,7 @@ mod tests {
             ),
         ];
         for &(gx, gy, ga, anim, t, sx, sy) in M {
-            let got = launch_point(Pos::new(gx, gy), Angle(ga), 127, anim, t);
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 127, anim, t, 0);
             assert_eq!(
                 (got.x, got.y),
                 (sx, sy),
@@ -901,10 +1006,13 @@ mod tests {
     fn an_unmeasured_piece_launches_from_the_unit() {
         let p = Pos::new(1234, 5678);
         assert_eq!(
-            launch_point(p, Angle(0x1234_5678), 32, crate::anim::ATTACK1, 6),
+            launch_point(p, Angle(0x1234_5678), 32, crate::anim::ATTACK1, 6, 0),
             p
         );
-        assert_eq!(launch_point(p, Angle(0), 127, crate::anim::ATTACK1, 7), p);
+        assert_eq!(
+            launch_point(p, Angle(0), 127, crate::anim::ATTACK1, 7, 0),
+            p
+        );
     }
 
     /// The table is the install's own release events and no others — the
@@ -1076,7 +1184,7 @@ mod tests {
         ];
         let mut exact = 0;
         for &(gp, anim, t, gx, gy, ga, sx, sy, err) in M {
-            let got = launch_point(Pos::new(gx, gy), Angle(ga), gp, anim, t);
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), gp, anim, t, 0);
             assert_eq!(
                 (got.x - sx).abs() + (got.y - sy).abs(),
                 err,
@@ -1112,7 +1220,7 @@ mod tests {
         ];
         for &(block, x, y, t, sx, sy, sz) in M {
             for anim in [crate::anim::ATTACK1, crate::anim::ATTACK2] {
-                let got = launch_point(Pos::new(x, y), Angle(671_481_856), 290, anim, t);
+                let got = launch_point(Pos::new(x, y), Angle(671_481_856), 290, anim, t, 0);
                 assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
                 assert_eq!(node(290, anim, t).map(|n| n.dz), Some(sz), "block {block}");
             }
