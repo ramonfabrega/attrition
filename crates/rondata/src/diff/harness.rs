@@ -15496,6 +15496,122 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run251 — East Indies' word 17501, widened whole, both directions**
+    /// (item 800). run233's line over [`WIDENING_EAST_INDIES_COLUMNWORD`]:
+    /// the six blocks before the word's, its block, and 250 past it. No
+    /// capture shares a block with it, so 17441..17495 is compared by no
+    /// dump, and the floor is its first block. [`widen_east_indies`] with
+    /// gaia's animals.
+    ///
+    /// The word's frame, 17501, writes block **17502**.
+    #[test]
+    fn run251_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_COLUMNWORD.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_COLUMNWORD.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_COLUMNWORD_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            changed,
+            standing,
+            army_lists,
+            ..
+        }) = widen_east_indies(
+            "run251",
+            "gamelog-run251-eastindies-columnword.txt",
+            WIDENING_EAST_INDIES_COLUMNWORD,
+            &[WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        // **Under the word, the first row of each key past the floor**:
+        // `1/57` stands on 17501 with one path entry where the original's
+        // holds two and walks on, and on the word's block the original's
+        // turns and sets off (`cur_anim 8`) toward (31451, ·) while ours
+        // has taken a leg to (30683, ·). `1/58` beside it, and `1/54`'s
+        // `dest`. Every other key of the column parts on the floor.
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        assert_eq!(
+            rows,
+            [
+                "17502 1/54 order:move.dest: Move { field: \"dest\", ours: 1, theirs: 0 }",
+                "17502 1/54 path:length: PathLength { ours: 3, theirs: 2 }",
+                "17502 1/57 g.cur_anim[0]: ours 0 theirs 8",
+                "17502 1/57 g.cur_time[0]: ours 1 theirs 2",
+                "17502 1/57 g.end_time[0]: ours 36 theirs 22",
+                "17502 1/57 g.last_time[0]: ours 0 theirs 1",
+                "17501 1/57 g.stopped[0]: ours 1 theirs 0",
+                "17502 1/57 order:move.dest_x: Move { field: \"dest_x\", ours: 30683, theirs: 31451 }",
+                "17501 1/57 path:length: PathLength { ours: 1, theirs: 2 }",
+                "17502 1/58 g.cur_anim[0]: ours 21 theirs 8",
+                "17502 1/58 g.end_time[0]: ours 46 theirs 22",
+            ],
+            "each key's first row under the word"
+        );
+        // The figures whose animation changes on one side near the word:
+        // ours' `1/57` and `1/58` on its block and the two after it.
+        let word: Vec<(i64, i64, i64, bool, bool)> = changed
+            .iter()
+            .filter(|c| c.3 != c.4 && (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+            .copied()
+            .collect();
+        assert_eq!(
+            word,
+            [
+                (17502, 1, 57, false, true),
+                (17502, 1, 58, false, true),
+                (17503, 1, 57, false, true),
+                (17503, 1, 58, false, true),
+                (17504, 1, 57, false, true),
+                (17504, 1, 58, false, true),
+            ],
+            "a figure's animation changes on one side only"
+        );
+        // Every army's list, on what its slot holds, agrees near the word.
+        let lists_part: Vec<(i64, (i64, i64))> = army_lists
+            .iter()
+            .flat_map(|(b, m)| {
+                m.iter()
+                    .filter(|(_, (o, t))| o != t)
+                    .map(move |(k, _)| (*b, *k))
+            })
+            .collect();
+        assert_eq!(lists_part, [], "no army's list parts near the word");
+        // **The floor**: every key standing on the first block (nothing
+        // shared, so the column's walk since 17405 and the pool ids are all
+        // in it), the keys first parting under the word, the rows standing
+        // on the word's block, and every key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (350, 11, 361, 1_314),
+            "the floor"
+        );
+    }
+
     /// **run152 — East Indies' word 10982, widened whole, both directions**
     /// (item 613). run149's line past its last block, over
     /// [`WIDENING_EAST_INDIES_GATHER`]: ten blocks shared with run149, the

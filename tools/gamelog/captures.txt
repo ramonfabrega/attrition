@@ -6722,3 +6722,26 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run251-eastindies-columnword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=17496&&v<17753)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run251-eastindies-columnword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=17496&&v<17753)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 618,867,338 bytes of dump and 23,722,688 of trace, **257 blocks
+# 17496..17752**, with a `GROUPDATA` and a `GUY` on every one. The first
+# launch (02:57) was dropped silently: att-803's golden capture held
+# RonDriver, and `open -a` starts no second instance. It was relaunched at
+# 03:10 when that pid exited and archived at 03:35, about 25 minutes, with
+# no human at the menu. `waitrun.sh` exited 0. All five checks were green:
+# - 17,764 frames identical to run54, 0 differing;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run251_s_word_frame_is_widened_whole`, `docs/GROUPS.md` §27.4):
+# - **R1 holds**, by the checks above.
+# - **R2 holds.** `1/57` parts on position from 17496. On 17501 ours'
+#   stands with one path entry against two, and on 17502 the original's
+#   sets off toward (31451, ·).
+# - **R3's killer fires**: the column parts on 17496 on positions, not
+#   only on the ids.
+# - **R4's killer fires**: `9/9` and `9/15` agree on every gaia row to
+#   the word.

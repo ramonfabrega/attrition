@@ -7798,3 +7798,54 @@ which exited 0. The dump is archived as
   under an `ATTACK_TO` order, and this crate did not.
 - With the arm, all 28,828 steps agree, and the word moved 17189 → 17403.
 - The packet was not read: the dump and the trace answered every term.
+
+## run251 — East Indies' word 17501, sized to the word (2026-09-26, item 800)
+
+**What it is.** run233's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[17496, 17753)`, at `cover=0`: a draw-stream trace. `!quit` at 17763,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 800
+```
+
+**Why it was owed.** Item 800 moved East Indies' word 17403 → 17501 (the
+anchor's sub-group sorts its own list, `docs/GROUPS.md` §27). run233 ends
+on block 17440, so the word's block 17502 is on no disk. On 17501 ours
+spends 13 draws against 11, parting at index 3. Ours spends
+`Guy::set_anim+0x97a < Guy::move+0x19f` where the original spends
+`< Unit::do_idle+0x7d`. **The disk answered whose step it is here, not
+there**: a scratch print named ours' `1/57`, one of army 0's column,
+which run233 parts on from 17405. **Sized to the word** (DECISIONS 50
+§7): the six blocks before its block, the block, and 250 above it, 257
+blocks. No capture shares a block with it, so **17441..17495 is compared
+by no dump**, and the same game is the draw stream's word against run54.
+
+**Taken whole.** 618.9 MB of dump and 23.7 MB of trace, 257 blocks
+17496..17752. About 25 minutes from launch (03:10) to archive (03:35),
+with no human at the menu. The first launch at 02:57 was dropped
+silently: another lane's capture held RonDriver, and `viadriver.sh`'s
+`open -a` does not start a second instance. It was relaunched when that
+pid exited. Waited on with `waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 17,764 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 17496..17752, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run251_s_word_frame_is_widened_whole`,
+`docs/GROUPS.md` §27.4):
+- **R2 holds**: `1/57` parts on position from the window's first block,
+  about 20 units off, carried in. On 17501 ours' stands with one path
+  entry where the original's holds two and walks on. On the word's block
+  the original's sets off (`cur_anim 8`) toward (31451, ·), where ours
+  has taken a leg to (30683, ·).
+- **R3's killer fires**: the column parts on 17496 on positions as well
+  as on the ids.
+- **R4's killer fires**: `9/9` and `9/15` agree on every gaia row to the
+  word, so the extra clock is not an animal's own parting.
+- Every army's list agrees on the word's blocks. The floor is 350 keys on
+  the first block, 11 under the word, 361 on its block and 1,314 in all.
