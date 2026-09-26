@@ -1006,7 +1006,29 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `Guy::set_anim+0x97a < Unit::move_step+0x823` where the original spends
 /// its next `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run269;
 /// its block 19510 is widened there.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 19_509;
+///
+/// **19509 → 20007 on item 857, and the frame was 19498's blocker probe.**
+/// `1/71`, its search suspended behind `1/75`, probes `coll` on the fifth
+/// frame after the collision. `Unit::do_move@005f7b30` calls
+/// `detect_unit_collision(coll, quick 1, boats 1, 0, nocoll 0, top_only 1)`
+/// at `005f7dab`: the quick form, so `1/75`'s north-east corner on the
+/// cell counts and nothing is written. Ours asked the full form, whose
+/// corner rule let the two pass and cleared `collide_o` (`docs/COLLISION.md`
+/// §18). **The move's value diff (the word's delta, here; its blocks are
+/// `run269_s_word_frame_is_widened_whole`'s):** on block 19499 `1/71`'s
+/// `collide` went 0 against 11 → 11 on both, `collide_o` −1 against 75 →
+/// 75 and `collide_who` −1 against 1 → 1; on 19500 its `pos` (36866,
+/// 41713) against (36888, 41736) → (36888, 41736) on both; the draws on
+/// 19509 went 10 against 9 → 9 against 9. **Then 19606, one draw against
+/// the same draw:** the trace printed `Unit::do_guard+0x8fb`, `1/64`'s
+/// `retry` roll, bare as `5e656b`; its guard's `retry` reads 8 on block
+/// 19607 on both sides, and `trace::SITES` names it now. **The new word's
+/// delta: ours 8 draws and the original 7, parting at index 0**: ours
+/// spends `1/67`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked
+/// step's idle, where the original spends its first `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`. Past run269's end (19664); run277 was taken for
+/// it.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 20_007;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4460,6 +4482,15 @@ pub(crate) const EAST_INDIES_TURNWORD_BLOCK: i64 = 19_414;
 /// spends `1/71`'s walk start (`Unit::move_step+0x823`) and the original a
 /// wrap, writes block 19510. The coverage driver reads run269 around it.
 pub(crate) const EAST_INDIES_WALKWORD_BLOCK: i64 = 19_510;
+/// `run277_s_word_frame_is_widened_whole`'s window (item 857): run277
+/// whole, 20002..20258 — six blocks before the word 20007's block and 250
+/// past it. run269 ends on 19664, so 19665..20001 is compared by no dump.
+pub(crate) const WIDENING_EAST_INDIES_BLOCKEDWALK: (i64, i64) = (20_002, 20_258);
+/// The word 20007's block on run277 (item 857): its frame, where ours
+/// spends `1/67`'s blocked step (`Unit::move_step+0x823`) and the original
+/// a first wrap, writes block 20008. The coverage driver reads run277
+/// around it.
+pub(crate) const EAST_INDIES_BLOCKEDWALK_BLOCK: i64 = 20_008;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4645,12 +4676,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // own work takes its figures' frame (`docs/ANIM.md` §15), 19413 →
     // 19509. run269's test keeps the move's value diff (19414, `1/77`) and
     // pins the new word's block, 19510, in the same walk.
+    //
+    // **Item 857 moved it past run269's end**: `do_move`'s blocker probe
+    // is the quick form (`docs/COLLISION.md` §18), and the trace names
+    // `Unit::do_guard+0x8fb`, 19509 → 20007. run269's test keeps the
+    // move's value diff (19499, `1/71`), and run277 was taken to widen the
+    // new word's block, 20008.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run269_s_word_frame_is_widened_whole"),
-        850,
-        Some(WIDENING_EAST_INDIES_TURNWORD),
+        Some("run277_s_word_frame_is_widened_whole"),
+        857,
+        Some(WIDENING_EAST_INDIES_BLOCKEDWALK),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

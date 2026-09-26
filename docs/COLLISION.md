@@ -3316,3 +3316,116 @@ than assuming it (`Sim::move_step`'s `gave_up` arm in
 - **Listing and decompile**: `005fb7b5`–`005fb862`,
   `move_step@005faf30:280-316`.
 - **Unit-tested, made to fail on purpose**: the test above.
+
+## 18. The blocker probe is the quick form: a corner the step would slip past still blocks — East Indies 19509 → 20007 (item 857, 2026-09-26)
+
+East Indies' word was **19509**. On 19509 ours spent 10 draws and the
+original 9, parting at index 3 on `1/71`'s `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. Its first parting was ten frames earlier, on
+block 19499, and it was `1/71`'s alone.
+
+### 18.1 The frame
+
+`1/71` (type 12, player 1) walks south-west on a one-entry plan. From
+block 19489 its step is refused by `1/75`, a type-12 unit of another
+group, on both sides: `collide` 1..5 and `collide_o` 75. On block 19494
+`resolve_unit_collision` snaps it to its cell centre (36888, 41736),
+rolls `pause` 3 and suspends a search, with `collide_frame` 19493 (§6
+step 6). `do_move`'s suspended block then counts `collide` 6..10 one a
+block (ORDERS §4.4 step 2). **`1/75` agrees in every field on every
+block**, and it walks north away from `coll` (36846, 41734).
+
+On sim-frame 19498 (block 19499), five frames after `collide_frame`, the
+blocker probe fires. The original's `1/71` reads `collide` 11 and
+`collide_o` 75 after it. It reads 12 on 19500 and 0 on 19501, still
+naming 75, and walks from 19502. Ours read `collide` 0 and `collide_o`
+−1 on 19499 and walked from 19500.
+
+### 18.2 The call
+
+`005f7d99`–`005f7dab`:
+
+```
+push 1 ; push 0 ; push 0 ; push 1 ; push 1
+push [edi+0x40] ; mov ecx, ebx ; push [edi+0x3c]
+call Unit::detect_unit_collision@00617060
+```
+
+That is `detect_unit_collision(coll_x, coll_y, quick 1, boats 1, 0,
+nocoll 0, top_only 1)`. In `00617060` a quick call that finds an
+occupied cell returns 1 at `:96`, before the naming scan and the corner
+rule of §4.3. One that finds none returns 0 through `bVar14 = quick ==
+0` (`:443`, `:458`). **Neither reaches the bookkeeping at
+`LAB_006177fa`**, so the probe writes neither `collide_o` nor `collide`,
+and the blocker `resolve` named stays named. `top_only` 1 skips the
+second arm of §4.1 gate 3, so a ship, hero, supply unit or siege engine
+scans here like anyone else. The `DETOUR`, `safe` and same-cell gates
+stand.
+
+On 19498 the probe runs from `1/71`'s cell (768, 869) onto `coll`'s
+(767, 869). The leading edge meets `1/75`'s block at (766, 870). That
+cell is `1/75`'s north-east corner (3) and the proposal's south-west
+(7), and a step would slip past. The quick form stops at the occupied
+cell. By 19500 `1/75` has cleared it, and the probe on elapsed 7 finds
+nothing.
+
+This crate asked the full form. It found the same cell, let the corners
+pass, named nobody and cleared `collide_o` on the way out, so the block
+reset `collide` and re-planned two frames early.
+`Sim::blocker_still_there` (`crates/sim/src/collide.rs`) is the quick form
+with `top_only`. `Sim::do_move`'s suspended block asks it.
+
+### 18.3 What it moved
+
+- **East Indies 19509 → 19606**, and then **→ 20007** with one row of
+  `rondata::trace::SITES`. On 19606 both sides spent `1/64`'s `retry`
+  roll, `Unit::do_guard+0x8fb` (`Random::get(0, 0xffff) % 3 + 6` at
+  `5e6566`). Item 567 named it on the sim's side only, so the trace
+  printed the original's bare as `5e656b`. The guard's `retry` reads 8
+  on block 19607 on both sides.
+- **The value diff on block 19499** (`run269_s_word_frame_is_widened_whole`):
+  `1/71`'s `collide` 0/11 → 11/11, `collide_o` −1/75 → 75/75,
+  `collide_who` −1/1 → 1/1; on 19500 `pos` (36866, 41713)/(36888, 41736)
+  → (36888, 41736) on both. The draws on 19509 went 10/9 → 9/9. run269's
+  floor went 318/38/352/1,207 → 318/0/319/320: past its first block, one
+  key parts in 257 blocks (the human leader's `production_step` on 19601).
+- **The new word, 20007**: ours spends 8 draws and the original 7,
+  parting at index 0 on `1/67`'s `Guy::set_anim+0x97a <
+  Unit::move_step+0x823`, a blocked step's idle, where the original
+  spends a `Guy::inc_time+0x271` wrap. Past run269's end; run277 was
+  captured over it (`docs/RUNS.md`) and widened
+  (`run277_s_word_frame_is_widened_whole`). Its first block already
+  carries the gap 19665..20001: who=1's army group (68 there, 71 here)
+  holds a group move, and `1/65` and `1/66` hold each other's slots. On
+  20008 the original's `1/67` walks past `1/65`, which takes a half step,
+  and ours is refused by it. No mechanism is named.
+- **run90's last row goes** (parked 315): on 7820 the original's `1/7`
+  keeps `collide_o` 6 and `collide_who` 1 across the probe that abandons
+  its search on 7819, and now so does this crate's.
+  `run90_s_window_is_east_indies_shuffle`'s collision fields agree whole.
+- **East Indies' endpoint** at 24001: `off` holds at 38, `unlinked`
+  2 → 0, `extra` 0 → 3 (player 1's `83`..`85`, Citizens),
+  `build_unlinked` 2 → 0 and `build_diverged` 5 → 1. Great Lakes' word
+  (20568), its endpoint and every closed golden chapter hold.
+- `collide::tests::the_blocker_probe_counts_a_corner_the_step_would_slip_past`
+  pins the verdict and the silence. It was made to fail with the probe
+  answering the full form's verdict.
+
+### 18.4 What is not established
+
+- **`top_only`'s arm skip** is read from the decompile and the listing.
+  No capture has a ship, hero, supply unit or siege engine suspended
+  behind a blocker.
+- **A miss that keeps `collide_o`** is diff-backed on 19501 (`collide` 0,
+  `collide_o` 75). A hit that finds a *different* unit's cell is not
+  told apart from the blocker's: the quick form names nobody, so neither
+  side can say whose cell it was.
+
+### 18.5 Coverage
+
+- **Diff-backed**: §18.1 and the probe's two outcomes on 19498 and
+  19500, by `run269_s_word_frame_is_widened_whole`.
+- **Listing and decompile**: `005f7d99`–`005f7dab`,
+  `detect_unit_collision@00617060:60-96, 443-467`, `do_move@005f7b30`'s
+  suspended block.
+- **Unit-tested, made to fail on purpose**: the test above.

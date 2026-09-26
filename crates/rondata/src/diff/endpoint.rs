@@ -667,7 +667,9 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **2 → 0** on item 839, beside `off` above.
         // **0 → 2** on item 850, beside `off` above: player 1's `81` and
         // `82`.
-        unlinked: 2,
+        // **2 → 0** on item 857, the blocker probe's quick form
+        // (`docs/COLLISION.md` §18); `off` holds at 38.
+        unlinked: 0,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -681,7 +683,9 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **3 → 8** on item 742, beside `off` above.
         // **8 → 3** on item 752, beside `off` above.
         // **3 → 0** on item 767, beside `off` above.
-        extra: 0,
+        // **0 → 3** on item 857, beside `unlinked` above: player 1's
+        // `83`, `84` and `85`, three Citizens.
+        extra: 3,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
@@ -693,7 +697,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **3 → 1** on item 752, beside `off` above.
         // **1 → 2** on item 767, beside `off` above; **2 → 1** on item 773.
         // **1 → 2** on item 800, beside `off` above.
-        build_unlinked: 2,
+        // **2 → 0** on item 857, beside `unlinked` above.
+        build_unlinked: 0,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
@@ -716,7 +721,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **4 → 1** on item 837, beside `off` above.
         // **1 → 6** on item 839, beside `off` above.
         // **6 → 5** on item 850, beside `off` above.
-        build_diverged: 5,
+        // **5 → 1** on item 857, beside `unlinked` above.
+        build_diverged: 1,
         city_unlinked: 3,
         city_diverged: 0,
     },
