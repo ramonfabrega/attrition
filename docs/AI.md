@@ -9449,7 +9449,7 @@ Two unit tests, both made to fail on the old rule first:
 
 ### 75.5 What it moved
 
-Measured on `7537de5a`, based on `a1390a90` (no `ccc update` since spawn):
+Measured on `f972e8d2`, based on `a1390a90`, and re-run after `ccc update` onto `adbc7483`:
 
 - **The value diff** (`run226_s_word_frame_is_widened_whole`). The
   twelve `MAKE` rows on 17182 go, and so do four standing rows the
@@ -9464,12 +9464,40 @@ Measured on `7537de5a`, based on `a1390a90` (no `ccc update` since spawn):
   in count and sequence on every frame between.
 - **Great Lakes' endpoint** at 24001: 43 → 11 off, 2 → 1 extra (`1/81`,
   a Merchant).
+- The scholar seating on **17570** comes under the word, on the
+  original's own frame.
 - **East Indies holds at 17189**, and so does every golden chapter.
   Chapter eight's dump prints the new row, and it agrees.
 
 ### 75.6 The new word's block, 20569, on run243
 
-RUN243_PLACEHOLDER
+20569 is past run226's last block, so run243 was taken over
+[20500, 20819), **sized to the word, not to the gap** (the commander's
+ruling on this item; DECISIONS 50 §7). A capture contiguous with run226
+would have been ~3,470 blocks. **No dump compares a value over
+17351..20499.** The draw stream agrees across it, and nothing else is
+known of it. `run243_s_word_frame_is_widened_whole` walks run226's last
+six blocks and run243 whole. The floor is 307/59/26/894: run226's 307
+standing rows, then 59 carried onto 20500, 26 up to the word, and the
+runway's 502.
+
+- **The gap is not quiet** (the stanza's R3, whose killer fires). On
+  20500, beside run226's 307 standing rows, 59 more part. They are
+  four who=1 walkers on long paths, each some cells off the original,
+  plus `1/80`'s formation and `SITE[1].reg`:
+  - `1/40`, 76 units west of the original's;
+  - `1/41`, whose path is 38 entries against 37;
+  - `1/42`, whose move's `dest_x` is 16968 against 16200;
+  - `1/60`, whose path parts on ten entries.
+- **Up to the word**, only those walkers' later fields part.
+- **On the word's block, `1/40` stands blocked in the original and not
+  here** (R2 holds). The original's record reads `collide 1`,
+  `collide_who 8`, `collide_o 0` and `stopped 1`. Ours is mid-walk.
+  That is the original's `move_step+0x823`, and `1/40`'s own walk had
+  parted before run243's first block.
+- **No mechanism is named** (DECISIONS 42). Where `1/40` first parts is
+  in the gap, and no dump holds it. The coverage driver reads run243
+  20567..20571.
 
 ### 75.7 What this has *not* established
 

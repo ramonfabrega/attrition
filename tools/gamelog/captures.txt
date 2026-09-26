@@ -6642,3 +6642,13 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - `MAP_STYLE 14`;
 # - the window whole;
 # - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run243_s_word_frame_is_widened_whole`):
+# - **R1 holds.**
+# - **R2 holds.** The unit standing blocked on block 20569 is `1/40`,
+#   by `8/0` (`collide 1`, `collide_who 8`, `collide_o 0`). Its
+#   position parts from run243's first block, 76 units off.
+# - **R3's killer fires.** 59 rows part on 20500 outside run226's 307
+#   standing: `1/40`, `1/41`, `1/42` and `1/60` on long walks, `1/80`'s
+#   formation and who=1's `SITE[1].reg`. The gap is not quiet.

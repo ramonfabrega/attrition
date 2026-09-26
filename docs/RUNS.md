@@ -7634,3 +7634,26 @@ compares a value over 17351..20499.** The draw stream agrees across
 that range in count and sequence, and nothing else is known of it.
 The same game is shown by the draw stream against run53, not by a dump
 overlap. The readings and their killers are in the stanza.
+
+**Taken whole.** 706.8 MB of dump and 23.9 MB of trace, 319 blocks
+20500..20818. About 26 minutes from launch (19:56) to archive (20:22),
+with no human at the menu. The lane lock was stale: pid 41224 was dead.
+Waited on with `waitrun.sh`, which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 20,830 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **319 blocks, 20500..20818, no gap** |
+| a `GROUPDATA` and a `GUY` on every window block | **319** each |
+
+**What it settled** (`run243_s_word_frame_is_widened_whole`,
+`docs/AI.md` §75.6).
+- **R1 holds**: the checks above.
+- **R2 holds.** On the word's block, `1/40` stands blocked by `8/0` in
+  the original (`collide 1`, `stopped 1`) and walks here. Its own walk
+  had already parted on run243's first block.
+- **R3's killer fires.** 59 rows part on 20500 that were not standing on
+  run226's last block. They are four who=1 walkers (`1/40`, `1/41`,
+  `1/42`, `1/60`), `1/80`'s formation and `SITE[1].reg`. Where in
+  17351..20499 any of them first parts is on no disk.

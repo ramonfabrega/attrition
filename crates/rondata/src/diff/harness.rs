@@ -4982,14 +4982,20 @@ pub(crate) mod tests {
         // the comparison against the original's passed unchanged. The word
         // walked past **13555** and **13736** when a resumed 48-grid search
         // came to read the blocks it had copied (`docs/PATHFINDER.md` §26).
+        //
+        // **Thirteen → fourteen on item 785**, a fourth time: the word
+        // walked past **17570** when an easy AI's wonder arm came to read
+        // `wonder_mark` (`docs/AI.md` §75), and the comparison against the
+        // original's passed unchanged.
         assert_eq!(
             seatings,
             vec![
                 8272, 8680, 9_087, 9_201, 9_322, 9_510, 9_717, 9_861, 10_012, 10_140, 10_306,
-                13_555, 13_736
+                13_555, 13_736, 17_570
             ],
-            "below the word Great Lakes seats thirteen scholars, on 8272, 8680, \
-             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306, 13555 and 13736"
+            "below the word Great Lakes seats fourteen scholars, on 8272, 8680, \
+             9087, 9201, 9322, 9510, 9717, 9861, 10012, 10140, 10306, 13555, 13736 \
+             and 17570"
         );
         // **Great Lakes 9134, the snap arm's blocked stand** (item 360,
         // `docs/COLLISION.md` §5.4). The frame is **one draw on each
