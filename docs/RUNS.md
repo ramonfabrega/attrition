@@ -7607,3 +7607,91 @@ which exited 0. The dump is archived as
 - With the clause, all 303 priced steps agree, and the word moved
   17128 → 17181.
 - The packet was not read: the dump and the trace answered every term.
+
+## run245 — chapter nineteen, the cast line (2026-09-25, item 790)
+
+`docs/GOLDEN.md` §27, `tools/gamelog/golden/chapter19.cmd`. The cast: a
+who=1 Barracks staged on 606 and a who=0 Spy on 610; on 620 one **player
+command** goes through `issue_spell@00941b80` from the DLL's `@spell`:
+`0/6` casts the Informer (639) on `1/2006`, picked at (15360, 15360).
+
+The chapter, its premise's killer and the falsifiers were committed before
+the run (`fdaf52e3`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch19 \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter19.cmd
+```
+
+**One take at `cover=0`**: 540 s from launch (20:37) to exit, 201 MB of
+dump and 10.2 MB of trace, 496 window blocks. The lane lock named pid
+49990, run246's own game, which had exited, so the launch took it over.
+It was waited on with `zsh tools/gamelog/waitrun.sh`, exit 0.
+
+| check | result |
+|---|---|
+| receipt | `success: true`, exit 0, 1,101 frames, seed 12345, `MAP_STYLE 14` |
+| `cmdsran.py` | all seven cheat lines returned 1 |
+| `rngcmp.py` vs run246's trace | **0 differing** of 626 in common: the same game as the packet's to its end |
+| `rngcmp.py` vs run241's trace | the same game to 612; the first difference is 613, three frames after the Spy |
+| `GROUPDATA` | **253,440 records**, 511 on each of the 496 window blocks: the pool printed |
+
+### The issuer's own records
+
+| trace frame | record | read |
+| --- | --- | --- |
+| 620 | `INFO 18` / `17` | `0/6` uid 13 at (11640, 15864); line 6, refusal 0, 10 → 36 bytes: a 5-byte `group` and the 21-byte `spell` |
+
+The command is processed on the next frame: `process_group, new 0 1 621`
+and `process_spell 639 2006 1 621`.
+
+### §27's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issue | processed on 621 | as predicted |
+| 2, the class | a `MOVEORDER` and a `CASTORDER` (spell 639, `paid` 1) on 622 | **the class holds**: a `CASTORDER` (flags 4, `ox 2006 whom 1`, `x 15360 y 15360`, `paid 1`, `spell 639`) and a `MOVEORDER` to (14232, 15528). The dump **lists the cast first**, the order laid first; the move pushed QUEUE_FIRST is the head (`orders_x/y` its point). `cavarch_o 2006`, `cavarch_uid 12`, `cavarch_who 1` |
+| 3, the price | `mana_burn` +500, no bucket down | `mana_burn` 489 → **988** on 622; who=0's buckets 254/241/113/100/100 on 621 and 622, and only rising after |
+| 4, the walk | to (14232, 15528); `spell_time` rising in range, by 800 | the move ends on **755** at (14232, 15528) exactly, ~20 units a frame; `spell_time` 1 on **756** |
+| 5, the cast | `infiltrated` 1 forty frames in; the stack empty; the Spy alive | `spell_time` 1 … 39 on 756–794; on **795** `1/2006` `infiltrated` 1 and `0/6`'s stack empty; the Spy stands there to 1099 |
+| 6, the cloak | no 0x1000 or 0x10000; 0x20000, `visible` 0x2, `flags` 0x80 in range | `unit_masks` 8 → **0x20008** on 756, back to 8 on 795; never 0x1000 or 0x10000; `visible` 2 from 756 (cleared on 827, the unit's 32-frame tick); `flags` 1 → **0x81** from 756, 9 from 796 |
+| 7, the mana | still while 0x20000, falling after | 854 from 756 to 795, 853 on 796 and one a frame after |
+
+**No falsifier fired.** The emulator's first frame on the packet (the
+order, the target fields, the price and the approach spot) is what the
+capture holds on 622, value for value.
+
+## run246 — chapter nineteen's staging, a packet at logger frame 619 (2026-09-25, item 790)
+
+**What it is.** `chapter19.cmd`'s staging without its `@spell` line, to
+625, with a `RON_STATE_FRAME=619` packet (814,570,380 bytes; the plan is
+run144's). 59 s launch to exit, `success: true`, 626 frames. The lane lock
+named pid 98880 (att-785's long trace), which had exited.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-25-run246 \
+    --map 14 --end-frame 625 --log-window 605 625 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <chapter19.cmd without the @spell line> \
+    --tracer-def RON_STATE_FRAME=619 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"'
+```
+
+**What the disk could not answer.** Which of the Spy's crafts the staged
+Barracks is a valid target for, the craft's range and job time on it,
+and what `action_spell` and the first `do_cast` write: no dump prints
+`is_valid_target`, and no capture had issued a targeted craft.
+
+**What it answered** (`tools/recomp/step4.py`'s machinery, scratch):
+`is_castable` 3 for Bribe, Counterintelligence and the Informer;
+`is_valid_target` 1 for the Informer alone; `get_range` 960, `get_job_time`
+40; the Spy's `mana` 1000 and `mana_burn` 491. `Group::action_spell` and one
+`Unit::do_cast` on a pool `Group` of `[6]`: a `CastOrder`, `paid` 1,
+`mana_burn` 991, every bucket rewritten unchanged, and a `MOVEORDER` to
+(14232, 15528). `docs/GOLDEN.md` §27.

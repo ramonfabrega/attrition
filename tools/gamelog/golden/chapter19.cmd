@@ -17,6 +17,13 @@
 #       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter19.cmd
 #
+#   Run 2026-09-25: 540 s, 201 MB, the same game as run246's packet to
+#   625, 253,440 GROUPDATA. The command processed on 621. No falsifier
+#   fired: a CASTORDER (flags 4, paid 1) and a MOVEORDER to (14232, 15528)
+#   on 622, mana_burn +500 and no bucket down; in range on 756, spell_time
+#   1..39, 1/2006 infiltrated on 795; 0x20000 across 756..794, the cloak
+#   kept, the mana still. docs/RUNS.md, run245.
+#
 # `GUYS=4` with `GROUPS=1`: every golden capture's level since run215, the
 # line whose pool printed. `LEADERS=2` prints the buckets a price would come
 # out of; `BUILDS=7` prints the target's `infiltrated`; `UNITS=3` prints the

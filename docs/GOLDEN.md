@@ -1361,6 +1361,7 @@ below without a run take their number at booking (the eleventh pass).
 | 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
 | 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
+| 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3806,3 +3807,25 @@ price. From the Spy's `MOVES 21` (about 28 units a frame) the walk of
 harness skips `@spell` by name. So the first parting expected is 621–622:
 the command's processing, the order, the price and the Spy's first step,
 which the original spends and this crate does not.
+
+**Run 2026-09-25 as run245 (item 790)** (`docs/RUNS.md` has the tables).
+- **No falsifier fired, and the premise's class holds.** The command
+  reached the pump on 621 (`process_spell 639 2006 1`). On 622 `0/6`
+  holds a `CASTORDER` (flags 4, `ox 2006 whom 1`, `x 15360 y 15360`,
+  `paid 1`, `spell 639`) and, at its head, a `MOVEORDER` to (14232,
+  15528) — the emulator's spot. The dump lists the cast first, the order
+  laid first. `cavarch_o/uid/who` read 2006, 12, 1.
+- **The price is the mana.** `mana_burn` 489 → 988 on 622; no bucket of
+  who=0 falls.
+- **The walk and the cast.** The Spy walks ~20 units a frame and stands
+  on the spot on **755**; `spell_time` climbs 1 … 39 on 756–794, and on
+  **795** `1/2006`'s `infiltrated` is 1 and the Spy's stack is empty. It
+  stands idle there to 1099.
+- **In range.** `unit_masks` takes 0x20000 on 756 and loses it on 795;
+  never 0x1000 or 0x10000 — the craft's `l` keeps the cloak. `visible`
+  takes 0x2 on 756 and loses it on 827; `flags` takes 0x80 on 756 and
+  loses it on 796. `mana_burn` stands at 854 from 756 to 795 and
+  recovers from 796.
+- **The prediction** from the Spy's `MOVES` was a walk to ~715 and a cast
+  near 755; the Spy walks slower, 20 units a frame, and both came forty
+  frames later.
