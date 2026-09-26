@@ -6902,3 +6902,51 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 #   `GUARD` (kind 12) here against an `ATTACK_TO` (kind 2) there.
 # - **R3 is dead**: the figures' clocks part, but with their orders,
 #   not alone.
+
+run: 261
+tag: eastindies-closeword
+item: 829
+why: East Indies' long word was 18938 (item 829), and its first killer fired on run257's first block: `1/67`..`1/72` carry `group` -1 here against 71 there on 18933, a row standing from the gap 18434..18932, which no dump compares. Ours closes army 1 on tick 18682 (`find_target` → `close_army`) and drops its group, and the original's group 71 still lists `[69, 72]` with army -1 on 18933
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 829): run253 ends on
+# block 18433 and run257 starts on 18933; every `*eastindies*` and
+# `*islands*` dump was read by its block range, and none holds a block
+# in 18434..18932. **What the disk does answer**: on 18433 both sides
+# hold `1/67`..`1/72` in army 1's group (pool 69 here, 71 there, 689's
+# shape); on 18933 the original's 71 is `army -1` with `[69, 72]`, its
+# army 0 is a new group 64 with fifteen of the old eighteen, and the
+# wagon `1/60` is army 1 again on 69. **What the disk could not
+# answer**: on which tick the original's army 1 closed, and whether its
+# group survived the close with its list on that block.
+#
+# **Sized over the gap** (the brief's step 6): six blocks before 18434
+# (18428..18433, shared with run253) and 250 past it (18434..18684),
+# **257 blocks, 18428..18684**. Ours' close is tick 18682, block 18683,
+# inside it. Ours' second event, the wagon's new army on tick 18692
+# (block 18693), is **outside** it, and **18685..18932 stays compared
+# by no dump**.
+#
+# **The readings, each with what kills it** (block = frame + 1):
+#
+# - **R1 — this is run54's game to 18695.** Killed if the trace differs
+#   from run54's on any frame, or agrees on fewer than 18,696.
+# - **R2 — the original's army-1 group survives its army's close.** Its
+#   unit is the `GROUPDATA` record that lists `1/60` on 18428: killed
+#   if, on the first block its `army` reads -1, the record is gone or
+#   lists nothing (the crate's old `close_army`).
+# - **R3 — the close is ours' tick.** Its unit is that record's `army`
+#   field: killed if it reads 1 on 18683 or -1 before it.
+#
+# **run253's line**, the same lobby and the same `end:`. Not a round,
+# so no `AMMO`.
+frames: 18695
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 18428 18685
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run261.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=18696)}'
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | awk '{v=$3+0; if(v>=18428&&v<18685) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==18428 && hi==18684)}'
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18428&&v<18685)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run261-eastindies-closeword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=18428&&v<18685)n++} print "blocks with a GUY: "n; exit !(n==257)}'
