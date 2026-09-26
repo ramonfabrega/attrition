@@ -14,9 +14,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-09-25, the fifteenth Fable pass (Fable 5.1): **the count restarts at
 96136251, this pass's commit** (`docs/audit/2026-09-25-fable-pass-15.md`,
-DECISIONS 51; the gate green on 9bd334e8). Twenty landings ruled, nineteen moved a word; no score moved in the
-pass and none was meant to. Since it: 800 and 811 landed (East Indies
-17403 → 17501 → 18182) and 803 (chapter twenty closed at 1300); 813 is
+DECISIONS 51; the gate green on 9bd334e8). Since it: 800 and 811 (East
+Indies 17403 → 17501 → 18182), 803 (chapter twenty closed at 1300); 813
 in flight.*
 
 - **Great Lakes 20568 of 24,000; East Indies 18182 and the lower map.**
