@@ -14050,7 +14050,13 @@ pub(crate) mod tests {
         // **Item 752 took two (188 → 186)**: who=1's two cities'
         // `gatherers`, a gatherer counted in its building's city and not
         // the nearest (`docs/AI.md` §73).
-        assert_eq!(under, 186, "the floor under the word");
+        // **Item 803 took one (186 → 185)**: the scout `1/0`'s `dest_angle`
+        // on 8242, ours 531955712 against 479789056, agreeing now:
+        // `eject_contents`' `update_action` is step 1's and `come_out`'s
+        // `set_angle` leaves `+0x58` (`docs/TRANSPORT.md` §15). Its
+        // `orders_x/y` there still part, ours (29592, 11160) → (23223,
+        // 17572) against (28680, 12792): a later write in the frame.
+        assert_eq!(under, 185, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -14894,10 +14900,13 @@ pub(crate) mod tests {
         assert_eq!(
             after,
             [
-                "15800 1/0 dest_angle: ours -1740439552 theirs -1743650816",
                 // Item 723: `1/0`'s formation mirror (parked 275) is gone.
-                "15800 1/0 orders_x: ours 7320 theirs 8088",
-                "15800 1/0 orders_y: ours 21912 theirs 17976",
+                // Item 803: its `dest_angle` (ours −1740439552 against
+                // −1743650816) is gone, the disembark's `update_action`
+                // being step 1's (`docs/TRANSPORT.md` §15); its order
+                // point moved from (7320, 21912) and still parts.
+                "15800 1/0 orders_x: ours 8364 theirs 8088",
+                "15800 1/0 orders_y: ours 14588 theirs 17976",
                 "15783 1/60 form: ours -1 theirs 0",
                 "15784 1/60 group: ours 69 theirs 70",
             ],
@@ -14920,7 +14929,8 @@ pub(crate) mod tests {
         // `1/0`'s 15800, an equal group's record kept.
         // Item 752: 434/439, who=1's two cities' `gatherers` on the first
         // block, counted in the building's city (`docs/AI.md` §73).
-        assert_eq!((first, firsts.len()), (434, 439), "the floor");
+        // Item 803: 434/438, `1/0`'s `dest_angle` on 15800 agreeing.
+        assert_eq!((first, firsts.len()), (434, 438), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
@@ -15274,11 +15284,14 @@ pub(crate) mod tests {
         assert_eq!(
             past,
             [
-                "16782 1/0 dest_angle: ours -2143223808 theirs -2147483648",
+                // Item 803: the scout's `dest_angle` (ours −2143223808
+                // against −2147483648) is gone, the disembark's
+                // `update_action` being step 1's (`docs/TRANSPORT.md` §15);
+                // its `orders_y` moved from 38040 and still parts.
                 "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
                 "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
                 "16782 1/0 mirror: ours 0 theirs 1",
-                "16782 1/0 orders_y: ours 38040 theirs 29304",
+                "16782 1/0 orders_y: ours 26090 theirs 29304",
             ],
             "every key first parting past the word"
         );
@@ -15287,10 +15300,11 @@ pub(crate) mod tests {
         // — 306 before the word's frame, 312 in all. It was 286/333/866
         // before item 752's fix: the two cities' counts, `1/46`'s rows and
         // the 554 rows past the word that its walk parted. Item 767 took
-        // one past the word (312 → 311): `MAKE[1].val` on 16779.
+        // one past the word (312 → 311): `MAKE[1].val` on 16779. Item 803
+        // took one (311 → 310): `1/0`'s `dest_angle` on 16782.
         let under_n = firsts.values().filter(|(f, _)| *f < WORD_BLOCK - 2).count();
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
-        assert_eq!((first, under_n, firsts.len()), (284, 306, 311), "the floor");
+        assert_eq!((first, under_n, firsts.len()), (284, 306, 310), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -15745,7 +15759,9 @@ pub(crate) mod tests {
         // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on `1/31` from 10875, ours 1
         // against 0, and it parts so with or without item 736's fix: a turn
         // this crate flips the bit on and the original does not.
-        assert_eq!((first, under, firsts.len()), (219, 232, 234), "the floor");
+        // **Item 803 took three (219/232/234 → 219/229/231)**: run149's
+        // three on `1/31`'s disembark on 10875, the same game.
+        assert_eq!((first, under, firsts.len()), (219, 229, 231), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -15876,7 +15892,13 @@ pub(crate) mod tests {
         // (`unit_masks & 2`, `docs/GROUPS.md` §26.4) parts on `1/31` from 10875, ours 1
         // against 0, and it parts so with or without item 736's fix: a turn
         // this crate flips the bit on and the original does not.
-        assert_eq!((first, under, firsts.len()), (220, 220, 230), "the floor");
+        // **Item 803 took three (220/220/230 → 220/220/227)**: the
+        // disembarked `1/31` on 10875 — `dest_angle` ours 35127296 against
+        // 404029440, `orders_x/y` ours (40344, 22680) against (41638,
+        // 34561) — agreeing now: `eject_contents`' `update_action` is step
+        // 1's and `come_out`'s `set_angle` leaves `+0x58`
+        // (`docs/TRANSPORT.md` §15).
+        assert_eq!((first, under, firsts.len()), (220, 220, 227), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
