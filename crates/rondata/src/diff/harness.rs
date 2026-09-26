@@ -15825,22 +15825,24 @@ pub(crate) mod tests {
         );
     }
 
-    /// **run257 — East Indies' word 18999, widened whole, both directions**
-    /// (items 822 and 829). run253's line over
+    /// **run257 — East Indies' word 19182, widened whole, both directions**
+    /// (items 822, 829 and 837). run253's line over
     /// [`WIDENING_EAST_INDIES_GUARDWORD`]: the six blocks before the word
     /// 18938's block, its block, and 250 past it. No capture shares a block
     /// with it, so 18434..18932 is compared by no dump, and the floor is its
     /// first block. [`widen_east_indies`] with gaia's animals.
     ///
     /// Item 822 took it for the word 18938 (block **18939**); item 829
-    /// moved the word to 18999 (block **19000**), inside it, and the walk
-    /// keeps the move's value diff.
+    /// moved the word to 18999 (block **19000**) and item 837 to 19182
+    /// (block **19183**), both inside it, and the walk keeps each move's
+    /// value diff.
     #[test]
     fn run257_s_word_frame_is_widened_whole() {
         const FIRST: i64 = WIDENING_EAST_INDIES_GUARDWORD.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_GUARDWORD.1;
         const OLD_BLOCK: i64 = EAST_INDIES_GUARDWORD_BLOCK;
-        const WORD_BLOCK: i64 = EAST_INDIES_FIGUREWORD_BLOCK;
+        const FIG_BLOCK: i64 = EAST_INDIES_FIGUREWORD_BLOCK;
+        const WORD_BLOCK: i64 = EAST_INDIES_LEADERWORD_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -15854,7 +15856,7 @@ pub(crate) mod tests {
             "run257",
             "gamelog-run257-eastindies-guardword.txt",
             WIDENING_EAST_INDIES_GUARDWORD,
-            &[FIRST, OLD_BLOCK, WORD_BLOCK],
+            &[FIRST, OLD_BLOCK, FIG_BLOCK, WORD_BLOCK],
             true,
         )
         else {
@@ -15909,21 +15911,68 @@ pub(crate) mod tests {
             Vec::<String>::new(),
             "the escort agrees on {OLD_BLOCK}"
         );
-        let rows: Vec<String> = firsts
+        // **Under item 829's word, 18999, the first row of each key past
+        // the floor**: who=1's `reg_unpack_merch[11]` on 18976, which
+        // nothing on a figure's path reads, and nothing on the word's
+        // block, 19000.
+        let under_fig: Vec<String> = firsts
             .iter()
-            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .filter(|(_, (f, _))| (FIRST + 1..=FIG_BLOCK).contains(f))
             .map(row)
             .collect();
-        // **Under the new word, the first row of each key past the floor**
-        // (item 829): who=1's `reg_unpack_merch[11]` on 18976, and nothing
-        // on the word's block. The draw stream parts there on a figure's
-        // wrap: ours spends five `Guy::inc_time` wraps and the original
-        // four, and `1/67` and `1/69` both wrap on 19000 on both sides. No
-        // mechanism is named.
+        assert_eq!(
+            under_fig,
+            ["18976 1/-1 leader:reg_unpack_merch[11]: ours 2 theirs 1"],
+            "the keys first parting under item 829's word"
+        );
+        // **Item 837's value diff, on block 19000.** The draw stream
+        // parted there on a figure's wrap, five against four: `1/19`,
+        // `1/20`, `1/29`, `1/67` and `1/69` all wrap on both sides, and
+        // `1/67` alone holds a suspended search, whose idle roll spends no
+        // draw (`docs/ANIM.md` §14). Its record agrees on the block but
+        // for the pool id every member of the old group carries (689):
+        // `start_dist` 480, `collide` 31, `collide_frame` 18969, and guy 0
+        // at `cur_anim` 0, `cur_time` 0, `end_time` 31, `last_time` −1.
+        let fig_block = standing.get(&FIG_BLOCK).cloned().unwrap_or_default();
+        let suspended: Vec<(&str, &str)> = fig_block
+            .iter()
+            .filter(|((w, o, _), _)| *w == 1 && *o == 67)
+            .map(|((_, _, k), v)| (k.as_str(), v.as_str()))
+            .collect();
+        assert_eq!(
+            suspended,
+            [("group", "ours 72 theirs 71")],
+            "`1/67` agrees on {FIG_BLOCK} but for its pool id"
+        );
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIG_BLOCK + 1..WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **Under the new word, the first row of each key past item 829's
+        // word** (item 837): who=0's `production_step` on 19001, who=1's
+        // timber bucket on 19177, and its make list on 19182. The draw
+        // stream parts on 19182, where ours runs who=1's market, building
+        // and make passes the original does not. No mechanism is named.
         assert_eq!(
             rows,
-            ["18976 1/-1 leader:reg_unpack_merch[11]: ours 2 theirs 1"],
+            [
+                "19001 0/-1 leader:production_step: ours 0 theirs 1",
+                "19182 1/-1 leader:MAKE[0].val: ours 1531 theirs 0",
+                "19182 1/-1 leader:MAKE[1].cat: ours 7 theirs 8",
+                "19182 1/-1 leader:MAKE[1].t: ours 427 theirs 528",
+                "19182 1/-1 leader:MAKE[1].val: ours 1531 theirs 0",
+                "19182 1/-1 leader:MAKE[2].t: ours 528 theirs 527",
+                "19182 1/-1 leader:MAKE[3].t: ours 527 theirs 526",
+                "19182 1/-1 leader:MAKE[7].val: ours 1531 theirs 0",
+                "19177 1/-1 leader:bucket[1:timber]: ours 149 theirs 49",
+            ],
             "the keys first parting under the new word"
+        );
+        let on_word_firsts = firsts.values().filter(|(f, _)| *f == WORD_BLOCK).count();
+        assert_eq!(
+            on_word_firsts, 24,
+            "the keys first parting on the word's block"
         );
         // The figures that change animation on one side only, near either
         // word.
@@ -15931,16 +15980,21 @@ pub(crate) mod tests {
             .iter()
             .filter(|c| {
                 c.3 != c.4
-                    && ((OLD_BLOCK - 2..=OLD_BLOCK + 2).contains(&c.0)
-                        || (WORD_BLOCK - 2..=WORD_BLOCK + 2).contains(&c.0))
+                    && [OLD_BLOCK, FIG_BLOCK, WORD_BLOCK]
+                        .iter()
+                        .any(|b| (b - 2..=b + 2).contains(&c.0))
             })
             .copied()
             .collect();
-        // `1/9` on 19002, the original's only: its move parts on 19001,
-        // past the word.
+        // Until item 837, `1/9` on 19002 was the original's only: its
+        // `cur_anim` 36 → 8 is both sides' now. Past the new word ours
+        // alone changes `0/0` on 19183 and `1/7` on 19184.
         assert_eq!(
             word,
-            [(WORD_BLOCK + 2, 1, 9, true, false)],
+            [
+                (WORD_BLOCK, 0, 0, false, true),
+                (WORD_BLOCK + 1, 1, 7, false, true)
+            ],
             "a figure's animation changes on one side only"
         );
         let lists_part: Vec<(i64, (i64, i64))> = army_lists
@@ -15968,10 +16022,13 @@ pub(crate) mod tests {
         // past it with them; the first block gains `1/60`'s `group` (70
         // against 69) and `1/0`'s (71 against 70), both the pool id one
         // higher here (689), and `1/67`..`1/72`'s read 72 against 71 where
-        // they read −1.
+        // they read −1. **Item 837** took it 322/1/323/863 →
+        // 322/9/355/387: the word's block is 19183 now, so the middle two
+        // count under it (from 19001) and on it, and 476 keys that parted
+        // behind the extra draw on 18999 agree.
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (322, 1, 323, 863),
+            (322, 9, 355, 387),
             "the floor"
         );
     }
