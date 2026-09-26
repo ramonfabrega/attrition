@@ -22,6 +22,12 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 839, 2026-09-26 — the tax's remainder
+
+(851) **who=1's `leftover[2:wealth]`**, eight sixteenths over from
+East Indies 17753..18176, which no dump compares; it carries the purse
+one over on 18511. Names no score yet.
+
 ## Parked by item 836, 2026-09-26 — the launch line's edges
 
 (843) **Trained aircraft leave through the same EXIT** at an Airbase
@@ -1286,6 +1292,13 @@ own comment says "a new one is added here in the landing that pins it";
 the rule is prose. The commander added it in the booking. The guard
 shape: every `GOLDEN_WORD_*` in `testkit.rs` is on the list, made to
 fail first by removing `ch22`.
+
+(852) **A specification that calls a constant "read" when `sim` never
+loads it** (839's Loop line, filed at its merge): ECONOMY's "Territory
+tax" section stated the British modifier as read for a month while
+`BRITISH_TAXATION` was absent from `ron_slots` and the code had no such
+term. A guard: every `UPPER_CASE` constant a specification calls "read"
+has a slot, made to fail first on the pre-839 tree.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
