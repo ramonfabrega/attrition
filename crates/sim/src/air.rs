@@ -857,24 +857,37 @@ impl Sim {
     /// clear. run281's Airbase reads 4104 from 1442. Returns the members
     /// written.
     ///
-    /// SEAM: only the repeat bit is carried ([`Building::repeat_air`]
-    /// (crate::Building)); a mask with any other bit — `0x40`, the
-    /// infinite queue, `can_infinite` — writes nothing here, and the
-    /// message and sound the `0x40` toggle plays for the console's player
-    /// are the interface's.
+    /// **And `0x40`, the infinite queue** (item 877, `docs/GOLDEN.md`
+    /// §33): `valid_buildmask` admits it on a member that
+    /// [`Sim::can_infinite`] passes — a training building with a train
+    /// job queued — and the same toggle writes
+    /// [`production::Queue::infinite`](crate::production::Queue::infinite).
+    /// run285's Barracks reads 4160 from 902. The two carried bits are
+    /// the word's `0x40` and `0x80`; a mask with neither writes nothing,
+    /// and the message and sound the `0x40` toggle plays for the console's
+    /// player are the interface's.
     pub fn action_buildmask(&mut self, buildings: &[usize], mask: i32) -> usize {
-        if mask != 0x80 {
-            return 0;
-        }
+        let (queue, repeat) = (mask & 0x40 != 0, mask & 0x80 != 0);
         let mut all_set = true;
         let mut written = 0;
         for &b in buildings {
             let bd = &self.buildings[b];
-            if !bd.alive || !bd.ty.is_some_and(|t| self.is_hangar(t)) {
+            // `WallData::valid_buildmask@0063e2a0`: either bit's own test.
+            let admitted = (queue && self.can_infinite(b))
+                || (repeat && bd.ty.is_some_and(|t| self.is_hangar(t)));
+            if !bd.alive || !admitted {
                 continue;
             }
-            let set = !bd.repeat_air && all_set;
-            self.buildings[b].repeat_air = set;
+            // `(mask & build_masks) == 0`: none of the mask's bits held.
+            let held = (queue && bd.queue.infinite) || (repeat && bd.repeat_air);
+            let set = !held && all_set;
+            let bd = &mut self.buildings[b];
+            if queue {
+                bd.queue.infinite = set;
+            }
+            if repeat {
+                bd.repeat_air = set;
+            }
             all_set = set;
             written += 1;
         }

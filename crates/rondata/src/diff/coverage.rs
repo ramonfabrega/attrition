@@ -1219,10 +1219,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter twenty-four's word, on run285** (item 877): the first
     // production queue a player fills on disk. 622 and 642, the two
     // queue-ups and the building group's pool slot; 855, the word, the
-    // Hoplites' finish and training.
+    // Hoplites' finish and training. Closed at 1560: 902, the toggle;
+    // 1060, the re-queue; 1272, its refusal; 1302, the second press;
+    // 1557, the closed word's last blocks.
     if let Some(p) = &ch24 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_FOUR;
-        for w in [622, 642, 855] {
+        for w in [622, 642, 855, 902, 1060, 1272, 1302, 1557] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-four carries the window's five blocks");
             frames += n;

@@ -793,12 +793,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             buildings,
         }) => crate::input::group_buildmask(built, who, &buildings, mask),
         // `@queueup` is `issue_queue_up@00941be0` on a group of buildings,
-        // a `group` and a `queue_up` (item 877, `docs/GOLDEN.md` §33).
-        // SEAM: not entered yet; the chapter's first pin skips it.
-        Some(Issued::QueueUp { .. }) => {
-            done.skip(&word, "the queue_up command is not entered");
-            return;
-        }
+        // a `group` and a `queue_up`, whose entry is
+        // [`crate::input::group_queue_up`] (item 877, `docs/GOLDEN.md`
+        // §33).
+        Some(Issued::QueueUp {
+            who,
+            ty,
+            num,
+            buildings,
+        }) => crate::input::group_queue_up(built, who, &buildings, ty, num),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
