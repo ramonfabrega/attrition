@@ -382,13 +382,24 @@ pub enum Issued {
         build: i32,
         objects: Vec<i16>,
     },
+    /// `@spell <who> <type> <ox> <whom> <x> <y> <o>…` — `issue_spell@
+    /// 00941b80(group, type, ox, whom, x, y)`: a craft's `TypeIndex`, the
+    /// object picked and the pick's point (item 790, `docs/GOLDEN.md` §27).
+    Spell {
+        who: i32,
+        spell: i32,
+        ox: i32,
+        whom: i32,
+        at: Pos,
+        objects: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
-/// `attack`, `amove`, `explore`, `flee`, `flight`, `strike` or `build`, a
-/// `who` outside `0..8`, fewer than three numbers (one for `eject`, four
-/// for `build`), or no object.
+/// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build` or
+/// `spell`, a `who` outside `0..8`, fewer than three numbers (one for
+/// `eject`, four for `build`, six for `spell`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
@@ -408,6 +419,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "flight"
             | "strike"
             | "build"
+            | "spell"
     ) {
         return None;
     }
@@ -425,6 +437,28 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Eject { who, buildings });
+    }
+    // `@spell`'s craft and target come before its point.
+    if verb == "spell" {
+        let [who, spell, ox, whom, x, y, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        let objects: Vec<i16> = objects
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if objects.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Spell {
+            who,
+            spell,
+            ox,
+            whom,
+            at: Pos::new(x, y),
+            objects,
+        });
     }
     let (build, nums) = if verb == "build" {
         let [who, x, y, build, ref objects @ ..] = nums[..] else {
@@ -616,6 +650,17 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             build,
             objects,
         }) => crate::input::group_build(built, who, &objects, to, build, 2),
+        // `@spell` is `issue_spell@00941b80`, a `group` and a `spell`,
+        // whose entry is [`crate::input::group_spell`] (item 790,
+        // `docs/GOLDEN.md` §27).
+        Some(Issued::Spell {
+            who,
+            spell,
+            ox,
+            whom,
+            at,
+            objects,
+        }) => crate::input::group_spell(built, who, &objects, spell, ox, whom, at),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1102,6 +1147,7 @@ mod tests {
         // Chapter eighteen: two `@build` issuer lines, the build line
         // (item 779, `docs/GOLDEN.md` §26).
         ("chapter18.cmd", &[]),
+        ("chapter19.cmd", &[]),
         ("chapter2.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
@@ -1218,6 +1264,27 @@ mod tests {
         );
         assert_eq!(parse_issuer("@build 0 7296 36864 430"), None);
         assert_eq!(parse_issuer("@build 0 7296 36864"), None);
+    }
+
+    /// **A spell line is the DLL's spell** (item 790): `who`, the craft's
+    /// `TypeIndex`, the target's `ox` and `whom`, the pick's point, then the
+    /// objects; a line one number short of its point, or with no object, is
+    /// the DLL's refusal 5.
+    #[test]
+    fn a_spell_line_is_the_dll_s_spell() {
+        assert_eq!(
+            parse_issuer("@spell 0 639 2006 1 15360 15360 6"),
+            Some(Issued::Spell {
+                who: 0,
+                spell: 639,
+                ox: 2006,
+                whom: 1,
+                at: Pos::new(15360, 15360),
+                objects: vec![6],
+            })
+        );
+        assert_eq!(parse_issuer("@spell 0 639 2006 1 15360 15360"), None);
+        assert_eq!(parse_issuer("@spell 0 639 2006 1 15360"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,

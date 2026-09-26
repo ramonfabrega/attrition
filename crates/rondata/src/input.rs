@@ -585,6 +585,63 @@ pub fn group_build(
     g.list.len()
 }
 
+/// A `group` command (0x00) and the `spell` (0x17) behind it
+/// (`docs/COMMANDS.md` §3; `docs/GOLDEN.md` §27) — [`group_attack`]'s
+/// group, then `CommandPackage::process_spell@00948340`'s one call,
+/// `Group::action_spell(g, type, ox, whom, x, y)` when the target is
+/// `(−1, −1)` or active ([`sim::Sim::group_action_spell`]).
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation.
+#[allow(clippy::too_many_arguments)] // the command's six fields and the harness
+pub fn group_spell(
+    built: &mut Built,
+    who: i32,
+    objects: &[i16],
+    spell: i32,
+    ox: i32,
+    whom: i32,
+    at: Pos,
+) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let target = i16::try_from(ox).ok().and_then(|o| {
+        built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(whom) && l.o == i64::from(o))
+            .map(|l| sim::combat::Obj::Unit(l.unit))
+            .or_else(|| {
+                built
+                    .sim
+                    .unit_by_o(whom as sim::Player, o)
+                    .map(sim::combat::Obj::Unit)
+            })
+            .or_else(|| {
+                built
+                    .sim
+                    .building_by_o(whom as sim::Player, o)
+                    .map(sim::combat::Obj::Building)
+            })
+    });
+    built.sim.group_action_spell(&g, spell, target, at);
+    g.list.len()
+}
+
 /// A `group` of buildings (0x00) and the `eject_all` (0x1a) behind it —
 /// `CommandPackage::process_eject_all@00947fe0`'s one call,
 /// `Group::action_eject_all(g, back_to_work, who, eject_o, eject_who)`

@@ -1305,7 +1305,7 @@ in `docs/COMMANDS.md` §3 maps to it cleanly and the reading is owed.
 | GatherOrder | auto (starting citizens), `CommandManager::issue_gather@00941a20` | 7 (the control) |
 | BuildOrder | `CommandManager::issue_build@00941c30` → `Group::action_build@00707510` → `Group::action_swarm_around@0070fbe0`: a `MOVEORDER` for a human (an `EXPLORETOORDER` for a computer) and the `BuildOrder` behind it; the AI's own builders come through its planner | 18, the build line (§26) |
 | TradeOrder | auto (a Caravan under AI), `CommandManager::issue_trade@00941960` | 7 (the control) |
-| CastOrder | `CommandManager::issue_spell@00941b80` | 8 stages the Spy; the cast needs the issuer |
+| CastOrder | `CommandManager::issue_spell@00941b80` → `Group::action_spell@006fe1a0` → `Unit::add_cast_order@005e4a60`; also auto (`think_fish`, the unpacks, the transport; `think_spellcaster`'s Counterintelligence) | 19, the cast line (§27): the Informer on an enemy Barracks, `do_cast`'s targeted arm |
 | RepairOrder | the `repair` command type has no `CommandManager` issuer in the export | unresolved |
 | BoardOrder, AwaitBoardOrder | `CommandManager::issue_set_transport@00941910`; `board_ship` has no issuer | unresolved |
 | StrafeOrder | ~~no command type of its own; a mounted or air attack on the move~~ **`CommandManager::issue_flight@00941d40`** → `Group::action_flight@006fb260` → `Unit::add_strafe_order@005e48c0`: a flight home, `returning 1`, and a strike re-pointing one in flight; an unseen target turns it into an `AirPatrolOrder` over its point (`docs/ORDERS.md` §32) | 17, the flight line (§25) |
@@ -1361,6 +1361,7 @@ below without a run take their number at booking (the eleventh pass).
 | 219 | sixteen, explore and flee | `[605, 1250)` | the move issuer's trailing selector through the DLL's `@explore` and `@flee`, on a Chariot and a Hoplite squad, each explorer passing a goody box, with `GROUPS=1` at `GUYS=4` for the pool (§24) — **run 2026-09-25 (item 738), 263 MB, 769 s; no falsifier fired: one `EXPLORETOORDER` or `FLEETOORDER` a member and no group order; both explorers take a box leg (685, 804) and open the box (730, 855); the re-issue goes to the click; the pool printed** |
 | 223 | seventeen, the flight line | `[605, 1400)` | `issue_flight` through the DLL's `@flight` and `@strike` on a Fighter and a Bomber pair from a staged Airbase, a strike from the ground first, with `GROUPS=1` at `GUYS=4` for the pool (§25) — **run 2026-09-25 (item 746), 325 MB, 942 s on the second take (the first stalled in DXVK's device setup); the pool printed; the strike on the ground took no order; three `STRAFEORDER`s home, `returning 1`, as read; falsifier 4 fired: the flying pair's strike became an `AIRPATROLORDER` over the unseen Barracks' point; the Fighter inside its base on 722; the Barracks bombed from 822 and destroyed on 1080; the pair still flying home at 1399** |
 | 241 | eighteen, the build line | `[605, 1450)` | `issue_build` through the DLL's `@build` on a lone citizen (a Barracks) and a group of three (a Siege Factory), with `GROUPS=1` at `GUYS=4` for the pool (§26) — **run 2026-09-25 (item 779), 348 MB, 1,002 s; the pool printed; no falsifier fired: a `MOVEORDER` and a `BUILDORDER` (flags 4) a citizen on 622 and 642, both sites paid; built from 709 and 721, finished on 948 and 1141; `0/8` helps with a `MOVEORDER` on 1097; word ~~642~~, closed at 1450 (item 779: the build command entered, a human's approach a move)** |
+| 245 | nineteen, the cast line | `[605, 1100)` | `issue_spell` through the DLL's `@spell` on a Spy of who=0: the Informer on a staged who=1 Barracks, with `GROUPS=1` at `GUYS=4` for the pool; the staging's predicates first read on run246's packet at 619 (§27) — **run 2026-09-25 (item 790), 201 MB, 540 s; the pool printed; no falsifier fired: a `CASTORDER` (flags 4, `paid` 1) and a `MOVEORDER` to (14232, 15528) on 622, `mana_burn` +500 and no bucket down; the Spy in range on 756, `spell_time` 1…39, the Barracks `infiltrated` on 795; the mana still from 756 to 795** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -3682,3 +3683,178 @@ no value part.
 - **The widening is run241 whole**, (605, 1451). Past the births only
   the pool's `ox`/`oy` on each pushed selection stands: (0, 0) there and
   (−1, −1) here, as on §25's flight groups, a point no build reads.
+
+## 27. Chapter nineteen — the cast line, a Spy's Informer on an enemy building (item 790)
+
+**Premise.** `CommandManager::issue_spell@00941b80` on a human's Spy,
+casting the **Informer** (`0x27f`) on an enemy Barracks, lays **a
+`CastOrder` (type 14, flags 4)** through `Group::action_spell@006fe1a0` →
+`Unit::add_cast_order@005e4a60`, and `Unit::do_cast@005ebfe0`'s
+**targeted arm** — which no capture has reached (`docs/ORDERS.md` §6.9,
+"What is not established") — pays it once in **mana**, walks the Spy to a
+ring on the target with a `MOVEORDER` ahead of the cast, faces and holds
+it for the craft's forty frames, and sets the target's `infiltrated`. This
+crate kills a targeted order on its first frame. Four of the last seven
+premises died on the class, so the emulator went first, twice.
+`tools/gamelog/golden/chapter19.cmd` has the reading, citation by citation.
+
+**The issuer, under the emulator**, on `tools/explore/command_oracle.py`'s
+fixture (a scratch script in the job's tmp dir): one call appends a
+21-byte `spell` (type 0x17, `[ox][whom][type][x][y]`, each as passed)
+behind a fresh `group`, 26 bytes in all, or the 3-byte reuse (24).
+`use_mp_playback`, `semaphore & 0x10` and `semaphore & 4` each append
+nothing. It writes the package and the selection caches: no order, no
+price, no draw, as in §17, §25 and §26.
+
+**The cast's predicates, under the emulator on the original's own
+state** (run246: a `RON_STATE_FRAME=619` packet of this script without its
+`@spell` line, 59 s; `tools/recomp/step4.py`'s machinery, scratch).
+Without the DLL's verb, it answers which crafts the Spy may cast on the
+Barracks:
+
+| craft | `is_castable(·, 0/6, 0, 0)` | `is_valid_target(·, 0, 2006, 1)` | `get_range` | `get_job_time` |
+|---|---|---|---|---|
+| Bribe `0x275` | 3 | 0 | 192 | 100 |
+| Counterintelligence `0x277` | 3 | 0 | 192 | 38 |
+| Informer `0x27f` | 3 | **1** | **960** | **40** |
+
+`can_pay_cost` answers 10 for each; the Spy holds `mana` 1000 and
+`mana_burn` 491 (born at `mana / 2`, `Unit::init@00612100`, and one back a
+frame). Then **`Group::action_spell` and one `Unit::do_cast`, run on the
+packet** with a pool `Group` of `[6]`: a **`CastOrder` (type 14)**, the
+Spy's target fields `+0xa2` 2006, `+0xa8` 1, `+0xa6` its uid, `spell_time`
+0; then `paid` 1, `mana_burn` 991, `Type::pay_cost@006681f0` rewriting
+every bucket of who=0 **unchanged** (254 food, 240 timber, 113 wealth, 100
+metal, stored `^ 0x8221`) although the row prints `COST 20g/20w`, and a
+**`MOVEORDER` pushed ahead of the cast** to **(14232, 15528)**. What the
+emulator cannot reach is the frames after the first: the walk, the
+in-range half and the cast.
+
+**The reading** (`chapter19.cmd` has it whole).
+- **The order.** `action_spell` runs `validate_spell` again; the craft
+  carries `m` (0x1000), so the member with the most `mana_left` casts;
+  `mana_left + pending ≥ MANA` (500); `can_pay_cost`; `is_valid_target`;
+  the target onto the unit; `add_cast_order(ox, whom, x, y, 0x27f,
+  QUEUE_NEW, 1)` — no `g` (0x40), so not QUEUE_FIRST.
+- **The walk.** `do_cast`'s targeted arm pays once, re-reads the target,
+  and out of `get_range + radius` (960 + 384 for a 4×4) queues
+  `add_move_order(spot, QUEUE_FIRST, tolerance 1344)` to a
+  `find_nearby_spot` ring at 1,152–1,296.
+- **In range.** The target must answer `is_seen(0, 0)`; the Spy takes
+  `flags |= 0x80` and `visible |= 1 << 1`, faces the target, re-sets
+  `CHAR_ATTACKWALK` (0xa) every frame and `unit_masks |= 0x20000` once;
+  the craft's `l` (0x800) keeps the cloak. On the fortieth in-range
+  frame `SpellType::cast` → `cast_double_agent@00673a80`: the target's
+  `infiltrated |= 1`, its `update_seen(0)`, then `kill_current_order`,
+  which clears 0x20000. Mana recovers one a frame only while
+  `unit_masks & 0x2a000` is clear (`Unit::process@00610bc0`).
+
+**The cast**, on neutral open ground (chapter seventeen's arena, cells
+x 12–23, y 17–22 of run241's start `WORLD`), both sides Medieval by
+`library`: a who=1 **Barracks** at tile (80, 80), **`1/2006`**, at
+(15360, 15360); a who=0 **Spy** at tile (60, 82), **`0/6`**, at (11640,
+15864); and on 620 the Informer, picked at the Barracks' own point.
+
+**Lines.** `0 !ai off`; `600 library who=0 2`; `602 library who=1 2`;
+`606 add barracks who=1 80,80`; `610 add spy who=0 60,82`; `620 @spell 0
+639 2006 1 15360 15360 6`. A call on trace frame F is on block F+2 (§17).
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over `[605, 1100)`, beside run105's `start:`
+set.
+
+**The premise's killer, and its writers** (§3, point 5).
+- **The Spy's order stack on block 622**: anything but a `MOVEORDER` then
+  a `CASTORDER` (spell 639, `paid` 1).
+- The class's constructor on this path is `add_cast_order`'s
+  `get_obj(CAST_SPELL)`. Its other callers are `think_spellcaster@
+  005f27a0` — a human's QUEUE_FIRST Counterintelligence on a valid target
+  in range, and none is staged: no enemy Spy, no infiltrated object of
+  who=0's — `think_fish` and the unpack and transport arms, none reached
+  by a staged Spy. `do_cast` kills the order (a target no longer valid, an
+  unseen target in range, the cast), as does any QUEUE_NEW order.
+- **The loops' bounds.** `action_spell`'s member loops run over
+  `group.num`, 1; `find_nearby_spot`'s ring to 1,296.
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frame 620: an `INFO 17`
+   with a refusal; or no `process_spell` on 621.
+2. **The class is not a cast.** Block 622: `0/6` holding anything but a
+   `MOVEORDER` then a `CASTORDER` (spell 639, `paid` 1, x 15360, y 15360,
+   on `2006`/1). No order says `action_spell` refused.
+3. **The price is not the mana.** Block 622: `mana_burn` not up by 500
+   (about 989), or a bucket of who=0 down — a 20-wealth, 20-timber drop
+   says `get_cost` charges the row's `COST`.
+4. **The walk is not to the ring.** Block 622: the `MOVEORDER` not to
+   (14232, 15528); or `spell_time` rising before the Spy is within 1,344
+   of the Barracks, or not rising by block 800.
+5. **The cast does not land, or costs the Spy.** Forty frames after the
+   first in-range frame: `1/2006`'s `infiltrated` not 1, the Spy's stack
+   not empty, or the Spy gone.
+6. **The cloak breaks.** Any block: `unit_masks` taking 0x1000 or
+   0x10000. The first in-range block: no 0x20000, `visible` not taking
+   0x2, `flags` not taking 0x80; or 0x20000 still set after the cast.
+7. **The mana does not wait.** `mana_burn` falling while 0x20000 is set,
+   or not falling after the cast.
+
+**This crate's prediction.** The emulator's frame on the packet stands in
+for the scratch walk (parked 794): it is the original's own `action_spell`
+and first `do_cast` on this staging, and it found neither a refusal nor a
+price. From the Spy's `MOVES 21` (about 28 units a frame) the walk of
+~2,600 units ends near block 715, the cast near 755.
+
+**Where it should part.** This crate does not enter the spell command: the
+harness skips `@spell` by name. So the first parting expected is 621–622:
+the command's processing, the order, the price and the Spy's first step,
+which the original spends and this crate does not.
+
+**Run 2026-09-25 as run245 (item 790)** (`docs/RUNS.md` has the tables).
+- **No falsifier fired, and the premise's class holds.** The command
+  reached the pump on 621 (`process_spell 639 2006 1`). On 622 `0/6`
+  holds a `CASTORDER` (flags 4, `ox 2006 whom 1`, `x 15360 y 15360`,
+  `paid 1`, `spell 639`) and, at its head, a `MOVEORDER` to (14232,
+  15528) — the emulator's spot. The dump lists the cast first, the order
+  laid first. `cavarch_o/uid/who` read 2006, 12, 1.
+- **The price is the mana.** `mana_burn` 489 → 988 on 622; no bucket of
+  who=0 falls.
+- **The walk and the cast.** The Spy walks ~20 units a frame and stands
+  on the spot on **755**; `spell_time` climbs 1 … 39 on 756–794, and on
+  **795** `1/2006`'s `infiltrated` is 1 and the Spy's stack is empty. It
+  stands idle there to 1099.
+- **In range.** `unit_masks` takes 0x20000 on 756 and loses it on 795;
+  never 0x1000 or 0x10000 — the craft's `l` keeps the cloak. `visible`
+  takes 0x2 on 756 and loses it on 827; `flags` takes 0x80 on 756 and
+  loses it on 796. `mana_burn` stands at 854 from 756 to 795 and
+  recovers from 796.
+- **The prediction** from the Spy's `MOVES` was a walk to ~715 and a cast
+  near 755; the Spy walks slower, 20 units a frame, and both came forty
+  frames later.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_NINETEEN` = 669, open.**
+The harness skipped the `@spell` line. Nothing spends a draw on the Spy's
+walk until 669, where the original spends 7 draws against 9 here, parting
+at draw 0 on an idle Spy's roll this crate spends (`Guy::set_anim+0x97a
+< Guy::inc_time+0x271`) and the walking one does not. The widening over
+(605, 672), both directions, names what stands: the Spy's birth `form`;
+on 622 its stack, empty here, with the action point and group; on 623 its
+first step; in the pool, the command's pushed selection.
+
+**The spell command entered: `GOLDEN_WORD_CHAPTER_NINETEEN` = 1100,
+closed** (item 790, `docs/ORDERS.md` §37). `input::group_spell` →
+`Sim::group_action_spell` lays the cast; `crate::cast` walks, holds and
+casts it. The stream agrees to run245's end, 1100.
+- **The value diff on the old word's frame**, block 669, both sides: `0/6`
+  at (12551, 15616) on its walk to (14232, 15528), a `CASTORDER` (flags 4,
+  `paid` 1) behind the `MOVEORDER`, `mana_burn` 941.
+- **One row fell to a reading on the way**: on 756 the figure's `stopped`
+  was a frame late here. `Unit::set_angle(angle, target, 1)`'s third
+  argument writes guy 0's `angle` and `last_angle` outright
+  (`Guy::set_angle@005d9010`), so the figure stands facing the target on
+  its first frame in range.
+- **The widening is run245 whole**, (605, 1101): past the births nothing
+  stands but the pool's `ox`/`oy` on the pushed selection, (0, 0) there and
+  (−1, −1) here, as on §25's and §26's. `run245_s_cast_is_the_original_s_
+  field_for_field` reads the cast's own fields raw on every block —
+  `mana_burn`, `spell_time`, `cavarch_o`/`cavarch_who`, the started bit,
+  `visible`, the Barracks' `infiltrated`, the order's target, point, craft
+  and `paid` — 46,540 rows, none parted.

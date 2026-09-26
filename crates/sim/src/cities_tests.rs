@@ -3512,3 +3512,134 @@ fn an_unfinished_wonder_calls_in_the_nearest_citizen_that_is_not_busy() {
     sim.process_building(fort, f2);
     assert_eq!(held(&sim, idle), [(Body::Build(fort), 0)]);
 }
+
+/// A spy's craft table and a unit type that casts it, for `crate::cast`'s
+/// tests: the Informer's row as `craftrules.xml` has it (`fbcml`, job 40,
+/// ten tiles, `MANA 500`), cast by the returned type.
+fn informer_sim() -> (Sim, usize, Types) {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let spy_t = tree.add(TypeDef::unit("Spy", crate::tech::UnitTraits::default()));
+    let barracks_t = tree.add(TypeDef::building("Barracks"));
+    sim.set_tech_tree(tree);
+    sim.build_types[t.barracks].tree = Some(barracks_t);
+    let spy = sim.add_unit_type(UnitType {
+        hits: 15,
+        mana: 1000,
+        tree: Some(spy_t),
+        ..UnitType::default()
+    });
+    let mut rows = vec![crate::orders::SpellType::default(); 55];
+    rows[(crate::orders::spell::INFORMER - crate::orders::spell::FIRST) as usize] =
+        crate::orders::SpellType {
+            job_time: 40,
+            flags: 0x1826,
+            range: 10 * 192,
+            mana: 500,
+            from: [Some(spy_t), None],
+        };
+    sim.spells = rows;
+    (sim, spy, t)
+}
+
+/// **A player's Informer on an enemy building walks to the ring, then
+/// casts on its fortieth frame in range** (item 790, `docs/GOLDEN.md`
+/// §27, run245). `Group::action_spell` lays one `CastOrder` with the
+/// action bit; `do_cast`'s targeted half pays the mana once and, out of
+/// range + radius, queues a `MOVE_TO` ahead of it to a ring spot on the
+/// target; in range it holds the cast, the started bit set, and on the
+/// fortieth frame the building's `infiltrated` takes the caster's player,
+/// the order dies and the bit with it.
+///
+/// Made to fail once with the approach queued `QUEUE_NEW` (the cast is
+/// lost), and once with the range taken whole on a building (the ring is
+/// farther out than 1,344).
+#[test]
+fn a_spy_s_informer_walks_to_the_ring_then_casts_on_its_fortieth_frame() {
+    use crate::combat::Obj;
+    let (mut sim, spy_ty, t) = informer_sim();
+    let _ = city_at(&mut sim, &t, 1, 44, 36);
+    let b = sim
+        .place_building(1, t.barracks, tile_pos(40, 30))
+        .expect("the Barracks places");
+    finish(&mut sim, b);
+    let spy = spawn(&mut sim, 0, spy_ty, tile_pos(20, 30));
+    sim.units[spy].mana_burn = 480;
+    let mut g = crate::group::Group::stack(0);
+    sim.group_add(&mut g, spy);
+    assert!(sim.push_group(&mut g, true));
+    let at = sim.buildings[b].pos;
+    let laid = sim.group_action_spell(
+        &g,
+        crate::orders::spell::INFORMER,
+        Some(Obj::Building(b)),
+        at,
+    );
+    assert_eq!(laid, 1);
+    {
+        let o = &sim.units[spy].orders;
+        assert_eq!(o.len(), 1, "one cast: {o:?}");
+        assert!(
+            matches!(o[0].body, Body::Cast(c) if !c.paid && c.target == Some(Obj::Building(b)))
+        );
+        assert!(o[0].has(crate::orders::flag::ACTION));
+    }
+    assert_eq!(sim.units[spy].cast_target, Some(Obj::Building(b)));
+    sim.tick();
+    {
+        let o = &sim.units[spy].orders;
+        assert_eq!(o.len(), 2, "the approach ahead of the cast: {o:?}");
+        let Body::Move(m) = o[0].body else {
+            panic!("the head is the approach: {o:?}")
+        };
+        assert_eq!(m.kind, MoveKind::MoveTo);
+        let d = crate::world::vector_dist(m.dest.x - at.x, m.dest.y - at.y);
+        assert!(d <= 960 + 384, "the spot is in range + radius: {d}");
+        assert!(matches!(o[1].body, Body::Cast(c) if c.paid));
+    }
+    assert_eq!(sim.units[spy].mana_burn, 480 - 1 + 500, "paid in mana once");
+    let mut first_in_range = None;
+    for f in 0..600 {
+        sim.tick();
+        if first_in_range.is_none() && sim.units[spy].casting {
+            first_in_range = Some(f);
+        }
+        if sim.buildings[b].infiltrated != 0 {
+            let start = first_in_range.expect("the cast started before it landed");
+            assert_eq!(f - start, 39, "the fortieth frame in range casts");
+            break;
+        }
+    }
+    assert_eq!(sim.buildings[b].infiltrated, 1, "who=0's informer is in");
+    assert!(
+        sim.units[spy].orders.is_empty(),
+        "the order died with the cast"
+    );
+    assert!(!sim.units[spy].casting, "and the started bit with it");
+    assert!(sim.units[spy].alive(), "the Informer costs the Spy nothing");
+}
+
+/// **The mana waits while the cast runs** (item 790, run245's 756–795):
+/// `Unit::process` recovers one point a frame only while `unit_masks &
+/// 0x2a000` is clear, and a targeted cast's started bit is one of the
+/// three. Made to fail once with the recovery ignoring the bit.
+#[test]
+fn a_caster_s_mana_waits_while_its_cast_has_started() {
+    let (mut sim, spy_ty, _) = informer_sim();
+    let spy = spawn(&mut sim, 0, spy_ty, tile_pos(20, 30));
+    sim.units[spy].mana_burn = 900;
+    sim.tick();
+    assert_eq!(sim.units[spy].mana_burn, 899, "one a frame when idle");
+    sim.units[spy].casting = true;
+    sim.tick();
+    sim.tick();
+    assert_eq!(
+        sim.units[spy].mana_burn, 899,
+        "none while the cast has started"
+    );
+    sim.units[spy].casting = false;
+    sim.tick();
+    assert_eq!(sim.units[spy].mana_burn, 898);
+}

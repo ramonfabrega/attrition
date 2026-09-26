@@ -2473,11 +2473,13 @@ epoch's `SCIENCE_LOS 2` with the clamp lifted.
 
 **What is not established.**
 
-- **The targeted half**, everything behind `spell_flags & 0xe`: the range
+- ~~**The targeted half**, everything behind `spell_flags & 0xe`: the range
   walk, `is_valid_target`, the `find_nearby_spot` approach and the
   `add_move_order(QUEUE_FIRST)` it issues, the cloak and the message
   window. Nothing here issues one, and `do_cast` kills such an order rather
-  than pretending. *Capture:* a spy craft, which needs a Spy.
+  than pretending. *Capture:* a spy craft, which needs a Spy.~~ **§37**
+  (item 790): the Informer on an enemy building, run245, diff-backed on
+  its whole window. The other crafts' arms stay open there.
 - **`pay_cast_costs`**, which is modelled as "never refuses". True for
   every craft with empty `COST2` and `MANA`, which is the two this crate
   issues; a `MANA` craft would need the mana pool, and nothing keeps one.
@@ -7287,3 +7289,119 @@ captures, so it is left for an item that measures both words with it.
 - `a_human_s_one_unit_swarm_walks_under_a_move` fails with the one-unit
   kind fixed at `EXPLORE_TO`.
 - `chapter_eighteen_holds_to_the_golden_word` pins 1450, closed.
+
+## 37. The targeted cast: a player's Informer, walked, held and cast (item 790, 2026-09-25)
+
+**What it is.** `CommandManager::issue_spell@00941b80` appends a `spell`
+(type 0x17, `[ox][whom][type][x][y]`) behind a `group`, and
+`CommandPackage::process_spell@00948340` hands it to `Group::
+action_spell@006fe1a0` when the target is `(−1, −1)` or active. For a
+craft that is neither a unit type nor `TRANSPORT`, `action_spell` lays a
+`CastOrder` (`CastOrder::get_type@00486340`, 14) on each member that may
+cast it, and `Unit::do_cast@005ebfe0`'s **targeted half** — §6.9's
+untargeted arm is the other — runs it. `docs/GOLDEN.md` §27 is the
+chapter; run245 its capture; run246's packet the emulator's first frame.
+
+**`action_spell`'s default arm** (`GroupOut::validate_spell@007095e0`
+again first: the Informer, `DOUBLE_AGENT`, refuses an object its player
+has already infiltrated):
+1. a craft carrying `m` (0x1000) — the Spy's three — goes to the one
+   member with the most `mana_left` among those that `is_castable`
+   (the head's lineage test: `FROM`/`FROM2`) and are not already casting
+   it;
+2. per member: `mana_left` plus a head cast's own `MANA`, capped at the
+   pool, must reach the craft's `MANA`; `can_pay_cost`;
+   `SpellTypeData::is_valid_target@006763c0`; not busy;
+3. the target onto the unit — `cavarch_o`/`cavarch_who`/`cavarch_uid`
+   (`+0xa2`/`+0xa8`/`+0xa6`), `spell_time` zeroed when it changes — and
+   `Unit::add_cast_order@005e4a60(ox, whom, x, y, craft, queue, 1)`:
+   `QUEUE_NEW`, or for a `g` (0x40) craft a kill of the head casts and
+   `QUEUE_FIRST`. The order carries the action bit.
+
+**`do_cast`'s targeted half**, one frame:
+1. `SpellType::pay_cast_costs@00676c40` once (`paid`): `can_pay_cost`,
+   `Type::pay_cost@006681f0`, and the craft's `MANA` onto `mana_burn`.
+   run246's packet has `pay_cost` rewrite every bucket unchanged for the
+   Informer although its row prints `COST 20g/20w`, and run245's buckets
+   never fall;
+2. the target re-read — the captain of a squad member, the container of
+   an object inside — and `is_valid_target` again, or the order dies;
+   Bribe's territory refusal; the target onto the unit again;
+3. **out of range**: `SpellTypeData::get_range@00676a80` (the row's tiles
+   × 192; the Informer's halved on a building) plus the target's radius —
+   a building's `(x_size + y_size) × 48`, a unit's `big_radius`. Beyond
+   it, `find_nearby_spot(target, r − 0xc0, r − 0x30, bearing to the
+   caster)` and `add_move_order(spot, MOVE_TO, 0, QUEUE_FIRST, …)` ahead
+   of the cast, whose seventh argument `add_move_order@00616ed0` never
+   pushes on; the order stands;
+4. **in range**, for an enemy target: `is_seen(who, 0)` or the order
+   dies; `flags |= 0x80`; `visible |= 1 << whom`; `Unit::set_angle(angle,
+   target, 1)`, whose third argument makes `Guy::set_angle@005d9010`
+   write guy 0's `angle` and `last_angle` outright — the figure stands
+   facing the target on the first frame; then, every frame, `set_anim` —
+   for a spy Bribe `CHAR_ATTACK3`, the Informer `CHAR_ATTACKWALK`, any
+   other craft `CHAR_ATTACK2` on a spy and `CHAR_ATTACK1` otherwise;
+   `unit_masks |= 0x20000` once, with the messages; the cloak
+   (`0x11000`) unless the craft carries `l` (0x800);
+5. `spell_time += 1`; on `get_job_time` `SpellType::cast@00676ce0`, which
+   for the Informer is `SpellType::cast_double_agent@00673a80`: the
+   target's `infiltrated |= 1 << who`, its `update_seen(0)`; then
+   `kill_current_order@005e2cb0`, which clears 0x20000.
+
+**Mana.** `Unit::init@00612100` starts a spy at half its pool;
+`Unit::process@00610bc0` gives a caster one point back a frame while
+`unit_masks & 0x2a000` is clear, so the pool stands still from the first
+frame in range to the cast.
+
+**The record.** `CastOrder::clear@00486350` resets the target to `(−1,
+−1)` with uid 0xffff and zeroes the point, the craft and `paid`;
+`CastOrder::log_data@004860f0` prints `CASTORDER` behind the
+`TARGETORDER` base, with `x y paid spell`. The dump lists a unit's orders
+in the order they were laid, so a cast with an approach pushed ahead of it
+prints before the move it waits behind.
+
+**In this crate.**
+- `rondata::input::group_spell` is the command's entry: the group, forced
+  into the pool as `process_group` does, the target resolved, then
+  `Sim::group_action_spell`. The `@spell` issuer line of
+  `crate::golden::Script` reaches it.
+- `crate::cast` holds `action_spell`'s default arm, the targeted half of
+  `do_cast`, `is_valid_target` and `get_range` as far as the Informer
+  reaches them, the Informer's cast and the mana's recovery.
+  `Sim::do_cast` hands a targeted craft to it.
+- The craft row carries its range, mana and caster lineages; a unit type
+  its `MANA`; a unit its `mana_burn`, its target and the started bit; a
+  unit or building its `infiltrated`.
+
+**Diff-backed** (run245, `chapter_nineteen_s_word_frame_is_widened_whole`
+and `run245_s_cast_is_the_original_s_field_for_field`, run245 whole, both
+directions):
+- the `CASTORDER` (flags 4, its target, point, craft and `paid`) and the
+  head `MOVEORDER` to (14232, 15528) on 622;
+- `mana_burn` on every block — 988 on 622, 854 from 756 to 795,
+  recovering from 796;
+- the walk, the arrival on 755, the figure standing on 756,
+  `spell_time` 1 … 39, the started bit across 756–794, `visible` from 756
+  to 827, `cavarch_o`/`cavarch_who` throughout;
+- the Barracks' `infiltrated` from 795.
+
+**What is not established.**
+- **Every other craft's arms**: Bribe's and Counterintelligence's
+  `is_valid_target` cases (refused here; run246 has both refuse a
+  Barracks), `cast_bribe`, `cast_counterintel`, Bribe's territory
+  refusal, the spy upgrades' ranges, Sabotage's and Pilfer's cases, and a
+  non-spy caster's animations.
+- **Why the Informer's `COST` is not charged.** `TypeData::get_cost` tests
+  `LeaderData::has_spell` first; the packet's answer is zero, and the
+  reason is not read.
+- **The target's re-reads** (a squad member's captain, an object inside)
+  and the infiltrator's plane: `update_seen` lighting the target's line
+  of sight for every player in `infiltrated` (`World::set_seen2`) is not
+  carried, and no capture has read the fog after a cast.
+- **`flags & 0x80`**, which the caster takes on 756 and loses on 796, and
+  `cavarch_uid` and the order's uid: this crate carries neither the flag
+  nor uids.
+- **The AI's casts.** `Unit::think_spellcaster@005f27a0` — a human spy's
+  own Counterintelligence on a valid target in range, and a computer's
+  Bribe and Counterintelligence — is still a seam (`docs/SCOUT.md` §13).
+

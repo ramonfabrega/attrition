@@ -145,6 +145,16 @@ pub mod spell {
     /// `TRANSPORT` — the shore conversion (`docs/TRANSPORT.md` §6).
     pub const TRANSPORT: i32 = 0x28a;
 
+    /// The Spy's three crafts (`FROM Spy`), each targeted: `BRIBE` (`fcbhm`,
+    /// `MANA 1000`), `COUNTERINTEL` (`febchm`, `MANA 500`; the one a human
+    /// Spy's `think_spellcaster` casts by itself) and `INFORMER` (`fbcml`,
+    /// `MANA 500`), which `SpellType::cast` hands to `cast_double_agent`
+    /// and `GroupOut::validate_spell` names `DOUBLE_AGENT`
+    /// (`docs/GOLDEN.md` §27).
+    pub const BRIBE: i32 = 0x275;
+    pub const COUNTERINTEL: i32 = 0x277;
+    pub const INFORMER: i32 = 0x27f;
+
     /// The four **pack** rows and the four **unpack** ones, in the pairs
     /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
     /// (the generic pair, and the one the file names `Catapult`), the
@@ -192,6 +202,16 @@ pub struct SpellType {
     /// `0..12`. `do_cast` splits on `& 0xe` — `b` units, `c` buildings,
     /// `d` an area — which is what makes a craft *targeted*.
     pub flags: u32,
+    /// `SpellTypeData::spell_range`, **in internal units**: the row's
+    /// `SPELL_RANGE` tiles × 192, which is what `get_range@00676a80`
+    /// hands back before its craft arms (the Informer's 10 is 1,920, and
+    /// run246's packet answers 960 for it on a building, the halving).
+    pub range: i32,
+    /// `SpellTypeData::mana` (`+0x1d0`): what `pay_cast_costs` adds to the
+    /// caster's `mana_burn`, and what `action_spell` asks it to have left.
+    pub mana: i32,
+    /// `FROM`/`FROM2`, the caster lineages `is_castable`'s head tests.
+    pub from: [Option<crate::tech::TypeId>; 2],
 }
 
 impl SpellType {
@@ -417,9 +437,10 @@ pub struct AttackOrder {
 /// The fields of `CastOrder` this crate keeps (§1.2's value 14).
 ///
 /// The target half — `+0x8`/`+0xc` the object and its owner, `+0x10` its
-/// `uid`, `+0x14`/`+0x18` the ground point — is absent because the one
-/// spell modelled is untargeted: `set_new_location` queues it with
-/// `(-1, -1, -1, -1)`.
+/// `uid`, `+0x14`/`+0x18` the ground point — is `(-1, -1, -1, -1)` for
+/// every untargeted craft (`set_new_location`, `think_fish`, the unpacks)
+/// and a player's pick for a targeted one (`Group::action_spell`,
+/// `docs/GOLDEN.md` §27). The uid is the target's own, read when needed.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CastOrder {
     /// `+0x20` — the spell's `TypeIndex` (see [`spell`]).
@@ -427,6 +448,11 @@ pub struct CastOrder {
     /// `+0x1c` — "the cost has been taken", so a cast that waits out a
     /// job time pays once rather than once a frame.
     pub paid: bool,
+    /// `+0x8`/`+0xc` — the target object, `None` for `(-1, -1)`.
+    pub target: Option<crate::combat::Obj>,
+    /// `+0x14`/`+0x18` — the point the pick was made at, `(-1, -1)` for
+    /// an untargeted craft.
+    pub at: Pos,
 }
 
 /// The fields of `TradeOrder` the road half of a trade route reads
@@ -1093,7 +1119,7 @@ impl Sim {
         self.enqueue(u, order, pos);
     }
 
-    fn enqueue(&mut self, u: usize, order: Order, pos: QueuePos) {
+    pub(crate) fn enqueue(&mut self, u: usize, order: Order, pos: QueuePos) {
         match pos {
             QueuePos::New => {
                 self.units[u].path.clear();
@@ -1173,6 +1199,9 @@ impl Sim {
             }
             _ => {}
         }
+        // `kill_current_order@005e2cb0:30`: `unit_masks &= ~0x20000`, a
+        // targeted cast's "started" bit, for whatever order dies.
+        self.units[u].casting = false;
         self.units[u].orders.pop_front();
         if order.is_move() && order.has(flag::PATHED) {
             self.kill_current_path(u);
@@ -1835,6 +1864,8 @@ impl Sim {
             body: Body::Cast(CastOrder {
                 spell: id,
                 paid: false,
+                target: None,
+                at: Pos::new(-1, -1),
             }),
         };
         self.enqueue(u, order, pos);
