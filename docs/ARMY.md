@@ -630,7 +630,8 @@ In order, each an early return:
    and **not mustering**: `city = 0`, then the first active city of mine
    (below `city_num`) — none → `close()`; found →
    `send_here(city.x, city.y, MOVE_TO)` (§14), then `close()` anyway. The
-   survivors walk home and the slot is freed.
+   survivors walk home and the slot is freed; the army's group is not,
+   and stays in the pool with `army −1` (§22).
 2. **A human's ping.** If `human_frame != 0`: `send_here(x, y, ATTACK_TO)`
    and return — the AI is suppressed while the countdown runs (§14,
    `Leader::action_ping`).
@@ -2272,3 +2273,147 @@ dispatch's second call (`006f93d0:180`), `get_loc`'s call before the
 clear (`705133`) and `compute_form`'s read-only use of the location.
 **Built** (`army.rs`): `a_retarget_forms_the_army_inside_do_marching`,
 made to fail with the call removed.
+
+## 22. A closed army's group stays in the pool — East Indies 18938 → 18999 (item 829, 2026-09-26)
+
+`Army::close@006f8ea0` does three things. For each of its groups
+(`+0x54`, count `+0x96`) whose `army` (`GroupData +8`) names this army,
+it writes −1 there and calls `Group::action_halt(g, 0)`. It clears
+`valid`, `+0x4`, `+0x28` and the group count. It does **not** free the
+group: the record, its pool index and its list stay in the pool, and
+every member's `+0x80` still names it. This crate's `close_army` dropped
+the group whole. So the next `get_open_slot` could hand its index to a
+new group, and that call's tail (`docs/GROUPS.md` §3.1) cleared every
+pointer that named it.
+
+### 22.1 The frame, read whole first
+
+The word was 18938 (block 18939). On block 18939 `1/67`, `1/68`, `1/70`
+and `1/71` part whole. The original's hold `[ATTACK_TO leg, GUARD]`: the
+leg has `timer` 29 and `facing` −1, the `GUARD` names the wagon `1/60`,
+and `guard_x/y` equal the leg's point. That is `do_guard`'s walk to its
+post (`docs/ORDERS.md` §24.4) once the wagon had moved, not an army order.
+Ours stand under the `GUARD` alone, stopped, with `tolerance` 144 and
+`collide_o` 69. The draws on 18938: ours 7 and the original 4, parting at
+index 1. Ours spend `Unit::do_guard+0x8fb` four times (`1/67`, `1/68`,
+`1/70`, `1/71`, the retry roll after a leg that ended at once), where the
+original spends `Guy::set_anim+0x104b`.
+
+**The first killer fired on run257's first block** (18933, `RON_STANDING`):
+
+| on 18933 | theirs | ours (before) |
+|---|---|---|
+| `1/67`..`1/72` `group` | 71 | −1 |
+| `GROUPDATA` 71 | `army −1`, `[69, 72]`, `form −1`, `speed 0` | (no seat) |
+| `GROUPDATA` 69 | `army 1`, `[60]` | slot 69, `[60]` |
+
+On run253's last block (18433), `1/48`..`1/76` are all in army 1's group
+on both sides: slot 69 here and 71 there (689). So the cause is in the
+gap 18434..18932, which no dump compares.
+
+### 22.2 The readings, and what killed each
+
+Each killer tests the claim's own unit. They were written before the
+build.
+
+- **R1, the army is in another state.** Killed on the disk: no army order
+  is on the escort. The original's head is `do_guard`'s leg, and the
+  wagon's army 1 is the one-member group 69 on both sides on 18933.
+- **R2, the army is in the same state and picks another order.** Killed by
+  a scratch print of every write to the four units' orders on tick 18938
+  (parked 823). Ours' `do_guard` writes the same leg the original holds:
+  `1/67`'s post is (34680, 41160) with `timer` 30, which the original has
+  stepped once, to 29. `1/68`, `1/70` and `1/71` are likewise.
+- **R3, the order is right and a later write replaces it.** Holds: the same
+  print has `do_move` remove the leg in the same frame, ours' `1/67` then
+  reads `collide_o 69`, and the retry roll follows. `detect_unit_collision`'s
+  group arm (`docs/COLLISION.md` §4.3, [`Sim::same_group_soft`]) makes a
+  group-mate with no order soft. The original's `1/67` and `1/69` both
+  point at 71. Ours both pointed at nothing, so the collision was hard.
+
+**The writers of `+0x80` in the gap, counted.** A scratch print of every
+change to `1/60`..`1/76`'s pointer over 18000..18940 found two events.
+On tick 18682 army 1 is closed from `find_target`, when
+`find_muster_spot` fails (§12, `army.rs`'s `close_army` call). Its list
+is `[60, 69, 72, 74, 75, 76, 64, 65, 66, 58, …, 48]`, and army 0 takes
+fifteen of them into a new group. On tick 18692 the wagon forms army 1
+again (`add_to_army`). Ours' new group took slot 69, the old army's,
+because nothing held it, and cleared `1/67`..`1/72`. The original's took
+69 too, but its old army's group was on 71 and still held `[60, 69, 72]`
+(then `[69, 72]`), so nothing was cleared. The ids differ by 689's shift;
+the content is the finding.
+
+### 22.3 The cause, and this crate
+
+`close_army` now halts the group and then, if the group has a pool slot
+and a live member, moves its record and list to a
+[`crate::group::Pushed`] seat on the same index (`Sim::seat_orphan`). It
+takes a dead entry as `push_group` does, else a new one. From then on the
+orphan is the pool's like any pushed group. `groups_process` prunes it to
+the members still pointing at it. `pool_members` counts it, so
+`get_open_slot` passes its index by while a live member lists and names it.
+`seat_of` resolves a stale pointer to it. The original's `Army::add_unit`
+joins a unit through `push_group` or `Group::add`, and the dump prints only
+what still points at the slot, so the orphan loses the wagon on 18692 as
+the original's 71 does.
+`a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers` fails
+with the orphan removed: the new army takes the old slot.
+
+### 22.4 What it moved
+
+**East Indies 18938 → 18999. Great Lakes holds at 20568**, and every
+golden chapter holds.
+
+**The value diff** (`run257_s_word_frame_is_widened_whole`):
+
+- On block 18933, `1/67`..`1/72`'s `group` read −1 here against 71 there,
+  and now reads **72 against 71**. On 19000 the seat holds `[69, 72]` on
+  both sides, with `form −1` and `speed 0`. The id is one higher here, as
+  every who=1 pool id is from `1/11` up (689).
+- On block 18939, `1/67`, `1/68`, `1/70` and `1/71` held `order:kind` 12
+  (one order, `tolerance` 144, stopped) against 2 (two orders, a one-leg
+  path). **They now agree in every field**: `1/67`'s `pos` is (34644,
+  41125) on both sides, and so are its orders and path.
+- run257's floor goes 320/103/423/1,265 → 322/1/323/863. The first block
+  gains `1/60`'s and `1/0`'s `group`, both pool ids.
+- Elsewhere: run78's `1/60 group` on 15784 reads 71 against 70 (it read
+  69). run227's word blocks gain `1/0`'s `group`, 70 against 69 (293 →
+  294). run233's `1/0 group` moves from 17139 to its first block (293 →
+  294). The East Indies endpoint goes 41 → 43 off and 6 → 4
+  `build_diverged`.
+
+**The new word, 18999** (block 19000), is inside run257. Ours spend 7
+draws against 6, parting at index 4: ours spend a fifth `Guy::set_anim+0x97a
+< Guy::inc_time+0x271` (`1/69`'s) where the original spends
+`Guy::set_anim+0x104b`. `1/67` and `1/69` both wrap on 19000 on both
+sides (`cur_time` 0, `end_time` 31). Under the word, the one key that
+parts past the floor is who=1's `reg_unpack_merch[11]` on 18976, 2
+against 1. Nothing parts on 19000 itself. `1/9`'s move parts on 19001,
+and its figure changes animation on the original's side only, on 19002.
+No mechanism is named.
+
+### 22.5 What this has *not* established
+
+- **The orphan's scalars.** On 19000 ours' seat reads `order_num` 0,
+  `o` (−1, −1) and `form_num` 0, against the original's 12, (0, 0) and 1.
+  No long capture compares a `GROUPDATA` record whose `army` is −1, and
+  none of its members holds an order that reads them. The army's own
+  `GroupState` is what closes, so this is the army group's record, which
+  §17 already says is partly carried.
+- **The other closes.** Every close on both maps now leaves an orphan.
+  Only the effect of 18682's is compared, and that only on 18933 (run261
+  covers the close's own block, §22.6).
+- **18685..18932** is compared by no dump, and neither is the wagon's new
+  army on 18692.
+- **Both of `close`'s loops** read the army's group list. This crate's
+  army has one group (§3.2), so the loop is one iteration here.
+
+### 22.6 Coverage
+
+**Diff-backed**: the escort's pointers and the old group's list on 18933,
+and the guard's walk on 18939 (run257). **Decompile-backed**:
+`Army::close@006f8ea0` (the `army = −1` write, the halt, and no free) and
+`Army::add_unit@006f9f40` (`push_group` for a fresh army). **Built**
+(`army.rs`, `group.rs`), with
+`a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers` made to
+fail with the orphan removed.
