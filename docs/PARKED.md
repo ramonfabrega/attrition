@@ -22,6 +22,15 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by item 836, 2026-09-26 — the launch line's edges
+
+(843) **Trained aircraft leave through the same EXIT** at an Airbase
+(`come_out`'s tail, built by 836). No capture trains one, and the long
+captures' word windows hold no Airbase. Names no score.
+
+(844) **A landed patrol with no action bit**: at the next full tank
+`do_launch` kills it. No capture reaches it.
+
 ## Parked by item 824, 2026-09-26 — the gather group's edges
 
 (833) **`think_peasant`'s deselect** (`5f58d2`–`5f58fd`): on a found
@@ -109,7 +118,7 @@ so it wants both words measured.
 (806) **The infiltrator's plane**: `update_seen`'s `set_seen2` over an
 infiltrated object's sight, and the caster's `flags & 0x80`.
 
-(807) **An aircraft's `mana_burn`**: `do_strafe`'s cost and `process`'s air
+(807) **An aircraft's `mana_burn`** (836: `BOMBING_MANA_COST` is 0 in the shipped rules; the tank, its other half, is built): `do_strafe`'s cost and `process`'s air
 recharge; the field is read only in chapter nineteen's test.
 
 ## Parked by item 773, 2026-09-25 — run248's other rows
@@ -1261,6 +1270,22 @@ check such a comment against the crate's own fields. And the same
 landing's journal arrived with two stray tool-call tags (`</content>`,
 `</invoke>`) that no guard caught; the commander removed them at the
 merge. A journal guard for markup outside fences would have.
+
+(845) **`rngcmp.py` numbers frames one ahead of the harness** (836's Loop
+line, filed at its merge): on run265 it reported the first difference as
+779, and the harness's word from the same stream is 778. A booking that
+cites rngcmp's frame is one late. Fix the tool or its header, made to
+fail first on run265.
+
+(846) **A new golden constant the `Golden:` line guard does not list is
+invisible to it** (found by the commander at 836's merge): 836 pinned
+`GOLDEN_WORD_CHAPTER_TWENTY_TWO` and its widening, and did not add them
+to `floors.rs`'s `GOLDEN_WORDS`, so its gate passed with chapter
+twenty-two open and the line saying `every chapter closed`. The test's
+own comment says "a new one is added here in the landing that pins it";
+the rule is prose. The commander added it in the booking. The guard
+shape: every `GOLDEN_WORD_*` in `testkit.rs` is on the list, made to
+fail first by removing `ch22`.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
