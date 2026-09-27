@@ -137,7 +137,8 @@ names the function that moves in either direction.
 | of which accepted in `RESIDUE`, 7 → 29 (item 940, no capture) | 1,120 | 895 | 225, **196 open** |
 | and item 928's three citations, and other lanes' since | 1,126 | 898 | 228 |
 | and run318–run337, the issuer chapters under `cover=1` (item 934) | 1,126 | 975 | **151**, 29 accepted, **122 open** |
-| and run340–run342, row 6's staged economy (item 959) | 1,126 | 979 | **147**, 31 accepted, **116 open** |
+| and item 955's `BuildData::get_first_gather` (GOLDEN §40), 151 → 152 | | | 152 |
+| and run340–run342, row 6's staged economy (item 959), on the tree merged with 955's | 1,131 | 983 | **148**, 31 accepted, **117 open** |
 
 "Cited" is a function the export lists, cited `name@00xxxxxx` anywhere under
 `docs/`; the census's 1,133 also counts thirteen data addresses no index
@@ -423,7 +424,7 @@ none through `+0x1ac`.
 
 ## The blind list, ranked
 
-~~The 225~~ ~~The 151~~ **The 147** (item 959), by the staging that would enter each
+~~The 225~~ ~~The 151~~ **The 148** (item 959, with item 955's `get_first_gather`), by the staging that would enter each
 family, largest family that a known staging reaches first. A run that enters a family is worth more
 than one that enters a function, so the unit here is the family.
 **Item 940 moved 22 dead functions out of rows 6 to 10 into row 12**.
