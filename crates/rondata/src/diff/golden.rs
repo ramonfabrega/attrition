@@ -9148,14 +9148,17 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch27: what parts in the pool moved");
 }
 
-// **What parts under the word** on run300, chapter twenty-seven, the
-// first walk over (605, 1105): **922, `0/2007`'s `queue[0].type`**, ours
-// 82 and theirs 83 — `Leader::gain_tech@006dcb60`'s queue loop re-targets
-// the Slingers entry in place there, and this crate has no queue loop
-// (the entry's writers on 922 are the finish's `unqueue`, which both sides
-// run, and `set_queue`, which only the original runs). Then 1103, the
-// Slinger squad it trains on 1102 and `queued` 1 against 2. The births'
-// `form` are `Unit::init@00612100`'s (parked 646).
+// **What parts under the word** on run300, chapter twenty-seven. ~~The
+// first walk over (605, 1105): 922, `0/2007`'s `queue[0].type`, ours 82
+// and theirs 83 — `Leader::gain_tech@006dcb60`'s queue loop re-targets the
+// Slingers entry in place there, and this crate had no queue loop; then
+// 1103, the Slinger squad it trained on 1102 and `queued` 1 against 2.~~
+// **The queue loop built** (item 901, `Sim::retarget_queued_to`): run300
+// whole agrees on every queue, bucket, counter and unit type — 622, 642,
+// 652, 922, 1002, 1012 and both births. What stands is
+// **`Unit::init@00612100`'s** (parked 646), chapter twenty-six's shape:
+// `form` on every non-citizen it makes (611, 615, 617, and the squads on
+// 1111 and 1307) and the followers' tile-centred `orders_x/y`.
 const WANT_CH27: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
@@ -9164,17 +9167,33 @@ const WANT_CH27: &[&str] = &[
     "617 0/10 form",
     "617 0/11 form",
     "617 0/12 form",
-    "922 0/2007 queue:queue[0].type",
-    "1103 0/13 extra",
-    "1103 0/14 extra",
-    "1103 0/15 extra",
-    "1103 0/2007 queue:queued",
+    "1111 0/13 form",
+    "1111 0/14 form",
+    "1111 0/14 orders_x",
+    "1111 0/14 orders_y",
+    "1111 0/15 form",
+    "1111 0/15 orders_x",
+    "1111 0/15 orders_y",
+    "1307 0/16 form",
+    "1307 0/17 form",
+    "1307 0/17 orders_x",
+    "1307 0/17 orders_y",
+    "1307 0/18 form",
+    "1307 0/18 orders_x",
+    "1307 0/18 orders_y",
 ];
 
-// **What parts in the pool** on run300, the first walk: the Barracks'
-// first seat's record `o` on 622 (parked 887), and the Slinger squad this
-// crate alone trains, seated in slot 0 on 1103.
-const WANT_CH27_POOL: &[&str] = &["622 slot 1 ox", "622 slot 1 oy", "1103 slot 0 held"];
+// **What parts in the pool** on run300. ~~The first walk: the extra
+// Slinger squad's seat on 1103.~~ **The queue loop built**: what stands is
+// each first seat's `ox`/`oy`, ours −1 and theirs 0 — `push_group`'s
+// record `o` (parked 887) — the Barracks' building group on 622 and the
+// first Javelineers squad on 1111.
+const WANT_CH27_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "1111 slot 0 ox",
+    "1111 slot 0 oy",
+];
 
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {

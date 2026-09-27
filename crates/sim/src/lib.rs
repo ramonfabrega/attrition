@@ -2869,11 +2869,11 @@ impl Sim {
     /// number of guys in a squad to anything other than 2" — so it cannot
     /// be reproduced and is left alone here.
     ///
-    /// SEAM: the queue arm above it (`6dd9ec`), which re-targets a
-    /// **queued** entry of the old type instead of converting a standing
-    /// unit — `types[t].is(0x134, 0) && u.is(0x15f, 0)` and two
-    /// `track_queued` calls; no capture has a queue of the old type when
-    /// its successor arrives.
+    /// SEAM: the carrier arm above it (`6dd9ec`), which moves a carrier's
+    /// own `num_queued` from the old type to the new instead of converting
+    /// it — `types[t].is(0x134, 0) && u.is(0x15f, 0)` and two
+    /// `track_queued` calls; no capture has a carrier. The **buildings'**
+    /// queues are the loop after this one, [`Sim::retarget_queued_to`].
     fn upgrade_units_to(&mut self, who: Player, t: tech::TypeId) {
         let Some(rec) = self.unit_record(t) else {
             return;
@@ -2922,6 +2922,62 @@ impl Sim {
                 self.units[u].health = (self.units[u].max_health - damage).max(1);
             }
             self.unit_set_type(u, rec);
+        }
+    }
+
+    /// `Leader::gain_tech@006dcb60`'s **queue** loop (`6ddbed`..`6ddd8e`),
+    /// after the object loop and under the same `upgrade_units` flag: every
+    /// live building of the player, in object order, and every entry of its
+    /// queue that is a unit type `q` with `q == get_graft(t.from)`, or whose
+    /// grafted `jump` chain reaches `t`, is re-targeted in place —
+    /// `BuildQueue::set_queue(i, t, NULL, 1)`, which writes the type and
+    /// keeps the entry's progress and its recorded price — between
+    /// `track_queued(·, −1)` and `track_queued(t, +1)`. Nothing is paid or
+    /// refunded (`docs/GOLDEN.md` §36, the emulator's rows b to f; run300's
+    /// 922, the Slingers entry `[83 at 0]` with its 46/46 kept).
+    ///
+    /// **The decrement names the walker, not the entry**: on a match by the
+    /// `jump` chain the register holding `q` has been overwritten by the walk,
+    /// so `track_queued(t, −1)` runs where `(q, −1)` was meant (`6ddcf4`'s
+    /// `push esi`; the emulator's row f). A match by `from` decrements `q`.
+    /// `track_queued` never takes a count below zero.
+    fn retarget_queued_to(&mut self, who: Player, t: tech::TypeId) {
+        let Some(rec) = self.unit_record(t) else {
+            return;
+        };
+        let w = who as usize;
+        let from =
+            self.tech_tree
+                .get_graft(&self.setup, &self.tech[w], self.tech_tree.types[t].from);
+        let mut list: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| self.buildings[b].alive && self.buildings[b].owner == who)
+            .collect();
+        list.sort_by_key(|&b| self.buildings[b].index);
+        for b in list {
+            for i in 0..self.buildings[b].queue.items.len() {
+                let item = &self.buildings[b].queue.items[i];
+                if item.tech.is_some() {
+                    continue;
+                }
+                let q_rec = item.ty;
+                let Some(q) = self.unit_types[q_rec].tree else {
+                    continue;
+                };
+                let dec = if Some(q) == from {
+                    q_rec
+                } else if self.tech_tree.jumps_to(&self.setup, &self.tech[w], q, t) {
+                    rec
+                } else {
+                    continue;
+                };
+                if self.muster[w].queued_by_type[dec] > 0 {
+                    self.muster[w].queued_by_type[dec] -= 1;
+                    self.track_tree_queued(who, dec, -1);
+                }
+                self.buildings[b].queue.items[i].ty = rec;
+                self.muster[w].queued_by_type[rec] += 1;
+                self.track_tree_queued(who, rec, 1);
+            }
         }
     }
 
@@ -3172,6 +3228,7 @@ impl Sim {
         for e in &events {
             if let tech::Gained::UnitUpgrade { to } = *e {
                 self.upgrade_units_to(who, to);
+                self.retarget_queued_to(who, to);
             }
         }
         self.apply_gained(who);

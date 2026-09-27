@@ -1294,10 +1294,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // upgrade through the player's command. 622, arm a's research entry
     // and price; 642, the gate; 652, the Slingers behind it; 922, the
     // finish that converts the squad and re-targets the entry; 1002 and
-    // 1012, the presses after it; 1102, the first walk's word.
+    // 1012, the presses after it; 1102, the first walk's word. Closed at
+    // 1560: 1111 and 1307, the two Javelineers squads; 1557, the closed
+    // word's last blocks.
     if let Some(p) = &ch27 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_SEVEN;
-        for w in [622, 642, 652, 922, 1002, 1012, 1102] {
+        for w in [622, 642, 652, 922, 1002, 1012, 1102, 1111, 1307, 1557] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(
                 n, 5,
