@@ -8404,6 +8404,12 @@ cmd: 886 add tower who=0 216,96
 cmd: 890 explore all
 check: python3 tools/gamelog/cmdsran.py rontrace-run353.log 0:1 37:1 600:1 610:1 880:1 882:1 884:1 886:1 890:1 1600:1
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run353.log" functions 2>/dev/null | grep -E " (Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; BOTH ENTERED** ====
+#
+# 17:39 to 17:52 through `viadriver.sh`. DLL sha256 b451aeb6…3dca. Every
+# chat line returned 1. The Towers 0/2007–0/2009 kill the caravan 1/6 on
+# 1007 at 82 of 90; `new_danger`, `restart_trade_route` and `close_caravan`
+# are first entered on 1007, `take_damage` on 902 (`docs/RUNS.md` run353).
 
 run: 348
 tag: himalayas-longtrace

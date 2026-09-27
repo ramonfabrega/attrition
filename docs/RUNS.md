@@ -9379,6 +9379,32 @@ run342 enters nothing run341 does not; `rondata::blind::TRACES` carries it
 so the pin records the attempt.
 
 
+## run353 — Towers kill the caravan on its owner's road: `new_danger` and `restart_trade_route` entered (2026-09-27, item 965)
+
+**What it is.** run342's staging without the lines its row had already
+entered (the Lumber Mill, Angkor Wat, the gather point, `die 5,0`) and
+without the hoplite and its `@attack`, so no Unit can deal the kill.
+`take_damage` reaches the `new_danger` gate only on a killing blow
+(`docs/CARAVAN.md` §10.4), and run342's was hoplite `0/7`'s. Four
+`add tower who=0` lines on 880–886 at (216,104), (226,100), (226,106)
+and (216,96), and `explore all` on 890. It has no `@` line, so run318's
+DLL was served unstamped, sha256 `b451aeb6…3dca`. It ran at `cover=1`
+on the queue lane.
+
+**Taken** 17:39–17:52 in one take, after att-979's queue exited 0 on
+`waitrun.sh`, with no `RonDriver` running and 28 GB free. Every chat line
+returned 1. The dump is 240 MB and the trace 9.9 MB. The Towers are
+`0/2007`–`0/2010`. Three of them fire (`2007`, `2008`, `2009`, a volley
+every 31 frames from 904) and `0/2010` at (216,96) does not. They take
+the caravan `1/6` to 12 on 919, 47 on 959 and 83 on 981, with
+`damage_o` naming each Tower in turn. It stands at 82 of 90 on block
+1007, and `DEATH_OBJS` prints it with `first_frame 1007`. No player-0
+unit fires in 900–1010. **`Object::take_damage` is first entered on 902;
+`Caravans::new_danger`, `Caravan::restart_trade_route` and
+`Caravans::close_caravan` on 1007.** `rondata::blind::TRACES` carries it,
+and the blind list goes 149 → 147.
+
+
 ## run344 — chapter thirty-two, an Airbase's gather point (2026-09-27, item 947)
 
 `docs/GOLDEN.md` §41, `tools/gamelog/golden/chapter32.cmd`: chapter
