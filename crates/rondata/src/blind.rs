@@ -102,6 +102,10 @@ pub const TRACES: &[&str] = &[
     "rontrace-run340.log",
     "rontrace-run341.log",
     "rontrace-run342.log",
+    // Item 965's: three Towers' arrows kill the caravan on its owner's road
+    // (`docs/RUNS.md` run353), and `Object::take_damage`'s death path calls
+    // `Caravans::new_danger` and `Caravan::restart_trade_route` on 1007.
+    "rontrace-run353.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -165,7 +169,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `num_gather` and the gather list's `add`, not this), **148** with run340
 /// and run341 (item 959: row 6's staged economy, `lumber_level`,
 /// `resource_cap_add`, `replace_gather` and `close_caravan` off), **149**
-/// with item 947's `Group::action_launch_flight` (`docs/GOLDEN.md` §41).
+/// with item 947's `Group::action_launch_flight` (`docs/GOLDEN.md` §41),
+/// **147** with run353 (item 965: a Build's killing blow on a caravan,
+/// `new_danger` and `restart_trade_route` off).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -194,8 +200,8 @@ pub const NEVER: &[u32] = &[
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
-    0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_d070, 0x0073_e000,
-    0x0073_e0c0, 0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
+    0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
+    0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
     0x0094_1860, 0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0,

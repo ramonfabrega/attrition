@@ -656,16 +656,59 @@ asked. With both, Great Lakes' word moves **14529 → 14650**
   renderer's, but its reference counts are the mesh's (`docs/ROADS.md`
   §10.5).
 - `Caravans::new_danger@0073e0c0` restarts a route whose road passes
-  within `0x600` of ~~a hit on a caravan~~ **a hit on a land caravan that
-  `Object::take_damage` lets through, and it lets through two arms only**
-  (the listing, `00652e97..00652f41`, item 959): the caravan's tile is
-  unowned or owned by a non-ally of the caravan's owner; or, on its own or
-  an ally's ground, the object `take_damage`'s arguments 7 and 8 name
-  answers its vtable `+0x1c` non-zero, which `Build` and `Wall` do (a folded
-  `return 1`) and `Unit` never does (a folded `return 0`). Neither hit a
-  capture made on London's ground entered it: run341's hoplites, and
-  run342's Tower, whose arrows took the caravan's damage up by 12 a shot
-  from frame 913. So the second arm's attacker is **not** simply the object
-  that fired, and what `Object::do_damage` passes there for an arrow is not
-  established; the first arm, a hit on unowned or enemy ground, is untried.
-  It is not modelled.
+  within `0x600` of ~~a hit on a caravan~~ ~~a hit on a land caravan that
+  `Object::take_damage` lets through, and it lets through two arms only~~
+  **the killing blow on a land caravan on a linked route** (item 965).
+  ~~Neither hit a capture made on London's ground entered it: run341's
+  hoplites, and run342's Tower, whose arrows took the caravan's damage up
+  by 12 a shot from frame 913. So the second arm's attacker is **not**
+  simply the object that fired, and what `Object::do_damage` passes there
+  for an arrow is not established; the first arm, a hit on unowned or
+  enemy ground, is untried.~~ **Established by the listing, the emulator
+  and run353:**
+  - **The gate is the kill.** The block at `00652df1..00652f41` has one
+    entry, `jge 0x652ab5` at `006529eb`, `damage >= share`; a hit the
+    caravan survives returns first (`docs/COMBAT.md` §7.2 step 9). On the
+    death path, in order: `is_unit` (`+0x18`), `is_captain` (`+0xe8`,
+    `o_up < 0`), `is_caravan` (`+0xd0`), the type's domain (`+0x218`) 0;
+    then either arm; then the unit's slot (`+0x86`) set and
+    `caravan_flags & 3 == 3`. The slots are the type records'
+    (`SubObjectData` and `ObjectData`), so the second arm's `+0x1c` is
+    `is_wallbuild`: 1 on Build and Wall, 0 on Unit.
+  - **Arguments 7 and 8 name the blow's dealer**: `Object::do_damage@0064a480`
+    pushes its own `this`'s `+0xa` and `+0x9` (`0064ba18`); `Unit::fight`
+    calls it on the attacking unit, and `Ammo::do_damage@00678060` on
+    `objects[who][o]`, the ammo's shooter (`AmmoData` `+0x3c`, `+0x40`), so
+    a Tower's arrow names the Tower. The same `this` writes the target's
+    `damage_o`/`damage_who` (`0064a62e`), which is why run342's caravan
+    reads `2009`/`0` after the Tower's hit. `Unit::suffer_attrition` and
+    `SpellType::cast_sabotage` pass −1, −1, so only the first arm; a
+    decoy's overflow names the captain itself.
+  - **run342's kill was a Unit's.** The caravan `1/6` stood at 82 of 90
+    on block 1209. The Tower's recharge ran down across 1195–1210 without
+    firing, hoplite `0/7`'s went 1 → 32 on block 1210, and `DEATH_OBJS`
+    prints `1/6` with `first_frame 1209`. A Unit's kill on the owner's
+    ground fails both arms, so 959's reading of the arms stands; what it
+    missed is that the gate needs a kill.
+  - **Under the emulator** (a scratch probe on `tools/recomp/step4.py`'s
+    machine, Great Lakes' packet at logger frame 11186, caravan `1/23`
+    with `caravan_flags` 7 on its owner's tile, player 0's Build `0/2000`
+    and Unit `0/0`): a hit that does not kill returns 0 before the gate,
+    whether a Build's or attrition's shape. A Unit's kill on the owner's
+    ground stops at `is_wallbuild`. **A Build's kill enters `new_danger`
+    and `Caravan::restart_trade_route`.** Attrition's shape (−1, −1)
+    killing on the owner's ground stops at `o < 0`, and enters both on
+    a tile patched unowned. A Unit's kill on a tile patched to player
+    0's enters both.
+  - **run353** (`docs/RUNS.md`): three player-0 Towers beside the road
+    and no Unit attacker. Their arrows take the caravan to 82 of 90 by
+    981, and it dies on 1007 on the road at (220, 100). `new_danger`,
+    `restart_trade_route` and `close_caravan` are first entered on 1007.
+
+  **Not established**: which arm admitted run353's kill. The dump prints
+  no tile owner, and the tile lies on the road between two of player 1's
+  cities, 16 tiles from the capital and 13 from the Small City. So the
+  first arm has the emulator only, on a patched tile. `new_danger`'s body
+  past its call of `restart_trade_route` was not run: the probe stopped
+  there. The port has neither: `Unit::close`'s caravan arm only gives the
+  slot back. It is not modelled.
