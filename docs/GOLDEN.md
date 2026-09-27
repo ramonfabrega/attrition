@@ -1400,6 +1400,7 @@ each can invalidate work that would otherwise be done on top of it.
 | run | chapter | window | why this order |
 |---|---|---|---|
 | 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760**; item 945 built the Bowmen's re-seat, 105 → 35 rows |
+| 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) — **run 2026-09-27 (item 955), 351 MB, 966 s; falsifier 3 fired on all three Citizens: `FILTER_ALL` counts the seeker; every other reading held; the word 740 → 1400, closed** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6535,3 +6536,265 @@ brackets): 1060 `pos`, `g.x/y`, `g.des_x/y`, `orders_x/y` (3384, 14232)
 both ((3336, 14376)); 1061 `dest_angle` and the move's `angle`
 0x40000000 both (943259648); 1079 `inside` 2008 for all three (−1). The
 members were already equal. What stands on 1060: three `form` rows (646).
+
+## 40. Chapter thirty-one — the gather point's other arms: a lone unit under a ground point, a squad under a point on a unit, a list of two points, and a citizen's gather and build arms (item 955)
+
+**Premise.** §39 closed the gather point on the arms run312 reached, and
+left five that are read or built and that no capture measures (parked
+946, 947, 948, 956, 957). This chapter stages four of them in one capture,
+each arm between two staged events (879), as claims to check:
+- **956, whether `FILTER_ALL` exempts the seeker.** The routing's re-seats
+  sweep the trainer's ring under `FILTER_ALL`, which takes
+  `find_nearby_spot`'s general path, `ObjectsData::find_unit_with_radius@
+  00659890`. **The listing says it does not exempt it**: the filter is
+  tested at `659a1a` and a zero skips `Search::valid_filter`, the only
+  reader of `not_o`/`not_who`; and the search argument is never read, since
+  `Search::valid_search` is called with selector 0 (`6599d4`..`6599db`),
+  which answers 1. So every player's live, on-map unit is a candidate,
+  the seeker too. This crate built the seeker exempt (item 945,
+  `orders::Coll::All`). The killer: a lone unit whose re-seat's first
+  candidate is the spot it already stands on.
+- **957, the third re-seat.** At a last point with no building,
+  `find_unit_with_radius(point, ·, who, 1, ·, FILTER_SEEN, who, 0)`
+  (`619ab2`..`619ac2`) looks for a unit whose body covers the point. If
+  it finds one, the captain is swept round the trainer's land ring from
+  `find_angle(found − trainer)` (the register pair at `619b6b`/`619b92`)
+  under `FILTER_ALL`, and `set_new_location(·, 1, 1)` puts it there
+  (`619be7`..`619c08`). An armed captain and an enemy found take attack
+  orders down the squad; anything else falls to the move arm.
+- **946, a list of two points.** `Build::add_gather_point` under
+  `QUEUE_LAST` appends at the tail, and the head stays the first point.
+  `come_out`'s routing walks the list from the head (`618c10`..`61918f`).
+  Each point after the head is replaced by its own free spot,
+  `find_nearby_spot(point, 0, 0x600, 0, 0x55555555, FILTER_NOT_ME)`
+  (`618c3d`..`618c83`), and a point with none is passed over. Every point
+  but the last is a waypoint: a squad with a group is sent there by
+  `Group::action_move_to(T, QUEUE_LAST, 1, find_angle(T − prev), MOVE_TO,
+  1, …)`, with `T` the squad's own free spot round it (`619091`,
+  `6190ce`); a lone unit by `add_move_facing_order` to its cell
+  (`619129`). The origin `prev` starts at the exit point and becomes each
+  waypoint's target (`61912e`..`61913e`). The last point is §39's
+  routing: its own free spot, its kind, and the squad's angle from `prev`
+  (`619e67`).
+- **948, a citizen's gather and build arms.** A Citizen trained under a
+  point on its own finished gather building with `action` ≠ 0 takes
+  `add_gather_order(·, QUEUE_LAST, 1)`, and under a point on its own
+  unfinished building `add_build_order(·, QUEUE_LAST, 0)`; both end the
+  routing before any move. This crate built both from the reading, and
+  **no unit test fails without them**: the three citizen arms removed,
+  1,088 of 1,088 sim tests pass (the brief's mutation, 918).
+
+**Not staged: 947, the Airbase's arm**, and the repair arm. Every air
+chapter stands at `library who=0 6` and this cast is Ancient, so the
+Airbase would be a second lever. The repair arm needs a damaged building,
+which only combat stages (chapter twenty-one's). Both are named as their
+own chapters in item 955's journal.
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`'s
+machine, out of git; `malloc`, `free` and `memcpy` adapted). `Build::
+add_gather_point@00622e70`, `clear_gather@00623180`, `BuildData::
+gather_inside@0046f180`, `get_first_gather@0046f140` and `num_gather@
+0046f0a0` ran unchanged:
+
+| the calls | what they wrote |
+| --- | --- |
+| p1 NEW, then p2 and p3 LAST | the list [p1, p2, p3]; `get_first_gather` and `gather_inside` read p1 |
+| the save walk (`walk_data@004708a0`) | p3, p2, p1: tail first |
+| inside NEW, then p LAST | [inside, p], `gather_inside` 1 (`action_gather_point` never does this: an inside head turns `add_to_end` off) |
+| p NEW, then inside LAST | [p, inside], `gather_inside` 0 |
+| a hangar (`build_masks & 8`, `is(0x1bf)`), a plane homed there, p1 NEW then p2 LAST | each press rebuilds the plane's patrol from the whole list: `add_air_patrol_order(p1, base, who, 1, ·)`, p2 appended to the patrol's x/y arrays; the QueuePos passed is the list's head node, a heap address |
+| the same, action 3 | `add_strafe_order(o, who, base, who, 1, QUEUE_NEW, 0)` |
+| QUEUE_NEW's clear on a hangar, the plane flying | `add_strafe_order(-1, -1, base, who, 0, QUEUE_NEW, 0)`: home |
+
+`LinkListBase::add@00470c60` pushes in front, and `add_gather_point`
+then steps the head on by one (`622f03`), which is the append.
+
+**What the emulator could not reach**: `come_out`'s routing, which reads
+the world, the unit and the list at process time. The listing settled
+its registers, above. **Every `SEAM:` checked against the loops** (910):
+the routing's loop is bounded by `num_gather` (`[esp+0x10]`,
+`619187`..`61918f`) and walks `next` from the head (`619171`..`619184`),
+so a waypoint is every point but the last, in list order. The move's
+target is the free spot's cell, not the point's: the gather block writes
+the spot to `[esp+0x44]/[esp+0x40]` and the raw head to `[esp+0x38]/
+[esp+0x3c]` (`61823b`..`618279`), and every later point's spot goes to
+the same pair.
+
+**The writers and readers, counted by offset** (823, 869): the list
+(`+0xb8..+0xcc`) has §39's two writers. Its readers gain the routing's
+waypoint loop (`+0xcc` the head, `+0xc4` the walk) and `add_gather_point`'s
+own hangar loop. A unit's point is written here by `come_out`'s exit and
+its three re-seats (`set_new_location`), and its orders by the routing.
+
+**The cast and the lines** are `chapter31.cmd`'s: chapter thirty's cast,
+a second Chariot `0/10` idle at (2040, 15480), 1,427 south-west of 2007,
+and eleven lines. The City's point on open ground (4608, 31104) before
+three Citizens; its point moved onto its Woodcutter (action 1) between
+the first and the second; a Lookout site placed by the first Citizen, and
+the City's point moved onto it between the second and the third. 2007's
+point on the Chariot before its Hoplites. 2008's two points, the second
+by `@gatherpointadd`, before its Hoplites.
+
+**The staging, walked by this crate through the commands' own entries**
+on run312's start (the same game to 605; run339 was not used). A
+prototype of 946's and 957's arms (a patch, reverted before the capture)
+and the seeker counted (956's other reading) gave the readings' values:
+- presses processed on 617, 621, 701, 703, 741 and 841, the build on 791;
+- Citizens born 718, 824 and 938; 2007's Hoplites 858; 2008's 953;
+- the Lookout `0/2009` at (7296, 34176) from 792, unfinished to ~1150.
+
+**The readings, and the gates between each and its block** (903):
+- **The seeker** (956), on three units, each its own killer:
+  - `0/11` on 718 (ground point): (4104, 31032) exempt, **(3960, 31368)
+    counted**;
+  - `0/12` on 824 (the Woodcutter): (3576, 29928) exempt, **(3864,
+    30168)** counted;
+  - `0/16` on 938 (the site): (3912, 31416) exempt, **(3624, 31656)**
+    counted.
+  Gates: each exit ring clear of every other unit, and each press on its
+  block.
+- **The gather arm** (948, `0/12` on 824): a `MOVEORDER` to (4104,
+  28824) then a `GATHERORDER` on `0/2001`, flags 4 (the reading and this
+  crate); a `MOVEORDER` alone (the arm not taken). Gates: 742's list
+  `action 1`; the Woodcutter finished and its own.
+- **The build arm** (948, `0/16` on 938): a `MOVEORDER` to (7032, 34056)
+  then a `BuildOrder` on `0/2009`, flags 0 (the reading and this crate);
+  a `MOVEORDER` alone. Gates: the site placed on 791 (the Lookout
+  available and paid; if the original refuses it, falsifier 2 fires on
+  792 first) and still unfinished on 938.
+- **The third re-seat** (957, `0/13` on 858): **the captain at (2376,
+  14808)**, re-seated from the bearing to `0/10` (the reading); at its
+  exit (2472, 14856) (this crate, which has no third re-seat). The
+  members at (2472, 15000) and (2328, 15000) either way, and a
+  `GROUPATTACKTOORDER` each, to (2232, 15528), (2088, 15480) and (2376,
+  15576). Gates: `0/10` idle at (2040, 15480) on 857, and the Hoplites'
+  pace (chapter thirty's, two blocks later).
+- **The two points** (946, `0/17` on 953): **a `GROUPMOVEORDER` to
+  (5208, 12696) then a `GROUPATTACKTOORDER` to (5016, 11160)**, the
+  members' (5352, 12792)/(5160, 11160) and (5064, 12600)/(4872, 11160)
+  (the reading); one `GROUPATTACKTOORDER` to (5208, 12696) (this crate:
+  the head's spot, the last's kind); one to the second point's spot only
+  (the tail read as the head). Gates: 704's list, both points in order.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over **`[605, 1400)`**: 795 blocks, **250 of
+runway** past the Lookout's finish near 1150, the last staged event.
+
+**The premise's killer, and its writers** (§3, point 5): each trained
+unit's own point and order stack on its birth block, and each list on
+its press's block. The writers: `come_out`'s exit and re-seats for the
+point; the routing for the orders; §39's two for the list. **The loops**:
+the routing's over `0..num_gather`, from the head; `action_gather_point`'s
+over the group's members; `find_unit_with_radius`'s over the
+`circle_radius[(r + 0x2ff) / 0x300]` blocks, or all eight players' units.
+
+**What would falsify it, and where each could first fire.**
+1. **An issue does not reach the pump.** Trace frames 616, 620, 700, 702,
+   740, 790, 840: an `INFO 17` with a refusal, or no
+   `process_gather_point` on 617, 621, 701, 703, 741, 841 and no
+   `process_build` on 791.
+2. **The lists and the site.** 618, 2000: (4608, 31104, 0); 622, 2007:
+   (2040, 15480, 1); 702, 2008: (5184, 12672, 0); **704, 2008: `length
+   2`, (5184, 12672, 0) then (4992, 11136, 0)** (the append; one point,
+   or the second alone, kills it); 742, 2000: (4224, 28608, 1); 792:
+   `0/2009`, a Lookout, unfinished; 842, 2000: (7296, 34176, 1).
+3. **The seeker** (956): `0/11`'s point on 718, `0/12`'s on 824, `0/16`'s
+   on 938, each against the two positions above. Any one at its counted
+   position kills the exemption.
+4. **The gather arm** (948): `0/12`'s own stack on 824, a
+   `GATHERORDER` on `0/2001` or none.
+5. **The build arm** (948): `0/16`'s own stack on 938, a `BuildOrder` on
+   `0/2009` or none.
+6. **The third re-seat** (957): `0/13`'s own point on 858, (2376, 14808)
+   or (2472, 14856), with `0/14` and `0/15` at their exits.
+7. **The two points** (946): `0/17`'s own stack on 953, two orders
+   (`GROUPMOVEORDER`, then `GROUPATTACKTOORDER`) or one, and its point by
+   ~1100: (5016, 11160) or (5208, 12696).
+
+Falsifiers 3 to 7 test each unit's own record on its own birth block
+(711), and each splits its readings (789). **Not reached**: the Airbase
+(947); the repair arm; an enemy found at a ground point (the attack
+arms); a waypoint with `action` ≠ 0; a point with no free spot.
+
+**Where it should part.** This crate has the list and the gather and
+build arms, and not 946's waypoint or 957's re-seat. The first value
+parting is expected on **858** (`0/13`'s point), or on **718** if the
+seeker is counted; the first draw parting where either captain's walk
+starts from another cell.
+
+**Run 2026-09-27 as run338 (item 955)** (`docs/RUNS.md` has the table).
+One take, `cover=0`, the same game as run312 to 615. The presses were
+processed on their blocks, 703's with `add_to_end` 1, and every list and
+the site read as predicted; 2008's list is two points from 704, head
+first. **Falsifier 3 fired, on all three Citizens**: `0/11` on 718 at
+(3960, 31368), `0/12` on 824 at (3864, 30168) and `0/16` on 938 at
+(3624, 31656), each the counted position. **`FILTER_ALL` counts the
+seeker**, as the listing reads it; item 945's exemption was the untested
+assumption, and it is dead. Every other reading held:
+- 946: `0/17`..`0/19` on 953, each a `GROUPMOVEORDER` to (5208, 12696),
+  (5352, 12792), (5064, 12600), then a `GROUPATTACKTOORDER` to (5016,
+  11160), (5160, 11160), (4872, 11160); at the second point by 1100;
+- 957: `0/13` on 858 at (2376, 14808), the third re-seat's point, its
+  members at their exits;
+- 948: `0/12`'s `GATHERORDER` on `0/2001` (flags 4) and `0/16`'s
+  `BuildOrder` on `0/2009` (flags 0).
+
+**Two values the prototype did not predict**, each a mechanism to build:
+- each citizen arm's order **stands alone** (`orders_x/y` the Citizen's
+  own point), where this crate puts a `MOVEORDER` ahead of it;
+- `0/13`'s group target is (2424, 15672), `0/14`'s (2280, 15672), against
+  the prototype's (2232, 15528) and (2088, 15480): beside the Chariot, the
+  squad's target sweep refuses candidates the unit's own does not.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_ONE` = 740, open,
+on the first walk**: theirs 12 draws against ours 10, ours alone
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`, the Citizen `0/11` idle at
+its point here and still walking there. The widening, run338 whole, (605,
+1401), pins 811 rows and 13 pool rows. **The first parting's field
+list**, 718, `0/11` alone: `pos` (4104, 31032) against (3960, 31368),
+`g.x/y[0]`, `g.des_x/y[0]`, `dest_angle` and the move's `angle`
+1191706624 against 837877760, and `form` (parked 646). Their writer is
+the lone arm's re-seat, `set_new_location`, whose sweep counts the seeker
+there.
+
+**The arms built: `GOLDEN_WORD_CHAPTER_THIRTY_ONE` = 1400, closed**
+(item 955, `docs/PRODUCTION.md` "The gather point"). **The value diff,
+both sides** (ours before the build in brackets):
+- 718: `0/11` at (3960, 31368) ((4104, 31032)); 824: `0/12` at (3864,
+  30168), `orders_x/y` its own point ((3576, 29928)); 938: `0/16` at
+  (3624, 31656) ((3912, 31416)). The seeker counted: 740 → 884;
+- 858: `0/13` at (2376, 14808) ((2472, 14856)), the third re-seat;
+  `orders_x/y` (2424, 15672) ((2232, 15528)), the squad placement's
+  target and its default span (884 → 892 → 1400); `dest_angle`
+  2112749568 (−1911619584), the angle from the re-seat's spot;
+- 953: `0/17`'s stack two orders, a `GROUPMOVEORDER` (kind 19) to (5208,
+  12696) then a `GROUPATTACKTOORDER` to (5016, 11160) (one, kind 21, to
+  (5208, 12696)).
+
+The widening goes **811 → 15 rows** and the pool **13 → 4**. What stands:
+- the births' `form` (parked 646);
+- the group moves' ids on 858 and 953, ours `64 +` a pushed index and
+  theirs `who·64 +` the slot (parked 676's first);
+- the pool's first seats' `ox`/`oy` (parked 887);
+- **1144, the builder `0/11`'s `group`**, ours 1 against −1, on the block
+  its finished `BuildOrder` gives way to a `GATHERORDER`: the build
+  line's, not the gather point's. It stood on the first walk (1134).
+  Named, not built.
+
+Chapter thirty holds at 1450 with its 35 rows and 6 pool rows: its
+Citizen `0/10` ends at its exit point with the seeker counted too.
+
+**Mutations**, each on the committed build (`62468432`), restored from
+git and `touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the seeker exempt again | `a_lone_unit_under_a_ground_point_is_re_seated_past_the_spot_it_stands_on`; the word and the widening |
+| the waypoints dropped | `a_squad_trained_under_two_points_moves_to_the_first_then_attack_moves_to_the_second`; the word and the widening |
+| the third re-seat dropped | `a_squad_trained_under_a_point_on_a_unit_is_re_seated_on_the_bearing_to_that_unit`; the word and the widening |
+| the citizen arms dropped | `a_citizen_under_a_point_on_its_own_building_gathers_there_or_builds_it`; the word and the widening |
+| the squad's default span dropped | the word and the widening only |
+| the squad's target a unit placement | the word and the widening only |
+| the re-seat's spot not the leg's origin | the widening only (858's angle rows) |
+
+Chapter thirty held under every one.
