@@ -5014,8 +5014,8 @@ mod tests {
     ///
     /// run240's proxies were live all game (`callwin 0–17093`), so every
     /// `calc_cost` the original made from frame 0 is on disk — 522 frames
-    /// that price at least one step, 111 of them a group's `grouppath`
-    /// plan. Until this test only tick 17087's 303 were read. This walks
+    /// that price at least one step, 99 of them running a group's
+    /// `grouppath` plan. Until this test only tick 17087's 303 were read. This walks
     /// them all against this crate's own, key and price, in order.
     ///
     /// **Before item 899 two frames parted**: 8186, where the group's walk
@@ -5113,12 +5113,12 @@ mod tests {
         }
         assert_eq!(
             group_frames.range(..END).count(),
-            111,
-            "the group plans on run240"
+            99,
+            "the frames that run a group plan on run240"
         );
         assert_eq!(
             (frames, steps),
-            (522, 69_226),
+            (522, 105_493),
             "the frames and steps compared"
         );
         assert_eq!(
