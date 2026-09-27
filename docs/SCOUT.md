@@ -1200,7 +1200,11 @@ A spy with a target in range would be the capture that reads it.
    of `do_non_flat_gather`, the two streams are now the same one on both
    traced maps, and this mechanic's ten draws are reached at the
    original's own word without installing it. The capture was not needed.
-10. **`Unit::think_spellcaster`** at the head of §3, which an AI scout
+10. ~~**`Unit::think_spellcaster`** at the head of §3, which an AI scout
     calls on every one of these frames and which draws nothing in any
     capture. Unread; the simulation skips it. *Capture:* a window with a
-    caster whose spell is off cooldown.
+    caster whose spell is off cooldown.~~ **Read and built for the
+    computer's arm** (`docs/AI.md` §80.5, item 971): it draws nothing on
+    Easiest because its arm returns below difficulty 2, and at Toughest a
+    special unit throws a coin there on frame 0 (run346, run347). Its
+    target searches, the hero arm and the human arm stay seams.

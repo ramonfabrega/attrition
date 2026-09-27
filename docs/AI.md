@@ -10226,11 +10226,13 @@ and run347 were taken. The results are §80.4 onwards.
   `get_diff` does not read in a solo game. `game->info` at the lobby is
   `GameInfo::load_from_config@005d4da0`'s under `-config` — its category
   list includes `diffs`, so `check.ini`'s `difficulties=` is read — and the
-  profile's `<GAME_INFO>` blocks without it (`profile.py`). Great Lakes'
+  profile's `<GAME_INFO>` blocks without it (`profile.py`). ~~Great Lakes'
   captures keep `-config check.ini`, East Indies' drop it, so run347 sets
   `difficulties=Toughest` in `check.ini` **and** `DIFFICULTY=5` in the
-  profile, and run346 the profile; the dump's `DIFFICULTY 5` is the only
-  read-back that counts.
+  profile, and run346 the profile~~ — **killed by run347's first take**,
+  which read back 0 with both set (§80.4): the `-config` lobby does not
+  take the difficulty, so both maps drop `-config` and set the profile.
+  The dump's `DIFFICULTY 5` is the only read-back that counts.
 - **`diff` is not the same lever.** `ConsoleWin::run_cmd@007d6a70`'s
   `diff` writes `game->info.difficulty` at whatever frame the command
   runs — after `Leader::init`, the setup draws and `init_handicaps` —
@@ -10260,7 +10262,9 @@ above difficulty 1 has run only in a unit test until now.
 | H13 | `Object::find_nearby_target@00648da0`'s AI flag at 0 (carried, `search_ai`) | off: the damage weight is not inverted | the first AI target choice between two candidates | every unit's target agrees to the parting |
 | H14 | `Game::init_handicaps@0058abf0` (**not carried**) | a per-leader handicap slot at setup | read only by `get_handicap` under `semaphore[0] & 4`, off here | a start-dump field of run346 differs from run54's other than `DIFFICULTY` and what H1 moves |
 
-**What is expected to part first, as a hypothesis** (DECISIONS 42): no
+### 80.3 What was expected to part first
+
+**As a hypothesis** (DECISIONS 42), written before the captures: no
 script under `game/ai/scripts/` reads the difficulty, so the scripted
 opening plays the same orders at a different pace, and H1 moves the pace
 from the first payment. The arithmetic of H1 is the original's to the
@@ -10269,3 +10273,88 @@ stream should depart from run54's early and this crate should follow it.
 The first parting is expected at **H2 or H3**, the first C++ producer
 step on a stockpile no Easiest capture has held — or at **H11**, the one
 arm with draws this crate never makes. The order of H4–H9 is the game's.
+
+### 80.4 What the captures read
+
+- **run346** (East Indies) and **run347** (Great Lakes) read back
+  `DIFFICULTY 5`, their `GAME INFO` blocks otherwise run54's and run53's
+  line for line, player blocks included (`docs/RUNS.md`). **The `-config`
+  lobby did not take the difficulty**: run347's first take kept `-config
+  check.ini` with `difficulties=Toughest` there and `DIFFICULTY=5` in the
+  profile, and read back 0 — `load_from_config`'s `diffs` category is
+  read, but the lobby it builds keeps 0, as `mapstyles=` never takes. The
+  take is run53's stream on all 24,001 frames (`rngcmp.py`), kept aside
+  as `…-take1-diff0`. Without `-config` the lobby is the profile's, whose
+  blocks give run53's lobby but for the style, so the second take is run53's
+  game at 5. **This kills §80.1's reading of the Great Lakes lever.**
+- **The idle human loses both games**: `defeated_by 1` on the closing
+  block, run346 at frame 18141 and run347 at 5931. The Easiest pair never
+  saw a battle; this one ends in one.
+- **Both words were 0**, one arm: frame 0 spends 182 draws against this
+  crate's 175 on East Indies and 121 against 120 on Great Lakes, parting at
+  index 24 on `Unit::think_spellcaster+0x413 < Unit::think_scout+0x7c`.
+  **None of H1–H14 was the first to part**: H12 listed `think_spellcaster`
+  among the repair arms by its `< 2` read, and the arm that parted is the
+  one past it — the reading named the function and missed that it draws.
+  The expectation (H2, H3 or H11) was wrong; the frame named it.
+
+### 80.5 `think_spellcaster`'s coin, built
+
+`Unit::think_spellcaster@005f27a0` for a computer leader's unit, as
+`sim::spellcaster` builds it, in the listing's order: `get_diff() < 2` →
+0; `unit_masks & 1` (a decoy) → 0; `is(SPY)` → the Spy's arm; not
+`is_special` (`unit_flags2 & 0x10`) → the hero arm; a special unit — every
+Scout — tries the Sniper (`0x281`, the Commando's craft), then throws
+`Random::get(game_random, 0, 0xffff)` returning to `005f2bb3` (the listing:
+`call 0xa39d70`, `cltd`, `idiv $3`), and with `coin % 3 != 0` and no army
+(`Object::get_army < 0`) returns 0; else it tries Counterintelligence
+(`0x277`, which a Scout casts). `think_scout`'s head calls it for a
+computer leader's caster (`unit_flags2 & 2`) after the goody box.
+
+**The seams**, each drawing nothing where it stands: the three crafts'
+target searches (`spell_valid_target` refuses Bribe, Counterintelligence
+and the Sniper), the Spy's cloak, the hero arm (a General's Create Decoys,
+Forced March behind a coin, and Ambush), and the human arm `Unit::think`'s
+special turn reaches. The third caller, `Army::use_scouts`/`use_spies`/
+`use_generals` on an army's 128-frame turn (`army.rs`, "the spellcasters'
+turn — a seam"), is **not wired**: at Toughest an army holding a scout
+would throw the coin there.
+
+**What it moved**: East Indies **0 → 10**, Great Lakes **0 → 1**; both
+first-pair words hold at 24,000. The value diff on run349's block 1: the
+AI scout `1/0`'s walk target (41976, 36600) against (35832, 42744) →
+(35832, 42744) on both, its path 9 slots against 3 → 3, and all 28 of its
+rows on blocks 1..3 closed (the next first parts on block 97). The 119
+keys still standing on block 1 are not the coin's: the draws agree through
+frame 9, and they are player 0's census, `SITE.reg`, `form` and the city
+record (§33.4's families), two AI citizens' idle clocks and 46 gaia
+animals' `cur_anim`, unchanged by the fix.
+
+**The new words, by frame and draw delta** (DECISIONS 42; no mechanism
+is named): **Great Lakes 1** — ours 54 draws, the original 85, parting at
+index 44, ours `Unit::do_non_flat_gather+0x54b` where the original spends
+`Leader::produce_building+0xc99`; the lower word, widened on run350.
+**East Indies 10** — ours 197, the original 188, parting at index 183,
+ours `PathFinder::calc_road_cost+0x46` where the original spends
+`Farms::inc_time+0x1ae`; inside run349, where no row first parts on blocks
+4..25.
+
+### 80.6 What this has *not* established
+
+- **The arms past the first**, H1–H14 as written: none has yet been
+  compared, since every one sits past frame 1.
+- **The target searches** of the three crafts, and so **the `% 3` coin's
+  consequence**: with no cast following either branch, inverting the test
+  fails nothing (the mutation was run); the army read (`get_army`) is
+  this crate's `army_of`, never compared.
+- **The hero arm and the army turn** (§80.5): no General and no army with
+  a scout stands before either new word.
+
+### 80.7 Coverage
+
+**Diff-backed**: the coin's frame, site and count on both maps' frame 0
+(the trace), and the scout's walk on run349's blocks 1..96; the lobby
+lever by four `GAME INFO` read-backs. **Listing-backed**: `005f2bae`–
+`005f2bbd`. **Export-backed only**: the arm's order above the coin, the
+three craft ids off the spell table's `+0x9dc`/`+0x9d4`/`+0xa04` slots,
+and the seams' reads.
