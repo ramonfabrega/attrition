@@ -9281,39 +9281,30 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch28: what parts in the pool moved");
 }
 
-// **What parts under the word** on run304, chapter twenty-eight. **The
-// first walk**, the two-building seat not built: every queue, bucket and
-// `build_masks` agrees on every block — `Sim::action_queue_up`'s sort and
-// passes and `Sim::action_buildmask`'s rule were built from the reading.
-// The first parting past the standing rows is **825's `group`**, the
-// Bowmen `0/10`..`0/12` in slot 1 here and 0 there, and 876's Hoplites in
-// 0 against 1: `come_out`'s push takes the first open slot, and the
-// two-member building records that hold slots 0 and 1 there are not
-// seated here. The rest are `Unit::init@00612100`'s (parked 646): `form`
-// on every birth and the followers' tile-centred `orders_x/y`.
+// **What parts under the word** on run304, chapter twenty-eight. ~~The
+// first walk, the two-building seat not built: 825's `group`, the Bowmen
+// `0/10`..`0/12` in slot 1 here and 0 there, and 876's Hoplites in 0
+// against 1.~~ **The seat built** (item 888, `Sim::push_buildings_group`):
+// every `group` agrees, as every queue, bucket and `build_masks` did on
+// the first walk. What stands is `Unit::init@00612100`'s (parked 646):
+// `form` on every birth and the followers' tile-centred `orders_x/y`.
 const WANT_CH28: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
     "615 0/8 form",
     "615 0/9 form",
     "825 0/10 form",
-    "825 0/10 group",
     "825 0/11 form",
-    "825 0/11 group",
     "825 0/11 orders_x",
     "825 0/11 orders_y",
     "825 0/12 form",
-    "825 0/12 group",
     "825 0/12 orders_x",
     "825 0/12 orders_y",
     "876 0/13 form",
-    "876 0/13 group",
     "876 0/14 form",
-    "876 0/14 group",
     "876 0/14 orders_x",
     "876 0/14 orders_y",
     "876 0/15 form",
-    "876 0/15 group",
     "876 0/15 orders_x",
     "876 0/15 orders_y",
     "1067 0/16 form",
@@ -9339,28 +9330,17 @@ const WANT_CH28: &[&str] = &[
     "1324 0/24 orders_y",
 ];
 
-// **What parts in the pool** on run304. **The first walk**: 642, slot 0
-// `held`, theirs `[2007, 2008]` and ours empty — `process_group`'s push of
-// a two-building group, which `Sim::push_command_buildings` did not seat;
-// then every seat after it one slot off (702, 742), the squads' speeds on
-// the swapped slots (833, 834), and each first seat's `ox`/`oy`, ours −1
-// and theirs 0 (parked 887).
+// **What parts in the pool** on run304. ~~The first walk: 642, slot 0
+// `held`, theirs `[2007, 2008]` and ours empty, and every seat after it
+// one slot off.~~ **The seat built**: every slot's list, `num`, `stamp`,
+// `speed` and `new_speed` agree on every block. What stands is each first
+// seat's `ox`/`oy`, ours −1 and theirs 0 — `push_group`'s record `o`
+// (parked 887).
 const WANT_CH28_POOL: &[&str] = &[
     "622 slot 1 ox",
     "622 slot 1 oy",
-    "642 slot 0 held",
-    "702 slot 0 list",
-    "702 slot 0 num",
-    "702 slot 0 ox",
-    "702 slot 0 oy",
-    "702 slot 0 stamp",
-    "702 slot 1 list",
-    "702 slot 1 stamp",
-    "742 slot 1 num",
-    "833 slot 0 new_speed",
-    "833 slot 0 speed",
-    "834 slot 1 new_speed",
-    "834 slot 1 speed",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
     "1067 slot 2 ox",
     "1067 slot 2 oy",
     "1126 slot 3 ox",

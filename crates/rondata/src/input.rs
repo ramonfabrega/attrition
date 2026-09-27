@@ -751,9 +751,9 @@ pub fn group_eject_all(built: &mut Built, who: i32, buildings: &[i16]) -> usize 
 /// which toggles and never reads `set` (`docs/GOLDEN.md` §32). The repeat
 /// button's mask is 0x80.
 ///
-/// SEAM: the command's `process_group` pushes the building group into the
-/// pool (`Groups::push_group@0070f9e0`, called at `0x94a6cf`), which this
-/// crate's pool of units does not hold: run281's slot 0 holds `[2007]`
+/// The command's `process_group` pushes the building group into the pool
+/// first (`Groups::push_group@0070f9e0`, called at `0x94a6cf`;
+/// [`sim::Sim::push_command_buildings`]): run281's slot 0 holds `[2007]`
 /// from 1442, a slot `Groups::get_open_slot@006fa460` counts as open.
 ///
 /// Returns the number of the player's live buildings named.
@@ -779,9 +779,11 @@ pub fn group_buildmask(built: &mut Built, who: i32, buildings: &[i16], mask: i32
 /// mapped onto this crate's unit type through the tree the harness built,
 /// or onto the tree's technology ([`sim::Sim::action_queue_research`]).
 ///
-/// SEAM: the command's building group is seated in the pool for a single
-/// building only, as for [`group_buildmask`]; a building type's arm (its
-/// `build_flags & 4` upgrade) is not mapped.
+/// The command's building group is seated in the pool whole, in the
+/// command's order (item 888, `docs/GOLDEN.md` §37).
+///
+/// SEAM: a building type's arm (its `build_flags & 4` upgrade) is not
+/// mapped.
 ///
 /// Returns the entries laid.
 pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, num: i32) -> usize {

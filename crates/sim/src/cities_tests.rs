@@ -1249,6 +1249,62 @@ fn a_trained_squad_is_pushed_into_a_pool_slot_of_its_own_and_a_single_unit_is_no
     assert!(g2 >= 0 && g2 != g);
 }
 
+/// **A command's building group of two** (item 888, `docs/GOLDEN.md`
+/// §37, run304). `process_group` adds every listed building and pushes
+/// once: one record lists both, in the command's order; the same group
+/// again is `equals_group`'s against `last_group`'s record and seats
+/// nothing; the two in the other order are another group, and take the
+/// next open slot; a building listed twice is added once.
+#[test]
+fn a_command_s_two_buildings_take_one_slot_in_its_order_and_an_equal_group_takes_none() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let a = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let b = sim.place_building(0, t.barracks, tile_pos(48, 40)).unwrap();
+    finish(&mut sim, a);
+    finish(&mut sim, b);
+    let (oa, ob) = (sim.buildings[a].index, sim.buildings[b].index);
+    let seat = |sim: &crate::Sim, want: &[i16]| {
+        (0..64u8).find_map(|s| {
+            sim.pool_building_group(0, s)
+                .filter(|(_, o)| o.as_slice() == want)
+                .map(|(st, _)| (s, st.stamp))
+        })
+    };
+
+    sim.frame = 641;
+    sim.push_command_buildings(0, &[a, b]);
+    let (s1, stamp) = seat(&sim, &[oa, ob]).expect("one record lists both, in order");
+    assert_eq!(stamp, 641);
+
+    sim.frame = 661;
+    sim.push_command_buildings(0, &[a, b]);
+    assert_eq!(
+        seat(&sim, &[oa, ob]),
+        Some((s1, 641)),
+        "an equal group seats nothing and keeps its stamp"
+    );
+
+    sim.frame = 681;
+    sim.push_command_buildings(0, &[b, a]);
+    let (s2, stamp) = seat(&sim, &[ob, oa]).expect("the other order is another group");
+    assert_ne!(s2, s1);
+    assert_eq!(stamp, 681);
+    assert_eq!(
+        seat(&sim, &[oa, ob]),
+        Some((s1, 641)),
+        "the first record is kept"
+    );
+
+    sim.frame = 701;
+    sim.push_command_buildings(0, &[a, a]);
+    assert!(
+        seat(&sim, &[oa]).is_some(),
+        "a building listed twice is added once"
+    );
+}
+
 /// **A player's garrison command, and the building's eject** (item 718,
 /// `docs/ORDERS.md` §29, run208). `Group::action_garrison` gives each
 /// member that `can_garrison` the building one GARRISON with the action
