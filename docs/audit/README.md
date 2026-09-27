@@ -71,7 +71,8 @@ a pass, never by a worker; a worker's Loop line names the omission.
   gave nor fenced is named in the landing ("say if it should move").
 - **The restore in a mutation run comes from version control, or is
   `touch`ed**: a `shutil.move` from a copy puts back the older mtime and
-  cargo does not rebuild (784).
+  cargo does not rebuild (784). **Commit, then mutate, then restore**
+  (907): a checkout restore took 890's uncommitted fix with it.
 
 The sixteenth pass (2026-09-26) added the rows below from the tranche's
 twenty "for the Loop" lines and one measurement of its own.
@@ -119,6 +120,59 @@ twenty "for the Loop" lines and one measurement of its own.
 - **A measurement the brief asks for names its instrument** (881):
   "measure the other map on every step" walked nothing until a run list
   existed, and a Great Lakes list is one line.
+
+The seventeenth pass (2026-09-27) added the rows below from the
+tranche's "for the Loop" lines and two measurements of its own.
+
+- **The gate a brief names is the lane's**: `python3
+  tools/release_gate.py <install> --test-threads 4 --lane`, to a file.
+  Red only on the commander's lines, it reaches `guard` and exits 0;
+  the landing quotes its `Lane verdict:` and `Gate steps:` lines.
+  Twenty of twenty gates of one tranche exited 1 by rule and four hid
+  a red of the worker's own (the seventeenth pass, 969).
+- **A mechanism the brief calls built has a unit test that fails
+  without it, and the booking says which** (918): eight of twenty
+  landings met a mutation that failed nothing or a test that passed
+  without the fix — a sort, a pass order, `Coll::All`, `returning`. One
+  mutation at booking finds it before a capture is the only guard.
+- **Rows booked under one mechanism have their writers counted first**
+  (889): 25 of chapter twenty-four's 30 rows belonged to `Unit::init`,
+  ten minutes of counting away.
+- **A premise that names a callee's tail cites the caller's branch**
+  (933), **and a `SEAM:` the listing can decide cites the listing's
+  branch before it is written as an assumption** (964, 910): `come_out`
+  is never reached at a hangar; `FILTER_ALL` skips the one function
+  that reads the seeker; a seam named the carrier arm "the queue arm".
+  Read the loop's boundaries in the listing end to end.
+- **A staging booked on a function's name greps the function's writers
+  and gates first** (968, 903): "resources cheated to the cap" entered
+  nothing its name promised, and a falsifier's reading of `num` was
+  foreclosed by `researching` on the same block. Per alternative
+  reading, the brief lists the gates between it and the block.
+- **A parting that is a draw count asks the trace for its seeds
+  first** (922): a draw record's seed makes every roll on the frame
+  readable, so a candidate one side skips is named by arithmetic, with
+  no packet. **A completion's draws ask for the two consecutive
+  blocks' `BUILDDATA` beside them** (926).
+- **A route parting's brief cites every proxied step the disk holds**
+  (914): run240's whole-game `calc_cost` proxies had been read for one
+  tick since item 776, and walked whole they named 899's cause.
+- **A residue whose unit is a captain reads its members' rows on the
+  same block first** (958): `0/18` and `0/19` agreed where their
+  captain did not, which the booked premise could not survive.
+- **A row that agrees on a state another writer reached is quiet, not
+  proven** (898): chapter twenty-four's pool agreed only because
+  `Groups::process` had re-speeded the squad four blocks earlier.
+- **An issuer chapter's brief names `blind.rs` as a pin it will move**
+  (950), **and a document that cites an address only for context
+  chooses between the address and the pin** (943): every `name@addr`
+  joins the blind list.
+- **A chapter whose table row will not fit says where the row goes and
+  "move the closing paragraph into it"** (949): a pointer row alone put
+  GOLDEN §14 over its ceiling. §14a is the continuation (932).
+- **A capture stanza with `@` lines is run on a DLL built from the
+  brief's own tree**, and the brief says so: `longtrace.sh` refuses
+  otherwise (936), and the rebuild is one line.
 
 ## How a second reading is run
 

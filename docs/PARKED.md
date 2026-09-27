@@ -22,6 +22,23 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by the seventeenth Fable pass, 2026-09-27 — names no score
+
+(970) **Sixteen citations of functions the executable never references.**
+The dead-citation guard read `docs/EMULATOR.md` §4's fifteen until this
+pass; against `rondata::blind::RESIDUE`'s twenty-seven its first run
+found `Leader::process@006b88b0` cited in COLLISION, COMBAT (twice) and
+ECONOMY, `Caravan::process@0073e000` in CARAVAN and ORDERS (twice),
+`World::set_behind@006b4230` in ROADS (twice), `Group::report_speed` and
+`leader_report_speed` in GROUPS, `GameLog::dump_armies@0092fc50` in COMBAT
+and RUNS, `Game::action_cheat_ai_toggle@005930c0` in INPUT and RUNS,
+`num_scholars` in CITIES, `World::clear_danger` in DANGER,
+`LeaderData::get_fishermen` in ECONOMY and `get_handicap_level` in RUNS.
+Each is pinned in `docs_guard::DEAD_CITED`. Where the residue row names
+the live inlined copy the citation moves to it; where it names none, the
+claim says what backs it. A reading, no capture; a worker takes it
+beside a word whose document it touches, and the pin lowers with each.
+
 ## Parked by the sixteenth Fable pass, 2026-09-26 — names no score
 
 (886) **`SITE_STRAFE_BOMB` has no `SITES` row, and its draw's address is
@@ -1334,6 +1351,25 @@ with 860's half) — moved twelve Loop lines into the brief checklist
 (821, 823, 828, 834, 856, 860, 864, 869, 875, 879, 881, 885) with one
 row of its own; 677, 685, 697, 745, 775, 799, 838 and 852 stay
 (`docs/audit/2026-09-26-fable-pass-16.md`, DECISIONS 52).
+The seventeenth, 2026-09-27, **built eight** — the window waiter ends
+when the game does and the runner answers a TERM (937, the waiter
+failed first 3 of 3); a worker's gate is `release_gate.py --lane` (969,
+the pass's own: twenty of twenty gates had exited 1 by rule); the
+tracer's build is stamped and an `@` stanza is refused on another
+tree's (936); a stanza lint and `issuesmatch.py --none-refused` (941,
+961, 966); the dead-citation guard reads `rondata::blind::RESIDUE`
+(952, sixteen citations pinned on its first run, parked 970); `.reloc`
+holds no pointer (967, the unreferenced rows 26 → 27); the census reads
+the pin (938, 939, 942) — moved sixteen Loop lines into the brief
+checklist (889, 898, 903, 907, 910, 914, 918, 922, 926, 933, 943, 949,
+950, 958, 964, 968) with two rows of its own, and **closed three**: 697
+(item 934 carried the issuer chapters' coverage on the queue lane, 231 →
+276 entered, so the click-free hang stands between nothing and its
+coverage), 932 (GOLDEN §14a is the continuation, since item 928) and
+944 (`report.py refs` is the verb, item 940, and 952's guard fails a new
+citation of an unreferenced function); 677, 685, 745, 775, 799, 838,
+852, 894, 900, 927, 953, 954 and 960 stay, and 973 is filed
+(`docs/audit/2026-09-27-fable-pass-17.md`, DECISIONS 53).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -1386,26 +1422,11 @@ packet's tracer build adds the thread's stack (the TEB `find_teb`
 already locates carries `StackBase`/`StackLimit` at +4/+8) to the
 ranges, and the next packet's stanza says so. Stays.
 
-(697) **`cover=1` hangs the click-free golden lane before frame 0.**
-run185, chapter ten's coverage re-run (item 693), hung with the
-`callwin` proxies and the autostart build, and the runner's timeout held
-the single lane until 14:17, about an hour. run184 at `cover=0` ran on
-the same lane. Until a coverage capture runs there, no issuer chapter
-can move the census's *entered* column, only the cited one (692). **The
-fourteenth pass named the probe and did not run it**: `docs/ORACLE.md`'s
-three six-second probes — `window=0-3` + `cover=1` under
-`WINEDEBUG=+seh`, no lobby — on the autostart build alone, then with the
-`callwin` proxies, which is what run185 added over the `cover=1` runs
-that work on the queue lane. Stays; the cited column moves without it. **923 reframes it**: `cover=1` and the `@` issuers are
-incompatible by construction on every lane (refusal 2, run314), so the
-click-free hang is not the only thing between an issuer chapter and its
-coverage; item 934 takes the issuer half.
-
 (745) **Nothing pins that each field the simulation carries has a widening
 row** (736's Loop line, filed at its merge). `diff::compared` pins the
 dump's side; `Movement::mirror` sat a tranche carried and read, with no
 row, and was caught only because a brief named the bit. The crate's side
-of the recorder is the same blind spot as a parsed-and-uncompared field. **The fifteenth pass read the ledger**: `rondata::ledger`'s 255 fields are the dump's records as `gamelog.rs` parses them, so the crate's own carried fields have no pin on either side; stays, and the shape is a list of `sim`'s state structs against the widening rows, hand-kept and exact.
+of the recorder is the same blind spot as a parsed-and-uncompared field. **The fifteenth pass read the ledger**: `rondata::ledger`'s 255 fields are the dump's records as `gamelog.rs` parses them, so the crate's own carried fields have no pin on either side; stays, and the shape is a list of `sim`'s state structs against the widening rows, hand-kept and exact. **The seventeenth pass**: six landings of the tranche met a comparison that compared nothing (795, 880, 882, 884, 919, 923) and none was a carried field without a row; stays, and its trigger is named — the first landing on the second pair that turns on one builds the list with it.
 
 (775) **A hand-written probe prices the wrong tech** (767's Loop line,
 filed at its merge): the harness maps this crate's tech ids to the dump's
@@ -1423,12 +1444,6 @@ original moves it" as a fail-when-it-parts note. And the commander's
 brief asked a contiguous overlap for a +3387 jump where DECISIONS 50 says
 a window sized to the word; the brief template should say which. **The fifteenth pass split it**: the brief half is a row of the brief checklist (`docs/audit/README.md`); the guard half stays — an `UNMODELLED` key whose value the original moves across the word's own capture must say "the original moves it", read off the `LEADERDATA` blocks of the chain's last dump, with the table's non-literal names (`misc_stamps`, `DIPLOMACY`) expanded by prefix.
 
-
-
-
-
-
-
 (838) **A `group` row with −1 on one side is membership, not a pool id**
 (829's Loop line, filed at its merge): the pool-id rows (689) print as
 ordinary `group` rows, so a content difference (−1 against 71) sat in
@@ -1437,9 +1452,6 @@ the floor: a row whose one side is −1 is its own family. **The sixteenth
 pass**: one reach; the first parting block's standing rows print by
 default now (830), where such a row reads as itself, and the split waits
 for a second reach.
-
-
-
 
 (852) **A specification that calls a constant "read" when `sim` never
 loads it** (839's Loop line, filed at its merge): ECONOMY's "Territory
@@ -1451,142 +1463,23 @@ pass**: stays with its shape — "read" is prose, and the guard needs the
 list of words a specification uses for a loaded constant; one landing
 so far.
 
-(889) **A booking that counts rows under one mechanism counts the
-writers of each field first** (882's Loop line, filed at its merge):
-chapter twenty-four's 30 rows were booked as `come_out`'s "human arm" on
-877's reading; the listing had no owner test, and 25 of the 30 belonged
-to `Unit::init`. Ten minutes of writer-counting split the rows three
-ways before any build.
-
 (894) **A walk says which blocks each mode compared** (880's Loop line,
 filed at its merge): the pool walk takes its dumps in list order, and a
 dump with no `GROUPDATA` listed first silences the record mode on the
 shared blocks. 880's brief carried 6164 as the first record parting from
 that; run45's 377 was. A walk that prints the blocks each mode compared
-would have shown it.
-
-(898) **A pool row agreeing on a state another writer already reached is
-quiet, not proven** (884's Loop line, filed at its merge): chapter
-twenty-four's pool agreed on its 901 press only because `Groups::process`'s
-cursor had re-speeded the squad on 897; the same call on chapter
-twenty-five's squad, 17 blocks old, exposed `get_open_slot`'s side effect
-(895). The quiet-field rule, applied to a side effect.
+would have shown it. **The seventeenth pass**: 795 and 899 listed the `GROUPDATA` dumps first by hand after 880; two reaches, and the print is the third's.
 
 (900) **A comparison that treats ours ≤ 0 as "unset" still compares when
 theirs is set** (795's Loop line, filed at its merge): `collide_frame` is
 compared only when ours is positive (the −1/0 start rule), so the gap's
 four collision stamps sat unread until a scratch trace printed ours. They
-were the item's cheapest evidence, and they agreed.
-
-(903) **A staging lists, per alternative reading, the gates between it and
-the block** (883's Loop line, filed at its merge): falsifier 2 offered
-"two entries" for `num`, but `researching` refuses the second lay whatever
-`num` does, so the mutation that reads `num` fails nothing. A falsifier's
-reading can be foreclosed by another gate on the same block.
-
-(907) **A mutation's restore commits first** (890's Loop line, filed at
-its merge): a checkout restore reverted 890's uncommitted fix, which it
-re-applied. The brief checklist's row (784) reads as licence to do that;
-it should say commit, then mutate, then restore.
-
-(910) **A `SEAM:` is checked against the listing's loop boundaries before
-a brief calls a mechanism built** (901's Loop line, filed at its merge):
-a seam named the carrier arm as "the queue arm", and the clause naming
-the real loop had no code beside it; the listing read end to end found
-the gap in minutes.
-
-(914) **A brief for a route parting cites every proxied step the disk
-holds** (899's Loop line, filed at its merge): run240's whole-game
-`calc_cost` proxies had been on disk since item 776 and were read for one
-tick; walked whole, they named 899's cause in three seconds. The same
-shape (`PROBE_PLAN_PARTED`, 22 entries a cell south) had stood since item
-471.
-
-(918) **A mechanism called "already built" has a unit test that fails
-without it** (888's Loop line, filed at its merge): two of
-`action_queue_up`'s three clauses (the sort and the pass order) could be
-deleted with only a golden widening failing. One mutation at booking
-finds that before a capture is the only guard.
-
-(922) **A draw-count parting inside a max-of-rolls loop asks for the
-seeds first** (904's Loop line, filed at its merge): the brief booked a
-packet for a value the trace already held. A draw record's seed makes
-every roll on the frame readable, so a jitter or spiral candidate one side
-skips is named by `% 100` arithmetic against ours' sequence, with no
-instrument.
-
-(926) **A brief whose parting is a completion's draws asks for the
-consecutive blocks' `BUILDDATA` beside the seeds** (919's Loop line, filed
-at its merge): the building behind a stocking draw is named by diffing
-`construct_hits` and `flags` across two blocks, in a minute.
+were the item's cheapest evidence, and they agreed. **The seventeenth pass**: one reach; the change is in a comparator every long floor reads, so it lands with a widening that re-pins them, not in a pass.
 
 (927) **A site table keyed on one branch's addresses is blind to the other
 branch** (919's Loop line, filed at its merge): a decompiled loop body
 duplicated per branch draws at a different address on each, so the table
 misses the other until that branch first fires.
-
-(932) **GOLDEN §14's table is at the section ceiling** (915's Loop line,
-filed at its merge): three bytes under 16,000 after chapter twenty-nine's
-row, so the next chapter's row does not fit. The table wants a split;
-until then a chapter's row goes in a continuation section its worker
-names.
-
-(933) **A premise that names a callee's tail cites the caller's branch**
-(915's Loop line, filed at its merge): 843's "leaves through the same
-EXIT" named `come_out`'s tail; one grep of the caller, `Build::train`,
-showed the callee is never reached at a hangar.
-
-(936) **The queue lane runs whatever `rontrace.dll` `build.sh` last wrote
-into `game/`, and nothing records which build** (923's Loop line, filed at
-its merge): a stanza cannot say what it needs and a receipt cannot say
-what it got; a 09-23 build without the `@` verbs killed run314's first
-take.
-
-(937) **`waitwin.sh` loops forever when the game dies before its window,
-and `runqueue.sh`'s TERM trap waits behind the foreground pipeline**
-(923's Loop line): a dead take holds the runner until four pids are killed
-by hand and the INIs restored.
-
-(938) **A tool's recipe names its inputs by pin, not by list** (923's Loop
-line): the census's recipe named three traces for nine days while
-eighty-six more stood beside them; `rondata::blind` reads the corpus now.
-
-(939) **The census's entered column was a sample, 7,180 of 7,666** (923's
-Loop line): the next pass's census regenerates from `rondata::blind`'s
-`TRACES`, not the three-trace recipe.
-
-(941) **A gamelog check never anchors `$`**: the lines end in `\r`
-(935's Loop line, filed at its merge); run316's first two checks failed
-on right values, and `grep -q` closing its pipe early can trip
-`runqueue.sh`'s `pipefail`.
-
-(942) **The census recipe splits on the install path's spaces** (935's
-Loop line): `$(for …; echo "$LOGS/…")` breaks on `Microsoft Games/Rise of
-Nations`, so it has never run as written on this machine.
-
-(943) **A supporting `name@addr` citation joins the blind list** (935's
-Loop line): a document citing an address for context grows the list, so
-it chooses between the address and the pin.
-
-(944) **A reading that cites a function with no reference in the
-executable says so, and a `report.py` verb scans for it** (935's Loop
-line): five cited functions have none; a rel32 and absolute-pointer byte
-scan settles it in seconds, and EMULATOR §4 had the answer for fifteen
-since 2026-09-01 while the ranked list was built without it.
-
-(949) **A continuation section's brief says "move the closing paragraph
-into it"** (928's Loop line, filed at its merge): the brief named §14's
-continuation as "§14a or the next free number", and a pointer row alone
-put §14 over the ceiling.
-
-(950) **An issuer chapter's brief names `blind.rs` as a pin it will move**
-(928's Loop line): `cover=1` refuses the issuers, so a chapter's first
-citations of its own issuer re-pin `NEVER` (225 → 228 on 928).
-
-(952) **`docs_guard`'s `DEAD_CITED` reads its dead list from EMULATOR §4's
-prose** (940's Loop line, filed at its merge): the list lives in
-`rondata::blind::RESIDUE` now, whose "no reference" rows are twelve more
-than §4's fifteen; the guard should read those rows, or `Pe::references`.
 
 (953) **An issuer the DLL calls and the game does not is a class the
 blind list cannot name** (940's Loop line): entered by the instrument,
@@ -1596,13 +1489,7 @@ never by the game. Whether entering it shrinks the list is the pass's.
 is a family written in `docs/CENSUS.md`, so a move out of it is a
 reading; a `rows:` table in `blind.rs` would let the sizes be computed. **934 adds**: rows 1, 2 and 5's "77" and the entered 69 + 8 coincided
 by count while the membership was a reading, and nearly passed for a
-measurement.
-
-(958) **A residue item whose unit is a captain reads the members' rows on
-the same block first** (945's Loop line, filed at its merge): the brief
-booked "refuses the whole first ring", which the dump had already killed;
-`0/18` and `0/19` agreed on the parting block while their captain did
-not, so the captain moved after its members were seated.
+measurement. **The seventeenth pass**: stays, and it is the blind list's first item when a lane next takes a row — the table before the next move out of it.
 
 (960) **A coverage `HIT` records its caller**, so a trace says whether the
 game or the instrument entered a function (934's Loop line, filed at its
@@ -1610,38 +1497,12 @@ merge): `ENTERED_BY_THE_DLL_ONLY`'s eight are pinned apart by hand from
 940's scan; the stub has the return address on the stack and does not
 record it. 953's instrument.
 
-(961) **Every `@` stanza carries `issuesmatch.py`** (934's Loop line):
-`cmdsran.py` cannot see an `@` line, and run314's six refusals were found
-only by reading `INFO 17` by hand.
-
-(964) **A `SEAM:` written as an assumption the listing can decide cites
-the listing's branch first** (955's Loop line, filed at its merge): 945
-wrote `FILTER_ALL`'s exemption as a seam with its killer named, the killer
-was in the listing all along (`FILTER_ALL` skips the one function that
-reads `(not_o, not_who)`), and run338 fired it on all three citizens.
-933's rule, for a seam.
-
-(966) **`issuesmatch.py` takes a `--none-refused` mode** (959's Loop line,
-filed at its merge): a stanza with `@` lines and no golden twin cannot
-run it (961); 959 checked `INFO 17`'s refusal word inline and made the
-check fail on run314.
-
-(967) **A reference inside `.reloc` is never a pointer** (959's Loop
-line): `report.py refs` prints a `.reloc` byte coincidence as "pointer
-only", and `Pe::references` counts it.
-
-(968) **A staging booked on a function's name greps its writers first**
-(959's Loop line): "resources cheated to the cap" entered nothing its
-name promised; the gate was one grep of the function's writers away.
-
-
-
-
-
-
-
-
-
+(973) **A test that holds several pins reports every one that moved**
+(the seventeenth pass, from 882's and 904's journals): each paid a
+second gate for a re-pin that sat behind an earlier assertion's panic in
+the same test. The shape is the residue test's — push every failure,
+assert once — applied to the floor tests that pin more than one tuple;
+the lane gate (969) shortens the wait and does not remove it.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

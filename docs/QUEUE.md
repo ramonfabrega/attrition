@@ -12,50 +12,51 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-27, the commander (Opus 5.5): **twenty landings since the
-sixteenth pass, and the seventeenth Fable pass is due.** Nothing is in
-flight. **Both long captures are closed at the trace's end**: Great Lakes
-20568 → 24000 (795, 899), East Indies 20007 → 24000 (880, 890, 904, 919);
-every frame's draws agree, both endpoints 0 off; 293 and 310 value rows
-stand on the last dumps. **Chapters twenty-five to thirty-one closed.**
-The AI lane turned to the blind list on the user's word ("up to you";
-the pass may overturn it): **148 never entered of 1,131 cited, 31
-residue, 117 open** (`rondata::blind`), from 228 at its first pin.*
+*2026-09-27, the seventeenth Fable pass (Fable 5.1, steering): **the first
+pair is closed, and the AI's word moves to a second** (DECISIONS 53). Both
+long captures stand at 24,000 of 24,000, endpoints 0 off, 293 and 310 value
+rows on the last dumps; chapters one to thirty-one are closed; the blind
+list is 148 never of 1,131 cited, 31 residue, 117 open. **What closed is
+one AI — British, `defensive`, Easiest — against an idle human, and no
+battle**: the second pair is the same two games at the lobby's top
+difficulty, one setting moved. The blind list is counter two, on the
+staging lane, and not a headline. No score moved in the pass.*
 
-- **The mechanisms**, each with its value diff: 955 `Coll::All` counts
-  the seeker (ch31 811 → 15 rows); 945 `come_out`'s re-seat (ch30
-  105 → 35); 915 CARRY_AIR; 919 an unstarted site (AI §79); 904 a rock
-  cell (§78); 899 `is_attack` (PATHFINDER §29); 890 the wonder count
-  (AI §77); 795, 880, 882 the pool (GROUPS §30–§32). The blind list:
-  934's issuer guard (twenty chapters at `cover=1`, 0 differing), 940's
-  byte scan, 935's and 959's staged captures.
-- **Fable backlog: 42 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922, 926, 927, 932, 933, 936, 937, 938, 939, 941, 942, 943, 944, 949, 950, 952, 953, 954, 958, 960, 961, 964, 966, 967, 968).
+- **The tranche**: twenty landings in 16½ hours, all Opus 5.5; 681.69 USD,
+  34.1 a landing (27.7); the AI lane 0.026 USD a frame (0.088).
+- **Built by the pass**, each failed first: `release_gate.py --lane` (969),
+  `waitwin.sh`'s exits and the runner's trap (937), the tracer's stamp
+  (936), the stanza lint (941), the dead-citation guard on `RESIDUE` (952).
+- **The user's**: the archive's disk has **20 GB free** and the tranche
+  wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
+- **Fable backlog: 14 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · 947 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the seventeenth Fable pass. Twenty landings from f0b9d296, all
-Opus 5.5; both long captures closed, so the AI lane's direction (the
-blind list, DECISIONS 29 and 41) is the pass's to ratify or overturn,
-with DECISIONS 29's README sentence; then 965 and 947, one a lane.**
+**Opener: the commander, two lanes — 971 on the AI lane and 947 on the
+rules lane, then 972 and 965. Every brief names the lane gate (`--lane`)
+and the checklist's seventeenth-pass rows. The count runs from 0b401602;
+the eighteenth pass at twenty.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
-41): the golden word for the rules, the long word for the AI, and
+41, 53): the golden word for the rules, the newest pair's word for the AI,
 lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-965. **The blind list's row 6, its last gate** (959): `new_danger` and
-    `restart_trade_route` are one gate in `Object::take_damage`
-    (00652e97..00652f41). run342's Tower hit the caravan on London's
-    ground and entered neither; the unowned or enemy-ground arm is
-    untried. What `do_damage` and the arrow path pass as arguments 7 and
-    8, under the emulator first (CARAVAN §10.4); a staged run on the queue
-    lane only if it cannot say.
+971. **The second pair: the capture, and its first word** (DECISIONS 53).
+    run54's and run53's games with the lobby's difficulty at its top
+    setting and nothing else moved: two draw-stream traces, 24,000 frames
+    or the game's end, `cover=0` — **run346** East Indies, **run347** Great
+    Lakes — the setting read back from each `GAME INFO`. Then the lower
+    map's first parting, widened whole, and `SECOND_WORD_*` pinned with a
+    guard for a `Second pair:` line. The difficulty arms `docs/AI.md`
+    reads are hypotheses, each written with its killer.
 
 947. **Chapter thirty-two: an Airbase's gather point — no capture yet**
     (928's park, 955's booking). Action 3, `action_flight`, and
@@ -64,6 +65,19 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     repeat training aircraft), a gather point set on the Airbase. The
     emulator first; **run344** the capture, run345 a staging run.
     GOLDEN §41.
+
+972. **The held-out map, measured once** (DECISIONS 53; parked 372): map
+    9, seed 12345, in run33's shape, **run348**; one diff, and the number
+    and its first breaker into `docs/RUNS.md`. Nothing is debugged
+    against it and no item is opened on it. run106's dump is not on disk.
+
+965. **The blind list's row 6, its last gate** (959): `new_danger` and
+    `restart_trade_route` are one gate in `Object::take_damage`
+    (00652e97..00652f41). run342's Tower hit the caravan on London's
+    ground and entered neither; the unowned or enemy-ground arm is
+    untried. What `do_damage` and the arrow path pass as arguments 7 and
+    8, under the emulator first (CARAVAN §10.4); a staged run on the queue
+    lane only if it cannot say.
 
 ## How to maintain this file
 
@@ -101,5 +115,5 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
   every dump is zero-valued or switched off (117, 178); **a never-cleared
   field asserts a CHANGE, not a value** (`collide_frame`, run85).
 - **The gate is `python3 tools/release_gate.py <install> --test-threads 4`**,
-  to a file, never piped — a pipe launders the 137 — ending `Gate steps:`. A
-  clear is free once every landed branch is merged, gated, pushed and reaped.
+  to a file, never piped — a pipe launders the 137 — ending `Gate steps:`;
+  **a worker's takes `--lane`** and its landing quotes `Lane verdict:` (969).

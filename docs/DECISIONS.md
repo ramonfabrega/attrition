@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-25
+## Index — what stands, as of 2026-09-27
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -40,7 +40,7 @@ is append-only and amended in place, as it always was.
 - 26 standing — The word is the instrument; the finish line is the tick pair
 - 27 extended by 33 — The second lane is the capture lane, a session
 - 28 standing — A check asserts its own inputs
-- 29 amended by 41 — The finish line past the scored captures
+- 29 amended by 41 and 53 — The finish line past the scored captures
 - 30 standing — A mechanic that is worse than nothing is landed unwired
 - 31 standing — Where a mechanic's answer is a number, proxy it
 - 32 standing — The oracle runs on free Wine
@@ -52,7 +52,7 @@ is append-only and amended in place, as it always was.
 - 38 extended by 41 — A lab branch lands by merge
 - 39 extended by 40 — The queue holds what names a score
 - 40 extended by 42 and 45 — The loop governs itself
-- 41 extended by 42 — Two tracks: the rules on a golden record, the AI on the long captures
+- 41 extended by 42, amended by 53 — Two tracks: the rules on a golden record, the AI on the long captures
 - 42 extended by 43 — The frame is the item; the loop's holes become guards
 - 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
 - 44 extended by 50 — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
@@ -62,8 +62,9 @@ is append-only and amended in place, as it always was.
 - 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
 - 49 standing — The rules track's next axis is the issuer, and the day's holes are guards
 - 50 extended by 51 — The instrument records what it compares, and the chain reaps the remote
-- 51 standing — The brief is a checklist, and the lane's stalls are the runner's
-- 52 standing — The harness's numbers are not builds, and the first block prints itself
+- 51 extended by 53 — The brief is a checklist, and the lane's stalls are the runner's
+- 52 extended by 53 — The harness's numbers are not builds, and the first block prints itself
+- 53 standing — The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
 
 ## 1. Fidelity before divergence
 
@@ -3183,3 +3184,133 @@ first-block print in the journals; `UNBUILT` against 139 and 809's
 progress; the census's order row against 65; the remote listing empty;
 `FABLE:` rows against zero; the price per landing against 27.7; and
 the count at twenty.
+
+## 53. The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
+
+**Decided 2026-09-27**, the seventeenth Fable pass, in the main thread
+(`docs/audit/2026-09-27-fable-pass-17.md`). Amends entries 29 and 41's
+finish line; extends entries 42, 51 and 52; overturns in part the
+commander's call of the same day (`c15b5b7a`, "the AI lane turns to the
+blind list"), which the handoff left to this pass.
+
+**What was measured.** Twenty landings since the sixteenth pass by the
+log from `f0b9d296`, in sixteen and a half hours, every worker on Opus
+5.5 by transcript. **East Indies 20,007 → 24,000** over four (880, 890,
+904, 919) and **Great Lakes 20,568 → 24,000** over two (795, 899): both
+long captures closed at the trace's end, every frame's draws agreeing,
+both endpoints 0 off. Chapters twenty-five to thirty-one closed (884,
+883, 901, 888, 915, 928, 955, and 945's floor). The blind list 228 →
+148 over five (923, 935, 940, 934, 959). Workers 681.69 USD, **34.1 a
+landing against 27.7**; the AI lane **0.026 a frame against 0.088** —
+7,425 frames over six landings at 195.15. The value diff beside the
+word on fifteen of the fifteen that had a word, three of them partial.
+No packet was taken; five booked captures or packets were answered by
+the disk. Eight landings met a mutation that failed nothing or a unit
+test that passed without the fix. Seven briefs carried the previous
+item's hypothesis and the listing, the dump or the seeds killed each;
+none was built after its kill. The `FABLE:` batch is empty for the
+eighth pass running; the remote listing was empty.
+
+**What the pass could see and no landing could.**
+
+1. **What the closed pair is.** One nation, one personality, one
+   difficulty, and a human who never moves: the British `defensive`
+   leader of run8's roll on **Easiest**, against idle Nubians, on seed
+   12345 (`docs/AI.md`, "What is not established"). On Great Lakes'
+   last blocks (run80, 23960..23999) no `damage` field on the map is
+   non-zero, and the one damage stamp is a unit of the human's, from
+   frame 10,233. At 900 frames a game minute each capture is under
+   twenty-seven minutes: an Easiest AI's economy into its second or
+   third age (entry 41: "the Medieval at best"), and no battle.
+2. **The blind list counts functions, and the AI's unread half is
+   arms.** `docs/AI.md` reads a difficulty test in `production_ai_setup`,
+   `research_techs`, `create_units`, `upgrade_units`, `unit_prod_value`
+   (negated on 0 and 1), `get_mod_resource_cap` and `Army::find_target`.
+   Every one of those functions is entered on every capture, so none is
+   on the list, and the arm each takes at difficulty 2 and above has
+   never executed. The list cannot see what the first pair held fixed.
+3. **Every worker's gate was red by rule.** A worker re-pins a word and
+   may not write the queue's line for it, and the minted-once guard
+   fails while an item is both booked and journalled: twenty of twenty
+   gates exited 1, none reached `guard` (forty of forty over two
+   tranches), and in four a red of the worker's own stood among the
+   expected ones until a second gate.
+4. **The dead-citation guard read a paragraph.** Item 940's scan moved
+   the list of unreferenced functions into `rondata::blind::RESIDUE`,
+   twelve more than `docs/EMULATOR.md` §4's fifteen; the guard kept
+   reading §4, and nine documents cite the twelve sixteen times.
+5. **The archive's disk is at 98 per cent**: 20 GB free (`df`), under
+   a corpus of 60 GB in the archive and 11 GB of golden runs that grew
+   by **10.2 GB in this tranche** (221 files newer than the sixteenth
+   pass). Two tranches at that rate fill it, and a capture that dies on
+   a full disk looks like every other dead take. It is the user's to
+   decide what leaves, and the handoff says so.
+
+**Decided.**
+
+1. **The milestone is said, and the phase is not closed by it.**
+   `README.md` carries the sentence entry 29 promised. `CLAUDE.md`'s
+   "Done when" is met by the first pair in its letter; the finish line
+   stays entry 41's four counters, and the first of them is read from
+   here as *every pair the AI track has taken*, not the first.
+2. **The AI track's word is a second pair.** The same two maps and the
+   same seed, the lobby's **difficulty at its top setting** and nothing
+   else moved — so a parting names its cause — as a draw-stream trace
+   to 24,000 frames or the game's end, `cover=0`, the setting read back
+   from the dump's own `GAME INFO`. Item 971 takes the pair and its
+   first word; the handoff carries a `Second pair:` line beside `Long
+   captures:`, which stays as the first pair's closed floor; lower map
+   first, as before. Nation and personality are the third and fourth
+   pairs' to vary, one at a time, when this one closes.
+3. **The blind list is counter two and is not a headline.** Its rows
+   are stagings on the golden lane and they queue with the chapters, by
+   what a failure would teach. The commander's turn is ratified as
+   work — eighty functions off the list at 19.1 USD a landing — and
+   overturned as the AI lane's direction: an entered function is one a
+   run reached, and entry 41 already said that is the map and not the
+   score.
+4. **The held-out map is measured again, once** (item 972): map 9, one
+   capture in run33's shape so the number is comparable in provenance
+   (parked 372), one diff, and nothing read into it. run106's dump is
+   no longer on disk. If it parts inside its first 1,850 frames, the
+   next pass books a third *scored* map — a different one; the
+   held-out stays held out — ahead of the third pair.
+5. **A worker's gate is `release_gate.py --lane`** (969): red only on
+   the commander's five lines, it goes on to `guard` and exits 0; red
+   on anything else, it stops and names the test. A kill is never
+   forgiven. The commander's booking gate takes no flag.
+6. **Eight Loop items are built, each made to fail first**: the window
+   waiter's three exits and the runner's trap (937); the tracer's stamp
+   (936); the stanza lint and `--none-refused` (941, 961, 966); the
+   dead-citation guard on the residue table (952, the sixteen pinned
+   and parked as 970); `.reloc` holds no pointer (967); the census
+   reads the pin (938, 939, 942). **Sixteen are brief-checklist rows**
+   (889, 898, 903, 907, 910, 914, 918, 922, 926, 933, 943, 949, 950,
+   958, 964, 968) with two of the pass's own. **697, 932 and 944
+   close.** 894, 900, 927, 953, 954 and 960 stay with their shapes,
+   677, 685, 745, 775, 799, 838 and 852 as they were, and 973 is
+   filed: the backlog is fourteen, from forty-two.
+
+**Not decided, and the user's**: whether phase 4 opens on the rules
+track alone (entry 41 §4 noted the option), now that a closed pair and
+thirty-one closed chapters make it a real question; the thesis sentence
+from entry 41; and the disk.
+
+**The estimate, written down to be wrong on record.** Entry 52 put
+East Indies a tranche and a half from its end; it closed in four
+landings, and Great Lakes in two. The second pair's word starts inside
+the setup — the stockpile clamp is the first difficulty read — and the
+arms are specified already, so the opening should close faster than
+the first pair's did: **past frame 8,000 on both maps within one
+tranche.** What follows is the first war on the AI track, and nothing
+here prices it.
+
+**The measure for the next pass**: the second pair's words and the
+price a frame against 0.026; the held-out number against 1; how many
+lane gates exited 0, and whether any forgiven red was the worker's
+own; whether a capture was refused by the stamp and rebuilt, or the
+refusal was worked around; the value diff on every landing with a
+word; mutations that failed nothing, against eight; `UNBUILT` against
+136; the order row against 65 cited and 276 entered; the blind list
+against 148 and 117 open; the disk's free space against 20 GB; the
+price per landing against 34.1; and the count at twenty.

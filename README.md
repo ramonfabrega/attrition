@@ -15,9 +15,17 @@ health inside hostile national borders.
 > **on both scored maps a full human-versus-AI capture now runs in lockstep
 > for its whole length**, 1,772 frames on one and 1,851 on the other: every
 > unit position, every order list, every animal, and the game's RNG placed
-> draw for draw by call site, with no disagreement anywhere in either. The
-> measurement moves on to the same two games at 24,000 frames; the queue's
-> scoreboard line carries the current first divergence on each. No renderer
+> draw for draw by call site, with no disagreement anywhere in either. **And
+> since 2026-09-27 the same two games run in lockstep for 24,000 frames** —
+> under twenty-seven minutes of play each: every draw of the game's RNG
+> placed by call site on every frame, and every unit's position and order
+> agreeing on the last. What that is, said plainly: one AI — one nation, one
+> personality, the easiest difficulty — against a human who never moves, with
+> no battle in either game and some three hundred bookkeeping fields still
+> differing on each last dump without moving a draw. Thirty-one staged
+> chapters cover the commands a player gives that such a game never issues.
+> The measurement moves on to the same two maps against the hardest AI; the
+> queue's scoreboard lines carry the current first divergence. No renderer
 > yet.
 > `docs/QUEUE.md` says exactly where things stand.
 

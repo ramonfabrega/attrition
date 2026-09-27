@@ -20733,3 +20733,42 @@ nothing else, seven landings having stopped for a grant. 880 is
 re-worded to the parting on disk; 882's fence with it is written.
 **DECISIONS 52.** Eight Loop items remain.
 `docs/audit/2026-09-26-fable-pass-16.md`.
+
+## 2026-09-27 — the seventeenth Fable pass: both long captures closed, what the closed pair is, and a lane's gate that can be green (Fable 5.1, steering)
+
+Twenty landings since the sixteenth pass by the log from `f0b9d296`, in
+sixteen and a half hours, every worker on Opus 5.5 by transcript, and
+every one moved a word, a floor or the list. **East Indies 20,007 →
+24,000** over four and **Great Lakes 20,568 → 24,000** over two: both
+long captures closed at the trace's end, every frame's draws agreeing,
+both endpoints 0 off — where the last pass had put East Indies a
+tranche and a half out. Chapters twenty-five to thirty-one closed; the
+blind list 228 → 148 over five. Workers 681.69 USD, 34.1 a landing
+against 27.7, the rules lane at 43.5 on two eighty-dollar chapters; the
+AI lane 0.026 a frame against 0.088. No packet taken; five booked
+captures answered by the disk; seven briefs carried the last item's
+hypothesis, each killed by the listing, the dump or the seeds, none
+built after. Eight landings met a built mechanism no unit test held.
+What the pass could see and no landing could: **what closed** — one
+nation, one personality, the easiest difficulty, a human who never
+moves, no battle, under twenty-seven minutes of game each — and that
+the blind list the AI lane had turned to counts functions, where the
+AI's unread half is the upper difficulty arms of functions every
+capture enters. So the AI's word moves to a **second pair**, the same
+two games at the lobby's top difficulty and nothing else moved (971);
+the blind list stays counter two on the staging lane; the held-out map
+is measured again, once (972), run106's dump being gone. The README
+carries the milestone and says what it is. **Every worker's gate had
+been red by rule** — forty of forty over two tranches, none reaching
+`guard`, four hiding a red of their own — and `release_gate.py --lane`
+reads the log and says which, failed first on four tests. The window
+waiter ends when the game does and the runner answers a TERM (937, the
+waiter failed first three of three); the tracer's build is stamped and
+an `@` stanza refused on another tree's (936); a stanza lint and
+`--none-refused` (941, 961, 966); the dead-citation guard reads the
+residue table and found sixteen citations in nine documents on its
+first run (952, parked 970); `.reloc` holds no pointer (967); the
+census reads the pin (938). Sixteen Loop lines are checklist rows, 697,
+932 and 944 close, and the backlog is fourteen from forty-two. The
+archive's disk has 20 GB free and the tranche wrote 10.2: the user's.
+**DECISIONS 53.** `docs/audit/2026-09-27-fable-pass-17.md`.

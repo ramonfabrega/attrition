@@ -106,7 +106,10 @@ artifact is the next phase's tool.
    long middle, and the number is how anyone can tell where in it we are.
    Closing the current captures is the milestone, not the phase:
    `docs/DECISIONS.md` entry 29 names the three counters that define the
-   sim complete, and the renderer waits on them.
+   sim complete, and the renderer waits on them. **A pair that closes is
+   succeeded by one that varies a single setting the last held fixed**,
+   and the AI's word is the newest pair's; a closed pair's pins stay as
+   floors (`docs/DECISIONS.md` entry 53).
 4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
 5. **AI** — hardest, least-oracled, and less bad than it looked: build order
@@ -190,7 +193,11 @@ booking is a frame, never a promise to build a name.
   clean, and `cargo run -p rondata -- <install>` exiting zero — which is
   `python3 tools/release_gate.py <install> --test-threads 4` in one
   command, under the memory cap, with the fixture audit and the paperwork
-  guards; that is the gate a landing names. The debug profile is for the
+  guards; that is the gate a landing names. **A worker's is the same
+  line with `--lane`**: red only on the queue's lines — the commander's
+  to write at the merge — it goes on to the guards and exits 0, and red
+  on anything else it stops and names the test; the commander's booking
+  gate takes no flag and forgives nothing. The debug profile is for the
   reflex (`tools/guard.sh`) and for stepping through one test; a debug
   run that reaches a kept dump refuses, by design.
 - Committed. Any open question this closes in another document is struck
@@ -453,7 +460,10 @@ site in one tranche, parked 726); **a fence lifts at the other lane's
 merge**, and the merge's turn tells the lane still running. **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
-those lines has done its half. The re-pin is split on purpose: **the
+those lines has done its half — **which its gate says, under `--lane`,
+in a `Lane verdict:` line the landing quotes**; "red only on your
+lines" is never the worker's own reading of a log (parked 969). The
+re-pin is split on purpose: **the
 word's delta in the constant's comment, the word's block in the
 widening test, and each says which** (parked 513). `ccc spawn --json`'s answer is never filtered — the
 id lore's lineage reads is not the one the commander reads. **A booking
