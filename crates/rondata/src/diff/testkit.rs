@@ -1099,12 +1099,26 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
-/// start dump by `diff::second`. Placeholder until the capture lands.
+/// start dump by `diff::second`. **0 on the capture**: the original spends
+/// 182 draws on frame 0 against this crate's 175, parting at index 24 —
+/// `Unit::think_spellcaster+0x413 < Unit::think_scout+0x7c`, the special
+/// arm's coin, which the computer's scout throws from difficulty 2 up and
+/// no Easiest capture ever reached (`docs/AI.md` §80.5). The word's block
+/// is `run349_s_word_frame_is_widened_whole`'s.
 pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 0;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
-/// at Toughest. Placeholder until the capture lands.
+/// at Toughest. **0 on the capture**: 121 draws against 120 on frame 0,
+/// parting at index 24 on the same coin. Its widening is owed (run350,
+/// item 971's reservation).
 pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 0;
+
+/// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
+/// whole, blocks 1..250 over run346's game. The word is frame 0, which
+/// writes block 1, and no block stands before the start dump; the window
+/// opens at −1 only so the word sits strictly inside it, as
+/// `the_widening_behind_each_pinned_word_exists` asks.
+pub(crate) const WIDENING_SECOND_EAST_INDIES: (i64, i64) = (-1, 250);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -5805,5 +5819,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_seven_b_s_word_frame_is_widened_whole"),
         632,
         Some(WIDENING_CHAPTER_SEVEN_B_CONTROL),
+    ),
+    // **The second pair** (DECISIONS 53 §2, item 971): the AI track's word
+    // on run54's and run53's games at Toughest. East Indies' frame-0
+    // parting is widened on run349; Great Lakes' shares its frame and its
+    // coin, and its widening (run350) is owed by item 971.
+    (
+        "SECOND_WORD_EAST_INDIES",
+        SECOND_WORD_EAST_INDIES,
+        Some("run349_s_word_frame_is_widened_whole"),
+        971,
+        Some(WIDENING_SECOND_EAST_INDIES),
+    ),
+    (
+        "SECOND_WORD_GREAT_LAKES",
+        SECOND_WORD_GREAT_LAKES,
+        None,
+        971,
+        None,
     ),
 ];

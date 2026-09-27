@@ -114,6 +114,79 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::diff::harness::tests::widen_east_indies_on;
+
+    /// **The second pair's East Indies word, widened whole** (item 971):
+    /// run349 is run346's game at run299's per-frame detail over blocks
+    /// 1..250 (`rngcmp.py`: 263 frames, 0 differing), walked from run346's
+    /// start by [`widen_east_indies_on`] — every record, every unit, both
+    /// leaders, both directions — with the word's block (frame 0 writes
+    /// block 1) and the two after it kept standing.
+    #[test]
+    fn run349_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run349",
+            "gamelog-run349-islands-toughest-open.txt",
+            WIDENING_SECOND_EAST_INDIES,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 250, "run349 whole: blocks 1..250");
+        assert!(
+            w.missing.is_empty(),
+            "run349 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The parting's own rows on the word's block** — the seed is one
+        // draw short from frame 0's index 24 on, so every later roll of the
+        // frame reads another value: the AI scout `1/0`'s ring walk picks
+        // another cell, two AI citizens' idle clocks and 46 gaia animals'
+        // `cur_anim` roll other values. Beside them stand the families the
+        // first pair carries on every block (player 0's census, `SITE.reg`,
+        // `form`, the city record; `docs/AI.md` §33.4).
+        assert_eq!(
+            row(1, 0, "orders_x").as_deref(),
+            Some("1: ours 41976 theirs 35832"),
+            "the scout's walk target, x"
+        );
+        assert_eq!(
+            row(1, 0, "orders_y").as_deref(),
+            Some("1: ours 36600 theirs 42744"),
+            "the scout's walk target, y"
+        );
+        assert_eq!(
+            row(1, 1, "g.end_time[0]").as_deref(),
+            Some("1: ours 232 theirs 33"),
+            "an AI citizen's idle clock"
+        );
+        let gaia_anims = w
+            .firsts
+            .iter()
+            .filter(|((who, _, what), (f, _))| *who == 8 && what == "gaia:cur_anim" && *f == 1)
+            .count();
+        assert_eq!(gaia_anims, 46, "gaia's animals roll other idles on block 1");
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(1, 130), (2, 44), (3, 2)],
+            "the blocks keys first part on, the first three"
+        );
+    }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the
     /// dump's own `GAME INFO` is 5, and the harness stands the simulation up

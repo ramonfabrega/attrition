@@ -18115,14 +18115,36 @@ pub(crate) mod tests {
         near: &[i64],
         gaia: bool,
     ) -> Option<Widened> {
+        widen_east_indies_on(
+            ("gamelog-run54-islands-24k-trace.txt", "rontrace-run54.log"),
+            name,
+            capture,
+            window,
+            near,
+            gaia,
+        )
+    }
+
+    /// [`widen_east_indies`] on another East Indies game's start: the
+    /// second pair's run346 (item 971) is run54's lobby at Toughest, so its
+    /// widenings stand the simulation up from run346's own start dump and
+    /// pasture, with run38's head borrowed on the same sameness gate.
+    pub(crate) fn widen_east_indies_on(
+        (base, base_trace): (&str, &str),
+        name: &str,
+        capture: &str,
+        window: (i64, i64),
+        near: &[i64],
+        gaia: bool,
+    ) -> Option<Widened> {
         let inst = install()?;
         let (Some(path), Some(sib), Some(tr), Some(r143)) = (
-            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump(base),
             dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run54.log"),
+            trace(base_trace),
             dump(capture),
         ) else {
-            eprintln!("skipping: no run54/{name} capture (set RON_GAMELOG_DIR)");
+            eprintln!("skipping: no {base}/{name} capture (set RON_GAMELOG_DIR)");
             return None;
         };
         let (first_block, tail) = window;

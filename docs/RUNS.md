@@ -9378,3 +9378,30 @@ established; the first arm, a hit on unowned or enemy ground, is untried.
 run342 enters nothing run341 does not; `rondata::blind::TRACES` carries it
 so the pin records the attempt.
 
+
+## run346 — run54's game at the lobby's top difficulty: the second pair's East Indies (2026-09-27, item 971)
+
+**What it is.** The second pair's first capture (DECISIONS 53 §2): run54's
+stanza with two lines moved, `cover=0` and `profile: DIFFICULTY=5`, on the
+queue lane through `viadriver.sh … runqueue.sh - 971`. East Indies drops
+`-config`, so the lobby is the profile's `<GAME_INFO>` block (`docs/AI.md`
+§80.1); `rules.xml`'s six `difficulties` put Toughest at 5. The DLL was
+run318's, sha256
+`b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca`,
+unstamped (no `@` line, so `stamp.py` passes it).
+
+**Taken** 14:22–14:26 in one take: 11.1 MB of gamelog, 38.3 MB of trace.
+**The read-back**: the dump's `GAME INFO` block is run54's with one line
+apart, `DIFFICULTY 5` against 0; the two `PLAYER` blocks are run54's line
+for line (tribes 4 and 11, the per-player `diff 2`). **The game ended at
+frame 18141**, not 24,000: the idle human is `defeated_by 1` on the closing
+block, and the trace's last frame is 18140. The profile read `DIFFICULTY 0`
+in both blocks before the take and again after it (the `PROFILE` hook's
+copy-back; att-947's golden lane shares the file).
+
+**Against run54**, as a measurement: `rngcmp.py` has 18,141 frames in
+common and 18,138 differing, the first on frame 1 — frame 0 spends seven
+draws more (182 against 175), so every later frame starts on another seed.
+The harness's word is **0** (`diff::second`): ours 175 draws on frame 0,
+parting at index 24, where the original spends `Unit::think_spellcaster+
+0x413 < Unit::think_scout+0x7c` (`docs/AI.md` §80.5).

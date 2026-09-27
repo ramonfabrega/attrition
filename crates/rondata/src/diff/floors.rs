@@ -233,10 +233,19 @@ mod tests {
     fn a_second_pair_line_is_read_against_both_pins() {
         let ok = "Second pair: EastIndies w612 of 24,000 \u{b7} GreatLakes w700 of 24,000";
         assert_eq!(second_pair_verdict(ok, 612, 700), Ok(()));
-        assert!(second_pair_verdict(ok, 613, 700).is_err(), "a stale East Indies word");
-        assert!(second_pair_verdict(ok, 612, 699).is_err(), "a stale Great Lakes word");
+        assert!(
+            second_pair_verdict(ok, 613, 700).is_err(),
+            "a stale East Indies word"
+        );
+        assert!(
+            second_pair_verdict(ok, 612, 699).is_err(),
+            "a stale Great Lakes word"
+        );
         let swapped = "Second pair: GreatLakes w700 of 24,000 \u{b7} EastIndies w612 of 24,000";
-        assert!(second_pair_verdict(swapped, 612, 700).is_err(), "East Indies first");
+        assert!(
+            second_pair_verdict(swapped, 612, 700).is_err(),
+            "East Indies first"
+        );
         assert!(second_pair_verdict("Second pair: none pinned", 0, 0).is_err());
     }
 

@@ -39,10 +39,10 @@ mod golden;
 mod harness;
 #[cfg(test)]
 mod leader;
-#[cfg(test)]
-mod second;
 mod order;
 mod report;
+#[cfg(test)]
+mod second;
 mod setup;
 mod shutdown;
 mod unit;
