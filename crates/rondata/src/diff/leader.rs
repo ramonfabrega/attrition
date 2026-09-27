@@ -351,6 +351,16 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
     for (i, e) in built.sim.tech[who].epoch.iter().enumerate().take(4) {
         out.push((format!("epoch[{i}]"), i64::from(*e)));
     }
+    // **The three counters `gain_tech`'s step 2 writes beside the bit**
+    // (item 883, `docs/GOLDEN.md` §35): `ages_get()`, `epochs_get()` and
+    // `discovered_get()`, the encrypted block's `ages`, `epochs` and
+    // `discovered` (`docs/TECH.md`, "Per-player state"). The bit itself
+    // prints only at `LEADERS=9`; these print at 2, and a research's
+    // finish moves one of them.
+    let t = &built.sim.tech[who];
+    out.push(("ages".to_string(), i64::from(t.ages)));
+    out.push(("epochs".to_string(), i64::from(t.epochs)));
+    out.push(("discovered".to_string(), i64::from(t.discovered)));
     // **The government** (item 706): `LeaderData::gov`, the last one
     // `gain_tech` step 9 wrote, as the dump's `TypeIndex`. It sat on
     // [`UNMODELLED`] as "governments are not modelled" while
@@ -521,6 +531,15 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     }
     for (i, x) in all("epoch_get(scan)").iter().enumerate().take(4) {
         out.insert(format!("epoch[{i}]"), *x);
+    }
+    for (key, name) in [
+        ("ages_get()", "ages"),
+        ("epochs_get()", "epochs"),
+        ("discovered_get()", "discovered"),
+    ] {
+        if let Some(x) = all(key).first() {
+            out.insert(name.to_string(), *x);
+        }
     }
     let v = all("gather_slots_high[scan]");
     for (g, name) in GOODS.iter().enumerate() {

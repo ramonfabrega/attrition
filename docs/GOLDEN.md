@@ -5531,3 +5531,34 @@ readings (789).
 **622**, `0/2005`'s `queued` (ours 0, theirs 1) and who=0's food (254
 against 134). No draw is known to follow a research, so the draw stream
 may not part at all: the Hoplites are queued on both sides.
+
+**Run 2026-09-26 as run296 (item 883)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run292 to 964. **No falsifier
+fired, and every value the staging walk named is on its block**: the
+issues processed on 621, 641, 651, 851, 861, 871, 1041 and 1061 with
+refusal 0 (1); `[572 at 100]` and 120 food once (2); nothing on the second
+press (3) and on the held one (6), with 136 and 155 food unspent; Written
+Word behind the busy head (4); The Art of War out on 822 with epochs 1,
+Military 1 and no unit (5); Barter re-priced to 54/54 with +6/+6 on 1023
+(7); `discovered_get()` 2 then 3 — Boadicea is counted (8, the first of
+its readings); +54/+54 on the cancel (9); Barter again at 54/54 (10); the
+Hoplites out on 1106 and Barter's finish on 1242 (11).
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_SIX` = 1492,
+closed, on the first walk**, with a technology's `@queueup` skipped: a
+research spends no draw, and the Hoplites are queued on both sides. The
+floor is the widening's, (605, 1493) in `WIDENINGS`, with ten windows in
+the coverage driver, and `ages_get()`, `epochs_get()` and
+`discovered_get()` read by the leader diff since this item (they left the
+coverage pin). **The first parting's field list**, 622: `0/2005`'s
+`queued` (ours 0, theirs 1) and who=0's food (254, 134); then 652's timber
+and wealth; 822's `epochs`, `epoch[0]` and `discovered`; 1023's
+`epoch[3]`; 1024's `0/0` `mylos` (4, 6); 1242's `epoch[2]`; 1243's
+`resource_cap` (1120, 1600). The writers on 622: `queued`'s are
+`queue_up` and `unqueue`, and only the command's `queue_up` runs; a
+bucket's are the gather income, `pay_cost` and `unpay_cost`, and the
+income agrees on every block to 621 — so both rows are the research's.
+The pool: the Library's building group `[2005]` in slot 1 from 622 there,
+not seated here, so the Barracks' group takes slot 1 on 872 here and slot
+0 there; and the first seats' record `o` (parked 887). The standing rows
+are `Unit::init`'s (parked 646).

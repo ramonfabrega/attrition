@@ -8523,3 +8523,66 @@ lines returning 1.
 **No falsifier fired**, and every predicted value is on its predicted
 block: the staging walk went through the commands' own entries (parked
 885). Falsifiers 1 and 5 and the births are read in `docs/GOLDEN.md` §34.
+
+## run296 — chapter twenty-six, the research line (2026-09-26, item 883)
+
+`docs/GOLDEN.md` §35, `tools/gamelog/golden/chapter26.cmd`: chapter
+thirteen's cast to 619 (a Barracks `0/2007` for who=0, a Chariot, a
+Hoplite squad, `!ai off`; who=0's own Library is `0/2005`), then
+**`620 @queueup 0 572 2 2005`** (The Art of War, `num` 2), **`640 @queueup
+0 572 1 2005`**, **`650 @queueup 0 551 1 2005`** (Written Word), **`850
+@queueup 0 572 1 2005`** (held), **`860 @queueup 0 558 1 2005`** (Barter),
+**`870 @queueup 0 132 1 2007`**, **`1040 @unqueue 0 0 2005`** and **`1060
+@queueup 0 558 1 2005`**: a technology through the DLL's verb 18,
+`CommandManager::issue_queue_up@00941be0`, which passes the type through.
+The chapter and its eleven falsifiers were committed before the run
+(`2e3bb156`). No `RonDriver` was running and the lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch26 \
+    --map 14 --end-frame 1492 --log-window 605 1492 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter26.cmd
+```
+
+**One take** at `cover=0`: launched 20:08, **1,120 s** in all (1,098
+launch to exit), **365 MB** of dump and 11 MB of trace, 887 blocks. The
+receipt says `success: true`, exit 0, 1,493 frames, `MAP_STYLE 14`, seed
+12345, 454,144 `GROUPDATA`. `waitrun.sh` exited 0. `cmdsran.py` has the
+six console and chat lines returning 1.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run292's trace | the same game to 964: run292's Bowmen are born on 965, and this run trains nothing before 1106 |
+
+### The issuers' own records
+
+- `INFO 18` for `0/2005`, uid 5, on the seven Library frames, and for
+  `0/2007`, uid 13, on 870.
+- `INFO 17`, refusal 0 on all eight. The package grows 10 → 24 on 620 and
+  870 (a fresh group and the `queue_up`), 10 → 22 on 640, 650, 850, 860
+  (the group reused), and 10 → 25 on 1040 (the cancel, no group) and 10 →
+  24 on 1060.
+- `process_queue_up 572 2 621`, `572 1 641`, `551 1 651`, `572 1 851`,
+  `558 1 861`, `132 1 871` and `558 1 1061`; `process_unqueue 2005 0 1041`.
+
+### §35's falsifiers
+
+| check | predicted (this crate's walk) | observed |
+| --- | --- | --- |
+| 2, one entry | `[572 at 100]`, 120 food on 622 | **as predicted**: food 254 → 134, `queued` 1 |
+| 3, the gate | unchanged on 642 | **as predicted**: `[572 at 2100]`, food 136 unspent |
+| 4, the second pass | `[572, 551 at 0]`, 120 timber 50 wealth on 652 | **as predicted**: timber 123, wealth 64 |
+| 5, the finish | the entry out, epochs 1, Military 1, no unit on 822 | **as predicted**: `[572 at 20000]` on 821, `[551 at 0]` on 822; 56 units throughout |
+| 6, held | unchanged on 852 | **as predicted**: `[551 at 3000]`, food 155 unspent |
+| 7, the re-price | `[558 at 0]` 54/54, +6/+6 on 1023 | **as predicted**: food 59 → 65, timber 49 → 55 |
+| 8, the cascade's count | `discovered_get()` 2 on 822, 3 on 1023 | **2 and 3**: Boadicea is counted |
+| 9, the cancel | `[]`, +54/+54 on 1042 | **as predicted**: food 67 → 121, timber 57 → 111 |
+| 10, pressed again | `[558 at 100]` 54/54 on 1062 | **as predicted**: food 68, timber 58 |
+| 11, the unit and the last finish | the Hoplites out on 1106; Barter out on 1242 | **as predicted**: 56 → 59 units on 1106; epochs 3, `epoch_get` 1 0 1 1 on 1242 |
+
+**No falsifier fired**, and every predicted value is on its predicted
+block: the staging walk went through the command's own entry (parked
+885).

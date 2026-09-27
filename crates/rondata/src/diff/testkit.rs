@@ -3603,6 +3603,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_FIVE: i64 = 1466;
 /// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_FIVE: (i64, i64) = (605, 1467);
 
+/// **Chapter twenty-six's golden word** — the research line: a
+/// technology through the player's command at who=0's Library
+/// (`docs/GOLDEN.md` §35, item 883, run296). **1492, closed, on the first
+/// walk**, with a technology's `@queueup` skipped: a research spends no
+/// draw, and the Hoplites are queued on both sides. What the research
+/// moves is values, by the widening: 622, `0/2005`'s `queued` (ours 0,
+/// theirs 1) and who=0's food (254 and 134); 652, timber and wealth; 822,
+/// `epochs`, `epoch[0]` and `discovered`; 1023, `epoch[3]`; 1024, `0/0`'s
+/// `mylos`; 1242, `epoch[2]`; 1243, the commerce cap.
+///
+/// **The delta**, this constant's: none, 1492 closed on the first walk.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_SIX: i64 = 1492;
+
+/// `chapter_twenty_six_s_word_frame_is_widened_whole`'s window: **run296
+/// whole**, (605, 1493). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_SIX: (i64, i64) = (605, 1493);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -3710,12 +3728,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_EIGHT: i64 = 900;
 pub(crate) const WIDENING_CHAPTER_EIGHT: (i64, i64) = (605, 901);
 
 /// The leader keys chapter eight's dump prints and the leader diff reads:
-/// 94 until item 706 read `gov` (95), and 96 since item 785 compares
-/// `wonder_mark` (`docs/AI.md` §75).
-pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 96;
+/// 94 until item 706 read `gov` (95), 96 since item 785 compares
+/// `wonder_mark` (`docs/AI.md` §75), and 99 since item 883 reads the tech
+/// counters `ages_get()`, `epochs_get()` and `discovered_get()`.
+pub(crate) const CHAPTER_EIGHT_LEADER_KEYS: usize = 99;
 /// The leader keys `LEADERS=2` prints and the leader diff reads, a
-/// player: the goods block's 88, and `gov` since item 706.
-pub(crate) const LEADERS_TWO_KEYS: usize = 89;
+/// player: the goods block's 88, `gov` since item 706, and the three tech
+/// counters since item 883 (`docs/GOLDEN.md` §35).
+pub(crate) const LEADERS_TWO_KEYS: usize = 92;
 
 /// **Chapter four's golden word** — the border and the bleed
 /// (`docs/GOLDEN.md` §8, item 552, run132 and run133): **1277 of 1501**,
@@ -5388,6 +5408,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_five_s_word_frame_is_widened_whole"),
         884,
         Some(WIDENING_CHAPTER_TWENTY_FIVE),
+    ),
+    // Item 883: run296, chapter twenty-six's first walk, closed at 1492
+    // with the research skipped: the research spends no draw, and the
+    // widening's value rows are its measure. The widening is run296 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_SIX",
+        GOLDEN_WORD_CHAPTER_TWENTY_SIX,
+        Some("chapter_twenty_six_s_word_frame_is_widened_whole"),
+        883,
+        Some(WIDENING_CHAPTER_TWENTY_SIX),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
