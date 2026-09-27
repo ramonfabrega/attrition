@@ -8136,3 +8136,55 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # The six the staging reads as reachable, each named; the other three of the
 # row are named in the census as unreachable by this staging.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run340.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan)$" | tee /dev/stderr | awk 'END{exit !(NR==6)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; TWO OF SIX ENTERED** ====
+#
+# 08:59:24 to 09:15 through `viadriver.sh`, the lane lock stale (pid 15857,
+# the click-free lane's 08:16 take). DLL sha256 b451aeb6…3dca. Every chat
+# line ran and returned 1; both `@` lines issued, refusal 0. Entered:
+# `CityData::lumber_level` (604) and `Caravans::close_caravan` (2000, the
+# backstop `die`, not the attack). Not, and why, read off the dump:
+#  - `resource_cap_add`: Angkor Wat (o 2008) landed at `city -1`, 23 tiles
+#    from Napata, and `has_wonder` counts a wonder only in a city (`+0x72`).
+#  - `replace_gather`: hoplite 8 died on 700, but a squad member's
+#    `Unit::close` skips the hotkey arm (`field_0x8e >= 0`), so
+#    `HotKeyGroups::kill` first ran on 2000, for the caravan.
+#  - `new_danger`, `restart_trade_route`: the caravan routed (`do_trade`,
+#    `build_road` on 611), but hoplite 6's order stack is empty on 902:
+#    `valid_target_const` asks the target's `is_seen` for who=0, and the
+#    caravan was twenty tiles out of sight; nothing was ever damaged.
+# run341 is the same script with those three fixed.
+
+run: 341
+tag: economy-edges-b
+item: 959
+why: the blind list's row 6, run340 retaken — Angkor Wat inside Napata, a lone unit's death under the gather point, the map revealed before the attack
+# run340's script with three changes, each the reason run340 missed a
+# function (its trailer above): Angkor Wat at corner (12,168), cells (3–4,
+# 42–43), about eleven tiles from Napata's centre and inside its 20-tile
+# radius; `die 5,0` (a starting citizen, no squad) for `die 8,0`; and
+# `explore all` at 890, which sets `reveal_map` 3, so `UnitData::is_seen`
+# answers yes and the 900 `@attack` passes `valid_target_const`. The DLL of
+# run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 2400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 add small_city who=1 216,112
+cmd: 604 add lumber_mill who=0 24,164
+cmd: 606 add angkor_wat who=0 12,168
+cmd: 610 add caravan who=1 228,92
+cmd: 612 add hoplite who=0 200,100
+cmd: 650 @gatherpoint 0 3936 28128 0 2000
+cmd: 700 die 5,0
+cmd: 890 explore all
+cmd: 900 @attack 0 6 1 6
+cmd: 2000 die 6,1
+check: python3 tools/gamelog/cmdsran.py rontrace-run341.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 890:1 2400:1
+# No golden twin, so `issuesmatch.py` has nothing to compare against (961):
+# both `@` lines issued, and refused nothing.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==7)}'
