@@ -7522,3 +7522,555 @@ check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch23/map-14/rontra
 # The same game as run281, word for word over the whole capture.
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch23/map-14/rontrace.log" rontrace-run318.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1840)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run318.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_buildmask$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; EVERY ISSUER CALLED; 0 DIFFERING** ====
+#
+# 04:25:46 to 04:39 through `viadriver.sh`, the lane lock stale (pid 727,
+# run316's). 247,639,311 bytes of gamelog, 9,713,440 of trace. All four
+# checks passed: every cheat line ran; the six `@` lines issued with refusal
+# 0, each growing the package by run281's bytes from its objects in its
+# places; `rngcmp` 0 differing, 1,841 identical; `issue_flight` entered on
+# 620 and `issue_buildmask` on 1440. DLL sha256 b451aeb6…3dca, as above.
+
+run: 319
+tag: ch10-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter ten's script under cover=1, the issuer guard fixed; golden run184
+# `~/ron-golden/ch10/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1250
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 610 add chariot who=0 16,36
+cmd: 612 add hoplite who=0 56,40
+cmd: 620 @patrol 0 3456 11136 6
+cmd: 640 @patrol 0 11136 11904 7
+check: python3 tools/gamelog/cmdsran.py rontrace-run319.log 0:1 37:1 610:1 612:1 1250:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch10/map-14/rontrace.log" rontrace-run319.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch10/map-14/rontrace.log" rontrace-run319.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1250)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run319.log" functions 2>/dev/null | grep -E "CommandManager::issue_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 320
+tag: ch11-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter eleven's script under cover=1, the issuer guard fixed; golden run190
+# `~/ron-golden/ch11/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1250
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 610 add chariot who=0 16,36
+cmd: 612 add supply who=0 16,44
+cmd: 614 add hoplite who=0 36,152
+cmd: 620 @guard 0 7 0 6
+cmd: 640 @guard 0 2001 0 8
+cmd: 720 @move 0 3456 11904 7
+cmd: 1000 add chariot who=1 17,70
+check: python3 tools/gamelog/cmdsran.py rontrace-run320.log 0:1 37:1 610:1 612:1 614:1 1000:1 1250:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch11/map-14/rontrace.log" rontrace-run320.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch11/map-14/rontrace.log" rontrace-run320.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1250)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run320.log" functions 2>/dev/null | grep -E "CommandManager::issue_guard$|CommandManager::issue_move_to$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 321
+tag: ch12-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twelve's script under cover=1, the issuer guard fixed; golden run204
+# `~/ron-golden/ch12/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1150
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 610 add chariot who=0 16,36
+cmd: 612 add supply who=0 16,44
+cmd: 614 add hoplite who=0 60,56
+cmd: 616 add chariot who=0 60,60
+cmd: 620 @follow 0 7 0 6
+cmd: 640 @follow 0 11 0 8
+cmd: 700 @move 0 3456 13440 7
+cmd: 720 @move 0 11904 14976 11
+cmd: 880 @move 0 14976 14976 11
+cmd: 960 @move 0 1152 13440 7
+check: python3 tools/gamelog/cmdsran.py rontrace-run321.log 0:1 37:1 610:1 612:1 614:1 616:1 1150:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch12/map-14/rontrace.log" rontrace-run321.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch12/map-14/rontrace.log" rontrace-run321.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1150)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run321.log" functions 2>/dev/null | grep -E "CommandManager::issue_follow$|CommandManager::issue_move_to$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 322
+tag: ch13-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter thirteen's script under cover=1, the issuer guard fixed; golden run208
+# `~/ron-golden/ch13/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 620 @garrison 0 2007 0 6
+cmd: 640 @garrison 0 2007 0 7
+cmd: 900 @eject 0 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run322.log 0:1 37:1 606:1 610:1 614:1 1000:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch13/map-14/rontrace.log" rontrace-run322.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch13/map-14/rontrace.log" rontrace-run322.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1000)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run322.log" functions 2>/dev/null | grep -E "CommandManager::issue_eject_all$|CommandManager::issue_garrison$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 323
+tag: ch14-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter fourteen's script under cover=1, the issuer guard fixed; golden run210
+# `~/ron-golden/ch14/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1150
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 610 add hoplite who=0 12,84
+cmd: 612 add hoplite who=0 18,84
+cmd: 614 add slinger who=0 15,88
+cmd: 620 @form 0 2 0 6 9 12
+cmd: 700 @move 0 2976 12000 6 9 12
+cmd: 740 @form 0 0 0 6 9 12
+check: python3 tools/gamelog/cmdsran.py rontrace-run323.log 0:1 37:1 610:1 612:1 614:1 1150:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch14/map-14/rontrace.log" rontrace-run323.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch14/map-14/rontrace.log" rontrace-run323.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1150)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run323.log" functions 2>/dev/null | grep -E "CommandManager::issue_form$|CommandManager::issue_move_to$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 324
+tag: ch15-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter fifteen's script under cover=1, the issuer guard fixed; golden run215
+# `~/ron-golden/ch15/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1250
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 610 add hoplite who=0 12,84
+cmd: 612 add hoplite who=0 18,84
+cmd: 614 add chariot who=1 16,64
+cmd: 620 @move 0 3192 10752 6 9
+cmd: 734 @attack 0 6 1 6 9
+cmd: 860 @amove 0 3192 7680 6 9
+check: python3 tools/gamelog/cmdsran.py rontrace-run324.log 0:1 37:1 610:1 612:1 614:1 1250:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch15/map-14/rontrace.log" rontrace-run324.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch15/map-14/rontrace.log" rontrace-run324.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1250)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run324.log" functions 2>/dev/null | grep -E "CommandManager::issue_attack$|CommandManager::issue_move_to$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 325
+tag: ch16-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter sixteen's script under cover=1, the issuer guard fixed; golden run219
+# `~/ron-golden/ch16/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1250
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 610 add chariot who=0 12,60
+cmd: 612 add hoplite who=0 52,60
+cmd: 620 @explore 0 2400 17280 6
+cmd: 640 @explore 0 12672 14976 7
+cmd: 900 @flee 0 2400 11520 6
+cmd: 1000 @flee 0 10752 11520 7
+check: python3 tools/gamelog/cmdsran.py rontrace-run325.log 0:1 37:1 610:1 612:1 1250:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch16/map-14/rontrace.log" rontrace-run325.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch16/map-14/rontrace.log" rontrace-run325.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1250)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run325.log" functions 2>/dev/null | grep -E "CommandManager::issue_move_to$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 326
+tag: ch17-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter seventeen's script under cover=1, the issuer guard fixed; golden run223
+# `~/ron-golden/ch17/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+check: python3 tools/gamelog/cmdsran.py rontrace-run326.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 1400:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch17/map-14/rontrace.log" rontrace-run326.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch17/map-14/rontrace.log" rontrace-run326.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1400)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run326.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 327
+tag: ch18-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter eighteen's script under cover=1, the issuer guard fixed; golden run241
+# `~/ron-golden/ch18/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1450
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 2
+cmd: 610 add citizen who=0 24,184
+cmd: 612 add citizen who=0 24,196
+cmd: 614 add citizen who=0 26,196
+cmd: 616 add citizen who=0 28,196
+cmd: 620 @build 0 7296 34176 427 6
+cmd: 640 @build 0 7296 36864 430 7 8 9
+check: python3 tools/gamelog/cmdsran.py rontrace-run327.log 0:1 37:1 600:1 610:1 612:1 614:1 616:1 1450:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch18/map-14/rontrace.log" rontrace-run327.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch18/map-14/rontrace.log" rontrace-run327.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1450)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run327.log" functions 2>/dev/null | grep -E "CommandManager::issue_build$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 328
+tag: ch19-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter nineteen's script under cover=1, the issuer guard fixed; golden run245
+# `~/ron-golden/ch19/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1100
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 2
+cmd: 602 library who=1 2
+cmd: 606 add barracks who=1 80,80
+cmd: 610 add spy who=0 60,82
+cmd: 620 @spell 0 639 2006 1 15360 15360 6
+check: python3 tools/gamelog/cmdsran.py rontrace-run328.log 0:1 37:1 600:1 602:1 606:1 610:1 1100:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch19/map-14/rontrace.log" rontrace-run328.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch19/map-14/rontrace.log" rontrace-run328.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1100)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run328.log" functions 2>/dev/null | grep -E "CommandManager::issue_spell$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 329
+tag: ch20-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty's script under cover=1, the issuer guard fixed; golden run249
+# `~/ron-golden/ch20/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1300
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 1
+cmd: 604 add dock who=0 53,153
+cmd: 610 add chariot who=0 34,177
+cmd: 612 add chariot who=0 34,189
+cmd: 620 @settransport 0 0 7
+cmd: 640 @move 0 11904 34944 6
+cmd: 642 @move 0 11904 36480 7
+cmd: 800 @settransport 0 1 7
+cmd: 820 @move 0 11904 36480 7
+cmd: 900 @move 0 19584 34944 8
+check: python3 tools/gamelog/cmdsran.py rontrace-run329.log 0:1 37:1 600:1 604:1 610:1 612:1 1300:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch20/map-14/rontrace.log" rontrace-run329.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch20/map-14/rontrace.log" rontrace-run329.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1300)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run329.log" functions 2>/dev/null | grep -E "CommandManager::issue_move_to$|CommandManager::issue_set_transport$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 330
+tag: ch21-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-one's script under cover=1, the issuer guard fixed; golden run255
+# `~/ron-golden/ch21/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1300
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 2
+cmd: 602 library who=1 3
+cmd: 606 add barracks who=0 30,170
+cmd: 610 add bowmen who=1 34,170
+cmd: 760 peace 1
+cmd: 770 add citizen who=0 28,190
+cmd: 772 add citizen who=0 26,192
+cmd: 774 add citizen who=0 28,192
+cmd: 776 add citizen who=0 30,192
+cmd: 780 @repair 0 2007 0 6
+cmd: 800 @repair 0 2007 0 7 8 9
+check: python3 tools/gamelog/cmdsran.py rontrace-run330.log 0:1 37:1 600:1 602:1 606:1 610:1 760:1 770:1 772:1 774:1 776:1 1300:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch21/map-14/rontrace.log" rontrace-run330.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch21/map-14/rontrace.log" rontrace-run330.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1300)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run330.log" functions 2>/dev/null | grep -E "CommandManager::issue_swarm_around$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 331
+tag: ch24-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-four's script under cover=1, the issuer guard fixed; golden run285
+# `~/ron-golden/ch24/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1560
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 620 @queueup 0 132 1 2007
+cmd: 640 @queueup 0 170 1 2007
+cmd: 900 @buildmask 0 64 2007
+cmd: 1300 @buildmask 0 64 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run331.log 0:1 37:1 606:1 610:1 614:1 1560:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch24/map-14/rontrace.log" rontrace-run331.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch24/map-14/rontrace.log" rontrace-run331.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1560)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run331.log" functions 2>/dev/null | grep -E "CommandManager::issue_buildmask$|CommandManager::issue_queue_up$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 332
+tag: ch25-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-five's script under cover=1, the issuer guard fixed; golden run292
+# `~/ron-golden/ch25/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1466
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 620 @queueup 0 132 2 2007
+cmd: 640 @queueup 0 170 1 2007
+cmd: 700 @unqueue 0 0 2007
+cmd: 760 @unqueue 0 0 2007
+cmd: 800 @buildmask 0 64 2007
+cmd: 840 @unqueue 0 -1 2007
+cmd: 980 @queueup 0 132 1 2007
+cmd: 990 @queueup 0 170 1 2007
+cmd: 1000 @unqueue 0 -1 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run332.log 0:1 37:1 606:1 610:1 614:1 1466:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch25/map-14/rontrace.log" rontrace-run332.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch25/map-14/rontrace.log" rontrace-run332.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1466)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run332.log" functions 2>/dev/null | grep -E "CommandManager::issue_buildmask$|CommandManager::issue_queue_up$|CommandManager::issue_unqueue$" | tee /dev/stderr | awk 'END{exit !(NR==3)}'
+
+run: 333
+tag: ch26-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-six's script under cover=1, the issuer guard fixed; golden run296
+# `~/ron-golden/ch26/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1492
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 620 @queueup 0 572 2 2005
+cmd: 640 @queueup 0 572 1 2005
+cmd: 650 @queueup 0 551 1 2005
+cmd: 850 @queueup 0 572 1 2005
+cmd: 860 @queueup 0 558 1 2005
+cmd: 870 @queueup 0 132 1 2007
+cmd: 1040 @unqueue 0 0 2005
+cmd: 1060 @queueup 0 558 1 2005
+check: python3 tools/gamelog/cmdsran.py rontrace-run333.log 0:1 37:1 606:1 610:1 614:1 1492:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch26/map-14/rontrace.log" rontrace-run333.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch26/map-14/rontrace.log" rontrace-run333.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1492)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run333.log" functions 2>/dev/null | grep -E "CommandManager::issue_queue_up$|CommandManager::issue_unqueue$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 334
+tag: ch27-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-seven's script under cover=1, the issuer guard fixed; golden run300
+# `~/ron-golden/ch27/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1560
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 age who=0 2
+cmd: 602 military who=0 1
+cmd: 606 add barracks who=0 14,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 616 add slinger who=0 12,86
+cmd: 620 @queueup 0 83 2 2007
+cmd: 640 @queueup 0 83 1 2007
+cmd: 650 @queueup 0 82 1 2007
+cmd: 1000 @queueup 0 82 1 2007
+cmd: 1010 @queueup 0 83 1 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run334.log 0:1 37:1 600:1 602:1 606:1 610:1 614:1 616:1 1560:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch27/map-14/rontrace.log" rontrace-run334.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch27/map-14/rontrace.log" rontrace-run334.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1560)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run334.log" functions 2>/dev/null | grep -E "CommandManager::issue_queue_up$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
+run: 335
+tag: ch28-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-eight's script under cover=1, the issuer guard fixed; golden run304
+# `~/ron-golden/ch28/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1580
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 608 add barracks who=0 22,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 620 @queueup 0 170 1 2007
+cmd: 640 @queueup 0 132 3 2007 2008
+cmd: 700 @buildmask 0 64 2008
+cmd: 720 @buildmask 0 64 2008 2007
+cmd: 740 @queueup 0 132 1 2007 2008
+cmd: 760 @queueup 0 132 1 2007 2008
+check: python3 tools/gamelog/cmdsran.py rontrace-run335.log 0:1 37:1 606:1 608:1 610:1 614:1 1580:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch28/map-14/rontrace.log" rontrace-run335.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch28/map-14/rontrace.log" rontrace-run335.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1580)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run335.log" functions 2>/dev/null | grep -E "CommandManager::issue_buildmask$|CommandManager::issue_queue_up$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 336
+tag: ch29-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter twenty-nine's script under cover=1, the issuer guard fixed; golden run308
+# `~/ron-golden/ch29/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 2070
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 3
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1540 @queueup 0 287 1 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run336.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 2070:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch29/map-14/rontrace.log" rontrace-run336.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch29/map-14/rontrace.log" rontrace-run336.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=2070)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run336.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 337
+tag: ch30-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — chapter thirty's script under cover=1, the issuer guard fixed; golden run312
+# `~/ron-golden/ch30/map-14/rontrace.cmd` line for line, as run318 is
+# ch23's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`, the DLL
+# of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 1450
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 608 add barracks who=0 22,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 616 @gatherpoint 0 1344 12096 0 2007
+cmd: 620 @queueup 0 132 1 2007
+cmd: 640 @queueup 0 170 1 2007
+cmd: 650 @gatherpoint 0 3936 28128 0 2000
+cmd: 660 @queueup 0 50 1 2000
+cmd: 700 @gatherpoint 0 4224 14208 1 2008
+cmd: 710 @queueup 0 132 1 2008
+cmd: 900 @gatherpoint 0 4224 14208 1 2007
+cmd: 1100 @gatherpoint 0 -1 -1 0 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run337.log 0:1 37:1 606:1 608:1 610:1 614:1 1450:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch30/map-14/rontrace.log" rontrace-run337.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch30/map-14/rontrace.log" rontrace-run337.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1450)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run337.log" functions 2>/dev/null | grep -E "CommandManager::issue_gather_point$|CommandManager::issue_queue_up$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
