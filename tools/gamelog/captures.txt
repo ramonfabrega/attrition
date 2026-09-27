@@ -8397,3 +8397,49 @@ check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/R
 check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | grep -qw "seed 12345"
 check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | grep -qw "DIFFICULTY 0"
 check: grep -a -c "BEGIN FRAME" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | awk '{print "blocks", $1; exit !($1 >= 1850)}'
+
+run: 352
+tag: islands-toughest-1576
+item: 979
+why: item 979's lobby gate moved the second pair's East Indies word 10 -> 1576, the lower: run346's frame 1576 spends 216 draws against this crate's 272, parting at index 192 on `Animal::think_bird+0x82` where ours spends `Build::find_gather_tiles+0x10a` — past run349's blocks 1..250, so no disk holds the word's blocks
+# run349's shape on run346's game (`cfg: -`, `profile: DIFFICULTY=5`),
+# at run299's per-frame detail over **blocks 1571..1827**: the word's
+# frame 1576 writes block 1577, six blocks stand before it and 250 above
+# (DECISIONS 50 §7, stated in blocks). The profile is copied back when the
+# take ends (att-965 shares the lane).
+frames: 1840
+mapstyle: 18
+cfg: -
+profile: DIFFICULTY=5
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 1571 1828
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+# Same game: the trace draw for draw against run346 over the whole take.
+check: python3 tools/gamelog/rngcmp.py rontrace-run346.log rontrace-run352.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1840)}'
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run352-islands-toughest-1576.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 18' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run352-islands-toughest-1576.txt"
+# **The window landed whole** — 257 blocks, 1571..1827.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run352-islands-toughest-1576.txt" | awk '{v=$3+0; if(v>=1571&&v<1828) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=257)}'
+
+run: 355
+tag: greatlakes-toughest-3776
+item: 979
+why: item 979's lobby gate moved the second pair's Great Lakes word 1 -> 3776: run347's frame 3776 spends 217 draws against this crate's 223, parting at index 180 on `Animal::think_bird+0x82` where ours spends `Build::find_gather_tiles+0x10a` — past run350's blocks 1..250, so no disk holds the word's blocks
+# run350's shape on run347's game, over **blocks 3771..4027**: the word's
+# frame 3776 writes block 3777, six blocks before it and 250 above.
+frames: 4040
+mapstyle: 14
+cfg: -
+profile: DIFFICULTY=5
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 3771 4028
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+check: python3 tools/gamelog/rngcmp.py rontrace-run347.log rontrace-run355.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=4040)}'
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run355-greatlakes-toughest-3776.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run355-greatlakes-toughest-3776.txt"
+# **The window landed whole** — 257 blocks, 3771..4027.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run355-greatlakes-toughest-3776.txt" | awk '{v=$3+0; if(v>=3771&&v<4028) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=257)}'

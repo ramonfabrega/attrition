@@ -134,7 +134,7 @@ mod tests {
             "run349",
             "gamelog-run349-islands-toughest-open.txt",
             WIDENING_SECOND_EAST_INDIES,
-            &[SECOND_WORD_EAST_INDIES + 1],
+            &[2],
             true,
         ) else {
             return;
@@ -154,46 +154,49 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The move's value diff** (item 971, `docs/AI.md` §80.5). Before
-        // `think_spellcaster`'s coin, frame 0 was a draw short from index
-        // 24 on and the AI scout `1/0`'s ring walk read another cell: on
-        // block 1 its `orders_x`/`orders_y` were 41976/36600 here against
-        // 35832/42744, its path 9 slots against 3, and 28 of its rows
-        // parted on blocks 1..3. With the coin every one of them agrees
-        // until block 97, where the walk after next parts.
+        // **item 971's value diff**, `docs/AI.md` §80.5: before
+        // `think_spellcaster`'s coin the AI scout `1/0`'s walk target on
+        // block 1 was 41976/36600 here against 35832/42744, and 28 of its
+        // rows parted on blocks 1..3. **Item 979's** (§81): with run38's
+        // frame words — an Easiest game's — no longer installed over this
+        // one, the scout's walk parting (`orders_x` 38136 against 41976 on
+        // block 97) closed too; its first row now is its sight count on
+        // block 202.
+        assert_eq!(row(1, 0, "orders_x"), None, "the scout's walk agrees");
         assert_eq!(
-            row(1, 0, "orders_x").as_deref(),
-            Some("97: ours 38136 theirs 41976"),
-            "the scout's walk target agrees until block 97"
+            row(1, 0, "mylos").as_deref(),
+            Some("202: ours 6 theirs 4"),
+            "the scout's first parting"
         );
         assert!(
             !w.firsts
                 .iter()
-                .any(|((who, o, _), (f, _))| (*who, *o) == (1, 0) && *f < 97),
-            "none of the scout's rows parts before block 97"
+                .any(|((who, o, _), (f, _))| (*who, *o) == (1, 0) && *f < 202),
+            "none of the scout's rows parts before block 202"
         );
-        // **What stands on the word's block with the stream agreeing** —
-        // 119 keys, none of them moved by the coin: player 0's census,
-        // `SITE.reg`, `form` and the city record (the first pair's families,
-        // `docs/AI.md` §33.4), two AI citizens' idle clocks (`1/1`'s
-        // `g.end_time[0]` 232 here, 33 there) and 46 gaia animals'
-        // `cur_anim`. The draws agree through frame 9, so none of these
-        // rolls a different value; they are what block 1 reads on this
-        // game with nothing parted.
+        // **And run38's clocks**: block 1's 46 gaia `cur_anim` rows and
+        // `1/1`'s `g.end_time[0]` 232 against 33 were the sibling's
+        // figures, installed at frame 0's end; both closed with the words.
+        assert_eq!(row(1, 1, "g.end_time[0]"), None, "an AI citizen's clock");
+        assert!(
+            !w.firsts
+                .iter()
+                .any(|((who, _, what), _)| *who == 8 && what == "gaia:cur_anim"),
+            "no gaia animal's clock parts"
+        );
+        // **What stands**: block 1's 67 keys (player 0's census,
+        // `SITE.reg`, `form`, the city record — `docs/AI.md` §33.4's
+        // families) and block 2's tech stamps, `tech_frame` and two
+        // `tech_cat_frame`s, which the original's `Build::queue_up` writes
+        // and this crate does not (§33.4's named unmodelled state).
         assert_eq!(
-            row(1, 1, "g.end_time[0]").as_deref(),
-            Some("1: ours 232 theirs 33"),
-            "an AI citizen's idle clock, standing"
+            row(1, -1, "leader:tech_frame").as_deref(),
+            Some("2: ours 0 theirs 1"),
+            "the original's tech stamp, standing"
         );
-        let gaia_anims = w
-            .firsts
-            .iter()
-            .filter(|((who, _, what), (f, _))| *who == 8 && what == "gaia:cur_anim" && *f == 1)
-            .count();
-        assert_eq!(gaia_anims, 46, "gaia's animals, standing on block 1");
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 119), (2, 27), (3, 2)],
+            [(1, 67), (2, 3), (184, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -214,7 +217,7 @@ mod tests {
             &[("gamelog-run350-greatlakes-toughest-open.txt", 1)],
             WIDENING_SECOND_GREAT_LAKES,
             1,
-            &[SECOND_WORD_GREAT_LAKES + 1],
+            &[2],
         ) else {
             return;
         };
@@ -233,38 +236,189 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 1 stands** with frame 0's draws agreeing: 58 keys, the
+        // **Block 1 stands** with frame 0's draws agreeing: 55 keys, the
         // first pair's families (player 0's census, `SITE.reg`, `form`, the
         // city record; `docs/AI.md` §33.4) and nothing of who=1's economy.
-        // **The word's block, 2, is who=1's opening** (`docs/AI.md` §80.5):
-        // the original's script stands at step 6 where this crate's is at
-        // 11, it holds 92 timber and 100 wealth against 28 and 50, it has
-        // stamped a tech on frame 1, and two buildings are in its pools;
-        // 90 of the 130 keys are `1/2001`'s gather slots, in another
-        // order. No mechanism is named here (DECISIONS 42).
-        for (what, want) in [
-            ("leader:script_step", "2: ours 11 theirs 6"),
-            ("leader:bucket[1:timber]", "2: ours 28 theirs 92"),
-            ("leader:bucket[2:wealth]", "2: ours 50 theirs 100"),
-            ("leader:tech_frame", "2: ours 0 theirs 1"),
-            ("leader:gatherers", "2: ours 4 theirs 3"),
+        // **Item 979's value diff** (§81): before the lobby gate, run12's
+        // frame-0 word — the Easiest game's, one draw short — was installed
+        // over this game's, frame 1's rush roll read 9 where the trace's
+        // seeds give 3, and who=1's block 2 parted on 130 keys: `script_step`
+        // 11 here against 6, timber 28 against 92, wealth 50 against 100,
+        // `gatherers` 4 against 3, `1/2001`'s 90 gather slots, citizen
+        // `1/2`'s walk and the rush's second farm `2007`. Every one of them
+        // agrees now.
+        for what in [
+            "leader:script_step",
+            "leader:bucket[1:timber]",
+            "leader:bucket[2:wealth]",
+            "leader:gatherers",
         ] {
-            assert_eq!(row(1, -1, what).as_deref(), Some(want), "who=1's {what}");
+            assert_eq!(row(1, -1, what), None, "who=1's {what} agrees");
         }
+        assert!(
+            !w.firsts.iter().any(|((who, o, _), (f, _))| *who == 1
+                && *f >= 2
+                && [2, 2001, 2005, 2006, 2007].contains(o)),
+            "the citizen, the camp's slots and the rush's sites agree past block 1"
+        );
+        // **What stands on the old word's block**: the original's tech
+        // stamps (`Build::queue_up` writes `tech_frame` and
+        // `tech_cat_frame[cat]`; §33.4's named unmodelled state) and two
+        // pools of the script's buildings, the library `2005` in 64 and the
+        // city `2000` in 66, which this crate never seats. No draw reads
+        // either before the word.
+        assert_eq!(
+            row(1, -1, "leader:tech_frame").as_deref(),
+            Some("2: ours 0 theirs 1"),
+            "the Art of War's stamp"
+        );
         assert_eq!(
             row(1, -2, "pool:64").as_deref(),
             Some("2: ours [] theirs [2005]"),
             "the original's pool 64"
         );
-        let slots = w
-            .firsts
-            .iter()
-            .filter(|((who, o, _), (f, _))| (*who, *o) == (1, 2001) && *f == 2)
-            .count();
-        assert_eq!(slots, 90, "1/2001's gather slots on the word's block");
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 58), (2, 130), (4, 3)],
+            [(1, 55), (2, 4), (8, 1)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's East Indies word, 1576, widened whole** (item
+    /// 979): run352 is run346's game at run349's detail over blocks
+    /// 1571..1827 (`rngcmp.py`: 1841 frames, 0 differing), walked from
+    /// run346's own start. The word's frame writes block 1577.
+    #[test]
+    fn run352_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run352",
+            "gamelog-run352-islands-toughest-1576.txt",
+            WIDENING_SECOND_EAST_INDIES_1576,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run352 whole: blocks 1571..1827");
+        assert!(
+            w.missing.is_empty(),
+            "run352 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word's block, 1577** (`docs/AI.md` §81.4): a building who=1
+        // places on the word's frame, `1/2009` — 91 of its 93 keys are its
+        // gather slots' tiles in another order (ours spends
+        // `Build::find_gather_tiles+0x10a` there), and it stands at damage
+        // 1 here against 0, with no city here and city 1 there — and the
+        // citizen `1/2`, walking to another cell. **The block before it,
+        // 1576**, parts on five: `reg_land[11]` 102 against 103, `2007`'s
+        // three `city:space` one short, and `SITE[4].reg`. Block 1571
+        // stands with what the window opened on. No mechanism is named
+        // (DECISIONS 42).
+        assert_eq!(
+            row(1, 2009, "build:damage").as_deref(),
+            Some("1577: ours 1 theirs 0"),
+            "the word's building"
+        );
+        assert_eq!(
+            row(1, 2009, "build:city").as_deref(),
+            Some("1577: ours -1 theirs 1"),
+            "and its city"
+        );
+        assert_eq!(
+            row(1, -1, "leader:reg_land[11]").as_deref(),
+            Some("1576: ours 102 theirs 103"),
+            "the block before the word"
+        );
+        assert_eq!(
+            row(1, 2, "orders_x").as_deref(),
+            Some("1577: ours 31944 theirs 37752"),
+            "the citizen's walk"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(1571, 83), (1576, 5), (1577, 115)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's Great Lakes word, 3776, widened whole** (item
+    /// 979): run355 is run347's game at run350's detail over blocks
+    /// 3771..4027 (`rngcmp.py`: 4041 frames, 0 differing), walked from
+    /// run347's start. The word's frame writes block 3777.
+    #[test]
+    fn run355_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run355",
+            &[(
+                "gamelog-run355-greatlakes-toughest-3776.txt",
+                WIDENING_SECOND_GREAT_LAKES_3776.0,
+            )],
+            WIDENING_SECOND_GREAT_LAKES_3776,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run355 whole: blocks 3771..4027");
+        assert!(
+            w.missing.is_empty(),
+            "run355 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word's block, 3777** (`docs/AI.md` §81.4), East Indies'
+        // shape: a building who=1 places on the word's frame, `1/2010` — 79
+        // of its 80 keys its gather slots' tiles, and damage 1 here against
+        // 0 — with `2007`'s `city_down` pointing at it here and not there,
+        // the city `2000` one gatherer short, and citizens `1/6` and `1/28`
+        // on other orders. Nothing parts on blocks 3772..3776. No
+        // mechanism is named (DECISIONS 42).
+        assert_eq!(
+            row(1, 2010, "build:damage").as_deref(),
+            Some("3777: ours 1 theirs 0"),
+            "the word's building"
+        );
+        assert_eq!(
+            row(1, 2000, "city:gatherers").as_deref(),
+            Some("3777: ours 7 theirs 8"),
+            "the city's census"
+        );
+        assert_eq!(
+            row(1, 6, "orders_x").as_deref(),
+            Some("3777: ours 42504 theirs 41064"),
+            "a citizen's order"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(3771, 78), (3777, 127), (3778, 1)],
             "the blocks keys first part on, the first three"
         );
     }

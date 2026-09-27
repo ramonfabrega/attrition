@@ -10330,7 +10330,7 @@ frame 9, and they are player 0's census, `SITE.reg`, `form` and the city
 record (§33.4's families), two AI citizens' idle clocks and 46 gaia
 animals' `cur_anim`, unchanged by the fix.
 
-**The new words, by frame and draw delta** (DECISIONS 42; no mechanism
+~~**The new words, by frame and draw delta** (DECISIONS 42; no mechanism
 is named): **Great Lakes 1** — ours 54 draws, the original 85, parting at
 index 44, ours `Unit::do_non_flat_gather+0x54b` where the original spends
 `Leader::produce_building+0xc99`; the lower word, widened on run350. On
@@ -10344,7 +10344,10 @@ draws agreeing (58 keys, §33.4's families).
 **East Indies 10** — ours 197, the original 188, parting at index 183,
 ours `PathFinder::calc_road_cost+0x46` where the original spends
 `Farms::inc_time+0x1ae`; inside run349, where no row first parts on blocks
-4..25.
+4..25.~~ **Both were the harness's, not the game's** (item 979, §81): the
+walk installed an Easiest sibling's frame words over each Toughest game.
+With the lobby gate the words are **East Indies 1576** and **Great Lakes
+3776**.
 
 ### 80.6 What this has *not* established
 
@@ -10365,3 +10368,124 @@ lever by four `GAME INFO` read-backs. **Listing-backed**: `005f2bae`–
 `005f2bbd`. **Export-backed only**: the arm's order above the coin, the
 three craft ids off the spell table's `+0x9dc`/`+0x9d4`/`+0xa04` slots,
 and the seams' reads.
+
+## 81. A sibling's frame words are another game's at another lobby, and the second pair moves to 1576 and 3776 (2026-09-27, item 979)
+
+Item 979 was booked on Great Lakes' frame 1: ours 54 draws against the
+original's 85, parting at index 44 (`Unit::do_non_flat_gather+0x54b`
+against `Leader::produce_building+0xc99`). The widening (run350, block 2)
+had who=1's `script_step` 11 here against 6 there. **No mechanism was
+named**, and the one the booking carried — that the top difficulty changes
+the AI's opening — was wrong: the game's rules were never the cause.
+
+### 81.1 The frame, from the disk
+
+- **Which side holds what** (`diff::second`'s rows, then the dump):
+  the original's who=1 sits at `defensive` step 6, holds 2 food, 92 timber
+  and 100 wealth, and on block 2 has queued The Art of War (TypeIndex 572,
+  120 food, at the library `2005`), three citizens at `2000` and two farms
+  (`2006`, `2007`; `num_queued {50: 3, 417: 2, 572: 1}`). Ours had gone to
+  step 11 — Written Word, a fourth farm, City State, three citizens —
+  spending 28 timber and 50 wealth less than it holds.
+- **That is `defensive.bhs`'s Ancient Age rush**: `step == 6 &&
+  rush_build < 4` on a land map places farms to five, researches The Art
+  of War, trains to nine citizens and returns `BLOCK_ON_THIS` with the step
+  unmoved (§3's step list). So the question was the roll.
+- **The trace's seeds, first** (the 922 rule): frame 1's eight
+  `MathUtilFuncSet::rand_int+0x18` records carry seeds `f292f08c` …
+  `c0451f69`; one LCG step and `Random::get(1, 10)`'s scaling give
+  **9 3 4 9 6 3 2 4**. This crate's host rolled **9 9 3 4 9 6 3 2** — the
+  same stream one draw behind, so `rush_build1` (the script's `who − 1 =
+  1`) read 9 here and 3 there.
+- **Where the draw went.** The original's game stream is continuous across
+  frames 0 and 1 (every seed one step from the last, 206 draws). Ours ended
+  frame 0 on `f292f08c` and began frame 1 on `b6194ba1`, the word before
+  frame 0's last draw: between the two, `Built::tick` installed a frame-0
+  word from `frame_seeds`, and run347's own dump prints none. It was
+  **run12's**, borrowed by `borrow_from_siblings` because run12's setup
+  stream ends on run347's word — the setup draws do not read the
+  difficulty — and run12 is an Easiest game, whose frame 0 is one draw
+  short of the Toughest one (§80.5's coin).
+
+### 81.2 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| the top difficulty changes the script's first steps (971's) | the script reads no difficulty (§80.3), and the rolls differ | killed by the seeds |
+| the static initialisers run in another order | the original's rolls are ours shifted one draw, not permuted | killed by the seeds |
+| a draw this crate does not step | the original's stream has no gap, and ours ends frame 0 on the right word | killed: ours is right, and then overwritten |
+| a sibling's word from another game is installed at frame 0's end | the gate below moves the word; without it the unit test and four walks fail | **held** |
+
+### 81.3 The fix
+
+`diff::setup::borrow_from_siblings` takes a sibling's per-frame words and
+per-frame clocks only when `same_lobby` holds: every `GAMEINFO` field
+equal, or either dump without the block. The start dump's figures are the
+setup's and still travel on the setup stream alone. On disk, within one
+map and seed, the only `GAMEINFO` variants are run1–5's (`GAME_RULES`,
+`flags`, `STARTING_TECHNOLOGY`), run20's `flags 1`, and the second pair's
+`DIFFICULTY 5`. The fix is the harness's. The simulation is unchanged.
+
+### 81.4 What it moved
+
+- **Great Lakes 1 → 3776.** On run350's block 2, `script_step` 11
+  against 6 → 6 on both, timber 28 against 92 → 92, wealth 50 against
+  100 → 100, `gatherers` 4 against 3 → 3; citizen `1/2`'s walk,
+  `1/2001`'s 90 gather slots and the rush's farm `2007` all agree. Frame
+  1's draws went 54/85 → 85/85, and run350's keys parted 576 → 64.
+- **East Indies 10 → 1576.** run38's words had been installed the same
+  way. On run349 the keys parted 576 → 72: block 1's 46 gaia `cur_anim`
+  rows and `1/1`'s `g.end_time[0]` 232 against 33 (run38's clocks)
+  closed, and the scout `1/0`'s block-97 walk parting (`orders_x` 38136
+  against 41976) closed; its first row is now `mylos` 6 against 4 on
+  block 202.
+- **The new words, by frame and draw delta** (DECISIONS 42; no mechanism
+  is named): **East Indies 1576**, the lower: ours 272 draws, the original
+  216, parting at index 192. Ours spends `Build::find_gather_tiles+0x10a`
+  where the original spends `Animal::think_bird+0x82`. **Great Lakes
+  3776**: ours 223, the original 217, parting at index 180 on the same
+  pair of sites.
+- **The first pair is untouched**: its captures' `GAMEINFO` is their
+  siblings'.
+- **The new words' widenings** (run352, run355; `docs/RUNS.md`) have the
+  same shape on both maps.
+  - On the word's block who=1 has a new building: `1/2009` on East Indies,
+    `1/2010` on Great Lakes. Its gather slots hold other tiles (91 and 79
+    keys), and it stands at damage 1 here against 0 there.
+  - Around it, citizens take other orders.
+  - On East Indies the block before the word already parts, on
+    `reg_land[11]` (102 against 103) and `2007`'s `city:space`. On Great
+    Lakes nothing parts between the window's first block and the word's.
+  - As a hypothesis only (DECISIONS 42): the site's placement, as ours
+    spends `Build::find_gather_tiles` where the original does not.
+
+### 81.5 What stands on the old words' blocks
+
+These draw nothing before either new word, so none of them is built here:
+- **`tech_frame` and `tech_cat_frame[cat]`**: `Build::queue_up@00620f40`
+  stamps them to `game->frame` when a tech is queued, and this crate does
+  not (§33.4's named unmodelled state). The rows are 0 here against 1 there
+  on both blocks 2.
+- **Pools 64 and 66** on Great Lakes: the original seats the library
+  `2005` and the city `2000` in groups `who·64 + 0` and `+ 2` when the
+  script queues at them. This crate seats none.
+
+### 81.6 What this has *not* established
+
+- **Whether any other capture on disk borrowed another game's words.**
+  The gate is by `GAMEINFO`, and two captures of one lobby that differ past
+  the setup (a console command, a different input) would still pass it.
+  §81.3's scan names only the second pair and runs 1–5 and 20 as differing,
+  and every walk of those passed the gate unchanged (§81.7).
+- **The rush past its first frame**: the barracks, four Hoplites and a
+  Slinger. They lie on the way to 1576 and 3776, and the words cross them.
+
+### 81.7 Coverage
+
+**Diff-backed**: the eight rolls against the trace's seeds, the seed
+chain's continuity, block 2 on both widenings, and both walks. Each walk is
+a floor, and each fails with the gate removed (the mutation was run: the
+unit test, run346's and run347's walks, and run349's and run350's
+widenings). **Export-backed only**: `Build::queue_up`'s stamps (§81.5),
+and `defensive.bhs`'s rush branch (read in the script itself).
+

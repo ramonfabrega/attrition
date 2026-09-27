@@ -1661,6 +1661,12 @@ impl Built {
 /// needs — [`Initial::heights`] is the grid after `Wall::init` has flattened
 /// each footprint, so a sibling that placed its buildings elsewhere has a
 /// different table however well its map seed matches.
+/// Whether two dumps' lobbies are one game's: every `GAMEINFO` field equal,
+/// or either dump without the block (item 979).
+pub(crate) fn same_lobby(a: &Initial, b: &Initial) -> bool {
+    a.game_info.is_empty() || b.game_info.is_empty() || a.game_info == b.game_info
+}
+
 pub(crate) fn same_start(a: &Initial, b: &Initial) -> bool {
     let key = |i: &Initial| -> Vec<(i64, i64, i64, i64)> {
         let mut v: Vec<(i64, i64, i64, i64)> = i
@@ -1808,22 +1814,38 @@ pub fn borrow_from_siblings<'a, 'b: 'a>(init: &mut Initial<'a>, siblings: &[&Ini
     // Every qualifying sibling contributes the frames it traced — run12's
     // 0–3 and run13's 94–103 together (`docs/SYNC.md` §5); the dump's own
     // word wins where two name the same frame.
+    //
+    // **And the lobby must be ours** (item 979). The setup stream does not
+    // read the difficulty, so run347 — run53's game at Toughest — ends its
+    // setup on run12's word, and run12's frame-0 word, one draw short of a
+    // Toughest frame 0 (the spellcaster's coin, `docs/AI.md` §80.5), was
+    // installed over ours: frame 1's eight `rand_int` rolls came out one
+    // draw behind the trace's own seeds, and who=1's rush roll with them
+    // (`docs/AI.md` §81). A sibling whose `GAMEINFO` differs from ours in
+    // any field is another game past the setup; one either side lacks the
+    // block for cannot be told apart and is taken, as before. The start
+    // dump's figures are the setup's, so they still travel on the stream
+    // alone.
     let ours = init.checksums.last().map(|c| c.seed);
-    for s in siblings
+    let games: Vec<bool> = siblings.iter().map(|s| same_lobby(init, s)).collect();
+    for (s, same) in siblings
         .iter()
-        .filter(|s| !s.frame_seeds.is_empty() && s.checksums.last().map(|c| c.seed) == ours)
+        .zip(&games)
+        .filter(|(s, _)| !s.frame_seeds.is_empty() && s.checksums.last().map(|c| c.seed) == ours)
     {
-        for &(frame, word) in &s.frame_seeds {
-            if !init.frame_seeds.iter().any(|(f, _)| *f == frame) {
-                init.frame_seeds.push((frame, word));
-            }
-        }
         // The clocks travel with the words: a frame's guys from the sibling
         // that traced it, and the start dump's guys from any sibling of the
         // same stream — the same setup put the same figures on the map.
-        for (frame, guys) in &s.frame_guys {
-            if !init.frame_guys.iter().any(|(f, _)| *f == *frame) {
-                init.frame_guys.push((*frame, guys.clone()));
+        if *same {
+            for &(frame, word) in &s.frame_seeds {
+                if !init.frame_seeds.iter().any(|(f, _)| *f == frame) {
+                    init.frame_seeds.push((frame, word));
+                }
+            }
+            for (frame, guys) in &s.frame_guys {
+                if !init.frame_guys.iter().any(|(f, _)| *f == *frame) {
+                    init.frame_guys.push((*frame, guys.clone()));
+                }
             }
         }
         for su in &s.units {
@@ -1864,6 +1886,72 @@ mod tests {
     use sim::ai::{MAKE_SLOTS, MakeObject};
 
     use crate::testenv::{dump, install};
+
+    /// **A sibling's per-frame words are borrowed only from the same lobby**
+    /// (item 979, `docs/AI.md` §81). The setup stream does not read the
+    /// difficulty, so a Toughest capture and an Easiest sibling end their
+    /// setups on one word — and the sibling's frame words are another
+    /// game's. Before the gate, run12's frame-0 word was installed over
+    /// run347's and put frame 1's rolls one draw behind. The start dump's
+    /// figures are the setup's, and still travel on the stream alone.
+    #[test]
+    fn a_sibling_s_frame_words_are_borrowed_only_from_the_same_lobby() {
+        let setup = crate::gamelog::Checksum {
+            n: 9,
+            file: "game.cpp",
+            line: 5024,
+            seed: 0x1234_5678,
+        };
+        let easiest = [("MAP_STYLE", "14"), ("DIFFICULTY", "0")];
+        let toughest = [("MAP_STYLE", "14"), ("DIFFICULTY", "5")];
+        let clocked = crate::gamelog::Guy {
+            cur_anim: Some(1),
+            cur_time: Some(0),
+            end_time: Some(33),
+            ..Default::default()
+        };
+        let sibling = Initial {
+            game_info: easiest.to_vec(),
+            checksums: vec![setup],
+            frame_seeds: vec![(0, 0xb619_4ba1)],
+            frame_guys: vec![(0, vec![])],
+            units: vec![crate::gamelog::UnitDump {
+                who: 1,
+                o: 2,
+                guys: vec![clocked],
+                ..Default::default()
+            }],
+            ..Initial::default()
+        };
+        let ours = |info: &[(&'static str, &'static str)]| Initial {
+            game_info: info.to_vec(),
+            checksums: vec![setup],
+            units: vec![crate::gamelog::UnitDump {
+                who: 1,
+                o: 2,
+                ..Default::default()
+            }],
+            ..Initial::default()
+        };
+
+        let mut same = ours(&easiest);
+        borrow_from_siblings(&mut same, &[&sibling]);
+        assert_eq!(same.frame_seeds, [(0, 0xb619_4ba1)], "the same game's word");
+        assert_eq!(same.frame_guys.len(), 1, "and its clocks");
+
+        let mut other = ours(&toughest);
+        borrow_from_siblings(&mut other, &[&sibling]);
+        assert!(
+            other.frame_seeds.is_empty(),
+            "another lobby's word is not ours"
+        );
+        assert!(other.frame_guys.is_empty(), "nor its frames' clocks");
+        assert_eq!(
+            other.units[0].guys,
+            [clocked],
+            "the start dump's figures are the setup's, and travel"
+        );
+    }
 
     /// **A leader's opening unit set is its own nation's** — the ordering
     /// [`build_sim`] had wrong until 2026-09-04.
