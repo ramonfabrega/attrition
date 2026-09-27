@@ -59,7 +59,7 @@ use super::testkit::{
     GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_RETURN_BLOCK, GREAT_LAKES_ROAD_BLOCK,
     GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_STAND_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
     GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
-    WIDENING_GREAT_LAKES_END,
+    WIDENING_EAST_INDIES_END, WIDENING_GREAT_LAKES_END,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -587,6 +587,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r277 = crate::testenv::dump("gamelog-run277-eastindies-blockedwalk.txt");
     let r289 = crate::testenv::dump("gamelog-run289-eastindies-marketword.txt");
     let r299 = crate::testenv::dump("gamelog-run299-eastindies-wonderprice.txt");
+    let r96 = crate::testenv::dump("gamelog-run96-eastindies-latecensus.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -967,6 +968,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let ean = EAST_INDIES_ADDANIMALS_BLOCK;
         let n = drive_capture(p, ean - 2, ean + 2, &mut paths);
         assert_eq!(n, 5, "run299 carries the new word's five blocks");
+        frames += n;
+    }
+    // Item 919 moved it to 24000, the capture's own end: run96 carries the
+    // last blocks any dump holds, and the window is its last three
+    // per-frame blocks, 23997..23999, for run80's reason (the end block is
+    // the quit dump).
+    if let Some(p) = &r96 {
+        let end = WIDENING_EAST_INDIES_END.1;
+        let n = drive_capture(p, end - 4, end - 1, &mut paths);
+        assert_eq!(n, 3, "run96 carries the end's last three per-frame blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

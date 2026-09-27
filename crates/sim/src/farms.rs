@@ -1412,10 +1412,17 @@ mod tests {
             let fourth = s.init_build(0, t, Pos::new(24 * 192 + 96, 23 * 192 + 96), false);
             assert_eq!(s.buildings[fourth].city, Some(city));
             let marks: Vec<String> = s.phase_marks.iter().map(|m| m.0.clone()).collect();
-            (s.buildings[fourth].farm.farm_type & ANIMAL_FARM, s.rng.seed == seed, marks)
+            (
+                s.buildings[fourth].farm.farm_type & ANIMAL_FARM,
+                s.rng.seed == seed,
+                marks,
+            )
         };
         let (ty, quiet, marks) = place(false);
-        assert_eq!(ty, ANIMAL_FARM, "no started neighbour: the fourth is a pasture");
+        assert_eq!(
+            ty, ANIMAL_FARM,
+            "no started neighbour: the fourth is a pasture"
+        );
         assert!(quiet && marks.is_empty(), "and it takes no draw: {marks:?}");
         // A crop with three crops beside it takes the city's emitter, as
         // `1/2031` did on the same frame; the pasture above never does.
