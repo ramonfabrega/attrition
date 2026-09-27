@@ -2942,6 +2942,8 @@ mod tests {
     /// of leader 1 gone and nothing arriving.
     /// **61 → 60 on item 729** (`docs/AI.md` §71): `0/frame_attacked`, the
     /// human struck on 10233, which `Object::take_damage` stamps.
+    /// **60 → 59 on item 904** (`docs/AI.md` §78): leader 1's `SITE[4].rank`,
+    /// once the rock arm refuses a city site the original never listed.
     const PARTS_ON_RUN117: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2978,7 +2980,6 @@ mod tests {
         (1, "MAKE[8].city"),
         (1, "SITE[0].reg"),
         (1, "SITE[1].reg"),
-        (1, "SITE[4].rank"),
         (1, "SITE[5].dist"),
         (1, "SITE[5].rank"),
         (1, "SITE[5].val"),

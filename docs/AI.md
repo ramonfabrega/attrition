@@ -9855,16 +9855,19 @@ records agree. The one extra draw shifts the slot loop's expiry
 (`make_stuff+0x63d`), which clears slot 4 there and not here (`MAKE[4].t`
 417 against −1 on 23183), and `1/79`'s figure draws one along.
 
-**No mechanism is named** (DECISIONS 42). The blocked sub-position is one
+**No mechanism is named** (DECISIONS 42). ~~The blocked sub-position is one
 of the three besides the chosen one. It sits beside the Farm this frame
 just placed. `blocked_site`'s answer on it is a value the original
 computes mid-frame, after `1/2031`'s `Farms::add`, so the instrument is a
 packet at 23181 (run298, unused here) with a probe **inside**
-`produce_building`'s second call, not at the frame boundary.
+`produce_building`'s second call, not at the frame boundary.~~ The trace's
+own seeds named it, (35904, 38208), which is nowhere near `1/2031`; the
+cause is a rock cell, and no packet was needed (§78).
 
 ### 77.7 What this has *not* established
 
-- **Which sub-position the original blocks, and why** (§77.6).
+- ~~**Which sub-position the original blocks, and why** (§77.6).~~
+  Settled by item 904: (35904, 38208), on a rock cell (§78).
 - **Past three wonders, the space-race arm and the team term** of the
   price: listing only (`docs/COSTS.md`, "A wonder is ramped by every
   wonder").
@@ -9890,3 +9893,86 @@ decompiler's text.
 **Built**: `another_wonder_s_site_prices_a_wonder_out_of_the_purse` and
 `a_gather_offer_is_escrowed_on_every_exit_of_the_head_test`, each made to
 fail by a mutation first.
+
+## 78. A rock cell refuses a Farm's jitter, and the word moves to 23420 (2026-09-26, item 904)
+
+East Indies' word was **23182** (§77.6). On it this crate spent 49 draws
+against the original's 48, parting at index 46: ours
+`Leader::produce_building+0x1805` (§2.20's jitter), the original
+`Leader::make_stuff+0x63d`. Both sides walk slot 4's Farm to corner
+(184, 196), and the 2×2 jitter found four clear sub-positions here and
+three there.
+
+### 78.1 The frame, from the disk
+
+- **run299 re-widened on today's tree** (`RON_STANDING=23181-23184`):
+  the five keys under the word stood as 890 left them, and the first
+  block's standing rows are the gap's (21046..23176).
+- **The trace's seeds name the blocked sub-position.** A draw record
+  carries the seed before the step (`rondata::trace`), so the original's
+  three `+0x1805` draws on 23182 read 57, 12 and 99 (`% 100`). Ours drew
+  57, 12, 99 and 42 over (0,0), (0,1), (1,0), (1,1), the order of the
+  loops at `006e2a78`, and both sides placed `1/2032` at (1,0) =
+  (35904, 38016). With three draws, (1,0) takes 99 and wins only if it is
+  the third clear candidate. So (0,0) and (0,1) are clear there, and
+  **the refused one is (1,1) = (35904, 38208)**.
+- **Its one tile no clear candidate shares is (188, 200)**, in cell
+  (47, 50). The start dump prints that cell's flags as `0x0808`, which is
+  `cell::ROCK | cell::OIL`. `World::set_oil_at@006b2a10` is the oil bit's
+  only writer (the terrain groups and the editor), so the cell is the
+  map's, fixed from frame 0.
+- **The scratch probe on ours** at tick 23182: all sixteen tiles of
+  (1,1) are Clear, owned by player 1 and inside the city radius.
+
+### 78.2 The readings, and what killed each
+
+Written before the build. Each killer tests the reading's own claim.
+
+- **R1: `blocked_tcoord`'s rock arm.** The listing (`006370b2`) refuses a
+  non-oil type on a cell with `flags & 8`, verdict 3. This crate has no
+  such test. The claim's unit is (1,1)'s verdict. It dies if, with the arm
+  built, (1,1) stays clear or 23182 does not agree 48/48. **Holds.**
+- **R2: the flat-gather arm.** `00637532` reads the tile form of
+  `get_land` (`@006b4c70`, which answers Oil (7) on this cell), and
+  `LandData::get_amount` of food on Oil is 0, verdict 9. This crate has
+  no such test either. **Foreclosed on this tile** (903): R1's arm
+  returns first, so R2 cannot be what the original answered here. It is
+  built for its own cells, and its unit test is the only killer that
+  reaches it.
+- **R3: fog** (`blocked_site` counts dark tiles), and **R4: the cell's
+  territory.** No dump prints either on this frame. **Killed by R1**:
+  R1 alone closes the frame.
+- **R5: "beside the Farm this frame just placed"** (§77.6). **Killed by
+  the seeds**: (1,1) is two tiles from `1/2031`'s footprint (180..183),
+  and the two candidates nearest it are clear.
+
+The packet booked at 23181 (run306) was not taken. The disk answered it
+(the checklist's grep-the-disk row).
+
+### 78.3 The fix
+
+`Sim::blocked_tcoord` (`crates/sim/src/place.rs`) gains the two arms, in
+the listing's order:
+
+- **After `AS_BUILDING`**: an Oil Well or Oil Platform (`is(0x1a5)`,
+  `is(0x1a6)`) on a cell without `cell::OIL` answers `NoOil`. Every other
+  type on a `cell::ROCK` cell answers `Rock`.
+- **After the river**: a flat gather type (`GATHER` and `FLAT`: the Farm
+  and the oil pair) answers `NoResources` when `LANDS[land]` has none of
+  its good. `land` is `World::land_class_tile`, the tile form of
+  `get_land`. It differs from `World::land_class`, the cell form, three
+  ways:
+  - a coast cell is Ocean under an ocean tile and Land under any other;
+  - the mountain test is the tile's object, not the cell's flag;
+  - oil is tested before rock.
+
+The spiral already refuses a candidate on such a cell (`buildings_allowed`,
+§2.20 defect 3). The jitter's footprint is what reaches into the next
+cell, which is why the gap stood for 23,000 frames.
+
+`cities_tests::a_rock_cell_refuses_a_farm_and_a_flat_gather_type_needs_its_good`
+walks both arms over a Farm, a Barracks and an Oil Well. A mutation of
+each arm fails it (§78.4).
+
+### 78.4 What it moved
+

@@ -651,7 +651,11 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // ramped by every wonder"), which moves this map's word 20782 →
         // 23182, 819 frames before this one. The extra two are player 1's
         // `83` and `84`, Citizens. Measured on base `6a183d98`.
-        off: 38,
+        // **38 → 36 off and 2 → 0 extra** on item 904: `blocked_tcoord`'s
+        // rock arm and flat-gather arm (`docs/AI.md` §78), which moves
+        // this map's word 23182 → 23420, 581 frames before this one.
+        // Measured on base `7f178d8c`.
+        off: 36,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -710,7 +714,7 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **3 → 0** on item 870, beside `off` above.
         // **0 → 2** on item 890, beside `off` above: player 1's `83` and
         // `84`, Citizens.
-        extra: 2,
+        extra: 0,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.

@@ -11339,20 +11339,14 @@ pub(crate) mod tests {
         // ~~And on 14650 `1/43`, the word's gatherer~~ — gone with item
         // 698 (below): eight rows, `collide` 7 against 6 among them, which
         // is the counter and not a partner.
+        // **Item 904 took ten**: who=1's `SITE[4]` (14176) and `SITE[8]`
+        // (12976), a city site at (47, 33) that ours scored 95,326 and the
+        // original never listed — `blocked_tcoord`'s rock arm refuses it
+        // (`docs/AI.md` §78).
         assert_eq!(
             mid,
             [
                 "14537 0/-1 leader:gather_stamp: ours 14536 theirs 14080",
-                "14176 1/-1 leader:SITE[4].dist: ours 968 theirs 2048",
-                "14176 1/-1 leader:SITE[4].rank: ours 6 theirs 4",
-                "14176 1/-1 leader:SITE[4].val: ours 95326 theirs 26656",
-                "14176 1/-1 leader:SITE[4].wx: ours 47 theirs 54",
-                "14176 1/-1 leader:SITE[4].wy: ours 33 theirs 11",
-                "12976 1/-1 leader:SITE[8].dist: ours 968 theirs 1250",
-                "12976 1/-1 leader:SITE[8].rank: ours 5 theirs 10",
-                "12976 1/-1 leader:SITE[8].val: ours 95326 theirs 191650",
-                "12976 1/-1 leader:SITE[8].wx: ours 47 theirs 44",
-                "12976 1/-1 leader:SITE[8].wy: ours 33 theirs 30",
                 "14584 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
                 "13163 1/71 form: ours -1 theirs 9",
@@ -11566,7 +11560,9 @@ pub(crate) mod tests {
         // Item 890 took three (391/4/395 → 388/4/392): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, own.len(), firsts.len()), (388, 4, 392), "the floor");
+        // Item 904 took ten (388/4/392 → 378/4/382): run178's who=1 `SITE[4]`
+        // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!((under, own.len(), firsts.len()), (378, 4, 382), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11684,7 +11680,9 @@ pub(crate) mod tests {
         // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
+        // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
+        // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11824,7 +11822,9 @@ pub(crate) mod tests {
         // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
+        // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
+        // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11968,7 +11968,9 @@ pub(crate) mod tests {
         // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
+        // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
+        // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12079,7 +12081,9 @@ pub(crate) mod tests {
         // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
+        // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
+        // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12215,7 +12219,9 @@ pub(crate) mod tests {
         // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
+        // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
+        // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -16916,78 +16922,9 @@ pub(crate) mod tests {
         );
     }
 
-    #[test]
-    fn scratch_904_tile_probe() {
-        let Some(inst) = install() else { return };
-        let (Some(path), Some(sib), Some(tr)) = (
-            dump("gamelog-run54-islands-24k-trace.txt"),
-            dump("gamelog-run38-islands-start.txt"),
-            trace("rontrace-run54.log"),
-        ) else {
-            return;
-        };
-        let loaded = crate::load::load(&inst).unwrap();
-        let text = crate::capture::read(&path);
-        let sib_text = crate::capture::read(&sib);
-        let log = Log::parse(&text);
-        let sib_log = Log::parse(&sib_text);
-        let sib_init = sib_log.initial().unwrap();
-        let mut init = log.initial().unwrap();
-        borrow_from_siblings(&mut init, &[&sib_init]);
-        borrow_pasture(&mut init, &tr);
-        let mut built = build_sim(&loaded, &init, Tuning::RON);
-        let dumpit = |built: &Built, tag: &str| {
-            let sim = &built.sim;
-            let farm = sim
-                .buildings
-                .iter()
-                .find(|b| b.alive && b.owner == 1 && b.index == 2031)
-                .and_then(|b| b.ty)
-                .or_else(|| {
-                    sim.buildings
-                        .iter()
-                        .find(|b| b.alive && b.owner == 1 && b.ty.is_some_and(|t| sim.build_types[t].ident == sim::build::Ident::Farm))
-                        .and_then(|b| b.ty)
-                })
-                .unwrap();
-            eprintln!("{tag}: farm ty {farm}");
-            for y in 195..=201 {
-                let mut line = String::new();
-                for x in 183..=189 {
-                    let t = sim::Pos::new(x, y);
-                    let m = sim.world.tile_mask(t);
-                    let c = sim::World::cell_of_tile(t);
-                    let o = sim.world.owner(c);
-                    let v = sim.blocked_tcoord(Some(1), farm, t, None);
-                    line += &format!(" ({x},{y}) m{m:04x} {o:?} {v:?} |");
-                }
-                eprintln!("{line}");
-            }
-            for cy in 48..=51 {
-                for cx in 45..=48 {
-                    let d = sim.world.cell_data(sim::Cell::new(cx, cy));
-                    eprintln!("  cell ({cx},{cy}) land {} flags {:#06x}", d.land, d.flags);
-                }
-            }
-            for (dx, dy) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
-                let c = sim::Pos::new(35712 + dx * 192, 38016 + dy * 192);
-                eprintln!("  cand {dx},{dy} {c:?}: {:?}", sim.blocked_site(Some(1), farm, c, None));
-            }
-            for b in sim.buildings.iter().filter(|b| b.alive && b.owner == 1 && b.index >= 2028) {
-                eprintln!("  bld 1/{} ty {:?} pos {:?} started {}", b.index, b.ty, b.pos, b.started);
-            }
-        };
-        for f in 0..=23182 {
-            if f == 23182 {
-                dumpit(&built, "before tick 23182");
-            }
-            built.tick();
-        }
-        dumpit(&built, "after tick 23182");
-    }
-
     /// **run299 — East Indies' word 23182, widened whole, both directions**
-    /// (item 890). run289's line over [`WIDENING_EAST_INDIES_WONDERPRICE`]:
+    /// (item 890), and **the word 23420 it moved to inside the window**
+    /// (item 904): its block 23421 and the runway to it. run289's line over [`WIDENING_EAST_INDIES_WONDERPRICE`]:
     /// six blocks up to the word's block 23183, the block, and 250 past it.
     /// run289 ends on 21045, so 21046..23176 is compared by no dump; the
     /// same game is the draw stream's word against run54.
@@ -17048,8 +16985,14 @@ pub(crate) mod tests {
         // clear sub-positions and the original three, so one draw shifts,
         // the expiry that follows clears slot 4 there and not here, and
         // `1/79`'s figure draws one along. Both place `1/2032` at (35904,
-        // 38016). **Which sub-position the original blocks is not
-        // established** (`docs/AI.md` §77.6).
+        // 38016). ~~Which sub-position the original blocks is not
+        // established~~ — **item 904**: the trace's seeds (57, 12, 99 there;
+        // 57, 12, 99, 42 here) make it (35904, 38208), whose tile (188,
+        // 200) is on the rock cell (47, 50), and `blocked_tcoord`'s rock
+        // arm refuses it (`docs/AI.md` §78). The three rows on 23183 close:
+        // `MAKE[4].t` 417 against −1 → −1 on both, `1/79`'s `cur_anim[0]`
+        // 3 against 1 and `end_time[0]` 42 against 58 → the original's;
+        // the draws on 23182 go 49 against 48 → 48 against 48.
         assert_eq!(
             rows,
             [
@@ -17063,18 +17006,38 @@ pub(crate) mod tests {
             .filter(|(_, (f, _))| (WORD_BLOCK + 1..=NEW_BLOCK).contains(f))
             .map(row)
             .collect();
-        let on_new: Vec<String> = standing
-            .get(&NEW_BLOCK)
-            .map(|m| {
-                m.iter()
-                    .filter(|((w, _, _), _)| *w == 1)
-                    .map(|((w, o, k), v)| format!("{w}/{o} {k}: {v}"))
-                    .collect()
-            })
-            .unwrap_or_default();
-        eprintln!("RUNWAY {runway:#?}");
-        eprintln!("ON_NEW {} {on_new:#?}", standing.get(&NEW_BLOCK).map_or(0, |m| m.len()));
-        assert_eq!(runway, Vec::<String>::new(), "the runway to the new word");
+        // **The runway to the new word, 23184..23421** (item 904). None of
+        // it is a draw until 23420's. 23184's `MAKE[5].city` is parked
+        // 325's spelling; who=0's `production_step` is the one 890 left
+        // standing past the word; who=1's `gather_stamp` re-stamps on 23191
+        // here against 23183 there, and it parts the same on the rule
+        // before this item's (a mutation, restored from git) — parked 701's
+        // shape, not this fix's. On 23366 `1/81` is born with the gap's
+        // standing citizen rows (every citizen carries them from the first
+        // block) and the census reads 29 peasants against 30 for one
+        // block. On the word's block the guard `1/78`'s `retry` and `1/80`'s
+        // figure part with the frame's draws: the original adds a pasture's
+        // five animals on 23420 (`Farms::add_animals`, twenty draws, then
+        // five `Animal::do_idle`), and ours spends `Farms::inc_time+0x1ae`
+        // there instead. **No mechanism is named** (DECISIONS 42).
+        assert_eq!(
+            runway,
+            [
+                "23201 0/-1 leader:production_step: ours 0 theirs 1",
+                "23184 1/-1 leader:MAKE[5].city: ours 2 theirs 1",
+                "23192 1/-1 leader:gather_stamp: ours 23191 theirs 23183",
+                "23366 1/-1 leader:peasants: ours 29 theirs 30",
+                "23421 1/78 order:guard.retry: Guard { field: \"retry\", ours: 8, theirs: 6 }",
+                "23421 1/80 g.cur_anim[0]: ours 1 theirs 0",
+                "23421 1/80 g.end_time[0]: ours 58 theirs 31",
+                "23366 1/81 form: ours -1 theirs 9",
+                "23366 1/81 hits:myhits: ours 40 theirs 50",
+                "23366 1/81 hits_left: ours 40 theirs 50",
+                "23366 1/81 myhits: ours 40 theirs 50",
+                "23366 1/81 mylos: ours 2 theirs 4",
+            ],
+            "the runway to the new word"
+        );
         let escrow = standing
             .get(&WORD_BLOCK)
             .map(|m| {
@@ -17089,10 +17052,15 @@ pub(crate) mod tests {
         // under the word, the rows standing on the word's block, and every
         // key in all.
         let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let on_new = standing.get(&NEW_BLOCK).map_or(0, |m| m.len());
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
-            (first, rows.len(), on_word, firsts.len()),
-            (283, 5, 288, 1_045),
+            (first, rows.len(), on_word, on_new, firsts.len()),
+            // Item 904: 283/5/288/1,045 → 283/2/285/292/359. Under the word
+            // `MAKE[4].t` and `1/79`'s two rows close on 23183 (the rock
+            // arm, `docs/AI.md` §78); 686 keys past it close with the
+            // draws; the new word's block stands 292 rows, the gap's.
+            (283, 2, 285, 292, 359),
             "the floor"
         );
     }
