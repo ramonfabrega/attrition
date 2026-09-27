@@ -9012,6 +9012,56 @@ exit 1 when the expected value is wrong.
 `Map::is_near_ocean`. The blind list 227 → 225; the census's entered column
 7,666 → 7,670. `rondata::blind::TRACES` carries run316.
 
+## run338 — chapter thirty-one, the gather point's other arms (2026-09-27, item 955)
+
+`docs/GOLDEN.md` §40, `tools/gamelog/golden/chapter31.cmd`: chapter
+thirty's cast and a second Chariot, six `@gatherpoint` lines, one
+`@gatherpointadd` (verb 20 with `add_to_end` 1, item 955's), three
+`@queueup` lines and one `@build`. The chapter and its seven falsifiers
+were committed before the run (`494a883e`). The lane was taken after
+att-934's queue (run319–run337) exited (its `waitrun.sh` exited 0 at
+08:10); the lock named a dead pid and no `RonDriver` was running at the
+launch.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch31 \
+    --map 14 --end-frame 1400 --log-window 605 1400 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter31.cmd
+```
+
+**One take** at `cover=0`: launched 08:11, **1,287 s** in all (966
+launch to exit, one relaunch at 300 s), **351 MB** of dump and 11 MB of
+trace, 795 blocks. The receipt says `success: true`, exit 0, 1,401
+frames, `MAP_STYLE 14`, seed 12345, 407,040 `GROUPDATA`. `waitrun.sh`
+exited 0. **The DLL is the lane's own**, built from this branch's
+`tools/trace/tracer.c` into the output directory: **sha256
+`93ba3be03f28acecc7472418dc2948b1187169deaaf240283938fbc79957a98d`**
+(parked 936); `game/rontrace.dll` was neither read nor written.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run312's trace | the same game to 615; the harness word 615, the second Chariot's `add` |
+
+### §40's falsifiers
+
+| check | predicted (the reading; the other in brackets) | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 617, 621, 701, 703, 741, 841; the build on 791 | **as predicted**: `process_gather_point` with each line's arguments, 703's `add_to_end` 1; `process_build 7296 34176 7296 34176 521 2 791`; `process_queue_up` on 619, 623, 711 |
+| 2, the lists and the site | 618, 622, 702, **704 two points in order**, 742, 842; the Lookout on 792 | **as predicted**, every block: 2008 `(5184, 12672, 0), (4992, 11136, 0)` from 704, printed head first; `0/2009` a Lookout (521), unfinished, from 792 |
+| 3, the seeker (956) | exempt: `0/11` (4104, 31032), `0/12` (3576, 29928), `0/16` (3912, 31416) [counted: (3960, 31368), (3864, 30168), (3624, 31656)] | **fired, on all three**: `0/11` at (3960, 31368) on 718, `0/12` at (3864, 30168) on 824, `0/16` at (3624, 31656) on 938. The seeker is counted |
+| 4, the gather arm (948) | a `GATHERORDER` on `0/2001` [none] | **the reading**, one shape off: `0/12`'s stack is a `GATHERORDER` alone, `ox 2001`, flags 4, `goto_build 1`, `orders_x/y` its own point. This crate puts a `MOVEORDER` to (4104, 28824) ahead of it |
+| 5, the build arm (948) | a `BuildOrder` on `0/2009` [none] | **the reading**, the same shape off: `0/16`'s stack is a `BUILDORDER` alone, `ox 2009`, flags 0, `orders_x/y` its own point |
+| 6, the third re-seat (957) | `0/13` at (2376, 14808) [(2472, 14856)] | **the reading**: `0/13` at (2376, 14808), `0/14` (2472, 15000), `0/15` (2328, 15000); a `GROUPATTACKTOORDER` each, group 2. **The target is not the prototype's**: `orders_x/y` (2424, 15672), `0/14`'s (2280, 15672), against (2232, 15528) and (2088, 15480) |
+| 7, the two points (946) | two orders [one] | **the reading**: `0/17`..`0/19` each a `GROUPMOVEORDER` to (5208, 12696), (5352, 12792), (5064, 12600), then a `GROUPATTACKTOORDER` to (5016, 11160), (5160, 11160), (4872, 11160); group ids 952000 and 952001; `0/17` at (5016, 11160) on 1100 |
+
+**Falsifier 3 fired**: `FILTER_ALL` counts the seeker, as the listing
+reads it (`docs/GOLDEN.md` §40); item 945's exemption is dead. Every
+other reading held, with two values the prototype did not predict: a
+citizen's gather and build orders stand alone, and the squad's target
+beside a unit is a squad placement's.
 ## run318 — chapter twenty-three under `cover=1`, the issuer guard fixed: every issuer called, 0 differing (2026-09-27, item 934)
 
 **What it is.** run314's stanza line for line, on a DLL whose `@` issuer

@@ -48,13 +48,14 @@ capture has two planes full on one call.
 (931) **The launch's `returning` clear has no test that fails without
 it** (918's shape).
 
-## Parked by item 945, 2026-09-27 — the re-seat's edges
+## Parked by item 955, 2026-09-27 — the gather point's last edges
 
-(956) **Whether `FILTER_ALL` exempts the seeker**: untested; the killer is
-a lone unit trained under a ground point.
+(962) **The builder `0/11`'s `group` on 1144, ours 1 against −1**, when
+its finished `BuildOrder` gives way to a gather (run338): the build
+line's, on chapter thirty-one's widening.
 
-(957) **`come_out`'s third re-seat** (619aa3..619be7, a unit found at a
-ground point): read, not built.
+(963) **The enemy-at-point attack arms, and waypoints with action ≠ 0**:
+read, not built.
 
 ## Parked by item 940, 2026-09-27 — the dead functions' citations
 
@@ -66,15 +67,9 @@ ground point): read, not built.
 
 ## Parked by item 928, 2026-09-27 — the gather point's edges
 
-(946) **A gather list of more than one point**: the waypoints, and
-whether `gather_inside` and `come_out` read the head or the tail after a
-`QUEUE_LAST`. Read, not built beyond the last point.
-
-(947) **An Airbase's gather point** (action 3, `action_flight`, and
-`add_gather_point`'s re-order under `build_masks & 8`): read, not built.
-
-(948) **A citizen's build, repair and gather arms at a gather point**:
-built from the reading, not captured.
+(948) **A citizen's repair arm at a gather point**: built from the
+reading, not captured; **955 captured and closed the build and gather
+arms** (run338, GOLDEN §40).
 
 ## Parked by item 919, 2026-09-27 — the pasture's edges
 
@@ -1618,6 +1613,13 @@ record it. 953's instrument.
 (961) **Every `@` stanza carries `issuesmatch.py`** (934's Loop line):
 `cmdsran.py` cannot see an `@` line, and run314's six refusals were found
 only by reading `INFO 17` by hand.
+
+(964) **A `SEAM:` written as an assumption the listing can decide cites
+the listing's branch first** (955's Loop line, filed at its merge): 945
+wrote `FILTER_ALL`'s exemption as a seam with its killer named, the killer
+was in the listing all along (`FILTER_ALL` skips the one function that
+reads `(not_o, not_who)`), and run338 fired it on all three citizens.
+933's rule, for a seam.
 
 
 

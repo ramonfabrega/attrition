@@ -446,11 +446,14 @@ pub enum Issued {
     /// add_to_end 0)` on a group of the player's own buildings: the rally
     /// point (item 928, `docs/GOLDEN.md` §39). `action` is 0 for the ground,
     /// 1 a friendly object's point, 2 an enemy's; `−1, −1, 0` is the Clear
-    /// button's (`Options::do_clear_gather@0071ce70`).
+    /// button's (`Options::do_clear_gather@0071ce70`). `@gatherpointadd` is
+    /// the same verb with `add_to_end` 1, the shift-click that appends a
+    /// point (item 955, `docs/GOLDEN.md` §40).
     GatherPoint {
         who: i32,
         at: Pos,
         action: i32,
+        add: bool,
         buildings: Vec<i16>,
     },
 }
@@ -488,6 +491,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "queueup"
             | "unqueue"
             | "gatherpoint"
+            | "gatherpointadd"
     ) {
         return None;
     }
@@ -543,7 +547,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
     }
     // `@gatherpoint`'s three numbers are the point and the action, and its
     // objects are buildings.
-    if verb == "gatherpoint" {
+    if verb == "gatherpoint" || verb == "gatherpointadd" {
         let [who, x, y, action, ref buildings @ ..] = nums[..] else {
             return None;
         };
@@ -559,6 +563,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             who,
             at: Pos::new(x, y),
             action,
+            add: verb == "gatherpointadd",
             buildings,
         });
     }
@@ -879,8 +884,9 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             who,
             at,
             action,
+            add,
             buildings,
-        }) => crate::input::group_gather_point(built, who, &buildings, at, action, false),
+        }) => crate::input::group_gather_point(built, who, &buildings, at, action, add),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1416,6 +1422,11 @@ mod tests {
         // City, three `@queueup` lines behind them: the gather point (item
         // 928, `docs/GOLDEN.md` §39).
         ("chapter30.cmd", &[]),
+        // Chapter thirty-one: chapter thirty's cast, a second Chariot, six
+        // `@gatherpoint` lines and one `@gatherpointadd` (verb 20 with
+        // `add_to_end` 1), three `@queueup` and one `@build`: the gather
+        // point's other arms (item 955, `docs/GOLDEN.md` §40).
+        ("chapter31.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
@@ -1624,6 +1635,7 @@ mod tests {
                 who: 0,
                 at: Pos { x: 5000, y: 6000 },
                 action: 1,
+                add: false,
                 buildings: vec![2007, 2008],
             })
         );
@@ -1633,7 +1645,18 @@ mod tests {
                 who: 0,
                 at: Pos { x: -1, y: -1 },
                 action: 0,
+                add: false,
                 buildings: vec![2007],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@gatherpointadd 0 5000 6000 0 2008"),
+            Some(Issued::GatherPoint {
+                who: 0,
+                at: Pos { x: 5000, y: 6000 },
+                action: 0,
+                add: true,
+                buildings: vec![2008],
             })
         );
         assert_eq!(parse_issuer("@gatherpoint 0 5000 6000 0"), None);

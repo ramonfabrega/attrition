@@ -12219,3 +12219,134 @@ const WANT_CH30_POOL: &[&str] = &[
     "1060 slot 2 ox",
     "1060 slot 2 oy",
 ];
+
+/// **Chapter thirty-one, pinned** — the gather point's other arms
+/// (`docs/GOLDEN.md` §40, item 955, run338). Sixteen staged lines: chapter
+/// thirty's cast and a second Chariot, six `@gatherpoint`, one
+/// `@gatherpointadd`, three `@queueup` and one `@build`.
+#[test]
+fn chapter_thirty_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch31", "chapter31", 31, 16, 1400) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY_ONE,
+        "chapter thirty-one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY_ONE,
+        "chapter thirty-one's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §40"
+    );
+    eprintln!(
+        "chapter thirty-one: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run338 whole, both directions** (item 955, `docs/GOLDEN.md` §40):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_one_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch31",
+        "chapter31",
+        WIDENING_CHAPTER_THIRTY_ONE,
+        1400,
+        0,
+        (616, 620),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch31 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-eight's, as
+    // chapter thirty's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_ONE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch31: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY_ONE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch31", "chapter31", WIDENING_CHAPTER_THIRTY_ONE, 0)
+        .expect("run338 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch31 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH31.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch31: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH31_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch31: what parts in the pool moved");
+}
+
+// **What parts under the word** on run338, chapter thirty-one. **The
+// first walk** (item 955, before any build): 811 rows. **The first
+// parting's field list**, 718, `0/11` alone: `pos`, `g.x/y[0]`,
+// `g.des_x/y[0]`, `dest_angle` and the move's `angle` (ours (4104, 31032),
+// theirs (3960, 31368): the lone re-seat, which counts the seeker there),
+// and `form` (parked 646). Then 824 (`0/12`, the same re-seat, and its
+// stack: ours a `MOVEORDER` ahead of the `GATHERORDER`), 858 (`0/13`, the
+// third re-seat, which this crate lacks, and the group's target), 938
+// (`0/16`, as `0/12`), 953 (`0/17`..`0/19`, one order here and two there),
+// and from the word, 740, `0/11` idle here and walking there, and the
+// stream's cascade. **The arms built** (item 955, `docs/PRODUCTION.md`
+// "The gather point"): 811 → 15 rows, the word closed at 1400. What
+// stands: the births' `form` (parked 646); the group moves' ids, ours `64 +`
+// a pushed index and theirs `who·64 +` the slot (parked 676's first); and
+// 1144, the builder `0/11`'s `group`, ours 1 against −1 on the block its
+// finished `BuildOrder` gives way to a `GATHERORDER` (the build line's, not
+// the gather point's; it stood on the first walk on 1134, named, not built).
+const WANT_CH31: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "616 0/10 form",
+    "718 0/11 form",
+    "824 0/12 form",
+    "858 0/13 order:group.id",
+    "858 0/14 order:group.id",
+    "858 0/15 order:group.id",
+    "938 0/16 form",
+    "953 0/17 order:group.id",
+    "953 0/18 order:group.id",
+    "953 0/19 order:group.id",
+    "1144 0/11 group",
+];
+
+// **What parts in the pool** on run338: the first seats' `ox`/`oy`
+// (parked 887). ~~And the two Hoplite groups laid out from their own
+// captains' points and orders~~: 13 → 4 rows with the arms built.
+const WANT_CH31_POOL: &[&str] = &[
+    "618 slot 1 ox",
+    "618 slot 1 oy",
+    "622 slot 0 ox",
+    "622 slot 0 oy",
+];

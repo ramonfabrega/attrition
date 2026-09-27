@@ -279,10 +279,14 @@ impl Sim {
     /// - the Citizen `0/10`, whose point is on the Woodcutter. The first
     ///   re-seat puts it at (3576, 29928), and the lone arm's puts it back
     ///   on its exit point (3576, 29976), where it stands on 760.
-    fn gather_reseat(&mut self, captain: usize, b: usize, bearing: Angle) {
-        let Some(t) = self.buildings[b].ty else {
-            return;
-        };
+    ///
+    /// Returns the spot. The building arm's and the third re-seat's copy it
+    /// into the leg's origin (`61936d`/`619371`, `619bf6`/`619bfa`), so a
+    /// squad's move angle is measured from it; the lone arm's angle is its
+    /// own. SEAM: a sweep that finds nothing leaves the original's output
+    /// slots as the sweep last wrote them; here the origin is kept.
+    fn gather_reseat(&mut self, captain: usize, b: usize, bearing: Angle) -> Option<crate::Pos> {
+        let t = self.buildings[b].ty?;
         let (xs, ys) = (self.build_types[t].x_size, self.build_types[t].y_size);
         let near = self.tuning.unit_train_distance;
         let ring = (xs + ys) * 0x30 + near;
@@ -299,31 +303,38 @@ impl Sim {
             crate::orders::Coll::All,
         ) {
             self.set_new_location(captain, spot, true);
+            return Some(spot);
         }
+        None
     }
 
     /// `come_out`'s **routing** (`618b22`..`619fe2`), for a captain with no
     /// order out of a building whose list is not "inside"; `spot` is the
     /// gather block's, `exit` where the captain now stands, `group` the
-    /// squad's pushed group (882's push). One point is the only case a
-    /// capture holds, and it is the last:
+    /// squad's pushed group (882's push). The list is walked from its head
+    /// (`618c10`..`61918f`, run338's two points, item 955): every point
+    /// after the head is replaced by its own free spot, and a point with
+    /// none is passed over; every point but the last is a waypoint, sent
+    /// under `MOVE_TO`, `QUEUE_LAST`, from the leg's origin (the exit, then
+    /// each waypoint's target). The last:
     ///
-    /// - a building at the point: a citizen's build, repair or gather
-    ///   (`action` ≠ 0 for the gather) on its own building; then a friendly
-    ///   building with room the type can garrison, `action` ≠ 0: a
-    ///   `GARRISONORDER` down the squad, `QUEUE_LAST`, and nothing more;
-    /// - otherwise a move: `ATTACK_TO` for an armed unit (`+0x1e8`) whose
-    ///   stance is not 5 and which is made at a Barracks, Stable or Dock
+    /// - a building at the point: the captain re-seated from the bearing to
+    ///   it; a citizen's build, repair or gather (`action` ≠ 0 for the
+    ///   gather) on its own building; then a friendly building with room
+    ///   the type can garrison, `action` ≠ 0: a `GARRISONORDER` down the
+    ///   squad, `QUEUE_LAST`, and nothing more;
+    /// - a unit at the point: the captain re-seated from the bearing to it
+    ///   (run338's `0/13`);
+    /// - then a move: `ATTACK_TO` for an armed unit (`+0x1e8`) whose stance
+    ///   is not 5 and which is made at a Barracks, Stable or Dock
     ///   (`TypeData::where`), `MOVE_TO` for anything else; a squad with a
     ///   group goes through `Group::action_move_to(QUEUE_LAST, set_angle,
-    ///   find_angle(target − exit))` to the free spot nearest `spot`, a lone
-    ///   unit through `add_move_facing_order` to `spot`.
+    ///   find_angle(target − origin))` to the squad's own free spot nearest
+    ///   `spot`, a lone unit, re-seated again from the bearing to `spot`,
+    ///   through `add_move_facing_order` to `spot`.
     ///
-    /// SEAM: more than one point (the waypoints before the last); an
-    /// enemy at the point (the attack arms) and a caravan's trade arm;
-    /// `find_unit_with_radius`'s re-seat and the lone arm's second ring
-    /// sweep, which put the unit back where the exit put it on every
-    /// capture that reaches them.
+    /// SEAM: an enemy found at the point (the attack arms), a waypoint
+    /// with `action` ≠ 0, and a caravan's trade arm; no capture sets one.
     pub(crate) fn gather_route(
         &mut self,
         captain: usize,
@@ -335,9 +346,106 @@ impl Sim {
         if self.gather_inside(b) || !self.units[captain].orders.is_empty() {
             return;
         }
-        let Some(&last) = self.buildings[b].gather.last() else {
+        let points = self.buildings[b].gather.clone();
+        let Some(ty) = self.units[captain].ty else {
             return;
         };
+        let squad = self.unit_types[ty].combat.uber_size > 1;
+        // `[esp+0x44]/[esp+0x40]`: the gather block's spot for the head,
+        // each later point's own free spot; `[esp+0x2c]/[esp+0x54]`: the
+        // leg's origin, the exit point, then each waypoint's target.
+        let mut target = spot;
+        let mut prev = exit;
+        let n = points.len();
+        for (i, p) in points.iter().enumerate() {
+            if i > 0 {
+                // `618c3d`..`618c83`: `UnitType::find_nearby_spot(point, 0,
+                // 0x600, 0, 0x55555555, FILTER_NOT_ME)`; a point with no free
+                // spot is passed over, and a last one leaves no order.
+                match self.find_nearby_spot(captain, p.pos, 0, REACH, 0, NEUTRAL, None) {
+                    Some(s) => target = s,
+                    None => continue,
+                }
+            }
+            if i + 1 == n {
+                self.gather_route_last(captain, b, *p, target, prev, group);
+                return;
+            }
+            // A waypoint (`618ca6`..`61912e`). SEAM: its `action` ≠ 0 arms
+            // (a citizen's gather building, a garrison with room, an enemy
+            // under action 2), which end the walk early or pass the point
+            // over; no capture sets one.
+            match group {
+                Some(g) if squad => {
+                    let t = self
+                        .find_nearby_spot_squad(captain, target, 0, -1, 0, NEUTRAL)
+                        .unwrap_or(target);
+                    let angle = find_angle(t.x - prev.x, t.y - prev.y);
+                    self.group_action_move_to(
+                        g,
+                        t,
+                        QueuePos::Last,
+                        true,
+                        angle,
+                        MoveKind::MoveTo,
+                        true,
+                    );
+                    target = t;
+                    prev = t;
+                }
+                _ => {
+                    let angle = find_angle(target.x - prev.x, target.y - prev.y);
+                    self.add_move_facing_order(
+                        captain,
+                        target,
+                        MoveKind::MoveTo,
+                        QueuePos::Last,
+                        true,
+                        angle,
+                        None,
+                        false,
+                    );
+                    prev = target;
+                }
+            }
+        }
+    }
+
+    /// The first unit whose body covers `at`, else the nearest within one
+    /// unit of its `big_radius`: `ObjectsData::find_unit_with_radius(x, y,
+    /// ·, who, 1, ·, FILTER_SEEN, who, 0)@00659890` as the routing asks it
+    /// at a point with no building (`619ab2`..`619acd`). Its search index
+    /// is never read (`Search::valid_search(·, 0, …)` answers 1), so every
+    /// player's unit is a candidate. SEAM: the seen filter.
+    fn unit_at_point(&self, at: crate::Pos) -> Option<usize> {
+        let mut best: Option<(i32, usize)> = None;
+        for (o, u) in self.units.iter().enumerate() {
+            if u.owner >= 8 || !u.alive() || !u.on_map {
+                continue;
+            }
+            let d = crate::world::vector_dist(at.x - u.pos.x, at.y - u.pos.y);
+            let br = self.profile(crate::combat::Obj::Unit(o)).big_radius;
+            if d <= br {
+                return Some(o);
+            }
+            if d - br <= 1 && best.is_none_or(|(bd, _)| d - br <= bd) {
+                best = Some((d - br, o));
+            }
+        }
+        best.map(|(_, o)| o)
+    }
+
+    /// The routing's last point: `last` itself for the building and unit
+    /// tests, `spot` its free spot for the move, `prev` the leg's origin.
+    fn gather_route_last(
+        &mut self,
+        captain: usize,
+        b: usize,
+        last: GatherPoint,
+        spot: crate::Pos,
+        mut prev: crate::Pos,
+        group: Option<&crate::group::Group>,
+    ) {
         if last.action == 3 {
             return;
         }
@@ -348,7 +456,11 @@ impl Sim {
         let mut open = true;
         if let Some(tb) = self.building_at_tile(last.pos.tile()) {
             let (host, there) = (self.buildings[b].pos, self.buildings[tb].pos);
-            self.gather_reseat(captain, b, find_angle(there.x - host.x, there.y - host.y));
+            if let Some(s) =
+                self.gather_reseat(captain, b, find_angle(there.x - host.x, there.y - host.y))
+            {
+                prev = s;
+            }
             let citizen = self.unit_types[ty].type_index;
             let owner = self.buildings[tb].owner;
             if matches!(citizen, 0x32 | 0x33) {
@@ -391,6 +503,18 @@ impl Sim {
             if !open {
                 return;
             }
+        } else if let Some(found) = self.unit_at_point(last.pos) {
+            // **The third re-seat** (`619ad3`..`619c08`): round the
+            // trainer's land ring from `find_angle(found − trainer)`, the
+            // register pair at `619b6b`/`619b92`. SEAM: an armed captain
+            // and an enemy found take attack orders down the squad here
+            // (`619c10`..`619d6f`); no capture sets one.
+            let (host, there) = (self.buildings[b].pos, self.units[found].pos);
+            if let Some(s) =
+                self.gather_reseat(captain, b, find_angle(there.x - host.x, there.y - host.y))
+            {
+                prev = s;
+            }
         }
         let armed = self.profile(crate::combat::Obj::Unit(captain)).attack != 0;
         let from_trainer = self.unit_types[ty].garrison.trained_at.is_some_and(|w| {
@@ -406,15 +530,20 @@ impl Sim {
         let squad = self.unit_types[ty].combat.uber_size > 1;
         match group {
             Some(g) if squad => {
+                // `Unit::find_nearby_spot(spot, 0, −1, 0, 0x55555555,
+                // FILTER_NOT_ME, 0, 1)` (`619e32`..`619e5c`): the `1` is
+                // `uber_unit`, a squad placement (item 955, run338's
+                // `0/13`, whose target beside the Chariot is the squad's).
                 let to = self
-                    .find_nearby_spot(captain, spot, 0, -1, 0, NEUTRAL, None)
+                    .find_nearby_spot_squad(captain, spot, 0, -1, 0, NEUTRAL)
                     .unwrap_or(spot);
-                let angle = find_angle(to.x - exit.x, to.y - exit.y);
+                let angle = find_angle(to.x - prev.x, to.y - prev.y);
                 self.group_action_move_to(g, to, QueuePos::Last, true, angle, kind, true);
             }
             _ => {
                 let host = self.buildings[b].pos;
-                self.gather_reseat(captain, b, find_angle(spot.x - host.x, spot.y - host.y));
+                let _ =
+                    self.gather_reseat(captain, b, find_angle(spot.x - host.x, spot.y - host.y));
                 let here = self.units[captain].pos;
                 let angle = find_angle(spot.x - here.x, spot.y - here.y);
                 self.add_move_facing_order(

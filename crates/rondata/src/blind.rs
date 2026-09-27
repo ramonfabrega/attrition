@@ -160,13 +160,19 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// process_gather_point`, `Group::action_gather_point`: an issuer chapter's,
 /// which `cover=1` refuses, as run314 found), **151** with run318–337
 /// (item 934: the issuer chapters under `cover=1`, 77 off, eight of them
-/// [`ENTERED_BY_THE_DLL_ONLY`]), **147** with run340 and run341 (item 959:
-/// row 6's staged economy, `lumber_level`, `resource_cap_add`,
-/// `replace_gather` and `close_caravan` off). `docs/CENSUS.md`'s "The blind list,
-/// ranked" groups it by the staging that would enter each family.
+/// [`ENTERED_BY_THE_DLL_ONLY`]), **152** with item 955's
+/// `BuildData::get_first_gather` (`docs/GOLDEN.md` §40; run337 enters its
+/// `num_gather` and the gather list's `add`, not this), **148** with run340
+/// and run341 (item 959: row 6's staged economy, `lumber_level`,
+/// `resource_cap_add`, `replace_gather` and `close_caravan` off).
+/// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
+/// that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90, 0x0047_0e50, 0x0047_11e0,
+    0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90,
+    // Item 955, `docs/GOLDEN.md` §40: `BuildData::get_first_gather@0046f140`.
+    0x0046_f140,
+    0x0047_0e50, 0x0047_11e0,
     0x0047_80c0, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60, 0x0048_89a0,
     0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
     0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005e_1f20, 0x005e_3310, 0x005e_3400,

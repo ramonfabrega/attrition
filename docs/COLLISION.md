@@ -2419,12 +2419,17 @@ three clauses rests on `get_action@00608450` read against the dump's own
   r_coll`, where `r_coll` is the type's `block_radius` — bumped to
   `0x180` when that is 0 and the filter is `FILTER_ALL`. The `search`
   argument the call passes is a **live register the decompiler loses**
-  (`0x61e375`, `push ecx` where `ecx` last held a terrain word), so which
+  (`0x61e375`, `push ecx` where `ecx` last held a terrain word), ~~so which
   players it searches is not settled and the listing does not settle it
-  either. ~~The only call site that reaches it is `come_out`'s
-  `block_radius == 0` arm~~: `come_out`'s two re-seats reach it too, and
-  are built as `orders::Coll::All` with the seeker exempt, which no
-  capture tests (item 945, `docs/PRODUCTION.md` "The gather point"). No
+  either~~: `find_unit_with_radius` never reads it
+  (`Search::valid_search(·, 0, …)` answers 1, `6599d4`), so every player
+  is searched (item 955). ~~The only call site that reaches it is
+  `come_out`'s `block_radius == 0` arm~~: `come_out`'s three re-seats
+  reach it too, as `orders::Coll::All`, ~~with the seeker exempt, which
+  no capture tests~~ **and the seeker counts**: `FILTER_ALL` skips
+  `Search::valid_filter`, the only reader of `(not_o, not_who)`, and
+  run338's three Citizens stand one candidate on (item 955,
+  `docs/PRODUCTION.md` "The gather point"). No
   shipped type any capture trains has a zero `block_radius`; a Citizen's
   is 1. *Capture:* a scenario that
   trains one of the ten `BLOCK_RADIUS 0` types beside a crowded trainer.

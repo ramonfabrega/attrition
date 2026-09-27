@@ -566,6 +566,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch28 = golden_dump("ch28");
     let ch29 = golden_dump("ch29");
     let ch30 = golden_dump("ch30");
+    let ch31 = golden_dump("ch31");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1390,6 +1391,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         ] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirty-one's word, on run338** (item 955): the gather
+    // point's other arms. 704, the list of two; 718, the first Citizen
+    // re-seated under its ground point; 740, the word; 792, the Lookout
+    // site; 824 and 938, the gather and build arms; 858, the third
+    // re-seat; 953, the two points' two orders; 1397, the last blocks.
+    if let Some(p) = &ch31 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_ONE;
+        for w in [704, 718, 740, 792, 824, 858, 938, 953, 1397] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-one carries the window's five blocks");
             frames += n;
         }
     }

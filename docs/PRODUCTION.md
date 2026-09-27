@@ -1048,17 +1048,21 @@ members stay where the exit seated them.
 
 `FILTER_ALL` takes `find_nearby_spot`'s general path
 (`ObjectsData::find_unit_with_radius@00659890` and its ordered twin,
-`docs/COLLISION.md` §5.2.1), `orders::Coll::All` here. Its seeker is
-exempted **as an untested assumption**: no capture's winning candidate
-is within reach of where the unit stands.
+`docs/COLLISION.md` §5.2.1), `orders::Coll::All` here. ~~Its seeker is
+exempted **as an untested assumption**~~: **the seeker counts** (item
+955, run338). `FILTER_ALL` skips `Search::valid_filter` (`659a1a`), the
+only reader of `(not_o, not_who)`, and the search argument is never read
+(`Search::valid_search(·, 0, …)` answers 1, `6599d4`): every player's
+live, on-map unit is a candidate, the one asking too. A re-seat whose
+first candidate is the spot the unit stands on moves it one candidate on.
 
 **run312**, on the units they move:
 - the Bowmen `0/17` (point on 2008): the exit's bearing is 0x4a590000,
   and the exit puts the captain at (3336, 14376), where its members are
   seated. The re-seat's bearing is due east, and it puts the captain at
   (3384, 14232) on 1060, as the original does;
-- the Citizen `0/10` (point on the Woodcutter): moved to (3576, 29928),
-  then put back at (3576, 29976) on 760.
+- the Citizen `0/10` (point on the Woodcutter): put back at (3576,
+  29976) on 760 by the lone arm's re-seat.
 
 The reading 928 booked was that the original refuses the whole first
 ring. It is dead: under the agreed bias, theirs is the sweep's 61st
@@ -1073,6 +1077,41 @@ candidate, on open ground.
 - the Citizen `0/10` out north-east on 760 with a plain `MOVEORDER` to
   the Woodcutter's spot (4248, 28632) and no gather order: the snapped
   point keeps action 0. It gathers of its own accord from 984.
+
+**The other arms** (item 955, `docs/GOLDEN.md` §40, run338):
+- **The list is walked from its head** (`618c10`..`61918f`).
+  `add_gather_point` under `QUEUE_LAST` appends at the tail and the head
+  stays the first point (the emulator), so the exit and `gather_inside`
+  read the first. Every point after the head is replaced by its own free
+  spot (`find_nearby_spot(point, 0, 0x600, 0, 0x55555555, FILTER_NOT_ME)`,
+  `618c3d`), and a point with none is passed over. Every point but the
+  last is a waypoint, `MOVE_TO`, `QUEUE_LAST`: a squad through
+  `Group::action_move_to` to its own free spot round it (`619091`,
+  `6190ce`), a lone unit through `add_move_facing_order` (`619129`). Each
+  leg's angle is from its origin: the exit, then each waypoint's target
+  (`61912e`..`61913e`). run338's 2008 squad: a `GROUPMOVEORDER` to (5208,
+  12696), then a `GROUPATTACKTOORDER` to (5016, 11160), on 953.
+- **The third re-seat**: at a last point with no building,
+  `find_unit_with_radius(point, ·, who, 1, ·, FILTER_SEEN, who, 0)`
+  (`619ab2`) finds a unit whose body covers the point, and the captain is
+  swept round the ring from `find_angle(that unit − trainer)` (`619b6b`/
+  `619b92`). run338's `0/13`, its point on the Chariot `0/10`: (2376,
+  14808) on 858. An armed captain and an enemy found take attack orders
+  down the squad instead of the move (read, not built).
+- **A re-seat's spot is the leg's origin**: the building arm's and the
+  third re-seat's outputs are copied into `[esp+0x2c]/[esp+0x54]`
+  (`61936d`, `619bf6`), so a squad's move angle is measured from where
+  the captain now stands.
+- **A squad's target is a squad placement**: `Unit::find_nearby_spot(spot,
+  0, −1, …, 0, 1)` (`619e5c`), `uber_unit` 1, whose default span is `min +
+  0xc0 + 4 × ((uber − 1) × guy_spacing / 2 + big_radius)`
+  (`find_nearby_spot`'s decompile, lines 52–54). Beside the Chariot,
+  run338's `0/13` is sent to (2424, 15672). With nothing near the point
+  (run312's Hoplites) it is the unit placement's spot.
+- **A citizen's gather and build arms, measured**: run338's `0/12` (its
+  point on the Woodcutter, action 1) takes a `GATHERORDER` on `0/2001`,
+  flags 4, and `0/16` (its point on a Lookout site) a `BuildOrder` on
+  `0/2009`, flags 0, each on its birth block and alone on the stack.
 
 **In the code**: `crate::rally` (`Sim::action_gather_point`,
 `add_gather_point`, `clear_gather`, `gather_inside`, `gather_exit`,
@@ -1089,18 +1128,25 @@ candidate, on open ground.
   `form` (parked 646).
 
 **Not established, and reading only**:
-- a list of more than one point: the waypoints before the last, and
+- ~~a list of more than one point: the waypoints before the last, and
   whether `gather_inside` and `come_out` read the head or the tail after
-  a `QUEUE_LAST` (`add_gather_point` moves `+0xcc` back to the old tail);
+  a `QUEUE_LAST` (`add_gather_point` moves `+0xcc` back to the old tail)~~:
+  "The other arms" above (item 955, run338); a waypoint with `action` ≠ 0
+  stays reading only;
 - action 3 (the Airbase's strike, `action_flight`) and the Airbase's arm
-  of `add_gather_point` / `clear_gather` under `build_masks & 8`;
-- an enemy at the point (the attack arms), a caravan's trade arm, and
-  the third re-seat (`619aa3`..`619be7`: a unit found at a ground point),
-  ~~with the lone arm's second sweep~~ (built, item 945);
-- whether `FILTER_ALL` exempts the seeker: a lone unit trained under a
-  ground point is the capture that tests it;
-- a citizen's build, repair and gather arms (read and built, not
-  captured);
+  of `add_gather_point` / `clear_gather` under `build_masks & 8`: run
+  under the emulator (item 955: every homed plane's patrol rebuilt from
+  the whole list on every press, `docs/GOLDEN.md` §40), not built and
+  not captured;
+- an enemy at the point (the attack arms) and a caravan's trade arm;
+  ~~the third re-seat (`619aa3`..`619be7`: a unit found at a ground
+  point)~~ (built, item 955), ~~with the lone arm's second sweep~~ (built,
+  item 945);
+- ~~whether `FILTER_ALL` exempts the seeker: a lone unit trained under a
+  ground point is the capture that tests it~~: it counts (item 955,
+  run338's three Citizens);
+- a citizen's repair arm (read and built, not captured); ~~its build and
+  gather arms~~ (captured, run338);
 - the Terracotta Army and the Kremlin beside the Senate (wonders with no
   ident here), and `find_building`'s own metric (the nearest here).
 
