@@ -7499,7 +7499,7 @@ saturates there and the chain is walked:
   `has_repeat_air`, `build_masks & 0x80`, §38.1 and §40; this arm is
   still a SEAM here, parked 844): a
   targeted strike whose target is invalid and whose point is off the
-  world is killed; a patrol's `returning` is cleared; the plane joins
+  world is killed; a patrol's ~~`returning`~~ `waypoint` (`+0x3c`, `64f6a0`; item 947, `docs/GOLDEN.md` §41) is set 0; the plane joins
   `launching` (`+0x44`), and the first of the call is `come_out(0)` and
   `launch_frames` 0;
 - no action bit: `kill_current_order`, and out of `launching`.

@@ -2725,11 +2725,9 @@ impl Sim {
         // `do_launch` to pass over. run308's Biplane `0/9`, inside `0/2007`
         // from 1746.
         //
-        // SEAM: a gather point's arm (`add_air_patrol_order` to it, action
-        // bit set, or a strike on an enemy building there), and a
-        // helicopter's over the base's aircraft limit (`is(0x136)`,
-        // `num_aircraft_here > num_aircraft_limit`, which does come out). No
-        // command in any capture sets a gather point.
+        // A gather point's arm is below (item 947). SEAM: a helicopter's
+        // over the base's aircraft limit (`is(0x136)`, `num_aircraft_here >
+        // num_aircraft_limit`, which does come out); no capture trains one.
         let hangar = self.buildings[at].ty.is_some_and(|t| self.is_hangar(t));
         let inside = self.squads_inside(at);
         let stays = self.building_ident(at) == crate::build::Ident::University

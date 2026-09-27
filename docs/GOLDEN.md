@@ -6088,7 +6088,7 @@ machine, out of git).
 
   | the base, the chain | what it wrote |
   | --- | --- |
-  | 4232, one patrol, flags 0, `mana_burn` 0, counter 15 | the patrol's `returning` (`+0x3c`) 0, `launching += 6`, `come_out(0)`, counter 0 |
+  | 4232, one patrol, flags 0, `mana_burn` 0, counter 15 | the patrol's ~~`returning`~~ `waypoint` (`+0x3c`, the PDB's `PatrolOrder` field list; item 947, §41) 0, `launching += 6`, `come_out(0)`, counter 0 |
   | 4104, the same | `kill_current_order(0)`, `launching -= 6`, counter 15 |
   | 4232, `mana_burn` 2 | nothing; counter 15 |
   | 4232, counter 14 | counter 15, no walk |
@@ -6124,8 +6124,10 @@ machine, out of git).
 from git and `touch`ed:
 - `do_launch`'s bit read as never set: `a_full_tank_launches_an_unflagged_patrol_only_under_the_bit`
   fails. **The launch half has a unit test.**
-- the patrol's `returning` not cleared at the launch: **no test fails** —
-  `land_plane` has already cleared it on every path a test takes.
+- the patrol's ~~`returning`~~ `waypoint` not cleared at the launch: **no
+  test fails** — ~~`land_plane` has already cleared it on every path a test
+  takes~~ the store is the waypoint (item 947, §41), and
+  `a_launch_starts_a_patrol_at_its_first_point` fails without it now.
 - `come_out`'s EXIT at an Airbase removed: `a_strike_from_inside_waits_for_the_tank_and_leaves_on_the_exit`
   fails. **No test trains an aircraft at an Airbase.**
 
@@ -6976,3 +6978,54 @@ over P1, flags 4, `0/6`'s `cruising_alt` 1600 (the strafe home's); on
 1741; the Biplane born on 1746 inside on `[P1, P2]`, flags 4, and out on
 1747; on 1852 each a strafe home, `returning` 1, flags 0; inside with no
 order on 2034, 2073, 2102 and 2106. Every block is the prototype's.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_TWO` = 1751, open,
+on the first walk**: the stream parts where run344's Biplane, launched on
+1747 on its patrol, flies and this crate's sits inside with no order. The
+widening, run344 whole (605, 2361), pins 364 rows and chapter twenty-two's
+ten pool rows. **The first parting's field list**, 1602: `0/6`'s
+`order:flags` and action bit (ours 0, theirs 4), `cruising_alt` (ours its
+own 1700, theirs the strafe home's 1600), `x_pos[0]`/`y_pos[0]` (ours
+(21120, 16512), theirs P1) and `path[0].to`; `0/7`'s and `0/8`'s flags,
+action bit and point. **Their writers** (889): the hangar loop alone on
+that block, with `clear_gather`'s strafe home the source of `0/6`'s 1600.
+Then 1702 (`x_pos.length` 1 against 2 on all three), 1741 (`0/6`'s
+`waypoint` 0 against 1), 1746 (`0/9`'s stack 0 against 1) and 1747 (`0/9`
+inside against out), and 1852 (each a patrol, kind 17, against the strafe
+home, 16).
+
+**The arms built: `GOLDEN_WORD_CHAPTER_THIRTY_TWO` = 2360, closed** (item
+947, `docs/PRODUCTION.md` "The gather point"): the hangar loop and
+`clear_gather`'s half (`crate::rally`), `Build::train`'s `CARRY_AIR` arm
+(`Sim::build_train`), and an `AirPatrolOrder` that holds its points and
+walks them (`orders::PATROL_POINTS`, `air::do_air_patrol`); `do_launch`'s
+store is the waypoint. **The value diff, both sides** (ours before the
+build in brackets): 1602, each plane flags 4 (0), over P1 ((21120, 16512)),
+`0/6`'s `cruising_alt` 1600 (1700); 1702, each `length` 2 (1); 1741,
+`0/6`'s `waypoint` 1 (0); 1746, `0/9` one `AIRPATROLORDER [P1, P2]` (none);
+1747, `0/9` on the map at (11424, 13866) (inside); 1852, each a
+`STRAFEORDER` home, `returning` 1 (its patrol); every row after agrees,
+and the stream to run344's end. The widening goes **364 → 17 rows**, the
+pool unchanged at ten: chapter twenty-two's nine and the Biplane's birth
+seat on 1746, (11616, 13920) against (11640, 13944), `Unit::init`'s
+(parked 646), as chapter twenty-nine's. `GROUND_INEXACT` 38 → 39: the
+Biplane's EXIT on 1747.
+
+**Mutations**, each on the committed build (`9fd97792`), restored from git
+and `touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the hangar loop dropped | `an_airbase_s_gather_point_re_orders_every_plane_homed_there`; the word (1738) and the widening |
+| `clear_gather`'s half dropped | `the_clear_at_an_airbase_sends_a_flying_plane_home_and_empties_one_inside`; the word (2106) and the widening |
+| the heights not carried | `an_airbase_s_gather_point_re_orders_every_plane_homed_there`; the widening |
+| the later points not appended | the same test; the word (2066) and the widening |
+| `train`'s arm dropped | `a_plane_trained_under_an_airbase_s_list_takes_a_patrol_over_it`; the word (1751) and the widening |
+| the waypoint's step dropped | `a_patrol_steps_its_waypoint_on_at_each_point_and_stays_on_the_last`; the word (2066) and the widening |
+| the launch store `returning` again | `a_launch_starts_a_patrol_at_its_first_point` alone: no capture relaunches from a waypoint past 0 |
+
+**Not built and not reached**: the search round the last point and the
+strike only from the last leg are built from ORDERS §34.5 with no test and
+no capture (nothing enemy near either point); action 3 and
+`action_launch_flight`; a patrol of more than `PATROL_POINTS` (8) points.
+Chapters twenty-nine to thirty-one hold at their pins.

@@ -62,9 +62,10 @@ impl Sim {
     ///   garrison limit, or is a Senate takes the point, its list cleared
     ///   first unless `add_to_end`.
     ///
-    /// SEAM: `action` 3 (an Airbase's strike through `action_flight`, and
-    /// `add_gather_point`'s re-ordering of the base's planes under
-    /// `build_masks & 8`); the Terracotta Army and the Kremlin beside the
+    /// SEAM: `action` 3 at an Airbase (its own `add_gather_point` and then
+    /// `Group::action_flight` on the building group, `action_launch_flight`;
+    /// the re-ordering of the base's planes is [`Sim::add_gather_point`]'s,
+    /// item 947); the Terracotta Army and the Kremlin beside the
     /// Senate (wonders with no ident here); `find_building`'s own metric
     /// (the nearest by `vector_dist` here). No capture reaches them.
     pub fn action_gather_point(
