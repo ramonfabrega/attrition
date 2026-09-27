@@ -3741,6 +3741,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_EIGHT: i64 = 1580;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_EIGHT: (i64, i64) = (605, 1581);
 
+/// **Chapter twenty-nine's golden word** — the repeat launch: chapter
+/// twenty-two's game with no toggle, its three kept patrols relaunched
+/// under the bit at their full tanks, and a Biplane trained at the
+/// Airbase (`docs/GOLDEN.md` §38, item 915, run308).
+///
+/// **The delta**, this constant's: the first pin.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_NINE: i64 = 1745;
+
+/// `chapter_twenty_nine_s_word_frame_is_widened_whole`'s window: run308
+/// whole, (605, 2071). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_NINE: (i64, i64) = (605, 2071);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4244,6 +4257,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // 867): the same 35, and nothing past 1500 flies.
     ("chapter_twenty_three_holds_to_the_golden_word", 35),
     ("chapter_twenty_three_s_word_frame_is_widened_whole", 35),
+    // Chapter twenty-nine is chapter twenty-two's game to 2070 with no
+    // toggle (item 915): the same 35, one EXIT read for each of the three
+    // relaunches (1585, 1789, 1813), and one for the Biplane this crate
+    // brings out on 1746, which the original keeps inside.
+    ("chapter_twenty_nine_holds_to_the_golden_word", 39),
+    ("chapter_twenty_nine_s_word_frame_is_widened_whole", 39),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -5613,6 +5632,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_eight_s_word_frame_is_widened_whole"),
         888,
         Some(WIDENING_CHAPTER_TWENTY_EIGHT),
+    ),
+    // Item 915: run308, chapter twenty-nine, the repeat launch. The
+    // widening is run308 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_NINE",
+        GOLDEN_WORD_CHAPTER_TWENTY_NINE,
+        Some("chapter_twenty_nine_s_word_frame_is_widened_whole"),
+        915,
+        Some(WIDENING_CHAPTER_TWENTY_NINE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

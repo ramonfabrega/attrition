@@ -6226,3 +6226,29 @@ EXIT, so the first value parting is expected on **1746**: the Biplane's
 here). The relaunches on 1585, 1789 and 1813 should agree: the launch
 half is built. Whether the draw stream parts at 1746 depends on what a
 plane on the map with no order spends; the walk will say.
+
+**Run 2026-09-27 as run308 (item 915)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run265 on all 1,501 frames the two
+share. **Falsifier 4 split its readings for the listing**: the Biplane
+`0/9` is born on 1746 **inside `0/2007`**, `inside_up 8` (behind `0/8`),
+with no order and `mana_burn` 0, at (11640, 13944), and so to 2069 —
+parked 843's EXIT, which this crate takes, is killed. **No other
+falsifier fired**: the press on 1541 (metal and oil −85, 1542); `0/6`
+relaunched on 1585 onto (11424, 13845) with its patrol, flags 0; `0/7` on
+1789 and `0/8` on 1813; `launch_frames` 1..15 over 1814..1828 with the
+Biplane alone inside; `0/6` `returning` on 1985 at `mana_burn` 400.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_NINE` = 1745,
+open, on the first walk**: ours 5 draws against 4, ours alone `Guy::
+set_anim+0x97a < Unit::do_idle+0x7d` — the Biplane idling on the map.
+The widening, run308 whole, (605, 2071): through 1745 only chapter
+twenty-two's standing rows (611–655), so **the three relaunches agree
+whole**. **The first parting's field list**, 1746, `0/9` alone: `inside`
+(ours −1, theirs 2007), `idle` (1, 0), `pos`, `orders_x/y` and the
+figure's `x`/`y` ((11424, 13920), (11640, 13944)), `heading`,
+`dest_angle` and the figure's angles (0, 0x55555555), `z` and `last_z`
+(157, 0), the figure's clock, and `form` (parked 646). Their writers:
+`inside`, `idle`, the angles and `z` — `come_out`'s EXIT, here alone;
+`pos` — the EXIT here, and `Unit::init`'s seat there. The pool agrees
+but for chapter twenty-two's ten rows: the press's `[2007]` is seated on
+1542 by both.

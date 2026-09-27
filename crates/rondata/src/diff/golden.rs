@@ -9349,6 +9349,377 @@ const WANT_CH28_POOL: &[&str] = &[
     "1324 slot 4 oy",
 ];
 
+/// **Chapter twenty-nine, pinned** — the repeat launch (`docs/GOLDEN.md`
+/// §38, item 915, run308). Thirteen staged lines: chapter twenty-two's
+/// twelve and `@queueup` of a Biplane at the Airbase `0/2007` on 1540.
+#[test]
+fn chapter_twenty_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch29", "chapter29", 29, 13, 2069) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_NINE,
+        "chapter twenty-nine's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_NINE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_NINE,
+        "chapter twenty-nine's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §38"
+    );
+    eprintln!(
+        "chapter twenty-nine: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run308 whole, both directions** (item 915, `docs/GOLDEN.md` §38):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch29",
+        "chapter29",
+        WIDENING_CHAPTER_TWENTY_NINE,
+        2069,
+        0,
+        (1744, 1748),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch29 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-two's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_NINE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch29: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_NINE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch29", "chapter29", WIDENING_CHAPTER_TWENTY_NINE, 0)
+        .expect("run308 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch29 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH29.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch29: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH29_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch29: what parts in the pool moved");
+}
+
+// **What parts under the word** on run308, chapter twenty-nine. **The first
+// walk**, `Build::train`'s `CARRY_AIR` arm not built: on 1746 the Biplane
+// `0/9` is out on the EXIT's point here, idling, and inside `0/2007` there
+// (`inside` −1 against 2007, `idle` 1 against 0, its point (11424, 13920)
+// against (11640, 13944)); its idle's draw parts the stream on 1745's tick,
+// and every row after 1746 is the parted stream's. The relaunches on 1585
+// agree whole; 611–655 are chapter twenty-two's standing rows.
+const WANT_CH29: &[&str] = &[
+    "611 0/6 form",
+    "613 0/7 form",
+    "615 0/8 form",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+    "1746 0/9 dest_angle",
+    "1746 0/9 form",
+    "1746 0/9 g.angle[0]",
+    "1746 0/9 g.cur_time[0]",
+    "1746 0/9 g.des_angle[0]",
+    "1746 0/9 g.des_x[0]",
+    "1746 0/9 g.des_y[0]",
+    "1746 0/9 g.end_time[0]",
+    "1746 0/9 g.last_time[0]",
+    "1746 0/9 g.last_z[0]",
+    "1746 0/9 g.x[0]",
+    "1746 0/9 g.y[0]",
+    "1746 0/9 g.z[0]",
+    "1746 0/9 heading",
+    "1746 0/9 idle",
+    "1746 0/9 inside",
+    "1746 0/9 orders_x",
+    "1746 0/9 orders_y",
+    "1746 0/9 pos",
+    "1747 0/6 g.pitch[0]",
+    "1747 0/6 g.z[0]",
+    "1747 0/6 order:air.cruising_alt",
+    "1748 0/6 g.last_pitch[0]",
+    "1748 0/6 g.last_z[0]",
+    "1749 0/3 dest_angle",
+    "1749 0/3 order:move.angle",
+    "1749 0/3 order:move.off_x",
+    "1749 0/3 order:move.off_y",
+    "1749 0/3 order:move.x",
+    "1749 0/3 order:move.y",
+    "1749 0/3 orders_x",
+    "1749 0/3 orders_y",
+    "1749 0/6 g.avg_speed[0]",
+    "1749 0/6 g.des_x[0]",
+    "1749 0/6 g.des_y[0]",
+    "1749 0/6 g.last_speed[0]",
+    "1749 0/6 g.x[0]",
+    "1749 0/6 g.y[0]",
+    "1749 0/6 pos",
+    "1750 0/3 g.angle[0]",
+    "1750 0/3 g.des_angle[0]",
+    "1750 0/3 g.des_x[0]",
+    "1750 0/3 g.des_y[0]",
+    "1750 0/3 g.last_speed[0]",
+    "1750 0/3 g.x[0]",
+    "1750 0/3 g.y[0]",
+    "1750 0/3 heading",
+    "1750 0/3 order:move.dest_x",
+    "1750 0/3 order:move.dest_y",
+    "1750 0/3 path[0].to",
+    "1750 0/3 pos",
+    "1750 0/6 g.angle[0]",
+    "1750 0/6 g.des_angle[0]",
+    "1750 0/6 heading",
+    "1750 0/6 orders_x",
+    "1750 0/6 orders_y",
+    "1751 0/6 dest_angle",
+    "1753 0/3 g.avg_speed[0]",
+    "1753 1/4 dest_angle",
+    "1753 1/4 order:move.angle",
+    "1753 1/4 order:move.off_x",
+    "1753 1/4 order:move.off_y",
+    "1753 1/4 order:move.x",
+    "1753 1/4 order:move.y",
+    "1753 1/4 orders_x",
+    "1753 1/4 orders_y",
+    "1754 1/4 collide_o",
+    "1754 1/4 collide_who",
+    "1756 1/4 order:move.dest_x",
+    "1756 1/4 order:move.dest_y",
+    "1756 1/4 path[0].to",
+    "1757 0/5 dest_angle",
+    "1757 0/5 order:move.angle",
+    "1757 0/5 order:move.off_x",
+    "1757 0/5 order:move.off_y",
+    "1757 0/5 order:move.x",
+    "1757 0/5 order:move.y",
+    "1757 0/5 orders_x",
+    "1757 0/5 orders_y",
+    "1757 1/4 angle:Facing",
+    "1757 1/4 angle:Heading",
+    "1757 1/4 g.angle[0]",
+    "1757 1/4 g.des_angle[0]",
+    "1757 1/4 heading",
+    "1758 0/5 g.angle[0]",
+    "1758 0/5 g.des_angle[0]",
+    "1758 0/5 g.des_x[0]",
+    "1758 0/5 g.last_speed[0]",
+    "1758 0/5 g.x[0]",
+    "1758 0/5 heading",
+    "1758 0/5 order:move.dest_x",
+    "1758 0/5 order:move.dest_y",
+    "1758 0/5 path[0].to",
+    "1758 0/5 pos",
+    "1760 0/5 g.avg_speed[0]",
+    "1761 1/4 g.avg_speed[0]",
+    "1761 1/4 g.des_y[0]",
+    "1761 1/4 g.last_speed[0]",
+    "1761 1/4 g.y[0]",
+    "1761 1/4 pos",
+    "1764 1/4 g.des_x[0]",
+    "1764 1/4 g.x[0]",
+    "1766 0/5 g.des_y[0]",
+    "1766 0/5 g.y[0]",
+    "1766 1/4 order:kind",
+    "1766 1/4 order:length",
+    "1766 1/4 orders.len",
+    "1766 1/4 path:length",
+    "1767 1/4 g.cur_anim[0]",
+    "1767 1/4 g.cur_time[0]",
+    "1767 1/4 g.end_time[0]",
+    "1767 1/4 g.last_time[0]",
+    "1767 1/4 g.stopped[0]",
+    "1768 0/5 order:kind",
+    "1768 0/5 order:length",
+    "1768 0/5 orders.len",
+    "1768 0/5 path:length",
+    "1769 0/5 g.cur_anim[0]",
+    "1769 0/5 g.cur_time[0]",
+    "1769 0/5 g.end_time[0]",
+    "1769 0/5 g.last_time[0]",
+    "1769 0/5 g.stopped[0]",
+    "1772 0/3 order:kind",
+    "1772 0/3 order:length",
+    "1772 0/3 orders.len",
+    "1772 0/3 path:length",
+    "1773 0/3 g.cur_time[0]",
+    "1773 0/3 g.last_time[0]",
+    "1773 0/4 order:move.off_x",
+    "1773 0/4 order:move.off_y",
+    "1773 0/4 order:move.x",
+    "1773 0/4 order:move.y",
+    "1773 0/4 orders_x",
+    "1773 0/4 orders_y",
+    "1773 0/6 g.bank[0]",
+    "1774 0/3 g.cur_anim[0]",
+    "1774 0/3 g.end_time[0]",
+    "1774 0/3 g.stopped[0]",
+    "1774 0/4 dest_angle",
+    "1774 0/4 g.angle[0]",
+    "1774 0/4 g.avg_speed[0]",
+    "1774 0/4 g.cur_anim[0]",
+    "1774 0/4 g.cur_time[0]",
+    "1774 0/4 g.des_angle[0]",
+    "1774 0/4 g.des_x[0]",
+    "1774 0/4 g.des_y[0]",
+    "1774 0/4 g.end_time[0]",
+    "1774 0/4 g.last_speed[0]",
+    "1774 0/4 g.last_time[0]",
+    "1774 0/4 g.stopped[0]",
+    "1774 0/4 g.x[0]",
+    "1774 0/4 g.y[0]",
+    "1774 0/4 heading",
+    "1774 0/4 mirror",
+    "1774 0/4 order:kind",
+    "1774 0/4 order:length",
+    "1774 0/4 orders.len",
+    "1774 0/4 path:length",
+    "1774 0/4 pos",
+    "1774 0/6 g.last_bank[0]",
+    "1775 0/4 order:flags",
+    "1775 0/4 order:move.dest",
+    "1778 0/4 order:move.dest_x",
+    "1778 0/4 order:move.dest_y",
+    "1778 0/4 path[0].to",
+    "1796 1/3 dest_angle",
+    "1796 1/3 order:move.angle",
+    "1796 1/3 order:move.off_x",
+    "1796 1/3 order:move.off_y",
+    "1796 1/3 order:move.x",
+    "1796 1/3 order:move.y",
+    "1796 1/3 orders_x",
+    "1796 1/3 orders_y",
+    "1797 1/3 g.angle[0]",
+    "1797 1/3 g.des_angle[0]",
+    "1797 1/3 g.des_x[0]",
+    "1797 1/3 g.des_y[0]",
+    "1797 1/3 g.x[0]",
+    "1797 1/3 g.y[0]",
+    "1797 1/3 heading",
+    "1797 1/3 mirror",
+    "1797 1/3 order:move.dest_x",
+    "1797 1/3 order:move.dest_y",
+    "1797 1/3 path[0].to",
+    "1797 1/3 pos",
+    "1803 0/0 g.cur_anim[0]",
+    "1803 0/0 g.cur_anim[1]",
+    "1803 0/0 g.end_time[0]",
+    "1808 1/3 g.cur_anim[0]",
+    "1808 1/3 g.end_time[0]",
+    "1854 1/3 g.cur_time[0]",
+    "1854 1/3 g.last_time[0]",
+    "1854 1/5 order:move.off_x",
+    "1854 1/5 order:move.off_y",
+    "1854 1/5 order:move.x",
+    "1854 1/5 order:move.y",
+    "1854 1/5 orders_x",
+    "1854 1/5 orders_y",
+    "1855 1/5 order:move.dest_x",
+    "1855 1/5 order:move.dest_y",
+    "1855 1/5 path[0].to",
+    "1856 1/5 angle:Facing",
+    "1856 1/5 angle:Heading",
+    "1856 1/5 g.angle[0]",
+    "1856 1/5 g.des_angle[0]",
+    "1856 1/5 heading",
+    "1860 1/1 order:gather.wait",
+    "1860 1/5 g.avg_speed[0]",
+    "1860 1/5 g.des_y[0]",
+    "1860 1/5 g.last_speed[0]",
+    "1860 1/5 g.y[0]",
+    "1860 1/5 pos",
+    "1863 1/5 g.des_x[0]",
+    "1863 1/5 g.x[0]",
+    "1864 0/0 g.cur_time[0]",
+    "1864 0/0 g.cur_time[1]",
+    "1864 0/0 g.last_time[0]",
+    "1865 1/5 dest_angle",
+    "1865 1/5 order:kind",
+    "1865 1/5 order:length",
+    "1865 1/5 orders.len",
+    "1865 1/5 path:length",
+    "1866 1/5 g.cur_anim[0]",
+    "1866 1/5 g.cur_time[0]",
+    "1866 1/5 g.end_time[0]",
+    "1866 1/5 g.last_time[0]",
+    "1866 1/5 g.stopped[0]",
+    "1869 1/4 mirror",
+    "1873 0/5 mirror",
+    "1878 0/3 order:flags",
+    "1878 0/3 order:move.dest",
+    "1881 0/3 mirror",
+    "1881 0/5 order:flags",
+    "1881 0/5 order:move.dest",
+    "1906 0/5 angle:Facing",
+    "1906 0/5 angle:Heading",
+    "1910 1/3 g.avg_speed[0]",
+    "1910 1/3 g.last_speed[0]",
+    "1910 1/3 g.stopped[0]",
+    "1910 1/3 order:kind",
+    "1910 1/3 order:length",
+    "1910 1/3 orders.len",
+    "1910 1/3 path:length",
+    "1911 1/3 order:flags",
+    "1911 1/3 order:move.dest",
+    "1919 0/4 angle:Facing",
+    "1919 0/4 angle:Heading",
+    "1935 1/3 angle:Facing",
+    "1935 1/3 angle:Heading",
+    "1970 1/5 mirror",
+    "1978 1/5 order:flags",
+    "1978 1/5 order:move.angle",
+    "1978 1/5 order:move.dest",
+];
+
+// **What parts in the pool** on run308: chapter twenty-two's ten. The
+// press's building group `[2007]` is seated by both sides on 1542.
+const WANT_CH29_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "666 slot 2 new_speed",
+    "666 slot 2 speed",
+];
+
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {
     let Some(firsts) = widen_civilians(
