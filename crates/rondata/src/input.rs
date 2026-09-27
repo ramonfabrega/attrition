@@ -1011,8 +1011,31 @@ impl Stream {
             Command::Buy { .. } | Command::Sell { .. } => {
                 done.skip(&it.cmd, "the market is not modelled");
             }
-            Command::GatherPoint { .. } => {
-                done.skip(&it.cmd, "rally points are not modelled");
+            // **The rally point** (item 928): the recorded command is the
+            // one the golden harness issues, `process_gather_point` on the
+            // selection's buildings — [`group_gather_point`]. Only run7's
+            // stream carries one (1184, a point on the ground; `grep
+            // process_gather_point` over every kept dump), and neither
+            // long capture does.
+            Command::GatherPoint {
+                x,
+                y,
+                action,
+                add_to_end,
+            } => {
+                let slot = it.play as usize;
+                let objects = self.selection.get(slot).cloned().unwrap_or_default();
+                let n = group_gather_point(
+                    built,
+                    it.play,
+                    &objects,
+                    Pos::new(*x, *y),
+                    *action,
+                    *add_to_end != 0,
+                );
+                if n == 0 {
+                    done.skip(&it.cmd, "no selected building is in the simulation");
+                }
             }
             Command::Chat { .. } => {
                 // A cheat line. It is input — in solo it travels the order

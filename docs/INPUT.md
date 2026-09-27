@@ -139,7 +139,7 @@ housekeeping kinds (`Camera`, one a frame; `PlayerSpeed`, the turn pump's):
 | `QueueUp` | 3 | no — production is not wired into the harness |
 | `SwarmAround` | 2 | no — the target site was created mid-run by a cheat and is not in the simulation |
 | `Buy`, `Sell` | 1 each | no — the market is not modelled |
-| `GatherPoint` | 1 | no — rally points are not modelled |
+| `GatherPoint` | 1 | ~~no — rally points are not modelled~~ **yes** — `input::group_gather_point` on the selection's buildings (item 928, `docs/PRODUCTION.md` "The gather point") |
 | `LeaderOptions` | 1 | no — not mapped |
 
 Each "no" is counted by name and reason in the report. A command the harness
@@ -219,7 +219,7 @@ correcting: for a command-issued move `orig` is the click, not −1/−1.
 
 - **Nine of the eleven command kinds.** `QueueUp` needs production in the
   harness; `SwarmAround`/`Repair` need mid-run sites; `Buy`/`Sell` need the
-  market; `GatherPoint` needs rally points; `LeaderOptions` is unmapped. Each
+  market; ~~`GatherPoint` needs rally points~~ (built, item 928); `LeaderOptions` is unmapped. Each
   is counted in the report, so the gap is measured rather than assumed.
 - **`Chat` as a cheat line.** In solo a cheat travels the order stream and is
   therefore *reproducible from the recording* — `cheat add NEW tower` is in
