@@ -48,6 +48,14 @@ capture has two planes full on one call.
 (931) **The launch's `returning` clear has no test that fails without
 it** (918's shape).
 
+## Parked by item 945, 2026-09-27 — the re-seat's edges
+
+(956) **Whether `FILTER_ALL` exempts the seeker**: untested; the killer is
+a lone unit trained under a ground point.
+
+(957) **`come_out`'s third re-seat** (619aa3..619be7, a unit found at a
+ground point): read, not built.
+
 ## Parked by item 940, 2026-09-27 — the dead functions' citations
 
 (951) **Ten functions the scan found dead are cited as live** in
@@ -1592,6 +1600,12 @@ never by the game. Whether entering it shrinks the list is the pass's.
 (954) **The ranked list's membership is prose** (940's Loop line): a row
 is a family written in `docs/CENSUS.md`, so a move out of it is a
 reading; a `rows:` table in `blind.rs` would let the sizes be computed.
+
+(958) **A residue item whose unit is a captain reads the members' rows on
+the same block first** (945's Loop line, filed at its merge): the brief
+booked "refuses the whole first ring", which the dump had already killed;
+`0/18` and `0/19` agreed on the parting block while their captain did
+not, so the captain moved after its members were seated.
 
 
 

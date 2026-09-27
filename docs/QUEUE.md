@@ -12,7 +12,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-27, the commander (Opus 5.5), sixteen landings since the
+*2026-09-27, the commander (Opus 5.5), seventeen landings since the
 sixteenth pass: **both long captures are closed at the trace's end.**
 Great Lakes 20568 → 24000 (795, 899) and East Indies 20007 → 24000 (880,
 890, 904, 919): every frame's draw stream agrees on both maps (275,108
@@ -24,21 +24,22 @@ commander's call on the user's word (the next pass may overturn it):
 **228 cited never entered, 29 of them residue with reasons**, pinned in
 `rondata::blind` (923, 935, 940).*
 
-- **The mechanisms**, each with its value diff: 915 CARRY_AIR, 919 an
+- **The mechanisms**, each with its value diff: 945 `come_out`'s
+  re-seat at a building point (ch30 105 → 35 rows); 915 CARRY_AIR, 919 an
   unstarted site (AI §79), 904 a rock cell (§78), 899 `is_attack`
   (PATHFINDER §29), 890 the wonder count (AI §77), 795 `do_move`'s TAKE,
   880 the kept fields, 882 `come_out`'s push (GROUPS §30–§32).
-- **Fable backlog: 35 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922, 926, 927, 932, 933, 936, 937, 938, 939, 941, 942, 943, 944, 949, 950, 952, 953, 954).
+- **Fable backlog: 36 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922, 926, 927, 932, 933, 936, 937, 938, 939, 941, 942, 943, 944, 949, 950, 952, 953, 954, 958).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · 945 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · 955 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: 934 on the AI lane (the tracer's issuer guard; `tracer.c` is
-free). 945 on the rules lane: chapter thirty's floor, the Bowmen's exit
-point. The count runs from f0b9d296: sixteen landings; the steering pass
-is due at twenty.**
+**Opener: 934 is live on the AI lane (ref ab7115e3; nineteen chapters at
+`cover=1`, run319–run337); merge it when it reports. 955 on the rules
+lane: the gather point's other arms in one capture, run338. The count
+runs from f0b9d296: seventeen; the steering pass is due at twenty.**
 
 ## The queue
 
@@ -56,12 +57,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     run, chapter twenty-three first. Eleven of the 77 are issuers the game
     never calls, only the DLL (940); say what entering them counts for.
 
-945. **Chapter thirty's floor: the Bowmen's exit point** (928 closed the
-    chapter at 1450, GOLDEN §39). 70 of its standing rows sit on `0/17`
-    on 1060 (run312): ours exits at (3336, 14376), theirs at (3384,
-    14232), the bearing equal; 928's reading is that the original refuses
-    the whole first ring on a gather bearing east-south-east, a
-    hypothesis. Count the writers first (889). Inside run312.
+955. **Chapter thirty-one: the gather point's other arms — no capture
+    yet** (928's and 945's parks). One capture, the arms placed between
+    staged events: a lone unit trained under a ground point (FILTER_ALL's
+    seeker, 956), a unit found at a ground point (the third re-seat,
+    957), a list of two points (946), an Airbase's gather point (947),
+    and a citizen's build, repair and gather arms (948). The emulator
+    first; **run338** the capture, run339 a staging run. GOLDEN §40.
 
 ## How to maintain this file
 
