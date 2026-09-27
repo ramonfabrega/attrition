@@ -978,11 +978,15 @@ impl Sim {
     /// `docs/COSTS.md`'s ramp, with the count of this type the player has
     /// placed.
     pub fn building_price(&self, who: Player, ty: usize) -> [i32; RESOURCES] {
-        let of_type = self
-            .buildings
-            .iter()
-            .filter(|b| b.alive && b.owner == who && b.ty == Some(ty))
-            .count() as i32;
+        let wonder = self.build_types[ty].wonder;
+        let of_type = if wonder {
+            self.wonder_ramp_count(who, ty)
+        } else {
+            self.buildings
+                .iter()
+                .filter(|b| b.alive && b.owner == who && b.ty == Some(ty))
+                .count() as i32
+        };
         let holdings = &self.holdings[who as usize];
         cost::charges(
             &self.tuning,
@@ -991,11 +995,68 @@ impl Sim {
                 of_type,
                 of_group: 0,
             },
-            &cost::Modifiers::default(),
+            &cost::Modifiers {
+                wonder,
+                ..cost::Modifiers::default()
+            },
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
         )
+    }
+
+    /// `get_cost`'s wonder count for pricing wonder `ty` ([`cost::wonder_count`]):
+    /// `LeaderData::get_wonders@006db680`, the in-use entries under the
+    /// leader's `wonder_mark` ([`Sim::note_wonders`]), plus
+    /// `get_unbuilt_wonders@006da290`, its unbuilt wonder sites — every
+    /// wonder of the leader's, standing or not, not only `ty`'s own
+    /// (`docs/COSTS.md`, "A wonder is ramped by every wonder"). A leader with no census entry counts its
+    /// active wonders instead.
+    fn wonder_ramp_count(&self, who: Player, ty: usize) -> i32 {
+        let is_wonder = |b: &crate::Building| {
+            b.alive && b.owner == who && b.ty.is_some_and(|t| self.build_types[t].wonder)
+        };
+        let standing = self.ai.get(who as usize).map_or_else(
+            || {
+                self.buildings
+                    .iter()
+                    .filter(|b| is_wonder(b) && b.active)
+                    .count() as i32
+            },
+            |a| {
+                let mark = usize::try_from(a.census.wonder_mark).unwrap_or(0);
+                a.census.wonder_slots.iter().take(mark).flatten().count() as i32
+            },
+        );
+        let site_of = |p: Player, t: usize| {
+            self.buildings.iter().any(|b| {
+                b.alive
+                    && !b.active
+                    && b.owner == p
+                    && b.ty.and_then(|k| self.build_types[k].tree) == Some(t)
+            })
+        };
+        let unbuilt = self
+            .buildings
+            .iter()
+            .filter(|b| is_wonder(b) && !b.active)
+            .count() as i32;
+        // `SUPERCOLLIDER` and `SPACEPROGRAM`: a building's tree id is its
+        // `TypeIndex`.
+        const RACE: [usize; 2] = [0x21d, 0x21e];
+        let space = if !self.build_types[ty].tree.is_some_and(|t| RACE.contains(&t)) {
+            cost::SpaceRace::None
+        } else if RACE.iter().any(|&t| site_of(who, t)) {
+            cost::SpaceRace::Own
+        } else if (0..self.players.len())
+            .map(|p| p as Player)
+            .any(|p| p != who && self.is_ally(who, p) && RACE.iter().any(|&t| site_of(p, t)))
+        {
+            cost::SpaceRace::Team
+        } else {
+            cost::SpaceRace::None
+        };
+        cost::wonder_count(standing + unbuilt, space)
     }
 
     /// `Group::action_build`: the player's order — the site, the city limit,

@@ -7270,3 +7270,86 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - **R4's killer fires**: the original's `1/40` passes (3732, 31380) on
 #   19903. The detour is its first leg: `do_move`'s TAKE reads the stack
 #   again after the line check, and ours did not (§32.3).
+
+run: 299
+tag: eastindies-wonderprice
+item: 890
+why: East Indies' long word is 23182 (item 890: get_cost's wonder arm ramps a wonder by every wonder held or sited, docs/COSTS.md "A wonder is ramped by every wonder"), where ours spends 49 draws against 48, parting at index 46 — ours spends `Leader::produce_building+0x1805` where the original spends `Leader::make_stuff+0x63d` — and run289, the last capture on this map below 23960, ends on block 21045, so the word's block 23183 is on no disk
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 890): every
+# `gamelog-*eastindies*` and `*islands*` by its first and last block.
+# run289 holds 20777..21045 and run96 23960..24001; run21, run23 and
+# run54 print only 24000..24001. None holds a block in 21046..23959.
+# **What the disk does answer**: with 890's fix, who=1's `MAKE` rows on
+# run289's 20782 agree in `val` (486/398 → 0 on both), and the draw
+# stream agrees to 23181. **What the disk could not answer**: why ours
+# places a building on 23182 (the jitter draw) where the original walks
+# its make list's expiry, and every leader, building, unit and pool
+# record on 23177..23183.
+#
+# **Sized to the word** (DECISIONS 50 §7): six blocks before it
+# (23177..23182), its block 23183, and 250 above it (23184..23433) —
+# **257 blocks, 23177..23433**. No overlap with run289 or run96, so
+# **blocks 21046..23176 are compared by no dump**.
+#
+# **The readings, each with what kills it** (block = frame + 1). Each
+# killer tests the claim's own unit:
+#
+# - **R1 — this is run54's game to 23444.** Killed if the trace differs
+#   from run54's on any frame, or agrees on fewer than 23,445.
+# - **R2 — who=1's make list parts before the word.** Its unit is who=1's
+#   `MAKE` rows (every slot, every field but parked 325's `city`
+#   spelling) on 23177..23183: killed if every one agrees on the word's
+#   block 23183.
+# - **R3 — the make list agrees, and the placement's own inputs part**:
+#   a building, a site's footprint or who=1's city `space`/`filled`
+#   rows. Its unit is those records on 23177..23183: killed if they all
+#   agree on the word's block.
+# - **R4 — the stock parts** (the purse that pays for the placement).
+#   Its unit is who=1's `bucket`, `escrow` and `leftover` rows on the
+#   same blocks: killed if only 851's standing `leftover[2:wealth]`
+#   parts there.
+#
+# **run289's line**, the same lobby (no `cfg:`) and the same `end:`, so
+# the pool lands (no `DEATHS`). Not a round, so no `AMMO`.
+frames: 23444
+mapstyle: 18
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **23177..23433, 257 blocks**: six up to the word, its block 23183, and
+# 250 of runway above it.
+frame_window: 23177 23434
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run289**: 2.45 MB a block, so 257 blocks is ~0.63 GB, and
+# 2,400 more frames played unlogged than run289's.
+poll_max: 300
+# Same game: the trace word for word against run54, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run54.log rontrace-run299.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=23445)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run299-eastindies-wonderprice.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==18)}'
+# **The window landed whole** — 257 blocks, 23177..23433, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run299-eastindies-wonderprice.txt" | awk '{v=$3+0; if(v>=23177&&v<23434) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==257 && lo==23177 && hi==23433)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run299-eastindies-wonderprice.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=23177&&v<23434)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run299-eastindies-wonderprice.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=23177&&v<23434)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 631,495,667 bytes of dump and 28,460,512 of trace, **257 blocks
+# 23177..23433**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 20:35 through `viadriver.sh` with no human at the menu (the lane lock
+# was stale: pid 87908 gone), archived 20:58. `waitrun.sh` exited 0.
+# All five checks were green:
+# - 23,445 frames identical to run54, 0 differing;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run299_s_word_frame_is_widened_whole`, `docs/AI.md` §77.5):
+# - **R1 holds.**
+# - **R2 holds**: `MAKE[0]` and `MAKE[4]` part on 23182, on
+#   `escrow` (0 here, 1 there); built by item 890, 1 on both.
+# - **R3 holds, narrowed**: slot 4's Farm jitter at corner (184, 196)
+#   finds four clear sub-positions here and three there.
+# - **R4 is killed**: only 851's standing `leftover[2:wealth]` parts.

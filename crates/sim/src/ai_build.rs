@@ -935,11 +935,8 @@ impl Sim {
                     && self
                         .build_record(ht)
                         .is_some_and(|r| self.build_types[r].has(flags::GATHER));
-                if head_gather {
-                    escrow = 1;
-                } else {
+                if !head_gather {
                     let mine = gather_good(ident);
-                    let mut took = false;
                     for g in 0..RESOURCES {
                         let avail = self
                             .good_type(g)
@@ -947,16 +944,20 @@ impl Sim {
                         let cost = self.type_price(who, ht).map_or(0, |c| c[g]);
                         if mine == Some(g) && avail && self.ledgers[w].bucket[g] < cost {
                             v = v.wrapping_mul(2).min(head.val);
-                            escrow = 1;
-                            took = true;
                             break;
                         }
                     }
-                    if !took {
-                        escrow = 1;
-                    }
                 }
             }
+            // **Every exit of the head test escrows** (item 890, listing
+            // `006c3cbb`..`006c3db0`): the `jge`, the `js` and the
+            // `can_pay` refusal jump to `006c3da8`, the flag test and the
+            // goods walk land there or at `006c3d8a`, and each writes 1 to
+            // the offer's escrow (`-0xc(%ebp)`, pushed to `make_me` at
+            // `006c3fa8`). A gather offer is always escrowed: East Indies'
+            // Farm on 23181 was the head, the test failed on its first
+            // compare, and the original listed it at `escrow 1`.
+            escrow = 1;
         }
         Some(Listing {
             val: v,
@@ -1870,6 +1871,29 @@ mod tests {
         assert_eq!(g.val, f.val);
     }
 
+    /// **A gather offer is always escrowed** (item 890, listing
+    /// `006c3cbb`..`006c3db0`): every exit of the head test writes 1 to the
+    /// offer's escrow — the head out-valued or empty, the head affordable,
+    /// the flag, the goods walk. East Indies' 23181 listed a Farm as the
+    /// new head at `escrow 1` in the original and 0 here, because this
+    /// crate escrowed only when the test passed. The worst good's rate is
+    /// raised first, so `gather_value`'s own escrow arm stays shut.
+    #[test]
+    fn a_gather_offer_is_escrowed_on_every_exit_of_the_head_test() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.ai[0].rate = [1_000_000; RESOURCES];
+        sim.ai[0].make_list.clear();
+        let f = value(&mut sim, 0, c, t.farm).expect("a farm is listed");
+        assert_eq!(f.escrow, 1, "an empty head: the first compare fails");
+        let mut head = MakeObject::EMPTY;
+        head.t = sim.build_types[t.barracks].tree.expect("in the tree") as i32;
+        head.val = i32::MAX;
+        sim.ai[0].make_list.list[0] = head;
+        let g = value(&mut sim, 0, c, t.farm).expect("still listed");
+        assert_eq!(g.escrow, 1, "a richer, affordable head");
+    }
+
     #[test]
     fn a_gather_type_waits_until_its_slots_are_three_quarters_full() {
         let (mut sim, t) = sim();
@@ -1976,6 +2000,70 @@ mod tests {
             assert!(n < 20, "too many draws");
         }
         assert_eq!(n, 2, "the other city's wonder alone");
+    }
+
+    /// **A site of one wonder prices every other wonder a step up**
+    /// (`docs/COSTS.md`, "A wonder is ramped by every wonder", item 890). `get_cost`'s wonder arm counts every
+    /// wonder the leader holds or has a site of, so on East Indies' frame
+    /// 20781 who=1's Pyramids site put the Mausoleum and the Colossus at
+    /// 260 wealth against a purse of 208: `check_income` answered 0, and
+    /// both wonders went on the make list at `val 0` in the original where
+    /// this crate, counting only a wonder's own type, listed them at 486 and
+    /// 398 and went to the market for them. A Barracks is not a wonder and
+    /// does not move.
+    #[test]
+    fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
+        use crate::cost::{Kind, Price, RampClass};
+        use crate::economy::Resource;
+        let (mut sim, t) = sim();
+        let wealth = Resource::Wealth as usize;
+        sim.build_types[t.silo].wonder = true;
+        sim.build_types[t.wonder].price = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Wealth, 20)
+                .with_support(Resource::Wealth, 60)
+        };
+        sim.build_types[t.barracks].price = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Wealth, 20)
+                .with_support(Resource::Wealth, 60)
+        };
+        let a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        sim.lobby.difficulty = 3;
+        sim.ledgers[0].bucket[wealth] = 208;
+        assert_eq!(sim.building_price(0, t.wonder)[wealth], 200);
+        pass_draws(&mut sim, 0);
+        let before = listed(&sim, 0, t.wonder).expect("listed with no site");
+        assert!(before.val > 0, "affordable: {before:?}");
+        let tree = sim.build_types[t.wonder].tree.expect("in the tree");
+        assert!(sim.check_income(0, tree, 4 << 8, Some(a), false, -1, 1, 0) > 0);
+        let site = sim
+            .place_building(0, t.silo, tile_pos(48, 40))
+            .expect("the other wonder's site places");
+        assert_eq!(sim.buildings[site].city, Some(a));
+        sim.ledgers[0].bucket[wealth] = 208;
+        assert_eq!(
+            sim.building_price(0, t.wonder)[wealth],
+            260,
+            "one wonder held: 60 x 2 / 2 on top"
+        );
+        assert_eq!(sim.building_price(0, t.barracks)[wealth], 200);
+        sim.ai[0].make_list.clear();
+        pass_draws(&mut sim, 0);
+        assert_eq!(
+            sim.check_income(0, tree, 4 << 8, Some(a), false, -1, 1, 0),
+            0,
+            "unaffordable with no escrow: check_income answers 0"
+        );
+        assert!(
+            listed(&sim, 0, t.wonder).is_none(),
+            "a val-0 offer loses every slot the fuller list holds"
+        );
     }
 
     /// Counts the sync-stream draws one `create_buildings` pass takes.

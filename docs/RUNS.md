@@ -8638,3 +8638,55 @@ which exited 0.
   cause is `do_move`'s TAKE, which reads the stack again after the line
   is verified (§32.3). With it built, nothing on `1/40`, `1/41` or `1/42`
   parts on run294 or run243.
+
+## run299 — East Indies' word 23182, sized to the word (2026-09-26, item 890)
+
+**What it is.** run289's line, unchanged,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[23177, 23434)`, at `cover=0`: a draw-stream trace. `!quit` at 23444,
+through `viadriver.sh` with no human at the menu.
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 890
+```
+
+**Why it was owed.** Item 890 moved East Indies' word 20782 → 23182
+(`get_cost`'s wonder arm counts every wonder held or sited,
+`docs/COSTS.md`, "A wonder is ramped by every wonder"). run289 ends on
+block 21045 and run96 starts at 23960, so the word's block 23183 is on no
+disk: every `*eastindies*` and `*islands*` dump was grepped by its first
+and last block first. On 23182 ours spends 49 draws against 48, parting at
+index 46: ours `Leader::produce_building+0x1805`, the original
+`Leader::make_stuff+0x63d`. **What the disk could not answer**: why ours
+draws one more placement jitter on 23182, and every leader, building,
+unit and pool record on 23177..23183. **Sized to the word** (DECISIONS 50
+§7): six blocks before its block, the block, and 250 above it, 257
+blocks. **21046..23176 is compared by no dump.**
+
+**Taken whole.** 631.5 MB of dump and 28.5 MB of trace, 257 blocks
+23177..23433. Launched 20:35. The lane lock was stale (pid 87908 gone)
+and no RonDriver was running. Archived 20:58. It was waited on with
+`waitrun.sh`, which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run54.log` | **0 differing**, 23,445 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 18 |
+| the window, block for block | **257 blocks, 23177..23433, no gap** |
+| a `GROUPDATA` / a `GUY` on every window block | **257 / 257** |
+
+**What it settled** (`run299_s_word_frame_is_widened_whole`):
+- **R1 holds**, by the checks above.
+- **R2 holds, on a field and not the list's type**: who=1's `MAKE[0]` and
+  `MAKE[4]` (the Farm, 417, 129,600, in Norwich) part on block 23182 on
+  `escrow`, 0 here against 1 there. Built by item 890 (`docs/AI.md`
+  §77.5): 1 on both.
+- **R3 holds, narrowed**: with the list agreeing, both sides place the
+  head's Farm `1/2031` at (34944, 38016) and walk slot 4's Farm through
+  the same spiral. At its best site's 2×2 jitter, corner (184, 196), this
+  crate finds four clear sub-positions and the original three. Both place
+  `1/2032` at (35904, 38016); one expiry draw shifts, and on 23183 slot 4's
+  `t` is 417 here against −1 there.
+- **R4 is killed**: the only stock row parting is 851's standing
+  `leftover[2:wealth]`, 4385 against 4377 on 23182.
+- The floor is 283/5/288/1,045.

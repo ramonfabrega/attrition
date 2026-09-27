@@ -248,6 +248,12 @@ pub struct Modifiers {
     pub maize: bool,
     /// Producing at a captured, unassimilated building doubles the price.
     pub unassimilated: bool,
+    /// `get_cost`'s **wonder arm** (`00665848`..`0066594c`): the count is
+    /// [`wonder_count`] rather than the type's own, and the building arm's
+    /// term is **halved** after the factor and the count (`00665af9`,
+    /// `cltd; sub; sar`), so it truncates where a count of half cannot
+    /// (`docs/COSTS.md`, "A wonder is ramped by every wonder").
+    pub wonder: bool,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
     /// research, and it takes the place of the ramp. `None` is the train arm.
@@ -290,6 +296,43 @@ pub const fn ramp_steps(count: i32, p: Progression) -> i32 {
         (count + 1) * count / 2
     } else {
         count
+    }
+}
+
+/// Whether a Supercollider or Space Program is already a site of mine or of
+/// a teammate's — `get_cost`'s last wonder test, asked only when the type
+/// priced is one of the two (`0x21d`, `0x21e`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SpaceRace {
+    /// Neither, or the type priced is some other wonder.
+    #[default]
+    None,
+    /// `has_unbuilt_wonder(0x21d || 0x21e)`: my own site counts once more.
+    Own,
+    /// `team_has_unbuilt_wonder(…)` and not my own: one step more.
+    Team,
+}
+
+/// **`get_cost`'s wonder count** (`TypeData::get_cost@00664090`, listing
+/// `00665848`..`0066594c`): `held` is `get_wonders + get_unbuilt_wonders`,
+/// the leader's standing wonders and its unbuilt sites. The team term is
+/// zero with teams unlocked (`xor ecx, ecx` at `00665882`); past three
+/// held it adds `held − 3`, past six `held − 6`; then twice `held`, with
+/// one more held for my own space-race site or one more step for a
+/// teammate's. The building arm then halves `amount × factor × count`
+/// ([`Modifiers::wonder`]).
+pub const fn wonder_count(held: i32, space: SpaceRace) -> i32 {
+    let mut c = 0;
+    if held > 3 {
+        c += held - 3;
+    }
+    if held > 6 {
+        c += held - 6;
+    }
+    match space {
+        SpaceRace::None => c + held * 2,
+        SpaceRace::Own => c + (held + 1) * 2,
+        SpaceRace::Team => c + 1 + held * 2,
     }
 }
 
@@ -364,6 +407,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
                     continue;
                 }
                 let mut term = amount * support_factor * steps + extra;
+                if m.wonder {
+                    term /= 2;
+                }
                 if ceiling != 0 && term > ceiling {
                     term = ceiling;
                 }
@@ -934,6 +980,56 @@ mod tests {
             22,
             "what this crate priced it at before item 81"
         );
+    }
+
+    /// **`get_cost`'s wonder arm, from the listing** (`00665848`..`0066594c`
+    /// and the halving at `00665af9`; `docs/COSTS.md`, "A wonder is ramped by every wonder"). A wonder is
+    /// ramped by every wonder the leader holds or has a site of, not by
+    /// its own type, and the term is halved after the count. Up to three
+    /// held that is one step a wonder, which run289's frame 20781 measures
+    /// (item 890); past three the count gains `held − 3` and past six
+    /// `held − 6`, and an odd product truncates — no capture reaches either,
+    /// so they are pinned here from the listing alone.
+    #[test]
+    fn a_wonder_is_ramped_by_every_wonder_held_and_halved() {
+        // The count, held 0..=8, and the space-race arm's two tails.
+        let c: Vec<i32> = (0..=8).map(|n| wonder_count(n, SpaceRace::None)).collect();
+        assert_eq!(c, [0, 2, 4, 6, 9, 12, 15, 19, 23]);
+        assert_eq!(wonder_count(1, SpaceRace::Own), 4, "my own site: held + 1");
+        assert_eq!(wonder_count(4, SpaceRace::Own), 11, "the tail reads held");
+        assert_eq!(wonder_count(1, SpaceRace::Team), 3, "a teammate's: a step");
+        // An odd support amount, so the halving truncates past three.
+        let wonder = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Wealth, 20)
+                .with_support(Resource::Wealth, 45)
+        };
+        let m = Modifiers {
+            wonder: true,
+            ..Modifiers::default()
+        };
+        let at = |held: i32| {
+            let counts = Counts {
+                of_type: wonder_count(held, SpaceRace::None),
+                of_group: 0,
+            };
+            cost_of(&T, &wonder, Resource::Wealth, counts, &m)
+        };
+        assert_eq!(at(0), 200);
+        // One held (run289's Pyramids site): 45 x 2 / 2, one whole step.
+        assert_eq!(at(1), 245);
+        assert_eq!(at(3), 200 + 135);
+        // Four: 45 x 9 / 2 = 202, where a count of four steps would be 180.
+        assert_eq!(at(4), 200 + 202);
+        assert_eq!(at(7), 200 + 45 * 19 / 2);
+        // Without the flag the same count is an ordinary building's steps.
+        let counts = Counts {
+            of_type: wonder_count(4, SpaceRace::None),
+            of_group: 0,
+        };
+        assert_eq!(plain(&wonder, Resource::Wealth, counts), 200 + 45 * 9);
     }
 
     #[test]
