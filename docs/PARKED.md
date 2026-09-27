@@ -37,6 +37,18 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 884, 2026-09-26 — the cancel line's edges
+
+(895) **`Groups::get_open_slot`'s `Group::get_num_cap` normalize**: run292
+block 982, slot 0's `speed`/`new_speed` 0 here against 26 there. The pool
+lane's (`group.rs`), beside 872.
+
+(896) **`input::Stream`'s recorded `QueueUp`** stays skipped: only run7
+carries it, three times; no kept dump carries an `Unqueue`.
+
+(897) **The −5 and −10 cancels** are emulator-backed only: no capture has
+them.
+
 ## Parked by item 880, 2026-09-26 — the pool record's edges
 
 (891) **`seat_kill` does not clear an emptied record** (through
@@ -63,8 +75,6 @@ answer, and its journal). The AI lane's: `group.rs`'s pool record.
 selects more than one.
 
 ## Parked by item 877, 2026-09-26 — the queue line's edges
-
-(883) **`action_queue_up`'s research arm**: read, not built.
 
 ## Parked by item 867, 2026-09-26 — the repeat line's edges
 
@@ -1361,6 +1371,13 @@ dump with no `GROUPDATA` listed first silences the record mode on the
 shared blocks. 880's brief carried 6164 as the first record parting from
 that; run45's 377 was. A walk that prints the blocks each mode compared
 would have shown it.
+
+(898) **A pool row agreeing on a state another writer already reached is
+quiet, not proven** (884's Loop line, filed at its merge): chapter
+twenty-four's pool agreed on its 901 press only because `Groups::process`'s
+cursor had re-speeded the squad on 897; the same call on chapter
+twenty-five's squad, 17 blocks old, exposed `get_open_slot`'s side effect
+(895). The quiet-field rule, applied to a side effect.
 
 
 

@@ -12,11 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-26, the commander (Opus 5.5), two landings since the sixteenth
+*2026-09-26, the commander (Opus 5.5), three landings since the sixteenth
 pass: **East Indies 20007 → 20782 (880); Great Lakes holds 20568 and is
-now the lower map**, so 795 is the headline. 884 is live on the rules
-lane.*
+the lower map**, so 795 is the headline and is live. **Chapter
+twenty-five closed at 1466 (884).** 883 is next on the rules lane.*
 
+- **884** entered the player's cancel (`action_unqueue`, PRODUCTION's
+  "The player's cancel"): run292, no falsifier fired, every staged value
+  on its predicted block; the word 855 → 1466, closed.
 - **880** landed §28's kept fields (GROUPS §30): `Group::kill` clears an
   emptied pool record, and `Army::add_unit`'s group is its slot's record
   (874 built). Every `GROUPDATA` `facing` and `order_num` on every East
@@ -26,19 +29,19 @@ lane.*
 - **882** built `Unit::come_out`'s push for every owner (GROUPS §31):
   chapter twenty-four's standing rows 34 → 25, thirteen long pins closed
   and none opened; 561 closed. What stands there is 646 and 887.
-- **Fable backlog: 10 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894).
+- **Fable backlog: 11 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w20782 of 24,000 · GreatLakes w20568 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · 884 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · 883 next
 Endpoint 24001: EastIndies 37 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
 
-**Opener: 884 is live on the rules lane (ref ba89613b); merge it when it
-reports. 795 on the AI lane (Great Lakes is lower now): run243's 20568,
-widened, no mechanism. 890 (East Indies' 20782) after 795. A brief names
-only the fenced modules; a capture is waited on with
-`tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
-its merge. The count runs from f0b9d296: two landings.**
+**Opener: 795 is live on the AI lane (ref 9158185d; run294 over
+19840..19999); merge it when it reports. 883 on the rules lane: the
+research arm under the emulator first, then run296. 890 (East Indies'
+20782) after 795. A brief names only the fenced modules; a capture is
+waited on with `tools/gamelog/waitrun.sh`; a journal's "for the Loop"
+line is filed at its merge. The count runs from f0b9d296: three landings.**
 
 ## The queue
 
@@ -61,13 +64,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     20782, and the only stock row parting before it is the standing
     `leftover[2:wealth]` (851). No mechanism.
 
-884. **Chapter twenty-five: the cancel line — an issuer, no capture yet**
-    (877's park). The player's `action_unqueue` on a Barracks queue of
-    two, and a single cancel on an infinite queue, which 877 read as
-    turning the bit off and removing nothing: a claim to check, not a
-    premise. The refund's arithmetic under the emulator first, and
-    `input::Stream`'s skipped `QueueUp`/`Unqueue` beside it. **run292**
-    the capture, run293 a staging run. GOLDEN §34. 883 (the research arm) after.
+883. **Chapter twenty-six: the research line — an issuer, no capture
+    yet** (877's park). The player's `@queueup` of a tech on a building
+    with an empty queue: `action_queue_up`'s research arm
+    (`LeaderData::researching`, then one building first), read and not
+    built. What the arm writes, the price, and a cancel of it (884's
+    `unqueue`) under the emulator first. **run296** the capture, run297 a
+    staging run. GOLDEN §35.
 
 ## How to maintain this file
 
