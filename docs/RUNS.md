@@ -9452,3 +9452,22 @@ from run346's start. Before the coin, 130 keys first parted on block 1 —
 the AI scout `1/0`'s 28 rows among them; with it, 119, none of the scout's
 before block 97 (`docs/AI.md` §80.5). East Indies' next word, frame 10, is
 inside the window.
+
+## run350 — run347's game at run349's detail over blocks 1..250: the second pair's Great Lakes word widened (2026-09-27, item 971)
+
+**What it is.** run349's shape on run347's second take's lobby (`cfg: -`,
+Great Lakes, `profile: DIFFICULTY=5`): `frame_window: 0 251`, `cover=0`,
+`!quit` at 262. Taken for the lower word after `think_spellcaster`'s coin
+was built — Great Lakes 1, whose frame writes block 2. Same DLL
+(`b451aeb6…3dca`). Queued behind att-947's chapter thirty-two, which held
+the lane 14:55–15:30, waited on with `waitrun.sh` on that lane's log.
+
+**Taken** 15:31–15:49, one take: 466.3 MB of gamelog, 8.6 MB of trace.
+`rngcmp.py` against run347: 263 frames in common, **0 differing**; 250
+window blocks; `DIFFICULTY 5`. The profile read `DIFFICULTY 0` in both
+blocks after it. Free disk 32 → 31 GB.
+
+**What it holds**: `run350_s_word_frame_is_widened_whole`
+(`diff::second`), from run347's start. Block 1 stands (58 keys, the first
+pair's families); the word's block 2 parts on 130, who=1's opening
+(`docs/AI.md` §80.5).

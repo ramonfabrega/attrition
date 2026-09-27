@@ -599,6 +599,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r299 = crate::testenv::dump("gamelog-run299-eastindies-wonderprice.txt");
     let r96 = crate::testenv::dump("gamelog-run96-eastindies-latecensus.txt");
     let r349 = crate::testenv::dump("gamelog-run349-islands-toughest-open.txt");
+    let r350 = crate::testenv::dump("gamelog-run350-greatlakes-toughest-open.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -997,6 +998,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r349 {
         let n = drive_capture(p, 1, 3, &mut paths);
         assert_eq!(n, 3, "run349 carries the second pair's word's three blocks");
+        frames += n;
+    }
+    // And Great Lakes', the lower word after the coin (frame 1, block 2),
+    // on run350: the block before it, the word's and the two after.
+    if let Some(p) = &r350 {
+        let n = drive_capture(p, 1, 4, &mut paths);
+        assert_eq!(n, 4, "run350 carries the second pair's lower word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

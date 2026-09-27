@@ -10333,7 +10333,14 @@ animals' `cur_anim`, unchanged by the fix.
 **The new words, by frame and draw delta** (DECISIONS 42; no mechanism
 is named): **Great Lakes 1** — ours 54 draws, the original 85, parting at
 index 44, ours `Unit::do_non_flat_gather+0x54b` where the original spends
-`Leader::produce_building+0xc99`; the lower word, widened on run350.
+`Leader::produce_building+0xc99`; the lower word, widened on run350. On
+its block 2 who=1's record parts: `script_step` 11 here against 6 there,
+`bucket` timber 28 against 92 and wealth 50 against 100, `gatherers` 4
+against 3, `tech_frame` 0 against 1 (the original stamps a tech on frame
+1), and pools 64 and 66 hold `2005` and `2000` there and nothing here;
+90 of its 130 keys are `1/2001`'s gather slots in another order, and the
+citizen `1/2` stands here where it walks there. Block 1 stands with the
+draws agreeing (58 keys, §33.4's families).
 **East Indies 10** — ours 197, the original 188, parting at index 183,
 ours `PathFinder::calc_road_cost+0x46` where the original spends
 `Farms::inc_time+0x1ae`; inside run349, where no row first parts on blocks

@@ -198,6 +198,77 @@ mod tests {
         );
     }
 
+    /// **The second pair's Great Lakes word, widened whole** (item 971):
+    /// run350 is run347's game at run349's detail over blocks 1..250, walked
+    /// from run347's start by [`widen_great_lakes_on`]. The word is frame 1,
+    /// which writes block 2.
+    #[test]
+    fn run350_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run350",
+            &[("gamelog-run350-greatlakes-toughest-open.txt", 1)],
+            WIDENING_SECOND_GREAT_LAKES,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 250, "run350 whole: blocks 1..250");
+        assert!(
+            w.missing.is_empty(),
+            "run350 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **Block 1 stands** with frame 0's draws agreeing: 58 keys, the
+        // first pair's families (player 0's census, `SITE.reg`, `form`, the
+        // city record; `docs/AI.md` §33.4) and nothing of who=1's economy.
+        // **The word's block, 2, is who=1's opening** (`docs/AI.md` §80.5):
+        // the original's script stands at step 6 where this crate's is at
+        // 11, it holds 92 timber and 100 wealth against 28 and 50, it has
+        // stamped a tech on frame 1, and two buildings are in its pools;
+        // 90 of the 130 keys are `1/2001`'s gather slots, in another
+        // order. No mechanism is named here (DECISIONS 42).
+        for (what, want) in [
+            ("leader:script_step", "2: ours 11 theirs 6"),
+            ("leader:bucket[1:timber]", "2: ours 28 theirs 92"),
+            ("leader:bucket[2:wealth]", "2: ours 50 theirs 100"),
+            ("leader:tech_frame", "2: ours 0 theirs 1"),
+            ("leader:gatherers", "2: ours 4 theirs 3"),
+        ] {
+            assert_eq!(row(1, -1, what).as_deref(), Some(want), "who=1's {what}");
+        }
+        assert_eq!(
+            row(1, -2, "pool:64").as_deref(),
+            Some("2: ours [] theirs [2005]"),
+            "the original's pool 64"
+        );
+        let slots = w
+            .firsts
+            .iter()
+            .filter(|((who, o, _), (f, _))| (*who, *o) == (1, 2001) && *f == 2)
+            .count();
+        assert_eq!(slots, 90, "1/2001's gather slots on the word's block");
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(1, 58), (2, 130), (4, 3)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
     /// **run346 — East Indies at Toughest.** The lobby read back from the
     /// dump's own `GAME INFO` is 5, and the harness stands the simulation up
     /// at it; the word is pinned as a floor.

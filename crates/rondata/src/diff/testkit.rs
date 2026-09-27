@@ -1130,7 +1130,9 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10;
 /// the original 85 on frame 1, parting at index 44**: ours spends
 /// `Unit::do_non_flat_gather+0x54b` where the original spends
 /// `Leader::produce_building+0xc99`. **The lower word of the pair**; its
-/// widening is run350's (owed by item 971 until it lands).
+/// block is `run350_s_word_frame_is_widened_whole`'s: who=1's script at
+/// step 6 there against 11 here, 92 timber against 28, a tech stamped on
+/// frame 1.
 pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 1;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
@@ -1139,6 +1141,11 @@ pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 1;
 /// opens at −1 only so the word sits strictly inside it, as
 /// `the_widening_behind_each_pinned_word_exists` asks.
 pub(crate) const WIDENING_SECOND_EAST_INDIES: (i64, i64) = (-1, 250);
+
+/// `run350_s_word_frame_is_widened_whole`'s window (item 971): run350
+/// whole, blocks 1..250 over run347's game; the word is frame 1, which
+/// writes block 2.
+pub(crate) const WIDENING_SECOND_GREAT_LAKES: (i64, i64) = (0, 250);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -5843,7 +5850,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The second pair** (DECISIONS 53 §2, item 971): the AI track's word
     // on run54's and run53's games at Toughest. East Indies' frame-0
     // parting is widened on run349; Great Lakes' shares its frame and its
-    // coin, and its widening (run350) is owed by item 971.
+    // coin.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
@@ -5851,11 +5858,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         971,
         Some(WIDENING_SECOND_EAST_INDIES),
     ),
+    // Item 971's build moved both: East Indies to 10, inside run349, and
+    // Great Lakes to 1, the lower word, widened on run350.
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        None,
+        Some("run350_s_word_frame_is_widened_whole"),
         971,
-        None,
+        Some(WIDENING_SECOND_GREAT_LAKES),
     ),
 ];
