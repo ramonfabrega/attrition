@@ -2754,6 +2754,39 @@ impl Sim {
         } else if !hangar && !kept {
             self.come_out(unit);
         }
+        // **Under a gather point the aircraft takes a patrol over the list**
+        // (item 947, `docs/PRODUCTION.md` "The gather point"; `62fadf`..
+        // `62fbfb`): for a type that is neither a missile (`+0x1e4 &
+        // 0x8000000`) nor a helicopter (`+0x2b4 & 0x20`), each point in list order that
+        // is on the world gives an order-less unit `add_air_patrol_order(
+        // point, this, 1)` — the action bit — and is appended to its patrol
+        // after that. The point's `action` is not read here. It stays
+        // inside for `do_launch`.
+        //
+        // SEAM: the other arm (`62fc47`..), the first point's strike on an
+        // enemy building or its patrol, for a missile or a helicopter; no
+        // capture trains one under a point.
+        if hangar
+            && !self.buildings[at].gather.is_empty()
+            && !self
+                .profile(crate::combat::Obj::Unit(unit))
+                .has(crate::combat::mask::MISSILE)
+            && !self.is_helicopter(unit)
+        {
+            let list = self.buildings[at].gather.clone();
+            for q in list {
+                if !self.in_world(q.pos) {
+                    continue;
+                }
+                if self.units[unit].orders.is_empty() {
+                    self.add_air_patrol_order(unit, q.pos, Some(at), true);
+                } else if let Some(orders::Body::AirPatrol(ap)) =
+                    self.units[unit].orders.front_mut().map(|o| &mut o.body)
+                {
+                    ap.push(q.pos);
+                }
+            }
+        }
         self.economy_changed(who);
         Produced { unit, ty, at }
     }

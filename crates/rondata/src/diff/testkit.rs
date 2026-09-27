@@ -3834,8 +3834,18 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_ONE: (i64, i64) = (605, 1401);
 /// **Chapter thirty-two's golden word** — an Airbase's gather point
 /// (item 947, `docs/GOLDEN.md` §41, run344).
 ///
-/// **The delta**, this constant's: the first walk's word, pinned.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_TWO: i64 = 1751;
+/// **1751, open, on the first walk**: the stream parts where run344's
+/// Biplane, launched on 1747 on a patrol over the list, flies and this
+/// crate's sits inside with no order. The first value parting is 1602,
+/// the three planes' stacks (the hangar loop of `Build::add_gather_point`).
+///
+/// **2360, closed** (item 947, `docs/PRODUCTION.md` "The gather point"):
+/// the hangar loop and `clear_gather`'s half, `Build::train`'s `CARRY_AIR`
+/// arm, and a patrol that holds its points and walks them. The stream
+/// agrees to run344's end.
+///
+/// **The delta**, this constant's: +609, 1751 → 2360, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_TWO: i64 = 2360;
 
 /// `chapter_thirty_two_s_word_frame_is_widened_whole`'s window: run344
 /// whole, (605, 2361). Its pool half, `widen_pool`, reads who=0's
@@ -4352,9 +4362,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_twenty_nine_holds_to_the_golden_word", 38),
     ("chapter_twenty_nine_s_word_frame_is_widened_whole", 38),
     // Chapter thirty-two is chapter twenty-nine's game with three gather
-    // points on the Airbase (item 947): the first walk reads its 38.
-    ("chapter_thirty_two_holds_to_the_golden_word", 38),
-    ("chapter_thirty_two_s_word_frame_is_widened_whole", 38),
+    // points on the Airbase (item 947): the first walk read its 38; the
+    // built arm launches the Biplane on 1747, one EXIT read more.
+    ("chapter_thirty_two_holds_to_the_golden_word", 39),
+    ("chapter_thirty_two_s_word_frame_is_widened_whole", 39),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
