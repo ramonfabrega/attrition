@@ -37,6 +37,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 888, 2026-09-27 — the selection's edges
+
+(916) **An unfinished member of a command's group**: the sort skips it as
+a pivot but can swap it forward, and the passes never call it. The
+emulator's alone; staging it needs `@build` (chapter eighteen's issuer).
+
+(917) **A two-member research press**: the research arm on two members
+(idle first, then the least queued), the emulator's alone; it needs
+chapter twenty-seven's Classical staging at two Barracks.
+
 ## Parked by item 899, 2026-09-26 — Great Lakes at the trace's end
 
 (911) **run240's one standing priced frame, 15986**: `1/73`'s fourth step
@@ -1440,6 +1450,12 @@ holds** (899's Loop line, filed at its merge): run240's whole-game
 tick; walked whole, they named 899's cause in three seconds. The same
 shape (`PROBE_PLAN_PARTED`, 22 entries a cell south) had stood since item
 471.
+
+(918) **A mechanism called "already built" has a unit test that fails
+without it** (888's Loop line, filed at its merge): two of
+`action_queue_up`'s three clauses (the sort and the pass order) could be
+deleted with only a golden widening failing. One mutation at booking
+finds that before a capture is the only guard.
 
 
 
