@@ -1362,6 +1362,10 @@ mod tests {
         // and two `@buildmask` lines on one or both, two buildings under one
         // command (item 888, `docs/GOLDEN.md` §37).
         ("chapter28.cmd", &[]),
+        // Chapter twenty-nine: chapter twenty-two with no toggle and one
+        // `@queueup` of a Biplane at the Airbase, the repeat launch (item
+        // 915, `docs/GOLDEN.md` §38).
+        ("chapter29.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),

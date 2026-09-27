@@ -1384,6 +1384,7 @@ below without a run take their number at booking (the eleventh pass).
 | 296 | twenty-six, the research line | `[605, 1492)` | a technology through the player's `@queueup` on who=0's Library `0/2005`: The Art of War with `num` 2 on the idle Library (620), again while it researches (640), Written Word on the busy Library (650), The Art of War held (850), Barter behind Written Word (860), Hoplites at the Barracks (870), a cancel of the re-priced Barter (1040) and Barter again (1060); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the command's entry on run292's start (§35) — **run 2026-09-26 (item 883), 365 MB, 1,120 s; no falsifier fired, every value on its predicted block: one entry and 120 food on 622, nothing on the second press (642) or the held one (852), Written Word behind the busy head on 652, The Art of War out on 822 (discovered 2), Barter re-priced to 54/54 on 1023 (discovered 3: Boadicea counted), +54/+54 on the cancel (1042), 54/54 again on 1062, Barter out on 1242; word 1492, closed on the first walk (a research spends no draw) and after the build, whose value rows it closed (item 883: the research arm entered)** |
 | 300 | twenty-seven, the upgrade line | `[605, 1560)` | a unit upgrade through `@queueup` at who=0's Barracks, staged Classical (§36) |
 | 304 | twenty-eight, two buildings under one command | `[605, 1580)` | `@queueup` and `@buildmask` on two Barracks: the sort and passes, the toggle on `[on, off]`, the building group of two (§37) |
+| 308 | twenty-nine | `[605, 2070)` | §38 |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -6035,3 +6036,193 @@ followers' `orders_x/y` — and **10 pool rows**, each first seat's
 The sort and the passes had no unit test before this item: the first
 run of those two mutations failed run304's widening alone, and the unit
 test was written then.
+
+## 38. Chapter twenty-nine — the repeat launch: a landed patrol relaunched under the repeat bit, and an aircraft trained at the Airbase (item 915)
+
+**Premise.** Two Airbase arms are built from readings and no capture
+measures them (parked 876 and 843):
+- **`Object::do_launch@0064f3b0`'s repeat arm, the launch half.** A plane
+  inside a base whose `build_masks & 0x80` is set, holding the unflagged
+  patrol `Unit::land_plane@005e9950` kept (`docs/ORDERS.md` §40), is
+  **launched** at its full tank, not killed: `has_repeat_air() || flags &
+  4` (§41.2). Chapter twenty-three measured the kill; nothing has flown
+  the launch.
+- **An aircraft trained at an Airbase.** Parked 843 read it as leaving
+  through the same EXIT (`come_out`'s tail, §31), and this crate trains it
+  so. **The listing says it does not come out at all**:
+  `Build::train@0062f9b0` tests the *trainer's* type `+0x1e4 & 0x200`
+  (`CARRY_AIR`, `J`, carried by the Airbase and the Missile Silo alone)
+  at `62fac0`, and on that arm calls no `Unit::come_out@00617c10`. With
+  no gather point (`+0xcc` 0, `62fadf`) it asks only `is(HELICOPTER
+  0x136, 0)` (`62ff59`), which a plane answers 0, and leaves: the
+  plane stays inside, with no order, in the base's chain. With a gather
+  point it gets `add_air_patrol_order(point, base, who, 1)` — the action
+  bit — and waits for `do_launch` like any other. No command in any
+  capture sets a gather point (its writers are `Group::action_gather_point`
+  from the player's `issue_gather_point`, `action_city_gather`, and the
+  scenario functions), so every building on disk has none.
+
+Both are claims to check, not premises, and the cast puts one event on
+each: chapter twenty-two's game with **no toggle** — every Airbase repeats
+from `Build::init` — so its three kept patrols meet their full tanks under
+the bit, and one aircraft trained at the Airbase **between** the first
+relaunch and the second (879), so the relaunches are measured before and
+after it joins the chain.
+
+**Under the emulator first** (two scratch scripts on `tools/emu/callfn.py`'s
+machine, out of git).
+- **`do_launch`**, entered unchanged on a synthesized base on
+  `Build::vftable` (vslots `0xf0` `WallData::has_repeat_air@00472410`,
+  `0x18` and `0x20` run as shipped; the order accessors, `come_out`,
+  `kill_current_order` and the `launching` array hooked and recorded):
+
+  | the base, the chain | what it wrote |
+  | --- | --- |
+  | 4232, one patrol, flags 0, `mana_burn` 0, counter 15 | the patrol's `returning` (`+0x3c`) 0, `launching += 6`, `come_out(0)`, counter 0 |
+  | 4104, the same | `kill_current_order(0)`, `launching -= 6`, counter 15 |
+  | 4232, `mana_burn` 2 | nothing; counter 15 |
+  | 4232, counter 14 | counter 15, no walk |
+  | 4232, `[trained (no order), patrol]` | the trained plane passed over, the patrol launched |
+  | 4232, `[patrol, trained]` | the patrol launched; **the walk ends** |
+  | 4232, two full patrols | the first launched; **the second not walked** |
+  | 4104, two full unflagged patrols | both killed |
+  | 4104, one patrol flags 4 | launched |
+  | 4232, empty | nothing: the counter stands |
+
+  **The walk ends at a launch.** The chain's next link is read from the
+  launched plane's own `inside_down` (`64f806`) *after* `come_out`, and
+  `Object::remove_from_inside` stores −1 there. With the hook leaving the
+  link, the second full patrol joins `launching` — this crate's loop,
+  which walks its garrison list to the end.
+- **`Build::train`**, entered unchanged on a synthesized trainer
+  (`init_unit`, `go_inside`, `set_stance`, `come_out`,
+  `add_air_patrol_order` and the gather list hooked; the unit and the
+  type through stub vtables), `train(BIPLANE)` at 2007:
+
+  | the trainer | what it called |
+  | --- | --- |
+  | `CARRY_AIR`, no gather point | `init_unit` at the base's point, `go_inside(2007)`, `options.rebuild = 1`, `is(0x136, 0)`, `unit_masks &= ~0x4000000`, `is(0x15f, 1)`: **no `come_out`** |
+  | `CARRY_AIR`, one gather point | the same, and `add_air_patrol_order(x, y, 2007, 0, 1)` |
+  | no `CARRY_AIR` | `come_out(0)` |
+
+- **What the emulator could not reach**: `come_out`'s own body (it was
+  hooked), so the EXIT a relaunch takes is §31's, diff-backed by run265;
+  `Unit::init`'s birth values; the tank's refill inside; and a gather
+  point's order walking out under `do_launch`.
+
+**The booking's mutations** (918), on the tree as it stands, each restored
+from git and `touch`ed:
+- `do_launch`'s bit read as never set: `a_full_tank_launches_an_unflagged_patrol_only_under_the_bit`
+  fails. **The launch half has a unit test.**
+- the patrol's `returning` not cleared at the launch: **no test fails** —
+  `land_plane` has already cleared it on every path a test takes.
+- `come_out`'s EXIT at an Airbase removed: `a_strike_from_inside_waits_for_the_tank_and_leaves_on_the_exit`
+  fails. **No test trains an aircraft at an Airbase.**
+
+**The writers and readers, counted by offset** (823, 869):
+- `launch_frames` (`ObjectData +0x41`, a `char`): `Object::Object@
+  00646e80`'s zero and `do_launch`'s three stores; its only reader is
+  `do_launch` (and `log_data`).
+- `mana_burn` (`+0x96`): read by `do_launch` at `64f4b5`; the tank's
+  writers are §31's.
+- the gather point count (`BuildData +0xcc`): `Build::add_gather_point`
+  and `Build::clear_gather`, reached only from the player's
+  `issue_gather_point`, `Options::do_clear_gather`, `action_city_gather`
+  and the scenario functions.
+- the trainer's `CARRY_AIR`: the type record, loaded (`GJ` for Airbase
+  and Missile Silo in `buildingrules.xml`).
+
+**The cast** is chapter twenty-two's (§31), and **the lines** are
+`chapter22.cmd`'s twelve and **`1540 @queueup 0 287 1 2007`**: one
+**Biplane** at the Airbase. The Fighter (289) needs the Modern Age, which
+`library who=0 6` does not give — this crate's `queue_up` answers
+`CantTrain` for it and `Ok` for the Biplane, and so should the original
+(its `PREQ0` is Industrial Age). The Biplane is a plane (`is(0x136)` 0),
+and the trainer's type decides the arm, not the unit's.
+
+**The staging, walked by this crate through the command's own entry**
+(`input::group_queue_up` on run281's start, which is this game to 1440;
+run309 was not used). Every value is this crate's:
+- **1385**, **1489**, **1513**: `0/6`, `0/7`, `0/8` inside `0/2007`, each
+  with its `AIRPATROLORDER`, flags 0 (§40's keep).
+- **1542**: the Biplane queued at 2007, **85 metal and 85 oil** (134 → 49,
+  100 → 15).
+- **1585**: `0/6` out at (11424, 13845), `mana_burn` 0, its patrol kept,
+  flags 0; the base's counter 0.
+- **1746**: the Biplane born, `0/9`. **This crate brings it out** onto
+  (11424, 13920) with no order, and it burns +1 a block from there.
+- **1789**: `0/7` out; **1813**: `0/8` out.
+- **1985**: `0/6`'s `mana_burn` 400, its tank empty.
+
+**The readings, and the gates between each and its block** (903).
+- The relaunches (1585, 1789, 1813): **launched** (the reading),
+  **killed** (the bit no gate, parked 844's first reading), or **kept
+  inside** (only the action bit launches). Nothing gates them but the
+  tank: each block is its plane's first `mana_burn` 0, and the counter is
+  saturated from 1400.
+- The trained aircraft (1746): **inside with no order** (the listing),
+  **out through the EXIT** (843, this crate), or **out on the ring** (the
+  ordinary `come_out`). The gates before 1746: the price (85 and 85 of
+  134 and 100, paid on 1542 in this crate), the Industrial Age (the
+  Biplane's `PREQ0`), the population (one), and the job's pace — a
+  different pace moves the block, never the arm.
+- After 1813, the base's counter: under the reading the chain still holds
+  the Biplane, so `launch_frames` runs 1..15 over 1814..1828 and stands at
+  15; with the Biplane out, the base is empty and the counter stands at 0.
+
+**The capture must dump** run281's line,
+`end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5` and
+`misc:COMMANDMANAGER=1`, over **`[605, 2070)`**: 1,465 blocks, **257 of
+runway** past the last relaunch on 1813, with `0/6`'s empty tank on 1985
+inside it. `AMMO=5` because the relaunched Bombers patrol a point with
+who=1's town in reach. `BUILDS=7` prints `launch_frames`, `inside_down`,
+the queue and `build_masks`; `UNITS=3` each plane's `inside_up`, order
+stack and `mana_burn`; `LEADERS=2` the buckets; `GROUPS=1` the pool, where
+the command's building group is seated.
+
+**The premise's killer, and its writers** (§3, point 5): each plane's
+stack and `inside_up` on its own relaunch block, and the Biplane's on
+1746. The writers: `do_launch`'s launch and kill, `land_plane`'s keep,
+`Build::train`'s arm, and `come_out`. **The loops**: `do_launch`'s chain
+from `inside_down`, which **ends at the first launch** (above); the
+queue-up's members, 1.
+
+**What would falsify it, and where each could first fire.**
+1. **The issue does not reach the pump.** Trace frame 1540: an `INFO 17`
+   with a refusal, or no `process_queue_up` 287 1 on 1541.
+2. **The press** (1542): `0/2007`'s `BUILDQUEUE` one Biplane, and who=0's
+   metal and oil down 85 each. A refusal (no entry) kills the second half
+   and the chapter is restaged.
+3. **The first relaunch** (1585), `0/6`'s own stack and `inside_up`:
+   `inside_up` −1 on the EXIT's point (11424, 13920 less a step), its
+   `AIRPATROLORDER` kept with flags 0 and `returning` 0, `0/2007`'s
+   `launch_frames` 0 (**the reading**); inside with no order (killed);
+   inside with the patrol past 1585 (kept).
+4. **The trained aircraft** (1746), the Biplane's own record:
+   `inside_up 2007`, no order, `mana_burn` 0, on the base's chain behind
+   `0/8` (**the reading**); `inside_up` −1 on (11424, 13920) (the EXIT,
+   843); `inside_up` −1 on the ring due south of the base (the ordinary
+   exit). And under the reading it stays so to 2069: no order, never
+   launched.
+5. **The second and third relaunches** (1789, 1813): `0/7` and `0/8`
+   each out on its first `mana_burn` 0, with its patrol and flags 0 —
+   with the Biplane behind each in the chain.
+6. **The counter with the Biplane inside** (1814..1829): `0/2007`'s
+   `launch_frames` 1, 2, … 15 and then 15 (the reading); 0 on every block
+   (the base empty).
+7. **The relaunched patrol flies its tank out** (1985): `0/6`'s
+   `mana_burn` 400 and `returning` 1 (`check_fuel`, §31).
+
+Falsifiers 3, 4 and 5 test each plane's own stack on its own block (711),
+and 3 and 4 each split three readings (789). **Parked 844's neighbour —
+a landed patrol with no action bit killed at the next full tank — is not
+reached**: the bit is never cleared here; chapter twenty-three measured
+that kill.
+
+**Where it should part.** This crate trains the Biplane out through the
+EXIT, so the first value parting is expected on **1746**: the Biplane's
+`inside_up` (−1 here against 2007) and its point, then its `mana_burn`
+(+1 a block here, 0 there), and from 1814 the base's `launch_frames` (0
+here). The relaunches on 1585, 1789 and 1813 should agree: the launch
+half is built. Whether the draw stream parts at 1746 depends on what a
+plane on the map with no order spends; the walk will say.
