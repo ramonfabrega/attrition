@@ -37,6 +37,16 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 919, 2026-09-27 — the pasture's edges
+
+(924) **`find_any_building`'s cell-circle walk** against this crate's walk
+over every building: it parts only for a farm inside the radius whose cell
+the circle table leaves out (AI §79, R2).
+
+(925) **`Trace::add_animals`, the setup borrow, reads the chicken's pair
+only**: all forty setup traces read are chickens; a pig pasture at setup
+would stop the borrow short.
+
 ## Parked by item 904, 2026-09-26 — the rock cell's edges
 
 (920) **`blocked_tcoord`'s mountain clause reads the tile's object, not
@@ -1472,6 +1482,16 @@ packet for a value the trace already held. A draw record's seed makes
 every roll on the frame readable, so a jitter or spiral candidate one side
 skips is named by `% 100` arithmetic against ours' sequence, with no
 instrument.
+
+(926) **A brief whose parting is a completion's draws asks for the
+consecutive blocks' `BUILDDATA` beside the seeds** (919's Loop line, filed
+at its merge): the building behind a stocking draw is named by diffing
+`construct_hits` and `flags` across two blocks, in a minute.
+
+(927) **A site table keyed on one branch's addresses is blind to the other
+branch** (919's Loop line, filed at its merge): a decompiled loop body
+duplicated per branch draws at a different address on each, so the table
+misses the other until that branch first fires.
 
 
 

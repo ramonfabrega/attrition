@@ -655,7 +655,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // rock arm and flat-gather arm (`docs/AI.md` §78), which moves
         // this map's word 23182 → 23420, 581 frames before this one.
         // Measured on base `7f178d8c`.
-        off: 36,
+        // **36 → 0 off** on item 919: `get_nearest_farm_type` does not see
+        // an unstarted farm site (`docs/AI.md` §79), which moves this map's
+        // word 23420 → 24000, the trace's end. Every one of the 89 units
+        // compared stands where the original's does; the one torn unit is
+        // the closing dump's. Measured on base `a3224660`.
+        off: 0,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar

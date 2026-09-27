@@ -7496,6 +7496,58 @@ pub(crate) mod tests {
             "run54's ceiling fell: word {first_count}, sequence {first_part}; \
              the floor is {LONG_WORD_EAST_INDIES} on both"
         );
+        // **The pasture 23420 stocks** (item 919, `docs/AI.md` §79): who=1's
+        // Farm `1/2032`, placed on 23182 beside the unstarted site `1/2031`,
+        // is a pasture here as there, and its five animals are gaia's pigs
+        // — the original's five coins on 23420 are all odd. No dump prints
+        // an owner-9 object, so the draws are the original's side of this.
+        let pasture = built.sim.building_by_o(1, 2032).expect("1/2032");
+        assert_eq!(
+            built.sim.buildings[pasture].farm.farm_type & sim::farms::ANIMAL_FARM,
+            sim::farms::ANIMAL_FARM,
+            "1/2032 is a pasture"
+        );
+        let stock: Vec<(u8, Option<sim::tech::TypeId>)> = built
+            .sim
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.farm_animal.is_some_and(|fa| fa.build == pasture))
+            .map(|u| (u.owner, u.ty.and_then(|t| built.sim.unit_types[t].tree)))
+            .collect();
+        assert_eq!(
+            stock,
+            [(9, Some(sim::farms::FARMPIG)); 5],
+            "its five animals: gaia's pigs"
+        );
+        // **A word at the trace's end is not a cap reading as agreement**
+        // (item 899's check, item 919's map): the trace holds a `FRAME`
+        // record for every frame 0..=24000, the harness walked and compared
+        // every one of 0..24000, and both sides spent the same draws.
+        let traced: std::collections::BTreeSet<i64> =
+            trace.frames.iter().map(|(n, _)| *n).collect();
+        let walked: Vec<i64> = built.frame_sites.iter().map(|(f, _)| *f).collect();
+        let (ours_draws, theirs_draws): (usize, usize) = built
+            .frame_sites
+            .iter()
+            .map(|(f, o)| (o.len(), trace.labels(*f).len()))
+            .fold((0, 0), |(a, b), (x, y)| (a + x, b + y));
+        eprintln!(
+            "run54: {} traced frames, {} walked, draws ours {ours_draws} theirs {theirs_draws}",
+            traced.len(),
+            walked.len()
+        );
+        if LONG_WORD_EAST_INDIES == last {
+            assert_eq!(
+                (last, traced.len(), walked.len()),
+                (24_000, 24_001, 24_000),
+                "run54's trace is 24,000 frames and every one is walked"
+            );
+            assert!(
+                (0..last).all(|n| traced.contains(&n)) && walked.iter().copied().eq(0..last),
+                "a frame of 0..24000 is missing from the trace or the walk"
+            );
+            assert_eq!(ours_draws, theirs_draws, "the draw totals");
+        }
     }
 
     /// **run64's animation clocks, frame for frame** — every `GUY`
@@ -12469,6 +12521,92 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run96 — East Indies' end, widened whole, both directions** (item
+    /// 919). run96 is the same game over [23960, 24000) and its end block,
+    /// 24001, with every unit, building, city and guy record: the last
+    /// blocks any dump holds. Since item 919 the draw stream agrees on every
+    /// frame of run54's trace, so the long word is the capture's own end,
+    /// 24000, and this is its widening.
+    #[test]
+    fn run96_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run96",
+            "gamelog-run96-eastindies-latecensus.txt",
+            WIDENING_EAST_INDIES_END,
+            &[WIDENING_EAST_INDIES_END.0, LONG_WORD_EAST_INDIES],
+            true,
+        )
+        else {
+            return;
+        };
+        // run96's leader records are the short form, as run80's are: 1,058
+        // of the leader keys and the 1,531 region keys are on no block. Its
+        // `GUY` records are the short form too, so a gaia animal's clock
+        // (`cur_anim`, `cur_time`) is named here rather than read as
+        // parting; its position is compared on every block.
+        assert_eq!(
+            missing.len(),
+            1_058 + 1_531 + 2,
+            "the keys run96's records do not carry"
+        );
+        assert_eq!(
+            blocks, 41,
+            "run96 whole: 23960..23999 and the end block 24001"
+        );
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **What the gap carried in**: 293 keys standing on run96's first
+        // block — no dump holds 23434..23959 — and 288 of them stood on
+        // run299's last block, 23433 (`RON_STANDING` over both, item
+        // 919). The gap opened one unit's five: `1/82`, a citizen born in
+        // it, with the `form` and hit-point rows every citizen carries
+        // from its birth (`1/81` on 23366 is the same shape). **Nothing
+        // parts on 23961..23999**, and on the end block 24001 `orders.len`
+        // on 48 units, because the quit block prints no order list, and
+        // one position.
+        assert_eq!(
+            by.into_iter().collect::<Vec<_>>(),
+            [
+                (WIDENING_EAST_INDIES_END.0, 293),
+                (WIDENING_EAST_INDIES_END.1, 49)
+            ],
+            "the blocks keys first part on, and how many"
+        );
+        let end: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == WIDENING_EAST_INDIES_END.1)
+            .filter(|((_, _, what), _)| what.as_str() != "orders.len")
+            .map(|((w, o, what), (_, row))| format!("{w}/{o} {what}: {row}"))
+            .collect();
+        // **The one position on the end block** is the human's `0/3`, (+8, −23)
+        // from the original's, and it is the closing
+        // dump's tear (`super::endpoint`'s `torn`: a closing dump tears by
+        // one tick on at most one unit, `super::shutdown`). `0/3` stands
+        // where the original's does on every block to 23999, and the
+        // endpoint prints East Indies' one torn unit, as it always has.
+        assert_eq!(
+            end,
+            ["0/3 pos: ours (5542,5934) theirs (5534,5957)"],
+            "the end block parts on `orders.len` and one position"
+        );
+        assert_eq!(
+            standing
+                .get(&(WIDENING_EAST_INDIES_END.0 + 1))
+                .map_or(0, BTreeMap::len),
+            293,
+            "the floor stands on the second block, and nothing joins it"
+        );
+    }
+
     /// **run294 — Great Lakes' departure, widened whole, both directions**
     /// (item 795). run226's chain, then run294 over
     /// [`WIDENING_GREAT_LAKES_DEPART`]'s tail: the four walkers' return leg
@@ -15322,7 +15460,10 @@ pub(crate) mod tests {
             // fewer, who=1's cities' `gatherers` (`docs/AI.md` §73). Item
             // 870 sixteen fewer: the `group` rows, `1/11` 64 against −1 and
             // army 0's `1/48`..`1/58` 69 against 68 among them (`docs/GROUPS.md` §29).
-            419,
+            // Item 919 208 fewer: run78's `GUY` records are the short form,
+            // so gaia's 104 animals' `cur_anim` and `cur_time` read `theirs
+            // None` and are named unprinted now, not parting.
+            211,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -15338,7 +15479,9 @@ pub(crate) mod tests {
         // Item 870: 418/421, the first block's sixteen `group` rows (`1/0`
         // 70 here against 69, `1/11` 64 against −1, army 0's `1/48`..`1/58`
         // 69 against 68) and `1/60`'s on 15784 (`docs/GROUPS.md` §29).
-        assert_eq!((first, firsts.len()), (418, 421), "the floor");
+        // Item 919: 210/213, the 208 gaia clock rows named unprinted (the
+        // short `GUY` record prints none), not a parting closed.
+        assert_eq!((first, firsts.len()), (210, 213), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
@@ -17019,11 +17162,15 @@ pub(crate) mod tests {
         // shape, not this fix's. On 23366 `1/81` is born with the gap's
         // standing citizen rows (every citizen carries them from the first
         // block) and the census reads 29 peasants against 30 for one
-        // block. On the word's block the guard `1/78`'s `retry` and `1/80`'s
-        // figure part with the frame's draws: the original adds a pasture's
-        // five animals on 23420 (`Farms::add_animals`, twenty draws, then
-        // five `Animal::do_idle`), and ours spends `Farms::inc_time+0x1ae`
-        // there instead. **No mechanism is named** (DECISIONS 42).
+        // block. ~~On the word's block the guard `1/78`'s `retry` and
+        // `1/80`'s figure part with the frame's draws~~ — **item 919**: the
+        // original stocks a pasture on 23420 because `1/2032` is one, and
+        // it is one because `get_nearest_farm_type` did not see the
+        // unstarted site `1/2031` beside it on 23182 (`docs/AI.md` §79).
+        // The three rows on 23421 close: `1/78`'s `guard.retry` 8 against 6
+        // → 6 on both, `1/80`'s `g.cur_anim[0]` 1 against 0 and
+        // `g.end_time[0]` 58 against 31 → 0 and 31 on both; the draws on
+        // 23420 go 7 against 31 → 31 against 31.
         assert_eq!(
             runway,
             [
@@ -17031,9 +17178,6 @@ pub(crate) mod tests {
                 "23184 1/-1 leader:MAKE[5].city: ours 2 theirs 1",
                 "23192 1/-1 leader:gather_stamp: ours 23191 theirs 23183",
                 "23366 1/-1 leader:peasants: ours 29 theirs 30",
-                "23421 1/78 order:guard.retry: Guard { field: \"retry\", ours: 8, theirs: 6 }",
-                "23421 1/80 g.cur_anim[0]: ours 1 theirs 0",
-                "23421 1/80 g.end_time[0]: ours 58 theirs 31",
                 "23366 1/81 form: ours -1 theirs 9",
                 "23366 1/81 hits:myhits: ours 40 theirs 50",
                 "23366 1/81 hits_left: ours 40 theirs 50",
@@ -17064,7 +17208,10 @@ pub(crate) mod tests {
             // `MAKE[4].t` and `1/79`'s two rows close on 23183 (the rock
             // arm, `docs/AI.md` §78); 686 keys past it close with the
             // draws; the new word's block stands 292 rows, the gap's.
-            (283, 2, 285, 292, 359),
+            // Item 919: → 283/2/285/289/294. The pasture (`docs/AI.md` §79)
+            // closes the word's three rows on 23421 and the 62 keys that
+            // first parted past it; nothing parts on 23422..23433.
+            (283, 2, 285, 289, 294),
             "the floor"
         );
     }
@@ -18129,7 +18276,14 @@ pub(crate) mod tests {
                             ),
                         ),
                     ];
+                    // A short `GUY` record (run96's) prints no clock: that
+                    // is a key unprinted, not a parting (item 919).
+                    let printed = tg.is_some_and(|g| g.cur_anim.is_some());
                     for (what, same, row) in rows {
+                        if what != "gaia:pos" && !printed {
+                            missing.insert(what.into());
+                            continue;
+                        }
                         compared += 1;
                         if !same {
                             here.entry((t.who, t.o, what.into())).or_insert((n, row));
