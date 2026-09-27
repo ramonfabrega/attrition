@@ -12,49 +12,41 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-26, the commander (Opus 5.5), five landings since the sixteenth
-pass: **East Indies 20007 → 20782 (880); Great Lakes 20568 → 20800
-(795)**; East Indies is the lower map and 890 is live on it, reporting
-20782 → 23182 on its branch, not yet gated. **Chapters twenty-five and
-twenty-six closed** (884 at 1466, 883 at 1492).*
+*2026-09-26, the commander (Opus 5.5), six landings since the sixteenth
+pass: **East Indies 20007 → 23182 (880, 890); Great Lakes 20568 → 20800
+(795)**, and Great Lakes is the lower map, so 899 is the headline.
+**Chapters twenty-five and twenty-six closed** (884 at 1466, 883 at
+1492); 901 is live on the rules lane.*
 
-- **883**: the player's research through `@queueup` (PRODUCTION's "The
-  player's research"); run296, no falsifier fired; `diff::leader` now
-  compares ages, epochs and discovered on every window, and no long row
-  parts on them.
-- **795**: `do_move`'s TAKE re-reads the path's top (GROUPS §32); on
-  20569 `1/40` stands blocked by `8/0` on both sides. **880**: the pool's
-  kept fields (GROUPS §30); on 20002 slot 69 reads `order_num` 6,
-  `facing` 1 on both sides. **884**: the player's cancel, closed at 1466.
-  **882**: `come_out`'s push for every owner (GROUPS §31); 561 closed.
-- **Fable backlog: 13 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903).
+- **890**: `get_cost`'s wonder count (COSTS "A wonder is ramped by every
+  wonder", AI §77): on 20782 who=1's `MAKE[0]/[1]/[8]` read 0 on both
+  sides (ours was 486/398/486); and the gather offer escrowed on every
+  exit of `create_buildings`' head test: on 23182 `MAKE[0]/[4].escrow` 1
+  on both sides. **795**: `do_move`'s TAKE (GROUPS §32). **880**: the
+  pool's kept fields (§30). **882**: `come_out`'s push (§31).
+- **883**: the player's research; `diff::leader` compares ages, epochs
+  and discovered on every window. **884**: the player's cancel.
+- **Fable backlog: 14 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w20782 of 24,000 · GreatLakes w20800 of 24,000
+Long captures: EastIndies w23182 of 24,000 · GreatLakes w20800 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · 901 next
-Endpoint 24001: EastIndies 37 off, 2 unlinked · GreatLakes 14 off, 0 unlinked
+Endpoint 24001: EastIndies 38 off, 0 unlinked · GreatLakes 14 off, 0 unlinked
 
-**Opener: 890 is live on the AI lane (ref f9aa9e3f; run299 over
-23177..23433); merge it when it reports. 901 on the rules lane: a unit
-upgrade through the command, the emulator first, then run300. 899
-(Great Lakes' 20800) after 890. A brief names only the fenced modules; a
-capture is waited on with `tools/gamelog/waitrun.sh`; a journal's "for
-the Loop" line is filed at its merge. The count runs from f0b9d296: five.**
+**Opener: 901 is live on the rules lane (ref 85def1f3); merge it when it
+reports. 899 on the AI lane (Great Lakes is lower): 20800, `1/60`
+blocked by `1/64`, the parting in 17351..19839. 904 (East Indies' 23182)
+after 899. A brief names only the fenced modules; a capture is waited on
+with `tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is
+filed at its merge. The count runs from f0b9d296: six landings.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — East Indies (a guard reads this line). Take the first
+lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-890. **East Indies' word is 20782** (880 moved it 20007 → 20782: the
-    kept fields, GROUPS §30). On 20782 ours 8 draws against 1 at index 0:
-    `Leader::use_market+0x1ed` here against `Farms::inc_time+0x1ae`.
-    run289 holds the word, widened: who=1's `MAKE` list parts first on
-    20782, and the only stock row parting before it is the standing
-    `leftover[2:wealth]` (851). No mechanism.
 
 899. **Great Lakes' word is 20800** (795 moved it 20568 → 20800:
     `do_move`'s TAKE, GROUPS §32). On block 20801 of run243 `1/60` stands
@@ -62,6 +54,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     blocks of runway past it** (it ends on 20818), and `1/60`'s world
     route already differs below run294's first block, 19840: the parting
     is in 17351..19839 (796, narrowed). No mechanism.
+
+904. **East Indies' word is 23182** (890 moved it 20782 → 23182:
+    `get_cost`'s wonder count and the gather escrow, AI §77). On 23182
+    ours 49 draws against 48, parting at index 46:
+    `produce_building+0x1805` here against `make_stuff+0x63d`. run299
+    (23177..23433) holds it, widened. 890's reading (§77.6): slot 4's Farm
+    jitter at corner (184, 196), 4 clear sub-positions here against 3; a
+    hypothesis. A packet at 23181, inside the second `produce_building`.
 
 901. **Chapter twenty-seven: the upgrade line — an issuer, no capture
     yet** (883's park). A unit upgrade through the player's `@queueup`:

@@ -9723,3 +9723,170 @@ second reading: the zero, its frame and its reader are diff-backed.
 
 **Built**: `a_border_fix_zeroes_the_rares_until_the_next_census`, made
 to fail twice (§76.4).
+
+## 77. A wonder is priced by every wonder, and the word moves to 23182 (2026-09-26, item 890)
+
+East Indies' word was **20782**. On it this crate spent 8 draws against
+the original's 1, parting at index 0: ours `Leader::use_market+0x1ed`
+(§2.15), the original `Farms::inc_time+0x1ae`. On block 20782 who=1's
+make list had parted: `MAKE[0]`, `[1]` and `[8]` held the Mausoleum
+(527) and the Colossus (528) in category 8, valued 486, 398 and 486
+here against 0 there (run289, widened by item 880).
+
+### 77.1 The frame, read whole before any reading
+
+run289's leader, city and building records on 20777..20783, both
+sides (`RON_STANDING`, `RON_MAKE`, `tools/gamelog/leader.py`), and the
+trace's draws on 20781:
+
+- **Both sides list the same wonders in the same slots** (`t` 527, 528
+  and 527, `cat` 8) off the same two `create_buildings+0xffb`/`+0x1017`
+  pairs on frame 20781. The pairs are the draws 60461/17844 and
+  39823/14766, identical on both sides. `wonder_mark` is compared and
+  agrees, and an easy AI's arm draws only at 0 (§75), so no wonder of
+  who=1's stands on either side and the arm is open.
+- **The `city` rows are parked 325's spelling**, not a city: this crate
+  prints the global index (London is 1 of three), the dump the leader's
+  own slot (0).
+- **The parting field is `val`**, and it is 0 in the original for both
+  wonders, the same city, the same draws.
+- who=1's stock agrees on the word's blocks. `bucket[wealth]` is 208 on
+  both sides. The only standing stock row is parked 851's
+  `leftover[2:wealth]`, 1398 against 1390 on 20782, which is the income
+  accumulator's remainder, not the purse.
+- who=1 holds an unfinished **Pyramids site `1/2029`** in city 1
+  (`job_counter` 162,737 of 400,000; the dump's `BUILDDATA`, `orig_type
+  526`), on both sides. It is why city 1 is shut (`num_wonders`) and the
+  pairs are London's.
+
+### 77.2 The readings, and what killed each
+
+Written before the writers were counted.
+
+- **R1: parked 851's purse is one over.** Its unit is who=1's
+  `bucket[wealth]` on 20781..20782. **Killed**: it agrees, 208 on both.
+- **R2: a factor of the wonder's value differs** (the type's `+0x118`
+  factor, `get_level`, the common tail). Its unit is the arm's product.
+  **Killed by R3's fix**: with the price alone changed, `val` agrees on
+  both wonders (§77.4). A factor of 0 would have left ours nonzero.
+- **R3: `check_income` answers 0 in the original.** It returns 0 when
+  `can_pay_cost` finds nothing affordable and the offer carries no
+  escrow, which the arm's no-shortcut branch does not. Its unit is the
+  price of 527 and 528 against the purse. **Holds**: ours priced them at
+  200 wealth against 208, so it could pay. The original's `get_cost`
+  counts every wonder held or sited (`docs/COSTS.md`, "A wonder is
+  ramped by every wonder"), so the Pyramids site adds a step: 260.
+
+**The writers, counted by what they write**: a make slot's `val` has one
+writer on this path, `make_me` from `create_buildings`
+(`inc × v / 256`). `inc` is `check_income`'s, and its only
+zero-returning arm is the unaffordable one. The price's writers are
+`get_cost`'s arms. The same-type count was ours alone; the listing
+counts wonders.
+
+### 77.3 The fix
+
+- `cost::wonder_count` is the listing's count: `held − 3` past three,
+  `held − 6` past six, twice `held`, and the space-race term.
+  `cost::Modifiers::wonder` halves the building arm's term.
+- `Sim::building_price` prices a wonder by `get_wonders` (the census's
+  in-use entries under `wonder_mark`) plus `get_unbuilt_wonders` (the
+  leader's inactive wonder sites).
+- A mutation (the same-type count restored, from git, `touch`ed) fails
+  `another_wonder_s_site_prices_a_wonder_out_of_the_purse`.
+
+### 77.4 What it moved
+
+Measured on `293a05fa`, based on `6a183d98`:
+
+- **The value diff** (`run289_s_word_frame_is_widened_whole`). On block
+  20782 `MAKE[0]`, `[1]` and `[8]` `val` go 486, 398 and 486 against 0
+  → **0 on both sides**. Ours' prices go `[0, 200, 200]` →
+  `[0, 260, 260]` (527) and `[200, 0, 200]` → `[260, 0, 260]` (528); the
+  original prints no price, and its `check_income` of 0 says it is over
+  208. The draws on 20782 go 8 against 1 → 1 against 1. The floor goes
+  284/42/326/1,222 → 284/3/287/288: 39 keys under the word close (the
+  three `val` rows on 20782 and the 36 on 20783 that ours' placement of
+  `1/2030` and its spending wrote), and 934 across the runway. What stands is 325's `city`
+  spelling on 20782 and who=0's `production_step` on 20801.
+- **East Indies 20782 → 23182**, past run289's end. On 23182 ours spends
+  49 draws against 48, parting at index 46: ours
+  `Leader::produce_building+0x1805` (a placement's jitter, §2.20), the
+  original `Leader::make_stuff+0x63d`.
+- **Great Lakes holds at 20800**, and every golden word and control
+  holds.
+- **East Indies' endpoint** at 24001: 37 → 38 off, 2 → 0 unlinked,
+  0 → 2 extra, 2 → 0 build unlinked, 2 → 0 build diverged.
+
+### 77.5 The new word's block, 23183, on run299, and a gather offer's escrow
+
+23182 is past run289's end, so run299 was taken over [23177, 23434),
+sized to the word (`docs/RUNS.md`). `run299_s_word_frame_is_widened_whole`
+walks it whole.
+
+- **The make list parts on block 23182, on `escrow`**. who=1's head
+  (`MAKE[0]`) and its category slot (`MAKE[4]`) hold the Farm (417) in
+  Norwich at 129,600 on both sides, at `escrow 0` here and 1 there.
+- **The writer, counted**: an offer's escrow is `create_buildings`'
+  `local_10` (`-0xc(%ebp)`), pushed to `make_me` at `006c3fa8`. For a
+  gather type the listing's divisor tail (`006c3ca3`..`006c3db0`) writes
+  1 on **every** exit of the head test: the `jge` (the offer out-values
+  the head, or the head is empty at −1), the `js` (no head), the
+  `can_pay` refusal, the flag test, the goods walk found or exhausted. This
+  crate wrote 1 only when the test passed. On 23181 the Farm became the
+  head, so the first compare failed.
+- **Built**: §3.10's gather branch escrows unconditionally.
+  `a_gather_offer_is_escrowed_on_every_exit_of_the_head_test` fails
+  under the old rule (a mutation, restored from git).
+- **The value diff**: on block 23182 `MAKE[0]` and `MAKE[4]` `escrow` go
+  0 against 1 → **1 on both**. The word holds at 23182: the offers'
+  `val` agrees before and after, and no draw on 23182 moves.
+
+### 77.6 Where it parts next: slot 4's jitter
+
+On the word's frame both sides buy the head's Farm (`produce_building`'s
+spiral, two jitter draws, `Farms::add`, `1/2031` at (34944, 38016)) and
+spend the head's two expiry draws. Both walk slot 4's Farm through the
+same eighteen spiral candidates. At the best site, corner (184, 196), the
+2×2 jitter (§2.20) finds **four** clear sub-positions here, (35712,
+38016), (35712, 38208), (35904, 38016) and (35904, 38208), and **three**
+in the original. Both place `1/2032` at (35904, 38016), so the building
+records agree. The one extra draw shifts the slot loop's expiry
+(`make_stuff+0x63d`), which clears slot 4 there and not here (`MAKE[4].t`
+417 against −1 on 23183), and `1/79`'s figure draws one along.
+
+**No mechanism is named** (DECISIONS 42). The blocked sub-position is one
+of the three besides the chosen one. It sits beside the Farm this frame
+just placed. `blocked_site`'s answer on it is a value the original
+computes mid-frame, after `1/2031`'s `Farms::add`, so the instrument is a
+packet at 23181 (run298, unused here) with a probe **inside**
+`produce_building`'s second call, not at the frame boundary.
+
+### 77.7 What this has *not* established
+
+- **Which sub-position the original blocks, and why** (§77.6).
+- **Past three wonders, the space-race arm and the team term** of the
+  price: listing only (`docs/COSTS.md`, "A wonder is ramped by every
+  wonder").
+- **`get_unbuilt_wonders` is counted off the buildings**, not the
+  original's `unbuilt_wonders` list. The two differ only on the frame a
+  site dies.
+
+### 77.8 Coverage
+
+**Diff-backed**:
+- the one-wonder price, through `check_income`'s 0 and run289's `MAKE`
+  `val` rows on block 20782, and the draw stream to 23182;
+- a gather offer's escrow, through run299's `MAKE[0]` and `MAKE[4]` on
+  23182.
+
+**Listing-backed and reading-only**: the wonder count past three, the
+space-race arm, the halving's truncation (pinned by
+`cost::tests::a_wonder_is_ramped_by_every_wonder_held_and_halved`), and
+the gather arm's escrow on the exits no capture has reached. The listing
+was read for both, so neither is owed a blind second reading of the
+decompiler's text.
+
+**Built**: `another_wonder_s_site_prices_a_wonder_out_of_the_purse` and
+`a_gather_offer_is_escrowed_on_every_exit_of_the_head_test`, each made to
+fail by a mutation first.

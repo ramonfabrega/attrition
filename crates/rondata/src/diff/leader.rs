@@ -2597,6 +2597,11 @@ mod tests {
     /// **90 → 85 on item 688** (`docs/AI.md` §67), all `SITE` rows of leader
     /// 1: `SITE[8]` and `SITE[9]` gone, `SITE[1]` arriving — the same sites
     /// at the original's values, in other slots.
+    ///
+    /// **85 → 73 on item 890** (`docs/AI.md` §77.5), all leader 1's make
+    /// list: the gather offer's escrow on every exit of the head test
+    /// closes `MAKE[0]`, `[1]` and `[4]`'s `escrow` and the `t`, `val` and
+    /// `cat` they drove in slots 1..4. None arrived.
     const PARTS_ON_RUN91: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2620,22 +2625,10 @@ mod tests {
         (0, "peasants"),
         (0, "scouts"),
         (1, "MAKE[0].city"),
-        (1, "MAKE[0].escrow"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].escrow"),
-        (1, "MAKE[1].t"),
-        (1, "MAKE[1].val"),
-        (1, "MAKE[2].cat"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].t"),
-        (1, "MAKE[2].val"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].t"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].escrow"),
-        (1, "MAKE[4].t"),
-        (1, "MAKE[4].val"),
         (1, "MAKE[5].city"),
         (1, "MAKE[6].city"),
         (1, "MAKE[8].city"),
@@ -2722,6 +2715,12 @@ mod tests {
     /// original's and the ten sit in different slots — a slot index is
     /// not an identity, and a site that was double scored no longer holds
     /// the slot it held.
+    ///
+    /// **87 → 80 on item 890** (`docs/AI.md` §77.5), all leader 1's make
+    /// list: a gather offer is escrowed on every exit of
+    /// `create_buildings`' head test, so `MAKE[1]`, `[3]` and `[4]`'s
+    /// `escrow` close and the `t`/`val` they drove with them (`MAKE[2].val`,
+    /// `MAKE[3].t`, `[3].val`, `[4].val`). None arrived.
     const PARTS_ON_RUN84: &[(usize, &str)] = &[
         (0, "SITE[0].reg"),
         (0, "SITE[1].reg"),
@@ -2746,16 +2745,9 @@ mod tests {
         (0, "scouts"),
         (1, "MAKE[0].city"),
         (1, "MAKE[1].city"),
-        (1, "MAKE[1].escrow"),
         (1, "MAKE[2].city"),
-        (1, "MAKE[2].val"),
         (1, "MAKE[3].city"),
-        (1, "MAKE[3].escrow"),
-        (1, "MAKE[3].t"),
-        (1, "MAKE[3].val"),
         (1, "MAKE[4].city"),
-        (1, "MAKE[4].escrow"),
-        (1, "MAKE[4].val"),
         (1, "MAKE[6].city"),
         (1, "MAKE[7].city"),
         (1, "MAKE[8].city"),

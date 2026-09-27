@@ -1043,7 +1043,24 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `Leader::use_market+0x1ed` where the original spends
 /// `Farms::inc_time+0x1ae`. Past run277's end (20258); run289 was taken for
 /// it, and `run289_s_word_frame_is_widened_whole` widens its block 20783.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 20_782;
+///
+/// **20782 → 23182 on item 890, and the frame was 20781's wonder price.**
+/// `get_cost`'s wonder arm counts every wonder the leader holds or has a
+/// site of, not the type's own (`docs/COSTS.md`, "A wonder is ramped by
+/// every wonder"; `docs/AI.md` §77), so who=1's Pyramids site `1/2029`
+/// prices the Mausoleum and the Colossus at 260 wealth against a purse of
+/// 208 and `check_income` answers 0. **The move's value diff (the word's
+/// delta, here; its block is `run289_s_word_frame_is_widened_whole`'s):**
+/// on block 20782 who=1's `MAKE[0]`, `[1]` and `[8]` `val` went 486, 398
+/// and 486 against 0 → 0 on both sides, the Mausoleum's price `[0, 200,
+/// 200]` → `[0, 260, 260]` and the Colossus's `[200, 0, 200]` → `[260, 0,
+/// 260]` (the original prints no price; its `check_income` of 0 says it is
+/// over 208); the draws on 20782 went 8 against 1 → 1 against 1. **The new
+/// word's delta: ours 49 draws and the original 48, parting at index 46**:
+/// ours spends `Leader::produce_building+0x1805`, a placement's jitter,
+/// where the original spends `Leader::make_stuff+0x63d`. Past run289's end
+/// (21045) and below run96's start (23960); run299 was taken for it.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 23_182;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4640,6 +4657,15 @@ pub(crate) const WIDENING_EAST_INDIES_USEMARKET: (i64, i64) = (20_777, 21_033);
 /// `Farms::inc_time+0x1ae`, writes block 20783. The coverage driver reads
 /// run289 around it.
 pub(crate) const EAST_INDIES_USEMARKET_BLOCK: i64 = 20_783;
+/// `run299_s_word_frame_is_widened_whole`'s window (item 890): run299
+/// whole, 23177..23433 — six blocks before the word 23182's block and 250
+/// past it. run289 ends on 21045, so 21046..23176 is compared by no dump.
+pub(crate) const WIDENING_EAST_INDIES_WONDERPRICE: (i64, i64) = (23_177, 23_433);
+/// The word 23182's block on run299 (item 890): its frame, where ours
+/// spends `Leader::produce_building+0x1805` and the original
+/// `Leader::make_stuff+0x63d`, writes block 23183. The coverage driver
+/// reads run299 around it.
+pub(crate) const EAST_INDIES_WONDERPRICE_BLOCK: i64 = 23_183;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4837,12 +4863,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (`docs/GROUPS.md` §30), 20007 → 20782. run277's test keeps the
     // move's value diff (20002, slot 69 and `1/64`..`1/66`), and run289 was
     // taken to widen the new word's block, 20783.
+    //
+    // **Item 890 moved it past run289's end**: `get_cost`'s wonder arm
+    // counts every wonder held or sited (`docs/COSTS.md`, "A wonder is
+    // ramped by every wonder"), 20782 → 23182. run289's test keeps the
+    // move's value diff (20782, `MAKE[0]`, `[1]` and `[8]` `val`), and
+    // run299 was taken to widen the new word's block, 23183.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run289_s_word_frame_is_widened_whole"),
-        880,
-        Some(WIDENING_EAST_INDIES_USEMARKET),
+        Some("run299_s_word_frame_is_widened_whole"),
+        890,
+        Some(WIDENING_EAST_INDIES_WONDERPRICE),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

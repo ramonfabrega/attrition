@@ -10945,7 +10945,10 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (211/227 → 210/226): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 882 took three (210/226 → 207/223): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, firsts.len()), (207, 223), "the floor");
+        // Item 890 took three (207/223 → 207/220): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, firsts.len()), (207, 220), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -11150,7 +11153,10 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (227/359 → 226/358): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 882 took three (226/358 → 223/355): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, firsts.len()), (223, 355), "the floor");
+        // Item 890 took three (223/355 → 220/352): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, firsts.len()), (220, 352), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11381,7 +11387,10 @@ pub(crate) mod tests {
             // (`Object::take_damage`'s stamp, `docs/AI.md` §71).
             // Item 882 took three (358/36/394 → 355/36/391): the squad's
             // 11424 `group` rows, `come_out`'s push (`docs/GROUPS.md` §31).
-            (355, 36, 391),
+            // Item 890 took three (355/36/391 → 352/36/388): who=1's `MAKE[1]`, `[3]` and `[4]`
+            // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+            // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+            (352, 36, 388),
             "the floor"
         );
     }
@@ -11515,7 +11524,10 @@ pub(crate) mod tests {
         // Item 729 took one: `0/frame_attacked`, `Object::take_damage`'s
         // stamp (`docs/AI.md` §71).
         // Item 882 took three (394/4/398 → 391/4/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, own.len(), firsts.len()), (391, 4, 395), "the floor");
+        // Item 890 took three (391/4/395 → 388/4/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, own.len(), firsts.len()), (388, 4, 392), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11630,7 +11642,10 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (399/0/399 → 398/0/398): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11767,7 +11782,10 @@ pub(crate) mod tests {
         // move `facing` on 15351 (parked 716), the siege arm's sub-group
         // laying out on its own cleared record (`docs/GROUPS.md` §26).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11908,7 +11926,10 @@ pub(crate) mod tests {
         // (`docs/GROUPS.md` §26). Nothing parts on 15441..15859; the word
         // left run211 for 16460 (run218).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12016,7 +12037,10 @@ pub(crate) mod tests {
         // §17), nothing arriving — **nothing parts on 15860..16711**, and
         // the word left run218 for 17099.
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12149,7 +12173,10 @@ pub(crate) mod tests {
         // every key to the window's end (1256 before item 776, 876 before
         // item 785 — none since, to 17350).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -16704,23 +16731,43 @@ pub(crate) mod tests {
         // `leftover[2:wealth]`, 2108 here against 2100 on the first block
         // (parked 851), and nothing else of its stock parts; **R3** has no
         // clock row parting either. No mechanism is named.
+        //
+        // **Item 890: the `val` rows close.** `get_cost`'s wonder arm counts
+        // who=1's Pyramids site `1/2029`, so the Mausoleum (527) and the
+        // Colossus (528) price at 260 wealth against the purse's 208 on both
+        // sides, `check_income` answers 0, and both are offered at `val 0`
+        // here as there: `MAKE[0]`, `[1]` and `[8]` `val` 486/398/486 → 0
+        // (`docs/COSTS.md`, "A wonder is ramped by every wonder"; `docs/AI.md`
+        // §77). What stands on 20782 is parked 325's `city` spelling alone:
+        // this crate's city index is global (London is 1 of three) and the
+        // dump's is the leader's own slot (0), the same city.
         let make: Vec<&String> = rows.iter().filter(|r| r.starts_with("20782 ")).collect();
         assert_eq!(
             make,
             [
                 "20782 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
-                "20782 1/-1 leader:MAKE[0].val: ours 486 theirs 0",
                 "20782 1/-1 leader:MAKE[1].city: ours 1 theirs 0",
-                "20782 1/-1 leader:MAKE[1].val: ours 398 theirs 0",
                 "20782 1/-1 leader:MAKE[8].city: ours 1 theirs 0",
-                "20782 1/-1 leader:MAKE[8].val: ours 486 theirs 0",
             ],
-            "the make list parts first, on the word's frame"
+            "only the list's `city` spelling parts on the word's old frame"
         );
-        assert!(
-            rows.iter()
-                .all(|r| r.starts_with("20782 ") || r.starts_with("20783 ")),
-            "nothing parts on 20778..20781: {rows:?}"
+        assert_eq!(
+            rows.len(),
+            3,
+            "nothing else parts on 20778..20783: {rows:?}"
+        );
+        // Past the old word's block, one key in the whole runway: who=0's
+        // `production_step` on 20801, the human's own step, which nothing
+        // on this chain reads (`docs/ECONOMY.md` §16.3's R3).
+        let past: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .map(row)
+            .collect();
+        assert_eq!(
+            past,
+            ["20801 0/-1 leader:production_step: ours 0 theirs 1"],
+            "the runway past the old word"
         );
         let wealth = standing
             .get(&FIRST)
@@ -16741,7 +16788,107 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (284, 42, 326, 1_222),
+            // Item 890: 284/42/326/1,222 → 284/3/287/288. Under the word the
+            // three `MAKE` `val` rows and 36 keys of the building `1/2030`
+            // this crate no longer places close; across the runway 934 keys
+            // close, and the one that stands past the word is who=0's step.
+            (284, 3, 287, 288),
+            "the floor"
+        );
+    }
+
+    /// **run299 — East Indies' word 23182, widened whole, both directions**
+    /// (item 890). run289's line over [`WIDENING_EAST_INDIES_WONDERPRICE`]:
+    /// six blocks up to the word's block 23183, the block, and 250 past it.
+    /// run289 ends on 21045, so 21046..23176 is compared by no dump; the
+    /// same game is the draw stream's word against run54.
+    /// [`widen_east_indies`] with gaia's animals.
+    #[test]
+    fn run299_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_WONDERPRICE.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_WONDERPRICE.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_WONDERPRICE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run299",
+            "gamelog-run299-eastindies-wonderprice.txt",
+            WIDENING_EAST_INDIES_WONDERPRICE,
+            &[FIRST, WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
+            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **What parts under the word, and the escrow the item closed.**
+        // On block 23182 who=1's head (`MAKE[0]`) and its category slot
+        // (`MAKE[4]`) hold the Farm (417) in Norwich at 129,600, the city
+        // rows being parked 325's spelling (this crate's global index 2,
+        // the leader's slot 1). Before item 890's second fix both read
+        // `escrow 0` here against 1 there: `create_buildings`' gather arm
+        // escrows on every exit of its head test (listing
+        // `006c3cbb`..`006c3db0`), and this crate did only on a pass. Now
+        // 1 on both. On the word's frame both sides place the head's Farm
+        // (`1/2031`) and walk slot 4's through the same spiral; at its
+        // best site's 2x2 jitter (corner (184, 196)) this crate finds four
+        // clear sub-positions and the original three, so one draw shifts,
+        // the expiry that follows clears slot 4 there and not here, and
+        // `1/79`'s figure draws one along. Both place `1/2032` at (35904,
+        // 38016). **Which sub-position the original blocks is not
+        // established** (`docs/AI.md` §77.6).
+        assert_eq!(
+            rows,
+            [
+                "23182 1/-1 leader:MAKE[0].city: ours 2 theirs 1",
+                "23182 1/-1 leader:MAKE[4].city: ours 2 theirs 1",
+                "23183 1/-1 leader:MAKE[4].t: ours 417 theirs -1",
+                "23183 1/79 g.cur_anim[0]: ours 3 theirs 1",
+                "23183 1/79 g.end_time[0]: ours 42 theirs 58",
+            ],
+            "the keys first parting under the word"
+        );
+        let escrow = standing
+            .get(&WORD_BLOCK)
+            .map(|m| {
+                m.keys()
+                    .filter(|(w, _, k)| *w == 1 && k.ends_with(".escrow"))
+                    .count()
+            })
+            .unwrap_or(0);
+        assert_eq!(escrow, 0, "the make list's escrow agrees (item 890)");
+        // **The floor**: every key standing on the first block (the gap's,
+        // 21046..23176, which no dump compares), the keys first parting
+        // under the word, the rows standing on the word's block, and every
+        // key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (283, 5, 288, 1_045),
             "the floor"
         );
     }

@@ -1070,6 +1070,10 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// `rondata/src/diff` (pins and comparator tables) and 5 by the data layer
 /// (`306`, `620`, `787`, `1023`, `7680`), none a mechanic carried. 100 →
 /// 139; the arrivals are on the same ordinary item as 802's (809).
+///
+/// **Item 890 banked two**: ECONOMY 14 → 13 and PRODUCTION 10 → 9, the
+/// Supercollider's `0x21d`, which `get_cost`'s space-race arm now carries
+/// (`Sim::wonder_ramp_count`).
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 31),
     ("ANIM.md", 4),
@@ -1078,14 +1082,14 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COLLISION.md", 1),
     ("COMBAT.md", 9),
     ("COSTS.md", 4),
-    ("ECONOMY.md", 14),
+    ("ECONOMY.md", 13),
     ("GOLDEN.md", 4),
     ("GOODY.md", 5),
     ("GROUPS.md", 5),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 12),
     ("PATHFINDER.md", 1),
-    ("PRODUCTION.md", 10),
+    ("PRODUCTION.md", 9),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
     ("TECH.md", 13),
