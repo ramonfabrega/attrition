@@ -9062,3 +9062,239 @@ reads it (`docs/GOLDEN.md` §40); item 945's exemption is dead. Every
 other reading held, with two values the prototype did not predict: a
 citizen's gather and build orders stand alone, and the squad's target
 beside a unit is a squad placement's.
+## run318 — chapter twenty-three under `cover=1`, the issuer guard fixed: every issuer called, 0 differing (2026-09-27, item 934)
+
+**What it is.** run314's stanza line for line, on a DLL whose `@` issuer
+guard reads the displaced bytes from the coverage table when the live
+`jmp` lands on the entry's own stub (`tools/trace/issue_guard.h`;
+`docs/CENSUS.md`, "item 934"). It is a plain build of `c37a99f5`'s
+`tracer.c`, sha256
+`b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca`, and
+the previous build is kept beside it as
+`rontrace.dll.2026-09-27-0222-plain.bak` (parked 936). The lane lock was
+stale (pid 727, run316's). The dead-take recovery (parked 937) was ready
+and not needed: kill runqueue, longtrace, waitwin and the game, run
+`window.py restore`, keep the trace as `-take1-fault`, retake once.
+
+**Taken** 04:25:46–04:39 in one take: 247.6 MB of gamelog, 9.7 MB of
+trace, 1,841 blocks.
+
+| check | result |
+|---|---|
+| `cmdsran.py`: every cheat line on its frame | 9 of 9 |
+| `issuesmatch.py` against run281 | the six `@` lines issued, refusal 0, each record as golden (package 10 → 42, 40, 42, 38, 40, 24) |
+| `rngcmp.py` against run281 | **0 differing, 1,841 identical** |
+| `issue_flight`, `issue_buildmask` entered | on 620 and 1440 |
+
+**What it entered that nothing else does**: 15 of the blind list, the
+flight line and the repeat mask (`docs/CENSUS.md`). The fix leaves the game
+alone. `rondata::blind::TRACES` carries run318.
+
+## run319 — chapter ten under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch10/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1250. It ran
+in the one runner that took run319–run337 from 04:40, finished 04:50, and
+was one take: 166.9 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run184 (2 `@` records, none refused),
+`rngcmp` against run184 (**0 differing, 1,251 identical**), and each
+issuer the script calls entered. New on the blind list's side: the patrol line, ten of the 77 and nine first (`issue_patrol` among them, DLL-only).
+`rondata::blind::TRACES` carries run319.
+
+## run320 — chapter eleven under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch11/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1250. It ran
+in the one runner that took run319–run337 from 04:40, finished 04:59, and
+was one take: 176.5 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run190 (3 `@` records, none refused),
+`rngcmp` against run190 (**0 differing, 1,251 identical**), and each
+issuer the script calls entered. New on the blind list's side: `issue_guard` (DLL-only) and `process_guard`.
+`rondata::blind::TRACES` carries run320.
+
+## run321 — chapter twelve under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch12/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1150. It ran
+in the one runner that took run319–run337 from 04:40, finished 05:08, and
+was one take: 154.1 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run204 (6 `@` records, none refused),
+`rngcmp` against run204 (**0 differing, 1,151 identical**), and each
+issuer the script calls entered. New on the blind list's side: the follow line, six (`issue_follow` DLL-only).
+`rondata::blind::TRACES` carries run321.
+
+## run322 — chapter thirteen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch13/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1000. It ran
+in the one runner that took run319–run337 from 04:40, finished 05:17, and
+was one take: 135.3 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run208 (3 `@` records, none refused),
+`rngcmp` against run208 (**0 differing, 1,001 identical**), and each
+issuer the script calls entered. New on the blind list's side: the garrison line and eject, twelve of the 77 and eleven first (`issue_garrison` DLL-only).
+`rondata::blind::TRACES` carries run322.
+
+## run323 — chapter fourteen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch14/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1150. It ran
+in the one runner that took run319–run337 from 04:40, finished 05:27, and
+was one take: 156.7 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run210 (3 `@` records, none refused),
+`rngcmp` against run210 (**0 differing, 1,151 identical**), and each
+issuer the script calls entered. New on the blind list's side: `issue_form` (DLL-only), `process_form`, `action_form`.
+`rondata::blind::TRACES` carries run323.
+
+## run324 — chapter fifteen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch15/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1250. It ran
+in the one runner that took run319–run337 from 04:40, finished 05:37, and
+was one take: 170.0 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run215 (3 `@` records, none refused),
+`rngcmp` against run215 (**0 differing, 1,251 identical**), and each
+issuer the script calls entered. New on the blind list's side: `issue_attack`, `process_attack`.
+`rondata::blind::TRACES` carries run324.
+
+## run325 — chapter sixteen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch16/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1250. It ran
+in the one runner that took run319–run337 from 04:40, finished 05:47, and
+was one take: 165.3 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run219 (4 `@` records, none refused),
+`rngcmp` against run219 (**0 differing, 1,251 identical**), and each
+issuer the script calls entered. New on the blind list's side: nothing no other trace enters.
+`rondata::blind::TRACES` carries run325.
+
+## run326 — chapter seventeen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch17/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1400. It ran
+in the one runner that took run319–run337 from 04:40, finished 06:00, and
+was one take: 217.2 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run223 (4 `@` records, none refused),
+`rngcmp` against run223 (**0 differing, 1,401 identical**), and each
+issuer the script calls entered. New on the blind list's side: nothing run318 does not (the flight line again).
+`rondata::blind::TRACES` carries run326.
+
+## run327 — chapter eighteen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch18/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1450. It ran
+in the one runner that took run319–run337 from 04:40, finished 06:11, and
+was one take: 198.6 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run241 (2 `@` records, none refused),
+`rngcmp` against run241 (**0 differing, 1,451 identical**), and each
+issuer the script calls entered. New on the blind list's side: `issue_build`, `process_build`, `action_build`, `GroupData::validate_build`.
+`rondata::blind::TRACES` carries run327.
+
+## run328 — chapter nineteen under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch19/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1100. It ran
+in the one runner that took run319–run337 from 04:40, finished 06:20, and
+was one take: 146.1 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run245 (1 `@` record, none refused),
+`rngcmp` against run245 (**0 differing, 1,101 identical**), and each
+issuer the script calls entered. New on the blind list's side: the cast line, five (`cast_double_agent` among them).
+`rondata::blind::TRACES` carries run328.
+
+## run329 — chapter twenty under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch20/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1300. It ran
+in the one runner that took run319–run337 from 04:40, finished 06:31, and
+was one take: 174.0 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run249 (6 `@` records, none refused),
+`rngcmp` against run249 (**0 differing, 1,301 identical**), and each
+issuer the script calls entered. New on the blind list's side: `issue_set_transport` (DLL-only), `process_set_transport`, `action_set_transport`.
+`rondata::blind::TRACES` carries run329.
+
+## run330 — chapter twenty-one under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch21/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1300. It ran
+in the one runner that took run319–run337 from 04:40, finished 06:42, and
+was one take: 189.4 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run255 (2 `@` records, none refused),
+`rngcmp` against run255 (**0 differing, 1,301 identical**), and each
+issuer the script calls entered. New on the blind list's side: the repair line, five (`issue_swarm_around`, `do_repair`, `RepairOrder::log_data` among them).
+`rondata::blind::TRACES` carries run330.
+
+## run331 — chapter twenty-four under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch24/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1560. It ran
+in the one runner that took run319–run337 from 04:40, finished 06:54, and
+was one take: 214.3 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run285 (4 `@` records, none refused),
+`rngcmp` against run285 (**0 differing, 1,561 identical**), and each
+issuer the script calls entered. New on the blind list's side: `issue_queue_up`, `process_queue_up`, `BuildData::can_infinite`.
+`rondata::blind::TRACES` carries run331.
+
+## run332 — chapter twenty-five under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch25/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1466. It ran
+in the one runner that took run319–run337 from 04:40, finished 07:05, and
+was one take: 199.1 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run292 (9 `@` records, none refused),
+`rngcmp` against run292 (**0 differing, 1,467 identical**), and each
+issuer the script calls entered. New on the blind list's side: the building unqueue, four (`issue_unqueue` DLL-only, `Build::action_unqueue`, `unpay_cost`).
+`rondata::blind::TRACES` carries run332.
+
+## run333 — chapter twenty-six under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch26/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1492. It ran
+in the one runner that took run319–run337 from 04:40, finished 07:17, and
+was one take: 200.5 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run296 (8 `@` records, none refused),
+`rngcmp` against run296 (**0 differing, 1,493 identical**), and each
+issuer the script calls entered. New on the blind list's side: nothing run332 does not.
+`rondata::blind::TRACES` carries run333.
+
+## run334 — chapter twenty-seven under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch27/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1560. It ran
+in the one runner that took run319–run337 from 04:40, finished 07:29, and
+was one take: 214.8 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run300 (5 `@` records, none refused),
+`rngcmp` against run300 (**0 differing, 1,561 identical**), and each
+issuer the script calls entered. New on the blind list's side: `Leader::track_queued`.
+`rondata::blind::TRACES` carries run334.
+
+## run335 — chapter twenty-eight under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch28/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1580. It ran
+in the one runner that took run319–run337 from 04:40, finished 07:41, and
+was one take: 227.0 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run304 (6 `@` records, none refused),
+`rngcmp` against run304 (**0 differing, 1,581 identical**), and each
+issuer the script calls entered. New on the blind list's side: nothing earlier runs do not.
+`rondata::blind::TRACES` carries run335.
+
+## run336 — chapter twenty-nine under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch29/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 2070. It ran
+in the one runner that took run319–run337 from 04:40, finished 07:58, and
+was one take: 307.8 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run308 (6 `@` records, none refused),
+`rngcmp` against run308 (**0 differing, 2,071 identical**), and each
+issuer the script calls entered. New on the blind list's side: nothing run318 does not.
+`rondata::blind::TRACES` carries run336.
+
+## run337 — chapter thirty under `cover=1`, the golden game with coverage (2026-09-27, item 934)
+
+`~/ron-golden/ch30/map-14/rontrace.cmd` line for line on run318's DLL and
+lobby, `end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1450. It ran
+in the one runner that took run319–run337 from 04:40, finished 08:10, and
+was one take: 205.9 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run312 (9 `@` records, none refused),
+`rngcmp` against run312 (**0 differing, 1,451 identical**), and each
+issuer the script calls entered. New on the blind list's side: the gather point, four (`issue_gather_point`, `process_gather_point`, `action_gather_point`, `Build::add_gather_point`), and `BuildData::num_gather` and the gather-point list's `add`, but not `get_first_gather`.
+`rondata::blind::TRACES` carries run337.
