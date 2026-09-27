@@ -3807,6 +3807,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY: i64 = 1450;
 /// the same blocks.
 pub(crate) const WIDENING_CHAPTER_THIRTY: (i64, i64) = (605, 1451);
 
+/// **Chapter thirty-one's golden word** — the gather point's other arms
+/// (item 955, `docs/GOLDEN.md` §40, run338).
+///
+/// **740, open, on the first walk**: theirs 12 draws against ours 10, ours
+/// alone `Guy::set_anim+0x97a < Unit::do_idle+0x7d` — the Citizen `0/11`
+/// idling at its ground point here and still walking to it there, from
+/// (3960, 31368), where the lone arm's re-seat left it: `FILTER_ALL`
+/// counts the seeker (falsifier 3). The first value parting is 718,
+/// `0/11`'s `pos`.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_ONE: i64 = 740;
+
+/// `chapter_thirty_one_s_word_frame_is_widened_whole`'s window: run338
+/// whole, (605, 1401). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_THIRTY_ONE: (i64, i64) = (605, 1401);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5715,6 +5731,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_s_word_frame_is_widened_whole"),
         928,
         Some(WIDENING_CHAPTER_THIRTY),
+    ),
+    // Item 955: run338, chapter thirty-one, the gather point's other
+    // arms. The widening is run338 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_ONE",
+        GOLDEN_WORD_CHAPTER_THIRTY_ONE,
+        Some("chapter_thirty_one_s_word_frame_is_widened_whole"),
+        955,
+        Some(WIDENING_CHAPTER_THIRTY_ONE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
