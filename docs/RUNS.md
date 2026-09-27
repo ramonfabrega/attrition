@@ -8523,3 +8523,55 @@ lines returning 1.
 **No falsifier fired**, and every predicted value is on its predicted
 block: the staging walk went through the commands' own entries (parked
 885). Falsifiers 1 and 5 and the births are read in `docs/GOLDEN.md` §34.
+## run294 — Great Lakes' departure, 19840..19999, a bisection of the gap (2026-09-26, item 795)
+
+**What it is.** run243's line and lobby,
+`MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, over
+`[19840, 20000)`, at `cover=0`: a draw-stream trace. `!quit` at 20010,
+through `viadriver.sh` with no human at the menu.
+
+```
+RON_LANE_WAIT=3600 zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 795
+```
+
+**Why it was owed.** Great Lakes' word was 20568 (item 785): the
+original's `1/40` stands blocked by `8/0` and ours, three frames behind on
+the same path, walks. The lag was whole on run243's first block, 20500.
+Every `*greatlakes*` dump was grepped by its block range first (run226
+16706..17350, run240 17086..17094, run243 20500..20818, run80 from
+23960), and none holds 17351..20499. **What the disk did answer**: every
+walker's last collision stamp and `1/40`'s `last` are ours, and on ours
+the four leave the far point together on 19853..19883, a group move led
+by `1/40`. **What it could not answer**: when the original's group move
+ends, where each walker stands on the departure, and whether its `1/40`
+walks the detour ours took after an ungroup on 19892. **Sized to the
+departure, not to the gap**: 160 blocks, from the attack's end to eighty
+blocks of plain walk. 17351..19839 is compared by no dump.
+
+**Taken whole.** 360.7 MB of dump and 23.4 MB of trace, 160 blocks
+19840..19999. Launched 19:00 with the lane lock stale (pid 71074 gone)
+and no RonDriver running, archived 19:14. Waited on with `waitrun.sh`,
+which exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs `rontrace-run53.log` | **0 differing**, 20,011 identical |
+| `MAP_STYLE` from the dump's `GAME INFO` | 14 |
+| the window, block for block | **160 blocks, 19840..19999, no gap** |
+| a `GROUPDATA` and a `GUY` on every window block | **160** each |
+
+**What it settled** (`run294_s_departure_is_widened_whole`,
+`docs/GROUPS.md` §32).
+- **R1 holds**: the checks above.
+- **R2 holds.** On block 19893 the original's `1/40` still carries its
+  group move (`MOVEORDER` with its `GROUPORDER`, `orig` (44851, 22480)).
+- **R3 holds.** On block 19999 the original's `1/40` stands at
+  (5462, 30256), and ours (before the fix) at (5254, 30259), eight frames
+  behind: the loss is the departure's.
+- **R4's killer fires.** The original's `1/40` passes (3732, 31380)
+  itself, on block 19903: the detour is the original's first leg. The
+  first parting is `1/40`'s waypoint on block 19876, (3912, 30984) here
+  against (3732, 31380) there, with both stacks' tops at the detour. The
+  cause is `do_move`'s TAKE, which reads the stack again after the line
+  is verified (§32.3). With it built, nothing on `1/40`, `1/41` or `1/42`
+  parts on run294 or run243.

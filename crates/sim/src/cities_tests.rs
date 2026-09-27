@@ -3687,3 +3687,62 @@ fn a_caster_s_mana_waits_while_its_cast_has_started() {
     sim.tick();
     assert_eq!(sim.units[spy].mana_burn, 898);
 }
+
+/// **A verified line reads the stack again** (`Unit::do_move@005f7b30`'s
+/// TAKE, `5f8c3d`–`5f8c5d`; `docs/GROUPS.md` §32). A goal eight cells off
+/// is planned on the world grid, and the straight line to the new top clips
+/// a barracks: `find_path` pushes a detour and verifies it. The step must
+/// walk at the detour — the top after the check — with its tolerance 0,
+/// not at the world entry under it with 384. Great Lakes' `1/40` walked at
+/// the world entry for seventeen frames without this (item 795).
+#[test]
+fn a_detour_the_line_check_pushes_is_the_waypoint() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let citizen = sim.add_unit_type(citizen_type(t.village));
+    let _ = city_at(&mut sim, &t, 0, 24, 30);
+    let b = sim
+        .place_building(0, t.barracks, tile_pos(11, 20))
+        .expect("open ground");
+    finish(&mut sim, b);
+    let u = spawn(&mut sim, 0, citizen, tile_pos(8, 21));
+    // The order as the Great Lakes march held it on 19875: `PATHED`, only
+    // its `FINAL` entry on the stack, and no waypoint — so the line check
+    // on the far goal refuses, the grid roll plans, and TAKE takes the new
+    // top (a first `do_move` without `PATHED` plans before the line check
+    // and never reaches TAKE).
+    let dest = tile_pos(40, 20);
+    sim.order_move(u, dest);
+    sim.units[u].orders[0].flags |= orders::flag::PATHED;
+    sim.units[u].path.push(orders::PathData {
+        to: dest,
+        tolerance: 0,
+        flags: orders::path_flag::FINAL,
+    });
+    sim.trace_phases = true;
+    sim.tick();
+    assert!(
+        sim.phase_marks
+            .iter()
+            .any(|(l, _)| l == orders::SITE_MOVE_GRID),
+        "the planner ran, through the grid roll"
+    );
+    let n = sim.units[u].path.len();
+    assert!(n > 2, "a world plan: {:?}", sim.units[u].path);
+    let top = sim.units[u].path[n - 1];
+    let under = sim.units[u].path[n - 2];
+    assert_eq!(
+        (top.tolerance, under.tolerance),
+        (0, 384),
+        "a detour over a world entry: {:?}",
+        sim.units[u].path
+    );
+    let Some(orders::Body::Move(m)) = sim.units[u].orders.front().map(|o| o.body) else {
+        panic!("still moving");
+    };
+    assert_eq!(
+        (m.waypoint, sim.units[u].tolerance),
+        (top.to, 0),
+        "the step walks at the detour"
+    );
+}

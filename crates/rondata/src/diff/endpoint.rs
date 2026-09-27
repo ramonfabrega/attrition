@@ -1480,7 +1480,14 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // The extra is `1/81`, a Merchant. The 24,000th frame is 3,432
         // frames past the new word. Measured on `771cddae`, based on
         // `a1390a90`. DECISIONS 36: the number, not a trade.
-        off: 11,
+        // **11 → 14 off, 1 → 0 extra** on item 795: `do_move`'s TAKE reads
+        // the stack again after the line check (`docs/GROUPS.md` §32),
+        // which moves this map's word 20568 → 20800. `1/81` is found; the
+        // fourteen off are who=0's `0/3` and `0/4` and who=1's `1/0`..`1/5`,
+        // `1/8`, `1/11`, `1/16`, `1/17`, `1/21` and `1/43`. The 24,000th
+        // frame is 3,200 frames past the new word. Measured on `6598cd6f`,
+        // based on `f5ae2a22`. DECISIONS 36: the number, not a trade.
+        off: 14,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.
@@ -1505,7 +1512,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 1** on item 757, beside `off` above: `1/81`.
         // **1 → 2** on item 776, beside `off` above: `1/81`, `1/82`.
         // **2 → 1** on item 785, beside `off` above: `1/81`.
-        extra: 1,
+        // **1 → 0** on item 795, beside `off` above.
+        extra: 0,
         build_unlinked: 0,
         // **9 → 8** on item 597, beside `off` above.
         // **8 → 9** on item 608, beside `off` above.
