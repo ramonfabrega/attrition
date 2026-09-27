@@ -655,8 +655,8 @@ pub const ADD_ANIMALS_COIN: u32 = 0x008d_8fc2;
 pub const ADD_ANIMALS_Y: u32 = 0x008d_9064;
 pub const ADD_ANIMALS_X: u32 = 0x008d_90b2;
 /// The odd coin's arm, the pig: its `y` and `x` draws sit at their own
-/// addresses, which the setup borrow above has never needed (every setup
-/// pasture on disk is chickens).
+/// addresses. The setup borrow above reads the chicken's pair only: the
+/// setup pastures of the forty traces item 919 read are all chickens.
 pub const ADD_ANIMALS_PIG_Y: u32 = 0x008d_8ff9;
 pub const ADD_ANIMALS_PIG_X: u32 = 0x008d_9047;
 
