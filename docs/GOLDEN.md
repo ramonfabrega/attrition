@@ -6721,3 +6721,27 @@ build arms, and not 946's waypoint or 957's re-seat. The first value
 parting is expected on **858** (`0/13`'s point), or on **718** if the
 seeker is counted; the first draw parting where either captain's walk
 starts from another cell.
+
+**Run 2026-09-27 as run338 (item 955)** (`docs/RUNS.md` has the table).
+One take, `cover=0`, the same game as run312 to 615. The presses were
+processed on their blocks, 703's with `add_to_end` 1, and every list and
+the site read as predicted; 2008's list is two points from 704, head
+first. **Falsifier 3 fired, on all three Citizens**: `0/11` on 718 at
+(3960, 31368), `0/12` on 824 at (3864, 30168) and `0/16` on 938 at
+(3624, 31656), each the counted position. **`FILTER_ALL` counts the
+seeker**, as the listing reads it; item 945's exemption was the untested
+assumption, and it is dead. Every other reading held:
+- 946: `0/17`..`0/19` on 953, each a `GROUPMOVEORDER` to (5208, 12696),
+  (5352, 12792), (5064, 12600), then a `GROUPATTACKTOORDER` to (5016,
+  11160), (5160, 11160), (4872, 11160); at the second point by 1100;
+- 957: `0/13` on 858 at (2376, 14808), the third re-seat's point, its
+  members at their exits;
+- 948: `0/12`'s `GATHERORDER` on `0/2001` (flags 4) and `0/16`'s
+  `BuildOrder` on `0/2009` (flags 0).
+
+**Two values the prototype did not predict**, each a mechanism to build:
+- each citizen arm's order **stands alone** (`orders_x/y` the Citizen's
+  own point), where this crate puts a `MOVEORDER` ahead of it;
+- `0/13`'s group target is (2424, 15672), `0/14`'s (2280, 15672), against
+  the prototype's (2232, 15528) and (2088, 15480): beside the Chariot, the
+  squad's target sweep refuses candidates the unit's own does not.
