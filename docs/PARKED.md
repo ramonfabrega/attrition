@@ -37,6 +37,20 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 899, 2026-09-26 — Great Lakes at the trace's end
+
+(911) **run240's one standing priced frame, 15986**: `1/73`'s fourth step
+into (45696, 13440) at depth 2 prices 44 here against 32 there, in a
+nine-step search that is not a group's. Names no score.
+
+(912) **The quit block's extra records**: run80's 24001 prints `GAME`
+(`GameInfo`'s process list) and `WORLD`'s territory limits
+(`player_territory_limit*`, `colonized_territory_limit*`, `seed`, `xs`,
+`ys`). Nothing reads them.
+
+(913) **`is_attacking`'s `GroupAttackOrder` and `StrafeOrder` arms** rest
+on the map: this crate models neither order in a planner (PATHFINDER §29).
+
 ## Parked by item 901, 2026-09-26 — the upgrade line's edges
 
 (908) **The `jump`-chain decrement**: on a match by the `jump` chain,
@@ -272,15 +286,6 @@ recharge; the field is read only in chapter nineteen's test.
 window). No search prices them: all 28,828 priced steps agree.
 
 ## Parked by item 785, 2026-09-25 — the gap and the wonder bookkeeping
-
-(796) **No dump compares a value on Great Lakes' 17351..20499**: run226
-ends on 17350 and run243, sized to the word, starts on 20500, where 59
-rows arrive parted (`1/40` among them). The draw stream agrees across the
-gap; the values under it are unread. A capture over it is ~4.5 h.
-**795 narrows it to 17351..19839**: run294 (19840..19999) holds the
-walkers' collision stamps agreeing, and `1/60`'s return plan (and `1/40`'s
-group number) is below it. A bisecting capture there, or a packet at the
-plan's frame, is the next reading (899's).
 
 (797) **`already_built`** (`Game::wonders`, `type_avail`) is dormant here.
 
@@ -1428,6 +1433,13 @@ a brief calls a mechanism built** (901's Loop line, filed at its merge):
 a seam named the carrier arm as "the queue arm", and the clause naming
 the real loop had no code beside it; the listing read end to end found
 the gap in minutes.
+
+(914) **A brief for a route parting cites every proxied step the disk
+holds** (899's Loop line, filed at its merge): run240's whole-game
+`calc_cost` proxies had been on disk since item 776 and were read for one
+tick; walked whole, they named 899's cause in three seconds. The same
+shape (`PROBE_PLAN_PARTED`, 22 entries a cell south) had stood since item
+471.
 
 
 

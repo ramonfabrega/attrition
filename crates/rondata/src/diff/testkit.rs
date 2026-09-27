@@ -2474,7 +2474,27 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// `run243_s_word_frame_is_widened_whole` pins the new word's block (the
 /// widening test), and `run294_s_departure_is_widened_whole` keeps the
 /// move's value diff.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 20_800;
+///
+/// ~~**20800 is `1/60`'s blocked step.**~~ **Item 899 moved it 20800 →
+/// 24000, the capture's own end, and the mechanism was `find_wpath`'s
+/// `is_attacking`** (`docs/PATHFINDER.md` §29): `AttackOrder::is_attack`
+/// answers 1, so a group's queued walk home planned while its leader's
+/// current order is the `ATTACK` plans as a citizen. On 17656 ours planned
+/// `1/60`'s walk home from the far point as an army and took another road
+/// (run294's first block, 22 path slots); on 20800 it stood blocked by
+/// `1/64` where the original's walked. **The new word's delta (this
+/// constant's comment): none** — ours and the original spend the same
+/// draws on every frame of run53's trace, 0..23999, and the word is the
+/// trace's last frame. **The value diff on the old word's block, 20801**:
+/// `1/60` reads `collide 0`, `collide_who −1`, `collide_o −1` on both sides
+/// (ours was 1, 1, 64), and none of its keys parts on run294 or run243.
+/// At the end block, 24001, every one of the 87 units the endpoint compares
+/// stands where the original's does (`ENDPOINTS`: 14 off → 0).
+/// `run80_s_word_frame_is_widened_whole` widens run80, the last blocks any
+/// dump holds (the widening test), and `run243_s_word_frame_is_widened_
+/// whole` and `run294_s_departure_is_widened_whole` keep the move's value
+/// diff.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 24_000;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -2535,7 +2555,13 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 20_800;
 /// itself leaving the set. It is a bowman of the squad whose soft flags
 /// the collision probe's stride over an empty world cell had parted
 /// (`docs/COLLISION.md` §4.2).
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 28_220;
+///
+/// **28,220 → 2,634 on item 899**, and every row of the fall is `1/40`'s,
+/// which leaves the set: the pathfinder's tie-break this comment named was
+/// the `army` mode, which the original leaves off for a walk home planned
+/// while the leader's current order is the `ATTACK` (`docs/PATHFINDER.md`
+/// §29). What stands is `1/23`'s `Action` and `move/angle` rows alone.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 2_634;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
@@ -4494,6 +4520,12 @@ pub(crate) const GREAT_LAKES_STAND_BLOCK: i64 = 20_569;
 /// its frame writes block 20801. The coverage driver reads run243 around
 /// it, and [`crate::diff::harness`]'s word window walks it.
 pub(crate) const GREAT_LAKES_RETURN_BLOCK: i64 = 20_801;
+/// `run80_s_word_frame_is_widened_whole`'s window (item 899): run80 whole,
+/// 23960..23999 and the end block 24001. Great Lakes' draw stream agrees on
+/// every frame of run53's trace since item 899, so the word is the
+/// capture's own end, 24000, and the widening is the last blocks any dump
+/// holds. No `GROUPDATA` is on run80, so the pool walk reads nothing here.
+pub(crate) const WIDENING_GREAT_LAKES_END: (i64, i64) = (23_960, 24_001);
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -5204,12 +5236,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the new word's block, 20801, and `run294_s_departure_is_widened_
     // whole` (run294, 19840..19999, a bisection of the gap) keeps the
     // move's value diff. run243's runway past the new word is 18 blocks.
+    //
+    // **Item 899 moved it 20800 → 24000**, the trace's own end:
+    // `find_wpath`'s `is_attacking` (`docs/PATHFINDER.md` §29). No frame of
+    // run53's trace parts. `run80_s_word_frame_is_widened_whole` widens
+    // run80, 23960..24001, the last blocks any dump holds, and pins the
+    // end; run243's and run294's tests keep the move's value diff.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
-        Some("run243_s_word_frame_is_widened_whole"),
-        795,
-        Some(WIDENING_GREAT_LAKES_STAND),
+        Some("run80_s_word_frame_is_widened_whole"),
+        899,
+        Some(WIDENING_GREAT_LAKES_END),
     ),
     // Item 445 paid the widening chapter one had never had: the word
     // stood at 626 from item 405 on, and every test behind it pinned one

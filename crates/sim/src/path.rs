@@ -1887,19 +1887,27 @@ impl Sim {
         }
     }
 
-    /// The `army` mode: a military unit, not a worker, and not standing on
-    /// a river cell (`docs/PATHFINDER.md` §3, §22).
+    /// The `army` mode: a military unit, not a worker, **not attacking**, and
+    /// not standing on a river cell (`docs/PATHFINDER.md` §3, §22, §29).
     ///
-    /// **`is_attacking` is not a term of it**, however the first reading
-    /// read the source: `UnitData::is_attacking@0060a5b0` is the current
-    /// order's `+0x18` virtual, and that slot is `0x41bff0` — a bare
-    /// `return 0` — in **every** order vtable the executable ships. The
-    /// two `AttackGround` classes are the only ones that even declare an
-    /// override and their thunk forwards to the same address. So the
-    /// clause is vacuous in the shipped binary, and reading it as "the
-    /// unit has a combat target" turned the mode *off* for exactly the
-    /// units it exists for — an AI army walking to an `ATTACK_TO`.
-    /// §22 has the value diff.
+    /// **`is_attacking` is a term of it, and it is live for three order
+    /// classes.** `UnitData::is_attacking@0060a5b0` tail-calls the current
+    /// order's `+0x18` virtual, `is_attack`. §22 read that slot as a bare
+    /// `return 0` in all seventeen order vtables it enumerated, and for
+    /// those it is — but the census missed the classes whose `UnitOrder`
+    /// vftable is a *secondary* one (`??_7AttackOrder@@6BUnitOrder@@@`
+    /// `00b47628`, and `GroupAttackOrder`'s `00b491fc`). Their slot is the
+    /// thunk `0047ef8e`, `sub ecx,[ecx-4]; jmp 0041e0e0`, and `0041e0e0`
+    /// is `mov eax,1; ret`. The linker map names both ends:
+    /// `?is_attack@AttackOrder@@UBEHXZ`, `@GroupAttackOrder@@` and
+    /// `@StrafeOrder@@` at `0041e0e0`; `@UnitOrder@@`, `@AttackGroundOrder@@`
+    /// and `@AirAttackGroundOrder@@` at `0041bff0`. So a unit whose current
+    /// order is an `ATTACK` (or a `STRAFE`; `GroupAttackOrder` is not
+    /// modelled) plans as a citizen. Reading the clause as "the unit has a
+    /// combat target" was still wrong: an army under an `ATTACK_TO` walks as
+    /// an army (§22). The case that shows it is a group's queued walk home
+    /// planned while the leader's current order is the attack itself:
+    /// Great Lakes 8186 and 17656 (§29).
     ///
     /// The river clause is the unit's **own** cell, not the search's
     /// start: the original reads `world.cells[unit.pos]` flags `& 0x100`
@@ -1922,10 +1930,14 @@ impl Sim {
         let worker = self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].worker != Worker::None);
+        // `is_attacking`: the current order's `is_attack` (`006896b9`).
+        let attacking = self
+            .current_order(u)
+            .is_some_and(|o| matches!(o.body, Body::Attack(_) | Body::Strafe(_)));
         let river = self.world.cell_data(self.units[u].pos.cell()).flags
             & crate::world::cell::HALFLAND
             != 0;
-        armed && !worker && !river
+        armed && !worker && !attacking && !river
     }
 
     /// The `no_danger` mode (`PathFinderData +0x7c`), `astar_path@00683770:
@@ -2514,14 +2526,15 @@ mod tests {
         assert_eq!(first, 20, "LIFO on equal f");
     }
 
-    /// **The `army` mode's predicate, all three terms** (§22).
+    /// **The `army` mode's predicate, all four terms** (§22, §29).
     ///
-    /// Made to fail on purpose three ways: put `!attacking` back into
-    /// `army_mode` and the second case flips (it is the shape that cost
-    /// Great Lakes 322 frames); drop the `!river` term and the third
-    /// flips; drop `!worker` and the fourth. The second is the one with a
-    /// value diff behind it — §22.3 — and the third and fourth rest on
-    /// the listing alone.
+    /// Made to fail on purpose: read `attacking` as "has a combat target"
+    /// and the second case flips (it is the shape that cost Great Lakes
+    /// 322 frames, §22.3); drop `!attacking` and the third flips (item
+    /// 899: Great Lakes 8186's walk home and 17656's, §29); drop the
+    /// `!river` term and the fifth flips; drop `!worker` and the sixth.
+    /// The second and third have a value diff behind them, and the fifth
+    /// and sixth rest on the listing alone.
     #[test]
     fn an_army_is_armed_unworked_and_off_the_river() {
         let mut sim = flat_sim(10);
@@ -2558,6 +2571,44 @@ mod tests {
             "a combat target is not what `is_attacking` tests, and nothing is"
         );
         sim.units[u].combat.target = None;
+
+        // **`is_attacking` is the current order's `is_attack`** (§29):
+        // `1` for an `AttackOrder` (and a `StrafeOrder`), `0` for every
+        // move, an `ATTACK_TO` among them. Only the *current* order asks:
+        // an attack queued behind a move leaves the unit an army.
+        sim.add_move_order(
+            u,
+            Pos::new(0x480, 0x480),
+            MoveKind::AttackTo,
+            orders::QueuePos::New,
+            true,
+        );
+        assert!(sim.army_mode(u), "an `ATTACK_TO` is a move, and an army");
+        sim.add_attack_order(
+            u,
+            crate::combat::Obj::Unit(0),
+            orders::QueuePos::Last,
+            false,
+            true,
+        );
+        assert!(
+            sim.army_mode(u),
+            "an attack queued behind the move is not the current order"
+        );
+        sim.add_attack_order(
+            u,
+            crate::combat::Obj::Unit(0),
+            orders::QueuePos::New,
+            false,
+            true,
+        );
+        assert!(
+            !sim.army_mode(u),
+            "a unit whose current order is an `ATTACK` plans as a citizen"
+        );
+        sim.units[u].orders.clear();
+        sim.units[u].combat.target = None;
+        assert!(sim.army_mode(u), "and with no order it is an army again");
 
         // The river clause, on the unit's **own** cell.
         let mut d = sim.world.cell_data(at.cell());
