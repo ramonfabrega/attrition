@@ -822,7 +822,8 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `@queueup` is `issue_queue_up@00941be0` on a group of buildings,
         // a `group` and a `queue_up`, whose entry is
         // [`crate::input::group_queue_up`] (item 877, `docs/GOLDEN.md`
-        // §33).
+        // §33) — a technology's too, `action_queue_up`'s research arm
+        // (item 883, §35).
         Some(Issued::QueueUp {
             who,
             ty,
@@ -1349,6 +1350,10 @@ mod tests {
         // lines and a `@buildmask` 0x40 on a Barracks, the cancel line
         // (item 884, `docs/GOLDEN.md` §34).
         ("chapter25.cmd", &[]),
+        // Chapter twenty-six: seven `@queueup` lines, five of them a
+        // technology at who=0's Library, and an `@unqueue` of one, the
+        // research line (item 883, `docs/GOLDEN.md` §35).
+        ("chapter26.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
