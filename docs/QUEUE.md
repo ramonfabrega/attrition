@@ -29,7 +29,7 @@ staging lane, and not a headline. No score moved in the pass.*
   (936), the stanza lint (941), the dead-citation guard on `RESIDUE` (952).
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 14 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973).
+- **Fable backlog: 15 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

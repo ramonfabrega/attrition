@@ -1504,6 +1504,16 @@ the same test. The shape is the residue test's — push every failure,
 assert once — applied to the floor tests that pin more than one tuple;
 the lane gate (969) shortens the wait and does not remove it.
 
+(974) **`longtrace.sh` touches the lane's shared state before it holds
+the lane lock** (971's status, 2026-09-27, confirmed in the script): the
+`PROFILE` write and its copy aside (lines 132..134) and `rm -f` of
+`Logs/gamelog.txt` and `rontrace.log` (168) run before `winelaunch.sh`
+takes the lock (170). A second lane launching while a capture runs
+clears the running game's log and rewrites the profile under it; the
+lock refuses only after the damage. 971 avoided it by waiting on the
+other lane's log. The shape: take the lock first, or refuse on a held
+lock before any write.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
