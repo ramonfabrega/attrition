@@ -901,15 +901,15 @@ pub enum Coll {
     /// re-seat at a building point is the call site (`619360`,
     /// `docs/PRODUCTION.md` "The gather point").
     ///
-    /// SEAM: `FILTER_ALL` skips `Search::valid_filter`, which is where the
-    /// pairwise path exempts `(not_o, not_who)`, and which players the query
-    /// searches is a lost register (`docs/COLLISION.md` §5.2.1). This crate
-    /// exempts the seeker, as an assumption **no capture tests**: on run312
-    /// neither re-seat's winning candidate is within reach of where the
-    /// unit stands (the Bowmen 150 units off, the Citizen 48), and the
-    /// mutation that counts the seeker fails nothing. Its killer is a lone
-    /// unit trained under a ground point, whose lone-arm sweep's first
-    /// candidate is the point it already stands on.
+    /// **The seeker counts** (item 955, run338): `FILTER_ALL` skips
+    /// `Search::valid_filter` (`659a1a`), the only reader of `(not_o,
+    /// not_who)`, and the search argument is never read
+    /// (`Search::valid_search(·, 0, …)` answers 1, `6599d4`), so every
+    /// player's live, on-map unit is a candidate, the one asking too.
+    /// run338's three Citizens, each re-seated with its first candidate
+    /// the point it stands on, stand one candidate on (`docs/GOLDEN.md`
+    /// §40). The ordered twin keeps the exemption: the seeker has no order
+    /// when a re-seat asks.
     All,
 }
 
@@ -5510,11 +5510,15 @@ impl Sim {
             // transport-capable flag, which this crate does not model, so the
             // second condition is assumed false. It can only differ for a
             // transport-capable type whose `big_radius` is 0, and no shipped
-            // row is both. Stated in §14. The squad branch
-            // (`min + 0xc0 + 4 × (((uber−1) × guy_spacing)/2 + big_radius)`)
-            // is not modelled either — nothing here places a squad.
+            // row is both. Stated in §14. The squad branch (`uber_unit !=
+            // 0`, the decompile's lines 52–54) is `min + 0xc0 + 4 ×
+            // (((uber − 1) × guy_spacing) / 2 + big_radius)`: `come_out`'s
+            // routing asks it for a squad's target with `max` −1 (item
+            // 955, run338's `0/13` on 858); `go_to` passes its own `max`.
             // (`docs/audit/2026-08-21-orders.md` R7 N3.)
-            max = if p.big_radius == 0 {
+            max = if uber {
+                min + 0xc0 + 4 * (((p.uber_size - 1) * p.guy_spacing) / 2 + p.big_radius)
+            } else if p.big_radius == 0 {
                 min + 0x240
             } else {
                 min + 4 * p.big_radius
@@ -5654,7 +5658,9 @@ impl Sim {
                             } else {
                                 p.block_radius
                             };
-                            self.find_unit_with_radius(r, c, Some(u))
+                            // The seeker counts (item 955): no exemption
+                            // on the position query under `FILTER_ALL`.
+                            self.find_unit_with_radius(r, c, None)
                                 || self.find_unit_ordered_with_radius(
                                     r,
                                     c,

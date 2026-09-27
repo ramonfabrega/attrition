@@ -3816,7 +3816,15 @@ pub(crate) const WIDENING_CHAPTER_THIRTY: (i64, i64) = (605, 1451);
 /// (3960, 31368), where the lone arm's re-seat left it: `FILTER_ALL`
 /// counts the seeker (falsifier 3). The first value parting is 718,
 /// `0/11`'s `pos`.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_ONE: i64 = 740;
+///
+/// **1400, closed** (item 955, `docs/PRODUCTION.md` "The gather point"):
+/// `FILTER_ALL` counts the seeker (740 → 884); the squad's target sweep
+/// is a squad placement with its own default span (884 → 892 → 1400);
+/// with the waypoints, the third re-seat, and each re-seat's spot as the
+/// leg's origin. The stream agrees to run338's end.
+///
+/// **The delta**, this constant's: +660, 740 → 1400, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_ONE: i64 = 1400;
 
 /// `chapter_thirty_one_s_word_frame_is_widened_whole`'s window: run338
 /// whole, (605, 1401). Its pool half, `widen_pool`, reads who=0's

@@ -4260,3 +4260,140 @@ fn a_lone_unit_under_a_building_s_point_is_put_back_on_its_exit_bearing() {
     );
     assert_eq!(sim.units[u].pos, ring_first(&sim, city, bearing));
 }
+
+/// **A squad trained under two points walks to the first and attack-moves
+/// to the second** (item 955, run338's `0/17`..`0/19` on 953): `come_out`'s
+/// routing walks the list from its head, the first point a waypoint sent
+/// under `MOVE_TO` and the last under its own kind, both `QUEUE_LAST` and
+/// one group; the exit leaves on the bearing to the head.
+#[test]
+fn a_squad_trained_under_two_points_moves_to_the_first_then_attack_moves_to_the_second() {
+    let mut sim = world_sim();
+    let (_, b, squad) = rally_barracks(&mut sim);
+    let home = sim.buildings[b].pos;
+    let first = Pos::new(home.x + 1536, home.y - 1536);
+    let second = Pos::new(home.x - 1536, home.y - 3072);
+    sim.action_gather_point(0, &[b], first, 0, false);
+    sim.action_gather_point(0, &[b], second, 0, true);
+    let cap = sim.build_train(b, squad).unit;
+    let p = sim.units[cap].pos;
+    assert!(p.x > home.x && p.y < home.y, "out toward the head: {p:?}");
+    for m in sim.squad_members(cap) {
+        let legs: Vec<_> = sim.units[m]
+            .orders
+            .iter()
+            .map(|o| match &o.body {
+                crate::orders::Body::Move(mv) => (mv.kind, mv.dest, mv.group.map(|g| g.id)),
+                other => panic!("member {m}: {other:?}"),
+            })
+            .collect();
+        assert_eq!(legs.len(), 2, "member {m}: {legs:?}");
+        assert_eq!(legs[0].0, crate::orders::MoveKind::MoveTo);
+        assert_eq!(legs[1].0, crate::orders::MoveKind::AttackTo);
+        assert!(
+            crate::world::vector_dist(legs[0].1.x - first.x, legs[0].1.y - first.y) < 480,
+            "member {m}'s first leg near the head: {legs:?}"
+        );
+        assert!(
+            crate::world::vector_dist(legs[1].1.x - second.x, legs[1].1.y - second.y) < 480,
+            "member {m}'s second leg near the tail: {legs:?}"
+        );
+    }
+}
+
+/// **A squad trained under a point on a unit is re-seated on the bearing
+/// to that unit** (item 955, run338's `0/13` on 858, its point on the
+/// Chariot `0/10`): with no building at the last point,
+/// `find_unit_with_radius` finds the unit whose body covers it, and the
+/// routing sweeps the captain round its trainer again from
+/// `find_angle(unit − trainer)`; the members stay where the exit seated
+/// them.
+#[test]
+fn a_squad_trained_under_a_point_on_a_unit_is_re_seated_on_the_bearing_to_that_unit() {
+    let mut sim = world_sim();
+    let (t, b, squad) = rally_barracks(&mut sim);
+    let home = sim.buildings[b].pos;
+    let there = Pos::new(home.x - 648, home.y + 1272);
+    let mut standing = hoplite_type(t.barracks);
+    standing.combat.block_radius = 48;
+    standing.combat.big_radius = 48;
+    let standing = sim.add_unit_type(standing);
+    let _ = spawn(&mut sim, 0, standing, there);
+    sim.action_gather_point(0, &[b], there, 1, false);
+    let cap = sim.build_train(b, squad).unit;
+    let toward = crate::movement::find_angle(there.x - home.x, there.y - home.y);
+    let exit = ring_first(&sim, b, sim.units[cap].movement.heading);
+    assert_ne!(exit, ring_first(&sim, b, toward), "the two bearings differ");
+    assert_eq!(sim.units[cap].pos, ring_first(&sim, b, toward));
+}
+
+/// **A Citizen trained under its own gather building's point, action 1,
+/// is sent to gather there; under its own unfinished building's point, to
+/// build it** (item 955, run338's `0/12` on 824 and `0/16` on 938): the
+/// routing's citizen arms, each ending it before any move.
+#[test]
+fn a_citizen_under_a_point_on_its_own_building_gathers_there_or_builds_it() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let mut ct = citizen_type(t.village);
+    ct.type_index = 0x32;
+    let citizen = sim.add_unit_type(ct);
+    let camp_t = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+    let camp = sim.add_building(0, tile_pos(44, 32), 2);
+    sim.buildings[camp].ty = Some(camp_t);
+    let camp_at = sim.buildings[camp].pos;
+    sim.action_gather_point(0, &[city], camp_at, 1, false);
+    let u = sim.build_train(city, citizen).unit;
+    assert!(
+        sim.units[u]
+            .orders
+            .iter()
+            .any(|o| matches!(&o.body, crate::orders::Body::Gather(g) if g.building == camp)),
+        "a gather order on the camp: {:?}",
+        sim.units[u].orders
+    );
+    let site = sim.place_building(0, t.barracks, tile_pos(40, 24)).unwrap();
+    assert!(!sim.buildings[site].active);
+    let site_at = sim.buildings[site].pos;
+    sim.action_gather_point(0, &[city], site_at, 1, false);
+    let v = sim.build_train(city, citizen).unit;
+    assert!(
+        sim.units[v]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, crate::orders::Body::Build(s) if s == site)),
+        "a build order on the site: {:?}",
+        sim.units[v].orders
+    );
+}
+
+/// **A lone unit under a ground point counts itself in its re-seat**
+/// (item 955, run338's Citizens `0/11` on 718, `0/12` on 824 and `0/16` on
+/// 938): the lone arm sweeps its trainer's ring again from the exit's own
+/// bearing, and under `FILTER_ALL` the unit standing on the first
+/// candidate is a candidate's blocker like any other, so it moves one
+/// candidate on.
+#[test]
+fn a_lone_unit_under_a_ground_point_is_re_seated_past_the_spot_it_stands_on() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let mut walker = hoplite_type(t.village);
+    walker.combat.block_radius = 48;
+    walker.combat.big_radius = 24;
+    let walker = sim.add_unit_type(walker);
+    let home = sim.buildings[city].pos;
+    let point = Pos::new(home.x + 1500, home.y + 300);
+    sim.action_gather_point(0, &[city], point, 0, false);
+    let u = sim.build_train(city, walker).unit;
+    let bearing = sim.units[u].movement.heading;
+    let exit = ring_first(&sim, city, bearing);
+    let p = sim.units[u].pos;
+    assert_ne!(p, exit, "counted: not left on the spot it stood on");
+    let d = crate::world::vector_dist(p.x - exit.x, p.y - exit.y);
+    assert!(
+        d <= 480,
+        "one candidate on, on the same ring: {p:?} against {exit:?}"
+    );
+}
