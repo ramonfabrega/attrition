@@ -15460,7 +15460,10 @@ pub(crate) mod tests {
             // fewer, who=1's cities' `gatherers` (`docs/AI.md` §73). Item
             // 870 sixteen fewer: the `group` rows, `1/11` 64 against −1 and
             // army 0's `1/48`..`1/58` 69 against 68 among them (`docs/GROUPS.md` §29).
-            419,
+            // Item 919 208 fewer: run78's `GUY` records are the short form,
+            // so gaia's 104 animals' `cur_anim` and `cur_time` read `theirs
+            // None` and are named unprinted now, not parting.
+            211,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -15476,7 +15479,9 @@ pub(crate) mod tests {
         // Item 870: 418/421, the first block's sixteen `group` rows (`1/0`
         // 70 here against 69, `1/11` 64 against −1, army 0's `1/48`..`1/58`
         // 69 against 68) and `1/60`'s on 15784 (`docs/GROUPS.md` §29).
-        assert_eq!((first, firsts.len()), (418, 421), "the floor");
+        // Item 919: 210/213, the 208 gaia clock rows named unprinted (the
+        // short `GUY` record prints none), not a parting closed.
+        assert_eq!((first, firsts.len()), (210, 213), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
