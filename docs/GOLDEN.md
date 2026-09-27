@@ -1385,19 +1385,17 @@ below without a run take their number at booking (the eleventh pass).
 | 300 | twenty-seven, the upgrade line | `[605, 1560)` | a unit upgrade through `@queueup` at who=0's Barracks, staged Classical (§36) |
 | 304 | twenty-eight, two buildings under one command | `[605, 1580)` | `@queueup` and `@buildmask` on two Barracks: the sort and passes, the toggle on `[on, off]`, the building group of two (§37) |
 | 308 | twenty-nine | `[605, 2070)` | §38 |
-| — | thirty onward | — | §14a, the continuation (parked 932: this table is at the section ceiling) |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
-~~Chapter eight and any further detail window need numbers beyond the
-reservation.~~ Any further detail window takes its number at booking.
-The order above is by **what a failure would teach**, not by
-chapter number: 113 and 116 are placed early because each can invalidate work
-that would otherwise be done on top of it.
+Chapter thirty onward: §14a, where this table continues (parked 932).
 
 ## 14a. The running order, continued
 
 §14's table is at the section ceiling (parked 932); its rows from chapter
-thirty on are here, in the same columns.
+thirty on are here, in the same columns. Any further detail window takes
+its number at booking. The order of both tables is by **what a failure
+would teach**, not by chapter number: 113 and 116 are placed early because
+each can invalidate work that would otherwise be done on top of it.
 
 | run | chapter | window | why this order |
 |---|---|---|---|
