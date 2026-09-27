@@ -3746,8 +3746,18 @@ pub(crate) const WIDENING_CHAPTER_TWENTY_EIGHT: (i64, i64) = (605, 1581);
 /// under the bit at their full tanks, and a Biplane trained at the
 /// Airbase (`docs/GOLDEN.md` §38, item 915, run308).
 ///
-/// **The delta**, this constant's: the first pin.
-pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_NINE: i64 = 1745;
+/// **1745, open, on the first walk**: on 1746 the Biplane `0/9` trained
+/// at the Airbase is out on the EXIT's point here and idling (ours alone
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d` on 1745's tick), and inside
+/// `0/2007` there with no order. The three relaunches (1585, 1789, 1813)
+/// agree whole.
+///
+/// **2070, closed** (item 915, `Build::train@0062f9b0`'s `CARRY_AIR` arm,
+/// `docs/PRODUCTION.md` "The trained aircraft"): the Biplane stays in the
+/// base, and the stream agrees to run308's end.
+///
+/// **The delta**, this constant's: +325, 1745 → 2070, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_NINE: i64 = 2070;
 
 /// `chapter_twenty_nine_s_word_frame_is_widened_whole`'s window: run308
 /// whole, (605, 2071). Its pool half, `widen_pool`, reads who=0's
@@ -4259,10 +4269,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_twenty_three_s_word_frame_is_widened_whole", 35),
     // Chapter twenty-nine is chapter twenty-two's game to 2070 with no
     // toggle (item 915): the same 35, one EXIT read for each of the three
-    // relaunches (1585, 1789, 1813), and one for the Biplane this crate
-    // brings out on 1746, which the original keeps inside.
-    ("chapter_twenty_nine_holds_to_the_golden_word", 39),
-    ("chapter_twenty_nine_s_word_frame_is_widened_whole", 39),
+    // relaunches (1585, 1789, 1813). The first walk read 39: the fourth
+    // was the Biplane's EXIT on 1746, which the built arm keeps inside.
+    ("chapter_twenty_nine_holds_to_the_golden_word", 38),
+    ("chapter_twenty_nine_s_word_frame_is_widened_whole", 38),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
