@@ -19,13 +19,14 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **2**): 947 closed chapter
-  thirty-two at 2360 (run344). 971 took the second pair (run346, run347)
-  and built `think_spellcaster`'s coin, which both words met at frame 0:
-  **East Indies 0 → 10, Great Lakes 0 → 1**, the lower map now. 972 live.
+- **Since the pass** (count from 0b401602: **3**): 947 closed chapter
+  thirty-two at 2360. 971 took the second pair and built
+  `think_spellcaster`'s coin: **East Indies 0 → 10, Great Lakes 0 → 1**.
+  972 measured the held-out map once (run348): **1 and 0**, parting on
+  frame 1, so DECISIONS 53 §4 has the next pass book a third scored map.
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 18 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984).
+- **Fable backlog: 21 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -34,10 +35,9 @@ Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 cl
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander, two lanes — 979 on the AI lane (Great Lakes'
-frame 1, the second pair's word) and 972 on the rules lane, then 965.
-Every brief names the lane gate (`--lane`) and the checklist's
-seventeenth-pass rows. The count runs from 0b401602; the eighteenth pass
-at twenty.**
+frame 1, the second pair's word) and 965 on the rules lane; after 965
+the rules lane takes the next chapter without a capture (GOLDEN §13).
+The count runs from 0b401602; the eighteenth pass at twenty.**
 
 ## The queue
 
@@ -54,11 +54,6 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     step 11 here against 6 there, timber 92 against 28, a tech stamped on
     frame 1 — 971's reading, a hypothesis. East Indies' 10 follows (197
     against 188 at index 183, inside run349).
-
-972. **The held-out map, measured once** (DECISIONS 53; parked 372): map
-    9, seed 12345, in run33's shape, **run348**; one diff, and the number
-    and its first breaker into `docs/RUNS.md`. Nothing is debugged
-    against it and no item is opened on it. run106's dump is not on disk.
 
 965. **The blind list's row 6, its last gate** (959): `new_danger` and
     `restart_trade_route` are one gate in `Object::take_damage`
