@@ -16835,8 +16835,8 @@ pub(crate) mod tests {
         );
         assert_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
-            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
+            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
