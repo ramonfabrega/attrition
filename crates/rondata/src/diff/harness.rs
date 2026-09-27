@@ -10945,7 +10945,10 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (211/227 → 210/226): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 882 took three (210/226 → 207/223): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, firsts.len()), (207, 223), "the floor");
+        // Item 890 took three (207/223 → 207/220): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, firsts.len()), (207, 220), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -11150,7 +11153,10 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (227/359 → 226/358): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 882 took three (226/358 → 223/355): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, firsts.len()), (223, 355), "the floor");
+        // Item 890 took three (223/355 → 220/352): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, firsts.len()), (220, 352), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11381,7 +11387,10 @@ pub(crate) mod tests {
             // (`Object::take_damage`'s stamp, `docs/AI.md` §71).
             // Item 882 took three (358/36/394 → 355/36/391): the squad's
             // 11424 `group` rows, `come_out`'s push (`docs/GROUPS.md` §31).
-            (355, 36, 391),
+            // Item 890 took three (355/36/391 → 352/36/388): who=1's `MAKE[1]`, `[3]` and `[4]`
+            // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+            // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+            (352, 36, 388),
             "the floor"
         );
     }
@@ -11515,7 +11524,10 @@ pub(crate) mod tests {
         // Item 729 took one: `0/frame_attacked`, `Object::take_damage`'s
         // stamp (`docs/AI.md` §71).
         // Item 882 took three (394/4/398 → 391/4/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, own.len(), firsts.len()), (391, 4, 395), "the floor");
+        // Item 890 took three (391/4/395 → 388/4/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, own.len(), firsts.len()), (388, 4, 392), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11630,7 +11642,10 @@ pub(crate) mod tests {
         // mirror (parked 275), an equal group's record kept.
         // Item 729 took one more (399/0/399 → 398/0/398): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -11767,7 +11782,10 @@ pub(crate) mod tests {
         // move `facing` on 15351 (parked 716), the siege arm's sub-group
         // laying out on its own cleared record (`docs/GROUPS.md` §26).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -11908,7 +11926,10 @@ pub(crate) mod tests {
         // (`docs/GROUPS.md` §26). Nothing parts on 15441..15859; the word
         // left run211 for 16460 (run218).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12016,7 +12037,10 @@ pub(crate) mod tests {
         // §17), nothing arriving — **nothing parts on 15860..16711**, and
         // the word left run218 for 17099.
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12149,7 +12173,10 @@ pub(crate) mod tests {
         // every key to the window's end (1256 before item 776, 876 before
         // item 785 — none since, to 17350).
         // Item 882 took three (398/0/398 → 395/0/395): `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!((under, mid, firsts.len()), (395, 0, 395), "the floor");
+        // Item 890 took three (395/0/395 → 392/0/392): who=1's `MAKE[1]`, `[3]` and `[4]`
+        // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
+        // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
+        assert_eq!((under, mid, firsts.len()), (392, 0, 392), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
