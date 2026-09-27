@@ -4355,6 +4355,13 @@ pub(crate) const GREAT_LAKES_FOREST_CELL_BLOCK: i64 = 17_182;
 pub(crate) const WIDENING_GREAT_LAKES_STAND: (i64, i64) = (17_345, 20_818);
 /// run243's first block.
 pub(crate) const GREAT_LAKES_STAND_FIRST: i64 = 20_500;
+/// `run294_s_departure_is_widened_whole`'s window (item 795): run226's
+/// last six blocks (17345..17350), then run294 whole, 19840..19999 — the
+/// four walkers' return leg leaving the far point. **A bisection of the
+/// gap, not a word's window**: 17351..19839 is compared by no dump.
+pub(crate) const WIDENING_GREAT_LAKES_DEPART: (i64, i64) = (17_345, 19_999);
+/// run294's first block.
+pub(crate) const GREAT_LAKES_DEPART_FIRST: i64 = 19_840;
 /// The word 20568's block on run243: its frame, the original's blocked
 /// step (`Unit::move_step+0x823`) where ours spends an idle roll, writes
 /// block 20569. The coverage driver reads run243 around it.

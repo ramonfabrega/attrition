@@ -12191,8 +12191,13 @@ pub(crate) mod tests {
             "the walk is whole on both captures: six of run226's, 319 of run243's"
         );
         let mut by: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
-        for ((w, o, _), (f, _)) in &firsts {
+        for ((w, o, what), (f, row)) in &firsts {
             *by.entry((*f, *w, *o)).or_default() += 1;
+            // Every first parting past run226, with its value diff: what a
+            // re-pin reads off a failing run (item 795).
+            if *f > RUN226_TAIL {
+                eprintln!("  firstrow {f} {w}/{o} {what}: {row}");
+            }
         }
         // **What the gap carried in** (R3, the stanza's): the rows standing
         // on run243's first block that were not standing on run226's last.
@@ -12298,6 +12303,54 @@ pub(crate) mod tests {
             376,
             "every row standing on the word's block"
         );
+    }
+
+    /// **run294 — Great Lakes' departure, widened whole, both directions**
+    /// (item 795). run226's chain, then run294 over
+    /// [`WIDENING_GREAT_LAKES_DEPART`]'s tail: the four walkers' return leg
+    /// leaving the far point, a bisection of the gap run243 left.
+    #[test]
+    fn run294_s_departure_is_widened_whole() {
+        use std::collections::BTreeMap;
+        const RUN226_TAIL: i64 = WIDENING_GREAT_LAKES_GIVEUP.1;
+        let mut chain = great_lakes_word_chain();
+        chain.pop();
+        chain.push((
+            "gamelog-run294-greatlakes-departword.txt",
+            WIDENING_GREAT_LAKES_GIVEUP.1 + 1,
+        ));
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run294",
+            &chain,
+            WIDENING_GREAT_LAKES_DEPART,
+            11_800,
+            &[RUN226_TAIL, GREAT_LAKES_DEPART_FIRST + 2],
+        )
+        else {
+            return;
+        };
+        assert!(missing.is_empty(), "the record does not carry {missing:?}");
+        let mut by: BTreeMap<(i64, i64, i64), usize> = BTreeMap::new();
+        for ((w, o, _), (f, _)) in &firsts {
+            *by.entry((*f, *w, *o)).or_default() += 1;
+        }
+        for ((f, w, o), n) in &by {
+            if *f > RUN226_TAIL {
+                eprintln!("  first {f} {w}/{o} x{n}");
+            }
+        }
+        for ((w, o, what), (f, row)) in &firsts {
+            if *f > RUN226_TAIL {
+                eprintln!("  firstrow {f} {w}/{o} {what}: {row}");
+            }
+        }
+        let _ = (blocks, standing);
     }
 
     /// **The payoff probe of `run136_s_word_frame_is_widened_whole`, and

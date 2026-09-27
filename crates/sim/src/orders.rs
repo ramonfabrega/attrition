@@ -3955,6 +3955,18 @@ impl Sim {
                     self.store_move(u, mo, flags);
                     return Did::Something;
                 }
+                // **The verified line reads the stack again** (`5f8c3d`–
+                // `5f8c5d`, `docs/GROUPS.md` §32): `peek`, then the order's
+                // `dest_x`/`dest_y` and the unit's `+0x60` tolerance from
+                // the top. A detour `find_path` just pushed and verified
+                // (`go_around_building`, [`Sim::detour_verified`]) is the
+                // top now, so it is what the step walks at — not the world
+                // entry under it. Great Lakes' `1/40` walked past its own
+                // detour for seventeen frames without this (item 795).
+                if let Some(t) = self.units[u].path.last().copied() {
+                    mo.waypoint = t.to;
+                    self.units[u].tolerance = t.tolerance;
+                }
                 self.store_move(u, mo, flags);
             }
         }
