@@ -32,6 +32,9 @@
 #   driver:     a script driven while the game runs, for the right-clicks the
 #               cheat channel cannot issue — `move` is a teleport and **no
 #               console command issues an order at all**
+#   profile:    `KEY=N` pairs for the profile's `<SOLO>`/`<MULTI>` lobby
+#               blocks (`profile.py`), for a field `-config` cannot set or a
+#               map that drops it; the profile is restored when the take ends
 #   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
 #               `driver:` needs `-`** — under `!ffwd` the game stops drawing
 #               and a click lands on a frozen picture (run47)
@@ -7353,3 +7356,127 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - **R3 holds, narrowed**: slot 4's Farm jitter at corner (184, 196)
 #   finds four clear sub-positions here and three there.
 # - **R4 is killed**: only 851's standing `leftover[2:wealth]` parts.
+
+run: 314
+tag: greatlakes-cover-ch23
+item: 923
+why: the blind list's first targeted capture — chapter twenty-three's script whole under `cover=1` on the queue lane
+# **The golden record's chapter twenty-three, re-run with coverage** (item
+# 923, `docs/CENSUS.md` "The blind list, ranked"). Every golden chapter since
+# ten ran at `cover=0`, because `cover=1` hangs the click-free lane before
+# frame 0 (parked 697, run185), so the census's entered column has not seen
+# a single issuer. This lane is the one `cover=1` works on (run906, run202):
+# no `callwin` proxies, no autostart build. Chapter twenty-three is chosen
+# because its script is chapter seventeen's flight line whole, chapter
+# twenty-two's launch and the repeat toggle — the air family and the
+# `buildmask` family, the largest share of never-entered cited functions
+# one existing script reaches.
+#
+# **The same game as the golden lane's**: the golden record is the
+# profile's lobby at map 14 and seed 12345 with no `-config` (run101-105),
+# so `cfg: -` here, and the checks below hold it frame for frame against
+# `~/ron-golden/ch23`'s own `cover=0` trace (run281).
+#
+# The lines are `~/ron-golden/ch23/map-14/rontrace.cmd` exactly, in order.
+# **`ffwd: -` and the fast-forward as a `cmd:` line**: `longtrace.sh`
+# writes its `FFWD` line *before* the stanza's lines, and the channel clamps
+# a frame below its predecessor, so a `37 !ffwd` there would move the
+# chapter's `0 !ai off` to 37.
+#
+# **The DLL is the install's, and this lane never builds it**: `longtrace.sh`
+# loads whatever `rontrace.dll` `build.sh` last left in `game/`. A chapter's
+# `@` verbs are the DLL's, so this stanza needs a plain build of the
+# current `tracer.c` first (`zsh tools/trace/build.sh <install>`, no
+# `TRACER_DEFS`). **Take one** (02:14) ran on a 2026-09-23 build that
+# predates `@flight`, `@strike` and `@buildmask`, and died before frame 0
+# on `wine: Unhandled page fault on read access to 00004ECD` — the bop
+# signature of `docs/ORACLE.md`'s "Coverage is back" — after 2,101 `HIT`s;
+# its trace and wine log are kept as `rontrace-run314-take1-fault.log` and
+# `wine-run314-take1-fault.log`. The same build ran `cover=1` whole at
+# run226 two days before.
+frames: 1840
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+# The `[End Frame]` detail that prints the orders (`UNITS=3`), the Airbase
+# and its masks (`BUILDS=7`) and the rounds (`AMMO=5`) — enough for each
+# order class's `log_data` to be entered — and nothing else; the detail
+# costs wall clock and no draw.
+end: MISC,UNITS=3,BUILDS=7,AMMO=5
+cmd: 0 !ai off
+cmd: 37 !ffwd 3
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1440 @buildmask 0 128 2007
+# Every cheat line ran, on its frame (the `@` lines carry no `INFO cmd`).
+check: python3 tools/gamelog/cmdsran.py rontrace-run314.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 1840:1
+# The same game as run281, word for word over the whole capture.
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch23/map-14/rontrace.log" rontrace-run314.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1840)}'
+# And the coverage landed: the air family's command entered.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run314.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_buildmask$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+# ==== TAKEN 2026-09-27, take two, **WHOLE, AND THE ISSUERS REFUSED** ====
+#
+# 249,142,683 bytes of dump and 9,712,448 of trace, 1,841 blocks, launched
+# 02:22 through `viadriver.sh` (the lane lock was stale: pid 30197, take
+# one's), archived 02:36. `waitrun.sh` exited 1: the first check passed,
+# the second and third failed, as they should have on what happened:
+# - every cheat line ran;
+# - the word agrees with ch23's to 642 and parts on 643, the tick after the
+#   `@flight` the DLL refused;
+# - neither issuer entered: all six `@` lines were refused with code 2,
+#   the prologue check, because `cover=1`'s `jmp` is over every prologue
+#   (`docs/RUNS.md` run314). A stanza with `@` lines and `cover=1` cannot
+#   pass until `tracer.c`'s guard reads the displaced bytes from the stub.
+
+run: 316
+tag: britishisles-largetown
+item: 935
+why: the blind list's row 4 — British Isles enters Map::place_start_in_region, a Large Town start Setup::large_city_buildings; quit at frame 5
+# One launch for the whole row, because only two of its nine functions are
+# reachable from a solo lobby at all (`docs/CENSUS.md`, "The blind list,
+# 2026-09-27, item 935"): `place_start_in_region@0068ac00` has two callers,
+# `MapBritishIsles::make_continents@00695130` (every player's start, one
+# region per island) and `MapEastMeetsWest::make_continents@00696640`; and
+# `large_city_buildings@005aac80` is `build_cities@005ab910`'s branch on
+# `starting_town == 3`, which `rules.xml`'s `startingtowns` names Large Town.
+# British Isles is style 22 and not 14, so the lobby is the profile's
+# (`cfg: -`), and the starting town goes in through the profile's blocks.
+frames: 5
+mapstyle: 22
+cfg: -
+profile: STARTING_TOWN=3
+ffwd: -
+cover: cover=1
+# The setup is the question and it runs before frame 0: the thinnest
+# per-frame detail, and run10's start dump (a British Isles `WORLD` for
+# free). Before Start there is no gamelog at all, and the start dump is
+# megabytes, so 1 MB cannot call the map's loading a finished run.
+end: MISC
+settle_min: 1000000
+# The lobby took: British Isles and a Large Town, read back from the run's own
+# `GAME INFO` block. Its lines end in `\r`, so an anchored `grep -q` never
+# matches them (take one's two failed checks), and `grep -q` closing the pipe
+# early fails under runqueue's pipefail.
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tr -d '\r' | tee /dev/stderr | awk '{v=$2} END{exit !(v==22)}'
+check: grep -a -m1 "STARTING_TOWN" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tr -d '\r' | tee /dev/stderr | awk '{v=$2} END{exit !(v==3)}'
+# And both functions entered.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run316.log" functions 2>/dev/null | grep -E " Map::place_start_in_region$| Setup::large_city_buildings$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; BOTH FUNCTIONS ENTERED** ====
+#
+# 03:04:57 to 03:08 through `viadriver.sh`, the lane lock stale (pid 58192,
+# the click-free lane's 02:36 take). 11,029,469 bytes of gamelog, 9,066,752
+# of trace, `MAP_STYLE 22`, `STARTING_TOWN 3`, seed 12345; both functions
+# entered before frame 0. The summary said FAILED only because the two
+# `GAME INFO` checks as first written anchored on a line that ends in `\r`;
+# they are the ones above now (`docs/RUNS.md` run316). DLL sha256
+# 17c5f215d8ea2775f020e3acc4a1b9de5e07bce83264f8afea837dec6cc798e2.

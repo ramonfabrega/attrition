@@ -437,7 +437,10 @@ def main():
                 if r[0] == 7 and r[1] in sites:
                     entered.add(sites[r[1]][0] + BASE)
         cited = defaultdict(set)
-        pat = re.compile(r"([A-Za-z_][A-Za-z0-9_:~<>]*)@(00[0-9a-f]{6})")
+        # A citation broken after its `@` is joined, as `tools/census.py`
+        # joins it (parked 835): eight cited functions stood outside this
+        # verb's list on 2026-09-27 for want of it (item 923).
+        pat = re.compile(r"([A-Za-z_][A-Za-z0-9_:~<>]*)@(?:\n[ \t]*)?(00[0-9a-f]{6})")
         for root, _, files in os.walk(docs):
             for fn in files:
                 if not fn.endswith(".md"):

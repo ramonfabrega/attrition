@@ -8923,3 +8923,91 @@ point as one group, attack-moving; a squad whose point is a friendly
 building garrisons it; and a citizen whose point is a building of its
 own at action 0 walks there with a plain move and gathers later of its
 own accord.
+## run314 — chapter twenty-three under `cover=1` on the queue lane, and the issuers it refused (2026-09-27, item 923)
+
+**What it is.** The blind list's first targeted capture (`docs/CENSUS.md`,
+"The blind list, ranked"): `~/ron-golden/ch23`'s staged `rontrace.cmd`
+line for line as `cmd:` lines, `cover=1`, no `callwin`, map 14 at seed
+12345 with `cfg: -` (the golden record's lobby, not `check.ini`'s),
+`end: MISC,UNITS=3,BUILDS=7,AMMO=5` over the whole run, `!quit` at 1840,
+through `viadriver.sh … runqueue.sh - 314` with no human at the menu. The
+stanza is in `tools/gamelog/captures.txt`; `ffwd: -` with the chapter's
+own `37 !ffwd 3` as a line, because `longtrace.sh` writes its `FFWD`
+before the stanza's lines and the channel would clamp `0 !ai off` to 37.
+
+**Take one** (02:14) died before frame 0: `wine: Unhandled page fault on
+read access to 00004ECD` — `docs/ORACLE.md`'s bop signature — after 2,101
+`HIT`s, on the install's 2026-09-23 `rontrace.dll`, which predates the
+chapter's verbs and had run `cover=1` whole at run226. `waitwin.sh` then
+waits forever on a process that is gone, so the runner was stopped by
+hand and `window.py restore` run; the trace and wine log are kept as
+`rontrace-run314-take1-fault.log` and `wine-run314-take1-fault.log`. The
+queue lane loads whatever DLL `build.sh` last left in `game/` and never
+builds one; a plain build of the current `tracer.c` went in before take
+two (the old one beside it, `rontrace.dll.2026-09-23-0102.bak`).
+
+**Take two** (02:22–02:36) is the capture: 249 MB of dump, 9.7 MB of
+trace, 1,841 blocks, `MAP_STYLE 14`, seed 12345, 6,649 functions entered.
+
+| check | result |
+|---|---|
+| `cmdsran.py`: every cheat line on its frame | 9 of 9 ran, each returned 1 |
+| `rngcmp.py` against ch23's `cover=0` trace | **0 differing to 642**, first differing 643 (harness word 642), 654 identical of 1,841 |
+| `issue_flight` and `issue_buildmask` entered | **neither** |
+
+**Every `@` line was refused, refusal 2.** Six `INFO 17` records, on 620,
+640, 660, 664, 766 and 1440, each `b = 0x2000n`: the line index with
+refusal 2 in the high half — the issuer's prologue is not the shipped one
+(`tools/trace/tracer.c`, `issue_line`). The console-player check comes
+first and passed on all six. `cover=1` writes a five-byte `jmp` to each
+listed function's stub at attach, so every `CommandManager::issue_*`'s
+first bytes are the instrument's, and the guard that protects a call
+into an unexpected build refuses them all. **No issuer chapter can be
+captured with coverage on any lane until the guard reads the displaced
+bytes from the stub** (or the issuers leave the coverage table). The game
+is the golden run's until the first order the refusal withheld: the 620
+strike took no order in the golden runs either (`docs/GOLDEN.md` §25), and the
+640 flight is the first that did.
+
+**What it entered that nothing else does**: `Object::do_launch`, first on
+606 (the staged Airbase), and `Leader::set_age`, on 600 (the `library`
+cheat). The blind list 228 → 227; the census's entered column 7,664 →
+7,666 over the corpus. `rondata::blind::TRACES` carries run314.
+
+## run316 — British Isles with a Large Town, quit at frame 5: the blind list's row 4 (2026-09-27, item 935)
+
+**What it is.** One launch for row 4 of `docs/CENSUS.md`'s ranked blind
+list, on the queue lane at `cover=1`, through `viadriver.sh … runqueue.sh -
+316` with no human at the menu: map style 22 (British Isles) through the
+profile (`cfg: -`), the profile's `STARTING_TOWN` set to 3 (Large Town)
+through the stanza's new `profile:` key, seed 12345, `ffwd: -`,
+`end: MISC`, run10's start detail, `!quit` at 5. The reading behind the
+staging is the census's "row 4 read to its callers": only two of the
+nine functions are reachable from a solo lobby at all, and one lobby sets
+both. The DLL was item 923's plain build of `tracer.c`, sha256
+`17c5f215d8ea2775f020e3acc4a1b9de5e07bce83264f8afea837dec6cc798e2`
+(parked 936).
+
+**Taken** 03:04:57–03:08 in one take: 11.0 MB of gamelog, 9.1 MB of
+trace, six `FRAME` records (frames 0–5), 6,518 `HIT`s. The run's own
+`GAME INFO` reads `MAP_STYLE 22` and `STARTING_TOWN 3`, so both lobby
+fields took; `longtrace.sh` copied `Player.dat` back afterwards
+(`STARTING_TOWN 2`), and `mapstyle.py 14` put the profile's style back to
+the 14 it was found at.
+
+| check | result |
+|---|---|
+| `MAP_STYLE 22` in `GAME INFO` | yes |
+| `STARTING_TOWN 3` in `GAME INFO` | yes |
+| `Map::place_start_in_region` and `Setup::large_city_buildings` entered | **both**, before frame 0 |
+
+The queue summary said `checks FAILED` on the take: the two `GAME INFO`
+checks as first written anchored `grep -q "… 22$"`, and the gamelog's
+lines end in `\r`. Both values were right on the page; the checks now
+strip the `\r` and read the field with `awk`, pass on this archive, and
+exit 1 when the expected value is wrong.
+
+**What it entered that nothing else does**: `Setup::large_city_buildings`,
+`Map::place_start_in_region`, `MapBritishIsles::make_continents` and
+`Map::is_near_ocean`. The blind list 227 → 225; the census's entered column
+7,666 → 7,670. `rondata::blind::TRACES` carries run316.
