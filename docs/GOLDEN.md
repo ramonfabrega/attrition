@@ -1383,6 +1383,7 @@ below without a run take their number at booking (the eleventh pass).
 | 292 | twenty-five, the cancel line | `[605, 1466)` | the player's cancel through the DLL's new `@unqueue` on a Barracks `0/2007`: slot 0 of a Hoplite run with the head in progress (700), slot 0 of `[132*, 170]` (760), a single cancel on an infinite queue (840, after `@buildmask` 0x40 on 800), and −1 on `[132*, 170]` (1000); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the commands' entries on run285's start (§34) — **run 2026-09-26 (item 884), 359 MB, 1,099 s; no falsifier fired, every value on its predicted block: arm a removed the run's second (+53/+41) on 702 and kept the head at 8100; arm b the head (+51/+38) on 762; arm c cleared the bit and removed nothing on 842; no re-queue at the Bowmen's finish on 965; −1 removed the last (+46/+56) on 1002; no cancel seats a slot; word ~~855, open~~, closed at 1466 (item 884: the cancel entered)** |
 | 296 | twenty-six, the research line | `[605, 1492)` | a technology through the player's `@queueup` on who=0's Library `0/2005`: The Art of War with `num` 2 on the idle Library (620), again while it researches (640), Written Word on the busy Library (650), The Art of War held (850), Barter behind Written Word (860), Hoplites at the Barracks (870), a cancel of the re-priced Barter (1040) and Barter again (1060); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the command's entry on run292's start (§35) — **run 2026-09-26 (item 883), 365 MB, 1,120 s; no falsifier fired, every value on its predicted block: one entry and 120 food on 622, nothing on the second press (642) or the held one (852), Written Word behind the busy head on 652, The Art of War out on 822 (discovered 2), Barter re-priced to 54/54 on 1023 (discovered 3: Boadicea counted), +54/+54 on the cancel (1042), 54/54 again on 1062, Barter out on 1242; word 1492, closed on the first walk (a research spends no draw) and after the build, whose value rows it closed (item 883: the research arm entered)** |
 | 300 | twenty-seven, the upgrade line | `[605, 1560)` | a unit upgrade through `@queueup` at who=0's Barracks, staged Classical (§36) |
+| 304 | twenty-eight, two buildings under one command | `[605, 1580)` | `@queueup` and `@buildmask` on two Barracks: the sort and passes, the toggle on `[on, off]`, the building group of two (§37) |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -5791,3 +5792,185 @@ seats' record `o` on 622 and 1111 (parked 887).
 
 The last two are the emulator's rows b and f, and no capture on disk
 splits them.
+
+## 37. Chapter twenty-eight — two buildings under one command: the queue-up's sort and passes, the infinite toggle on two, and the building group of two in the pool (item 888)
+
+**Premise.** Every issuer chapter before this one selected one building.
+With two, three mechanisms read one way and not yet staged:
+`Group::action_queue_up@006fdbb0` **sorts the members once by `queued`,
+least first, and then lays `num` passes, one entry a member a pass**
+(`docs/PRODUCTION.md` "The command on a selection of buildings");
+`Group::action_buildmask@006fc9a0` **sets a member's bit only while it
+and every admitted member before it lacked it** (§32); and
+`CommandPackage::process_group@0094a0c0`'s push **seats the two as one
+record, `buildings 1`, in the command's order, and a command whose group
+equals `last_group`'s record in the same order seats nothing**
+(`Groups::push_group@0070f9e0`, `Group::equals_group@00708000`). The
+last is the one this crate does not carry: `Sim::push_command_buildings`
+seats a single building only (its `SEAM:`, `docs/GROUPS.md` §31.4). Each
+clause is a claim, and the cast puts one press on each.
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`'s
+machine, out of git): real `Build::vftable` and `Group::vftable` objects
+in who=0's registry, the type list and the leader's bits synthesized,
+`Build::queue_up@00620f40`, `LeaderData::researching@006db510` and the
+type record's `is` stubbed and recorded; `Group::add@00714350`,
+`push_group`, `equals_group`, `Groups::get_open_slot@006fa460` and
+`Groups::copy_group@006fa690` run as shipped on a synthesized pool. The
+listing was read first: the sort is `6fdc6b`..`6fdd86` (the pivot's
+`+0x82` against each later member's, `jbe` at `6fdd4b`: a swap only on
+strictly less, unsigned), the pivot tested alive (vslot `0xc`, `+8 & 1`)
+and finished (vslot `0x4c`, `+8 & 4`) before its inner loop; the passes
+are `6fdf20`..`6fe06f`, `[ebp+0xc]` counted down, each member tested
+alive, finished and vslot `0x20`, a missile silo asking `can_carry`,
+and the call at `6fe056` whose answer is not read.
+
+| the group, the press | what `queue_up` is called on, in order |
+| --- | --- |
+| (a) two empty, `num` 1 | 2007, 2008 |
+| (a) two empty, `num` 3 | 2007, 2008, 2007, 2008, 2007, 2008 |
+| (b) `[2007 q2, 2008 q0]`, `num` 1 / 3 | 2008, 2007 / 2008, 2007 × 3 |
+| (b) `[2007 q1, 2008 q1]` | 2007, 2008: no swap on equal |
+| (c) the first not finished, `num` 1 | 2008 alone |
+| (c) `[2007 q2, 2008 not finished q0, 2009 q1]` | 2009, 2007: the unfinished member is swapped to the head, and never called |
+| `num` 0, `num` −1 | nothing |
+| a call refused (`queue_up` answers 1) | the passes go on |
+| the research arm (the bit clear), `[q2, q1]` / `[q0, q0]` | once: 2008 / 2007 |
+
+`action_queue_up` itself writes nothing on a member (every building write
+is `queue_up`'s) and the group's `+0x28` (`Group::action_begin`).
+`action_buildmask(0x40)` on two admitted members: `[on, off]` → `[off,
+off]`, `[off, on]` → `[on, off]`, `[off, off]` → `[on, on]`, `[on, on]` →
+`[off, off]`. The push of `[2007, 2008]`: one record, `buildings 1`,
+`num` 2, the list as added, `stamp` the frame, `speed` 0, and **nothing
+written on either building** (the member walk writes a unit's `+0x80`
+alone); the same group again: nothing; `[2008, 2007]` after it: a new
+seat (`equals_group` compares the lists in order); a duplicate in the
+command is dropped by `GroupData::member@0070f8f0`. **The `SEAM:` against
+the listing's loops** (910): `process_group`'s loop over the command's
+`num` objects adds every live one, whatever it is, and pushes once after
+the loop (`0x94a6cf`): the crate's single-building guard is the only
+difference. **What the emulator could not reach**: `queue_up`'s price and
+room (the crate's, diff-backed by run285 and run296), `process_group`'s
+own body (its `SyncLogger` and log), a finished member (`+8 & 4`) no
+cheat can clear, and a silo.
+
+**The writers and readers, counted** (823, 869). `queued` (`BuildData
++0x82`): written by `Build::queue_up` (+1), `Build::unqueue@006207c0` and
+`Build::clean_queue@00620b60` (−1), `Build::new_library` (a copy) and the
+constructor; in this window, the presses' `queue_up` and the finishes'
+`unqueue`. `last_group` (`Groups +0x1c`, `0xe85f2c`): written by
+`push_group` alone (and the constructor and the save), read by it and by
+`get_open_slot`. A record's kind (`+0x49`): `Group::add` and
+`copy_group`. `build_masks` (`WallData +0x60`): §33's list.
+
+**The cast** is chapter thirteen's with a second Barracks: `606 add
+barracks who=0 14,74` (`0/2007`), **`608 add barracks who=0 22,74`**
+(`0/2008`, eight tiles east; `Objects::init_build` asks no site), `610
+add chariot`, `614 add hoplite`. **Lines**: `620 @queueup 0 170 1 2007`
+(Bowmen at 2007 alone); `640 @queueup 0 132 3 2007 2008` (Hoplites,
+`num` 3, the busier listed first); `700 @buildmask 0 64 2008`; `720
+@buildmask 0 64 2008 2007`; `740 @queueup 0 132 1 2007 2008` and `760`
+the same, both refused on price. `CommandPackage::add_group@0094bb60`'s
+reuse test is an ordered compare of the selection, so 740 sends a new
+group and 760 the three-byte reuse.
+
+**The staging, walked by this crate through the commands' entries**
+(`input::group_queue_up`, `input::group_buildmask`, on run285's start,
+which is this game to 607; the two-building seat by a prototype for the
+pool's values; run305 was not used). Every value is this crate's:
+- **610**: `0/2008` at (4224, 14208), `build_masks` 4096.
+- **622**: `0/2007` `[170 at 100]`, 41 timber 51 wealth; food 254, timber
+  200, wealth 62.
+- **642**: `0/2008` `[132 at 100 53/41, 132 60/50]`; `0/2007` `[170, 132
+  56/45, 132 65/56]`; food 22, timber 9. The fifth call's 70/62 and the
+  sixth are refused.
+- **702**: `0/2008` 4160. **722**: 4096 and 4096.
+- **742**, **762**: the queues unchanged; food 31 and 33, timber 16 and 17
+  against the Hoplites' ~70/62.
+- the pool (who=0): **622** slot 1 `[2007]`, stamp 621; **642** slot 0
+  `[2007, 2008]`, 641; **702** slot 1 `[2008]`, 701; **722** slot 0
+  `[2008, 2007]`, 721; **742** slot 1 `[2007, 2008]`, 741; **762** the
+  same.
+- the births: **825** the Bowmen `0/10`..`0/12` out of 2007, slot 0 (the
+  building group `[2008, 2007]`'s, open and not `last_group`'s); **876**
+  the Hoplites `0/13`..`0/15` out of 2008, slot 1; **1067** `0/16`.. slot
+  2; **1126** `0/19`.. slot 3; **1324** `0/22`.. slot 4.
+
+**The gates between each reading and its block** (903). At 642 every
+alternative below is price alone: the four entries cost 234 food and 182
+timber in any order, and the room is 20 a Barracks. **The fourth entry
+has 7 timber over** (63 against 56): a higher price there makes it three
+entries, and the readings still split on the first and third (both
+2008's in the reading). At 722 both members are admitted (`can_infinite`:
+2007 holds the Bowmen, 2008 two Hoplites, all train jobs). At 742 and 762
+the push is `process_group`'s, before `action_queue_up`, so the price's
+refusal does not gate it.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over **`[605, 1580)`**: 975 blocks, **256 of
+runway** past 1324. `GROUPS=1` prints `GROUPDATA`, the pool; `BUILDS=7`
+every entry's `type`, `job_counter`, `cost[]` and `good[]` and
+`build_masks`; `LEADERS=2` the buckets.
+
+**The premise's killer, and its writers** (§3, point 5): `0/2007`'s and
+`0/2008`'s `BUILDQUEUE` and who=0's `bucket`s on 622 and 642, their
+`build_masks` on 702 and 722, who=0's `GROUPDATA` slots 0 and 1 on 622,
+642, 702, 722, 742 and 762, and the trained units' `group` on 825 and
+876. The queue's writers in the window are the presses' `queue_up` and
+the finishes' `unqueue`; the bit's, `action_buildmask` (no finish meets a
+set bit in the reading); the pool's, `push_group` from `process_group`
+and `come_out`. **The loops**: the sort to `num − 1`; the passes, 3; the
+members, 2; `process_group`'s objects, 1 or 2.
+
+**What would falsify it, and where each could first fire.**
+0. **The staging** (610): `0/2008` a Barracks at (4224, 14208), 4096.
+1. **The issues do not reach the pump.** An `INFO 17` with a refusal on
+   620, 640, 700, 720, 740 or 760; or no `process_queue_up` 170 1 on 621,
+   132 3 on 641, 132 1 on 741 and 761, no `process_buildmask` 64 on 701
+   and 721, and no `process_group` with two objects on 641, 721 and 741
+   and the reuse on 761.
+2. **The single press** (622): `0/2007` `[170 at 100]` at 41/51, once.
+3. **The sort and the passes** (642), each entry's building and recorded
+   price — the claim's own unit (711): `0/2008` 53/41 and 60/50, `0/2007`
+   56/45 and 65/56 (**the reading**: sorted, one a member a pass);
+   `0/2007` 53/41 and 60/50, `0/2008` 56/45 and 65/56 (no sort); `0/2008`
+   53/41, 56/45 and 60/50, `0/2007` 65/56 (sorted, `num` a member at a
+   time); `0/2007` three and `0/2008` one (neither); three entries in all
+   and food 87 (`num` over the group); every entry at one building (one
+   member).
+4. **The toggle on one** (702): `0/2008` 4160, `0/2007` 4096.
+5. **The toggle on two** (722), `[on, off]`: 4096 and 4096 (**the
+   reading**: the first member's clear clears the rest); `0/2008` 4096 and
+   `0/2007` 4160 (each member toggled on its own); 4160 and 4160 (the
+   command's `set` read).
+6. **The building group of two** (642): who=0's slot 0 `buildings 1`,
+   `num` 2, `[2007, 2008]`, stamp 641, and slot 1 `[2007]` from 621 (**the
+   reading**); no two-member record (a single building seated, or none);
+   `[2007]` alone (the first member only).
+7. **The next seat** (702): slot 1 `[2008]`, stamp 701 (the reading); slot
+   0 (the two-member record not seated, this crate before its build).
+8. **The order kept** (722): slot 0 `[2008, 2007]`, stamp 721 (the
+   reading); `[2007, 2008]` (the list sorted).
+9. **Order is identity** (742): slot 1 `[2007, 2008]`, stamp 741, slot 0
+   `[2008, 2007]` kept (the reading); no seat, slot 1 `[2008]` 701 (an
+   unordered compare).
+10. **An equal group seats nothing** (762): slot 1 stamp 741 (the
+    reading); slot 0 `[2007, 2008]`, stamp 761 (every command seats).
+11. **The births take the building groups' slots** (825, 876): `0/10`..
+    `0/12` `group` 0 and `0/13`..`0/15` `group` 1 (the reading); 1 and 0
+    (the two-member records not seated); then 2, 3 and 4 on 1067, 1126
+    and 1324.
+
+Falsifiers 3, 5, 6, 9 and 10 test the claim's own unit — an entry, a
+member's bit, a slot's record — on the block its command is processed
+(711), and each splits the readings (789).
+
+**Where it should part.** The floor is measured on this crate as it
+stands, with the two-building seat not built: **642**, who=0's slot 0
+held there and empty here; then 702's `[2008]` in slot 0 here against
+slot 1, 722's and 742's records, and 825's and 876's `group`, 1 and 0
+here against 0 and 1. The queues and the bits should agree on every
+block: `Sim::action_queue_up`'s sort and passes and
+`Sim::action_buildmask`'s rule are built from the reading. The draw
+stream need not part: a slot number spends no draw.
