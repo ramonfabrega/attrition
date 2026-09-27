@@ -601,6 +601,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r96 = crate::testenv::dump("gamelog-run96-eastindies-latecensus.txt");
     let r349 = crate::testenv::dump("gamelog-run349-islands-toughest-open.txt");
     let r350 = crate::testenv::dump("gamelog-run350-greatlakes-toughest-open.txt");
+    let r352 = crate::testenv::dump("gamelog-run352-islands-toughest-1576.txt");
+    let r355 = crate::testenv::dump("gamelog-run355-greatlakes-toughest-3776.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1006,6 +1008,25 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r350 {
         let n = drive_capture(p, 1, 4, &mut paths);
         assert_eq!(n, 4, "run350 carries the second pair's lower word's blocks");
+        frames += n;
+    }
+    // Item 979 moved both words past those windows: East Indies' 1576
+    // (block 1577) on run352 and Great Lakes' 3776 (block 3777) on run355,
+    // each the block before the word's, the word's and the two after.
+    if let Some(p) = &r352 {
+        let n = drive_capture(p, 1_576, 1_579, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run352 carries the second pair's East Indies word's blocks"
+        );
+        frames += n;
+    }
+    if let Some(p) = &r355 {
+        let n = drive_capture(p, 3_776, 3_779, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run355 carries the second pair's Great Lakes word's blocks"
+        );
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

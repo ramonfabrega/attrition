@@ -9518,3 +9518,43 @@ blocks after it. Free disk 32 → 31 GB.
 (`diff::second`), from run347's start. Block 1 stands (58 keys, the first
 pair's families); the word's block 2 parts on 130, who=1's opening
 (`docs/AI.md` §80.5).
+
+## run352 — run346's game at run349's detail over blocks 1571..1827: the second pair's East Indies word 1576 widened (2026-09-27, item 979)
+
+**What it is.** run349's shape on run346's lobby (`cfg: -`, East Indies,
+`profile: DIFFICULTY=5`), with `frame_window: 1571 1828`, `cover=0` and
+`!quit` at 1840. It was taken after item 979's lobby gate moved East
+Indies' word 10 → 1576 (`docs/AI.md` §81). The word's frame writes block
+1577, with six blocks before it and 250 after. Same DLL (`b451aeb6…3dca`).
+The lane lock was stale (run348's game had exited), and nothing else was
+running.
+
+**Taken** 16:59–17:19, one take: 542.5 MB of gamelog, 11.1 MB of trace.
+- `rngcmp.py` against run346: 1841 frames in common, **0 differing**.
+- 257 window blocks; `DIFFICULTY 5`, `MAP_STYLE 18`.
+- Free disk 30 → 28 GB, across both captures.
+
+**What it holds**: `run352_s_word_frame_is_widened_whole`
+(`diff::second`), walked from run346's start.
+- Block 1571 stands on 83 keys.
+- Block 1576, before the word, parts on 5: `reg_land[11]`, and `2007`'s
+  `city:space`.
+- The word's block 1577 parts on 115: the new building `1/2009` (its
+  gather tiles, damage 1 against 0, city −1 against 1) and citizen `1/2`'s
+  walk.
+
+## run355 — run347's game at run350's detail over blocks 3771..4027: the second pair's Great Lakes word 3776 widened (2026-09-27, item 979)
+
+**What it is.** run350's shape on run347's lobby, with `frame_window:
+3771 4028` and `!quit` at 4040. Run number given by the commander. It was
+taken straight after run352 in the same queue.
+
+**Taken** 17:20–17:39, one take: 509.3 MB of gamelog, 10.9 MB of trace.
+- `rngcmp.py` against run347: 4041 frames in common, **0 differing**.
+- 257 window blocks; `DIFFICULTY 5`, `MAP_STYLE 14`.
+
+**What it holds**: `run355_s_word_frame_is_widened_whole`.
+- Block 3771 stands on 78 keys, and nothing parts on 3772..3776.
+- The word's block 3777 parts on 127: the new building `1/2010` (its
+  gather tiles, damage 1 against 0), `2007`'s `city_down`, the city's
+  `gatherers` 7 against 8, and citizens `1/6` and `1/28`.

@@ -284,6 +284,145 @@ mod tests {
         );
     }
 
+    /// **The second pair's East Indies word, 1576, widened whole** (item
+    /// 979): run352 is run346's game at run349's detail over blocks
+    /// 1571..1827 (`rngcmp.py`: 1841 frames, 0 differing), walked from
+    /// run346's own start. The word's frame writes block 1577.
+    #[test]
+    fn run352_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run352",
+            "gamelog-run352-islands-toughest-1576.txt",
+            WIDENING_SECOND_EAST_INDIES_1576,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run352 whole: blocks 1571..1827");
+        assert!(
+            w.missing.is_empty(),
+            "run352 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word's block, 1577** (`docs/AI.md` §81.4): a building who=1
+        // places on the word's frame, `1/2009` — 91 of its 93 keys are its
+        // gather slots' tiles in another order (ours spends
+        // `Build::find_gather_tiles+0x10a` there), and it stands at damage
+        // 1 here against 0, with no city here and city 1 there — and the
+        // citizen `1/2`, walking to another cell. **The block before it,
+        // 1576**, parts on five: `reg_land[11]` 102 against 103, `2007`'s
+        // three `city:space` one short, and `SITE[4].reg`. Block 1571
+        // stands with what the window opened on. No mechanism is named
+        // (DECISIONS 42).
+        assert_eq!(
+            row(1, 2009, "build:damage").as_deref(),
+            Some("1577: ours 1 theirs 0"),
+            "the word's building"
+        );
+        assert_eq!(
+            row(1, 2009, "build:city").as_deref(),
+            Some("1577: ours -1 theirs 1"),
+            "and its city"
+        );
+        assert_eq!(
+            row(1, -1, "leader:reg_land[11]").as_deref(),
+            Some("1576: ours 102 theirs 103"),
+            "the block before the word"
+        );
+        assert_eq!(
+            row(1, 2, "orders_x").as_deref(),
+            Some("1577: ours 31944 theirs 37752"),
+            "the citizen's walk"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(1571, 83), (1576, 5), (1577, 115)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's Great Lakes word, 3776, widened whole** (item
+    /// 979): run355 is run347's game at run350's detail over blocks
+    /// 3771..4027 (`rngcmp.py`: 4041 frames, 0 differing), walked from
+    /// run347's start. The word's frame writes block 3777.
+    #[test]
+    fn run355_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run355",
+            &[(
+                "gamelog-run355-greatlakes-toughest-3776.txt",
+                WIDENING_SECOND_GREAT_LAKES_3776.0,
+            )],
+            WIDENING_SECOND_GREAT_LAKES_3776,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run355 whole: blocks 3771..4027");
+        assert!(
+            w.missing.is_empty(),
+            "run355 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word's block, 3777** (`docs/AI.md` §81.4), East Indies'
+        // shape: a building who=1 places on the word's frame, `1/2010` — 79
+        // of its 80 keys its gather slots' tiles, and damage 1 here against
+        // 0 — with `2007`'s `city_down` pointing at it here and not there,
+        // the city `2000` one gatherer short, and citizens `1/6` and `1/28`
+        // on other orders. Nothing parts on blocks 3772..3776. No
+        // mechanism is named (DECISIONS 42).
+        assert_eq!(
+            row(1, 2010, "build:damage").as_deref(),
+            Some("3777: ours 1 theirs 0"),
+            "the word's building"
+        );
+        assert_eq!(
+            row(1, 2000, "city:gatherers").as_deref(),
+            Some("3777: ours 7 theirs 8"),
+            "the city's census"
+        );
+        assert_eq!(
+            row(1, 6, "orders_x").as_deref(),
+            Some("3777: ours 42504 theirs 41064"),
+            "a citizen's order"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(3771, 78), (3777, 127), (3778, 1)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
     /// **run346 — East Indies at Toughest.** The lobby read back from the
     /// dump's own `GAME INFO` is 5, and the harness stands the simulation up
     /// at it; the word is pinned as a floor.
