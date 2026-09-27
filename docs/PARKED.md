@@ -48,6 +48,18 @@ capture has two planes full on one call.
 (931) **The launch's `returning` clear has no test that fails without
 it** (918's shape).
 
+## Parked by item 928, 2026-09-27 — the gather point's edges
+
+(946) **A gather list of more than one point**: the waypoints, and
+whether `gather_inside` and `come_out` read the head or the tail after a
+`QUEUE_LAST`. Read, not built beyond the last point.
+
+(947) **An Airbase's gather point** (action 3, `action_flight`, and
+`add_gather_point`'s re-order under `build_masks & 8`): read, not built.
+
+(948) **A citizen's build, repair and gather arms at a gather point**:
+built from the reading, not captured.
+
 ## Parked by item 919, 2026-09-27 — the pasture's edges
 
 (924) **`find_any_building`'s cell-circle walk** against this crate's walk
@@ -1550,6 +1562,15 @@ executable says so, and a `report.py` verb scans for it** (935's Loop
 line): five cited functions have none; a rel32 and absolute-pointer byte
 scan settles it in seconds, and EMULATOR §4 had the answer for fifteen
 since 2026-09-01 while the ranked list was built without it.
+
+(949) **A continuation section's brief says "move the closing paragraph
+into it"** (928's Loop line, filed at its merge): the brief named §14's
+continuation as "§14a or the next free number", and a pointer row alone
+put §14 over the ceiling.
+
+(950) **An issuer chapter's brief names `blind.rs` as a pin it will move**
+(928's Loop line): `cover=1` refuses the issuers, so a chapter's first
+citations of its own issuer re-pin `NEVER` (225 → 228 on 928).
 
 
 
