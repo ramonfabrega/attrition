@@ -928,6 +928,32 @@ fn chapter_twenty_four_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty-five, pinned** — the cancel line: a Barracks' queue
+/// cancelled inside a run, across two types, on an infinite queue and
+/// from the end (`docs/GOLDEN.md` §34, item 884, run292). Thirteen staged
+/// lines: chapter thirteen's four to 614, three `@queueup`s, four
+/// `@unqueue`s and one `@buildmask` 0x40.
+#[test]
+fn chapter_twenty_five_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch25", "chapter25", 25, 13, 1465) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_FIVE,
+        "chapter twenty-five's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_FIVE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_FIVE,
+        "chapter twenty-five's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §34"
+    );
+    eprintln!(
+        "chapter twenty-five: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run255's repair, unit for unit, both directions** (item 813,
 /// `docs/GOLDEN.md` §29). On every block of
 /// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
@@ -8785,6 +8811,100 @@ const WANT_CH24_POOL: &[&str] = &[
     "1302 slot 3 ox",
     "1302 slot 3 oy",
 ];
+
+/// **run292 whole, both directions** (item 884, `docs/GOLDEN.md` §34):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_twenty_five_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch25",
+        "chapter25",
+        WIDENING_CHAPTER_TWENTY_FIVE,
+        1465,
+        0,
+        (853, 857),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch25 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter thirteen's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_FIVE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch25: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_FIVE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch25", "chapter25", WIDENING_CHAPTER_TWENTY_FIVE, 0)
+        .expect("run292 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch25 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH25.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch25: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH25_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch25: what parts in the pool moved");
+}
+
+// **What parts under the word** on run292, chapter twenty-five: the
+// first walk, with the four `@unqueue` lines skipped (`crate::golden`'s
+// SEAM). Chapter thirteen's births' `form` (611, 615, `Unit::init@
+// 00612100`'s, parked 646). **702**, arm a's block: `0/2007`'s `queued`
+// (ours 3, theirs 2) and who=0's food and timber (157 and 121 here, 210
+// and 162 there) — one mechanism, the cancel, whose writers on the block
+// are `unqueue`'s count and `unpay_cost`'s refund (the gather income is
+// the other writer of a bucket, and it agrees on every block to 701).
+// **842**, arm c's: `build:infinite_queue` (ours 1, theirs 0), the
+// cancel's clear. **856**, the three Hoplites this crate trains from the
+// uncancelled head and the original never makes. 762 does not part as a
+// row of its own: `queued` and the buckets have already parted on 702.
+const WANT_CH25: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "702 0/-1 leader:bucket[0:food]",
+    "702 0/-1 leader:bucket[1:timber]",
+    "702 0/2007 queue:queued",
+    "842 0/2007 build:infinite_queue",
+    "856 0/10 extra",
+    "856 0/11 extra",
+    "856 0/12 extra",
+];
+
+// **What parts in the pool** on run292, the first walk: the building
+// group's first seat, `622 slot 1`'s `ox`/`oy`, ours −1 and theirs 0 —
+// `push_group`'s record `o`, chapter twenty-four's standing row (parked
+// 887, the pool lane's); and the Hoplites this crate trains, held alone
+// in slot 0 on 856. No slot parts on 702: a cancel seats nothing on
+// either side (falsifier 5).
+const WANT_CH25_POOL: &[&str] = &["622 slot 1 ox", "622 slot 1 oy", "856 slot 0 held"];
 
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {

@@ -5298,3 +5298,43 @@ block its cancel is processed (711), and each splits the readings (789).
 stream should part where a squad is trained that this crate does not
 train, or not trained where it does: the uncancelled Hoplite's finish
 (~855 here, a birth the original never makes).
+
+**Run 2026-09-26 as run292 (item 884)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run285 to 855. **No falsifier
+fired, and every value the staging walk named is on its block**:
+- **The issues** (1): `INFO 17` refusal 0 on all nine; the package grows
+  15 bytes on each cancel, no group; `process_unqueue 2007 0 701`, `0
+  761`, `-1 841`, `-1 1001`.
+- **The queue-up** (2): `[132 at 100, 132]` paid 51/38 and 53/41 on 622;
+  `[132, 132, 170]` on 642.
+- **Arm a** (3, the first of three readings): on 702 `[132 at 8100,
+  170]`, food 157 → 210 and timber 121 → 162, the run's second Hoplite's
+  recorded 53/41.
+- **Arm b** (4, the first of two): on 762 `[170 at 100]`, food +51 and
+  timber +38, the head at 13900 gone.
+- **The pool** (5): no slot parts on a cancel's block (the widening below).
+- **Arm c** (6, the first of four): 4160 on 802; on 842 4096, `[170 at
+  8100]`, nothing refunded.
+- **The bit at the finish** (7): the Bowmen at 20200 on 963; `[]` and 4096
+  on 965, no re-queue.
+- **Arm d** (8, the first of three): on 1002 `[132 at 2100]`, timber 133 →
+  179 and wealth 10 → 66.
+- **The trains** (9): the last Hoplite at 23310 on 1215 and out on 1216;
+  no Hoplite born on 856, where run285's is.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_FIVE` = 855, open,
+on the first walk**, with the four `@unqueue` lines skipped: the head
+Hoplite the original cancelled on 761 finishes here and trains a squad
+the original never makes. The widening, (605, 858), in `WIDENINGS`, with
+three windows in the coverage driver (702, 842, 855) and
+`process_unqueue` pinned there. **The first parting's field list**, 702:
+`0/2007`'s `queued` (ours 3, theirs 2), who=0's food (157, 210) and timber
+(121, 162); on 842 `build:infinite_queue` (1, 0); on 856 the Hoplites
+`0/10`–`0/12`, held here alone. The block's standing rows are chapter
+thirteen's births' `form` (611, 615; parked 646). The writers on 702:
+`queued`'s six are counted above and only `unqueue` runs there; a bucket's
+are the gather income, `pay_cost` and `unpay_cost`, and the income agrees
+on every block to 701 — so all three rows are the cancel's. **The pool**:
+622's `slot 1` `ox`/`oy` (−1 here, 0 there), `push_group`'s record `o`,
+§33's standing row (parked 887; its reader is a layout's `o`, and nothing
+is laid out); and `856 slot 0 held`, the squad this crate trains alone.

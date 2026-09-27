@@ -3565,6 +3565,24 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_FOUR: i64 = 1560;
 /// `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_FOUR: (i64, i64) = (605, 1561);
 
+/// **Chapter twenty-five's golden word** — the cancel line: a Barracks'
+/// queue cancelled inside a run, across two types, on an infinite queue
+/// and from the end (`docs/GOLDEN.md` §34, item 884, run292). **855,
+/// open, on the first walk**, with the four `@unqueue` lines skipped: the
+/// head Hoplite the original cancelled on 761 finishes here and trains a
+/// squad the original never makes, and the draws part there. What parts
+/// before it is values, by the widening: 702, `0/2007`'s `queued` (ours
+/// 3, theirs 2) and who=0's food and timber (157 and 121 here, 210 and
+/// 162 there); 842, `build:infinite_queue` (ours 1, theirs 0).
+///
+/// **The delta**, this constant's: 855 on the first walk, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_FIVE: i64 = 855;
+
+/// `chapter_twenty_five_s_word_frame_is_widened_whole`'s window: run292
+/// from its first block to two past the first walk's word, (605, 858). Its
+/// pool half, `widen_pool`, reads who=0's `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_FIVE: (i64, i64) = (605, 858);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5325,6 +5343,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_four_s_word_frame_is_widened_whole"),
         877,
         Some(WIDENING_CHAPTER_TWENTY_FOUR),
+    ),
+    // Item 884: run292, chapter twenty-five's first walk.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_FIVE",
+        GOLDEN_WORD_CHAPTER_TWENTY_FIVE,
+        Some("chapter_twenty_five_s_word_frame_is_widened_whole"),
+        884,
+        Some(WIDENING_CHAPTER_TWENTY_FIVE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
