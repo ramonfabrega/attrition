@@ -16759,16 +16759,14 @@ pub(crate) mod tests {
         // Past the old word's block, one key in the whole runway: who=0's
         // `production_step` on 20801, the human's own step, which nothing
         // on this chain reads (`docs/ECONOMY.md` §16.3's R3).
-        let past: Vec<(&(i64, i64, String), &(i64, String))> = firsts
+        let past: Vec<String> = firsts
             .iter()
             .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .map(row)
             .collect();
         assert_eq!(
             past,
-            [(
-                &(0, -1, "leader:production_step".to_string()),
-                &(20_801, "ours 0 theirs 1".to_string())
-            )],
+            ["20801 0/-1 leader:production_step: ours 0 theirs 1"],
             "the runway past the old word"
         );
         let wealth = standing
