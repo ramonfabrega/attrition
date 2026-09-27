@@ -7175,3 +7175,76 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - `MAP_STYLE 18`;
 # - the window whole;
 # - the pool and the figures on every block.
+
+run: 294
+tag: greatlakes-departword
+item: 795
+why: Great Lakes' long word is 20568 (item 785), where the original's `1/40` stands blocked by `8/0` and ours, three frames behind on the same path, walks; the lag is already whole on run243's first block, 20500, and the four walkers' return leg leaves the far point on 19853..19883 — on ours, frame 19892's refused formation slot (`1/41`'s, tile (17, 162), the city centre `0/2000`'s) ungroups the three and `1/40` detours by (3732, 31380) — and no dump on this map holds a record between run226's last block, 17350, and run243's first, 20500
+# **THE DISK WAS GREPPED FIRST** (2026-09-26, item 795): every
+# `gamelog-*greatlakes*` by its block range. run226 holds 16706..17350,
+# run240 17086..17094, run243 20500..20818, run80 23960..24000; run53
+# prints its draw stream alone. None holds a block in 17351..20499.
+# **What the disk does answer.** On run226's last block the four walkers
+# (`1/40`, `1/41`, `1/42`, `1/60`) stand home in agreement. On run243's
+# first, each walker's last collision stamp is ours to the frame
+# (`collide_frame` 17819, 18044, 18075, 19853), `1/40`'s move `last` is
+# ours, (3144, 31704) — the far point it left from — and its path's
+# entries agree; its lag is a constant three frames over 20500..20568.
+# The draw stream agrees on every gap frame, and ours spends `1/40`'s
+# `Unit::do_move+0xe84` (the leader's grid roll) on 19875, the frame the
+# original spends one. `1/41`'s `last` is (3207, 31449) here against
+# (3440, 31381) there: its own plan after the ungroup was made ten frames
+# further along. **What the disk could not answer**: when the original's
+# group move ends and by whose arm, where each walker stands on the
+# departure, and whether its `1/40` walks the detour.
+#
+# **Sized to the departure, not to the gap** (DECISIONS 50 §7 is a word's
+# rule; this is a bisection): 19840..19999, **160 blocks** — the attack's
+# end (1/60 leaves on 19853), the three departures (19873..19883 here),
+# the ungroup (19892 here), the detour (19893..19918 here), and eighty
+# blocks of plain walk to read the lag off.
+#
+# **The readings, each with what kills it** (block = frame + 1). Each
+# killer tests the claim's own unit:
+#
+# - **R1 — this is run53's game to 20010.** Killed if the trace differs
+#   from run53's on any frame, or agrees on fewer than 20,011.
+# - **R2 — the original's group move outlives ours' frame 19892.** Its
+#   unit is `1/40`'s head order on block 19893: ours is a `MOVEORDER`
+#   with `orig` (44616, 22536). Killed if the original's is the same
+#   record there (a `MOVEORDER`, not a `GROUPMOVEORDER`, with that
+#   `orig`).
+# - **R3 — the lag is the departure's.** Its unit is `1/40`'s position on
+#   block 20000: ours (3 frames later) stands where the original stood
+#   three frames earlier. Killed if the original's `1/40` on block 20000
+#   is within one frame (25 units) of ours — the loss is then on the walk
+#   past 20000, and the capture's half that answers it is the widening's
+#   per-block lag.
+# - **R4 — `1/40` detours by (3732, 31380).** Its unit is `1/40`'s
+#   position on blocks 19894..19919. Killed if the original's passes
+#   within a cell (192 units) of (3732, 31380) — ours' detour is then the
+#   original's too, and R2's ungroup does not carry the lag.
+#
+# **run243's line and lobby** (no `cfg:`) and the same `end:`, so the
+# widening walks it like run243 and the pool lands (no `DEATHS`).
+frames: 20010
+mapstyle: 14
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+# **19840..19999, 160 blocks.**
+frame_window: 19840 20000
+# A draw-stream trace (the commander's shape): no coverage window.
+cover: cover=0
+settle_min: 14000000
+# **Sized from run243**: 2.2 MB a block, so 160 blocks is ~0.35 GB, and
+# 660 fewer frames played unlogged.
+poll_max: 300
+# Same game: the trace word for word against run53, this map's own 24k run.
+check: python3 tools/gamelog/rngcmp.py rontrace-run53.log rontrace-run294.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=20011)}'
+# And the map, from the dump's own `GAME INFO`.
+check: LC_ALL=C head -c 400000 "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run294-greatlakes-departword.txt" | LC_ALL=C grep -a "MAP_STYLE" | tee /dev/stderr | awk '{print; exit !($2==14)}'
+# **The window landed whole** — 160 blocks, 19840..19999, no gap.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run294-greatlakes-departword.txt" | awk '{v=$3+0; if(v>=19840&&v<20000) n[v]=1} END{c=0; lo=0; hi=0; for(k in n){c++; if(lo==0||k+0<lo)lo=k+0; if(k+0>hi)hi=k+0} print "window blocks: "c" ("lo".."hi")"; exit !(c==160 && lo==19840 && hi==19999)}'
+# **The pool landed**: a `GROUPDATA` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run294-greatlakes-departword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=19840&&v<20000)n++} print "blocks with a GROUPDATA: "n; exit !(n==160)}'
+# **The figures landed**: a `GUY` on every window block.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run294-greatlakes-departword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=19840&&v<20000)n++} print "blocks with a GUY: "n; exit !(n==160)}'

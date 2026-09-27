@@ -1189,7 +1189,19 @@ pub fn run_with(
 /// only in test builds.
 #[cfg(test)]
 pub(crate) fn debug_watch(built: &Built, frame: i64) {
-    let Some((who, o, lo, hi)) = std::env::var("RON_DEBUG_UNIT").ok().and_then(|v| {
+    // A comma list watches several units on one run (item 795's four
+    // walkers): each spec is read as the single form below.
+    let Ok(all) = std::env::var("RON_DEBUG_UNIT") else {
+        return;
+    };
+    for spec in all.split(',') {
+        debug_watch_one(built, frame, spec);
+    }
+}
+
+#[cfg(test)]
+fn debug_watch_one(built: &Built, frame: i64, spec: &str) {
+    let Some((who, o, lo, hi)) = Some(spec.to_string()).and_then(|v| {
         let (u, w) = v.split_once('@')?;
         let (who, o) = u.split_once('/')?;
         let (lo, hi) = w.split_once('-')?;
@@ -2046,8 +2058,16 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
-         danger {} stance {}/{:?} path {:?} orders {:?} {}",
+        "  f{frame} {who}/{o} #{} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
+         danger {} stance {}/{:?} coll {}@{} path {:?} orders {:?} {}",
+        // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
+        // names (item 795).
+        built
+            .sim
+            .units
+            .iter()
+            .position(|x| std::ptr::eq(x, u))
+            .unwrap_or(usize::MAX),
         u.ty,
         u.ty.map(|t| built.sim.unit_types[t].combat.packs),
         built
@@ -2076,6 +2096,10 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         u8::from(u.in_danger),
         u.stance,
         u.combat.stance,
+        // `collide` and `collide_frame`: the step's last block, which the
+        // widening compares only once ours has stamped one (item 795).
+        u.collide,
+        u.collide_frame,
         u.path,
         u.orders,
         clocks.join(" ")
