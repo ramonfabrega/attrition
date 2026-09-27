@@ -1621,6 +1621,19 @@ was in the listing all along (`FILTER_ALL` skips the one function that
 reads `(not_o, not_who)`), and run338 fired it on all three citizens.
 933's rule, for a seam.
 
+(966) **`issuesmatch.py` takes a `--none-refused` mode** (959's Loop line,
+filed at its merge): a stanza with `@` lines and no golden twin cannot
+run it (961); 959 checked `INFO 17`'s refusal word inline and made the
+check fail on run314.
+
+(967) **A reference inside `.reloc` is never a pointer** (959's Loop
+line): `report.py refs` prints a `.reloc` byte coincidence as "pointer
+only", and `Pe::references` counts it.
+
+(968) **A staging booked on a function's name greps its writers first**
+(959's Loop line): "resources cheated to the cap" entered nothing its
+name promised; the gate was one grep of the function's writers away.
+
 
 
 
