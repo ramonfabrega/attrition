@@ -1074,7 +1074,28 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// index 0**: ours spends `Unit::do_guard+0x8fb` where the original spends
 /// `Farms::add_animals+0x92`, a pasture's five animals. Inside run299's
 /// window (block 23421), so the same test widens it.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 23_420;
+///
+/// ~~**23420 is a pasture's five animals.**~~ **Item 919 moved it 23420 →
+/// 24000, the capture's own end, and the frame was 23182's farm type.**
+/// `get_nearest_farm_type` reaches `find_any_building`, which keeps a
+/// building only when `WallData::is_started` answers (`flags & 2`), so
+/// `1/2032`, placed on 23182 beside the bare site `1/2031`, finds no
+/// neighbour and is Norwich's `others == crops == 3` pasture; this crate
+/// found `1/2031` and copied its crop (`docs/AI.md` §79). **The move's
+/// value diff (the word's delta, here; its block is
+/// `run299_s_word_frame_is_widened_whole`'s):** on block 23421 `1/78`'s
+/// `guard.retry` went 8 against 6 → 6 on both, `1/80`'s `g.cur_anim[0]` 1
+/// against 0 and `g.end_time[0]` 58 against 31 → 0 and 31 on both; the
+/// draws on 23420 went 7 against 31 → 31 against 31, and the five coins
+/// read 63335, 19739, 17423, 20547 and 9655 on both sides, five pigs.
+/// **The new word's delta: none** — ours and the original spend the same
+/// draws on every frame of run54's trace, 0..23999, and the word is the
+/// trace's last frame. At the end block, 24001, every one of the 89 units
+/// the endpoint compares stands where the original's does (`ENDPOINTS`:
+/// 36 off → 0). `run96_s_word_frame_is_widened_whole` widens run96, the
+/// last blocks any dump holds (the widening test), and
+/// `run299_s_word_frame_is_widened_whole` keeps the move's value diff.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4540,6 +4561,12 @@ pub(crate) const GREAT_LAKES_RETURN_BLOCK: i64 = 20_801;
 /// capture's own end, 24000, and the widening is the last blocks any dump
 /// holds. No `GROUPDATA` is on run80, so the pool walk reads nothing here.
 pub(crate) const WIDENING_GREAT_LAKES_END: (i64, i64) = (23_960, 24_001);
+/// `run96_s_word_frame_is_widened_whole`'s window (item 919): run96 whole,
+/// 23960..23999 and the end block 24001. East Indies' draw stream agrees on
+/// every frame of run54's trace since item 919, so the word is the
+/// capture's own end, 24000, and the widening is the last blocks any dump
+/// holds. No `GROUPDATA` is on run96.
+pub(crate) const WIDENING_EAST_INDIES_END: (i64, i64) = (23_960, 24_001);
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -4967,12 +4994,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // arm (`docs/AI.md` §78), 23182 → 23420. The same test keeps the move's
     // value diff (23183, `MAKE[4].t` and `1/79`) and widens the new word's
     // block, 23421, and the runway to it.
+    //
+    // **Item 919 moved it to 24000, the capture's own end**:
+    // `get_nearest_farm_type` does not see an unstarted farm site
+    // (`docs/AI.md` §79), 23420 → 24000. run299's test keeps the move's
+    // value diff (23421, `1/78` and `1/80`), and run96, the last blocks
+    // any dump holds, is widened whole.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
-        Some("run299_s_word_frame_is_widened_whole"),
-        904,
-        Some(WIDENING_EAST_INDIES_WONDERPRICE),
+        Some("run96_s_word_frame_is_widened_whole"),
+        919,
+        Some(WIDENING_EAST_INDIES_END),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_
     // record_the_dump_carries` compares every field of every record run100

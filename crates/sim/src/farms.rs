@@ -131,6 +131,11 @@ pub const SITE_AMBIENCE_Y: &str = "Farms::add+0x25b";
 pub const SITE_ANIMAL_COIN: &str = "Farms::add_animals+0x92";
 pub const SITE_ANIMAL_Y: &str = "Farms::add_animals+0x134";
 pub const SITE_ANIMAL_X: &str = "Farms::add_animals+0x182";
+/// The same two offsets on the coin's **odd** arm, the pig: the decompile
+/// writes the loop body twice, once a species, and each copy draws at its
+/// own address (`docs/AI.md` §79).
+pub const SITE_PIG_Y: &str = "Farms::add_animals+0xc9";
+pub const SITE_PIG_X: &str = "Farms::add_animals+0x117";
 
 impl Farm {
     /// `Farms::grow(farm, dy, dx)@008d91c0`: the farmer's add — the
@@ -351,6 +356,15 @@ impl Sim {
     /// [`NEAREST_FARM_RANGE`] of this one, **of any owner** and not itself,
     /// answers `farm_type & 1`; `None` where there is none.
     ///
+    /// **A site nobody has started is not a candidate.** The search passes
+    /// `find_who = −1`, and `ObjectsData::find_any_building@00659ca0` keeps
+    /// an object only when its vtable `+0x50` answers or its owner is
+    /// `find_who`; on a building that slot is `WallData::is_started@00472360`,
+    /// `flags & 2`. So a farm site placed earlier the same frame, or one no
+    /// citizen has reached yet, is invisible here, and the farm placed
+    /// beside it can fall through to the `others == 3` pasture
+    /// (`docs/AI.md` §79).
+    ///
     /// The original reaches it through `ObjectsData::find_any_building`,
     /// which walks the cell-circle table and keeps the running minimum with
     /// `<=`, so the *last* candidate at the winning distance wins. This
@@ -361,7 +375,7 @@ impl Sim {
         let at = self.buildings[b].pos;
         let mut best: Option<(i32, u8)> = None;
         for (m, bd) in self.buildings.iter().enumerate() {
-            if m == b || !self.is_farm_record(m) {
+            if m == b || !self.is_farm_record(m) || !bd.started {
                 continue;
             }
             let d = crate::world::vector_dist(bd.pos.x - at.x, bd.pos.y - at.y);
@@ -449,9 +463,14 @@ impl Sim {
                 None => {
                     self.mark(SITE_ANIMAL_COIN);
                     let chicken = self.rng.roll() & 1 == 0;
-                    self.mark(SITE_ANIMAL_Y);
+                    let (y, x) = if chicken {
+                        (SITE_ANIMAL_Y, SITE_ANIMAL_X)
+                    } else {
+                        (SITE_PIG_Y, SITE_PIG_X)
+                    };
+                    self.mark(y);
                     let dy = self.rng.roll() % ANIMAL_SPREAD - ANIMAL_SPREAD / 2;
-                    self.mark(SITE_ANIMAL_X);
+                    self.mark(x);
                     let dx = self.rng.roll() % ANIMAL_SPREAD - ANIMAL_SPREAD / 2;
                     Some(AnimalSeed { chicken, dy, dx })
                 }
@@ -1324,6 +1343,9 @@ mod tests {
         // not the assertion; that it is a legal `FarmType` is.
         assert!(s.buildings[f1].farm.farm_type <= ANIMAL_FARM);
         s.buildings[f1].farm.farm_type = 0;
+        // A citizen has reached it: `get_nearest_farm_type` finds only a
+        // started farm (the next test).
+        s.buildings[f1].started = true;
 
         // 3. The second, four tiles off: copied from the first, no draw.
         s.phase_marks.clear();
@@ -1359,6 +1381,54 @@ mod tests {
         // And the list is joined at placement, in placement order — these
         // four have never been activated.
         assert_eq!(s.farm_order, vec![lone, lone2, f1, f2, f3, f4]);
+    }
+
+    /// **A farm site nobody has started is not a neighbour** (`docs/AI.md`
+    /// §79), East Indies' 23182 in miniature. `find_any_building` keeps a
+    /// building only when `WallData::is_started` answers (`flags & 2`), so
+    /// with two started crops out of range, a fourth farm placed beside a
+    /// third that is still a bare site finds no neighbour, takes no draw,
+    /// and is the city's `others == crops == 3` pasture. Once the third is
+    /// started, the same placement copies its crop and takes the emitter.
+    #[test]
+    fn a_farm_beside_an_unstarted_site_is_the_fourth_s_pasture() {
+        let place = |started: bool| {
+            let (mut s, t, city) = city_sim();
+            // Two crops, eight tiles apart and six-plus from the pair below.
+            for x in [16, 24] {
+                let f = s.init_build(0, t, Pos::new(x * 192 + 96, 16 * 192 + 96), false);
+                s.buildings[f].farm.farm_type = 0;
+                s.buildings[f].started = true;
+            }
+            // The third, a bare site; its type is the harness's to set.
+            let third = s.init_build(0, t, Pos::new(19 * 192 + 96, 23 * 192 + 96), false);
+            s.buildings[third].farm.farm_type = 0;
+            s.buildings[third].started = started;
+            assert_eq!(s.city_count_farms(city), 3);
+            // The fourth, five tiles east of the third: 960, as on 23182.
+            s.trace_phases = true;
+            s.phase_marks.clear();
+            let seed = s.rng.seed;
+            let fourth = s.init_build(0, t, Pos::new(24 * 192 + 96, 23 * 192 + 96), false);
+            assert_eq!(s.buildings[fourth].city, Some(city));
+            let marks: Vec<String> = s.phase_marks.iter().map(|m| m.0.clone()).collect();
+            (
+                s.buildings[fourth].farm.farm_type & ANIMAL_FARM,
+                s.rng.seed == seed,
+                marks,
+            )
+        };
+        let (ty, quiet, marks) = place(false);
+        assert_eq!(
+            ty, ANIMAL_FARM,
+            "no started neighbour: the fourth is a pasture"
+        );
+        assert!(quiet && marks.is_empty(), "and it takes no draw: {marks:?}");
+        // A crop with three crops beside it takes the city's emitter, as
+        // `1/2031` did on the same frame; the pasture above never does.
+        let (ty, _, marks) = place(true);
+        assert_eq!(ty, 0, "a started neighbour's crop is copied");
+        assert_eq!(marks, [SITE_AMBIENCE_X, SITE_AMBIENCE_Y], "and no coin");
     }
 
     /// A site (not yet active) and a pasture draw nothing; a farm with

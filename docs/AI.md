@@ -10045,3 +10045,153 @@ Measured on the tree based on `7f178d8c`:
 oil pair's `NoOil` rest on the listing and on
 `a_rock_cell_refuses_a_farm_and_a_flat_gather_type_needs_its_good` alone.
 Those are the rows a second reading would take.
+
+## 79. An unstarted farm site is nobody's neighbour, and East Indies runs to 24000 (2026-09-27, item 919)
+
+East Indies' word was **23420** (§78.4). On it this crate spent 7 draws
+against the original's 31, parting at index 0: ours `Unit::do_guard+0x8fb`,
+the original `Farms::add_animals+0x92`. The booking named no mechanism.
+
+### 79.1 The frame, from the disk
+
+- **The seeds first.** The original's 31 on 23420 are twenty
+  `add_animals` draws under `Build::activate+0x1c25 <
+  Wall::do_construct+0x199` (coin, `y`, `x`, `Guy::init_real` per animal),
+  then `do_guard`, five `Animal::do_idle` rolls and five clock wraps. The
+  coins read 63335, 19739, 17423, 20547 and 9655: all odd, so **five pigs**,
+  and their offsets are drawn at `+0xc9` and `+0x117`, the pig arm, not the
+  chicken's `+0x134`/`+0x182`. A farm finished construction that frame.
+- **Which farm.** run299's `BUILDDATA` from 23420 to 23421: who=1's Farm
+  `1/2032` goes `construct_hits` 397 → 400, `flags` 3 → 7. It is the second
+  Farm `make_stuff` placed on 23182 (§77.6, §78), in Norwich, at
+  (35904, 38016). So on the original's side `1/2032` is a pasture
+  (`farm_type == 1`, SYNC §3.6), and on ours it was a crop:
+  ours spent `Farms::inc_time+0x1ae` on it instead.
+- **How its type was chosen.** `Farms::add` runs at placement, on 23182.
+  The original's 48 draws that frame hold `+0x23f`/`+0x25b` for `1/2031`
+  (its ambience, so a crop) and nothing for `1/2032`: no coin on either
+  side. So `1/2032` took a no-draw arm of SYNC §3.8's table. Norwich's
+  other farms were `1/2011`, `1/2012` (both crops, or `1/2031` could not
+  have taken the ambience) and `1/2031`, so `others == crops == 3`. That
+  reaches `get_nearest_farm_type` before the `== 3` pasture, and only a
+  **NO_FARM** answer gets there. `1/2031` stands 960 east, inside `0x480`;
+  `1/2011` is 1,229 away, outside it. So the original's search did not see
+  `1/2031`.
+- **Why.** `ObjectsData::find_any_building@00659ca0`'s cell-circle arm
+  keeps a candidate only when its vtable `+0xc` (`flags & 1`) and its
+  `+0x50` answer, or its owner is `find_who`, which
+  `get_nearest_farm_type` passes as −1. On `Build::vftable`, `+0x50` is
+  `WallData::is_started@00472360`, `flags & 2` (`vtables.txt`). run299
+  prints `1/2031` at `flags 1` on 23183: placed that frame, not started.
+
+### 79.2 The readings, and what killed each
+
+Written before the build.
+
+- **R1: an unstarted site is not a candidate.** Unit: `1/2032`'s
+  `farm_type` on 23182. It dies if, with the gate, ours leaves it a crop,
+  23182 stops agreeing 48/48, or 23420's first twenty draws are not the
+  original's five pigs. Gates between it and the block: `1/2031` unstarted
+  at the placement (run299: `flags 1` on 23183 on both sides);
+  `others == crops == 3`; no other farm inside `0x480`; `1/2032` finishing
+  on 23420 on both sides; `Sim::activate` stocking it. **Holds.**
+- **R2: the cell-circle walk itself** (`circle_radius[2]` cells around
+  the point, not every building). `1/2031` is in the adjacent cell, so the
+  walk reaches it either way. **Killed by R1** alone closing the frame.
+
+No packet (run310) and no capture (run311) were taken: the trace's seeds
+and run299's `BUILDDATA` answered.
+
+### 79.3 The fix
+
+- `Sim::nearest_farm_type` (`crates/sim/src/farms.rs`) skips a farm whose
+  `started` is clear. The crate already carried `started`, the dump's
+  `flags & 2`.
+- `farms::SITE_PIG_Y` and `SITE_PIG_X` name the pig arm's two offset
+  draws, `Farms::add_animals+0xc9` and `+0x117`, and
+  `rondata::trace::SITES` maps `0x008d8ff9` and `0x008d9047` to them. The
+  decompile writes the loop body once a species, and until now this crate
+  marked a pig's draws at the chicken's addresses. No pig had been drawn
+  on either map before 23420.
+- `farms::tests::a_farm_beside_an_unstarted_site_is_the_fourth_s_pasture`
+  is the word's shape: with the third farm a bare site the fourth is a
+  pasture with no draw, and with the third started it copies the crop and
+  takes the ambience pair. The older `farms_add_picks_the_type_…` test now
+  starts its first farm before the second is placed.
+
+### 79.4 What it moved
+
+Measured on the branch from `a3224660`.
+
+- **The value diff on the word's block, 23421**
+  (`run299_s_word_frame_is_widened_whole`): `1/78`'s `guard.retry` 8
+  against 6 → 6 on both, and `1/80`'s `g.cur_anim[0]` 1 against 0 and
+  `g.end_time[0]` 58 against 31 → 0 and 31 on both. The draws on 23420 go
+  7 against 31 → 31 against 31. run299's floor goes 283/2/285/292/359 →
+  283/2/285/289/294.
+- **The building, both sides.** On 23183 `1/2031` and `1/2032` are
+  `flags 1` in the dump and unstarted, inactive here. On 23421 the dump
+  prints `1/2031` at 3 and `1/2032` at 7, and here `1/2031` is started
+  and `1/2032` started and active, `farm_type` 1 (it was 0).
+- **The animals.** No dump prints an owner-9 object, so the original's
+  side is the seeds. The five `(dx, dy)` read (−103, −26), (109, 138),
+  (129, −18), (−171, 18) and (105, −10), snapped to (35784, 37992),
+  (36024, 38136), (36024, 37992), (35736, 38040) and (36024, 37992). Ours
+  seats `9/17`..`9/21` at exactly those points, all pigs.
+- **East Indies 23420 → 24000, the trace's end.** run54's trace holds
+  24,001 `FRAME` records; the harness walks and compares every frame of
+  0..24000, and both sides spend 275,108 draws, label for label.
+  `run54_s_24000_frames_…` asserts all three, the pasture, and its five
+  pigs.
+- **Every value window past 23420**:
+  - run299's tail, 23422..23433: nothing first parts. 288 rows stand on
+    23433: the first block's 283 and `1/81`'s five, a citizen born on
+    23366 with the rows every citizen carries.
+  - **23434..23959 is covered by the draw stream alone.** No dump holds it.
+  - run96, 23960..23999 and the end block 24001, widened whole
+    (`run96_s_word_frame_is_widened_whole`, new): 293 rows stand on 23960,
+    the 288 of 23433 and `1/82`'s five (a citizen born in the gap, the
+    same shape). Nothing parts on 23961..23999. The end block parts on
+    `orders.len` for 48 units (the quit dump prints no order list) and on
+    `0/3`'s position, (+8, −23), the closing dump's one torn unit.
+    run96's `GUY` records are the short form, so a gaia animal's clock is
+    now named unprinted there instead of parting; all 104 gaia animals'
+    positions agree on every block. run78 is a short-`GUY` capture too,
+    and its 208 such rows leave its pins (419 → 211 standing on 15783,
+    floor 418/421 → 210/213) with no parting closed.
+  - **The endpoint at 24001** (run54's end dump): 89 compared, 0 off, 0
+    unlinked, 0 extra, 1 torn; buildings 0/0 unlinked/diverged; cities
+    3/0. It was 36 off.
+- **Great Lakes holds**: `run53_s_24000_frames_…` agrees on all 24,000
+  frames, its endpoint is 0 off, and run80's widening passes.
+- **The mutations**, each on the committed build, restored from git and
+  `touch`ed:
+  - **the started gate out**: the new unit test fails and the word is
+    23420 again;
+  - **the pig labels out** (a pig marked at the chicken's sites): the
+    stream's word holds to 24000 but the label sequence parts at 23420.
+
+### 79.5 What this has *not* established
+
+- **The cell-circle walk.** `find_any_building` walks `circle_radius[2]`
+  cells around the searching point, where this crate walks every building
+  within `0x480`. The two part only for a farm inside the radius whose cell
+  the circle table leaves out, and none has been met.
+- **The last-at-equal-distance tie** (`<=`, SYNC §3.8's open list) is
+  still the first here.
+- **The setup borrow reads the chicken arm only**
+  (`rondata::trace::Trace::add_animals`). The setup pastures of the forty
+  traces read are all chickens; a pig there would stop the borrow short.
+- **The frame 24000 itself**: the trace's last record opens it, and the
+  end block it writes is the endpoint's, with its one torn unit.
+
+### 79.6 Coverage
+
+**Diff-backed**: the started gate, through the trace's seeds on 23182 and
+23420, run299's `BUILDDATA` and the rows on 23421, and every frame of run54's
+trace; the pig arm's sites, through the label sequence on 23420.
+**Listing-backed**: `find_any_building`'s test, `call *0x50(%eax)` at
+`00659e83` with a zero answer skipping unless the owner is `find_who`, and
+`00472360`'s `and $0x2`. **Export-backed only**: that `Build::vftable`'s
+`+0x50` is `00472360` (`vtables.txt`). That row, and R2, are what a second
+reading would take.

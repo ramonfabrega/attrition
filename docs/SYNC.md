@@ -439,7 +439,7 @@ them carrying a record whose type is not the pasture
 | no city (`BuildData+0x72 < 0`) | `o & 1` — **an odd object number is a pasture** | none |
 | `others != crops` (the city already holds a pasture) | wheat, and on to the ambience | none |
 | `others == crops == 4` | pasture | none |
-| `get_nearest_farm_type` finds a farm within `0x480` | its `farm_type & 1`; wheat goes on to the ambience | none |
+| `get_nearest_farm_type` finds a **started** farm within `0x480` | its `farm_type & 1`; wheat goes on to the ambience | none |
 | `others == crops == 3` | pasture | none |
 | otherwise | `rand & 3 == 3` → pasture, else wheat | **one**, `+0x128` |
 
@@ -447,6 +447,10 @@ them carrying a record whose type is not the pasture
 `ObjectsData::find_any_building` over **every** owner, `FILTER_TYPE 0x1a1`,
 `FILTER_NOT_ME`, radius `0x480` (six tiles) — so farms cluster by type
 across a border as readily as inside one, and only the *nearest* answers.
+**And only a started one**: the search passes `find_who = −1`, so it keeps
+a building only when its vtable `+0x50`, `WallData::is_started@00472360`
+(`flags & 2`), answers. A site no citizen has reached is invisible to it
+(item 919, `docs/AI.md` §79).
 
 **The ambience, and the two draws.** A wheat farm whose city holds **more
 than one** crop farm, and none of whose city's farms already carries the
