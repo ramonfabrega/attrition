@@ -288,10 +288,12 @@ const UNREAD: &[(&str, &str)] = &[
     // the mask it toggles is read off the building's `build_masks`.
     // **Item 877's run285 windows `process_queue_up`** (`type num
     // frame`), the first player's production; the entries it lays are
-    // read off the building's `BUILDQUEUE`.
+    // read off the building's `BUILDQUEUE`. **Item 884's run292 windows
+    // `process_unqueue`** (`o p frame`), the first player's cancel; what
+    // it removes and refunds is read off `BUILDQUEUE` and the buckets.
     (
         "GAME",
-        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around",
+        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -547,6 +549,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch22 = golden_dump("ch22");
     let ch23 = golden_dump("ch23");
     let ch24 = golden_dump("ch24");
+    let ch25 = golden_dump("ch25");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1236,6 +1239,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 642, 855, 902, 1060, 1272, 1302, 1557] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-four carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty-five's word, on run292** (item 884): the first
+    // cancels on disk. 702, arm a's refund and `queued`; 842, arm c's
+    // clear of the bit; 855, the first walk's word, the uncancelled
+    // Hoplites' finish. Closed at 1466: 762, arm b; 965, the Bowmen's
+    // finish with the bit gone; 982, the pool's `get_num_cap`; 1002, arm
+    // d; 1216, the last Hoplites; 1463, the closed word's last blocks.
+    if let Some(p) = &ch25 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_FIVE;
+        for w in [702, 762, 842, 855, 965, 982, 1002, 1216, 1463] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-five carries the window's five blocks");
             frames += n;
         }
     }

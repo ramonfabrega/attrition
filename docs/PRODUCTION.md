@@ -747,12 +747,12 @@ is. run285: the Bowmen out on 1060 and re-queued at 0, 46 timber and 56
 wealth, 4160; out again on 1272, refused on 19 wealth, the queue empty and
 4096. A research entry's completion (`gain_tech`) never re-queues.
 
-**The other clears**, reading-only (no capture reaches them):
-`Build::clean_queue@00620b60` (a closed, captured or defeated building's
-queue) clears the bit when it empties; `Build::action_unqueue@00620280`,
-the player's cancel, clears it first, and for a single cancel returns
-without removing the entry — the first cancel on an infinite queue only
-turns it off. No AI function reads or writes the bit, and no dump before
+**The other clears**: `Build::clean_queue@00620b60` (a closed, captured
+or defeated building's queue) clears the bit when it empties, reading-only;
+`Build::action_unqueue@00620280`, the player's cancel, clears it first,
+and for a single cancel returns without removing the entry — the first
+cancel on an infinite queue only turns it off. **Diff-backed by run292**
+(item 884, "The player's cancel" below): 4096 and the entry kept on 842. No AI function reads or writes the bit, and no dump before
 run285 holds it on any building.
 
 **The command that fills the queue** is `CommandPackage::process_queue_up@
@@ -769,6 +769,40 @@ one building with an empty queue first; it is read and not built.
 `crates/sim/src/production.rs`; the 0x40 arm of `Sim::action_buildmask`
 is in `air.rs`; `do_queue`'s read-before-unqueue is `Sim::advance_slot`'s
 `Handover::Trained` arm. The harness compares the bit beside 0x80.
+
+## The player's cancel (item 884)
+
+`CommandPackage::process_unqueue@009466f0` → `Build::action_unqueue@
+00620280(p)`. The command is `CommandManager::issue_unqueue@00942c40(b,
+p)`, 15 bytes `[who][o][p][uid]` and **no `group`**, so it seats nothing
+in the pool (`docs/COMMANDS.md` §3). `docs/GOLDEN.md` §34 is the chapter;
+every clause below is read off the listing and run under the emulator, and
+says when a capture backs it. **run292 backs every arm but −5 and −10**:
+a slot inside a run (702), a slot across two types (762), a single cancel
+on an infinite queue (842), and −1 on a two-type queue (1002), each on
+its block with the refund of the recorded pairs, and no pool seat on any.
+
+```
+forward to the first library, as `unqueue` does, unless slot p is DISBAND
+if queued == 0: return                         # the bit too is left
+if build_masks & 0x40:
+    build_masks &= ~0x40                       # and the console's feedback
+    if p >= -1: return                         # a single cancel: nothing removed
+if p <= -10:   while queued: unqueue(queued - 1, 1)
+elif p <= -5:  repeat min(queued, 5): unqueue(queued - 1, 1)
+else:          unqueue(p if p >= 0 else queued - 1, 1)
+```
+
+The interface's `p` is `Options::exec@007188c0`'s option 0xa6 `object`:
+a slot, or −5 and −10 (`~PAPYRUS`) under its two modifiers.
+`unqueue(i, 1)` is "Cancelling refunds exactly what was paid" above: the
+walk over the run, the recorded pairs refunded, `num_queued` and the AI
+tallies taken down (neither below 0), `queued` less one and the tail
+copied down; a slot past the end is nothing.
+
+**In the code**: `Sim::action_unqueue` in `crates/sim/src/production.rs`
+over `Sim::cancel`; `input::unqueue` is the command's entry, and the
+recorded stream's `Unqueue` goes through it (no kept stream carries one).
 
 ## What is not established
 

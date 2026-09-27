@@ -801,6 +801,30 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
     built.sim.action_queue_up(&list, unit, num)
 }
 
+/// **`CommandPackage::process_unqueue@009466f0`** on one of the player's
+/// own buildings: `Build::action_unqueue@00620280(p)`
+/// ([`sim::Sim::action_unqueue`]), the cancel (item 884, `docs/GOLDEN.md`
+/// §34). The command carries no `group` — `CommandManager::
+/// issue_unqueue@00942c40` writes `[who][o][p][uid]`, 15 bytes under the
+/// emulator — so it seats nothing in the pool. `p` is the slot, or the
+/// selector's negatives (−1 the last, −5 five, −10 all).
+///
+/// SEAM: `process_unqueue`'s unit arm (`Unit::action_unqueue@005e1f20`, a
+/// unit's own queue) and its `uid` test; no capture cancels either.
+///
+/// Returns the number of the player's live buildings named, 0 or 1: a
+/// single cancel on an infinite queue acts and removes nothing.
+pub fn unqueue(built: &mut Built, who: i32, o: i32, p: i32) -> usize {
+    let Some(b) = i16::try_from(o)
+        .ok()
+        .and_then(|o| built.sim.building_by_o(who as sim::Player, o))
+    else {
+        return 0;
+    };
+    built.sim.action_unqueue(b, p);
+    1
+}
+
 /// What one frame's commands did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Applied {
@@ -927,7 +951,16 @@ impl Stream {
             Command::SwarmAround { .. } | Command::Repair { .. } => {
                 done.skip(&it.cmd, "the target site is not in the simulation");
             }
-            Command::QueueUp { .. } | Command::Unqueue { .. } => {
+            // No kept stream carries an `unqueue` (item 884: `grep
+            // process_unqueue` over every kept dump finds none). run7's
+            // three `queue_up`s stay skipped: wiring them moves run7's
+            // pins, and `group_queue_up` is the golden harness's entry.
+            Command::Unqueue { who, o, unit, .. } => {
+                if unqueue(built, *who, *o, *unit) == 0 {
+                    done.skip(&it.cmd, "the building is not in the simulation");
+                }
+            }
+            Command::QueueUp { .. } => {
                 done.skip(&it.cmd, "production is not wired into the harness");
             }
             Command::Buy { .. } | Command::Sell { .. } => {
