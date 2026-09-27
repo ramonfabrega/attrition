@@ -8638,3 +8638,60 @@ which exited 0.
   cause is `do_move`'s TAKE, which reads the stack again after the line
   is verified (§32.3). With it built, nothing on `1/40`, `1/41` or `1/42`
   parts on run294 or run243.
+
+## run300 — chapter twenty-seven, the upgrade line (2026-09-26, item 901)
+
+`docs/GOLDEN.md` §36, `tools/gamelog/golden/chapter27.cmd`: chapter
+thirteen's cast to 614 and a Slinger squad `0/10` on 616, `!ai off`; who=0
+(Nubian) staged Classical by **`600 age who=0 2`** and The Art of War by
+**`602 military who=0 1`**; then **`620 @queueup 0 83 2 2007`**
+(Javelineers, `num` 2), **`640 @queueup 0 83 1 2007`**, **`650 @queueup 0
+82 1 2007`** (Slingers), **`1000 @queueup 0 82 1 2007`** and **`1010
+@queueup 0 83 1 2007`**: a unit research through the DLL's verb 18. The
+chapter and its ten falsifiers were committed before the run
+(`35ba55a7`). No `RonDriver` was running and the lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch27 \
+    --map 14 --end-frame 1560 --log-window 605 1560 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter27.cmd
+```
+
+**One take** at `cover=0`: launched 21:47, **1,214 s** in all (1,191
+launch to exit), **404 MB** of dump and 12 MB of trace, 955 blocks. The
+receipt says `success: true`, exit 0, 1,561 frames, `MAP_STYLE 14`, seed
+12345, 488,960 `GROUPDATA`. `waitrun.sh` exited 0. `cmdsran.py` has the
+nine console and chat lines returning 1, the two cheats among them.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run296's trace | the same game to 616: the cheats at 600 and 602 spend no draw, and the Slinger squad's birth on 617 parts first |
+
+### The issuers' own records
+
+- `INFO 18` for `0/2007`, uid 13, on all five frames.
+- `INFO 17`, refusal 0 on all five. The package grows 10 → 24 on 620 (a
+  fresh group and the `queue_up`) and 10 → 22 on 640, 650, 1000 and 1010
+  (the group reused).
+- `process_queue_up 83 2 621`, `83 1 641`, `82 1 651`, `82 1 1001` and
+  `83 1 1011`.
+
+### §36's falsifiers
+
+| check | predicted (this crate's walk, the queue loop by prototype) | observed |
+| --- | --- | --- |
+| 0, the staging | 605: ages 2, epochs 1, `epoch[0]` 1, discovered 8, knowledge and metal 100 | **as predicted** |
+| 2, arm a | `[83 at 100]` at `0/2007`, 80/80 once, on 622 | **as predicted**: food 254 → 174, timber 240 → 161 |
+| 3, the gate | unchanged on 642 | **as predicted**: `[83 at 2100]`, 176/162 unspent |
+| 4, arm c | `[83, 82 at 0]`, 46/46 on 652 | **as predicted**: food 131, timber 117 |
+| 5, the finish | 922: the research out, `[83 at 0]` with 46/46 kept, buckets untouched | **as predicted**: `[83 at 30000, 82 at 0]` on 921, `[83 at 0]` 46/46 on 922, 155/135 both |
+| 6, the reach | `0/10`..`0/12` type 83 on 922, `0/7`..`0/9` still 132 | **as predicted**: `myhits` 85 → 95; discovered 8 → 9 |
+| 7, arm e | unchanged on 1002 | **as predicted**: 162/140 unspent |
+| 8, arm f | `[83, 83 at 0]`, the second 46/46, on 1012 | **as predicted**: food 117, timber 95 |
+| 9, the births | a Javelineers squad on 1111, the second on 1307 | **as predicted**: `0/13`..`0/15` on 1111, `0/16`..`0/18` on 1307, all type 83 |
+
+**No falsifier fired**, and every predicted value is on its predicted
+block, the prototype's among them.

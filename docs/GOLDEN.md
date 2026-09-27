@@ -5738,6 +5738,17 @@ Falsifiers 2, 3, 5, 7 and 8 test the claim's own unit — one entry or one
 unit on the block its command or finish is processed (711) — and each
 splits the readings (789).
 
+**Run 2026-09-26 as run300 (item 901)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run296 to 616. **No falsifier
+fired, and every value the staging walk named is on its block**: 605's
+staging (0); the issues on 621, 641, 651, 1001 and 1011 with refusal 0
+(1); `[83 at 100]` and 80/80 once (2); nothing on the second press, 176
+and 162 unspent (3); the Slingers behind at 46/46 (4); on 922 the research
+out and **the Slingers entry `[83 at 0]` with its 46/46 kept and nothing
+refunded** (5), `0/10`..`0/12` Javelineers and the Hoplites untouched
+(6); nothing on the Slingers after the gain (7); a second Javelineers at
+the train price 46/46 (8); the squads on 1111 and 1307 (9).
+
 **Where it should part.** The floor is measured on this crate as it
 stands, with no queue loop: **922**, `0/2007`'s `queue[1].type` (ours 82,
 theirs 83 by the reading), then 1103's Slinger squad against 1111's
