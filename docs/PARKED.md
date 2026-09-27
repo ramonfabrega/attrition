@@ -48,6 +48,14 @@ capture has two planes full on one call.
 (931) **The launch's `returning` clear has no test that fails without
 it** (918's shape).
 
+## Parked by item 940, 2026-09-27 — the dead functions' citations
+
+(951) **Ten functions the scan found dead are cited as live** in
+`docs/INPUT.md` §11.4, `docs/ROADS.md` (the bit-`0x4` writers),
+`docs/ECONOMY.md` and `docs/COMBAT.md` (`Leader::process`),
+`docs/CITIES.md` (`num_scholars`), `docs/DANGER.md` (`clear_danger`) and
+`docs/GROUPS.md` (the speed reports): parked 412's shape. Names no score.
+
 ## Parked by item 928, 2026-09-27 — the gather point's edges
 
 (946) **A gather list of more than one point**: the waypoints, and
@@ -1571,6 +1579,19 @@ put §14 over the ceiling.
 (950) **An issuer chapter's brief names `blind.rs` as a pin it will move**
 (928's Loop line): `cover=1` refuses the issuers, so a chapter's first
 citations of its own issuer re-pin `NEVER` (225 → 228 on 928).
+
+(952) **`docs_guard`'s `DEAD_CITED` reads its dead list from EMULATOR §4's
+prose** (940's Loop line, filed at its merge): the list lives in
+`rondata::blind::RESIDUE` now, whose "no reference" rows are twelve more
+than §4's fifteen; the guard should read those rows, or `Pe::references`.
+
+(953) **An issuer the DLL calls and the game does not is a class the
+blind list cannot name** (940's Loop line): entered by the instrument,
+never by the game. Whether entering it shrinks the list is the pass's.
+
+(954) **The ranked list's membership is prose** (940's Loop line): a row
+is a family written in `docs/CENSUS.md`, so a move out of it is a
+reading; a `rows:` table in `blind.rs` would let the sizes be computed.
 
 
 
