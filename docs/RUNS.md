@@ -8807,3 +8807,57 @@ and no RonDriver was running. Archived 20:58. It was waited on with
 - **R4 is killed**: the only stock row parting is 851's standing
   `leftover[2:wealth]`, 4385 against 4377 on 23182.
 - The floor is 283/5/288/1,045.
+
+## run308 — chapter twenty-nine, the repeat launch (2026-09-27, item 915)
+
+`docs/GOLDEN.md` §38, `tools/gamelog/golden/chapter29.cmd`: chapter
+twenty-two's twelve lines, with **no** repeat toggle, and **`1540 @queueup
+0 287 1 2007`**, one Biplane at the Airbase through the DLL's verb 18. The
+chapter and its seven falsifiers were committed before the run
+(`6a150069`). No `RonDriver` was running and the lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch29 \
+    --map 14 --end-frame 2070 --log-window 605 2070 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter29.cmd
+```
+
+**One take** at `cover=0`: launched 00:53, **1,647 s** in all (1,617
+launch to exit), **590 MB** of dump and 13 MB of trace, 1,465 blocks. The
+receipt says `success: true`, exit 0, 2,071 frames, `MAP_STYLE 14`, seed
+12345, 750,080 `GROUPDATA` (512 a block). `waitrun.sh` exited 0.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run265's trace | the same game on all 1,501 frames the two share |
+| `rngcmp.py` vs run281's trace | the same game to 1585; the harness word 1586: run281's toggle on 1440 spends no draw, and run308's relaunch of `0/6` does |
+
+### The issuer's own records
+
+- `INFO 18` for `0/2007` (uid 13) on trace frame 1540 (`0x604`).
+- `INFO 17` on 1540: the package grows 10 → 24 (a fresh one-building
+  group and the `queue_up`).
+- `process_group, new 0 1 1541` and `process_queue_up 287 1 1541`.
+
+### §38's falsifiers
+
+| check | predicted (this crate's walk) | observed |
+| --- | --- | --- |
+| 1, the issue | processed on 1541 | **as predicted** |
+| 2, the press | `0/2007` one Biplane; metal 134 → 49, oil 100 → 15 on 1542 | **as predicted**: `queued` 1, the entry's `cost` 85/85, goods 2 and 5 |
+| 3, the first relaunch | `0/6` out on 1585 at (11424, 13845), its `AIRPATROLORDER` flags 0, `returning` 0; counter 0 | **as predicted**: `inside_up` −1, `mana_burn` 0, `cruising_alt` 1400; the base's `inside_down` 6 → 7 |
+| 4, the trained aircraft | the reading: inside, no order, `mana_burn` 0; this crate: out on (11424, 13920) | **the reading**: `0/9` born on 1746, `inside_up 8` (behind `0/8` in the chain), no order, `mana_burn` 0, at (11640, 13944), and so to 2069 (`inside_up 2007` once it heads the chain); `queued` 0 on 1747 |
+| 5, the later relaunches | `0/7` on 1789 and `0/8` on 1813, each with its patrol, flags 0 | **as predicted**: out at (11424, 13860), the base's `inside_down` 7 → 8 → 9 |
+| 6, the counter | 1..15 over 1814..1828, then 15 | **as predicted**: the chain holds `0/9` alone, and the counter saturates |
+| 7, the tank flown out | `0/6` `mana_burn` 400, `returning` 1 on 1985 | **as predicted** |
+
+**Falsifier 4's first two readings split, and the listing's won**: the
+trained aircraft never comes out of an Airbase with no gather point
+(`Build::train@0062f9b0`'s `CARRY_AIR` arm); parked 843's EXIT, which this
+crate takes, is killed. **The others did not fire**: the launch half of
+`do_launch`'s repeat arm (parked 876) flies each kept patrol out on its
+first full tank. The Biplane's point is the base's plus (24, 24), not the
+base's own.
