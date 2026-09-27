@@ -62,6 +62,12 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 972, 2026-09-27 — the held-out map
+
+(988) **run348 is a `cover=1` trace on a map no traced run had touched**:
+the blind list could be re-run with it in `TRACES`. Counter two's, on
+the staging lane.
+
 ## Parked by item 971, 2026-09-27 — the spellcaster's other arms
 
 (980) **`think_spellcaster`'s army turn** (`army.rs`'s "spellcasters'
@@ -1556,6 +1562,20 @@ line): a stanza appended mid-queue for the running item's number is
 taken in the same run. run349 was taken that way, unplanned; a stanza
 written ahead of its lane check can launch before the check is done.
 
+(985) **The held-out map stands up flat** (972's Loop line, filed at its
+merge): both scored maps read a `DUMP_ALL` start sibling for the height
+table (run38; run12 and run13) and map 9 has none. A later
+generalisation number wants one, or the pass decides the gap stands.
+
+(986) **Nothing guards "measured once"** (972's Loop line): a
+`docs_guard` row counting `mapstyle: 9` stanzas in `captures.txt`
+against one would.
+
+(987) **`mapstyle.py` rewrites the profile's style with no restore**
+(972's Loop line): every `longtrace.sh` capture rewrites it, but a lane
+that reads the profile without calling `mapstyle.py` inherits the last
+map. 974's family.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
@@ -2141,14 +2161,6 @@ linked to a city. Same word, different counter, and blurring them would
 make either number unreadable.
 
 ## Parked 2026-09-18, the two-lane session
-
-(372) **The held-out map's 1 is comparable in kind, not in provenance.**
-run106 ran on the click-free lane's lobby, not run33/run39's `-config
-check.ini`, and its window opens at frame 1 rather than matching the score
-runs' shape. Strict comparability wants a run33-shaped capture on map 9 —
-a second capture and a second decision, which is why 363 left it. Park,
-not bury: the 1 is the generalisation number and the first pass that
-reads it should know exactly how it was taken.
 
 (373) **The click-free lane's give-up truncates rather than stops.**
 `--timeout` defaults to 180 s and the first held-out attempt returned 593
