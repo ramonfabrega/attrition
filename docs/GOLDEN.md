@@ -5766,3 +5766,28 @@ original runs it. Then 1103: `0/13`..`0/15` this crate's alone, and
 `queued` 1 against 2. The births' `form` are `Unit::init`'s (parked
 646). The pool: the first seat's record `o` on 622 (parked 887), and the
 extra squad's seat on 1103.
+
+**The queue loop entered: `GOLDEN_WORD_CHAPTER_TWENTY_SEVEN` = 1560,
+closed** (item 901, `docs/TECH.md` "The queue loop",
+`Sim::retarget_queued_to`). **The value diff, both sides**, on the blocks
+the reading named (ours before the build in brackets): **922**
+`0/2007`'s `[83 at 0]` 46/46 (`[82 at 0]` 46/46), food 155 and timber 135
+both; **1103** `queued` 2 (1) and no squad (`0/13`..`0/15` Slingers);
+**1111** `0/13`..`0/15` type 83, `myhits` 95 (none); **1307**
+`0/16`..`0/18` type 83. Every other queue, bucket, counter and unit
+type in run300 agrees on every block. **What stands, 21 rows**,
+all `Unit::init@00612100`'s (parked 646): the births' `form` (611, 615,
+617, 1111, 1307) and the followers' `orders_x/y`. **The pool**: the first
+seats' record `o` on 622 and 1111 (parked 887).
+
+**Mutations**, each restored from git and `touch`ed, on the built tree:
+
+| mutation | fails |
+| --- | --- |
+| the queue loop dropped | the unit test; the widening on **922**, `queue[0].type` 82 against 83; the word falls to 1102 |
+| a refund on the re-target | the unit test; the widening on **922**, food 201 against 155 and timber 181 against 135 |
+| the progress reset | the unit test alone: the entry sat at 0 behind the research |
+| the `jump` match decrementing the entry's type | the unit test alone: Slingers → Javelineers is a `from` match |
+
+The last two are the emulator's rows b and f, and no capture on disk
+splits them.

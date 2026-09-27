@@ -817,7 +817,15 @@ Library (622), a second press refused by `researching` (642), the second
 pass behind a busy head (652), a held technology refused by `can_make`
 (852), the Science re-price and the cancel of the re-priced entry (1023,
 1042), and the same technology queued again at the science discount
-(1062). The `num` clause and a two-member group are the emulator's alone.
+(1062). ~~The `num` clause and a two-member group are the emulator's alone.~~
+**run300 backs the unit arm** (item 901, `docs/GOLDEN.md` §36) on who=0's
+Barracks: Javelineers laid once at 80/80 with `num` 2 (622), and a second
+press refused (642). A unit research is not refused by
+`BuildData::can_make@0062db10`, which asks `researching` for a technology
+only, and the price would have paid for a second entry. So both blocks
+split their readings, and **the `num` clause is diff-backed** there. A
+two-member group is still the emulator's alone. The finish's queue loop is
+`docs/TECH.md` "The queue loop".
 
 ```
 sort the members by queued, least first          # as the train arm
