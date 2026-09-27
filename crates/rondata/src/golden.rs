@@ -1358,6 +1358,10 @@ mod tests {
         // the Classical age and The Art of War staged by `age` and
         // `military` (item 901, `docs/GOLDEN.md` §36).
         ("chapter27.cmd", &[]),
+        // Chapter twenty-eight: a second Barracks, three `@queueup` lines
+        // and two `@buildmask` lines on one or both, two buildings under one
+        // command (item 888, `docs/GOLDEN.md` §37).
+        ("chapter28.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),

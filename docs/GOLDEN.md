@@ -5985,3 +5985,24 @@ and 60/50, `0/2007` 56/45 and 65/56** — sorted once, one a member a pass
 `[2007, 2008]` stamp 641** (6), `[2008]` in slot 1 on 702 (7), `[2008,
 2007]` in slot 0 on 722 (8), `[2007, 2008]` in slot 1 on 742 (9), stamp
 741 kept on 762 (10); and the births' `group` 0 to 4 (11).
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_EIGHT` = 1580,
+closed, on the first walk** — a pool slot spends no draw. The widening,
+run304 whole in `WIDENINGS`, with eight windows in the coverage driver.
+**Every queue, bucket and `build_masks` agrees on every block**: the sort
+and passes and the toggle's rule were built from the reading. **The
+first parting's field list**, 642: who=0's slot 0 `held`, theirs `[2007,
+2008]` and ours empty. Its writer on 642 is `process_group`'s
+`push_group` alone (no birth, no other command), and only the original
+seats a group of two. Then every seat after it one slot off (702's
+`[2008]` in slot 0 here, 742's `num`) and, the units' half, **825's
+`group`**, `0/10`..`0/12` 1 here against 0, and 876's `0/13`..`0/15` 0
+against 1: `come_out`'s push takes the first open slot, and the slots
+the two-member records hold there are empty here. **The writers of each
+standing field, counted before booking** (889): `group` (`+0x80`) —
+`push_group`'s member walk and `get_open_slot`'s clear, both sides run
+both, and the slot they are handed is the pool's; `form` and the
+followers' `orders_x/y` on every birth — `Unit::init@00612100` (parked
+646), 30 of the 45 rows; the pool's `speed`/`new_speed` on 833 and 834 —
+`normalize`'s leader speed on the squads' slots, one slot off; each
+first seat's `ox`/`oy` — `push_group`'s record `o` (parked 887).
