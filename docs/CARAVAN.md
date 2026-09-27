@@ -656,5 +656,12 @@ asked. With both, Great Lakes' word moves **14529 → 14650**
   renderer's, but its reference counts are the mesh's (`docs/ROADS.md`
   §10.5).
 - `Caravans::new_danger@0073e0c0` restarts a route whose road passes
-  within `0x600` of a hit on a caravan (`Object::take_damage`). No traced
-  caravan has been hit, and it is not modelled.
+  within `0x600` of ~~a hit on a caravan~~ **a hit on a land caravan that
+  `Object::take_damage` lets through, and it lets through two arms only**
+  (the listing, `00652e97..00652f41`, item 959): the caravan's tile is
+  unowned or owned by a non-ally of the caravan's owner; or, on its own or
+  an ally's ground, the attacker answers its vtable `+0x1c` non-zero, which
+  `Build` and `Wall` do and `Unit` never does (a folded `return 0`). So a
+  soldier hitting a caravan on its owner's ground restarts nothing: run341's
+  hoplites hit and killed one on London's ground and never entered it. It
+  is not modelled.

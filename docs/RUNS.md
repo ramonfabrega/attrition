@@ -9248,3 +9248,62 @@ was one take: 205.9 MB of gamelog. All four checks passed:
 `rngcmp` against run312 (**0 differing, 1,451 identical**), and each
 issuer the script calls entered. New on the blind list's side: the gather point, four (`issue_gather_point`, `process_gather_point`, `action_gather_point`, `Build::add_gather_point`), and `BuildData::num_gather` and the gather-point list's `add`, but not `get_first_gather`.
 `rondata::blind::TRACES` carries run337.
+
+## run340 — a staged economy for the blind list's row 6: two of six entered (2026-09-27, item 959)
+
+**What it is.** One launch for row 6 of `docs/CENSUS.md`'s ranked blind
+list, on the queue lane at `cover=1`, through `viadriver.sh … runqueue.sh -
+959`: the golden lobby (`cfg: -`, Great Lakes, seed 12345), `!ai off` and
+`!ffwd 2` as the chapters run them, `!quit` at 2400, `end:
+MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1`. The staging is the
+census's "row 6 read to its callers": a Small City for who=1 at tile
+(216,112), a Lumber Mill in Napata, Angkor Wat for who=0, a caravan for
+who=1 (o 6), three who=0 Hoplites twenty tiles off its road, chapter
+thirty's gather point on Napata, `die 8,0` on 700, `@attack 0 6 1 6` on
+900, and `die 6,1` on 2000 as the kill's backstop. The DLL was run318's,
+sha256 `b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca`
+(parked 936).
+
+**Taken** 08:59:24–09:17 in one take: 357.4 MB of gamelog, 10.3 MB of
+trace. Every chat line ran and returned 1, and both `@` lines issued with
+refusal 0 (no golden twin, so the stanza reads `INFO 17` itself; the
+check fails on run314's six refusals).
+
+| function | entered | why, if not |
+|---|---|---|
+| `CityData::lumber_level` | 604 | |
+| `Caravans::close_caravan` | 2000 | by the backstop `die`, not the attack |
+| `LeaderData::resource_cap_add` | no | Angkor Wat (o 2008) landed at `city -1`, 23 tiles from Napata; `has_wonder` counts a wonder only in a city (`+0x72`) |
+| `Build::replace_gather` | no | hoplite 8 died on 700, but a squad member's `Unit::close` skips the hotkey arm (`field_0x8e >= 0`); `HotKeyGroups::kill` first ran on 2000 |
+| `Caravans::new_danger`, `Caravan::restart_trade_route` | no | the caravan routed (`do_trade`, `build_road` on 611), but hoplite 6's order stack is empty on 902: `valid_target_const` asks the target's `is_seen` for who=0, and the caravan was out of sight; nothing was damaged |
+
+`rondata::blind::TRACES` carries run340.
+
+## run341 — run340 retaken with its three misses fixed: four of six (2026-09-27, item 959)
+
+**What it is.** run340's stanza with three changes, each one of run340's
+reasons: Angkor Wat at corner (12,168), inside Napata's 20-tile radius;
+`die 5,0` (a starting citizen, no squad) for `die 8,0`; and `explore all`
+on 890, which sets `reveal_map` 3 so `UnitData::is_seen` answers yes. The
+same DLL.
+
+**Taken** 09:22:09–09:40 in one take: 355.9 MB of gamelog, 10.3 MB of
+trace; every asserted chat line returned 1, both `@` lines issued with
+refusal 0.
+
+| function | entered |
+|---|---|
+| `LeaderData::resource_cap_add` | 606 |
+| `CityData::lumber_level` | 604 |
+| `Build::replace_gather` | 700 |
+| `Object::take_damage` | 1167, the hoplites on the caravan |
+| `Caravans::close_caravan` | 1458, the attack's kill |
+| `Caravans::new_danger`, `Caravan::restart_trade_route` | **no** |
+
+The listing says why (`00652e97..00652f41`): on the caravan owner's own or
+an ally's ground, `take_damage` calls `new_danger` only for an attacker
+whose vtable `+0x1c` answers non-zero, which `Build` and `Wall` do and
+`Unit` never does; the hoplites hit the caravan on London's ground
+(`docs/CARAVAN.md` §10.4, amended). run342 adds a Tower.
+`rondata::blind::TRACES` carries run341; the blind list 151 → 147 with
+both.
