@@ -414,14 +414,20 @@ impl Sim {
     /// `CommandPackage::process_group@0094a0c0`'s push of a player's
     /// command group of buildings (`0x94a6cf`, `Groups::push_group(who, g,
     /// 1)`), before the command behind it — an eject, a build mask, a
-    /// queue-up — runs (`docs/GOLDEN.md` §32, §33). One building is
-    /// [`Sim::push_building_group`]'s group.
-    ///
-    /// SEAM: a group of two or more buildings is not seated; no capture
-    /// selects more than one.
+    /// queue-up — runs (`docs/GOLDEN.md` §32, §33, §37). The group is
+    /// every listed building `Group::add@00714350` takes, in the
+    /// command's order: a second copy of one is `GroupData::member`'s and
+    /// is dropped. Seated by [`Sim::push_buildings_group`]
+    /// (`docs/PRODUCTION.md`, "The command on a selection of buildings").
     pub fn push_command_buildings(&mut self, who: crate::world::Player, list: &[usize]) {
-        if let [b] = list {
-            self.push_building_group(who, *b);
+        let mut group: Vec<usize> = Vec::with_capacity(list.len());
+        for &b in list {
+            if !group.contains(&b) {
+                group.push(b);
+            }
+        }
+        if !group.is_empty() {
+            self.push_buildings_group(who, &group);
         }
     }
 

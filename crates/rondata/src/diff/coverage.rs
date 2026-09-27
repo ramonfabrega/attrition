@@ -555,6 +555,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch25 = golden_dump("ch25");
     let ch26 = golden_dump("ch26");
     let ch27 = golden_dump("ch27");
+    let ch28 = golden_dump("ch28");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1317,6 +1318,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             assert_eq!(
                 n, 5,
                 "chapter twenty-seven carries the window's five blocks"
+            );
+            frames += n;
+        }
+    }
+    // **Chapter twenty-eight's word, on run304** (item 888): two
+    // buildings under one command. 622, the single press; 642, the sort
+    // and passes and the building group of two; 702 and 722, the
+    // infinite toggle on one and on two; 742 and 762, the group in the
+    // other order and again; 825 and 876, the births into the building
+    // groups' slots.
+    if let Some(p) = &ch28 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_EIGHT;
+        for w in [622, 642, 702, 722, 742, 762, 825, 876] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(
+                n, 5,
+                "chapter twenty-eight carries the window's five blocks"
             );
             frames += n;
         }

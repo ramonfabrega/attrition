@@ -3708,6 +3708,25 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_SEVEN: i64 = 1560;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_SEVEN: (i64, i64) = (605, 1561);
 
+/// **Chapter twenty-eight's golden word** — two buildings under one
+/// command: `Group::action_queue_up`'s sort and passes across two
+/// Barracks, the infinite toggle on two, and the command's building group
+/// of two in the pool (`docs/GOLDEN.md` §37, item 888, run304).
+///
+/// **1580, closed, on the first walk**: a pool slot spends no draw, and
+/// the queues and bits agree on every block. The widening parts on 642,
+/// who=0's slot 0 `held` — the command's building group of two, which
+/// `Sim::push_command_buildings` did not seat — and on 825 and 876 the
+/// trained squads' `group`, one slot off.
+///
+/// **The delta**, this constant's: the first pin, 1580, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_EIGHT: i64 = 1580;
+
+/// `chapter_twenty_eight_s_word_frame_is_widened_whole`'s window: run304
+/// whole, (605, 1581). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_EIGHT: (i64, i64) = (605, 1581);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5561,6 +5580,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_seven_s_word_frame_is_widened_whole"),
         901,
         Some(WIDENING_CHAPTER_TWENTY_SEVEN),
+    ),
+    // Item 888: run304, chapter twenty-eight, two buildings under one
+    // command. The widening is run304 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_EIGHT",
+        GOLDEN_WORD_CHAPTER_TWENTY_EIGHT,
+        Some("chapter_twenty_eight_s_word_frame_is_widened_whole"),
+        888,
+        Some(WIDENING_CHAPTER_TWENTY_EIGHT),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

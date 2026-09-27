@@ -1270,15 +1270,25 @@ impl Sim {
 
     /// `Groups::push_group(who, g, 1)` for the one-building group the AI
     /// scripts' `train_unit*` and `research_tech_with_cost` build before
-    /// `Group::action_queue_up` (§28.4). A group equal to `last_group`'s
-    /// — the same building — reuses it; otherwise `get_open_slot` and
-    /// `copy_group` seat it, and it takes every later push's slot first.
-    /// A building's own `+0x80` is not carried.
+    /// `Group::action_queue_up` (§28.4): [`Sim::push_buildings_group`] of
+    /// one building.
     pub(crate) fn push_building_group(&mut self, who: Player, b: usize) {
+        self.push_buildings_group(who, &[b]);
+    }
+
+    /// `Groups::push_group@0070f9e0(who, g, 1)` for a group of buildings
+    /// (`docs/PRODUCTION.md`, "The command on a selection of buildings"):
+    /// `list` in the order `Group::add@00714350` took them. A group equal to `last_group`'s record —
+    /// `Group::equals_group@00708000`: the same members **in the same
+    /// order** — reuses it and writes nothing; otherwise `get_open_slot`
+    /// and `copy_group` seat it, and it takes every later push's slot
+    /// first. A building's own `+0x80` is not carried: the member walk
+    /// writes a unit's alone (vslot 8).
+    pub(crate) fn push_buildings_group(&mut self, who: Player, list: &[usize]) {
         let w = who as usize;
         let last = self.last_group[w];
         let equal = self.pushed.iter().any(|x| {
-            x.who == who && x.state.pool == Some(last) && x.builds == [b] && x.list.is_empty()
+            x.who == who && x.state.pool == Some(last) && x.builds == list && x.list.is_empty()
         }) && !self.armies[w]
             .list
             .iter()
@@ -1294,7 +1304,7 @@ impl Sim {
             who,
             list: Vec::new(),
             state,
-            builds: vec![b],
+            builds: list.to_vec(),
         };
         match slot {
             Some(i) => self.pushed[i] = entry,

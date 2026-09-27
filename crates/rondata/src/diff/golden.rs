@@ -9195,6 +9195,160 @@ const WANT_CH27_POOL: &[&str] = &[
     "1111 slot 0 oy",
 ];
 
+/// **Chapter twenty-eight, pinned** — two buildings under one command
+/// (`docs/GOLDEN.md` §37, item 888, run304). Eleven staged lines: `!ai
+/// off`, chapter thirteen's cast with a second Barracks, three
+/// `@queueup`s on one or both, two `@buildmask`s, and the two refused
+/// presses.
+#[test]
+fn chapter_twenty_eight_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch28", "chapter28", 28, 11, 1579) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_EIGHT,
+        "chapter twenty-eight's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_EIGHT}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_EIGHT,
+        "chapter twenty-eight's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §37"
+    );
+    eprintln!(
+        "chapter twenty-eight: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run304 whole, both directions** (item 888, `docs/GOLDEN.md` §37):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch28",
+        "chapter28",
+        WIDENING_CHAPTER_TWENTY_EIGHT,
+        1579,
+        0,
+        (640, 644),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch28 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter thirteen's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_EIGHT.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch28: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_EIGHT.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch28", "chapter28", WIDENING_CHAPTER_TWENTY_EIGHT, 0)
+        .expect("run304 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch28 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH28.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch28: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH28_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch28: what parts in the pool moved");
+}
+
+// **What parts under the word** on run304, chapter twenty-eight. ~~The
+// first walk, the two-building seat not built: 825's `group`, the Bowmen
+// `0/10`..`0/12` in slot 1 here and 0 there, and 876's Hoplites in 0
+// against 1.~~ **The seat built** (item 888, `Sim::push_buildings_group`):
+// every `group` agrees, as every queue, bucket and `build_masks` did on
+// the first walk. What stands is `Unit::init@00612100`'s (parked 646):
+// `form` on every birth and the followers' tile-centred `orders_x/y`.
+const WANT_CH28: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "825 0/10 form",
+    "825 0/11 form",
+    "825 0/11 orders_x",
+    "825 0/11 orders_y",
+    "825 0/12 form",
+    "825 0/12 orders_x",
+    "825 0/12 orders_y",
+    "876 0/13 form",
+    "876 0/14 form",
+    "876 0/14 orders_x",
+    "876 0/14 orders_y",
+    "876 0/15 form",
+    "876 0/15 orders_x",
+    "876 0/15 orders_y",
+    "1067 0/16 form",
+    "1067 0/17 form",
+    "1067 0/17 orders_x",
+    "1067 0/17 orders_y",
+    "1067 0/18 form",
+    "1067 0/18 orders_x",
+    "1067 0/18 orders_y",
+    "1126 0/19 form",
+    "1126 0/20 form",
+    "1126 0/20 orders_x",
+    "1126 0/20 orders_y",
+    "1126 0/21 form",
+    "1126 0/21 orders_x",
+    "1126 0/21 orders_y",
+    "1324 0/22 form",
+    "1324 0/23 form",
+    "1324 0/23 orders_x",
+    "1324 0/23 orders_y",
+    "1324 0/24 form",
+    "1324 0/24 orders_x",
+    "1324 0/24 orders_y",
+];
+
+// **What parts in the pool** on run304. ~~The first walk: 642, slot 0
+// `held`, theirs `[2007, 2008]` and ours empty, and every seat after it
+// one slot off.~~ **The seat built**: every slot's list, `num`, `stamp`,
+// `speed` and `new_speed` agree on every block. What stands is each first
+// seat's `ox`/`oy`, ours −1 and theirs 0 — `push_group`'s record `o`
+// (parked 887).
+const WANT_CH28_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "1067 slot 2 ox",
+    "1067 slot 2 oy",
+    "1126 slot 3 ox",
+    "1126 slot 3 oy",
+    "1324 slot 4 ox",
+    "1324 slot 4 oy",
+];
+
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {
     let Some(firsts) = widen_civilians(

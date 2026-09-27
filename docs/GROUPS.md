@@ -4404,9 +4404,12 @@ closed**.
 
 ### 31.4 What this has *not* established
 
-- **A command group of two or more buildings.** `process_group` seats
+- ~~**A command group of two or more buildings.** `process_group` seats
   one group of every listed building; this crate seats one building
-  (`Sim::push_command_buildings`, a `SEAM:`). No capture selects two.
+  (`Sim::push_command_buildings`, a `SEAM:`). No capture selects two.~~
+  **Built and diff-backed by run304** (item 888): one record, in the
+  command's order, reused when equal in order — `docs/PRODUCTION.md`,
+  "The command on a selection of buildings", and `docs/GOLDEN.md` §37.
 - **The gather-point arms** of `come_out` (`BuildData +0xcc`), which
   move the pushed group with `Group::action_move_to@0070fba0` (the calls at
   `6190ce`, `619a04` and `619e98`): no capture sets a gather point.
