@@ -9917,8 +9917,8 @@ three there.
   the third clear candidate. So (0,0) and (0,1) are clear there, and
   **the refused one is (1,1) = (35904, 38208)**.
 - **Its one tile no clear candidate shares is (188, 200)**, in cell
-  (47, 50). The start dump prints that cell's flags as `0x0808`, which is
-  `cell::ROCK | cell::OIL`. `World::set_oil_at@006b2a10` is the oil bit's
+  (47, 50). The start dump prints that cell's flags as
+  `cell::ROCK | cell::OIL`, the bits 8 and `0x800`. `World::set_oil_at@006b2a10` is the oil bit's
   only writer (the terrain groups and the editor), so the cell is the
   map's, fixed from frame 0.
 - **The scratch probe on ours** at tick 23182: all sixteen tiles of
@@ -9966,6 +9966,9 @@ the listing's order:
   - the mountain test is the tile's object, not the cell's flag;
   - oil is tested before rock.
 
+`docs/CITIES.md` §2.5 had specified all three arms since the placement
+reading. The code had never carried them.
+
 The spiral already refuses a candidate on such a cell (`buildings_allowed`,
 §2.20 defect 3). The jitter's footprint is what reaches into the next
 cell, which is why the gap stood for 23,000 frames.
@@ -9976,3 +9979,69 @@ each arm fails it (§78.4).
 
 ### 78.4 What it moved
 
+Measured on the tree based on `7f178d8c`:
+
+- **The value diff on the word's frame**
+  (`run299_s_word_frame_is_widened_whole`). On block 23183 who=1's
+  `MAKE[4].t` goes 417 against −1 → **−1 on both sides**, and `1/79`'s
+  `g.cur_anim[0]` 3 against 1 and `g.end_time[0]` 42 against 58 →
+  **1 and 58 on both**. The draws on 23182 go 49 against 48 → **48
+  against 48**, and (1,1)'s verdict goes Clear → Rock. The floor goes
+  283/5/288/1,045 → 283/2/285/292/359: the three keys under the word
+  close, and 686 across the window.
+- **East Indies 23182 → 23420**, inside run299's window. On 23420 ours
+  spends 7 draws against 31, parting at index 0: ours
+  `Unit::do_guard+0x8fb`, the original `Farms::add_animals+0x92`. The
+  original adds a pasture's five animals (twenty draws, then five
+  `Animal::do_idle`), and ours spends `Farms::inc_time+0x1ae` there
+  instead. **No mechanism is named.**
+- **The runway, 23184..23421, is pinned in the same test.** Who=1's
+  `gather_stamp` parts on 23192 (23191 here, 23183 there), and it parts
+  the same under the rule before the fix (a mutation, restored from
+  git). It is parked 701's shape, not this fix's.
+- **Great Lakes holds at 24000.** Its long walk (`run53_s_24000_frames_…`)
+  agrees on all 24,000 frames, its endpoint stays 0 off, and run80's
+  widening passes. **It gains ten keys**, all in who=1's city sites:
+  `SITE[4]` on 14176 and `SITE[8]` on 12976. That is a site at (47, 33)
+  that ours scored 95,326 and the original never listed. A city is no
+  flat gather type, so only the rock arm refuses it.
+  - run178's rows under its word drop those ten.
+  - run192, run196, run202, run211, run218 and run226's floors each
+    drop ten (392 → 382).
+  - run117's leader residue drops `SITE[4].rank` (60 → 59).
+- **East Indies' endpoint** at 24001: 38 → 36 off, 2 → 0 extra.
+- **Every golden word and control holds.**
+- **The mutations**, each restored from git and `touch`ed:
+  - **The rock arm out** fails the unit test and run178's widening. East
+    Indies still reaches 23420, because the flat-gather arm refuses that
+    Oil cell by itself.
+  - **The flat-gather arm out** fails the unit test. The word holds, on
+    the rock arm.
+  - **Both out** is the old rule: 23182.
+
+### 78.5 What this has *not* established
+
+- **Which verdict the original returned on (188, 200).** By the listing's
+  order it is Rock (3), or 0x24 unseen. Both refuse, and nothing prints
+  it.
+- **The flat-gather arm has no diff of its own yet.** On this tile it is
+  foreclosed by the rock arm. The Farm's sand, forest and oil cells
+  elsewhere are its test, and no word has named one.
+- **`blocked_tcoord`'s mountain clause** still reads only the tile's
+  object, not the cell's `0x10` (`00637023`). That changes Rare (7) to
+  Mountain (2), and no caller reads either code.
+
+### 78.6 Coverage
+
+**Diff-backed**:
+- the rock arm, through the trace's seeds and run299's `MAKE[4]` and
+  `1/79` rows on 23183;
+- the rock arm on a city site, through run178's `SITE` rows on Great
+  Lakes.
+
+**Listing-backed**: both arms' order and predicates (`006370b2`,
+`00637105`, `00637532`), and `get_land@006b4c70`'s tile form, read in
+`llvm-objdump` rather than the decompiler. The flat-gather arm and the
+oil pair's `NoOil` rest on the listing and on
+`a_rock_cell_refuses_a_farm_and_a_flat_gather_type_needs_its_good` alone.
+Those are the rows a second reading would take.

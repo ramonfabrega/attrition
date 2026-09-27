@@ -366,9 +366,6 @@ flat gather type and LandData::get_amount(tile, good) == 0 → NO_RESOURCES 9
 0
 ```
 
-The rock, oil and flat-gather arms were unbuilt until item 904 (`docs/AI.md`
-§78); `get_land` here is the tile form, `@006b4c70`.
-
 **A city or fort may stand on unowned ground only as the player's first city
 or fort (built or placed) in that region** — the foothold. Every later one
 must be inside friendly territory (§2.6.1). The Lakota skip the test;
