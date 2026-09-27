@@ -762,12 +762,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     // Item 899 moved it to 24000, the capture's own end: run80 carries the
-    // last blocks any dump holds, 23997..23999 and the end block 24001
-    // (there is no 24000).
+    // last blocks any dump holds. The window is 23997..23999, its last three
+    // per-frame blocks. The end block 24001 is the quit dump, which adds a
+    // `GAME` record and the `WORLD` territory limits no reader parses —
+    // not a per-frame record, and left out of the window rather than pinned
+    // (item 899's journal names it for parking).
     if let Some(p) = &r80 {
         let end = WIDENING_GREAT_LAKES_END.1;
-        let n = drive_capture(p, end - 4, end, &mut paths);
-        assert_eq!(n, 4, "run80 carries the end's four blocks");
+        let n = drive_capture(p, end - 4, end - 1, &mut paths);
+        assert_eq!(n, 3, "run80 carries the end's last three per-frame blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower

@@ -2555,7 +2555,13 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 24_000;
 /// itself leaving the set. It is a bowman of the squad whose soft flags
 /// the collision probe's stride over an empty world cell had parted
 /// (`docs/COLLISION.md` §4.2).
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 28_220;
+///
+/// **28,220 → 2,634 on item 899**, and every row of the fall is `1/40`'s,
+/// which leaves the set: the pathfinder's tie-break this comment named was
+/// the `army` mode, which the original leaves off for a walk home planned
+/// while the leader's current order is the `ATTACK` (`docs/PATHFINDER.md`
+/// §29). What stands is `1/23`'s `Action` and `move/angle` rows alone.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 2_634;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed

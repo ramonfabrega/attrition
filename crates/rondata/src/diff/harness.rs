@@ -5329,6 +5329,38 @@ pub(crate) mod tests {
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \
              the floor is {LONG_WORD_GREAT_LAKES} on both"
         );
+        // **A word at the trace's end is not a cap reading as agreement**
+        // (item 899): the word is `unwrap_or(last)` when nothing parts, so
+        // the claim is only as good as the walk. The trace holds a `FRAME`
+        // record for every frame 0..=24000, the harness walked every one of
+        // 0..24000 and compared it, and both sides spent the same draws —
+        // a frame with draws on one side and a missing record on the other
+        // would have parted.
+        let traced: std::collections::BTreeSet<i64> =
+            trace.frames.iter().map(|(n, _)| *n).collect();
+        let walked: Vec<i64> = built.frame_sites.iter().map(|(f, _)| *f).collect();
+        let (ours_draws, theirs_draws): (usize, usize) = built
+            .frame_sites
+            .iter()
+            .map(|(f, o)| (o.len(), trace.labels(*f).len()))
+            .fold((0, 0), |(a, b), (x, y)| (a + x, b + y));
+        eprintln!(
+            "run53: {} traced frames, {} walked, draws ours {ours_draws} theirs {theirs_draws}",
+            traced.len(),
+            walked.len()
+        );
+        if LONG_WORD_GREAT_LAKES == last {
+            assert_eq!(
+                (last, traced.len(), walked.len()),
+                (24_000, 24_001, 24_000),
+                "run53's trace is 24,000 frames and every one is walked"
+            );
+            assert!(
+                (0..last).all(|n| traced.contains(&n)) && walked.iter().copied().eq(0..last),
+                "a frame of 0..24000 is missing from the trace or the walk"
+            );
+            assert_eq!(ours_draws, theirs_draws, "the draw totals");
+        }
     }
 
     /// **Great Lakes 8186 is `Army::find_target`'s two-unit probe, and the
@@ -6807,9 +6839,14 @@ pub(crate) mod tests {
         // the fast path's stride over an empty world cell had parted
         // (`docs/COLLISION.md` §4.2); the word moved up on the same item,
         // which only adds rows below it, so the fall is the fix's.
+        //
+        // **Item 899 took `1/40` off it**: its walk home is planned while its
+        // current order is the `ATTACK`, which the original plans without
+        // the `army` mode (`docs/PATHFINDER.md` §29), so its stack is the
+        // original's whole and so is every order it walks.
         assert_eq!(
             units,
-            vec![(1, 23), (1, 40)],
+            vec![(1, 23)],
             "run97's order residue reached a unit item 368 did not leave it on"
         );
         // The count is floored beneath the set, so a known unit growing
@@ -6855,13 +6892,15 @@ pub(crate) mod tests {
     /// A tie is still the shape these have; **which** cost function breaks
     /// it is open, and nothing on this disk names it. §17.6's second and
     /// third falsifiers are the tests for whoever takes them.
-    const PROBE_PLAN_PARTED: &[(i64, i64, &[usize])] = &[(
-        1,
-        40,
-        &[
-            3, 4, 5, 6, 7, 8, 9, 10, 11, 24, 25, 26, 27, 28, 29, 30, 33, 37, 38, 39, 40, 41,
-        ],
-    )];
+    ///
+    /// **Item 899 emptied it.** Neither residue named above: the walk home
+    /// is a group plan made while `1/40`'s current order is the `ATTACK`,
+    /// and `AttackOrder::is_attack` answers 1, so the original plans it
+    /// without the `army` mode (`docs/PATHFINDER.md` §29). All 2,319 priced
+    /// steps of the tick are the original's
+    /// (`run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s`), and so
+    /// is all of `1/40`'s 94-entry stack.
+    const PROBE_PLAN_PARTED: &[(i64, i64, &[usize])] = &[];
 
     /// **Great Lakes 8186 plans the probe's route the original's way** —
     /// item 354, `docs/PATHFINDER.md` §22.
