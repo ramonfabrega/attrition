@@ -554,6 +554,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch24 = golden_dump("ch24");
     let ch25 = golden_dump("ch25");
     let ch26 = golden_dump("ch26");
+    let ch27 = golden_dump("ch27");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1286,6 +1287,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [622, 652, 822, 852, 1023, 1042, 1062, 1106, 1243, 1489] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-six carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty-seven's word, on run300** (item 901): the first unit
+    // upgrade through the player's command. 622, arm a's research entry
+    // and price; 642, the gate; 652, the Slingers behind it; 922, the
+    // finish that converts the squad and re-targets the entry; 1002 and
+    // 1012, the presses after it; 1102, the first walk's word.
+    if let Some(p) = &ch27 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_SEVEN;
+        for w in [622, 642, 652, 922, 1002, 1012, 1102] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(
+                n, 5,
+                "chapter twenty-seven carries the window's five blocks"
+            );
             frames += n;
         }
     }

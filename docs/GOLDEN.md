@@ -5753,3 +5753,16 @@ the train price 46/46 (8); the squads on 1111 and 1307 (9).
 stands, with no queue loop: **922**, `0/2007`'s `queue[1].type` (ours 82,
 theirs 83 by the reading), then 1103's Slinger squad against 1111's
 Javelineers — the draw stream's first parting, the births' `Guy::init`.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_SEVEN` = 1102,
+open, on the first walk**: the Slingers entry the original re-targeted
+trains a Slinger squad here on 1102, the births' draws. The floor is the
+widening's over (605, 1105) in `WIDENINGS`, with seven windows in the
+coverage driver. **The first parting's field list**, 922: `0/2007`'s
+`queue[0].type`, ours 82 and theirs 83 — the slot is 0 once the finish's
+`unqueue` has removed the research, which both sides run; the only other
+writer of the field on 922 is `gain_tech`'s `set_queue`, and only the
+original runs it. Then 1103: `0/13`..`0/15` this crate's alone, and
+`queued` 1 against 2. The births' `form` are `Unit::init`'s (parked
+646). The pool: the first seat's record `o` on 622 (parked 887), and the
+extra squad's seat on 1103.
