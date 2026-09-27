@@ -37,6 +37,17 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 901, 2026-09-26 — the upgrade line's edges
+
+(908) **The `jump`-chain decrement**: on a match by the `jump` chain,
+`gain_tech`'s queue loop decrements the new type, not the entry's. Built;
+no capture splits it. A staging needs an upgrade two steps up with the
+base type queued: Medieval and Mercenaries.
+
+(909) **The queue loop's carrier arm** (`is(0x134)`, `is(0x15f)`): a
+carrier's own `num_queued` moved to the new type. Unread past the
+listing; no capture has a carrier.
+
 ## Parked by item 890, 2026-09-26 — the price's edges
 
 (905) **`get_cost`'s building branch past the wonder arm**: the military
@@ -83,11 +94,6 @@ pool rows. The original's `Group::clear@00713e80` writes 0 at 0x18 and
 crate's `GroupState::default().o` is (−1, −1), which `group_o` reads as
 "never moved". Changing it touches that reader, unmeasured (880's
 answer, and its journal). The AI lane's: `group.rs`'s pool record.
-
-(888) **A command group of two or more buildings is not seated**: a
-`SEAM:` on `Sim::push_command_buildings` (GROUPS §31). No capture
-selects more than one. **883 adds**: the emulator's two-member rows for a
-research are unstaged for this reason. The pool lane's.
 
 ## Parked by item 877, 2026-09-26 — the queue line's edges
 
@@ -1416,6 +1422,12 @@ reading can be foreclosed by another gate on the same block.
 its merge): a checkout restore reverted 890's uncommitted fix, which it
 re-applied. The brief checklist's row (784) reads as licence to do that;
 it should say commit, then mutate, then restore.
+
+(910) **A `SEAM:` is checked against the listing's loop boundaries before
+a brief calls a mechanism built** (901's Loop line, filed at its merge):
+a seam named the carrier arm as "the queue arm", and the clause naming
+the real loop had no code beside it; the listing read end to end found
+the gap in minutes.
 
 
 
