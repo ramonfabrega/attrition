@@ -733,28 +733,24 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define CONSOLE_PLAY_OFF 0x2a0u /* Console::play */
 #define RVA_UNITS 0x80aeb0u /* units: per player, stride 0x1c: +4 length, +0x10 slots */
 #define RVA_COMMAND_MANAGER 0xa8ff60u /* command_manager, VA 0xe8ff60 */
-#define RVA_ISSUE_MOVE_TO 0x541720u
-#define RVA_ISSUE_PATROL 0x541800u
-#define RVA_ISSUE_GUARD 0x541ed0u
-#define RVA_ISSUE_FOLLOW 0x541e70u
-#define RVA_ISSUE_GARRISON 0x541a70u
-#define RVA_ISSUE_EJECT_ALL 0x541ca0u
-#define RVA_ISSUE_FORM 0x541580u
-#define RVA_ISSUE_ATTACK 0x5415e0u
-#define RVA_ISSUE_FLIGHT 0x541d40u
-#define RVA_ISSUE_BUILD 0x541c30u
-#define RVA_ISSUE_SPELL 0x541b80u
-#define RVA_ISSUE_SET_TRANSPORT 0x541910u
-#define RVA_ISSUE_SWARM_AROUND 0x5416b0u
-#define RVA_ISSUE_BUILDMASK 0x541f80u
-#define RVA_ISSUE_QUEUE_UP 0x541be0u
-#define RVA_ISSUE_UNQUEUE 0x542c40u /* the WallOut overload, VA 0x942c40 */
-#define RVA_ISSUE_GATHER_POINT 0x541b20u
+#include "issue_guard.h"
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
 #define ISSUE_MAX 32
 static u8 g_groupout[0x9d0];
+
+/* The coverage table's record for `rva` when `arm_all` planted a stub over
+ * it, else 0. The table is sorted by RVA (`funcs.py`). */
+static const Entry *cover_entry(u32 rva) {
+    u32 lo = 0, hi = g_nfuncs;
+    while (lo < hi) {
+        u32 mid = lo + (hi - lo) / 2;
+        if (g_funcs[mid].rva < rva) lo = mid + 1;
+        else hi = mid;
+    }
+    return lo < g_nfuncs && g_funcs[lo].rva == rva && g_funcs[lo].orig_len ? &g_funcs[lo] : 0;
+}
 
 static int issue_int(const u16 **t, i32 *out) {
     const u16 *p = *t;
@@ -784,7 +780,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
      * `settransport`, 16 `repair`, 17 `buildmask`, 18 `queueup`, 19
      * `unqueue`, 20 `gatherpoint`:
-     * the issuer, its prologue
+     * the issuer and its prologue (`issue_guard.h`)
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
      * attack's and a repair's the target's, a form's the formation and
@@ -835,63 +831,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(1) << 16), before, before, n);
         return;
     }
-    /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
-     * issue_patrol's, issue_guard's, issue_follow's, issue_garrison's and
-     * issue_form's, `0x14` for issue_eject_all's; each then loads
-     * `&command_manager` into ecx. issue_attack's `sub esp, 0x14` is
-     * followed by `push esi; mov esi, [ebp+0xc]`: it tests `ox` and
-     * `whom` before it asks `check_accept_issue`. `@amove`, `@explore` and
-     * `@flee` are issue_move_to. issue_flight's is `sub esp, 0x1c`, for its
-     * 0x19-byte command; `@flight` and `@strike` are issue_flight.
-     * issue_build's is the same `sub esp, 0x1c`, for its 0x19-byte
-     * command. issue_spell's is `sub esp, 0x18`, for its 0x15-byte one.
-     * issue_set_transport's is `sub esp, 8`, for its 5-byte one.
-     * issue_swarm_around's is issue_attack's to the byte: it tests `ox`
-     * and `whom` first too, for its 0x11-byte command. issue_buildmask's
-     * is `sub esp, 0xc`, for its 9-byte one, and so is issue_queue_up's.
-     * issue_unqueue's is `sub esp, 0x10`, for its 15-byte one.
-     * issue_gather_point's is `sub esp, 0x14`, for its 17-byte one. */
-    static const u8 prologue[21][11] = {{0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0x56, 0x8b, 0x75, 0x0c, 0xc6},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-                                       {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
-    u32 rva = verb == 20  ? RVA_ISSUE_GATHER_POINT
-              : verb == 19  ? RVA_ISSUE_UNQUEUE
-              : verb == 18  ? RVA_ISSUE_QUEUE_UP
-              : verb == 17  ? RVA_ISSUE_BUILDMASK
-              : verb == 16  ? RVA_ISSUE_SWARM_AROUND
-              : verb == 15  ? RVA_ISSUE_SET_TRANSPORT
-              : verb == 14  ? RVA_ISSUE_SPELL
-              : verb == 13  ? RVA_ISSUE_BUILD
-              : verb >= 11 ? RVA_ISSUE_FLIGHT
-              : verb >= 8 ? RVA_ISSUE_MOVE_TO
-              : verb == 7 ? RVA_ISSUE_ATTACK
-              : verb == 6 ? RVA_ISSUE_FORM
-              : verb == 5 ? RVA_ISSUE_EJECT_ALL
-              : verb == 4 ? RVA_ISSUE_GARRISON
-              : verb == 3 ? RVA_ISSUE_FOLLOW
-              : verb == 2 ? RVA_ISSUE_GUARD
-              : verb      ? RVA_ISSUE_PATROL
-                          : RVA_ISSUE_MOVE_TO;
+    u32 rva = ISSUER_RVA[verb];
     u32 size = verb == 20  ? 0x11
                : verb == 19  ? 0x0f
                : verb >= 17  ? 0x09
@@ -905,11 +847,17 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : verb >= 2 ? 0x0d
                : verb      ? 0x0a
                            : 0x16; /* 6 is 0x0d */
-    for (u32 i = 0; i < sizeof prologue[0]; i++)
-        if (*(u8 *)(g_base + rva + i) != prologue[verb][i]) {
-            emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
-            return;
-        }
+    /* Under `cover=1` the issuer's entry is `arm_all`'s jmp to its stub,
+     * and the guard reads the displaced bytes from the table's copy
+     * (`issue_guard.h`). */
+    const Entry *cov = g_stubs ? cover_entry(rva) : 0;
+    u32 stub = cov ? (u32)(g_stubs + STUB_BYTES * (u32)(cov - g_funcs)) : 0;
+    if (!issuer_is_shipped((const u8 *)(g_base + rva), g_base + rva, ISSUER_PROLOGUE_BYTES[verb], ISSUE_PROLOGUE,
+                           stub, cov ? cov->code : 0, cov ? cov->orig_len : 0, cov ? cov->code_len : 0,
+                           cov ? cov->nfix : 0)) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, n);
+        return;
+    }
     /* A unit verb names live captains, from `units`; `@eject`,
      * `@buildmask`, `@queueup`, `@unqueue` and `@gatherpoint` name live
      * buildings, from `objects`, on `Build::vftable`. */
