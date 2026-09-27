@@ -8361,3 +8361,39 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # attacker is not simply the object that fired; what `Object::do_damage`
 # passes there for an arrow is not established, and a hit on unowned or
 # enemy ground is untried (`docs/CENSUS.md`, "item 959").
+
+run: 348
+tag: himalayas-longtrace
+item: 972
+why: the held-out map, measured once — Himalayas in run33's shape, so its number is comparable in provenance to the scored floors (parked 372)
+# **run33's recipe and one lever: the map.** `longtrace.sh`'s defaults are
+# run33's and run39's exactly — seed 12345, run10's `[Start Game]` and
+# `[End Frame]` detail, the cheap window [0, 1900), `5 !ffwd 30`, `1850
+# !quit`, `cover=1`, no input — so nothing below overrides them. The one
+# key that moves is `mapstyle: 9`.
+#
+# **The lobby is run39's, because `-config` cannot take map 9.** `-config
+# check.ini` pins the style at the default 14 and no file moves it
+# (`docs/ORACLE.md`, "The lobby is a file"; three wasted captures on
+# 2026-08-29), so run33's literal path can only ever capture Great Lakes.
+# The lever that does take is the profile's `<SETTINGS><MAP_STYLE>`, which
+# `mapstyle.py` writes with the other two copies, and the lobby that reads
+# it is the one without `-config` — **the same lobby path as run39, the
+# East Indies floor**, which is `longtrace.sh`'s own default for any style
+# but 14. `cfg: -` says so rather than leaving it to that default.
+# run106 differed from both scored runs in lobby (the click-free lane's
+# `-automation +skipIntro`) and in window (frame 1); this does not.
+#
+# The profile's `DIFFICULTY` is 0 in `<SOLO>` and `<MULTI>` before the
+# launch — the first pair's — and nothing here writes it. The DLL is run318's
+# (sha256 b451aeb6…3dca), `stamp.py check` quiet on a stanza with no `@`.
+# 240 polls rather than 160: run39 on the same detail was 482 MB, and the
+# give-up truncates rather than stops.
+frames: 1850
+mapstyle: 9
+cfg: -
+poll_max: 240
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | grep -qw "MAP_STYLE 9"
+check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | grep -qw "seed 12345"
+check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | grep -qw "DIFFICULTY 0"
+check: grep -a -c "BEGIN FRAME" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run348-himalayas-longtrace.txt" | awk '{print "blocks", $1; exit !($1 >= 1850)}'
