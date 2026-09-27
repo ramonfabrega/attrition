@@ -4774,6 +4774,8 @@ Across the widening's window the parted keys go **440 → 322**.
 
 ### 17.6 A second oracle for the word, 2,000 frames earlier ~~(read this first)~~
 
+> **Closed by item 899**: the twenty-two were `find_wpath`'s `army` mode, off for a walk home planned under an `ATTACK` (PATHFINDER §29).
+
 > **Struck by item 475: this section's first falsifier fired.** Its claim
 > — that the word and `PROBE_PLAN_PARTED` are one residue standing in two
 > places — is false. `calc_road_cost` belongs to the road search, it is

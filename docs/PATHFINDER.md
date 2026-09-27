@@ -81,7 +81,7 @@ function at `00683730` is four instructions and has zero callers, because
 | +0x20 | 0x60 | `dbg_collisions` | nothing | dead (printed by `log_data`, never read) |
 | +0x24 | 0x64 | `anti_unit` | `find_upath` = 1 | **"this is the unit grid"** — not the `anti` argument. Gates the `limit` budget, the suspend path, +5-per-probe at `0xc0`, and flag 2 on reconstructed waypoints |
 | +0x28/0x2c | 0x68/0x6c | `offx, offy` | `find_tpath` | target unit's sub-tile offset, `pos % 0xc0 − 0x60`; **no readers anywhere** (writers survey) — dead. `astar_path` derives its own `toff` instead, and from the **order**, not the target (§4.1) |
-| +0x30 | 0x70 | `army` | `find_wpath`; also `Group::action_move_near` (which inlines `find_wpath_army`'s body — the named function has zero callers) | military, not a worker, ~~not attacking~~, unit's own cell not river-flagged (§3). **The attacking clause is vacuous** — `is_attacking` is a `return 0` in every order vtable that ships (§22) |
+| +0x30 | 0x70 | `army` | `find_wpath`; also `Group::action_move_near` (which inlines `find_wpath_army`'s body — the named function has zero callers) | military, not a worker, not attacking, unit's own cell not river-flagged (§3). ~~**The attacking clause is vacuous**~~ — **live for `AttackOrder`, `GroupAttackOrder` and `StrafeOrder`**, whose `is_attack` answers 1 (§29); a `return 0` for every move (§22) |
 | +0x34 | 0x74 | `iroquois` | `astar_path` entry | the unit's `unit_masks2 & 0x4000` — forest-walking; zeroed by each wrapper after |
 | +0x38 | 0x78 | `worker` | `find_wpath` | `ObjectData::is_worker` |
 | +0x3c | 0x7c | `no_danger` | `astar_path` entry | 1 when the action is an attack (vfunc `+0x10` == 10), the order is `ATTACK_TO`/`GROUP_ATTACK_TO`, or `who >= 8` |
@@ -197,10 +197,12 @@ sets `saving = 1` and `limit = 300 / repaths²`; both zero `saving` after.
   `find_wpath` jumps straight to the search past the whole block (audit
   V14): for AI leaders, `army = 1` iff the type is military (`+0x1e8`
   attack ≠ 0, or its `is_supply` virtual — for the base class,
-  `unit_flags2 & 0x40`), **and** not `is_worker`, ~~**and** not
-  `is_attacking`~~, **and** the **unit's own** cell's flags lack `0x100`
-  (river); `worker = 1` iff `is_worker`. The `is_attacking` clause is
-  **dead in the shipped executable** — the virtual it calls is a bare
+  `unit_flags2 & 0x40`), **and** not `is_worker`, **and** not
+  `is_attacking` (the current order is an `ATTACK`, a group attack or a
+  strafe — §29), **and** the **unit's own** cell's flags lack `0x100`
+  (river); `worker = 1` iff `is_worker`. ~~The `is_attacking` clause is
+  **dead in the shipped executable**~~ **(struck by item 899, §29: dead for
+  every move order, live for three classes)** — the virtual it calls is a bare
   `return 0` in all seventeen order vtables — and reading it as a live
   test cost Great Lakes' word 322 frames: **§22**, which has the bytes
   and the value diff.
@@ -1948,6 +1950,14 @@ is `is_move && !action` in the listing, and was not re-read here.
 
 ## 22. `is_attacking` is a `return 0`, and the `army` mode it was switching off (2026-09-18)
 
+> **Amended by item 899 (§29).** The census below read the seventeen
+> *primary* order vftables and is right about each of them: every move,
+> `ATTACK_TO` among them, answers 0. It missed the three classes whose
+> `UnitOrder` vftable is a secondary one — `AttackOrder`,
+> `GroupAttackOrder`, `StrafeOrder` — and those answer **1**. So the
+> clause is live, and what was wrong in the first reading was its
+> meaning ("has a combat target"), not its existence.
+
 `find_wpath`'s mode block (§3) sets `army = 1` for an AI unit that is
 military, is not a worker, is not `is_attacking`, and does not stand on a
 cell flagged `0x100`. This crate read the third clause as "the unit has a
@@ -2824,3 +2834,122 @@ one-term rule it fails on its first case.
 
 **Unit-tested, made to fail on purpose**:
 `path::tests::an_attack_to_order_plans_without_the_danger_map`.
+
+## 29. `is_attacking` is live for an attack order: a group's walk home plans as a citizen (item 899, 2026-09-26)
+
+**Established** by a diff against the original's own priced steps (run240's
+proxies, every `calc_cost` of Great Lakes from frame 0 to 17093), by the
+PE's vftables and by the linker map. **High** confidence for the
+`AttackOrder` arm, which Great Lakes exercises twice; the `GroupAttackOrder`
+and `StrafeOrder` arms rest on the map and the bytes alone (§29.5).
+
+### 29.1 The frame, and what the disk said
+
+Great Lakes' word was **20800**: on block 20801 ours' `1/60` stood blocked
+by `1/64` (`collide 1`, `collide_who 1`, `collide_o 64`) and the original's
+walked. `1/60`'s world route already parted on run294's first block, 19840:
+22 path slots, slot 15 (32640, 24960) here against (32640, 24192) there,
+the same `x` and a `y` one cell south, in stretches that re-join. The route
+is the bottom half of a 108-entry stack planned on **17656**, when the AI
+sends the four walkers out to the far point (2856, 31656) and queues their
+walk home: the home leg is a group plan from the far point, on
+`grouppath`, with `1/60` as its leader.
+
+No dump compares a value on 17351..19839 (parked 796), and the plan's frame
+is inside that gap. But the shape was on disk already: `PROBE_PLAN_PARTED`
+(`docs/ORDERS.md` §17.6) is **the same shape one probe earlier**, the walk
+home of 8186's six, 22 entries a cell or two south of the original's.
+**run240's trace proxied every `calc_cost` of the game to 17093**, and until
+this item only tick 17087's 303 had been read.
+
+### 29.2 The measurement
+
+`run240_s_every_priced_step_is_the_original_s` walks all 522 frames that
+price a step, 105,493 steps. Before this item **two** parted, and one was
+8186: the group's search from the far point (the first of the tick's seven
+`astar_path` calls, the only one on `grouppath`, `00ee1538`) prices its
+first step **10216 here against 216 there**, and a `0x200` cell **1028
+against 36**. Those are exactly `calc_cost`'s two army terms (§5: `+10000`
+on `tcost >= 5`, `base << 5` on `NEARBLOCK`): the original ran the search
+with `army` (`pathfinder +0x70`) off, and every other search of the tick,
+and all 98 other group plans the trace holds, with it as this crate had it.
+
+What set 8186 apart was the leader's **current order**. Printed at the plan,
+`1/40`'s list is `[Attack, Move home]`: the out leg's `ATTACK_TO` has
+already been replaced by the attack it arrives to make, and the walk home is
+queued behind it. Every other group plan's leader holds a move.
+
+### 29.3 The clause: `AttackOrder::is_attack` answers 1
+
+`find_wpath`'s mode block calls `UnitData::is_attacking@0060a5b0` at
+`006896b9` with `ecx` still the unit (`ObjectData::is_worker` leaves it).
+`is_attacking` loads the current order from the list's head node and
+tail-calls its vftable slot `+0x18`, `is_attack` (`0060a5f0`). §22 read
+that slot in seventeen vftables. The order list holds `UnitOrder *`, so the
+vftable is the one at the order's `UnitOrder` subobject, and for three
+classes that is a **secondary** vftable the census did not read. Read out
+of `riseofnations.exe` (slot `+0x18` is the seventh dword):
+
+| vftable | `+0x18` |
+|---|---|
+| `??_7UnitOrder@@6B@` `00b474f0`, `??_7MoveOrder@@6B@` `00b4a12c`, `??_7TargetOrder@@6BUnitOrder@@@` `00b47760` | `0041bff0` (`return 0`) |
+| `??_7AttackGroundOrder@@6B@` `00b49f1c` | `0048384b` (thunk to `0041bff0`) |
+| `??_7AttackOrder@@6BUnitOrder@@@` `00b47628`, `??_7GroupAttackOrder@@6BUnitOrder@@@` `00b491fc` | **`0047ef8e`** |
+
+`0047ef8e` is `sub ecx,[ecx-4]; jmp 0041e0e0`, and `0041e0e0` is `mov eax,1;
+ret`. The linker map names both ends: `?is_attack@AttackOrder@@UBEHXZ`,
+`?is_attack@GroupAttackOrder@@UBEHXZ` and `?is_attack@StrafeOrder@@UBEHXZ`
+at `0041e0e0`; `@UnitOrder@@`, `@AttackGroundOrder@@` and
+`@AirAttackGroundOrder@@` at `0041bff0`.
+
+So **`army = military && !worker && !is_attacking && !river`**, with
+`is_attacking` meaning the current order is an `ATTACK` (a group attack or a
+strafe, too). A unit marching under an `ATTACK_TO` is still an army (§22's
+correction stands); a unit standing on its attack is not. The group plan's
+forced arm (`706190`, a group with an army) sets the flag before the call
+and is untouched. Built in `Sim::army_mode` (`crates/sim/src/path.rs`);
+`GroupAttackOrder` is not modelled in this crate, so the arm reads
+`Body::Attack` and `Body::Strafe`.
+
+### 29.4 What moved
+
+- **All 522 frames of run240's priced steps but one agree**, 8186's 2,319
+  among them; the one standing is 15986 (below). 
+- **17656**: `1/60`'s walk home is the original's. On run294 its 22 path
+  rows of 19840 and 14 later keys close; on run243 its 23 rows of 20500,
+  its 13 to the word and its runway close, and none opens. **The value diff
+  on the old word's block, 20801**: `1/60` at (35873, 23502), `collide 0`,
+  `collide_who −1`, `collide_o −1`, `stopped 0`, path length 11 to
+  (44851, 22480), on both sides; `1/64` standing at (36600, 23304),
+  `stopped 1`, `collide_frame 11905`, on both sides. Ours' `1/60` was
+  blocked by `1/64` (`collide 1`, `collide_who 1`, `collide_o 64`).
+- **Great Lakes 20800 → 24000, the trace's own end**: no frame of run53's
+  trace parts, 0..23999. The endpoint at 24001 goes **14 → 0 off**.
+- East Indies holds at 23182.
+
+### 29.5 What this has *not* established
+
+- **The `GroupAttackOrder` and `StrafeOrder` arms** rest on the map and the
+  bytes. This crate models neither a group attack order nor a planning
+  strafer.
+- **17351..19839 and 20819..23959 are compared by the draw stream alone.**
+  No dump holds them; the plan on 17656 is shown right by its product
+  (run294's path rows), not by a priced step.
+- **15986**, the one frame of run240 whose steps still part: `1/73`'s
+  fourth step into (45696, 13440) at depth 2 prices 44 here against 32
+  there, on a nine-step search that is not a group's. It parts no draw and
+  names no score.
+- `no_danger` (§28) is a separate prologue term and is not touched.
+
+### 29.6 Coverage
+
+**Diff-backed**: every priced step of Great Lakes to 17090
+(`run240_s_every_priced_step_is_the_original_s`); tick 8186 whole, the
+group's 360 steps priced as a citizen's
+(`run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s`); 17656's route
+through run294 and run243; the end through run80 and the endpoint.
+**Bytes- and map-backed**: the vftable table above.
+**Unit-tested, made to fail on purpose**:
+`path::tests::an_army_is_armed_unworked_and_off_the_river`. With the term
+out, it fails, and so do both run240 tests (item 899's journal).
+

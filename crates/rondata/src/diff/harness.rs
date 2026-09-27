@@ -5329,6 +5329,38 @@ pub(crate) mod tests {
             "run53's ceiling fell: word {first_count}, sequence {first_part}; \
              the floor is {LONG_WORD_GREAT_LAKES} on both"
         );
+        // **A word at the trace's end is not a cap reading as agreement**
+        // (item 899): the word is `unwrap_or(last)` when nothing parts, so
+        // the claim is only as good as the walk. The trace holds a `FRAME`
+        // record for every frame 0..=24000, the harness walked every one of
+        // 0..24000 and compared it, and both sides spent the same draws —
+        // a frame with draws on one side and a missing record on the other
+        // would have parted.
+        let traced: std::collections::BTreeSet<i64> =
+            trace.frames.iter().map(|(n, _)| *n).collect();
+        let walked: Vec<i64> = built.frame_sites.iter().map(|(f, _)| *f).collect();
+        let (ours_draws, theirs_draws): (usize, usize) = built
+            .frame_sites
+            .iter()
+            .map(|(f, o)| (o.len(), trace.labels(*f).len()))
+            .fold((0, 0), |(a, b), (x, y)| (a + x, b + y));
+        eprintln!(
+            "run53: {} traced frames, {} walked, draws ours {ours_draws} theirs {theirs_draws}",
+            traced.len(),
+            walked.len()
+        );
+        if LONG_WORD_GREAT_LAKES == last {
+            assert_eq!(
+                (last, traced.len(), walked.len()),
+                (24_000, 24_001, 24_000),
+                "run53's trace is 24,000 frames and every one is walked"
+            );
+            assert!(
+                (0..last).all(|n| traced.contains(&n)) && walked.iter().copied().eq(0..last),
+                "a frame of 0..24000 is missing from the trace or the walk"
+            );
+            assert_eq!(ours_draws, theirs_draws, "the draw totals");
+        }
     }
 
     /// **Great Lakes 8186 is `Army::find_target`'s two-unit probe, and the
@@ -6807,9 +6839,14 @@ pub(crate) mod tests {
         // the fast path's stride over an empty world cell had parted
         // (`docs/COLLISION.md` §4.2); the word moved up on the same item,
         // which only adds rows below it, so the fall is the fix's.
+        //
+        // **Item 899 took `1/40` off it**: its walk home is planned while its
+        // current order is the `ATTACK`, which the original plans without
+        // the `army` mode (`docs/PATHFINDER.md` §29), so its stack is the
+        // original's whole and so is every order it walks.
         assert_eq!(
             units,
-            vec![(1, 23), (1, 40)],
+            vec![(1, 23)],
             "run97's order residue reached a unit item 368 did not leave it on"
         );
         // The count is floored beneath the set, so a known unit growing
@@ -6855,13 +6892,15 @@ pub(crate) mod tests {
     /// A tie is still the shape these have; **which** cost function breaks
     /// it is open, and nothing on this disk names it. §17.6's second and
     /// third falsifiers are the tests for whoever takes them.
-    const PROBE_PLAN_PARTED: &[(i64, i64, &[usize])] = &[(
-        1,
-        40,
-        &[
-            3, 4, 5, 6, 7, 8, 9, 10, 11, 24, 25, 26, 27, 28, 29, 30, 33, 37, 38, 39, 40, 41,
-        ],
-    )];
+    ///
+    /// **Item 899 emptied it.** Neither residue named above: the walk home
+    /// is a group plan made while `1/40`'s current order is the `ATTACK`,
+    /// and `AttackOrder::is_attack` answers 1, so the original plans it
+    /// without the `army` mode (`docs/PATHFINDER.md` §29). All 2,319 priced
+    /// steps of the tick are the original's
+    /// (`run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s`), and so
+    /// is all of `1/40`'s 94-entry stack.
+    const PROBE_PLAN_PARTED: &[(i64, i64, &[usize])] = &[];
 
     /// **Great Lakes 8186 plans the probe's route the original's way** —
     /// item 354, `docs/PATHFINDER.md` §22.
@@ -12240,8 +12279,10 @@ pub(crate) mod tests {
         // (59 keys). **Item 795 took `1/40`, `1/41` and `1/42` (31)**:
         // `do_move`'s TAKE reads the stack again, so the return march
         // leaves the far point on the original's detour (`docs/GROUPS.md`
-        // §32, run294). `1/60`'s world route still parts in the gap, below
-        // run294's first block.
+        // §32, run294). **Item 899 took `1/60`'s 23**: its walk home is
+        // planned on 17656 while its current order is the `ATTACK`, and
+        // `AttackOrder::is_attack` answers 1, so the original plans it as a
+        // citizen (`docs/PATHFINDER.md` §29).
         let head: Vec<(i64, i64, usize)> = by
             .iter()
             .filter(|((f, _, _), _)| *f == GREAT_LAKES_STAND_FIRST)
@@ -12249,7 +12290,7 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             head,
-            [(1, -1, 1), (1, 60, 23), (1, 80, 4)],
+            [(1, -1, 1), (1, 80, 4)],
             "who the gap carried onto 20500, and on how many keys"
         );
         let tail = standing.get(&RUN226_TAIL).map_or(0, BTreeMap::len);
@@ -12264,7 +12305,8 @@ pub(crate) mod tests {
         });
         assert_eq!(
             (tail, carried),
-            (307, 28),
+            // 28 before item 899: `1/60`'s 23 went.
+            (307, 5),
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -12278,10 +12320,11 @@ pub(crate) mod tests {
             .map(|((_, o, what), (f, row))| format!("{f} 1/{o} {what}: {row}"))
             .collect();
         assert_eq!(walkers, Vec::<String>::new(), "1/40..1/42 part nowhere");
-        // **Up to the new word, on run243's own blocks**: `1/60`'s route,
-        // who=0's `production_step` on 20601, and on the word's block
-        // **`1/60` stands blocked by `1/64` here and walks there** — the
-        // step ours spends at `Unit::move_step+0x823` on 20800.
+        // **Up to the old word, on run243's own blocks**: who=0's
+        // `production_step` on 20601 and nothing else. Until item 899,
+        // `1/60`'s route parted on 20510..20775, and on the word's block
+        // `1/60` stood blocked by `1/64` here and walked there — the step
+        // ours spent at `Unit::move_step+0x823` on 20800.
         let own: Vec<(i64, i64, i64, usize)> = by
             .iter()
             .filter(|((f, _, _), _)| (GREAT_LAKES_STAND_FIRST + 1..=WORD_BLOCK).contains(f))
@@ -12289,41 +12332,31 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(
             own,
-            [
-                (20_510, 1, 60, 1),
-                (20_601, 0, -1, 1),
-                (20_606, 1, 60, 1),
-                (20_609, 1, 60, 1),
-                (20_775, 1, 60, 1),
-                (20_801, 1, 60, 9),
-            ],
-            "who first parts on 20501..20801, the word's block, and on how many keys"
+            [(20_601, 0, -1, 1)],
+            "who first parts on 20501..20801, the old word's block, and on how many keys"
         );
-        // **The value diff on the word's block**: the stand's own fields.
-        let stand = |what: &str| {
-            firsts
-                .get(&(1, 60, what.to_string()))
-                .map(|(f, r)| format!("{f} {r}"))
-        };
-        assert_eq!(
-            (stand("collide"), stand("collide_who"), stand("collide_o")),
-            (
-                Some("20801 ours 1 theirs 0".to_string()),
-                Some("20801 ours 1 theirs -1".to_string()),
-                Some("20801 ours 64 theirs -1".to_string())
-            ),
-            "1/60 is blocked by 1/64 on the word's block, here alone"
-        );
+        // **The value diff on the old word's block, 20801** (item 899):
+        // `1/60` reads `collide 0`, `collide_who -1`, `collide_o -1` on both
+        // sides (ours was 1, 1 and 64, blocked by `1/64`), and no key of
+        // `1/60` parts on any block of the window.
+        let sixty: Vec<String> = firsts
+            .iter()
+            .filter(|((w, o, _), _)| (*w, *o) == (1, 60))
+            .map(|((_, _, what), (f, row))| format!("{f} {what}: {row}"))
+            .collect();
+        assert_eq!(sixty, Vec::<String>::new(), "1/60 parts nowhere");
         let within = |lo: i64, hi: i64| {
             firsts
                 .values()
                 .filter(|(f, _)| (lo..=hi).contains(f))
                 .count()
         };
-        // **The floor**: run226's 307 standing, the gap's 28, the 14 up to
-        // the word, and the runway's 74. 307/59/26/894 before item 795,
-        // with the word at 20569: the walkers' 31 at 20500 and 25 of the 26
-        // to the old word closed, and none opened.
+        // **The floor**: run226's 307 standing, the gap's 5, the one up to
+        // the old word, and nothing on the runway. 307/59/26/894 before item
+        // 795, with the word at 20569: the walkers' 31 at 20500 and 25 of
+        // the 26 to the old word closed, and none opened. 307/28/14/423
+        // before item 899: `1/60`'s 23 at 20500, its 13 to the word and its
+        // 74 on the runway closed, and none opened.
         assert_eq!(
             (
                 within(WIDENING_GREAT_LAKES_STAND.0, RUN226_TAIL),
@@ -12331,13 +12364,98 @@ pub(crate) mod tests {
                 within(GREAT_LAKES_STAND_FIRST + 1, WORD_BLOCK),
                 firsts.len(),
             ),
-            (307, 28, 14, 423),
+            (307, 5, 1, 313),
             "the floor"
         );
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            341,
-            "every row standing on the word's block"
+            // 341 before item 899: `1/60`'s 29 went, and who=0's
+            // `production_step` (0 here, 1 there) stands on this block and
+            // not on 20800.
+            312,
+            "every row standing on the old word's block"
+        );
+    }
+
+    /// **run80 — Great Lakes' end, widened whole, both directions** (item
+    /// 899). run80 is the same game over [23960, 24000) and its end block,
+    /// 24001, at `LEADERS=9` with every unit, building, city and guy
+    /// record: the last blocks any dump holds. Since item 899 the draw
+    /// stream agrees on every frame of run53's trace, so the long word is
+    /// the capture's own end, 24000, and this is its widening.
+    #[test]
+    fn run80_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            standing,
+            ..
+        }) = widen_great_lakes(
+            "run80",
+            &[(
+                "gamelog-run80-greatlakes-latecensus.txt",
+                WIDENING_GREAT_LAKES_END.0,
+            )],
+            WIDENING_GREAT_LAKES_END,
+            // run80 prints no `GROUPDATA`: the pool walk has nothing to read.
+            i64::MAX,
+            &[WIDENING_GREAT_LAKES_END.0, LONG_WORD_GREAT_LAKES],
+        )
+        else {
+            return;
+        };
+        // run80's leader records are the short form: 1,058 of the keys this
+        // crate's leader rows carry (the `MAKE` list, `SITE`, `PERSONALITY`,
+        // `num_units`/`num_queued` and the economy) are on no block, so
+        // they are named here rather than read as agreeing.
+        assert_eq!(
+            missing.len(),
+            1_058,
+            "the keys run80's record does not carry"
+        );
+        assert_eq!(
+            blocks, 41,
+            "run80 whole: 23960..23999 and the end block 24001"
+        );
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // **What the gap carried in**: 310 keys standing on run80's first
+        // block — no dump holds 20819..23959 — and every one of them stood
+        // on run243's last block, 20818, which held 311: the gap closed
+        // who=1's `SITE[1].reg` and opened nothing (`RON_STANDING` over
+        // both blocks, item 899). They are the floor rows the widenings
+        // have carried since run226. **Nothing parts on
+        // 23961..23999**, and on the end block 24001 only `orders.len`, 48
+        // units, because the quit block prints no order list.
+        assert_eq!(
+            by.into_iter().collect::<Vec<_>>(),
+            [
+                (WIDENING_GREAT_LAKES_END.0, 310),
+                (WIDENING_GREAT_LAKES_END.1, 48)
+            ],
+            "the blocks keys first part on, and how many"
+        );
+        let end: Vec<&String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f == WIDENING_GREAT_LAKES_END.1)
+            .map(|((_, _, what), _)| what)
+            .filter(|what| what.as_str() != "orders.len")
+            .collect();
+        assert_eq!(
+            end,
+            Vec::<&String>::new(),
+            "the end block parts on `orders.len` alone"
+        );
+        assert_eq!(
+            standing
+                .get(&(WIDENING_GREAT_LAKES_END.0 + 1))
+                .map_or(0, BTreeMap::len),
+            310,
+            "the floor stands on the second block, and nothing joins it"
         );
     }
 
@@ -12401,11 +12519,15 @@ pub(crate) mod tests {
             .collect();
         assert_eq!(walkers, Vec::<String>::new(), "the departure agrees");
         // **What stands on run294's first block**, past run226's last: the
-        // walkers' `group.id` (group 4 here, 5 there — parked 871; read
-        // by equality alone), `1/60`'s world route (22 keys: planned
-        // before 19840, in the gap), `1/80`'s formation, who=0's
-        // `attacked` and its city's `city_flags[0x2]`, and who=1's
-        // `SITE[1].reg`. And after it, only `1/60`.
+        // four walkers' `group.id` (group 4 here, 5 there — parked 871;
+        // read by equality alone), `1/80`'s formation, who=0's `attacked`
+        // and its city's `city_flags[0x2]`, and who=1's `SITE[1].reg`. And
+        // after it, nothing. **Until item 899 `1/60`'s world route stood
+        // here too** — 22 path slots, slot 15 (32640, 24960) here against
+        // (32640, 24192) there — and parted again on 19934..19951 (14
+        // keys): its walk home, planned on 17656 while its current order
+        // was the `ATTACK`, which the original plans as a citizen
+        // (`docs/PATHFINDER.md` §29).
         let parted: Vec<(i64, i64, i64, usize)> = by
             .iter()
             .filter(|((f, _, _), _)| *f > RUN226_TAIL)
@@ -12420,11 +12542,8 @@ pub(crate) mod tests {
                 (19_840, 1, 40, 1),
                 (19_840, 1, 41, 1),
                 (19_840, 1, 42, 1),
-                (19_840, 1, 60, 22),
+                (19_840, 1, 60, 1),
                 (19_840, 1, 80, 4),
-                (19_934, 1, 60, 11),
-                (19_950, 1, 60, 2),
-                (19_951, 1, 60, 1),
             ],
             "who first parts past run226, and on how many keys"
         );

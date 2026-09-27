@@ -1498,7 +1498,12 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // `1/8`, `1/11`, `1/16`, `1/17`, `1/21` and `1/43`. The 24,000th
         // frame is 3,200 frames past the new word. Measured on `6598cd6f`,
         // based on `f5ae2a22`. DECISIONS 36: the number, not a trade.
-        off: 14,
+        // **14 → 0 off** on item 899: `find_wpath`'s `is_attacking`
+        // (`docs/PATHFINDER.md` §29), which moves this map's word 20800 →
+        // 24000, the trace's own end. Every one of the 87 units compared at
+        // 24001 stands where the original's does. Measured on the item's
+        // branch, based on `a993d483`.
+        off: 0,
         // **0 → 1** on item 661, beside `off` above.
         // **1 → 0** on item 669, beside `off` above.
         // **0 → 1** on item 698, beside `off` above.

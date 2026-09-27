@@ -5008,4 +5008,209 @@ mod tests {
             "the herder's first walk is the original's"
         );
     }
+
+    /// **run240 — every priced step of Great Lakes to 17090, frame by
+    /// frame** (item 899, `docs/PATHFINDER.md` §29).
+    ///
+    /// run240's proxies were live all game (`callwin 0–17093`), so every
+    /// `calc_cost` the original made from frame 0 is on disk — 522 frames
+    /// that price at least one step, 99 of them running a group's
+    /// `grouppath` plan. Until this test only tick 17087's 303 were read. This walks
+    /// them all against this crate's own, key and price, in order.
+    ///
+    /// **Before item 899 two frames parted**: 8186, where the group's walk
+    /// home is planned while its leader's current order is the `ATTACK`
+    /// itself — `is_attacking` answers 1 for an `AttackOrder`, so the
+    /// original plans it as a citizen and this crate priced it as an army
+    /// (`10216` against `216` on its first step, and `1028` against `36`
+    /// on a `0x200` cell) — and 15986. With the clause, 8186's 2,319
+    /// steps agree to the last.
+    ///
+    /// **What stands** is 15986: `1/73`'s fourth step into (45696, 13440)
+    /// at depth 2, 44 here against 32 there, on a search of nine steps
+    /// that is not a group's. Parked with this item; it names no score.
+    #[test]
+    fn run240_s_every_priced_step_is_the_original_s() {
+        const END: i64 = 17_090;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(t53), Some(t240)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            trace("rontrace-run240.log"),
+        ) else {
+            eprintln!("skipping: no run53/run240 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &t53);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let mut theirs_by: std::collections::BTreeMap<i64, Vec<(sim::path::CostKey, i32)>> =
+            std::collections::BTreeMap::new();
+        for c in t240
+            .calls
+            .iter()
+            .filter(|c| c.site == crate::trace::call_site::CALC_COST)
+        {
+            if let Some(k) = c.cost_key() {
+                theirs_by.entry(c.frame).or_default().push((k, c.ret));
+            }
+        }
+        // `Group::action_move_near`'s plan runs on the static `grouppath`
+        // stack, which is the one `astar_path` stack argument that is not
+        // a unit's.
+        const GROUPPATH: u32 = 0x00ee_1538;
+        let group_frames: std::collections::BTreeSet<i64> = t240
+            .calls
+            .iter()
+            .filter(|c| {
+                c.site == crate::trace::call_site::ASTAR_PATH && c.args[0] as u32 == GROUPPATH
+            })
+            .map(|c| c.frame)
+            .collect();
+        built.sim.trace_costs = true;
+        let (mut frames, mut steps) = (0usize, 0usize);
+        let mut parted: Vec<String> = Vec::new();
+        while built.sim.frame < END {
+            let f = built.sim.frame;
+            built.sim.cost_marks.clear();
+            built.tick();
+            let ours: Vec<(sim::path::CostKey, i32)> = built
+                .sim
+                .cost_marks
+                .iter()
+                .map(|m| (m.key(), m.cost))
+                .collect();
+            let theirs = theirs_by.get(&f).map_or(&[][..], Vec::as_slice);
+            if ours.is_empty() && theirs.is_empty() {
+                continue;
+            }
+            frames += 1;
+            steps += theirs.len();
+            if let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+            {
+                let who = built.sim.cost_marks.get(i).map(|m| {
+                    let u = &built.sim.units[m.unit];
+                    (u.owner, u.index)
+                });
+                parted.push(format!(
+                    "{f} at {i} of {}/{} (group plan {}) {who:?}: ours {:?} theirs {:?}",
+                    ours.len(),
+                    theirs.len(),
+                    group_frames.contains(&f),
+                    ours.get(i),
+                    theirs.get(i)
+                ));
+            }
+        }
+        assert_eq!(
+            group_frames.range(..END).count(),
+            99,
+            "the frames that run a group plan on run240"
+        );
+        assert_eq!(
+            (frames, steps),
+            (522, 105_493),
+            "the frames and steps compared"
+        );
+        assert_eq!(
+            parted,
+            ["15986 at 3 of 9/9 (group plan false) Some((1, 73)): \
+                 ours Some(((44928, 13440, 45696, 13440, 4, 768, 2), 44)) \
+                 theirs Some(((44928, 13440, 45696, 13440, 4, 768, 2), 32))"
+                .to_string()],
+            "the frames whose priced steps part, and where"
+        );
+    }
+
+    /// **Great Lakes 8186's walk home is priced as a citizen's** (item 899,
+    /// `docs/PATHFINDER.md` §29). The frame is the probe's: six units leave
+    /// for the far south-west under an `ATTACK_TO`, and the group's queued
+    /// walk home is planned from the far point on the same tick, on
+    /// `grouppath`, with `1/40` as its leader. Its current order is the
+    /// `ATTACK` the order list opens with, and `AttackOrder::is_attack`
+    /// answers 1, so `find_wpath`'s mode block leaves `army` off.
+    ///
+    /// All 2,319 priced steps of the tick are the original's, and the first
+    /// search is the group's: 360 steps, none carrying an army term (the
+    /// `+10000` of a `tcost >= 5` cell, or `base << 5` on a `0x200` one).
+    /// Before the clause its first step was `10216` against `216`.
+    #[test]
+    fn run240_s_tick_8186_prices_the_walk_home_as_a_citizen_s() {
+        const TICK: i64 = 8186;
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(t53), Some(t240)) = (
+            dump("gamelog-run53-greatlakes-24k-trace.txt"),
+            trace("rontrace-run53.log"),
+            trace("rontrace-run240.log"),
+        ) else {
+            eprintln!("skipping: no run53/run240 capture (set RON_GAMELOG_DIR)");
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let texts = sibling_texts();
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
+        let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+        let refs: Vec<&Initial> = inits.iter().collect();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &refs);
+        borrow_pasture(&mut init, &t53);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        while built.sim.frame < TICK {
+            built.tick();
+        }
+        built.sim.trace_costs = true;
+        built.sim.cost_marks.clear();
+        built.tick();
+        let ours: Vec<(sim::path::CostKey, i32)> = built
+            .sim
+            .cost_marks
+            .iter()
+            .map(|m| (m.key(), m.cost))
+            .collect();
+        let theirs: Vec<(sim::path::CostKey, i32)> = t240
+            .calls_in(TICK, crate::trace::call_site::CALC_COST)
+            .iter()
+            .filter_map(|c| Some((c.cost_key()?, c.ret)))
+            .collect();
+        let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
+        assert_eq!(
+            (at, ours.len(), theirs.len()),
+            (None, 2_319, 2_319),
+            "tick 8186's priced steps part at {at:?}: ours {:?} theirs {:?}",
+            at.and_then(|i| ours.get(i)),
+            at.and_then(|i| theirs.get(i))
+        );
+        // The group's search: from the far point's cell, the first 360.
+        let first = &built.sim.cost_marks[0];
+        let leader = &built.sim.units[first.unit];
+        assert_eq!(
+            ((leader.owner, leader.index), first.from),
+            ((1, 40), (1920, 31104)),
+            "the first search is the group's, on its leader, from the far point"
+        );
+        let group: Vec<&sim::path::CostMark> = built
+            .sim
+            .cost_marks
+            .iter()
+            .take_while(|m| m.unit == first.unit && !(m.depth == 1 && m.from != first.from))
+            .collect();
+        assert_eq!(group.len(), 360, "the group's search, step by step");
+        assert!(
+            group
+                .iter()
+                .all(|m| m.cost < 1_000 || m.cost == sim::path::REFUSED),
+            "no army term on the walk home"
+        );
+    }
 }
