@@ -47,9 +47,9 @@ use super::testkit::{
     EAST_INDIES_FIGUREWORD_BLOCK, EAST_INDIES_GATHER_BLOCK, EAST_INDIES_GROUPWORD_BLOCK,
     EAST_INDIES_GUARDWORD_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_LEADERWORD_BLOCK,
     EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MARKETWORD_BLOCK, EAST_INDIES_MERCS_BLOCK,
-    EAST_INDIES_SLOT_BLOCK, EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_WALKWORD_BLOCK,
-    EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B,
-    GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
+    EAST_INDIES_SLOT_BLOCK, EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_USEMARKET_BLOCK,
+    EAST_INDIES_WALKWORD_BLOCK, EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK,
+    GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
     GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
     GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
     GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_FOREST_CELL_BLOCK,
@@ -577,6 +577,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r257 = crate::testenv::dump("gamelog-run257-eastindies-guardword.txt");
     let r269 = crate::testenv::dump("gamelog-run269-eastindies-turnword.txt");
     let r277 = crate::testenv::dump("gamelog-run277-eastindies-blockedwalk.txt");
+    let r289 = crate::testenv::dump("gamelog-run289-eastindies-marketword.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -919,6 +920,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r277 {
         let n = drive_capture(p, ebw - 2, ebw + 2, &mut paths);
         assert_eq!(n, 5, "run277 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 880 moved the word to 20782, past run277's end, and run289 is
+    // run277's line over [20777, 21034), taken to widen it.
+    let emw = EAST_INDIES_USEMARKET_BLOCK;
+    if let Some(p) = &r289 {
+        let n = drive_capture(p, emw - 2, emw + 2, &mut paths);
+        assert_eq!(n, 5, "run289 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

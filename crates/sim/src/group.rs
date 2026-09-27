@@ -193,6 +193,43 @@ pub struct GroupState {
 }
 
 impl GroupState {
+    /// `Groups::copy_group@006fa690` of a fresh stack group into pool slot
+    /// `pool`, whose record was `prev`: the stack group's own `(ox, oy)`,
+    /// `o_dist`, `o_angle`, `speed` and offset arrays, `stamp = frame`, and
+    /// everything else — `form`, `order_num`, `facing`, `form_num`,
+    /// `new_speed`, `march` — the previous occupant's (§28, §30).
+    pub fn copied(prev: GroupState, pool: u8, frame: i64) -> GroupState {
+        GroupState {
+            pool: Some(pool),
+            stamp: frame,
+            // The stack group's own: `Group::clear(-1)` and nothing since.
+            o: GroupState::default().o,
+            o_dist: 0,
+            o_angle: Angle(0),
+            speed: 0,
+            off: Vec::new(),
+            curr: Vec::new(),
+            angles: Vec::new(),
+            ..prev
+        }
+    }
+
+    /// `Group::clear(-1)@00713e80` on a pool record, for the fields this
+    /// record carries: `form −1`, `order_num`, `facing`, `form_num`,
+    /// `new_speed`, `speed`, `march`, `(ox, oy)`, `o_dist` and `o_angle`
+    /// zeroed, and `stamp = game->frame`. The pool index stays. It is what
+    /// `Group::kill@00714110` runs when its list empties (`docs/GROUPS.md`
+    /// §30), so the next `copy_group` into the slot inherits zeros, not the
+    /// last occupant's counts.
+    pub fn clear(&mut self, frame: i64) {
+        *self = GroupState {
+            o: Pos::new(0, 0),
+            stamp: frame,
+            pool: self.pool,
+            ..GroupState::default()
+        };
+    }
+
     /// `Group::refresh_group_order@00713a50`'s middle third — **slide the
     /// whole table so that member `i` sits on the origin** (`docs/GROUPS.md`
     /// §6.8).
@@ -503,7 +540,7 @@ impl Sim {
             g.pushed = Some(i);
             return true;
         }
-        self.unseat_group(g);
+        self.unseat_group(g, pool);
         // `Groups::copy_group@006fa690` writes the stack group **into the
         // slot's own record** (§28): `who`, `num`, `ox`/`oy`, `o_dist`,
         // `o_angle`, `buildings`, `speed`, the list and its four offset
@@ -516,20 +553,8 @@ impl Sim {
         // entry whose members happen to be gone. East Indies' tick 20000
         // pushes `1/64`..`1/66` onto the slot army 1's closed group last
         // held, and the layout reads that group's `facing` (§28).
-        let (slot, _prev) = self.pool_record(g.who, pool);
-        let state = GroupState {
-            pool: Some(pool),
-            stamp: self.frame,
-            // The stack group's own: `Group::clear(-1)` and nothing since.
-            o: GroupState::default().o,
-            o_dist: 0,
-            o_angle: Angle(0),
-            speed: 0,
-            off: Vec::new(),
-            curr: Vec::new(),
-            angles: Vec::new(),
-            ..GroupState::default()
-        };
+        let (slot, prev) = self.pool_record(g.who, pool);
+        let state = GroupState::copied(prev, pool, self.frame);
         let entry = crate::group::Pushed {
             who: g.who,
             list: g.list.clone(),
@@ -574,12 +599,38 @@ impl Sim {
     /// issues goes out without it. That is how Great Lakes' AI army is
     /// nine units and not fifteen from frame 8186 on: §12's probe pushes
     /// its pair, `Group::add` brings both squads, and the six leave
-    /// (`docs/ARMY.md` §3.4).
-    fn unseat_group(&mut self, g: &Group) {
+    /// (`docs/ARMY.md` §3.4). The group each member's `+0x80` names is
+    /// asked first, and may be cleared ([`Sim::kill_from_named`]).
+    fn unseat_group(&mut self, g: &Group, pool: u8) {
         let w = g.who as usize;
+        let mut touched = self.kill_from_named(g.who, &g.list, pool);
         // `Group::kill`'s own walk: up to the captain, then down `o_down`.
+        let leaving = self.leaving_squads(&g.list);
+        // A pool slot is a group too, and `(*old->vtbl+0x10)` is asked of
+        // whichever one holds the member — so a unit pushed twice leaves
+        // the first slot rather than sitting in two groups at once.
+        for slot in &mut self.pushed {
+            slot.list.retain(|u| !leaving.contains(u));
+        }
+        for slot in 0..self.armies[w].list.len() {
+            let a = &mut self.armies[w].list[slot];
+            if a.units.iter().any(|u| leaving.contains(u)) {
+                a.units.retain(|u| !leaving.contains(u));
+                if !touched.contains(&slot) {
+                    touched.push(slot);
+                }
+            }
+        }
+        for slot in touched {
+            self.army_normalize(g.who, slot);
+        }
+    }
+
+    /// Every figure of each listed member's squad, `Group::kill`'s own
+    /// walk: up to the captain, then down `o_down`.
+    fn leaving_squads(&self, list: &[usize]) -> Vec<usize> {
         let mut leaving: Vec<usize> = Vec::new();
-        for &m in &g.list {
+        for &m in list {
             if !self.units[m].alive() {
                 continue;
             }
@@ -589,26 +640,53 @@ impl Sim {
                 }
             }
         }
-        // A pool slot is a group too, and `(*old->vtbl+0x10)` is asked of
-        // whichever one holds the member — so a unit pushed twice leaves
-        // the first slot rather than sitting in two groups at once.
-        for slot in &mut self.pushed {
-            slot.list.retain(|u| !leaving.contains(u));
-        }
-        if self.armies[w].list.iter().all(|a| a.units.is_empty()) {
-            return;
-        }
-        let mut touched: Vec<usize> = Vec::new();
-        for slot in 0..self.armies[w].list.len() {
-            let a = &mut self.armies[w].list[slot];
-            if a.units.iter().any(|u| leaving.contains(u)) {
-                a.units.retain(|u| !leaving.contains(u));
-                touched.push(slot);
+        leaving
+    }
+
+    /// `push_group`'s second walk (`0070f9e0`), the kill half, **on the
+    /// group each member's `+0x80` names** when that is not `pool`, the
+    /// slot being written (`docs/GROUPS.md` §30). `Group::kill@00714110`
+    /// takes the member's squad out of that record's list and writes its
+    /// `stamp = frame` — or, when the list empties, runs `Group::clear(-1)`
+    /// on it, so the slot's next occupant inherits `order_num 0`, `facing
+    /// 0` and `form −1` rather than the last one's counts. run45's who=1
+    /// slot 65 reads exactly that on block 239, when `think_scout` repushes
+    /// `1/0` onto 64, and run233's slot 64 on 17157, when `1/60` leaves
+    /// army 0's orphan for army 1's fresh group on 71. Returns the army
+    /// slots of `who` it took members from, for their `normalize`.
+    pub(crate) fn kill_from_named(&mut self, who: Player, list: &[usize], pool: u8) -> Vec<usize> {
+        let mut named: Vec<u8> = Vec::new();
+        for &m in list {
+            if let Some(s) = self.units[m].group_ptr
+                && self.units[m].alive()
+                && s != pool
+                && !named.contains(&s)
+            {
+                named.push(s);
             }
         }
-        for slot in touched {
-            self.army_normalize(g.who, slot);
+        let leaving = self.leaving_squads(list);
+        let frame = self.frame;
+        let mut touched = Vec::new();
+        for s in named {
+            let Some(seat) = self.pool_seat(who, s) else {
+                continue;
+            };
+            let (l, st) = self.seat_parts(seat);
+            let before = l.len();
+            l.retain(|u| !leaving.contains(u));
+            if l.len() < before {
+                if l.is_empty() {
+                    st.clear(frame);
+                } else {
+                    st.stamp = frame;
+                }
+                if let Seat::Army(_, a) = seat {
+                    touched.push(a);
+                }
+            }
         }
+        touched
     }
 
     // ------------------------------------------------------------------
@@ -644,7 +722,7 @@ impl Sim {
     /// The record pool slot `s` of `who` holds now — the army whose group
     /// sits on it, else the [`Pushed`] entry that names it — as what
     /// `copy_group` leaves behind (§28), with the entry to overwrite.
-    fn pool_record(&self, who: Player, s: u8) -> (Option<usize>, GroupState) {
+    pub(crate) fn pool_record(&self, who: Player, s: u8) -> (Option<usize>, GroupState) {
         let entry = self
             .pushed
             .iter()
@@ -659,6 +737,23 @@ impl Sim {
             .or_else(|| entry.map(|i| self.pushed[i].state.clone()))
             .unwrap_or_default();
         (entry, prev)
+    }
+
+    /// The seat whose record pool slot `s` of `who` is — the army whose
+    /// group sits on it, else the [`Pushed`] entry that names it.
+    fn pool_seat(&self, who: Player, s: u8) -> Option<Seat> {
+        let w = who as usize;
+        if let Some(a) = self.armies.get(w).and_then(|x| {
+            x.list
+                .iter()
+                .position(|a| a.valid && a.group.pool == Some(s))
+        }) {
+            return Some(Seat::Army(who, a));
+        }
+        self.pushed
+            .iter()
+            .position(|x| x.who == who && x.state.pool == Some(s))
+            .map(Seat::Pushed)
     }
 
     /// The members slot `s`'s record lists, alive or not: the army's
@@ -709,7 +804,7 @@ impl Sim {
     /// alone), so it no longer counts for the slot it left — and since
     /// item 557 the test is the pointer itself ([`Unit::group_ptr`]), for
     /// an army's list as for a pushed one.
-    fn pool_members(&self, who: Player, s: u8) -> Vec<usize> {
+    pub(crate) fn pool_members(&self, who: Player, s: u8) -> Vec<usize> {
         let live = |l: &[usize]| -> Vec<usize> {
             l.iter()
                 .copied()
@@ -1193,19 +1288,8 @@ impl Sim {
         }
         let pool = self.open_slot(who);
         self.last_group[w] = pool;
-        let (slot, _prev) = self.pool_record(who, pool);
-        let state = GroupState {
-            pool: Some(pool),
-            stamp: self.frame,
-            o: GroupState::default().o,
-            o_dist: 0,
-            o_angle: Angle(0),
-            speed: 0,
-            off: Vec::new(),
-            curr: Vec::new(),
-            angles: Vec::new(),
-            ..GroupState::default()
-        };
+        let (slot, prev) = self.pool_record(who, pool);
+        let state = GroupState::copied(prev, pool, self.frame);
         let entry = crate::group::Pushed {
             who,
             list: Vec::new(),

@@ -4102,7 +4102,10 @@ reads `facing` 0 against 1. So this crate's kept-field accounting
 carries a history the original's slots do not. The candidates are this
 crate's army records, which are their own and not a pool slot's (§28.5,
 parked 874), and the orphan seat. Neither is walked. The kept fields
-stay unbuilt.
+stay unbuilt. **Item 880 walked it (§30)**: the first parting was run45's
+block 377 (run42 had shadowed run45's blocks), and the cause was
+`Group::kill`'s clear of an emptied record, then the army path's
+`copy_group` and kill. The kept fields are built on it.
 
 ### 29.5 What it moved
 
@@ -4135,10 +4138,9 @@ against 65, §24's permutation) close.
 - ~~**The squads' birth push** (17363, 17575): which call seats a new
   squad for one block. It is 689's family, one block each, and spends no
   draw.~~ `Unit::come_out@00617c10` (§31, item 882).
-- **Where the slot records' `order_num` part in 6216..15893.** No dump
-  prints `GROUPDATA` there. The kept fields need that history. A
-  `GROUPS=1` capture over the gap, walked with the probe's record mode,
-  is the cheapest reading.
+- ~~**Where the slot records' `order_num` part in 6216..15893.**~~ No
+  capture was needed: the records part on block 377, and with §30 they
+  agree on every dump, 15894 included.
 - **Great Lakes' pool** (871). Its pins moved toward the original's and
   its word holds. It is not walked.
 - **`get_num`'s own prune** (parked 872) and a building's `+0x80`
@@ -4157,6 +4159,158 @@ against 65, §24's permutation) close.
 **Listing-backed**: `5f01ba`, `5f0237` and `5f023e`. **Measured, not
 asserted**: the kept fields' 17530/7213 on this tree, and the record walk's
 15894 and 6164.
+
+## 30. A killed-empty slot is cleared, and an army's group is its slot's record — East Indies 20007 → 20782 (item 880, 2026-09-26)
+
+*Established by run45's, run64's and run221..run277's `GROUPDATA`, the
+decompiles of `Group::kill@00714110`, `Group::clear@00713e80`,
+`Army::add_unit@006f9f40`, `Army::add_group@006f8c00` and
+`Groups::push_group@0070f9e0`, and the listing of `Group::clear`.
+Diff-backed: every `GROUPDATA` slot's `facing` and `order_num`, and
+every unit's `group`, on every East Indies dump to 20257. §28's kept
+fields are built on top of it (`30e5b464`).*
+
+### 30.1 The parting, read whole first
+
+With §28's kept fields on §29's tree, `east_indies_pool_walk`'s record
+mode printed **6164** first only because run42 (no `GROUPDATA`) was
+listed before run45 and took blocks 1..901. With run45 first, the
+records part on **block 377** (run45): who=1's slot 65, the building
+group `[2000]` stamped 376, reads `order_num` 1 here against 0 there.
+The walk's slot history (`RON_POOL_WALK_HIST=1`) against the dump's:
+
+| who=1 slot | block | theirs | ours (kept fields, before 880) |
+|---|---|---|---|
+| 65 | 239 | `order_num` 0, `facing` 0, `form` −1, `stamp` 238, `num` 0 | `order_num` 1, `form` 0, `stamp` 0, list `[]` |
+| 65 | 377 | `[2000]`, `order_num` 0, `stamp` 376 | `order_num` 1 |
+| 64 | 414 | `order_num` 0, `form` −1, `stamp` 413, `num` 0 | `order_num` 1, `facing` 1, `stamp` 238 |
+
+On tick 238 `think_scout` repushes `1/0` from 65 onto 64, and the
+original's 65 is **reset**, stamped with the tick it emptied. On 413 the
+same happens to 64. So the slot's previous occupant is not always what
+it held: an emptied record is cleared.
+
+### 30.2 The writers, counted
+
+**`order_num` (`+0x2c`) on a pool record**, by the offset: `Group::clear`
+(0), and the `++` in `Group::action_move_near`, `action_patrol` and
+`action_attack`. `Army::find_target`, `find_muster_spot` and `init` write
+the `Army`'s own `+0x2c`, not a group's. **`facing` (`+0x48`)**:
+`Group::clear` (a `movw` that zeroes `buildings` too), `compute_form`,
+`action_air_patrol`, `action_flight` and `action_move_near`'s copy into
+a sub-group. `copy_group` writes neither (§28.3).
+
+**`Group::clear`'s callers on a pool record**: `Groups::clear` at the
+start, and **`Group::kill`**, which clears when its list reaches zero
+and otherwise writes `stamp = frame`. The listing of `Group::clear`
+(`713e80`–`713f13`): `who` 0, `army` −1, `num` 0, `form` −1, `stamp =
+game->frame`, `ox`, `oy`, `o_dist`, `o_angle` 0, the `facing`/`buildings`
+halfword 0, and `disband`, `order_num`, `priority`, `role`, `new_speed`,
+`speed`, `form_num`, `think_frame` and `march` 0. The pool index (`+4`)
+stays when called with −1. `Group::normalize` and `Groups::process`
+shrink a list without clearing.
+
+**`Group::kill`'s callers on a pool record** are
+`push_group`'s second walk (`0070f9e0`), which asks **the group the
+member's `+0x80` names**, when it is not the slot being written, `(*groups[+0x80].vtbl+0x10)(o, who, 0, 0)`; `Group::add` with
+`keep_captain`; and `Group::sort`.
+
+### 30.3 The two rules
+
+- **A kill that empties a record clears it** (`Sim::kill_from_named`,
+  `GroupState::clear`). `push_group`'s walk asks the seat each member's
+  `+0x80` names, takes the member's squad out of it, and writes `stamp`,
+  or clears the record when the list empties. The broader removal this
+  crate did before (every pushed list and every army that holds the
+  squad, §3.3) stays after it.
+- **`Army::add_unit`'s fresh group goes through the same `push_group`**
+  (`Army::add_unit@006f9f40`: `Group::clear` a stack group, `Group::add`,
+  `push_group(who, g, 1)`, `add_group`, which writes only `army`). So the
+  army's group **is** the slot's record: `copy_group` keeps the previous
+  occupant's `form`, `order_num`, `facing`, `form_num`, `new_speed` and
+  `march`, an equal group is not copied, and the walk's kill runs.
+  `GroupState::copied` is the one `copy_group` for `push_group`,
+  `push_building_group` and the army path.
+
+Each was measured with the record walk, East Indies' list in run order
+with run45 first:
+
+| tree | first record parting |
+|---|---|
+| 870 + kept fields | block 377 (run45), slot 65 `order_num` 1/0 |
+| + the clear in `push_group` | run45, run64 and run65 whole; 15900 (run221): army records only, slot 70 `order_num` 0 against 6 |
+| + the army's copy | 17496 (run251): slot 64 `[0]` stamp 17191 `order_num` 7 against 1 |
+| + the army path's kill | **none**: every slot's `facing` and `order_num` on every East Indies dump to 20257 |
+
+17496's was the army path's missing walk. On tick 17156 `1/60`, the last
+member left on army 0's orphan on 64, joins army 1's fresh group on 71.
+The original's 64 is cleared (`stamp` 17156, run233's 17157). Ours kept
+`order_num` 6, and `1/0`'s push onto 64 on 17191 inherited it.
+
+Every unit's `group` agrees on every East Indies dump too, but run96's
+`1/60` on 23960, past the word. The `[2]` markers the walk still prints
+(a stale `Pushed` entry beside an army on one index) carry no field
+difference.
+
+### 30.4 What it moved
+
+**East Indies 20007 → 20782.** Great Lakes holds at 20568. Every golden
+word and control holds (the whole suite at 509 passed; the five
+failures were the re-pins below and the thread-width guard).
+
+**The value diff on the old word's frame, block 20002** (run277):
+
+| | theirs | ours before | ours now |
+|---|---|---|---|
+| slot 69 `order_num`, `facing` | 6, 1 | 1, 0 | **6, 1** |
+| `1/64`..`1/66` order `facing` | 0, 0, 0 | 1, 1, 1 | **0, 0, 0** |
+| `1/65` order `x/y` | (35832, 42120) | (36024, 41928) | agrees |
+| `1/65` `pos` | (34659, 40997) | (34663, 40991) | agrees |
+
+- run277: 916 → 299 keys. The first block's 37 slot-swap rows close
+  (323 → 286), all 21 under the old word close, and 580 later keys
+  close. **None opens** (a set difference of both trees' key lists).
+- run99: 174 → 173, the scout `1/0`'s `order:move.facing` on 8481 (0
+  here against 1 there, §29.5).
+- `ENDPOINTS`: East Indies 40 → 37 off, `build_diverged` 0 → 2.
+
+**The new word, 20782**: ours spends 8 draws against 1 at index 0, ours
+`Leader::use_market+0x1ed` and theirs `Farms::inc_time+0x1ae`. It is
+past run277's end; run289 was taken for it (`docs/RUNS.md`,
+`run289_s_word_frame_is_widened_whole`). The first keys to part under it
+are who=1's make list on 20782 (three city-1 entries here, empty there),
+then this crate's extra building `1/2030` on 20783. **It is not a pool
+mechanism**, and it makes Great Lakes (20568) the lower map.
+
+### 30.5 What this has *not* established
+
+- **`o` on a pushed record.** The listing's `Group::clear` writes 0 to
+  `ox`/`oy` (`713eb4`, `713ebb`), and `copy_group` copies a stack
+  group's 0. This crate seeds −1 (`GroupState::default`), which
+  `group_o` reads as "never moved". `GroupState::clear` writes the
+  listing's 0 on a cleared slot; `copied` keeps −1. Unmeasured.
+- **The kill's other callers.** `Group::add` with `keep_captain` and
+  `Group::sort` reach `seat_kill`, which does not clear on empty. No walk
+  parted on them.
+- **The broader removal.** This crate still takes a pushed squad out of
+  every list that holds it, where the original asks only the group
+  `+0x80` names. The walk does not see the difference.
+- **`who` and `army` on a cleared record** (0 and −1). This crate keeps
+  the pool index and does not model them.
+- **Great Lakes' records** (871): its walk (`RON_POOL_WALK_MAP=greatlakes`)
+  agrees on every unit's `group` to 20500 and on every slot's `facing` and
+  `order_num`. The one parting row is run46's, a human-click game, on
+  who=0's selection.
+
+### 30.6 Coverage
+
+**Diff-backed**: every `GROUPDATA` `facing` and `order_num` and every
+`group` on East Indies (the walk), slot 69 and the orders on 20002
+(`east_indies_20000_s_squad_push_reads_the_record_its_slot_last_held`),
+and run277's and run99's floors. **Decompile-backed**: `Group::kill`,
+`Army::add_unit`, `Army::add_group`, `push_group`. **Listing-backed**:
+`Group::clear`. **Measured, not asserted**: the walk's partings in 30.3,
+and Great Lakes' walk.
 
 ## 31. A trained squad's pool push, and a command's building group — chapter twenty-four's `group` and pool rows (item 882, 2026-09-26)
 

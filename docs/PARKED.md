@@ -37,6 +37,17 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 880, 2026-09-26 — the pool record's edges
+
+(891) **`seat_kill` does not clear an emptied record** (through
+`Group::add` with `keep_captain`, and `Group::sort`), where `Group::kill`
+now does (GROUPS §30). No walk parted on it.
+
+(892) **`unseat_group` takes a pushed squad out of every list**, where the
+original asks only the `+0x80` group.
+
+(893) **A cleared record's `who` 0 and `army` −1** are not modelled.
+
 ## Parked by item 882, 2026-09-26 — the push's edges
 
 (887) **A pushed record's `o`**: −1 here against 0 there on a slot never
@@ -45,7 +56,7 @@ pool rows. The original's `Group::clear@00713e80` writes 0 at 0x18 and
 0x1c (713eb4, 713ebb) and `copy_group` copies the stack group's 0; this
 crate's `GroupState::default().o` is (−1, −1), which `group_o` reads as
 "never moved". Changing it touches that reader, unmeasured (880's
-answer). The AI lane's: `group.rs`'s pool record.
+answer, and its journal). The AI lane's: `group.rs`'s pool record.
 
 (888) **A command group of two or more buildings is not seated**: a
 `SEAM:` on `Sim::push_command_buildings` (GROUPS §31). No capture
@@ -72,10 +83,6 @@ branch only counts it.
 
 (873) **A building's `+0x80` in a building group**: its reader is
 unread.
-
-(874) **The army path's `copy_group`**: 865 built the squad's `go_to`
-push; the army's own push through `copy_group` is not checked for kept
-fields.
 
 ## Parked by item 854, 2026-09-26 — the repeat bit's edges
 
@@ -1347,6 +1354,13 @@ chapter twenty-four's 30 rows were booked as `come_out`'s "human arm" on
 877's reading; the listing had no owner test, and 25 of the 30 belonged
 to `Unit::init`. Ten minutes of writer-counting split the rows three
 ways before any build.
+
+(894) **A walk says which blocks each mode compared** (880's Loop line,
+filed at its merge): the pool walk takes its dumps in list order, and a
+dump with no `GROUPDATA` listed first silences the record mode on the
+shared blocks. 880's brief carried 6164 as the first record parting from
+that; run45's 377 was. A walk that prints the blocks each mode compared
+would have shown it.
 
 
 

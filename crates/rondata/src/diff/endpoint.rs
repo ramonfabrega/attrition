@@ -639,7 +639,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // 20007, 3,994 frames before this one. Measured on base
         // `ead12d61` (867's booking). DECISIONS 36: the number, not a
         // trade.
-        off: 40,
+        // **40 → 37 off, 0 → 2 build_diverged** on item 880: `Group::kill`
+        // clears an emptied pool record and an army's group is its slot's
+        // record (`docs/GROUPS.md` §30), which moves this map's word 20007
+        // → 20782, 3,219 frames before this one. Measured on base
+        // `02ea5124` (the sixteenth pass). DECISIONS 36: the number, not a
+        // trade.
+        off: 37,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -734,7 +740,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **6 → 5** on item 850, beside `off` above.
         // **5 → 1** on item 857, beside `unlinked` above.
         // **1 → 0** on item 870, beside `off` above.
-        build_diverged: 0,
+        // **0 → 2** on item 880, beside `off` above.
+        build_diverged: 2,
         city_unlinked: 3,
         city_diverged: 0,
     },
