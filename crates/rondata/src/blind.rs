@@ -133,15 +133,29 @@ pub const NEVER: &[u32] = &[
 /// it, which fails the pin, or by its citation going; either way
 /// [`the_residue_is_on_the_blind_list`](tests) says so.
 ///
-/// Row 4 of `docs/CENSUS.md`'s ranked list, item 935: seven of its nine.
-/// "No reference" means the executable holds no `call`/`jmp rel32` to the
-/// address and no four-byte pointer to it anywhere in the file, `.rdata`'s
-/// vtables included — the out-of-line copy of an inlined accessor, or a
-/// function nothing calls. `docs/EMULATOR.md` §4's scan found three of the
-/// five first (2026-09-01); its other twelve dead functions are on
-/// [`NEVER`] too and are owed rows here (`docs/CENSUS.md`, "The blind
-/// list, ranked").
+/// **"No reference in the executable"** means the image holds no `call`,
+/// `jmp` or `jcc rel32` to the entry, no rel8 jump to it at an instruction
+/// boundary, and no four-byte copy of its address at any offset of any
+/// section, `.rdata`'s vtables included: the out-of-line copy of a
+/// function the compiler inlined at every use, or one nothing calls. The
+/// scan is `tools/trace/report.py <exe> refs`, run over all of [`NEVER`]
+/// on 2026-09-27; the rows that say it are re-scanned against the install
+/// by [`every_unreferenced_row_is_unreferenced_in_the_image`](tests).
+/// Where the live copy is known, the row names it — the claim a document
+/// cites at the orphan's address is then a claim about that caller.
+///
+/// Item 935 took seven (row 4 of `docs/CENSUS.md`'s ranked list); item
+/// 940 took `docs/EMULATOR.md` §4's other twelve and ten more the scan
+/// found. Eleven `CommandManager::issue_*` are unreferenced too and are
+/// **not** here: the DLL's `@` issuer lines call them by address, so a
+/// coverage capture can enter them (`docs/CENSUS.md`, "The blind list,
+/// 2026-09-27, item 940").
 pub const RESIDUE: &[(u32, &str)] = &[
+    (
+        0x0059_30c0,
+        "Game::action_cheat_ai_toggle: no reference in the executable; \
+         CommandPackage::process_cheat_ai_toggle flips ai_off inline",
+    ),
     (
         0x005a_ac70,
         "Setup::init_wild_life: no reference in the executable",
@@ -151,13 +165,82 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "Setup::build_leader: no reference in the executable",
     ),
     (
+        0x0060_8850,
+        "UnitData::can_gather: no reference in the executable",
+    ),
+    (
+        0x0060_a600,
+        "UnitData::turn_speed: no reference in the executable; the live copy \
+         is GuyData::turn_speed",
+    ),
+    (
+        0x0062_2ce0,
+        "Build::add_attack_order: no reference in the executable",
+    ),
+    (
+        0x0062_3310,
+        "Build::update_max_gatherers: no reference in the executable",
+    ),
+    (
+        0x0062_d430,
+        "BuildData::num_scholars: no reference in the executable",
+    ),
+    (
+        0x0063_0590,
+        "BuildData::max_gatherers: no reference in the executable",
+    ),
+    (
+        0x0063_3390,
+        "BuildType::set_domain: no reference in the executable",
+    ),
+    (
+        0x0065_cfd0,
+        "ObjectsData::find_dock: no reference in the executable",
+    ),
+    (
+        0x0068_3730,
+        "PathFinder::find_wpath_army: no reference in the executable",
+    ),
+    (
+        0x0068_8310,
+        "PathFinderData::get_estimate: no reference in the executable (the rel8 \
+         lookalike at 006882f9 is inside a cmpb); inlined four times in \
+         PathFinder::astar_path",
+    ),
+    (
         0x0069_5050,
         "MapGrass::make_continents: map style 23 (BLANK_MAP), which only \
          ScenarioEditor::generate_map asks Map::new_map for; the lobby's styles stop at 22",
     ),
     (
+        0x006b_22e0,
+        "World::clear_danger: no reference in the executable",
+    ),
+    (
+        0x006b_4230,
+        "World::set_behind: no reference in the executable; its writers \
+         (Wall::mark_behind_tiles, Mountains::add_mountain) carry it inline",
+    ),
+    (
+        0x006b_46b0,
+        "World::set_gathered_at: no reference in the executable",
+    ),
+    (
+        0x006b_88b0,
+        "Leader::process: no reference in the executable; inlined in \
+         Leaders::process_all, which calls its gather and process_elimination",
+    ),
+    (
+        0x006d_5230,
+        "LeaderData::locked_transport: no reference in the executable",
+    ),
+    (
         0x006d_6740,
         "LeaderData::get_handicap_level: no reference in the executable",
+    ),
+    (
+        0x006d_6e80,
+        "LeaderData::get_fishermen: no reference in the executable",
     ),
     (
         0x006d_a740,
@@ -169,6 +252,30 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "LeaderData::is_human: no reference in the executable (inlined at every use)",
     ),
     (0x006f_0230, "Tribe::init: no reference in the executable"),
+    (
+        0x0071_37f0,
+        "Group::leader_report_speed: no reference in the executable; its three \
+         statements stand inline in Unit::do_group_move",
+    ),
+    (
+        0x0071_3bb0,
+        "Group::report_speed: no reference in the executable",
+    ),
+    (
+        0x0092_fc50,
+        "GameLog::dump_armies: no reference in the executable, and gamelog.ini \
+         has no ARMY key",
+    ),
+    (
+        0x0094_c1c0,
+        "CommandPackage::clear: no reference in the executable",
+    ),
+    (
+        0x00a4_69f0,
+        "cos_table: no reference in the executable; a two-instruction thunk \
+         (add ecx, 0x3fffffff; jmp sin_table) whose one use, \
+         MapGrass::make_continents, adds the constant inline",
+    ),
 ];
 
 /// The five trampolined functions (`tools/trace/tracer.c`'s `HOOKS`), by
@@ -379,6 +486,46 @@ mod tests {
                 "residue row `{why}` ({a:08x}) is not on NEVER — delete the row"
             );
         }
+    }
+
+    /// **Every row that says "no reference" has none**: the image holds
+    /// no `call`/`jmp`/`jcc rel32` and no four-byte pointer to it
+    /// (`crate::pe::Pe::references`). The controls are the two of item
+    /// 935's rows that are referenced, so the scan is seen to find a caller
+    /// and a vtable slot before its silence is believed.
+    #[test]
+    fn every_unreferenced_row_is_unreferenced_in_the_image() {
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let pe = crate::pe::Pe::open(&format!("{root}/riseofnations.exe"))
+            .expect("riseofnations.exe is a PE file");
+        assert_eq!(
+            pe.references(0x006d_a740),
+            vec![0x0065_0b67, 0x0065_1780, 0x006b_107f, 0x006d_66bd],
+            "LeaderData::get_handicap's four callers"
+        );
+        assert_eq!(
+            pe.references(0x0069_5050),
+            vec![0x00b4_5634],
+            "MapGrass::make_continents's vtable slot"
+        );
+        let mut failures = Vec::new();
+        for (a, why) in RESIDUE {
+            if why.contains("no reference in the executable") {
+                let sites = pe.references(*a);
+                if !sites.is_empty() {
+                    failures.push(format!("  `{why}` ({a:08x}): referenced at {sites:08x?}"));
+                }
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "a residue row says unreferenced and the image says otherwise — \
+             read the site (`report.py <exe> refs`) and fix the row:\n{}",
+            failures.join("\n")
+        );
     }
 
     /// The grammar: a split citation is joined, a bare address is not a

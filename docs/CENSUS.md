@@ -130,6 +130,7 @@ names the function that moves in either direction.
 | all eighty-nine coverage traces on disk | 1,120 | 892 | **228** |
 | the twenty-one that cover them, and run314 | 1,120 | 893 | 227 |
 | and run316 (item 935) | 1,120 | 895 | **225** |
+| of which accepted in `RESIDUE`, 7 → 29 (item 940, no capture) | 1,120 | 895 | 225, **196 open** |
 
 "Cited" is a function the export lists, cited `name@00xxxxxx` anywhere under
 `docs/`; the census's 1,133 also counts thirteen data addresses no index
@@ -179,27 +180,102 @@ a citation would put a supporting reference on the blind list. run316 also enter
 document cites; no standing residue row on either long capture names any of
 the four.
 
+## The blind list, 2026-09-27, item 940: the dead scan over all 225
+
+`tools/trace/report.py <exe> refs - < addresses`, over every address
+`NEVER` pins, on 2026-09-27. For each function it looks for every `call`,
+`jmp` and `jcc rel32` into the entry, every `rel8` jump from a
+neighbour, and every four-byte copy of the address or its RVA at any
+offset of any section. It then confirms each jump site against
+llvm-objdump's listing of the function that holds it. Of the 225:
+
+| verdict | count | what it is |
+|---|---|---|
+| called | 161 | a rel32 caller at an instruction boundary |
+| pointer only | 26 | a vtable slot or a table: the two `has_repeat_air`, `OrderList::get_data_type`, `UnitOrder::clear`, `ThinkOrder::get_type`, `GoodTypeData::is_flat`, `Build::finished`, `Unit::do_flee_to`, `Wall::Wall`, `MapGrass::make_continents`, `Caravan::process`, `OptionsWinGame::do_save`, `WorldMap::on_right_up`, `rand_real` and the twelve `ScenarioFuncSet` functions |
+| **dead** | **38** | no reference at all, and a padding byte (`0xcc`) before each entry, so nothing falls through into it |
+
+**The 38**, and where each went:
+
+- **`docs/EMULATOR.md` §4's fifteen, re-checked: all still dead.** The
+  listing settled two lookalikes. The `rel8` `0x78` six bytes before
+  `PathFinderData::get_estimate` sits inside a `cmpb` in
+  `find_node_open`. `cos_table`'s RVA occurs six times in `.rdata`, and
+  each occurrence is `ObjectData::attack`'s own address in a vtable slot.
+  And **`cos_table` is code, not data**, as §4 had it:
+  `add ecx, 0x3fffffff; jmp sin_table`, which is how `docs/MOVEMENT.md`
+  already reads it. Twelve join `RESIDUE`; 935 took the other three.
+- **Item 935's two more**, `LeaderData::get_handicap_level` and
+  `Tribe::init`, were already in `RESIDUE`.
+- **Ten no reading had called dead** join `RESIDUE` too:
+  `Game::action_cheat_ai_toggle`, `BuildData::num_scholars`,
+  `World::clear_danger`, `World::set_behind`, `Leader::process`,
+  `LeaderData::get_fishermen`, `Group::leader_report_speed`,
+  `Group::report_speed`, `GameLog::dump_armies` and
+  `CommandPackage::clear`. For four of them, the live copy sits inline in
+  a caller the traces enter:
+  - `Leader::process` in `Leaders::process_all`, which calls the same
+    `gather` and `process_elimination`;
+  - the cheat toggle in `CommandPackage::process_cheat_ai_toggle`, which
+    flips `ai_off` itself;
+  - `set_behind` in its writers (`Wall::mark_behind_tiles` holds no call
+    to it);
+  - `leader_report_speed` in `Unit::do_group_move`, as `docs/GROUPS.md`'s
+    table already puts it.
+
+  So `docs/INPUT.md` §11.4, `docs/ROADS.md`'s bit-`0x4` writers and the
+  `Leader::process` rows of `docs/ECONOMY.md` and `docs/COMBAT.md` all
+  describe live code, but cite it at an orphan's address. That is the
+  shape parked 412 names for §4's list, and its guard does not see these
+  ten.
+- **Eleven `CommandManager::issue_*` stay on `NEVER`**, the out-of-line
+  issuers of form, attack-ground, patrol, set-transport, gather,
+  garrison, follow, guard, buildmask, come-out and one of
+  `issue_unqueue`'s two overloads. Each has a twin in `GroupOut`,
+  `BuildOut` or `UnitOut` that calls `CommandPackage::add_command` itself
+  and never calls the issuer, so the game never runs the out-of-line
+  copy. The DLL's `@` lines do: they call these by address. They are not
+  residue, then, because a coverage capture can enter them once 934 makes
+  the issuer guard accept the coverage `jmp`. But what that capture
+  enters is a copy only the instrument runs. The game's own path is the
+  twin, which the traces enter.
+
+**`RESIDUE` is 29** (7 → 29): the twelve and the ten, each with its
+reason, and the live copy where one is known. Every row that says "no
+reference" is re-scanned against the install by
+`every_unreferenced_row_is_unreferenced_in_the_image`, using
+`rondata::pe::Pe::references` (rel32 and pointer). Two of 935's
+referenced rows serve as controls, so the scan is seen to find a caller
+and a vtable slot. The test failed once on a wrong row before landing,
+as did `the_residue_is_on_the_blind_list`. **What the scan cannot see**:
+a target computed at run time (`docs/EMULATOR.md` §6), and a caller
+outside the image.
+
 ## The blind list, ranked
 
 The 225, by the staging that would enter each family, largest family that
 a known staging reaches first. A run that enters a family is worth more
 than one that enters a function, so the unit here is the family.
+**Item 940 moved 22 dead functions out of rows 6 to 10 into row 12**.
+923 recorded no membership, so the row each came from is 940's reading
+of its family, and is listed under row 12.
 
 | # | family | size | staging that would enter it | what stands in the way |
 |---|---|---|---|---|
 | 1 | **The issuer lines**: patrol, guard, follow, garrison and eject, form, attack, flee, build, spell, transport toggle, repair — `CommandManager::issue_*`, `CommandPackage::process_*`, `Group::action_*`, `Unit::add_*_order` and `do_*`, each order's `log_data` | 54 | chapters ten to twenty-one, their scripts as they stand, re-run under `cover=1` on the queue lane with a `rngcmp` check against each golden run | the prologue refusal: the issuer guard must accept the coverage `jmp` (read the displaced bytes from the stub) or the issuers leave the coverage table — a `tools/trace/tracer.c` change |
 | 2 | **The air line and the Airbase's buttons**: `issue_flight`, `process_flight`, `action_flight`, `check_fuel`, the strafe and air orders' `log_data`, the repeat and infinite masks (`issue_buildmask` → `action_buildmask`, `has_repeat_air`, `valid_buildmask`, `can_infinite`) | 14 | chapter twenty-three (flight, strike, repeat), then twenty-nine | the same refusal; run314 is this row's staging with the issuers refused |
-| 3 | **The click layer**: `GroupOut::issue_*`, `Options::do_*` and `picked_spot`, `WorldMap::on_right_up`, `BuildOut::issue_unqueue`, `HotKeyGroups::find_group`, `OptionsWinGame::do_save` | 20 | a driven capture on the queue lane (`driver:`, `ffwd: -`): real right-clicks and buttons, which also enter row 1's issuers without the DLL, since the game calls through the `jmp` | a driver per command; `rclick.sh` and the run46–47 drivers are the precedent |
+| 3 | **The click layer**: `GroupOut::issue_*`, `Options::do_*` and `picked_spot`, `WorldMap::on_right_up`, `BuildOut::issue_unqueue`, `HotKeyGroups::find_group`, `OptionsWinGame::do_save` | 20 | a driven capture on the queue lane (`driver:`, `ffwd: -`): real right-clicks and buttons, which also enter row 1's `CommandPackage::process_*` and `Group::action_*` without the DLL — ~~and its issuers, since the game calls through the `jmp`~~ **but not eleven of its `CommandManager::issue_*`**: the click's `GroupOut`/`BuildOut`/`UnitOut` twin carries each inline, and nothing in the game calls them (item 940) | a driver per command; `rclick.sh` and the run46–47 drivers are the precedent |
 | 4 | **Setup and map generation**: `Setup::init_wild_life`, ~~`large_city_buildings`~~ (run316), `build_leader`, ~~`Map::place_start_in_region`~~ (run316), `MapGrass::make_continents`, `Tribe::init`, the handicap pair, `LeaderData::is_human` | ~~9~~ 7 | ~~lobby variants~~ **done** (item 935): one launch, British Isles with a Large Town | the seven left are `RESIDUE` (above): five with no reference in the executable, the editor's map style, and a multiplayer-only handicap |
 | 5 | **The queue buttons**: `issue_queue_up`, `issue_unqueue`, both `process_*`, `action_unqueue` (unit and building), `unpay_cost`, `track_queued`, `get_next_non_unit` | 9 | chapters twenty-four to twenty-eight | the prologue refusal |
-| 6 | **Trade and the economy's edges**: `Caravan::process`, `restart_trade_route`, `Caravans::new_danger`, `close_caravan`, the resource cap pair, `get_fishermen`, `lumber_level`, the gather-point and max-gatherer functions, `Build::finished`, `Leader::process` | 19 | a staged economy on the queue lane: two own cities and a caravan between them, a Dock with a fishing boat, resources cheated to the cap, a gather point set; `Leader::process` is the human-leader arm | a script, not a verb: `add` and `resource` suffice |
-| 7 | **Combat, air physics and the spells**: the Spy's other spells, `Ammo::init_crash` (an aircraft shot down), flying low and high, the bomber's re-target, `Build::do_missile_launch`, `is_siege` | 18 | chapters seventeen and nineteen's casts with an anti-aircraft unit, and a Modern-age missile | a new staging each; the spells need the issuer |
-| 8 | **Transport, navy and the armies' other arms**: `Armies::send_navy`, `Army::use_scouts` and `use_spies`, the transport pair, `find_dock`, `find_wpath_army`, `check_sea_map`, `close_wonder`, `treaty_off`, `action_ping` | 18 | a Leader AI past the long captures' 24,000 frames, or a water map at war with a later age | neither long capture reaches it; the most expensive row |
-| 9 | **Commands and orders no issuer makes**: board and await-board, `board_ship`, `halt`, `move_near`, `siege_attack`, `stance`, `come_out`, the think order, `do_group_attack`, `distribute_attack`, the group speed reports | 39 | none known: the readings say no issuer makes most of them (`docs/GOLDEN.md` §13, §28, §30) | **the enumerated residue's first candidates**, each to be accepted by name |
-| 10 | **The shell's other modes**: `ScenarioFuncSet` (12), replay playback (`RecordGame::read_package`, `set_mp_playback`), the editor, GameSpy, `run_scenario`, the console-command package, the AI cheat toggle | 24 | a scenario load, a recorded game played back | cut from v1 (`CLAUDE.md`, "Cut from v1") except playback — residue by decision, and playback is one capture |
+| 6 | **Trade and the economy's edges**: `Caravan::process`, `restart_trade_route`, `Caravans::new_danger`, `close_caravan`, the resource cap pair, ~~`get_fishermen`~~, `lumber_level`, the gather-point functions (`Build::replace_gather`, `add_gather_point`), ~~the max-gatherer functions~~, `Build::finished`, ~~`Leader::process`~~ | ~~19~~ 10 | a staged economy on the queue lane: two own cities and a caravan between them, ~~a Dock with a fishing boat~~, resources cheated to the cap, a gather point set ~~; `Leader::process` is the human-leader arm~~ | a script, not a verb: `add` and `resource` suffice. Nine are row 12's (item 940) |
+| 7 | **Combat, air physics and the spells**: the Spy's other spells, `Ammo::init_crash` (an aircraft shot down), flying low and high, the bomber's re-target, `Build::do_missile_launch`, `is_siege` | ~~18~~ 14 | chapters seventeen and nineteen's casts with an anti-aircraft unit, and a Modern-age missile | a new staging each; the spells need the issuer |
+| 8 | **Transport, navy and the armies' other arms**: `Armies::send_navy`, `Army::use_scouts` and `use_spies`, ~~the transport pair~~ `LeaderData::can_transport`, ~~`find_dock`, `find_wpath_army`~~, `check_sea_map`, `close_wonder`, `treaty_off`, `action_ping` | ~~18~~ 14 | a Leader AI past the long captures' 24,000 frames, or a water map at war with a later age | neither long capture reaches it; the most expensive row. Four are row 12's (item 940) |
+| 9 | **Commands and orders no issuer makes**: board and await-board, `board_ship`, `halt`, `move_near`, `siege_attack`, `stance`, `come_out`, the think order, `do_group_attack`, `distribute_attack`, ~~the group speed reports~~ | ~~39~~ 37 | none known: the readings say no issuer makes most of them (`docs/GOLDEN.md` §13, §28, §30) | **the enumerated residue's first candidates**, each to be accepted by name |
+| 10 | **The shell's other modes**: `ScenarioFuncSet` (12), replay playback (`RecordGame::read_package`, `set_mp_playback`), the editor, GameSpy, `run_scenario`, the console-command package, ~~the AI cheat toggle~~ | ~~24~~ 21 | a scenario load, a recorded game played back | cut from v1 (`CLAUDE.md`, "Cut from v1") except playback — residue by decision, and playback is one capture |
 | 11 | **Before the instrument exists**: `wincpuid`, `wincpufeatures`, `check_80386` | 3 | none: the CRT runs them before the DLL attaches | residue by construction |
+| 12 | **Dead in the image** (item 940): from row 6, `UnitData::can_gather`, `Build::update_max_gatherers`, `BuildData::max_gatherers`, `BuildData::num_scholars`, `World::set_gathered_at`, `World::clear_danger`, `World::set_behind`, `LeaderData::get_fishermen`, `Leader::process`; from row 7, `UnitData::turn_speed`, `BuildType::set_domain`, `Build::add_attack_order`, `cos_table`; from row 8, `ObjectsData::find_dock`, `PathFinder::find_wpath_army`, `PathFinderData::get_estimate`, `LeaderData::locked_transport`; from row 9, the two group speed reports; from row 10, `Game::action_cheat_ai_toggle`, `CommandPackage::clear`, `GameLog::dump_armies` | 22 | none: nothing in the executable reaches them | `RESIDUE`, each with its reason |
 
-**§4's other twelve dead functions are still ranked as if a staging
+~~**§4's other twelve dead functions are still ranked as if a staging
 reached them** (item 935, measured against `NEVER`): `UnitData::can_gather`,
 `UnitData::turn_speed`, `Build::add_attack_order`,
 `Build::update_max_gatherers`, `BuildData::max_gatherers`,
@@ -209,10 +285,16 @@ reached them** (item 935, measured against `NEVER`): `UnitData::can_gather`,
 All twelve are on `NEVER`, and rows 6 and 8 name `find_dock`,
 `find_wpath_army` and the max-gatherer functions among what their stagings
 would enter. No capture enters any of them; they belong with row 4's seven
-in `RESIDUE`, and the rows' counts shrink by as many.
+in `RESIDUE`, and the rows' counts shrink by as many.~~ **Done, item
+940**: all twelve re-scanned dead and in `RESIDUE`, with ten more the
+scan found (row 12).
 
 Rows 1, 2 and 5 are **77 functions behind one tracer change** and scripts
 that already exist; that is the next item on this lane, and the change is
-the rules lane's fence (`tracer.c`). Row 4 is closed: two entered, seven
-accepted (item 935). Rows 9 to 11 (66) and row 4's seven are the residue DECISIONS 29 asks to be accepted
-function by function, and `NEVER` is where each is.
+the rules lane's fence (`tracer.c`). Eleven of those 77 are issuers only
+the DLL calls (item 940): a coverage capture enters the instrument's
+copy, never the game's. Row 4 is closed: two entered, seven
+accepted (item 935). Row 12 is closed: 22 accepted (item 940). **`RESIDUE`
+is 29 of the 225, and 196 are open**. Rows 9 to 11 (61) are the residue
+DECISIONS 29 asks to be accepted function by function, and `NEVER` is
+where each is.

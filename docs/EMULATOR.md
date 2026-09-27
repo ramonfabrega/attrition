@@ -88,7 +88,8 @@ emulation. Two scans over the image say what the list is made of:
   `ObjectsData::find_dock@0065cfd0`, `PathFinder::find_wpath_army@00683730`,
   `PathFinderData::get_estimate@00688310`, `World::set_gathered_at@006b46b0`,
   `LeaderData::locked_transport@006d5230`, `LeaderData::is_human@006ec170`,
-  and `cos_table@00a469f0`, which is data. `get_estimate` and `turn_speed`
+  and `cos_table@00a469f0`, ~~which is data~~ which is code, a two-instruction
+  thunk into `sin_table` (item 940's listing). `get_estimate` and `turn_speed`
   are the pattern: the body the document read is a standalone copy the
   linker kept, and the live copy is inlined in the caller — four times in
   `PathFinder::astar_path@00683770`, and as `GuyData::turn_speed@005de340`.
@@ -108,9 +109,15 @@ emulation. Two scans over the image say what the list is made of:
   list, the group and the world synthesized to enter any of them.
 
 So the emulator does not move counter 2 at all, and the counter has a
-floor of 15 that no instrument moves: it belongs in the enumerated,
+floor of 15 that no instrument moves: ~~it belongs in the enumerated,
 deliberately accepted residue that `docs/DECISIONS.md` entry 29 describes.
-The dead-scan is `tools/emu/`'s second product once it is reached again.
+The dead-scan is `tools/emu/`'s second product once it is reached again.~~
+**It is there** (item 940, 2026-09-27): all fifteen, re-scanned dead, are
+rows of `rondata::blind::RESIDUE`, along with the fourteen items 935 and 940
+found (29). The dead-scan is `tools/trace/report.py <exe> refs`, not a
+`tools/emu/` product. It also confirms each jump site against the
+listing, and a test re-scans every "no reference" row against the install
+(`docs/CENSUS.md`, "The blind list, 2026-09-27, item 940").
 
 ## 5. The verdict on the charter
 
@@ -157,8 +164,9 @@ every `cargo test` run with the install present. Reading-only: the
 classification of the 70 call-reachable functions into families (the names
 say it; the traces of the next targeted capture will). The dead list is
 neither: it is a fact about the image's bytes, re-derivable by
-`emu-dead-scan` and pinned nowhere yet — pinning it as the floor of counter
-2 is the queue item this document leaves for the main loop.
+~~`emu-dead-scan` and pinned nowhere yet — pinning it as the floor of counter
+2 is the queue item this document leaves for the main loop~~
+`report.py … refs`, and pinned in `rondata::blind::RESIDUE` (item 940).
 
 ## 8. The packet rung, and the native twin (2026-09-23)
 

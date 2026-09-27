@@ -68,6 +68,54 @@ impl Pe {
         None
     }
 
+    /// Every site the image's bytes hold that reaches `target`: a
+    /// `call`, `jmp` or `jcc rel32` in the section that holds the target,
+    /// found at every byte offset rather than by an instruction walk, and
+    /// the target's address as four bytes at any offset of any section (a
+    /// vtable slot, a table, a `push imm32`). A site inside another
+    /// instruction's bytes is counted, so an answer errs toward referenced;
+    /// what it cannot see is a rel8 jump and an address computed at run
+    /// time (`tools/trace/report.py … refs`, which also reads the rel8
+    /// neighbours and confirms each site against the listing).
+    pub fn references(&self, target: u32) -> Vec<u32> {
+        let mut out = Vec::new();
+        let Some(rva) = target.checked_sub(self.image_base) else {
+            return out;
+        };
+        let needle = target.to_le_bytes();
+        for &(sva, vsize, raw, rsize) in &self.sections {
+            let (raw, len) = (raw as usize, rsize.min(vsize) as usize);
+            let Some(body) = self.bytes.get(raw..raw + len) else {
+                continue;
+            };
+            let va = self.image_base + sva;
+            for (i, w) in body.windows(4).enumerate() {
+                if w == needle {
+                    out.push(va + i as u32);
+                }
+            }
+            if !(sva..sva + vsize).contains(&rva) {
+                continue;
+            }
+            for i in 0..body.len() {
+                let width = match (body[i], body.get(i + 1)) {
+                    (0xE8 | 0xE9, _) => 1,
+                    (0x0F, Some(0x80..=0x8F)) => 2,
+                    _ => continue,
+                };
+                let Some(rel) = u32_at(body, i + width) else {
+                    continue;
+                };
+                let site = va + i as u32;
+                if site.wrapping_add(width as u32 + 4).wrapping_add(rel) == target {
+                    out.push(site);
+                }
+            }
+        }
+        out.sort_unstable();
+        out
+    }
+
     /// `n` little-endian `i32`s at a virtual address.
     pub fn i32s(&self, va: u32, n: usize) -> Option<Vec<i32>> {
         let o = self.offset_of(va)?;

@@ -16,6 +16,14 @@
                                                that no given trace entered
     report.py <log> functions                  every function ever entered, with the
                                                frame it was first entered on
+    report.py <exe> refs ADDR|NAME ... [-]     every reference the executable's bytes hold
+                                               to each function: `call`/`jmp`/`jcc rel32`,
+                                               a `rel8` jump from a neighbour, and its
+                                               address or RVA embedded anywhere (a vtable
+                                               slot named from vtables.txt) — `dead` when
+                                               there is none. `-` reads addresses from
+                                               stdin (`blind`'s output). No log: the first
+                                               argument is riseofnations.exe
     report.py <log> when NAME [MIN] [FROM]     per-frame count of the draws made from
                                                one function — how a whole 24,000-frame
                                                trace is asked *when* something happened.
@@ -33,6 +41,7 @@ import bisect
 import os
 import re
 import struct
+import subprocess
 import sys
 from collections import Counter, OrderedDict, defaultdict
 
@@ -209,6 +218,142 @@ def frame_arg(a):
     return -1 if a == "setup" else int(a)
 
 
+def pe_sections(data):
+    """[(name, va, raw bytes)] of a PE32 image, and its image base."""
+    pe = struct.unpack_from("<I", data, 0x3C)[0]
+    count, opt = struct.unpack_from("<H", data, pe + 6)[0], struct.unpack_from("<H", data, pe + 20)[0]
+    base = struct.unpack_from("<I", data, pe + 24 + 28)[0]
+    out = []
+    for i in range(count):
+        o = pe + 24 + opt + 40 * i
+        vsize, va, rsize, roff = struct.unpack_from("<IIII", data, o + 8)
+        out.append((data[o:o + 8].rstrip(b"\0").decode(), base + va, data[roff:roff + min(rsize, vsize)]))
+    return base, out
+
+
+def vtable_slots(path):
+    """[(start, name, [slot names])] from the export's vtables.txt, by start."""
+    tables, cur = [], None
+    for line in open(path):
+        m = re.match(r"vtable (.+?)\s+@ ([0-9a-f]{8})", line)
+        if m:
+            cur = (int(m.group(2), 16), m.group(1), [])
+            tables.append(cur)
+        elif cur and line.startswith("  +"):
+            cur[2].append(line.split(None, 1)[1].strip() if len(line.split(None, 1)) > 1 else "?")
+    tables.sort()
+    return tables
+
+
+JUMPS = ("call", "jmp", "jcc", "rel8")
+
+
+def refs(exe, targets, idx, vtables_path):
+    """The dead-scan (docs/EMULATOR.md 4, items 935 and 940): every
+    reference to each target the image's bytes hold. The opcodes are found
+    at every byte offset, not by an instruction walk, so a site is then
+    confirmed against llvm-objdump's listing of the function that holds it:
+    a site inside another instruction's bytes is printed and not counted.
+    What the scan cannot see is said at the end."""
+    data = open(exe, "rb").read()
+    base, secs = pe_sections(data)
+    tva, traw = next((va, raw) for n, va, raw in secs if n == ".text")
+    want = set(targets)
+    rel32 = defaultdict(list)
+    for opcode, width, kind in ((b"\xe8", 1, "call"), (b"\xe9", 1, "jmp")) + tuple(
+            (bytes([0x0F, c]), 2, "jcc") for c in range(0x80, 0x90)):
+        i = traw.find(opcode)
+        while i >= 0:
+            if i + width + 4 <= len(traw):
+                site = tva + i
+                to = (site + width + 4 + struct.unpack_from("<i", traw, i + width)[0]) & 0xFFFFFFFF
+                if to in want:
+                    rel32[to].append((site, kind))
+            i = traw.find(opcode, i + 1)
+    vts = vtable_slots(vtables_path) if os.path.exists(vtables_path) else []
+    starts = [v[0] for v in vts]
+    objdump = next((c for c in ("llvm-objdump", "/opt/homebrew/opt/llvm/bin/llvm-objdump",
+                                "/usr/local/opt/llvm/bin/llvm-objdump")
+                    if subprocess.run(["which", c], capture_output=True).returncode == 0
+                    or os.path.exists(c)), None)
+    listed = {}
+
+    def boundary(site):
+        """True/False: the listing of the function holding `site` starts an
+        instruction there; None with no llvm-objdump."""
+        if not objdump:
+            return None
+        i = bisect.bisect_right(idx.addrs, site) - 1
+        lo = idx.addrs[i] if i >= 0 else site
+        if lo not in listed:
+            hi = idx.addrs[i + 1] if i + 1 < len(idx.addrs) else site + 16
+            out = subprocess.run([objdump, "-d", "--no-show-raw-insn", f"--start-address={lo:#x}",
+                                  f"--stop-address={hi:#x}", exe], capture_output=True, text=True).stdout
+            listed[lo] = {int(m.group(1), 16) for m in re.finditer(r"^\s*([0-9a-f]+):", out, re.M)}
+        return site in listed[lo]
+
+    def where(sec, va):
+        if sec == ".text":
+            return idx.name(va), None
+        i = bisect.bisect_right(starts, va) - 1
+        if i >= 0 and va < vts[i][0] + 4 * len(vts[i][2]):
+            off = va - vts[i][0]
+            if off % 4 == 0:
+                slot = vts[i][2][off // 4]
+                return f"{vts[i][1]} +{off:#x} ({slot})", slot
+            return f"{vts[i][1]} +{off:#x}, unaligned", None
+        return f"{va:#010x}", None
+
+    dead = 0
+    for t in targets:
+        live, noise = [], []
+        sites = [(site, f"{kind} rel32") for site, kind in rel32[t]
+                 if idx.func(site) != idx.func(t) or site < t]
+        for lo in range(max(tva, t - 0x81), min(tva + len(traw) - 1, t + 0x7F)):
+            op = traw[lo - tva]
+            if (op == 0xEB or 0x70 <= op <= 0x7F) and idx.func(lo) != idx.func(t) and \
+                    lo + 2 + struct.unpack_from("<b", traw, lo - tva + 1)[0] == t:
+                sites.append((lo, f"rel8 {op:#04x}"))
+        for site, kind in sites:
+            at = f"{kind} from {idx.name(site)} ({site:08x})"
+            # one confirmed site settles "called"; the rest are not listed
+            ok = True if any(x.startswith(JUMPS) for x in live) else boundary(site)
+            if ok is False:
+                noise.append(f"{at}: not an instruction boundary in the listing, not a reference")
+            else:
+                live.append(at + ("" if ok else " (unconfirmed: no llvm-objdump)"))
+        for label, word in (("pointer", t), ("rva", t - base)):
+            pat = struct.pack("<I", word)
+            for n, va, raw in secs:
+                i = raw.find(pat)
+                while i >= 0:
+                    text, slot = where(n, va + i)
+                    at = f"{label} in {n} at {va + i:08x}: {text}"
+                    alias = idx.by_addr.get(word) if label == "rva" else None
+                    if alias:
+                        noise.append(f"{at}: the word is also {alias}'s address, not a reference")
+                    else:
+                        live.append(at)
+                    i = raw.find(pat, i + 1)
+        before = traw[t - 1 - tva] if tva < t <= tva + len(traw) else None
+        pad = "" if before is None else (
+            f"; byte before {before:#04x}" + (" (padding)" if before in (0xCC, 0x90) else
+                                              " (not padding: a fall-through is not excluded)"))
+        verdict = "dead" if not live else (
+            "called" if any(x.startswith(JUMPS) for x in live) else "pointer only")
+        dead += verdict == "dead"
+        print(f"{t:08x} {idx.by_addr.get(t, '?'):<50} {verdict}{pad}")
+        for x in live:
+            print(f"    {x}")
+        for x in noise:
+            print(f"    ({x})")
+    print(f"{dead} of {len(targets)} dead: no call, jmp or jcc rel32 and no rel8 jump to the entry "
+          f"at an instruction boundary, and no copy of its address or RVA at any byte offset of "
+          f"any section. Not seen: a target computed at run time (base + index * size), which "
+          f"MSVC does not emit for a function, and a fall-through where the byte before is not "
+          f"padding.", file=sys.stderr)
+
+
 def main():
     args = sys.argv[1:]
     index_path = os.path.expanduser("~/ghidra-projects/decomp/INDEX.tsv")
@@ -217,6 +362,19 @@ def main():
         index_path = args[i + 1]
         del args[i:i + 2]
     log, cmd, rest = args[0], args[1] if len(args) > 1 else "summary", args[2:]
+    if cmd == "refs":
+        idx = Index(index_path)
+        by_name = {n: a for a, n in idx.by_addr.items()}
+        words = [w for a in rest for w in (sys.stdin.read().split() if a == "-" else [a])]
+        targets = []
+        for w in words:
+            if re.fullmatch(r"(0x)?00[0-9a-f]{6}", w):
+                targets.append(int(w, 16))
+            elif w in by_name:
+                targets.append(by_name[w])
+        vt = os.path.join(os.path.dirname(index_path), "vtables.txt")
+        refs(log, targets, idx, vt)
+        return
     head, recs = read_log(log)
     base = head["base"]
     idx = Index(index_path)
