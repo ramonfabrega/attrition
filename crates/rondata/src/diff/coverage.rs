@@ -58,7 +58,7 @@ use super::testkit::{
     GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_RETURN_BLOCK,
     GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_STAND_BLOCK,
     GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK,
-    WIDENING_CHAPTER_TWO,
+    WIDENING_CHAPTER_TWO, WIDENING_GREAT_LAKES_END,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -566,6 +566,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r218 = crate::testenv::dump("gamelog-run218-greatlakes-escortword.txt");
     let r226 = crate::testenv::dump("gamelog-run226-greatlakes-giveupword.txt");
     let r243 = crate::testenv::dump("gamelog-run243-greatlakes-standword.txt");
+    let r80 = crate::testenv::dump("gamelog-run80-greatlakes-latecensus.txt");
     let r143 = crate::testenv::dump("gamelog-run143-eastindies-bark.txt");
     let r139 = crate::testenv::dump("gamelog-run139-eastindies-makelist.txt");
     let r149 = crate::testenv::dump("gamelog-run149-eastindies-animal.txt");
@@ -758,6 +759,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let gr = GREAT_LAKES_RETURN_BLOCK;
         let n = drive_capture(p, gr - 2, gr + 2, &mut paths);
         assert_eq!(n, 5, "run243 carries item 795's word's five blocks");
+        frames += n;
+    }
+    // Item 899 moved it to 24000, the capture's own end: run80 carries the
+    // last blocks any dump holds, 23997..23999 and the end block 24001
+    // (there is no 24000).
+    if let Some(p) = &r80 {
+        let end = WIDENING_GREAT_LAKES_END.1;
+        let n = drive_capture(p, end - 4, end, &mut paths);
+        assert_eq!(n, 4, "run80 carries the end's four blocks");
         frames += n;
     }
     // **East Indies' word's own blocks, on run99** (item 573): the lower
