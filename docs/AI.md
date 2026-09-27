@@ -9817,3 +9817,76 @@ Measured on `293a05fa`, based on `6a183d98`:
   holds.
 - **East Indies' endpoint** at 24001: 37 → 38 off, 2 → 0 unlinked,
   0 → 2 extra, 2 → 0 build unlinked, 2 → 0 build diverged.
+
+### 77.5 The new word's block, 23183, on run299, and a gather offer's escrow
+
+23182 is past run289's end, so run299 was taken over [23177, 23434),
+sized to the word (`docs/RUNS.md`). `run299_s_word_frame_is_widened_whole`
+walks it whole.
+
+- **The make list parts on block 23182, on `escrow`**. who=1's head
+  (`MAKE[0]`) and its category slot (`MAKE[4]`) hold the Farm (417) in
+  Norwich at 129,600 on both sides, at `escrow 0` here and 1 there.
+- **The writer, counted**: an offer's escrow is `create_buildings`'
+  `local_10` (`-0xc(%ebp)`), pushed to `make_me` at `006c3fa8`. For a
+  gather type the listing's divisor tail (`006c3ca3`..`006c3db0`) writes
+  1 on **every** exit of the head test: the `jge` (the offer out-values
+  the head, or the head is empty at −1), the `js` (no head), the
+  `can_pay` refusal, the flag test, the goods walk found or exhausted. This
+  crate wrote 1 only when the test passed. On 23181 the Farm became the
+  head, so the first compare failed.
+- **Built**: §3.10's gather branch escrows unconditionally.
+  `a_gather_offer_is_escrowed_on_every_exit_of_the_head_test` fails
+  under the old rule (a mutation, restored from git).
+- **The value diff**: on block 23182 `MAKE[0]` and `MAKE[4]` `escrow` go
+  0 against 1 → **1 on both**. The word holds at 23182: the offers'
+  `val` agrees before and after, and no draw on 23182 moves.
+
+### 77.6 Where it parts next: slot 4's jitter
+
+On the word's frame both sides buy the head's Farm (`produce_building`'s
+spiral, two jitter draws, `Farms::add`, `1/2031` at (34944, 38016)) and
+spend the head's two expiry draws. Both walk slot 4's Farm through the
+same eighteen spiral candidates. At the best site, corner (184, 196), the
+2×2 jitter (§2.20) finds **four** clear sub-positions here, (35712,
+38016), (35712, 38208), (35904, 38016) and (35904, 38208), and **three**
+in the original. Both place `1/2032` at (35904, 38016), so the building
+records agree. The one extra draw shifts the slot loop's expiry
+(`make_stuff+0x63d`), which clears slot 4 there and not here (`MAKE[4].t`
+417 against −1 on 23183), and `1/79`'s figure draws one along.
+
+**No mechanism is named** (DECISIONS 42). The blocked sub-position is one
+of the three besides the chosen one. It sits beside the Farm this frame
+just placed. `blocked_site`'s answer on it is a value the original
+computes mid-frame, after `1/2031`'s `Farms::add`, so the instrument is a
+packet at 23181 (run298, unused here) with a probe **inside**
+`produce_building`'s second call, not at the frame boundary.
+
+### 77.7 What this has *not* established
+
+- **Which sub-position the original blocks, and why** (§77.6).
+- **Past three wonders, the space-race arm and the team term** of the
+  price: listing only (`docs/COSTS.md`, "A wonder is ramped by every
+  wonder").
+- **`get_unbuilt_wonders` is counted off the buildings**, not the
+  original's `unbuilt_wonders` list. The two differ only on the frame a
+  site dies.
+
+### 77.8 Coverage
+
+**Diff-backed**:
+- the one-wonder price, through `check_income`'s 0 and run289's `MAKE`
+  `val` rows on block 20782, and the draw stream to 23182;
+- a gather offer's escrow, through run299's `MAKE[0]` and `MAKE[4]` on
+  23182.
+
+**Listing-backed and reading-only**: the wonder count past three, the
+space-race arm, the halving's truncation (pinned by
+`cost::tests::a_wonder_is_ramped_by_every_wonder_held_and_halved`), and
+the gather arm's escrow on the exits no capture has reached. The listing
+was read for both, so neither is owed a blind second reading of the
+decompiler's text.
+
+**Built**: `another_wonder_s_site_prices_a_wonder_out_of_the_purse` and
+`a_gather_offer_is_escrowed_on_every_exit_of_the_head_test`, each made to
+fail by a mutation first.

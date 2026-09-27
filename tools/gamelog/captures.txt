@@ -7333,3 +7333,23 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run299-eastindies-wonderprice.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=23177&&v<23434)n++} print "blocks with a GROUPDATA: "n; exit !(n==257)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run299-eastindies-wonderprice.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=23177&&v<23434)n++} print "blocks with a GUY: "n; exit !(n==257)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 631,495,667 bytes of dump and 28,460,512 of trace, **257 blocks
+# 23177..23433**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 20:35 through `viadriver.sh` with no human at the menu (the lane lock
+# was stale: pid 87908 gone), archived 20:58. `waitrun.sh` exited 0.
+# All five checks were green:
+# - 23,445 frames identical to run54, 0 differing;
+# - `MAP_STYLE 18`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run299_s_word_frame_is_widened_whole`, `docs/AI.md` §77.5):
+# - **R1 holds.**
+# - **R2 holds**: `MAKE[0]` and `MAKE[4]` part on 23182, on
+#   `escrow` (0 here, 1 there); built by item 890, 1 on both.
+# - **R3 holds, narrowed**: slot 4's Farm jitter at corner (184, 196)
+#   finds four clear sub-positions here and three there.
+# - **R4 is killed**: only 851's standing `leftover[2:wealth]` parts.
