@@ -62,6 +62,16 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 965, 2026-09-27 — the caravan's kill
+
+(993) **The port calls neither `new_danger` nor `restart_trade_route` on
+a caravan's kill**: run353 enters both on 1007, and the gate is the kill,
+not the hit (`jge 0x652ab5` at 006529eb is the only way into the
+block). No score names it yet; 965's journal is the evidence.
+
+(994) **`take_damage`'s first arm, a kill on unowned or enemy ground by
+a Unit, is emulator-only**: a capture of that kill would diff-back it.
+
 ## Parked by item 979, 2026-09-27 — the second pair's standing rows
 
 (990) **Great Lakes' pools 64 and 66 on the second pair**: the script's
@@ -89,13 +99,6 @@ unobservable — the mutation fails nothing (918's shape).
 (982) **The hero arm** of `think_spellcaster`: read, not built.
 
 ## Parked by item 947, 2026-09-27 — the Airbase's gather point's edges
-
-(976) **Action 3 at an Airbase**: `action_gather_point`'s own
-`add_gather_point`, then `action_flight` → `Group::action_launch_flight
-@006fbfb0`, an issuer family this crate does not carry
-(`issue_launch_flight`/`issue_launch_patrol`, the Airbase's right-click).
-A point after an action-3 one is appended to a patrol the strike has
-closed. Read, not built; a chapter's when a word names it.
 
 (977) **The bomber's search round the last point and the last-leg
 strike**: built from ORDERS §34.5, with no test and no capture (918's
@@ -1592,6 +1595,15 @@ an Easiest sibling's frame words over the Toughest games on a
 setup-stream match; `diff::setup::same_lobby` gates the borrow on an
 equal `GAMEINFO` now, and every later pair varies one setting by design.
 An assertion there would have caught it at 971's first walk.
+
+(995) **A staged gate's brief asks for every entry to the block that
+holds the call**, not only the gates inside it (965's Loop line, filed
+at its merge): 959 asked "what does a hit pass" over three captures, and
+the listing's only entry to the block, `jge 0x652ab5`, answered it
+before the first. A candidate row beside 968 and 903 in the checklist.
+
+(996) **The census's recipe omits `--never`'s blind-list section from
+the paste**, and the heading's text does not say so (965's Loop line).
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
