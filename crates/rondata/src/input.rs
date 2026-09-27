@@ -774,13 +774,14 @@ pub fn group_buildmask(built: &mut Built, who: i32, buildings: &[i16], mask: i32
 /// **`CommandPackage::process_queue_up@00948230`** on a group of the
 /// player's own buildings: `process_group`'s group, then
 /// `Group::action_queue_up@006fdbb0(type, num)` — a unit's button
-/// (`GroupOut::issue_queue_up@00708c90`, item 877, `docs/GOLDEN.md` §33).
-/// `ty` is the original's `TypeIndex`, mapped onto this crate's unit type
-/// through the tree the harness built.
+/// (`GroupOut::issue_queue_up@00708c90`, item 877, `docs/GOLDEN.md` §33)
+/// or a technology's (item 883, §35). `ty` is the original's `TypeIndex`,
+/// mapped onto this crate's unit type through the tree the harness built,
+/// or onto the tree's technology ([`sim::Sim::action_queue_research`]).
 ///
-/// SEAM: a technology's `TypeIndex` is not mapped (no capture queues one
-/// through the command), and the command's building group is not seated
-/// in the pool, as for [`group_buildmask`].
+/// SEAM: the command's building group is seated in the pool for a single
+/// building only, as for [`group_buildmask`]; a building type's arm (its
+/// `build_flags & 4` upgrade) is not mapped.
 ///
 /// Returns the entries laid.
 pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, num: i32) -> usize {
@@ -789,16 +790,26 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
         .iter()
         .filter_map(|&o| built.sim.building_by_o(player, o))
         .collect();
-    let Some(unit) = (0..built.unit_tree.len())
-        .find(|&t| built.type_index.get(built.unit_tree[t]).copied() == Some(ty))
-    else {
-        return 0;
-    };
-    if list.is_empty() {
+    let unit = (0..built.unit_tree.len())
+        .find(|&t| built.type_index.get(built.unit_tree[t]).copied() == Some(ty));
+    let tech = (0..built.type_index.len()).find(|&t| {
+        built.type_index[t] == ty
+            && built
+                .sim
+                .tech_tree
+                .types
+                .get(t)
+                .is_some_and(|_| built.sim.tech_tree.kind(t).is_tech())
+    });
+    if list.is_empty() || (unit.is_none() && tech.is_none()) {
         return 0;
     }
     built.sim.push_command_buildings(player, &list);
-    built.sim.action_queue_up(&list, unit, num)
+    match (unit, tech) {
+        (Some(unit), _) => built.sim.action_queue_up(&list, unit, num),
+        (None, Some(t)) => built.sim.action_queue_research(&list, t),
+        (None, None) => 0,
+    }
 }
 
 /// **`CommandPackage::process_unqueue@009466f0`** on one of the player's

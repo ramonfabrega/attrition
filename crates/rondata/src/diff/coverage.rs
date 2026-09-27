@@ -208,10 +208,12 @@ const UNREAD: &[(&str, &str)] = &[
     // the leader's script's name, `economic.bhs`; which field prints it is
     // not read, and nothing is owed on it. Item 592 read the census's
     // twenty-one per-region arrays (`leader::REGION_ARRAYS`): `reg_terr`,
-    // which this crate does not keep, and `reg_buildings` stay.
+    // which this crate does not keep, and `reg_buildings` stay. Item 883
+    // read `ages_get()`, `epochs_get()` and `discovered_get()`, the tech
+    // counters (`docs/GOLDEN.md` §35), and they left the row.
     (
         "GAME/FRAME/LEADERDATA",
-        "(int) agendas[scan] ages_get() ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive discovered_get() dock_mark dock_queued dock_units dow[scan] economic epochs_get() epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonderwin_stamp wonderwin_timer",
+        "(int) agendas[scan] ages_queued aggression[scan] air_queued air_units ally_stamp[scan] anti_att att attack_stamp[scan] attrition_stamp attrition_stamp2 attrition_stamp3 average_damage_rate average_death_rate average_hit_rate average_kill_rate barracks_garr barracks_queued barracks_units base_rate[scan] best_armor best_attack best_move best_pop bit_values bits blacken bonus bonus_cap[NUM_COMMON] broke_alliance[scan] buildings_lost buildings_razed capital_stamp[scan] chat_status[scan] cities_captured cities_lost city_mark city_mine city_name combat_queued combat_units counteroffer[scan] ctw_hero_retreat_stamp ctw_hero_stamp damage_current_frame damage_fifteen_seconds deaths_current_frame deaths_fifteen_seconds defeat_stamp defeat_type defensive dock_mark dock_queued dock_units dow[scan] economic epochs_queued explored factory_queued factory_units flags flock_stamp fort_mark frame_battle gift_stamp[scan] good_deeds[scan] got_diplo_message handicap hero_mark high_buildings[scan] hire_stamp[scan] hire_who[scan] hits_current_frame hits_fifteen_seconds increment invaders[scan] kills_current_frame kills_fifteen_seconds last_spoke[scan] last_taunt[scan] length list[scan] lost_capital_modifier lost_capital_stamp lost_capital_timer lost_city_stamp made_peace[scan] misery missiles_used multi_diff nuke_stamp nukes_in_flight nukes_launched nukes_used num_bonus_cards[scan] num_buildings[scan] num_ctw_rate_bonuses[scan] oil_well_mark peasants_garr pop_cap pop_issues popwin_stamp popwin_timer raid_stamp[scan] rares_collected[scan] reg_buildings[scan][scan2] reg_terr[scan] repair_stamp retargets scholar_militia scout_garr senates_built size special_mark stable_garr stable_queued stable_units strong[scan] supply_mark support support_stamp taunt_frame[scan] team_color territory_high tribute_demanded[scan] tribute_stamp[scan] tributes[scan] units_killed units_lost victory_type village_mine weak[scan] wonderwin_stamp wonderwin_timer",
     ),
     (
         "GAME/FRAME/LEADERDATA/DIPLOMACY",
@@ -551,6 +553,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch23 = golden_dump("ch23");
     let ch24 = golden_dump("ch24");
     let ch25 = golden_dump("ch25");
+    let ch26 = golden_dump("ch26");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1268,6 +1271,21 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [702, 762, 842, 855, 965, 982, 1002, 1216, 1463] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-five carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter twenty-six's word, on run296** (item 883): the first
+    // research through the player's command. 622, arm a's entry and price;
+    // 652, arm c's, behind the busy Library; 822, The Art of War's finish
+    // and its counters; 852, the held press; 1023, Written Word's finish
+    // and the re-price; 1042, the cancel; 1062, Barter again; 1106, the
+    // Hoplites; 1243, Barter's finish and the commerce cap; 1489, the last
+    // blocks.
+    if let Some(p) = &ch26 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_SIX;
+        for w in [622, 652, 822, 852, 1023, 1042, 1062, 1106, 1243, 1489] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-six carries the window's five blocks");
             frames += n;
         }
     }

@@ -954,6 +954,27 @@ fn chapter_twenty_five_holds_to_the_golden_word() {
     );
 }
 
+#[test]
+fn chapter_twenty_six_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch26", "chapter26", 26, 12, 1491) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_SIX,
+        "chapter twenty-six's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_SIX}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_SIX,
+        "chapter twenty-six's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §35"
+    );
+    eprintln!(
+        "chapter twenty-six: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run255's repair, unit for unit, both directions** (item 813,
 /// `docs/GOLDEN.md` §29). On every block of
 /// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
@@ -8932,6 +8953,113 @@ const WANT_CH25_POOL: &[&str] = &[
     "982 slot 0 speed",
     "1216 slot 2 ox",
     "1216 slot 2 oy",
+];
+
+/// **run296 whole, both directions** (item 883, `docs/GOLDEN.md` §35):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_twenty_six_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch26",
+        "chapter26",
+        WIDENING_CHAPTER_TWENTY_SIX,
+        1491,
+        0,
+        (1020, 1024),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch26 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter thirteen's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_SIX.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch26: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_SIX.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch26", "chapter26", WIDENING_CHAPTER_TWENTY_SIX, 0)
+        .expect("run296 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch26 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH26.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch26: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH26_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch26: what parts in the pool moved");
+}
+
+// **What parts under the word** on run296, chapter twenty-six. ~~The
+// first walk, with a technology's `@queueup` skipped: every research's
+// entry, price and finish — 622's `queued` and food, 652's timber and
+// wealth, 822's `epochs`, `epoch[0]` and `discovered`, 1023's `epoch[3]`,
+// 1242's `epoch[2]`, and 1243's commerce cap, 1120 against 1600.~~ **The
+// research entered** (item 883, [`crate::input::group_queue_up`] →
+// `Sim::action_queue_research`): every research's block agrees — 622,
+// 642, 652, 822, 852, 1023, 1042, 1062 and 1242, the counters and the cap
+// with them. What stands is **`Unit::init@00612100`'s** (parked 646),
+// chapter twenty-five's shape: `form` on every non-citizen it makes (611,
+// 615, the Hoplites on 1106) and the followers' tile-centred `orders_x/y`.
+// And **1023 `0/0` `mylos`**, ours 6 and theirs 4 (the first walk had it
+// on 1024, ours 4 and theirs 6): Written Word's `SCIENCE_LOS`, which this
+// crate computes on read (`Sim::unit_los`) and the original caches in
+// `Unit::update_los@0060e4d0`, refreshed a block after the gain —
+// `docs/VISION.md`'s open question on the cached `mylos`, run10's Scout
+// the same shape. Its reader is the fog disc; the stream agrees to 1492.
+const WANT_CH26: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "1023 0/0 mylos",
+    "1106 0/10 form",
+    "1106 0/11 form",
+    "1106 0/11 orders_x",
+    "1106 0/11 orders_y",
+    "1106 0/12 form",
+    "1106 0/12 orders_x",
+    "1106 0/12 orders_y",
+];
+
+// **What parts in the pool** on run296. ~~The first walk: the Library's
+// building group `[2005]` in slot 1 from 622 there and not here, so the
+// Barracks' group took slot 1 on 872 here and slot 0 there.~~ **The
+// research entered**: the Library's group is seated by its first command,
+// and every slot's list, `num` and `stamp` agree on every block. What
+// stands is each first seat's `ox`/`oy`, ours −1 and theirs 0 —
+// `push_group`'s record `o` (parked 887; its reader is a layout's `o`, and
+// nothing is laid out).
+const WANT_CH26_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "872 slot 0 ox",
+    "872 slot 0 oy",
 ];
 
 #[test]

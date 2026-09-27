@@ -2525,6 +2525,78 @@ fn a_technology_queues_at_the_library_and_completes_as_research() {
     assert!(sim.units.is_empty());
 }
 
+/// **The player's research** (item 883, `docs/GOLDEN.md` §35,
+/// `docs/PRODUCTION.md` "The player's research"): `action_queue_up`'s
+/// research arm. `researching` refuses the command whole; the first pass
+/// offers the job only to an idle member and a refusal goes on, so a
+/// research on [an idle building that cannot make it, a busy Library]
+/// lands behind the busy one; `can_make` refuses a technology already
+/// held; and a cancel clears the gate. Made to fail with each of the gate,
+/// the second pass and the held refusal dropped.
+#[test]
+fn the_player_s_research_lands_once_behind_its_gate() {
+    use crate::tech::{Line, TechTree, TypeDef};
+    let food = economy::Resource::Food.index();
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let library_t = tree.add(TypeDef::building("Library"));
+    let mut ww = TypeDef::epoch("Written Word", Line::Science, 0).at(library_t);
+    ww.cost[food] = 4;
+    ww.job_time = 40;
+    let written_word = tree.add(ww);
+    let mut cs = TypeDef::epoch("City State", Line::Civic, 0).at(library_t);
+    cs.cost[food] = 6;
+    cs.job_time = 40;
+    let city_state = tree.add(cs);
+    sim.set_tech_tree(tree);
+    sim.build_types[t.library].tree = Some(library_t);
+    let (city_b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let lib = sim.init_build(0, t.library, tile_pos(36, 32), false);
+    finish(&mut sim, lib);
+    sim.ledgers[0].bucket[food] = 1_000;
+    let factor = sim.tuning.tech_cost_factor;
+
+    assert_eq!(sim.action_queue_research(&[lib], written_word), 1);
+    assert_eq!(sim.ledgers[0].bucket[food], 1_000 - 4 * factor);
+    assert_eq!(
+        sim.action_queue_research(&[lib], written_word),
+        0,
+        "researching: the command refused whole"
+    );
+    assert_eq!(sim.buildings[lib].queue.items.len(), 1);
+    assert_eq!(sim.ledgers[0].bucket[food], 1_000 - 4 * factor);
+
+    // The city is idle and cannot make it; the Library is busy. The first
+    // pass offers it to the city alone, which refuses, and the second
+    // lands it behind the Library's head.
+    assert_eq!(sim.action_queue_research(&[city_b, lib], city_state), 1);
+    let q = &sim.buildings[lib].queue.items;
+    assert_eq!(q.len(), 2, "behind the busy member");
+    assert_eq!(q[1].tech, Some(city_state));
+    assert!(sim.buildings[city_b].queue.items.is_empty());
+
+    while !sim.tech[0].tech[written_word] {
+        sim.tick();
+    }
+    let before = sim.ledgers[0].bucket[food];
+    assert_eq!(
+        sim.action_queue_research(&[lib], written_word),
+        0,
+        "held: can_make's has_tech"
+    );
+    assert_eq!(sim.buildings[lib].queue.items.len(), 1);
+    assert_eq!(sim.ledgers[0].bucket[food], before, "nothing charged");
+
+    assert!(sim.cancel(lib, 0).is_some());
+    assert!(!sim.researching(0, city_state));
+    assert_eq!(
+        sim.action_queue_research(&[lib], city_state),
+        1,
+        "the cancel cleared the gate"
+    );
+}
+
 /// **run39's library, end to end**: Written Word on 201, City State on 382.
 ///
 /// The two entries the AI queues at frame 2 in both long captures, with the

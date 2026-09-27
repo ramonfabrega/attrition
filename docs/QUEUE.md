@@ -12,30 +12,34 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-26, the commander (Opus 5.5), four landings since the sixteenth
+*2026-09-26, the commander (Opus 5.5), five landings since the sixteenth
 pass: **East Indies 20007 → 20782 (880); Great Lakes 20568 → 20800
-(795)**, so East Indies is the lower map again and 890 is the headline.
-**Chapter twenty-five closed at 1466 (884).** 883 is live on the rules
-lane.*
+(795)**; East Indies is the lower map and 890 is live on it, reporting
+20782 → 23182 on its branch, not yet gated. **Chapters twenty-five and
+twenty-six closed** (884 at 1466, 883 at 1492).*
 
+- **883**: the player's research through `@queueup` (PRODUCTION's "The
+  player's research"); run296, no falsifier fired; `diff::leader` now
+  compares ages, epochs and discovered on every window, and no long row
+  parts on them.
 - **795**: `do_move`'s TAKE re-reads the path's top (GROUPS §32); on
   20569 `1/40` stands blocked by `8/0` on both sides. **880**: the pool's
   kept fields (GROUPS §30); on 20002 slot 69 reads `order_num` 6,
   `facing` 1 on both sides. **884**: the player's cancel, closed at 1466.
   **882**: `come_out`'s push for every owner (GROUPS §31); 561 closed.
-- **Fable backlog: 12 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900).
+- **Fable backlog: 13 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w20782 of 24,000 · GreatLakes w20800 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · 883 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · 901 next
 Endpoint 24001: EastIndies 37 off, 2 unlinked · GreatLakes 14 off, 0 unlinked
 
-**Opener: 883 is live on the rules lane (ref 9568c586); merge it when it
-reports. 890 on the AI lane (East Indies is lower): run289's 20782,
-widened, no mechanism. 899 (Great Lakes' 20800) after 890. A brief names
-only the fenced modules; a capture is waited on with
-`tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
-its merge. The count runs from f0b9d296: four landings.**
+**Opener: 890 is live on the AI lane (ref f9aa9e3f; run299 over
+23177..23433); merge it when it reports. 901 on the rules lane: a unit
+upgrade through the command, the emulator first, then run300. 899
+(Great Lakes' 20800) after 890. A brief names only the fenced modules; a
+capture is waited on with `tools/gamelog/waitrun.sh`; a journal's "for
+the Loop" line is filed at its merge. The count runs from f0b9d296: five.**
 
 ## The queue
 
@@ -59,13 +63,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     route already differs below run294's first block, 19840: the parting
     is in 17351..19839 (796, narrowed). No mechanism.
 
-883. **Chapter twenty-six: the research line — an issuer, no capture
-    yet** (877's park). The player's `@queueup` of a tech on a building
-    with an empty queue: `action_queue_up`'s research arm
-    (`LeaderData::researching`, then one building first), read and not
-    built. What the arm writes, the price, and a cancel of it (884's
-    `unqueue`) under the emulator first. **run296** the capture, run297 a
-    staging run. GOLDEN §35.
+901. **Chapter twenty-seven: the upgrade line — an issuer, no capture
+    yet** (883's park). A unit upgrade through the player's `@queueup`:
+    `researching_unit`'s lineage arm and `action_queue_up`'s unit
+    research, built by 883 and unstaged. It needs a Classical cast, and
+    stages `gain_tech`'s conversion of the lineage through the player's
+    own command. The emulator first; **run300** the capture, run301 a
+    staging run. GOLDEN §36.
 
 ## How to maintain this file
 

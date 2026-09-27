@@ -665,26 +665,68 @@ impl crate::Sim {
         }
     }
 
-    /// **`Group::action_queue_up@006fdbb0`** for a train job — a unit
-    /// type whose availability bit is set — on a group of buildings, from
-    /// `CommandPackage::process_queue_up@00948230`. The members are first
-    /// sorted by `queued`, least first (a selection sort from each live
-    /// member's slot); then `num` times over, each live, finished member
-    /// gets `Build::queue_up(type, 1)`, whose answer is not read. A
-    /// missile silo asks `can_carry(type)` first; no silo is carried here.
-    /// Returns the entries laid.
+    /// **`Group::action_queue_up@006fdbb0`** on a group of buildings, from
+    /// `CommandPackage::process_queue_up@00948230`, for a unit type. The
+    /// members are first sorted by `queued`, least first (a selection sort
+    /// from each live member's slot). Then the type picks the arm:
     ///
-    /// SEAM: the other arm, a research entry (a unit type whose bit is
-    /// clear, or a technology): `LeaderData::researching`, then one
-    /// building with an empty queue first. No capture reaches it.
+    /// - **a train job**, a unit type whose availability bit is set: `num`
+    ///   times over, each live, finished member gets `Build::queue_up(type,
+    ///   1)`, whose answer is not read. A missile silo asks
+    ///   `can_carry(type)` first; no silo is carried here.
+    /// - **a research job**, a unit type whose bit is clear: the research
+    ///   arm, [`Sim::research_arm`], once whatever `num` says, behind
+    ///   `LeaderData::researching@006db510` over every unit line
+    ///   ([`Sim::researching_unit`]).
+    ///
+    /// Returns the entries laid.
     pub fn action_queue_up(&mut self, buildings: &[usize], ty: usize, num: i32) -> usize {
         let who = match buildings.first() {
             Some(&b) => self.buildings[b].owner,
             None => return 0,
         };
+        let list = self.by_queued(buildings);
         if !self.muster[who as usize].researched[ty] {
+            if self.researching_unit(who, ty) {
+                return 0;
+            }
+            return self.research_arm(&list, |sim, b| sim.queue_up(b, ty).is_ok());
+        }
+        let live = |sim: &crate::Sim, b: usize| sim.buildings[b].alive && sim.buildings[b].active;
+        let mut laid = 0;
+        for _ in 0..num {
+            for &b in &list {
+                if live(self, b) && self.queue_up(b, ty).is_ok() {
+                    laid += 1;
+                }
+            }
+        }
+        laid
+    }
+
+    /// **`Group::action_queue_up@006fdbb0`** for a technology: always the
+    /// research arm. `LeaderData::researching(t, −1, 0, 0)` first — a tech
+    /// queued at any of the player's buildings, in the group or not,
+    /// refuses the command whole (the console's player hears
+    /// `add_feedback`, and nothing else is written) — then
+    /// [`Sim::research_arm`] with [`Sim::queue_tech`]. `num` is not read:
+    /// the arm reuses its slot as the pass counter (`6fe08a`). Returns the
+    /// entries laid, 0 or 1.
+    pub fn action_queue_research(&mut self, buildings: &[usize], t: crate::tech::TypeId) -> usize {
+        let who = match buildings.first() {
+            Some(&b) => self.buildings[b].owner,
+            None => return 0,
+        };
+        if self.researching(who, t) {
             return 0;
         }
+        let list = self.by_queued(buildings);
+        self.research_arm(&list, |sim, b| sim.queue_tech(b, t).is_ok())
+    }
+
+    /// `action_queue_up`'s sort: a selection sort by `queued`, least first,
+    /// from each live member's slot (`6fdc5b`..`6fdd8c`).
+    fn by_queued(&self, buildings: &[usize]) -> Vec<usize> {
         let mut list = buildings.to_vec();
         let live = |sim: &crate::Sim, b: usize| sim.buildings[b].alive && sim.buildings[b].active;
         for i in 0..list.len().saturating_sub(1) {
@@ -698,15 +740,58 @@ impl crate::Sim {
                 }
             }
         }
-        let mut laid = 0;
-        for _ in 0..num {
-            for &b in &list {
-                if live(self, b) && self.queue_up(b, ty).is_ok() {
-                    laid += 1;
+        list
+    }
+
+    /// **`action_queue_up`'s research arm** (`6fe088`..`6fe183`, read off
+    /// the listing and run under the emulator, `docs/GOLDEN.md` §35): two
+    /// passes over the sorted members. Each live (`+0xc`), finished
+    /// (`+0x4c`) member is offered the job — in the first pass only a
+    /// member whose own `queued` is 0 — and **the first `queue_up` that
+    /// answers 0 ends the command**; a refusal goes on to the next member.
+    /// So a research lands once, on an idle building if one takes it, else
+    /// on the least-queued that does.
+    pub fn research_arm(
+        &mut self,
+        list: &[usize],
+        mut queue: impl FnMut(&mut crate::Sim, usize) -> bool,
+    ) -> usize {
+        for pass in 0..2 {
+            for &b in list {
+                let m = &self.buildings[b];
+                if !(m.alive && m.active) || (pass == 0 && !m.queue.items.is_empty()) {
+                    continue;
+                }
+                if queue(self, b) {
+                    return 1;
                 }
             }
         }
-        laid
+        0
+    }
+
+    /// **`LeaderData::researching@006db510`** for a unit type: an entry of
+    /// the type in the queue of any of the player's active buildings, or —
+    /// the unit arm, with `param_4` 0 — an entry of a unit type `u` with
+    /// neither `u` nor the type's own bit set and the type `is(u, 0)`, its
+    /// lineage (`6db5d9`..`6db62c`). A technology is
+    /// [`Sim::researching`]'s equality alone.
+    pub fn researching_unit(&self, who: crate::world::Player, ty: usize) -> bool {
+        let researched = &self.muster[who as usize].researched;
+        let tree = self.unit_types[ty].tree;
+        self.buildings
+            .iter()
+            .filter(|b| b.owner == who && b.active)
+            .flat_map(|b| b.queue.items.iter())
+            .filter(|i| i.tech.is_none())
+            .any(|i| {
+                i.ty == ty
+                    || (!researched[i.ty]
+                        && !researched[ty]
+                        && tree
+                            .zip(self.unit_types[i.ty].tree)
+                            .is_some_and(|(t, u)| self.tech_tree.is(t, u, false)))
+            })
     }
 
     /// **`Build::action_unqueue@00620280(p)`**, the player's cancel, from

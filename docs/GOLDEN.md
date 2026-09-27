@@ -1381,6 +1381,7 @@ below without a run take their number at booking (the eleventh pass).
 | 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) — **run 2026-09-26 (item 867), 498 MB, 1,505 s; the pool printed; no falsifier fired: `build_masks` 4232 → 4104 on 1442; `0/7` inside with no order on 1489 and `0/8` on 1513; `0/6`'s kept patrol killed on 1585, its tank's first 0, and `0/6` still inside; nothing launches to 1839; the building group in pool slot 0** |
 | 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish; word ~~855, open~~, closed at 1560 (item 877: the queue commands entered); the squads' `group` and the pool's lists agree (item 882: `come_out`'s push and the command's building group, §33)** |
 | 292 | twenty-five, the cancel line | `[605, 1466)` | the player's cancel through the DLL's new `@unqueue` on a Barracks `0/2007`: slot 0 of a Hoplite run with the head in progress (700), slot 0 of `[132*, 170]` (760), a single cancel on an infinite queue (840, after `@buildmask` 0x40 on 800), and −1 on `[132*, 170]` (1000); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the commands' entries on run285's start (§34) — **run 2026-09-26 (item 884), 359 MB, 1,099 s; no falsifier fired, every value on its predicted block: arm a removed the run's second (+53/+41) on 702 and kept the head at 8100; arm b the head (+51/+38) on 762; arm c cleared the bit and removed nothing on 842; no re-queue at the Bowmen's finish on 965; −1 removed the last (+46/+56) on 1002; no cancel seats a slot; word ~~855, open~~, closed at 1466 (item 884: the cancel entered)** |
+| 296 | twenty-six, the research line | `[605, 1492)` | a technology through the player's `@queueup` on who=0's Library `0/2005`: The Art of War with `num` 2 on the idle Library (620), again while it researches (640), Written Word on the busy Library (650), The Art of War held (850), Barter behind Written Word (860), Hoplites at the Barracks (870), a cancel of the re-priced Barter (1040) and Barter again (1060); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the command's entry on run292's start (§35) — **run 2026-09-26 (item 883), 365 MB, 1,120 s; no falsifier fired, every value on its predicted block: one entry and 120 food on 622, nothing on the second press (642) or the held one (852), Written Word behind the busy head on 652, The Art of War out on 822 (discovered 2), Barter re-priced to 54/54 on 1023 (discovered 3: Boadicea counted), +54/+54 on the cancel (1042), 54/54 again on 1062, Barter out on 1242; word 1492, closed on the first walk (a research spends no draw) and after the build, whose value rows it closed (item 883: the research arm entered)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -5381,3 +5382,215 @@ from `Groups::process@006fa210`'s cursor.
 
 The unit test `the_player_s_cancel_reads_its_selector` fails under the
 first two as well.
+
+## 35. Chapter twenty-six — the research line: a technology through the player's command, pressed again, behind a busy Library, held, re-priced, cancelled and pressed again (item 883)
+
+**Premise.** The player's queue-up of a technology, `CommandPackage::
+process_queue_up@00948230` → `Group::action_queue_up@006fdbb0(t, num)`,
+takes **the research arm** (`docs/PRODUCTION.md`, "The player's
+research"): `LeaderData::researching@006db510(t, −1, 0, 0)` refuses the
+command whole when the tech is queued at any of the player's buildings;
+otherwise two passes over the members sorted by `queued` — the first
+offering the job only to a member with an empty queue, the second to any
+— and **the first `Build::queue_up@00620f40(t, 1)` that answers 0 ends
+it**, so a research lands once whatever `num` says. `queue_up` then asks
+`BuildData::can_make@0062db10`, whose tech arm refuses a tech already held
+(`has_tech`, the leader's `tech` bit) or researching. The finish is
+`Leader::gain_tech@006dcb60`; a Science epoch's gain re-prices the first
+Library's other tech entries in place (`Build::refund_cost@00620490`), and
+a cancel refunds the recorded pairs (§34). 877 read the arm and did not
+build it; each clause is a claim, and the cast puts one press on each.
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`'s
+machine: a `Group` on `Group::vftable`, `Build`s on `Build::vftable` with
+their queues in who=0's registry, every slot 2000..mark an object, a
+`TypeData` per index on `TechType::vftable`, the leader's inline bits, a
+console on another player; `Build::queue_up` stubbed, each call recorded
+with its building, type and flag and answered by a per-building policy).
+The listing was read first: `researching`'s arguments at `6fde26`..
+`6fde39`, the pass counter in `num`'s slot at `6fe08a`, the empty-queue
+test at `6fe135`, the return on `queue_up == 0` at `6fe16b`.
+
+| the group, the job | `queue_up` calls (building: answer) | laid |
+| --- | --- | --- |
+| an idle Library, a tech, `num` 2 (and `num` 0) | L: 0 | one entry |
+| [an idle Barracks refusing, a busy Library] | B: 1, B: 1, L: 0 | behind the busy one |
+| [a busy Library, an idle one] | L2: 0 | on the idle one |
+| both busy, 2 and 1 queued | L2: 0 | the least queued |
+| an idle member refusing, a busy one | L: 1, L: 1, L2: 0 | behind the busy one |
+| every member refusing | B: 1, B: 1, L: 1 | nothing |
+| the tech in the Library's queue, or another building's outside the group | none | nothing |
+| the tech held and queued nowhere | L: 0 (the stub) | `queue_up`'s to refuse |
+| a member alive and not finished (`field_0x8 & 4` clear) | none | nothing |
+| a unit type, its bit clear, two Barracks, `num` 2 | B: 0 | one entry |
+| the same, its bit set | B, B2, B, B2 | `num` × members |
+
+`researching`: 1 for a tech queued at an active building, 0 at an inactive
+one; for a unit type, an entry of the same type (a Hoplites entry answers
+for Hoplites). The arm writes only the group's `+0x28` (`action_begin`).
+**What the emulator could not reach**: `queue_up`'s gates and price (its
+body reaches `get_cost`), the forward to the first Library, `can_make`'s
+held and researching refusals (read from the decompile), the console's
+`add_feedback`, and the finish.
+
+**The writers and readers**, by address and offset in every spelling
+(parked 869, 823). `researching` has 35 call sites in 21 functions: the
+simulation's `can_make`, `action_queue_up`, `get_cost` (the finals' ramp)
+and `SpellTypeData::is_castable`; the AI's `Leader::` `compute_research_
+score`, `compute_unit_upgrades_score`, `create_units`, `diplomacy`,
+`plan_strategy`, `produce_tech`, `tech_avail` and `upgrade_units`; the
+interface's `BuildOut::make_options` (8), `GroupOut::issue_queue_up`,
+`IFaceSelected::draw_build_text`, `Options::describe` and
+`do_cycle_research`, `StatWin`'s two; the scenario's `researching_tech_at`;
+and its own wrapper. The bit (`LeaderData::tech`, `docs/TECH.md`)
+is written by `Leader::gain_tech` (its own bit, and a unit's predecessors),
+`Leader::lose_tech`, `Leader::init` and `ConsoleWin::run_cmd` — in this
+window, `gain_tech` alone.
+
+**The cast** is chapter thirteen's to 619 (run292 is this game there):
+`!ai off`, who=0's Barracks `0/2007`, and who=0's own Library `0/2005`, in
+its city from the start (`get_first_library`, one library city). **Lines**:
+`620 @queueup 0 572 2 2005` (The Art of War); `640 @queueup 0 572 1 2005`;
+`650 @queueup 0 551 1 2005` (Written Word); `850 @queueup 0 572 1 2005`;
+`860 @queueup 0 558 1 2005` (Barter); `870 @queueup 0 132 1 2007`; `1040
+@unqueue 0 0 2005`; `1060 @queueup 0 558 1 2005`. **Timber is the budget**
+(240 at 619, about 0.07 a block): The Art of War is food-only so that the
+second press (642) and the held press (852) are affordable by 16 and 35
+food, and neither refusal can be the price's.
+
+**The staging, walked by this crate through the command's entry**
+(`input::group_queue_up` → `Sim::action_queue_research`, on run292's
+start; run297 was not used). Every value is this crate's:
+- **622**: `0/2005` `[572 at 100]`, 120 food; food 134.
+- **642**: unchanged. **652**: `[572, 551 at 0]`, 120 timber 50 wealth.
+- **822**: The Art of War out: `epochs_get()` 1, Military 1,
+  `discovered_get()` 2 (the Bark and the Trireme, `gain_tech`'s units
+  cascade); `[551 at 0]`; no unit trained.
+- **852**: unchanged. **862**: `[551 at 4000, 558 at 0]`, 60 food 60
+  timber. **872**: `0/2007` `[132 at 100]`.
+- **1023**: Written Word out: epochs 2, Science 1, discovered 3
+  (Boadicea); `[558 at 0]` recorded 54/54, food and timber +6.
+- **1042**: `[]`, food and timber +54. **1062**: `[558 at 100]`, 54/54.
+- **1106**: the Hoplites out. **1242**: Barter out: epochs 3, Commerce 1.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over **`[605, 1492)`**: 887 blocks, **250 of
+runway** past 1242. **`LEADERS=2`, not the bitmask's level**: a kept dump
+(run292) prints `tech`, `tech_at_start` and `obs_flags` only at 9, as
+`bit_values` (each byte's decimal, concatenated), and 9 is ~350 KB a
+leader, four a block — about a gigabyte over this window. No key prints
+`researching`; it is a function. Level 2 prints `ages_get()`,
+`epochs_get()`, `discovered_get()` and `epoch_get(scan)`, the counters
+`gain_tech`'s step 2 writes beside the bit, and the held press (852) reads
+the bit itself.
+
+**The premise's killer, and its writers** (§3, point 5): `0/2005`'s
+`BUILDQUEUE` and who=0's `bucket`s and tech counters on 622, 642, 652,
+822, 852, 1023, 1042 and 1062. The queue's writers in the window are
+`queue_up`, `unqueue` (the finishes' and the cancel's) and `refund_cost`
+(the re-price); nothing closes, captures or defeats. **The loops**: the
+passes, two; the members, one; `researching`'s buildings to who=0's
+`objects` mark and each queue to its `queued`.
+
+**What would falsify it, and where each could first fire.**
+1. **The issues do not reach the pump.** An `INFO 17` with a refusal; or
+   no `process_queue_up` with type 572 num 2 on 621, 572 1 on 641, 551 on
+   651, 572 on 851, 558 on 861, 132 on 871, 558 on 1061, and no
+   `process_unqueue 2005 0` on 1041.
+2. **Arm a, one entry** (622): `[572 at 100]` paid 120 food once (the
+   reading); two entries and 240 food (`num` read, as the unit arm does);
+   none.
+3. **Arm b, the gate** (642): one entry, food unspent (the reading); a
+   second 572 paid (no `researching`).
+4. **Arm c, the second pass** (652): `[572, 551 at 0]` paid 120/50 (the
+   reading); unchanged (a busy member never offered).
+5. **The finish** (822): the entry gone, epochs 1 and Military 1, no unit
+   born (the reading); a trained unit or no count (a research read as a
+   train job).
+6. **Arm d, held** (852): unchanged, food unspent (the reading); a second
+   572 paid (`has_tech` not asked).
+7. **Arm e, the re-price** (1023): `[558 at 0]` recorded 54/54 and +6/+6
+   (the reading); 60/60 and nothing refunded.
+8. **The cascade's count** (822, 1023): `discovered_get()` 2 then 3 (this
+   crate); 2 then 2 (Boadicea, flags `lmh`, a hero `gain_tech`'s units
+   cascade skips); anything else.
+9. **Arm f, the cancel** (1042): `[]` and +54/+54 (the re-priced record,
+   the reading); +60/+60 (the price at queue time); nothing removed.
+10. **Arm g, pressed again** (1062): `[558 at 100]` paid 54/54 (the gate
+    cleared and `calc_science_discount`, the reading); 60/60 (no
+    discount); nothing (`researching` left set by the cancel).
+11. **The unit beside, and the last finish**: the Hoplites out of the
+    Barracks on 1106; Barter out on 1242, epochs 3 and Commerce 1.
+
+Falsifiers 2, 3, 4, 6, 7, 9 and 10 test the claim's own unit, one entry on
+the block its command or finish is processed (711), and each splits the
+readings (789).
+
+**Where it should part.** The floor is measured with a technology's
+`@queueup` skipped (`crate::golden`'s SEAM): the first value parting is
+**622**, `0/2005`'s `queued` (ours 0, theirs 1) and who=0's food (254
+against 134). No draw is known to follow a research, so the draw stream
+may not part at all: the Hoplites are queued on both sides.
+
+**Run 2026-09-26 as run296 (item 883)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run292 to 964. **No falsifier
+fired, and every value the staging walk named is on its block**: the
+issues processed on 621, 641, 651, 851, 861, 871, 1041 and 1061 with
+refusal 0 (1); `[572 at 100]` and 120 food once (2); nothing on the second
+press (3) and on the held one (6), with 136 and 155 food unspent; Written
+Word behind the busy head (4); The Art of War out on 822 with epochs 1,
+Military 1 and no unit (5); Barter re-priced to 54/54 with +6/+6 on 1023
+(7); `discovered_get()` 2 then 3 — Boadicea is counted (8, the first of
+its readings); +54/+54 on the cancel (9); Barter again at 54/54 (10); the
+Hoplites out on 1106 and Barter's finish on 1242 (11).
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_SIX` = 1492,
+closed, on the first walk**, with a technology's `@queueup` skipped: a
+research spends no draw, and the Hoplites are queued on both sides. The
+floor is the widening's, (605, 1493) in `WIDENINGS`, with ten windows in
+the coverage driver, and `ages_get()`, `epochs_get()` and
+`discovered_get()` read by the leader diff since this item (they left the
+coverage pin). **The first parting's field list**, 622: `0/2005`'s
+`queued` (ours 0, theirs 1) and who=0's food (254, 134); then 652's timber
+and wealth; 822's `epochs`, `epoch[0]` and `discovered`; 1023's
+`epoch[3]`; 1024's `0/0` `mylos` (4, 6); 1242's `epoch[2]`; 1243's
+`resource_cap` (1120, 1600). The writers on 622: `queued`'s are
+`queue_up` and `unqueue`, and only the command's `queue_up` runs; a
+bucket's are the gather income, `pay_cost` and `unpay_cost`, and the
+income agrees on every block to 621 — so both rows are the research's.
+The pool: the Library's building group `[2005]` in slot 1 from 622 there,
+not seated here, so the Barracks' group takes slot 1 on 872 here and slot
+0 there; and the first seats' record `o` (parked 887). The standing rows
+are `Unit::init`'s (parked 646).
+
+**The research entered: `GOLDEN_WORD_CHAPTER_TWENTY_SIX` = 1492, closed**
+(item 883, `docs/PRODUCTION.md` "The player's research"): `crate::golden`'s
+technology `@queueup` goes through `input::group_queue_up` →
+`Sim::action_queue_research`. **The value diff, both sides**, on the
+blocks the reading named (ours before the build in brackets): **622**
+`[572 at 100]`, food 134 (`[]`, 254); **652** `[572, 551 at 0]`, timber
+123 and wealth 64 (243, 114); **822** epochs 1, `epoch[0]` 1, discovered 2
+(0, 0, 0); **852** unchanged, food 155; **1023** `[558 at 0]` 54/54, food
+65, `epoch[3]` 1, discovered 3; **1042** `[]`, food 121 and timber 111;
+**1062** `[558 at 100]` 54/54; **1242** epochs 3, `epoch[2]` 1 (0);
+**1243** `resource_cap` 1600 (1120). **What stands, 12 rows**: eleven
+`Unit::init@00612100`'s (parked 646; 611, 615 and the Hoplites on 1106),
+and **1023 `0/0` `mylos`**, ours 6 and theirs 4 — Written Word's
+`SCIENCE_LOS`, computed on read here and cached by `Unit::update_los@
+0060e4d0` there, refreshed a block after the gain: `docs/VISION.md`'s open
+question on the cached `mylos` (run10's Scout, the same shape). The first
+walk had it on 1024 (4 against 6); it is named, not built. **The pool**:
+the four first seats' record `o` (parked 887).
+
+**Mutations**, each restored from git and `touch`ed, on the built tree:
+
+| mutation | fails |
+| --- | --- |
+| `researching`'s gate dropped (both the arm's and `can_make`'s) | the unit test; the widening on **642**, a second entry and food 16 against 136 |
+| the second pass dropped | the unit test; the widening on **652**, timber 243 against 123 |
+| `can_make`'s held refusal dropped | the unit test; the widening on **852**, food 35 against 155; the word falls to 1105 |
+| `num` read, the research laid `num` times | **nothing**: the second lay meets `researching` |
+
+The last is a falsifier the staging could not split: 2's "two entries"
+reading is foreclosed by the gate for one member, so `num` is backed by
+the emulator's `num 0` row alone.
