@@ -4196,3 +4196,67 @@ fn a_member_turned_past_ninety_degrees_to_its_captain_s_bearing_flips_its_mirror
         assert_ne!(sim.units[m].movement.mirror, before, "member {m} flipped");
     }
 }
+
+/// The first candidate of `b`'s land exit ring on `bearing`, snapped to
+/// its quarter-tile centre, for the re-seat tests below.
+fn ring_first(sim: &Sim, b: usize, bearing: crate::movement::Angle) -> Pos {
+    let t = sim.buildings[b].ty.unwrap();
+    let (xs, ys) = (sim.build_types[t].x_size, sim.build_types[t].y_size);
+    let r = (xs + ys) * 0x30 + sim.tuning.unit_train_distance;
+    let home = sim.buildings[b].pos;
+    let x = home.x + crate::movement::sin_component(bearing, r);
+    let y = home.y - crate::movement::cos_component(bearing, r);
+    Pos::new(x.div_euclid(48) * 48 + 24, y.div_euclid(48) * 48 + 24)
+}
+
+/// **A squad trained under a building's point is re-seated on the bearing
+/// to that building** (item 945, run312's Bowmen `0/17` on 1060):
+/// `come_out`'s routing sweeps the captain round its trainer again from
+/// `find_angle(building − trainer)`, due east here, and not from the
+/// gather block's bearing to the free spot beside it; the members stay
+/// where the exit seated them.
+#[test]
+fn a_squad_trained_under_a_building_s_point_is_re_seated_on_the_bearing_to_that_building() {
+    let mut sim = world_sim();
+    let (t, b, squad) = rally_barracks(&mut sim);
+    let other = sim.place_building(0, t.barracks, tile_pos(48, 40)).unwrap();
+    finish(&mut sim, other);
+    let there = sim.buildings[other].pos;
+    let home = sim.buildings[b].pos;
+    sim.action_gather_point(0, &[b], there, 1, false);
+    let cap = sim.build_train(b, squad).unit;
+    let east = crate::movement::find_angle(there.x - home.x, there.y - home.y);
+    let exit = ring_first(&sim, b, sim.units[cap].movement.heading);
+    assert_ne!(exit, ring_first(&sim, b, east), "the two bearings differ");
+    assert_eq!(sim.units[cap].pos, ring_first(&sim, b, east));
+    for m in sim.squad_members(cap).into_iter().filter(|&m| m != cap) {
+        let d = crate::world::vector_dist(sim.units[m].pos.x - exit.x, sim.units[m].pos.y - exit.y);
+        assert!(d <= 480, "member {m} seated round the exit: {d}");
+    }
+}
+
+/// **A lone unit's move arm re-seats it again, on the exit's own bearing**
+/// (item 945, run312's Citizen `0/10` on 760, its point on the
+/// Woodcutter): the building point's re-seat moves it off its exit point,
+/// and the lone arm's sweep from `find_angle(spot − trainer)` puts it back.
+#[test]
+fn a_lone_unit_under_a_building_s_point_is_put_back_on_its_exit_bearing() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let walker = sim.add_unit_type(hoplite_type(t.village));
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 32)).unwrap();
+    finish(&mut sim, b);
+    let there = sim.buildings[b].pos;
+    let home = sim.buildings[city].pos;
+    sim.action_gather_point(0, &[city], there, 0, false);
+    let u = sim.build_train(city, walker).unit;
+    let bearing = sim.units[u].movement.heading;
+    let east = crate::movement::find_angle(there.x - home.x, there.y - home.y);
+    assert_ne!(
+        ring_first(&sim, city, bearing),
+        ring_first(&sim, city, east),
+        "the two bearings differ"
+    );
+    assert_eq!(sim.units[u].pos, ring_first(&sim, city, bearing));
+}

@@ -252,6 +252,56 @@ impl Sim {
         Some((spot, bearing))
     }
 
+    /// `come_out`'s two **re-seats**: the captain swept again round its
+    /// trainer's **land** exit ring (`(x_size + y_size) × 0x30 +
+    /// UNIT_TRAIN_DISTANCE` out to `… + UNIT_TRAIN_MAX_DISTANCE`, step 0,
+    /// no boat arm and no dying-building zero) from `bearing`, under
+    /// `FILTER_ALL` ([`Coll::All`](crate::orders::Coll::All)), and
+    /// `set_new_location(·, spot, 1, 1)` puts it there if the sweep finds a
+    /// spot. Its members stay where the exit put them, round its first
+    /// point.
+    ///
+    /// - **At a building point** (`61923e`..`619381`), the first thing the
+    ///   routing does when `find_any_building_at` finds a building at the
+    ///   last point, whatever it goes on to order: the bearing is
+    ///   **trainer → that building's own point** (`find_angle(tb − b)`,
+    ///   the register pair at `6192e4`/`61930b`).
+    /// - **In the lone move arm** (`619ea2`..`619f86`): the bearing is
+    ///   **trainer → the gather block's spot** (`[esp+0x44]`/`[esp+0x40]`
+    ///   at `619efa`/`619ee5`), which is the exit's own bearing.
+    ///
+    /// run312 has both on the unit they move (`docs/GOLDEN.md` §39):
+    /// - the Bowmen `0/17`, whose point is on 2008. The exit's bearing is
+    ///   the free spot south-west of 2008, `0x4a590000`, and puts the
+    ///   captain at (3336, 14376), with its members seated round it. The
+    ///   re-seat's bearing is 2008 − 2007, due east, and its first
+    ///   candidate is (3384, 14232), where the original has it on 1060;
+    /// - the Citizen `0/10`, whose point is on the Woodcutter. The first
+    ///   re-seat puts it at (3576, 29928), and the lone arm's puts it back
+    ///   on its exit point (3576, 29976), where it stands there on 760.
+    fn gather_reseat(&mut self, captain: usize, b: usize, bearing: Angle) {
+        let Some(t) = self.buildings[b].ty else {
+            return;
+        };
+        let (xs, ys) = (self.build_types[t].x_size, self.build_types[t].y_size);
+        let near = self.tuning.unit_train_distance;
+        let ring = (xs + ys) * 0x30 + near;
+        let max = ring + (self.tuning.unit_train_max_distance - near);
+        let host = self.buildings[b].pos;
+        if let Some(spot) = self.find_nearby_spot_coll(
+            captain,
+            host,
+            ring,
+            max,
+            0,
+            bearing,
+            None,
+            crate::orders::Coll::All,
+        ) {
+            self.set_new_location(captain, spot, true);
+        }
+    }
+
     /// `come_out`'s **routing** (`618b22`..`619fe2`), for a captain with no
     /// order out of a building whose list is not "inside"; `spot` is the
     /// gather block's, `exit` where the captain now stands, `group` the
@@ -297,6 +347,8 @@ impl Sim {
         };
         let mut open = true;
         if let Some(tb) = self.building_at_tile(last.pos.tile()) {
+            let (host, there) = (self.buildings[b].pos, self.buildings[tb].pos);
+            self.gather_reseat(captain, b, find_angle(there.x - host.x, there.y - host.y));
             let citizen = self.unit_types[ty].type_index;
             let owner = self.buildings[tb].owner;
             if matches!(citizen, 0x32 | 0x33) {
@@ -361,6 +413,8 @@ impl Sim {
                 self.group_action_move_to(g, to, QueuePos::Last, true, angle, kind, true);
             }
             _ => {
+                let host = self.buildings[b].pos;
+                self.gather_reseat(captain, b, find_angle(spot.x - host.x, spot.y - host.y));
                 let here = self.units[captain].pos;
                 let angle = find_angle(spot.x - here.x, spot.y - here.y);
                 self.add_move_facing_order(
