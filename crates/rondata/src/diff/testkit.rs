@@ -1148,8 +1148,9 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// `2000` `ter[1]` 0 against 2 with them. **The new word's delta: ours 4
 /// draws and the original 5 on frame 5606, parting at index 0**: ours
 /// spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original
-/// spends `Unit::do_move+0xe84`. **The lower word of the pair**; widened on
-/// run357 (`run357_s_word_frame_is_widened_whole`).
+/// spends `Unit::do_move+0xe84`. **Now the higher word of the pair**
+/// (Great Lakes' is 4555); widened on run357
+/// (`run357_s_word_frame_is_widened_whole`).
 pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
@@ -1192,8 +1193,8 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// 41064) and `1/28` — and nothing of who=1 parts before 3805. **The new
 /// word's delta: ours 7 draws and the original 3 on frame 4555, parting at
 /// index 1**: ours spends `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
-/// where the original spends `Farms::inc_time+0x1ae`. Widened on run356
-/// (`run356_s_word_frame_is_widened_whole`).
+/// where the original spends `Farms::inc_time+0x1ae`. **The lower word of
+/// the pair**; widened on run356 (`run356_s_word_frame_is_widened_whole`).
 pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_555;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349

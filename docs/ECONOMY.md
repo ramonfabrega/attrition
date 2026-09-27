@@ -965,7 +965,9 @@ overlap — so removing by index is the same operation.
 
 `Build::process@0061edf0` is the second caller: a region carrying `0x10`
 re-runs `find_gather_tiles`, and one carrying `0x20` runs
-`verify_gather_tiles`. Neither is modelled; the region flags are not.
+`verify_gather_tiles`. ~~Neither is modelled; the region flags are not.~~
+Both are, with the close that sets the flags and the daemon that turns one
+into the other: §17.
 
 ### `BuildTypeData::find_gather_tcoords@0063bdc0`, the timber branch
 
@@ -1031,10 +1033,11 @@ decides where the AI's camps go, and run56's frame 2176 is the diff that says
 so.
 
 **What it does not establish.** ~~The **metal** branch, above.~~ Landed
-2026-09-18; see "The mine's range" below for what *it* leaves open. And
-`Build::process`'s two re-entries — `verify_gather_tiles` on a region's
-`0x20`, `find_gather_tiles` again on its `0x10` — which no run has been
-seen to take, because the region flags are not modelled at all.
+2026-09-18; see "The mine's range" below for what *it* leaves open.
+~~And `Build::process`'s two re-entries — `verify_gather_tiles` on a
+region's `0x20`, `find_gather_tiles` again on its `0x10` — which no run has
+been seen to take, because the region flags are not modelled at all.~~
+Modelled, with `Build::close`'s tail that sets them: §17.
 
 ## The mine's range (2026-09-18)
 
@@ -2500,3 +2503,106 @@ non-zero.
   row on 17184 and by every wealth row on run251, run253, run257, run261
   and run269. The truncation order is from the listing, and at these
   numbers (50 → 100) it cannot part either way.
+
+## 17. A closed camp gives its ground back: `Build::close`'s tail and the region's re-walk (2026-09-27, item 989)
+
+The second pair's East Indies word was **1576** (`docs/AI.md` §82). The
+AI's script placed a Woodcutter's Camp on frame 976 and destroyed it the
+same frame, and this crate kept the camp's 48 tiles marked `0x1000` for
+the rest of the game. On 1576 the script placed the camp again: the
+original put it on the same ground, and ours went elsewhere. The close
+that gives ground back is three functions, all read from the listing.
+
+### 17.1 `Build::close@00628980`'s tail
+
+It is past `LAB_00629264`, after `BuildQueue::close`, and every path
+through the function reaches it: the one `return` is the last line.
+`006292a1`–`00629335`:
+
+```
+if type.is_gather_type() and not type.is_flat():     # vtable +0x90, +0x94
+    for each (tx, ty) in gather_from:                # +0xa8, length +0x9c
+        world.mask[ty * width + tx] &= ~0x1000       # an `and` at 006292cd
+    regions[cell(x, y).region].flags |= 0x20         # or $0x20
+gather_from.mtn = gather_from.cliff = -1             # movw $0xffff, 0xb4
+gather_from.length = 0                               # +0x9c = 0
+```
+
+- **The gate** is `Build::init`'s pair of vtable calls. `Build::init`
+  adds a third test, not the university (`0x1a4`), before it walks; the
+  close does not add it. The university's list is always empty, so
+  nothing differs.
+- **Every close takes it**: a site the script destroys
+  (`ScenarioFuncSet::destroy_building@009f6fc0` calls vtable `+0x150`,
+  which is `Build::close`), a camp killed, and the old half of a
+  transfer (`sim::city`'s `close_building(b, true)`).
+- **The region** is the building's own cell's (`world+0x134`'s short at
+  `+4`), not its tiles'.
+
+`crate::gather::Sim::give_back_gather_tiles`, called from
+`close_building`.
+
+### 17.2 The flag's cycle, and the two re-entries
+
+- **`GameDaemon::process_all@00732700`**, every frame, between
+  `calc_markets` and `check_borders`, over all 64 region slots: clear
+  `0x10`, then a region carrying `0x20` trades it for `0x10`. So a close
+  in the AI's turn (`Leaders::strategy_all`, before the daemon) is
+  re-walked in the same frame's objects. A close inside
+  `Objects::process_all` is verified by the buildings after it and
+  re-walked on the next frame. `sim::world::World::cycle_gather_flags`.
+- **`Build::process@0061edf0`**, `0061f3c1`–`0061f41f`, right after the
+  building's own `do_queue` and under the function's `flags & 4` gate
+  (`Wall::activate` sets it, so an active building). A gather, non-flat
+  building reads its own region's flags:
+  - `0x20` → `Build::verify_gather_tiles@00623570`. Each listed tile
+    whose cell a player owns who is not the building's owner nor allied
+    with it both ways is unmarked and removed by value. It draws nothing.
+  - `0x10` → `find_gather_tiles` again. The walk appends whatever
+    unmarked ground it now reaches, and **if the list grew** it shuffles
+    it: `4 × length` draws off the sync stream (the gather list's step 3).
+- This crate runs the queues as a pass of their own, so the re-entries
+  are the pass after it (`Sim::gather_region_pass`), in object order.
+  Within a frame, the original interleaves each building's queue with
+  its re-entry, and this crate does not.
+
+### 17.3 How it is established
+
+- **The listing**: `006292a1`–`00629335` (the tail; the `and` that
+  clears `0x1000` at `006292cd`, the `or $0x20` at `00629327`).
+  `process_all`'s loop is read from the export: 64 region slots, one
+  `Region` apart.
+- **The diff**: frame 1576 on run346 draws 216 against 216. On run352's
+  block 1577 the camp `1/2009` is the original's, all 93 of its keys
+  (`docs/AI.md` §82 has the value diff).
+- **Unit tests** (`crate::gather`), each failing under its mutation:
+  - `a_closed_camp_gives_its_ground_back_to_the_next_one`;
+  - `a_flat_building_s_close_flags_no_region`;
+  - `a_freed_region_is_re_walked_by_the_camp_beside_it`;
+  - `a_verified_camp_drops_the_ground_another_player_holds`.
+
+### 17.4 What this has *not* established
+
+- **A re-walk that grows.** With the pass removed, both second-pair walks
+  and their words are unchanged (the mutation was run), so no capture on
+  disk has a camp beside a closed one that takes the freed ground. The
+  arm is listing-backed and unit-tested only. The falsifier is a
+  `find_gather_tiles+0x10a` burst on a frame with no placement.
+- **`verify_gather_tiles`** has run in no capture either. It needs a camp
+  closed inside `Objects::process_all` beside a camp whose tiles stand
+  on another player's ground.
+- **The transfer's order**: the copy walks at `Build::init`, then the
+  old half's close frees the tiles, and the copy takes them back on the
+  next region pass. No capture holds a captured camp.
+- **The mine's stamps.** This crate carries no `MiningList::mtn` or
+  `cliff`. A re-walk recomputes the nearest range, which the stamp would
+  have named anyway, unless the range has moved out of reach. The cliff
+  arm is not modelled at all ("The mine's range").
+
+### 17.5 Coverage
+
+**Diff-backed**: the close's unmark, by frame 1576's draw count on
+run346 and 4555's on run347, and by run352's and run355's word blocks.
+**Listing-backed**: the tail, its gate and the region it flags.
+**Export-backed only**: the daemon's cycle and the two re-entries
+(unit-tested, and never exercised by a capture).
