@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """census.py — the executable as the denominator.
 
-    census.py [--index INDEX.tsv] [--docs docs/] [--top N] [<rontrace.log> ...]
+    census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [<rontrace.log> ...]
 
 Every function in the executable, grouped by the class Ghidra's export files
 it under, against two things this repo can measure: the functions `docs/`
@@ -19,6 +19,12 @@ inside was checked. It is the map, not the score.
 
 The trace logs live outside the repo (`docs/ORACLE.md`); with none given the
 entered column is blank, not zero.
+
+`--never` appends the blind list itself — every cited function no given
+trace entered, grouped by class, largest group first — and a `never` count
+on the total line. It is `report.py`'s `blind` verb grouped, and the
+measurement `rondata::blind`'s guard pins; `docs/CENSUS.md`'s "The blind
+list, ranked" is written from it (item 923).
 """
 import argparse
 import glob
@@ -72,15 +78,32 @@ def entered_in(logs, index):
     return out
 
 
+# The five trampolined functions carry no coverage stub; a trace entered one
+# exactly when it holds a record of the kind its hook emits (`report.py`).
+HOOKS = {0x591ef0: "FRAME", 0xa39cf0: "get()", 0xa39d70: "get(a,b)",
+         0x9e18b0: "rand_real", 0xa39d30: "reseed"}
+
+
+def hooked_in(logs, index):
+    out = set()
+    for lg in logs:
+        text = subprocess.run([sys.executable, REPORT, lg, "--index", index, "summary"],
+                              capture_output=True, text=True, check=True).stdout
+        kinds = {line.split()[0] for line in text.splitlines() if line.startswith("  ")}
+        out |= {va for va, k in HOOKS.items() if k in kinds}
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("logs", nargs="*")
     ap.add_argument("--index", default=os.path.expanduser("~/ghidra-projects/decomp/INDEX.tsv"))
     ap.add_argument("--docs", default=os.path.join(HERE, "..", "docs"))
     ap.add_argument("--top", type=int, default=40)
+    ap.add_argument("--never", action="store_true")
     a = ap.parse_args()
 
-    total, cls_of, _ = load_index(a.index)
+    total, cls_of, name_of = load_index(a.index)
     cited = cited_in(a.docs)
     entered = entered_in(a.logs, a.index) if a.logs else None
     cited_by = Counter(cls_of.get(v, "?") for v in cited)
@@ -112,10 +135,22 @@ def main():
     for c in sorted(core, key=lambda c: -total[c])[: a.top]:
         print(row(c))
 
-    print()
     e_all = "" if entered is None else len(entered)
+    never = ""
+    if a.never and entered is not None:
+        seen = entered | hooked_in(a.logs, a.index)
+        blind = sorted(v for v in cited if v in name_of and v not in seen)
+        groups = {}
+        for v in blind:
+            groups.setdefault(cls_of[v], []).append(v)
+        print()
+        print("# the blind list — cited, in the export, entered by no given trace")
+        for c in sorted(groups, key=lambda c: (-len(groups[c]), c)):
+            print(f"{c:28} {len(groups[c]):4}  " + " ".join(name_of[v].split("::")[-1] for v in groups[c]))
+        never = f"  never {len(blind)}"
+    print()
     print(f"functions {sum(total.values())}  classes {len(total)}  cited {len(cited)} in "
-          f"{len(cited_by)} classes  entered {e_all}  (logs: {len(a.logs)})")
+          f"{len(cited_by)} classes  entered {e_all}{never}  (logs: {len(a.logs)})")
 
 
 if __name__ == "__main__":
