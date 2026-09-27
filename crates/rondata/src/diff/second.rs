@@ -444,6 +444,81 @@ mod tests {
         );
     }
 
+    /// **The second pair's East Indies word, 5606, widened whole** (item
+    /// 989): run357 is run346's game at run352's detail over blocks
+    /// 5601..5857, walked from run346's own start. The word's frame writes
+    /// block 5607.
+    #[test]
+    fn run357_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run357",
+            "gamelog-run357-islands-toughest-5606.txt",
+            WIDENING_SECOND_EAST_INDIES_5606,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run357 whole: blocks 5601..5857");
+        assert!(
+            w.missing.is_empty(),
+            "run357 carries every key: {:?}",
+            w.missing
+        );
+        eprintln!(
+            "run357 first blocks: {:?}",
+            by.iter().take(4).collect::<Vec<_>>()
+        );
+    }
+
+    /// **The second pair's Great Lakes word, 4555, widened whole** (item
+    /// 989): run356 is run347's game at run355's detail over blocks
+    /// 4550..4806, walked from run347's start. The word's frame writes
+    /// block 4556.
+    #[test]
+    fn run356_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run356",
+            &[(
+                "gamelog-run356-greatlakes-toughest-4555.txt",
+                WIDENING_SECOND_GREAT_LAKES_4555.0,
+            )],
+            WIDENING_SECOND_GREAT_LAKES_4555,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run356 whole: blocks 4550..4806");
+        assert!(
+            w.missing.is_empty(),
+            "run356 carries every key: {:?}",
+            w.missing
+        );
+        eprintln!(
+            "run356 first blocks: {:?}",
+            by.iter().take(4).collect::<Vec<_>>()
+        );
+    }
+
     /// **run346 — East Indies at Toughest.** The lobby read back from the
     /// dump's own `GAME INFO` is 5, and the harness stands the simulation up
     /// at it; the word is pinned as a floor.
