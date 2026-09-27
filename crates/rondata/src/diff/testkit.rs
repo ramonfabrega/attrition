@@ -1118,7 +1118,20 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// ours spends `PathFinder::calc_road_cost+0x46` where the original spends
 /// `Farms::inc_time+0x1ae`. Inside run349's window (block 11), where no
 /// row first parts on blocks 4..25.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10;
+///
+/// **10 → 1576 on item 979**, a harness fix (`diff::setup::same_lobby`,
+/// `docs/AI.md` §81): the walk had installed run38's frame words — an
+/// Easiest game's — over this Toughest one. **The move's value diff (the
+/// word's delta, here; its block is `run349_s_word_frame_is_widened_whole`'s):**
+/// on run349 the keys parted went 576 → 72; block 1's 46 gaia `cur_anim`
+/// rows and `1/1`'s `g.end_time[0]` 232 against 33 closed (they were
+/// run38's clocks), and the AI scout `1/0`'s `orders_x` 38136 against
+/// 41976 on block 97 closed with no scout row parting on blocks 1..250.
+/// **The new word's delta: ours 272 draws and the original 216 on frame
+/// 1576, parting at index 192**: ours spends
+/// `Build::find_gather_tiles+0x10a` where the original spends
+/// `Animal::think_bird+0x82`. **The lower word of the pair again.**
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 1_576;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1133,7 +1146,24 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10;
 /// block is `run350_s_word_frame_is_widened_whole`'s: who=1's script at
 /// step 6 there against 11 here, 92 timber against 28, a tech stamped on
 /// frame 1.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 1;
+///
+/// **1 → 3776 on item 979**, a harness fix (`diff::setup::same_lobby`,
+/// `docs/AI.md` §81): the walk had installed run12's frame-0 word — the
+/// Easiest game's, one draw short of the coin — so frame 1's eight
+/// `rand_int(1, 10)` rolls read 9 9 3 4 9 6 3 2 where the trace's own seeds
+/// give 9 3 4 9 6 3 2 4, and `defensive`'s `rush_build1` 9 against 3.
+/// **The move's value diff (the word's delta, here; its block is
+/// `run350_s_word_frame_is_widened_whole`'s):** on block 2 who=1's
+/// `script_step` went 11 against 6 → 6 on both, timber 28 against 92 → 92,
+/// wealth 50 against 100 → 100, `gatherers` 4 against 3 → 3, citizen
+/// `1/2`'s walk and `1/2001`'s 90 gather slots closed, and the site `2007`
+/// the rush's second farm now stands on both; frame 1's draws went 54
+/// against 85 → 85 against 85, and run350's keys parted 576 → 64. **The
+/// new word's delta: ours 223 draws and the original 217 on frame 3776,
+/// parting at index 180**: ours spends `Build::find_gather_tiles+0x10a`
+/// where the original spends `Animal::think_bird+0x82`. Past run350's
+/// window; its widening is owed (the `WIDENINGS` row).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 3_776;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -5889,17 +5919,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run349_s_word_frame_is_widened_whole"),
-        971,
-        Some(WIDENING_SECOND_EAST_INDIES),
+        None,
+        979,
+        None,
     ),
-    // Item 971's build moved both: East Indies to 10, inside run349, and
-    // Great Lakes to 1, the lower word, widened on run350.
+    // Item 979's harness fix moved both past their windows: East Indies to
+    // 1576 and Great Lakes to 3776. Both owe a widening.
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        Some("run350_s_word_frame_is_widened_whole"),
-        971,
-        Some(WIDENING_SECOND_GREAT_LAKES),
+        None,
+        979,
+        None,
     ),
 ];
