@@ -6471,3 +6471,21 @@ Hoplites stayed inside 2008 from 953. The Bowmen came out east on 1060,
 each with a `GARRISONORDER` on 2008, and were inside on 1079. The Citizen
 came out north-east on 760 with a plain `MOVEORDER` to (4248, 28632) and
 no gather order, and took a `GATHERORDER` of its own on 984.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY` = 822, open, on
+the first walk** (`@gatherpoint` skipped): theirs 7 draws against ours 6,
+theirs alone `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, the Citizen
+`0/10` idling at its Woodcutter. The widening, run312 whole, (605, 1451),
+now reads the gather list (`BuildDump::gather`, `build:gather_len` and
+`gather[k].x/y/action`), and pins 696 rows and 29 pool rows. **The first
+parting's field list**, 618, `0/2007` alone: `build:gather_len`, ours 0
+against 1. Its writers are `add_gather_point` and `clear_gather`, and
+here neither runs. Then 652 (`0/2000`) and 702 (`0/2008`), the same
+field. On 760, `0/10`: `pos` (3192, 31800) against (3576, 29976), the
+figure's point and angles, `heading` and `dest_angle` (0x55555555
+against 314048512), `orders.len` 0 against 1, `orders_x/y` against
+(4248, 28632), and `form` (parked 646). Their writers: `come_out`'s
+gather-point block (the bearing), its routing (the `MOVEORDER`), and
+`Unit::init` (`form`). The pool: each press's building group, seated
+there by `process_group` on 618, 652 and 702 and absent here, and every
+seat after it one stamp or one slot off.

@@ -903,6 +903,41 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
             compared::note("BuildDump", &["gather_down"]);
             wrong("gather_down", -1, head, theirs);
         }
+        // **The gather point list** (item 928, `docs/GOLDEN.md` §39):
+        // `BuildData::gather`, printed last at `BUILDS=7`, empty on every
+        // building of every capture before run312. Point by point only
+        // where the lengths agree, as the mining list below.
+        if let Some(len) = b.gather_len {
+            compared::note("BuildDump", &["gather_len", "gather"]);
+            let mine = ours.gather.len() as i64;
+            r.build_compared += 1;
+            let mut diverge = |field: &'static str, ours: i64, theirs: i64| {
+                if ours != theirs {
+                    r.build_diverged.push(BuildDivergence {
+                        frame: frame.n,
+                        who: b.who,
+                        o: b.o,
+                        field,
+                        ours,
+                        theirs,
+                    });
+                }
+            };
+            diverge("gather_len", mine, len);
+            if mine == len {
+                for (k, &(x, y, action)) in b.gather.iter().enumerate() {
+                    let p = ours.gather[k];
+                    let (fx, fy, fa) = match k {
+                        0 => ("gather[0].x", "gather[0].y", "gather[0].action"),
+                        1 => ("gather[1].x", "gather[1].y", "gather[1].action"),
+                        _ => ("gather[k].x", "gather[k].y", "gather[k].action"),
+                    };
+                    diverge(fx, i64::from(p.pos.x), x);
+                    diverge(fy, i64::from(p.pos.y), y);
+                    diverge(fa, i64::from(p.action), action);
+                }
+            }
+        }
         // The mining list. `mining_len` is `None` below `BUILDS=7`, which
         // is what keeps a thin capture from reading as "every list empty".
         let Some(len) = b.mining_len else { continue };

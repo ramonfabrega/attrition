@@ -86,6 +86,7 @@ pub mod path;
 pub mod pivot;
 pub mod place;
 pub mod production;
+pub mod rally;
 pub mod rares;
 pub mod roads;
 pub mod scout;
@@ -1327,6 +1328,9 @@ pub struct Building {
     /// `can_carry(AIR)`; only the player's repeat-orders toggle
     /// (`Group::action_buildmask(0x80)`) clears it (`docs/ORDERS.md` §40).
     pub repeat_air: bool,
+    /// `BuildData::gather`, the gather point list (`crate::rally`): the
+    /// player's rally points, in order.
+    pub gather: Vec<rally::GatherPoint>,
     /// `build_masks & 0x100`: this building's roads want replanning, and
     /// `Build::process` will replan them on the frame `(frame + o) % 16`
     /// picks out. Set by `City::regen_roads` — `crate::roads` §1.
@@ -2118,6 +2122,7 @@ impl Sim {
             damage_frac: 0,
             active: true,
             repeat_air: false,
+            gather: Vec::new(),
             regen_roads: false,
             garrison_attack: 0,
             recharging: 0,

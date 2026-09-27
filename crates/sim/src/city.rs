@@ -1122,6 +1122,7 @@ impl Sim {
             activated: false,
             // `Build::init@00629740:280`: `can_carry(AIR)` → `|= 0x88`.
             repeat_air: self.is_hangar(ty),
+            gather: Vec::new(),
             regen_roads: false,
             damage: 0,
             job_counter: 0,
