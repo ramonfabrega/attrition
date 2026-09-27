@@ -814,6 +814,38 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
     }
 }
 
+/// **`CommandPackage::process_gather_point@00948510`** on a group of the
+/// player's own buildings: `process_group`'s group, then
+/// `Group::action_gather_point@006ff1b0(x, y, action, add_to_end)`
+/// ([`sim::Sim::action_gather_point`]) — the rally point (item 928,
+/// `docs/GOLDEN.md` §39). `x` or `y` below 0 is the Clear. The command's
+/// building group is seated in the pool whole, as every building command's
+/// is (run312's 618, 652 and 702).
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_gather_point(
+    built: &mut Built,
+    who: i32,
+    buildings: &[i16],
+    at: Pos,
+    action: i32,
+    add_to_end: bool,
+) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built
+        .sim
+        .action_gather_point(player, &list, at, action, add_to_end);
+    list.len()
+}
+
 /// **`CommandPackage::process_unqueue@009466f0`** on one of the player's
 /// own buildings: `Build::action_unqueue@00620280(p)`
 /// ([`sim::Sim::action_unqueue`]), the cancel (item 884, `docs/GOLDEN.md`

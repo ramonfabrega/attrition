@@ -872,12 +872,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             .map(|&b| crate::input::unqueue(built, who, i32::from(b), p))
             .sum(),
         // `@gatherpoint` is `issue_gather_point@00941b20` on a group of
-        // buildings, a `group` and a `gather_point` (item 928,
-        // `docs/GOLDEN.md` §39).
-        Some(Issued::GatherPoint { .. }) => {
-            done.skip(&word, "the gather point is not modelled");
-            return;
-        }
+        // buildings, a `group` and a `gather_point`, whose entry is
+        // [`crate::input::group_gather_point`] (item 928, `docs/GOLDEN.md`
+        // §39).
+        Some(Issued::GatherPoint {
+            who,
+            at,
+            action,
+            buildings,
+        }) => crate::input::group_gather_point(built, who, &buildings, at, action, false),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;

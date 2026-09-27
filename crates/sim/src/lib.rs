@@ -2735,9 +2735,23 @@ impl Sim {
         let stays = self.building_ident(at) == crate::build::Ident::University
             && self.worker_of(unit) == crate::orders::Worker::Scholar
             && self.buildings[at].gather_max.is_none_or(|m| inside <= m);
+        // **A point on the trainer itself keeps the unit in** (item 928,
+        // `docs/PRODUCTION.md` "The gather point"; run312's `0/14`, inside
+        // `0/2008` from 953): off the University's arm, the trainer's
+        // `BuildData::gather_inside` with `num_inside(0)` — the new unit
+        // counted — at or under its garrison limit (10 where the limit is
+        // 0), and a unit that is not an Aircraft Carrier (`is(0x15f)`), is
+        // left inside with no `come_out`. SEAM: the player's text bubble
+        // (`MessageWin::add_event`), which is the interface's.
+        let university = self.building_ident(at) == crate::build::Ident::University;
+        let kept = !university && !hangar && self.gather_inside(at) && {
+            let limit = self.garrison_limit(at);
+            let limit = if limit == 0 { 10 } else { limit };
+            self.num_inside(at) <= limit && self.unit_types[ty].type_index != 0x15f
+        };
         if stays {
             self.check_gatherers(at);
-        } else if !hangar {
+        } else if !hangar && !kept {
             self.come_out(unit);
         }
         self.economy_changed(who);

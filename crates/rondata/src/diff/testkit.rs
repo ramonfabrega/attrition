@@ -3794,7 +3794,13 @@ pub(crate) const WIDENING_CHAPTER_TWENTY_NINE: (i64, i64) = (605, 2071);
 /// which it walked to under the City's gather point from 760, where here
 /// it stands south of the City with no order. The first value parting is
 /// 618, 2007's list.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY: i64 = 822;
+///
+/// **1450, closed** (item 928, `docs/PRODUCTION.md` "The gather point":
+/// `Sim::action_gather_point`, `come_out`'s gather block and routing, and
+/// `Build::train`'s "inside" arm): the stream agrees to run312's end.
+///
+/// **The delta**, this constant's: +628, 822 → 1450, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY: i64 = 1450;
 
 /// `chapter_thirty_s_word_frame_is_widened_whole`'s window: run312 whole,
 /// (605, 1451). Its pool half, `widen_pool`, reads who=0's `GROUPDATA` on

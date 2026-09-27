@@ -338,16 +338,21 @@ impl Sim {
         let Some(b) = self.units[captain].inside else {
             return false;
         };
+        // **A gather point turns the exit toward it** (`6181a3`..`618377`,
+        // `docs/PRODUCTION.md` "The gather point"): the captain's `angle`
+        // and the sweep's bias become the bearing to the free spot nearest
+        // the head point. None leaves the sweep from due south.
+        let gather = self.gather_exit(captain, b);
         // **The captain first, then the chain, and each member searches for
         // itself** (`00617c10:535`). See [`Sim::come_out_spot`].
-        let Some(spot) = self.come_out_spot(captain, b) else {
+        let Some(spot) = self.come_out_spot(captain, b, gather.map(|g| g.1)) else {
             return false;
         };
         self.buildings[b].garrison.retain(|&c| c != captain);
         // A plane's figure keeps its running average through a launch
         // (run265's 778: 25, the value it stood inside with).
         let avg = self.units[captain].movement.body.avg_speed;
-        self.come_out_place(captain, spot, None);
+        self.come_out_place(captain, spot, gather.map(|g| g.1), false);
         // The captain's `orders_x/y` and `dest_angle` are its new place
         // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
         // a member's are rewritten by its own next `work`.
@@ -366,7 +371,7 @@ impl Sim {
             // `0/8` and `0/9` come out on 903 with `0/7`'s heading and
             // facing, not their own.
             if let Some(s) = self.come_out_unit_host_spot(f, captain) {
-                self.come_out_place(f, s, Some(host_angle));
+                self.come_out_place(f, s, Some(host_angle), true);
             }
         }
         // **The squad's push** (`618900`..`6189aa`, `docs/GOLDEN.md` §33):
@@ -376,6 +381,7 @@ impl Sim {
         // members' own exits. There is no owner test: a human's trained
         // squad and a computer's alike take a slot of their own, which the
         // computer's army takes a block later (East Indies 17363, 17575).
+        let mut pushed = None;
         if self.units[captain]
             .ty
             .is_some_and(|t| self.unit_types[t].combat.uber_size > 1)
@@ -383,6 +389,12 @@ impl Sim {
             let mut g = crate::group::Group::stack(self.units[captain].owner);
             self.group_add(&mut g, captain);
             self.push_group(&mut g, true);
+            pushed = Some(g);
+        }
+        // **Then the gather point's routing** (`618b22`..`619fe2`), with the
+        // group just pushed: [`Sim::gather_route`].
+        if let Some((gspot, _)) = gather {
+            self.gather_route(captain, b, gspot, spot, pushed.as_ref());
         }
         // The city alarm clears when the city empties.
         if self.building_is_city(b)
@@ -469,7 +481,12 @@ impl Sim {
     /// member repeats the whole search with its siblings now standing in it
     /// — but around the **captain**, not the building, which is
     /// [`Sim::come_out_unit_host_spot`].
-    fn come_out_spot(&mut self, captain: usize, b: usize) -> Option<crate::Pos> {
+    fn come_out_spot(
+        &mut self,
+        captain: usize,
+        b: usize,
+        bias: Option<crate::movement::Angle>,
+    ) -> Option<crate::Pos> {
         let bd = &self.buildings[b];
         let (xs, ys) = bd.ty.map_or((0, 0), |t| {
             (self.build_types[t].x_size, self.build_types[t].y_size)
@@ -505,7 +522,7 @@ impl Sim {
                 });
         let min = if bd.alive { ring } else { 0 };
         let pos = bd.pos;
-        let south = crate::movement::Angle(i32::MIN);
+        let south = bias.unwrap_or(crate::movement::Angle(i32::MIN));
         // **The two arms are chosen on `block_radius` (`+0x240`), not on
         // `big_radius`**, which is what the first reading of this function
         // said (`618457`/`61852c`). A citizen's `BLOCK_RADIUS` is 1, so
@@ -623,13 +640,27 @@ impl Sim {
     /// keeps the angles it went in with** (run208's chariot comes out on
     /// 902 with the heading and facing of its last step on 698). A member
     /// is given its captain's (`angle`).
+    ///
+    /// `turn` is a member's `Unit::set_angle@00605400(host->angle)`,
+    /// whose `reversing` test flips the figure's mirror on a turn past 90°
+    /// (run312's `0/12` and `0/13` on 856, turned from `Unit::init`'s
+    /// angle to their captain's north-west one); the captain's own angle
+    /// from a gather point is a bare store at `+0x50` (`6182e3`) and flips
+    /// nothing.
     fn come_out_place(
         &mut self,
         f: usize,
         spot: crate::Pos,
         angle: Option<crate::movement::Angle>,
+        turn: bool,
     ) {
         let u = &mut self.units[f];
+        let flip = turn
+            && angle.is_some_and(|a| {
+                crate::group::reversing(crate::movement::Angle(
+                    a.0.wrapping_sub(u.movement.heading.0),
+                ))
+            });
         u.inside = None;
         u.on_map = true;
         u.pos = spot;
@@ -649,7 +680,7 @@ impl Sim {
             facing,
             frame_facing,
             des_angle,
-            mirror: u.movement.mirror,
+            mirror: u.movement.mirror != flip,
             ..crate::Movement::at(spot)
         };
         // `Object::add_to_world` reaches `update_seen(0)` — the whole

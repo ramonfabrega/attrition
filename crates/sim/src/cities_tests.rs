@@ -3992,3 +3992,151 @@ fn a_detour_the_line_check_pushes_is_the_waypoint() {
         "the step walks at the detour"
     );
 }
+
+/// **The gather point's command** (item 928, `docs/GOLDEN.md` §39,
+/// run312): `Group::action_gather_point` gives a training building one
+/// point, replaced by the next press and appended under `add_to_end`; the
+/// Clear empties it; a click on the building's own footprint is the
+/// "inside" point (−1, −1, 0).
+#[test]
+fn a_rally_press_writes_one_point_replaced_by_the_next_and_the_clear_empties_it() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let at = |x, y, action| crate::rally::GatherPoint {
+        pos: Pos::new(x, y),
+        action,
+    };
+    sim.action_gather_point(0, &[b], Pos::new(1344, 12096), 0, false);
+    assert_eq!(sim.buildings[b].gather, vec![at(1344, 12096, 0)]);
+    sim.action_gather_point(0, &[b], Pos::new(5000, 6000), 1, false);
+    assert_eq!(sim.buildings[b].gather, vec![at(5000, 6000, 1)], "replaced");
+    sim.action_gather_point(0, &[b], Pos::new(7000, 8000), 0, true);
+    assert_eq!(
+        sim.buildings[b].gather.len(),
+        2,
+        "appended under add_to_end"
+    );
+    sim.action_gather_point(0, &[b], Pos::new(-1, -1), 0, false);
+    assert!(sim.buildings[b].gather.is_empty(), "the Clear");
+    let own = sim.buildings[b].pos;
+    sim.action_gather_point(0, &[b], own, 1, false);
+    assert_eq!(sim.buildings[b].gather, vec![at(-1, -1, 0)], "on itself");
+    assert!(sim.gather_inside(b));
+}
+
+/// A Barracks and a trained squad of three, for the rally tests below.
+fn rally_barracks(sim: &mut Sim) -> (Types, usize, usize) {
+    let t = install_types(sim);
+    let _ = city_at(sim, &t, 0, 32, 32);
+    let mut squad = hoplite_type(t.barracks);
+    squad.combat.uber_size = 3;
+    squad.combat.block_radius = 48;
+    let squad = sim.add_unit_type(squad);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(sim, b);
+    (t, b, squad)
+}
+
+/// **A squad trained under a ground point** (run312's `0/11`..`0/13` on
+/// 856): it leaves on the bearing to the point, not due south, and each
+/// member is sent there under one group move, `ATTACK_TO` for an armed
+/// unit made at a Barracks. With no point it leaves south with no order.
+#[test]
+fn a_squad_trained_under_a_ground_point_leaves_toward_it_and_attack_moves_there_as_one_group() {
+    let mut sim = world_sim();
+    let (_, b, squad) = rally_barracks(&mut sim);
+    let home = sim.buildings[b].pos;
+    let plain = sim.build_train(b, squad).unit;
+    assert!(
+        sim.units[plain].pos.y > home.y,
+        "no point: out on the south"
+    );
+    assert!(sim.units[plain].orders.is_empty());
+
+    let point = Pos::new(home.x - 2000, home.y - 2000);
+    sim.action_gather_point(0, &[b], point, 0, false);
+    let cap = sim.build_train(b, squad).unit;
+    let p = sim.units[cap].pos;
+    assert!(p.x < home.x && p.y < home.y, "out on the north-west: {p:?}");
+    let mut ids = Vec::new();
+    for m in sim.squad_members(cap) {
+        let Some(crate::orders::Order {
+            body: crate::orders::Body::Move(mv),
+            ..
+        }) = sim.units[m].orders.front()
+        else {
+            panic!("member {m} has no move: {:?}", sim.units[m].orders);
+        };
+        assert_eq!(mv.kind, crate::orders::MoveKind::AttackTo);
+        ids.push(mv.group.map(|g| g.id));
+    }
+    assert!(
+        ids[0].is_some() && ids.iter().all(|&i| i == ids[0]),
+        "one group: {ids:?}"
+    );
+}
+
+/// **A unit trained under its trainer's own point stays in** (run312's
+/// `0/14`..`0/16`, inside `0/2008` from 953).
+#[test]
+fn a_squad_trained_under_its_trainer_s_own_point_stays_inside() {
+    let mut sim = world_sim();
+    let (_, b, squad) = rally_barracks(&mut sim);
+    let own = sim.buildings[b].pos;
+    sim.action_gather_point(0, &[b], own, 1, false);
+    let cap = sim.build_train(b, squad).unit;
+    assert_eq!(sim.units[cap].inside, Some(b));
+    assert!(sim.units[cap].orders.is_empty());
+}
+
+/// **A squad trained under a friendly building's point garrisons it**
+/// (run312's Bowmen into `0/2008`, a `GARRISONORDER` each on 1060).
+#[test]
+fn a_squad_trained_under_a_friendly_building_s_point_garrisons_it() {
+    let mut sim = world_sim();
+    let (t, b, squad) = rally_barracks(&mut sim);
+    let other = sim.place_building(0, t.barracks, tile_pos(48, 40)).unwrap();
+    finish(&mut sim, other);
+    let there = sim.buildings[other].pos;
+    sim.action_gather_point(0, &[b], there, 1, false);
+    let cap = sim.build_train(b, squad).unit;
+    for m in sim.squad_members(cap) {
+        assert!(
+            matches!(
+                sim.units[m].orders.front().map(|o| &o.body),
+                Some(crate::orders::Body::Garrison { building, .. }) if *building == other
+            ),
+            "member {m}: {:?}",
+            sim.units[m].orders
+        );
+    }
+}
+
+/// **A lone unit not made at a Barracks, Stable or Dock walks to its
+/// point with a plain move** (run312's Citizen `0/10` on 760, a
+/// `MOVEORDER` to the Woodcutter's point and no gather order).
+#[test]
+fn a_lone_unit_trained_under_a_ground_point_walks_there_with_a_plain_move() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let walker = sim.add_unit_type(hoplite_type(t.village));
+    let home = sim.buildings[city].pos;
+    let point = Pos::new(home.x + 1500, home.y - 1500);
+    sim.action_gather_point(0, &[city], point, 0, false);
+    let u = sim.build_train(city, walker).unit;
+    let Some(crate::orders::Order {
+        body: crate::orders::Body::Move(mv),
+        ..
+    }) = sim.units[u].orders.front()
+    else {
+        panic!("no move: {:?}", sim.units[u].orders);
+    };
+    assert_eq!(mv.kind, crate::orders::MoveKind::MoveTo);
+    assert!(mv.group.is_none());
+    let p = sim.units[u].pos;
+    assert!(p.x > home.x && p.y < home.y, "out on the north-east: {p:?}");
+}
