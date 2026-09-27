@@ -81,7 +81,7 @@ echo "scenario $SCEN -> $LOG"
 typeset -a summary cmds checks covers
 summary=()
 run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""
+endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""; checkini=""
 # `poll_max` was the one key not reset between stanzas, so a stanza after
 # run53 inherited its 900 and the default was unreachable for the rest of the
 # file — a leak that can only ever make a run wait longer, but a leak.
@@ -90,7 +90,7 @@ cmds=(); checks=(); covers=()
 
 reset_stanza() {
   run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-  endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""
+  endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""; checkini=""
   pollmax=""
   cmds=(); checks=(); covers=()
 }
@@ -133,6 +133,7 @@ flush() {
     if [ -n "$settle" ];  then pass+=("SETTLE_MIN=$settle"); fi
     if [ -n "$pollmax" ]; then pass+=("POLL_MAX=$pollmax"); fi
     if [ -n "$profile" ]; then pass+=("PROFILE=$profile"); fi
+    if [ -n "$checkini" ]; then pass+=("CHECKINI=$checkini"); fi
     # `ffwd: -` means no fast-forward at all, which every driven stanza wants.
     if [ "$ffwd" = "-" ]; then
       pass+=("FFWD=")
@@ -205,6 +206,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     poll_max) pollmax=$val ;;
     ffwd) ffwd=$val ;;
     profile) profile=$val ;;
+    checkini) checkini=$val ;;
     cmd) cmds+=("$val") ;;
     check) checks+=("$val") ;;
     *) echo "unknown key '$key' in $SCEN" >&2; exit 1 ;;

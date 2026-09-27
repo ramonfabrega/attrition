@@ -52,6 +52,10 @@
 #                 through `profile.py` — a lobby field on a run without
 #                 `-config` (default none). `Player.dat` is copied first and
 #                 copied back at the end, so no later capture inherits it.
+#   CHECKINI      `key=Value` pairs for `check.ini`'s `[CHECK]` lines,
+#                 through `checkini.py` — a lobby field on a run that keeps
+#                 `-config` (default none; item 971's difficulty). The file
+#                 is copied first and copied back at the end, as PROFILE is.
 #   WINDOW        "LO HI" for a DUMP_ALL window over [LO, HI) instead of the
 #                 cheap per-frame dump (default the cheap one)
 #   FRAME_WINDOW  "LO HI" for the **cheap** window narrowed to [LO, HI) — the
@@ -133,6 +137,10 @@ if [ -n "$PROFILE" ]; then
   cp "$B/PlayerProfile/Player.dat" "$T/Player.dat.run$N"
   python3 "$W/tools/gamelog/profile.py" ${=PROFILE}
 fi
+if [ -n "$CHECKINI" ]; then
+  cp "$G/check.ini" "$T/check.ini.run$N"
+  python3 "$W/tools/gamelog/checkini.py" ${=CHECKINI}
+fi
 python3 "$W/tools/fuzz/seedini.py" 12345
 DETAIL_END=${DETAIL_END:-MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1}
 DETAIL_START=${DETAIL_START:-MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1}
@@ -179,6 +187,7 @@ if ! zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"; then
   pkill -f $P || true
   python3 "$W/tools/gamelog/window.py" restore
   if [ -n "$PROFILE" ]; then cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"; fi
+  if [ -n "$CHECKINI" ]; then cp "$T/check.ini.run$N" "$G/check.ini"; fi
   exit 1
 fi
 sleep 4
@@ -216,8 +225,10 @@ mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"
 python3 "$W/tools/gamelog/window.py" restore
 if [ -n "$PROFILE" ]; then cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"; fi
+if [ -n "$CHECKINI" ]; then cp "$T/check.ini.run$N" "$G/check.ini"; fi
 ls -la "$L/gamelog-run$N-$TAG.txt" "$L/rontrace-run$N.log"
 grep -a -m1 "MAP_STYLE" "$L/gamelog-run$N-$TAG.txt"
 grep -a -m1 "(int)seed" "$L/gamelog-run$N-$TAG.txt"
+grep -a -m1 "^  DIFFICULTY" "$L/gamelog-run$N-$TAG.txt" || true
 grep -a -c "BEGIN FRAME" "$L/gamelog-run$N-$TAG.txt"
 echo "run$N archived — expect MAP_STYLE $MAPSTYLE, seed 12345 and ~$FRAMES frame blocks"

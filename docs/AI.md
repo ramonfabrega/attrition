@@ -10195,3 +10195,77 @@ trace; the pig arm's sites, through the label sequence on 23420.
 `00472360`'s `and $0x2`. **Export-backed only**: that `Build::vftable`'s
 `+0x50` is `00472360` (`vtables.txt`). That row, and R2, are what a second
 reading would take.
+
+## 80. The second pair: the lobby's top difficulty, and what each arm would do (2026-09-27, item 971)
+
+DECISIONS 53 §2 moves the AI track's word to a second pair: run54's and
+run53's games with the lobby's difficulty at its top setting and nothing
+else moved. This section is the lever, then every difficulty read the
+export holds as a hypothesis with its killer, written **before** run346
+and run347 were taken. The results are §80.4 onwards.
+
+### 80.1 The lever, and what "top" is
+
+- **The list.** `data/rules.xml`'s `difficulties` category has six
+  entries — Easiest, Easy, Moderate, Tough, Tougher, Toughest — so the top
+  setting is **5**, and `diff 0-5` in the console's `? 1` help says the
+  same range.
+- **What the setup reads.** Every AI read goes through
+  `LeaderData::get_diff@006ec000` or its inlined copy: `semaphore[0] & 4`
+  → `multi_diff`; else `multi_diff` only when `semaphore[1] & 0x10` and not
+  `semaphore[2] & 2` and `multi_diff ≥ 0`; else **`game->info.difficulty`**,
+  the lobby's byte. A solo Quick Battle takes the last arm, and the dump's
+  `GAME INFO` prints it as `DIFFICULTY`. run53 and run54 both read
+  `DIFFICULTY 0`; no capture on disk has ever read anything else (a grep of
+  every `gamelog-run*.txt` in `Logs/`).
+- **Where the lobby gets it.** `SetupWin::setup_combos` fills the
+  difficulty combo (`combo_boxes[0x18]`) from `game->info.difficulty`, and
+  `SetupWin::setup_game` writes the combo's selection back to it when Start
+  is clicked; the eight per-player combos (`0x20..0x27`) default to 2, which
+  is the `diff 2` each `PLAYER` block of `GAME INFO` prints and which
+  `get_diff` does not read in a solo game. `game->info` at the lobby is
+  `GameInfo::load_from_config@005d4da0`'s under `-config` — its category
+  list includes `diffs`, so `check.ini`'s `difficulties=` is read — and the
+  profile's `<GAME_INFO>` blocks without it (`profile.py`). Great Lakes'
+  captures keep `-config check.ini`, East Indies' drop it, so run347 sets
+  `difficulties=Toughest` in `check.ini` **and** `DIFFICULTY=5` in the
+  profile, and run346 the profile; the dump's `DIFFICULTY 5` is the only
+  read-back that counts.
+- **`diff` is not the same lever.** `ConsoleWin::run_cmd@007d6a70`'s
+  `diff` writes `game->info.difficulty` at whatever frame the command
+  runs — after `Leader::init`, the setup draws and `init_handicaps` —
+  so a `diff 5` on `rontrace.cmd` is a different game from a lobby at 5.
+  It is not used.
+
+### 80.2 The arms, as hypotheses
+
+Each row names what the top setting does, where it would first show, and
+what kills the reading. "Carried" is this crate's code; every carried arm
+above difficulty 1 has run only in a unit test until now.
+
+| # | arm (carried?) | at 5 | first shows | killed if |
+|---|---|---|---|---|
+| H1 | `get_gather_handicap@006d66a0`, `(h + 100) × rate / 100` (carried, `economy::gather_handicap`) | +50 where Easiest was −35: the AI's stockpile grows ~2.3× as fast | who=1's first payment, and the first scripted purchase that becomes affordable sooner — the draw stream departs from run54's there | who=1's `income` and `bucket` agree with ours on every block to the parting |
+| H2 | `production_ai_setup` step 2's clamp (carried, `d < 3`) | skipped: the stockpile is never cut | the first step 2 (6376 on the Easiest East Indies game, sooner here) | `bucket` agrees across the first frame `econ` is written |
+| H3 | `get_mod_resource_cap` (carried, §33.2) | ×1.0 where Easiest read ×0.5 | the rate pass's `rate[g]` | `rate` agrees on the first step 2 |
+| H4 | `research_techs`' age pacing, epoch quota and the `≥ 4` gather-rate weights (carried, §2.14) | unpaced, uncapped, weighted by `econ` | the first `produce_tech` (8182 on Easiest) | the `MAKE` list's `t`/`val` agree on the block after the first tech purchase |
+| H5 | `create_units`/`upgrade_units`: the matchup coin (drawn on every difficulty but 2) and `unit_prod_value`'s negation on 0 and 1 (carried) | the coin still drawn; counters not negated | the first `create_units+0x642` draw | the draw count and the offered `t` agree on that frame |
+| H6 | `produce_unit@006cb9e0`'s batch, `min(7, affordable)` above 1 (carried, `seam_missile`) | a military purchase queues up to seven | the first military purchase | the trainer's queue agrees on the block after it |
+| H7 | `found_cities@006c7a60`'s human cap (carried) | uncapped at ≥ 3: a third city | the first site bought past two cities | the city count agrees at that frame |
+| H8 | `create_buildings`' five reads (carried: the Temple's capital-only `< 3`, the fort `0`/`1`, the `> 2` ×10 escrow, the wonder `< 2` gate and its `/100`, `/10`) | a Temple outside the capital, the fort arm open, a wonder priced whole | the first offer each reaches | the `MAKE` slots agree on the block after the offer |
+| H9 | `plan_strategy@006b9620`'s forced bit 4 below 2, `Army::do_mustering@006f4260`'s `DEFENDING` below 3, `find_target`'s gate and its `> 2` arms, `find_local_army` (carried) | a region's strategy is its own; an army that is not weak marches | the first army leaving mustering (7930 on the Easiest Great Lakes game) | the army's captains' orders agree on that frame (no dump writes `ARMYDATA`, §71.2) |
+| H10 | `Object::take_damage`'s `frame_attacked` stamp below 2 (carried, §71.3) | never stamps | the first hit | `0/frame_attacked` keeps its initial value in the dump through the parting |
+| H11 | `Leader::diplomacy@006bc950` (**not carried**, `ai_drive` does not step it): `+1` at 3 and `+2` at ≥ 4 to a human's score, and a `> 2` count over the other leaders | a larger score toward the idle human | a `Leader::diplomacy+` label among the original's draws | the parting frame's original draws carry no `Leader::diplomacy` label |
+| H12 | the repair arms: `Unit::do_gather@005ef2a0` and `Build::process@0061edf0` above 1, `Unit::find_repair_spot@00604320` and `Unit::think_spellcaster@005f27a0` below 2 (**not carried**) | an AI repairs a damaged building | the first AI building below full hits | no who=1 building carries damage before the parting |
+| H13 | `Object::find_nearby_target@00648da0`'s AI flag at 0 (carried, `search_ai`) | off: the damage weight is not inverted | the first AI target choice between two candidates | every unit's target agrees to the parting |
+| H14 | `Game::init_handicaps@0058abf0` (**not carried**) | a per-leader handicap slot at setup | read only by `get_handicap` under `semaphore[0] & 4`, off here | a start-dump field of run346 differs from run54's other than `DIFFICULTY` and what H1 moves |
+
+**What is expected to part first, as a hypothesis** (DECISIONS 42): no
+script under `game/ai/scripts/` reads the difficulty, so the scripted
+opening plays the same orders at a different pace, and H1 moves the pace
+from the first payment. The arithmetic of H1 is the original's to the
+operator (`Leader::do_gather`'s `(iVar5 + 100) * uVar10 / 100`), so the
+stream should depart from run54's early and this crate should follow it.
+The first parting is expected at **H2 or H3**, the first C++ producer
+step on a stockpile no Easiest capture has held — or at **H11**, the one
+arm with draws this crate never makes. The order of H4–H9 is the game's.

@@ -35,6 +35,9 @@
 #   profile:    `KEY=N` pairs for the profile's `<SOLO>`/`<MULTI>` lobby
 #               blocks (`profile.py`), for a field `-config` cannot set or a
 #               map that drops it; the profile is restored when the take ends
+#   checkini:   `key=Value` pairs for `check.ini`'s `[CHECK]` lines
+#               (`checkini.py`), for a lobby field on a run that keeps
+#               `-config`; copied back when the take ends
 #   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
 #               `driver:` needs `-`** — under `!ffwd` the game stops drawing
 #               and a click lands on a frozen picture (run47)
@@ -508,6 +511,56 @@ cover: cover=1
 settle_min: 500000
 poll_max: 900
 check: python3 tools/gamelog/rngcmp.py rontrace-run39.log rontrace-run54.log
+
+run: 346
+tag: islands-toughest-24k-trace
+item: 971
+why: the second pair (DECISIONS 53) — run54's game with the lobby's difficulty at its top, Toughest
+# run54's stanza exactly but for two lines: `cover=0` (only the draw stream
+# is asked for, and run80 ran this game's 24,000 frames in forty seconds
+# at it) and `profile: DIFFICULTY=5` — East Indies drops `-config`, so the
+# lobby's `game->info.difficulty` is the profile's `<GAME_INFO>` block's
+# (`docs/AI.md` §80.1). `rules.xml`'s `difficulties` has six entries and 5
+# is Toughest. `start:` is run54's so the harness stands the sim up from
+# the dump. At the top difficulty the AI may end the game against an idle
+# human before 24,000: the last frame is recorded either way. The first
+# pair's `rngcmp.py` check does not apply — the stream is meant to leave
+# run54's — and its departure frame is a measurement in `docs/RUNS.md`.
+# The tracer: `rontrace.dll` sha256
+# b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca,
+# unstamped (no `@` line here, so `stamp.py` passes it; 936).
+frames: 24000
+mapstyle: 18
+cfg: -
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+profile: DIFFICULTY=5
+settle_min: 500000
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run346-islands-toughest-24k-trace.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 18' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run346-islands-toughest-24k-trace.txt"
+
+run: 347
+tag: greatlakes-toughest-24k-trace
+item: 971
+why: the second pair (DECISIONS 53) — run53's game with the lobby's difficulty at its top, Toughest
+# run53's stanza exactly but for `cover=0` and the difficulty. Great Lakes
+# keeps `-config check.ini`, whose `GameInfo::load_from_config` reads the
+# `diffs` category from `difficulties=` (`docs/AI.md` §80.1), so that line
+# is set for the take and copied back after; the profile's twin is set too,
+# because no capture has ever read a non-zero `DIFFICULTY` and which of the
+# two the `-config` lobby keeps is not on disk. The dump's own
+# `DIFFICULTY 5` is the read-back. Same tracer as run346's.
+frames: 24000
+mapstyle: 14
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+checkini: difficulties=Toughest
+profile: DIFFICULTY=5
+settle_min: 500000
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run347-greatlakes-toughest-24k-trace.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run347-greatlakes-toughest-24k-trace.txt"
 
 run: 55
 tag: islands-calccost
