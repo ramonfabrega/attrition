@@ -1399,7 +1399,7 @@ each can invalidate work that would otherwise be done on top of it.
 
 | run | chapter | window | why this order |
 |---|---|---|---|
-| 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) |
+| 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6457,3 +6457,17 @@ itself.
 value parting is expected on **618** (2007's list) and the first draw
 parting on **856**, where the Hoplites' exit is swept from another
 bearing and their orders move them.
+
+**Run 2026-09-27 as run312 (item 928)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run304 to 759. **No falsifier
+fired; every reading held.** The five presses were processed on 617, 651,
+701, 901 and 1101, and the lists read as predicted on 618, 652, 702, 902
+and 1102: the City's forest click took its Woodcutter's point (4224,
+28608), 2008's click on itself stored (−1, −1, 0), the press on 900
+replaced 2007's point, and the Clear emptied it. The first Hoplites came
+out north-west toward (1344, 12096) on 856, each with a
+`GROUPATTACKTOORDER` under group 0, and stood there from 936. 2008's
+Hoplites stayed inside 2008 from 953. The Bowmen came out east on 1060,
+each with a `GARRISONORDER` on 2008, and were inside on 1079. The Citizen
+came out north-east on 760 with a plain `MOVEORDER` to (4248, 28632) and
+no gather order, and took a `GATHERORDER` of its own on 984.
