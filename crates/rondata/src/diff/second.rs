@@ -121,7 +121,8 @@ mod tests {
     /// 1..250 (`rngcmp.py`: 263 frames, 0 differing), walked from run346's
     /// start by [`widen_east_indies_on`] — every record, every unit, both
     /// leaders, both directions — with the word's block (frame 0 writes
-    /// block 1) and the two after it kept standing.
+    /// block 1) and the two after it kept standing. It keeps the move's
+    /// value diff; East Indies' next word, 10, is inside its window.
     #[test]
     fn run349_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -153,37 +154,46 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The parting's own rows on the word's block** — the seed is one
-        // draw short from frame 0's index 24 on, so every later roll of the
-        // frame reads another value: the AI scout `1/0`'s ring walk picks
-        // another cell, two AI citizens' idle clocks and 46 gaia animals'
-        // `cur_anim` roll other values. Beside them stand the families the
-        // first pair carries on every block (player 0's census, `SITE.reg`,
-        // `form`, the city record; `docs/AI.md` §33.4).
+        // **The move's value diff** (item 971, `docs/AI.md` §80.5). Before
+        // `think_spellcaster`'s coin, frame 0 was a draw short from index
+        // 24 on and the AI scout `1/0`'s ring walk read another cell: on
+        // block 1 its `orders_x`/`orders_y` were 41976/36600 here against
+        // 35832/42744, its path 9 slots against 3, and 28 of its rows
+        // parted on blocks 1..3. With the coin every one of them agrees
+        // until block 97, where the walk after next parts.
         assert_eq!(
             row(1, 0, "orders_x").as_deref(),
-            Some("1: ours 41976 theirs 35832"),
-            "the scout's walk target, x"
+            Some("97: ours 38136 theirs 41976"),
+            "the scout's walk target agrees until block 97"
         );
-        assert_eq!(
-            row(1, 0, "orders_y").as_deref(),
-            Some("1: ours 36600 theirs 42744"),
-            "the scout's walk target, y"
+        assert!(
+            !w.firsts
+                .iter()
+                .any(|((who, o, _), (f, _))| (*who, *o) == (1, 0) && *f < 97),
+            "none of the scout's rows parts before block 97"
         );
+        // **What stands on the word's block with the stream agreeing** —
+        // 119 keys, none of them moved by the coin: player 0's census,
+        // `SITE.reg`, `form` and the city record (the first pair's families,
+        // `docs/AI.md` §33.4), two AI citizens' idle clocks (`1/1`'s
+        // `g.end_time[0]` 232 here, 33 there) and 46 gaia animals'
+        // `cur_anim`. The draws agree through frame 9, so none of these
+        // rolls a different value; they are what block 1 reads on this
+        // game with nothing parted.
         assert_eq!(
             row(1, 1, "g.end_time[0]").as_deref(),
             Some("1: ours 232 theirs 33"),
-            "an AI citizen's idle clock"
+            "an AI citizen's idle clock, standing"
         );
         let gaia_anims = w
             .firsts
             .iter()
             .filter(|((who, _, what), (f, _))| *who == 8 && what == "gaia:cur_anim" && *f == 1)
             .count();
-        assert_eq!(gaia_anims, 46, "gaia's animals roll other idles on block 1");
+        assert_eq!(gaia_anims, 46, "gaia's animals, standing on block 1");
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 130), (2, 44), (3, 2)],
+            [(1, 119), (2, 27), (3, 2)],
             "the blocks keys first part on, the first three"
         );
     }

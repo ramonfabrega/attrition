@@ -334,9 +334,19 @@ impl Sim {
 
         // The head, and it comes before the region read: a land unit that
         // can see an untaken box walks to that instead of thinking, and
-        // spends no draw doing it (`docs/GOODY.md` §7). `think_spellcaster`
-        // is still a seam (`docs/SCOUT.md` §13 item 10).
+        // spends no draw doing it (`docs/GOODY.md` §7).
         if domain == Domain::Land && self.find_goody_box(u) {
+            return true;
+        }
+        // Then a computer leader's caster is offered its crafts
+        // (`think_scout+0x7c`, `unit_flags2 & 2`): `think_spellcaster`,
+        // whose AI arm draws from difficulty 2 up (`docs/AI.md` §80.5).
+        if !self.nation[who as usize].human
+            && self.unit_types[rec]
+                .cols
+                .flag2(crate::ai_load::uflags2::CASTER)
+            && self.think_spellcaster(u)
+        {
             return true;
         }
 
@@ -965,6 +975,26 @@ mod tests {
             "six rings, four phases, the §11 stride"
         );
         assert!(s.units[ai].orders.is_empty(), "and no order is issued");
+    }
+
+    /// **`think_scout+0x7c`, the caster's turn** (`docs/AI.md` §80.5): a
+    /// computer's caster scout is offered `think_spellcaster` before the
+    /// walk, whose coin is thrown from difficulty 2 up. The same walk costs
+    /// one draw more at Toughest than at Easiest, and nothing more.
+    #[test]
+    fn a_computers_caster_scout_throws_the_special_coin_before_the_walk() {
+        let flags = crate::ai_load::uflags2::SCOUT | crate::ai_load::uflags2::CASTER;
+        let mut spent = Vec::new();
+        for d in [0, 5] {
+            let (mut s, ai, _) = scout_sim(false);
+            let t = s.units[ai].ty.expect("typed");
+            s.unit_types[t].cols.unit_flags2 = flags;
+            s.lobby.difficulty = d;
+            let before = s.rng.seed;
+            assert!(!s.think_scout(ai), "difficulty {d}: nothing is found");
+            spent.push(draws(before, s.rng.seed));
+        }
+        assert_eq!(spent, [11, 12], "the coin, at Toughest alone");
     }
 
     /// §7 and §6's early exit together. With every cell unseen the eight

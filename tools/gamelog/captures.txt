@@ -596,6 +596,31 @@ check: grep -a -m1 -q '^  MAP_STYLE 18' "$HOME/ron-data/AppData/Roaming/Microsof
 # **The window landed whole** — 251 blocks, 0..250.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run349-islands-toughest-open.txt" | awk '{v=$3+0; if(v>=0&&v<251) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=250)}'
 
+run: 350
+tag: greatlakes-toughest-open
+item: 971
+why: with think_spellcaster's coin built both second-pair words move (East Indies 0 -> 10, Great Lakes 0 -> 1) and Great Lakes is the lower: its frame 1 spends 85 draws against this crate's 54, parting at index 44 on `Leader::produce_building+0xc99` where ours spends `Unit::do_non_flat_gather+0x54b`, and no dump of run347's game holds a per-frame record
+# run349's shape on run347's game: `cfg: -` and `profile: DIFFICULTY=5`
+# (run347's second take's lobby), the default start detail, run299's
+# per-frame detail over **blocks 0..250** — the word's frame 1 writes
+# block 2, one block stands before it, and 249 of runway above it. The
+# profile is copied back when the take ends (att-947 shares it).
+frames: 262
+mapstyle: 14
+cfg: -
+profile: DIFFICULTY=5
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 0 251
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+# Same game: the trace draw for draw against run347 over the whole take.
+check: python3 tools/gamelog/rngcmp.py rontrace-run347.log rontrace-run350.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=262)}'
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run350-greatlakes-toughest-open.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run350-greatlakes-toughest-open.txt"
+# **The window landed whole** — 250 blocks, 1..250.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run350-greatlakes-toughest-open.txt" | awk '{v=$3+0; if(v>=0&&v<251) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=250)}'
+
 run: 55
 tag: islands-calccost
 item: 125

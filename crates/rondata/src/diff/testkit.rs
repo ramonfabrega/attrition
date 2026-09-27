@@ -1099,19 +1099,39 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
-/// start dump by `diff::second`. **0 on the capture**: the original spends
-/// 182 draws on frame 0 against this crate's 175, parting at index 24 —
-/// `Unit::think_spellcaster+0x413 < Unit::think_scout+0x7c`, the special
-/// arm's coin, which the computer's scout throws from difficulty 2 up and
-/// no Easiest capture ever reached (`docs/AI.md` §80.5). The word's block
-/// is `run349_s_word_frame_is_widened_whole`'s.
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 0;
+/// start dump by `diff::second`.
+///
+/// **0 on the capture**: the original spent 182 draws on frame 0 against
+/// this crate's 175, parting at index 24 — `Unit::think_spellcaster+0x413
+/// < Unit::think_scout+0x7c`, the special arm's coin, which a computer's
+/// caster scout throws from difficulty 2 up and no Easiest capture ever
+/// reached (`docs/AI.md` §80.5).
+///
+/// **0 → 10 on item 971**, the coin built (`sim::spellcaster`). **The
+/// move's value diff (the word's delta, here; its block is
+/// `run349_s_word_frame_is_widened_whole`'s):** on block 1 the AI scout
+/// `1/0`'s `orders_x`/`orders_y` went 41976/36600 against 35832/42744 →
+/// 35832/42744 on both, its path 9 slots against 3 → 3, and all 28 of its
+/// rows on blocks 1..3 closed (the next parts on block 97); frame 0's draws
+/// went 175 against 182 → 182 against 182. **The new word's delta: ours
+/// 197 draws and the original 188 on frame 10, parting at index 183**:
+/// ours spends `PathFinder::calc_road_cost+0x46` where the original spends
+/// `Farms::inc_time+0x1ae`. Inside run349's window (block 11), where no
+/// row first parts on blocks 4..25.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 10;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
-/// at Toughest. **0 on the capture**: 121 draws against 120 on frame 0,
-/// parting at index 24 on the same coin. Its widening is owed (run350,
-/// item 971's reservation).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 0;
+/// at Toughest (its second take, without `-config`).
+///
+/// **0 on the capture**: 121 draws against 120 on frame 0, parting at
+/// index 24 on the same coin. **0 → 1 on item 971**: frame 0's draws went
+/// 120 against 121 → 121 against 121 (no dump of this game held a record
+/// of block 1 when it moved). **The new word's delta: ours 54 draws and
+/// the original 85 on frame 1, parting at index 44**: ours spends
+/// `Unit::do_non_flat_gather+0x54b` where the original spends
+/// `Leader::produce_building+0xc99`. **The lower word of the pair**; its
+/// widening is run350's (owed by item 971 until it lands).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 1;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

@@ -10623,9 +10623,32 @@ pub(crate) mod tests {
         pools: i64,
         near: &[i64],
     ) -> Option<Widened> {
+        widen_great_lakes_on(
+            (
+                "gamelog-run53-greatlakes-24k-trace.txt",
+                "rontrace-run53.log",
+            ),
+            name,
+            chain,
+            window,
+            pools,
+            near,
+        )
+    }
+
+    /// [`widen_great_lakes`] on another Great Lakes game's start: the
+    /// second pair's run347 (item 971) is run53's lobby at Toughest.
+    pub(crate) fn widen_great_lakes_on(
+        (base, base_trace): (&str, &str),
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+    ) -> Option<Widened> {
         let inst = install()?;
-        let Some(path) = dump("gamelog-run53-greatlakes-24k-trace.txt") else {
-            eprintln!("skipping: no run53 capture (set RON_GAMELOG_DIR)");
+        let Some(path) = dump(base) else {
+            eprintln!("skipping: no {base} capture (set RON_GAMELOG_DIR)");
             return None;
         };
         let paths: Vec<Option<String>> = chain.iter().map(|(n, _)| dump(n)).collect();
@@ -10649,7 +10672,7 @@ pub(crate) mod tests {
         let refs: Vec<&Initial> = inits.iter().collect();
         let mut init = log.initial().unwrap();
         borrow_from_siblings(&mut init, &refs);
-        if let Some(t) = trace("rontrace-run53.log") {
+        if let Some(t) = trace(base_trace) {
             borrow_pasture(&mut init, &t);
         }
         let mut built = build_sim(&loaded, &init, Tuning::RON);
