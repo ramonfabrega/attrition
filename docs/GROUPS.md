@@ -4429,3 +4429,147 @@ the `Group::add` and `push_group` calls and their arguments).
 **Decompile-backed**: `Group::add`'s chain walk, `push_group`'s second
 walk, and `Unit::init`'s `form` and position writes. **Unit-tested**:
 `a_trained_squad_is_pushed_into_a_pool_slot_of_its_own_and_a_single_unit_is_not`.
+
+## 32. A verified line reads the stack again — Great Lakes 20568 → 20800 (item 795, 2026-09-26)
+
+*Established by run294 (`docs/RUNS.md`), a 160-block capture of the four
+walkers' departure from the far point, widened whole
+(`run294_s_departure_is_widened_whole`), and by the listing at
+`5f8c1d`..`5f8c5d` in `Unit::do_move@005f7b30`. Diff-backed on every block
+of run294 and run243. The section sits here because the group move is
+where it showed; the rule is `do_move`'s (`docs/ORDERS.md` §4.4, whose
+pseudocode already had the line).*
+
+### 32.1 The frame, and what the gap held
+
+The word was **20568**: the original's `1/40` stands blocked by the
+animal `8/0` on block 20569 (`collide 1`, `collide_who 8`, `collide_o 0`,
+`stopped 1`) and ours, three frames behind on the same path, walks. The
+lag was whole on run243's first block, 20500, so it came from the gap
+(parked 796), and the disk said this much of it before any capture:
+
+- each walker's last collision stamp is ours to the frame (`1/40` 17819,
+  `1/41` 18044, `1/42` 18075, `1/60` 19853), so every collision in the gap
+  lands on the original's frame, and the draw stream agrees on all of it;
+- `1/40`'s move `last` is ours, (3144, 31704): the far point it left from;
+- `1/40`'s path entries agree on every block of run243, and its lag is a
+  constant three frames there;
+- on ours, the four stand at the far point under an `ATTACK` each until
+  19853..19883, leave as one group move led by `1/40` (whose grid roll,
+  `Unit::do_move+0xe84`, is on 19875 on both sides), and on 19892 a
+  follower's formation slot is refused (`1/41`'s, tile (17, 162), the
+  city centre `0/2000`'s footprint), which ungroups all three
+  (`do_group_move`'s arm 9, `5e838a`); `1/40` then detours by
+  (3732, 31380).
+
+`1/41`'s `last` read (3207, 31449) here against (3440, 31381) there, ten
+frames apart, so the departure was the place to look, and nothing on disk
+held it. run294 was booked for it.
+
+### 32.2 The first parting
+
+On run294 the four walkers stand agreed through the attack. **The first
+row to part on the departure is `1/40`'s own, on block 19876** — frame
+19875, the leader's grid roll:
+
+| field | ours | theirs |
+|---|---|---|
+| `order:move.dest` (the waypoint) | (3912, 30984) | (3732, 31380) |
+| `tolerance` | 384 | 0 |
+| `pos` | (3162, 31687) | (3165, 31692) |
+
+Both path stacks hold the same 54 entries, and **the top of both is
+(3732, 31380), `tolerance` 0**: `go_around_building` pushed it and
+`find_path`'s recursive check accepted it (`last` = (3144, 31704) on both
+sides). The world entry under it is (3912, 30984), `tolerance` 384. Ours
+walked at the world entry, past its own detour, for seventeen frames. On
+19892 a follower's slot fell on the city centre, and the ungroup, the
+re-plan and the detour followed. The original walked the detour first,
+and its group move still stands on block 19893 (`MOVEORDER` with its
+`GROUPORDER`, `orig` (44851, 22480)).
+
+### 32.3 The writer
+
+The order's `dest_x`/`dest_y` (`MoveOrder +0x2c`/`+0x30`) and the unit's
+`+0x60` tolerance, **counted by offset** (823, 869). On the leader's frame
+19875 the writers are `do_move`'s three (the `dest == 0` arm's take of
+the top, `5f8532`; the first line check's `peek`, `5f8944`; and TAKE's
+second `peek`, `5f8c51`), `find_path`'s pull-back
+(`local_24 + 0x2c`, only while the waypoint is the goal), and
+`resolve_unit_collision` (no collision on this frame);
+`do_group_move`'s slot write is a follower's. This crate carried every one
+but **TAKE's second `peek`**:
+
+```
+5f8c1d  call find_path(top)            ; r2
+5f8c26  or   [ebx+0x68], 8             ; r2 == 0: the line is verified
+5f8c35  test [ebx+0x68], 8 ; je 5f8c90
+5f8c3d  call Stack<PathData>::peek     ; the top, *again*
+5f8c51  mov  [edi+0x2c], x             ; dest_x
+5f8c57  mov  [edi+0x30], y             ; dest_y
+5f8c5d  mov  [ebx+0x60], tolerance
+```
+
+`find_path` itself writes no waypoint on the detour arm: it re-pushes the
+detour, writes `last` (`+0x34`/`+0x38`) and sets `unit_masks |= 8`. So
+what TAKE hands the step is whatever is on top after the check, which is
+the detour when one was pushed. Built at the end of TAKE in
+`Sim::do_move` (`orders.rs`).
+
+### 32.4 What moved
+
+- **run294**: every row of `1/40`, `1/41` and `1/42` first parting on
+  19841..19999 closes (72 keys), and none opens. What parts there is
+  `1/60`'s own route (below) and the standing rows of 19840. Among those,
+  the three walkers' `order:group.id` (17662401 here, 17662501 there)
+  stands from before the departure and still stands. The id is
+  `(group + frame × 10) × 100 + order_num`, so it is group 4 here against
+  5 there, on the frame (17662) and `order_num` (1) both sides agree on:
+  Great Lakes' pool numbering, parked 871. Its readers
+  (`still_group_move`, `ungroup_move_order`, `kill_group_move`,
+  `group_rewrite_leader`) match it by equality only, so nothing here
+  reads its value.
+- **run243**: `1/40`, `1/41` and `1/42` close on every block (the 31 rows
+  carried onto 20500 and 25 of the 26 up to the old word; the 26th is
+  `1/60`'s on 20510), and none opens.
+  **The value diff on the old word's block, 20569**: `1/40` reads
+  `collide 1`, `collide_who 8`, `collide_o 0`, `stopped 1` and `pos`
+  (17256, 26760) on both sides; ours was 0, −1, −1, 0 and (17203, 26773).
+- **Great Lakes 20568 → 20800.** East Indies holds at 20782.
+
+### 32.5 The new word, 20800
+
+On 20800 ours spends 36 draws against 35, parting at index 1: ours
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked step, where the
+original spends `Animal::think_bird+0x82`. On block 20801 **`1/60` stands
+blocked by `1/64` here** (`collide 1`, `collide_who 1`, `collide_o 64`,
+`stopped 1`) and walks there. `1/60` is on another route: its world path
+parts on run294's first block already (slots 5..50; slot 15 (32640, 24960)
+here against (32640, 24192) there), planned before 19840 while it stood at
+the far point. That is the gap's again, below run294 (17351..19839). No
+mechanism is named.
+
+### 32.6 What this has *not* established
+
+- **`1/60`'s world plan.** Where in 17351..19839 it parts, and which
+  `find_wpath` input differs, is on no disk.
+- **The other two `dest` writers** (`5f8532`, `5f8944`) were already
+  built. This adds the third; no capture has been read for the other two
+  since.
+- **`group.id`'s group number** (above, 871): not traced to its writer.
+- **`resolve_block`** on a top with `flags & 0x10`: TAKE's `SEAM`, not
+  reached by any capture.
+- Chapter-level: no golden chapter walks a detour on TAKE, as far as the
+  gate shows (every golden word holds).
+
+### 32.7 Coverage
+
+**Diff-backed**: every record of run294 (160 blocks) and run243 (319),
+and the long word on run53's trace. **Listing-backed**: `5f8c1d`..`5f8c5d`.
+**Unit-tested**: `a_detour_the_line_check_pushes_is_the_waypoint` stages
+the march's order (`PATHED`, only its `FINAL` entry, no waypoint) against
+a barracks across the first leg: the grid roll plans, and the step walks
+at the detour with tolerance 0. **Mutation**: with the re-read taken out
+on the built tree, the unit test reads (2424, 4728) and 384 against the
+detour (1644, 4332) and 0, and run294's `1/40` rows on 19876 come back
+(item 795's journal).

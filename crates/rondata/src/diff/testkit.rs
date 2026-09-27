@@ -2440,7 +2440,24 @@ pub(crate) const EAST_INDIES_FIRST_SCHOLAR: i64 = 8_466;
 /// over [20500, 20819), sized to the word, and no dump compares a value
 /// on 17351..20499. `run226_s_word_frame_is_widened_whole` keeps the
 /// move's value diff: nothing parts on run226's own blocks, to 17350.
-pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 20_568;
+///
+/// ~~**20568 is `1/40`'s blocked step.**~~ **Item 795 moved it 20568 →
+/// 20800, and the mechanism was `do_move`'s TAKE** (`docs/GROUPS.md` §32):
+/// once `find_path` verifies the line to the new top, the original reads
+/// the stack again (`5f8c3d`–`5f8c5d`) and walks at a detour the check
+/// pushed. Ours walked at the world entry under it, and `1/40` left the far
+/// point on 19875 for (3912, 30984) where the original went for
+/// (3732, 31380), three frames behind to the old word (run294, 19840..
+/// 19999). **The new word's delta (this constant's comment): ours 36
+/// draws and the original 35, parting at index 1**: ours spends
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, a blocked step, where
+/// the original spends `Animal::think_bird+0x82`. **Inside run243**
+/// (block 20801 against its last, 20818): ours' `1/60` stands blocked by
+/// `1/64`, and its world route parts on run294's first block already.
+/// `run243_s_word_frame_is_widened_whole` pins the new word's block (the
+/// widening test), and `run294_s_departure_is_widened_whole` keeps the
+/// move's value diff.
+pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 20_800;
 
 /// The floor `run97_s_window_orders_are_the_original_s` holds — item 368's
 /// widening of Great Lakes' order stacks, the 36,483 `GATHERORDER` records
@@ -4402,10 +4419,22 @@ pub(crate) const GREAT_LAKES_FOREST_CELL_BLOCK: i64 = 17_182;
 pub(crate) const WIDENING_GREAT_LAKES_STAND: (i64, i64) = (17_345, 20_818);
 /// run243's first block.
 pub(crate) const GREAT_LAKES_STAND_FIRST: i64 = 20_500;
+/// `run294_s_departure_is_widened_whole`'s window (item 795): run226's
+/// last six blocks (17345..17350), then run294 whole, 19840..19999 — the
+/// four walkers' return leg leaving the far point. **A bisection of the
+/// gap, not a word's window**: 17351..19839 is compared by no dump.
+pub(crate) const WIDENING_GREAT_LAKES_DEPART: (i64, i64) = (17_345, 19_999);
+/// run294's first block.
+pub(crate) const GREAT_LAKES_DEPART_FIRST: i64 = 19_840;
 /// The word 20568's block on run243: its frame, the original's blocked
 /// step (`Unit::move_step+0x823`) where ours spends an idle roll, writes
 /// block 20569. The coverage driver reads run243 around it.
 pub(crate) const GREAT_LAKES_STAND_BLOCK: i64 = 20_569;
+/// The word 20800's block on run243 (item 795): ours' `1/60` stands blocked
+/// by `1/64` (`Unit::move_step+0x823`) where the original's walks, and
+/// its frame writes block 20801. The coverage driver reads run243 around
+/// it, and [`crate::diff::harness`]'s word window walks it.
+pub(crate) const GREAT_LAKES_RETURN_BLOCK: i64 = 20_801;
 /// `run99_s_word_frame_is_widened_whole`'s window (item 573): run98 from
 /// its own first block, then run99 from 8789 to its last block, 10399.
 /// The floor is the first capture's first block for the reason
@@ -5095,11 +5124,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // word with no dump over 17351..20499, and
     // `run243_s_word_frame_is_widened_whole` walks run226's last six
     // blocks and run243 whole and pins the word's block.
+    //
+    // **Item 795 moved it 20568 → 20800**, inside run243: `do_move`'s TAKE
+    // reads the stack again (`docs/GROUPS.md` §32). The same test pins
+    // the new word's block, 20801, and `run294_s_departure_is_widened_
+    // whole` (run294, 19840..19999, a bisection of the gap) keeps the
+    // move's value diff. run243's runway past the new word is 18 blocks.
     (
         "LONG_WORD_GREAT_LAKES",
         LONG_WORD_GREAT_LAKES,
         Some("run243_s_word_frame_is_widened_whole"),
-        785,
+        795,
         Some(WIDENING_GREAT_LAKES_STAND),
     ),
     // Item 445 paid the widening chapter one had never had: the word
