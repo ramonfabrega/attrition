@@ -910,7 +910,10 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         if let Some(len) = b.gather_len {
             compared::note("BuildDump", &["gather_len", "gather"]);
             let mine = ours.gather.len() as i64;
-            r.build_compared += 1;
+            // Not added to `build_compared`: that count is pinned on the
+            // long captures (run56, run57, run58), which the gather point
+            // cannot reach, and a list compared there is empty on both
+            // sides every block.
             let mut diverge = |field: &'static str, ours: i64, theirs: i64| {
                 if ours != theirs {
                     r.build_diverged.push(BuildDivergence {

@@ -1410,12 +1410,12 @@ mod tests {
         // `@queueup` of a Biplane at the Airbase, the repeat launch (item
         // 915, `docs/GOLDEN.md` §38).
         ("chapter29.cmd", &[]),
+        ("chapter3.cmd", &[]),
         // Chapter thirty: chapter twenty-eight's cast and five
         // `@gatherpoint` lines (the DLL's verb 20) on two Barracks and the
         // City, three `@queueup` lines behind them: the gather point (item
         // 928, `docs/GOLDEN.md` §39).
         ("chapter30.cmd", &[]),
-        ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
