@@ -177,6 +177,69 @@ mod tests {
         );
     }
 
+    /// **The second pair's line is its pinned words** (DECISIONS 53 §2,
+    /// item 971). The first pair closed at 24,000 on both maps and its
+    /// `Long captures:` line stays as the closed floor; the AI track's word
+    /// is now the second pair's — the same two games at the lobby's top
+    /// difficulty — and the handoff carries it on a `Second pair:` line of
+    /// the same shape, `<map> w<word> of <length>`, East Indies first. **The
+    /// constants are the worker's to re-pin; the line is the commander's**
+    /// (`tools/release_gate.py`'s `COMMANDERS_LINES` names this test).
+    /// Made to fail first on the queue with no such line, and on a line
+    /// whose word is not the pin ([`second_pair_verdict`]'s own test).
+    #[test]
+    fn the_handoff_s_second_pair_is_the_pinned_words() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let line = q.lines().find(|l| l.starts_with("Second pair:")).expect(
+            "docs/QUEUE.md has no `Second pair:` line in the handoff; write \
+             `Second pair: EastIndies w<word> of <length> \u{b7} GreatLakes \
+             w<word> of <length>` beside `Long captures:`",
+        );
+        if let Err(e) = second_pair_verdict(line, SECOND_WORD_EAST_INDIES, SECOND_WORD_GREAT_LAKES)
+        {
+            panic!("{e}");
+        }
+    }
+
+    /// The `Second pair:` line read part by part against two words.
+    fn second_pair_verdict(line: &str, east: i64, great: i64) -> Result<(), String> {
+        let mut said = Vec::new();
+        for part in line.trim_start_matches("Second pair:").split('\u{b7}') {
+            let t: Vec<&str> = part.split_whitespace().collect();
+            let word = t
+                .get(1)
+                .and_then(|w| w.strip_prefix('w'))
+                .and_then(|w| w.parse::<i64>().ok())
+                .ok_or_else(|| format!("unreadable second-pair part {part:?}"))?;
+            said.push((t[0].to_string(), word));
+        }
+        let pinned = vec![
+            ("EastIndies".to_string(), east),
+            ("GreatLakes".to_string(), great),
+        ];
+        if said == pinned {
+            Ok(())
+        } else {
+            Err(format!(
+                "the handoff's second-pair words are not the pins: the queue's \
+                 line says {said:?}, SECOND_WORD_EAST_INDIES and \
+                 SECOND_WORD_GREAT_LAKES say {pinned:?}"
+            ))
+        }
+    }
+
+    #[test]
+    fn a_second_pair_line_is_read_against_both_pins() {
+        let ok = "Second pair: EastIndies w612 of 24,000 \u{b7} GreatLakes w700 of 24,000";
+        assert_eq!(second_pair_verdict(ok, 612, 700), Ok(()));
+        assert!(second_pair_verdict(ok, 613, 700).is_err(), "a stale East Indies word");
+        assert!(second_pair_verdict(ok, 612, 699).is_err(), "a stale Great Lakes word");
+        let swapped = "Second pair: GreatLakes w700 of 24,000 \u{b7} EastIndies w612 of 24,000";
+        assert!(second_pair_verdict(swapped, 612, 700).is_err(), "East Indies first");
+        assert!(second_pair_verdict("Second pair: none pinned", 0, 0).is_err());
+    }
+
     /// **The rules track's headline has the guard the AI track's has** —
     /// the handoff's `Golden:` line against the pinned chapters.
     /// `docs_guard::the_handoff_carries_the_golden_line` only checks the
@@ -529,15 +592,19 @@ mod tests {
             .find(|l| l.contains(phrase) && !l.contains('<'))
             .expect("docs/QUEUE.md names no `lower map first — <map>` line, unwrapped");
         let named = line.split(phrase).nth(1).unwrap().trim_start();
-        let lower = if LONG_WORD_EAST_INDIES <= LONG_WORD_GREAT_LAKES {
+        // **The newest pair's lower word** (DECISIONS 53 §2, item 971): the
+        // first pair closed at 24,000 on both maps, so its words no longer
+        // choose a map; the second pair's do.
+        let lower = if SECOND_WORD_EAST_INDIES <= SECOND_WORD_GREAT_LAKES {
             "East Indies"
         } else {
             "Great Lakes"
         };
         assert!(
             named.starts_with(lower),
-            "docs/QUEUE.md says `lower map first — {named}` and the lower word is {lower}'s \
-             (East Indies {LONG_WORD_EAST_INDIES}, Great Lakes {LONG_WORD_GREAT_LAKES}). \
+            "docs/QUEUE.md says `lower map first — {named}` and the second pair's lower word \
+             is {lower}'s (East Indies {SECOND_WORD_EAST_INDIES}, Great Lakes \
+             {SECOND_WORD_GREAT_LAKES}). \
              Rewrite the line, and book that map's widening first — WIDENINGS names the \
              item that owes it"
         );

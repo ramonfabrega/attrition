@@ -1097,6 +1097,15 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `run299_s_word_frame_is_widened_whole` keeps the move's value diff.
 pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 
+/// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
+/// run346, run54's game with the lobby at Toughest, walked from its own
+/// start dump by `diff::second`. Placeholder until the capture lands.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 0;
+
+/// **The second pair's Great Lakes word** (item 971): run347, run53's game
+/// at Toughest. Placeholder until the capture lands.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 0;
+
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
 /// run54's 24,000 frames (item 338) and the one frame in the game where a
