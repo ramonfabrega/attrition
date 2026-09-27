@@ -252,7 +252,7 @@ pub struct Modifiers {
     /// [`wonder_count`] rather than the type's own, and the building arm's
     /// term is **halved** after the factor and the count (`00665af9`,
     /// `cltd; sub; sar`), so it truncates where a count of half cannot
-    /// (`docs/COSTS.md` §8).
+    /// (`docs/COSTS.md`, "A wonder is ramped by every wonder").
     pub wonder: bool,
     /// `get_cost`'s **research** arm: the type is not yet available to the
     /// player (the `leader + 0x6c18` bit is clear), so what is priced is its
@@ -983,7 +983,7 @@ mod tests {
     }
 
     /// **`get_cost`'s wonder arm, from the listing** (`00665848`..`0066594c`
-    /// and the halving at `00665af9`; `docs/COSTS.md` §8). A wonder is
+    /// and the halving at `00665af9`; `docs/COSTS.md`, "A wonder is ramped by every wonder"). A wonder is
     /// ramped by every wonder the leader holds or has a site of, not by
     /// its own type, and the term is halved after the count. Up to three
     /// held that is one step a wonder, which run289's frame 20781 measures

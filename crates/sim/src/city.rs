@@ -1010,7 +1010,7 @@ impl Sim {
     /// leader's `wonder_mark` ([`Sim::note_wonders`]), plus
     /// `get_unbuilt_wonders@006da290`, its unbuilt wonder sites — every
     /// wonder of the leader's, standing or not, not only `ty`'s own
-    /// (`docs/COSTS.md` §8). A leader with no census entry counts its
+    /// (`docs/COSTS.md`, "A wonder is ramped by every wonder"). A leader with no census entry counts its
     /// active wonders instead.
     fn wonder_ramp_count(&self, who: Player, ty: usize) -> i32 {
         let is_wonder = |b: &crate::Building| {

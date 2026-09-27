@@ -863,6 +863,69 @@ for, and retries every frame until room appears. Which is exactly what the
 original's interface shows a player, and not at all what "the cap stops
 production" would predict.
 
+## A wonder is ramped by every wonder
+
+*Item 890, 2026-09-26. Read from the listing of
+`TypeData::get_cost@00664090` (`00665848`..`0066594c`, the count, and
+`00665af9`, the halving); built in `cost::wonder_count`,
+`cost::Modifiers::wonder` and `Sim::building_price`.*
+
+A building's ramp counts the buildings of its own type (the section above).
+A wonder's does not. `get_cost`'s wonder arm (a type in `0x20e..=0x21e`)
+counts **every** wonder the leader holds or has started:
+
+```
+held  = get_wonders + get_unbuilt_wonders    # standing entries under wonder_mark,
+                                             # plus the leader's unbuilt wonder sites
+count = 0                                    # the team term, teams unlocked
+if held > 3: count += held - 3
+if held > 6: count += held - 6
+if type is SUPERCOLLIDER or SPACEPROGRAM:
+    my own site of either   -> held += 1
+    else a teammate's site  -> count += 1
+count += 2 * held
+term  = amount * BUILD_SUPPORT_FACTOR * count / 2    # per SUPPORT slot, truncating
+```
+
+The whole count is skipped when `get_cost`'s fifth argument is non-zero
+(`00665873`). `TypeData::can_pay_cost@00667570` passes 0, so the
+affordability path, and every AI decision behind it, pays the ramp.
+
+**Up to three wonders held, it is one support step a wonder**, because
+`2n / 2 = n`. That is why the Pyramids priced right here all along: their own
+site was the only wonder, and the same-type count is also 1. The
+difference is for any **other** wonder. On East Indies' frame 20781 who=1's
+Pyramids site `1/2029` put the Mausoleum (527) at `[0, 260, 260]` and the
+Colossus (528) at `[260, 0, 260]`. This crate priced them at 200 because it
+counted only each wonder's own type. The purse held 208 wealth on both
+sides. `check_income` (`docs/AI.md` §2.19) answers 0 for an unaffordable
+type with no escrow, so the original offered both at `val 0`, where this
+crate offered them at 486 and 398 and went to the market for them
+(`docs/AI.md` §77).
+
+**Past three the halving truncates**, and the count is no longer a whole
+number of steps: four wonders held make a count of 9, so an odd support
+amount loses half a unit. That arm is pinned from the listing by
+`cost::tests::a_wonder_is_ramped_by_every_wonder_held_and_halved`. No
+capture reaches it, since an easy AI stops at one wonder (`docs/AI.md` §75).
+
+**How confident**: the count and the halving are read from the listing.
+The one-wonder case is diff-backed by run289's `MAKE` rows on block 20782
+(`run289_s_word_frame_is_widened_whole`) and by the draw stream to 23182.
+
+**What is not established**:
+- **The team term.** With teams locked the count starts at
+  `team_wonders − held + team_unbuilt`. This crate carries no
+  teams-locked lobby flag, and a solo team's term is 0 either way.
+- **`get_unbuilt_wonders` is counted off the buildings**: every alive,
+  inactive wonder of the leader's. The original reads its own list
+  (`unbuilt_wonders`, written by the site's placement and by
+  `remove_unbuilt_wonder` on activation). The two can differ only on the
+  frame a site dies, which no capture has isolated.
+- **Past three, and the space-race arm**: listing only, as above.
+- **The rest of the building branch** is still not built: the military and
+  fort escalations and the Indian arm (the open question below).
+
 ---
 
 ## What is diff-backed
@@ -995,7 +1058,10 @@ a capture has one.
   is its first prerequisite — the age that unlocks it — and nothing else, so
   Knowledge and Metal arrive with Classical and Oil with Industrial, which is
   what the redirect above and `docs/ECONOMY.md` assumed.
-- **Building and wonder ramps.** The building branch of `get_cost` has its own
+- **Building and wonder ramps.** *The wonder half is built (item 890): "A
+  wonder is ramped by every wonder" above, read from the listing. Its count is
+  not "twice your own" alone: it adds `held − 3` past three and `held − 6`
+  past six, and a space-race term.* The building branch of `get_cost` has its own
   count escalation and wonders ramp against how many wonders you and your team
   already hold. The second reading read the escalation out — military
   production buildings step `n → 2n−2` past two, `+2n−10` past five, `+3n−24`

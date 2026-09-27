@@ -1979,7 +1979,7 @@ mod tests {
     }
 
     /// **A site of one wonder prices every other wonder a step up**
-    /// (`docs/COSTS.md` §8, item 890). `get_cost`'s wonder arm counts every
+    /// (`docs/COSTS.md`, "A wonder is ramped by every wonder", item 890). `get_cost`'s wonder arm counts every
     /// wonder the leader holds or has a site of, so on East Indies' frame
     /// 20781 who=1's Pyramids site put the Mausoleum and the Colossus at
     /// 260 wealth against a purse of 208: `check_income` answered 0, and
