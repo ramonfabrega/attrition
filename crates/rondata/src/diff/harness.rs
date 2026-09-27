@@ -2382,6 +2382,44 @@ pub(crate) mod tests {
 
     use crate::testenv::{dump, install};
 
+    /// [`link_building`] (item 989): a number a closed site gave up and a
+    /// later building took links to the **live** one; a number only a
+    /// closed building ever held still links, so a record the dump prints
+    /// for a building this crate has closed is compared rather than lost.
+    #[test]
+    fn a_dumped_building_links_to_the_live_holder_of_its_number() {
+        let mut w = sim::world::World::new(16, 16);
+        w.fill_region(
+            sim::world::Terrain::Land,
+            sim::world::Cell::new(0, 0),
+            sim::world::Cell::new(15, 15),
+        );
+        let mut s = sim::Sim::new(sim::tuning::Tuning::RON, w, 2);
+        let ty = s.add_build_type(sim::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..sim::build::BuildType::default()
+        });
+        let at = |t: i32| sim::Pos::new(t * 192 + 96, t * 192 + 96);
+        let dead = s.init_build(1, ty, at(5), false);
+        s.close_building(dead, false);
+        let live = s.init_build(1, ty, at(20), false);
+        let o = i64::from(s.buildings[live].index);
+        assert_eq!(
+            i64::from(s.buildings[dead].index),
+            o,
+            "the number is reused"
+        );
+        assert_eq!(link_building(&s, 1, o), Some(live), "the live holder");
+        s.close_building(live, false);
+        assert_eq!(
+            link_building(&s, 1, o),
+            Some(dead),
+            "none live: the first that held it"
+        );
+        assert_eq!(link_building(&s, 0, o), None, "another owner's number");
+    }
+
     /// **The Great Lakes word's own window, walked by the shared
     /// instrument** (parked 527): the chain every widening past run196
     /// replays, from run53's start through twelve captures, and the
