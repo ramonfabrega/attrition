@@ -7248,3 +7248,25 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Mi
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GROUPDATA" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run294-greatlakes-departword.txt" | awk '/BEGIN FRAME/{f=$3} /GROUPDATA/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=19840&&v<20000)n++} print "blocks with a GROUPDATA: "n; exit !(n==160)}'
 # **The figures landed**: a `GUY` on every window block.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run294-greatlakes-departword.txt" | awk '/BEGIN FRAME/{f=$3} /GUY/{if(f!="")seen[f]=1} END{n=0; for(k in seen){v=k+0; if(v>=19840&&v<20000)n++} print "blocks with a GUY: "n; exit !(n==160)}'
+# ==== TAKEN 2026-09-26, **WHOLE** ====
+#
+# 360,666,357 bytes of dump and 23,361,216 of trace, **160 blocks
+# 19840..19999**, with a `GROUPDATA` and a `GUY` on every one. Launched
+# 19:00 through `viadriver.sh` with no human at the menu (the lane lock
+# was stale: pid 71074 gone), archived 19:14. `waitrun.sh` exited 0.
+# All five checks were green:
+# - 20,011 frames identical to run53, 0 differing;
+# - `MAP_STYLE 14`;
+# - the window whole;
+# - the pool and the figures on every block.
+#
+# **The readings, decided on the walk**
+# (`run294_s_departure_is_widened_whole`, `docs/GROUPS.md` §32):
+# - **R1 holds.**
+# - **R2 holds**: on 19893 the original's `1/40` still carries its group
+#   move (`MOVEORDER` + `GROUPORDER`, `orig` (44851, 22480)).
+# - **R3 holds**: on 19999 the original's `1/40` is eight frames ahead of
+#   ours as it stood, (5462, 30256) against (5254, 30259).
+# - **R4's killer fires**: the original's `1/40` passes (3732, 31380) on
+#   19903. The detour is its first leg: `do_move`'s TAKE reads the stack
+#   again after the line check, and ours did not (§32.3).
