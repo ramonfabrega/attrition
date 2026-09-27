@@ -1599,13 +1599,25 @@ never by the game. Whether entering it shrinks the list is the pass's.
 
 (954) **The ranked list's membership is prose** (940's Loop line): a row
 is a family written in `docs/CENSUS.md`, so a move out of it is a
-reading; a `rows:` table in `blind.rs` would let the sizes be computed.
+reading; a `rows:` table in `blind.rs` would let the sizes be computed. **934 adds**: rows 1, 2 and 5's "77" and the entered 69 + 8 coincided
+by count while the membership was a reading, and nearly passed for a
+measurement.
 
 (958) **A residue item whose unit is a captain reads the members' rows on
 the same block first** (945's Loop line, filed at its merge): the brief
 booked "refuses the whole first ring", which the dump had already killed;
 `0/18` and `0/19` agreed on the parting block while their captain did
 not, so the captain moved after its members were seated.
+
+(960) **A coverage `HIT` records its caller**, so a trace says whether the
+game or the instrument entered a function (934's Loop line, filed at its
+merge): `ENTERED_BY_THE_DLL_ONLY`'s eight are pinned apart by hand from
+940's scan; the stub has the return address on the stack and does not
+record it. 953's instrument.
+
+(961) **Every `@` stanza carries `issuesmatch.py`** (934's Loop line):
+`cmdsran.py` cannot see an `@` line, and run314's six refusals were found
+only by reading `INFO 17` by hand.
 
 
 
