@@ -62,8 +62,21 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
-(931) **The launch's `returning` clear has no test that fails without
-it** (918's shape).
+## Parked by item 947, 2026-09-27 — the Airbase's gather point's edges
+
+(976) **Action 3 at an Airbase**: `action_gather_point`'s own
+`add_gather_point`, then `action_flight` → `Group::action_launch_flight
+@006fbfb0`, an issuer family this crate does not carry
+(`issue_launch_flight`/`issue_launch_patrol`, the Airbase's right-click).
+A point after an action-3 one is appended to a patrol the strike has
+closed. Read, not built; a chapter's when a word names it.
+
+(977) **The bomber's search round the last point and the last-leg
+strike**: built from ORDERS §34.5, with no test and no capture (918's
+shape).
+
+(978) **A patrol past `PATROL_POINTS` (8)**: the original's arrays have
+no bound; this crate's stops at eight.
 
 ## Parked by item 955, 2026-09-27 — the gather point's last edges
 
@@ -1513,6 +1526,12 @@ clears the running game's log and rewrites the profile under it; the
 lock refuses only after the damage. 971 avoided it by waiting on the
 other lane's log. The shape: take the lock first, or refuse on a held
 lock before any write.
+
+(975) **A constant a document names can be banked by a unit test's
+fixture** (947's Loop line, filed at its merge): `UNBUILT` GOLDEN fell
+4 → 3 on `11520`, P1's x in 947's own tests, which the decimal clause
+reads from `#[cfg(test)]` code. Entry 52 §1's "not a build" again; the
+guard could skip test modules or say which constant fell and where.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
