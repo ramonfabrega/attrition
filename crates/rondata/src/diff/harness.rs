@@ -7496,6 +7496,58 @@ pub(crate) mod tests {
             "run54's ceiling fell: word {first_count}, sequence {first_part}; \
              the floor is {LONG_WORD_EAST_INDIES} on both"
         );
+        // **The pasture 23420 stocks** (item 919, `docs/AI.md` §79): who=1's
+        // Farm `1/2032`, placed on 23182 beside the unstarted site `1/2031`,
+        // is a pasture here as there, and its five animals are gaia's pigs
+        // — the original's five coins on 23420 are all odd. No dump prints
+        // an owner-9 object, so the draws are the original's side of this.
+        let pasture = built.sim.building_by_o(1, 2032).expect("1/2032");
+        assert_eq!(
+            built.sim.buildings[pasture].farm.farm_type & sim::farms::ANIMAL_FARM,
+            sim::farms::ANIMAL_FARM,
+            "1/2032 is a pasture"
+        );
+        let stock: Vec<(u8, Option<sim::tech::TypeId>)> = built
+            .sim
+            .units
+            .iter()
+            .filter(|u| u.alive() && u.farm_animal.is_some_and(|fa| fa.build == pasture))
+            .map(|u| (u.owner, u.ty.and_then(|t| built.sim.unit_types[t].tree)))
+            .collect();
+        assert_eq!(
+            stock,
+            [(9, Some(sim::farms::FARMPIG)); 5],
+            "its five animals: gaia's pigs"
+        );
+        // **A word at the trace's end is not a cap reading as agreement**
+        // (item 899's check, item 919's map): the trace holds a `FRAME`
+        // record for every frame 0..=24000, the harness walked and compared
+        // every one of 0..24000, and both sides spent the same draws.
+        let traced: std::collections::BTreeSet<i64> =
+            trace.frames.iter().map(|(n, _)| *n).collect();
+        let walked: Vec<i64> = built.frame_sites.iter().map(|(f, _)| *f).collect();
+        let (ours_draws, theirs_draws): (usize, usize) = built
+            .frame_sites
+            .iter()
+            .map(|(f, o)| (o.len(), trace.labels(*f).len()))
+            .fold((0, 0), |(a, b), (x, y)| (a + x, b + y));
+        eprintln!(
+            "run54: {} traced frames, {} walked, draws ours {ours_draws} theirs {theirs_draws}",
+            traced.len(),
+            walked.len()
+        );
+        if LONG_WORD_EAST_INDIES == last {
+            assert_eq!(
+                (last, traced.len(), walked.len()),
+                (24_000, 24_001, 24_000),
+                "run54's trace is 24,000 frames and every one is walked"
+            );
+            assert!(
+                (0..last).all(|n| traced.contains(&n)) && walked.iter().copied().eq(0..last),
+                "a frame of 0..24000 is missing from the trace or the walk"
+            );
+            assert_eq!(ours_draws, theirs_draws, "the draw totals");
+        }
     }
 
     /// **run64's animation clocks, frame for frame** — every `GUY`
