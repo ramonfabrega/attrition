@@ -12,50 +12,38 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-26, the commander (Opus 5.5), three landings since the sixteenth
-pass: **East Indies 20007 → 20782 (880); Great Lakes holds 20568 and is
-the lower map**, so 795 is the headline and is live. **Chapter
-twenty-five closed at 1466 (884).** 883 is next on the rules lane.*
+*2026-09-26, the commander (Opus 5.5), four landings since the sixteenth
+pass: **East Indies 20007 → 20782 (880); Great Lakes 20568 → 20800
+(795)**, so East Indies is the lower map again and 890 is the headline.
+**Chapter twenty-five closed at 1466 (884).** 883 is live on the rules
+lane.*
 
-- **884** entered the player's cancel (`action_unqueue`, PRODUCTION's
-  "The player's cancel"): run292, no falsifier fired, every staged value
-  on its predicted block; the word 855 → 1466, closed.
-- **880** landed §28's kept fields (GROUPS §30): `Group::kill` clears an
-  emptied pool record, and `Army::add_unit`'s group is its slot's record
-  (874 built). Every `GROUPDATA` `facing` and `order_num` on every East
-  Indies dump agrees to 20257; Great Lakes' walk parts on no record. The
-  value diff on 20002: slot 69's `order_num` 6 and `facing` 1 on both
-  sides (ours was 1/0), and `1/64`..`1/66`'s orders' `facing` 0 on both.
-- **882** built `Unit::come_out`'s push for every owner (GROUPS §31):
-  chapter twenty-four's standing rows 34 → 25, thirteen long pins closed
-  and none opened; 561 closed. What stands there is 646 and 887.
-- **Fable backlog: 11 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898).
+- **795**: `do_move`'s TAKE re-reads the path's top (GROUPS §32); on
+  20569 `1/40` stands blocked by `8/0` on both sides. **880**: the pool's
+  kept fields (GROUPS §30); on 20002 slot 69 reads `order_num` 6,
+  `facing` 1 on both sides. **884**: the player's cancel, closed at 1466.
+  **882**: `come_out`'s push for every owner (GROUPS §31); 561 closed.
+- **Fable backlog: 12 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w20782 of 24,000 · GreatLakes w20568 of 24,000
+Long captures: EastIndies w20782 of 24,000 · GreatLakes w20800 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · 883 next
-Endpoint 24001: EastIndies 37 off, 2 unlinked · GreatLakes 11 off, 0 unlinked
+Endpoint 24001: EastIndies 37 off, 2 unlinked · GreatLakes 14 off, 0 unlinked
 
-**Opener: 795 is live on the AI lane (ref 9158185d; run294 over
-19840..19999); merge it when it reports. 883 on the rules lane: the
-research arm under the emulator first, then run296. 890 (East Indies'
-20782) after 795. A brief names only the fenced modules; a capture is
-waited on with `tools/gamelog/waitrun.sh`; a journal's "for the Loop"
-line is filed at its merge. The count runs from f0b9d296: three landings.**
+**Opener: 883 is live on the rules lane (ref 9568c586); merge it when it
+reports. 890 on the AI lane (East Indies is lower): run289's 20782,
+widened, no mechanism. 899 (Great Lakes' 20800) after 890. A brief names
+only the fenced modules; a capture is waited on with
+`tools/gamelog/waitrun.sh`; a journal's "for the Loop" line is filed at
+its merge. The count runs from f0b9d296: four landings.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41): the golden word for the rules, the long word for the AI, and
-lower map first — Great Lakes (a guard reads this line). Take the first
+lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
-
-795. **Great Lakes' word is 20568** (785 moved it 17181 → 20568:
-    `Wonders::init_wonder` raises `wonder_mark`, AI §75). On 20568 ours 37
-    draws against 38 at index 31: the original's is `1/40`'s blocked step
-    by `8/0`. `1/40` is already off on 20500, run243's first block (the
-    gap, 796). Inside run243 ([20500, 20819)), widened. No mechanism.
 
 890. **East Indies' word is 20782** (880 moved it 20007 → 20782: the
     kept fields, GROUPS §30). On 20782 ours 8 draws against 1 at index 0:
@@ -63,6 +51,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     run289 holds the word, widened: who=1's `MAKE` list parts first on
     20782, and the only stock row parting before it is the standing
     `leftover[2:wealth]` (851). No mechanism.
+
+899. **Great Lakes' word is 20800** (795 moved it 20568 → 20800:
+    `do_move`'s TAKE, GROUPS §32). On block 20801 of run243 `1/60` stands
+    blocked by `1/64` in the original and walks here. **run243 has 18
+    blocks of runway past it** (it ends on 20818), and `1/60`'s world
+    route already differs below run294's first block, 19840: the parting
+    is in 17351..19839 (796, narrowed). No mechanism.
 
 883. **Chapter twenty-six: the research line — an issuer, no capture
     yet** (877's park). The player's `@queueup` of a tech on a building

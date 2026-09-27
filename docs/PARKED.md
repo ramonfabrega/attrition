@@ -85,7 +85,9 @@ capture measures it (chapter twenty-three measures the kill).
 
 ## Parked by item 865, 2026-09-26 — the pool's other arms
 
-(871) **Great Lakes' pool numbering is not walked**: 865's branch walked
+(871) **Great Lakes' pool numbering is not walked** (795 adds: the
+walkers' `group.id` 4 here against 5 there on 17662, read by equality
+only): 865's branch walked
 East Indies' dumps to block 8369; Great Lakes' are unread.
 
 (872) **`get_num`'s own prune**: it writes the pool list, and 865's
@@ -254,6 +256,10 @@ window). No search prices them: all 28,828 priced steps agree.
 ends on 17350 and run243, sized to the word, starts on 20500, where 59
 rows arrive parted (`1/40` among them). The draw stream agrees across the
 gap; the values under it are unread. A capture over it is ~4.5 h.
+**795 narrows it to 17351..19839**: run294 (19840..19999) holds the
+walkers' collision stamps agreeing, and `1/60`'s return plan (and `1/40`'s
+group number) is below it. A bisecting capture there, or a packet at the
+plan's frame, is the next reading (899's).
 
 (797) **`already_built`** (`Game::wonders`, `type_avail`) is dormant here.
 
@@ -1378,6 +1384,12 @@ twenty-four's pool agreed on its 901 press only because `Groups::process`'s
 cursor had re-speeded the squad on 897; the same call on chapter
 twenty-five's squad, 17 blocks old, exposed `get_open_slot`'s side effect
 (895). The quiet-field rule, applied to a side effect.
+
+(900) **A comparison that treats ours ≤ 0 as "unset" still compares when
+theirs is set** (795's Loop line, filed at its merge): `collide_frame` is
+compared only when ours is positive (the −1/0 start rule), so the gap's
+four collision stamps sat unread until a scratch trace printed ours. They
+were the item's cheapest evidence, and they agreed.
 
 
 
