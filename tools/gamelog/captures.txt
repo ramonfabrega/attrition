@@ -8188,3 +8188,52 @@ check: python3 tools/gamelog/cmdsran.py rontrace-run341.log 0:1 37:1 600:1 604:1
 # both `@` lines issued, and refused nothing.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==7)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; FIVE OF SEVEN ENTERED** ====
+#
+# 09:22:09 to 09:39 through `viadriver.sh`. DLL sha256 b451aeb6…3dca. Every
+# asserted chat line returned 1; both `@` lines issued, refusal 0. Entered:
+# `resource_cap_add` (606), `replace_gather` (700), `lumber_level` (604),
+# `Object::take_damage` (1167, the hoplites on the caravan) and
+# `close_caravan` (1458, the attack's kill). Not `new_danger`, and the
+# listing says why (00652e97..00652f41): on the caravan owner's own or an
+# ally's ground the call needs an attacker whose vtable +0x1c answers
+# non-zero — Build and Wall, never Unit (a folded `return 0`) — and the
+# hoplites hit it on London's ground. run342 adds a Tower.
+
+run: 342
+tag: economy-edges-tower
+item: 959
+why: the blind list's row 6, run341 plus a player-0 Tower beside the caravan's road — a building's arrow on a caravan on its owner's ground enters Caravans::new_danger
+# run341's script and one line: `add tower who=0 216,104` on 880, cell
+# (54,26), two to four tiles west of the road between London and the Small
+# City (the caravan walks x 219–223 there in run340 and run341). A Tower has
+# one base arrow and range 10 (`buildingrules.xml`), and `explore all` on
+# 890 lets its target pass `is_seen`. Its hit is `take_damage`'s ally arm
+# with a building attacker → `Caravans::new_danger` → a linked caravan whose
+# road has a node within 0x600 of the hit (or a search parked) →
+# `Caravan::restart_trade_route`. The number was reserved for 947 and moved
+# by the commander. The DLL of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 2400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 add small_city who=1 216,112
+cmd: 604 add lumber_mill who=0 24,164
+cmd: 606 add angkor_wat who=0 12,168
+cmd: 610 add caravan who=1 228,92
+cmd: 612 add hoplite who=0 200,100
+cmd: 650 @gatherpoint 0 3936 28128 0 2000
+cmd: 700 die 5,0
+cmd: 880 add tower who=0 216,104
+cmd: 890 explore all
+cmd: 900 @attack 0 6 1 6
+cmd: 2000 die 6,1
+check: python3 tools/gamelog/cmdsran.py rontrace-run342.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 880:1 890:1 2400:1
+# No golden twin, so `issuesmatch.py` has nothing to compare against (961):
+# both `@` lines issued, and refused nothing.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" functions 2>/dev/null | grep -E " (Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
