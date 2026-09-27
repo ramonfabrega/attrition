@@ -12,31 +12,32 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-27, the commander (Opus 5.5), nine landings since the sixteenth
+*2026-09-27, the commander (Opus 5.5), ten landings since the sixteenth
 pass: **Great Lakes 20568 → 24000, the trace's end (795, 899)**: its draw
 stream agrees on all 24,000 frames and its endpoint is 0 off; run80's 310
 standing value rows on 23960 all stood by 20818. **East Indies 20007 →
-23182 (880, 890)** is the only open long word; 904 is live on it.
+23420 (880, 890, 904)** is the only open long word; 919 is its item.
 **Chapters twenty-five to twenty-eight closed.***
 
-- **The mechanisms**, each landed with its value diff: 899 `is_attack`
+- **The mechanisms**, each landed with its value diff: 904 a rock cell
+  refuses a non-oil type (`blocked_tcoord`, AI §78); 899 `is_attack`
   and army mode (PATHFINDER §29); 890 the wonder count and the gather
   escrow (AI §77); 795 `do_move`'s TAKE (GROUPS §32); 880 the pool's kept
   fields (§30); 882 `come_out`'s push (§31); 884, 883, 901, 888 the
   player's cancel, research, upgrade and two-building command.
-- **Fable backlog: 17 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918).
+- **Fable backlog: 18 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w23182 of 24,000 · GreatLakes w24000 of 24,000
+Long captures: EastIndies w23420 of 24,000 · GreatLakes w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · 915 next
-Endpoint 24001: EastIndies 38 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
+Endpoint 24001: EastIndies 36 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: 904 is live on the AI lane (ref 602a3973); merge it when it
-reports. 915 on the rules lane: an Airbase under repeat trains a Fighter
+**Opener: 919 on the AI lane: East Indies' 23420, the draws' seeds
+first. 915 on the rules lane: an Airbase under repeat trains a Fighter
 and relaunches a landing, run308. A brief names only the fenced modules;
 a capture is waited on with `tools/gamelog/waitrun.sh`; a journal's "for
 the Loop" line is filed at its merge. The count runs from f0b9d296:
-nine landings.**
+ten landings.**
 
 ## The queue
 
@@ -46,13 +47,12 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-904. **East Indies' word is 23182** (890 moved it 20782 → 23182:
-    `get_cost`'s wonder count and the gather escrow, AI §77). On 23182
-    ours 49 draws against 48, parting at index 46:
-    `produce_building+0x1805` here against `make_stuff+0x63d`. run299
-    (23177..23433) holds it, widened. 890's reading (§77.6): slot 4's Farm
-    jitter at corner (184, 196), 4 clear sub-positions here against 3; a
-    hypothesis. A packet at 23181, inside the second `produce_building`.
+919. **East Indies' word is 23420** (904 moved it 23182 → 23420: a rock
+    cell refuses a non-oil type, AI §78). On 23420, block 23421 inside
+    run299, ours 7 draws against 31, parting at index 0: ours
+    `do_guard+0x8fb` against `Farms::add_animals+0x92` — the original
+    seats a pasture's five animals. No mechanism. **The seeds first**
+    (922): every roll on the frame is readable from its draw record.
 
 915. **Chapter twenty-nine: the repeat launch — an issuer, no capture
     yet** (876, 843). An Airbase with its repeat bit set trains a Fighter,

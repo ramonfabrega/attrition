@@ -37,6 +37,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 904, 2026-09-26 — the rock cell's edges
+
+(920) **`blocked_tcoord`'s mountain clause reads the tile's object, not
+the cell's `0x10`** (`00637023`): Rare against Mountain. No caller reads
+the code.
+
+(921) **The flat-gather `NoResources` arm has no diff of its own**
+(AI §78.5): built from `get_land`'s tile form beside the rock arm.
+
 ## Parked by item 888, 2026-09-27 — the selection's edges
 
 (916) **An unfinished member of a command's group**: the sort skips it as
@@ -1456,6 +1465,13 @@ without it** (888's Loop line, filed at its merge): two of
 `action_queue_up`'s three clauses (the sort and the pass order) could be
 deleted with only a golden widening failing. One mutation at booking
 finds that before a capture is the only guard.
+
+(922) **A draw-count parting inside a max-of-rolls loop asks for the
+seeds first** (904's Loop line, filed at its merge): the brief booked a
+packet for a value the trace already held. A draw record's seed makes
+every roll on the frame readable, so a jitter or spiral candidate one side
+skips is named by `% 100` arithmetic against ours' sequence, with no
+instrument.
 
 
 
