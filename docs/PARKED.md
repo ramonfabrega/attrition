@@ -62,6 +62,15 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 979, 2026-09-27 — the second pair's standing rows
+
+(990) **Great Lakes' pools 64 and 66 on the second pair**: the script's
+library and city in the original's groups, `2005` and `2000` there. No
+draw reads them.
+
+(991) **The tech stamps on both second-pair games** (AI §33.4's named
+state): no draw reads them.
+
 ## Parked by item 972, 2026-09-27 — the held-out map
 
 (988) **run348 is a `cover=1` trace on a map no traced run had touched**:
@@ -1575,6 +1584,14 @@ against one would.
 (972's Loop line): every `longtrace.sh` capture rewrites it, but a lane
 that reads the profile without calling `mapstyle.py` inherits the last
 map. 974's family.
+
+(992) **No walk asserts that an installed frame word left ours alone**
+(979's Loop lines, filed at its merge): `correction_audit` counts the
+installs that moved the seed and nothing reads it. The harness borrowed
+an Easiest sibling's frame words over the Toughest games on a
+setup-stream match; `diff::setup::same_lobby` gates the borrow on an
+equal `GAMEINFO` now, and every later pair varies one setting by design.
+An assertion there would have caught it at 971's first walk.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

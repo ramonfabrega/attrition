@@ -19,23 +19,24 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **3**): 947 closed chapter
-  thirty-two at 2360. 971 took the second pair and built
-  `think_spellcaster`'s coin: **East Indies 0 → 10, Great Lakes 0 → 1**.
-  972 measured the held-out map once (run348): **1 and 0**, parting on
-  frame 1, so DECISIONS 53 §4 has the next pass book a third scored map.
+- **Since the pass** (count from 0b401602: **4**): 947 closed chapter
+  thirty-two; 971 took the second pair and built its first coin; 972
+  measured the held-out map once, **1 and 0**, so the next pass books a
+  third scored map; 979 found the harness borrowing an Easiest game's
+  frame words and gated it on `GAMEINFO`: **East Indies 10 → 1576, Great
+  Lakes 1 → 3776**. 965 is live.
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 21 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987).
+- **Fable backlog: 22 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w10 of 18,140 · GreatLakes w1 of 5,930
+Second pair: EastIndies w1576 of 18,140 · GreatLakes w3776 of 5,930
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · 965 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 979 on the AI lane (Great Lakes'
-frame 1, the second pair's word) and 965 on the rules lane; after 965
+**Opener: the commander, two lanes — 989 on the AI lane (East Indies'
+1576, the second pair's lower word) and 965 on the rules lane; after 965
 the rules lane takes the next chapter without a capture (GOLDEN §13).
 The count runs from 0b401602; the eighteenth pass at twenty.**
 
@@ -43,17 +44,16 @@ The count runs from 0b401602; the eighteenth pass at twenty.**
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41, 53): the golden word for the rules, the newest pair's word for the AI,
-lower map first — Great Lakes (a guard reads this line). Take the first
+lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-979. **Great Lakes' second word: frame 1, ours 54 draws against 85**
-    (971). Parting at index 44: ours `Unit::do_non_flat_gather+0x54b`,
-    theirs `Leader::produce_building+0xc99`, run347 at Toughest. Widened
-    on run350 (`run350_s_word_frame_is_widened_whole`): who=1's script at
-    step 11 here against 6 there, timber 92 against 28, a tech stamped on
-    frame 1 — 971's reading, a hypothesis. East Indies' 10 follows (197
-    against 188 at index 183, inside run349).
+989. **East Indies' second word: frame 1576, ours 272 draws against 216**
+    (979). Parting at index 192: ours `Build::find_gather_tiles+0x10a`,
+    theirs `Animal::think_bird+0x82`, run346 at Toughest; widened on
+    run352. Great Lakes' 3776 parts on the same two sites (223 against
+    217 at index 180, widened on run355). That the two are one cause is
+    979's reading, a hypothesis.
 
 965. **The blind list's row 6, its last gate** (959): `new_danger` and
     `restart_trade_route` are one gate in `Object::take_damage`
