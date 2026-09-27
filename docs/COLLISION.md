@@ -2421,9 +2421,12 @@ three clauses rests on `get_action@00608450` read against the dump's own
   argument the call passes is a **live register the decompiler loses**
   (`0x61e375`, `push ecx` where `ecx` last held a terrain word), so which
   players it searches is not settled and the listing does not settle it
-  either. The only call site that reaches it is `come_out`'s
-  `block_radius == 0` arm, and no shipped type any capture trains has a
-  zero `block_radius` — a Citizen's is 1. *Capture:* a scenario that
+  either. ~~The only call site that reaches it is `come_out`'s
+  `block_radius == 0` arm~~: `come_out`'s two re-seats reach it too, and
+  are built as `orders::Coll::All` with the seeker exempt, which no
+  capture tests (item 945, `docs/PRODUCTION.md` "The gather point"). No
+  shipped type any capture trains has a zero `block_radius`; a Citizen's
+  is 1. *Capture:* a scenario that
   trains one of the ten `BLOCK_RADIUS 0` types beside a crowded trainer.
 
 ## 11. The soft arm asks the army where the original asks the group (item 489, 2026-09-22)

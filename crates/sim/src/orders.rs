@@ -901,11 +901,15 @@ pub enum Coll {
     /// re-seat at a building point is the call site (`619360`,
     /// `docs/PRODUCTION.md` "The gather point").
     ///
-    /// SEAM: `FILTER_ALL` skips `Search::valid_filter`, so the listing
-    /// does not exempt the seeker; which players the query searches is a
-    /// lost register. This crate exempts the seeker, and run312's Citizen
-    /// `0/10` is what holds it: the re-seat's first candidate is the point
-    /// it already stands on, and it stays there on 760.
+    /// SEAM: `FILTER_ALL` skips `Search::valid_filter`, which is where the
+    /// pairwise path exempts `(not_o, not_who)`, and which players the query
+    /// searches is a lost register (`docs/COLLISION.md` §5.2.1). This crate
+    /// exempts the seeker, as an assumption **no capture tests**: on run312
+    /// neither re-seat's winning candidate is within reach of where the
+    /// unit stands (the Bowmen 150 units off, the Citizen 48), and the
+    /// mutation that counts the seeker fails nothing. Its killer is a lone
+    /// unit trained under a ground point, whose lone-arm sweep's first
+    /// candidate is the point it already stands on.
     All,
 }
 

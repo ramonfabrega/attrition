@@ -278,7 +278,7 @@ impl Sim {
     ///   candidate is (3384, 14232), where the original has it on 1060;
     /// - the Citizen `0/10`, whose point is on the Woodcutter. The first
     ///   re-seat puts it at (3576, 29928), and the lone arm's puts it back
-    ///   on its exit point (3576, 29976), where it stands there on 760.
+    ///   on its exit point (3576, 29976), where it stands on 760.
     fn gather_reseat(&mut self, captain: usize, b: usize, bearing: Angle) {
         let Some(t) = self.buildings[b].ty else {
             return;
