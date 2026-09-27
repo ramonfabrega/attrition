@@ -82,11 +82,19 @@ pub const TRACES: &[&str] = &[
 /// `Setup::large_city_buildings` off), **228** with item 928's three
 /// citations (`CommandManager::issue_gather_point`, `CommandPackage::
 /// process_gather_point`, `Group::action_gather_point`: an issuer chapter's,
-/// which `cover=1` refuses, as run314 found). `docs/CENSUS.md`'s "The blind
-/// list, ranked" groups it by the staging that would enter each family.
+/// which `cover=1` refuses, as run314 found), **231** with item 955's three
+/// (`BuildData::num_gather`, `BuildData::get_first_gather` and the gather
+/// list's `LinkListBase::add`, `docs/GOLDEN.md` §40: no pinned trace carries
+/// a gather point). `docs/CENSUS.md`'s "The blind list, ranked" groups it by
+/// the staging that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90, 0x0047_0e50, 0x0047_11e0,
+    0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90,
+    // Item 955, `docs/GOLDEN.md` §40: `BuildData::num_gather@0046f0a0`,
+    // `BuildData::get_first_gather@0046f140` and
+    // `LinkListBase<GatherPoint_*,…>::add@00470c60`.
+    0x0046_f0a0, 0x0046_f140, 0x0047_0c60,
+    0x0047_0e50, 0x0047_11e0,
     0x0047_2410, 0x0047_80c0, 0x0047_da40, 0x0047_fa40, 0x0047_fd80, 0x0047_fff0,
     0x0048_2720, 0x0048_2cf0, 0x0048_2dd0, 0x0048_41f0, 0x0048_45c0, 0x0048_46f0,
     0x0048_4820, 0x0048_5140, 0x0048_5a60, 0x0048_6ba0, 0x0048_89a0, 0x0054_cea0,
