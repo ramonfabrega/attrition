@@ -37,6 +37,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 883, 2026-09-26 — the research line's edges
+
+(902) **run296's cached `mylos` row on 1023** is a second witness of
+VISION's open question ("`mylos` is a cached value, and this simulation
+computes it fresh"), on a player's own research. Names no score.
+
 ## Parked by item 884, 2026-09-26 — the cancel line's edges
 
 (895) **`Groups::get_open_slot`'s `Group::get_num_cap` normalize**: run292
@@ -72,7 +78,8 @@ answer, and its journal). The AI lane's: `group.rs`'s pool record.
 
 (888) **A command group of two or more buildings is not seated**: a
 `SEAM:` on `Sim::push_command_buildings` (GROUPS §31). No capture
-selects more than one.
+selects more than one. **883 adds**: the emulator's two-member rows for a
+research are unstaged for this reason. The pool lane's.
 
 ## Parked by item 877, 2026-09-26 — the queue line's edges
 
@@ -1390,6 +1397,12 @@ theirs is set** (795's Loop line, filed at its merge): `collide_frame` is
 compared only when ours is positive (the −1/0 start rule), so the gap's
 four collision stamps sat unread until a scratch trace printed ours. They
 were the item's cheapest evidence, and they agreed.
+
+(903) **A staging lists, per alternative reading, the gates between it and
+the block** (883's Loop line, filed at its merge): falsifier 2 offered
+"two entries" for `num`, but `researching` refuses the second lay whatever
+`num` does, so the mutation that reads `num` fails nothing. A falsifier's
+reading can be foreclosed by another gate on the same block.
 
 
 
