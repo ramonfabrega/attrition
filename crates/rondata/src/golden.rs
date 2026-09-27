@@ -1354,6 +1354,10 @@ mod tests {
         // technology at who=0's Library, and an `@unqueue` of one, the
         // research line (item 883, `docs/GOLDEN.md` §35).
         ("chapter26.cmd", &[]),
+        // Chapter twenty-seven: a unit upgrade through the same `@queueup`,
+        // the Classical age and The Art of War staged by `age` and
+        // `military` (item 901, `docs/GOLDEN.md` §36).
+        ("chapter27.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),

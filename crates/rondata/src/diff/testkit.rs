@@ -3659,6 +3659,29 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_SIX: i64 = 1492;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_SIX: (i64, i64) = (605, 1493);
 
+/// **Chapter twenty-seven's golden word** — the upgrade line: a unit
+/// upgrade through the player's command at who=0's Barracks, and the
+/// finish that converts the line (`docs/GOLDEN.md` §36, item 901, run300).
+/// **1102, open, on the first walk**: on 922 `Leader::gain_tech`'s queue
+/// loop re-targets the queued Slingers entry to Javelineers in place
+/// (`queue[0].type`, ours 82 and theirs 83), which this crate does not do,
+/// so the entry trains a Slinger squad here on 1102 and the draws part
+/// there, the births' `Guy::init`.
+///
+/// **1560, closed** (the queue loop built in the same item,
+/// `Sim::retarget_queued_to`, `docs/TECH.md` "The queue loop"): the entry
+/// is re-targeted on 922, both squads are Javelineers on the original's
+/// blocks, and the stream agrees to run300's end.
+///
+/// **The delta**, this constant's: +458, 1102 → 1560, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_SEVEN: i64 = 1560;
+
+/// `chapter_twenty_seven_s_word_frame_is_widened_whole`'s window: ~~run300
+/// from its first block to two past the first walk's word, (605, 1105)~~
+/// **run300 whole**, (605, 1561), once the word closed. Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_TWENTY_SEVEN: (i64, i64) = (605, 1561);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5489,6 +5512,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_six_s_word_frame_is_widened_whole"),
         883,
         Some(WIDENING_CHAPTER_TWENTY_SIX),
+    ),
+    // Item 901: run300, chapter twenty-seven's first walk, open at 1102:
+    // the Slingers entry the original re-targets to Javelineers on 922
+    // trained a Slinger squad here; the queue loop built in the same item
+    // closed it at 1560. The widening is run300 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_TWENTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_TWENTY_SEVEN,
+        Some("chapter_twenty_seven_s_word_frame_is_widened_whole"),
+        901,
+        Some(WIDENING_CHAPTER_TWENTY_SEVEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

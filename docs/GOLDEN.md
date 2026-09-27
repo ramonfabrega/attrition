@@ -1382,6 +1382,7 @@ below without a run take their number at booking (the eleventh pass).
 | 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish; word ~~855, open~~, closed at 1560 (item 877: the queue commands entered); the squads' `group` and the pool's lists agree (item 882: `come_out`'s push and the command's building group, §33)** |
 | 292 | twenty-five, the cancel line | `[605, 1466)` | the player's cancel through the DLL's new `@unqueue` on a Barracks `0/2007`: slot 0 of a Hoplite run with the head in progress (700), slot 0 of `[132*, 170]` (760), a single cancel on an infinite queue (840, after `@buildmask` 0x40 on 800), and −1 on `[132*, 170]` (1000); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the commands' entries on run285's start (§34) — **run 2026-09-26 (item 884), 359 MB, 1,099 s; no falsifier fired, every value on its predicted block: arm a removed the run's second (+53/+41) on 702 and kept the head at 8100; arm b the head (+51/+38) on 762; arm c cleared the bit and removed nothing on 842; no re-queue at the Bowmen's finish on 965; −1 removed the last (+46/+56) on 1002; no cancel seats a slot; word ~~855, open~~, closed at 1466 (item 884: the cancel entered)** |
 | 296 | twenty-six, the research line | `[605, 1492)` | a technology through the player's `@queueup` on who=0's Library `0/2005`: The Art of War with `num` 2 on the idle Library (620), again while it researches (640), Written Word on the busy Library (650), The Art of War held (850), Barter behind Written Word (860), Hoplites at the Barracks (870), a cancel of the re-priced Barter (1040) and Barter again (1060); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the command's entry on run292's start (§35) — **run 2026-09-26 (item 883), 365 MB, 1,120 s; no falsifier fired, every value on its predicted block: one entry and 120 food on 622, nothing on the second press (642) or the held one (852), Written Word behind the busy head on 652, The Art of War out on 822 (discovered 2), Barter re-priced to 54/54 on 1023 (discovered 3: Boadicea counted), +54/+54 on the cancel (1042), 54/54 again on 1062, Barter out on 1242; word 1492, closed on the first walk (a research spends no draw) and after the build, whose value rows it closed (item 883: the research arm entered)** |
+| 300 | twenty-seven, the upgrade line | `[605, 1560)` | a unit upgrade through `@queueup` at who=0's Barracks, staged Classical (§36) |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -5594,3 +5595,199 @@ the four first seats' record `o` (parked 887).
 The last is a falsifier the staging could not split: 2's "two entries"
 reading is foreclosed by the gate for one member, so `num` is backed by
 the emulator's `num 0` row alone.
+
+## 36. Chapter twenty-seven — the upgrade line: a unit upgrade through the player's command, pressed again, the old type queued behind it, the finish that converts both, and the two presses after (item 901)
+
+**Premise.** A unit type whose availability bit is clear is a research:
+`Group::action_queue_up@006fdbb0` takes its research arm behind
+`LeaderData::researching@006db510` (§35), `Build::queue_up@00620f40`
+prices it through `TypeData::get_cost@00664090`'s research arm (the
+premiums, the refit over the line, the military discount; `docs/AI.md`
+§56) and lays it at the building its `WHERE` names. Its finish,
+`Build::finished@00628490` → `Leader::gain_tech@006dcb60(t, x, y, 1, 1)`,
+sets the bit and runs the **unit arm** (`docs/TECH.md` step 7): every
+standing unit of the line is `set_type`d; **every queued entry of the line
+is re-targeted in place** — `BuildQueue::set_queue@006309f0(i, t, NULL,
+1)`, the type written, the progress and the recorded price kept, nothing
+paid or refunded; and the predecessors get the `tech` and `obs_flags`
+bits, so the old type can no longer be queued and the new one is a train
+job. 883 built the command's arm and left it unstaged; the queue loop is
+read here and **not built** in this crate (`Sim::upgrade_units_to`'s
+`SEAM:` names only the carrier arm beside it). Each clause is a claim, and
+the cast puts one press or one finish on each.
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`'s
+machine, out of git): `gain_tech`'s unit arm, `6dd999`..`6e05d9`, entered
+with a synthesized frame (`t`, `t × 4`, `upgrade_units`, the building
+counter at 2000) on a synthesized player — units on `0xc0aec0`'s table,
+buildings from 2000 with their `BuildData` and queues, unit type records
+carrying `from`, `jump` and `uber_size`. The three loops run as shipped,
+with the real `BuildQueueData::get_queue@00630670` and `set_queue`;
+`get_graft` (identity: the Slinger line has no graft for the Nubians),
+`Objects::operator[]`, `Leader::track_queued@006e0f30`, `BitMask::set`,
+`total_damage` and every virtual slot are stubbed and recorded. The
+listing was read first; the building counter is `0x44(%ebp)`, written 2000
+at `6dd62f` on every path that reaches the arm.
+
+| the player, the gain | what is written |
+| --- | --- |
+| (a) Phalanx; two Hoplites (a captain, a member), a Bowmen, a Phalanx, an inactive Hoplites | `set_type(Phalanx, 0)` on both active Hoplites; `tech` and `obs` bits on Hoplites |
+| (b) Phalanx; Barracks `[Phalanx at 10000, Hoplites at 0 51/38]`, a second `[Hoplites at 3000 51/38, Bowmen]`, a Library `[tech]` | both Hoplites entries → Phalanx, **counter and pairs kept**; `track_queued(Hoplites, −1)`, `(Phalanx, +1)` each; the research entry, the Bowmen and the tech left |
+| (c) Phalanx; the same upgrade queued at a second Barracks, and Pikemen behind it | nothing re-targeted: an entry of `t` itself, and one above it, are left |
+| (d) the building 2000 inactive, holding Hoplites | its entry left; 2001's re-targeted |
+| (e) `upgrade_units` 0 | no conversion, no re-target; the bits |
+| (f) Pikemen; Hoplites and Phalanx standing and queued | both converted and both re-targeted; **the Hoplites entry, a match by the `jump` chain, calls `track_queued(Pikemen, −1)`** — the walker, not the entry's type (`6ddcf4`, `push esi`, and the decompile's `TVar16` agree) |
+
+**What the emulator could not reach**: the price and the research time
+(`get_cost`, `train_time`), `finished`'s own path, `set_type`'s body (its
+guys, `docs/TECH.md` "The conversion, landed"), the console's feedback,
+and the object loop's carrier arm (`is(0x134)`, `is(0x15f)`).
+
+**The writers and readers**, by offset and by address in every spelling
+(823, 869). A queue entry's `type` (`QueueItem +0x4`) is written by
+`set_queue` — from `queue_up` (the price, counter 0) and from `gain_tech`
+(no price, counter kept) — and by `un_queue`'s shift. `num_queued`
+(`LeaderData +0x5a22`, also spelt as the absolute `0xe3fdb2` plus the leader's stride) is written by
+`queue_up`, `unqueue`, `clean_queue`, `Wall::activate`, `close`,
+`increment_stats` and `decrement_stats`, `Unit::process`,
+`Unit::action_unqueue`, `Group::action_spell`, the AI's
+`create_buildings`, `Leader::init`, and `track_queued`, whose two callers
+are `Unit::close` and `gain_tech`; in this window, `queue_up`, the
+finishes' `unqueue` and `gain_tech`. No key prints it at `LEADERS=2`;
+the train price at 1012 reads it (the ramp's count). `obs_flags`
+(`+0x6cf4`): `gain_tech`, `reset_obs_flags`, `Leader::init`, `close`,
+`ConsoleWin::run_cmd` and `Options::exec`; no key prints it, and the
+press at 1000 reads it. **`BuildData::can_make@0062db10` asks
+`researching` for a technology only**: a unit research is refused there
+only by `type_avail`, so the second press (642) is the command's gate
+alone — unlike §35's, which `can_make` also refused.
+
+**The cast** is chapter thirteen's to 619 with a Slinger squad beside it
+(`616 add slinger who=0 12,86`, `0/10`), and who=0 (Nubian) staged into
+the Classical age and The Art of War **by two cheats before the window**
+— `600 age who=0 2` and `602 military who=0 1`, each a whole `gain_tech`
+(`docs/INPUT.md` §11.11); the line is Slingers (82) → Javelineers (83),
+priced in food and timber, which the Classical age leaves at 254 and 240.
+The Hoplites `0/7` are a line the gain does not touch. **Lines**: `620
+@queueup 0 83 2 2007`; `640 @queueup 0 83 1 2007`; `650 @queueup 0 82 1
+2007`; `1000 @queueup 0 82 1 2007`; `1010 @queueup 0 83 1 2007`.
+
+**The staging, walked by this crate through the command's entry**
+(`input::group_queue_up`, on run296's start, which is this game to 599;
+the queue loop by a prototype for the values it writes; run301 was not
+used). **The staging is walked before any word** (828): 605 reads
+ages 2, epochs 1, `epoch[0]` 1, discovered 8, knowledge and metal 100.
+Then: **617** `0/10`; **622** `[83 at 100]` 80 food 80 timber, once, food
+174 timber 161; **642** unchanged; **652** `[83, 82 at 0]`, 46/46; **922**
+the gain, discovered 9, `0/10`..`0/12` Javelineers, `[83 at 100]` with
+46/46 kept; **1002** unchanged; **1012** `[83, 83 at 0]` at 46/46;
+**1111** a Javelineers squad out; **1307** the second.
+
+**The gates between each reading and its block** (903): at 622 "`num`
+read" needs a second 80/80, and food 174 and timber 161 pay it; at 642
+"no gate" needs the same, 176 and 162; at 1002 "obsolete not asked" needs
+46/46 and 162/140 pay it; at 1012 the research reading's 80/80 is paid by
+163/141. **The lineage arm of `researching` cannot be split here**: a type
+that `is` Javelineers with its bit clear is Elite Javelineers, which
+`type_avail` refuses at Classical whatever the gate does.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over **`[605, 1560)`**: 955 blocks, **253 of
+runway** past 1307. `BUILDS=7` prints every slot's `type`, `job_counter`,
+`cost[]` and `good[]`; `LEADERS=2` the counters and the buckets; the bits
+are printed only at 9, and the presses at 1000 and 1010 read them.
+
+**The premise's killer, and its writers** (§3, point 5): `0/2007`'s
+`BUILDQUEUE` and who=0's `bucket`s on 622, 642, 652, 922, 1002 and 1012,
+and `0/10`..`0/12`'s `type` on 922. The queue's writers in the window are
+`queue_up`, the finishes' `unqueue` and `gain_tech`'s `set_queue`; the
+units' type, `set_type` alone. **The loops**: the passes, two; the
+members, one; `gain_tech`'s objects to who=0's unit mark, its buildings
+2000 to the building mark, each queue to its `queued`.
+
+**What would falsify it, and where each could first fire.**
+0. **The staging** (605): ages 2, epochs 1, `epoch[0]` 1, discovered 8,
+   knowledge and metal 100 (this crate); anything else is the cheats', and
+   the chapter reads its arms from there.
+1. **The issues do not reach the pump.** An `INFO 17` with a refusal; or
+   no `process_queue_up` with type 83 num 2 on 621, 83 on 641, 82 on 651,
+   82 on 1001 and 83 on 1011.
+2. **Arm a** (622): `[83 at 100]` at `0/2007`, 80/80 once (the reading);
+   two entries and 160/160 (`num` read); the entry at the Library `0/2005`
+   (a research forwarded as a technology is); none.
+3. **Arm b, the gate** (642): unchanged (the reading); a second 83 at
+   80/80 (no `researching` in the command).
+4. **Arm c** (652): `[83, 82 at 0]` and 46/46 (the reading); refused (a
+   train job of the line refused while its upgrade researches).
+5. **Arm d, the finish** (922): the research entry gone; `0/10`..`0/12`
+   type 83; **the Slingers entry `[83]` with its `job_counter` and its
+   46/46 kept, buckets untouched** (the reading); `[82]` left (no queue
+   loop, this crate before its build); the entry gone and +46/+46 (a
+   refund); `[83]` at a new price (re-queued).
+6. **The conversion's reach** (922): `0/7`..`0/9` still Hoplites (the
+   reading); converted (a match by anything but the line).
+7. **Arm e** (1002): unchanged, 46/46 unspent (the reading, `obs_flags`
+   asked); `[83, 82]` paid 46/46 (the old type still trainable).
+8. **Arm f** (1012): a second `[83]` at the train price 46/46 (the
+   reading); 80/80 (a research again); nothing (the research arm's gate on
+   a type now held).
+9. **The births**: a Javelineers squad on 1111 (the reading) or a Slinger
+   squad on 1103 (5's second reading); the second Javelineers on 1307.
+
+Falsifiers 2, 3, 5, 7 and 8 test the claim's own unit — one entry or one
+unit on the block its command or finish is processed (711) — and each
+splits the readings (789).
+
+**Run 2026-09-26 as run300 (item 901)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run296 to 616. **No falsifier
+fired, and every value the staging walk named is on its block**: 605's
+staging (0); the issues on 621, 641, 651, 1001 and 1011 with refusal 0
+(1); `[83 at 100]` and 80/80 once (2); nothing on the second press, 176
+and 162 unspent (3); the Slingers behind at 46/46 (4); on 922 the research
+out and **the Slingers entry `[83 at 0]` with its 46/46 kept and nothing
+refunded** (5), `0/10`..`0/12` Javelineers and the Hoplites untouched
+(6); nothing on the Slingers after the gain (7); a second Javelineers at
+the train price 46/46 (8); the squads on 1111 and 1307 (9).
+
+**Where it should part.** The floor is measured on this crate as it
+stands, with no queue loop: **922**, `0/2007`'s `queue[1].type` (ours 82,
+theirs 83 by the reading), then 1103's Slinger squad against 1111's
+Javelineers — the draw stream's first parting, the births' `Guy::init`.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_TWENTY_SEVEN` = 1102,
+open, on the first walk**: the Slingers entry the original re-targeted
+trains a Slinger squad here on 1102, the births' draws. The floor is the
+widening's over (605, 1105) in `WIDENINGS`, with seven windows in the
+coverage driver. **The first parting's field list**, 922: `0/2007`'s
+`queue[0].type`, ours 82 and theirs 83 — the slot is 0 once the finish's
+`unqueue` has removed the research, which both sides run; the only other
+writer of the field on 922 is `gain_tech`'s `set_queue`, and only the
+original runs it. Then 1103: `0/13`..`0/15` this crate's alone, and
+`queued` 1 against 2. The births' `form` are `Unit::init`'s (parked
+646). The pool: the first seat's record `o` on 622 (parked 887), and the
+extra squad's seat on 1103.
+
+**The queue loop entered: `GOLDEN_WORD_CHAPTER_TWENTY_SEVEN` = 1560,
+closed** (item 901, `docs/TECH.md` "The queue loop",
+`Sim::retarget_queued_to`). **The value diff, both sides**, on the blocks
+the reading named (ours before the build in brackets): **922**
+`0/2007`'s `[83 at 0]` 46/46 (`[82 at 0]` 46/46), food 155 and timber 135
+both; **1103** `queued` 2 (1) and no squad (`0/13`..`0/15` Slingers);
+**1111** `0/13`..`0/15` type 83, `myhits` 95 (none); **1307**
+`0/16`..`0/18` type 83. Every other queue, bucket, counter and unit
+type in run300 agrees on every block. **What stands, 21 rows**,
+all `Unit::init@00612100`'s (parked 646): the births' `form` (611, 615,
+617, 1111, 1307) and the followers' `orders_x/y`. **The pool**: the first
+seats' record `o` on 622 and 1111 (parked 887).
+
+**Mutations**, each restored from git and `touch`ed, on the built tree:
+
+| mutation | fails |
+| --- | --- |
+| the queue loop dropped | the unit test; the widening on **922**, `queue[0].type` 82 against 83; the word falls to 1102 |
+| a refund on the re-target | the unit test; the widening on **922**, food 201 against 155 and timber 181 against 135 |
+| the progress reset | the unit test alone: the entry sat at 0 behind the research |
+| the `jump` match decrementing the entry's type | the unit test alone: Slingers → Javelineers is a `from` match |
+
+The last two are the emulator's rows b and f, and no capture on disk
+splits them.

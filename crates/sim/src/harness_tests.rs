@@ -1404,6 +1404,104 @@ fn a_gained_unit_type_converts_the_line_below_it_and_carries_the_damage() {
     assert!(sim.units[a].guys.iter().all(|g| g.end_time == 0));
 }
 
+/// **`gain_tech`'s queue loop** (`docs/TECH.md` "The queue loop";
+/// `docs/GOLDEN.md` §36, run300's 922): a gained unit type re-targets every
+/// queued entry of its line in place — the type written, the progress and
+/// the recorded price kept, nothing paid or refunded — and leaves an entry
+/// of itself and one outside the line. A match by `from` moves the queued
+/// count from the old type to the new; a match by the `jump` chain
+/// decrements the new type instead, the original's overwritten register.
+#[test]
+fn a_gained_unit_type_retargets_the_queued_entries_of_its_line() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let free = UnitTraits {
+        free: true,
+        ..UnitTraits::default()
+    };
+    let jumpable = UnitTraits {
+        jumpable: true,
+        ..UnitTraits::default()
+    };
+    let mut tree = TechTree::new();
+    let barracks_t = tree.add(TypeDef::building("Barracks"));
+    let slingers_t = tree.add(TypeDef::unit("Slingers", free).at(barracks_t));
+    let javelins_t = tree.add(
+        TypeDef::unit("Javelineers", jumpable)
+            .at(barracks_t)
+            .from(slingers_t),
+    );
+    let elite_t = tree.add(
+        TypeDef::unit("Elite Javelineers", jumpable)
+            .at(barracks_t)
+            .from(javelins_t),
+    );
+    let bowmen_t = tree.add(TypeDef::unit("Bowmen", free).at(barracks_t));
+    tree.types[slingers_t].jump = Some(javelins_t);
+    tree.types[javelins_t].jump = Some(elite_t);
+
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    let rec = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            tree: Some(t),
+            ..citizen_type()
+        })
+    };
+    let slingers = rec(&mut sim, slingers_t);
+    let javelins = rec(&mut sim, javelins_t);
+    let elite = rec(&mut sim, elite_t);
+    let bowmen = rec(&mut sim, bowmen_t);
+    let barracks = sim.add_build_type(crate::build::BuildType {
+        x_size: 3,
+        y_size: 3,
+        hits: 400,
+        ..crate::build::BuildType::default()
+    });
+    let b = sim.init_build(0, barracks, Pos::new(8 * 192, 8 * 192), false);
+    sim.activate(b, false, false);
+    let mut paid = [0; economy::RESOURCES];
+    paid[economy::Resource::Food.index()] = 46;
+    paid[economy::Resource::Timber.index()] = 46;
+    for ty in [javelins, slingers, bowmen] {
+        sim.buildings[b].queue.push(ty, &paid);
+        sim.muster[0].queued_by_type[ty] += 1;
+    }
+    sim.buildings[b].queue.items[1].job_counter = 3_000;
+    let bucket = sim.ledgers[0].bucket;
+
+    sim.gain_tech(0, javelins_t);
+
+    let q = &sim.buildings[b].queue.items;
+    assert_eq!(q[0].ty, javelins, "an entry of the type itself is left");
+    assert_eq!(q[1].ty, javelins, "the old type's entry is re-targeted");
+    assert_eq!(q[1].job_counter, 3_000, "its progress kept");
+    assert_eq!(q[1].cost[..2], [46, 46], "its recorded price kept");
+    assert_eq!(q[2].ty, bowmen, "outside the line: left");
+    assert_eq!(sim.ledgers[0].bucket, bucket, "nothing paid or refunded");
+    assert_eq!(sim.muster[0].queued_by_type[slingers], 0);
+    assert_eq!(sim.muster[0].queued_by_type[javelins], 2);
+
+    // A match by the `jump` chain: a Slingers entry when Elite Javelineers
+    // arrive. The decrement names the walker — the new type — so the
+    // Slingers' count is left where it was.
+    sim.buildings[b].queue.push(slingers, &paid);
+    sim.muster[0].queued_by_type[slingers] += 1;
+    sim.gain_tech(0, elite_t);
+    let q = &sim.buildings[b].queue.items;
+    assert!(q.iter().filter(|i| i.ty != bowmen).all(|i| i.ty == elite));
+    assert_eq!(
+        sim.muster[0].queued_by_type[slingers], 1,
+        "the jump match decrements the new type, not the entry's"
+    );
+    assert_eq!(
+        sim.muster[0].queued_by_type[elite], 2,
+        "the two Javelineers by `from`, and the jump match's -1 and +1 both on itself"
+    );
+    assert_eq!(sim.muster[0].queued_by_type[javelins], 0);
+}
+
 #[test]
 fn the_tree_gates_the_queue_and_research_cascades_through_it() {
     // `docs/TECH.md`, end to end: a tree with Classical (two library techs'

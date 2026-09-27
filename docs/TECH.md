@@ -576,7 +576,7 @@ cascade below call it with `upgrade_units = 1`; the cascades pass
    place (`Unit::set_type`, with a squad-size shrink when the new `uber_size`
    is smaller — the original only supports shrinking to 2); every queued
    entry of such a type is re-targeted to `t` (`BuildQueue::set_queue`,
-   `track_queued` adjusted). Then, unless `t` is a hero (`has_objmask
+   `track_queued` adjusted; "The queue loop" below, item 901). Then, unless `t` is a hero (`has_objmask
    0x4000000`): **every unit type `u` that is `get_graft(t.from)` or whose
    `jump` chain reaches `t` gets its `tech` bit and its `obs_flags` bit set**
    — the predecessors are owned and obsolete at once.
@@ -970,9 +970,13 @@ the install, and `a_gained_unit_type_converts_the_line_below_it_and
 _carries_the_damage` for the `from` match, the `jump` chain, the per-figure
 draw and the damage.
 
-Reading-only, and each is a stated seam in the code: the **queue arm**
+Reading-only, and each is a stated seam in the code: the ~~**queue arm**
 (`types[t].is(0x134, 0) && u.is(0x15f, 0)`, which re-targets a queued
-entry instead of a standing unit — no capture has one); the squad-size
+entry instead of a standing unit — no capture has one)~~ **carrier arm**
+(`types[t].is(0x134, 0) && u.is(0x15f, 0)`, which moves a carrier's own
+`num_queued` from the old type to the new — no capture has a carrier; the
+buildings' queues are a separate loop, "The queue loop" below, item 901);
+the squad-size
 **shrink** (`Unit::die` for a surplus member, `total_damage` onto the
 captain — no capture converts to a smaller squad); and `set_type`'s tail
 (`is(0x165, 1)` and `update_ceo_position`, `is(0x77, 0)`,
@@ -1074,6 +1078,63 @@ stamp removed.
   nowhere before 15208. ~~It is the new word's hypothesis~~: run196 killed
   it. Great Lakes' new word, 15175, is the free Longbowmen's guard posts,
   handed out the other way round on 15095 (`docs/RUNS.md` run196).
+
+## The queue loop: a gain re-targets the line's queued entries (item 901)
+
+*2026-09-26. Established from `Leader::gain_tech@006dcb60`'s listing,
+`6ddbed`..`6ddd8e`, run under the emulator, and **diff-backed by
+run300** (`docs/GOLDEN.md` §36).*
+
+Step 7's second loop, after the object loop and under the same
+`upgrade_units` flag. It walks the player's buildings from 2000 to the
+building mark, each with `+0x8 & 1`, and each entry of its queue to
+`queued`:
+
+```
+q = get_queue(i)
+if types[q] is a unit type
+   and (q == get_graft(t.from) or q's grafted jump chain reaches t):
+    track_queued(<see below>, -1)
+    BuildQueue::set_queue(i, t, NULL, 1)     # the type; counter and pairs kept
+    track_queued(t, +1)
+```
+
+`BuildQueue::set_queue@006309f0` with a null price and a fourth argument
+of 1 writes the entry's type and nothing else: **the progress and the
+recorded price stay**, nothing is paid and nothing refunded. So a Slinger
+queued behind the Javelineers research becomes a Javelineers train job at
+the Slingers' price, and a later cancel refunds that price. An entry of
+`t` itself, and one above `t` in the line, are left; so is an entry at a
+building whose `+0x8 & 1` is clear. The building counter is `0x44(%ebp)`,
+written 2000 at `6dd62f` on every path into the unit arm.
+
+**The decrement names the walker.** On a match by `from` the register
+still holds `q` and `track_queued(q, −1)` runs. On a match by the `jump`
+chain the same register has been overwritten by the walk, and it ends
+equal to `t`, so `track_queued(t, −1)` runs instead (`6ddcf4`, `push
+esi`; the decompile's `TVar16` agrees). The net is +0 on `t` and nothing
+off `q`, so `q`'s count stays one high. `Leader::track_queued@006e0f30`
+never takes a count below zero. It moves `num_queued` (`+0x5a22`) and,
+for a unit with `+0x1e8` set, the AI's per-building tallies.
+
+**Under the emulator** (a scratch script, out of git): the arm entered at
+`6dd999` with a synthesized frame, and the three loops run as shipped.
+Six rows (a to f) are in `docs/GOLDEN.md` §36; row f is the `jump`-chain
+decrement.
+
+**run300 backs it.** On 922 the Javelineers research finishes, and
+`0/2007`'s Slingers entry is `[83 at 0]` with its 46/46 kept. The buckets
+are untouched, `0/10`..`0/12` are Javelineers, and the Hoplites beside
+them are not.
+
+**In the code**: `Sim::retarget_queued_to` in `crates/sim/src/lib.rs`,
+called beside `Sim::upgrade_units_to` for each `Gained::UnitUpgrade`.
+`a_gained_unit_type_retargets_the_queued_entries_of_its_line` is its test.
+
+**What run300 cannot split, and rests on the emulator**: the progress kept
+(the entry sat at 0 behind the research head), and the `jump`-chain
+decrement (Slingers → Javelineers is a `from` match). A mutation of
+either fails the unit test and no widening.
 
 ## What is not established
 

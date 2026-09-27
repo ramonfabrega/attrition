@@ -975,6 +975,32 @@ fn chapter_twenty_six_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter twenty-seven, pinned** — the upgrade line: a unit upgrade
+/// through the player's command and the finish that converts the line
+/// (`docs/GOLDEN.md` §36, item 901, run300). Twelve staged lines: `!ai
+/// off`, the two cheats, chapter thirteen's cast, the Slingers and five
+/// `@queueup`s.
+#[test]
+fn chapter_twenty_seven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch27", "chapter27", 27, 12, 1559) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_TWENTY_SEVEN,
+        "chapter twenty-seven's golden word fell to {} from {GOLDEN_WORD_CHAPTER_TWENTY_SEVEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_TWENTY_SEVEN,
+        "chapter twenty-seven's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §36"
+    );
+    eprintln!(
+        "chapter twenty-seven: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
 /// **run255's repair, unit for unit, both directions** (item 813,
 /// `docs/GOLDEN.md` §29). On every block of
 /// [`WIDENING_CHAPTER_TWENTY_ONE`], every unit of either player: the
@@ -9060,6 +9086,113 @@ const WANT_CH26_POOL: &[&str] = &[
     "622 slot 1 oy",
     "872 slot 0 ox",
     "872 slot 0 oy",
+];
+
+/// **run300 whole, both directions** (item 901, `docs/GOLDEN.md` §36):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch27",
+        "chapter27",
+        WIDENING_CHAPTER_TWENTY_SEVEN,
+        1559,
+        0,
+        (920, 924),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch27 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter thirteen's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_SEVEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch27: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_TWENTY_SEVEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch27", "chapter27", WIDENING_CHAPTER_TWENTY_SEVEN, 0)
+        .expect("run300 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch27 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH27.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch27: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH27_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch27: what parts in the pool moved");
+}
+
+// **What parts under the word** on run300, chapter twenty-seven. ~~The
+// first walk over (605, 1105): 922, `0/2007`'s `queue[0].type`, ours 82
+// and theirs 83 — `Leader::gain_tech@006dcb60`'s queue loop re-targets the
+// Slingers entry in place there, and this crate had no queue loop; then
+// 1103, the Slinger squad it trained on 1102 and `queued` 1 against 2.~~
+// **The queue loop built** (item 901, `Sim::retarget_queued_to`): run300
+// whole agrees on every queue, bucket, counter and unit type — 622, 642,
+// 652, 922, 1002, 1012 and both births. What stands is
+// **`Unit::init@00612100`'s** (parked 646), chapter twenty-six's shape:
+// `form` on every non-citizen it makes (611, 615, 617, and the squads on
+// 1111 and 1307) and the followers' tile-centred `orders_x/y`.
+const WANT_CH27: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "617 0/10 form",
+    "617 0/11 form",
+    "617 0/12 form",
+    "1111 0/13 form",
+    "1111 0/14 form",
+    "1111 0/14 orders_x",
+    "1111 0/14 orders_y",
+    "1111 0/15 form",
+    "1111 0/15 orders_x",
+    "1111 0/15 orders_y",
+    "1307 0/16 form",
+    "1307 0/17 form",
+    "1307 0/17 orders_x",
+    "1307 0/17 orders_y",
+    "1307 0/18 form",
+    "1307 0/18 orders_x",
+    "1307 0/18 orders_y",
+];
+
+// **What parts in the pool** on run300. ~~The first walk: the extra
+// Slinger squad's seat on 1103.~~ **The queue loop built**: what stands is
+// each first seat's `ox`/`oy`, ours −1 and theirs 0 — `push_group`'s
+// record `o` (parked 887) — the Barracks' building group on 622 and the
+// first Javelineers squad on 1111.
+const WANT_CH27_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "1111 slot 0 ox",
+    "1111 slot 0 oy",
 ];
 
 #[test]
