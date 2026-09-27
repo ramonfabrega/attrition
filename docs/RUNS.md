@@ -8912,3 +8912,41 @@ strike took no order in the golden runs either (`docs/GOLDEN.md` §25), and the
 606 (the staged Airbase), and `Leader::set_age`, on 600 (the `library`
 cheat). The blind list 228 → 227; the census's entered column 7,664 →
 7,666 over the corpus. `rondata::blind::TRACES` carries run314.
+
+## run316 — British Isles with a Large Town, quit at frame 5: the blind list's row 4 (2026-09-27, item 935)
+
+**What it is.** One launch for row 4 of `docs/CENSUS.md`'s ranked blind
+list, on the queue lane at `cover=1`, through `viadriver.sh … runqueue.sh -
+316` with no human at the menu: map style 22 (British Isles) through the
+profile (`cfg: -`), the profile's `STARTING_TOWN` set to 3 (Large Town)
+through the stanza's new `profile:` key, seed 12345, `ffwd: -`,
+`end: MISC`, run10's start detail, `!quit` at 5. The reading behind the
+staging is the census's "row 4 read to its callers": only two of the
+nine functions are reachable from a solo lobby at all, and one lobby sets
+both. The DLL was item 923's plain build of `tracer.c`, sha256
+`17c5f215d8ea2775f020e3acc4a1b9de5e07bce83264f8afea837dec6cc798e2`
+(parked 936).
+
+**Taken** 03:04:57–03:08 in one take: 11.0 MB of gamelog, 9.1 MB of
+trace, six `FRAME` records (frames 0–5), 6,518 `HIT`s. The run's own
+`GAME INFO` reads `MAP_STYLE 22` and `STARTING_TOWN 3`, so both lobby
+fields took; `longtrace.sh` copied `Player.dat` back afterwards
+(`STARTING_TOWN 2`), and `mapstyle.py 14` put the profile's style back to
+the 14 it was found at.
+
+| check | result |
+|---|---|
+| `MAP_STYLE 22` in `GAME INFO` | yes |
+| `STARTING_TOWN 3` in `GAME INFO` | yes |
+| `Map::place_start_in_region` and `Setup::large_city_buildings` entered | **both**, before frame 0 |
+
+The queue summary said `checks FAILED` on the take: the two `GAME INFO`
+checks as first written anchored `grep -q "… 22$"`, and the gamelog's
+lines end in `\r`. Both values were right on the page; the checks now
+strip the `\r` and read the field with `awk`, pass on this archive, and
+exit 1 when the expected value is wrong.
+
+**What it entered that nothing else does**: `Setup::large_city_buildings`,
+`Map::place_start_in_region`, `MapBritishIsles::make_continents` and
+`Map::is_near_ocean`. The blind list 227 → 225; the census's entered column
+7,666 → 7,670. `rondata::blind::TRACES` carries run316.
