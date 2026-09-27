@@ -86,6 +86,7 @@ pub mod path;
 pub mod pivot;
 pub mod place;
 pub mod production;
+pub mod rally;
 pub mod rares;
 pub mod roads;
 pub mod scout;
@@ -1327,6 +1328,9 @@ pub struct Building {
     /// `can_carry(AIR)`; only the player's repeat-orders toggle
     /// (`Group::action_buildmask(0x80)`) clears it (`docs/ORDERS.md` §40).
     pub repeat_air: bool,
+    /// `BuildData::gather`, the gather point list (`crate::rally`): the
+    /// player's rally points, in order.
+    pub gather: Vec<rally::GatherPoint>,
     /// `build_masks & 0x100`: this building's roads want replanning, and
     /// `Build::process` will replan them on the frame `(frame + o) % 16`
     /// picks out. Set by `City::regen_roads` — `crate::roads` §1.
@@ -2118,6 +2122,7 @@ impl Sim {
             damage_frac: 0,
             active: true,
             repeat_air: false,
+            gather: Vec::new(),
             regen_roads: false,
             garrison_attack: 0,
             recharging: 0,
@@ -2730,9 +2735,23 @@ impl Sim {
         let stays = self.building_ident(at) == crate::build::Ident::University
             && self.worker_of(unit) == crate::orders::Worker::Scholar
             && self.buildings[at].gather_max.is_none_or(|m| inside <= m);
+        // **A point on the trainer itself keeps the unit in** (item 928,
+        // `docs/PRODUCTION.md` "The gather point"; run312's `0/14`, inside
+        // `0/2008` from 953): off the University's arm, the trainer's
+        // `BuildData::gather_inside` with `num_inside(0)` — the new unit
+        // counted — at or under its garrison limit (10 where the limit is
+        // 0), and a unit that is not an Aircraft Carrier (`is(0x15f)`), is
+        // left inside with no `come_out`. SEAM: the player's text bubble
+        // (`MessageWin::add_event`), which is the interface's.
+        let university = self.building_ident(at) == crate::build::Ident::University;
+        let kept = !university && !hangar && self.gather_inside(at) && {
+            let limit = self.garrison_limit(at);
+            let limit = if limit == 0 { 10 } else { limit };
+            self.num_inside(at) <= limit && self.unit_types[ty].type_index != 0x15f
+        };
         if stays {
             self.check_gatherers(at);
-        } else if !hangar {
+        } else if !hangar && !kept {
             self.come_out(unit);
         }
         self.economy_changed(who);

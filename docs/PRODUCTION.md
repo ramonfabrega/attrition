@@ -942,8 +942,10 @@ action bit — and no `come_out`; without `CARRY_AIR`, `come_out(0)`.
 **The gather point's arm is not built** (SEAM): its writers are
 `Build::add_gather_point` and `Build::clear_gather`, reached from the
 player's `issue_gather_point`, `Options::do_clear_gather`,
-`Group::action_city_gather` and the scenario functions — no capture issues
-one, so every building on disk has none. Neither is the helicopter's
+`Group::action_city_gather` and the scenario functions. ~~No capture issues
+one, so every building on disk has none.~~ run312 issues five, on two
+Barracks and a City (§ "The gather point", below), and none at an Airbase,
+so this arm is still unreached. Neither is the helicopter's
 over-the-limit arm.
 
 **What stands**: the Biplane's birth point, (11640, 13944) there against
@@ -953,6 +955,119 @@ the base's own (11616, 13920) here — `Unit::init@00612100`'s seat, parked
 **In the code**: `Sim::build_train` (`lib.rs`), the hangar test before the
 exit. Test: `air::launch_tests::an_aircraft_trained_at_an_airbase_stays_inside_with_no_order`,
 made to fail with the arm dropped, which also re-parts run308 on 1745.
+
+## The gather point (item 928)
+
+The player's rally point. `docs/GOLDEN.md` §39 is the chapter, and
+**run312 backs every arm below that says so**. The emulator's table is
+there, and the capture's in `docs/RUNS.md`.
+
+**The command.** `CommandManager::issue_gather_point@00941b20` appends
+`16 [x][y][action][add_to_end]` behind a group of buildings.
+`CommandPackage::process_gather_point@00948510` hands it to
+`Group::action_gather_point@006ff1b0`. The action is 0 on the ground, 1
+on a friendly object's point, 2 an enemy's, and 3 an object by
+`(o, who)`. The Clear button is −1, −1, 0, 0. A member is live and
+neither a University nor a Missile Silo. It takes the point when it
+trains (`build_flags & 0x80000000`), has a garrison limit, or is a
+Terracotta Army, Kremlin or Senate.
+
+```
+action_gather_point(x, y, action, add):
+    x < 0 or y < 0: clear_gather on every member; done
+    clamp (x, y) to the world
+    add &= no member's head point is "inside"
+    every member a City centre (COUNT_TYPE VILLAGE), action != 3:
+        forest tile (& 0x30 == 0x30) -> the nearest friendly Woodcutter
+        mountain (& 3 == 2)          -> the nearest friendly Mine
+        within 0x600: (x, y) = that building's point     # action kept
+    building tile (& 3 == 3), !add, a member covers it:
+        Terracotta/Kremlin/Senate: clear_gather(first member); done
+        else inside = true
+    each member (not an Airbase under action 3):
+        add_gather_point(inside ? (-1, -1, 0), NEW : (x, y, action), add ? LAST : NEW)
+```
+
+`Build::add_gather_point@00622e70` clears the list under `QUEUE_NEW` and
+appends; `Build::clear_gather@00623180` empties it. The list is
+`BuildData +0xb8`, with the count at `+0xc8`, and the dump prints it at
+`BUILDS=7` as a second `length`, then `type`, `metric` and a
+`GATHERPOINT` per point. **run312**: 2007 (1344, 12096, 0) on 618; the
+City's forest click (3936, 28128) stored as its Woodcutter's (4224,
+28608) on 652; 2008's click on itself (−1, −1, 0) on 702; 2007's point
+replaced by (4224, 14208, 1) on 902 and emptied by the Clear on 1102.
+
+**The trained unit.** `Build::train@0062f9b0`'s ordinary arm first asks
+`BuildData::gather_inside@0046f180`, whether the head point is "inside".
+If it is, the unit has room (`num_inside ≤ get_garrison_limit`, 10 when
+the limit is 0), and it is not an Aircraft Carrier, it **stays in**. Then
+`Unit::come_out@00617c10`:
+
+- **the gather block** (`6181a3`..`618377`): for a captain whose host has
+  points, not "inside", `UnitType::find_nearby_spot(head point, 0,
+  0x600, 0x55555555)` finds the spot (`FILTER_NOT_ME` for a type with a
+  `block_radius`). `find_angle(spot − building)` is stored in the unit's
+  `angle` (`+0x50`) and in the exit sweep's bias, in place of south;
+- **the routing** (`618b22`..`619fe2`), for a captain with no order,
+  after the members' exits and 882's push of the squad. With one point,
+  the last:
+  - a building at the point (`find_any_building_at`, `FILTER_SEEN`):
+    - a citizen builds it (its own, unfinished), repairs it (damaged), or
+      gathers there (a gather building of its own, not a University,
+      `action` ≠ 0);
+    - then a friendly building with room the type can garrison, `action`
+      ≠ 0, takes a `GARRISONORDER` down the squad (`QUEUE_LAST`);
+  - otherwise a move: `ATTACK_TO` for an armed type (`+0x1e8`) whose
+    stance is not 5 and that is made at a Barracks, Stable or Dock
+    (`TypeData::where`, `+0x40`); `MOVE_TO` otherwise. A squad with a
+    group goes through `Group::action_move_to(the free spot nearest the
+    gather spot, QUEUE_LAST, set_angle, find_angle(target − exit),
+    action)`, and a lone unit through `add_move_facing_order(the gather
+    spot, …, QUEUE_LAST, action)`.
+
+A member's own angle is `Unit::set_angle(host->angle)`, whose `reversing`
+test flips its mirror past 90°. The captain's is the bare store, which
+flips nothing.
+
+**run312**, each on its birth block:
+- the Hoplites `0/11`..`0/13` out north-west on 856, each a
+  `GROUPATTACKTOORDER` under one group to (1368, 12120);
+- 2008's Hoplites kept inside from 953;
+- the Bowmen `0/17`..`0/19` out east on 1060, each a `GARRISONORDER` on
+  2008, inside on 1079;
+- the Citizen `0/10` out north-east on 760 with a plain `MOVEORDER` to
+  the Woodcutter's spot (4248, 28632) and no gather order: the snapped
+  point keeps action 0. It gathers of its own accord from 984.
+
+**In the code**: `crate::rally` (`Sim::action_gather_point`,
+`add_gather_point`, `clear_gather`, `gather_inside`, `gather_exit`,
+`gather_route`), with `Building::gather`; `Sim::come_out` and
+`come_out_place` (`garrison.rs`); `Sim::build_train`'s "inside" arm
+(`lib.rs`). The entry is `rondata::input::group_gather_point`, and
+`input::Stream` applies a recorded one (run7's, 1184). Seven tests in
+`cities_tests`, each made to fail by a mutation of its arm.
+
+**What stands on run312**:
+- the Bowmen's exit point: the bearing agrees, the ring's point does
+  not. Ours is (3336, 14376), the first candidate at 672 on the bearing;
+  theirs (3384, 14232), which is on the second ring at an odd
+  thirty-second. Every row to their entry on 1079 follows from it. The
+  cause is not found, and it is named rather than built;
+- the group move's id (parked 676's first) and `Unit::init`'s seat and
+  `form` (parked 646).
+
+**Not established, and reading only**:
+- a list of more than one point: the waypoints before the last, and
+  whether `gather_inside` and `come_out` read the head or the tail after
+  a `QUEUE_LAST` (`add_gather_point` moves `+0xcc` back to the old tail);
+- action 3 (the Airbase's strike, `action_flight`) and the Airbase's arm
+  of `add_gather_point` / `clear_gather` under `build_masks & 8`;
+- an enemy at the point (the attack arms), a caravan's trade arm, and
+  `find_unit_with_radius`'s re-seat with the lone arm's second sweep;
+- a citizen's build, repair and gather arms (read and built, not
+  captured);
+- the Terracotta Army and the Kremlin beside the Senate (wonders with no
+  ident here), and `find_building`'s own metric (the nearest here).
 
 ## What is not established
 

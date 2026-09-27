@@ -12060,3 +12060,227 @@ fn chapter_seven_b_s_control_scout_search_is_priced_as_the_original() {
         "run157 f{SEARCH}: steps priced apart"
     );
 }
+
+/// **Chapter thirty, pinned** — the gather point (`docs/GOLDEN.md` §39,
+/// item 928, run312). Fourteen staged lines: chapter twenty-eight's cast,
+/// five `@gatherpoint` and three `@queueup` lines.
+#[test]
+fn chapter_thirty_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch30", "chapter30", 30, 14, 1449) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY,
+        "chapter thirty's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY,
+        "chapter thirty's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §39"
+    );
+    eprintln!(
+        "chapter thirty: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run312 whole, both directions** (item 928, `docs/GOLDEN.md` §39):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch30",
+        "chapter30",
+        WIDENING_CHAPTER_THIRTY,
+        1449,
+        0,
+        (616, 620),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch30 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-eight's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch30: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch30", "chapter30", WIDENING_CHAPTER_THIRTY, 0)
+        .expect("run312 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch30 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH30.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch30: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH30_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch30: what parts in the pool moved");
+}
+
+// **What parts under the word** on run312, chapter thirty. **The first
+// walk**, the gather point not modelled (`@gatherpoint` skipped): the
+// lists part on 618, 652 and 702 (`build:gather_len`, ours 0 against 1);
+// the Citizen `0/10` on 760, out south with no order here and north-east
+// with a `MOVEORDER` there; the first Hoplites on 856; 2008's Hoplites out
+// here and inside there on 953; the Bowmen on 1060; and from the word,
+// 822, the stream's cascade over the other citizens and the AI's units.
+// **The gather point built** (item 928, `docs/PRODUCTION.md` "The gather
+// point"): 696 → 105 rows, the word closed at 1450. What stands: the
+// births' `form` (parked 646); 953, 2008's Hoplites seated at the
+// building's own point here and at it plus (24, 24) there (`Unit::init`'s
+// seat, parked 646); 856, the group move's id, ours `64 +` a pushed index
+// and theirs `who·64 +` the slot (parked 676's first); and 1060..1079, the
+// Bowmen's exit: the bearing agrees and the ring's point does not, ours
+// (3336, 14376) against (3384, 14232), and everything after it on the walk
+// to 2008 (named, not built).
+const WANT_CH30: &[&str] = &[
+    "611 0/6 form",
+    "615 0/7 form",
+    "615 0/8 form",
+    "615 0/9 form",
+    "760 0/10 form",
+    "856 0/11 order:group.id",
+    "856 0/12 order:group.id",
+    "856 0/13 order:group.id",
+    "953 0/14 form",
+    "953 0/14 g.des_x[0]",
+    "953 0/14 g.des_y[0]",
+    "953 0/14 g.x[0]",
+    "953 0/14 g.y[0]",
+    "953 0/14 orders_x",
+    "953 0/14 orders_y",
+    "953 0/14 pos",
+    "953 0/15 form",
+    "953 0/15 g.des_x[0]",
+    "953 0/15 g.des_y[0]",
+    "953 0/15 g.x[0]",
+    "953 0/15 g.y[0]",
+    "953 0/15 orders_x",
+    "953 0/15 orders_y",
+    "953 0/15 pos",
+    "953 0/16 form",
+    "953 0/16 g.des_x[0]",
+    "953 0/16 g.des_y[0]",
+    "953 0/16 g.x[0]",
+    "953 0/16 g.y[0]",
+    "953 0/16 orders_x",
+    "953 0/16 orders_y",
+    "953 0/16 pos",
+    "1060 0/17 form",
+    "1060 0/17 g.des_x[0]",
+    "1060 0/17 g.des_y[0]",
+    "1060 0/17 g.x[0]",
+    "1060 0/17 g.y[0]",
+    "1060 0/17 orders_x",
+    "1060 0/17 orders_y",
+    "1060 0/17 pos",
+    "1060 0/18 form",
+    "1060 0/19 form",
+    "1061 0/17 dest_angle",
+    "1061 0/17 order:move.angle",
+    "1061 0/17 order:move.off_y",
+    "1061 0/17 order:move.y",
+    "1061 0/18 dest_angle",
+    "1061 0/18 order:move.angle",
+    "1061 0/18 order:move.off_y",
+    "1061 0/18 order:move.y",
+    "1061 0/18 orders_y",
+    "1062 0/17 g.angle[0]",
+    "1062 0/17 g.des_angle[0]",
+    "1062 0/17 g.last_speed[0]",
+    "1062 0/17 heading",
+    "1062 0/17 order:move.dest_y",
+    "1062 0/17 path[0].to",
+    "1062 0/18 g.angle[0]",
+    "1062 0/18 g.des_angle[0]",
+    "1062 0/18 g.des_x[0]",
+    "1062 0/18 g.des_y[0]",
+    "1062 0/18 g.last_speed[0]",
+    "1062 0/18 g.x[0]",
+    "1062 0/18 g.y[0]",
+    "1062 0/18 heading",
+    "1062 0/18 order:move.dest_y",
+    "1062 0/18 path[0].to",
+    "1062 0/18 pos",
+    "1063 0/17 g.avg_speed[0]",
+    "1063 0/18 g.avg_speed[0]",
+    "1063 0/18 half_step",
+    "1066 0/18 g.cur_anim[0]",
+    "1078 0/17 order:kind",
+    "1078 0/17 order:length",
+    "1078 0/17 orders.len",
+    "1078 0/17 path:length",
+    "1079 0/17 g.cur_time[0]",
+    "1079 0/17 g.last_time[0]",
+    "1079 0/17 g.stopped[0]",
+    "1079 0/17 inside",
+    "1079 0/18 g.cur_time[0]",
+    "1079 0/18 g.last_time[0]",
+    "1079 0/18 inside",
+    "1079 0/18 order:length",
+    "1079 0/18 orders.len",
+    "1079 0/18 orders_x",
+    "1079 0/18 path:length",
+    "1079 0/19 dest_angle",
+    "1079 0/19 g.angle[0]",
+    "1079 0/19 g.avg_speed[0]",
+    "1079 0/19 g.cur_time[0]",
+    "1079 0/19 g.des_angle[0]",
+    "1079 0/19 g.des_x[0]",
+    "1079 0/19 g.des_y[0]",
+    "1079 0/19 g.last_time[0]",
+    "1079 0/19 g.x[0]",
+    "1079 0/19 g.y[0]",
+    "1079 0/19 heading",
+    "1079 0/19 inside",
+    "1079 0/19 order:length",
+    "1079 0/19 orders.len",
+    "1079 0/19 orders_x",
+    "1079 0/19 orders_y",
+    "1079 0/19 path:length",
+    "1079 0/19 pos",
+];
+
+// **What parts in the pool** on run312. ~~The first walk: each press's
+// building group, seated there by `process_group` and skipped here (618
+// `[2007]`, 652 `[2000]`, 702 `[2008]`), and every seat after it one
+// stamp or one slot off; the first Hoplites' group laid out and moving on
+// 856 there.~~ **The command built** (item 928): every slot's list, stamp,
+// layout and speeds agree; what stands is the first seats' `ox`/`oy`,
+// ours −1 against 0 (parked 887).
+const WANT_CH30_POOL: &[&str] = &[
+    "618 slot 1 ox",
+    "618 slot 1 oy",
+    "652 slot 0 ox",
+    "652 slot 0 oy",
+    "1060 slot 2 ox",
+    "1060 slot 2 oy",
+];

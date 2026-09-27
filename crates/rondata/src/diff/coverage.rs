@@ -157,9 +157,13 @@ const UNREAD: &[(&str, &str)] = &[
     // fourteen of its keys had never been parsed — `city` and `city_down`
     // among them until item 661. `Block::fields_of` reads the two by name
     // now, and these are what the pin then found.
+    // **Item 928 added `metric type`**: the gather point list's per-node
+    // pair (`PtrLinkListAbstract<GatherPoint>::log_data`), `type` 0 and
+    // `metric` the node's key, 0 on every node `add_gather_point` makes.
+    // The points themselves are read (`GATHERPOINT`, `BuildDump::gather`).
     (
         "GAME/FRAME/BUILDDATA",
-        "attack_ox attack_whom dock flags fort founder healing increment infiltrate infiltrate2 oil_well recharging stance wonder",
+        "attack_ox attack_whom dock flags fort founder healing increment infiltrate infiltrate2 metric oil_well recharging stance type wonder",
     ),
     ("GAME/FRAME/BUILDDATA/BUILDQUEUE", "queue_size"),
     (
@@ -295,9 +299,12 @@ const UNREAD: &[(&str, &str)] = &[
     // read off the building's `BUILDQUEUE`. **Item 884's run292 windows
     // `process_unqueue`** (`o p frame`), the first player's cancel; what
     // it removes and refunds is read off `BUILDQUEUE` and the buckets.
+    // **Item 928's run312 windows `process_gather_point`** (`x y action
+    // add_to_end frame`), the first player's rally point; what it writes is
+    // read off the building's gather list.
     (
         "GAME",
-        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather_point process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -558,6 +565,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch27 = golden_dump("ch27");
     let ch28 = golden_dump("ch28");
     let ch29 = golden_dump("ch29");
+    let ch30 = golden_dump("ch30");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1367,6 +1375,21 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [1542, 1585, 1746, 1789, 1813, 1828, 1985, 2067] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-nine carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirty's word, on run312** (item 928): the gather point.
+    // 618, 652 and 702, the first lists; 760, the Citizen out under the
+    // City's point; 822, the word; 856, the first Hoplites; 902, the point
+    // moved; 953, 2008's Hoplites kept in; 1060 and 1079, the Bowmen out
+    // and garrisoned; 1102, the Clear; 1447, the last blocks.
+    if let Some(p) = &ch30 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY;
+        for w in [
+            618, 652, 702, 760, 822, 856, 902, 953, 1060, 1079, 1102, 1447,
+        ] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty carries the window's five blocks");
             frames += n;
         }
     }

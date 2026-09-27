@@ -441,15 +441,27 @@ pub enum Issued {
         p: i32,
         buildings: Vec<i16>,
     },
+    /// `@gatherpoint <who> <x> <y> <action> <b>…` —
+    /// `CommandManager::issue_gather_point@00941b20(group, x, y, action,
+    /// add_to_end 0)` on a group of the player's own buildings: the rally
+    /// point (item 928, `docs/GOLDEN.md` §39). `action` is 0 for the ground,
+    /// 1 a friendly object's point, 2 an enemy's; `−1, −1, 0` is the Clear
+    /// button's (`Options::do_clear_gather@0071ce70`).
+    GatherPoint {
+        who: i32,
+        at: Pos,
+        action: i32,
+        buildings: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
 /// not `move`, `patrol`, `guard`, `follow`, `garrison`, `eject`, `form`,
 /// `attack`, `amove`, `explore`, `flee`, `flight`, `strike`, `build`,
-/// `spell`, `settransport`, `repair`, `buildmask`, `queueup` or `unqueue`, a `who`
-/// outside `0..8`, fewer than three numbers (one for `eject`, two for
-/// `settransport`, `buildmask` and `unqueue`, four for `build` and `queueup`, six for
-/// `spell`), or no object.
+/// `spell`, `settransport`, `repair`, `buildmask`, `queueup`, `unqueue` or
+/// `gatherpoint`, a `who` outside `0..8`, fewer than three numbers (one for
+/// `eject`, two for `settransport`, `buildmask` and `unqueue`, four for
+/// `build`, `queueup` and `gatherpoint`, six for `spell`), or no object.
 pub fn parse_issuer(text: &str) -> Option<Issued> {
     let mut tok = text.strip_prefix('@')?.split_whitespace();
     let verb = tok.next()?;
@@ -475,6 +487,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "buildmask"
             | "queueup"
             | "unqueue"
+            | "gatherpoint"
     ) {
         return None;
     }
@@ -527,6 +540,27 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Unqueue { who, p, buildings });
+    }
+    // `@gatherpoint`'s three numbers are the point and the action, and its
+    // objects are buildings.
+    if verb == "gatherpoint" {
+        let [who, x, y, action, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::GatherPoint {
+            who,
+            at: Pos::new(x, y),
+            action,
+            buildings,
+        });
     }
     // `@queueup`'s two numbers are the type and the count, and its objects
     // are buildings.
@@ -837,6 +871,16 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             .iter()
             .map(|&b| crate::input::unqueue(built, who, i32::from(b), p))
             .sum(),
+        // `@gatherpoint` is `issue_gather_point@00941b20` on a group of
+        // buildings, a `group` and a `gather_point`, whose entry is
+        // [`crate::input::group_gather_point`] (item 928, `docs/GOLDEN.md`
+        // §39).
+        Some(Issued::GatherPoint {
+            who,
+            at,
+            action,
+            buildings,
+        }) => crate::input::group_gather_point(built, who, &buildings, at, action, false),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1367,6 +1411,11 @@ mod tests {
         // 915, `docs/GOLDEN.md` §38).
         ("chapter29.cmd", &[]),
         ("chapter3.cmd", &[]),
+        // Chapter thirty: chapter twenty-eight's cast and five
+        // `@gatherpoint` lines (the DLL's verb 20) on two Barracks and the
+        // City, three `@queueup` lines behind them: the gather point (item
+        // 928, `docs/GOLDEN.md` §39).
+        ("chapter30.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
@@ -1562,6 +1611,33 @@ mod tests {
         );
         assert_eq!(parse_issuer("@queueup 0 132 1"), None);
         assert_eq!(parse_issuer("@queueup 9 132 1 2007"), None);
+    }
+
+    /// **A gatherpoint line is the DLL's rally point** (item 928): `who`,
+    /// the point, the action and the buildings; the Clear button's −1, −1
+    /// parse as given; a line with no building is the DLL's refusal 5.
+    #[test]
+    fn a_gatherpoint_line_is_the_dll_s_rally_point() {
+        assert_eq!(
+            parse_issuer("@gatherpoint 0 5000 6000 1 2007 2008"),
+            Some(Issued::GatherPoint {
+                who: 0,
+                at: Pos { x: 5000, y: 6000 },
+                action: 1,
+                buildings: vec![2007, 2008],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@gatherpoint 0 -1 -1 0 2007"),
+            Some(Issued::GatherPoint {
+                who: 0,
+                at: Pos { x: -1, y: -1 },
+                action: 0,
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(parse_issuer("@gatherpoint 0 5000 6000 0"), None);
+        assert_eq!(parse_issuer("@gatherpoint 9 5000 6000 0 2007"), None);
     }
 
     /// **An unqueue line is the DLL's cancel** (item 884): `who`, the

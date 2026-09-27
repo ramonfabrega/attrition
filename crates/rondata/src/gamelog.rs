@@ -2016,6 +2016,15 @@ pub struct BuildDump {
     /// parse that has drifted rather than a game that has.
     pub mining_len: Option<i64>,
     pub mining_size: Option<i64>,
+    /// `BuildData::gather`, the gather point list (item 928,
+    /// `docs/GOLDEN.md` §39): `PtrLinkListAbstract<GatherPoint>::log_data`
+    /// writes it last, flat at `BUILDDATA`'s indent — a second `length`
+    /// after the mining list's, then per point `type` and `metric` (the
+    /// node's key, 0) and a `GATHERPOINT` block of `x`, `y` and `action`.
+    /// `None` below `BUILDS=7`, as the mining list is.
+    pub gather_len: Option<i64>,
+    /// The `GATHERPOINT` blocks in list order: `(x, y, action)`.
+    pub gather: Vec<(i64, i64, i64)>,
     /// `MiningList::mtn` and `::cliff` — which mountain range or cliff the
     /// list was taken from, `−1` on a timber list. `find_gather_tcoords`
     /// writes one of them the first time it fills a metal building's list,
@@ -3152,6 +3161,19 @@ fn build_of(b: Block<'_>) -> Option<BuildDump> {
         // either name — the build queue's own count is `queue_size` and is
         // one block down.
         mining_len: b.int("length"),
+        // The second `length` at this indent is the gather point list's
+        // (`BuildData::log_data`'s last call); nothing else here writes one.
+        gather_len: b.all("length").get(1).and_then(|v| v.trim().parse().ok()),
+        gather: b
+            .kids("GATHERPOINT")
+            .map(|g| {
+                (
+                    g.int("x").unwrap_or(0),
+                    g.int("y").unwrap_or(0),
+                    g.int("action").unwrap_or(0),
+                )
+            })
+            .collect(),
         mining_size: b.int("size"),
         mtn: b.int("mtn"),
         cliff: b.int("cliff"),

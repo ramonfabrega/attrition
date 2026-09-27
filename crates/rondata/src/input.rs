@@ -814,6 +814,38 @@ pub fn group_queue_up(built: &mut Built, who: i32, buildings: &[i16], ty: i32, n
     }
 }
 
+/// **`CommandPackage::process_gather_point@00948510`** on a group of the
+/// player's own buildings: `process_group`'s group, then
+/// `Group::action_gather_point@006ff1b0(x, y, action, add_to_end)`
+/// ([`sim::Sim::action_gather_point`]) — the rally point (item 928,
+/// `docs/GOLDEN.md` §39). `x` or `y` below 0 is the Clear. The command's
+/// building group is seated in the pool whole, as every building command's
+/// is (run312's 618, 652 and 702).
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_gather_point(
+    built: &mut Built,
+    who: i32,
+    buildings: &[i16],
+    at: Pos,
+    action: i32,
+    add_to_end: bool,
+) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built
+        .sim
+        .action_gather_point(player, &list, at, action, add_to_end);
+    list.len()
+}
+
 /// **`CommandPackage::process_unqueue@009466f0`** on one of the player's
 /// own buildings: `Build::action_unqueue@00620280(p)`
 /// ([`sim::Sim::action_unqueue`]), the cancel (item 884, `docs/GOLDEN.md`
@@ -979,8 +1011,31 @@ impl Stream {
             Command::Buy { .. } | Command::Sell { .. } => {
                 done.skip(&it.cmd, "the market is not modelled");
             }
-            Command::GatherPoint { .. } => {
-                done.skip(&it.cmd, "rally points are not modelled");
+            // **The rally point** (item 928): the recorded command is the
+            // one the golden harness issues, `process_gather_point` on the
+            // selection's buildings — [`group_gather_point`]. Only run7's
+            // stream carries one (1184, a point on the ground; `grep
+            // process_gather_point` over every kept dump), and neither
+            // long capture does.
+            Command::GatherPoint {
+                x,
+                y,
+                action,
+                add_to_end,
+            } => {
+                let slot = it.play as usize;
+                let objects = self.selection.get(slot).cloned().unwrap_or_default();
+                let n = group_gather_point(
+                    built,
+                    it.play,
+                    &objects,
+                    Pos::new(*x, *y),
+                    *action,
+                    *add_to_end != 0,
+                );
+                if n == 0 {
+                    done.skip(&it.cmd, "no selected building is in the simulation");
+                }
             }
             Command::Chat { .. } => {
                 // A cheat line. It is input — in solo it travels the order

@@ -3785,6 +3785,28 @@ pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_NINE: i64 = 2070;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_TWENTY_NINE: (i64, i64) = (605, 2071);
 
+/// **Chapter thirty's golden word** — the gather point (item 928,
+/// `docs/GOLDEN.md` §39, run312).
+///
+/// **822, open, on the first walk** (`@gatherpoint` skipped): theirs 7
+/// draws against ours 6, theirs alone `Guy::set_anim+0x97a <
+/// Unit::do_idle+0x7d` — the Citizen `0/10` idling at its Woodcutter,
+/// which it walked to under the City's gather point from 760, where here
+/// it stands south of the City with no order. The first value parting is
+/// 618, 2007's list.
+///
+/// **1450, closed** (item 928, `docs/PRODUCTION.md` "The gather point":
+/// `Sim::action_gather_point`, `come_out`'s gather block and routing, and
+/// `Build::train`'s "inside" arm): the stream agrees to run312's end.
+///
+/// **The delta**, this constant's: +628, 822 → 1450, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY: i64 = 1450;
+
+/// `chapter_thirty_s_word_frame_is_widened_whole`'s window: run312 whole,
+/// (605, 1451). Its pool half, `widen_pool`, reads who=0's `GROUPDATA` on
+/// the same blocks.
+pub(crate) const WIDENING_CHAPTER_THIRTY: (i64, i64) = (605, 1451);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5684,6 +5706,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_twenty_nine_s_word_frame_is_widened_whole"),
         915,
         Some(WIDENING_CHAPTER_TWENTY_NINE),
+    ),
+    // Item 928: run312, chapter thirty, the gather point. The widening
+    // is run312 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY",
+        GOLDEN_WORD_CHAPTER_THIRTY,
+        Some("chapter_thirty_s_word_frame_is_widened_whole"),
+        928,
+        Some(WIDENING_CHAPTER_THIRTY),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
