@@ -35,6 +35,9 @@
 #   profile:    `KEY=N` pairs for the profile's `<SOLO>`/`<MULTI>` lobby
 #               blocks (`profile.py`), for a field `-config` cannot set or a
 #               map that drops it; the profile is restored when the take ends
+#   checkini:   `key=Value` pairs for `check.ini`'s `[CHECK]` lines
+#               (`checkini.py`), for a lobby field on a run that keeps
+#               `-config`; copied back when the take ends
 #   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
 #               `driver:` needs `-`** — under `!ffwd` the game stops drawing
 #               and a click lands on a frozen picture (run47)
@@ -508,6 +511,115 @@ cover: cover=1
 settle_min: 500000
 poll_max: 900
 check: python3 tools/gamelog/rngcmp.py rontrace-run39.log rontrace-run54.log
+
+run: 346
+tag: islands-toughest-24k-trace
+item: 971
+why: the second pair (DECISIONS 53) — run54's game with the lobby's difficulty at its top, Toughest
+# run54's stanza exactly but for two lines: `cover=0` (only the draw stream
+# is asked for, and run80 ran this game's 24,000 frames in forty seconds
+# at it) and `profile: DIFFICULTY=5` — East Indies drops `-config`, so the
+# lobby's `game->info.difficulty` is the profile's `<GAME_INFO>` block's
+# (`docs/AI.md` §80.1). `rules.xml`'s `difficulties` has six entries and 5
+# is Toughest. `start:` is run54's so the harness stands the sim up from
+# the dump. At the top difficulty the AI may end the game against an idle
+# human before 24,000: the last frame is recorded either way. The first
+# pair's `rngcmp.py` check does not apply — the stream is meant to leave
+# run54's — and its departure frame is a measurement in `docs/RUNS.md`.
+# The tracer: `rontrace.dll` sha256
+# b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca,
+# unstamped (no `@` line here, so `stamp.py` passes it; 936).
+frames: 24000
+mapstyle: 18
+cfg: -
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+profile: DIFFICULTY=5
+settle_min: 500000
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run346-islands-toughest-24k-trace.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 18' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run346-islands-toughest-24k-trace.txt"
+
+run: 347
+tag: greatlakes-toughest-24k-trace
+item: 971
+why: the second pair (DECISIONS 53) — run53's game with the lobby's difficulty at its top, Toughest
+# run53's stanza but for `cover=0`, the difficulty and **`cfg: -`**. The
+# first take kept `-config check.ini` and set `difficulties=Toughest` there
+# and `DIFFICULTY=5` in the profile, and read back `DIFFICULTY 0`: neither
+# reaches the `-config` lobby (`docs/AI.md` §80.1). That take is kept as
+# `gamelog-run347-greatlakes-take1-diff0-refused.txt` and
+# `rontrace-run347-take1-diff0.log`, and `rngcmp.py` says it is run53's
+# stream on all 24,001 frames. Without `-config` the lobby is the
+# profile's, as East Indies' always is, and run53's and run54's `GAME
+# INFO` blocks differ only in `MAP_STYLE` — player blocks included — so
+# the profile's lobby is run53's with the style `mapstyle.py` writes. The
+# dump's `GAME INFO` against run53's, `DIFFICULTY` the only line apart, is
+# the read-back. The profile is copied back when the take ends (att-947's
+# golden lane shares it; it read `DIFFICULTY 0` in both blocks before and
+# after run346). Same tracer as run346's.
+frames: 24000
+mapstyle: 14
+cfg: -
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+profile: DIFFICULTY=5
+settle_min: 500000
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run347-greatlakes-toughest-24k-trace.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run347-greatlakes-toughest-24k-trace.txt"
+
+run: 349
+tag: islands-toughest-open
+item: 971
+why: the second pair's East Indies word is 0 — run346's frame 0 spends 182 draws against this crate's 175, parting at index 24 on `Unit::think_spellcaster+0x413 < Unit::think_scout+0x7c` — and no dump of run346's game holds a per-frame record, so the word's blocks are on no disk
+# The widening's capture (CLAUDE.md, "A word is pinned with its
+# widening"): run346's game — `cfg: -`, `profile: DIFFICULTY=5`, the
+# default start detail, which is run54's and run346's — at run299's
+# per-frame detail over **blocks 0..250**: the word's frame 0 writes block
+# 1, there are no blocks before it, and 250 of runway above it
+# (DECISIONS 50 §7, stated in blocks). The profile is copied back when the
+# take ends (att-947 shares it).
+frames: 262
+mapstyle: 18
+cfg: -
+profile: DIFFICULTY=5
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 0 251
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+# Same game: the trace draw for draw against run346 over the whole take.
+check: python3 tools/gamelog/rngcmp.py rontrace-run346.log rontrace-run349.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=262)}'
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run349-islands-toughest-open.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 18' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run349-islands-toughest-open.txt"
+# **The window landed whole** — 251 blocks, 0..250.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run349-islands-toughest-open.txt" | awk '{v=$3+0; if(v>=0&&v<251) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=250)}'
+
+run: 350
+tag: greatlakes-toughest-open
+item: 971
+why: with think_spellcaster's coin built both second-pair words move (East Indies 0 -> 10, Great Lakes 0 -> 1) and Great Lakes is the lower: its frame 1 spends 85 draws against this crate's 54, parting at index 44 on `Leader::produce_building+0xc99` where ours spends `Unit::do_non_flat_gather+0x54b`, and no dump of run347's game holds a per-frame record
+# run349's shape on run347's game: `cfg: -` and `profile: DIFFICULTY=5`
+# (run347's second take's lobby), the default start detail, run299's
+# per-frame detail over **blocks 0..250** — the word's frame 1 writes
+# block 2, one block stands before it, and 249 of runway above it. The
+# profile is copied back when the take ends (att-947 shares it).
+frames: 262
+mapstyle: 14
+cfg: -
+profile: DIFFICULTY=5
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 0 251
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+# Same game: the trace draw for draw against run347 over the whole take.
+check: python3 tools/gamelog/rngcmp.py rontrace-run347.log rontrace-run350.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=262)}'
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run350-greatlakes-toughest-open.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run350-greatlakes-toughest-open.txt"
+# **The window landed whole** — 250 blocks, 1..250.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run350-greatlakes-toughest-open.txt" | awk '{v=$3+0; if(v>=0&&v<251) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=250)}'
 
 run: 55
 tag: islands-calccost

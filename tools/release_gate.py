@@ -102,6 +102,7 @@ COMMANDERS_LINES = (
     'the_handoff_s_default_map_is_the_lower_word',
     'the_handoff_s_endpoint_is_the_pinned_counts',
     'an_item_number_is_minted_once_and_in_its_file_s_form',
+    'the_handoff_s_second_pair_is_the_pinned_words',
 )
 # What `cargo test` exits with when a test failed; a kill (memcap's 137) or
 # a build error is not a red test and is never forgiven.

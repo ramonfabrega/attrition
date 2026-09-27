@@ -103,10 +103,16 @@ const DIFF_FILES: [&str; 19] = [
 /// the reason. `coverage.rs` *lists* the keys nothing reads in its
 /// `UNREAD` pin; scanning it would call every one of them compared.
 #[cfg(test)]
-const NOT_A_DIFFER: &[(&str, &str)] = &[(
-    "diff/coverage.rs",
-    "its UNREAD pin names the keys nothing reads",
-)];
+const NOT_A_DIFFER: &[(&str, &str)] = &[
+    (
+        "diff/coverage.rs",
+        "its UNREAD pin names the keys nothing reads",
+    ),
+    (
+        "diff/second.rs",
+        "the second pair's walks: it compares no field itself, and its widenings are harness.rs's",
+    ),
+];
 
 /// The parser's own containers, which carry no field the original writes:
 /// `Block` and `Log` are the reader's cursor and its index, `Initial` and

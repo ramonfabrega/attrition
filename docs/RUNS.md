@@ -9426,3 +9426,95 @@ exited 0. The dump's `GAME INFO` reads `DIFFICULTY 0`.
 
 **No falsifier fired.** Every value the prototype predicted is the
 original's on its block.
+## run346 — run54's game at the lobby's top difficulty: the second pair's East Indies (2026-09-27, item 971)
+
+**What it is.** The second pair's first capture (DECISIONS 53 §2): run54's
+stanza with two lines moved, `cover=0` and `profile: DIFFICULTY=5`, on the
+queue lane through `viadriver.sh … runqueue.sh - 971`. East Indies drops
+`-config`, so the lobby is the profile's `<GAME_INFO>` block (`docs/AI.md`
+§80.1); `rules.xml`'s six `difficulties` put Toughest at 5. The DLL was
+run318's, sha256
+`b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca`,
+unstamped (no `@` line, so `stamp.py` passes it).
+
+**Taken** 14:22–14:26 in one take: 11.1 MB of gamelog, 38.3 MB of trace.
+**The read-back**: the dump's `GAME INFO` block is run54's with one line
+apart, `DIFFICULTY 5` against 0; the two `PLAYER` blocks are run54's line
+for line (tribes 4 and 11, the per-player `diff 2`). **The game ended at
+frame 18141**, not 24,000: the idle human is `defeated_by 1` on the closing
+block, and the trace's last frame is 18140. The profile read `DIFFICULTY 0`
+in both blocks before the take and again after it (the `PROFILE` hook's
+copy-back; att-947's golden lane shares the file).
+
+**Against run54**, as a measurement: `rngcmp.py` has 18,141 frames in
+common and 18,138 differing, the first on frame 1 — frame 0 spends seven
+draws more (182 against 175), so every later frame starts on another seed.
+The harness's word was **0** (`diff::second`): ours 175 draws on frame 0,
+parting at index 24, where the original spends `Unit::think_spellcaster+
+0x413 < Unit::think_scout+0x7c`; it is **10** with that coin built
+(`docs/AI.md` §80.5).
+
+## run347 — run53's game at the lobby's top difficulty: the second pair's Great Lakes, in two takes (2026-09-27, item 971)
+
+**What it is.** run53's stanza with `cover=0` and the difficulty, on the
+queue lane beside run346, same DLL (run318's, sha256 `b451aeb6…3dca`).
+
+**The first take refused the lever** (14:26–14:30): it kept `-config
+check.ini` and set `difficulties=Toughest` there (the new `checkini:`
+key, `tools/gamelog/checkini.py`) and `DIFFICULTY=5` in the profile, and
+the dump read back **`DIFFICULTY 0`** — the stanza's own check failed.
+`rngcmp.py` has it as run53's stream on all 24,001 frames, 0 differing. It
+is kept as `gamelog-run347-greatlakes-take1-diff0-refused.txt` and
+`rontrace-run347-take1-diff0.log`; `check.ini` and the profile were copied
+back (`difficulties=Easiest`, `DIFFICULTY 0` in both blocks).
+
+**The second take** (14:31–14:35) drops `-config` (`cfg: -`), as East
+Indies always has: 10.8 MB of gamelog, 13.4 MB of trace. **The read-back**:
+`GAME INFO` is run53's with one line apart, `DIFFICULTY 5` against 0; run53's
+and run54's blocks differ only in `MAP_STYLE`, player blocks included, so
+the profile's lobby is run53's but for the difficulty. **The game ended at
+frame 5931**: the idle human `defeated_by 1`. The profile read `DIFFICULTY
+0` in both blocks after the take.
+
+**Against run53**, as a measurement: 5,931 frames in common, 5,930
+differing, the first on frame 1 (frame 0 spends 121 draws against 120).
+The harness's word was **0** (the same coin as run346's), and is **1**
+with it built (`docs/AI.md` §80.5).
+
+## run349 — run346's game at run299's detail over blocks 1..250: the second pair's East Indies word widened (2026-09-27, item 971)
+
+**What it is.** The widening's capture for a frame-0 word: run346's lobby
+(`cfg: -`, `profile: DIFFICULTY=5`, the default start detail), `end:
+MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1` over
+`frame_window: 0 251`, `cover=0`, `!quit` at 262. The word's frame 0 writes
+block 1, so no block stands before it and 250 stand after.
+
+**Taken** 14:36–14:55, one take, queued behind run347 by the runner reading
+`captures.txt` as it went: 520.1 MB of gamelog, 9.9 MB of trace. `rngcmp.py`
+against run346: 263 frames in common, **0 differing**; 250 window blocks;
+`DIFFICULTY 5`, `MAP_STYLE 18`. The profile was copied back.
+
+**What it holds**: `run349_s_word_frame_is_widened_whole` (`diff::second`),
+from run346's start. Before the coin, 130 keys first parted on block 1 —
+the AI scout `1/0`'s 28 rows among them; with it, 119, none of the scout's
+before block 97 (`docs/AI.md` §80.5). East Indies' next word, frame 10, is
+inside the window.
+
+## run350 — run347's game at run349's detail over blocks 1..250: the second pair's Great Lakes word widened (2026-09-27, item 971)
+
+**What it is.** run349's shape on run347's second take's lobby (`cfg: -`,
+Great Lakes, `profile: DIFFICULTY=5`): `frame_window: 0 251`, `cover=0`,
+`!quit` at 262. Taken for the lower word after `think_spellcaster`'s coin
+was built — Great Lakes 1, whose frame writes block 2. Same DLL
+(`b451aeb6…3dca`). Queued behind att-947's chapter thirty-two, which held
+the lane 14:55–15:30, waited on with `waitrun.sh` on that lane's log.
+
+**Taken** 15:31–15:49, one take: 466.3 MB of gamelog, 8.6 MB of trace.
+`rngcmp.py` against run347: 263 frames in common, **0 differing**; 250
+window blocks; `DIFFICULTY 5`. The profile read `DIFFICULTY 0` in both
+blocks after it. Free disk 32 → 31 GB.
+
+**What it holds**: `run350_s_word_frame_is_widened_whole`
+(`diff::second`), from run347's start. Block 1 stands (58 keys, the first
+pair's families); the word's block 2 parts on 130, who=1's opening
+(`docs/AI.md` §80.5).

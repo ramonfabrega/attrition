@@ -41,6 +41,8 @@ mod harness;
 mod leader;
 mod order;
 mod report;
+#[cfg(test)]
+mod second;
 mod setup;
 mod shutdown;
 mod unit;

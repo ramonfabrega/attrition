@@ -359,6 +359,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     ),
     // `Unit::do_move@005f7b30` — the grid draw.
     (0x005f_89b4, None, sim::orders::SITE_MOVE_GRID),
+    // `Unit::think_spellcaster@005f27a0` — the special arm's coin, which a
+    // computer's scout throws from difficulty 2 up (`docs/AI.md` §80.5).
+    (0x005f_2bb3, None, sim::spellcaster::SITE_SPECIAL_COIN),
     // `Unit::think_scout@005f6010` — the ring walk (`docs/SCOUT.md` §10).
     (0x005f_6446, None, sim::scout::SITE_ROTATION),
     (0x005f_6468, None, sim::scout::SITE_PHASE),
