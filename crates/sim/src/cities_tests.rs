@@ -1305,6 +1305,47 @@ fn a_command_s_two_buildings_take_one_slot_in_its_order_and_an_equal_group_takes
     );
 }
 
+/// **`Group::action_queue_up@006fdbb0`'s train arm on two buildings**
+/// (item 888, `docs/GOLDEN.md` §37, run304): the members sorted once by
+/// `queued`, least first, then `num` passes of one entry a member, the
+/// answer of each `queue_up` unread. With money for exactly three entries
+/// and the busier listed first, the idle member takes the first and third
+/// and the busier the second; laid a member at a time it would take all
+/// three, and unsorted the busier would take two.
+#[test]
+fn a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued() {
+    let food = economy::Resource::Food.index();
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let ty = sim.add_unit_type(hoplite_type(t.barracks));
+    sim.muster[0].researched[ty] = true;
+    let busy = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let idle = sim.place_building(0, t.barracks, tile_pos(48, 40)).unwrap();
+    finish(&mut sim, busy);
+    finish(&mut sim, idle);
+    // A Barracks' room, twenty (`docs/PRODUCTION.md`, "Queueing charges
+    // the price"), so no member is refused for room.
+    sim.buildings[busy].queue.capacity = 20;
+    sim.buildings[idle].queue.capacity = 20;
+    sim.ledgers[0].bucket[food] = 100_000;
+    sim.queue_up(busy, ty).unwrap();
+    // Exactly three more entries' worth, whatever the ramp.
+    let mut probe = sim.clone();
+    let before = probe.ledgers[0].bucket[food];
+    for _ in 0..3 {
+        probe.queue_up(idle, ty).unwrap();
+    }
+    sim.ledgers[0].bucket[food] = before - probe.ledgers[0].bucket[food];
+
+    assert_eq!(sim.action_queue_up(&[busy, idle], ty, 3), 3);
+    assert_eq!(sim.buildings[idle].queue.items.len(), 2, "the first and third");
+    assert_eq!(sim.buildings[busy].queue.items.len(), 2, "its own and the second");
+    assert_eq!(sim.ledgers[0].bucket[food], 0);
+    let paid = |b: usize, i: usize| sim.buildings[b].queue.items[i].cost[0];
+    assert!(paid(idle, 0) <= paid(busy, 1) && paid(busy, 1) <= paid(idle, 1));
+}
+
 /// **A player's garrison command, and the building's eject** (item 718,
 /// `docs/ORDERS.md` §29, run208). `Group::action_garrison` gives each
 /// member that `can_garrison` the building one GARRISON with the action

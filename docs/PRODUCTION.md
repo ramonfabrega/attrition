@@ -759,7 +759,8 @@ run285 holds it on any building.
 00948230` → `Group::action_queue_up@006fdbb0(type, num)`: the members are
 sorted by `queued`, least first, then `num` times over each live, finished
 member gets `Build::queue_up(type, 1)`, whose answer is not read (a missile
-silo asks `can_carry(type)` first). The research arm — a unit type whose
+silo asks `can_carry(type)` first). Diff-backed on two Barracks by run304 ("The command on a selection of
+buildings" below). The research arm — a unit type whose
 bit is clear, or a technology — goes through `LeaderData::researching` and
 one building with an empty queue first; ~~it is read and not built~~ built
 and staged in "The player's research" below (item 883).
@@ -854,6 +855,54 @@ over `Sim::research_arm` and `Sim::researching_unit`, in
 `crates/sim/src/production.rs`; `Sim::queue_tech` carries `can_make`'s
 held and researching refusals; `input::group_queue_up` maps a
 technology's `TypeIndex`. A building type's arm is not mapped.
+
+## The command on a selection of buildings (item 888)
+
+A player's command on two or more buildings — a unit's button, the
+infinite-queue button — reaches every selected building through one
+`Group`. `docs/GOLDEN.md` §37 is the chapter and **run304 backs every
+clause below** on two Barracks; the listing and the emulator came first.
+
+```
+process_group:  add each listed live object (Group::add; a repeat dropped),
+                push_group(who, g, 1) once          # 0x94a6cf
+action_queue_up(type, num), a train job:
+    sort the members by queued (+0x82, unsigned), least first:
+        for i < n-1, a pivot alive and finished:
+            for j > i: swap if queued[j] < queued[pivot]   # 6fdd46, jbe
+    repeat num times:                                        # 6fdf20
+        for each member, alive (+8&1), finished (+8&4):
+            queue_up(type, 1)            # the answer is not read, 6fe056
+action_buildmask(mask):
+    all_set = 1
+    for each admitted member: set if it lacks the bit and all_set,
+                              else clear it and all_set = 0
+```
+
+So `num` is laid **one entry a member a pass**, from the least-queued
+member, and every entry raises the next one's price: run304's `num` 3 on
+`[2007 (1 queued), 2008 (0)]` laid 53/41 at 2008, 56/45 at 2007, 60/50 at
+2008 and 65/56 at 2007, the fifth refused on 9 timber (642). A member at
+the sort's slot that is not finished is not a pivot but can be swapped
+forward, and is never called (the emulator alone: no cheat leaves a
+building unfinished). The toggle on `[on, off]` clears both (722).
+
+**The pool.** The command's group is one record, `buildings 1`, listing
+the buildings **in the command's order**, `speed` 0, and nothing is
+written on a building. `Group::equals_group@00708000` compares the member
+lists in order against `last_group`'s record: an equal group seats nothing
+and keeps its stamp (762); the same two in the other order take a new
+slot (742). A building-group slot is open to the next push
+(`Groups::get_open_slot@006fa460`), so the squads trained after took
+slots 0 and 1 from the two-member records (825, 876).
+`CommandPackage::add_group@0094bb60`'s own reuse test is an ordered
+compare too: 760's press sent the three-byte reuse.
+
+**In the code**: `Sim::action_queue_up`'s sort (`by_queued`) and passes
+and `Sim::action_buildmask`'s rule were already the reading's;
+`Sim::push_command_buildings` (`garrison.rs`) and
+`Sim::push_buildings_group` (`group.rs`) seat the group, and
+`push_building_group`, the AI's one-building push, goes through it.
 
 ## What is not established
 

@@ -6006,3 +6006,30 @@ followers' `orders_x/y` on every birth — `Unit::init@00612100` (parked
 646), 30 of the 45 rows; the pool's `speed`/`new_speed` on 833 and 834 —
 `normalize`'s leader speed on the squads' slots, one slot off; each
 first seat's `ox`/`oy` — `push_group`'s record `o` (parked 887).
+
+**The seat built: `GOLDEN_WORD_CHAPTER_TWENTY_EIGHT` stays 1580,
+closed** (item 888, `docs/PRODUCTION.md` "The command on a selection of
+buildings", `Sim::push_buildings_group`). **The value diff, both sides**
+(ours before the build in brackets): **642** who=0's slot 0 `buildings
+1`, `num` 2, `[2007, 2008]`, stamp 641 (empty); **702** slot 1 `[2008]`
+701 (in slot 0, and slot 1 still `[2007]` 621); **722** slot 0 `[2008,
+2007]` 721; **742** slot 1 `[2007, 2008]` 741 (`num` 1); **762** the
+same, the stamp kept; **825** `0/10`..`0/12` `group` 0 (1); **876**
+`0/13`..`0/15` `group` 1 (0), and the squads' `speed` 26 and 25 on their
+slots from 833 and 834. **What stands: 39 rows**, all
+`Unit::init@00612100`'s (parked 646) — `form` on every birth and the
+followers' `orders_x/y` — and **10 pool rows**, each first seat's
+`ox`/`oy` (parked 887).
+
+**Mutations**, each restored from git and `touch`ed, on the built tree:
+
+| mutation | fails |
+| --- | --- |
+| a single building seated (the old guard) | the unit test; the widening on **642**, slot 0 `held`, and on 825's `group` |
+| the equality unordered | the unit test; the widening on **742**, slot 1 `[2008]` against `[2007, 2008]` |
+| a building listed twice kept twice | the unit test alone: no capture lists one twice |
+| `action_queue_up`'s sort dropped | **no unit test**; the widening on **642**, `0/2008`'s `queue[1].cost` 65 against 60 |
+| `num` laid a member at a time | **no unit test**; the widening on **642**, `queued` 3 against 2 |
+| the toggle read per member | `the_repeat_button_toggles_off_the_first_member`; the widening on **722**, `0/2007` `infinite_queue` 1 against 0 |
+
+The sort and the passes had no unit test; run304 is their only check.
