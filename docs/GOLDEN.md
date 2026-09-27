@@ -1399,7 +1399,7 @@ each can invalidate work that would otherwise be done on top of it.
 
 | run | chapter | window | why this order |
 |---|---|---|---|
-| 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760** |
+| 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760**; item 945 built the Bowmen's re-seat, 105 → 35 rows |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6511,9 +6511,7 @@ The widening goes **696 → 105 rows** and the pool **29 → 6**. What stands:
   (4224, 14208) against (4248, 14232) (`Unit::init@00612100`, parked 646);
 - 856's group move id, ours 861600 against 855000: `64 +` a pushed index
   here, `who·64 +` the slot there (parked 676's first);
-- 1060..1079, the Bowmen's exit. The bearing agrees and the ring's point
-  does not: ours (3336, 14376), theirs (3384, 14232). Every row to their
-  entry on 1079 follows from it; it is named, not built;
+- ~~1060..1079, the Bowmen's exit~~: built below (item 945);
 - the pool's first seats' `ox`/`oy` (parked 887).
 
 **Mutations**, each committed first, then restored from git and
@@ -6528,3 +6526,12 @@ The widening goes **696 → 105 rows** and the pool **29 → 6**. What stands:
 | `ATTACK_TO` read as `MOVE_TO` | the ground-point test; the widening |
 | the City's snap dropped | the word 822; then, written for it, `a_city_s_rally_on_a_forest_takes_its_woodcutter_s_point` |
 | the member's mirror flip dropped | the widening; then, written for it, `a_member_turned_past_ninety_degrees_to_its_captain_s_bearing_flips_its_mirror` |
+
+**The re-seat built (item 945): 105 → 35 rows**, the word at 1450. Not a
+refused ring: the routing's building arm sweeps the captain round 2007's
+ring again from the bearing to 2008 itself, due east (`docs/PRODUCTION.md`
+"The gather point"). **The value diff, `0/17`** (ours before in
+brackets): 1060 `pos`, `g.x/y`, `g.des_x/y`, `orders_x/y` (3384, 14232)
+both ((3336, 14376)); 1061 `dest_angle` and the move's `angle`
+0x40000000 both (943259648); 1079 `inside` 2008 for all three (−1). The
+members were already equal. What stands on 1060: three `form` rows (646).

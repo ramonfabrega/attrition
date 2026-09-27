@@ -1029,6 +1029,41 @@ A member's own angle is `Unit::set_angle(host->angle)`, whose `reversing`
 test flips its mirror past 90°. The captain's is the bare store, which
 flips nothing.
 
+**The two re-seats** (item 945). Before it orders anything, the routing
+may sweep the captain round its trainer's **land** exit ring again
+(`UNIT_TRAIN_DISTANCE` to `UNIT_TRAIN_MAX_DISTANCE`, step 0, no boat arm,
+no dying-building zero) under `FILTER_ALL`, and
+`Unit::set_new_location@005f8d20(·, spot, 1, 1)` moves it there. The
+members stay where the exit seated them.
+
+- **At a building point** (`61923e`..`619381`): when `find_any_building_at`
+  finds a building at the last point, whatever it goes on to order. The
+  bias is `find_angle(that building − trainer)`, the register pair at
+  `6192e4`/`61930b`, and **not** the gather block's bearing to the free
+  spot beside it.
+- **In the lone move arm** (`619ea2`..`619f86`): the bias is
+  `find_angle(the gather spot − trainer)` (`619ee5`/`619efa`). That is
+  the exit's own bearing, so a lone unit the first re-seat moved is put
+  back.
+
+`FILTER_ALL` takes `find_nearby_spot`'s general path
+(`ObjectsData::find_unit_with_radius@00659890` and its ordered twin,
+`docs/COLLISION.md` §5.2.1), `orders::Coll::All` here. Its seeker is
+exempted **as an untested assumption**: no capture's winning candidate
+is within reach of where the unit stands.
+
+**run312**, on the units they move:
+- the Bowmen `0/17` (point on 2008): the exit's bearing is 0x4a590000,
+  and the exit puts the captain at (3336, 14376), where its members are
+  seated. The re-seat's bearing is due east, and it puts the captain at
+  (3384, 14232) on 1060, as the original does;
+- the Citizen `0/10` (point on the Woodcutter): moved to (3576, 29928),
+  then put back at (3576, 29976) on 760.
+
+The reading 928 booked was that the original refuses the whole first
+ring. It is dead: under the agreed bias, theirs is the sweep's 61st
+candidate, on open ground.
+
 **run312**, each on its birth block:
 - the Hoplites `0/11`..`0/13` out north-west on 856, each a
   `GROUPATTACKTOORDER` under one group to (1368, 12120);
@@ -1041,18 +1076,15 @@ flips nothing.
 
 **In the code**: `crate::rally` (`Sim::action_gather_point`,
 `add_gather_point`, `clear_gather`, `gather_inside`, `gather_exit`,
-`gather_route`), with `Building::gather`; `Sim::come_out` and
+`gather_route`, `gather_reseat`), with `Building::gather`; `Sim::come_out` and
 `come_out_place` (`garrison.rs`); `Sim::build_train`'s "inside" arm
 (`lib.rs`). The entry is `rondata::input::group_gather_point`, and
 `input::Stream` applies a recorded one (run7's, 1184). Seven tests in
 `cities_tests`, each made to fail by a mutation of its arm.
 
 **What stands on run312**:
-- the Bowmen's exit point: the bearing agrees, the ring's point does
-  not. Ours is (3336, 14376), the first candidate at 672 on the bearing;
-  theirs (3384, 14232), which is on the second ring at an odd
-  thirty-second. Every row to their entry on 1079 follows from it. The
-  cause is not found, and it is named rather than built;
+- ~~the Bowmen's exit point~~: the building point's re-seat, above
+  (item 945);
 - the group move's id (parked 676's first) and `Unit::init`'s seat and
   `form` (parked 646).
 
@@ -1063,7 +1095,10 @@ flips nothing.
 - action 3 (the Airbase's strike, `action_flight`) and the Airbase's arm
   of `add_gather_point` / `clear_gather` under `build_masks & 8`;
 - an enemy at the point (the attack arms), a caravan's trade arm, and
-  `find_unit_with_radius`'s re-seat with the lone arm's second sweep;
+  the third re-seat (`619aa3`..`619be7`: a unit found at a ground point),
+  ~~with the lone arm's second sweep~~ (built, item 945);
+- whether `FILTER_ALL` exempts the seeker: a lone unit trained under a
+  ground point is the capture that tests it;
 - a citizen's build, repair and gather arms (read and built, not
   captured);
 - the Terracotta Army and the Kremlin beside the Senate (wonders with no

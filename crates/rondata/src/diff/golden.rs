@@ -12157,10 +12157,15 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
 // births' `form` (parked 646); 953, 2008's Hoplites seated at the
 // building's own point here and at it plus (24, 24) there (`Unit::init`'s
 // seat, parked 646); 856, the group move's id, ours `64 +` a pushed index
-// and theirs `who·64 +` the slot (parked 676's first); and 1060..1079, the
+// and theirs `who·64 +` the slot (parked 676's first); ~~and 1060..1079, the
 // Bowmen's exit: the bearing agrees and the ring's point does not, ours
 // (3336, 14376) against (3384, 14232), and everything after it on the walk
-// to 2008 (named, not built).
+// to 2008 (named, not built).~~ **The re-seat built** (item 945,
+// `docs/PRODUCTION.md` "The gather point"): `come_out`'s routing sweeps the
+// captain round its trainer again from the bearing to the building at the
+// point, and `0/17` stands at (3384, 14232) on 1060 as there. 105 → 35
+// rows: the 70 of 1060..1079 go, and the Bowmen's three `form` rows stay
+// (parked 646).
 const WANT_CH30: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
@@ -12195,78 +12200,8 @@ const WANT_CH30: &[&str] = &[
     "953 0/16 orders_y",
     "953 0/16 pos",
     "1060 0/17 form",
-    "1060 0/17 g.des_x[0]",
-    "1060 0/17 g.des_y[0]",
-    "1060 0/17 g.x[0]",
-    "1060 0/17 g.y[0]",
-    "1060 0/17 orders_x",
-    "1060 0/17 orders_y",
-    "1060 0/17 pos",
     "1060 0/18 form",
     "1060 0/19 form",
-    "1061 0/17 dest_angle",
-    "1061 0/17 order:move.angle",
-    "1061 0/17 order:move.off_y",
-    "1061 0/17 order:move.y",
-    "1061 0/18 dest_angle",
-    "1061 0/18 order:move.angle",
-    "1061 0/18 order:move.off_y",
-    "1061 0/18 order:move.y",
-    "1061 0/18 orders_y",
-    "1062 0/17 g.angle[0]",
-    "1062 0/17 g.des_angle[0]",
-    "1062 0/17 g.last_speed[0]",
-    "1062 0/17 heading",
-    "1062 0/17 order:move.dest_y",
-    "1062 0/17 path[0].to",
-    "1062 0/18 g.angle[0]",
-    "1062 0/18 g.des_angle[0]",
-    "1062 0/18 g.des_x[0]",
-    "1062 0/18 g.des_y[0]",
-    "1062 0/18 g.last_speed[0]",
-    "1062 0/18 g.x[0]",
-    "1062 0/18 g.y[0]",
-    "1062 0/18 heading",
-    "1062 0/18 order:move.dest_y",
-    "1062 0/18 path[0].to",
-    "1062 0/18 pos",
-    "1063 0/17 g.avg_speed[0]",
-    "1063 0/18 g.avg_speed[0]",
-    "1063 0/18 half_step",
-    "1066 0/18 g.cur_anim[0]",
-    "1078 0/17 order:kind",
-    "1078 0/17 order:length",
-    "1078 0/17 orders.len",
-    "1078 0/17 path:length",
-    "1079 0/17 g.cur_time[0]",
-    "1079 0/17 g.last_time[0]",
-    "1079 0/17 g.stopped[0]",
-    "1079 0/17 inside",
-    "1079 0/18 g.cur_time[0]",
-    "1079 0/18 g.last_time[0]",
-    "1079 0/18 inside",
-    "1079 0/18 order:length",
-    "1079 0/18 orders.len",
-    "1079 0/18 orders_x",
-    "1079 0/18 path:length",
-    "1079 0/19 dest_angle",
-    "1079 0/19 g.angle[0]",
-    "1079 0/19 g.avg_speed[0]",
-    "1079 0/19 g.cur_time[0]",
-    "1079 0/19 g.des_angle[0]",
-    "1079 0/19 g.des_x[0]",
-    "1079 0/19 g.des_y[0]",
-    "1079 0/19 g.last_time[0]",
-    "1079 0/19 g.x[0]",
-    "1079 0/19 g.y[0]",
-    "1079 0/19 heading",
-    "1079 0/19 inside",
-    "1079 0/19 order:length",
-    "1079 0/19 orders.len",
-    "1079 0/19 orders_x",
-    "1079 0/19 orders_y",
-    "1079 0/19 path:length",
-    "1079 0/19 pos",
 ];
 
 // **What parts in the pool** on run312. ~~The first walk: each press's

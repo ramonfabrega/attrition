@@ -889,10 +889,28 @@ pub enum Coll {
     /// jumps over (`61df3e`).
     Pairwise,
     /// Accept any passable candidate. The original's `nocoll != 0`, and —
-    /// as a stated seam — its `FILTER_ALL` general path, whose
-    /// `big_radius + r_coll` circle is modelled only for the two forms
-    /// that reach it here (the `(-1, -1)` cast and the squad).
+    /// as a stated seam — its `FILTER_ALL` general path where a call site
+    /// here has not yet asked for [`Coll::All`] (`come_out`'s
+    /// `block_radius == 0` arm, which no capture's trained type reaches).
     None,
+    /// `FILTER_ALL` with the unit's own `(o, who)`: the **general** path
+    /// (`61e37e` and `61e39c`, `docs/COLLISION.md` §5.2.1) —
+    /// `find_unit_with_radius` over every player's units at `big_radius +
+    /// r_coll`, `r_coll` the type's `block_radius` (`0x180` when that is
+    /// 0), then its ordered twin, since `not_who >= 0`. `come_out`'s
+    /// re-seat at a building point is the call site (`619360`,
+    /// `docs/PRODUCTION.md` "The gather point").
+    ///
+    /// SEAM: `FILTER_ALL` skips `Search::valid_filter`, which is where the
+    /// pairwise path exempts `(not_o, not_who)`, and which players the query
+    /// searches is a lost register (`docs/COLLISION.md` §5.2.1). This crate
+    /// exempts the seeker, as an assumption **no capture tests**: on run312
+    /// neither re-seat's winning candidate is within reach of where the
+    /// unit stands (the Bowmen 150 units off, the Citizen 48), and the
+    /// mutation that counts the seeker fails nothing. Its killer is a lone
+    /// unit trained under a ground point, whose lone-arm sweep's first
+    /// candidate is the point it already stands on.
+    All,
 }
 
 /// Who is asking `find_nearby_spot` — `this` is always the unit **type**,
@@ -5602,7 +5620,7 @@ impl Sim {
                 // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
                 // unit is standing on — or has already been sent to — is
                 // taken.
-                let hit = coll == Coll::Pairwise
+                let hit = coll != Coll::None
                     && match (uber, who) {
                         // **A squad placement never takes the pairwise
                         // pair.** `bVar17` — the flag that selects
@@ -5629,6 +5647,20 @@ impl Sim {
                                     ),
                                     Seeker::Type(_) => false,
                                 }
+                        }
+                        (false, Seeker::Unit(u)) if coll == Coll::All => {
+                            let r = if p.block_radius == 0 {
+                                0x180
+                            } else {
+                                p.block_radius
+                            };
+                            self.find_unit_with_radius(r, c, Some(u))
+                                || self.find_unit_ordered_with_radius(
+                                    r,
+                                    c,
+                                    self.units[u].owner,
+                                    Some(u),
+                                )
                         }
                         (false, Seeker::Unit(u)) => {
                             self.find_collision(u, c) || self.find_ordered_collision(u, c)
