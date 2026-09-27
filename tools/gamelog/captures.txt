@@ -7480,3 +7480,45 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # `GAME INFO` checks as first written anchored on a line that ends in `\r`;
 # they are the ones above now (`docs/RUNS.md` run316). DLL sha256
 # 17c5f215d8ea2775f020e3acc4a1b9de5e07bce83264f8afea837dec6cc798e2.
+
+run: 318
+tag: ch23-cover-issued
+item: 934
+why: the blind list's rows 1, 2 and 5 — run314 again with the issuer guard reading through the coverage jmp; the proof the fix leaves the game alone
+# run314's stanza line for line; only the DLL differs. `tracer.c`'s issuer
+# guard now takes the displaced bytes from the coverage table's copy when the
+# live `jmp` lands on the entry's own stub (`tools/trace/issue_guard.h`, item
+# 934), so the six `@` lines run314 refused with code 2 should issue as they
+# did in ch23's golden run (run281). **The DLL is a plain build of
+# `c37a99f5`'s `tracer.c`**, sha256
+# b451aeb6d5c1a322033b84d900bfa4082d7afa0522e33a62119de5ec50e93dca (parked
+# 936: this lane never builds it; the previous build is beside it as
+# `rontrace.dll.2026-09-27-0222-plain.bak`). **A take that dies before its
+# window** (parked 937): kill runqueue, longtrace, waitwin and the game, run
+# `window.py restore`, keep the trace as `-take1-fault`, retake once.
+frames: 1840
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5
+cmd: 0 !ai off
+cmd: 37 !ffwd 3
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1440 @buildmask 0 128 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run318.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 1840:1
+# Every `@` line issued as in run281: frame, package growth, objects, places.
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch23/map-14/rontrace.log" rontrace-run318.log
+# The same game as run281, word for word over the whole capture.
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch23/map-14/rontrace.log" rontrace-run318.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1840)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run318.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_buildmask$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
