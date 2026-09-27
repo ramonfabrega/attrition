@@ -1385,6 +1385,7 @@ below without a run take their number at booking (the eleventh pass).
 | 300 | twenty-seven, the upgrade line | `[605, 1560)` | a unit upgrade through `@queueup` at who=0's Barracks, staged Classical (§36) |
 | 304 | twenty-eight, two buildings under one command | `[605, 1580)` | `@queueup` and `@buildmask` on two Barracks: the sort and passes, the toggle on `[on, off]`, the building group of two (§37) |
 | 308 | twenty-nine | `[605, 2070)` | §38 |
+| — | thirty onward | — | §14a, the continuation (parked 932: this table is at the section ceiling) |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -1392,6 +1393,15 @@ reservation.~~ Any further detail window takes its number at booking.
 The order above is by **what a failure would teach**, not by
 chapter number: 113 and 116 are placed early because each can invalidate work
 that would otherwise be done on top of it.
+
+## 14a. The running order, continued
+
+§14's table is at the section ceiling (parked 932); its rows from chapter
+thirty on are here, in the same columns.
+
+| run | chapter | window | why this order |
+|---|---|---|---|
+| 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6269,3 +6279,183 @@ the Biplane's EXIT read is gone. **Mutations**, each restored from git and
 `touch`ed: the hangar arm dropped fails the new unit test and re-parts
 run308 on 1745; the walk carried on after a launch fails
 `a_launch_ends_the_walk_along_the_base_s_chain` alone.
+
+## 39. Chapter thirty — the gather point: a Barracks' rally on the ground, on another building and on itself, a City's on a forest, and the Clear (item 928)
+
+**Premise.** The player's rally point has no issuer in any capture and no
+model in this crate: `input::Stream` skips a recorded `GatherPoint`, and
+every building on disk has an empty list. Item 915 read three of its
+readers — `Build::train@0062f9b0`'s two `CARRY_AIR` arms and
+`Unit::come_out@00617c10`'s routing — and this chapter puts the command
+and the ground arms under the light. What the reading says, as claims to
+check:
+- **The command writes a list on the building.** `CommandPackage::
+  process_gather_point@00948510` hands `(x, y, action, add_to_end)` to
+  `Group::action_gather_point@006ff1b0`, which gives each admitted member
+  one `GatherPoint {x, y, action}` through `Build::add_gather_point@
+  00622e70` (`BuildData +0xb8`, the count at `+0xc8`), the list cleared
+  first unless `add_to_end`; `−1` in either coordinate is the Clear:
+  `Build::clear_gather@00623180`. The dump prints it (`BuildData::
+  log_data`'s last list: `length`, then per point `type`, `metric` and a
+  `GATHERPOINT` with `x`, `y` and `action`).
+- **A unit trained under a point leaves toward it.** `come_out`'s
+  gather-point block (`6181a3`..`618377`) finds a free spot within `0x600`
+  of the list's head point (`UnitType::find_nearby_spot@0061de70`) and
+  stores `find_angle(spot − building)` in the unit's `angle` (`+0x50`) and
+  in the exit sweep's bias (`[esp+0x2c]`, south otherwise, `docs/CITIES.md`
+  §6.5.1).
+- **Then it is sent there, and what it is sent to do depends on what is
+  at the point.** With one point, the last is the first (`618c8d`): no
+  building and no unit there, a military unit made at a Barracks, Stable
+  or Dock (`TypeData::where`, `+0x40`) whose stance is not 5 takes
+  `ATTACK_TO`, anything else `MOVE_TO`; a squad with a pushed group
+  (882's push) goes through `Group::action_move_to` (`QUEUE_LAST`), a lone
+  unit through `add_move_facing_order`. A friendly building with room and
+  `action` ≠ 0 is garrisoned (`add_garrison_order` down the chain); a
+  citizen at its own unfinished building builds, at a damaged one
+  repairs, at a gather building with `action` ≠ 0 gathers.
+- **A point on the trainer itself keeps the unit in.** The click on a
+  building tile the member covers stores (−1, −1, 0) (`GatherPoint::
+  is_inside`), and `Build::train`'s non-`CARRY_AIR` arm asks
+  `BuildData::gather_inside@0046f180` before `come_out`: a unit with room
+  (`num_inside ≤ get_garrison_limit`, 10 when the limit is 0) stays.
+- **A City's point on a forest snaps to its Woodcutter.** When every
+  member is a City centre (`COUNT_TYPE` VILLAGE `0x19e`), a forest tile
+  (`TData & 0x30 == 0x30`) asks `ObjectsData::find_building` for a
+  friendly Woodcutter within `0x600` and takes that building's point, the
+  action unchanged (0).
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`'s
+machine through `command_oracle.py`'s fixture, out of git; the objects,
+their types and the world synthesized, the member's vtable and its type's
+stubbed; `add_gather_point` and `clear_gather` unchanged, `malloc` and
+`free` adapted):
+
+| the call | what it wrote |
+| --- | --- |
+| `issue_gather_point(group, 11424, 13920, 0, 0)` | 22 bytes: a fresh one-building `group`, then `16 [x][y][0][0]`; every other row 20 bytes behind the three-byte reuse, each field as passed, −1, −1 too |
+| a point on `[Barracks]` | one `GatherPoint` (11424, 13920, 0), the list's count 1 |
+| another point | the list cleared, the new one alone |
+| two with `add_to_end` | appended in order: three points |
+| a friendly object, action 1 | the point stored with action 1 |
+| (−1, −1, 0, 0) | the list empty |
+| a point on `[Barracks, University, Woodcutter, Senate, City]` | the Barracks, the Senate and the City take it; the University (named) and the Woodcutter (no `0x80000000`, no garrison limit) do not |
+| a point past the world's edge | clamped to (width·0x300 − 1) |
+| a building tile the Barracks itself covers | (−1, −1, 0): "inside" |
+| the same on the Senate | the list cleared |
+| a forest tile, `[City]`, no Woodcutter found | the point as given; with one found, the Woodcutter's own point, `ping_target` |
+| a mountain tile (`& 3 == 2`), `[City]` | `find_building` for a Mine, the same snap |
+| a forest tile, `[City, Barracks]` | no snap: not every member is a City |
+| an "inside" head, then a point with `add_to_end` | the list replaced, not appended |
+
+**What the emulator could not reach**: `come_out`'s two gather-point
+blocks, whose `find_nearby_spot`, `find_any_building_at`,
+`find_unit_with_radius` and orders read the world and the unit;
+`Build::train`'s "inside" test with a real `num_inside`; the Airbase's
+arm of `add_gather_point` (`build_masks & 8`), which re-orders the base's
+planes; and a list of more than one point walked by a trained unit.
+
+**The writers and readers, counted by offset** (823, 869): the list
+(`BuildData +0xb8..+0xcc`, the count `+0xc8`, the tail `+0xcc`) is written
+by `add_gather_point` and `clear_gather` alone, and they are reached from
+`Group::action_gather_point`, `Group::action_city_gather` and the
+scenario functions. Its readers: `come_out` (the head, `num_gather`, the
+walk), `Build::train` (`+0xcc` at `62fadf`, `gather_inside`),
+`BuildData::gather_inside`, `num_gather`, `log_data`, and the interface.
+
+**The cast and the lines** are `chapter30.cmd`'s: chapter twenty-eight's
+cast (two who=0 Barracks, `0/2007` at (2688, 14208) and `0/2008` at
+(4224, 14208)), who=0's City `0/2000` at (3168, 30816) and Woodcutter
+`0/2001` at (4224, 28608) from the map, and nine lines. **One capture buys
+every arm** (879): each press precedes the unit its arm needs, and the
+press that moves 2007's point falls between its two finishes.
+
+**The staging, walked by this crate through the commands' own entries**
+(`@gatherpoint` skipped as not modelled; run308's start, which is this
+game to 605; run313 was not used). The frames are this crate's:
+- presses processed on 617, 651, 701, 901 and 1101;
+- 622: 2007 `[132]`; 642: `[132, 170]`; 662: 2000 `[Citizen]`; 712: 2008
+  `[132]`;
+- 760: the Citizen `0/10` out south of the City at (3192, 31800), no
+  order, and a `GATHERORDER` of its own on 919;
+- 856: the Hoplites `0/11`..`0/13` out on 2007's south ring, (2712,
+  14904), no order;
+- 953: the Hoplites `0/14`..`0/16` out on 2008's south ring, no order;
+- 1060: the Bowmen `0/17`..`0/19` out at (2424, 14808), no order.
+The tiles, by this crate's `TData` mask: (7, 63), 2007's point, plain
+land; (20, 146) forest (`& 0x30 == 0x30`); (22, 74), 2008's centre, a
+building (`& 3 == 3`).
+
+**The readings, and the gates between each and its block** (903):
+- **The list** (618, 652, 702, 902, 1102): written as read, or not at
+  all. No gate but the issue: the DLL's refusal names itself.
+- **The first Hoplites** (856): out toward the point and sent to it
+  under `ATTACK_TO` as a group (**the reading**); sent under `MOVE_TO`;
+  out south with no order (**this crate**). The gates before 856: the
+  price and the pace, which chapter twenty-four measured on this block.
+- **2008's Hoplites** (953): **inside 2008** (the reading, the "inside"
+  point); out and sent back at 2008's point; out south with no order
+  (this crate). Gates: the second price (53 food, 41 timber of 130 and
+  121), the population (15 of 25), and the garrison limit (0 → 10).
+- **The Bowmen** (1060): out toward 2008 with a `GARRISONORDER` a member
+  into 2008 (**the reading**, `action` 1); sent at 2008's point under
+  `ATTACK_TO` (the building arm not taken); out south with no order (this
+  crate). Gates: 2008 holding its three Hoplites under a limit of 10, and
+  `can_garrison` of Bowmen in a Barracks (chapter thirteen garrisoned a
+  squad in one).
+- **The Citizen** (760): out toward the Woodcutter and sent there with a
+  plain move, no gather order (**the reading**: the snapped point keeps
+  action 0, and the gather arm wants ≠ 0); a `GATHERORDER` at the
+  Woodcutter from `come_out` (the snap read as a click on the building);
+  out south with no order (this crate), gathering from 919. Gates: the
+  snap needs the Woodcutter within `0x600` of (3936, 28128): 560.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1`
+and `misc:COMMANDMANAGER=1` over **`[605, 1450)`**: 845 blocks, **300 of
+runway** past the Bowmen's garrison, predicted by 1150. `BUILDS=7`
+prints the list; `UNITS=3` each unit's `inside_up`, order stack and
+`angle`; `GROUPS=1` the pool, where each press's building group and each
+squad's push are seated; `COMMANDMANAGER=1` the `process_gather_point`
+line.
+
+**The premise's killer, and its writers** (§3, point 5): each trained
+unit's own `inside_up`, point and order stack on its birth block, and
+each building's list on the press's block. The writers: the list's two
+above; a unit's `inside_up` and point, `come_out` (and nothing on the
+"inside" arm); its orders, `come_out`'s routing, `do_idle`'s auto-gather
+for a citizen, and 882's push for the group. **The loops**:
+`action_gather_point`'s over the group's members, `0..num`;
+`come_out`'s over the points, `0..num_gather`, one here.
+
+**What would falsify it, and where each could first fire.**
+1. **An issue does not reach the pump.** Trace frames 616, 650, 700, 900,
+   1100: an `INFO 17` with a refusal, or no `process_gather_point` on
+   617, 651, 701, 901, 1101.
+2. **The list** on 618 (2007: 1344, 12096, 0), 652 (2000: **4224,
+   28608, 0**, the Woodcutter's point; 3936, 28128 if the snap is not
+   taken), 702 (2008: −1, −1, 0), 902 (2007: 4224, 14208, 1, one point,
+   the first replaced), 1102 (2007: `length 0`).
+3. **The first Hoplites** (856), `0/11`'s own stack and point: a
+   `GROUPATTACKTOORDER` on each of `0/11`..`0/13` under one group id,
+   toward (1344, 12096), the captain out on 2007's ring on the bearing to
+   the point (the reading); a `GROUPMOVEORDER` (MOVE_TO); no order on the
+   south ring (this crate). And the captain's `angle` the bearing.
+4. **2008's Hoplites** (953), `0/14`'s own record: `inside_up 2008`, no
+   order (the reading), and so to the window's end; out.
+5. **The Bowmen** (1060), `0/17`'s own stack: a `GARRISONORDER` on
+   2008 (the reading), then inside 2008 by ~1150; a group order at
+   2008's point; no order.
+6. **The Citizen** (760), `0/10`'s own stack: a `MOVEORDER` toward
+   (4224, 28608) and no `GATHERORDER` on its birth block (the reading); a
+   `GATHERORDER` on 760; no order on the south ring.
+
+Falsifiers 3 to 6 test each unit's own record on its own block (711),
+and each splits three readings (789). **Not reached**: a list of more
+than one point, the Airbase's arm, an enemy at the point (action 2), a
+citizen at a building it can build or repair, and the Senate's clear on
+itself.
+
+**Where it should part.** This crate models none of it, so the first
+value parting is expected on **618** (2007's list) and the first draw
+parting on **856**, where the Hoplites' exit is swept from another
+bearing and their orders move them.
