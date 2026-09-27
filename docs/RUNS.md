@@ -8861,3 +8861,65 @@ crate takes, is killed. **The others did not fire**: the launch half of
 `do_launch`'s repeat arm (parked 876) flies each kept patrol out on its
 first full tank. The Biplane's point is the base's plus (24, 24), not the
 base's own.
+
+## run312 — chapter thirty, the gather point (2026-09-27, item 928)
+
+`docs/GOLDEN.md` §39, `tools/gamelog/golden/chapter30.cmd`: chapter
+twenty-eight's cast, five `@gatherpoint` lines through the DLL's new verb
+20 and three `@queueup` lines. The chapter and its six falsifiers were
+committed before the run (`237108d1`, `089103c3`). The lane was taken
+after att-923's run314 exited (its `waitrun.sh` exited 0 at 02:36); no
+`RonDriver` was running at the launch.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch30 \
+    --map 14 --end-frame 1450 --log-window 605 1450 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter30.cmd
+```
+
+**One take** at `cover=0`: launched 02:36, **1,031 s** in all (1,010
+launch to exit), **367 MB** of dump and 11 MB of trace, 845 blocks. The
+receipt says `success: true`, exit 0, 1,451 frames, `MAP_STYLE 14`, seed
+12345, 432,640 `GROUPDATA` (512 a block). `waitrun.sh` exited 0. **The
+DLL is the lane's own**: `unattended_capture.py` built it with
+`-DRON_AUTOSTART` from this branch's `tools/trace/tracer.c` into the
+output directory (sha256 `49ca567d…c582c1`); `game/rontrace.dll` was
+neither read nor written.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run304's trace | the same game to 759; the harness word 760: the Citizen's first step, a move run304 never makes. No press spends a draw |
+
+### The issuer's own records
+
+- `INFO 17` refusal 0 on all eight lines. Each `@gatherpoint` grew the
+  package 10 → 32 (a fresh one-building group and the 17-byte
+  `gather_point`), and the Clear 10 → 30 (the three-byte reuse), as the
+  emulator had it.
+- `INFO 18` names `0/2007` (uid 13), `0/2000` (uid 0) and `0/2008` (uid
+  14) at their points.
+- `process_group, new 0 1 F` and `process_gather_point x y action 0 F` on
+  617, 651, 701, 901 and 1101, with the lines' own arguments.
+
+### §39's falsifiers
+
+| check | predicted (the reading; this crate's walk in brackets) | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 617, 651, 701, 901, 1101 | **as predicted** |
+| 2, the lists | 618 2007 (1344, 12096, 0); 652 2000 (4224, 28608, 0), the Woodcutter's; 702 2008 (−1, −1, 0); 902 2007 (4224, 14208, 1) alone; 1102 2007 `length 0` | **as predicted**, every block. `metric` is 0 on every node, the node's key, not the action |
+| 3, the first Hoplites (856) | `GROUPATTACKTOORDER`s under one group toward (1344, 12096), the captain out toward the point [south ring, no order] | **the reading**: `0/11` at (2328, 13656), `0/12` (2328, 13800), `0/13` (2232, 13512), north-west of 2007; each a `GROUPATTACKTOORDER` over a `MOVEORDER`, `group` 0, `orders_x/y` (1368, 12120); `angle` −385482752. An `ATTACKTOORDER` from 920, no order from 936, standing at (1368, 12120), (1512, 12024), (1224, 12216) |
+| 4, 2008's Hoplites (953) | inside 2008, no order [out on the south ring] | **the reading**: `0/14` `inside_up 2008`, `0/15` and `0/16` behind it, no order, at 2008's point plus (24, 24); so to 1449 |
+| 5, the Bowmen (1060) | a `GARRISONORDER` into 2008 [out at (2424, 14808), no order] | **the reading**: `0/17` out east at (3384, 14232), `0/18` (3336, 14520), `0/19` (3528, 14424), each a `GARRISONORDER` over a `TARGETORDER`, `group` 2, `angle` 1247346688; a `MOVEORDER` under it from 1061; inside 2008 on **1079**, behind `0/16` in the chain |
+| 6, the Citizen (760) | a `MOVEORDER` toward (4224, 28608), no gather order [south of the City, no order, a `GATHERORDER` of its own on 919] | **the reading**: `0/10` out north-east at (3576, 29976), a `MOVEORDER`, `orders_x/y` (4248, 28632), `angle` 314048512; there by 880 and idle; a `GATHERORDER` of its own from **984** |
+
+**No falsifier fired.** Every reading held: the command writes a
+one-point list, replaced by the next press and emptied by the Clear; a
+City's forest click takes its Woodcutter's point; a trainer's click on
+itself keeps its trained squad inside; a squad is sent out toward the
+point as one group, attack-moving; a squad whose point is a friendly
+building garrisons it; and a citizen whose point is a building of its
+own at action 0 walks there with a plain move and gathers later of its
+own accord.
