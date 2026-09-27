@@ -420,6 +420,9 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     (ADD_ANIMALS_COIN, None, sim::farms::SITE_ANIMAL_COIN),
     (ADD_ANIMALS_Y, None, sim::farms::SITE_ANIMAL_Y),
     (ADD_ANIMALS_X, None, sim::farms::SITE_ANIMAL_X),
+    // The pig's arm: the same two offsets at their own addresses.
+    (ADD_ANIMALS_PIG_Y, None, sim::farms::SITE_PIG_Y),
+    (ADD_ANIMALS_PIG_X, None, sim::farms::SITE_PIG_X),
     // `Build::find_gather_tiles@00623350+0x10a` — the mining list's
     // shuffle, one draw a round over `4 × length` of them, under
     // `Build::init+0x55b`. Its own address, so no chain is needed.
@@ -651,6 +654,11 @@ impl Draw {
 pub const ADD_ANIMALS_COIN: u32 = 0x008d_8fc2;
 pub const ADD_ANIMALS_Y: u32 = 0x008d_9064;
 pub const ADD_ANIMALS_X: u32 = 0x008d_90b2;
+/// The odd coin's arm, the pig: its `y` and `x` draws sit at their own
+/// addresses, which the setup borrow above has never needed (every setup
+/// pasture on disk is chickens).
+pub const ADD_ANIMALS_PIG_Y: u32 = 0x008d_8ff9;
+pub const ADD_ANIMALS_PIG_X: u32 = 0x008d_9047;
 
 /// One proxied call and the answer it came back with — a `CALL` record
 /// paired with its `RET`.
