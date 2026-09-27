@@ -761,7 +761,8 @@ sorted by `queued`, least first, then `num` times over each live, finished
 member gets `Build::queue_up(type, 1)`, whose answer is not read (a missile
 silo asks `can_carry(type)` first). The research arm — a unit type whose
 bit is clear, or a technology — goes through `LeaderData::researching` and
-one building with an empty queue first; it is read and not built.
+one building with an empty queue first; ~~it is read and not built~~ built
+and staged in "The player's research" below (item 883).
 
 **In the code**: `production::Queue::infinite` is the bit, and
 `Queue::unqueue` clears it on the empty queue; `Sim::can_infinite`,
@@ -803,6 +804,43 @@ copied down; a slot past the end is nothing.
 **In the code**: `Sim::action_unqueue` in `crates/sim/src/production.rs`
 over `Sim::cancel`; `input::unqueue` is the command's entry, and the
 recorded stream's `Unqueue` goes through it (no kept stream carries one).
+
+## The player's research (item 883)
+
+`CommandPackage::process_queue_up@00948230` → `Group::action_queue_up@
+006fdbb0(type, num)` for a type that is not a train job: a technology, a
+unit type whose availability bit is clear, or a building type with
+`build_flags & 4`. `docs/GOLDEN.md` §35 is the chapter; the arm below is
+read off the listing and run under the emulator with `Build::queue_up`
+stubbed, and says when a capture backs it.
+
+```
+sort the members by queued, least first          # as the train arm
+if LeaderData::researching(type, -1, 0, 0):      # 6fde39
+    the console's player hears add_feedback; return
+for pass in 0, 1:                                # num's slot, 6fe08a
+    for each member, alive (+0xc) and finished (+0x4c):
+        if pass == 0 and member.queued != 0: continue      # 6fe135
+        if Build::queue_up(type, 1) == 0: return           # 6fe16b
+```
+
+So a research lands **once**, whatever `num` says (the train arm lays
+`num` per member), on an idle member if one takes it and else on the
+least-queued that does; a refusal goes on to the next member, and a
+technology forwards to the first Library inside `queue_up` as every
+research does. `researching` walks the player's buildings from 2000, each
+whose `+0x4c` answers, and each entry of its queue: the type itself, or —
+for a unit type, `param_4` 0 — an entry of a unit type `u` with neither
+bit set and `type.is(u, 0)`. `queue_up`'s `can_make` then refuses a
+technology already held (`has_tech`, the bit) or researching; the price
+is asked before it (`can_pay_cost` at `vslot 0x84`, then `could_queue`).
+
+**In the code**: `Sim::action_queue_research` (a technology) and
+`Sim::action_queue_up`'s research arm (a unit type whose bit is clear),
+over `Sim::research_arm` and `Sim::researching_unit`, in
+`crates/sim/src/production.rs`; `Sim::queue_tech` carries `can_make`'s
+held and researching refusals; `input::group_queue_up` maps a
+technology's `TypeIndex`. A building type's arm is not mapped.
 
 ## What is not established
 

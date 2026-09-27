@@ -2353,11 +2353,16 @@ impl Sim {
             .ty
             .and_then(|b| self.build_types[b].tree)
             .is_some_and(|b| self.tech_tree.queue_here(b, t));
+        // `BuildData::can_make@0062db10`'s tech arm, after `type_avail`: a
+        // technology already held (`has_tech`, the bit) or `researching`
+        // anywhere is refused (`docs/GOLDEN.md` §35).
         if !here
             || self
                 .tech_tree
                 .type_avail(&self.setup, &self.tech[who as usize], t, true)
                 != tech::AVAILABLE
+            || self.tech[who as usize].tech[t]
+            || self.researching(who, t)
         {
             return Err(production::QueueFail::CantTrain);
         }
