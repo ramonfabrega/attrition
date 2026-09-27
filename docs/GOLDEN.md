@@ -1400,7 +1400,7 @@ each can invalidate work that would otherwise be done on top of it.
 | run | chapter | window | why this order |
 |---|---|---|---|
 | 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760**; item 945 built the Bowmen's re-seat, 105 → 35 rows |
-| 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) |
+| 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) — **run 2026-09-27 (item 955), 351 MB, 966 s; falsifier 3 fired on all three Citizens: `FILTER_ALL` counts the seeker; every other reading held; the word 740 → 1400, closed** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6745,3 +6745,56 @@ assumption, and it is dead. Every other reading held:
 - `0/13`'s group target is (2424, 15672), `0/14`'s (2280, 15672), against
   the prototype's (2232, 15528) and (2088, 15480): beside the Chariot, the
   squad's target sweep refuses candidates the unit's own does not.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_ONE` = 740, open,
+on the first walk**: theirs 12 draws against ours 10, ours alone
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`, the Citizen `0/11` idle at
+its point here and still walking there. The widening, run338 whole, (605,
+1401), pins 811 rows and 13 pool rows. **The first parting's field
+list**, 718, `0/11` alone: `pos` (4104, 31032) against (3960, 31368),
+`g.x/y[0]`, `g.des_x/y[0]`, `dest_angle` and the move's `angle`
+1191706624 against 837877760, and `form` (parked 646). Their writer is
+the lone arm's re-seat, `set_new_location`, whose sweep counts the seeker
+there.
+
+**The arms built: `GOLDEN_WORD_CHAPTER_THIRTY_ONE` = 1400, closed**
+(item 955, `docs/PRODUCTION.md` "The gather point"). **The value diff,
+both sides** (ours before the build in brackets):
+- 718: `0/11` at (3960, 31368) ((4104, 31032)); 824: `0/12` at (3864,
+  30168), `orders_x/y` its own point ((3576, 29928)); 938: `0/16` at
+  (3624, 31656) ((3912, 31416)). The seeker counted: 740 → 884;
+- 858: `0/13` at (2376, 14808) ((2472, 14856)), the third re-seat;
+  `orders_x/y` (2424, 15672) ((2232, 15528)), the squad placement's
+  target and its default span (884 → 892 → 1400); `dest_angle`
+  2112749568 (−1911619584), the angle from the re-seat's spot;
+- 953: `0/17`'s stack two orders, a `GROUPMOVEORDER` (kind 19) to (5208,
+  12696) then a `GROUPATTACKTOORDER` to (5016, 11160) (one, kind 21, to
+  (5208, 12696)).
+
+The widening goes **811 → 15 rows** and the pool **13 → 4**. What stands:
+- the births' `form` (parked 646);
+- the group moves' ids on 858 and 953, ours `64 +` a pushed index and
+  theirs `who·64 +` the slot (parked 676's first);
+- the pool's first seats' `ox`/`oy` (parked 887);
+- **1144, the builder `0/11`'s `group`**, ours 1 against −1, on the block
+  its finished `BuildOrder` gives way to a `GATHERORDER`: the build
+  line's, not the gather point's. It stood on the first walk (1134).
+  Named, not built.
+
+Chapter thirty holds at 1450 with its 35 rows and 6 pool rows: its
+Citizen `0/10` ends at its exit point with the seeker counted too.
+
+**Mutations**, each on the committed build (`62468432`), restored from
+git and `touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the seeker exempt again | `a_lone_unit_under_a_ground_point_is_re_seated_past_the_spot_it_stands_on`; the word and the widening |
+| the waypoints dropped | `a_squad_trained_under_two_points_moves_to_the_first_then_attack_moves_to_the_second`; the word and the widening |
+| the third re-seat dropped | `a_squad_trained_under_a_point_on_a_unit_is_re_seated_on_the_bearing_to_that_unit`; the word and the widening |
+| the citizen arms dropped | `a_citizen_under_a_point_on_its_own_building_gathers_there_or_builds_it`; the word and the widening |
+| the squad's default span dropped | the word and the widening only |
+| the squad's target a unit placement | the word and the widening only |
+| the re-seat's spot not the leg's origin | the widening only (858's angle rows) |
+
+Chapter thirty held under every one.
