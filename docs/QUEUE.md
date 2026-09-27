@@ -12,32 +12,36 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-27, the commander (Opus 5.5), ten landings since the sixteenth
-pass: **Great Lakes 20568 → 24000, the trace's end (795, 899)**: its draw
-stream agrees on all 24,000 frames and its endpoint is 0 off; run80's 310
-standing value rows on 23960 all stood by 20818. **East Indies 20007 →
-23420 (880, 890, 904)** is the only open long word; 919 is its item.
-**Chapters twenty-five to twenty-eight closed.***
+*2026-09-27, the commander (Opus 5.5), eleven landings since the
+sixteenth pass: **both long captures are closed at the trace's end.**
+Great Lakes 20568 → 24000 (795, 899) and East Indies 20007 → 24000 (880,
+890, 904, 919): every frame's draw stream agrees on both maps (275,108
+and 295,910 draws, asserted), and both endpoints are 0 off. What stands
+is value residue: 293 rows on East Indies' 23960 and 310 on Great Lakes',
+each standing since before its last word. **Chapters twenty-five to
+twenty-eight closed.** The AI lane's next direction is DECISIONS 29's to
+settle (923).*
 
-- **The mechanisms**, each landed with its value diff: 904 a rock cell
+- **The mechanisms**, each landed with its value diff: 919 an unstarted
+  site is no farm (AI §79); 904 a rock cell
   refuses a non-oil type (`blocked_tcoord`, AI §78); 899 `is_attack`
   and army mode (PATHFINDER §29); 890 the wonder count and the gather
   escrow (AI §77); 795 `do_move`'s TAKE (GROUPS §32); 880 the pool's kept
   fields (§30); 882 `come_out`'s push (§31); 884, 883, 901, 888 the
   player's cancel, research, upgrade and two-building command.
-- **Fable backlog: 18 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922).
+- **Fable backlog: 20 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922, 926, 927).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
-Long captures: EastIndies w23420 of 24,000 · GreatLakes w24000 of 24,000
+Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · 915 next
-Endpoint 24001: EastIndies 36 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
+Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: 919 on the AI lane: East Indies' 23420, the draws' seeds
-first. 915 on the rules lane: an Airbase under repeat trains a Fighter
-and relaunches a landing, run308. A brief names only the fenced modules;
-a capture is waited on with `tools/gamelog/waitrun.sh`; a journal's "for
-the Loop" line is filed at its merge. The count runs from f0b9d296:
-ten landings.**
+**Opener: 915 is live on the rules lane (ref 0f72a74b); merge it when it
+reports. The AI lane waits on 923's direction: both long words are at the
+trace's end, and DECISIONS 29 names the blind list and the widening
+ledger as what "sim complete" measures next. A brief names only the
+fenced modules; a journal's "for the Loop" line is filed at its merge.
+The count runs from f0b9d296: eleven landings.**
 
 ## The queue
 
@@ -47,12 +51,13 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-919. **East Indies' word is 23420** (904 moved it 23182 → 23420: a rock
-    cell refuses a non-oil type, AI §78). On 23420, block 23421 inside
-    run299, ours 7 draws against 31, parting at index 0: ours
-    `do_guard+0x8fb` against `Farms::add_animals+0x92` — the original
-    seats a pasture's five animals. No mechanism. **The seeds first**
-    (922): every roll on the frame is readable from its draw record.
+923. **Both long words are closed at 24000: the end frame's residue, or
+    DECISIONS 29's next counter.** The widening of the closed frame is
+    the value residue: 293 standing rows on East Indies' 23960 (run96)
+    and 310 on Great Lakes' (run80), and the one torn unit at 24001. The
+    alternatives are entry 29's counters 2 and 3, the blind list by
+    targeted captures and the widening ledger to zero. **A direction
+    call** for the user or the steering pass; not spawned until then.
 
 915. **Chapter twenty-nine: the repeat launch — an issuer, no capture
     yet** (876, 843). An Airbase with its repeat bit set trains a Fighter,
