@@ -626,12 +626,7 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         if !(0..players as i64).contains(&b.who) {
             continue;
         }
-        let Some(handle) = built
-            .sim
-            .buildings
-            .iter()
-            .position(|x| i64::from(x.owner) == b.who && i64::from(x.index) == b.o)
-        else {
+        let Some(handle) = link_building(&built.sim, b.who, b.o) else {
             r.build_unlinked += 1;
             continue;
         };
@@ -972,12 +967,8 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         if !(0..players as i64).contains(&c.who) {
             continue;
         }
-        let Some(ci) = built
-            .sim
-            .buildings
-            .iter()
-            .position(|b| i64::from(b.owner) == c.who && i64::from(b.index) == c.o)
-            .and_then(|b| built.sim.buildings[b].city)
+        let Some(ci) =
+            link_building(&built.sim, c.who, c.o).and_then(|b| built.sim.buildings[b].city)
         else {
             r.city_unlinked += 1;
             continue;
@@ -2364,6 +2355,23 @@ pub fn run_indexed_observed(
     }
     source.validate()?;
     Ok(replay.finish())
+}
+
+/// The building a dumped `BUILDDATA` or `CITY` record names: this crate's
+/// **live** building of that owner and object number, else a closed one
+/// that held it. A number is reused once `Objects::find_free` hands it on
+/// (`Sim::building_slot_reused`), so the first building that ever held it
+/// can be a dead site while a later one stands on the ground the record
+/// describes — East Indies at Toughest destroys a camp on frame 976 and
+/// places another as `2009` on 1576, and until item 989 the record was
+/// compared with the dead one (`docs/AI.md` §82). A dumped record's slot
+/// is not an identity; what the slot holds is.
+pub(crate) fn link_building(sim: &sim::Sim, who: i64, o: i64) -> Option<usize> {
+    let held = |x: &sim::Building| i64::from(x.owner) == who && i64::from(x.index) == o;
+    sim.buildings
+        .iter()
+        .position(|x| x.alive && held(x))
+        .or_else(|| sim.buildings.iter().position(held))
 }
 
 #[cfg(test)]

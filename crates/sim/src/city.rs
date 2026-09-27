@@ -1991,6 +1991,7 @@ impl Sim {
             let i = crate::economy::Resource::Wealth.index();
             self.ledgers[who as usize].gather_slots[i] -= 1;
         }
+        self.give_back_gather_tiles(b);
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();

@@ -4137,6 +4137,13 @@ impl Sim {
         // frame 0 it is eighteen draws, the frame's 2nd to 19th.
         self.calc_markets(frame);
 
+        // `GameDaemon::process_all`'s region pass, between `calc_markets`
+        // and `check_borders`: a region a gather building closed in last
+        // frame's objects or this frame's AI turn is re-walked by the camps
+        // there in this frame's objects (`docs/ECONOMY.md` §17.2). It draws
+        // nothing, so it takes no mark.
+        self.world.cycle_gather_flags();
+
         // `GameDaemon::process_all` → `check_borders`, after the market and
         // before the pool: a border fix since the last one zeroes every
         // leader's `reg_known_rares` (`docs/AI.md` §76). The cells
@@ -4274,6 +4281,10 @@ impl Sim {
             self.process_building(b, frame);
         }
         self.process_queues();
+        // `Build::process`'s gather re-entries, after its `do_queue`
+        // (`docs/ECONOMY.md` §17.2): a re-walk that finds freed ground
+        // shuffles it off the stream.
+        self.gather_region_pass();
         // A building that shoots does so from `Build::process` too.
         for b in 0..self.buildings.len() {
             self.process_building_combat(b, frame);
