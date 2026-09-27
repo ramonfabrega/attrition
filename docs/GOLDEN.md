@@ -6489,3 +6489,42 @@ gather-point block (the bearing), its routing (the `MOVEORDER`), and
 `Unit::init` (`form`). The pool: each press's building group, seated
 there by `process_group` on 618, 652 and 702 and absent here, and every
 seat after it one stamp or one slot off.
+
+**The gather point built: `GOLDEN_WORD_CHAPTER_THIRTY` = 1450, closed**
+(item 928, `docs/PRODUCTION.md` "The gather point": `Sim::action_gather_point`,
+`come_out`'s gather block and routing, and `Build::train`'s "inside" arm).
+**The value diff, both sides** (ours before the build in brackets):
+- 618: 2007's list (1344, 12096, 0) (empty); 652: 2000's (4224, 28608,
+  0), the snap (empty); 702: 2008's (−1, −1, 0) (empty); 902: 2007's
+  (4224, 14208, 1); 1102: `length 0`;
+- 760: `0/10` at (3576, 29976) ((3192, 31800)), `heading` 314048512
+  (0x55555555), one `MOVEORDER`, `orders_x/y` (4248, 28632) (none);
+- 856: `0/11` at (2328, 13656) ((2712, 14904)), `heading` −385482752, a
+  `GROUPATTACKTOORDER` each of three, `orders_x/y` (1368, 12120), the
+  pool's slot 0 laid out (`form_num` 3, `o_angle` −381943808), and the
+  members' `mirror` 1 (0);
+- 953: `0/14`..`0/16` `inside 2008`, `group` −1 (out on the south ring,
+  `group` 1).
+
+The widening goes **696 → 105 rows** and the pool **29 → 6**. What stands:
+- the births' `form` and 953's seat at the building's point, ours
+  (4224, 14208) against (4248, 14232) (`Unit::init@00612100`, parked 646);
+- 856's group move id, ours 861600 against 855000: `64 +` a pushed index
+  here, `who·64 +` the slot there (parked 676's first);
+- 1060..1079, the Bowmen's exit. The bearing agrees and the ring's point
+  does not: ours (3336, 14376), theirs (3384, 14232). Every row to their
+  entry on 1079 follows from it; it is named, not built;
+- the pool's first seats' `ox`/`oy` (parked 887).
+
+**Mutations**, each committed first, then restored from git and
+`touch`ed:
+
+| mutation | fails |
+| --- | --- |
+| the gather block's bias dropped | the ground-point and lone-unit tests; the word 822 |
+| the routing dropped | the ground-point, lone-unit and garrison tests; the word 822 |
+| the "inside" arm dropped | `a_squad_trained_under_its_trainer_s_own_point_stays_inside`; the word 952 |
+| the garrison arm dropped | the garrison test; the word 1090 |
+| `ATTACK_TO` read as `MOVE_TO` | the ground-point test; the widening |
+| the City's snap dropped | the word 822; then, written for it, `a_city_s_rally_on_a_forest_takes_its_woodcutter_s_point` |
+| the member's mirror flip dropped | the widening; then, written for it, `a_member_turned_past_ninety_degrees_to_its_captain_s_bearing_flips_its_mirror` |

@@ -1074,10 +1074,14 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 890 banked two**: ECONOMY 14 → 13 and PRODUCTION 10 → 9, the
 /// Supercollider's `0x21d`, which `get_cost`'s space-race arm now carries
 /// (`Sim::wonder_ramp_count`).
+///
+/// **Item 928 banked one**: ARMY 10 → 9, `0x55555555`, the neutral bias
+/// `come_out`'s gather block passes `find_nearby_spot`, which `crate::rally`
+/// now carries.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 31),
     ("ANIM.md", 4),
-    ("ARMY.md", 10),
+    ("ARMY.md", 9),
     ("CITIES.md", 7),
     ("COLLISION.md", 1),
     ("COMBAT.md", 9),
