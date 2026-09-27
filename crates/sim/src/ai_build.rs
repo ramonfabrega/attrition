@@ -1978,6 +1978,70 @@ mod tests {
         assert_eq!(n, 2, "the other city's wonder alone");
     }
 
+    /// **A site of one wonder prices every other wonder a step up**
+    /// (`docs/COSTS.md` §8, item 890). `get_cost`'s wonder arm counts every
+    /// wonder the leader holds or has a site of, so on East Indies' frame
+    /// 20781 who=1's Pyramids site put the Mausoleum and the Colossus at
+    /// 260 wealth against a purse of 208: `check_income` answered 0, and
+    /// both wonders went on the make list at `val 0` in the original where
+    /// this crate, counting only a wonder's own type, listed them at 486 and
+    /// 398 and went to the market for them. A Barracks is not a wonder and
+    /// does not move.
+    #[test]
+    fn another_wonder_s_site_prices_a_wonder_out_of_the_purse() {
+        use crate::cost::{Kind, Price, RampClass};
+        use crate::economy::Resource;
+        let (mut sim, t) = sim();
+        let wealth = Resource::Wealth as usize;
+        sim.build_types[t.silo].wonder = true;
+        sim.build_types[t.wonder].price = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Wealth, 20)
+                .with_support(Resource::Wealth, 60)
+        };
+        sim.build_types[t.barracks].price = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free()
+                .with_base(Resource::Wealth, 20)
+                .with_support(Resource::Wealth, 60)
+        };
+        let a = city(&mut sim, &t, 0, 40, 40);
+        let _b = city(&mut sim, &t, 0, 80, 40);
+        sim.lobby.difficulty = 3;
+        sim.ledgers[0].bucket[wealth] = 208;
+        assert_eq!(sim.building_price(0, t.wonder)[wealth], 200);
+        pass_draws(&mut sim, 0);
+        let before = listed(&sim, 0, t.wonder).expect("listed with no site");
+        assert!(before.val > 0, "affordable: {before:?}");
+        let tree = sim.build_types[t.wonder].tree.expect("in the tree");
+        assert!(sim.check_income(0, tree, 4 << 8, Some(a), false, -1, 1, 0) > 0);
+        let site = sim
+            .place_building(0, t.silo, tile_pos(48, 40))
+            .expect("the other wonder's site places");
+        assert_eq!(sim.buildings[site].city, Some(a));
+        sim.ledgers[0].bucket[wealth] = 208;
+        assert_eq!(
+            sim.building_price(0, t.wonder)[wealth],
+            260,
+            "one wonder held: 60 x 2 / 2 on top"
+        );
+        assert_eq!(sim.building_price(0, t.barracks)[wealth], 200);
+        sim.ai[0].make_list.clear();
+        pass_draws(&mut sim, 0);
+        assert_eq!(
+            sim.check_income(0, tree, 4 << 8, Some(a), false, -1, 1, 0),
+            0,
+            "unaffordable with no escrow: check_income answers 0"
+        );
+        assert!(
+            listed(&sim, 0, t.wonder).is_none(),
+            "a val-0 offer loses every slot the fuller list holds"
+        );
+    }
+
     /// Counts the sync-stream draws one `create_buildings` pass takes.
     fn pass_draws(sim: &mut Sim, who: Player) -> usize {
         let before = sim.rng;
