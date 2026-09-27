@@ -62,6 +62,17 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 971, 2026-09-27 — the spellcaster's other arms
+
+(980) **`think_spellcaster`'s army turn** (`army.rs`'s "spellcasters'
+turn" seam): at Toughest it throws the coin for an army holding a scout
+(`use_scouts`, `use_spies`, `use_generals`). Read, not built.
+
+(981) **The three craft target searches**: they make the `% 3` branch
+unobservable — the mutation fails nothing (918's shape).
+
+(982) **The hero arm** of `think_spellcaster`: read, not built.
+
 ## Parked by item 947, 2026-09-27 — the Airbase's gather point's edges
 
 (976) **Action 3 at an Airbase**: `action_gather_point`'s own
@@ -355,7 +366,9 @@ pin is 139, `AI.md` 31, `ECONOMY.md` 14, `TECH.md` 13, `ORDERS.md` 12.
 (804) **`think_spellcaster`** (SCOUT §13, its tenth entry) is buildable on
 `crate::cast` now: a human Spy's own Counterintelligence, a computer's
 Bribe and Counterintelligence. It reaches both long captures' AI Spies,
-so it wants both words measured.
+so it wants both words measured. **971 answered it in part**: the computer's
+arm is built (`sim::spellcaster`, the coin both second-pair words met at
+frame 0); a human Spy's Counterintelligence is not.
 
 (805) **Why the Informer's `COST` is not charged**: `TypeData::get_cost`'s
 `has_spell` arm, unread.
@@ -1532,6 +1545,16 @@ fixture** (947's Loop line, filed at its merge): `UNBUILT` GOLDEN fell
 4 → 3 on `11520`, P1's x in 947's own tests, which the decimal clause
 reads from `#[cfg(test)]` code. Entry 52 §1's "not a build" again; the
 guard could skip test modules or say which constant fell and where.
+
+(983) **A widening walker keyed on one base game needs a parameter the
+day a second game shares the map** (971's Loop line, filed at its
+merge): `widen_east_indies` and `widen_great_lakes` take one now; the
+other two dozen callers are unchanged.
+
+(984) **`runqueue.sh` reads `captures.txt` as it runs** (971's Loop
+line): a stanza appended mid-queue for the running item's number is
+taken in the same run. run349 was taken that way, unplanned; a stanza
+written ahead of its lane check can launch before the check is done.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

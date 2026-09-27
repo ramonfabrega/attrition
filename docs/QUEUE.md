@@ -12,53 +12,48 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-27, the seventeenth Fable pass (Fable 5.1, steering): **the first
-pair is closed, and the AI's word moves to a second** (DECISIONS 53). Both
-long captures stand at 24,000 of 24,000, endpoints 0 off, 293 and 310 value
-rows on the last dumps; chapters one to thirty-one are closed; the blind
-list is 148 never of 1,131 cited, 31 residue, 117 open. **What closed is
-one AI — British, `defensive`, Easiest — against an idle human, and no
-battle**: the second pair is the same two games at the lobby's top
-difficulty, one setting moved. The blind list is counter two, on the
-staging lane, and not a headline. No score moved in the pass.*
+*2026-09-27, the commander after the seventeenth pass (DECISIONS 53):
+**the AI's word is the second pair's** — run54's and run53's games at the
+lobby's top difficulty, Toughest, both ending in the idle human's defeat.
+The first pair stays closed at 24,000 on both maps, endpoints 0 off;
+chapters one to thirty-two are closed. The blind list is counter two, on
+the staging lane, and not a headline.*
 
-- **The tranche**: twenty landings in 16½ hours, all Opus 5.5; 681.69 USD,
-  34.1 a landing (27.7); the AI lane 0.026 USD a frame (0.088).
-- **Built by the pass**, each failed first: `release_gate.py --lane` (969),
-  `waitwin.sh`'s exits and the runner's trap (937), the tracer's stamp
-  (936), the stanza lint (941), the dead-citation guard on `RESIDUE` (952).
-- **Since the pass** (count from 0b401602: **1**): 947 closed chapter
-  thirty-two at 2360 (run344); 971 is live on the second pair.
+- **Since the pass** (count from 0b401602: **2**): 947 closed chapter
+  thirty-two at 2360 (run344). 971 took the second pair (run346, run347)
+  and built `think_spellcaster`'s coin, which both words met at frame 0:
+  **East Indies 0 → 10, Great Lakes 0 → 1**, the lower map now. 972 live.
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 16 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975).
+- **Fable backlog: 18 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
+Second pair: EastIndies w10 of 18,140 · GreatLakes w1 of 5,930
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · 965 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 971 on the AI lane and 972 on the
-rules lane, then 965. Every brief names the lane gate (`--lane`) and the
-checklist's seventeenth-pass rows. The count runs from 0b401602; the
-eighteenth pass at twenty.**
+**Opener: the commander, two lanes — 979 on the AI lane (Great Lakes'
+frame 1, the second pair's word) and 972 on the rules lane, then 965.
+Every brief names the lane gate (`--lane`) and the checklist's
+seventeenth-pass rows. The count runs from 0b401602; the eighteenth pass
+at twenty.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41, 53): the golden word for the rules, the newest pair's word for the AI,
-lower map first — East Indies (a guard reads this line). Take the first
+lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-971. **The second pair: the capture, and its first word** (DECISIONS 53).
-    run54's and run53's games with the lobby's difficulty at its top
-    setting and nothing else moved: two draw-stream traces, 24,000 frames
-    or the game's end, `cover=0` — **run346** East Indies, **run347** Great
-    Lakes — the setting read back from each `GAME INFO`. Then the lower
-    map's first parting, widened whole, and `SECOND_WORD_*` pinned with a
-    guard for a `Second pair:` line. The difficulty arms `docs/AI.md`
-    reads are hypotheses, each written with its killer.
+979. **Great Lakes' second word: frame 1, ours 54 draws against 85**
+    (971). Parting at index 44: ours `Unit::do_non_flat_gather+0x54b`,
+    theirs `Leader::produce_building+0xc99`, run347 at Toughest. Widened
+    on run350 (`run350_s_word_frame_is_widened_whole`): who=1's script at
+    step 11 here against 6 there, timber 92 against 28, a tech stamped on
+    frame 1 — 971's reading, a hypothesis. East Indies' 10 follows (197
+    against 188 at index 183, inside run349).
 
 972. **The held-out map, measured once** (DECISIONS 53; parked 372): map
     9, seed 12345, in run33's shape, **run348**; one diff, and the number
