@@ -32,6 +32,9 @@
 #   driver:     a script driven while the game runs, for the right-clicks the
 #               cheat channel cannot issue — `move` is a teleport and **no
 #               console command issues an order at all**
+#   profile:    `KEY=N` pairs for the profile's `<SOLO>`/`<MULTI>` lobby
+#               blocks (`profile.py`), for a field `-config` cannot set or a
+#               map that drops it; the profile is restored when the take ends
 #   ffwd:       the `!ffwd` line; `-` means none. **Every stanza with a
 #               `driver:` needs `-`** — under `!ffwd` the game stops drawing
 #               and a click lands on a frozen picture (run47)
@@ -7434,3 +7437,35 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 #   the prologue check, because `cover=1`'s `jmp` is over every prologue
 #   (`docs/RUNS.md` run314). A stanza with `@` lines and `cover=1` cannot
 #   pass until `tracer.c`'s guard reads the displaced bytes from the stub.
+
+run: 316
+tag: britishisles-largetown
+item: 935
+why: the blind list's row 4 — British Isles enters Map::place_start_in_region, a Large Town start Setup::large_city_buildings; quit at frame 5
+# One launch for the whole row, because only two of its nine functions are
+# reachable from a solo lobby at all (`docs/CENSUS.md`, "The blind list,
+# 2026-09-27, item 935"): `place_start_in_region@0068ac00` has two callers,
+# `MapBritishIsles::make_continents@00695130` (every player's start, one
+# region per island) and `MapEastMeetsWest::make_continents@00696640`; and
+# `large_city_buildings@005aac80` is `build_cities@005ab910`'s branch on
+# `starting_town == 3`, which `rules.xml`'s `startingtowns` names Large Town.
+# British Isles is style 22 and not 14, so the lobby is the profile's
+# (`cfg: -`), and the starting town goes in through the profile's blocks.
+frames: 5
+mapstyle: 22
+cfg: -
+profile: STARTING_TOWN=3
+ffwd: -
+cover: cover=1
+# The setup is the question and it runs before frame 0: the thinnest
+# per-frame detail, and run10's start dump (a British Isles `WORLD` for
+# free). Before Start there is no gamelog at all, and the start dump is
+# megabytes, so 1 MB cannot call the map's loading a finished run.
+end: MISC
+settle_min: 1000000
+# The lobby took: British Isles and a Large Town, read back from the run's own
+# `GAME INFO` block.
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tee /dev/stderr | grep -q "MAP_STYLE 22$"
+check: grep -a -m1 "STARTING_TOWN" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tee /dev/stderr | grep -q "STARTING_TOWN 3$"
+# And both functions entered.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run316.log" functions 2>/dev/null | grep -E " Map::place_start_in_region$| Setup::large_city_buildings$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'

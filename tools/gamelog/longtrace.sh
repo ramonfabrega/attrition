@@ -48,6 +48,10 @@
 #   DRIVER        a script run in the background once the game is up, for the
 #                 right-clicks the cheat channel cannot issue (default none)
 #   CFG           the `-config` argument       (default per MAPSTYLE, above)
+#   PROFILE       `KEY=N` pairs for the profile's `<SOLO>`/`<MULTI>` blocks,
+#                 through `profile.py` — a lobby field on a run without
+#                 `-config` (default none). `Player.dat` is copied first and
+#                 copied back at the end, so no later capture inherits it.
 #   WINDOW        "LO HI" for a DUMP_ALL window over [LO, HI) instead of the
 #                 cheap per-frame dump (default the cheap one)
 #   FRAME_WINDOW  "LO HI" for the **cheap** window narrowed to [LO, HI) — the
@@ -116,6 +120,10 @@ lobby_init "$T/probe$N.png" || exit 1
 # --- stage. The map style lives in two files and neither is the lobby's
 # combo: `check.ini`'s `mapstyles=` and the profile's `<MULTI>` block.
 python3 "$W/tools/gamelog/mapstyle.py" "$MAPSTYLE"
+if [ -n "$PROFILE" ]; then
+  cp "$B/PlayerProfile/Player.dat" "$T/Player.dat.run$N"
+  python3 "$W/tools/gamelog/profile.py" ${=PROFILE}
+fi
 python3 "$W/tools/fuzz/seedini.py" 12345
 DETAIL_END=${DETAIL_END:-MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1}
 DETAIL_START=${DETAIL_START:-MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1}
@@ -189,6 +197,7 @@ sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"
 python3 "$W/tools/gamelog/window.py" restore
+if [ -n "$PROFILE" ]; then cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"; fi
 ls -la "$L/gamelog-run$N-$TAG.txt" "$L/rontrace-run$N.log"
 grep -a -m1 "MAP_STYLE" "$L/gamelog-run$N-$TAG.txt"
 grep -a -m1 "(int)seed" "$L/gamelog-run$N-$TAG.txt"
