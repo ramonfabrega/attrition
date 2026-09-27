@@ -1380,7 +1380,7 @@ below without a run take their number at booking (the eleventh pass).
 | 265 | twenty-two, the launch line | `[605, 1500)` | a strike from inside a base: chapter seventeen whole and `@strike` on the Fighter `0/6` inside `0/2007` on 766, its tank at 24, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run223 (§31) — **run 2026-09-26 (item 836), 365 MB, 1,046 s; the pool printed; one clause of falsifier 4 fired: `launch_frames` stays 0 once the base is empty; the strike on 768, the launch on 778 (the block the tank first reads 0) onto (11424, 13920), 36 rounds from 924, `returning` on 1178, inside again on 1385; word ~~778~~, ~~923, open~~ (item 836: the launch line built, ORDERS §38), then **1500, closed** (item 842: the strafer's half altitude and exact round, ORDERS §39)** |
 | 281 | twenty-three, the repeat line | `[605, 1840)` | the repeat button through the DLL's `@buildmask` on the Airbase `0/2007` on 1440, between chapter twenty-two's landings: `0/6` inside with its kept patrol, `0/7` still flying home; with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging's predicates read off run265 (§32) — **run 2026-09-26 (item 867), 498 MB, 1,505 s; the pool printed; no falsifier fired: `build_masks` 4232 → 4104 on 1442; `0/7` inside with no order on 1489 and `0/8` on 1513; `0/6`'s kept patrol killed on 1585, its tank's first 0, and `0/6` still inside; nothing launches to 1839; the building group in pool slot 0** |
 | 285 | twenty-four, the queue line | `[605, 1560)` | the infinite-queue button through the DLL's `@buildmask` with 0x40 on a Barracks `0/2007` on 900, between the Hoplites' finish and the Bowmen's, both queued through the DLL's new `@queueup`; a second press on the empty queue on 1300; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run208's start (§33) — **run 2026-09-26 (item 877), 403 MB, 1,164 s; the pool printed; no falsifier fired: `[132]` on 622 and `[132, 170]` on 642; the Hoplites out on 856 with nothing re-queued; `build_masks` 4096 → 4160 on 902; the Bowmen out on 1060 and re-queued at the end, paid again, the bit kept; out again on 1272, the re-queue refused on 19 wealth, the queue empty and the bit off; 4096 after the second press on 1302; a squad trained on each finish; word ~~855, open~~, closed at 1560 (item 877: the queue commands entered); the squads' `group` and the pool's lists agree (item 882: `come_out`'s push and the command's building group, §33)** |
-| 292 | twenty-five, the cancel line | `[605, 1466)` | the player's cancel through the DLL's new `@unqueue` on a Barracks `0/2007`: slot 0 of a Hoplite run with the head in progress (700), slot 0 of `[132*, 170]` (760), a single cancel on an infinite queue (840, after `@buildmask` 0x40 on 800), and −1 on `[132*, 170]` (1000); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the commands' entries on run285's start (§34) |
+| 292 | twenty-five, the cancel line | `[605, 1466)` | the player's cancel through the DLL's new `@unqueue` on a Barracks `0/2007`: slot 0 of a Hoplite run with the head in progress (700), slot 0 of `[132*, 170]` (760), a single cancel on an infinite queue (840, after `@buildmask` 0x40 on 800), and −1 on `[132*, 170]` (1000); with `GROUPS=1` at `GUYS=4`; the staging walked by this crate through the commands' entries on run285's start (§34) — **run 2026-09-26 (item 884), 359 MB, 1,099 s; no falsifier fired, every value on its predicted block: arm a removed the run's second (+53/+41) on 702 and kept the head at 8100; arm b the head (+51/+38) on 762; arm c cleared the bit and removed nothing on 842; no re-queue at the Bowmen's finish on 965; −1 removed the last (+46/+56) on 1002; no cancel seats a slot; word ~~855, open~~, closed at 1466 (item 884: the cancel entered)** |
 | 171 | eight, the commanders and a declared war | `[605, 1200)` | the diplomacy moved three times — **run 2026-09-23 (item 660), 54 MB, 168 s; no falsifier fired; `ally` ended the game on 900, so the capture is 605..901; word 617** |
 
 ~~Chapter eight and any further detail window need numbers beyond the
@@ -5338,3 +5338,46 @@ on every block to 701 — so all three rows are the cancel's. **The pool**:
 622's `slot 1` `ox`/`oy` (−1 here, 0 there), `push_group`'s record `o`,
 §33's standing row (parked 887; its reader is a layout's `o`, and nothing
 is laid out); and `856 slot 0 held`, the squad this crate trains alone.
+
+**The cancel entered: `GOLDEN_WORD_CHAPTER_TWENTY_FIVE` = 1466, closed**
+(item 884, `docs/PRODUCTION.md` "The player's cancel"): `crate::golden`'s
+`@unqueue` goes through `input::unqueue` → `Sim::action_unqueue`. The
+stream agrees to run292's end. **The value diff, both sides**, on the
+blocks the reading named (ours before the build in brackets):
+- **702**: `[132 at 8100, 170]`; food 210, timber 162 (157, 121, `[132,
+  132, 170]`).
+- **762**: `[170 at 100]`; food 267, timber 204.
+- **842**: 4096, `[170 at 8100]`; no refund (the bit 1 here before).
+- **965**: `[]`, 4096; the Bowmen `0/10`–`0/12` born on both (before, the
+  Hoplites on 856, held here alone).
+- **1002**: `[132 at 2100]`; timber 179, wealth 66.
+- **1216**: `[]`; the Hoplites `0/13`–`0/15` born on both.
+
+The widening is **run292 whole**, (605, 1467), with nine windows in the
+coverage driver (702, 762, 842, 855, 965, 982, 1002, 1216, 1463). **What
+stands, 18 rows**, all `Unit::init@00612100`'s (parked 646), §33's shape:
+the births' `form` (611, 615, 965, 1216) and the followers' tile-centred
+`orders_x/y` (965, 1216). **The pool, 8 rows**: each slot's `ox`/`oy` on
+its first seat (622, 965, 1216), `push_group`'s record `o` (parked 887);
+and **982 slot 0's `speed`/`new_speed`, ours 0 and theirs 26** — a row the
+build exposes, and not this item's to build. The 981 `@queueup`'s
+building-group push runs `Groups::get_open_slot@006fa460`, which calls
+vslot 8 (`Group::get_num_cap@007145c0`) on every slot whose stamp is not
+newer than the best so far, and `get_num_cap` `normalize`s a group of
+fewer than four, so the Bowmen squad (num 3, stamp 964) takes its
+leader's 26. This crate's `open_slot` has no such side effect. It is the
+pool lane's code. Its reader is `UnitData::get_speed@00608720`'s group
+cap on a moving member, and the squad does not move in run292. Chapter
+twenty-four's 901 press hid the same call: its squad had taken 25 on 897
+from `Groups::process@006fa210`'s cursor.
+
+**Mutations**, each restored from git and `touch`ed, on the built tree:
+
+| mutation | the widening parts on |
+| --- | --- |
+| the bit's early return dropped | **842**: `queued` 0 against 1, timber 255/209, wealth 118/62 |
+| a negative `p` read as slot 0 | **1002**: the Hoplite refunded in the Bowmen's place, food 288/235; the word falls to 1212 |
+| `unqueue`'s walk dropped | **702**: the head removed, `job_counter` 100 against 8100, food 208/210 |
+
+The unit test `the_player_s_cancel_reads_its_selector` fails under the
+first two as well.
