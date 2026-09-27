@@ -12,34 +12,35 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-27, the commander (Opus 5.5), eighteen landings since the
+*2026-09-27, the commander (Opus 5.5), nineteen landings since the
 sixteenth pass: **both long captures are closed at the trace's end.**
 Great Lakes 20568 → 24000 (795, 899) and East Indies 20007 → 24000 (880,
 890, 904, 919): every frame's draw stream agrees on both maps (275,108
 and 295,910 draws, asserted), and both endpoints are 0 off. What stands
 is value residue: 293 rows on East Indies' 23960 and 310 on Great Lakes',
 each standing since before its last word. **Chapters twenty-five to
-thirty closed.** The AI lane turned to the blind list, the
+thirty-one closed.** The AI lane turned to the blind list, the
 commander's call on the user's word (the next pass may overturn it):
-**151 cited never entered, 29 residue, 122 open**, pinned in
+**152 cited never entered, 29 residue, 123 open**, pinned in
 `rondata::blind` (923 to 940; 934's twenty `cover=1` chapters took 77).*
 
-- **The mechanisms**, each with its value diff: 945 `come_out`'s
+- **The mechanisms**, each with its value diff: 955 `Coll::All` counts
+  the seeker, waypoints, the third re-seat (ch31 811 → 15 rows); 945 `come_out`'s
   re-seat at a building point (ch30 105 → 35 rows); 915 CARRY_AIR, 919 an
   unstarted site (AI §79), 904 a rock cell (§78), 899 `is_attack`
   (PATHFINDER §29), 890 the wonder count (AI §77), 795 `do_move`'s TAKE,
   880 the kept fields, 882 `come_out`'s push (GROUPS §30–§32).
-- **Fable backlog: 38 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922, 926, 927, 932, 933, 936, 937, 938, 939, 941, 942, 943, 944, 949, 950, 952, 953, 954, 958, 960, 961).
+- **Fable backlog: 39 Loop items** (677, 685, 697, 745, 775, 799, 838, 852, 889, 894, 898, 900, 903, 907, 910, 914, 918, 922, 926, 927, 932, 933, 936, 937, 938, 939, 941, 942, 943, 944, 949, 950, 952, 953, 954, 958, 960, 961, 964).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · 955 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · 947 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: 955 is live on the rules lane (ref 88f152bc; run338 next); it
-merges second and re-measures `NEVER`. 959 on the AI lane: the blind
-list's row 6, a staged economy. The count runs from f0b9d296: eighteen;
-the steering pass is due at twenty.**
+**Opener: 959 is live on the AI lane (ref d84e878a); merge it when it
+reports. 947 on the rules lane: an Airbase's gather point on chapter
+twenty-nine's cast, run342. The count runs from f0b9d296: nineteen; the
+steering pass is due at the next landing.**
 
 ## The queue
 
@@ -50,20 +51,20 @@ unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
 959. **The blind list's row 6: trade and the economy's edges** (CENSUS,
-    "The blind list, ranked"; 19 functions): `Caravan::process`,
+    "The blind list, ranked"; 10 functions, 940 struck nine): `Caravan::process`,
     `restart_trade_route`, `close_caravan`, the resource cap pair,
     `get_fishermen`, `lumber_level`, `Build::finished`, `Leader::process`
     and their neighbours. A staged economy, `add` and `resource` only:
     two own cities and a caravan, a Dock and a fishing boat, resources at
     the cap. At `cover=1` on the queue lane, **run340** onwards.
 
-955. **Chapter thirty-one: the gather point's other arms — no capture
-    yet** (928's and 945's parks). One capture, the arms placed between
-    staged events: a lone unit trained under a ground point (FILTER_ALL's
-    seeker, 956), a unit found at a ground point (the third re-seat,
-    957), a list of two points (946), an Airbase's gather point (947),
-    and a citizen's build, repair and gather arms (948). The emulator
-    first; **run338** the capture, run339 a staging run. GOLDEN §40.
+947. **Chapter thirty-two: an Airbase's gather point — no capture yet**
+    (928's park, 955's booking). Action 3, `action_flight`, and
+    `add_gather_point`'s re-order under `build_masks & 8`: read, not
+    built. On chapter twenty-nine's cast (library 6, an Airbase under
+    repeat training aircraft), a gather point set on the Airbase. The
+    emulator first; **run342** the capture, run343 a staging run.
+    GOLDEN §41.
 
 ## How to maintain this file
 
