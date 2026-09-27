@@ -3831,6 +3831,17 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_ONE: i64 = 1400;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_THIRTY_ONE: (i64, i64) = (605, 1401);
 
+/// **Chapter thirty-two's golden word** — an Airbase's gather point
+/// (item 947, `docs/GOLDEN.md` §41, run344).
+///
+/// **The delta**, this constant's: the first walk's word, pinned.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_TWO: i64 = 1751;
+
+/// `chapter_thirty_two_s_word_frame_is_widened_whole`'s window: run344
+/// whole, (605, 2361). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_THIRTY_TWO: (i64, i64) = (605, 2361);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4340,6 +4351,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // was the Biplane's EXIT on 1746, which the built arm keeps inside.
     ("chapter_twenty_nine_holds_to_the_golden_word", 38),
     ("chapter_twenty_nine_s_word_frame_is_widened_whole", 38),
+    // Chapter thirty-two is chapter twenty-nine's game with three gather
+    // points on the Airbase (item 947): the first walk reads its 38.
+    ("chapter_thirty_two_holds_to_the_golden_word", 38),
+    ("chapter_thirty_two_s_word_frame_is_widened_whole", 38),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -5748,6 +5763,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_one_s_word_frame_is_widened_whole"),
         955,
         Some(WIDENING_CHAPTER_THIRTY_ONE),
+    ),
+    // Item 947: run344, chapter thirty-two, an Airbase's gather point. The
+    // widening is run344 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_TWO",
+        GOLDEN_WORD_CHAPTER_THIRTY_TWO,
+        Some("chapter_thirty_two_s_word_frame_is_widened_whole"),
+        947,
+        Some(WIDENING_CHAPTER_THIRTY_TWO),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

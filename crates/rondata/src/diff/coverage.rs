@@ -567,6 +567,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch29 = golden_dump("ch29");
     let ch30 = golden_dump("ch30");
     let ch31 = golden_dump("ch31");
+    let ch32 = golden_dump("ch32");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1404,6 +1405,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [704, 718, 740, 792, 824, 858, 938, 953, 1397] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty-one carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirty-two's word, on run344** (item 947): an Airbase's
+    // gather point. 1602, the planes re-ordered; 1702, the list of two;
+    // 1741, the waypoint's step; 1746 and 1747, the Biplane born on the
+    // patrol and out; 1751, the word; 1852, the Clear's strafes home; 2034
+    // and 2106, the first and last landings; 2357, the last blocks.
+    if let Some(p) = &ch32 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_TWO;
+        for w in [1602, 1702, 1741, 1746, 1747, 1751, 1852, 2034, 2106, 2357] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-two carries the window's five blocks");
             frames += n;
         }
     }
