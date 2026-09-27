@@ -10156,7 +10156,9 @@ Measured on the branch from `a3224660`.
     `0/3`'s position, (+8, −23), the closing dump's one torn unit.
     run96's `GUY` records are the short form, so a gaia animal's clock is
     now named unprinted there instead of parting; all 104 gaia animals'
-    positions agree on every block.
+    positions agree on every block. run78 is a short-`GUY` capture too,
+    and its 208 such rows leave its pins (419 → 211 standing on 15783,
+    floor 418/421 → 210/213) with no parting closed.
   - **The endpoint at 24001** (run54's end dump): 89 compared, 0 off, 0
     unlinked, 0 extra, 1 torn; buildings 0/0 unlinked/diverged; cities
     3/0. It was 36 off.
