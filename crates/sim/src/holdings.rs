@@ -885,6 +885,16 @@ mod tests {
         let t = install(&mut sim);
         let city = build(&mut sim, 0, t.village, 32, 32);
         let c = sim.buildings[city].city.unwrap();
+        // An Oil Well stands only on the cell's oil (`blocked_tcoord`'s
+        // `NoOil`, `docs/AI.md` §78).
+        for cy in 7..=8 {
+            for cx in 9..=10 {
+                let at = crate::Cell::new(cx, cy);
+                let mut d = sim.world.cell_data(at);
+                d.flags |= crate::world::cell::OIL;
+                sim.world.set_cell_data(at, d);
+            }
+        }
         let well = build(&mut sim, 0, t.oil_well, 40, 32);
         assert_eq!(sim.buildings[well].city, Some(c), "it is a city member");
 

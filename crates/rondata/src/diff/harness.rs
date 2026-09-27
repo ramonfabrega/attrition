@@ -11403,7 +11403,9 @@ pub(crate) mod tests {
         assert_eq!(road, Vec::<String>::new(), "695's word's five blocks");
         assert!(word.is_empty(), "nothing parts first on 14651");
         // Item 729: 317 → 316, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!(standing_n, 316, "every row standing on 14651");
+        // Item 904: 316 → 311, who=1's `SITE[4]`, standing from 14176 — the
+        // rock arm's city site at (47, 33) (`docs/AI.md` §78).
+        assert_eq!(standing_n, 311, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
@@ -11423,7 +11425,9 @@ pub(crate) mod tests {
             // Item 890 took three (355/36/391 → 352/36/388): who=1's `MAKE[1]`, `[3]` and `[4]`
             // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
             // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-            (352, 36, 388),
+            // Item 904 took ten (352/36/388 → 352/26/378): who=1's `SITE[4]`
+            // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
+            (352, 26, 378),
             "the floor"
         );
     }
