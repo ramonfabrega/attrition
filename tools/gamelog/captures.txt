@@ -7464,8 +7464,19 @@ cover: cover=1
 end: MISC
 settle_min: 1000000
 # The lobby took: British Isles and a Large Town, read back from the run's own
-# `GAME INFO` block.
-check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tee /dev/stderr | grep -q "MAP_STYLE 22$"
-check: grep -a -m1 "STARTING_TOWN" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tee /dev/stderr | grep -q "STARTING_TOWN 3$"
+# `GAME INFO` block. Its lines end in `\r`, so an anchored `grep -q` never
+# matches them (take one's two failed checks), and `grep -q` closing the pipe
+# early fails under runqueue's pipefail.
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tr -d '\r' | tee /dev/stderr | awk '{v=$2} END{exit !(v==22)}'
+check: grep -a -m1 "STARTING_TOWN" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run316-britishisles-largetown.txt" | tr -d '\r' | tee /dev/stderr | awk '{v=$2} END{exit !(v==3)}'
 # And both functions entered.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run316.log" functions 2>/dev/null | grep -E " Map::place_start_in_region$| Setup::large_city_buildings$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; BOTH FUNCTIONS ENTERED** ====
+#
+# 03:04:57 to 03:08 through `viadriver.sh`, the lane lock stale (pid 58192,
+# the click-free lane's 02:36 take). 11,029,469 bytes of gamelog, 9,066,752
+# of trace, `MAP_STYLE 22`, `STARTING_TOWN 3`, seed 12345; both functions
+# entered before frame 0. The summary said FAILED only because the two
+# `GAME INFO` checks as first written anchored on a line that ends in `\r`;
+# they are the ones above now (`docs/RUNS.md` run316). DLL sha256
+# 17c5f215d8ea2775f020e3acc4a1b9de5e07bce83264f8afea837dec6cc798e2.
