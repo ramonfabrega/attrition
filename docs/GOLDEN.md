@@ -6028,8 +6028,10 @@ followers' `orders_x/y` — and **10 pool rows**, each first seat's
 | a single building seated (the old guard) | the unit test; the widening on **642**, slot 0 `held`, and on 825's `group` |
 | the equality unordered | the unit test; the widening on **742**, slot 1 `[2008]` against `[2007, 2008]` |
 | a building listed twice kept twice | the unit test alone: no capture lists one twice |
-| `action_queue_up`'s sort dropped | **no unit test**; the widening on **642**, `0/2008`'s `queue[1].cost` 65 against 60 |
-| `num` laid a member at a time | **no unit test**; the widening on **642**, `queued` 3 against 2 |
+| `action_queue_up`'s sort dropped | `a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued`; the widening on **642**, `0/2008`'s `queue[1].cost` 65 against 60 |
+| `num` laid a member at a time | the same unit test; the widening on **642**, `queued` 3 against 2 |
 | the toggle read per member | `the_repeat_button_toggles_off_the_first_member`; the widening on **722**, `0/2007` `infinite_queue` 1 against 0 |
 
-The sort and the passes had no unit test; run304 is their only check.
+The sort and the passes had no unit test before this item: the first
+run of those two mutations failed run304's widening alone, and the unit
+test was written then.

@@ -1339,8 +1339,16 @@ fn a_press_on_two_buildings_lays_one_entry_a_member_a_pass_from_the_least_queued
     sim.ledgers[0].bucket[food] = before - probe.ledgers[0].bucket[food];
 
     assert_eq!(sim.action_queue_up(&[busy, idle], ty, 3), 3);
-    assert_eq!(sim.buildings[idle].queue.items.len(), 2, "the first and third");
-    assert_eq!(sim.buildings[busy].queue.items.len(), 2, "its own and the second");
+    assert_eq!(
+        sim.buildings[idle].queue.items.len(),
+        2,
+        "the first and third"
+    );
+    assert_eq!(
+        sim.buildings[busy].queue.items.len(),
+        2,
+        "its own and the second"
+    );
     assert_eq!(sim.ledgers[0].bucket[food], 0);
     let paid = |b: usize, i: usize| sim.buildings[b].queue.items[i].cost[0];
     assert!(paid(idle, 0) <= paid(busy, 1) && paid(busy, 1) <= paid(idle, 1));
