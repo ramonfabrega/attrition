@@ -4566,6 +4566,10 @@ mechanism is named.
 
 **Diff-backed**: every record of run294 (160 blocks) and run243 (319),
 and the long word on run53's trace. **Listing-backed**: `5f8c1d`..`5f8c5d`.
-**Mutation**: with the re-read taken out on the built tree, run294's
-`1/40` rows on 19876 come back, the waypoint (3912, 30984) against
-(3732, 31380) first (item 795's journal).
+**Unit-tested**: `a_detour_the_line_check_pushes_is_the_waypoint` stages
+the march's order (`PATHED`, only its `FINAL` entry, no waypoint) against
+a barracks across the first leg: the grid roll plans, and the step walks
+at the detour with tolerance 0. **Mutation**: with the re-read taken out
+on the built tree, the unit test reads (2424, 4728) and 384 against the
+detour (1644, 4332) and 0, and run294's `1/40` rows on 19876 come back
+(item 795's journal).
