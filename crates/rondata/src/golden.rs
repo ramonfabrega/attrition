@@ -822,21 +822,8 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
         // `@queueup` is `issue_queue_up@00941be0` on a group of buildings,
         // a `group` and a `queue_up`, whose entry is
         // [`crate::input::group_queue_up`] (item 877, `docs/GOLDEN.md`
-        // §33).
-        // SEAM: a technology's `@queueup` is `action_queue_up`'s research
-        // arm (item 883, `docs/GOLDEN.md` §35), not entered yet — chapter
-        // twenty-six's floor is measured with it skipped, and
-        // [`crate::input::group_queue_up`] is the entry the build wires
-        // here.
-        Some(Issued::QueueUp { ty, .. })
-            if !built
-                .unit_tree
-                .iter()
-                .any(|&t| built.type_index.get(t) == Some(&ty)) =>
-        {
-            done.skip(&word, "the research arm is not entered in the harness");
-            return;
-        }
+        // §33) — a technology's too, `action_queue_up`'s research arm
+        // (item 883, §35).
         Some(Issued::QueueUp {
             who,
             ty,

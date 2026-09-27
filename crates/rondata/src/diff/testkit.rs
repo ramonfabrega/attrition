@@ -3611,9 +3611,13 @@ pub(crate) const WIDENING_CHAPTER_TWENTY_FIVE: (i64, i64) = (605, 1467);
 /// moves is values, by the widening: 622, `0/2005`'s `queued` (ours 0,
 /// theirs 1) and who=0's food (254 and 134); 652, timber and wealth; 822,
 /// `epochs`, `epoch[0]` and `discovered`; 1023, `epoch[3]`; 1024, `0/0`'s
-/// `mylos`; 1242, `epoch[2]`; 1243, the commerce cap.
+/// `mylos`; 1242, `epoch[2]`; 1243, the commerce cap. **The research
+/// entered** in the same item (`input::group_queue_up` →
+/// `Sim::action_queue_research`, `docs/PRODUCTION.md` "The player's
+/// research"): every one of those rows agrees, and the word stays closed.
 ///
-/// **The delta**, this constant's: none, 1492 closed on the first walk.
+/// **The delta**, this constant's: none, 1492 closed on the first walk
+/// and after the build; the widening's value rows are the move.
 pub(crate) const GOLDEN_WORD_CHAPTER_TWENTY_SIX: i64 = 1492;
 
 /// `chapter_twenty_six_s_word_frame_is_widened_whole`'s window: **run296

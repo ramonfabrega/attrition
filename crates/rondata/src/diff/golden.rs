@@ -9015,31 +9015,29 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch26: what parts in the pool moved");
 }
 
-// **What parts under the word** on run296, chapter twenty-six. The
+// **What parts under the word** on run296, chapter twenty-six. ~~The
 // first walk, with a technology's `@queueup` skipped: every research's
-// entry, price and finish. 622, `0/2005`'s `queued` and who=0's food (The
-// Art of War's 120); 652, timber and wealth (Written Word's 120 and 50);
-// 822, The Art of War's finish (`epochs`, `epoch[0]`, and `discovered`
-// by the Bark and the Trireme); 1023, Written Word's (`epoch[3]`); 1024,
-// `0/0`'s `mylos`, 4 here and 6 there; 1242, Barter's (`epoch[2]`); 1243,
-// the commerce cap it raises, 1120 against 1600. And **`Unit::init@
-// 00612100`'s** (parked 646), chapter twenty-five's shape: `form` on
-// every non-citizen it makes (611, 615, the Hoplites on 1106) and the
-// followers' tile-centred `orders_x/y`.
+// entry, price and finish — 622's `queued` and food, 652's timber and
+// wealth, 822's `epochs`, `epoch[0]` and `discovered`, 1023's `epoch[3]`,
+// 1242's `epoch[2]`, and 1243's commerce cap, 1120 against 1600.~~ **The
+// research entered** (item 883, [`crate::input::group_queue_up`] →
+// `Sim::action_queue_research`): every research's block agrees — 622,
+// 642, 652, 822, 852, 1023, 1042, 1062 and 1242, the counters and the cap
+// with them. What stands is **`Unit::init@00612100`'s** (parked 646),
+// chapter twenty-five's shape: `form` on every non-citizen it makes (611,
+// 615, the Hoplites on 1106) and the followers' tile-centred `orders_x/y`.
+// And **1023 `0/0` `mylos`**, ours 6 and theirs 4 (the first walk had it
+// on 1024, ours 4 and theirs 6): Written Word's `SCIENCE_LOS`, which this
+// crate computes on read (`Sim::unit_los`) and the original caches in
+// `Unit::update_los@0060e4d0`, refreshed a block after the gain —
+// `docs/VISION.md`'s open question on the cached `mylos`, run10's Scout
+// the same shape. Its reader is the fog disc; the stream agrees to 1492.
 const WANT_CH26: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
     "615 0/8 form",
     "615 0/9 form",
-    "622 0/-1 leader:bucket[0:food]",
-    "622 0/2005 queue:queued",
-    "652 0/-1 leader:bucket[1:timber]",
-    "652 0/-1 leader:bucket[2:wealth]",
-    "822 0/-1 leader:discovered",
-    "822 0/-1 leader:epoch[0]",
-    "822 0/-1 leader:epochs",
-    "1023 0/-1 leader:epoch[3]",
-    "1024 0/0 mylos",
+    "1023 0/0 mylos",
     "1106 0/10 form",
     "1106 0/11 form",
     "1106 0/11 orders_x",
@@ -9047,28 +9045,21 @@ const WANT_CH26: &[&str] = &[
     "1106 0/12 form",
     "1106 0/12 orders_x",
     "1106 0/12 orders_y",
-    "1242 0/-1 leader:epoch[2]",
-    "1243 0/-1 leader:resource_cap[0:food]",
-    "1243 0/-1 leader:resource_cap[1:timber]",
-    "1243 0/-1 leader:resource_cap[2:wealth]",
-    "1243 0/-1 leader:resource_cap[4:metal]",
-    "1243 0/-1 leader:resource_cap[5:oil]",
 ];
 
-// **What parts in the pool** on run296. The first walk: the Library's
-// building group `[2005]`, seated in slot 1 by the first `@queueup` on
-// 621 there and not here (the command skipped), so the Barracks' group
-// takes slot 1 on 871 here against slot 0 there; and each first seat's
-// `ox`/`oy`, `push_group`'s record `o` (parked 887).
+// **What parts in the pool** on run296. ~~The first walk: the Library's
+// building group `[2005]` in slot 1 from 622 there and not here, so the
+// Barracks' group took slot 1 on 872 here and slot 0 there.~~ **The
+// research entered**: the Library's group is seated by its first command,
+// and every slot's list, `num` and `stamp` agree on every block. What
+// stands is each first seat's `ox`/`oy`, ours −1 and theirs 0 —
+// `push_group`'s record `o` (parked 887; its reader is a layout's `o`, and
+// nothing is laid out).
 const WANT_CH26_POOL: &[&str] = &[
-    "622 slot 1 held",
-    "872 slot 0 held",
-    "872 slot 1 list",
-    "872 slot 1 ox",
-    "872 slot 1 oy",
-    "872 slot 1 stamp",
-    "1106 slot 0 ox",
-    "1106 slot 0 oy",
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "872 slot 0 ox",
+    "872 slot 0 oy",
 ];
 
 #[test]
