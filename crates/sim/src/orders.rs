@@ -582,15 +582,26 @@ pub struct StrafeOrder {
 /// and `waypoint`, and the `AIRORDER` row. `old` is the adder's 0 and is
 /// not carried.
 ///
-/// SEAM: the arrays hold **one** point. `add_air_patrol_order` sets both
-/// lengths to exactly 1; only `Group::action_air_patrol`'s `QUEUE_LAST`
-/// append makes a second, and no command this crate enters issues one.
-/// And a home that is a unit (a carrier) stores the point relative to it,
-/// which no capture reaches.
+/// **The arrays hold the patrol's points in order** (item 947,
+/// `docs/PRODUCTION.md` "The gather point"): `add_air_patrol_order` sets
+/// both lengths to 1, and an Airbase's gather list appends the rest
+/// (`Build::add_gather_point@00622e70`'s hangar loop, `Build::train@
+/// 0062f9b0`'s `CARRY_AIR` arm). `do_air_patrol` flies at
+/// `points[waypoint]` and steps the waypoint on within `0x240` of it.
+///
+/// SEAM: the original's arrays grow without bound; this crate holds
+/// [`PATROL_POINTS`] and passes over a point past them.
+/// `Group::action_air_patrol`'s `QUEUE_LAST` append is not entered, and a
+/// home that is a unit (a carrier) stores the point relative to it, which
+/// no capture reaches.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AirPatrolOrder {
-    /// `x_pos[0]`/`y_pos[0]` (`+0x14`/`+0x30` lists): the point patrolled.
-    pub point: Pos,
+    /// `x_pos`/`y_pos` (`+0x4..+0x14` and `+0x20..+0x30`): the points
+    /// patrolled, the first [`Self::len`] of them live.
+    pub points: [Pos; PATROL_POINTS],
+    /// `x_pos.length` (`+0x8`), which `y_pos.length` (`+0x24`) equals on
+    /// every path this crate takes.
+    pub len: u8,
     /// `PatrolOrder::waypoint` (`+0x3c`).
     pub waypoint: usize,
     /// `AirOrder::oxx/whose` (`+0x44/+0x48`): the home base.
@@ -602,6 +613,54 @@ pub struct AirPatrolOrder {
     /// `AirOrder::returning` (`+0x58`): 0 when added; `check_fuel` sets it
     /// on an empty tank, which this crate does not carry (§32 piece 4).
     pub returning: bool,
+}
+
+/// The points an [`AirPatrolOrder`] carries here (its SEAM).
+pub const PATROL_POINTS: usize = 8;
+
+impl AirPatrolOrder {
+    /// One point: what `add_air_patrol_order` lays.
+    pub fn over(point: Pos, home: Option<usize>) -> Self {
+        let mut points = [Pos::new(0, 0); PATROL_POINTS];
+        points[0] = point;
+        AirPatrolOrder {
+            points,
+            len: 1,
+            waypoint: 0,
+            home,
+            cruising_alt: CRUISING_ALT,
+            sharp_turn: 0,
+            returning: false,
+        }
+    }
+
+    /// The live points, in order.
+    pub fn live(&self) -> &[Pos] {
+        &self.points[..usize::from(self.len)]
+    }
+
+    /// `x_pos[waypoint]`/`y_pos[waypoint]`, the point flown at.
+    pub fn current(&self) -> Pos {
+        self.points[self.waypoint.min(usize::from(self.len).max(1) - 1)]
+    }
+
+    /// `x_pos[length − 1]`/`y_pos[length − 1]`: the point a strike's
+    /// search is asked round (`do_air_patrol`, `do_strafe`).
+    pub fn last(&self) -> Pos {
+        self.points[usize::from(self.len).max(1) - 1]
+    }
+
+    /// `SimpleArray::make_valid(length)` and the store behind it: the point
+    /// appended to both arrays. False past [`PATROL_POINTS`].
+    pub fn push(&mut self, p: Pos) -> bool {
+        let n = usize::from(self.len);
+        if n >= PATROL_POINTS {
+            return false;
+        }
+        self.points[n] = p;
+        self.len += 1;
+        true
+    }
 }
 
 /// The fields of `AttackGroundOrder` (`docs/ORDERS.md` §1.2, §26):
@@ -1608,14 +1667,7 @@ impl Sim {
         self.update_action(u);
         self.units[u].orders.push_back(Order {
             flags: if action { flag::ACTION } else { 0 },
-            body: Body::AirPatrol(AirPatrolOrder {
-                point,
-                waypoint: 0,
-                home,
-                cruising_alt: CRUISING_ALT,
-                sharp_turn: 0,
-                returning: false,
-            }),
+            body: Body::AirPatrol(AirPatrolOrder::over(point, home)),
         });
     }
 
@@ -1724,7 +1776,8 @@ impl Sim {
             && let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body)
         {
             let at = self.pos_of(t);
-            let d = crate::world::vector_dist(at.x - p.point.x, at.y - p.point.y);
+            let last = p.last();
+            let d = crate::world::vector_dist(at.x - last.x, at.y - last.y);
             if d > self.tuning.aircraft_respond_range * 0x100 {
                 self.kill_current_order(u);
                 return false;
@@ -1789,7 +1842,7 @@ impl Sim {
             return;
         };
         let found = if self.is_bomber(u) {
-            self.find_new_bomber_target(u, p.point)
+            self.find_new_bomber_target(u, p.last())
         } else {
             None
         };

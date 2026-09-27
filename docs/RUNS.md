@@ -9378,3 +9378,51 @@ established; the first arm, a hit on unowned or enemy ground, is untried.
 run342 enters nothing run341 does not; `rondata::blind::TRACES` carries it
 so the pin records the attempt.
 
+
+## run344 — chapter thirty-two, an Airbase's gather point (2026-09-27, item 947)
+
+`docs/GOLDEN.md` §41, `tools/gamelog/golden/chapter32.cmd`: chapter
+twenty-nine's thirteen lines and three `@gatherpoint` lines on the Airbase
+`0/2007` — P1 (11520, 7680) on 1600, P2 (5760, 5760) appended on 1700
+(`@gatherpointadd`), the Clear on 1850. The chapter and its eight
+falsifiers were committed before the run (`3996cc6b`). Launched after
+att-971's queue exited (`waitrun.sh` 0 on its viadriver log), with no
+`RonDriver` running and the profile's `DIFFICULTY` 0 in both blocks.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch32 \
+    --map 14 --end-frame 2360 --log-window 605 2360 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter32.cmd
+```
+
+**One take** at `cover=0`: launched 14:55, **2,142 s** in all (2,111
+launch to exit), **705 MB** of dump and 13 MB of trace, 1,755 blocks. The
+receipt says `success: true`, exit 0, 2,361 frames, `MAP_STYLE 14`, seed
+12345, 898,560 `GROUPDATA`, settings restored. The DLL is the lane's own
+build from this branch's `tracer.c`, sha256 `8678f03f…d240`. `waitrun.sh`
+exited 0. The dump's `GAME INFO` reads `DIFFICULTY 0`.
+
+| check | result |
+|---|---|
+| `issuesmatch.py --none-refused … 9` | every `@` line issued, none refused |
+| `rngcmp.py` vs run308's trace | the same game to 1751 (2,071 frames in common, 318 differ); the harness word 1751 — run308's Biplane stays in, run344's launches on 1747 |
+| `process_gather_point` | `11520 7680 0 0` on 1601, `5760 5760 0 1` on 1701, `-1 -1 0 0` on 1851 |
+
+### §41's falsifiers
+
+| check | predicted (this crate's prototype) | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 1601, 1701, 1851 | **as predicted** |
+| 2, the lists | `[P1]` on 1602, `[P1, P2]` on 1702, empty on 1852 | **as predicted** |
+| 3, the NEW press (1602) | `0/6`, `0/7`, `0/8` each one `AIRPATROLORDER` over P1, flags 4, `cruising_alt` 1600 | **as predicted**: `0/6` flying (1700 on 1601, 1600 on 1602, the strafe home's), `0/7` inside, `0/8` behind it (`inside_up 7`) |
+| 4, the LAST press (1702) | each `[P1, P2]`, waypoint 0; `0/6`'s height its 1701 value | **as predicted**: both arrays length 2 on all three; `0/6` 1800 on 1701 and 1702 |
+| 5, the trained plane | `0/9` born inside on `[P1, P2]`, flags 4; out on 1747 | **as predicted**: born on 1746 at (11640, 13944), `inside_up 8`, the patrol whole; on the map on 1747 at (11424, 13866) |
+| 6, the walk | `0/6`'s waypoint 1 on 1741 | **as predicted**: 0 to 1740, 1 from 1741, turning on P2 |
+| 7, the Clear (1852) | each plane a `STRAFEORDER`, `ox` −1, `returning` 1, flags 0, `mandatory` 0, `oxx` 2007 | **as predicted**, all four |
+| 8, the landings | inside with no order: `0/8` 2034, `0/7` 2073, `0/6` 2102, `0/9` 2106 | **as predicted**, each on its block |
+
+**No falsifier fired.** Every value the prototype predicted is the
+original's on its block.

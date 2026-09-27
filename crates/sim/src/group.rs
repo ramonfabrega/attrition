@@ -4029,7 +4029,7 @@ mod tests {
         let Body::AirPatrol(p) = o[0].body else {
             panic!("an air patrol")
         };
-        assert_eq!(p.point, Pos::new(21120, 16512), "the strike's xx/yy");
+        assert_eq!(p.live(), [Pos::new(21120, 16512)], "the strike's xx/yy");
         assert_eq!((p.home, p.waypoint, p.returning), (Some(base), 0, false));
         assert_eq!(p.cruising_alt, 0x640);
         assert_eq!(s.units[u].pos, Pos::new(10319, 16351), "run223's 666");

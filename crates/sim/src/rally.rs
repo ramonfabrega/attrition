@@ -62,9 +62,10 @@ impl Sim {
     ///   garrison limit, or is a Senate takes the point, its list cleared
     ///   first unless `add_to_end`.
     ///
-    /// SEAM: `action` 3 (an Airbase's strike through `action_flight`, and
-    /// `add_gather_point`'s re-ordering of the base's planes under
-    /// `build_masks & 8`); the Terracotta Army and the Kremlin beside the
+    /// SEAM: `action` 3 at an Airbase (its own `add_gather_point` and then
+    /// `Group::action_flight` on the building group, `action_launch_flight`;
+    /// the re-ordering of the base's planes is [`Sim::add_gather_point`]'s,
+    /// item 947); the Terracotta Army and the Kremlin beside the
     /// Senate (wonders with no ident here); `find_building`'s own metric
     /// (the nearest by `vector_dist` here). No capture reaches them.
     pub fn action_gather_point(
@@ -160,18 +161,117 @@ impl Sim {
 
     /// `Build::add_gather_point@00622e70(x, y, action, pos)`: `QUEUE_NEW`
     /// clears the list first, and the point goes on its end.
+    ///
+    /// **At an Airbase every homed plane is re-ordered from the whole
+    /// list** (item 947, `docs/PRODUCTION.md` "The gather point"; under
+    /// the emulator, `docs/GOLDEN.md` §41). With `build_masks & 8` and
+    /// `is(0x1bf)` (`622f11`..`622f3f`), each of the owner's live units in
+    /// index order whose domain is air (`type +0x218 == 2`) and whose
+    /// [`Sim::home_base`] is this building (`622f80`..`622fc3`) has its
+    /// front air order's `cruising_alt` and `sharp_turn` read
+    /// (`622fde`..`623026`), and then the list is walked from its head
+    /// (`623029`..`623133`): an action-3 point is `add_strafe_order(o,
+    /// who, this, 1, QUEUE_NEW, 0)`; the first other point
+    /// `add_air_patrol_order(point, this, 1)` — the action bit — and every
+    /// later one is appended to that patrol's arrays. The two heights go
+    /// into the patrol when either is non-zero (`62313d`..`62314e`).
+    ///
+    /// SEAM: a point after an action-3 one is appended to a patrol the
+    /// strike has closed; nothing here lays that list.
     pub fn add_gather_point(&mut self, b: usize, p: GatherPoint, new: bool) {
         if new {
             self.clear_gather(b);
         }
         self.buildings[b].gather.push(p);
+        if !self.gather_hangar(b) {
+            return;
+        }
+        let list = self.buildings[b].gather.clone();
+        for u in self.homed_planes(b) {
+            let heights = self.air_order_heights(u);
+            let mut patrol = false;
+            for q in &list {
+                if q.action == 3 {
+                    let target = self.gather_object(q.pos);
+                    self.add_strafe_order(u, target, Some(b), true, QueuePos::New, false);
+                } else if !patrol {
+                    self.add_air_patrol_order(u, q.pos, Some(b), true);
+                    patrol = true;
+                } else if let Some(crate::orders::Body::AirPatrol(ap)) =
+                    self.units[u].orders.front_mut().map(|o| &mut o.body)
+                {
+                    ap.push(q.pos);
+                }
+            }
+            if patrol
+                && let Some((alt, sharp)) = heights
+                && (alt != 0 || sharp != 0)
+                && let Some(crate::orders::Body::AirPatrol(ap)) =
+                    self.units[u].orders.front_mut().map(|o| &mut o.body)
+            {
+                ap.cruising_alt = alt;
+                ap.sharp_turn = sharp;
+            }
+        }
     }
 
-    /// `Build::clear_gather@00623180`: the list emptied. (Its Airbase
-    /// half, the base's planes re-ordered, is `action_gather_point`'s
-    /// SEAM.)
+    /// `Build::clear_gather@00623180`: the list emptied. **At an Airbase**
+    /// (item 947; the same gate as [`Sim::add_gather_point`]'s, `6231f0`..
+    /// `62325a`) each homed plane on the map is sent home,
+    /// `add_strafe_order(−1, −1, this, 0, QUEUE_NEW, 0)` (`6232af`..
+    /// `6232c3`), and each inside loses its orders and leaves the base's
+    /// `launching` (`6232ca`..`6232d7`).
     pub fn clear_gather(&mut self, b: usize) {
         self.buildings[b].gather.clear();
+        if !self.gather_hangar(b) {
+            return;
+        }
+        for u in self.homed_planes(b) {
+            if self.units[u].inside.is_none() {
+                self.add_strafe_order(u, None, Some(b), false, QueuePos::New, false);
+            } else {
+                self.clear_orders(u);
+                self.buildings[b].launching.retain(|&x| x != u);
+            }
+        }
+    }
+
+    /// `build_masks & 8` and `is(0x1bf)`: the hangar arm's gate in
+    /// `add_gather_point` and `clear_gather` — an Airbase, and not a
+    /// Missile Silo.
+    fn gather_hangar(&self, b: usize) -> bool {
+        self.buildings[b].ty.is_some_and(|t| self.is_hangar(t))
+            && self.building_ident(b) == Ident::Airbase
+    }
+
+    /// The owner's live air units, in index order, homed at `b`.
+    fn homed_planes(&self, b: usize) -> Vec<usize> {
+        let who = self.buildings[b].owner;
+        let mut v: Vec<usize> = (0..self.units.len())
+            .filter(|&u| {
+                let un = &self.units[u];
+                un.owner == who
+                    && un.alive()
+                    && matches!(
+                        self.profile(crate::combat::Obj::Unit(u)).domain,
+                        crate::attrition::Domain::Air
+                    )
+                    && self.home_base(u) == Some(b)
+            })
+            .collect();
+        v.sort_by_key(|&u| self.units[u].index);
+        v
+    }
+
+    /// An action-3 point's `(o, who)` as the object it names.
+    fn gather_object(&self, p: crate::Pos) -> Option<crate::combat::Obj> {
+        let who = Player::try_from(p.y).ok()?;
+        let o = i16::try_from(p.x).ok()?;
+        if o >= 2000 {
+            self.building_by_o(who, o).map(crate::combat::Obj::Building)
+        } else {
+            self.unit_by_o(who, o).map(crate::combat::Obj::Unit)
+        }
     }
 
     /// `BuildData::gather_inside@0046f180`: the head point is (−1, −1)

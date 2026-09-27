@@ -843,18 +843,66 @@ pub(crate) fn compare_orders(
             let b = &built.sim.buildings[b];
             (i64::from(b.owner), i64::from(b.index))
         });
+        // The arrays whole (item 947): every point either side holds, the
+        // first a side lacks reported as −1 on that side.
+        let live = p.live();
+        let n = live
+            .len()
+            .max(theirs.patrol_x.len())
+            .max(theirs.patrol_y.len());
+        for i in 0..n {
+            for (field, mine, logged) in [
+                (
+                    "x_pos[i]",
+                    live.get(i).map_or(-1, |q| i64::from(q.x)),
+                    theirs.patrol_x.get(i).copied().unwrap_or(-1),
+                ),
+                (
+                    "y_pos[i]",
+                    live.get(i).map_or(-1, |q| i64::from(q.y)),
+                    theirs.patrol_y.get(i).copied().unwrap_or(-1),
+                ),
+            ] {
+                compared::note(
+                    "OrderDump",
+                    &[if field == "x_pos[i]" {
+                        "patrol_x"
+                    } else {
+                        "patrol_y"
+                    }],
+                );
+                if mine != logged {
+                    at(
+                        slot,
+                        OrderMismatch::Air {
+                            field: if i == 0 {
+                                if field == "x_pos[i]" {
+                                    "x_pos[0]"
+                                } else {
+                                    "y_pos[0]"
+                                }
+                            } else if field == "x_pos[i]" {
+                                "x_pos[n]"
+                            } else {
+                                "y_pos[n]"
+                            },
+                            ours: mine,
+                            theirs: logged,
+                        },
+                    );
+                }
+            }
+        }
         for (field, mine, logged) in [
-            ("x_pos.length", Some(1), Some(theirs.patrol_x.len() as i64)),
-            ("y_pos.length", Some(1), Some(theirs.patrol_y.len() as i64)),
             (
-                "x_pos[0]",
-                Some(i64::from(p.point.x)),
-                theirs.patrol_x.first().copied(),
+                "x_pos.length",
+                Some(live.len() as i64),
+                Some(theirs.patrol_x.len() as i64),
             ),
             (
-                "y_pos[0]",
-                Some(i64::from(p.point.y)),
-                theirs.patrol_y.first().copied(),
+                "y_pos.length",
+                Some(live.len() as i64),
+                Some(theirs.patrol_y.len() as i64),
             ),
             ("waypoint", Some(p.waypoint as i64), theirs.waypoint),
             ("oxx", Some(home.map_or(-1, |(_, o)| o)), theirs.air_oxx),
@@ -878,8 +926,8 @@ pub(crate) fn compare_orders(
             compared::note(
                 "OrderDump",
                 &[match field {
-                    "x_pos.length" | "x_pos[0]" => "patrol_x",
-                    "y_pos.length" | "y_pos[0]" => "patrol_y",
+                    "x_pos.length" => "patrol_x",
+                    "y_pos.length" => "patrol_y",
                     "oxx" => "air_oxx",
                     "whose" => "air_whose",
                     "old" => "air_old",

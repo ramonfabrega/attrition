@@ -1401,6 +1401,7 @@ each can invalidate work that would otherwise be done on top of it.
 |---|---|---|---|
 | 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760**; item 945 built the Bowmen's re-seat, 105 → 35 rows |
 | 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) — **run 2026-09-27 (item 955), 351 MB, 966 s; falsifier 3 fired on all three Citizens: `FILTER_ALL` counts the seeker; every other reading held; the word 740 → 1400, closed** |
+| 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6087,7 +6088,7 @@ machine, out of git).
 
   | the base, the chain | what it wrote |
   | --- | --- |
-  | 4232, one patrol, flags 0, `mana_burn` 0, counter 15 | the patrol's `returning` (`+0x3c`) 0, `launching += 6`, `come_out(0)`, counter 0 |
+  | 4232, one patrol, flags 0, `mana_burn` 0, counter 15 | the patrol's ~~`returning`~~ `waypoint` (`+0x3c`, the PDB's `PatrolOrder` field list; item 947, §41) 0, `launching += 6`, `come_out(0)`, counter 0 |
   | 4104, the same | `kill_current_order(0)`, `launching -= 6`, counter 15 |
   | 4232, `mana_burn` 2 | nothing; counter 15 |
   | 4232, counter 14 | counter 15, no walk |
@@ -6123,8 +6124,10 @@ machine, out of git).
 from git and `touch`ed:
 - `do_launch`'s bit read as never set: `a_full_tank_launches_an_unflagged_patrol_only_under_the_bit`
   fails. **The launch half has a unit test.**
-- the patrol's `returning` not cleared at the launch: **no test fails** —
-  `land_plane` has already cleared it on every path a test takes.
+- the patrol's ~~`returning`~~ `waypoint` not cleared at the launch: **no
+  test fails** — ~~`land_plane` has already cleared it on every path a test
+  takes~~ the store is the waypoint (item 947, §41), and
+  `a_launch_starts_a_patrol_at_its_first_point` fails without it now.
 - `come_out`'s EXIT at an Airbase removed: `a_strike_from_inside_waits_for_the_tank_and_leaves_on_the_exit`
   fails. **No test trains an aircraft at an Airbase.**
 
@@ -6798,3 +6801,231 @@ git and `touch`ed after:
 | the re-seat's spot not the leg's origin | the widening only (858's angle rows) |
 
 Chapter thirty held under every one.
+
+## 41. Chapter thirty-two — an Airbase's gather point: the planes re-ordered on each press, a second point appended, a plane trained under the list, and the Clear (item 947)
+
+**Premise.** §39 and §40 closed the gather point everywhere but the
+hangar, whose arms are read and not built, and which no capture reaches
+(parked 947, §40's "Not staged"). As claims to check:
+- **Every press re-orders the base's planes.** `Build::add_gather_point@
+  00622e70` under `build_masks & 8` and `is(0x1bf)` walks the owner's live
+  units whose domain is air (`type +0x218 == 2`) and whose
+  `UnitData::home_base@00609dc0` is the base — the building a unit is in,
+  or its air order's home — and rebuilds each one's orders from the whole
+  list: the first point an `add_air_patrol_order(point, base, 1)`, the
+  action bit, each later one appended to that patrol's arrays, an action-3
+  point a strike. The old air order's `cruising_alt` and `sharp_turn` go
+  into the new patrol when either is non-zero. `QUEUE_NEW` first runs
+  `Build::clear_gather@00623180`'s hangar half: a plane on the map is sent
+  home (`add_strafe_order(−1, −1, base, 0, QUEUE_NEW, 0)`), one inside
+  loses its orders and leaves `launching`.
+- **A plane trained under the list takes it.** `Build::train@0062f9b0`'s
+  `CARRY_AIR` arm with points (`62fadf`..`62fbfb`) gives the order-less
+  unit the same patrol, action bit set, and leaves it inside for
+  `Object::do_launch@0064f3b0`.
+- **The patrol walks its points.** `Unit::do_air_patrol@005ea620` flies
+  at `x_pos[waypoint]` and steps the waypoint on within `0x240`; alone at
+  the last point it circles there (ORDERS §34.5). This crate's patrol
+  holds one point.
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`'s
+machine, out of git): `add_gather_point`, `clear_gather`, `LinkListBase::
+add`, `make_valid` and `Build::train` ran unchanged; `home_base`,
+`get_order`, `update_order`, the order adders and `clear_orders` hooked
+on a model of each plane. Airbase `2007` of who=0, `build_masks` 0x1088:
+
+| the call | what it wrote |
+| --- | --- |
+| p1 NEW; `0/6` flying on a patrol (1400, −1), `0/7` inside on one | `0/6`: the strafe home, then `add_air_patrol_order(p1, 2007, 0, 1, head node)`; `0/7`: `clear_orders`, then the same. Both (1600, 0): the strafe's heights, and none for `0/7` |
+| p2 LAST | each patrol rebuilt `[p1, p2]`, waypoint 0; a plane's (1400, −1) and (1600, 1) carried; (0, 0) leaves the adder's 1600 |
+| p3 LAST, action 1 | `[p1, p2, p3]`: a point's action is not read |
+| (o 12, who 0) NEW, action 3 | each plane: the strafe home, then `add_strafe_order(12, 0, 2007, 0, 1, QUEUE_NEW, 0)` |
+| `clear_gather` | the plane flying: the strafe home; inside: `clear_orders` |
+| 0x1080, or `is(0x1bf)` 0 | nothing |
+| `train(287)` under `[p1]`, `[p1, p2]`, `[(12, 0, 3), p2]` | `go_inside`, no `come_out`; `add_air_patrol_order(first, 2007, 0, 1, ·)`, the rest appended; (12, 0) flown to as a point |
+
+**The listing settled the rest** (910, 964, 933):
+- `add_air_patrol_order` is `ret 0x18` and never reads `[ebp+0x1c]`: the
+  head node passed as its `QueuePos` (`62308d`) is inert.
+- The plane loop is bounded by `objects +0x15c + 4·who` over
+  `0xc0aec0 + 0x1c·who` (`622f5d`..`623166`); the list walk runs from the
+  head to `+0xc4 == +0xcc` (`623029`..`623133`). The heights are read at
+  `622fde`..`623026` and written at `62313d`..`62314e`.
+- `train`'s loop re-reads `num_gather` each pass (`62fbf4`) and
+  `seek_index`es each point; the order count `+0xd8` picks the adder.
+- **`do_launch`'s store at `64f6a0` is the patrol's `waypoint`**, `+0x3c`
+  in the PDB's `PatrolOrder` field list (`x_pos` 4, `y_pos` 32,
+  `waypoint` 60). §38's table and `air.rs` have it as `returning`, which
+  is `+0x58`. Only a relaunch from a waypoint past 0 tells them apart.
+- Action 3 through the command reaches the Airbase by
+  `action_gather_point`'s own loop, then `Group::action_flight` on the
+  building group, whose `+0x49` arm is `Group::action_launch_flight@
+  006fbfb0`, an issuer this crate does not carry. Not emulated, not staged.
+
+**The booking's mutation** (918): the Airbase skip under action 3 in
+`Sim::action_gather_point` dropped, **1,092 of 1,092 sim tests pass**. No
+other hangar arm is carried to mutate.
+
+**The writers and readers, counted by offset** (823, 869):
+- the list (`+0xb8..+0xcc`): §39's two writers; its readers gain the
+  hangar loop and `train`'s `CARRY_AIR` loop.
+- a patrol's arrays (`+0x4`, `+0x20`): the adder, the hangar loop,
+  `train`'s loop, `Group::action_air_patrol`'s append and `Unit::close`'s
+  carrier shift; read by `do_air_patrol`, `do_strafe` (the last point)
+  and `think_bird`.
+- `waypoint` (`+0x3c`): the adder (0), `do_air_patrol` (past the length
+  0, and the step), `do_launch` (0).
+- `cruising_alt`/`sharp_turn` (`+0x4c`/`+0x50`): the adder (0x640; not
+  `sharp_turn`), the hangar copy, a non-bomber's redraw every eighth
+  frame, and the edge coin.
+
+**What the emulator could not reach**: the patrol's walk in flight;
+`action_launch_flight`; and whether the trained plane's launch shares its
+birth block (the queue's `train` against `do_launch` in one building's
+process).
+
+**The cast and the lines** are `chapter32.cmd`'s: chapter twenty-nine's
+thirteen, then `1600 @gatherpoint 0 11520 7680 0 2007` (P1, tile (60,
+40)), `1700 @gatherpointadd 0 5760 5760 0 2007` (P2, (30, 30)) and `1850
+@gatherpoint 0 -1 -1 0 2007`, the Clear. Both points are open ground,
+a hundred and fifty tiles and more from who=1's town, so no bomber's search finds a
+building near the last point. One lever a press, each between two staged
+events (879): P1 with `0/6` flying and `0/7`, `0/8` inside; P2 before the
+Biplane's birth; the Clear with all four flying.
+
+**The staging, walked by this crate through the commands' own entries**
+(`input::group_gather_point` on run308's start, the same game to 2070;
+run345 was not used). Unbuilt, the list is written and no plane is
+touched. A prototype of the arms (a patch, reverted before the capture)
+gives the reading's values:
+- **1602**: `0/6`, `0/7`, `0/8` each an `AIRPATROLORDER` over P1, flags 4,
+  waypoint 0, `oxx` 2007, `cruising_alt` 1600;
+- **1702**: each `[P1, P2]`; `0/6`'s `cruising_alt` its own of 1701
+  (1800 here);
+- **1741**: `0/6` within `0x240` of P1, waypoint 1;
+- **1746**: the Biplane `0/9` born inside on `[P1, P2]`, flags 4; out on
+  **1747** by this crate's order;
+- **1789**, **1813**: `0/7`, `0/8` launched on the patrol;
+- **1852**: all four a `STRAFEORDER`, no target, `returning` 1, flags 0;
+- **2034**, **2073**, **2102**, **2106**: `0/8`, `0/7`, `0/6`, `0/9`
+  inside with no order.
+
+**The readings, and the gates between each and its block** (903, 968):
+- **The NEW press** (1602): the reading above; **the list alone** (this
+  crate: each plane's patrol over (21120, 16512), flags 0, unchanged);
+  **the clear half alone** (`0/6` a strafe home, `0/7`, `0/8` no order).
+  Gates: the press on 1601; `0/6` on the map (from 1585) and the two
+  inside (to 1789, 1813); each homed at 2007 (its chain, or its patrol's
+  `oxx`); the Airbase's 0x1088.
+- **The LAST press** (1702): the arrays `[P1, P2]` on all three (the
+  reading), or untouched. `0/6`'s height copied (its 1701 value) or the
+  adder's 1600. Gate: `0/6`'s `cruising_alt`, redrawn every eighth frame
+  (1300..1900 by hundreds on this crate's walk), is not 1600 on 1701.
+- **The trained plane** (1746): an `AIRPATROLORDER [P1, P2]`, flags 4
+  (the reading); no order (run308, and this crate). Launched on 1746 or
+  1747. Gates: the price and age as §38; the counter saturated from 1600.
+- **The walk** (~1741): `0/6`'s waypoint 1 then its heading on P2 (the
+  reading); circling P1 at waypoint 0. Gate: its reaching P1 before the
+  Clear.
+- **The Clear** (1852): the strafe home on each plane (the reading); the
+  patrols kept (the list alone). Gate: all four on the map.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5`
+and `misc:COMMANDMANAGER=1` over **`[605, 2360)`**: 1,755 blocks, **254
+of runway** past the last landing near 2106. `UNITS=3` prints each
+plane's stack, the patrol's arrays and `waypoint`; `BUILDS=7` the list,
+`launch_frames` and the chain.
+
+**The premise's killer, and its writers** (§3, point 5): each plane's own
+stack on 1602, 1702, 1746 and 1852. The writers: the hangar loop,
+`clear_gather`'s half, `train`'s arm, `do_air_patrol`'s step, `do_launch`,
+`land_plane`. **The loops**: the planes by index, bounded above; the
+list from its head; `train`'s over `num_gather`.
+
+**What would falsify it, and where each could first fire.**
+1. **An issue does not reach the pump.** Trace frames 1600, 1700, 1850:
+   an `INFO 17` with a refusal, or no `process_gather_point` on 1601,
+   1701, 1851.
+2. **The lists.** 2007's on 1602 `[(11520, 7680, 0)]`; on 1702 `length 2`,
+   P1 then P2; on 1852 empty.
+3. **The NEW press** (1602), each plane's own stack: `0/6`, `0/7`, `0/8`
+   one `AIRPATROLORDER` over P1, flags 4, `cruising_alt` 1600 (the
+   reading); the old patrol, flags 0 (the list alone); a strafe home or
+   no order (the clear half alone).
+4. **The LAST press** (1702): each patrol's arrays `[P1, P2]`, waypoint
+   0; `0/6`'s `cruising_alt` its 1701 value, or 1600.
+5. **The trained plane** (1746): `0/9`'s stack `[P1, P2]`, flags 4, or
+   empty; its `inside_up` −1 first on 1746 or on 1747.
+6. **The walk**: `0/6`'s `waypoint` 1 near P1 and its heading on P2.
+7. **The Clear** (1852): each plane one `STRAFEORDER`, `ox` −1,
+   `returning` 1, flags 0, `oxx` 2007; or its patrol.
+8. **The landings**: each plane inside 2007 with no order by 2359.
+
+Falsifiers 3 to 7 test each plane's own stack on its own block (711),
+and 3, 4 and 5 each split two readings or three (789). **Not reached**:
+action 3 and `action_launch_flight`; a relaunch from a waypoint past 0
+(the `waypoint` store); a helicopter's or a missile's arm in `train`.
+
+**Where it should part.** Unbuilt, the first value parting is **1602**,
+the three stacks; the first draw parting where a plane's flight starts
+from another point.
+
+**Run 2026-09-27 as run344 (item 947)** (`docs/RUNS.md` has the table).
+One take, `cover=0`, `DIFFICULTY 0`, the same game as run308 to 1751.
+**No falsifier fired**: on 1602 all three planes one `AIRPATROLORDER`
+over P1, flags 4, `0/6`'s `cruising_alt` 1600 (the strafe home's); on
+1702 each `[P1, P2]` and `0/6`'s 1800 carried; `0/6`'s waypoint 1 from
+1741; the Biplane born on 1746 inside on `[P1, P2]`, flags 4, and out on
+1747; on 1852 each a strafe home, `returning` 1, flags 0; inside with no
+order on 2034, 2073, 2102 and 2106. Every block is the prototype's.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_TWO` = 1751, open,
+on the first walk**: the stream parts where run344's Biplane, launched on
+1747 on its patrol, flies and this crate's sits inside with no order. The
+widening, run344 whole (605, 2361), pins 364 rows and chapter twenty-two's
+ten pool rows. **The first parting's field list**, 1602: `0/6`'s
+`order:flags` and action bit (ours 0, theirs 4), `cruising_alt` (ours its
+own 1700, theirs the strafe home's 1600), `x_pos[0]`/`y_pos[0]` (ours
+(21120, 16512), theirs P1) and `path[0].to`; `0/7`'s and `0/8`'s flags,
+action bit and point. **Their writers** (889): the hangar loop alone on
+that block, with `clear_gather`'s strafe home the source of `0/6`'s 1600.
+Then 1702 (`x_pos.length` 1 against 2 on all three), 1741 (`0/6`'s
+`waypoint` 0 against 1), 1746 (`0/9`'s stack 0 against 1) and 1747 (`0/9`
+inside against out), and 1852 (each a patrol, kind 17, against the strafe
+home, 16).
+
+**The arms built: `GOLDEN_WORD_CHAPTER_THIRTY_TWO` = 2360, closed** (item
+947, `docs/PRODUCTION.md` "The gather point"): the hangar loop and
+`clear_gather`'s half (`crate::rally`), `Build::train`'s `CARRY_AIR` arm
+(`Sim::build_train`), and an `AirPatrolOrder` that holds its points and
+walks them (`orders::PATROL_POINTS`, `air::do_air_patrol`); `do_launch`'s
+store is the waypoint. **The value diff, both sides** (ours before the
+build in brackets): 1602, each plane flags 4 (0), over P1 ((21120, 16512)),
+`0/6`'s `cruising_alt` 1600 (1700); 1702, each `length` 2 (1); 1741,
+`0/6`'s `waypoint` 1 (0); 1746, `0/9` one `AIRPATROLORDER [P1, P2]` (none);
+1747, `0/9` on the map at (11424, 13866) (inside); 1852, each a
+`STRAFEORDER` home, `returning` 1 (its patrol); every row after agrees,
+and the stream to run344's end. The widening goes **364 → 17 rows**, the
+pool unchanged at ten: chapter twenty-two's nine and the Biplane's birth
+seat on 1746, (11616, 13920) against (11640, 13944), `Unit::init`'s
+(parked 646), as chapter twenty-nine's. `GROUND_INEXACT` 38 → 39: the
+Biplane's EXIT on 1747.
+
+**Mutations**, each on the committed build (`9fd97792`), restored from git
+and `touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the hangar loop dropped | `an_airbase_s_gather_point_re_orders_every_plane_homed_there`; the word (1738) and the widening |
+| `clear_gather`'s half dropped | `the_clear_at_an_airbase_sends_a_flying_plane_home_and_empties_one_inside`; the word (2106) and the widening |
+| the heights not carried | `an_airbase_s_gather_point_re_orders_every_plane_homed_there`; the widening |
+| the later points not appended | the same test; the word (2066) and the widening |
+| `train`'s arm dropped | `a_plane_trained_under_an_airbase_s_list_takes_a_patrol_over_it`; the word (1751) and the widening |
+| the waypoint's step dropped | `a_patrol_steps_its_waypoint_on_at_each_point_and_stays_on_the_last`; the word (2066) and the widening |
+| the launch store `returning` again | `a_launch_starts_a_patrol_at_its_first_point` alone: no capture relaunches from a waypoint past 0 |
+
+**Not built and not reached**: the search round the last point and the
+strike only from the last leg are built from ORDERS §34.5 with no test and
+no capture (nothing enemy near either point); action 3 and
+`action_launch_flight`; a patrol of more than `PATROL_POINTS` (8) points.
+Chapters twenty-nine to thirty-one hold at their pins.

@@ -684,10 +684,16 @@ impl Sim {
     /// the `semaphore & 2` fallback between the two searches, a
     /// `FIGHTERBOMBER`'s carrier-relative point, and a patrol going home.
     pub(crate) fn do_air_patrol(&mut self, u: usize, frame: i64) {
-        let Some(crate::orders::Body::AirPatrol(p)) = self.current_order(u).map(|o| o.body) else {
+        let Some(crate::orders::Body::AirPatrol(mut p)) = self.current_order(u).map(|o| o.body)
+        else {
             return;
         };
-        let goal = (!p.returning).then_some(p.point);
+        // `5ea64b`..`5ea653`: a waypoint at or past the arrays' length starts over.
+        if p.waypoint >= usize::from(p.len) {
+            p.waypoint = 0;
+            self.set_waypoint(u, 0);
+        }
+        let goal = (!p.returning).then_some(p.current());
         if self.plane_air_physics(u, goal, frame) == Flew::Done {
             return;
         }
@@ -697,18 +703,31 @@ impl Sim {
         let xs = self.world.width() * UNITS_PER_CELL;
         let ys = self.world.height() * UNITS_PER_CELL;
         let at = self.units[u].pos;
-        let (gx, gy) = (p.point.x.clamp(0, xs - 1), p.point.y.clamp(0, ys - 1));
-        if vector_dist(at.x - gx, at.y - gy) < 0x240 && self.units[u].orders.len() > 1 {
-            // One waypoint: the last, so the step on is never taken.
-            self.kill_current_order(u);
-            return;
+        let point = p.current();
+        let (gx, gy) = (point.x.clamp(0, xs - 1), point.y.clamp(0, ys - 1));
+        if vector_dist(at.x - gx, at.y - gy) < 0x240 {
+            // **The waypoint steps on** (item 947): within `0x240` of
+            // `points[waypoint]` a patrol with a point after it flies at the
+            // next; at the last, a patrol with an order behind it is killed,
+            // and one alone circles there.
+            if p.waypoint + 1 < usize::from(p.len) {
+                p.waypoint += 1;
+                self.set_waypoint(u, p.waypoint);
+            } else if self.units[u].orders.len() > 1 {
+                self.kill_current_order(u);
+                return;
+            }
         }
         let phase = i64::from(self.units[u].index) + frame;
         if phase & 15 == 0 && self.is_bomber(u) {
             let me = crate::combat::Obj::Unit(u);
+            // The search is round the **last** point (`x_pos[length − 1]`),
+            // and a building it finds is struck only from the last leg
+            // (`waypoint == length − 1`); an air target from any.
             if let Some(t) = self
-                .find_new_bomber_target(u, p.point)
+                .find_new_bomber_target(u, p.last())
                 .filter(|&t| self.valid_target(me, t))
+                .filter(|_| p.waypoint + 1 == usize::from(p.len))
             {
                 self.add_strafe_order(
                     u,
@@ -722,7 +741,7 @@ impl Sim {
             }
         }
         if phase & 31 == 0
-            && let Some(b) = self.enemy_building_on_tile(u, p.point)
+            && let Some(b) = self.enemy_building_on_tile(u, p.current())
             && self.buildings[b].ever_seen & Self::who_bit(self.units[u].owner) != 0
         {
             let t = crate::combat::Obj::Building(b);
@@ -734,6 +753,37 @@ impl Sim {
                 crate::orders::QueuePos::First,
                 false,
             );
+        }
+    }
+
+    /// **`UnitData::home_base@00609dc0`**: the building a unit is inside,
+    /// or else its front air order's home (`get_air_order`'s `oxx/whose`)
+    /// when that is alive and can carry it; `None` (−1) otherwise.
+    ///
+    /// SEAM: the arm for an order of type `0x19` (the tail's order when
+    /// its count is 1); no plane here holds one.
+    pub(crate) fn home_base(&self, u: usize) -> Option<usize> {
+        if let Some(b) = self.units[u].inside {
+            return Some(b);
+        }
+        let home = self.current_air(u)?.home?;
+        let bd = &self.buildings[home];
+        (bd.alive && bd.ty.is_some_and(|t| self.is_hangar(t))).then_some(home)
+    }
+
+    /// The front air order's `cruising_alt` and `sharp_turn`
+    /// (`get_order()->is_air()`, then `update_order()->get_air_order()`'s
+    /// `+0xc`/`+0x10`), for `Build::add_gather_point`'s hangar loop.
+    pub(crate) fn air_order_heights(&self, u: usize) -> Option<(i32, i32)> {
+        self.current_air(u).map(|a| (a.cruising_alt, a.sharp_turn))
+    }
+
+    /// `PatrolOrder::waypoint` (`+0x3c`) on the front patrol.
+    pub(crate) fn set_waypoint(&mut self, u: usize, w: usize) {
+        if let Some(crate::orders::Body::AirPatrol(p)) =
+            self.units[u].orders.front_mut().map(|o| &mut o.body)
+        {
+            p.waypoint = w;
         }
     }
 
@@ -958,7 +1008,10 @@ impl Sim {
                         continue;
                     }
                 }
-                crate::orders::Body::AirPatrol(_) => self.set_returning(u, false),
+                // `64f6a0`: the patrol's `waypoint` (`+0x3c`, the PDB's
+                // `PatrolOrder` field list) is set 0 — not `returning`
+                // (`+0x58`), which `land_plane` has cleared (item 947).
+                crate::orders::Body::AirPatrol(_) => self.set_waypoint(u, 0),
                 _ => {}
             }
             if !self.buildings[b].launching.contains(&u) {
@@ -1108,7 +1161,7 @@ impl Sim {
     }
 
     /// `WorldData::is_valid`: a point on the world.
-    fn in_world(&self, p: Pos) -> bool {
+    pub(crate) fn in_world(&self, p: Pos) -> bool {
         let xs = self.world.width() * UNITS_PER_CELL;
         let ys = self.world.height() * UNITS_PER_CELL;
         p.x >= 0 && p.y >= 0 && p.x < xs && p.y < ys
@@ -1899,6 +1952,169 @@ mod launch_tests {
         s.buildings[b].ty = Some(barracks);
         let out = s.build_train(b, ty).unit;
         assert_eq!(s.units[out].inside, None, "a Barracks lets it out");
+    }
+
+    /// The front patrol of `u`, which the tests below expect.
+    fn patrol_of(s: &Sim, u: usize) -> (crate::orders::AirPatrolOrder, u8) {
+        match s.units[u].orders.front() {
+            Some(o) => match o.body {
+                Body::AirPatrol(p) => (p, o.flags),
+                ref b => panic!("0/{}: not a patrol: {b:?}", s.units[u].index),
+            },
+            None => panic!("0/{}: no order", s.units[u].index),
+        }
+    }
+
+    /// **An Airbase's gather point re-orders every plane homed there, on
+    /// every press** (item 947, `Build::add_gather_point@00622e70`'s hangar
+    /// loop; `docs/GOLDEN.md` §41). `QUEUE_NEW` sends the flying plane home
+    /// and empties the one inside first, and then each takes a patrol over
+    /// the list with the action bit; the flying one's heights are the strafe
+    /// home's. `QUEUE_LAST` rebuilds each from the whole list and carries a
+    /// patrol's `cruising_alt` and `sharp_turn`. Made to fail with the
+    /// hangar loop dropped (the first press), with the heights not carried
+    /// (the second), and with the later points not appended.
+    #[test]
+    fn an_airbase_s_gather_point_re_orders_every_plane_homed_there() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let inside = fighter_inside(&mut s, base, 400);
+        let flying = fighter_inside(&mut s, base, 400);
+        s.come_out(flying);
+        s.add_air_patrol_order(inside, Pos::new(21120, 16512), Some(base), false);
+        s.add_air_patrol_order(flying, Pos::new(21120, 16512), Some(base), false);
+        let (p1, p2) = (Pos::new(11520, 7680), Pos::new(5760, 5760));
+        let point = |pos| crate::rally::GatherPoint { pos, action: 0 };
+        s.add_gather_point(base, point(p1), true);
+        for u in [inside, flying] {
+            let (p, flags) = patrol_of(&s, u);
+            assert_eq!(p.live(), [p1], "0/{}: one patrol over P1", s.units[u].index);
+            assert_eq!(flags & flag::ACTION, flag::ACTION, "the action bit");
+            assert_eq!((p.cruising_alt, p.sharp_turn), (0x640, 0));
+            assert_eq!(s.units[u].orders.len(), 1);
+        }
+        if let Some(Body::AirPatrol(p)) = s.units[flying].orders.front_mut().map(|o| &mut o.body) {
+            p.cruising_alt = 1800;
+            p.sharp_turn = -1;
+        }
+        s.add_gather_point(base, point(p2), false);
+        let (p, _) = patrol_of(&s, flying);
+        assert_eq!(p.live(), [p1, p2], "the list whole");
+        assert_eq!(
+            (p.waypoint, p.cruising_alt, p.sharp_turn),
+            (0, 1800, -1),
+            "carried"
+        );
+        let (p, _) = patrol_of(&s, inside);
+        assert_eq!((p.live(), p.cruising_alt), (&[p1, p2][..], 0x640));
+        assert_eq!(s.units[inside].inside, Some(base), "still inside");
+    }
+
+    /// **The Clear at an Airbase** (item 947, `Build::clear_gather@
+    /// 00623180`'s hangar half): a homed plane on the map is sent home
+    /// (`add_strafe_order(−1, −1, base, 0, QUEUE_NEW, 0)`), one inside loses
+    /// its orders and leaves `launching`. Made to fail with the half
+    /// dropped.
+    #[test]
+    fn the_clear_at_an_airbase_sends_a_flying_plane_home_and_empties_one_inside() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let inside = fighter_inside(&mut s, base, 400);
+        let flying = fighter_inside(&mut s, base, 400);
+        s.come_out(flying);
+        // A plane on the map is homed by its air order's home.
+        s.add_air_patrol_order(flying, Pos::new(21120, 16512), Some(base), false);
+        let p1 = crate::rally::GatherPoint {
+            pos: Pos::new(11520, 7680),
+            action: 0,
+        };
+        s.add_gather_point(base, p1, true);
+        s.buildings[base].launching.push(inside);
+        s.clear_gather(base);
+        assert!(s.buildings[base].gather.is_empty());
+        assert!(s.units[inside].orders.is_empty(), "no order inside");
+        assert!(
+            !s.buildings[base].launching.contains(&inside),
+            "out of launching"
+        );
+        let o = s.units[flying].orders.front().copied().expect("an order");
+        let Body::Strafe(sf) = o.body else {
+            panic!("a strafe home: {:?}", o.body)
+        };
+        assert_eq!(
+            (sf.target, sf.home, sf.returning, sf.mandatory, o.flags),
+            (None, Some(base), true, false, 0)
+        );
+        assert_eq!(s.units[flying].orders.len(), 1);
+    }
+
+    /// **A plane trained under an Airbase's list takes a patrol over it**
+    /// (item 947, `Build::train@0062f9b0`'s `CARRY_AIR` arm, `62fadf`..
+    /// `62fbfb`): the first point with the action bit, the rest appended,
+    /// and it stays inside. Made to fail with the arm dropped.
+    #[test]
+    fn a_plane_trained_under_an_airbase_s_list_takes_a_patrol_over_it() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let first = fighter_inside(&mut s, base, 300);
+        let ty = s.units[first].ty.unwrap();
+        let (p1, p2) = (Pos::new(11520, 7680), Pos::new(5760, 5760));
+        s.buildings[base].gather = vec![
+            crate::rally::GatherPoint { pos: p1, action: 0 },
+            crate::rally::GatherPoint { pos: p2, action: 0 },
+        ];
+        let trained = s.build_train(base, ty).unit;
+        assert_eq!(s.units[trained].inside, Some(base), "inside");
+        let (p, flags) = patrol_of(&s, trained);
+        assert_eq!(p.live(), [p1, p2]);
+        assert_eq!(
+            (flags & flag::ACTION, p.home, p.waypoint),
+            (flag::ACTION, Some(base), 0)
+        );
+    }
+
+    /// **The patrol walks its points** (item 947, `Unit::do_air_patrol@
+    /// 005ea620`): within `0x240` of `points[waypoint]` the waypoint steps
+    /// on; alone at the last it stays there. Made to fail with the step
+    /// dropped.
+    #[test]
+    fn a_patrol_steps_its_waypoint_on_at_each_point_and_stays_on_the_last() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        let (p1, p2) = (Pos::new(11520, 7680), Pos::new(5760, 5760));
+        s.add_air_patrol_order(u, p1, Some(base), true);
+        if let Some(Body::AirPatrol(p)) = s.units[u].orders.front_mut().map(|o| &mut o.body) {
+            p.push(p2);
+        }
+        s.units[u].pos = p1;
+        let frame = s.frame;
+        s.do_air_patrol(u, frame);
+        assert_eq!(patrol_of(&s, u).0.waypoint, 1, "on to P2");
+        s.units[u].pos = p2;
+        s.do_air_patrol(u, frame + 1);
+        assert_eq!(patrol_of(&s, u).0.waypoint, 1, "the last kept");
+        assert_eq!(s.units[u].orders.len(), 1, "alone, not killed");
+    }
+
+    /// **A launch sets the patrol's `waypoint` to 0** (item 947,
+    /// `Object::do_launch@0064f3b0`'s store at `64f6a0`, `+0x3c`, the PDB's
+    /// `PatrolOrder::waypoint`). Made to fail with the store dropped.
+    #[test]
+    fn a_launch_starts_a_patrol_at_its_first_point() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.add_air_patrol_order(u, Pos::new(11520, 7680), Some(base), true);
+        if let Some(Body::AirPatrol(p)) = s.units[u].orders.front_mut().map(|o| &mut o.body) {
+            p.push(Pos::new(5760, 5760));
+            p.waypoint = 1;
+        }
+        s.units[u].mana_burn = 0;
+        s.do_launch(base);
+        assert_eq!(s.units[u].inside, None, "launched");
+        assert_eq!(patrol_of(&s, u).0.waypoint, 0);
     }
 
     /// **The repeat button toggles off the first member's state**

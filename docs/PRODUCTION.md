@@ -939,14 +939,16 @@ point, `init_unit`, `go_inside(2007)`, `is(0x136, 0)` and no `come_out`;
 with one gather point, `add_air_patrol_order(x, y, 2007, 0, 1)` — the
 action bit — and no `come_out`; without `CARRY_AIR`, `come_out(0)`.
 
-**The gather point's arm is not built** (SEAM): its writers are
+~~**The gather point's arm is not built** (SEAM): its writers are
 `Build::add_gather_point` and `Build::clear_gather`, reached from the
 player's `issue_gather_point`, `Options::do_clear_gather`,
-`Group::action_city_gather` and the scenario functions. ~~No capture issues
-one, so every building on disk has none.~~ run312 issues five, on two
+`Group::action_city_gather` and the scenario functions. No capture issues
+one, so every building on disk has none. run312 issues five, on two
 Barracks and a City (§ "The gather point", below), and none at an Airbase,
-so this arm is still unreached. Neither is the helicopter's
-over-the-limit arm.
+so this arm is still unreached.~~ **The gather point's arm is built**
+(item 947, `docs/GOLDEN.md` §41, run344): § "The gather point", "The
+Airbase", below. The helicopter's over-the-limit arm and the missile's
+and helicopter's first-point arm are not.
 
 **What stands**: the Biplane's birth point, (11640, 13944) there against
 the base's own (11616, 13920) here — `Unit::init@00612100`'s seat, parked
@@ -1113,6 +1115,26 @@ candidate, on open ground.
   flags 4, and `0/16` (its point on a Lookout site) a `BuildOrder` on
   `0/2009`, flags 0, each on its birth block and alone on the stack.
 
+**The Airbase** (item 947, `docs/GOLDEN.md` §41; **run344 backs every
+arm here**). Under `build_masks & 8` and `is(0x1bf)`,
+`Build::add_gather_point` re-orders every live air unit of the owner homed
+at the base (`UnitData::home_base@00609dc0`: the building it is in, or its
+air order's home) from the whole list on every press: the first point
+`add_air_patrol_order(point, base, 1)`, the action bit, the rest appended
+to the patrol's arrays, an action-3 point a strike; the old air order's
+`cruising_alt` and `sharp_turn` go into the patrol when either is
+non-zero. `QUEUE_NEW` and the Clear run `clear_gather`'s half first: a
+plane on the map is sent home (`add_strafe_order(−1, −1, base, 0,
+QUEUE_NEW, 0)`), one inside loses its orders and leaves `launching`.
+`Build::train`'s `CARRY_AIR` arm gives a plane trained there the same
+patrol and leaves it inside for `do_launch`. The patrol walks its points
+(`do_air_patrol`, ORDERS §34.5). run344: `0/6`, `0/7`, `0/8` on P1 with
+flags 4 on 1602, `[P1, P2]` on 1702 with `0/6`'s 1800 carried, `0/6`'s
+waypoint 1 on 1741, the Biplane on `[P1, P2]` from its birth on 1746 and
+out on 1747, the strafes home on 1852. In the code: `Sim::add_gather_point`,
+`clear_gather`, `home_base`, `Sim::build_train`, `AirPatrolOrder`'s points
+and `do_air_patrol`; five tests in `air::launch_tests`.
+
 **In the code**: `crate::rally` (`Sim::action_gather_point`,
 `add_gather_point`, `clear_gather`, `gather_inside`, `gather_exit`,
 `gather_route`, `gather_reseat`), with `Building::gather`; `Sim::come_out` and
@@ -1133,11 +1155,13 @@ candidate, on open ground.
   a `QUEUE_LAST` (`add_gather_point` moves `+0xcc` back to the old tail)~~:
   "The other arms" above (item 955, run338); a waypoint with `action` ≠ 0
   stays reading only;
-- action 3 (the Airbase's strike, `action_flight`) and the Airbase's arm
-  of `add_gather_point` / `clear_gather` under `build_masks & 8`: run
-  under the emulator (item 955: every homed plane's patrol rebuilt from
-  the whole list on every press, `docs/GOLDEN.md` §40), not built and
-  not captured;
+- action 3 (the Airbase's strike: `action_gather_point`'s own loop, then
+  `Group::action_flight` → `Group::action_launch_flight@006fbfb0` for the
+  building group) ~~and the Airbase's arm of `add_gather_point` /
+  `clear_gather` under `build_masks & 8`~~ (built and captured, item 947,
+  "The Airbase" above): run under the emulator, not built and not
+  captured; so is a point after an action-3 one, appended to a patrol the
+  strike has closed;
 - an enemy at the point (the attack arms) and a caravan's trade arm;
   ~~the third re-seat (`619aa3`..`619be7`: a unit found at a ground
   point)~~ (built, item 955), ~~with the lone arm's second sweep~~ (built,

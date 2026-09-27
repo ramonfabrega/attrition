@@ -125,8 +125,10 @@ fn sample(sim: &Sim) -> Sample {
                 }
                 orders::Body::AirPatrol(p) => {
                     (p.home.map_or(-1, |b| b as i64) * 4 + i64::from(p.returning) * 2) * 65_536
-                        + i64::from(p.point.x) * 65_536
-                        + i64::from(p.point.y)
+                        + p.live().iter().fold(0i64, |h, q| {
+                            h.wrapping_mul(31)
+                                .wrapping_add(i64::from(q.x) * 65_536 + i64::from(q.y))
+                        })
                         + p.waypoint as i64
                 }
                 orders::Body::Attack(_) | orders::Body::Think => -1,

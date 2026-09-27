@@ -1165,6 +1165,9 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 928 banked one**: ARMY 10 → 9, `0x55555555`, the neutral bias
 /// `come_out`'s gather block passes `find_nearby_spot`, which `crate::rally`
 /// now carries.
+/// **Item 947 moved one, and it is not a build**: GOLDEN 4 → 3, `11520`,
+/// chapter thirty-two's P1 x, which the item's unit tests in `crate::air`
+/// use as a fixture point.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 31),
     ("ANIM.md", 4),
@@ -1174,7 +1177,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COMBAT.md", 9),
     ("COSTS.md", 4),
     ("ECONOMY.md", 13),
-    ("GOLDEN.md", 4),
+    ("GOLDEN.md", 3),
     ("GOODY.md", 5),
     ("GROUPS.md", 5),
     ("MERCHANT.md", 2),

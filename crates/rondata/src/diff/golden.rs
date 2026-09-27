@@ -12350,3 +12350,141 @@ const WANT_CH31_POOL: &[&str] = &[
     "622 slot 0 ox",
     "622 slot 0 oy",
 ];
+
+/// **Chapter thirty-two, pinned** — an Airbase's gather point
+/// (`docs/GOLDEN.md` §41, item 947, run344). Sixteen staged lines:
+/// chapter twenty-nine's thirteen and three `@gatherpoint` lines on the
+/// Airbase, one an append and one the Clear.
+#[test]
+fn chapter_thirty_two_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch32", "chapter32", 32, 16, 2359) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY_TWO,
+        "chapter thirty-two's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY_TWO}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY_TWO,
+        "chapter thirty-two's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §41"
+    );
+    eprintln!(
+        "chapter thirty-two: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run344 whole, both directions** (item 947, `docs/GOLDEN.md` §41):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_two_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch32",
+        "chapter32",
+        WIDENING_CHAPTER_THIRTY_TWO,
+        2359,
+        0,
+        (1601, 1603),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch32 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-two's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_TWO.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch32: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY_TWO.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch32", "chapter32", WIDENING_CHAPTER_THIRTY_TWO, 0)
+        .expect("run344 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch32 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH32.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch32: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH32_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch32: what parts in the pool moved");
+}
+
+// **What parts under the word** on run344, chapter thirty-two. **The
+// first walk** (item 947, before any build): 364 rows. Chapter
+// twenty-two's standing nine (611..655); **the first parting's field
+// list**, 1602: `0/6`'s `order:flags` and action bit (ours 0, theirs 4),
+// `cruising_alt` (ours 1700, its own; theirs 1600, the strafe home's
+// carried), `x_pos[0]`/`y_pos[0]` (ours (21120, 16512), theirs P1) and
+// `path[0].to`, and `0/7`'s and `0/8`'s flags, action bit and point — the
+// hangar loop of `Build::add_gather_point@00622e70`, their one writer on
+// the block; then 0/6's flight from 1603, 1702's arrays, 1741's waypoint,
+// the Biplane from 1746 (inside with no order here, on its patrol there,
+// out on 1747), and from the word, 1751, the stream's cascade. **The arm
+// built** (item 947, `docs/PRODUCTION.md` "The gather point"): the hangar
+// loop, `clear_gather`'s half, `train`'s `CARRY_AIR` arm and the patrol's
+// points and waypoint; 364 → 17, the word closed at 2360. What stands is
+// chapter twenty-nine's: chapter twenty-two's nine, and the Biplane's
+// birth on 1746, `form` and its seat — ours the base's own (11616,
+// 13920), theirs (11640, 13944) — `Unit::init@00612100`'s (parked 646).
+// It leaves on 1747 on the EXIT, where both sides agree.
+const WANT_CH32: &[&str] = &[
+    "611 0/6 form",
+    "613 0/7 form",
+    "615 0/8 form",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+    "1746 0/9 form",
+    "1746 0/9 g.des_x[0]",
+    "1746 0/9 g.des_y[0]",
+    "1746 0/9 g.x[0]",
+    "1746 0/9 g.y[0]",
+    "1746 0/9 orders_x",
+    "1746 0/9 orders_y",
+    "1746 0/9 pos",
+];
+
+// **What parts in the pool** on run344: chapter twenty-two's ten, as
+// chapter twenty-nine's.
+const WANT_CH32_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "666 slot 2 new_speed",
+    "666 slot 2 speed",
+];

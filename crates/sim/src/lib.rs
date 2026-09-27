@@ -2725,11 +2725,9 @@ impl Sim {
         // `do_launch` to pass over. run308's Biplane `0/9`, inside `0/2007`
         // from 1746.
         //
-        // SEAM: a gather point's arm (`add_air_patrol_order` to it, action
-        // bit set, or a strike on an enemy building there), and a
-        // helicopter's over the base's aircraft limit (`is(0x136)`,
-        // `num_aircraft_here > num_aircraft_limit`, which does come out). No
-        // command in any capture sets a gather point.
+        // A gather point's arm is below (item 947). SEAM: a helicopter's
+        // over the base's aircraft limit (`is(0x136)`, `num_aircraft_here >
+        // num_aircraft_limit`, which does come out); no capture trains one.
         let hangar = self.buildings[at].ty.is_some_and(|t| self.is_hangar(t));
         let inside = self.squads_inside(at);
         let stays = self.building_ident(at) == crate::build::Ident::University
@@ -2753,6 +2751,39 @@ impl Sim {
             self.check_gatherers(at);
         } else if !hangar && !kept {
             self.come_out(unit);
+        }
+        // **Under a gather point the aircraft takes a patrol over the list**
+        // (item 947, `docs/PRODUCTION.md` "The gather point"; `62fadf`..
+        // `62fbfb`): for a type that is neither a missile (`+0x1e4 &
+        // 0x8000000`) nor a helicopter (`+0x2b4 & 0x20`), each point in list order that
+        // is on the world gives an order-less unit `add_air_patrol_order(
+        // point, this, 1)` — the action bit — and is appended to its patrol
+        // after that. The point's `action` is not read here. It stays
+        // inside for `do_launch`.
+        //
+        // SEAM: the other arm (`62fc47`..), the first point's strike on an
+        // enemy building or its patrol, for a missile or a helicopter; no
+        // capture trains one under a point.
+        if hangar
+            && !self.buildings[at].gather.is_empty()
+            && !self
+                .profile(crate::combat::Obj::Unit(unit))
+                .has(crate::combat::mask::MISSILE)
+            && !self.is_helicopter(unit)
+        {
+            let list = self.buildings[at].gather.clone();
+            for q in list {
+                if !self.in_world(q.pos) {
+                    continue;
+                }
+                if self.units[unit].orders.is_empty() {
+                    self.add_air_patrol_order(unit, q.pos, Some(at), true);
+                } else if let Some(orders::Body::AirPatrol(ap)) =
+                    self.units[unit].orders.front_mut().map(|o| &mut o.body)
+                {
+                    ap.push(q.pos);
+                }
+            }
         }
         self.economy_changed(who);
         Produced { unit, ty, at }
