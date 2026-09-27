@@ -96,6 +96,12 @@ pub const TRACES: &[&str] = &[
     "rontrace-run335.log", // ch28
     "rontrace-run336.log", // ch29
     "rontrace-run337.log", // ch30
+    // Item 959's captures: a staged economy for row 6 (`docs/RUNS.md`
+    // run340–run342). run342, a Tower's arrows on the caravan, enters
+    // nothing run341 does not.
+    "rontrace-run340.log",
+    "rontrace-run341.log",
+    "rontrace-run342.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -156,40 +162,41 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// (item 934: the issuer chapters under `cover=1`, 77 off, eight of them
 /// [`ENTERED_BY_THE_DLL_ONLY`]), **152** with item 955's
 /// `BuildData::get_first_gather` (`docs/GOLDEN.md` §40; run337 enters its
-/// `num_gather` and the gather list's `add`, not this). `docs/CENSUS.md`'s
-/// "The blind list, ranked" groups it by the staging that would enter each
-/// family.
+/// `num_gather` and the gather list's `add`, not this), **148** with run340
+/// and run341 (item 959: row 6's staged economy, `lumber_level`,
+/// `resource_cap_add`, `replace_gather` and `close_caravan` off).
+/// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
+/// that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90,
     // Item 955, `docs/GOLDEN.md` §40: `BuildData::get_first_gather@0046f140`.
     0x0046_f140,
     0x0047_0e50, 0x0047_11e0,
-    0x0047_80c0, 0x0047_da40, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60,
-    0x0048_89a0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440,
-    0x0058_7060, 0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005e_1f20, 0x005e_3310,
-    0x005e_3400, 0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0,
-    0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0,
-    0x005f_d080, 0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140,
-    0x0060_a310, 0x0060_a600, 0x0061_a960, 0x0062_2670, 0x0062_2ce0, 0x0062_2d10,
-    0x0062_3310, 0x0062_9e70, 0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390,
-    0x0063_e390, 0x0064_40c0, 0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370,
-    0x0067_b800, 0x0068_3730, 0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0,
-    0x006b_4230, 0x006b_46b0, 0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0,
-    0x006d_5230, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170,
-    0x006f_0230, 0x006f_2c90, 0x006f_49a0, 0x006f_4af0, 0x0070_0010, 0x0070_0b90,
-    0x0070_20c0, 0x0070_84c0, 0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10,
-    0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0,
-    0x0070_beb0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470,
-    0x0071_c500, 0x0071_c740, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_6820,
-    0x0073_c7e0, 0x0073_d070, 0x0073_e000, 0x0073_e0c0, 0x0073_e350, 0x0082_c520,
-    0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0, 0x0094_1860, 0x0094_1960,
-    0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0, 0x0094_8cb0, 0x0094_8e00,
-    0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0, 0x0094_9ed0, 0x0094_c1c0,
-    0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_8ac0, 0x009e_18b0,
-    0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_bb80, 0x009f_bd60,
-    0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0,
-    0x00a4_69f0,
+    0x0047_80c0, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60, 0x0048_89a0,
+    0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
+    0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005e_1f20, 0x005e_3310, 0x005e_3400,
+    0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
+    0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
+    0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140, 0x0060_a310,
+    0x0060_a600, 0x0061_a960, 0x0062_2670, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
+    0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
+    0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370, 0x0067_b800, 0x0068_3730,
+    0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
+    0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
+    0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
+    0x006f_49a0, 0x006f_4af0, 0x0070_0010, 0x0070_0b90, 0x0070_20c0, 0x0070_84c0,
+    0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
+    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
+    0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
+    0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_d070, 0x0073_e000,
+    0x0073_e0c0, 0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
+    0x0094_1860, 0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
+    0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
+    0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0,
+    0x009b_8ac0, 0x009e_18b0, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0,
+    0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0,
+    0x009f_fa10, 0x009f_fbf0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -217,6 +224,12 @@ pub const NEVER: &[u32] = &[
 /// coverage capture can enter them (`docs/CENSUS.md`, "The blind list,
 /// 2026-09-27, item 940").
 pub const RESIDUE: &[(u32, &str)] = &[
+    (
+        0x0047_0e50,
+        "Build::finished (the thunk to Build::finished@00628490): a vtable slot, \
+         +0x1ac of Build, BuildOut, BuildData and Wall, that no instruction \
+         dispatches; the image's one call or jmp through +0x1ac is a Window thunk",
+    ),
     (
         0x0059_30c0,
         "Game::action_cheat_ai_toggle: no reference in the executable; \
@@ -326,6 +339,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0071_3bb0,
         "Group::report_speed: no reference in the executable",
+    ),
+    (
+        0x0073_e000,
+        "Caravan::process: no call, jump or slot; its address's one copy is a \
+         coincidence inside .reloc's fixup entries; its body, `if (making_road) \
+         build_road()`, stands inline in Unit::work",
     ),
     (
         0x0092_fc50,
@@ -591,6 +610,42 @@ mod tests {
             "a residue row says unreferenced and the image says otherwise — \
              read the site (`report.py <exe> refs`) and fix the row:\n{}",
             failures.join("\n")
+        );
+    }
+
+    /// **The two rows the image points at and nothing calls** (item 959).
+    /// `Build::finished@00470e50` sits in four vtables at slot `+0x1ac`, and
+    /// the one `call`/`jmp [reg+0x1ac]` in `.text` is `jmp [eax+0x1ac]` at
+    /// `0041c9f8`, a COMDAT-folded `Window` thunk; the control is slot
+    /// `+0x1b0`, `Build::finished@00628490`'s, which the traces enter.
+    /// `Caravan::process`'s address occurs once, inside `.reloc`
+    /// (`0x00f15000..`), whose entries are two-byte fixups, never pointers.
+    #[test]
+    fn the_pointed_at_rows_are_never_called() {
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipping: no install (set RON_INSTALL)");
+            return;
+        };
+        let pe = crate::pe::Pe::open(&format!("{root}/riseofnations.exe"))
+            .expect("riseofnations.exe is a PE file");
+        assert_eq!(
+            pe.references(0x0047_0e50),
+            vec![0x00b4_2320, 0x00b4_2500, 0x00b4_2888, 0x00b4_2ea4],
+            "Build::finished@00470e50's four vtable slots"
+        );
+        assert_eq!(
+            pe.dispatches(0x0047_0e50, 0x1ac),
+            vec![0x0041_c9f8],
+            "the one jmp through slot +0x1ac, Window's"
+        );
+        assert!(
+            !pe.dispatches(0x0047_0e50, 0x1b0).is_empty(),
+            "slot +0x1b0, Build::finished@00628490's, is dispatched"
+        );
+        assert_eq!(
+            pe.references(0x0073_e000),
+            vec![0x00f8_5888],
+            "Caravan::process's one copy, in .reloc"
         );
     }
 

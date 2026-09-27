@@ -116,6 +116,43 @@ impl Pe {
         out
     }
 
+    /// Every `call` or `jmp` through `[reg + disp]` with a 32-bit
+    /// displacement equal to `disp` — the shape a virtual call through a
+    /// vtable slot at offset `disp` takes — in the section that holds
+    /// `code` (`FF /2` or `FF /4`, mod 10, with or without a SIB byte),
+    /// found at every byte offset, so an answer errs toward dispatched.
+    /// What it cannot see is a slot loaded into a register first and
+    /// called through it (`mov eax, [ecx+disp]; call eax`), which the
+    /// listing settles (`docs/CENSUS.md`, item 959).
+    pub fn dispatches(&self, code: u32, disp: u32) -> Vec<u32> {
+        let mut out = Vec::new();
+        let Some(rva) = code.checked_sub(self.image_base) else {
+            return out;
+        };
+        for &(sva, vsize, raw, rsize) in &self.sections {
+            if !(sva..sva + vsize).contains(&rva) {
+                continue;
+            }
+            let (raw, len) = (raw as usize, rsize.min(vsize) as usize);
+            let Some(body) = self.bytes.get(raw..raw + len) else {
+                continue;
+            };
+            for i in 0..body.len() {
+                let Some(&modrm) = body.get(i + 1) else {
+                    continue;
+                };
+                if body[i] != 0xFF || modrm >> 6 != 2 || !matches!((modrm >> 3) & 7, 2 | 4) {
+                    continue;
+                }
+                let at = if modrm & 7 == 4 { i + 3 } else { i + 2 };
+                if u32_at(body, at) == Some(disp) {
+                    out.push(self.image_base + sva + i as u32);
+                }
+            }
+        }
+        out
+    }
+
     /// `n` little-endian `i32`s at a virtual address.
     pub fn i32s(&self, va: u32, n: usize) -> Option<Vec<i32>> {
         let o = self.offset_of(va)?;

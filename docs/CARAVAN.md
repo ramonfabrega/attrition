@@ -656,5 +656,16 @@ asked. With both, Great Lakes' word moves **14529 → 14650**
   renderer's, but its reference counts are the mesh's (`docs/ROADS.md`
   §10.5).
 - `Caravans::new_danger@0073e0c0` restarts a route whose road passes
-  within `0x600` of a hit on a caravan (`Object::take_damage`). No traced
-  caravan has been hit, and it is not modelled.
+  within `0x600` of ~~a hit on a caravan~~ **a hit on a land caravan that
+  `Object::take_damage` lets through, and it lets through two arms only**
+  (the listing, `00652e97..00652f41`, item 959): the caravan's tile is
+  unowned or owned by a non-ally of the caravan's owner; or, on its own or
+  an ally's ground, the object `take_damage`'s arguments 7 and 8 name
+  answers its vtable `+0x1c` non-zero, which `Build` and `Wall` do (a folded
+  `return 1`) and `Unit` never does (a folded `return 0`). Neither hit a
+  capture made on London's ground entered it: run341's hoplites, and
+  run342's Tower, whose arrows took the caravan's damage up by 12 a shot
+  from frame 913. So the second arm's attacker is **not** simply the object
+  that fired, and what `Object::do_damage` passes there for an arrow is not
+  established; the first arm, a hit on unowned or enemy ground, is untried.
+  It is not modelled.

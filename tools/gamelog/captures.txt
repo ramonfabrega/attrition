@@ -8082,3 +8082,168 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # records, none refused, each as golden; every issuer its script calls
 # entered. DLL sha256 b451aeb6…3dca throughout (`docs/RUNS.md` run318–
 # run337; `docs/CENSUS.md`, "item 934").
+
+run: 340
+tag: economy-edges
+item: 959
+why: the blind list's row 6 — a staged economy: a Lumber Mill, Angkor Wat, a caravan between two of London's cities hit and killed, a unit dying under a gather point
+# One launch for the row's six reachable functions, each read to its caller
+# first (`docs/CENSUS.md`, "The blind list, 2026-09-27, item 959"). The
+# golden lobby (`cfg: -`), `!ai off` so who=1 makes nothing on its own and
+# its first added unit is o 6 (chapter fifteen's chariot was), the DLL of
+# run318 (sha256 b451aeb6…3dca), `cover=1`. Each event, and what it enters:
+#   600 a Small City for who=1 seven cells south of London, cell (54,28):
+#       the second city `think_caravan`'s FILTER_CAN_TRADE needs (chapter
+#       seven's caravan took no order with one city)
+#   604 a Lumber Mill in Napata: `Build::activate` sets city_flags 0x400
+#       and calls `CityData::lumber_level`
+#   606 Angkor Wat for who=0: `Leader::gather` → `calc_resource_caps`'s
+#       metal arm, `has_wonder(0x217)` → `LeaderData::resource_cap_add`
+#   610 a caravan for who=1 at chapter seven-b's point, o 6: routes London
+#       ↔ the new city (`init_caravan`, `do_trade`, `build_road`)
+#   612 three Hoplites for who=0 at cell (50,25), o 6–8, twenty tiles off
+#       the route so nothing engages before the route is linked
+#   650 a gather point on Napata's ground (chapter thirty's line), then
+#   700 `die 8,0`: `Unit::close` → `HotKeyGroups::kill` → a building
+#       with a gather list → `Build::replace_gather`
+#   900 `@attack` on the caravan: `Object::take_damage`'s land-caravan arm,
+#       an attacker that is a unit → `Caravans::new_danger` → a linked
+#       route with a road node within 0x600 → `Caravan::restart_trade_route`;
+#       the kill → `Unit::close` → `Caravans::close_caravan`
+#  2000 `die 6,1`, the kill's backstop, a no-op on an empty slot
+frames: 2400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 add small_city who=1 216,112
+cmd: 604 add lumber_mill who=0 24,164
+cmd: 606 add angkor_wat who=0 28,180
+cmd: 610 add caravan who=1 228,92
+cmd: 612 add hoplite who=0 200,100
+cmd: 650 @gatherpoint 0 3936 28128 0 2000
+cmd: 700 die 8,0
+cmd: 900 @attack 0 6 1 6
+cmd: 2000 die 6,1
+check: python3 tools/gamelog/cmdsran.py rontrace-run340.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 2400:1
+# No golden twin, so `issuesmatch.py` has nothing to compare against (961):
+# what it asserts that still applies is that both `@` lines issued, and
+# refused nothing — `INFO 17`'s second word is line | refusal << 16.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run340.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+# The six the staging reads as reachable, each named; the other three of the
+# row are named in the census as unreachable by this staging.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run340.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan)$" | tee /dev/stderr | awk 'END{exit !(NR==6)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; TWO OF SIX ENTERED** ====
+#
+# 08:59:24 to 09:15 through `viadriver.sh`, the lane lock stale (pid 15857,
+# the click-free lane's 08:16 take). DLL sha256 b451aeb6…3dca. Every chat
+# line ran and returned 1; both `@` lines issued, refusal 0. Entered:
+# `CityData::lumber_level` (604) and `Caravans::close_caravan` (2000, the
+# backstop `die`, not the attack). Not, and why, read off the dump:
+#  - `resource_cap_add`: Angkor Wat (o 2008) landed at `city -1`, 23 tiles
+#    from Napata, and `has_wonder` counts a wonder only in a city (`+0x72`).
+#  - `replace_gather`: hoplite 8 died on 700, but a squad member's
+#    `Unit::close` skips the hotkey arm (`field_0x8e >= 0`), so
+#    `HotKeyGroups::kill` first ran on 2000, for the caravan.
+#  - `new_danger`, `restart_trade_route`: the caravan routed (`do_trade`,
+#    `build_road` on 611), but hoplite 6's order stack is empty on 902:
+#    `valid_target_const` asks the target's `is_seen` for who=0, and the
+#    caravan was twenty tiles out of sight; nothing was ever damaged.
+# run341 is the same script with those three fixed.
+
+run: 341
+tag: economy-edges-b
+item: 959
+why: the blind list's row 6, run340 retaken — Angkor Wat inside Napata, a lone unit's death under the gather point, the map revealed before the attack
+# run340's script with three changes, each the reason run340 missed a
+# function (its trailer above): Angkor Wat at corner (12,168), cells (3–4,
+# 42–43), about eleven tiles from Napata's centre and inside its 20-tile
+# radius; `die 5,0` (a starting citizen, no squad) for `die 8,0`; and
+# `explore all` at 890, which sets `reveal_map` 3, so `UnitData::is_seen`
+# answers yes and the 900 `@attack` passes `valid_target_const`. The DLL of
+# run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 2400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 add small_city who=1 216,112
+cmd: 604 add lumber_mill who=0 24,164
+cmd: 606 add angkor_wat who=0 12,168
+cmd: 610 add caravan who=1 228,92
+cmd: 612 add hoplite who=0 200,100
+cmd: 650 @gatherpoint 0 3936 28128 0 2000
+cmd: 700 die 5,0
+cmd: 890 explore all
+cmd: 900 @attack 0 6 1 6
+cmd: 2000 die 6,1
+check: python3 tools/gamelog/cmdsran.py rontrace-run341.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 890:1 2400:1
+# No golden twin, so `issuesmatch.py` has nothing to compare against (961):
+# both `@` lines issued, and refused nothing.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==7)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; FIVE OF SEVEN ENTERED** ====
+#
+# 09:22:09 to 09:39 through `viadriver.sh`. DLL sha256 b451aeb6…3dca. Every
+# asserted chat line returned 1; both `@` lines issued, refusal 0. Entered:
+# `resource_cap_add` (606), `replace_gather` (700), `lumber_level` (604),
+# `Object::take_damage` (1167, the hoplites on the caravan) and
+# `close_caravan` (1458, the attack's kill). Not `new_danger`, and the
+# listing says why (00652e97..00652f41): on the caravan owner's own or an
+# ally's ground the call needs an attacker whose vtable +0x1c answers
+# non-zero — Build and Wall, never Unit (a folded `return 0`) — and the
+# hoplites hit it on London's ground. run342 adds a Tower.
+
+run: 342
+tag: economy-edges-tower
+item: 959
+why: the blind list's row 6, run341 plus a player-0 Tower beside the caravan's road — a building's arrow on a caravan on its owner's ground enters Caravans::new_danger
+# run341's script and one line: `add tower who=0 216,104` on 880, cell
+# (54,26), two to four tiles west of the road between London and the Small
+# City (the caravan walks x 219–223 there in run340 and run341). A Tower has
+# one base arrow and range 10 (`buildingrules.xml`), and `explore all` on
+# 890 lets its target pass `is_seen`. Its hit is `take_damage`'s ally arm
+# with a building attacker → `Caravans::new_danger` → a linked caravan whose
+# road has a node within 0x600 of the hit (or a search parked) →
+# `Caravan::restart_trade_route`. The number was reserved for 947 and moved
+# by the commander. The DLL of run318 (sha256 b451aeb6…3dca), `cover=1`.
+frames: 2400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 add small_city who=1 216,112
+cmd: 604 add lumber_mill who=0 24,164
+cmd: 606 add angkor_wat who=0 12,168
+cmd: 610 add caravan who=1 228,92
+cmd: 612 add hoplite who=0 200,100
+cmd: 650 @gatherpoint 0 3936 28128 0 2000
+cmd: 700 die 5,0
+cmd: 880 add tower who=0 216,104
+cmd: 890 explore all
+cmd: 900 @attack 0 6 1 6
+cmd: 2000 die 6,1
+check: python3 tools/gamelog/cmdsran.py rontrace-run342.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 880:1 890:1 2400:1
+# No golden twin, so `issuesmatch.py` has nothing to compare against (961):
+# both `@` lines issued, and refused nothing.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" functions 2>/dev/null | grep -E " (Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; NEW_DANGER NOT ENTERED** ====
+#
+# 09:44:01 to 10:01 through `viadriver.sh`. DLL sha256 b451aeb6…3dca. Every
+# asserted chat line returned 1; both `@` lines issued, refusal 0. The
+# Tower shot the caravan on London's ground (damage 0 → 12 on 913, 12 a
+# shot), the hoplites joined, it died on 1209 (`close_caravan`); neither
+# `new_danger` nor `restart_trade_route` entered. So the building arm's
+# attacker is not simply the object that fired; what `Object::do_damage`
+# passes there for an arrow is not established, and a hit on unowned or
+# enemy ground is untried (`docs/CENSUS.md`, "item 959").
