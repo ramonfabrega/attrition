@@ -330,7 +330,11 @@ def refs(exe, targets, idx, vtables_path):
                     text, slot = where(n, va + i)
                     at = f"{label} in {n} at {va + i:08x}: {text}"
                     alias = idx.by_addr.get(word) if label == "rva" else None
-                    if alias:
+                    if n == ".reloc":
+                        # Page headers and two-byte fixups (parked 967): four
+                        # of its bytes spelling an address are a coincidence.
+                        noise.append(f"{at}: inside .reloc, which holds no pointer, not a reference")
+                    elif alias:
                         noise.append(f"{at}: the word is also {alias}'s address, not a reference")
                     else:
                         live.append(at)

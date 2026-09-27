@@ -342,9 +342,9 @@ pub const RESIDUE: &[(u32, &str)] = &[
     ),
     (
         0x0073_e000,
-        "Caravan::process: no call, jump or slot; its address's one copy is a \
-         coincidence inside .reloc's fixup entries; its body, `if (making_road) \
-         build_road()`, stands inline in Unit::work",
+        "Caravan::process: no reference in the executable (its address's one \
+         copy is a coincidence inside .reloc's fixup entries); its body, \
+         `if (making_road) build_road()`, stands inline in Unit::work",
     ),
     (
         0x0092_fc50,
@@ -642,10 +642,15 @@ mod tests {
             !pe.dispatches(0x0047_0e50, 0x1b0).is_empty(),
             "slot +0x1b0, Build::finished@00628490's, is dispatched"
         );
+        // Parked 967, the seventeenth pass: the scan counted this copy, at
+        // `00f85888`, and `report.py refs` printed it "pointer only". The
+        // base relocation directory holds page headers and two-byte
+        // fixups; four of its bytes spelling an address is a coincidence,
+        // and the scan skips the directory now.
         assert_eq!(
             pe.references(0x0073_e000),
-            vec![0x00f8_5888],
-            "Caravan::process's one copy, in .reloc"
+            Vec::<u32>::new(),
+            "Caravan::process's one copy is inside .reloc, which holds no pointer"
         );
     }
 

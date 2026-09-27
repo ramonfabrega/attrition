@@ -85,7 +85,43 @@ def summarize_requests(directory, *, release_completed):
             'complete_corpus_claim': False, 'fixtures': rows}
 
 
-def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged):
+# **The commander's lines** (parked 969, the seventeenth pass): the tests
+# that read `docs/QUEUE.md`'s handoff against a pinned constant, and the one
+# that fails while an item is both booked and journalled. A worker re-pins
+# the constant and may not write the line, so on a lane these are red by
+# rule until the merge — and twenty of twenty worker gates of one tranche
+# therefore exited 1, none reached `guard`, and four had a red of their own
+# among the expected ones. `--lane` reads the release log and says which:
+# red only on these, the gate goes on to `guard` and exits 0; red on
+# anything else, it stops and names it. The commander's gate takes no flag
+# and forgives nothing. `test_release_gate.py` pins that each name is a
+# test that exists.
+COMMANDERS_LINES = (
+    'the_handoff_s_scoreboard_is_the_floors',
+    'the_handoff_s_golden_line_is_the_pinned_word',
+    'the_handoff_s_default_map_is_the_lower_word',
+    'the_handoff_s_endpoint_is_the_pinned_counts',
+    'an_item_number_is_minted_once_and_in_its_file_s_form',
+)
+# What `cargo test` exits with when a test failed; a kill (memcap's 137) or
+# a build error is not a red test and is never forgiven.
+CARGO_TESTS_FAILED = 101
+
+
+def lane_verdict(failed_tests):
+    """(forgiven, line): whether every red test is one of the commander's
+    lines, and the sentence the gate prints either way."""
+    own = [name for name in failed_tests
+           if name.rsplit('::', 1)[-1] not in COMMANDERS_LINES]
+    if failed_tests and not own:
+        return True, (f"Lane verdict: red only on the commander's lines "
+                      f"({len(failed_tests)}): " + ', '.join(failed_tests))
+    return False, (f"Lane verdict: red on the worker's own ({len(own)}): "
+                   + (', '.join(own) or 'no failed test named; the suite did not finish'))
+
+
+def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
+         lane=False):
     if type(test_threads) is not int or test_threads not in (2, 3, 4):
         raise ValueError('test threads must be 2, 3, or 4')
     install = Path(install).resolve()
@@ -128,7 +164,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     reached = []
     try:
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
-                   require_fixtures=require_fixtures, reached=reached)
+                   require_fixtures=require_fixtures, reached=reached, lane=lane)
     finally:
         print(steps_line(commands, reached), flush=True)
     return report_dir
@@ -168,18 +204,26 @@ def steps_line(commands, reached):
     return line
 
 
-def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached):
+def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, reached,
+               lane=False):
     for command in commands:
         child_env = env.copy()
         is_release = '--release' in command
         completed = False
+        held = None
         if is_release:
             child_env['RON_FIXTURE_AUDIT_DIR'] = str(audit_dir)
+        if lane and step_name(command) == 'guard':
+            child_env['RON_LANE'] = '1'
         extra = {'log': str(report_dir / 'release-tests.log')} if is_release else {}
         try:
             reached.append(command)
             run(command, cwd=ROOT, env=child_env, check=True, **extra)
             completed = True
+        except subprocess.CalledProcessError as failure:
+            if not (lane and is_release and failure.returncode == CARGO_TESTS_FAILED):
+                raise
+            held = failure
         finally:
             if is_release:
                 summary = summarize_requests(audit_dir, release_completed=completed)
@@ -201,6 +245,11 @@ def _run_steps(commands, *, run, env, audit_dir, report_dir, require_fixtures, r
                     for row in tests['binaries']) or 'no test result observed'), flush=True)
                 for name in tests['failed_tests']:
                     print(f"  failed: {name}", flush=True)
+        if held is not None:
+            forgiven, line = lane_verdict(tests['failed_tests'])
+            print(line, flush=True)
+            if not forgiven:
+                raise held
         if is_release:
             if not summary['observed_requests']:
                 raise ValueError('release produced no fixture audit; coverage is unobserved')
@@ -217,9 +266,12 @@ def main():
     parser.add_argument('--require-fixtures', action='store_true', help='fail if any observed fixture request was missing')
     parser.add_argument('--test-threads', type=int, choices=(2, 3, 4), default=2,
                         help='release width under the 20 GiB monitor; default: 2')
+    parser.add_argument('--lane', action='store_true',
+                        help="a worker's gate: red only on the commander's lines goes on to guard and exits 0")
     args = parser.parse_args()
     try:
-        gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures, test_threads=args.test_threads)
+        gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
+             test_threads=args.test_threads, lane=args.lane)
     except ValueError as exc:
         parser.error(str(exc))
 

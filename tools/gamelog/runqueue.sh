@@ -31,15 +31,40 @@ set -o pipefail
 # over a finished archive — which nearly cost run45 its 508 MB after a
 # `pkill -f runqueue.sh` matched only the wrapper. Trap and take the whole
 # process group down.
+#
+# **And the trap must be able to run** (parked 937, the seventeenth pass).
+# zsh holds a trap until the foreground job ends, so with the capture a
+# foreground pipeline a TERM waited behind the thing it was sent to stop, and
+# a take dead in `waitwin.sh` held the runner until four pids were killed by
+# hand. The capture runs in the background below and the runner `wait`s on
+# it, which a signal interrupts. The cleanup then takes down what the capture
+# started — by descent first, then by name — and restores the INIs, which
+# `longtrace.sh` would have done last. Under `RUNQUEUE_CAPTURE` (the test's
+# stub) nothing is killed by name: a gate may run beside a real capture.
+descendants() {
+  local p
+  for p in $(pgrep -P "$1" 2>/dev/null); do
+    descendants "$p"
+    print -- "$p"
+  done
+}
 cleanup() {
   trap - EXIT INT TERM
-  pkill -P $$ 2>/dev/null
-  pkill -f "gamelog/longtrace.sh" 2>/dev/null
-  exit
+  local p
+  for p in $(descendants $$); do kill "$p" 2>/dev/null; done
+  if [ -z "$RUNQUEUE_CAPTURE" ]; then
+    pkill -f "gamelog/longtrace.sh" 2>/dev/null
+    pkill -f "gamelog/waitwin.sh" 2>/dev/null
+    pkill -f 'riseofnations_trace\.exe' 2>/dev/null
+    python3 "$W/tools/gamelog/window.py" restore
+  fi
+  exit 143
 }
 trap cleanup INT TERM
 
 W=$(cd "$(dirname "$0")/../.." && pwd)
+# The capture script, overridable for `tools/explore/test_runqueue.py` alone.
+CAPTURE=${RUNQUEUE_CAPTURE:-$W/tools/gamelog/longtrace.sh}
 SCEN=${1:--}
 if [ "$SCEN" = "-" ]; then SCEN="$W/tools/gamelog/captures.txt"; fi
 if [ $# -gt 0 ]; then shift; fi
@@ -133,7 +158,12 @@ flush() {
       summary+=("item $item run$run  DRY")
     else
       rc=0
-      env $pass zsh "$W/tools/gamelog/longtrace.sh" "$run" "$frames" "$tag" "$mapstyle" 2>&1 | tee -a "$LOG" || rc=$?
+      # In the background, under a subshell whose status is the pipeline's
+      # (`pipefail`, so a failed capture is not tee's 0), and waited on: a
+      # `wait` is what a TERM can interrupt (parked 937).
+      ( set -o pipefail
+        env $pass zsh "$CAPTURE" "$run" "$frames" "$tag" "$mapstyle" 2>&1 | tee -a "$LOG" ) &
+      wait $! || rc=$?
       if [ $rc -ne 0 ]; then
         summary+=("item $item run$run  CAPTURE FAILED (rc=$rc)")
       else

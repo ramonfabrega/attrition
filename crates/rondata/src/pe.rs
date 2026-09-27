@@ -18,6 +18,10 @@ pub struct Pe {
     image_base: u32,
     /// `(virtual address, virtual size, raw offset, raw size)` per section.
     sections: Vec<(u32, u32, u32, u32)>,
+    /// The base relocation directory, `(rva, size)`: page headers and
+    /// two-byte fixups, so four of its bytes that spell an address are a
+    /// coincidence and never a pointer (parked 967).
+    reloc: (u32, u32),
 }
 
 fn u16_at(b: &[u8], i: usize) -> Option<u16> {
@@ -50,10 +54,20 @@ impl Pe {
                 u32_at(&bytes, h + 16)?,
             ));
         }
+        // Data directory 5 of a PE32 optional header, whose directories
+        // start 96 bytes in; an image with fewer directories has none.
+        let reloc = match u32_at(&bytes, pe + 24 + 92) {
+            Some(n) if n > 5 => (
+                u32_at(&bytes, pe + 24 + 96 + 5 * 8)?,
+                u32_at(&bytes, pe + 24 + 96 + 5 * 8 + 4)?,
+            ),
+            _ => (0, 0),
+        };
         Some(Pe {
             bytes,
             image_base,
             sections,
+            reloc,
         })
     }
 
@@ -72,7 +86,8 @@ impl Pe {
     /// `call`, `jmp` or `jcc rel32` in the section that holds the target,
     /// found at every byte offset rather than by an instruction walk, and
     /// the target's address as four bytes at any offset of any section (a
-    /// vtable slot, a table, a `push imm32`). A site inside another
+    /// vtable slot, a table, a `push imm32`) **outside the base relocation
+    /// directory**, which holds no pointer. A site inside another
     /// instruction's bytes is counted, so an answer errs toward referenced;
     /// what it cannot see is a rel8 jump and an address computed at run
     /// time (`tools/trace/report.py … refs`, which also reads the rel8
@@ -89,8 +104,9 @@ impl Pe {
                 continue;
             };
             let va = self.image_base + sva;
+            let (reloc, reloc_end) = (self.reloc.0, self.reloc.0 + self.reloc.1);
             for (i, w) in body.windows(4).enumerate() {
-                if w == needle {
+                if w == needle && !(reloc..reloc_end).contains(&(sva + i as u32)) {
                     out.push(va + i as u32);
                 }
             }

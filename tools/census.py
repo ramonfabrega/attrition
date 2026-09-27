@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """census.py — the executable as the denominator.
 
-    census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [<rontrace.log> ...]
+    census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [--pin] [<rontrace.log> ...]
 
 Every function in the executable, grouped by the class Ghidra's export files
 it under, against two things this repo can measure: the functions `docs/`
@@ -94,6 +94,38 @@ def hooked_in(logs, index):
     return out
 
 
+PIN = os.path.join(HERE, "..", "crates", "rondata", "src", "blind.rs")
+ARCHIVE = os.environ.get(
+    "RON_GAMELOG_DIR",
+    os.path.expanduser("~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs"))
+
+
+def pinned_traces(pin=PIN):
+    """`rondata::blind::TRACES`, read from the source in its own order: the
+    traces the blind list is measured against are the ones the census reads
+    (parked 938, 939). A name inside a comment is not an entry."""
+    with open(pin) as f:
+        text = f.read()
+    body = text[text.index("pub const TRACES"):]
+    body = body[:body.index("\n];")]
+    out = []
+    for line in body.splitlines()[1:]:
+        m = re.match(r'\s*"([^"]+)",', line)
+        if m:
+            out.append(m.group(1))
+    return out
+
+
+def pinned_logs(archive=ARCHIVE):
+    """Each pinned trace joined to the archive directory — a path a trace,
+    whatever spaces the directory holds (parked 942)."""
+    logs = [os.path.join(archive, name) for name in pinned_traces()]
+    missing = [os.path.basename(p) for p in logs if not os.path.isfile(p)]
+    if missing:
+        sys.exit("pinned and not in %s: %s" % (archive, " ".join(missing)))
+    return logs
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("logs", nargs="*")
@@ -101,7 +133,11 @@ def main():
     ap.add_argument("--docs", default=os.path.join(HERE, "..", "docs"))
     ap.add_argument("--top", type=int, default=40)
     ap.add_argument("--never", action="store_true")
+    ap.add_argument("--pin", action="store_true",
+                    help="read the traces rondata::blind::TRACES pins, from $RON_GAMELOG_DIR")
     a = ap.parse_args()
+    if a.pin:
+        a.logs = pinned_logs() + a.logs
 
     total, cls_of, name_of = load_index(a.index)
     cited = cited_in(a.docs)

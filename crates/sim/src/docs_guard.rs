@@ -954,6 +954,14 @@ fn every_cited_address_names_its_function() {
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
+/// How many of `rondata::blind::RESIDUE`'s rows say "no reference in the
+/// executable" — the dead list's length, pinned so a new row is a decision.
+const UNREFERENCED: usize = 27;
+
+/// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
+/// not hold as unreferenced, each for a reason the table's own rows give.
+const EMULATOR_ONLY: &[u32] = &[];
+
 /// The documents that a dead-listed address may be cited from, pinned
 /// (parked 321, ruled by the sixth pass 2026-09-19). `docs/EMULATOR.md` §4
 /// lists the functions the executable never reaches — no call, no jump, no
@@ -962,28 +970,99 @@ fn every_cited_address_names_its_function() {
 /// rows here are the citations standing on the day the guard landed; each
 /// is owed a reconciliation (the parked file names them), a row is deleted
 /// when its citation goes, and a new one fails.
+///
+/// **Sixteen more on 2026-09-27** (parked 952, the seventeenth pass), the
+/// guard's first run against `rondata::blind::RESIDUE`: what the documents
+/// cite of the twelve functions item 940's scan added to §4's fifteen, and
+/// of `Caravan::process`, unreferenced once `.reloc` stopped counting
+/// (parked 967). Each is a claim about the live inlined copy or about
+/// nothing, and parked 970 owes the reading that says which.
 const DEAD_CITED: &[(&str, u32)] = &[
     ("AI.md", 0x006b46b0),
     ("ARMY.md", 0x006ec170),
+    ("CARAVAN.md", 0x0073e000),
+    ("CITIES.md", 0x0062d430),
+    ("COLLISION.md", 0x006b88b0),
     ("COMBAT.md", 0x00633390),
+    ("COMBAT.md", 0x006b88b0),
     ("COMBAT.md", 0x006ec170),
+    ("COMBAT.md", 0x0092fc50),
+    ("DANGER.md", 0x006b22e0),
+    ("ECONOMY.md", 0x006b88b0),
+    ("ECONOMY.md", 0x006d6e80),
     ("GROUPS.md", 0x00683730),
     ("GROUPS.md", 0x006ec170),
+    ("GROUPS.md", 0x007137f0),
+    ("GROUPS.md", 0x00713bb0),
+    ("INPUT.md", 0x005930c0),
     ("MOVEMENT.md", 0x00a469f0),
     ("ORDERS.md", 0x00622ce0),
     ("ORDERS.md", 0x00683730),
     ("ORDERS.md", 0x006ec170),
+    ("ORDERS.md", 0x0073e000),
     ("PATHFINDER.md", 0x00688310),
+    ("ROADS.md", 0x006b4230),
+    ("RUNS.md", 0x005930c0),
     ("RUNS.md", 0x00688310),
+    ("RUNS.md", 0x006d6740),
+    ("RUNS.md", 0x0092fc50),
     ("TRANSPORT.md", 0x0065cfd0),
     ("TRANSPORT.md", 0x006d5230),
 ];
 
-/// **A dead-listed function is cited only where pinned.** The dead list is
-/// read from `docs/EMULATOR.md` §4's own `name@00xxxxxx` citations, so the
-/// list and the guard cannot drift apart.
+/// The rows of `rondata::blind::RESIDUE` that say "no reference in the
+/// executable", read from the source: `sim` takes no dependency on the
+/// data crate, and the table is the list item 940's byte scan made
+/// (`Pe::references`, re-scanned against the install by that crate's own
+/// test). A row is `( 0x00aa_bbbb, "reason …", )` with the reason a string
+/// literal that may continue over lines.
+fn unreferenced_in_the_image() -> std::collections::BTreeMap<u32, String> {
+    let path = docs().join("../crates/rondata/src/blind.rs");
+    let text = std::fs::read_to_string(&path).expect("crates/rondata/src/blind.rs");
+    let start = text
+        .find("pub const RESIDUE")
+        .expect("rondata::blind::RESIDUE");
+    let end = text[start..].find("\n];").expect("RESIDUE's end") + start;
+    let mut dead = std::collections::BTreeMap::new();
+    for row in text[start..end].split("\n    (\n").skip(1) {
+        let addr = row
+            .trim_start()
+            .strip_prefix("0x")
+            .and_then(|r| r.split(',').next())
+            .and_then(|h| u32::from_str_radix(&h.replace('_', ""), 16).ok())
+            .expect("a RESIDUE row opens with its address");
+        let reason: String = row
+            .split('"')
+            .nth(1)
+            .expect("a RESIDUE row carries its reason")
+            .split("\\\n")
+            .map(str::trim_start)
+            .collect();
+        if reason.contains("no reference in the executable") {
+            let name = reason.split(':').next().unwrap_or("").to_string();
+            dead.insert(addr, name);
+        }
+    }
+    dead
+}
+
+/// **A dead-listed function is cited only where pinned.** ~~The dead list is
+/// read from `docs/EMULATOR.md` §4's own `name@00xxxxxx` citations~~ The
+/// dead list is `rondata::blind::RESIDUE`'s "no reference" rows since the
+/// seventeenth pass (parked 952): item 940's scan found twelve more than
+/// §4's fifteen, and a guard reading §4's prose let a document cite any of
+/// the twelve. §4's own enumeration is held to the table, so the two cannot
+/// drift apart.
 #[test]
 fn a_dead_listed_address_is_cited_only_where_pinned() {
+    let dead = unreferenced_in_the_image();
+    assert_eq!(
+        dead.len(),
+        UNREFERENCED,
+        "rondata::blind::RESIDUE has {} rows that say \"no reference in the executable\", \
+         not {UNREFERENCED}; re-pin, and pin what cites the new ones",
+        dead.len()
+    );
     // The enumeration runs from "are dead." to "which is data."; the
     // sentence after it names the *live* inlined copies, which are not dead.
     let emu = read("EMULATOR.md");
@@ -994,15 +1073,15 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
         .find("which is data")
         .expect("the dead list ends at `which is data`")
         + start;
-    let mut dead = std::collections::BTreeMap::new();
-    for (_, name, addr) in cites(&emu[start..end]) {
-        dead.insert(addr, name);
-    }
-    assert_eq!(
-        dead.len(),
-        15,
-        "docs/EMULATOR.md §4 enumerates {} dead-listed addresses, not fifteen; the list changed",
-        dead.len()
+    let strays: Vec<String> = cites(&emu[start..end])
+        .into_iter()
+        .filter(|(_, _, addr)| !dead.contains_key(addr) && !EMULATOR_ONLY.contains(addr))
+        .map(|(_, name, addr)| format!("{name}@{addr:08x}"))
+        .collect();
+    assert!(
+        strays.is_empty(),
+        "docs/EMULATOR.md §4 calls these dead and rondata::blind::RESIDUE has no \
+         \"no reference\" row for them: {strays:?}"
     );
     let mut found = Vec::new();
     for entry in std::fs::read_dir(docs()).expect("docs/") {
@@ -1010,7 +1089,14 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
         let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
             continue;
         };
-        if !name.ends_with(".md") || matches!(name, "JOURNAL.md" | "EMULATOR.md" | "PARKED.md") {
+        // The census ranks the blind list, the dead among it: its citations
+        // are the list itself, as §4's are.
+        if !name.ends_with(".md")
+            || matches!(
+                name,
+                "JOURNAL.md" | "EMULATOR.md" | "PARKED.md" | "CENSUS.md"
+            )
+        {
             continue;
         }
         let text = std::fs::read_to_string(&path).expect("read");
@@ -1024,8 +1110,9 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
     for (name, addr, line, cited) in &found {
         if !DEAD_CITED.iter().any(|(n, a)| n == name && a == addr) {
             new.push(format!(
-                "docs/{name}:{line}: `{cited}@{addr:08x}` is on docs/EMULATOR.md §4's dead list — \
-                 the executable never runs it; say what backs the claim, or pin the row in DEAD_CITED"
+                "docs/{name}:{line}: `{cited}@{addr:08x}` has no reference in the executable \
+                 (rondata::blind::RESIDUE) — the game never runs it; say what backs the claim, \
+                 or pin the row in DEAD_CITED"
             ));
         }
     }

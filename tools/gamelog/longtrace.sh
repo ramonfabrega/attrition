@@ -117,6 +117,15 @@ perm_probe "$T/permprobe$N.png" || exit 1
 source "$W/tools/gamelog/lobby.sh"
 lobby_init "$T/probe$N.png" || exit 1
 
+# --- the tracer. The lane runs whatever `build.sh` last wrote into the
+# install, from whichever branch last ran it; run314's first take ran a build
+# four days older than its stanza's verbs (parked 936). Before anything is
+# staged: say which build this is, and refuse an `@` stanza on one that is
+# not this tree's.
+issuer=""
+if print -r -- "$CMD_EXTRA" | grep -qE '^[0-9]+ @'; then issuer="--issuer"; fi
+python3 "$W/tools/trace/stamp.py" check "$G" $issuer || exit 1
+
 # --- stage. The map style lives in two files and neither is the lobby's
 # combo: `check.ini`'s `mapstyles=` and the profile's `<MULTI>` block.
 python3 "$W/tools/gamelog/mapstyle.py" "$MAPSTYLE"
@@ -162,7 +171,16 @@ source "$W/tools/gamelog/winelaunch.sh"
 ron_wine "$T/wine$N.log" "$G/$P" ${=CFG} -automation
 echo "launched pid $RON_WINE_PID"
 
-zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
+# A game that never shows its window has written nothing worth a name:
+# restore what the stage wrote and stop, archiving nothing (parked 937).
+# Left to `set -e`, waitwin's exit would leave here with the INIs staged.
+if ! zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"; then
+  echo "run$N: no window — nothing archived, the INIs restored"
+  pkill -f $P || true
+  python3 "$W/tools/gamelog/window.py" restore
+  if [ -n "$PROFILE" ]; then cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"; fi
+  exit 1
+fi
 sleep 4
 lobby_click solo 4 "$T/r$N-solo.png"
 lobby_click quick 8 "$T/r$N-quick.png"

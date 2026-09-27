@@ -266,6 +266,77 @@ class GateTests(unittest.TestCase):
             self.assertIn('boom', text)
             self.assertEqual(gate.summarize_tests(log, release_completed=False)['binaries'][0]['passed'], 1)
 
+    # The lane gate (parked 969, the seventeenth pass). Twenty of twenty
+    # worker gates in one tranche exited 1 by design — a worker re-pins a
+    # word and may not write the queue's line for it — so none reached
+    # `guard`, and four had a red of their own among the expected ones.
+    def lane_run(self, log, returncode=101):
+        calls=[]
+        def run(command, **kwargs):
+            calls.append((command, kwargs['env']))
+            if '--release' in command:
+                release_ran(kwargs, log=log)
+                raise subprocess.CalledProcessError(returncode, command)
+        return calls, run
+
+    def test_a_lane_gate_red_only_on_the_commander_s_lines_reaches_the_guard(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual([gate.step_name(c) for c, _ in calls],
+                             ['offline','clippy','fmt','survey','release','guard'])
+            self.assertEqual(calls[5][1].get('RON_LANE'), '1')
+            self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
+            self.assertIn('Gate steps: 6 of 6 ran', said)
+
+    def test_a_lane_gate_red_on_the_worker_s_own_test_stops_and_names_it(self):
+        own=RELEASE_LOG.replace(
+            'test diff::floors::the_gate_has_a_bounded_test_width ... ok',
+            'test diff::floors::the_gate_has_a_bounded_test_width ... FAILED')
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(own)
+            with patch('builtins.print') as printed, self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual(gate.step_name(calls[-1][0]), 'release')
+            self.assertIn("Lane verdict: red on the worker's own (1)", said)
+            self.assertIn('rondata::diff::floors::the_gate_has_a_bounded_test_width', said)
+
+    def test_a_lane_gate_never_forgives_a_kill(self):
+        # memcap's 137 with the commander's tests red before it died: the
+        # suite did not finish, so "only" is not something the log can say.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG, returncode=137)
+            with self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True)
+            self.assertEqual(gate.step_name(calls[-1][0]), 'release')
+
+    def test_the_commander_s_gate_forgives_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with self.assertRaises(subprocess.CalledProcessError):
+                gate.gate(path, report_dir=path/'report', run=run)
+            self.assertEqual(gate.step_name(calls[-1][0]), 'release')
+            self.assertNotIn('RON_LANE', calls[-1][1])
+
+    def test_the_commander_s_lines_are_tests_that_exist(self):
+        # A renamed test would leave the list forgiving nothing, in silence.
+        root=Path(__file__).resolve().parents[2]
+        source='\n'.join(p.read_text() for p in [
+            root/'crates/rondata/src/diff/floors.rs',
+            root/'crates/rondata/src/diff/endpoint.rs',
+            root/'crates/sim/src/docs_guard.rs'])
+        for name in gate.COMMANDERS_LINES:
+            self.assertIn(f'fn {name}()', source, name)
+        guard=(root/'tools/guard.sh').read_text()
+        self.assertIn('RON_LANE', guard)
+
 
 if __name__ == '__main__':
     unittest.main()

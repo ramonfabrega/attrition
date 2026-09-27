@@ -8131,8 +8131,10 @@ cmd: 2000 die 6,1
 check: python3 tools/gamelog/cmdsran.py rontrace-run340.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 2400:1
 # No golden twin, so `issuesmatch.py` has nothing to compare against (961):
 # what it asserts that still applies is that both `@` lines issued, and
-# refused nothing — `INFO 17`'s second word is line | refusal << 16.
-check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run340.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+# refused nothing — `INFO 17`'s second word is line | refusal << 16. The
+# inline check item 959 wrote here is the tool's `--none-refused` since the
+# seventeenth pass (966), re-run on the archived trace when it replaced it.
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run340.log 2
 # The six the staging reads as reachable, each named; the other three of the
 # row are named in the census as unreachable by this staging.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run340.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan)$" | tee /dev/stderr | awk 'END{exit !(NR==6)}'
@@ -8186,7 +8188,7 @@ cmd: 2000 die 6,1
 check: python3 tools/gamelog/cmdsran.py rontrace-run341.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 890:1 2400:1
 # No golden twin, so `issuesmatch.py` has nothing to compare against (961):
 # both `@` lines issued, and refused nothing.
-check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run341.log 2
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run341.log" functions 2>/dev/null | grep -E " (CityData::lumber_level|LeaderData::resource_cap_add|Build::replace_gather|Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==7)}'
 # ==== TAKEN 2026-09-27, one take, **WHOLE; FIVE OF SEVEN ENTERED** ====
 #
@@ -8235,7 +8237,7 @@ cmd: 2000 die 6,1
 check: python3 tools/gamelog/cmdsran.py rontrace-run342.log 0:1 37:1 600:1 604:1 606:1 610:1 612:1 700:1 880:1 890:1 2400:1
 # No golden twin, so `issuesmatch.py` has nothing to compare against (961):
 # both `@` lines issued, and refused nothing.
-check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run342.log 2
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" functions 2>/dev/null | grep -E " (Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
 # ==== TAKEN 2026-09-27, one take, **WHOLE; NEW_DANGER NOT ENTERED** ====
 #

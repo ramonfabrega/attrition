@@ -36,6 +36,9 @@ $RLLD -flavor link /dll /machine:x86 /entry:DllMain /nodefaultlib /subsystem:win
     /safeseh:no /implib:$OUT/rontrace.lib /out:$INSTALL/rontrace.dll $OUT/tracer.obj $OUT/kernel32.lib
 $LLVM/llvm-readobj --file-headers $INSTALL/rontrace.dll | grep -E "Machine|AddressOfEntryPoint"
 $LLVM/llvm-readobj --coff-exports $INSTALL/rontrace.dll | grep -E "Name:"
+# What this build is, beside the build: the queue lane reads it before every
+# capture, so a log says which tracer ran (parked 936).
+python3 $HERE/stamp.py write $INSTALL ${TRACER_DEFS}
 
 # The coverage table needs the executable's own bytes (the displaced
 # prologues) and capstone, which `uv run` supplies from the script's header.
