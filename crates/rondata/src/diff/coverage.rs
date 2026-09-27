@@ -48,16 +48,17 @@ use super::testkit::{
     EAST_INDIES_GUARDWORD_BLOCK, EAST_INDIES_IDLE_BLOCK, EAST_INDIES_LEADERWORD_BLOCK,
     EAST_INDIES_MAKE_BLOCK, EAST_INDIES_MARKETWORD_BLOCK, EAST_INDIES_MERCS_BLOCK,
     EAST_INDIES_SLOT_BLOCK, EAST_INDIES_TURNWORD_BLOCK, EAST_INDIES_USEMARKET_BLOCK,
-    EAST_INDIES_WALKWORD_BLOCK, EAST_INDIES_WRAP_BLOCK, EAST_INDIES_WRAPWORD_BLOCK,
-    GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL, GOLDEN_WORD_CHAPTER_SIX,
-    GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO, GREAT_LAKES_ATTACKED_BLOCK,
-    GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK, GREAT_LAKES_COPY_BLOCK,
-    GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK, GREAT_LAKES_FOREST_CELL_BLOCK,
-    GREAT_LAKES_GIVEUP_BLOCK, GREAT_LAKES_MAKE_BLOCK, GREAT_LAKES_MIRROR_BLOCK,
-    GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_PYRAMIDS_BLOCK, GREAT_LAKES_RECRUIT_BLOCK,
-    GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_RETURN_BLOCK, GREAT_LAKES_ROAD_BLOCK,
-    GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_STAND_BLOCK, GREAT_LAKES_UPGRADE_BLOCK,
-    GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK, WIDENING_CHAPTER_TWO,
+    EAST_INDIES_WALKWORD_BLOCK, EAST_INDIES_WONDERPRICE_BLOCK, EAST_INDIES_WRAP_BLOCK,
+    EAST_INDIES_WRAPWORD_BLOCK, GOLDEN_WORD_CHAPTER_SEVEN_B, GOLDEN_WORD_CHAPTER_SEVEN_B_CONTROL,
+    GOLDEN_WORD_CHAPTER_SIX, GOLDEN_WORD_CHAPTER_THREE_RESTAGE, GOLDEN_WORD_CHAPTER_TWO,
+    GREAT_LAKES_ATTACKED_BLOCK, GREAT_LAKES_BIRTH_BLOCK, GREAT_LAKES_CIVIC_BLOCK,
+    GREAT_LAKES_COPY_BLOCK, GREAT_LAKES_DETOUR_BLOCK, GREAT_LAKES_ESCORT_BLOCK,
+    GREAT_LAKES_FOREST_CELL_BLOCK, GREAT_LAKES_GIVEUP_BLOCK, GREAT_LAKES_MAKE_BLOCK,
+    GREAT_LAKES_MIRROR_BLOCK, GREAT_LAKES_PATRIOT_BLOCK, GREAT_LAKES_PYRAMIDS_BLOCK,
+    GREAT_LAKES_RECRUIT_BLOCK, GREAT_LAKES_RETRY_BLOCK, GREAT_LAKES_RETURN_BLOCK,
+    GREAT_LAKES_ROAD_BLOCK, GREAT_LAKES_SQUAD_BLOCK, GREAT_LAKES_STAND_BLOCK,
+    GREAT_LAKES_UPGRADE_BLOCK, GREAT_LAKES_VALS_BLOCK, GREAT_LAKES_WONDER_BLOCK,
+    WIDENING_CHAPTER_TWO,
 };
 
 /// Record paths read by a parser of their own, outside `Block` — the
@@ -578,6 +579,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r269 = crate::testenv::dump("gamelog-run269-eastindies-turnword.txt");
     let r277 = crate::testenv::dump("gamelog-run277-eastindies-blockedwalk.txt");
     let r289 = crate::testenv::dump("gamelog-run289-eastindies-marketword.txt");
+    let r299 = crate::testenv::dump("gamelog-run299-eastindies-wonderprice.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -933,6 +935,14 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     if let Some(p) = &r289 {
         let n = drive_capture(p, emw - 2, emw + 2, &mut paths);
         assert_eq!(n, 5, "run289 carries the word's five blocks");
+        frames += n;
+    }
+    // Item 890 moved the word to 23182, past run289's end, and run299 is
+    // run289's line over [23177, 23434), taken to widen it.
+    let ewp = EAST_INDIES_WONDERPRICE_BLOCK;
+    if let Some(p) = &r299 {
+        let n = drive_capture(p, ewp - 2, ewp + 2, &mut paths);
+        assert_eq!(n, 5, "run299 carries the word's five blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

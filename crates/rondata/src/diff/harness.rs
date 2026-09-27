@@ -16771,6 +16771,102 @@ pub(crate) mod tests {
         );
     }
 
+    /// **run299 — East Indies' word 23182, widened whole, both directions**
+    /// (item 890). run289's line over [`WIDENING_EAST_INDIES_WONDERPRICE`]:
+    /// six blocks up to the word's block 23183, the block, and 250 past it.
+    /// run289 ends on 21045, so 21046..23176 is compared by no dump; the
+    /// same game is the draw stream's word against run54.
+    /// [`widen_east_indies`] with gaia's animals.
+    #[test]
+    fn run299_s_word_frame_is_widened_whole() {
+        const FIRST: i64 = WIDENING_EAST_INDIES_WONDERPRICE.0;
+        const TAIL: i64 = WIDENING_EAST_INDIES_WONDERPRICE.1;
+        const WORD_BLOCK: i64 = EAST_INDIES_WONDERPRICE_BLOCK;
+        let Some(Widened {
+            firsts,
+            missing,
+            blocks,
+            leader_rows,
+            standing,
+            ..
+        }) = widen_east_indies(
+            "run299",
+            "gamelog-run299-eastindies-wonderprice.txt",
+            WIDENING_EAST_INDIES_WONDERPRICE,
+            &[FIRST, WORD_BLOCK],
+            true,
+        )
+        else {
+            return;
+        };
+        assert_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
+        assert_eq!(
+            missing,
+            std::collections::BTreeSet::new(),
+            "no key unprinted"
+        );
+        assert_eq!(
+            leader_rows,
+            (TAIL - FIRST + 1) as usize * 2 * (1_056 + 1_531),
+            "257 blocks x 2 leaders x (1,056 + 1,531) keys"
+        );
+        let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
+            format!("{f} {w}/{o} {what}: {row}")
+        };
+        let rows: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (FIRST + 1..=WORD_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        // **What parts under the word, and the escrow the item closed.**
+        // On block 23182 who=1's head (`MAKE[0]`) and its category slot
+        // (`MAKE[4]`) hold the Farm (417) in Norwich at 129,600, the city
+        // rows being parked 325's spelling (this crate's global index 2,
+        // the leader's slot 1). Before item 890's second fix both read
+        // `escrow 0` here against 1 there: `create_buildings`' gather arm
+        // escrows on every exit of its head test (listing
+        // `006c3cbb`..`006c3db0`), and this crate did only on a pass. Now
+        // 1 on both. On the word's frame both sides place the head's Farm
+        // (`1/2031`) and walk slot 4's through the same spiral; at its
+        // best site's 2x2 jitter (corner (184, 196)) this crate finds four
+        // clear sub-positions and the original three, so one draw shifts,
+        // the expiry that follows clears slot 4 there and not here, and
+        // `1/79`'s figure draws one along. Both place `1/2032` at (35904,
+        // 38016). **Which sub-position the original blocks is not
+        // established** (`docs/AI.md` §77.6).
+        assert_eq!(
+            rows,
+            [
+                "23182 1/-1 leader:MAKE[0].city: ours 2 theirs 1",
+                "23182 1/-1 leader:MAKE[4].city: ours 2 theirs 1",
+                "23183 1/-1 leader:MAKE[4].t: ours 417 theirs -1",
+                "23183 1/79 g.cur_anim[0]: ours 3 theirs 1",
+                "23183 1/79 g.end_time[0]: ours 42 theirs 58",
+            ],
+            "the keys first parting under the word"
+        );
+        let escrow = standing
+            .get(&WORD_BLOCK)
+            .map(|m| {
+                m.keys()
+                    .filter(|(w, _, k)| *w == 1 && k.ends_with(".escrow"))
+                    .count()
+            })
+            .unwrap_or(0);
+        assert_eq!(escrow, 0, "the make list's escrow agrees (item 890)");
+        // **The floor**: every key standing on the first block (the gap's,
+        // 21046..23176, which no dump compares), the keys first parting
+        // under the word, the rows standing on the word's block, and every
+        // key in all.
+        let on_word = standing.get(&WORD_BLOCK).map_or(0, |m| m.len());
+        let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
+        assert_eq!(
+            (first, rows.len(), on_word, firsts.len()),
+            (283, 5, 288, 1_045),
+            "the floor"
+        );
+    }
+
     /// **The squad push on tick 20000 reads the record its pool slot last
     /// held** (item 865, `docs/GROUPS.md` §28). The first killer of
     /// East Indies' word 20007 is `1/65` and `1/66` in each other's slots

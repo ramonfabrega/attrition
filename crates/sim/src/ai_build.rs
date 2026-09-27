@@ -935,11 +935,8 @@ impl Sim {
                     && self
                         .build_record(ht)
                         .is_some_and(|r| self.build_types[r].has(flags::GATHER));
-                if head_gather {
-                    escrow = 1;
-                } else {
+                if !head_gather {
                     let mine = gather_good(ident);
-                    let mut took = false;
                     for g in 0..RESOURCES {
                         let avail = self
                             .good_type(g)
@@ -947,16 +944,20 @@ impl Sim {
                         let cost = self.type_price(who, ht).map_or(0, |c| c[g]);
                         if mine == Some(g) && avail && self.ledgers[w].bucket[g] < cost {
                             v = v.wrapping_mul(2).min(head.val);
-                            escrow = 1;
-                            took = true;
                             break;
                         }
                     }
-                    if !took {
-                        escrow = 1;
-                    }
                 }
             }
+            // **Every exit of the head test escrows** (item 890, listing
+            // `006c3cbb`..`006c3db0`): the `jge`, the `js` and the
+            // `can_pay` refusal jump to `006c3da8`, the flag test and the
+            // goods walk land there or at `006c3d8a`, and each writes 1 to
+            // the offer's escrow (`-0xc(%ebp)`, pushed to `make_me` at
+            // `006c3fa8`). A gather offer is always escrowed: East Indies'
+            // Farm on 23181 was the head, the test failed on its first
+            // compare, and the original listed it at `escrow 1`.
+            escrow = 1;
         }
         Some(Listing {
             val: v,
@@ -1868,6 +1869,29 @@ mod tests {
         sim.ai[0].city_ai[c].ter = [5; RESOURCES];
         let g = value(&mut sim, 0, c, t.farm).expect("still listed");
         assert_eq!(g.val, f.val);
+    }
+
+    /// **A gather offer is always escrowed** (item 890, listing
+    /// `006c3cbb`..`006c3db0`): every exit of the head test writes 1 to the
+    /// offer's escrow — the head out-valued or empty, the head affordable,
+    /// the flag, the goods walk. East Indies' 23181 listed a Farm as the
+    /// new head at `escrow 1` in the original and 0 here, because this
+    /// crate escrowed only when the test passed. The worst good's rate is
+    /// raised first, so `gather_value`'s own escrow arm stays shut.
+    #[test]
+    fn a_gather_offer_is_escrowed_on_every_exit_of_the_head_test() {
+        let (mut sim, t) = sim();
+        let c = city(&mut sim, &t, 0, 40, 40);
+        sim.ai[0].rate = [1_000_000; RESOURCES];
+        sim.ai[0].make_list.clear();
+        let f = value(&mut sim, 0, c, t.farm).expect("a farm is listed");
+        assert_eq!(f.escrow, 1, "an empty head: the first compare fails");
+        let mut head = MakeObject::EMPTY;
+        head.t = sim.build_types[t.barracks].tree.expect("in the tree") as i32;
+        head.val = i32::MAX;
+        sim.ai[0].make_list.list[0] = head;
+        let g = value(&mut sim, 0, c, t.farm).expect("still listed");
+        assert_eq!(g.escrow, 1, "a richer, affordable head");
     }
 
     #[test]
