@@ -8362,6 +8362,49 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # passes there for an arrow is not established, and a hit on unowned or
 # enemy ground is untried (`docs/CENSUS.md`, "item 959").
 
+# run353 (item 965): the gate is the kill, not the hit. `take_damage`
+# reaches 00652e97..00652f41 only through `jge 0x652ab5` at 006529eb,
+# `damage >= share`: a hit the caravan survives returns before it. run342's
+# Tower hit the caravan (damage_o 2009 on 1150) but the kill on 1209 was
+# hoplite 0/7's, a Unit on London's ground, and both arms fail for that. Under
+# the emulator on Great Lakes' packet (logger frame 11186, caravan 1/23 on a
+# linked route), a Build's killing blow on the owner's ground enters
+# `new_danger` and `restart_trade_route`; a Unit's does not; a hit that does
+# not kill enters neither (`docs/CARAVAN.md` §10.4). What the emulator could
+# not answer is whether the game's own arrow path delivers that blow and
+# enters both functions in a trace. The blind list counts only a trace's
+# `HIT` records, so a packet's entry takes nothing off `NEVER`.
+
+run: 353
+tag: caravan-tower-kill
+item: 965
+why: the blind list's row 6, its last gate — four player-0 Towers and no Unit attacker, so the caravan's killing blow is a Build's arrow on its owner's ground → Caravans::new_danger → Caravan::restart_trade_route
+# run342's staging with the row's already-entered lines dropped (the Lumber
+# Mill, Angkor Wat, the gather point, `die 5,0`), and with them the hoplite
+# and its `@attack`, so no Unit can land the kill. Three Towers join run342's
+# (216,104): (226,100) and (226,106), five tiles east of the road's x
+# 219–223 and about 12 tiles from both cities, and (216,96). Four Towers at
+# 12 a shot kill 90 hits well inside one pass. `explore all` on 890 lets the
+# target pass `is_seen`. No `@` line, so run318's DLL is served unstamped
+# (sha256 b451aeb6…3dca). `cover=1`.
+frames: 1600
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,LEADERS=2,DEATHS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 add small_city who=1 216,112
+cmd: 610 add caravan who=1 228,92
+cmd: 880 add tower who=0 216,104
+cmd: 882 add tower who=0 226,100
+cmd: 884 add tower who=0 226,106
+cmd: 886 add tower who=0 216,96
+cmd: 890 explore all
+check: python3 tools/gamelog/cmdsran.py rontrace-run353.log 0:1 37:1 600:1 610:1 880:1 882:1 884:1 886:1 890:1 1600:1
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run353.log" functions 2>/dev/null | grep -E " (Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+
 run: 348
 tag: himalayas-longtrace
 item: 972
