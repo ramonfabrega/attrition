@@ -7353,3 +7353,59 @@ check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*\|BEGIN GUY" "$HOME/ron-data/AppData
 # - **R3 holds, narrowed**: slot 4's Farm jitter at corner (184, 196)
 #   finds four clear sub-positions here and three there.
 # - **R4 is killed**: only 851's standing `leftover[2:wealth]` parts.
+
+run: 314
+tag: greatlakes-cover-ch23
+item: 923
+why: the blind list's first targeted capture — chapter twenty-three's script whole under `cover=1` on the queue lane
+# **The golden record's chapter twenty-three, re-run with coverage** (item
+# 923, `docs/CENSUS.md` "The blind list, ranked"). Every golden chapter since
+# ten ran at `cover=0`, because `cover=1` hangs the click-free lane before
+# frame 0 (parked 697, run185), so the census's entered column has not seen
+# a single issuer. This lane is the one `cover=1` works on (run906, run202):
+# no `callwin` proxies, no autostart build. Chapter twenty-three is chosen
+# because its script is chapter seventeen's flight line whole, chapter
+# twenty-two's launch and the repeat toggle — the air family and the
+# `buildmask` family, the largest share of never-entered cited functions
+# one existing script reaches.
+#
+# **The same game as the golden lane's**: the golden record is the
+# profile's lobby at map 14 and seed 12345 with no `-config` (run101-105),
+# so `cfg: -` here, and the checks below hold it frame for frame against
+# `~/ron-golden/ch23`'s own `cover=0` trace (run281).
+#
+# The lines are `~/ron-golden/ch23/map-14/rontrace.cmd` exactly, in order.
+# **`ffwd: -` and the fast-forward as a `cmd:` line**: `longtrace.sh`
+# writes its `FFWD` line *before* the stanza's lines, and the channel clamps
+# a frame below its predecessor, so a `37 !ffwd` there would move the
+# chapter's `0 !ai off` to 37.
+frames: 1840
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+# The `[End Frame]` detail that prints the orders (`UNITS=3`), the Airbase
+# and its masks (`BUILDS=7`) and the rounds (`AMMO=5`) — enough for each
+# order class's `log_data` to be entered — and nothing else; the detail
+# costs wall clock and no draw.
+end: MISC,UNITS=3,BUILDS=7,AMMO=5
+cmd: 0 !ai off
+cmd: 37 !ffwd 3
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1440 @buildmask 0 128 2007
+# Every cheat line ran, on its frame (the `@` lines carry no `INFO cmd`).
+check: python3 tools/gamelog/cmdsran.py rontrace-run314.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 1840:1
+# The same game as run281, word for word over the whole capture.
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch23/map-14/rontrace.log" rontrace-run314.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1840)}'
+# And the coverage landed: the air family's command entered.
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run314.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_buildmask$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
