@@ -4721,6 +4721,11 @@ pub(crate) const WIDENING_EAST_INDIES_WONDERPRICE: (i64, i64) = (23_177, 23_433)
 /// `Leader::make_stuff+0x63d`, writes block 23183. The coverage driver
 /// reads run299 around it.
 pub(crate) const EAST_INDIES_WONDERPRICE_BLOCK: i64 = 23_183;
+/// The word 23420's block on run299 (item 904): its frame, where ours
+/// spends `Unit::do_guard+0x8fb` and the original
+/// `Farms::add_animals+0x92`, writes block 23421. The coverage driver
+/// reads run299 around it.
+pub(crate) const EAST_INDIES_ADDANIMALS_BLOCK: i64 = 23_421;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,

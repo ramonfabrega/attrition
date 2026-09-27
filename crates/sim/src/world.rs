@@ -1122,6 +1122,36 @@ impl World {
         }
     }
 
+    /// `WorldData::get_land@006b4c70` with its third argument 1 — the
+    /// **tile** form of [`World::land_class`], which
+    /// `BuildTypeData::blocked_tcoord`'s flat-gather arm reads (`docs/CITIES.md`
+    /// §2.5). It is not the cell form: a coast cell answers Ocean (2) under an
+    /// ocean tile and plain Land (0) under any other, a mountain is the
+    /// tile's own object rather than the cell's flag, and oil is tested
+    /// before rock, so a cell carrying both reads Oil (7).
+    pub fn land_class_tile(&self, t: Pos) -> i32 {
+        let d = self.cell_data(Self::cell_of_tile(t));
+        let f = d.flags;
+        let mask = self.tile_mask(t);
+        if f & cell::COAST != 0 {
+            if mask & tile::SURFACE == tile::SURFACE_OCEAN {
+                2
+            } else {
+                0
+            }
+        } else if f & cell::FOREST != 0 {
+            4
+        } else if mask & tile::OBJECT == tile::OBJECT_MOUNTAIN {
+            5
+        } else if f & cell::OIL != 0 {
+            7
+        } else if f & cell::ROCK != 0 {
+            6
+        } else {
+            i32::from(d.land)
+        }
+    }
+
     /// `World::gather_at@006b07f0` — what a citizen would take off this
     /// cell, per good, and the only writer of `CityData::ter`.
     ///

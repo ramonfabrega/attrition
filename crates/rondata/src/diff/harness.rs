@@ -16916,6 +16916,76 @@ pub(crate) mod tests {
         );
     }
 
+    #[test]
+    fn scratch_904_tile_probe() {
+        let Some(inst) = install() else { return };
+        let (Some(path), Some(sib), Some(tr)) = (
+            dump("gamelog-run54-islands-24k-trace.txt"),
+            dump("gamelog-run38-islands-start.txt"),
+            trace("rontrace-run54.log"),
+        ) else {
+            return;
+        };
+        let loaded = crate::load::load(&inst).unwrap();
+        let text = crate::capture::read(&path);
+        let sib_text = crate::capture::read(&sib);
+        let log = Log::parse(&text);
+        let sib_log = Log::parse(&sib_text);
+        let sib_init = sib_log.initial().unwrap();
+        let mut init = log.initial().unwrap();
+        borrow_from_siblings(&mut init, &[&sib_init]);
+        borrow_pasture(&mut init, &tr);
+        let mut built = build_sim(&loaded, &init, Tuning::RON);
+        let dumpit = |built: &Built, tag: &str| {
+            let sim = &built.sim;
+            let farm = sim
+                .buildings
+                .iter()
+                .find(|b| b.alive && b.owner == 1 && b.index == 2031)
+                .and_then(|b| b.ty)
+                .or_else(|| {
+                    sim.buildings
+                        .iter()
+                        .find(|b| b.alive && b.owner == 1 && b.ty.is_some_and(|t| sim.build_types[t].ident == sim::build::Ident::Farm))
+                        .and_then(|b| b.ty)
+                })
+                .unwrap();
+            eprintln!("{tag}: farm ty {farm}");
+            for y in 195..=201 {
+                let mut line = String::new();
+                for x in 183..=189 {
+                    let t = sim::Pos::new(x, y);
+                    let m = sim.world.tile_mask(t);
+                    let c = sim::World::cell_of_tile(t);
+                    let o = sim.world.owner(c);
+                    let v = sim.blocked_tcoord(Some(1), farm, t, None);
+                    line += &format!(" ({x},{y}) m{m:04x} {o:?} {v:?} |");
+                }
+                eprintln!("{line}");
+            }
+            for cy in 48..=51 {
+                for cx in 45..=48 {
+                    let d = sim.world.cell_data(sim::Cell::new(cx, cy));
+                    eprintln!("  cell ({cx},{cy}) land {} flags {:#06x}", d.land, d.flags);
+                }
+            }
+            for (dx, dy) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
+                let c = sim::Pos::new(35712 + dx * 192, 38016 + dy * 192);
+                eprintln!("  cand {dx},{dy} {c:?}: {:?}", sim.blocked_site(Some(1), farm, c, None));
+            }
+            for b in sim.buildings.iter().filter(|b| b.alive && b.owner == 1 && b.index >= 2028) {
+                eprintln!("  bld 1/{} ty {:?} pos {:?} started {}", b.index, b.ty, b.pos, b.started);
+            }
+        };
+        for f in 0..=23182 {
+            if f == 23182 {
+                dumpit(&built, "before tick 23182");
+            }
+            built.tick();
+        }
+        dumpit(&built, "after tick 23182");
+    }
+
     /// **run299 — East Indies' word 23182, widened whole, both directions**
     /// (item 890). run289's line over [`WIDENING_EAST_INDIES_WONDERPRICE`]:
     /// six blocks up to the word's block 23183, the block, and 250 past it.
@@ -16927,6 +16997,7 @@ pub(crate) mod tests {
         const FIRST: i64 = WIDENING_EAST_INDIES_WONDERPRICE.0;
         const TAIL: i64 = WIDENING_EAST_INDIES_WONDERPRICE.1;
         const WORD_BLOCK: i64 = EAST_INDIES_WONDERPRICE_BLOCK;
+        const NEW_BLOCK: i64 = EAST_INDIES_ADDANIMALS_BLOCK;
         let Some(Widened {
             firsts,
             missing,
@@ -16938,7 +17009,7 @@ pub(crate) mod tests {
             "run299",
             "gamelog-run299-eastindies-wonderprice.txt",
             WIDENING_EAST_INDIES_WONDERPRICE,
-            &[FIRST, WORD_BLOCK],
+            &[FIRST, WORD_BLOCK, NEW_BLOCK],
             true,
         )
         else {
@@ -16984,12 +17055,26 @@ pub(crate) mod tests {
             [
                 "23182 1/-1 leader:MAKE[0].city: ours 2 theirs 1",
                 "23182 1/-1 leader:MAKE[4].city: ours 2 theirs 1",
-                "23183 1/-1 leader:MAKE[4].t: ours 417 theirs -1",
-                "23183 1/79 g.cur_anim[0]: ours 3 theirs 1",
-                "23183 1/79 g.end_time[0]: ours 42 theirs 58",
             ],
             "the keys first parting under the word"
         );
+        let runway: Vec<String> = firsts
+            .iter()
+            .filter(|(_, (f, _))| (WORD_BLOCK + 1..=NEW_BLOCK).contains(f))
+            .map(row)
+            .collect();
+        let on_new: Vec<String> = standing
+            .get(&NEW_BLOCK)
+            .map(|m| {
+                m.iter()
+                    .filter(|((w, _, _), _)| *w == 1)
+                    .map(|((w, o, k), v)| format!("{w}/{o} {k}: {v}"))
+                    .collect()
+            })
+            .unwrap_or_default();
+        eprintln!("RUNWAY {runway:#?}");
+        eprintln!("ON_NEW {} {on_new:#?}", standing.get(&NEW_BLOCK).map_or(0, |m| m.len()));
+        assert_eq!(runway, Vec::<String>::new(), "the runway to the new word");
         let escrow = standing
             .get(&WORD_BLOCK)
             .map(|m| {
