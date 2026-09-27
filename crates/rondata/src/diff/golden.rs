@@ -8872,39 +8872,67 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch25: what parts in the pool moved");
 }
 
-// **What parts under the word** on run292, chapter twenty-five: the
-// first walk, with the four `@unqueue` lines skipped (`crate::golden`'s
-// SEAM). Chapter thirteen's births' `form` (611, 615, `Unit::init@
-// 00612100`'s, parked 646). **702**, arm a's block: `0/2007`'s `queued`
-// (ours 3, theirs 2) and who=0's food and timber (157 and 121 here, 210
-// and 162 there) — one mechanism, the cancel, whose writers on the block
-// are `unqueue`'s count and `unpay_cost`'s refund (the gather income is
-// the other writer of a bucket, and it agrees on every block to 701).
-// **842**, arm c's: `build:infinite_queue` (ours 1, theirs 0), the
-// cancel's clear. **856**, the three Hoplites this crate trains from the
-// uncancelled head and the original never makes. 762 does not part as a
-// row of its own: `queued` and the buckets have already parted on 702.
+// **What parts under the word** on run292, chapter twenty-five. ~~The
+// first walk, with the four `@unqueue` lines skipped: 702's `queued` and
+// food and timber, 842's `build:infinite_queue`, and on 856 the Hoplites
+// this crate trained from the uncancelled head.~~ **The cancel entered**
+// (item 884, [`crate::input::unqueue`] → `Sim::action_unqueue`): every
+// arm's block agrees — 702, 762, 842, 965 and 1002 — and the two trained
+// squads are born on 965 and 1216 on both sides. What stands is
+// **`Unit::init@00612100`'s** (parked 646), chapter twenty-four's shape
+// exactly: `form` 0 on every non-citizen it makes (611, 615, and each
+// squad), ours −1; and the followers' `orders_x/y`, the tile-centred
+// point (2712, 14232) there against the Barracks' (2688, 14208) here.
+// **Readers**: `form` by the next `Group::action_move_near`/`action_form`
+// layout (none in run292), `orders_x` by `Unit::check_target_path@
+// 005e22d0` (nothing targets these squads).
 const WANT_CH25: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
     "615 0/8 form",
     "615 0/9 form",
-    "702 0/-1 leader:bucket[0:food]",
-    "702 0/-1 leader:bucket[1:timber]",
-    "702 0/2007 queue:queued",
-    "842 0/2007 build:infinite_queue",
-    "856 0/10 extra",
-    "856 0/11 extra",
-    "856 0/12 extra",
+    "965 0/10 form",
+    "965 0/11 form",
+    "965 0/11 orders_x",
+    "965 0/11 orders_y",
+    "965 0/12 form",
+    "965 0/12 orders_x",
+    "965 0/12 orders_y",
+    "1216 0/13 form",
+    "1216 0/14 form",
+    "1216 0/14 orders_x",
+    "1216 0/14 orders_y",
+    "1216 0/15 form",
+    "1216 0/15 orders_x",
+    "1216 0/15 orders_y",
 ];
 
-// **What parts in the pool** on run292, the first walk: the building
-// group's first seat, `622 slot 1`'s `ox`/`oy`, ours −1 and theirs 0 —
-// `push_group`'s record `o`, chapter twenty-four's standing row (parked
-// 887, the pool lane's); and the Hoplites this crate trains, held alone
-// in slot 0 on 856. No slot parts on 702: a cancel seats nothing on
-// either side (falsifier 5).
-const WANT_CH25_POOL: &[&str] = &["622 slot 1 ox", "622 slot 1 oy", "856 slot 0 held"];
+// **What parts in the pool** on run292. ~~The first walk: 622's record
+// `o` and the squad this crate trained alone on 856.~~ **The cancel
+// entered**: every slot's list, `num` and `stamp` agree on every block,
+// and no cancel seats or re-stamps a slot on either side (falsifier 5).
+// What stands: each slot's `ox`/`oy` on its first seat (622, 965, 1216),
+// ours −1 and theirs 0 — `push_group`'s record `o`, chapter twenty-four's
+// standing row (parked 887, the pool lane's; its reader is a layout's `o`,
+// and nothing is laid out). And **982 slot 0's `speed`/`new_speed`**, ours
+// 0 and theirs 26: the 981 `@queueup`'s building-group push runs
+// `Groups::get_open_slot@006fa460`, which calls vslot 8 —
+// `Group::get_num_cap@007145c0` — on each slot whose stamp is not newer
+// than the best so far, and `get_num_cap` `normalize`s a group of fewer
+// than four: the Bowmen squad (num 3, stamp 964) takes its leader's 26.
+// This crate's `open_slot` has no such side effect (the pool lane's code,
+// not built here). Its reader is `UnitData::get_speed@00608720`'s group
+// cap on a moving member, and the squad does not move in run292.
+const WANT_CH25_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "965 slot 0 ox",
+    "965 slot 0 oy",
+    "982 slot 0 new_speed",
+    "982 slot 0 speed",
+    "1216 slot 2 ox",
+    "1216 slot 2 oy",
+];
 
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {

@@ -1235,10 +1235,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     }
     // **Chapter twenty-five's word, on run292** (item 884): the first
     // cancels on disk. 702, arm a's refund and `queued`; 842, arm c's
-    // clear of the bit; 855, the word, the uncancelled Hoplites' finish.
+    // clear of the bit; 855, the first walk's word, the uncancelled
+    // Hoplites' finish. Closed at 1466: 762, arm b; 965, the Bowmen's
+    // finish with the bit gone; 982, the pool's `get_num_cap`; 1002, arm
+    // d; 1216, the last Hoplites; 1463, the closed word's last blocks.
     if let Some(p) = &ch25 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_FIVE;
-        for w in [702, 842, 855] {
+        for w in [702, 762, 842, 855, 965, 982, 1002, 1216, 1463] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter twenty-five carries the window's five blocks");
             frames += n;

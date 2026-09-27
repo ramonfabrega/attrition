@@ -830,14 +830,12 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             buildings,
         }) => crate::input::group_queue_up(built, who, &buildings, ty, num),
         // `@unqueue` is `issue_unqueue@00942c40` once per building, an
-        // `unqueue` with no `group` (item 884, `docs/GOLDEN.md` §34).
-        // SEAM: not entered yet — chapter twenty-five's floor is measured
-        // with the cancel skipped, and [`crate::input::unqueue`] is the
-        // entry the build wires here.
-        Some(Issued::Unqueue { .. }) => {
-            done.skip(&word, "the cancel is not entered in the harness");
-            return;
-        }
+        // `unqueue` with no `group`, whose entry is [`crate::input::unqueue`]
+        // (item 884, `docs/GOLDEN.md` §34).
+        Some(Issued::Unqueue { who, p, buildings }) => buildings
+            .iter()
+            .map(|&b| crate::input::unqueue(built, who, i32::from(b), p))
+            .sum(),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
