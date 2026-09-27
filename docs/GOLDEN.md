@@ -1401,7 +1401,7 @@ each can invalidate work that would otherwise be done on top of it.
 |---|---|---|---|
 | 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760**; item 945 built the Bowmen's re-seat, 105 → 35 rows |
 | 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) — **run 2026-09-27 (item 955), 351 MB, 966 s; falsifier 3 fired on all three Citizens: `FILTER_ALL` counts the seeker; every other reading held; the word 740 → 1400, closed** |
-| 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) |
+| 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -6967,3 +6967,12 @@ action 3 and `action_launch_flight`; a relaunch from a waypoint past 0
 **Where it should part.** Unbuilt, the first value parting is **1602**,
 the three stacks; the first draw parting where a plane's flight starts
 from another point.
+
+**Run 2026-09-27 as run344 (item 947)** (`docs/RUNS.md` has the table).
+One take, `cover=0`, `DIFFICULTY 0`, the same game as run308 to 1751.
+**No falsifier fired**: on 1602 all three planes one `AIRPATROLORDER`
+over P1, flags 4, `0/6`'s `cruising_alt` 1600 (the strafe home's); on
+1702 each `[P1, P2]` and `0/6`'s 1800 carried; `0/6`'s waypoint 1 from
+1741; the Biplane born on 1746 inside on `[P1, P2]`, flags 4, and out on
+1747; on 1852 each a strafe home, `returning` 1, flags 0; inside with no
+order on 2034, 2073, 2102 and 2106. Every block is the prototype's.
