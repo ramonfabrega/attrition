@@ -7379,6 +7379,18 @@ why: the blind list's first targeted capture — chapter twenty-three's script w
 # writes its `FFWD` line *before* the stanza's lines, and the channel clamps
 # a frame below its predecessor, so a `37 !ffwd` there would move the
 # chapter's `0 !ai off` to 37.
+#
+# **The DLL is the install's, and this lane never builds it**: `longtrace.sh`
+# loads whatever `rontrace.dll` `build.sh` last left in `game/`. A chapter's
+# `@` verbs are the DLL's, so this stanza needs a plain build of the
+# current `tracer.c` first (`zsh tools/trace/build.sh <install>`, no
+# `TRACER_DEFS`). **Take one** (02:14) ran on a 2026-09-23 build that
+# predates `@flight`, `@strike` and `@buildmask`, and died before frame 0
+# on `wine: Unhandled page fault on read access to 00004ECD` — the bop
+# signature of `docs/ORACLE.md`'s "Coverage is back" — after 2,101 `HIT`s;
+# its trace and wine log are kept as `rontrace-run314-take1-fault.log` and
+# `wine-run314-take1-fault.log`. The same build ran `cover=1` whole at
+# run226 two days before.
 frames: 1840
 mapstyle: 14
 cfg: -
