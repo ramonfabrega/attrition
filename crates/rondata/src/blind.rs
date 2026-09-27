@@ -528,6 +528,44 @@ mod tests {
         );
     }
 
+    /// **The `@` issuer guard reads through the coverage `jmp`** (item
+    /// 934). `tools/trace/issue_guard_test.c` builds `issue_guard.h` — the
+    /// guard `tracer.c` compiles — on the host and asks it about the
+    /// shipped prologue, `arm_all`'s `jmp` to the entry's own stub (called:
+    /// run314 refused it with code 2), and five images it must refuse. With
+    /// an install, each verb's issuer is also armed from the coverage table
+    /// `build.sh` wrote beside the DLL and must be called. Made to fail
+    /// first on the guard run314 ran: every issuer refused.
+    #[test]
+    fn the_issuer_guard_reads_through_the_coverage_jmp() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/trace");
+        let exe = std::env::temp_dir().join(format!("issue_guard_test-{}", std::process::id()));
+        let built = std::process::Command::new("cc")
+            .args(["-Wall", "-Wextra", "-Werror", "-o"])
+            .arg(&exe)
+            .arg(format!("{root}/issue_guard_test.c"))
+            .output();
+        match built {
+            Ok(o) if o.status.success() => {}
+            Ok(o) => panic!("issue_guard_test.c: {}", String::from_utf8_lossy(&o.stderr)),
+            Err(e) => {
+                eprintln!("skipping: no host C compiler ({e})");
+                return;
+            }
+        }
+        let mut run = std::process::Command::new(&exe);
+        match crate::testenv::install_root().map(|r| format!("{r}/rontrace.funcs")) {
+            Some(table) if std::path::Path::new(&table).exists() => {
+                run.arg(table);
+            }
+            _ => eprintln!("the table half skipped: no rontrace.funcs in the install"),
+        }
+        let out = run.output().expect("issue_guard_test runs");
+        let _ = std::fs::remove_file(&exe);
+        let text = String::from_utf8_lossy(&out.stdout);
+        assert!(out.status.success(), "the issuer guard:\n{text}");
+    }
+
     /// The grammar: a split citation is joined, a bare address is not a
     /// citation, and a name's template brackets are part of it.
     #[test]
