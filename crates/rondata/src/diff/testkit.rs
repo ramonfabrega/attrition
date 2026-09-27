@@ -1043,7 +1043,24 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `Leader::use_market+0x1ed` where the original spends
 /// `Farms::inc_time+0x1ae`. Past run277's end (20258); run289 was taken for
 /// it, and `run289_s_word_frame_is_widened_whole` widens its block 20783.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 20_782;
+///
+/// **20782 → 23182 on item 890, and the frame was 20781's wonder price.**
+/// `get_cost`'s wonder arm counts every wonder the leader holds or has a
+/// site of, not the type's own (`docs/COSTS.md`, "A wonder is ramped by
+/// every wonder"; `docs/AI.md` §77), so who=1's Pyramids site `1/2029`
+/// prices the Mausoleum and the Colossus at 260 wealth against a purse of
+/// 208 and `check_income` answers 0. **The move's value diff (the word's
+/// delta, here; its block is `run289_s_word_frame_is_widened_whole`'s):**
+/// on block 20782 who=1's `MAKE[0]`, `[1]` and `[8]` `val` went 486, 398
+/// and 486 against 0 → 0 on both sides, the Mausoleum's price `[0, 200,
+/// 200]` → `[0, 260, 260]` and the Colossus's `[200, 0, 200]` → `[260, 0,
+/// 260]` (the original prints no price; its `check_income` of 0 says it is
+/// over 208); the draws on 20782 went 8 against 1 → 1 against 1. **The new
+/// word's delta: ours 49 draws and the original 48, parting at index 46**:
+/// ours spends `Leader::produce_building+0x1805`, a placement's jitter,
+/// where the original spends `Leader::make_stuff+0x63d`. Past run289's end
+/// (21045) and below run96's start (23960); run299 was taken for it.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 23_182;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in

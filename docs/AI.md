@@ -9723,3 +9723,97 @@ second reading: the zero, its frame and its reader are diff-backed.
 
 **Built**: `a_border_fix_zeroes_the_rares_until_the_next_census`, made
 to fail twice (§76.4).
+
+## 77. A wonder is priced by every wonder, and the word moves to 23182 (2026-09-26, item 890)
+
+East Indies' word was **20782**. On it this crate spent 8 draws against
+the original's 1, parting at index 0: ours `Leader::use_market+0x1ed`
+(§2.15), the original `Farms::inc_time+0x1ae`. On block 20782 who=1's
+make list had parted: `MAKE[0]`, `[1]` and `[8]` held the Mausoleum
+(527) and the Colossus (528) in category 8, valued 486, 398 and 486
+here against 0 there (run289, widened by item 880).
+
+### 77.1 The frame, read whole before any reading
+
+run289's leader, city and building records on 20777..20783, both
+sides (`RON_STANDING`, `RON_MAKE`, `tools/gamelog/leader.py`), and the
+trace's draws on 20781:
+
+- **Both sides list the same wonders in the same slots** (`t` 527, 528
+  and 527, `cat` 8) off the same two `create_buildings+0xffb`/`+0x1017`
+  pairs on frame 20781. The pairs are the draws 60461/17844 and
+  39823/14766, identical on both sides. `wonder_mark` is compared and
+  agrees, and an easy AI's arm draws only at 0 (§75), so no wonder of
+  who=1's stands on either side and the arm is open.
+- **The `city` rows are parked 325's spelling**, not a city: this crate
+  prints the global index (London is 1 of three), the dump the leader's
+  own slot (0).
+- **The parting field is `val`**, and it is 0 in the original for both
+  wonders, the same city, the same draws.
+- who=1's stock agrees on the word's blocks. `bucket[wealth]` is 208 on
+  both sides. The only standing stock row is parked 851's
+  `leftover[2:wealth]`, 1398 against 1390 on 20782, which is the income
+  accumulator's remainder, not the purse.
+- who=1 holds an unfinished **Pyramids site `1/2029`** in city 1
+  (`job_counter` 162,737 of 400,000; the dump's `BUILDDATA`, `orig_type
+  526`), on both sides. It is why city 1 is shut (`num_wonders`) and the
+  pairs are London's.
+
+### 77.2 The readings, and what killed each
+
+Written before the writers were counted.
+
+- **R1: parked 851's purse is one over.** Its unit is who=1's
+  `bucket[wealth]` on 20781..20782. **Killed**: it agrees, 208 on both.
+- **R2: a factor of the wonder's value differs** (the type's `+0x118`
+  factor, `get_level`, the common tail). Its unit is the arm's product.
+  **Killed by R3's fix**: with the price alone changed, `val` agrees on
+  both wonders (§77.4). A factor of 0 would have left ours nonzero.
+- **R3: `check_income` answers 0 in the original.** It returns 0 when
+  `can_pay_cost` finds nothing affordable and the offer carries no
+  escrow, which the arm's no-shortcut branch does not. Its unit is the
+  price of 527 and 528 against the purse. **Holds**: ours priced them at
+  200 wealth against 208, so it could pay. The original's `get_cost`
+  counts every wonder held or sited (`docs/COSTS.md`, "A wonder is
+  ramped by every wonder"), so the Pyramids site adds a step: 260.
+
+**The writers, counted by what they write**: a make slot's `val` has one
+writer on this path, `make_me` from `create_buildings`
+(`inc × v / 256`). `inc` is `check_income`'s, and its only
+zero-returning arm is the unaffordable one. The price's writers are
+`get_cost`'s arms. The same-type count was ours alone; the listing
+counts wonders.
+
+### 77.3 The fix
+
+- `cost::wonder_count` is the listing's count: `held − 3` past three,
+  `held − 6` past six, twice `held`, and the space-race term.
+  `cost::Modifiers::wonder` halves the building arm's term.
+- `Sim::building_price` prices a wonder by `get_wonders` (the census's
+  in-use entries under `wonder_mark`) plus `get_unbuilt_wonders` (the
+  leader's inactive wonder sites).
+- A mutation (the same-type count restored, from git, `touch`ed) fails
+  `another_wonder_s_site_prices_a_wonder_out_of_the_purse`.
+
+### 77.4 What it moved
+
+Measured on `293a05fa`, based on `6a183d98`:
+
+- **The value diff** (`run289_s_word_frame_is_widened_whole`). On block
+  20782 `MAKE[0]`, `[1]` and `[8]` `val` go 486, 398 and 486 against 0
+  → **0 on both sides**. Ours' prices go `[0, 200, 200]` →
+  `[0, 260, 260]` (527) and `[200, 0, 200]` → `[260, 0, 260]` (528); the
+  original prints no price, and its `check_income` of 0 says it is over
+  208. The draws on 20782 go 8 against 1 → 1 against 1. The floor goes
+  284/42/326/1,222 → 284/3/287/288: 39 keys under the word close (the
+  three `val` rows on 20782 and the 36 on 20783 that ours' placement of
+  `1/2030` and its spending wrote), and 934 across the runway. What stands is 325's `city`
+  spelling on 20782 and who=0's `production_step` on 20801.
+- **East Indies 20782 → 23182**, past run289's end. On 23182 ours spends
+  49 draws against 48, parting at index 46: ours
+  `Leader::produce_building+0x1805` (a placement's jitter, §2.20), the
+  original `Leader::make_stuff+0x63d`.
+- **Great Lakes holds at 20800**, and every golden word and control
+  holds.
+- **East Indies' endpoint** at 24001: 37 → 38 off, 2 → 0 unlinked,
+  0 → 2 extra, 2 → 0 build unlinked, 2 → 0 build diverged.

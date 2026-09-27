@@ -645,7 +645,13 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // → 20782, 3,219 frames before this one. Measured on base
         // `02ea5124` (the sixteenth pass). DECISIONS 36: the number, not a
         // trade.
-        off: 37,
+        // **37 → 38 off, 2 → 0 unlinked, 0 → 2 extra, 2 → 0 build_unlinked
+        // and 2 → 0 build_diverged** on item 890: `get_cost`'s wonder arm
+        // counts every wonder held or sited (`docs/COSTS.md`, "A wonder is
+        // ramped by every wonder"), which moves this map's word 20782 →
+        // 23182, 819 frames before this one. The extra two are player 1's
+        // `83` and `84`, Citizens. Measured on base `6a183d98`.
+        off: 38,
         // And **5 → 10 unlinked** on 2026-09-21, item 442 — the scholar
         // arm's `val` chain (`docs/AI.md` §53). This map's word does not
         // move on it; Great Lakes' moves 9510 → 10161. The AI's Scholar
@@ -684,7 +690,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // (`docs/COLLISION.md` §18); `off` holds at 38.
         // **0 → 2** on item 870, beside `off` above: player 1's `81` and
         // `82`.
-        unlinked: 2,
+        // **2 → 0** on item 890, beside `off` above.
+        unlinked: 0,
         // **0 → 1** on item 608, beside `off` above.
         // **1 → 0** on item 613, beside `off` above.
         // **0 → 2** on item 688, beside `off` above.
@@ -701,7 +708,9 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **0 → 3** on item 857, beside `unlinked` above: player 1's
         // `83`, `84` and `85`, three Citizens.
         // **3 → 0** on item 870, beside `off` above.
-        extra: 0,
+        // **0 → 2** on item 890, beside `off` above: player 1's `83` and
+        // `84`, Citizens.
+        extra: 2,
         // **1 → 2** on item 588, beside `off` above.
         // **2 → 1** on item 604, beside `off` above.
         // **1 → 2** on item 613, beside `off` above.
@@ -715,7 +724,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **1 → 2** on item 800, beside `off` above.
         // **2 → 0** on item 857, beside `unlinked` above.
         // **0 → 2** on item 870, beside `off` above.
-        build_unlinked: 2,
+        // **2 → 0** on item 890, beside `off` above.
+        build_unlinked: 0,
         // **25 → 24** on item 592, beside `off` above.
         // **24 → 25** on item 604, beside `off` above.
         // **25 → 24** on item 608, beside `off` above.
@@ -741,7 +751,8 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         // **5 → 1** on item 857, beside `unlinked` above.
         // **1 → 0** on item 870, beside `off` above.
         // **0 → 2** on item 880, beside `off` above.
-        build_diverged: 2,
+        // **2 → 0** on item 890, beside `off` above.
+        build_diverged: 0,
         city_unlinked: 3,
         city_diverged: 0,
     },

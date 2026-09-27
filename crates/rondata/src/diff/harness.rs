@@ -16703,23 +16703,45 @@ pub(crate) mod tests {
         // `leftover[2:wealth]`, 2108 here against 2100 on the first block
         // (parked 851), and nothing else of its stock parts; **R3** has no
         // clock row parting either. No mechanism is named.
+        //
+        // **Item 890: the `val` rows close.** `get_cost`'s wonder arm counts
+        // who=1's Pyramids site `1/2029`, so the Mausoleum (527) and the
+        // Colossus (528) price at 260 wealth against the purse's 208 on both
+        // sides, `check_income` answers 0, and both are offered at `val 0`
+        // here as there: `MAKE[0]`, `[1]` and `[8]` `val` 486/398/486 → 0
+        // (`docs/COSTS.md`, "A wonder is ramped by every wonder"; `docs/AI.md`
+        // §77). What stands on 20782 is parked 325's `city` spelling alone:
+        // this crate's city index is global (London is 1 of three) and the
+        // dump's is the leader's own slot (0), the same city.
         let make: Vec<&String> = rows.iter().filter(|r| r.starts_with("20782 ")).collect();
         assert_eq!(
             make,
             [
                 "20782 1/-1 leader:MAKE[0].city: ours 1 theirs 0",
-                "20782 1/-1 leader:MAKE[0].val: ours 486 theirs 0",
                 "20782 1/-1 leader:MAKE[1].city: ours 1 theirs 0",
-                "20782 1/-1 leader:MAKE[1].val: ours 398 theirs 0",
                 "20782 1/-1 leader:MAKE[8].city: ours 1 theirs 0",
-                "20782 1/-1 leader:MAKE[8].val: ours 486 theirs 0",
             ],
-            "the make list parts first, on the word's frame"
+            "only the list's `city` spelling parts on the word's old frame"
         );
-        assert!(
-            rows.iter()
-                .all(|r| r.starts_with("20782 ") || r.starts_with("20783 ")),
-            "nothing parts on 20778..20781: {rows:?}"
+        assert_eq!(
+            rows.len(),
+            3,
+            "nothing else parts on 20778..20783: {rows:?}"
+        );
+        // Past the old word's block, one key in the whole runway: who=0's
+        // `production_step` on 20801, the human's own step, which nothing
+        // on this chain reads (`docs/ECONOMY.md` §16.3's R3).
+        let past: Vec<(&(i64, i64, String), &(i64, String))> = firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > WORD_BLOCK)
+            .collect();
+        assert_eq!(
+            past,
+            [(
+                &(0, -1, "leader:production_step".to_string()),
+                &(20_801, "ours 0 theirs 1".to_string())
+            )],
+            "the runway past the old word"
         );
         let wealth = standing
             .get(&FIRST)
@@ -16740,7 +16762,11 @@ pub(crate) mod tests {
         let first = firsts.values().filter(|(f, _)| *f == FIRST).count();
         assert_eq!(
             (first, rows.len(), on_word, firsts.len()),
-            (284, 42, 326, 1_222),
+            // Item 890: 284/42/326/1,222 → 284/3/287/288. Under the word the
+            // three `MAKE` `val` rows and 36 keys of the building `1/2030`
+            // this crate no longer places close; across the runway 934 keys
+            // close, and the one that stands past the word is who=0's step.
+            (284, 3, 287, 288),
             "the floor"
         );
     }
