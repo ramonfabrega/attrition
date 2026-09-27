@@ -4140,3 +4140,50 @@ fn a_lone_unit_trained_under_a_ground_point_walks_there_with_a_plain_move() {
     let p = sim.units[u].pos;
     assert!(p.x > home.x && p.y < home.y, "out on the north-east: {p:?}");
 }
+
+/// **A City's click on a forest takes its Woodcutter's point** (run312's
+/// `0/2000` on 652: (3936, 28128) pressed, (4224, 28608) stored). Only a
+/// group of City centres snaps, only within `0x600`, and the action is
+/// kept.
+#[test]
+fn a_city_s_rally_on_a_forest_takes_its_woodcutter_s_point() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (city, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let camp_t = sim.add_build_type(bt(Ident::Woodcutter, None, "ga", 4, 4, 150, 400, 0));
+    // Placed by hand: `place_building` wants forest under a camp.
+    let camp = sim.add_building(0, tile_pos(44, 32), 2);
+    sim.buildings[camp].ty = Some(camp_t);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 48)).unwrap();
+    finish(&mut sim, b);
+    let camp_at = sim.buildings[camp].pos;
+    let forest = tile_pos(46, 32);
+    sim.world.set_tile_mask(forest.tile(), 0x30);
+    sim.action_gather_point(0, &[city], forest, 0, false);
+    assert_eq!(sim.buildings[city].gather[0].pos, camp_at, "snapped");
+    assert_eq!(sim.buildings[city].gather[0].action, 0, "the action kept");
+    sim.action_gather_point(0, &[city, b], forest, 0, false);
+    assert_eq!(sim.buildings[city].gather[0].pos, forest, "not every member a City");
+    let far = tile_pos(60, 32);
+    sim.world.set_tile_mask(far.tile(), 0x30);
+    sim.action_gather_point(0, &[city], far, 0, false);
+    assert_eq!(sim.buildings[city].gather[0].pos, far, "no Woodcutter within 0x600");
+}
+
+/// **A trained member's turn to its captain's gather bearing flips its
+/// mirror** (run312's `0/12` and `0/13` on 856): the member's angle is
+/// `Unit::set_angle`'s, whose `reversing` test flips the mirror past 90°;
+/// the captain's is a bare store and keeps its own.
+#[test]
+fn a_member_turned_past_ninety_degrees_to_its_captain_s_bearing_flips_its_mirror() {
+    let mut sim = world_sim();
+    let (_, b, squad) = rally_barracks(&mut sim);
+    let home = sim.buildings[b].pos;
+    sim.action_gather_point(0, &[b], Pos::new(home.x - 2000, home.y - 2000), 0, false);
+    let cap = sim.build_train(b, squad).unit;
+    let before = crate::Movement::at(home).mirror;
+    assert_eq!(sim.units[cap].movement.mirror, before, "the captain keeps its own");
+    for m in sim.squad_members(cap).into_iter().filter(|&m| m != cap) {
+        assert_ne!(sim.units[m].movement.mirror, before, "member {m} flipped");
+    }
+}
