@@ -5974,3 +5974,14 @@ here against 0 and 1. The queues and the bits should agree on every
 block: `Sim::action_queue_up`'s sort and passes and
 `Sim::action_buildmask`'s rule are built from the reading. The draw
 stream need not part: a slot number spends no draw.
+
+**Run 2026-09-26 as run304 (item 888)** (`docs/RUNS.md` has the tables).
+One take, `cover=0`, the same game as run285 to 824. **No falsifier
+fired, and every value the staging walk named is on its block**: the
+issues on 621, 641, 701, 721, 741 and 761 with refusal 0, 761 the
+selection's reuse (1); 622's single press (2); on 642 **`0/2008` 53/41
+and 60/50, `0/2007` 56/45 and 65/56** — sorted once, one a member a pass
+(3); 4160 on 702 (4) and **4096 and 4096 on 722** (5); the pool **slot 0
+`[2007, 2008]` stamp 641** (6), `[2008]` in slot 1 on 702 (7), `[2008,
+2007]` in slot 0 on 722 (8), `[2007, 2008]` in slot 1 on 742 (9), stamp
+741 kept on 762 (10); and the births' `group` 0 to 4 (11).

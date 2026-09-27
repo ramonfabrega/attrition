@@ -8639,6 +8639,67 @@ which exited 0.
   is verified (§32.3). With it built, nothing on `1/40`, `1/41` or `1/42`
   parts on run294 or run243.
 
+## run304 — chapter twenty-eight, two buildings under one command (2026-09-26, item 888)
+
+`docs/GOLDEN.md` §37, `tools/gamelog/golden/chapter28.cmd`: chapter
+thirteen's cast with a second who=0 Barracks, **`608 add barracks who=0
+22,74`** (`0/2008`), `!ai off`; then **`620 @queueup 0 170 1 2007`**,
+**`640 @queueup 0 132 3 2007 2008`**, **`700 @buildmask 0 64 2008`**,
+**`720 @buildmask 0 64 2008 2007`**, and **`740`** and **`760 @queueup 0
+132 1 2007 2008`**, both refused on price. The chapter and its eleven
+falsifiers were committed before the run (`d824e53d`). No `RonDriver`
+was running and the lane was free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch28 \
+    --map 14 --end-frame 1580 --log-window 605 1580 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter28.cmd
+```
+
+**One take** at `cover=0`: launched 23:20, **1,231 s** in all (1,208
+launch to exit), **428 MB** of dump and 12 MB of trace, 975 blocks. The
+receipt says `success: true`, exit 0, 1,581 frames, `MAP_STYLE 14`, seed
+12345, 499,200 `GROUPDATA`. `waitrun.sh` exited 0. `cmdsran.py` has the
+seven console and chat lines returning 1, both `add barracks` among them.
+
+| check | result |
+|---|---|
+| `rngcmp.py` vs run285's trace | the same game to 824: the second Barracks spends no draw, and the Bowmen's birth on 825 parts first |
+
+### The issuers' own records
+
+- `INFO 18` for `0/2007` (uid 13) and `0/2008` (uid 14), in the command's
+  order, on every line.
+- `INFO 17`, refusal 0 on all six. The package grows 10 → 24 on 620 and
+  700 (a one-building group and the command), 10 → 26 on 640, 720 and 740
+  (a group of two), and 10 → 22 on 760 (the three-byte reuse: the
+  selection's ordered compare matched 740's).
+- `process_group, new 0 1 621`, `new 0 2 641`, `new 0 1 701`, `new 0 2
+  721`, `new 0 2 741`, **`repeat 0 0 761`**; `process_queue_up 170 1`,
+  `132 3`, `132 1`, `132 1`, and `process_buildmask` on 701 and 721.
+
+### §37's falsifiers
+
+| check | predicted (this crate's walk, the seat by prototype) | observed |
+| --- | --- | --- |
+| 0, the staging | `0/2008` at (4224, 14208), 4096, on 610 | **as predicted** |
+| 2, the single press | `0/2007` `[170 at 100]` 41/51; 254/200/62 on 622 | **as predicted** |
+| 3, the sort and passes | `0/2008` 53/41 and 60/50, `0/2007` 56/45 and 65/56; 22/9 on 642 | **as predicted**: four entries, the fourth by 7 timber |
+| 4, the toggle on one | `0/2008` 4160 on 702 | **as predicted** |
+| 5, the toggle on two | 4096 and 4096 on 722 | **as predicted** |
+| 6, the group of two | slot 0 `[2007, 2008]` stamp 641, slot 1 `[2007]` 621, on 642 | **as predicted**: `buildings 1`, `num` 2, `speed` 0 |
+| 7, the next seat | slot 1 `[2008]` 701 on 702 | **as predicted** |
+| 8, the order kept | slot 0 `[2008, 2007]` 721 on 722 | **as predicted** |
+| 9, order is identity | slot 1 `[2007, 2008]` 741 on 742 | **as predicted** |
+| 10, an equal group | slot 1 stamp 741 on 762 | **as predicted** |
+| 11, the births | `group` 0, 1, 2, 3, 4 on 825, 876, 1067, 1126, 1324 | **as predicted**: stamps 824, 875, 1066, 1125, 1323 |
+
+**No falsifier fired**, and every predicted value is on its predicted
+block, the prototype's pool among them.
+
 ## run300 — chapter twenty-seven, the upgrade line (2026-09-26, item 901)
 
 `docs/GOLDEN.md` §36, `tools/gamelog/golden/chapter27.cmd`: chapter
