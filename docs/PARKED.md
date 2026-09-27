@@ -1373,7 +1373,10 @@ fourteenth pass named the probe and did not run it**: `docs/ORACLE.md`'s
 three six-second probes — `window=0-3` + `cover=1` under
 `WINEDEBUG=+seh`, no lobby — on the autostart build alone, then with the
 `callwin` proxies, which is what run185 added over the `cover=1` runs
-that work on the queue lane. Stays; the cited column moves without it.
+that work on the queue lane. Stays; the cited column moves without it. **923 reframes it**: `cover=1` and the `@` issuers are
+incompatible by construction on every lane (refusal 2, run314), so the
+click-free hang is not the only thing between an issuer chapter and its
+coverage; item 934 takes the issuer half.
 
 (745) **Nothing pins that each field the simulation carries has a widening
 row** (736's Loop line, filed at its merge). `diff::compared` pins the
@@ -1509,6 +1512,25 @@ names.
 (915's Loop line, filed at its merge): 843's "leaves through the same
 EXIT" named `come_out`'s tail; one grep of the caller, `Build::train`,
 showed the callee is never reached at a hangar.
+
+(936) **The queue lane runs whatever `rontrace.dll` `build.sh` last wrote
+into `game/`, and nothing records which build** (923's Loop line, filed at
+its merge): a stanza cannot say what it needs and a receipt cannot say
+what it got; a 09-23 build without the `@` verbs killed run314's first
+take.
+
+(937) **`waitwin.sh` loops forever when the game dies before its window,
+and `runqueue.sh`'s TERM trap waits behind the foreground pipeline**
+(923's Loop line): a dead take holds the runner until four pids are killed
+by hand and the INIs restored.
+
+(938) **A tool's recipe names its inputs by pin, not by list** (923's Loop
+line): the census's recipe named three traces for nine days while
+eighty-six more stood beside them; `rondata::blind` reads the corpus now.
+
+(939) **The census's entered column was a sample, 7,180 of 7,666** (923's
+Loop line): the next pass's census regenerates from `rondata::blind`'s
+`TRACES`, not the three-trace recipe.
 
 
 
