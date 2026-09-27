@@ -557,6 +557,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch26 = golden_dump("ch26");
     let ch27 = golden_dump("ch27");
     let ch28 = golden_dump("ch28");
+    let ch29 = golden_dump("ch29");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1353,6 +1354,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
                 n, 5,
                 "chapter twenty-eight carries the window's five blocks"
             );
+            frames += n;
+        }
+    }
+    // **Chapter twenty-nine's word, on run308** (item 915): the repeat
+    // launch. 1542, the press; 1585, 1789 and 1813, the three kept patrols
+    // relaunched under the bit; 1746, the Biplane trained into the
+    // Airbase; 1828, the counter with the Biplane alone inside; 1985, the
+    // relaunched tank flown out; 2067, the last blocks.
+    if let Some(p) = &ch29 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_TWENTY_NINE;
+        for w in [1542, 1585, 1746, 1789, 1813, 1828, 1985, 2067] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter twenty-nine carries the window's five blocks");
             frames += n;
         }
     }

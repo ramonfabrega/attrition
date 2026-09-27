@@ -2709,13 +2709,30 @@ impl Sim {
         // `num_inside(1)` is [`Sim::squads_inside`] here: a scholar's
         // `uber_size` is 1, so the chain count and the captain count are
         // the same number on every path this arm can take.
+        //
+        // **An aircraft trained at an Airbase stays in it** (item 915,
+        // `docs/PRODUCTION.md` "The trained aircraft"): `Build::train`
+        // tests the *trainer's* type for `CARRY_AIR` (`+0x1e4 & 0x200`,
+        // `62fac0`) before any exit, and that arm calls no `come_out` — the
+        // Airbase and the Missile Silo alone carry it ([`Sim::is_hangar`]).
+        // With no gather point (`+0xcc` 0, every building in every capture)
+        // the unit is left inside with no order, in the base's chain, for
+        // `do_launch` to pass over. run308's Biplane `0/9`, inside `0/2007`
+        // from 1746.
+        //
+        // SEAM: a gather point's arm (`add_air_patrol_order` to it, action
+        // bit set, or a strike on an enemy building there), and a
+        // helicopter's over the base's aircraft limit (`is(0x136)`,
+        // `num_aircraft_here > num_aircraft_limit`, which does come out). No
+        // command in any capture sets a gather point.
+        let hangar = self.buildings[at].ty.is_some_and(|t| self.is_hangar(t));
         let inside = self.squads_inside(at);
         let stays = self.building_ident(at) == crate::build::Ident::University
             && self.worker_of(unit) == crate::orders::Worker::Scholar
             && self.buildings[at].gather_max.is_none_or(|m| inside <= m);
         if stays {
             self.check_gatherers(at);
-        } else {
+        } else if !hangar {
             self.come_out(unit);
         }
         self.economy_changed(who);

@@ -965,15 +965,22 @@ impl Sim {
                 self.buildings[b].launching.push(u);
             }
             if !launched {
-                if !self
+                let out = !self
                     .profile(crate::combat::Obj::Unit(u))
                     .has(crate::combat::mask::MISSILE)
-                {
-                    self.come_out(u);
-                }
+                    && self.come_out(u);
                 self.buildings[b].launch_frames = 0;
+                launched = true;
+                // **The walk ends at a launch** (item 915, `docs/GOLDEN.md`
+                // §38): the chain's next link is read from the launched
+                // plane's own `inside_down` (`64f806`) after `come_out`,
+                // and `Object::remove_from_inside` has stored −1 there. A
+                // plane that did not come out keeps its link, and the walk
+                // goes on.
+                if out {
+                    break;
+                }
             }
-            launched = true;
         }
     }
 
@@ -1828,6 +1835,70 @@ mod launch_tests {
                 assert!(s.units[u].orders.is_empty(), "the patrol killed");
             }
         }
+    }
+
+    /// **The walk ends at a launch** (`Object::do_launch@0064f3b0`,
+    /// `64f806`; `docs/GOLDEN.md` §38, item 915): two planes full under
+    /// the bit, and one call launches the first and never reaches the
+    /// second — the next link is the launched plane's own, which
+    /// `remove_from_inside` has cleared. Under the emulator, with the
+    /// link left, the second joins `launching`. Made to fail with the
+    /// walk carried on after the launch.
+    #[test]
+    fn a_launch_ends_the_walk_along_the_base_s_chain() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        s.buildings[base].repeat_air = true;
+        let mut planes = Vec::new();
+        for _ in 0..2 {
+            let u = fighter_inside(&mut s, base, 400);
+            s.come_out(u);
+            s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+            s.land_plane(u);
+            s.units[u].mana_burn = 0;
+            planes.push(u);
+        }
+        s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
+        s.do_launch(base);
+        assert_eq!(s.units[planes[0]].inside, None, "the first launched");
+        assert_eq!(s.units[planes[1]].inside, Some(base), "the second inside");
+        assert!(
+            !s.buildings[base].launching.contains(&planes[1]),
+            "and never walked: not in `launching`"
+        );
+        assert_eq!(s.units[planes[1]].orders.len(), 1, "its patrol kept");
+    }
+
+    /// **An aircraft trained at an Airbase stays in it** (`Build::train
+    /// @0062f9b0`'s `CARRY_AIR` arm, `62fac0`; `docs/GOLDEN.md` §38, item
+    /// 915): no `come_out`, no order, in the base's chain; the same unit
+    /// trained at a building without the mask comes out. Made to fail with
+    /// the arm dropped (the plane on the map).
+    #[test]
+    fn an_aircraft_trained_at_an_airbase_stays_inside_with_no_order() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let first = fighter_inside(&mut s, base, 300);
+        let ty = s.units[first].ty.unwrap();
+        let trained = s.build_train(base, ty).unit;
+        assert_eq!(s.units[trained].inside, Some(base), "inside the Airbase");
+        assert!(s.units[trained].orders.is_empty(), "with no order");
+        assert_eq!(
+            s.buildings[base].garrison.last(),
+            Some(&trained),
+            "at the chain's tail"
+        );
+        s.units[trained].mana_burn = 0;
+        s.do_launch(base);
+        assert_eq!(s.units[trained].inside, Some(base), "passed over");
+        let barracks = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::Barracks,
+            ..crate::build::BuildType::default()
+        });
+        let b = s.add_building(0, Pos::new(5000, 5000), 0);
+        s.buildings[b].ty = Some(barracks);
+        let out = s.build_train(b, ty).unit;
+        assert_eq!(s.units[out].inside, None, "a Barracks lets it out");
     }
 
     /// **The repeat button toggles off the first member's state**

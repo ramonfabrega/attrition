@@ -904,6 +904,56 @@ and `Sim::action_buildmask`'s rule were already the reading's;
 `Sim::push_buildings_group` (`group.rs`) seat the group, and
 `push_building_group`, the AI's one-building push, goes through it.
 
+## The trained aircraft: an Airbase keeps it (item 915)
+
+`Build::train@0062f9b0` asks the **trainer's** type for `CARRY_AIR`
+(`obj_masks` `J`, `+0x1e4 & 0x200`, at `62fac0`) before any exit, and that
+arm calls no `Unit::come_out@00617c10`. `J` is on two building types, the
+Airbase and the Missile Silo (`buildingrules.xml`, `GJ` both), which is
+this crate's `Sim::is_hangar`. `docs/GOLDEN.md` §38 is the chapter and
+**run308 backs it**: a Biplane trained at `0/2007` on 1746 is inside the
+base, behind `0/8` in its chain (`inside_up 8`), with no order and
+`mana_burn` 0, and stays so to 2069; `do_launch` passes it over on every
+block.
+
+```
+train(type):   init_unit at the building's point; go_inside(this)
+    if trainer's type & CARRY_AIR:                       # 62fac0
+        options.rebuild = 1
+        gather points (+0xcc) == 0:                      # 62fadf
+            if unit.is(HELICOPTER 0x136)
+               and num_aircraft_here > num_aircraft_limit: come_out(0)
+            (else: nothing -- the unit stays inside)
+        else, the unit not a missile and not unit_flags & 0x20:
+            each gather point: add_air_patrol_order(point, this, who, 1)
+                               (or a waypoint on the order it has)
+        else: the first point -- a strike on an enemy building there,
+              or a patrol over it
+    else: the ordinary exit (gather_inside, the scholar's arm, come_out)
+    unit_masks &= ~0x4000000                             # 62fc17
+```
+
+**Under the emulator first** (a scratch script on `tools/emu/callfn.py`,
+the unit and type through stub vtables): with `CARRY_AIR` and no gather
+point, `init_unit`, `go_inside(2007)`, `is(0x136, 0)` and no `come_out`;
+with one gather point, `add_air_patrol_order(x, y, 2007, 0, 1)` — the
+action bit — and no `come_out`; without `CARRY_AIR`, `come_out(0)`.
+
+**The gather point's arm is not built** (SEAM): its writers are
+`Build::add_gather_point` and `Build::clear_gather`, reached from the
+player's `issue_gather_point`, `Options::do_clear_gather`,
+`Group::action_city_gather` and the scenario functions — no capture issues
+one, so every building on disk has none. Neither is the helicopter's
+over-the-limit arm.
+
+**What stands**: the Biplane's birth point, (11640, 13944) there against
+the base's own (11616, 13920) here — `Unit::init@00612100`'s seat, parked
+646, and the plane never leaves the base to read it.
+
+**In the code**: `Sim::build_train` (`lib.rs`), the hangar test before the
+exit. Test: `air::launch_tests::an_aircraft_trained_at_an_airbase_stays_inside_with_no_order`,
+made to fail with the arm dropped, which also re-parts run308 on 1745.
+
 ## What is not established
 
 - **Nine of `train_time`'s ten national arms**, and everything after them.

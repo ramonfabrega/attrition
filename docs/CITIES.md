@@ -1503,12 +1503,15 @@ on the other.
   `1/2020 − 1/2019`. So they are seated correctly, on the wrong host. That
   is a `do_gather` target choice and not this section; run80's own block
   refuses any answer that does not put seven in each.
-- **The two gates above the arm are read, not diffed.** `Build::train`'s
+- **The two gates above the arm are read, not diffed.** ~~`Build::train`'s
   outer `(BuildTypeData +0x1e4 & 0x200) == 0` — `obj_masks`, by the type
   record — skips the whole exit block when set, and this crate does not
   model it; no capture on disk has a trainer that takes it, and every
-  building any capture trains from ejects. The `gather_inside` arm on the
-  non-university side is likewise unmodelled. The falsifier for both is a
+  building any capture trains from ejects.~~ The outer gate is
+  `CARRY_AIR`, the Airbase's and the Missile Silo's: built and
+  diff-backed by run308 (item 915, `docs/PRODUCTION.md` "The trained
+  aircraft"). The `gather_inside` arm on the non-university side is
+  likewise unmodelled. The falsifier for both is a
   `BUILDS`+`UNITS=3` window over a **full** university: a fifteenth scholar
   trained at one already holding `gather_max` must appear on the exit ring
   within a block, and must not if the outer gate is what actually fires.
