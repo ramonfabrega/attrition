@@ -1060,7 +1060,21 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// ours spends `Leader::produce_building+0x1805`, a placement's jitter,
 /// where the original spends `Leader::make_stuff+0x63d`. Past run289's end
 /// (21045) and below run96's start (23960); run299 was taken for it.
-pub(crate) const LONG_WORD_EAST_INDIES: i64 = 23_182;
+///
+/// **23182 → 23420 on item 904, and the frame was a rock cell.** Slot 4's
+/// Farm jitter at corner (184, 196) tried (35904, 38208), whose tile
+/// (188, 200) is on cell (47, 50), flags `ROCK | OIL`; `blocked_tcoord`
+/// refuses a non-oil type a rock cell (`006370b2`) and this crate did not
+/// (`docs/AI.md` §78). **The move's value diff (the word's delta, here;
+/// its block is `run299_s_word_frame_is_widened_whole`'s):** on block 23183
+/// who=1's `MAKE[4].t` went 417 against −1 → −1 on both sides, `1/79`'s
+/// `g.cur_anim[0]` 3 against 1 and `g.end_time[0]` 42 against 58 → 1 and
+/// 58 on both; the draws on 23182 went 49 against 48 → 48 against 48.
+/// **The new word's delta: ours 7 draws and the original 31, parting at
+/// index 0**: ours spends `Unit::do_guard+0x8fb` where the original spends
+/// `Farms::add_animals+0x92`, a pasture's five animals. Inside run299's
+/// window (block 23421), so the same test widens it.
+pub(crate) const LONG_WORD_EAST_INDIES: i64 = 23_420;
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -4740,6 +4754,11 @@ pub(crate) const WIDENING_EAST_INDIES_WONDERPRICE: (i64, i64) = (23_177, 23_433)
 /// `Leader::make_stuff+0x63d`, writes block 23183. The coverage driver
 /// reads run299 around it.
 pub(crate) const EAST_INDIES_WONDERPRICE_BLOCK: i64 = 23_183;
+/// The word 23420's block on run299 (item 904): its frame, where ours
+/// spends `Unit::do_guard+0x8fb` and the original
+/// `Farms::add_animals+0x92`, writes block 23421. The coverage driver
+/// reads run299 around it.
+pub(crate) const EAST_INDIES_ADDANIMALS_BLOCK: i64 = 23_421;
 /// One pinned word's row: `(constant, word, widening test, item, window)`.
 pub(crate) type Widening = (
     &'static str,
@@ -4943,11 +4962,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // ramped by every wonder"), 20782 → 23182. run289's test keeps the
     // move's value diff (20782, `MAKE[0]`, `[1]` and `[8]` `val`), and
     // run299 was taken to widen the new word's block, 23183.
+    //
+    // **Item 904 moved it inside run299's window**: `blocked_tcoord`'s rock
+    // arm (`docs/AI.md` §78), 23182 → 23420. The same test keeps the move's
+    // value diff (23183, `MAKE[4].t` and `1/79`) and widens the new word's
+    // block, 23421, and the runway to it.
     (
         "LONG_WORD_EAST_INDIES",
         LONG_WORD_EAST_INDIES,
         Some("run299_s_word_frame_is_widened_whole"),
-        890,
+        904,
         Some(WIDENING_EAST_INDIES_WONDERPRICE),
     ),
     // Item 448 paid the widening 442 owed: `run100_s_word_block_is_every_

@@ -378,6 +378,75 @@ fn a_building_marks_its_own_cell_and_unmarks_it_when_it_closes() {
     );
 }
 
+/// **`blocked_tcoord`'s two cell arms** (`docs/CITIES.md` §2.5, item 904,
+/// `docs/AI.md` §78). A rock cell refuses every type but the oil pair
+/// (`006370b2`), which needs the cell's oil instead (`00637105`); and a
+/// flat gather type needs its good on the tile's land (`00637532`: the
+/// tile form of `get_land`, then `LandData::get_amount`). East Indies'
+/// word 23182 was the first: slot 4's Farm jitter reached a rock cell.
+#[test]
+fn a_rock_cell_refuses_a_farm_and_a_flat_gather_type_needs_its_good() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut well = bt(Ident::OilWell, None, "gd", 4, 4, 150, 400, 0);
+    well.flags |= flags::FLAT;
+    let well = sim.add_build_type(well);
+    city_at(&mut sim, &t, 0, 32, 32);
+    let at = Pos::new(44, 32);
+    let c = World::cell_of_tile(at);
+    let plain = sim.world.cell_data(c);
+    let verdicts =
+        |sim: &Sim| [t.farm, t.barracks, well].map(|ty| sim.blocked_tcoord(Some(0), ty, at, None));
+    let with = |sim: &mut Sim, flags: u16, land: i8| {
+        let mut d = plain;
+        d.flags |= flags;
+        d.land = land;
+        sim.world.set_cell_data(c, d);
+    };
+    // Plain land grows food and holds no oil.
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::Clear, Blocked::Clear, Blocked::NoOil]
+    );
+    // Rock refuses the Farm and the Barracks; oil is what the well asks.
+    with(&mut sim, cell::ROCK, 0);
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::Rock, Blocked::Rock, Blocked::NoOil]
+    );
+    // Rock and oil, East Indies' cell (47, 50): the rock arm speaks first
+    // for the Farm, and the well's land is oil.
+    with(&mut sim, cell::ROCK | cell::OIL, 0);
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::Rock, Blocked::Rock, Blocked::Clear]
+    );
+    // Oil alone: no rock, but an oil cell grows no food.
+    with(&mut sim, cell::OIL, 0);
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::NoResources, Blocked::Clear, Blocked::Clear]
+    );
+    // A forest cell's land is Forest whatever its tiles, and sand makes
+    // nothing: neither is refused a Barracks.
+    with(&mut sim, cell::FOREST, 0);
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::NoResources, Blocked::Clear, Blocked::NoOil]
+    );
+    with(&mut sim, 0, 1);
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::NoResources, Blocked::Clear, Blocked::NoOil]
+    );
+    // A coast cell is plain land under a land tile.
+    with(&mut sim, cell::COAST, 0);
+    assert_eq!(
+        verdicts(&sim),
+        [Blocked::Clear, Blocked::Clear, Blocked::NoOil]
+    );
+}
+
 #[test]
 fn a_library_needs_a_city_and_there_is_one_per_city() {
     let mut sim = world_sim();

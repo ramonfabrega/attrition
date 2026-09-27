@@ -415,6 +415,24 @@ impl Sim {
         if mask & tile::AS_BUILDING != 0 {
             return Blocked::Building;
         }
+        // The cell's rock and oil (`006370b2`, `00637105`): an Oil Well or
+        // Oil Platform (`is(0x1a5)`, `is(0x1a6)`) needs the cell's oil,
+        // and every other type is refused a rock cell. The cell's flags are
+        // the map's (`World::set_oil_at` is the oil bit's only writer, from
+        // the terrain groups and the editor), so this is a fixed map fact
+        // the spiral's `buildings_allowed` also reads — but only on the
+        // candidate's own cell, and a jitter's footprint can reach the next
+        // one (`docs/AI.md` §78).
+        let cell_flags = self.world.cell_data(cell).flags;
+        if build::is(&self.build_types, ty, build::Ident::OilWell)
+            || build::is(&self.build_types, ty, build::Ident::OilPlatform)
+        {
+            if cell_flags & crate::world::cell::OIL == 0 {
+                return Blocked::NoOil;
+            }
+        } else if cell_flags & crate::world::cell::ROCK != 0 {
+            return Blocked::Rock;
+        }
         if mask & tile::PLACED != 0
             && let Some(w) = who
             && self.find_building_placed_at(w, t, exclude).is_some()
@@ -458,6 +476,21 @@ impl Sim {
         }
         if mask & tile::RIVER != 0 {
             return Blocked::River;
+        }
+        // A flat gather type — the Farm, the Oil Well, the Oil Platform —
+        // needs its good on the tile's land (`00637532`: the tile form of
+        // `get_land`, then `LandData::get_amount`), so a Farm is refused
+        // sand, rock, a forest cell and an oil cell.
+        if b.has(flags::GATHER) && b.has(flags::FLAT) {
+            let good = crate::ai_place::gather_good(b.ident).map_or(-1, |g| g as i32);
+            let amount = usize::try_from(self.world.land_class_tile(t))
+                .ok()
+                .and_then(|i| crate::world::LANDS.get(i))
+                .and_then(|l| l.good.iter().position(|&g| g == good).map(|k| l.amount[k]))
+                .unwrap_or(0);
+            if amount == 0 {
+                return Blocked::NoResources;
+            }
         }
         Blocked::Clear
     }
