@@ -37,6 +37,17 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 915, 2026-09-27 — the repeat launch's edges
+
+(929) **The helicopter's over-the-limit arm** in `Build::train`
+(`num_aircraft_here > num_aircraft_limit`): read, no capture.
+
+(930) **`do_launch`'s walk ending at a launch**: built and tested; no
+capture has two planes full on one call.
+
+(931) **The launch's `returning` clear has no test that fails without
+it** (918's shape).
+
 ## Parked by item 919, 2026-09-27 — the pasture's edges
 
 (924) **`find_any_building`'s cell-circle walk** against this crate's walk
@@ -142,9 +153,6 @@ answer, and its journal). The AI lane's: `group.rs`'s pool record.
 
 ## Parked by item 867, 2026-09-26 — the repeat line's edges
 
-(876) **`do_launch`'s repeat arm, the launch half**: built by 867, and no
-capture measures it (chapter twenty-three measures the kill).
-
 (878) **A carrier's `0x200000`** in `build_masks`: unread, unbuilt.
 
 ## Parked by item 865, 2026-09-26 — the pool's other arms
@@ -202,10 +210,6 @@ East Indies 17753..18176, which no dump compares; it carries the purse
 one over on 18511. Names no score yet.
 
 ## Parked by item 836, 2026-09-26 — the launch line's edges
-
-(843) **Trained aircraft leave through the same EXIT** at an Airbase
-(`come_out`'s tail, built by 836). No capture trains one, and the long
-captures' word windows hold no Airbase. Names no score.
 
 (844) **A landed patrol with no action bit**: at the next full tank
 `do_launch` kills it. No capture reaches it. **854's reading corrects
@@ -672,7 +676,9 @@ residue); its order's `facing` 0 against 1, inherited from the scout's
 first-block row; the scout's `avg_speed` 25/24 against 18/18 and its
 `stopped[1]` 0 against 1. 657 read the `form` residue: `Unit::init@00612100`
 writes `+0xaa` as 9 for types `0x32`–`0x35` and 0 otherwise, and `+0xab`
-as −1; building it re-pins `form` rows across a dozen widenings. **882
+as −1; building it re-pins `form` rows across a dozen widenings. **915
+adds** a trained aircraft's birth point, (11640, 13944) against the
+base's own (chapter twenty-nine). **882
 adds** `Unit::init`'s tile-centred point (`div_3(x>>4)*0x30+0x18`), which
 a follower keeps as `orders_x/y` on its birth block: 12 of chapter
 twenty-four's 25 rows, and run251's `1/71`/`1/72` on 17575. The human's census still does not run
@@ -1492,6 +1498,17 @@ at its merge): the building behind a stocking draw is named by diffing
 branch** (919's Loop line, filed at its merge): a decompiled loop body
 duplicated per branch draws at a different address on each, so the table
 misses the other until that branch first fires.
+
+(932) **GOLDEN §14's table is at the section ceiling** (915's Loop line,
+filed at its merge): three bytes under 16,000 after chapter twenty-nine's
+row, so the next chapter's row does not fit. The table wants a split;
+until then a chapter's row goes in a continuation section its worker
+names.
+
+(933) **A premise that names a callee's tail cites the caller's branch**
+(915's Loop line, filed at its merge): 843's "leaves through the same
+EXIT" named `come_out`'s tail; one grep of the caller, `Build::train`,
+showed the callee is never reached at a hangar.
 
 
 
