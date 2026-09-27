@@ -812,7 +812,12 @@ recorded stream's `Unqueue` goes through it (no kept stream carries one).
 unit type whose availability bit is clear, or a building type with
 `build_flags & 4`. `docs/GOLDEN.md` §35 is the chapter; the arm below is
 read off the listing and run under the emulator with `Build::queue_up`
-stubbed, and says when a capture backs it.
+stubbed. **run296 backs it** on who=0's Library: one entry on an idle
+Library (622), a second press refused by `researching` (642), the second
+pass behind a busy head (652), a held technology refused by `can_make`
+(852), the Science re-price and the cancel of the re-priced entry (1023,
+1042), and the same technology queued again at the science discount
+(1062). The `num` clause and a two-member group are the emulator's alone.
 
 ```
 sort the members by queued, least first          # as the train arm
