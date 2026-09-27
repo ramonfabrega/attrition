@@ -73,6 +73,76 @@ pub const TRACES: &[&str] = &[
     // and `Setup::large_city_buildings`, the two of row 4's nine that a solo
     // lobby reaches.
     "rontrace-run316.log",
+    // Item 934's captures: the issuer chapters' scripts under `cover=1`,
+    // the `@` guard reading through the coverage jmp (`docs/RUNS.md`
+    // run318 onward). run318 is chapter twenty-three's, run314 again.
+    "rontrace-run318.log",
+    "rontrace-run319.log", // ch10
+    "rontrace-run320.log", // ch11
+    "rontrace-run321.log", // ch12
+    "rontrace-run322.log", // ch13
+    "rontrace-run323.log", // ch14
+    "rontrace-run324.log", // ch15
+    "rontrace-run325.log", // ch16
+    "rontrace-run326.log", // ch17
+    "rontrace-run327.log", // ch18
+    "rontrace-run328.log", // ch19
+    "rontrace-run329.log", // ch20
+    "rontrace-run330.log", // ch21
+    "rontrace-run331.log", // ch24
+    "rontrace-run332.log", // ch25
+    "rontrace-run333.log", // ch26
+    "rontrace-run334.log", // ch27
+    "rontrace-run335.log", // ch28
+    "rontrace-run336.log", // ch29
+    "rontrace-run337.log", // ch30
+];
+
+/// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
+/// 953). Each is a `CommandManager::issue_*` out-of-line copy that nothing
+/// in the executable calls or points at (item 940's scan): the game's
+/// right-click reaches the inline twin in `GroupOut`, `BuildOut` or
+/// `UnitOut`, and only the DLL's `@` line calls this address. A capture
+/// under `cover=1` entered each, and so it left the blind list; what that
+/// entry checked is the issuer's body as the instrument calls it, never a
+/// path the game takes. Counted apart so the blind list's shrink says how
+/// much of it is the game's own: 77 off with item 934, 69 of them the
+/// game's. The other three of 940's eleven — `issue_attack_ground`,
+/// `issue_gather`, `issue_come_out` — no chapter issues, and they stay on
+/// [`NEVER`].
+pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
+    (
+        0x0094_1580,
+        "CommandManager::issue_form: run323, chapter fourteen's `@form`",
+    ),
+    (
+        0x0094_1800,
+        "CommandManager::issue_patrol: run319, chapter ten's `@patrol`",
+    ),
+    (
+        0x0094_1910,
+        "CommandManager::issue_set_transport: run329, chapter twenty's `@settransport`",
+    ),
+    (
+        0x0094_1a70,
+        "CommandManager::issue_garrison: run322, chapter thirteen's `@garrison`",
+    ),
+    (
+        0x0094_1e70,
+        "CommandManager::issue_follow: run321, chapter twelve's `@follow`",
+    ),
+    (
+        0x0094_1ed0,
+        "CommandManager::issue_guard: run320, chapter eleven's `@guard`",
+    ),
+    (
+        0x0094_1f80,
+        "CommandManager::issue_buildmask: run318, chapter twenty-three's `@buildmask`",
+    ),
+    (
+        0x0094_2c40,
+        "CommandManager::issue_unqueue (the building overload): run332, chapter twenty-five's `@unqueue`",
+    ),
 ];
 
 /// Every cited function no trace in [`TRACES`] enters, ascending — the
@@ -82,48 +152,38 @@ pub const TRACES: &[&str] = &[
 /// `Setup::large_city_buildings` off), **228** with item 928's three
 /// citations (`CommandManager::issue_gather_point`, `CommandPackage::
 /// process_gather_point`, `Group::action_gather_point`: an issuer chapter's,
-/// which `cover=1` refuses, as run314 found). `docs/CENSUS.md`'s "The blind
-/// list, ranked" groups it by the staging that would enter each family.
+/// which `cover=1` refuses, as run314 found), **151** with run318–337
+/// (item 934: the issuer chapters under `cover=1`, 77 off, eight of them
+/// [`ENTERED_BY_THE_DLL_ONLY`]). `docs/CENSUS.md`'s "The blind list,
+/// ranked" groups it by the staging that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90, 0x0047_0e50, 0x0047_11e0,
-    0x0047_2410, 0x0047_80c0, 0x0047_da40, 0x0047_fa40, 0x0047_fd80, 0x0047_fff0,
-    0x0048_2720, 0x0048_2cf0, 0x0048_2dd0, 0x0048_41f0, 0x0048_45c0, 0x0048_46f0,
-    0x0048_4820, 0x0048_5140, 0x0048_5a60, 0x0048_6ba0, 0x0048_89a0, 0x0054_cea0,
-    0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_30c0,
-    0x005a_ac70, 0x005a_bc70, 0x005d_9950, 0x005e_1f20, 0x005e_2bd0, 0x005e_3310,
-    0x005e_3400, 0x005e_35e0, 0x005e_3df0, 0x005e_3f60, 0x005e_4080, 0x005e_4560,
-    0x005e_4c80, 0x005e_4d10, 0x005e_4ff0, 0x005e_5bf0, 0x005e_65d0, 0x005e_6b80,
-    0x005e_75a0, 0x005e_8670, 0x005e_9be0, 0x005e_b960, 0x005e_d040, 0x005e_d1f0,
-    0x005e_e420, 0x005f_1910, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
-    0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140, 0x0060_a310,
-    0x0060_a600, 0x0061_a960, 0x0062_0280, 0x0062_06e0, 0x0062_2670, 0x0062_2ce0,
-    0x0062_2d10, 0x0062_2e70, 0x0062_3310, 0x0062_9e70, 0x0062_d430, 0x0062_d4d0,
-    0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e2a0, 0x0063_e390, 0x0064_40c0,
-    0x0064_5330, 0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_3a80, 0x0067_4370,
+    0x0047_80c0, 0x0047_da40, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60,
+    0x0048_89a0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440,
+    0x0058_7060, 0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005e_1f20, 0x005e_3310,
+    0x005e_3400, 0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0,
+    0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0,
+    0x005f_d080, 0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140,
+    0x0060_a310, 0x0060_a600, 0x0061_a960, 0x0062_2670, 0x0062_2ce0, 0x0062_2d10,
+    0x0062_3310, 0x0062_9e70, 0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390,
+    0x0063_e390, 0x0064_40c0, 0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370,
     0x0067_b800, 0x0068_3730, 0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0,
     0x006b_4230, 0x006b_46b0, 0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0,
-    0x006d_5230, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_0f30,
-    0x006e_c170, 0x006f_0230, 0x006f_2c90, 0x006f_49a0, 0x006f_4af0, 0x006f_b260,
-    0x006f_c9a0, 0x006f_d510, 0x006f_e1a0, 0x006f_f1b0, 0x0070_0010, 0x0070_0490,
-    0x0070_0b90, 0x0070_20c0, 0x0070_24b0, 0x0070_30c0, 0x0070_6d90, 0x0070_7220,
-    0x0070_7510, 0x0070_84c0, 0x0070_8620, 0x0070_8820, 0x0070_88e0, 0x0070_8980,
-    0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_95e0, 0x0070_ad10, 0x0070_afc0,
-    0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_0b40, 0x0071_3390, 0x0071_37f0,
-    0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740, 0x0071_dfd0,
-    0x0072_15b0, 0x0072_1c40, 0x0073_6820, 0x0073_c7e0, 0x0073_d070, 0x0073_e000,
-    0x0073_e0c0, 0x0073_e350, 0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70,
-    0x0094_1580, 0x0094_15e0, 0x0094_16b0, 0x0094_17a0, 0x0094_1800, 0x0094_1860,
-    0x0094_1910, 0x0094_1960, 0x0094_1a20, 0x0094_1a70, 0x0094_1b20, 0x0094_1b80,
-    0x0094_1be0, 0x0094_1c30, 0x0094_1ca0, 0x0094_1d40, 0x0094_1e70, 0x0094_1ed0,
-    0x0094_1f80, 0x0094_2c40, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0, 0x0094_66f0,
-    0x0094_7680, 0x0094_78a0, 0x0094_79c0, 0x0094_7db0, 0x0094_7fe0, 0x0094_8110,
-    0x0094_8230, 0x0094_8340, 0x0094_8510, 0x0094_8760, 0x0094_8cb0, 0x0094_8e00,
-    0x0094_8f60, 0x0094_9140, 0x0094_9380, 0x0094_94a0, 0x0094_95c0, 0x0094_9970,
-    0x0094_9ae0, 0x0094_9c30, 0x0094_9d90, 0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90,
-    0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_8ac0, 0x009e_18b0, 0x009f_45e0,
-    0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0,
-    0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a4_69f0,
+    0x006d_5230, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170,
+    0x006f_0230, 0x006f_2c90, 0x006f_49a0, 0x006f_4af0, 0x0070_0010, 0x0070_0b90,
+    0x0070_20c0, 0x0070_84c0, 0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10,
+    0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0,
+    0x0070_beb0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470,
+    0x0071_c500, 0x0071_c740, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_6820,
+    0x0073_c7e0, 0x0073_d070, 0x0073_e000, 0x0073_e0c0, 0x0073_e350, 0x0082_c520,
+    0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0, 0x0094_1860, 0x0094_1960,
+    0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0, 0x0094_8cb0, 0x0094_8e00,
+    0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0, 0x0094_9ed0, 0x0094_c1c0,
+    0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_8ac0, 0x009e_18b0,
+    0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_bb80, 0x009f_bd60,
+    0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0,
+    0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
@@ -526,6 +586,30 @@ mod tests {
              read the site (`report.py <exe> refs`) and fix the row:\n{}",
             failures.join("\n")
         );
+    }
+
+    /// **A function entered only by the DLL is off the blind list and
+    /// unreferenced in the image**: were the game to call one, it would
+    /// not belong apart; were it back on [`NEVER`], a trace stopped
+    /// entering it.
+    #[test]
+    fn what_only_the_dll_enters_is_off_the_list_and_unreferenced() {
+        for (a, why) in ENTERED_BY_THE_DLL_ONLY {
+            assert!(!NEVER.contains(a), "`{why}` ({a:08x}) is back on NEVER");
+        }
+        let Some(root) = crate::testenv::install_root() else {
+            eprintln!("skipping the image half: no install (set RON_INSTALL)");
+            return;
+        };
+        let pe = crate::pe::Pe::open(&format!("{root}/riseofnations.exe"))
+            .expect("riseofnations.exe is a PE file");
+        for (a, why) in ENTERED_BY_THE_DLL_ONLY {
+            let sites = pe.references(*a);
+            assert!(
+                sites.is_empty(),
+                "`{why}` ({a:08x}) is referenced at {sites:08x?}"
+            );
+        }
     }
 
     /// **The `@` issuer guard reads through the coverage `jmp`** (item
