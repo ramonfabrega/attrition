@@ -9426,3 +9426,94 @@ exited 0. The dump's `GAME INFO` reads `DIFFICULTY 0`.
 
 **No falsifier fired.** Every value the prototype predicted is the
 original's on its block.
+
+## run348 — the held-out map measured again, in run33's shape (2026-09-27, item 972)
+
+**Map 9, Himalayas, measured once more and read no further.** DECISIONS
+53 §4 asked for this capture because run106's 1 was comparable to the
+floors in kind and not in provenance (parked 372): it ran on the
+click-free lane's own lobby and its window opened at frame 1. run106's
+dump is not on disk any more, so the harness is the only thing this run
+is set against. As with run106, no item is opened on it and nothing was
+debugged against it. The number below comes from one invocation on
+`4bf865b7`.
+
+**How it was taken.** `longtrace.sh` through `runqueue.sh - 972` under
+`viadriver.sh`, the stanza in `tools/gamelog/captures.txt`. Seed 12345,
+run10's detail exactly (`[Start Game] WORLD=6 TERRAIN=2 GOODS=3 UNITS=3
+BUILDS=7 CITIES=5 GUYS=2 LEADERS=9 DEATHS=1`, `[End Frame] MISC=1 UNITS=3
+BUILDS=7 CITIES=5 GUYS=2 DEATHS=1 LEADERS=1`), the cheap window `[0,
+1900)`, `5 !ffwd 30`, `1850 !quit`, `cover=1`, no input. All of these are
+`longtrace.sh`'s defaults, so the stanza overrides only the map (`mapstyle:
+9`, `cfg: -`) and `poll_max`. It ran in one take, from 16:27:25 to 16:38,
+with the start clicked at 16:28:20 and the dump settled at 16:38:04.
+The dump is 183,935,994 bytes with 1,851 blocks and the trace is
+11,920,800 bytes. The DLL is sha256 b451aeb6…3dca, run318's, the build
+run341 and run342 ran; `stamp.py` found no stamp and had nothing to refuse
+on a stanza with no `@`. The disk had 31 GB free before the launch and 32
+GB after (`df -g ~`, 97 per cent both times; other lanes write to it too).
+The profile and `check.ini` were copied before the launch and put back
+after it, once the lane was idle. `mapstyle.py` writes the profile's style
+and nothing restores it by itself.
+
+**The lobby is run39's, and `-config` could not have taken it.** run33's
+literal lobby path, `-config check.ini`, pins the style at 14 whatever any
+file says (`docs/ORACLE.md`, "The lobby is a file"), so on that path a
+capture can only ever be Great Lakes. The lever that does take a map is
+the profile's `<SETTINGS><MAP_STYLE>`, read by the lobby without
+`-config`. That is the East Indies floor's own path (run39), and it is
+`longtrace.sh`'s default for any style but 14. `DIFFICULTY` was 0 in
+both of the profile's lobby blocks before the launch. The dump's own
+`GAME INFO` confirms it: its 85 lines, both players, tribes and leaders
+included, are **run39's line for line except `MAP_STYLE 9`**. Against
+run33 they differ in `MAP_STYLE` and in two `Player` name lines. Seed
+12345 and `DIFFICULTY 0` both read back.
+
+**How this differs from run106 in provenance.** The lobby is the scored
+runs' (run39's), where run106's was the click-free lane's (`-automation
++skipIntro`). The window and length are run33's and run39's, `[0, 1900)`
+to `!quit` at 1850, where run106 ran 1,900 blocks over `[1, 1901]`. The
+capture is `longtrace.sh`'s, at run33's detail and with a `cover=1`
+trace. **One difference to the scored runs remains, and it is on the
+harness side, not the capture's.** East Indies is scored with run38, a
+`DUMP_ALL` start dump, as its sibling for the height table, and Great
+Lakes with run12 and run13. Map 9 has no sibling, so the harness stands
+this world up flat (`note: world: … no height table (flat)`). Himalayas
+is the map where that matters most. Nothing here says whether it
+decides the frame-1 parting, and by rule nothing was run to find out.
+
+```
+rondata <install> --gamelog gamelog-run348-himalayas-longtrace.txt \
+        --trace rontrace-run348.log --diff        # on 4bf865b7
+
+  note: player 1: personality rolled from the trace's Leader::init state 0xf4984e3b, landing on 0xcbe2f7af as the original did
+  note: rng: seeded 0x477d3618 from the trace's last checkpoint (game.cpp 5024, CHECKSUM 1031)
+  1851 frames stepped, 27723 unit-frames compared, 2122 unit-frames the sim has no unit for
+  ticks before divergence: 1
+  [ok] every starting citizen's derived GATHER target matches the one the original issued
+       10 citizens, derived from §9.3 without reading the log: 0/1→2001 0/2→2001 0/3→2002 0/4→2003 0/5→2004 1/1→2001 1/2→2001 1/3→2002 1/4→2003 1/5→2004
+  units that diverge, as who/o@frame — everything else tracked to the end: 0/1@490 0/2@432 0/3@237 0/4@103 0/5@103 1/0@2 1/1@2 1/2@2 1/3@103 1/4@103 1/5@103 1/6@114 1/7@209 1/8@323 1/9@1497 1/10@1626
+  mylos: 27723 unit-frames compared, 2231 disagreements
+    who 1 o 0: first at frame 202, ours 6, the log has 4 (1650 frames)
+  order lists: 27723 unit-frames compared, 41488 order disagreements, 14065 path-stack disagreements
+  ticks before an order diverges: 0
+  by kind: coll 232, flags 5, gather 20606, kind 4251, length 3508, move 11821, path-field 236, path-length 4922, path-to 8907, target 1065
+  who 1 o 0: first order disagreement at frame 1 — Move { field: "x", ours: 44280, theirs: 39672 }
+  player 0: first divergence at frame 103 — unit o 4 ours (6552, 29064) theirs (6565, 29044)
+  player 1: first divergence at frame 2 — unit o 0 ours (41913, 15772) theirs (41883, 15802)
+```
+
+**The number: ticks 1, orders 0**, against the floors `EastIndies
+1851/1850` and `GreatLakes 1772/1772`. That is run106's number again.
+**The first breaker is player 1's unit 0, the AI's scout: its move order's
+`x` is 44,280 here against the log's 39,672 on frame 1**, and its position
+parts on frame 2 (ours (41913, 15772), theirs (41883, 15802)). The log's
+39,672 is run106's value too. This crate's side was 42,744 there. The
+derived opening GATHER targets are again exact for all ten citizens. Nine
+`unlinked` units from frames 1214, 1603 and 1838 are the AI's trained
+units, 2,122 of the unit-frames.
+
+**It parts inside its first 1,850 frames, on its first.** DECISIONS 53
+§4 makes that fact the booking of a third *scored* map at the next pass:
+a different map, with this one staying held out. The booking is the
+pass's.
