@@ -37,6 +37,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 890, 2026-09-26 — the price's edges
+
+(905) **`get_cost`'s building branch past the wonder arm**: the military
+and fort escalations and the Indian arm. Not built; no word names them.
+
+(906) **`get_unbuilt_wonders` is read off the buildings** here, not off
+the original's list. Agrees on every capture so far.
+
 ## Parked by item 883, 2026-09-26 — the research line's edges
 
 (902) **run296's cached `mylos` row on 1023** is a second witness of
@@ -1403,6 +1411,11 @@ the block** (883's Loop line, filed at its merge): falsifier 2 offered
 "two entries" for `num`, but `researching` refuses the second lay whatever
 `num` does, so the mutation that reads `num` fails nothing. A falsifier's
 reading can be foreclosed by another gate on the same block.
+
+(907) **A mutation's restore commits first** (890's Loop line, filed at
+its merge): a checkout restore reverted 890's uncommitted fix, which it
+re-applied. The brief checklist's row (784) reads as licence to do that;
+it should say commit, then mutate, then restore.
 
 
 
