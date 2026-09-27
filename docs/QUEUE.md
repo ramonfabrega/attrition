@@ -19,8 +19,9 @@ Great Lakes 20568 → 24000 (795, 899) and East Indies 20007 → 24000 (880,
 and 295,910 draws, asserted), and both endpoints are 0 off. What stands
 is value residue: 293 rows on East Indies' 23960 and 310 on Great Lakes',
 each standing since before its last word. **Chapters twenty-five to
-twenty-nine closed.** The AI lane's next direction is DECISIONS 29's to
-settle (923).*
+twenty-nine closed.** The AI lane turns to the blind list (923), the
+commander's call on the user's word, 2026-09-27; the next pass may
+overturn it.*
 
 - **The mechanisms**, each landed with its value diff: 915 a trained
   aircraft stays in its Airbase (`Build::train`'s CARRY_AIR arm); 919 an unstarted
@@ -37,11 +38,10 @@ Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · 928 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: 928 on the rules lane: the gather point, a new DLL verb, the
-emulator first, then run312; GOLDEN §14's table is at its ceiling (932).
-The AI lane waits on 923's direction: both long words are at the trace's
-end. A brief names only the fenced modules; a journal's "for the Loop"
-line is filed at its merge. The count runs from f0b9d296: twelve.**
+**Opener: 928 on the rules lane (the gather point, run312) and 923 on
+the AI lane (the blind list, run314); merge each when it reports.
+`cover=1` works on the queue lane only (697). A brief names only the
+fenced modules. The count runs from f0b9d296: twelve landings.**
 
 ## The queue
 
@@ -51,13 +51,13 @@ lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-923. **Both long words are closed at 24000: the end frame's residue, or
-    DECISIONS 29's next counter.** The widening of the closed frame is
-    the value residue: 293 standing rows on East Indies' 23960 (run96)
-    and 310 on Great Lakes' (run80), and the one torn unit at 24001. The
-    alternatives are entry 29's counters 2 and 3, the blind list by
-    targeted captures and the widening ledger to zero. **A direction
-    call** for the user or the steering pass; not spawned until then.
+923. **The blind list toward an enumerated residue** (DECISIONS 29,
+    41): both long words are closed at 24000, so the AI lane measures the
+    cited-never-entered functions (census 2026-09-25: cited 1,069,
+    entered 7,180, three traces), ranks them by family, and takes the
+    first targeted `cover=1` capture on the queue lane, **run314**, most
+    likely a golden chapter's script re-run. The commander's call on the
+    user's word; the value residue (293 and 310 standing rows) waits.
 
 928. **Chapter thirty: the gather point — an issuer with no DLL verb, no
     capture yet** (915's park). `issue_gather_point` sets a building's
