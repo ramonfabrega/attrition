@@ -8237,3 +8237,13 @@ check: python3 tools/gamelog/cmdsran.py rontrace-run342.log 0:1 37:1 600:1 604:1
 # both `@` lines issued, and refused nothing.
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" summary | python3 -c "import re,sys; r=[int(m.group(1),16) for m in re.finditer(r'INFO 17\s+0x[0-9a-f]+\s+(0x[0-9a-f]+)', sys.stdin.read())]; print('INFO 17 line|refusal:', [hex(v) for v in r]); sys.exit(not (len(r)==2 and all(v>>16==0 for v in r)))"
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run342.log" functions 2>/dev/null | grep -E " (Caravans::new_danger|Caravan::restart_trade_route|Caravans::close_caravan|Object::take_damage)$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+# ==== TAKEN 2026-09-27, one take, **WHOLE; NEW_DANGER NOT ENTERED** ====
+#
+# 09:44:01 to 10:01 through `viadriver.sh`. DLL sha256 b451aeb6…3dca. Every
+# asserted chat line returned 1; both `@` lines issued, refusal 0. The
+# Tower shot the caravan on London's ground (damage 0 → 12 on 913, 12 a
+# shot), the hoplites joined, it died on 1209 (`close_caravan`); neither
+# `new_danger` nor `restart_trade_route` entered. So the building arm's
+# attacker is not simply the object that fired; what `Object::do_damage`
+# passes there for an arrow is not established, and a hit on unowned or
+# enemy ground is untried (`docs/CENSUS.md`, "item 959").

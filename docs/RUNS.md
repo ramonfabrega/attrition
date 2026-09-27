@@ -9300,10 +9300,31 @@ refusal 0.
 | `Caravans::close_caravan` | 1458, the attack's kill |
 | `Caravans::new_danger`, `Caravan::restart_trade_route` | **no** |
 
-The listing says why (`00652e97..00652f41`): on the caravan owner's own or
-an ally's ground, `take_damage` calls `new_danger` only for an attacker
-whose vtable `+0x1c` answers non-zero, which `Build` and `Wall` do and
-`Unit` never does; the hoplites hit the caravan on London's ground
-(`docs/CARAVAN.md` §10.4, amended). run342 adds a Tower.
+The listing's reading of why (`00652e97..00652f41`): on the caravan
+owner's own or an ally's ground, `take_damage` calls `new_danger` only when
+the object its arguments 7 and 8 name answers vtable `+0x1c` non-zero, which
+`Build` and `Wall` do and `Unit` never does; the hoplites hit the caravan
+on London's ground. run342 tried a Tower, and that reading did not hold
+(below; `docs/CARAVAN.md` §10.4, amended).
 `rondata::blind::TRACES` carries run341; the blind list 151 → 147 with
 both.
+
+## run342 — run341 and a Tower beside the caravan's road: `new_danger` still not entered (2026-09-27, item 959)
+
+**What it is.** run341's stanza and one line, `add tower who=0 216,104` on
+880, two to four tiles west of the road between London and the Small City;
+a Tower has one base arrow, range 10. The number was reserved for 947 and
+moved by the commander. The same DLL.
+
+**Taken** 09:44:01–10:01 in one take; every asserted chat line returned 1,
+both `@` lines issued with refusal 0. The Tower shot the caravan on
+London's ground: its `damage` goes 0 → 12 on 913 and climbs by the Tower's
+12 a shot, the hoplites joining from ~1030, until it dies on 1209
+(`Caravans::close_caravan`, `Object::take_damage` first on 903). **Neither
+`Caravans::new_danger` nor `Caravan::restart_trade_route` was entered**, so
+the second arm's attacker is not simply the object that fired, and what
+`Object::do_damage` passes as arguments 7 and 8 for an arrow is not
+established; the first arm, a hit on unowned or enemy ground, is untried.
+run342 enters nothing run341 does not; `rondata::blind::TRACES` carries it
+so the pin records the attempt.
+

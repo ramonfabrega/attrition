@@ -97,9 +97,11 @@ pub const TRACES: &[&str] = &[
     "rontrace-run336.log", // ch29
     "rontrace-run337.log", // ch30
     // Item 959's captures: a staged economy for row 6 (`docs/RUNS.md`
-    // run340, run341).
+    // run340–run342). run342, a Tower's arrows on the caravan, enters
+    // nothing run341 does not.
     "rontrace-run340.log",
     "rontrace-run341.log",
+    "rontrace-run342.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
