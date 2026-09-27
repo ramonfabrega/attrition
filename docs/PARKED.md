@@ -1532,6 +1532,25 @@ eighty-six more stood beside them; `rondata::blind` reads the corpus now.
 Loop line): the next pass's census regenerates from `rondata::blind`'s
 `TRACES`, not the three-trace recipe.
 
+(941) **A gamelog check never anchors `$`**: the lines end in `\r`
+(935's Loop line, filed at its merge); run316's first two checks failed
+on right values, and `grep -q` closing its pipe early can trip
+`runqueue.sh`'s `pipefail`.
+
+(942) **The census recipe splits on the install path's spaces** (935's
+Loop line): `$(for …; echo "$LOGS/…")` breaks on `Microsoft Games/Rise of
+Nations`, so it has never run as written on this machine.
+
+(943) **A supporting `name@addr` citation joins the blind list** (935's
+Loop line): a document citing an address for context grows the list, so
+it chooses between the address and the pin.
+
+(944) **A reading that cites a function with no reference in the
+executable says so, and a `report.py` verb scans for it** (935's Loop
+line): five cited functions have none; a rel32 and absolute-pointer byte
+scan settles it in seconds, and EMULATOR §4 had the answer for fifteen
+since 2026-09-01 while the ranked list was built without it.
+
 
 
 
