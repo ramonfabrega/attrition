@@ -164,7 +164,8 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `BuildData::get_first_gather` (`docs/GOLDEN.md` §40; run337 enters its
 /// `num_gather` and the gather list's `add`, not this), **148** with run340
 /// and run341 (item 959: row 6's staged economy, `lumber_level`,
-/// `resource_cap_add`, `replace_gather` and `close_caravan` off).
+/// `resource_cap_add`, `replace_gather` and `close_caravan` off), **149**
+/// with item 947's `Group::action_launch_flight` (`docs/GOLDEN.md` §41).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -185,7 +186,11 @@ pub const NEVER: &[u32] = &[
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
     0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
-    0x006f_49a0, 0x006f_4af0, 0x0070_0010, 0x0070_0b90, 0x0070_20c0, 0x0070_84c0,
+    0x006f_49a0, 0x006f_4af0,
+    // Item 947, `docs/GOLDEN.md` §41: `Group::action_launch_flight@006fbfb0`,
+    // action 3's route at an Airbase, which no chapter stages.
+    0x006f_bfb0,
+    0x0070_0010, 0x0070_0b90, 0x0070_20c0, 0x0070_84c0,
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,

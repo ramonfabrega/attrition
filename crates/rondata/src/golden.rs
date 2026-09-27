@@ -1427,6 +1427,10 @@ mod tests {
         // `add_to_end` 1), three `@queueup` and one `@build`: the gather
         // point's other arms (item 955, `docs/GOLDEN.md` §40).
         ("chapter31.cmd", &[]),
+        // Chapter thirty-two: chapter twenty-nine and three `@gatherpoint`
+        // lines on the Airbase, one an append and one the Clear: an
+        // Airbase's gather point (item 947, `docs/GOLDEN.md` §41).
+        ("chapter32.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
