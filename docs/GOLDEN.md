@@ -6252,3 +6252,20 @@ figure's `x`/`y` ((11424, 13920), (11640, 13944)), `heading`,
 `pos` — the EXIT here, and `Unit::init`'s seat there. The pool agrees
 but for chapter twenty-two's ten rows: the press's `[2007]` is seated on
 1542 by both.
+
+**The arm built: `GOLDEN_WORD_CHAPTER_TWENTY_NINE` = 2070, closed** (item
+915, `docs/PRODUCTION.md` "The trained aircraft", `Sim::build_train`'s
+hangar test; and `do_launch`'s walk ending at a launch, `docs/ORDERS.md`
+§41.3, which no capture reaches). **The value diff on 1746, both sides**
+(ours before the build in brackets): `0/9` `inside` 2007 (−1), `idle` 0
+(1), `heading` and `dest_angle` 0x55555555 (0), `z` 0 (157), the figure's
+clock 0/0/−1 (1/8/0), no order, `mana_burn` 0 (0, then +1 a block); every
+row after 1746 agrees — 1814..1828's counter among them — and the draw
+stream to run308's end. The widening goes **262 → 17 rows**: chapter
+twenty-two's nine, and the Biplane's `form` and point on 1746, ours
+(11616, 13920) the base's own against (11640, 13944) — `Unit::init@
+00612100`'s seat (parked 646), its one writer. `GROUND_INEXACT` 39 → 38:
+the Biplane's EXIT read is gone. **Mutations**, each restored from git and
+`touch`ed: the hangar arm dropped fails the new unit test and re-parts
+run308 on 1745; the walk carried on after a launch fails
+`a_launch_ends_the_walk_along_the_base_s_chain` alone.

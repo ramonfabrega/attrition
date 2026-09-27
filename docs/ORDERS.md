@@ -7536,13 +7536,16 @@ and `last_pitch` 0.0, `avg_speed` 25, the unit one step north at (11424,
 - SEAMs: `MISSILE_DEFENSE_BONUS`, `war_allowed`, the `NUCLEARMISSILE`
   arm and a missile silo's `do_missile_launch`; the base's vslot `0xf0`
   in `do_launch` (in `land_plane` it is built, §40);
-  a strafe home to another, full base turned `AirPatrolOrder`; two planes
-  launched from one base in one call (`launching` holding the second);
+  a strafe home to another, full base turned `AirPatrolOrder`; ~~two planes
+  launched from one base in one call (`launching` holding the second)~~
+  (a launch ends the walk, §41.3);
   a helicopter's EXIT (two draws, 200 over the ground); the heal inside
   (`aircraft_heal_rate`); a carrier's launch from `Unit::work`.
-- **Trained aircraft** leave an Airbase through the same EXIT. No
+- ~~**Trained aircraft** leave an Airbase through the same EXIT. No
   capture has trained one; the long captures have no Airbase in their
-  word windows.
+  word windows.~~ **They do not leave**: `Build::train`'s `CARRY_AIR` arm
+  calls no `come_out`, and the plane waits inside with no order (run308,
+  item 915, `docs/PRODUCTION.md` "The trained aircraft").
 
 ## 39. The strafer: half the altitude on a strike, and an exact round (item 842, 2026-09-26)
 
@@ -7829,9 +7832,10 @@ and the harness's `@buildmask`.
   on 1585. No falsifier of §32 fired.
 - **Diff-backed**: the toggle (the harness's `build_masks & 0x80` against
   `repeat_air`), both landings off the non-repeating base, and the kill
-  at a full tank. **Reading only**: the launch under the bit (no capture
-  has a repeating base at a plane's full tank), and the toggle on more
-  than one member.
+  at a full tank; **and the launch under the bit**, by run308 (item 915,
+  `docs/GOLDEN.md` §38). **Reading only**: ~~the launch under the bit (no
+  capture has a repeating base at a plane's full tank), and~~ the toggle
+  on more than one member.
 
 ### 41.1 `Group::action_buildmask`
 
@@ -7873,8 +7877,20 @@ and the draw stream by 1616).
 
 ### 41.3 What is not established
 
-- The launch half: an unflagged order flown out of a repeating base at a
-  full tank. run265 ends at 1500, before `0/6`'s tank fills.
+- ~~The launch half: an unflagged order flown out of a repeating base at a
+  full tank. run265 ends at 1500, before `0/6`'s tank fills.~~ **Measured
+  by run308** (item 915, `docs/GOLDEN.md` §38): `0/6`, `0/7` and `0/8`
+  each fly out on the block their tank first reads 0 (1585, 1789, 1813),
+  the kept patrol on the stack with flags 0 and `returning` 0, and the
+  widening agrees whole on all three.
+- **The walk ends at a launch** (item 915, under the emulator and from the
+  listing): `do_launch` reads the chain's next link from the launched
+  plane's own `inside_down` (`64f806`) after `come_out`, and
+  `Object::remove_from_inside` has stored −1 there, so no plane behind a
+  launch is walked on that call — not killed, not added to `launching`.
+  Built; `air::launch_tests::a_launch_ends_the_walk_along_the_base_s_chain`
+  fails with the walk carried on. No capture has two planes full on one
+  call, so no diff backs it.
 - The toggle on a selection of several buildings, and a unit selection's
   `0x200000` (a carrier's repeat, `UnitData::has_repeat_air@0046cec0`).
 - The building group's pool slot (§41.1), and whether a later push reuses
