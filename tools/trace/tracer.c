@@ -551,6 +551,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         per building
  *   `@gatherpoint <who> <x> <y> <action> <b> [<b> ...]` building ids,
  *                                         issue_gather_point
+ *   `@gatherpointadd <who> <x> <y> <action> <b> [<b> ...]` the same with
+ *                                         add_to_end 1 (verb 20)
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -706,7 +708,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * 007c6630:3405`); on a friendly object its point and 1, an enemy's 2
  * (`execute_at_cursor:3497`); the Clear button −1, −1, 0, 0
  * (`Options::do_clear_gather@0071ce70`). `add_to_end` is the shift key's,
- * and the verb passes 0. The issuer tests nothing (under the emulator, 17
+ * and the verb passes 0; `@gatherpointadd` passes 1 (item 955). The issuer tests nothing (under the emulator, 17
  * bytes as passed): `Group::action_gather_point@006ff1b0` takes the
  * members at process time.
  *
@@ -788,7 +790,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
      * attack's and a repair's the target's, a form's the formation and
-     * the rotation; an eject has none. */
+     * the rotation; an eject has none. `@gatherpointadd` is verb 20 with
+     * `add_to_end` 1 (item 955), the shift-click that appends a point. */
+    i32 gather_add = 0;
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "patrol ")   ? 1
                : issue_verb(&t, "guard ")    ? 2
@@ -809,6 +813,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "buildmask ") ? 17
                : issue_verb(&t, "queueup ")  ? 18
                : issue_verb(&t, "unqueue ")  ? 19
+               : issue_verb(&t, "gatherpointadd ") ? (gather_add = 1, 20)
                : issue_verb(&t, "gatherpoint ") ? 20
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
@@ -948,7 +953,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
          * button's −1, −1, 0, 0. */
         typedef void(__thiscall *gather_point_fn)(void *, void *, i32, i32, i32, i32);
         ((gather_point_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
-                                          type, 0);
+                                          type, gather_add);
     } else if (verb == 19) {
         /* issue_unqueue(b, p) once per building: the cancel on a
          * selection of buildings, no group. */
