@@ -42,7 +42,7 @@ pub(crate) const HELICOPTER: crate::tech::TypeId = 0x136;
 const V2ROCKET: crate::tech::TypeId = 0x139;
 
 /// `NUCLEARMISSILE` (0x13b), the line it asks for a nuke (`6fc12e`).
-const NUCLEARMISSILE: crate::tech::TypeId = 0x13b;
+pub(crate) const NUCLEARMISSILE: crate::tech::TypeId = 0x13b;
 
 /// The flight command's modifiers as `Console::execute_at_cursor` reads
 /// them: shift (every plane), ctrl (bombers only), alt (fighters only).

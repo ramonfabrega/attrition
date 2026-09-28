@@ -83,6 +83,7 @@ pub mod merchant;
 pub mod mesh;
 pub mod movement;
 pub mod nations;
+pub mod nuke;
 pub mod orders;
 pub mod path;
 pub mod pivot;
@@ -1067,6 +1068,9 @@ pub struct Sim {
     pub phase_marks: Vec<(String, u32)>,
     /// Ammo in flight.
     pub projectiles: Vec<combat::Projectile>,
+    /// The nukes' effects and what a nuke writes on its shooter's leader
+    /// and silo (`crate::nuke`, item 1091).
+    pub nukes: nuke::Nukes,
     /// How many [`Sim::ground_z`] reads have touched a height corner that
     /// is not known to be the original's own single — one whose six-decimal
     /// print a neighbouring single shares, or one a terraform rewrote in
@@ -1518,6 +1522,7 @@ impl Sim {
             spells: Vec::new(),
             rng: combat::Rng::new(0),
             projectiles: Vec::new(),
+            nukes: nuke::Nukes::default(),
             ground_inexact: 0,
             deaths: Vec::new(),
             market: market::Market::default(),
@@ -4341,6 +4346,9 @@ impl Sim {
         // The tail of `Objects::process_all`: the birds' sampling every 32
         // frames and one herd's walk every 64 (`gaia.rs`).
         self.process_gaia(frame);
+        // `Objects::inc_time`'s first statement is `Nuke::do_damage`
+        // (`crate::nuke`, item 1091).
+        self.nuke_do_damage(frame);
         self.mark("guys_inc_time");
         // `Objects::inc_time`: every guy's animation clock first — leader
         // order, no rotation (`anim.rs`) — then the ammo list, then the

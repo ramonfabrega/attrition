@@ -3509,6 +3509,12 @@ impl Sim {
         {
             return;
         }
+        // **The nuke arm** (item 1091, `67846d`..`6785db`): a nuke's round
+        // strikes nothing where it lands; it lays the blast (`crate::nuke`).
+        if self.is_nuke(p.shooter) {
+            self.nuke_land(p, frame);
+            return;
+        }
         // Splash: everything on the square of cells the spiral table walks,
         // the intended target at full count and everything else as a fringe.
         let k = combat::splash_cells(p.splash_area);
