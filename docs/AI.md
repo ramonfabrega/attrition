@@ -10565,10 +10565,14 @@ live `2009` was compared with ours' dead frame-976 site.
   is named):
   - **East Indies 5606**: ours 4 draws, the original 5, parting at index
     0. Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
-    original spends `Unit::do_move+0xe84`. Widened on run357.
+    original spends `Unit::do_move+0xe84`. Widened on run357: the
+    block before the word parts on one key, `1/14`'s `order:move.dest`,
+    0 against 1.
   - **Great Lakes 4555**, **the lower**: ours 7, the original 3, parting at index 1.
     Ours spends `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` where
-    the original spends `Farms::inc_time+0x1ae`. Widened on run356.
+    the original spends `Farms::inc_time+0x1ae`. Widened on run356: on
+    the block before the word, `1/21` holds order kind 10 and two orders
+    here against a move (kind 2) and one there.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

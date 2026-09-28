@@ -474,9 +474,27 @@ mod tests {
             "run357 carries every key: {:?}",
             w.missing
         );
-        eprintln!(
-            "run357 first blocks: {:?}",
-            by.iter().take(4).collect::<Vec<_>>()
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The block before the word, 5605, parts on one key**
+        // (`docs/AI.md` §82.4): who=1's unit `1/14` has a move order whose
+        // `dest` reads 0 here against 1 there, and its path's third slot
+        // parts on the word's block. The original's extra draw on 5606 is
+        // `Unit::do_move+0xe84`. Block 5601 stands on 159 keys, the
+        // families the window opened on. No mechanism is named (DECISIONS
+        // 42).
+        assert_eq!(
+            row(1, 14, "order:move.dest").as_deref(),
+            Some(r#"5605: Move { field: "dest", ours: 0, theirs: 1 }"#),
+            "the unit's move, the block before the word"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(5601, 159), (5605, 1), (5607, 1)],
+            "the blocks keys first part on, the first three"
         );
     }
 
@@ -513,9 +531,32 @@ mod tests {
             "run356 carries every key: {:?}",
             w.missing
         );
-        eprintln!(
-            "run356 first blocks: {:?}",
-            by.iter().take(4).collect::<Vec<_>>()
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The block before the word, 4555** (`docs/AI.md` §82.4): who=1's
+        // `1/21` holds order kind 10 and two orders here against a move
+        // (kind 2) and one there, `orders_x` 9005 against 4824; on the
+        // word's frame ours spends `Unit::find_attack_pos < Unit::fight`.
+        // Its walk parts on 4556, and `1/23` takes the same order on 4568.
+        // Block 4550 stands on 86 keys, the families the window opened on.
+        // No mechanism is named (DECISIONS 42).
+        assert_eq!(
+            row(1, 21, "order:kind").as_deref(),
+            Some("4555: Kind { ours: 10, theirs: 2 }"),
+            "the unit's order, the block before the word"
+        );
+        assert_eq!(
+            row(1, 21, "orders_x").as_deref(),
+            Some("4555: ours 9005 theirs 4824"),
+            "and where it goes"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(4550, 86), (4555, 6), (4556, 9)],
+            "the blocks keys first part on, the first three"
         );
     }
 
