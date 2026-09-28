@@ -24,6 +24,24 @@ use crate::single::Single;
 use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE, vector_dist};
 use crate::{Player, Sim};
 
+/// `Object::find_nearby_target`'s fifth argument, the `flags` word
+/// (`docs/COMBAT.md` §12.2, §64). Only [`Sim::find_melee_target`] on an
+/// attack-move sets it ([`Sim::melee_search_flags`]).
+pub mod search {
+    /// `& 1`: units only (the candidate's vslot `+0x8`).
+    pub const UNITS: u32 = 0x1;
+    /// `& 2`: buildings only (vslot `+0x1c`).
+    pub const BUILDINGS: u32 = 0x2;
+    /// `& 0x10`: a candidate that is not a unit scores half.
+    pub const HALVE_NON_UNITS: u32 = 0x10;
+    /// `& 0x20`: a candidate that is not a `Build` (vslot `+0x20`) scores
+    /// half; a wall is not one.
+    pub const HALVE_NON_BUILDS: u32 = 0x20;
+    /// `& 0x20000`: a building must be armed (vslot `+0x120`), or under
+    /// [`BUILDINGS`] a wonder or a military trainer.
+    pub const ARMED: u32 = 0x20000;
+}
+
 /// What `check_target`'s guarding arm answers (`docs/COMBAT.md` §63.1).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum Leash {
@@ -2508,13 +2526,71 @@ impl Sim {
         } else {
             range
         };
-        self.find_nearby_target(me, radius)
+        let flags = self.melee_search_flags(i);
+        self.find_nearby_target_with(me, radius, flags)
+    }
+
+    /// **The search's `flags` word, which `find_melee_target` derives from
+    /// the searcher's own head order** (`docs/COMBAT.md` §64.1; the listing
+    /// `005ffc6a`–`005ffcde`). Every caller in the executable but
+    /// `do_move`'s passes 0; the word is rewritten only when the head
+    /// order is an `ATTACK_TO` (`== 2`) or `order_type` answers
+    /// `GROUP_ATTACK_TO` (`== 0x15`):
+    ///
+    /// ```text
+    ///   type->is_siege (+0x10c)  → 0x20002, or the caller's 0 for a
+    ///                              human leader (`leader_flags & 4`)
+    ///   else !type->is_tank (+0x110) → 0x20010, else the caller's 0
+    ///   stance == RAZE (vslot +0xf4 == 4) → 0x20, whatever came above
+    /// ```
+    ///
+    /// So an attack-move's look passes over an unarmed building: a
+    /// Woodcutter's Camp the human left standing is no reason for a
+    /// Hoplite on its way to the city to stop (item 997, Great Lakes 4555).
+    ///
+    /// SEAM: `do_move`'s own call (`005f7b30`) passes 1 or 2 as the
+    /// caller's word, and this crate has no such call (§37.2).
+    pub(crate) fn melee_search_flags(&self, i: usize) -> u32 {
+        use crate::orders::index;
+        let head = self.current_order(i).map(crate::orders::Order::index);
+        if !matches!(head, Some(index::ATTACK_TO | index::GROUP_ATTACK_TO)) {
+            return 0;
+        }
+        let cols = self.units[i].ty.map(|t| self.unit_types[t].cols);
+        let mut flags = if cols.is_some_and(|c| c.flag(uflags::SIEGE)) {
+            if self.ai_driven(self.units[i].owner) {
+                search::BUILDINGS | search::ARMED
+            } else {
+                0
+            }
+        } else if cols.is_some_and(|c| c.flag(uflags::TANK)) {
+            0
+        } else {
+            search::ARMED | search::HALVE_NON_UNITS
+        };
+        if self.units[i].combat.stance == Stance::Raze {
+            flags = search::HALVE_NON_BUILDS;
+        }
+        flags
     }
 
     /// `Object::find_nearby_target(max_dist, …)` (§12.2): the ring scan, the
     /// range gate, the distance shaping, the ranking, and the `targeted`
     /// bump on the winner. `max_dist == 0` is unlimited.
     pub fn find_nearby_target(&mut self, attacker: Obj, max_dist: i32) -> Option<Obj> {
+        self.find_nearby_target_with(attacker, max_dist, 0)
+    }
+
+    /// [`Sim::find_nearby_target`] with the original's fifth argument, the
+    /// `flags` word ([`search`]; `docs/COMBAT.md` §64). A building's own
+    /// search (`Build::find_target@00622c80`, `622c88`) passes 0, and so
+    /// does every unit's but [`Sim::find_melee_target`]'s on an attack-move.
+    pub fn find_nearby_target_with(
+        &mut self,
+        attacker: Obj,
+        max_dist: i32,
+        flags: u32,
+    ) -> Option<Obj> {
         if self.attack_of(attacker) == 0 {
             return None;
         }
@@ -2637,6 +2713,11 @@ impl Sim {
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
+                        // **The `flags` filter** (`00649430`–`00649515`),
+                        // above `check_target` and so above `near`.
+                        if !self.search_admits(o, flags) {
+                            continue;
+                        }
                         // `check_target`'s guarding arm, above its tail:
                         // out of the leash is refused before `near_o` is
                         // written, and the captain's own target answers 1
@@ -2707,6 +2788,21 @@ impl Sim {
                         dist += (targeted + 8) * 0x30;
                         let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
+                        // **The `flags` preferences** (`00649766`–
+                        // `006497b2`): `0x10` halves what is not a unit,
+                        // else `0x20` what is not a `Build` (a wall
+                        // answers vslot `+0x20` with 0). A signed `/ 2`
+                        // (`cltd; sub; sar`), before the clamp below.
+                        let halve = if flags & search::HALVE_NON_UNITS != 0 {
+                            !is_unit
+                        } else if flags & search::HALVE_NON_BUILDS != 0 {
+                            !matches!(o, Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE)
+                        } else {
+                            false
+                        };
+                        if halve {
+                            score /= 2;
+                        }
                         if score == 0 && value != 0 {
                             score = 1;
                         }
@@ -2746,6 +2842,41 @@ impl Sim {
             self.units[me].near = near.filter(|&(d, _)| d <= 0xf00).map(|(_, o)| o);
         }
         best.map(|(_, o)| o)
+    }
+
+    /// Whether the search's `flags` let a candidate through
+    /// (`Object::find_nearby_target`, `00649430`–`00649515`; `docs/COMBAT.md`
+    /// §64.2). The candidate's own virtuals, as the PDB's tables name them:
+    /// `+0x8` answers for a unit (`SubObjectData::is_active`) and 0 for a
+    /// building or wall; `+0x1c` answers 1 for a building **or a wall**;
+    /// `+0x120` is its `attack`; `+0x2c` `BuildData::is_wonder`.
+    ///
+    /// - `& 1`: units only.
+    /// - else `& 2`: buildings only, and under `& 0x20000` only an armed
+    ///   one, a wonder, or a military trainer.
+    /// - else `& 0x20000`: a building must be armed.
+    ///
+    /// SEAM: `BuildData::attack`'s garrison arm (a general, Antipater,
+    /// the Obsidian bonus, §4.1) is read through [`Sim::attack_of`], which
+    /// has none of it; no capture on disk garrisons a building an
+    /// attack-move passes.
+    pub(crate) fn search_admits(&self, o: Obj, flags: u32) -> bool {
+        let building = matches!(o, Obj::Building(_));
+        if flags & search::UNITS != 0 {
+            return !building;
+        }
+        if flags & search::BUILDINGS != 0 {
+            let Obj::Building(b) = o else { return false };
+            if flags & search::ARMED == 0 || self.attack_of(o) != 0 {
+                return true;
+            }
+            let bd = &self.buildings[b];
+            return bd.index < crate::WALL_BASE
+                && bd
+                    .ty
+                    .is_some_and(|t| self.build_types[t].wonder || self.is_military_trainer(t));
+        }
+        !(flags & search::ARMED != 0 && building && self.attack_of(o) == 0)
     }
 
     /// `Object::compare_target(o, who, in_range, ai)` (§12.3), the skeleton the
@@ -4003,6 +4134,91 @@ mod tests {
             sim.units[u].orders
         );
         assert_eq!(sim.units[u].combat.target, Some(Obj::Building(b)));
+    }
+
+    /// **An attack-move's look passes over an unarmed building**
+    /// (`docs/COMBAT.md` §64, item 997). Great Lakes 4555's shape: an AI
+    /// soldier on an `ATTACK_TO` past the human's Woodcutter's Camp. Under
+    /// the attack-move's `0x20010` the camp is refused before it is
+    /// scored, and an armed building is taken; the same soldier with no
+    /// attack-move at its head searches with 0 and takes the camp. The
+    /// word itself is checked for each of `melee_search_flags`' arms.
+    ///
+    /// Made to fail by `search_admits` answering true: the first
+    /// assertion names the camp.
+    #[test]
+    fn an_attack_move_passes_over_an_unarmed_building() {
+        let (mut sim, ty) = at_war();
+        sim.nation[0].human = true;
+        sim.nation[1].human = false;
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let camp = sim.add_building(0, at, 0);
+        sim.buildings[camp].ty = Some(bt);
+        sim.buildings[camp].hits = 800;
+        sim.buildings[camp].health = 800;
+        sim.buildings[camp].combat = Some(Profile::default());
+        let me = put(&mut sim, 1, ty, Pos::new(at.x + 8 * 0xc0, at.y));
+        let walk = |sim: &mut Sim| {
+            sim.add_move_order(
+                me,
+                Pos::new(at.x - 20 * 0xc0, at.y),
+                crate::orders::MoveKind::AttackTo,
+                crate::orders::QueuePos::New,
+                false,
+            );
+        };
+        let mut moving = sim.clone();
+        walk(&mut moving);
+        assert_eq!(
+            moving.melee_search_flags(me),
+            search::ARMED | search::HALVE_NON_UNITS
+        );
+        assert_eq!(
+            moving.find_melee_target(me, -1),
+            None,
+            "the attack-move took the unarmed camp"
+        );
+        // Idle, the same search takes it.
+        assert_eq!(sim.melee_search_flags(me), 0);
+        assert_eq!(sim.find_melee_target(me, -1), Some(Obj::Building(camp)));
+        // An armed building is taken on the move.
+        let mut armed = moving.clone();
+        armed.buildings[camp].combat = Some(Profile {
+            attack: 10,
+            ..Profile::default()
+        });
+        assert_eq!(
+            armed.find_melee_target(me, -1),
+            Some(Obj::Building(camp)),
+            "the attack-move refused an armed building"
+        );
+        // The word's other arms: a siege type (AI 0x20002, human 0), a
+        // tank (0), and RAZE over any of them (0x20).
+        let typed = |flags: u32, stance: Stance, human: bool| {
+            let mut s = moving.clone();
+            let mut t = s.unit_types[ty].clone();
+            t.cols.unit_flags = flags;
+            let t = s.add_unit_type(t);
+            s.units[me].ty = Some(t);
+            s.units[me].combat.stance = stance;
+            s.nation[1].human = human;
+            s.melee_search_flags(me)
+        };
+        assert_eq!(
+            typed(uflags::SIEGE, Stance::Aggressive, false),
+            search::BUILDINGS | search::ARMED
+        );
+        assert_eq!(typed(uflags::SIEGE, Stance::Aggressive, true), 0);
+        assert_eq!(typed(uflags::TANK, Stance::Aggressive, false), 0);
+        assert_eq!(
+            typed(uflags::TANK, Stance::Raze, false),
+            search::HALVE_NON_BUILDS
+        );
     }
 
     /// **An unpacked packer takes only what it can reach, and a hit from
