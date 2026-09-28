@@ -11931,12 +11931,13 @@ decompile prints `flanking`'s argument as `unaff_EDI`; the listing puts
 - **`is_moving` on a unit whose head is not a move.** This crate's
   `is_moving` reads the head order. `UnitData::is_moving`'s body was not
   read.
-- **The re-search's fresh order.** On every one-in-five retarget on disk
+- ~~**The re-search's fresh order.** On every one-in-five retarget on disk
   (4753, 4853, 4898 and more), the original's head attack reads fresh for
   one block (`in_range 0`, `new_ord 1`, `ever_in_range 0`), and this
   crate's is re-pointed in place (`retarget_attack`). The values agree
   again on the next block and no draw has parted on it yet
-  (`docs/GROUPS.md` §33.2).
+  (`docs/GROUPS.md` §33.2).~~ Built by item 1099 (§80): the
+  re-search is `find_new_target`, and the order it adds is fresh.
 
 ### 71.7 Coverage
 
@@ -12859,3 +12860,144 @@ re-pin touches were green first.
   build nothing here.
 - **Unit-backed only**: the `QUEUE_NEW` position and the captain's
   `mandatory`, neither of which `1/13` exercises.
+
+## 80. The one-in-five re-search kills the attack first (item 1099, 2026-09-28)
+
+Great Lakes' second word, frame 5161 of run347 (DECISIONS 53, 54): ours 12
+draws against the original's 13, parting at index 3. The original spent a
+second `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, ours
+`Farms::inc_time+0x1ae`. On run396's block 5162 `1/24` and `1/26` held the
+city in ours and the scout in the original. No mechanism was named, nor a
+direction (parked 1076). **The word is now the game's end**, and a second
+parting there, the city's capture, was built with it (`docs/CITIES.md`
+§7.2).
+
+### 80.1 Every instance on the disk first
+
+- **`1/24` is a captain** (`o_up` −1, `o_down` 25), stationary at (3288,
+  31800), stance 0, under `ATTACK` over `ATTACK_TO`. `1/26` is its
+  follower. Their target `0/5` died on 5147 on both sides.
+- **Block 5161 agrees**: `1/24` has taken the scout `0/0` fresh (`new_ord`
+  1, `in_range` 0) on both sides, 48 from it by `attack_dist`.
+- **Block 5162**: the original's `1/24` strikes `0/0` (`in_range` 1,
+  `recharging` 33, `hold_attack` 1) and `1/26` holds `0/0`. Ours' `1/24`
+  names the city `0/2000`; on 5163 it names `0/0` again, on 5164 the city.
+  It flips every frame.
+- **Every other unit that took the city in the window took it on both
+  sides** (`1/23` on 5149, `1/22` 5155, `1/9` 5158, `1/10` 5159): their
+  stacks agree (`RON_STACKS`). Only `1/24` and `1/26` part on 5162.
+- **The draws**: both sides spend `1/24`'s `Unit::fight+0x9b0` on 5161,
+  the one-in-five roll, and the stream agrees up to it. The original's
+  extra idle roll is `1/24`'s strike.
+
+### 80.2 The call chain, and the value no dump prints
+
+A scratch probe on ours (not kept) printed the writer of `1/24`'s target:
+on 5161 `retarget_attack` from `work`, the one-in-five arm, which pointed
+the attack at the city; on 5162 `find_new_target` from the building arm
+(§62), which killed the attack on the city and, under the attack-move,
+re-found the scout. Hence the flip every frame. The search's candidates,
+as ours scored them:
+
+| search | flags | scout `0/0` | city `0/2000` |
+|---|---|---|---|
+| 5160, after the kill of `ATTACK 0/5` | `0x20010` | 344 | 251 (halved) |
+| 5161, the one-in-five, under `ATTACK 0/0` | 0 | 344 | 669 |
+
+The flags word is §64.1's, read off the head order: an `ATTACK` at the
+head gives 0, the attack-move gives `0x20010`, which halves what is not a
+unit. So the question was only where the head stands when the original
+searches, and the listing answers it; no packet was needed.
+
+### 80.3 The listing
+
+`Unit::fight@005fd4d0`, lines 389–413 of the decompile, the captain arm
+`LAB_005fddf7` (§62.2):
+
+```text
+local_14 = 0
+if target.is_unit():
+    local_14 = the type test (combat role, §8.2 step 0)
+    roll = Random::get(0, 0xffff)                    ; fight+0x9b0
+    if roll % 5 == 0 || order.flags & 0x10: local_14 = 0
+if !target.is_unit() || local_14:
+    t, who = find_new_target(this, &who, 0)          ; 5fdee2 (cavarch: find_melee_target)
+```
+
+**The unit arm and the building arm are the same call.**
+`Unit::find_new_target@005ff6a0` is `repath`, `kill_current_order`, and
+`find_melee_target(-1, &who, 0, 1, 0)`, which adds what it finds (§79.3).
+So the attack is gone before the search, and the head it reads is the
+attack-move's. This crate's unit arm called the search with the attack
+still in front and re-pointed it in place (`retarget_attack`), which is
+also why the original's head attack read fresh for a block after every
+retarget (§71.6, parked 1073).
+
+### 80.4 What this crate built
+
+- **`Sim::do_attack`'s captain arm** (`orders.rs`) is one arm for both
+  kinds of target. A building re-searches every frame; a unit after the
+  draw and its suppressions. Either way `find_new_target(u, false)`:
+  nothing found returns with the attack gone; another target keeps the
+  search's own order and the frozen mark (§70.7); the same one goes on
+  with the fresh order. `retarget_attack` is deleted.
+- **Unit test**: `the_one_in_five_re_search_runs_under_the_attack_move`
+  (`fight.rs`). Under the attack a search names an armed building; under
+  the attack-move, the unarmed unit the captain is attacking; after the
+  re-search the target is the unit.
+
+### 80.5 The killer
+
+The arm was put back to searching under the attack and re-pointing in
+place for a unit target, on `25468c1d` with `git diff --stat` non-empty,
+then restored from git and `touch`ed. The pins it touches were green
+first, but for the commander's two queue lines.
+
+| mutation | unit test | run347's walk | widenings |
+|---|---|---|---|
+| the re-search under the attack, in place | fails | falls to 5161; the endpoint reads 20 off | run356 (`1/24`'s spot, 4689), run373 (the attack rows, 4841 and 4853), run396 (5105's row) and run403 (601 keys on its first block against 112) fail |
+
+**Diff-backed.**
+
+### 80.6 What moved
+
+- **Great Lakes 5161 → 5930, the game's end.** On block 5162 `1/24`
+  strikes `0/0` and `1/26` holds it on both sides; frame 5161's draws went
+  12 against 13 → agreeing, and no frame of run347's trace parts.
+- **The fresh order's rows close** (parked 1073): run356's `1/24` on 4753
+  (`ever_in_range`, `new_ord`) and its spot on 4689, (3763, 31600) against
+  the cell centre (3768, 31608), which `fight`'s snap under the fresh order
+  now matches; run373's `1/9` on 4841 and `1/24` on 4853; run396's `1/21`
+  on 5105. run373's keys parted go 156 → 128, run396's 737 → 131.
+- **The game's end** needed the capture tally's filter too (`docs/CITIES.md`
+  §7.2): on 5930 the AI takes the human's city, and the human is defeated.
+  run347's closing whole-map state, block 5931, now reads 42 units
+  compared, 0 off, 0 unlinked, 0 extra, every building linked with 0
+  diverged, and three cities unlinked because the closing `CITY` record
+  prints no `o`.
+- **East Indies holds at 5606. Great Sahara holds at 8.** Every golden
+  chapter and the first pair hold (the gate).
+
+### 80.7 What is not established
+
+- **Value rows beneath the draws.** run396 and run403 carry standing rows
+  the draw stream does not see, each standing on run396's first block
+  (5100) or born in the window: the human's leader record (its `SITE`
+  regions, `num_units[0]` counting five dead citizens — parked 1092 — its
+  income and war flags), the human's city record, the group record (parked
+  1075), the attack-move's `order:target` and the army's `form`, and
+  `1/36`'s order from its birth on 5165 (`action`, `flags`, the move's
+  `angle`). The AI scout `1/0`'s second figure parts on run396's 5240,
+  (3081, 20587) against (3065, 20580), and agrees again by run403's 5925.
+  No mechanism is named for any of them.
+- **The cavalry archer's arm** (`find_melee_target` in place of
+  `find_new_target`) and **the `poor_target` arm** (`005fded5`, the same
+  search for a unit target the roll suppressed) are SEAMs, as is the early
+  return when the search names `fight`'s own entry arguments.
+
+### 80.8 Coverage
+
+- **Diff-backed**: the arm, by run347's frame 5161 and every frame to
+  5930, run356, run373, run396 and run403; the endpoint at 5931.
+- **Listing-backed**: `005fddf7`–`005fdeea`, `005ff6a0`'s kill.
+- **Unit-backed only**: nothing beyond what the captures carry.

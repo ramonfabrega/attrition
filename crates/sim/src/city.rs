@@ -2349,8 +2349,27 @@ impl Sim {
                 *defenders += v;
             }
         };
+        // **`Search::valid_filter(…, 8)`: only what is armed counts**
+        // (item 1099, `docs/CITIES.md` §7.2). The tally's loop asks the
+        // filter of every object before its distance, and entry 8 of the
+        // filter's jump table (`0067de47`, read off the PE's own table at
+        // `0067e57c`) answers, for a unit, `type->attack != 0 && (type->role
+        // & 0x10000)` — an armed combat type (`0067debf`–`0067deeb`) — and,
+        // for a building, `type->attack != 0`, not a city (`flags & 0x20`),
+        // finished (vslot `+0x4c`, `flags & 4`, `00472350`) and with hits
+        // left (vslot `+0x114`, `ObjectData::hits_left@006535c0`). A
+        // citizen, a scout, a house or a farm counts for neither side, and
+        // the defender's own buildings weigh 7 only when they can shoot.
+        // run347's game ends on it: the human's city falls on 5930 with
+        // eighteen AI soldiers round it against the human's five unarmed
+        // buildings, which this crate counted 35.
         for (i, x) in self.units.iter().enumerate() {
             if i == unit || !x.alive() || !x.on_map {
+                continue;
+            }
+            if !x.ty.is_some_and(|t| {
+                self.unit_types[t].combat.attack != 0 && self.unit_types[t].combat.combat_role
+            }) {
                 continue;
             }
             // Gaia is out of the tally (`world::PLAYER_SLOTS`); see
@@ -2374,6 +2393,14 @@ impl Sim {
         }
         for (i, x) in self.buildings.iter().enumerate() {
             if i == b || !x.alive {
+                continue;
+            }
+            let armed = x.ty.is_some_and(|t| self.build_types[t].attack != 0);
+            if !armed
+                || self.building_is_city(i)
+                || !x.active
+                || health_level(x.hits_now(), x.damage) > 5
+            {
                 continue;
             }
             if self.world.region_of(x.pos.cell()) != land {

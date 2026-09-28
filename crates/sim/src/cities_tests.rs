@@ -150,6 +150,9 @@ fn hoplite_type(barracks: usize) -> UnitType {
             max_range: 0,
             obj_masks: 0x20, // FOOT
             uber_size: 1,
+            // `role & 0x10000`, as every soldier's row carries it: the
+            // capture tally counts only an armed combat type (item 1099).
+            combat_role: true,
             ..combat::Profile::default()
         },
         garrison: UnitTraits {
@@ -1725,6 +1728,58 @@ fn a_garrisoned_city_is_emptied_rather_than_captured() {
     bd.sync_health();
     // The defender stands by the city now and counts: 2 + 1 against 4.
     assert!(sim.check_capture(b, hs[3]));
+}
+
+/// **Only what is armed counts in the capture tally** (item 1099,
+/// `docs/CITIES.md` §7.2): `Search::valid_filter(…, 8)` passes an armed
+/// combat unit and an armed, finished building that is not a city. A
+/// temple, a market, a granary and two citizens round a city at zero
+/// defend it with nothing, so
+/// three hoplites take it against the base of 2; a tower counts its 7.
+#[test]
+fn unarmed_buildings_and_citizens_do_not_defend_a_city() {
+    let setup = |tower: bool| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+        sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+        let _ = city_at(&mut sim, &t, 1, 8, 8);
+        for (ty_, tx, ty) in [(t.temple, 25, 32), (t.market, 32, 25), (t.granary, 32, 39)] {
+            let x = sim
+                .place_building(1, ty_, tile_pos(tx, ty))
+                .unwrap_or_else(|e| panic!("a building at ({tx}, {ty}): {e:?}"));
+            finish(&mut sim, x);
+        }
+        if tower {
+            let x = sim
+                .place_building(1, t.tower, tile_pos(39, 36))
+                .unwrap_or_else(|e| panic!("the tower: {e:?}"));
+            finish(&mut sim, x);
+        }
+        let citizen = sim.add_unit_type(citizen_type(t.village));
+        for i in 0..2 {
+            spawn(&mut sim, 1, citizen, tile_pos(28, 28 + i));
+        }
+        let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+        let bd = &mut sim.buildings[b];
+        bd.damage = bd.hits;
+        bd.sync_health();
+        sim.frame = 1000;
+        let hs: Vec<usize> = (0..3)
+            .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+            .collect();
+        (sim, b, hs[2])
+    };
+    let (mut sim, b, h) = setup(false);
+    assert!(
+        sim.check_capture(b, h),
+        "three hoplites against the base of 2: the unarmed buildings and citizens count nothing"
+    );
+    let (mut sim, b, h) = setup(true);
+    assert!(
+        !sim.check_capture(b, h),
+        "the tower counts 1 + 6, and 2 + 7 holds against 3"
+    );
 }
 
 #[test]

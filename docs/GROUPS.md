@@ -4654,11 +4654,13 @@ Its pinned rows were re-read against that window's dump:
 
 ### 33.4 What this has *not* established
 
-- **Why the attack row parts.** One reading fits every instance: at a
+- ~~**Why the attack row parts.** One reading fits every instance: at a
   one-in-five retarget the original's head attack is a fresh order for a
   block, where this crate's `retarget_attack` re-points the old one. It
   is named in `docs/COMBAT.md` §71.6 and not built. No draw has parted on
-  it.
+  it.~~ Built by item 1099 (`docs/COMBAT.md` §80): the re-search is
+  `find_new_target`, and the attack rows close on run356, run373 and
+  run396.
 - **`role`**: `Army::role` is not written by `add_group` here. Nothing in
   this crate reads it yet.
 - **Slot 64's point**: a building group's `(ox, oy)`, −1 here against 0,

@@ -10412,3 +10412,50 @@ The packet stays outside git under `~/ron-data/lab-captures/`. The probes
 from item 1028's, and their outputs are at
 `~/ron-data/lab-experiments/2026-09-28-item-1089/`. The copied probes
 first reproduced item 1028's `1/24` list on run368's packet exactly.
+
+## run403 — run347's game at run396's detail over blocks 5925..5930: the second pair's Great Lakes word at the game's end (2026-09-28, item 1099)
+
+**What it is.** run396's shape on the click-free lane: run347's lobby
+(`DIFFICULTY 5`, map 14, seed 12345), `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+5925..5930, and `!quit` at 5930. That is the last six blocks before the
+game's own end: item 1099 moved Great Lakes' word to 5930, run347's last
+traced frame, where the AI takes the human's city.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run403 \
+    --map 14 --end-frame 5930 --timeout 3000 --log-window 5925 5931 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run396 ends at
+block 5356, and run347's own dump prints no per-frame record past its
+start: nothing on disk held the blocks before the game's end at detail.
+The word's own block, 5931, is run347's closing whole-map state, which the
+disk did hold and which `walk_second` now scores.
+
+**Taken** 17:35–17:36, one take, through `viadriver.sh`, waited on with
+`waitrun.sh`. Two launches before it refused before staging anything: the
+first on its window (`--log-window 5925 5932` is past `!quit` + 1), the
+second on the empty output directory the first had made, which was
+removed with `rmdir`. The lane lock was stale (att-1091's pids, exited)
+and no `RonDriver` was running. `success: true`, exit 0, 5,931 frames, 48
+s from launch to exit (the fast-forward). The dump is 11,994,340 bytes and
+the trace 33,994,528; they were moved into `Logs` as
+`gamelog-run403-greatlakes-toughest-5930.txt` and `rontrace-run403.log`.
+Free disk was 63 GB before and after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run347.log` | **0 differing**, 5,931 identical |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 14` |
+| window blocks 5925..5930 | 6 |
+| the quit block, 5931 | `GameInfo closing` and no record: the tracer's quit, not the game's end |
+
+**What it holds**: `run403_s_word_frame_is_widened_whole`
+(`docs/COMBAT.md` §80.6). It parts on 112 keys, every one standing on its
+first block and every family among them standing on run396's first block
+too; nothing parts on 5926..5930, and no position. The compared pin's walk
+(`second::great_lakes_word_window`) reads its last four blocks from item
+1099 on.
