@@ -390,7 +390,7 @@ impl crate::Sim {
         let angle_step = (0x4000_0000i64 / k.max(1)) as i32;
 
         // Both arms start on the same side, at the same point.
-        let base = Self::side_base(start, t, xs, ys, stand, 0);
+        let base = Self::start_base(start, t, xs, ys, stand);
         let arc_start = (steps_per_side / 2) + 1;
         let mut arms = [
             Arm {
@@ -523,6 +523,26 @@ impl crate::Sim {
             4 => Pos::new(t.x + xs + stand, if far { t.y + ys } else { t.y - ys }),
             6 => Pos::new(if far { t.x - xs } else { t.x + xs }, t.y + ys + stand),
             _ => Pos::new(t.x - xs - stand, if far { t.y - ys } else { t.y + ys }),
+        }
+    }
+
+    /// **The starting point**, which both arms share (`601d88`-`601f54`,
+    /// the switch on the start side at `601e3e`; item 1012,
+    /// `docs/COMBAT.md` §66). A corner side starts at the corner, and an
+    /// **edge** side at the face's **midpoint** pushed out by the
+    /// stand-off: side 4's case (`601ea0`-`601ef4`) is `x = t.x + x_size
+    /// × 0x60 + stand`, `y = t.y`, and both arms' slots take the pair at
+    /// `601e04`-`601e1a`. Only an arm that *steps onto* an edge from a
+    /// corner enters it at an end ([`Self::side_base`]). Great Lakes 4605's
+    /// `1/17`, the one asker square on the city's east face, stands at
+    /// (3912, 30840) in run356's block 4606, level with the centre.
+    fn start_base(side: i32, t: Pos, xs: i32, ys: i32, stand: i32) -> Pos {
+        match side {
+            2 => Pos::new(t.x, t.y - ys - stand),
+            4 => Pos::new(t.x + xs + stand, t.y),
+            6 => Pos::new(t.x, t.y + ys + stand),
+            8 => Pos::new(t.x - xs - stand, t.y),
+            _ => Self::side_base(side, t, xs, ys, stand, 0),
         }
     }
 

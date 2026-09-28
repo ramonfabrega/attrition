@@ -3273,15 +3273,33 @@ impl Sim {
                     }
                     // Otherwise it falls through and is re-ordered.
                 }
+                // **`mandatory == 0` retargets** (`00712490:456`–`470`,
+                // item 1012): `find_melee_target(u, min(d + 0xc0,
+                // respond), &whom, 0, 0, word)` — its squad head first (a
+                // follower takes its captain's attack, or nothing), and
+                // the search's word **1 for a unit target, 2 for a
+                // building** (the target's vslot `+0x1c`), so a member
+                // sent at a city takes a building. What it cannot name
+                // falls back to the group's target.
                 let t = if mandatory {
                     target
                 } else {
-                    let d = crate::world::vector_dist(
-                        (self.units[u].pos.x - self.pos_of(target).x).abs(),
-                        (self.units[u].pos.y - self.pos_of(target).y).abs(),
-                    );
-                    self.find_melee_target(u, (d + 0xc0).min(respond))
-                        .unwrap_or(target)
+                    match self.melee_squad_head(u) {
+                        crate::orders::SquadHead::Captain(t, _) => t,
+                        crate::orders::SquadHead::Nothing => target,
+                        crate::orders::SquadHead::Search => {
+                            let d = crate::world::vector_dist(
+                                (self.units[u].pos.x - self.pos_of(target).x).abs(),
+                                (self.units[u].pos.y - self.pos_of(target).y).abs(),
+                            );
+                            let word = match target {
+                                Obj::Unit(_) => crate::fight::search::UNITS,
+                                Obj::Building(_) => crate::fight::search::BUILDINGS,
+                            };
+                            self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
+                                .unwrap_or(target)
+                        }
+                    }
                 };
                 self.add_attack_order(u, t, queue, mandatory, true);
             }

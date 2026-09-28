@@ -263,6 +263,17 @@ pub mod flag {
     pub const FIRED: u8 = 0x80;
 }
 
+/// What `find_melee_target`'s squad head answers ([`Sim::melee_squad_head`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum SquadHead {
+    /// A captain, or a follower whose captain's target has gone: search.
+    Search,
+    /// A follower whose captain is not attacking: `−1`, nothing.
+    Nothing,
+    /// A follower taking its captain's target, and its `mandatory`.
+    Captain(Obj, bool),
+}
+
 /// `QueuePos` — where an order goes (§1.5).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum QueuePos {
@@ -2356,27 +2367,49 @@ impl Sim {
                 return;
             }
         }
-        if !self.units[u].captain {
-            let cap = self.squad_captain(u);
-            let Some(k) = self.action_of(cap) else { return };
-            if !matches!(self.units[cap].orders[k].body, Body::Attack(_)) {
-                return;
-            }
-            if let Some(t) = self.units[cap].combat.target
-                && self.valid_target(me, t)
-                && ((self.units[u].combat.stance != combat::Stance::StandGround
-                    && !self.units[u].combat.entrenched
-                    && !self.units[cap].combat.entrenched)
-                    || self.is_in_range(me, t))
-            {
-                let mandatory = self.units[cap].combat.mandatory;
+        match self.melee_squad_head(u) {
+            SquadHead::Nothing => {}
+            SquadHead::Captain(t, mandatory) => {
                 self.add_attack_order(u, t, QueuePos::First, mandatory, false);
-                return;
+            }
+            SquadHead::Search => {
+                if let Some(t) = self.find_melee_target(u, -1) {
+                    self.attack_move_add(u, t);
+                }
             }
         }
-        if let Some(t) = self.find_melee_target(u, -1) {
-            self.attack_move_add(u, t);
+    }
+
+    /// `find_melee_target@005ff9c0`'s head (lines 32–91), for a caller
+    /// whose third argument is 0 — `do_attack_to`'s, `do_group_attack_to`'s
+    /// and `Group::action_attack`'s retarget (item 1012): a **follower**
+    /// takes its captain's target when the captain's action is an
+    /// `ATTACK` on a valid one it may chase (not STAND_GROUND, neither of
+    /// the two entrenched, or already in range), and finds **nothing** when
+    /// the captain's action is not an `ATTACK`. A captain, or a follower
+    /// whose captain's target has gone, searches.
+    pub(crate) fn melee_squad_head(&self, u: usize) -> SquadHead {
+        if self.units[u].captain {
+            return SquadHead::Search;
         }
+        let me = Obj::Unit(u);
+        let cap = self.squad_captain(u);
+        let Some(k) = self.action_of(cap) else {
+            return SquadHead::Nothing;
+        };
+        if !matches!(self.units[cap].orders[k].body, Body::Attack(_)) {
+            return SquadHead::Nothing;
+        }
+        if let Some(t) = self.units[cap].combat.target
+            && self.valid_target(me, t)
+            && ((self.units[u].combat.stance != combat::Stance::StandGround
+                && !self.units[u].combat.entrenched
+                && !self.units[cap].combat.entrenched)
+                || self.is_in_range(me, t))
+        {
+            return SquadHead::Captain(t, self.units[cap].combat.mandatory);
+        }
+        SquadHead::Search
     }
 
     /// `Object::find_nearby_target`'s add arm for a searcher on an

@@ -25,8 +25,9 @@ use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE, vector_dist};
 use crate::{Player, Sim};
 
 /// `Object::find_nearby_target`'s fifth argument, the `flags` word
-/// (`docs/COMBAT.md` §12.2, §64). Only [`Sim::find_melee_target`] on an
-/// attack-move sets it ([`Sim::melee_search_flags`]).
+/// (`docs/COMBAT.md` §12.2, §64). [`Sim::find_melee_target`] on an
+/// attack-move sets it ([`Sim::melee_search_flags`]), and so does
+/// `Group::action_attack`'s retarget (§66, [`Sim::find_melee_target_with`]).
 pub mod search {
     /// `& 1`: units only (the candidate's vslot `+0x8`).
     pub const UNITS: u32 = 0x1;
@@ -2479,6 +2480,17 @@ impl Sim {
     /// `Unit::find_melee_target(range, …)` (§12.4): the idle radius for
     /// `range == −1`, then `find_nearby_target`.
     pub fn find_melee_target(&mut self, i: usize, range: i32) -> Option<Obj> {
+        self.find_melee_target_with(i, range, 0)
+    }
+
+    /// [`Sim::find_melee_target`] with the caller's own `flags` word, its
+    /// sixth argument. Every caller in this crate passes 0 but
+    /// `Group::action_attack`'s retarget (`00712490:456`–`470`, item 1012,
+    /// `docs/COMBAT.md` §66), which passes **1 when the group's target is
+    /// a unit and 2 when it is a building** (the target's vslot `+0x1c`),
+    /// so a member sent at a city takes a building, never a passing unit.
+    /// [`Sim::melee_search_flags_with`] keeps the word or rewrites it.
+    pub fn find_melee_target_with(&mut self, i: usize, range: i32, word: u32) -> Option<Obj> {
         let me = Obj::Unit(i);
         let st = self.units[i].combat;
         if st.stance == Stance::HoldFire {
@@ -2526,7 +2538,7 @@ impl Sim {
         } else {
             range
         };
-        let flags = self.melee_search_flags(i);
+        let flags = self.melee_search_flags_with(i, word);
         self.find_nearby_target_with(me, radius, flags)
     }
 
@@ -2550,21 +2562,30 @@ impl Sim {
     ///
     /// SEAM: `do_move`'s own call (`005f7b30`) passes 1 or 2 as the
     /// caller's word, and this crate has no such call (§37.2).
+    #[cfg(test)]
     pub(crate) fn melee_search_flags(&self, i: usize) -> u32 {
+        self.melee_search_flags_with(i, 0)
+    }
+
+    /// [`Sim::melee_search_flags`] over the caller's `word`: the word
+    /// stands unless the head is an attack-move, and survives that for a
+    /// human's siege (`cmovne` at `005ffcab`) and for a tank (`cmove` at
+    /// `005ffcc6`) — the two arms that read "the caller's word" above.
+    pub(crate) fn melee_search_flags_with(&self, i: usize, word: u32) -> u32 {
         use crate::orders::index;
         let head = self.current_order(i).map(crate::orders::Order::index);
         if !matches!(head, Some(index::ATTACK_TO | index::GROUP_ATTACK_TO)) {
-            return 0;
+            return word;
         }
         let cols = self.units[i].ty.map(|t| self.unit_types[t].cols);
         let mut flags = if cols.is_some_and(|c| c.flag(uflags::SIEGE)) {
             if self.ai_driven(self.units[i].owner) {
                 search::BUILDINGS | search::ARMED
             } else {
-                0
+                word
             }
         } else if cols.is_some_and(|c| c.flag(uflags::TANK)) {
-            0
+            word
         } else {
             search::ARMED | search::HALVE_NON_UNITS
         };
