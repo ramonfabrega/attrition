@@ -514,7 +514,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-one verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-four verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -553,6 +553,12 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         issue_gather_point
  *   `@gatherpointadd <who> <x> <y> <action> <b> [<b> ...]` the same with
  *                                         add_to_end 1 (verb 20)
+ *   `@launchpatrol <who> <x> <y> <b> [<b> ...]` building ids,
+ *                                         issue_launch_patrol, QUEUE_NEW
+ *   `@launchpatrolall <who> <x> <y> <b> [<b> ...]` the same with
+ *                                         QUEUE_LAST and shift 1
+ *   `@launchstrike <who> <ox> <whom> <b> [<b> ...]` building ids,
+ *                                         issue_flight with ATTACK
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -712,6 +718,21 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * bytes as passed): `Group::action_gather_point@006ff1b0` takes the
  * members at process time.
  *
+ * `@launchpatrol` calls `CommandManager::issue_launch_patrol@00941860(
+ * &command_manager, group, x, y, QUEUE_NEW 2, shift 0, ctrl 0, alt 0)` and
+ * appends a 25-byte `launch_patrol` (type 0x0b, `[x][y][queued][shift]
+ * [ctrl][alt]`) behind a group of buildings (item 976, `docs/GOLDEN.md`
+ * §42; under the emulator, 30 bytes with the fresh group): a right-click on
+ * the ground with an Airbase selected (`WorldMap::on_right_up@008c7050:240`,
+ * `Console::execute_at_cursor@007c6630:3230`). `@launchpatrolall` passes
+ * the shift-click's QUEUE_LAST 1 and shift 1. `@launchstrike` calls
+ * `issue_flight@00941d40(&command_manager, group, ox, whom, ATTACK 10, 0,
+ * 0, 0)` on a group of buildings: an Airbase's right-click on an enemy in
+ * air range (`execute_at_cursor`), which `Group::action_flight@006fb260`
+ * turns into `action_launch_flight`. Neither issuer tests the objects:
+ * `Group::action_launch_patrol@00703580` and `action_launch_flight@006fbfb0`
+ * pick the planes at process time.
+ *
  * `@unqueue` calls `CommandManager::issue_unqueue@00942c40(&command_manager,
  * b, p)` once per building, as `Options::exec@007188c0`'s option 0xa6
  * loops a selection, and appends a 15-byte `unqueue` (type 0x30,
@@ -727,8 +748,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * group to `is_team` and drops it); 2 the issuer's prologue is not the
  * shipped one; 3 an object is out of the registry, not active, not `who`'s,
  * not that id, or not a captain (`add_group` would drop it silently) — for
- * `@eject`, `@buildmask`, `@queueup`, `@unqueue` and `@gatherpoint`, not
- * a building; 4 the
+ * `@eject`, `@buildmask`, `@queueup`, `@unqueue`, `@gatherpoint` and the
+ * three `@launch` verbs, not a building; 4 the
  * package cannot hold a fresh group and the move (the issuer returns void and
  * appends nothing); 5 the text did not parse; 6 the package did not grow. */
 #define RVA_CONSOLE 0x806210u /* MiscAccess::console, VA 0xc06210 (Console *) */
@@ -781,7 +802,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
      * `settransport`, 16 `repair`, 17 `buildmask`, 18 `queueup`, 19
-     * `unqueue`, 20 `gatherpoint`:
+     * `unqueue`, 20 `gatherpoint`, 21 `launchpatrol`, 22 `launchpatrolall`,
+     * 23 `launchstrike`:
      * the issuer and its prologue (`issue_guard.h`)
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -811,6 +833,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "unqueue ")  ? 19
                : issue_verb(&t, "gatherpointadd ") ? (gather_add = 1, 20)
                : issue_verb(&t, "gatherpoint ") ? 20
+               : issue_verb(&t, "launchpatrolall ") ? 22
+               : issue_verb(&t, "launchpatrol ") ? 21
+               : issue_verb(&t, "launchstrike ") ? 23
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
@@ -839,7 +864,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
     u32 rva = ISSUER_RVA[verb];
-    u32 size = verb == 20  ? 0x11
+    u32 size = verb >= 21  ? 0x19
+               : verb == 20  ? 0x11
                : verb == 19  ? 0x0f
                : verb >= 17  ? 0x09
                : verb == 16  ? 0x11
@@ -895,7 +921,15 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 20) {
+    if (verb >= 21) {
+        /* issue_launch_patrol(group, x, y, queue, shift, ctrl 0, alt 0) —
+         * QUEUE_NEW for `@launchpatrol`, QUEUE_LAST and shift for
+         * `@launchpatrolall` — or issue_flight(group, ox, whom, ATTACK, 0,
+         * 0, 0) for `@launchstrike`, on a group of buildings (item 976). */
+        typedef void(__thiscall *launch_fn)(void *, void *, i32, i32, i32, i32, i32, i32);
+        ((launch_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
+                                    verb == 23 ? 10 : verb == 22 ? 1 : 2, verb == 22, 0, 0);
+    } else if (verb == 20) {
         /* issue_gather_point(group, x, y, action, add_to_end 0): a
          * right-click with a selection of buildings, or the Clear
          * button's −1, −1, 0, 0. */

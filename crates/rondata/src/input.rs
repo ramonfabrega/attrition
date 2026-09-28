@@ -846,6 +846,66 @@ pub fn group_gather_point(
     list.len()
 }
 
+/// **`CommandPackage::process_launch_patrol@00949230`** on the player's
+/// own buildings: a right-click on the ground with an Airbase selected,
+/// `Group::action_launch_patrol(x, y, queue, shift, ctrl, alt)`, after
+/// `process_group`'s push of the building group (item 976,
+/// `docs/GOLDEN.md` §42). `all` is the shift-click's `QUEUE_LAST` and
+/// shift; plain, `QUEUE_NEW` and none.
+///
+/// SEAM: `action_launch_patrol` itself; the building group is pushed and
+/// no plane is ordered.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_launch_patrol(
+    built: &mut Built,
+    who: i32,
+    buildings: &[i16],
+    _at: Pos,
+    _all: bool,
+) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    list.len()
+}
+
+/// **`CommandPackage::process_flight@00947db0`** on the player's own
+/// buildings: an Airbase's right-click on an enemy, `issue_flight` on the
+/// building group itself, whose `Group::action_flight@006fb260` is
+/// `action_launch_flight`, after `process_group`'s push of the building
+/// group (item 976, `docs/GOLDEN.md` §42).
+///
+/// SEAM: `action_launch_flight` itself; the building group is pushed and
+/// no plane is ordered.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_launch_flight(
+    built: &mut Built,
+    who: i32,
+    buildings: &[i16],
+    _ox: i32,
+    _whom: i32,
+    _orders: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    list.len()
+}
+
 /// **`CommandPackage::process_unqueue@009466f0`** on one of the player's
 /// own buildings: `Build::action_unqueue@00620280(p)`
 /// ([`sim::Sim::action_unqueue`]), the cancel (item 884, `docs/GOLDEN.md`

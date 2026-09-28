@@ -171,7 +171,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `resource_cap_add`, `replace_gather` and `close_caravan` off), **149**
 /// with item 947's `Group::action_launch_flight` (`docs/GOLDEN.md` §41),
 /// **147** with run353 (item 965: a Build's killing blow on a caravan,
-/// `new_danger` and `restart_trade_route` off).
+/// `new_danger` and `restart_trade_route` off), **148** with item 976's
+/// `Group::action_launch_patrol` (`docs/GOLDEN.md` §42, run358 at
+/// `cover=0`).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -196,7 +198,11 @@ pub const NEVER: &[u32] = &[
     // Item 947, `docs/GOLDEN.md` §41: `Group::action_launch_flight@006fbfb0`,
     // action 3's route at an Airbase, which no chapter stages.
     0x006f_bfb0,
-    0x0070_0010, 0x0070_0b90, 0x0070_20c0, 0x0070_84c0,
+    0x0070_0010, 0x0070_0b90, 0x0070_20c0,
+    // Item 976, `docs/GOLDEN.md` §42: `Group::action_launch_patrol@00703580`,
+    // the Airbase's right-click on the ground; run358 is `cover=0`.
+    0x0070_3580,
+    0x0070_84c0,
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,

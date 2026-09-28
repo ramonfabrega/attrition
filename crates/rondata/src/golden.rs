@@ -456,6 +456,28 @@ pub enum Issued {
         add: bool,
         buildings: Vec<i16>,
     },
+    /// `@launchpatrol <who> <x> <y> <b>…` — `CommandManager::
+    /// issue_launch_patrol@00941860(group, x, y, QUEUE_NEW, 0, 0, 0)` on a
+    /// group of the player's own buildings: a right-click on the ground
+    /// with an Airbase selected (`WorldMap::on_right_up@008c7050:240`).
+    /// `@launchpatrolall` is the shift-click's `QUEUE_LAST` and shift 1
+    /// (item 976, `docs/GOLDEN.md` §42).
+    LaunchPatrol {
+        who: i32,
+        at: Pos,
+        all: bool,
+        buildings: Vec<i16>,
+    },
+    /// `@launchstrike <who> <ox> <whom> <b>…` — `CommandManager::
+    /// issue_flight@00941d40(group, ox, whom, ATTACK, 0, 0, 0)` on a group
+    /// of the player's own buildings: an Airbase's right-click on an enemy
+    /// (`Console::execute_at_cursor@007c6630`), item 976.
+    LaunchStrike {
+        who: i32,
+        ox: i32,
+        whom: i32,
+        buildings: Vec<i16>,
+    },
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
@@ -492,6 +514,9 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "unqueue"
             | "gatherpoint"
             | "gatherpointadd"
+            | "launchpatrol"
+            | "launchpatrolall"
+            | "launchstrike"
     ) {
         return None;
     }
@@ -565,6 +590,36 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             action,
             add: verb == "gatherpointadd",
             buildings,
+        });
+    }
+    // `@launchpatrol`'s two numbers are the point, `@launchstrike`'s the
+    // target, and their objects are buildings (item 976).
+    if verb == "launchpatrol" || verb == "launchpatrolall" || verb == "launchstrike" {
+        let [who, x, y, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(if verb == "launchstrike" {
+            Issued::LaunchStrike {
+                who,
+                ox: x,
+                whom: y,
+                buildings,
+            }
+        } else {
+            Issued::LaunchPatrol {
+                who,
+                at: Pos::new(x, y),
+                all: verb == "launchpatrolall",
+                buildings,
+            }
         });
     }
     // `@queueup`'s two numbers are the type and the count, and its objects
@@ -887,6 +942,23 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             add,
             buildings,
         }) => crate::input::group_gather_point(built, who, &buildings, at, action, add),
+        // `@launchpatrol` is `issue_launch_patrol@00941860` on a group of
+        // buildings, a `group` and a `launch_patrol`, whose entry is
+        // [`crate::input::group_launch_patrol`]; `@launchstrike` is
+        // `issue_flight@00941d40` on one, [`crate::input::group_launch_flight`]
+        // (item 976, `docs/GOLDEN.md` §42).
+        Some(Issued::LaunchPatrol {
+            who,
+            at,
+            all,
+            buildings,
+        }) => crate::input::group_launch_patrol(built, who, &buildings, at, all),
+        Some(Issued::LaunchStrike {
+            who,
+            ox,
+            whom,
+            buildings,
+        }) => crate::input::group_launch_flight(built, who, &buildings, ox, whom, 10),
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1431,6 +1503,12 @@ mod tests {
         // lines on the Airbase, one an append and one the Clear: an
         // Airbase's gather point (item 947, `docs/GOLDEN.md` §41).
         ("chapter32.cmd", &[]),
+        // Chapter thirty-three: chapter thirty-two, an enemy Barracks by
+        // the Airbase, `@launchstrike`, `@launchpatrol` and
+        // `@launchpatrolall` (verbs 21–23) and a `@gatherpoint` of action 3
+        // and a `@gatherpointadd` behind it: an Airbase's launch issuers
+        // (item 976, `docs/GOLDEN.md` §42).
+        ("chapter33.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
@@ -1665,6 +1743,43 @@ mod tests {
         );
         assert_eq!(parse_issuer("@gatherpoint 0 5000 6000 0"), None);
         assert_eq!(parse_issuer("@gatherpoint 9 5000 6000 0 2007"), None);
+    }
+
+    /// **The launch lines are an Airbase's right-click** (item 976):
+    /// `@launchpatrol` and `@launchpatrolall` take the point and the
+    /// buildings, `@launchstrike` the target and the buildings; a line
+    /// with no building is the DLL's refusal 5.
+    #[test]
+    fn the_launch_lines_are_an_airbase_s_right_click() {
+        assert_eq!(
+            parse_issuer("@launchpatrol 0 13440 9600 2007"),
+            Some(Issued::LaunchPatrol {
+                who: 0,
+                at: Pos { x: 13440, y: 9600 },
+                all: false,
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@launchpatrolall 0 7680 11520 2007"),
+            Some(Issued::LaunchPatrol {
+                who: 0,
+                at: Pos { x: 7680, y: 11520 },
+                all: true,
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@launchstrike 0 2006 1 2007"),
+            Some(Issued::LaunchStrike {
+                who: 0,
+                ox: 2006,
+                whom: 1,
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(parse_issuer("@launchpatrol 0 13440 9600"), None);
+        assert_eq!(parse_issuer("@launchstrike 9 2006 1 2007"), None);
     }
 
     /// **An unqueue line is the DLL's cancel** (item 884): `who`, the

@@ -1155,13 +1155,14 @@ and `do_air_patrol`; five tests in `air::launch_tests`.
   a `QUEUE_LAST` (`add_gather_point` moves `+0xcc` back to the old tail)~~:
   "The other arms" above (item 955, run338); a waypoint with `action` ≠ 0
   stays reading only;
-- action 3 (the Airbase's strike: `action_gather_point`'s own loop, then
+- ~~action 3 (the Airbase's strike: `action_gather_point`'s own loop, then
   `Group::action_flight` → `Group::action_launch_flight@006fbfb0` for the
-  building group) ~~and the Airbase's arm of `add_gather_point` /
+  building group)~~ ~~and the Airbase's arm of `add_gather_point` /
   `clear_gather` under `build_masks & 8`~~ (built and captured, item 947,
-  "The Airbase" above): run under the emulator, not built and not
+  "The Airbase" above): ~~run under the emulator, not built and not
   captured; so is a point after an action-3 one, appended to a patrol the
-  strike has closed;
+  strike has closed~~ — "The launch commands" below (item 976): a point
+  after an action-3 one is a fresh patrol that ends the strike;
 - an enemy at the point (the attack arms) and a caravan's trade arm;
   ~~the third re-seat (`619aa3`..`619be7`: a unit found at a ground
   point)~~ (built, item 955), ~~with the lone arm's second sweep~~ (built,
@@ -1173,6 +1174,118 @@ and `do_air_patrol`; five tests in `air::launch_tests`.
   gather arms~~ (captured, run338);
 - the Terracotta Army and the Kremlin beside the Senate (wonders with no
   ident here), and `find_building`'s own metric (the nearest here).
+
+## The launch commands (item 976)
+
+`docs/GOLDEN.md` §42 is the chapter and run358 its capture. A selection
+of buildings that holds an Airbase turns the player's two air orders into
+orders for **the planes standing inside**:
+- **a right-click on the ground** is a **launch patrol**, not a gather
+  point: `WorldMap::on_right_up@008c7050:240` and `Console::
+  execute_at_cursor@007c6630:3230` issue `CommandManager::
+  issue_launch_patrol@00941860(group, x, y, queue, shift, ctrl, alt)` for
+  a selection holding an `AIRBASE` or a `MISSILESILO`, and
+  `CommandPackage::process_launch_patrol` hands it to
+  `Group::action_launch_patrol@00703580`;
+- **a right-click on an enemy in air range** (or on another base) issues
+  `CommandManager::issue_flight@00941d40` on the building group itself,
+  and `Group::action_flight@006fb260`'s `buildings` arm is
+  `Group::action_launch_flight@006fbfb0`. There is no
+  `issue_launch_flight` in the executable.
+
+**The choice.** Both walk each member's `inside_down` chain, the planes
+in the order they came in, and pick **one** plane unless shift (or
+`QUEUE_LAST`, for the patrol) takes every one:
+- skipped: a plane not air, busy (`UnitData::is_busy@0060a370`, a head
+  cast here), a missile (the patrol), outside the ctrl/alt filter (alt
+  keeps the Biplane line, ctrl the Bomber line), and **without shift, one
+  still refuelling** (`mana_burn != 0`); a strike also skips one that
+  cannot reach (`get_speed(x, y, 1) · mana` under the distance);
+- the distance is **the base's** to the point or the target, **÷ 10 for
+  the Biplane line** on a patrol (÷ 4 for the Helicopter line), **÷ 4 for
+  the line the target calls for** on a strike (the Bomber line for an
+  enemy building, the Biplane line for a unit or a target of one's own or
+  a mutual ally), and **× 200 for a plane with an order**; the least wins,
+  the first of equals;
+- the patrol is `add_air_patrol_order(point, base, 1)`, with the action
+  bit; the strike is `action_flight(o, whom, ATTACK, 0, 0, 0)` on a
+  group of the chosen, §31's strike from inside a base or a strike's
+  re-point.
+
+**Action 3 at an Airbase** (`Group::action_gather_point@006ff1b0`,
+`6ff34d`..`6ffa71`): each member that `is(0x1bf)` takes the point
+`(captain, who)` — `QUEUE_LAST` under shift — and its hangar walk gives
+every homed plane `add_strafe_order(o, who, base, 1, QUEUE_NEW, 0)`;
+then `action_flight(o, who, ATTACK)` runs on the Airbases as a group, so
+one plane inside is re-pointed with the action bit. A later point in the
+list is a fresh patrol whose `close_orders` ends the strike (the walk's
+patrol pointer is empty after a strike); `[P1, A3, P2]` writes P2 into
+the dead patrol and leaves the strike. **A strike on one's own unit is an
+escort** (`Unit::do_strafe@005eab00`'s ally arm, ORDERS §34.7).
+
+**Under the emulator** (a scratch script on
+`tools/emu/callfn.py`'s machine, out of git). `action_launch_patrol`,
+`action_flight` → `action_launch_flight`, `action_gather_point` and
+`Build::add_gather_point` ran unchanged on chapter thirty-two's hangar
+(Airbase `0/2007`, `build_masks` 0x1088; the chain `0/8`, `0/7` Bombers,
+`0/6` Fighter, `0/9` Biplane); `is_busy`, `mana`, `order_type`,
+`GroupData::count`, `count_inside`, `valid_target`, the vtables' `is`,
+`Group::clear`/`add`, the adders, `clear_orders`, `home_base`,
+`get_order` and `make_valid` were hooked on a model of each plane:
+
+| the call | what it did |
+| --- | --- |
+| launch patrol (11520, 7680), `QUEUE_NEW`, all four fuelled, no orders | `add_air_patrol_order` to `0/6` alone (÷ 10) |
+| the same, `0/8` and `0/7` refuelling; or `0/8` on a patrol; or all four on patrols | `0/6` |
+| the same, all four refuelling | nothing |
+| `QUEUE_LAST` and shift, `0/8` and `0/6` refuelling | all four |
+| `QUEUE_LAST`, no shift, the same | `0/7` and `0/9`: the fuelled |
+| ctrl; alt | `0/8` (the Bombers); `0/6` |
+| `action_flight(2006, 1, ATTACK)` on `[2007]`, an enemy building, all fuelled | `action_flight` on `[8]` |
+| the same, `0/8` refuelling; both Bombers refuelling; the Bombers on strikes | `[7]`; `[6]`; `[6]` |
+| the same, the chain `6, 9, 8, 7` | `[8]` (÷ 4 over the chain) |
+| `action_flight(3, 0, ATTACK)`, a unit of one's own | `[6]` |
+| shift | `[8, 7, 6, 9]` |
+| `action_flight(2008, 0, MOVE_TO)`, a second base; `0/8` refuelling; shift | `[8]`; `[7]`; all four |
+| `action_gather_point(3, 0, 3, 0)` on `[2007]` (`add_gather_point` and `action_flight` hooked) | `add_gather_point(3, 0, 3, QUEUE_NEW)`, then `action_flight` on `[2007]`, `buildings` 1, `(3, 0, ATTACK)`; `add_to_end` 1: `QUEUE_LAST` |
+| the chain unhooked: A3 on `0/3`, then P2 appended | A3: each plane `clear_orders` and `add_strafe_order(3, 0, 2007, 0, 1, QUEUE_NEW, 0)`, `action_flight` on `[6]`; P2: each plane the strike, then `add_air_patrol_order(P2, 2007, 0, 1)`, closing it: a patrol over P2 alone |
+| P1, then A3 appended, then P2 appended | each: a patrol over P1, then the strike closing it; P2 is written into the dead patrol, and the strike stands |
+| A3 NEW with `0/6` on the map | `0/6` sent home first (`add_strafe_order(−1, −1, 2007, 0, 0, QUEUE_NEW, 0)`), then its strike |
+
+The issuers under `tools/explore/command_oracle.py`'s fixture:
+`issue_launch_patrol` appends a fresh group `[2007]` and a 25-byte
+`launch_patrol` (type `0x0b`, `[x][y][queued][shift][ctrl][alt]`), 30
+bytes in all; `issue_flight` on the same group a 25-byte `flight` with
+`orders` 10.
+
+**The listing settled the rest** (910, 964, 933):
+- `action_launch_patrol` reads `alt` (`[ebp+0x1c]`) before `ctrl`
+  (`[ebp+0x18]`): `is(0x11f)` then `is(0x130)` (`7036fc`..`70373f`). The
+  fuel test is `shift == 0 && mana_burn != 0` (`703745`..`703763`), before
+  the distance. The ÷ 10 is `0x66666667` and `sar 2` (`7037f0`), the ÷ 4
+  of the Helicopter line `sar 2` with the sign's round (`703835`). The pick
+  is `dist < best`, strict (`70389b`). `QUEUE_LAST` is 1 (`7038af`).
+- **The distance is the base's, not the plane's** (`703775`..`7037b9`,
+  `6fc3cb`..`6fc4a3`): the chain member's building at `-0x3c` and `-0x48`.
+  So every plane in one base ties, and only the line's divisor and the
+  order's multiple separate them. `action_launch_flight`'s is `vector_dist`
+  inlined, to the unsigned `>> 1` of the `hi + lo/2` arm.
+- `action_launch_flight`'s line (`6fc5b2`..`6fc661`): the target's owner
+  equal to `leaders[who].who` (`+0x8`, the PDB's field list), or both
+  `diplos` 2, asks `is(0x11f)`; else the target's vslot `0x18` —
+  `Buffer::is_pending_load` (1) on a unit's vtable,
+  `Window::get_button` (0) on a Build's — picks `0x11f` or `0x130`.
+- The reach is the plane's own `get_speed(x, y, 1)` (vslot `0x17c`, the
+  plane's point) times `UnitData::mana` (`6fc53e`..`6fc57e`).
+- `add_strafe_order`'s fifth argument is `mandatory` (`+0x1c`) and its
+  seventh the action bit: the hangar walk's strike is `mandatory 1`,
+  flags 0 (`62304b`..`623078`); `action_flight`'s re-point writes
+  `returning 0`, `mandatory 1` and the action bit (ORDERS §32).
+- The escort's arm is taken when the target's owner is not negative and
+  `is_ally` (vslot `0x30` is `Window::get_button`, 0).
+
+**Built**: not yet; `rondata::input::group_launch_patrol` and
+`group_launch_flight` push the building group and order no plane.
 
 ## What is not established
 

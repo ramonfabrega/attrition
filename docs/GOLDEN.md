@@ -1402,6 +1402,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 312 | thirty, the gather point | `[605, 1450)` | `@gatherpoint` (the DLL's new verb 20) on two Barracks and the City: 2007's point on the ground before its Hoplites, moved onto 2008 between the Hoplites' finish and the Bowmen's, and cleared; 2008's on itself before its Hoplites; the City's on a forest before its Citizen; with `GROUPS=1` at `GUYS=4`; the staging walked by this crate on run308's start (§39) — **run 2026-09-27 (item 928), 367 MB, 1,010 s; the pool printed; no falsifier fired: every list on its block, the City's point snapped to its Woodcutter's; the Hoplites attack-moved to 2007's point from 856, 2008's stayed in, the Bowmen garrisoned 2008 by 1079, the Citizen walked to the Woodcutter from 760**; item 945 built the Bowmen's re-seat, 105 → 35 rows |
 | 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) — **run 2026-09-27 (item 955), 351 MB, 966 s; falsifier 3 fired on all three Citizens: `FILTER_ALL` counts the seeker; every other reading held; the word 740 → 1400, closed** |
 | 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
+| 358 | thirty-three, an Airbase's launch issuers | `[605, 2740)` | chapter thirty-two whole, an enemy Barracks by the Airbase (2200), and five presses on `0/2007`: `@launchstrike` on it (2260, verb 23), `@launchpatrol` (2280, verb 21) and `@launchpatrolall` (2295, verb 22) on the ground, `@gatherpoint` of action 3 on the Citizen `0/1` (2305) and `@gatherpointadd` after it (2335); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run344's start (§42) |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -7029,3 +7030,197 @@ strike only from the last leg are built from ORDERS §34.5 with no test and
 no capture (nothing enemy near either point); action 3 and
 `action_launch_flight`; a patrol of more than `PATROL_POINTS` (8) points.
 Chapters twenty-nine to thirty-one hold at their pins.
+
+## 42. Chapter thirty-three — an Airbase's launch issuers: a strike and two launch patrols from the base, and an action-3 point followed by another (item 976)
+
+**Premise.** §41 closed the Airbase's gather point on the ground and left
+two routes unstaged (parked 947): **a right-click with the Airbase
+selected**, which gives the planes inside their orders, and **action 3**,
+the gather point on a friendly unit. As claims to check, each read off
+the listing and run under the emulator first:
+- **The right-click on the ground is a launch patrol, not a gather
+  point.** `WorldMap::on_right_up@008c7050:240` and
+  `Console::execute_at_cursor@007c6630:3230` issue
+  `CommandManager::issue_launch_patrol@00941860(group, x, y, queue,
+  shift, ctrl, alt)` when the selection holds an `AIRBASE` (0x1bf) or a
+  Missile Silo; `CommandPackage::process_launch_patrol` hands it
+  to `Group::action_launch_patrol@00703580`. **There is no
+  `issue_launch_flight`**: the right-click on an enemy issues
+  `CommandManager::issue_flight@00941d40` on the building group itself,
+  and `Group::action_flight@006fb260`'s `buildings` arm (`6fb361`) is
+  `Group::action_launch_flight@006fbfb0`.
+- **Both pick one plane** of those standing in the group's buildings,
+  walked along each base's `inside_down` chain (the order they came in),
+  unless shift (or `QUEUE_LAST`, for the patrol) takes every one. The
+  pick is the least of a distance every plane in one base shares, the
+  base's to the point or the target: **÷ 10 for the Biplane line**
+  (`is(0x11f)`) on a patrol, **÷ 4 for the line the target calls for** on
+  a strike (the Bomber line, `is(0x130)`, for an enemy building; the
+  Biplane line for a unit or a target of one's own), and **× 200 for a
+  plane with an order**; the first of equals wins. **Without shift a
+  plane still refuelling (`mana_burn != 0`) is passed over**; a strike
+  also passes over a plane that cannot reach (`get_speed(x, y, 1) ·
+  mana`).
+- **The patrol is `add_air_patrol_order(point, base, 1)`**, the action
+  bit; **the strike is `action_flight(o, whom, ATTACK)` on a group of the
+  one plane**: §31's strike from inside a base.
+- **Action 3 at an Airbase** (`Group::action_gather_point@006ff1b0`,
+  `6ff34d`..`6ffa71`): each member that `is(0x1bf)` takes the point
+  `(captain, who)` through `Build::add_gather_point` — whose hangar walk
+  gives every homed plane `add_strafe_order(o, who, base, 1, QUEUE_NEW,
+  0)`, a strike with no action bit — and then **`action_flight(o, who,
+  ATTACK)` runs on the Airbases as a group**, so `action_launch_flight`
+  re-points one plane inside with the action bit. The general loop skips
+  the Airbase under action 3 (`6ffbcc`).
+- **A point after an action-3 one ends the strike.** The walk's patrol
+  pointer is empty after a strike (`623080` jumps past its store at
+  `6230d6`), so the
+  next point is a fresh `add_air_patrol_order`, whose `close_orders`
+  kills the strike (ORDERS §34.1): `[A3, P]` leaves every plane on a
+  patrol over P alone, flags 4. Parked 947's "appended to a patrol the
+  strike has closed" is `[P1, A3, P2]`, where P2 goes into the dead
+  patrol and the strike stands; not staged here.
+- **A strike on one's own unit is an escort** (`Unit::do_strafe@005eab00`,
+  `0x5eab9b`..`0x5ead3a`; ORDERS §34.7 had it reading only): it flies at
+  the unit, its `xx/yy` following it, and looks round it on `(o + frame)
+  & 15 == 0`.
+
+**Under the emulator first, and the listing**: `docs/PRODUCTION.md`, "The launch commands", has the table and the listing's points (item 976). In brief: every row above held — the Fighter `0/6` ahead of the Bombers on a patrol, `0/8` on an enemy building, a refuelling plane passed over without shift, all four with it; `action_gather_point`'s action 3 is `add_gather_point` then `action_flight` on `[2007]`; `[A3, P2]` ends on a patrol over P2 alone, `[P1, A3, P2]` on the strike.
+
+**The booking's mutation** (918): `action_gather_point`'s Airbase skip
+under action 3 dropped again — the one piece of these routes this crate
+carried — **1,100 of 1,100 sim tests pass** (§41 found the same at
+1,092). Nothing else of the two issuers was carried.
+
+**The writers and readers, counted by offset** (823, 869):
+- `mana_burn` (`+0x96`): fourteen writers by the export (the flight's
+  `Unit::move_step`, `Unit::init`, the constructor, `do_strafe`, the
+  spells and the scenario paths; the refill is `Unit::process`'s, ORDERS
+  §32); read before the distance by both launch arms, and by
+  `Object::do_launch@0064f3b0` and `mana_left`.
+- the chain (`ObjectData +0x28`/`+0x3e`): written by `go_inside` and
+  `Object::remove_from_inside`; read by both launch arms, `do_launch` and
+  `get_inside`.
+- the gather list: §39's two writers; the action-3 loop adds a caller of
+  one, `add_gather_point`.
+
+**What the emulator could not reach**: `action_flight`'s per-plane
+re-point after the pick (§31's arm, not re-emulated); the escort's flight;
+the Helicopter's move and the missile arms; and whether the original
+reuses a dead building's number for a new one (`Objects::find_free`, the
+staging's premise below).
+
+**The cast and the lines** are `chapter33.cmd`'s: chapter thirty-two's
+sixteen whole — the four planes inside `0/2007` with no order by 2106,
+full on 2145 (`0/8`), 2215 (`0/7`), 2256 (`0/9`) and 2302 (`0/6`)
+(run344's `mana_burn`) — then:
+- `2200 add barracks who=1 72,78`: an enemy building 12.7 tiles from the
+  Airbase, inside its sight, and more than twelve (`BOMBER_RESPOND_RANGE`)
+  from every point below;
+- `2260 @launchstrike 0 2006 1 2007`: the Airbase's right-click on it
+  (verb 23, `issue_flight` with `ATTACK` on `[2007]`);
+- `2280 @launchpatrol 0 13440 9600 2007`: the ground, P1, tile (70, 50)
+  (verb 21, `QUEUE_NEW`);
+- `2295 @launchpatrolall 0 7680 11520 2007`: the shift-click, P2, tile
+  (40, 60) (verb 22, `QUEUE_LAST` and shift);
+- `2305 @gatherpoint 0 1 0 3 2007`: action 3 on the Citizen `0/1`, the
+  point a friendly unit's (`execute_at_cursor:3455`'s bytes);
+- `2335 @gatherpointadd 0 9600 7680 0 2007`: P3, tile (50, 40), after it.
+
+One lever a press, each between two staged events (879): the strike with
+two Bombers and the Biplane fuelled and `0/6` not; the patrol after the
+strike took a Bomber, with `0/6` still refuelling; the shift-click with
+`0/6` refuelling; action 3 with `0/6` inside and full; the append with
+all four on the escort.
+
+**The staging, walked by this crate through the commands' own entries**
+(`input::group_launch_flight`, `group_launch_patrol` and
+`group_gather_point` on run344's start, the same game to 2360; a
+prototype of the arms, kept off the branch until the floor is pinned,
+gives the reading's values; run359 was not used):
+- **2201**: the Barracks `1/2006` at (72, 78) — `find_free` reuses the
+  number of chapter twenty-two's, dead since 1080;
+- **2262**: `0/8` a `STRAFEORDER` on `1/2006`, `mandatory` 1, flags 4,
+  and out;
+- **2282**: `0/9` an `AIRPATROLORDER` over P1, flags 4, and out;
+- **2297**: `0/7` and `0/6` each over P2, flags 4; `0/7` out on 2298,
+  `0/6` inside;
+- **2307**: the list `[(1, 0, 3)]`; all four a `STRAFEORDER` on `0/1`,
+  `mandatory` 1: `0/6` flags 4, inside, the other three flags 0; `0/6` out
+  on 2311 or later; each flying at `0/1`'s point;
+- **2337**: the list `[(1, 0, 3), P3]`; all four an `AIRPATROLORDER` over
+  P3 alone, flags 4;
+- **2406**, **2418**, **2466**, **2486**: `0/6`, `0/7`, `0/9`, `0/8` over
+  P3.
+
+**The readings, and the gates between each and its block** (903, 968):
+- **The strike** (2262): `0/8` (the reading: the Bomber line ÷ 4 on a
+  building, the first of the two Bombers); `0/9` (the Biplane line for a
+  building); nothing (the building arm not taken: this crate). Gates: the
+  Barracks' number (`find_free`), its `ever_seen` from the Airbase's sight,
+  the reach, and `0/9` fuelled from 2256.
+- **The plain patrol** (2282): `0/9` (the reading: the fuelled fighter,
+  ÷ 10); `0/7` (no ÷ 10: the first fuelled); `0/6` (no fuel gate: the
+  first fighter); nothing (this crate). Gates: `0/8` out from 2262,
+  `0/6`'s `mana_burn` not 0 before 2302.
+- **The shift-click** (2297): `0/7` and `0/6` (the reading: shift ignores
+  the tank); `0/7` alone (the tank gates it). Gate: `0/6` refuelling on
+  2296, `0/9` out from 2282.
+- **Action 3** (2307): all four on the strike, `0/6` flags 4 (the
+  reading); all four flags 0 (no `action_flight` after the loop); the
+  planes untouched (the Airbase skipped at action 3: this crate). Gate:
+  `0/6` inside and fuelled, the other three on the map.
+- **The escort** (2307..2336): each strike's `xx/yy` on `0/1` and the
+  plane flying at it (the reading); a patrol over the point, flags 0 (the
+  enemy arm's refusal); the plane holding its course (this crate's `return`
+  for an ally).
+- **The append** (2337): each an `AIRPATROLORDER` over P3 alone, flags 4
+  (the reading); the strike with P3 behind it.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5`
+and `misc:COMMANDMANAGER=1` over **`[605, 2740)`**: 2,135 blocks, **254
+of runway** past the last staged event, `0/8` over P3 near 2486.
+`UNITS=3` prints each plane's stack and `mana_burn`; `BUILDS=7` the list,
+the chain and `launch_frames`; `COMMANDMANAGER=1` each processed command.
+
+**The premise's killer, and its writers** (§3, point 5): each plane's own
+stack on 2262, 2282, 2297, 2307 and 2337. Their writers: the two launch
+arms (the adder; `action_flight`'s strike from inside), the hangar walk
+and `clear_gather`'s half, `action_flight`'s re-point, `do_strafe`'s
+escort and refusal, `do_launch`, `land_plane`. **The loops**: the
+buildings by `group.num`; each base's chain by `inside_down` to −1; the
+list from its head.
+
+**What would falsify it, and where each could first fire.**
+1. **An issue does not reach the pump.** Trace frames 2260, 2280, 2295,
+   2305, 2335: an `INFO 17` with a refusal; or no `process_flight` on
+   2261, `process_launch_patrol` on 2281 and 2296, `process_gather_point`
+   on 2306 and 2336.
+2. **The target's number.** The Barracks at (72, 78) is `1/2007`, not
+   `1/2006`, on 2201: then 3 cannot fire, and says so.
+3. **The strike** (2262), each plane's own stack: `0/8` a `STRAFEORDER` on
+   `1/2006`, `mandatory` 1, flags 4, `returning` 0 (the reading); `0/9`'s
+   instead; none.
+4. **The plain patrol** (2282): `0/9` over P1, flags 4 (the reading);
+   `0/7`'s; `0/6`'s; none.
+5. **The shift-click** (2297): `0/7` and `0/6` over P2, flags 4 (the
+   reading); `0/7` alone; none.
+6. **Action 3** (2307): the list `[(1, 0, 3)]`; each plane one
+   `STRAFEORDER` on `0/1`, `mandatory` 1, `0/6`'s flags 4 and the others'
+   0 (the reading); all flags 0; the stacks of 2306 kept.
+7. **The escort** (2308..2336): each strike's `xx/yy` equal to `0/1`'s
+   point on its block; a patrol over it, flags 0; the heading unturned.
+8. **The append** (2337): the list of two; each plane one
+   `AIRPATROLORDER` over P3, flags 4 (the reading); `[STRAFE, AIRPATROL]`.
+9. **The arrivals**: each plane within `0x240` of P3 by 2739, its
+   `waypoint` 0.
+
+Falsifiers 3 to 8 test each plane's own stack on its own block (711),
+and 3, 4, 5 and 6 each split two readings or more (789). **Not reached**:
+ctrl and alt; the Helicopter's move; the missile arms; `MOVE_TO` to a
+second base (the farthest plane `can_carry` admits); `[P1, A3, P2]`; the
+escort's search finding something; a unit escorted that dies.
+
+**Where it should part.** Unbuilt, the first value parting is **2262**,
+`0/8`'s stack; the first draw parting where a plane's flight starts from
+another state, 2262 or 2263.
