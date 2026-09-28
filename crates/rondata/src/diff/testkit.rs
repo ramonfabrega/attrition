@@ -1517,7 +1517,32 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// 5162 the original's `1/24` strikes the scout `0/0` (`recharging` 33)
 /// and its follower `1/26` holds it, where ours' `1/24` has re-searched
 /// onto the city `0/2000` and `1/26` has followed. No mechanism is named.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_161;
+///
+/// **5161 → 5930, the game's end, on item 1099** (`docs/COMBAT.md` §80):
+/// `Unit::fight@005fd4d0:413`'s one-in-five re-search is
+/// `find_new_target(this, &who, 0)`, which kills the attack before it
+/// searches, so the search runs under the attack-move's flags word
+/// (`0x20010`) and a building scores half; this crate searched under the
+/// attack and re-pointed it in place. And `Build::check_capture`'s tally
+/// asks `Search::valid_filter(…, 8)` of every object, which passes only
+/// what is armed (`0067de47`); this crate counted the human's unarmed
+/// buildings at 7 apiece and never took its city. **The word's delta (its
+/// block is `run396_s_word_frame_is_widened_whole`'s):** on block 5162
+/// `1/24` strikes the scout `0/0` (`in_range` 1, `recharging` 33,
+/// `hold_attack` 1) and `1/26` holds `0/0`, on both sides, where ours read
+/// the city `0/2000`, `recharging` 0; frame 5161's draws went 12 against
+/// 13 → agreeing. **No frame of run347's trace parts**: the draw stream
+/// agrees to 5930, its last, the frame the AI takes the human's city
+/// `0/2000` as `1/2017` and the human is defeated. The value diff at the
+/// end is run347's own closing whole-map state, block 5931: 42 units
+/// compared, 0 off, 0 unlinked, 0 extra; every building linked, 0
+/// diverged, the seven the capture hands over (`1/2017`..`1/2023`, at
+/// ours' `0/2000`..`0/2006` points) among them, where ours held all seven
+/// as the human's; three cities unlinked, the closing `CITY` record
+/// carrying no `o` (`run347_is_great_lakes_at_toughest_and_its_word_holds`).
+/// run403 widens the last blocks before it
+/// (`WIDENING_SECOND_GREAT_LAKES_5930`). **The pair's lower map closes.**
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_930;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1562,6 +1587,13 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
 /// run347's game, blocks 5100..5356 — six blocks before the word 5105's
 /// block 5106 and 250 past it.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_5105: (i64, i64) = (5_100, 5_356);
+
+/// `run403_s_word_frame_is_widened_whole`'s window (item 1099): run403 over
+/// run347's game, blocks 5925..5930, the last six before the game's end.
+/// The word is 5930, run347's last traced frame, and its own block 5931 is
+/// the game's closing whole-map state, which run347 carries and
+/// `walk_second` scores; run403's quit block prints no record.
+pub(crate) const WIDENING_SECOND_GREAT_LAKES_5930: (i64, i64) = (5_925, 5_931);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -6593,7 +6625,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run357, and Great Lakes to 4555, on run356. Item 1040 moved Great
     // Lakes past run356's window to 4846, widened on run373, and item 1074
     // past run373's to 5105, widened on run396; item 1089 moved it to 5161,
-    // inside run396's window.
+    // inside run396's window, and item 1099 to 5930, the game's end,
+    // widened on run403 (its last six blocks) and scored whole on run347's
+    // closing state.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
@@ -6604,9 +6638,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        Some("run396_s_word_frame_is_widened_whole"),
-        1089,
-        Some(WIDENING_SECOND_GREAT_LAKES_5105),
+        Some("run403_s_word_frame_is_widened_whole"),
+        1099,
+        Some(WIDENING_SECOND_GREAT_LAKES_5930),
     ),
     // **The third map, Great Sahara** (DECISIONS 54 §3, item 1066): its
     // word is frame 8 on both run382 and run383, and run382 carries every

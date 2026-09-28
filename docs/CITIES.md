@@ -1657,6 +1657,9 @@ mine = U.get_capture_value()                                # the triggering uni
 per_player[A] = mine;  per_player[O] = def_base;  attackers = mine;  defenders = def_base
 for every object X in the cells within circle_radius[cells] of B's cell, same land id:
     skip B, skip U, dead, sea or air domain, decoys, !valid_filter(8), vector_dist(X, B) > dist_max
+        # valid_filter(8), 0067de47 (item 1099): a unit passes iff type->attack (+0x1e8) != 0
+        # and type->role & 0x10000; a building iff type->attack != 0, not a city (flags & 0x20),
+        # active (vslot +0x4c, flags & 4) and hits_left (vslot +0x114) != 0
     v = X.get_capture_value()                                # a unit: max(1, min(uber_size, living figures)), 0 for a decoy or siege; a building: 1
     v != 0 and X is O's building: v += num_inside(1) + (is_fort ? 12 : 6); revealed to A
     per_player[X.who] += v
@@ -1680,6 +1683,27 @@ The defending side's **buildings weigh more than units**: each of the owner's
 buildings in the radius counts `7 + garrison`, a fort `13 + garrison`; a
 third party's counts 1 and on neither side. Siege counts nothing.
 
+**Only what is armed is in the tally at all** (item 1099). The filter's
+entry 8 is `0067de47`, read off the PE's own jump table at `0067e57c`
+(`Search::valid_filter@0067dbb0` is one indirect jump the decompiler cannot
+follow). For a unit (`0067debf`–`0067deeb`) it answers `type +0x1e8 != 0`,
+the type's `attack` column, and `type +0x2c8 >> 16 & 1`, the combat bit
+of `role`: a citizen or a scout counts for neither side. For a building
+(`0067de47`–`0067deb6`) it answers `type +0x1e8 != 0`, `flags & 0x20`
+clear (not a city), vslot `+0x4c` (`flags & 4`, active; the PE's slot at
+`00472350`) and vslot `+0x114` (`ObjectData::hits_left@006535c0`). So the
+owner's `7 + garrison` goes only to an armed, finished building with hits
+left: a tower, a fort, a castle, never a house, a farm or a temple.
+run347's game ends on it: on 5930 the AI's `1/24`'s strike brings the
+human's city to zero with eighteen one-figure soldiers round it (18)
+against the base of 2 and five unarmed buildings, which this crate
+counted at 35; the original takes the city and the human is defeated.
+**Diff-backed** by run347's closing state (the endpoint, 0 buildings
+unlinked where the filter's absence leaves 7) and unit-backed by
+`unarmed_buildings_and_citizens_do_not_defend_a_city`. **Gaia**: an animal
+passes the unit arm only with an attack and the combat bit, so the guard
+below still stands as a guard.
+
 **Gaia in the tally — a guard, not a reading.** The loop above walks the
 cells' object chains, which carry gaia's animals as well, and
 `per_player[X.who]` is a **local `int` array** in the original: an animal
@@ -1688,7 +1712,8 @@ leader (unlike `find_unit` and `valid_target_const` — `docs/ANIM.md` §6.1),
 so either `valid_filter(8)` rejects animals for some other reason or the
 overrun is real. The filter is the block at `0067de47` in
 `Search::valid_filter`'s jump table; it turns on a type field `+0x1e8` that
-is unnamed in the export. The sim skips gaia here on the leader bound, which
+is unnamed in the export (~~unnamed~~: `attack`, item 1099, above). The
+sim skips gaia here on the leader bound, which
 cannot change the outcome but is not derived. *Capture:* a contested capture
 with an animal inside the radius, `CITIES=5` and `UNITS=3` over the window.
 

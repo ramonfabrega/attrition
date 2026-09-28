@@ -8933,3 +8933,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   grep -a -m1 '^  DIFFICULTY 5' / '^  MAP_STYLE 14' on gamelog-run396-greatlakes-toughest-5105.txt
 #   257 window blocks, 5100..5356
 # ==== TAKEN 2026-09-28, one take, 14:10–14:27 ====
+
+# run403 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run403),
+# which takes run396's shape with blocks 5925..5930, `!quit` at 5930 (the
+# game's own end is 5931), `cover=0` and `--profile DIFFICULTY=5`. Its
+# checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run347.log rontrace-run403.log   -> 0 differing, 5,931 identical
+#   grep -a -m1 '^  DIFFICULTY 5' / '^  MAP_STYLE 14' on gamelog-run403-greatlakes-toughest-5930.txt
+#   6 window blocks, 5925..5930
+# ==== TAKEN 2026-09-28, one take, 17:35–17:36 (two refused before staging) ====
