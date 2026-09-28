@@ -88,6 +88,15 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1086, 2026-09-28 — the review's edges
+
+(1089) **The review's two edges** (COMBAT §76): `1/13`'s chase on `0/4`
+from 5068, where `find_attack_pos` aims ours at (3384, 31464) with
+tolerance 0 and the original at (2136, 31608) with tolerance 384, seven
+frames before 5075 and not the word's figure; and a reused slot, since
+the original's review reads `objects[whom][ox]` with no `uid` test
+(§76.7). (1074 was promoted to the queue on 5075.)
+
 ## Parked by item 1081, 2026-09-28 — the lead's edges
 
 (1087) **The lead's two unmeasured edges** (COMBAT §74.7): a building
@@ -117,12 +126,6 @@ as a seam.
 every retarget the original's head attack reads `in_range 0, new_ord 1,
 ever_in_range 0` for one block, and this crate re-points the order in
 place. No draw has parted on it.
-
-(1074) **`find_collision`'s conjunct of `do_move`'s kill**, the second
-`SEAM` beside the flank clause 1061 built: ~~its first instance is block
-4980, `1/18`, `collide_o 19`, past the word~~ — that instance followed
-`0/2`'s early death and is gone (1072); on run373 no `collide` row parts
-before 5060 (`1/10`), past the word.
 
 (1075) **`Army::role` is never written** (ours 0 against 1379331 from
 4550; only its reset writes it), and the Town Center group's `ox`/`oy`
@@ -1798,6 +1801,12 @@ reading.
 landing is visible on one side only, and 1081's word turned on one. A
 row could ask such a word for `RON_DEBUG_AMMO` (1081's test-only print
 in `diff/harness.rs`) before any reading; with 1085, one row.
+
+(1090) **A vtable slot the export names by a COMDAT-folded function is
+read off the PE beside the name** (1086's Loop line): `vtables.txt`
+names slot `+0x8` by a folded function and COMBAT §67.2 read it as "is
+it a unit"; `Unit::vftable + 8` in the executable's own bytes is `flags
+& 1`, `is_active`, and a dead target's review turned on it.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
