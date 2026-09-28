@@ -1070,9 +1070,9 @@ impl Sim {
         let heli = self.is_helicopter(u);
         let spot = if heli {
             self.mark(SITE_HELI_EXIT_X);
-            let dx = (self.rng.roll() % 11) as i32 - 0xc5;
+            let dx = self.rng.roll() % 11 - 0xc5;
             self.mark(SITE_HELI_EXIT_Y);
-            let dy = (self.rng.roll() % 11) as i32 - 5;
+            let dy = self.rng.roll() % 11 - 5;
             Pos::new(at.x + dx, at.y + dy)
         } else {
             Pos::new(at.x - 0xc0, at.y)

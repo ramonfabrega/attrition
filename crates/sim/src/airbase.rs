@@ -1044,8 +1044,8 @@ mod tests {
         s.frame = 2445;
         air_type(&mut s, b, HELICOPTER, true, false);
         let h = *s.buildings[b].garrison.last().unwrap();
-        let mut r = s.rng.clone();
-        let (dx, dy) = ((r.roll() % 11) as i32 - 197, (r.roll() % 11) as i32 - 5);
+        let mut r = s.rng;
+        let (dx, dy) = (r.roll() % 11 - 197, r.roll() % 11 - 5);
         assert!(s.come_out(h));
         let at = s.buildings[b].pos;
         assert_eq!(s.units[h].pos, Pos::new(at.x + dx, at.y + dy));

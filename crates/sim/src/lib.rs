@@ -2754,11 +2754,10 @@ impl Sim {
         };
         if stays {
             self.check_gatherers(at);
-        } else if !hangar && !kept {
-            self.come_out(unit);
-        } else if hangar
-            && self.buildings[at].gather.is_empty()
-            && self.air_line_is(unit, crate::airbase::HELICOPTER)
+        } else if (!hangar && !kept)
+            || (hangar
+                && self.buildings[at].gather.is_empty()
+                && self.air_line_is(unit, crate::airbase::HELICOPTER))
         {
             self.come_out(unit);
         }
