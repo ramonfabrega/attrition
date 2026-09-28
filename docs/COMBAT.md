@@ -3127,9 +3127,11 @@ from where, to where or for how long. Nothing is ours alone.
   original's, and `Node::dz` — recorded here and read by nothing — is
   checked against run100's guy record in §24.2.
 - **Not established**: every other unit type. The table has one piece in it.
-  The Slinger's three families are measured in run17 and are *not* in the
+  ~~The Slinger's three families are measured in run17 and are *not* in the
   table, because no capture ties them to an animation — run17's `GUY` detail
-  is 1, so it prints no `cur_anim`. A `GUYS=4` re-run of any Slinger fight
+  is 1, so it prints no `cur_anim`.~~ **Tied by item 1040 (§70.2)**: the
+  unit's own `recharging` names each stone's release event, and piece 32's
+  three are `launch::BAYS` rows. A `GUYS=4` re-run of any Slinger fight
   would close that, and the same shape closes every missile type.
 - **Not established**: whether the bearing/radius pair is what the original
   stores. It is not — the original stores a model-space `Vector<float>` and
@@ -10704,9 +10706,9 @@ retaliation gate for a human guard (1091).
 
 SEAMS: `is_attack`'s overrides are folded in the export, so it is taken
 as the attack and ground-attack orders. `check_target`'s AI-sea region
-exception and its building-cell tail are not carried. The retaliation's
+exception and its building-cell tail are not carried. ~~The retaliation's
 `on_duty` return (`00600877`'s `local_20 != NONE` above it) is not
-carried.
+carried.~~ **Carried by item 1040 (§70.3).**
 
 **What stands at 1133** is not the guard's. `1/6`'s own `ATTACK` on the
 guard goes on block 1134, the tick its reload opens, with no draw, so
@@ -11504,6 +11506,8 @@ the phase are all printed, and the listing gave the setter and the decay.
   4716, 4722, 4750 and 4782; ours on 4690, 4717, 4723, 4751 and 4783. The
   city's `damage` parts on each strike's block and agrees on the next.
   The first strike (4657) agrees. The heal had hidden this row since 4661.
+  **Closed by item 1040 (§70.2)**: the stones left the Slinger's own
+  square, not its bay, and flew a frame long across a boundary.
 - **The scout's explore target on 4737** (2808 against 504 since item
   1028) now agrees, and `1/0`'s order agrees through the window. Which
   read of the city moved it is not established.
@@ -11518,7 +11522,9 @@ the phase are all printed, and the listing gave the setter and the decay.
   `Farms::inc_time+0x1ae`. Block 4782 is inside run356's window (232 after
   its first block, 24 before its last).
   - On block 4780 the citizen `0/4` has been struck there
-    (`damage_frame` 4779, `damage` 3/5) and not here.
+    (`damage_frame` 4779, `damage` 3/5) and not here. **Moved to 4846 by
+    item 1040** (§70): the Slinger's stone left the unit's square, not its
+    bay, and the struck citizen, not on duty, turned on it here.
   - On 4781 `0/4`'s order parts (kind 10 against 1, `orders_x` 1882
     against 2040).
   - `1/24`'s `g.cur_time` parts from 4753 and its facing from 4787.
@@ -11534,7 +11540,8 @@ the phase are all printed, and the listing gave the setter and the decay.
 - **The latch's peasant arm**: a peasant or `0x42` attacker outside its
   own territory skips `+0x60 |= 0x30`. This crate latches every foreign
   hit. The flags are set either way.
-- **`1/26`'s one-frame lag** from its second strike (§69.5).
+- ~~**`1/26`'s one-frame lag** from its second strike (§69.5).~~ **Closed
+  by item 1040 (§70.2).**
 
 ### 69.7 Coverage
 
@@ -11548,3 +11555,176 @@ the phase are all printed, and the listing gave the setter and the decay.
   clear without a new hit (the window ends on 4806).
 - **Listing-backed**: `00652561`; `Build::process@0061edf0`'s
   `(frame + o) % 200` block and its heal gate.
+
+## 70. A Slinger's stone leaves its bay, and a busy citizen does not turn (item 1040, 2026-09-28)
+
+Item 1040 was booked on Great Lakes' second word, frame 4781 of run347:
+ours 5 draws against the original's 4, parting at index 0. Ours spends
+`Unit::fight+0x9b0`, where the original spends `Farms::inc_time+0x1ae`.
+The widening (run356, block 4780) had the citizen `0/4` struck on 4779
+there and not here. No mechanism was named. Two came out of the record,
+one behind the other.
+
+### 70.1 The frame, from the disk
+
+- **The striker.** Every order on block 4774–4782 of run356 that names
+  `0/4` is `1/24`'s, a who=1 Slinger (type 82, piece 32) standing at
+  (2856, 31800). Its `recharging` jumps to 33 on block 4754 on both sides,
+  and `CHAR_ATTACK2` (slot 12) plays from 4755 on both.
+- **The launch agrees.** The trace's `Ammo::init+0xcd9`/`+0xd0b` pairs
+  fall on 4647, 4680, 4704, 4707, 4713, 4737, 4740, 4746, 4764, 4770, 4773,
+  4775 and 4780. A scratch print of this crate's launches gives the same
+  thirteen frames.
+- **The flight does not.** `1/24`'s stone of 4775 flew 6 frames here, from
+  (2856, 31800) to (1852, 31802), and landed on 4780; the original's struck
+  on 4779. `1/26`'s second stone at the city (4680) flew 11 here and 10
+  there; its first (4647) flew 11 on both. That is §69.5's "exposed" lag.
+- **Why.** Every Slinger stone left the unit's own square. `launch::
+  launch_point` had no row for piece 32, so `from` equalled the unit's
+  position, which is §22.3's "a piece with no row" fallback.
+- **The second parting**, once the stone flew right: on 4780 ours spends
+  `0/4`'s `fight+0x9b0` first (8 draws against 7). `0/4` holds `[MOVE to
+  (2040, 31992), GATHER at 2003]`, walking to its drop site, on both sides
+  from before the strike. The original's stack is unchanged on 4780 and
+  4781. Ours pushed an `ATTACK` on `1/24`.
+
+### 70.2 The Slinger's three bays, from run17
+
+No dump on this disk has `AMMO` and `GUYS=4` over a Slinger. run17 has
+`AMMO=5` over a Slinger fight at `GUY` detail 1, so it prints no
+`cur_anim` (§22.4). The unit record's `recharging` names the animation
+anyway:
+
+- the stone leaves on the frame the release event is crossed, which is
+  `starttime − 1` frames after the block `recharging` jumps (run356's
+  4754 and 4775 for `1/24`, start 22);
+- piece 32's three `<RELEASEEVENT>`s are distinct: 21 on `CHAR_ATTACK1`,
+  22 on `CHAR_ATTACK2`, 16 on `CHAR_ATTACK3`.
+
+So each of run17's 27 first-printed stones names its key, and the
+offsets collapse onto §22.2's three vectors:
+
+| key | stones | headings (whole degrees) | `(right, fwd)`, thousandths | `dz` |
+|---|---|---|---|---|
+| `CHAR_ATTACK1`, 21 | 3 | 2 | (69,776, 67,449) | 178 |
+| `CHAR_ATTACK2`, 22 | 20 | 17 | (41,209, 118,012) | 151 |
+| `CHAR_ATTACK3`, 16 | 4 | 4 | (−42,148, 113,222) | 177 |
+
+Each row is item 813's `Bay`: the centroid of the region of integer
+`(right, fwd)` that reproduces every stone of its key **exactly** under
+`get_position`'s whole-degree rotation (`launch::Bay::point`). `dz` is
+`sz` less the figure's `z`, the same on every stone of a key. The figure
+is the `GUY` record on the stone's first block; the Slingers stand while
+they throw. The regions are 5,467, 823 and 658 lattice points, at steps
+of 10, 5 and 10.
+
+Piece 384's two rows (item 485, run112's slingers) have the first two's
+radii to the unit (97 and 125) and bearings 1.4° and 1.1° short of them:
+the same sling model under another piece number, fitted there as a planar
+`Node` from three stones.
+
+### 70.3 `on_duty`'s return, from the listing
+
+`Unit::target_opportunity@005fffc0`, after the flee arm:
+
+```text
+600863  mov   %esi,%ecx
+600865  call  on_duty@005fff70
+60086a  test  %eax,%eax
+60086c  jne   600877              ; on duty → the retaliation
+60086e  cmp   %eax,-0x1c(%ebp)    ; local_20 = order_type(), stored at 600150
+600871  jne   600b16              ; any order → return
+```
+
+- **Every way past the flee arm reaches `600863`** (`600578`, `600656`,
+  `60066e`, `600689`, `600696`, `6006c6`), the front-is-a-move skip
+  included. The one way round is the action-is-an-attack arm, `600516`,
+  `jmp 600877`.
+- **`Unit::on_duty@005fff70`**: the type's `+0x2c8 & 0x10000` (the combat
+  role) and `get_activity`'s order type in {2, `0xc`, `0x16`, 5, `0x15`}:
+  `ATTACK_TO`, `GUARD`, `GROUP_PATROL`, `PATROL`, `GROUP_ATTACK_TO`.
+- **`UnitData::get_activity@00608370`**: the first order that is neither
+  a move nor an attack (vslot `+0x1c`). When every order is one, it is the
+  last, answered only if it is an `ATTACK_TO` or a `0x15`.
+
+So a citizen with any order never answers a hit. A soldier answers one
+only while it attack-moves, patrols or guards. An idle unit of any kind
+still answers (`local_20` is `NONE`).
+
+### 70.4 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| the lead on a moving target | `0/4`'s `dest` is `None` at 4775 on our side, and its position agrees to 4782 | killed |
+| the launch frame | the trace's `Ammo::init` frames are ours, thirteen for thirteen | killed |
+| the launch point | with the bays, `1/24`'s stone lands on 4779 and the city's strikes on the original's frames. With piece 32's rows keyed away (the mutation), the unit test fails and `0/4`'s strike row returns on 4780 | **held** |
+| a busy citizen does not retaliate | with the gate, 4780 agrees and `0/4` keeps its stack. With the gate off (the mutation), the walk falls back to 4780 at index 0 on `0/4`'s `fight+0x9b0` | **held** |
+
+### 70.5 The fix, and its killers
+
+- **Built**:
+  - `sim::launch::BAYS`: three rows for piece 32, appended;
+  - `sim::fight::Sim::on_duty` and `action_is_attack`;
+  - `target_opportunity`'s return after the flee arm.
+- **Unit tests**:
+  - `run17_s_slinger_stones_leave_from_the_measured_bays`: all 24
+    distinct launch points and heights, exactly;
+  - `a_busy_unit_answers_a_hit_only_on_duty`: a walker, a soldier on a
+    plain move, a soldier attack-moving, a non-combat unit attack-moving,
+    an idle unit.
+  - `guard_on_post`'s chariot is now combat-role, as the loader gives
+    the real type. 707's AI guard answers through `on_duty` (`GUARD`).
+- **Mutations** on `c50d00c3`, each restored from git and `touch`ed:
+
+  | mutation | unit test | run347's walk | run356's widening |
+  |---|---|---|---|
+  | piece 32's rows keyed to 9032 | fails | falls back to 4810 | `0/4`'s strike row returns on 4780 |
+  | the gate off | fails | falls back to 4780, index 0 | `0/4`'s `ATTACK` returns on 4780 |
+
+### 70.6 What moved
+
+- **Great Lakes 4781 → 4846.** On run356:
+  - `1/24`'s stone of 4775 strikes `0/4` on 4779 on both sides (block
+    4780: `damage_frame` 4779, `damage` 3/5, where ours read 0 and 0/0);
+  - `0/4` keeps `[MOVE, GATHER]` on both, where ours pushed an `ATTACK`
+    (kind 10, three orders); none of its rows parts in the window;
+  - `1/26`'s strikes on the city land on 4689, 4716, 4722, 4750 and 4782
+    on both sides, and `build:damage` no longer parts (§69.5's lag);
+  - 122 first-parting rows close, and none opens. They include `1/1`'s
+    and `1/4`'s walks, `1/15`'s path on 4792 and `1/24`'s facing on 4787.
+  - Frame 4781's draws went 5 against 4 → agreeing.
+- **East Indies holds at 5606**, ours 4 against 5 at index 0, as booked.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
+  named): frame 4846, ours 8 draws and the original 9, parting at index 2.
+  The original spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56 <
+  Unit::fight+0x19f6`, a strike's animation. Ours spends
+  `Guy::set_anim+0x104b`. Block 4847 is past run356's window, and run373
+  is its widening.
+
+### 70.7 What is not established
+
+- **An attack action with no target** takes the `600516` arm in the
+  original, whose own returns and `kill_current_order` this crate does not
+  carry. It keeps the old path here (SEAM).
+- **`get_activity`'s `is_move_attack`** is read as this crate's `is_move`
+  plus the attack and ground-attack bodies, as `guard_activity` reads it.
+- **The planar fallback for an unmeasured piece** still launches from the
+  unit's square. The next ranged type a word reaches will ask the same
+  question: run17's method needs only `AMMO=5` and the unit's `recharging`.
+- **A Slinger at a heading run17 never shows.** The bays are exact on
+  twenty headings. The rotation is `get_position`'s, and it is read, not
+  measured, between them.
+
+### 70.8 Coverage
+
+- **Diff-backed**:
+  - the bays, by run356's block 4780 and the city's strike blocks, and by
+    run17's 24 points (a unit test that pins the dump's columns);
+  - the gate, by frame 4780's draws and `0/4`'s stack.
+
+  Both are floors that fall back under their mutations.
+- **Listing-backed**: `600863`–`600871`, the branches into it, and
+  `600516`.
+- **Decompile-read**: `on_duty@005fff70`, `get_activity@00608370`.
+- **Unit-backed only**: `on_duty`'s `PATROL`, `GROUP_PATROL` and `GUARD`
+  arms for a human unit, and the idle unit's answer.
