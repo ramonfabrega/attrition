@@ -62,6 +62,21 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 989, 2026-09-27 — the second pair's cities
+
+(998) **A city still under construction is counted by the original's
+sweep and not here**: East Indies' `2007` on run352's block 1571
+(`land` 9, `filled` 1, `reg_cities[11]` 2 against 1); Great Lakes'
+`2009` on run355's block 3805, beside who=1's `territory` 488 against
+290. No draw before either word.
+
+(999) **`2007`'s site picture one cell apart** from the sweep of 1575
+(`reg_land[11]` 102 against 103): AI §58.4's first-pair shape again. No
+draw.
+
+(1000) **The gather-tile re-walk and `verify_gather_tiles` have no
+capture** that grows or drops a list (`docs/ECONOMY.md` §17.4).
+
 ## Parked by item 965, 2026-09-27 — the caravan's kill
 
 (993) **The port calls neither `new_danger` nor `restart_trade_route` on
@@ -1604,6 +1619,15 @@ before the first. A candidate row beside 968 and 903 in the checklist.
 
 (996) **The census's recipe omits `--never`'s blind-list section from
 the paste**, and the heading's text does not say so (965's Loop line).
+
+(1001) **The harness links a dumped building to the first building of
+its number, dead or alive** (989's Loop line, filed at its merge): AI
+§81.4's `damage 1`/`city −1` on both words' blocks were this crate's dead
+site read against the original's live one, and a widening reported them
+as the camp's partings. `unit_by_o` took `alive()` from the start; the
+building and city lookups never did. 989 fixed `link_building`; a grep
+for `.index) ==` without `alive` over `src/diff/` leaves `setup.rs:874`
+and `build.rs:3847` unread.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
