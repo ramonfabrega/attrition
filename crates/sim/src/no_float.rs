@@ -57,7 +57,7 @@ const TEST_FILES: [&str; 3] = ["harness_tests.rs", "cities_tests.rs", "no_float.
 /// Blanks out everything that is not code: line and block comments, string
 /// literals, char literals. Byte positions are preserved so a line number
 /// still means something.
-fn code_only(text: &str) -> String {
+pub(crate) fn code_only(text: &str) -> String {
     let b = text.as_bytes();
     let mut out = vec![b' '; b.len()];
     let mut i = 0;
@@ -120,7 +120,7 @@ fn code_only(text: &str) -> String {
 
 /// Blanks out every `#[cfg(test)]` item: the attribute, and the braced block
 /// that follows it.
-fn without_test_modules(code: &str) -> String {
+pub(crate) fn without_test_modules(code: &str) -> String {
     let mut out = code.as_bytes().to_vec();
     let mut from = 0;
     while let Some(rel) = code[from..].find("#[cfg(test)]") {

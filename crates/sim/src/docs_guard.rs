@@ -1168,25 +1168,35 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 947 moved one, and it is not a build**: GOLDEN 4 → 3, `11520`,
 /// chapter thirty-two's P1 x, which the item's unit tests in `crate::air`
 /// use as a fixture point.
+///
+/// **Re-pinned 2026-09-28, the eighteenth pass (parked 975)**: the decimal
+/// spelling counts from the simulation's production code, never from a
+/// `#[cfg(test)]` item or a file `lib.rs` mounts under one. Measured
+/// whole, test fixtures were banking **17** constants across nine
+/// documents — AI 4, TECH 3, CITIES, ECONOMY and GOLDEN 2 each, ATTRITION,
+/// COSTS, ORDERS and PRODUCTION 1 each — none a mechanism carried. 135 →
+/// 152; the arrivals are listed in `docs/audit/2026-09-28-fable-pass-18.md`
+/// and parked with 802's and 820's.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 31),
+    ("AI.md", 35),
     ("ANIM.md", 4),
     ("ARMY.md", 9),
-    ("CITIES.md", 7),
+    ("ATTRITION.md", 1),
+    ("CITIES.md", 9),
     ("COLLISION.md", 1),
     ("COMBAT.md", 9),
-    ("COSTS.md", 4),
-    ("ECONOMY.md", 13),
-    ("GOLDEN.md", 3),
+    ("COSTS.md", 5),
+    ("ECONOMY.md", 15),
+    ("GOLDEN.md", 5),
     ("GOODY.md", 5),
     ("GROUPS.md", 5),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 12),
+    ("ORDERS.md", 13),
     ("PATHFINDER.md", 1),
-    ("PRODUCTION.md", 9),
+    ("PRODUCTION.md", 10),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 13),
+    ("TECH.md", 16),
     ("TRANSPORT.md", 3),
     ("VISION.md", 2),
 ];
@@ -1237,6 +1247,50 @@ fn short_constants(text: &str) -> Vec<String> {
     out
 }
 
+/// A source file less its comments, its strings and its `#[cfg(test)]`
+/// items: what the simulation is built from, as `no_float` reads it.
+fn production_code(raw: &str) -> String {
+    crate::no_float::without_test_modules(&crate::no_float::code_only(raw))
+}
+
+/// The files `lib.rs` mounts only under `#[cfg(test)]`: `mod name;` on the
+/// line after the attribute.
+fn test_only_files(lib: &str) -> Vec<String> {
+    let lines: Vec<&str> = lib.lines().collect();
+    lines
+        .windows(2)
+        .filter(|w| w[0].trim() == "#[cfg(test)]")
+        .filter_map(|w| {
+            w[1].trim()
+                .strip_prefix("mod ")
+                .or_else(|| w[1].trim().strip_prefix("pub mod "))
+                .or_else(|| w[1].trim().strip_prefix("pub(crate) mod "))
+                .and_then(|m| m.strip_suffix(';'))
+                .map(|m| format!("{m}.rs"))
+        })
+        .collect()
+}
+
+/// **A test's fixture banks no constant** (parked 975). Made to fail
+/// first on the reading that took the decimal from every line of `sim`.
+#[test]
+fn the_decimal_spelling_is_read_from_production_code() {
+    let file = "pub const REACH: i32 = 640;\nfn f() -> i32 { 3 } // 11520 in a comment\n\
+                #[cfg(test)]\nmod tests {\n    #[test]\n    fn t() { let x = 11520; assert_eq!(x, 11520); }\n}\n\
+                pub const AFTER: i32 = 4096;\n";
+    let code = production_code(file);
+    assert!(code.contains("640") && code.contains("4096"));
+    assert!(
+        !code.contains("11520"),
+        "a fixture's number read as the simulation's: {code}"
+    );
+    let lib = "mod a;\n#[cfg(test)]\nmod harness_tests;\n#[cfg(test)]\nmod no_float;\npub mod b;\n";
+    assert_eq!(
+        test_only_files(lib),
+        vec!["harness_tests.rs".to_string(), "no_float.rs".to_string()]
+    );
+}
+
 /// **A constant a specification names is in the code, or pinned as not.**
 #[test]
 fn a_constant_a_document_names_is_built_or_pinned() {
@@ -1249,7 +1303,15 @@ fn a_constant_a_document_names_is_built_or_pinned() {
     // — 803's floor `(434, 438)` spelt `0x1b6`, 813's pinned rows `1206`
     // and `1153` spelt `0x4b6` and `0x481`, 824 undid both by closing the
     // chapter, 870 moved three files (parked 820, the sixteenth pass).
+    //
+    // **And never from a test** (parked 975, the eighteenth pass): item
+    // 947's fixture put a plane at x `11520`, GOLDEN's `0x2d00` read as
+    // built, and the pin fell 4 → 3 on a number no mechanism carries. The
+    // decimal spelling is read from the simulation's production code —
+    // `#[cfg(test)]` items and the files `lib.rs` mounts under one are out.
     let mut sim_code = String::new();
+    let test_files =
+        test_only_files(&std::fs::read_to_string(sim.join("src/lib.rs")).expect("lib.rs"));
     let mut stack = vec![crates];
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("crates/") {
@@ -1278,8 +1340,14 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                     }
                     file_code.push('\n');
                 }
-                if path.starts_with(&sim) {
-                    sim_code.push_str(&file_code);
+                let mounted_for_tests = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .is_some_and(|n| test_files.iter().any(|t| t == n));
+                if path.starts_with(&sim) && !mounted_for_tests {
+                    let raw = std::fs::read_to_string(&path).expect("read");
+                    sim_code.push_str(&production_code(&raw).to_lowercase());
+                    sim_code.push('\n');
                 }
                 code.push_str(&file_code);
             }
