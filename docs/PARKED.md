@@ -62,6 +62,12 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1048, 2026-09-28 — the Helicopter's flight
+
+(1059) **`Unit::work`'s tail clears `unit_masks & 0x10`** (60dc9f): not
+modelled beside the separation 1048 built (PRODUCTION, "The
+Helicopter's flight").
+
 ## Parked by item 1040, 2026-09-28 — the strike's sides
 
 (1053) **The citizens' damage standing on run373's first block**: `0/4`
@@ -74,21 +80,6 @@ COMBAT §70: read, not established.
 (1055) **The strike's side arm, its other three faces; the `jmp
 005fd639` arms of the one-in-five retarget; and `target_opportunity`'s
 `600516` attack-action arm**: read, not captured (COMBAT §70).
-
-## Parked by item 1019, 2026-09-28 — the Helicopter and the V2
-
-(1049) **An idle Helicopter's drift**: `0/11` from (8355, 14690) to
-(8465, 14784) by 2701, from 2675, the block `0/12` exits beside it
-(run371).
-
-(1050) **The V2's strike and launch** (2672..2702, run371):
-`action_launch_flight`'s missile narrowing; the `AIRATTACKGROUNDORDER` in
-the sim and in the dump's parser; the silo's `recharging` countdown; and
-`do_missile_launch` → `come_out` → `Unit::process` →
-`do_air_attack_ground`, whose in-range arm fires and dies.
-
-(1051) **The V2's round**: a spline shot (`traj 2`, 120 frames) and its
-blast on `1/2006`. It needs 1050 first.
 
 ## Parked by item 1034, 2026-09-28 — the city under attack
 
@@ -1847,6 +1838,12 @@ stood on rows already on disk and unread — run356's `1/22` facing from
 4758, and run17's 27 untied Slinger shots. One script over every strike
 on the target and every launch of the piece answered 4846, where the
 listing alone argued the wrong way twice. A candidate checklist row.
+
+(1060) **A parking that shares the word's frames is a candidate for the
+word's mechanism** (1048's Loop line, filed at its merge): the brief's
+first question was answered in one line and the parting sat in the unit
+whose drift was parked as not-mine (1049, closed by 1048). 958's
+whole-cast read found it only because it ran first.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

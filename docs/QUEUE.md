@@ -19,27 +19,28 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **18**): 947, 976 and 1009
-  closed chapters thirty-two to thirty-four; **1019 opened thirty-five
-  at 2675**; 971 took the second pair; 972 measured the held-out map
-  once, **1 and 0**; ten AI landings moved the second pair to **East
-  Indies 5606, Great Lakes 4877**; 965, 1011 and 1019 took the blind
-  list **149 → 143**.
+- **Since the pass** (count from 0b401602: **19**): 947, 976 and 1009
+  closed chapters thirty-two to thirty-four; 1019 opened thirty-five and
+  **1048 moved it to 2701**; 971 took the second pair; 972 measured the
+  held-out map once, **1 and 0**; ten AI landings moved the second pair
+  to **East Indies 5606, Great Lakes 4877**; 965, 1011 and 1019 took the
+  blind list **149 → 143**.
 - **The ledger is blind from 1000** (parked 1006): items 1000 on are
   booked and deleted by hand until the pass widens its patterns.
 - **The user's**: the disk (22 GB free; 51 GB is this worktree's debug
   build, parked 1027); whether phase 4 opens on the rules track alone.
-- **Fable backlog: 40 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046, 1047, 1058).
+- **Fable backlog: 41 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046, 1047, 1058, 1060).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5606 of 18,140 · GreatLakes w4877 of 5,930
-Golden: ch35 w2675 of 3261 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1048 next
+Golden: ch35 w2701 of 3261 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1050 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 1052 on the AI lane (Great Lakes'
-4877) and 1048 on the rules lane (chapter thirty-five's 2675, live).
-The count runs from 0b401602; the eighteenth pass at twenty.**
+**Opener: the commander — 1052 on the AI lane (Great Lakes' 4877, live);
+its landing is the twentieth since 0b401602, and the eighteenth Fable
+pass is due. The rules lane was not refilled at the nineteenth: 1050 is
+its next.**
 
 ## The queue
 
@@ -56,12 +57,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     is the first to part**: who=1's army members walk off there and keep
     attacking the city here. East Indies' 5606 follows.
 
-1048. **Chapter thirty-five's word: frame 2675, the Helicopter's walk
-    on its `ATTACK_TO`** (1019). Theirs spends `Guy::set_anim+0x97a <
-    Guy::move+0x19f` and stands a frame (stopped on 2676) before
-    walking; ours walks from 2676. Widened on run371's window (605..
-    3261). That the stand is the order's first step is 1019's reading,
-    a hypothesis; the V2's strike (parked 1050) follows.
+1050. **Chapter thirty-five's word: frame 2701, the V2's round** (1048;
+    parked 1050 and 1051, folded). Theirs 4 draws against ours 3, led by
+    `Ammo::init+0xae8`/`+0xb25`: the V2's strike and launch
+    (`action_launch_flight`'s missile narrowing, `AIRATTACKGROUNDORDER`,
+    the silo's `recharging`, `do_missile_launch` → `come_out` →
+    `do_air_attack_ground`), then its spline round (`traj 2`, 120
+    frames) and blast on `1/2006`. run371's window.
 
 ## How to maintain this file
 
