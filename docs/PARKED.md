@@ -62,6 +62,20 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1009, 2026-09-27 — the launch commands' last arms
+
+(1019) **The Helicopter's and missiles' launch arms, captured**: the
+staging wants the interpreter's `resource` verb applied, and the
+Helicopter's and missiles' flights, which this crate does not carry.
+1009 parked rather than take run363; its journal gives the reasons.
+
+(1020) **`crate::fight` reads a target building's z without the clamp at
+0** (`fight.rs:340`, `:364`): 1009 saw it and left it, the module being
+another lane's.
+
+(1021) **run362's pool slot 3 `ox`/`oy` on 2602**: 760's and 792's
+family (a pushed selection's point).
+
 ## Parked by item 1012, 2026-09-27 — the army's attack
 
 (1015) **`find_melee_target`'s squad head at `Group::action_attack`'s
@@ -1686,6 +1700,11 @@ the walk, not only its unit test** (1012's Loop line, filed at its
 merge): the squad-head mutation scored eleven frames better than the
 reading. A lane runs each sub-mechanism's mutation against the walk
 before calling it built. A candidate checklist row beside 918.
+
+(1022) **The hangar's scratch emulator was rebuilt from nothing a second
+time** (1009's Loop line, filed at its merge): 955 and 1009 each wrote
+one for `add_gather_point` and the Airbase's loops. By the probe rule
+it is a `tools/emu` candidate at the third.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
