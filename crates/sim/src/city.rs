@@ -1214,7 +1214,10 @@ impl Sim {
         // its sixth argument, and this arm is not. A captured camp runs the
         // walk again and finds every candidate cell already carrying
         // `0x1000` — its own former tiles — so it costs no draw and lands an
-        // empty list, which is what the original leaves it with too.
+        // empty list, as the original's does. ~~and keeps it~~ — the old
+        // half's `Build::close` then gives those tiles back and flags the
+        // region, and the copy re-walks them on the next region pass
+        // (`crate::gather::Sim::gather_region_pass`, `docs/ECONOMY.md` §17).
         let t = &self.build_types[ty];
         if t.has(build::flags::GATHER) && !t.has(build::flags::FLAT) && t.ident != Ident::University
         {
@@ -1991,6 +1994,7 @@ impl Sim {
             let i = crate::economy::Resource::Wealth.index();
             self.ledgers[who as usize].gather_slots[i] -= 1;
         }
+        self.give_back_gather_tiles(b);
         self.buildings[b].alive = false;
         self.buildings[b].damage = self.buildings[b].hits_now();
         self.buildings[b].sync_health();

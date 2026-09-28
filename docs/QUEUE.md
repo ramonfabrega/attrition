@@ -19,24 +19,24 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **5**): 947 closed chapter
+- **Since the pass** (count from 0b401602: **6**): 947 closed chapter
   thirty-two; 971 took the second pair; 972 measured the held-out map
-  once, **1 and 0**, so the next pass books a third scored map; 979 gated
-  the harness's frame-word borrow on `GAMEINFO`: **East Indies 1576,
-  Great Lakes 3776**. 965 entered row 6's last pair (run353): the gate is
-  the kill, not the hit; the blind list **149 → 147**.
+  once, **1 and 0** (the next pass books a third scored map); 979 gated
+  the harness's frame-word borrow; 965 took the blind list to 147; 989
+  gave a destroyed camp's ground back: **East Indies 5606, Great Lakes
+  4555**. 976 is live on chapter thirty-three.
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 24 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996).
+- **Fable backlog: 25 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w1576 of 18,140 · GreatLakes w3776 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w4555 of 5,930
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · 976 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 989 on the AI lane (East Indies'
-1576, the second pair's lower word) and 976 on the rules lane (chapter
+**Opener: the commander, two lanes — 997 on the AI lane (Great Lakes'
+4555, the second pair's lower word) and 976 on the rules lane (chapter
 thirty-three). The count runs from 0b401602; the eighteenth pass at
 twenty.**
 
@@ -44,16 +44,17 @@ twenty.**
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41, 53): the golden word for the rules, the newest pair's word for the AI,
-lower map first — East Indies (a guard reads this line). Take the first
+lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-989. **East Indies' second word: frame 1576, ours 272 draws against 216**
-    (979). Parting at index 192: ours `Build::find_gather_tiles+0x10a`,
-    theirs `Animal::think_bird+0x82`, run346 at Toughest; widened on
-    run352. Great Lakes' 3776 parts on the same two sites (223 against
-    217 at index 180, widened on run355). That the two are one cause is
-    979's reading, a hypothesis.
+997. **Great Lakes' second word: frame 4555, ours 7 draws against 3**
+    (989). Parting at index 1: ours `Unit::find_attack_pos+0xea9 <
+    Unit::fight+0xcb4`, theirs `Farms::inc_time+0x1ae`; widened on
+    run356, where the block before it already parts on `1/21`'s order
+    (kind 10 against 2). East Indies' 5606 follows: ours 4 against 5 at
+    index 0, ours `Guy::set_anim+0x97a`, theirs `Unit::do_move+0xe84`,
+    widened on run357.
 
 976. **Chapter thirty-three: an Airbase's launch issuers — no capture
     yet** (947's park). Action 3 at an Airbase: `action_gather_point`'s

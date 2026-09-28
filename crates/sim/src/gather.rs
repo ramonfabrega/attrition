@@ -116,7 +116,8 @@ use crate::ai_place::{circle, gather_good};
 use crate::build::flags;
 use crate::economy::Resource;
 use crate::world::{
-    Cell, TILES_PER_CELL, UNITS_PER_CELL, UNITS_PER_TILE, World, tile, vector_dist,
+    Cell, REGION_REFIND_GATHER, REGION_VERIFY_GATHER, TILES_PER_CELL, UNITS_PER_CELL,
+    UNITS_PER_TILE, World, tile, vector_dist,
 };
 use crate::{Player, Pos, Sim};
 
@@ -479,6 +480,100 @@ impl Sim {
             }
         }
         self.buildings[b].gather_max = Some(self.max_gatherers(b));
+    }
+
+    /// The gate `Build::close`, `Build::process` and `Build::init` share
+    /// (`docs/ECONOMY.md` §17.1): the type's `is_gather_type` (vtable
+    /// `+0x90`) and not its `is_flat` (`+0x94`). `Build::init` adds a third
+    /// test, not the university, that the other two do not; the
+    /// university's list is always empty, so nothing it walks differs.
+    fn walks_gather_tiles(&self, b: usize) -> bool {
+        self.buildings[b].ty.is_some_and(|ty| {
+            let t = &self.build_types[ty];
+            t.has(flags::GATHER) && !t.has(flags::FLAT)
+        })
+    }
+
+    /// `Build::close@00628980`'s tail, `006292a1`–`00629335` in the listing
+    /// (`docs/ECONOMY.md` §17.1). On **every** close — a site the script
+    /// destroys, a camp killed, the old half of a transfer — a gather
+    /// building that walks the ground gives its tiles back: each listed
+    /// tile loses `0x1000` (`and $0xefff`), and the building's own region
+    /// takes [`REGION_VERIFY_GATHER`] (`or $0x20`), so the camps around it
+    /// re-walk the freed ground. Then, whatever the type, the list is
+    /// emptied (`+0x9c = 0`) and `MiningList::mtn`/`cliff` go back to −1,
+    /// which this crate does not carry.
+    ///
+    /// Without it a camp the script placed and destroyed on one frame —
+    /// `aibestbuildlibrary.bhs`'s `place_woodcutter`, whose `destroy_building`
+    /// is `Build::close` by vtable `+0x150` — left its ground marked for
+    /// the rest of the game, and the next woodcutter went elsewhere
+    /// (East Indies at Toughest, frame 1576; `docs/AI.md` §82).
+    pub(crate) fn give_back_gather_tiles(&mut self, b: usize) {
+        if self.walks_gather_tiles(b) {
+            for i in 0..self.buildings[b].gather_from.len() {
+                let t = self.buildings[b].gather_from[i];
+                self.world.clear_tile_bits(t, GATHERED_FROM);
+            }
+            if let Some(r) = self.world.region_of(self.buildings[b].pos.cell()) {
+                self.world.or_region_flags(r, REGION_VERIFY_GATHER);
+            }
+        }
+        self.buildings[b].gather_from.clear();
+    }
+
+    /// `Build::verify_gather_tiles@00623570` (`docs/ECONOMY.md` §17.2): a
+    /// listed tile whose cell a player owns who is not this building's
+    /// owner nor allied both ways with it is unmarked and removed — by
+    /// value, so the entries behind it close up in order, and the walk
+    /// stays on the index it removed. It draws nothing.
+    pub(crate) fn verify_gather_tiles(&mut self, b: usize) {
+        let who = self.buildings[b].owner;
+        let mut i = 0;
+        while i < self.buildings[b].gather_from.len() {
+            let t = self.buildings[b].gather_from[i];
+            let foreign = self
+                .world
+                .owner(World::cell_of_tile(t))
+                .player()
+                .is_some_and(|o| !self.is_ally(who, o));
+            if foreign {
+                self.world.clear_tile_bits(t, GATHERED_FROM);
+                self.buildings[b].gather_from.remove(i);
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    /// `Build::process@0061edf0`'s two re-entries, `0061f3c1`–`0061f41f`
+    /// (`docs/ECONOMY.md` §17.2), for every building in object order: an
+    /// **active** gather building that walks the ground, standing in a
+    /// region carrying [`REGION_VERIFY_GATHER`], runs
+    /// [`Sim::verify_gather_tiles`]; one in a region carrying
+    /// [`REGION_REFIND_GATHER`] runs [`Sim::find_gather_tiles`] again — which
+    /// appends whatever unmarked ground it now reaches and, if the list
+    /// grew, shuffles it off the sync stream.
+    ///
+    /// The original takes both inside `Build::process`, right after the
+    /// building's own `do_queue`; this crate runs the queues as a pass of
+    /// their own (`Sim::process_queues`), and this is the pass after it.
+    pub(crate) fn gather_region_pass(&mut self) {
+        for b in 0..self.buildings.len() {
+            if !self.buildings[b].alive || !self.buildings[b].active || !self.walks_gather_tiles(b)
+            {
+                continue;
+            }
+            let Some(r) = self.world.region_of(self.buildings[b].pos.cell()) else {
+                continue;
+            };
+            if self.world.region_flags(r) & REGION_VERIFY_GATHER != 0 {
+                self.verify_gather_tiles(b);
+            }
+            if self.world.region_flags(r) & REGION_REFIND_GATHER != 0 {
+                self.find_gather_tiles(b);
+            }
+        }
     }
 
     /// `corner_tile@006364c0`'s own answer: the footprint's centre in world
@@ -1352,5 +1447,142 @@ mod tests {
             assert_eq!((cells * 16 + 8) >> 4, cells, "sixteen a cell");
             assert_ne!((tiles + 8) >> 4, cells, "one a tile does not fit");
         }
+    }
+
+    /// Two woodland cells beside a camp's corner (5, 5), and the region
+    /// they stand in.
+    fn woods(s: &mut Sim) -> u16 {
+        forest_cell(s, Cell::new(2, 1));
+        forest_cell(s, Cell::new(2, 2));
+        s.world.region_of(Cell::new(1, 1)).unwrap()
+    }
+
+    /// **`Build::close`'s tail** (`docs/ECONOMY.md` §17.1): a camp the
+    /// script places and destroys on one frame gives its ground back, so
+    /// the next camp on the same corner lists the same tiles. Without the
+    /// tail the second camp found every cell marked and listed nothing —
+    /// East Indies at Toughest's frame 1576 (`docs/AI.md` §82).
+    #[test]
+    fn a_closed_camp_gives_its_ground_back_to_the_next_one() {
+        let mut s = sim();
+        let ty = camp(&mut s);
+        let region = woods(&mut s);
+        let first = s.init_build(1, ty, tile_pos(5, 5), false);
+        let tiles = s.buildings[first].gather_from.clone();
+        assert_eq!(tiles.len(), 32, "two whole cells");
+        assert!(
+            tiles
+                .iter()
+                .all(|&t| s.world.tile_mask(t) & GATHERED_FROM != 0)
+        );
+        s.close_building(first, false);
+        assert!(
+            s.buildings[first].gather_from.is_empty(),
+            "the list is emptied"
+        );
+        assert!(
+            tiles
+                .iter()
+                .all(|&t| s.world.tile_mask(t) & GATHERED_FROM == 0),
+            "every tile is unmarked"
+        );
+        assert_eq!(
+            s.world.region_flags(region),
+            REGION_VERIFY_GATHER,
+            "the camp's region is flagged"
+        );
+        let second = s.init_build(1, ty, tile_pos(5, 5), false);
+        let mut again = s.buildings[second].gather_from.clone();
+        let mut was = tiles;
+        again.sort_by_key(|p| (p.y, p.x));
+        was.sort_by_key(|p| (p.y, p.x));
+        assert_eq!(again, was, "the same ground, listed again");
+    }
+
+    /// A building that walks no ground — a farm is flat — flags nothing.
+    #[test]
+    fn a_flat_building_s_close_flags_no_region() {
+        let mut s = sim();
+        let region = woods(&mut s);
+        let mut farm = bt(Ident::Farm, 4, 4);
+        farm.flags |= flags::FLAT;
+        let ty = s.add_build_type(farm);
+        let b = s.init_build(1, ty, tile_pos(5, 5), false);
+        s.close_building(b, false);
+        assert_eq!(s.world.region_flags(region), 0);
+    }
+
+    /// **`GameDaemon::process_all`'s region pass and `Build::process`'s
+    /// re-walk** (`docs/ECONOMY.md` §17.2): `0x20` becomes `0x10` on the
+    /// next pass and `0x10` is cleared on the one after, and on the frame
+    /// it stands an active camp in the region takes the freed ground and
+    /// shuffles it — `4 × length` draws.
+    #[test]
+    fn a_freed_region_is_re_walked_by_the_camp_beside_it() {
+        let mut s = sim();
+        let ty = camp(&mut s);
+        let region = woods(&mut s);
+        forest_cell(&mut s, Cell::new(4, 1));
+        // The neighbour, corner (13, 5): it reaches cell (4, 1) and cell
+        // (2, 1)'s ground is the first camp's.
+        let first = s.init_build(1, ty, tile_pos(5, 5), false);
+        let near = s.init_build(1, ty, tile_pos(13, 5), false);
+        s.buildings[near].active = true;
+        let held = s.buildings[near].gather_from.len();
+        s.close_building(first, false);
+        s.world.cycle_gather_flags();
+        assert_eq!(s.world.region_flags(region), REGION_REFIND_GATHER);
+        let seed = s.rng.seed;
+        s.gather_region_pass();
+        let grown = s.buildings[near].gather_from.len();
+        assert!(
+            grown > held,
+            "the neighbour took freed ground: {held} → {grown}"
+        );
+        let mut r = crate::combat::Rng::new(seed);
+        for _ in 0..4 * grown {
+            r.get(0, 0xffff);
+        }
+        assert_eq!(s.rng.seed, r.seed, "4 × {grown} draws");
+        s.world.cycle_gather_flags();
+        assert_eq!(s.world.region_flags(region), 0, "cleared on the next pass");
+        let seed = s.rng.seed;
+        s.gather_region_pass();
+        assert_eq!(s.rng.seed, seed, "no flag, no walk");
+    }
+
+    /// **`Build::verify_gather_tiles`** (`docs/ECONOMY.md` §17.2): under
+    /// `0x20`, a listed tile on an unallied player's ground is unmarked and
+    /// dropped, the rest keep their order, and nothing is drawn.
+    #[test]
+    fn a_verified_camp_drops_the_ground_another_player_holds() {
+        let mut s = sim();
+        let ty = camp(&mut s);
+        let region = woods(&mut s);
+        let b = s.init_build(1, ty, tile_pos(5, 5), false);
+        s.buildings[b].active = true;
+        let before = s.buildings[b].gather_from.clone();
+        s.world
+            .set_owner(Cell::new(2, 2), Owner::Player(0), Owner::None);
+        s.world.or_region_flags(region, REGION_VERIFY_GATHER);
+        let seed = s.rng.seed;
+        s.gather_region_pass();
+        assert_eq!(s.rng.seed, seed, "no draw");
+        let kept: Vec<Pos> = before
+            .iter()
+            .copied()
+            .filter(|&t| World::cell_of_tile(t) != Cell::new(2, 2))
+            .collect();
+        assert_eq!(
+            s.buildings[b].gather_from, kept,
+            "in order, less cell (2, 2)"
+        );
+        assert!(
+            before
+                .iter()
+                .filter(|&&t| World::cell_of_tile(t) == Cell::new(2, 2))
+                .all(|&t| s.world.tile_mask(t) & GATHERED_FROM == 0),
+            "the dropped tiles are unmarked"
+        );
     }
 }

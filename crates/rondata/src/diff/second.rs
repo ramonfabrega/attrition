@@ -299,7 +299,7 @@ mod tests {
             "run352",
             "gamelog-run352-islands-toughest-1576.txt",
             WIDENING_SECOND_EAST_INDIES_1576,
-            &[SECOND_WORD_EAST_INDIES + 1],
+            &[1_577],
             true,
         ) else {
             return;
@@ -319,39 +319,48 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word's block, 1577** (`docs/AI.md` §81.4): a building who=1
-        // places on the word's frame, `1/2009` — 91 of its 93 keys are its
-        // gather slots' tiles in another order (ours spends
-        // `Build::find_gather_tiles+0x10a` there), and it stands at damage
-        // 1 here against 0, with no city here and city 1 there — and the
-        // citizen `1/2`, walking to another cell. **The block before it,
-        // 1576**, parts on five: `reg_land[11]` 102 against 103, `2007`'s
-        // three `city:space` one short, and `SITE[4].reg`. Block 1571
-        // stands with what the window opened on. No mechanism is named
-        // (DECISIONS 42).
-        assert_eq!(
-            row(1, 2009, "build:damage").as_deref(),
-            Some("1577: ours 1 theirs 0"),
-            "the word's building"
+        // **The word's block, 1577, as item 979 found it** (`docs/AI.md`
+        // §81.4): the building `1/2009` parted on 91 of its 93 keys — its
+        // gather tiles in another order, damage 1 here against 0, city −1
+        // against 1 — and the citizen `1/2` walked to another cell
+        // (`orders_x` 31944 against 37752). **Item 989's value diff**
+        // (§82): the script's `place_woodcutter` places a camp at (38016,
+        // 36480) on frame 976 and destroys it the same frame, and
+        // `Build::close` gives its 48 tiles back; this crate kept them
+        // marked, so the camp re-placed on 1576 went to (31680, 34752) with
+        // 62 tiles (248 draws against 192). And the harness linked the
+        // original's live `2009` to this crate's dead frame-976 site, which
+        // is where damage 1 and city −1 came from. Every row of the word's
+        // block now agrees, and so does capital `2000`'s `ter[1]` on 1571,
+        // 0 against 2 → 2 on both: the census's `gather_at` had read the
+        // dead camp's marks.
+        assert!(
+            !w.firsts.iter().any(|((who, o, _), (f, _))| *who == 1
+                && [2, 2009].contains(o)
+                && (1_572..=1_577).contains(f)),
+            "the camp and the citizen agree from 1572 through the word's block"
         );
-        assert_eq!(
-            row(1, 2009, "build:city").as_deref(),
-            Some("1577: ours -1 theirs 1"),
-            "and its city"
-        );
+        assert_eq!(row(1, 2000, "city:ter[1]"), None, "the capital's timber");
+        // **What stands, drawing nothing before the next word** (5606):
+        // city `2007`'s site picture, one cell apart from its sweep of 1575
+        // — `filled` one high here and the three `space` counts one low, so
+        // `reg_land[11]` 102 against 103 — and, from the sweep before
+        // (block 1571), the same city counted by the original while still a
+        // site (`land` 9, `reg_cities[11]` 2) and not here. No mechanism is
+        // named (DECISIONS 42).
         assert_eq!(
             row(1, -1, "leader:reg_land[11]").as_deref(),
             Some("1576: ours 102 theirs 103"),
             "the block before the word"
         );
         assert_eq!(
-            row(1, 2, "orders_x").as_deref(),
-            Some("1577: ours 31944 theirs 37752"),
-            "the citizen's walk"
+            row(1, 2007, "city:space[0]").as_deref(),
+            Some("1576: ours 64 theirs 65"),
+            "the city's site picture"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1571, 83), (1576, 5), (1577, 115)],
+            [(1571, 82), (1576, 5), (1601, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -375,7 +384,7 @@ mod tests {
             )],
             WIDENING_SECOND_GREAT_LAKES_3776,
             1,
-            &[SECOND_WORD_GREAT_LAKES + 1],
+            &[3_777],
         ) else {
             return;
         };
@@ -394,31 +403,159 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word's block, 3777** (`docs/AI.md` §81.4), East Indies'
-        // shape: a building who=1 places on the word's frame, `1/2010` — 79
-        // of its 80 keys its gather slots' tiles, and damage 1 here against
-        // 0 — with `2007`'s `city_down` pointing at it here and not there,
-        // the city `2000` one gatherer short, and citizens `1/6` and `1/28`
-        // on other orders. Nothing parts on blocks 3772..3776. No
-        // mechanism is named (DECISIONS 42).
+        // **The word's block, 3777, as item 979 found it** (`docs/AI.md`
+        // §81.4), East Indies' shape: a building who=1 places on the word's
+        // frame, `1/2010` — 79 of its 80 keys its gather slots' tiles, and
+        // damage 1 here against 0 — with `2007`'s `city_down` pointing at
+        // it here and not there, the city `2000` one gatherer short (7
+        // against 8), and citizens `1/6` and `1/28` on other orders.
+        // **Item 989's value diff** (§82): the same close tail — a camp the
+        // script destroyed kept its ground marked here — and the same dead
+        // site linked in place of the live `2010`. All 127 keys of the
+        // word's block agree now, and nothing parts on 3772..3804.
+        assert!(
+            !w.firsts
+                .iter()
+                .any(|((who, _, _), (f, _))| *who == 1 && (3772..3805).contains(f)),
+            "who=1 agrees from the window's second block through 3804"
+        );
+        assert_eq!(row(1, 2000, "city:gatherers"), None, "the city's census");
+        assert_eq!(row(1, 6, "orders_x"), None, "a citizen's order");
+        // **What parts next, drawing nothing before the next word**
+        // (4555): a city site `1/2009` the original counts in its sweep of
+        // 3804 (`land` 9, `filled` 1) and this crate does not, and who=1's
+        // `territory` 488 here against 290 — East Indies' `2007` on its
+        // block 1571 has the same shape. No mechanism is named (DECISIONS
+        // 42).
         assert_eq!(
-            row(1, 2010, "build:damage").as_deref(),
-            Some("3777: ours 1 theirs 0"),
-            "the word's building"
+            row(1, 2009, "city:land").as_deref(),
+            Some("3805: ours 0 theirs 9"),
+            "the city site's sweep"
         );
         assert_eq!(
-            row(1, 2000, "city:gatherers").as_deref(),
-            Some("3777: ours 7 theirs 8"),
-            "the city's census"
-        );
-        assert_eq!(
-            row(1, 6, "orders_x").as_deref(),
-            Some("3777: ours 42504 theirs 41064"),
-            "a citizen's order"
+            row(1, -1, "leader:territory").as_deref(),
+            Some("3805: ours 488 theirs 290"),
+            "and who=1's territory"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(3771, 78), (3777, 127), (3778, 1)],
+            [(3771, 78), (3801, 1), (3805, 4)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's East Indies word, 5606, widened whole** (item
+    /// 989): run357 is run346's game at run352's detail over blocks
+    /// 5601..5857, walked from run346's own start. The word's frame writes
+    /// block 5607.
+    #[test]
+    fn run357_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run357",
+            "gamelog-run357-islands-toughest-5606.txt",
+            WIDENING_SECOND_EAST_INDIES_5606,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run357 whole: blocks 5601..5857");
+        assert!(
+            w.missing.is_empty(),
+            "run357 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The block before the word, 5605, parts on one key**
+        // (`docs/AI.md` §82.4): who=1's unit `1/14` has a move order whose
+        // `dest` reads 0 here against 1 there, and its path's third slot
+        // parts on the word's block. The original's extra draw on 5606 is
+        // `Unit::do_move+0xe84`. Block 5601 stands on 159 keys, the
+        // families the window opened on. No mechanism is named (DECISIONS
+        // 42).
+        assert_eq!(
+            row(1, 14, "order:move.dest").as_deref(),
+            Some(r#"5605: Move { field: "dest", ours: 0, theirs: 1 }"#),
+            "the unit's move, the block before the word"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(5601, 159), (5605, 1), (5607, 1)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's Great Lakes word, 4555, widened whole** (item
+    /// 989): run356 is run347's game at run355's detail over blocks
+    /// 4550..4806, walked from run347's start. The word's frame writes
+    /// block 4556.
+    #[test]
+    fn run356_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run356",
+            &[(
+                "gamelog-run356-greatlakes-toughest-4555.txt",
+                WIDENING_SECOND_GREAT_LAKES_4555.0,
+            )],
+            WIDENING_SECOND_GREAT_LAKES_4555,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run356 whole: blocks 4550..4806");
+        assert!(
+            w.missing.is_empty(),
+            "run356 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The block before the word, 4555** (`docs/AI.md` §82.4): who=1's
+        // `1/21` holds order kind 10 and two orders here against a move
+        // (kind 2) and one there, `orders_x` 9005 against 4824; on the
+        // word's frame ours spends `Unit::find_attack_pos < Unit::fight`.
+        // Its walk parts on 4556, and `1/23` takes the same order on 4568.
+        // Block 4550 stands on 86 keys, the families the window opened on.
+        // No mechanism is named (DECISIONS 42).
+        assert_eq!(
+            row(1, 21, "order:kind").as_deref(),
+            Some("4555: Kind { ours: 10, theirs: 2 }"),
+            "the unit's order, the block before the word"
+        );
+        assert_eq!(
+            row(1, 21, "orders_x").as_deref(),
+            Some("4555: ours 9005 theirs 4824"),
+            "and where it goes"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(4550, 86), (4555, 6), (4556, 9)],
             "the blocks keys first part on, the first three"
         );
     }

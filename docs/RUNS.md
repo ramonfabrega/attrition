@@ -9584,6 +9584,47 @@ taken straight after run352 in the same queue.
 - The word's block 3777 parts on 127: the new building `1/2010` (its
   gather tiles, damage 1 against 0), `2007`'s `city_down`, the city's
   `gatherers` 7 against 8, and citizens `1/6` and `1/28`.
+## run357 — run346's game at run352's detail over blocks 5601..5857: the second pair's East Indies word 5606 widened (2026-09-27, item 989)
+
+**What it is.** run352's shape on run346's lobby (`cfg: -`, East Indies,
+`profile: DIFFICULTY=5`), with `frame_window: 5601 5858`, `cover=0` and
+`!quit` at 5870. It was taken after item 989's close tail moved East
+Indies' word 1576 → 5606 (`docs/AI.md` §82). The word's frame writes
+block 5607, with six blocks before it and 250 after. Same DLL
+(`b451aeb6…3dca`). The lane lock was stale (att-965's run354 game had
+exited), and nothing else was running.
+
+**Taken** 18:30–18:53 through `runqueue.sh - 989` under `viadriver.sh`,
+waited on with `waitrun.sh`, one take: 576.0 MB of gamelog, 16.4 MB of
+trace.
+- `rngcmp.py` against run346: 5871 frames in common, **0 differing**.
+- 257 window blocks; `DIFFICULTY 5`, `MAP_STYLE 18`.
+- Free disk 30 → 27 GB, across both captures.
+
+**What it holds**: `run357_s_word_frame_is_widened_whole`
+(`diff::second`), walked from run346's start.
+- Block 5601 stands on 159 keys.
+- Block 5605, before the word, parts on one: `1/14`'s `order:move.dest`,
+  0 against 1.
+- The word's block 5607 parts on one more: `1/14`'s path.
+
+## run356 — run347's game at run355's detail over blocks 4550..4806: the second pair's Great Lakes word 4555 widened (2026-09-27, item 989)
+
+**What it is.** run355's shape on run347's lobby, with `frame_window:
+4550 4807` and `!quit` at 4820. The number was reserved to item 989 for a
+packet; no value question needed one, so it is this window. Taken
+straight after run357 in the same queue.
+
+**Taken** 18:53–19:12, one take: 517.4 MB of gamelog, 11.4 MB of trace.
+- `rngcmp.py` against run347: 4821 frames in common, **0 differing**.
+- 257 window blocks; `DIFFICULTY 5`, `MAP_STYLE 14`.
+
+**What it holds**: `run356_s_word_frame_is_widened_whole`.
+- Block 4550 stands on 86 keys.
+- Block 4555, before the word, parts on 6, all `1/21`'s: order kind 10
+  and two orders here against a move and one there.
+- The word's block 4556 parts on 9: `1/21`'s walk.
+
 ## run348 — the held-out map measured again, in run33's shape (2026-09-27, item 972)
 
 **Map 9, Himalayas, measured once more and read no further.** DECISIONS

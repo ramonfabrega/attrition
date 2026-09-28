@@ -181,9 +181,13 @@ const UNREAD: &[(&str, &str)] = &[
         "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length myhits mylos near_o near_who size uid up up_who visible",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
+    // **Item 989 added `Newcastle`**: a city's name is the record's one
+    // valueless line, so each name is a key of its own. run356's and
+    // run357's windows are the first driven ones to hold a third British
+    // city; the name is read by nothing, as `London` and `Norwich` are not.
     (
         "GAME/FRAME/CITIES/CITY",
-        "London Napata Norwich flags increment length size",
+        "London Napata Newcastle Norwich flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a
@@ -603,6 +607,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r350 = crate::testenv::dump("gamelog-run350-greatlakes-toughest-open.txt");
     let r352 = crate::testenv::dump("gamelog-run352-islands-toughest-1576.txt");
     let r355 = crate::testenv::dump("gamelog-run355-greatlakes-toughest-3776.txt");
+    let r356 = crate::testenv::dump("gamelog-run356-greatlakes-toughest-4555.txt");
+    let r357 = crate::testenv::dump("gamelog-run357-islands-toughest-5606.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1026,6 +1032,24 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run355 carries the second pair's Great Lakes word's blocks"
+        );
+        frames += n;
+    }
+    // Item 989 moved both again: East Indies' 5606 (block 5607) on run357
+    // and Great Lakes' 4555 (block 4556) on run356, the same four blocks.
+    if let Some(p) = &r357 {
+        let n = drive_capture(p, 5_606, 5_609, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run357 carries the second pair's East Indies word's blocks"
+        );
+        frames += n;
+    }
+    if let Some(p) = &r356 {
+        let n = drive_capture(p, 4_555, 4_558, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run356 carries the second pair's Great Lakes word's blocks"
         );
         frames += n;
     }
