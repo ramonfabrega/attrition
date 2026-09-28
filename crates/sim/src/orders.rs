@@ -3925,7 +3925,16 @@ impl Sim {
         {
             let me = Obj::Unit(u);
             match self.units[u].combat.target {
-                Some(t) if self.valid_target(me, t) => {
+                // **The gate is the slot, not `valid_target`** (item 1074,
+                // `docs/COMBAT.md` §77). `do_move@005f7b30`, `5f7ece`–`5f7f11`,
+                // asks of the action's target only that `o` and `who` be
+                // non-negative, that `objects[whom][ox]`'s `flags & 1` be
+                // up, and that its `uid` match the order's — no
+                // diplomacy, and no `is_seen`. A living target that has
+                // walked out of its chaser's sight keeps the chase: the
+                // planner walks on to the goal the order holds. This crate
+                // never recycles a slot, so the `uid` test is `alive`.
+                Some(t) if self.obj_alive(t) => {
                     // **The gate is a block, not a conjunct** (item 481).
                     // `do_move@005f7b30:207` opens
                     // `if (ptype->max_range != 0) { … }` and the brace
@@ -8471,6 +8480,80 @@ mod chase_tests {
             !chase(Some(east)),
             "a target walking toward the chaser kept the chase"
         );
+    }
+
+    /// **A living target out of sight keeps the chase** (`do_move@005f7b30`,
+    /// the listing `5f7ece`–`5f7f11`; `docs/COMBAT.md` §77). The action
+    /// block asks of its target only that the slot be live — `o`/`who`
+    /// non-negative, `flags & 1`, the `uid` — and sends nothing else to the
+    /// dead target's arm at `5f8221`. run347's `1/10`, `1/11` and `1/18`
+    /// chase the citizen `0/1` on frame 5075 while player 1 has lost sight
+    /// of it, each within `0x480` of its walk's goal: the original walks on,
+    /// and this crate, which asked `valid_target`, popped all three walks.
+    ///
+    /// Two arms, on a frame off the review's phase and under a fog grid
+    /// that shows nobody anything: the living target keeps the chase, the
+    /// dead one loses it. Made to fail by gating the block on
+    /// `valid_target` again: the first arm pops its walk.
+    #[test]
+    fn a_living_target_out_of_sight_keeps_the_chase() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        assert!(
+            sim.world.set_fog(vec![0; 60 * 60 * 4]),
+            "a 60 x 60 world's fog"
+        );
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |sim: &mut Sim, who: Player, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            u.kind = sim.unit_types[ty].kind;
+            sim.add_unit(u)
+        };
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let foe = put(&mut sim, 0, Pos::new(at.x - 20 * 0xc0, at.y));
+        let me = put(&mut sim, 1, at);
+        assert!(
+            !sim.target_is_seen(Obj::Unit(me), Obj::Unit(foe)),
+            "player 1 cannot see its target"
+        );
+        assert!(
+            !sim.is_in_range(Obj::Unit(me), Obj::Unit(foe)),
+            "the target is out of reach"
+        );
+        // Off the review's phase, `(frame + o) % 16 != 0`.
+        let frame = 17 - i64::from(sim.units[me].index);
+        let chase = |dead: bool| {
+            let mut s = sim.clone();
+            s.add_attack_order(me, Obj::Unit(foe), QueuePos::First, false, true);
+            // The walk's goal is 3 tiles on, inside `0x480`.
+            s.add_move_order(
+                me,
+                Pos::new(at.x - 4 * 0xc0, at.y),
+                MoveKind::MoveTo,
+                QueuePos::First,
+                false,
+            );
+            if dead {
+                s.units[foe].health = 0;
+            }
+            s.work(me, frame);
+            s.units[me].orders.iter().any(Order::is_move)
+        };
+        assert!(chase(false), "a living target out of sight ended the chase");
+        assert!(!chase(true), "a dead target kept the chase");
     }
 }
 

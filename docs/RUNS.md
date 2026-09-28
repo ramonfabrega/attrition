@@ -10201,6 +10201,45 @@ human in twenty-seven minutes of game time.
 draws against 7, parting at index 0, `Farms::inc_time+0x1ae` against
 `Guy::set_anim+0x97a < Unit::move_step+0x823`.
 
+## run396 — run347's game at run373's detail over blocks 5100..5356: the second pair's Great Lakes word 5105 widened (2026-09-28, item 1074)
+
+**What it is.** run373's shape on the click-free lane: run347's lobby
+(`DIFFICULTY 5`, map 14, seed 12345), `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+5100..5356, and `!quit` at 5369. That is six blocks before the word 5105's
+block 5106 and 250 after it.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run396 \
+    --map 14 --end-frame 5369 --timeout 3000 --log-window 5100 5357 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** Item 1074 moved the
+word from 5075 to 5105, past run373's last block (5097), and run347's own
+dump prints no per-frame record there.
+
+**Taken** 14:10–14:27, one take, through `viadriver.sh`, waited on with
+`waitrun.sh`. `success: true`, exit 0, 5,370 frames, 990 s from launch to
+exit. The lane lock was stale (pid 6486, exited) and no `RonDriver` or
+wine was running. The dump is 509,028,415 bytes and the trace 31,951,776.
+They were moved into `Logs` as `gamelog-run396-greatlakes-toughest-5105.txt`
+and `rontrace-run396.log`. Free disk was 66 GB before and 65 after.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run347.log` | **0 differing**, 5,370 identical |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 14` |
+| window blocks 5100..5356 | 257 |
+
+**What it holds**: `run396_s_word_frame_is_widened_whole`
+(`docs/COMBAT.md` §77.6). It parts on 1,253 keys, 139 of them standing on
+its first block (among them `1/21`'s chase goal, parted since run373's
+5091, and `1/13`'s, parked 1089). Block 5105 parts only on `1/21`'s
+order: the original has ended its chase, and ours has not. The compared
+pin's walk (`second::great_lakes_word_window`) reads this capture from
+item 1074 on.
 ## run390 — chapter thirty-six, the missile's other arms (2026-09-28, item 1078)
 
 `docs/GOLDEN.md` §45, `tools/gamelog/golden/chapter36.cmd`: chapter
