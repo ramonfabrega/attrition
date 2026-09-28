@@ -118,6 +118,31 @@ check: python3 tools/trace/report.py "$L/rontrace-run340.log" summary | grep -c 
 '''
 
 
+# **The held-out map is measured, never debugged against** (DECISIONS 41,
+# 53 and 54; parked 986, the eighteenth pass). Its stanzas are pinned by
+# run: a capture on map 9 that is not here is an item opened against the
+# one map that says whether the rules generalise, and it fails until a
+# steering pass adds its run — which is the pass deciding to measure.
+HELD_OUT_MAP = '9'
+HELD_OUT_RUNS = {
+    '348',  # item 972, DECISIONS 53 §4: run33's shape, one diff, 1 and 0
+}
+
+
+def held_out_runs(text):
+    return {run for run, stanza in stanzas(text)
+            if stanza.get('mapstyle', [''])[0] == HELD_OUT_MAP}
+
+
+class HeldOut(unittest.TestCase):
+    def test_a_capture_on_the_held_out_map_is_found(self):
+        text = 'run: 1\nmapstyle: 9\n\nrun: 2\nmapstyle: 14\n\nrun: 3\nmapstyle: 9\n'
+        self.assertEqual(held_out_runs(text), {'1', '3'})
+
+    def test_the_held_out_map_s_captures_are_the_pinned_ones(self):
+        self.assertEqual(held_out_runs(CAPTURES.read_text()), HELD_OUT_RUNS)
+
+
 class StanzaLint(unittest.TestCase):
     def test_an_anchored_grep_is_found(self):
         self.assertEqual([run for run, _ in anchored_checks(RUN316)], ['316'])

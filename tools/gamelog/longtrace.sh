@@ -50,8 +50,9 @@
 #   CFG           the `-config` argument       (default per MAPSTYLE, above)
 #   PROFILE       `KEY=N` pairs for the profile's `<SOLO>`/`<MULTI>` blocks,
 #                 through `profile.py` — a lobby field on a run without
-#                 `-config` (default none). `Player.dat` is copied first and
-#                 copied back at the end, so no later capture inherits it.
+#                 `-config` (default none). `Player.dat` and `check.ini`
+#                 are copied first and copied back at the end on **every**
+#                 capture, so no later one inherits a field or a map.
 #   CHECKINI      `key=Value` pairs for `check.ini`'s `[CHECK]` lines,
 #                 through `checkini.py` — a lobby field on a run that keeps
 #                 `-config` (default none; item 971's difficulty). The file
@@ -133,15 +134,29 @@ issuer=""
 if print -r -- "$CMD_EXTRA" | grep -qE '^[0-9]+ @'; then issuer="--issuer"; fi
 python3 "$W/tools/trace/stamp.py" check "$G" $issuer || exit 1
 
+# --- the lobby, saved whole and put back whole (parked 987, the
+# eighteenth pass). `mapstyle.py` writes the profile and `check.ini` on
+# every capture, and both were copied aside only under `PROFILE` or
+# `CHECKINI`: the last capture's map outlived it, and item 972 put the
+# held-out map's back by hand. Every exit below that restores the INIs
+# restores these two.
+save_lobby () {
+  cp "$B/PlayerProfile/Player.dat" "$T/Player.dat.run$N"
+  cp "$G/check.ini" "$T/check.ini.run$N"
+}
+restore_lobby () {
+  cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"
+  cp "$T/check.ini.run$N" "$G/check.ini"
+}
+save_lobby
+
 # --- stage. The map style lives in two files and neither is the lobby's
 # combo: `check.ini`'s `mapstyles=` and the profile's `<MULTI>` block.
 python3 "$W/tools/gamelog/mapstyle.py" "$MAPSTYLE"
 if [ -n "$PROFILE" ]; then
-  cp "$B/PlayerProfile/Player.dat" "$T/Player.dat.run$N"
   python3 "$W/tools/gamelog/profile.py" ${=PROFILE}
 fi
 if [ -n "$CHECKINI" ]; then
-  cp "$G/check.ini" "$T/check.ini.run$N"
   python3 "$W/tools/gamelog/checkini.py" ${=CHECKINI}
 fi
 python3 "$W/tools/fuzz/seedini.py" 12345
@@ -189,8 +204,7 @@ if ! zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"; then
   echo "run$N: no window — nothing archived, the INIs restored"
   pkill -f $P || true
   python3 "$W/tools/gamelog/window.py" restore
-  if [ -n "$PROFILE" ]; then cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"; fi
-  if [ -n "$CHECKINI" ]; then cp "$T/check.ini.run$N" "$G/check.ini"; fi
+  restore_lobby
   exit 1
 fi
 sleep 4
@@ -227,8 +241,7 @@ sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"
 python3 "$W/tools/gamelog/window.py" restore
-if [ -n "$PROFILE" ]; then cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"; fi
-if [ -n "$CHECKINI" ]; then cp "$T/check.ini.run$N" "$G/check.ini"; fi
+restore_lobby
 ls -la "$L/gamelog-run$N-$TAG.txt" "$L/rontrace-run$N.log"
 grep -a -m1 "MAP_STYLE" "$L/gamelog-run$N-$TAG.txt"
 grep -a -m1 "(int)seed" "$L/gamelog-run$N-$TAG.txt"

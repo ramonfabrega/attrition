@@ -57,7 +57,15 @@ cleanup() {
     pkill -f "gamelog/waitwin.sh" 2>/dev/null
     pkill -f 'riseofnations_trace\.exe' 2>/dev/null
     python3 "$W/tools/gamelog/window.py" restore
+    # And the lobby `longtrace.sh` saved for the run it was killed in
+    # (parked 987): the profile and `check.ini`, as that script's own
+    # `restore_lobby` would have put them back.
+    if [ -n "$run" ] && [ -f "$T/Player.dat.run$run" ]; then
+      cp "$T/Player.dat.run$run" "$B/PlayerProfile/Player.dat"
+      cp "$T/check.ini.run$run" "${RON_INSTALL:-/Users/rf-studio/code/fun/attrition/game}/check.ini"
+    fi
   fi
+  rm -f "$SNAP"
   exit 143
 }
 trap cleanup INT TERM
@@ -75,6 +83,14 @@ T=${RON_TMP:-/tmp/ron-runs}
 mkdir -p "$T"
 LOG="$T/runqueue-$(date +%Y%m%d-%H%M%S).log"
 echo "scenario $SCEN -> $LOG"
+# **The runner reads the scenario it was started on** (parked 984, the
+# eighteenth pass). The loop below read `$SCEN` through an open descriptor
+# while captures ran for minutes, so a stanza appended meanwhile was taken
+# in the same run — run349 was, unplanned, ahead of its own lane check.
+# The file is copied once and the copy is what is walked; a stanza written
+# after this line waits for the next run.
+SNAP="$T/runqueue-$$.captures.txt"
+cp "$SCEN" "$SNAP"
 
 # --- parse. zsh has no arrays of dicts; a stanza is accumulated into scalars
 # and flushed by the blank line, or by EOF.
@@ -211,8 +227,9 @@ while IFS= read -r line || [ -n "$line" ]; do
     check) checks+=("$val") ;;
     *) echo "unknown key '$key' in $SCEN" >&2; exit 1 ;;
   esac
-done < "$SCEN"
+done < "$SNAP"
 flush
+rm -f "$SNAP"
 
 echo
 echo "=== the queue, as it went ==="
