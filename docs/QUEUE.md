@@ -19,26 +19,26 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **11**): 947, 976 and 1009
+- **Since the pass** (count from 0b401602: **12**): 947, 976 and 1009
   closed chapters thirty-two to thirty-four (2360, 2740, 2850); 971 took
   the second pair; 972 measured the held-out map once, **1 and 0** (the
-  next pass books a third scored map); 979, 989, 997, 1002 and 1012 moved
-  the second pair to **East Indies 5606, Great Lakes 4618**; 965 took the
-  blind list to 147 (148 with 976's citation).
+  next pass books a third scored map); 979, 989, 997, 1002, 1012 and 1014
+  moved the second pair to **East Indies 5606, Great Lakes 4673**; 965
+  took the blind list to 147 (148 with 976's citation).
 - **The ledger is blind from 1000** (parked 1006): items 1000 on are
   booked and deleted by hand until the pass widens its patterns.
-- **The user's**: the archive's disk has **20 GB free** and the tranche
-  wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 31 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022).
+- **The user's**: the disk (22 GB free; 51 GB is this worktree's debug
+  build, parked 1027); whether phase 4 opens on the rules track alone.
+- **Fable backlog: 33 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5606 of 18,140 · GreatLakes w4618 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w4673 of 5,930
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1011 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 1014 on the AI lane (Great Lakes'
-4618, the second pair's lower word) and 1011 on the rules lane (the
+**Opener: the commander, two lanes — 1023 on the AI lane (Great Lakes'
+4673, the second pair's lower word) and 1011 on the rules lane (the
 issuer chapters at `cover=1`); after 1011 the rules lane takes the next
 chapter without a capture. The count runs from 0b401602; the eighteenth
 pass at twenty.**
@@ -51,13 +51,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-1014. **Great Lakes' second word: frame 4618, ours 94 draws against 4**
-    (1012). Parting at index 0: ours `Guy::set_anim+0x97a <
-    Unit::do_idle+0x7d`, theirs `Unit::do_non_flat_gather+0xcc3`;
-    widened on run356, where block 4619 parts on `1/0`'s group (66
-    against 67) and `1/7`'s gather wait. Parked 1015, the squad head the
-    floor refused, may decide it: a packet at 4606 reads the city's
-    `+0x3d`. East Indies' 5606 follows.
+1023. **Great Lakes' second word: frame 4673, ours 4 draws against 3**
+    (1014). Parting at index 0: ours `Unit::fight+0x9b0` (`1/24`),
+    theirs `Farms::inc_time+0x1ae`; widened on run356, where block 4673
+    parts on `1/24`'s order (kind 10 against 1) and its chase spot has
+    parted since block 4617 — so the word's cause is read at 4617, not
+    4673. East Indies' 5606 follows.
 
 1011. **The issuer chapters thirty-one to thirty-four at `cover=1`**
     (976, counter two): run338, run344, run358 and run362 were `cover=0`, so

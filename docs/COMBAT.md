@@ -5457,12 +5457,14 @@ flags date to the same block.
 
 ### 36.4 What is not established
 
-- **Everything past the range test.** The original falls through to
+- ~~**Everything past the range test.** The original falls through to
   `find_attack_pos`, `add_move_order`, `find_new_target` and
   `Group::action_attack` when the target is **inactive**, or when the
   flank triple holds. No capture on file reaches either arm — run112's
   four reviews all have a stationary target — so this crate returns
-  false there and the arms are unmodelled.
+  false there and the arms are unmodelled.~~ **The fleeing unit's arm is
+  §67** (item 1023, run347's `1/24` on 4616). The group arm and a
+  building target's fall-through stay unmodelled (§67.5).
 - **The two guards above the review**: `ptype +0x2b8 & 4` with
   `unit_masks & 0x80000` (the packable lineage, which takes an
   `add_cast_order` branch instead) and the `GUARD` arm (`action type ==
@@ -11033,6 +11035,12 @@ this site in the original, or another search bumps the city. A packet at
     (4104, 31512).
   - The word is inside run356's window: 69 blocks after its first and 187
     before its last.
+  - **Moved to 4673 by item 1014** (`docs/SCOUT.md` §8.3). The idle
+    units were the AI scout `1/0` alone, and it had taken the wrong
+    explore target on 4506. `1/0`'s group and `1/7`'s `wait` no longer
+    part. `1/24`'s chase spot (block 4617) now stands 56 blocks before the
+    new word, which is `1/24`'s. **Moved to 4688 by item 1023** (§67): the
+    review re-aims the chase on 4616.
 
 ### 66.6 What is not established
 
@@ -11061,3 +11069,163 @@ this site in the original, or another search bumps the city. A packet at
   `00712490:168–174, 456–470`.
 - **Unit-backed only**: `is_attacking_to`'s refusal. Answering it true
   does not move the walk.
+
+## 67. A fleeing target re-aims the chase (item 1023, 2026-09-28)
+
+Item 1023 was booked on Great Lakes' second word, frame 4673 of run347:
+ours 4 draws against the original's 3, parting at index 0 on
+`Unit::fight+0x9b0` (the chaser `1/24`) against `Farms::inc_time+0x1ae`.
+No mechanism was named. Block 4673 of run356 parted on `1/24`'s order,
+and its chase spot had parted since block 4617.
+
+### 67.1 The frame, from the disk
+
+- **Who and what.** `1/24` is a who=1 ranged soldier (guy type 82) in
+  group 65, a captain (`o_up −1`), stance RAID. Since the army's attack
+  on 4605 it has held an `ATTACK` on the human's citizen `0/3` (`ox 3
+  whom 0`, `mandatory 0`) under the group's `GROUP_ATTACK_TO`, with
+  `fight`'s chase in front: a `MOVE` to (4200, 31608) via (4968, 30840).
+  `0/3` is gathering at `0/2002` and walking away from it, from (2754,
+  31941) on block 4615 to (2718, 31907) on 4617.
+- **The original re-aims on 4616 with no draw.** Block 4617 prints the
+  move at (4104, 31512) via (4872, 30744): every coordinate is 96 less
+  on both axes, and the path is replanned. Ours keeps (4200, 31608).
+  Frame 4616's draws agree on both sides, and none of them is `1/24`'s.
+  So neither `fight`, whose captain arm rolls (`+0x9b0`), nor a ring
+  walk, which rolls per candidate, ran for it.
+- **The clock.** `(4616 + 24) % 16 == 0`, which is `Unit::work`'s review
+  phase (§36.2). No other writer of a chase spot runs on that phase
+  without a draw.
+
+### 67.2 The listing
+
+`check_target_path@005e22d0`, for an `ATTACK` action on a unit target.
+The flank triple at `5e2434`–`5e24b3` (§36.3) has three outcomes:
+
+- **not fleeing**: `is_in_range` from where the unit stands, and `repath`
+  only if the target is in reach;
+- **fleeing** (the target faces within 120° of the bearing from me and
+  is moving): the triple jumps to `5e24e2`, which the code had read as
+  `return 0`;
+- **a building target** reaches `5e24e2` too, since its vslot `+0x8`
+  answers 0.
+
+From `5e24e2`:
+
+1. The target's vslot `+0xbc`, `UnitData::is_on_map`, answers 0 →
+   `repath`, return 1.
+2. `is_in_range@006486b0(o, who, this+0x70, this+0x74, ·, 0, 0)`, pushed at
+   `5e254e`–`5e2561`. `+0x70`/`+0x74` are `orders_x`/`orders_y` in the
+   type record, so the question is asked **from the walk spot**, with no
+   margin. If it answers yes → return 0 (`5e2568` → `5e2915`, `xor eax`).
+3. The order's vslot `+0x18`, `is_attack` (`5e257b`). For an attack:
+   - a melee type (`max_range` `+0x1fc` is 0) with `path.length`
+     (`+0xc0`) of 1 → return 0;
+   - a building target (`+0x1c`) → return 0.
+4. The head's vslot `+0x2c` (`5e25c6`) is 0, or `group` (`+0x80`) is
+   negative → `5e26f7`. There: `repath`, then `find_attack_pos(o, who,
+   1, &x, &y, 0)` through the thunk `00602e60`, from the unit's own
+   position. Nothing found → return 1, with the legs gone.
+5. The `DEFENSIVE` leash (`5e2719`–`5e2832`). It applies when:
+   - the stance (`vt+0xf4`) is 1;
+   - the attack is not `mandatory` (`+0x1c`);
+   - the order is not flagged `& 4`;
+   - it is `defensive` (`+0x1d`), with a post (`+0x14`/`+0x18`) that is
+     non-negative.
+
+   Then, if `vector_dist` from the post is `max(unit_defensive_respond_
+   range, max_range) × 0xc0` or more → `find_new_target(this, NULL, 0)`,
+   return 1.
+6. Else `add_move_order(x, y, 1, 0, QUEUE_FIRST, 0, ·, −1, −1)`
+   (`5e2840`–`5e2863`), return 1.
+
+`find_attack_pos`'s third argument only picks the sweep's filter:
+`(param_3 != 0) × 2 + FILTER_NOT_ME` (`00601280:266`), so `FILTER_CAN_
+COLLIDE` (5) here against `fight`'s `FILTER_NOT_ME` (3), by the PDB's
+`FilterIndex`. `UnitType::find_nearby_spot` sends both down the one
+pairwise branch (`0061de70:72`). The unit arm's flanking projection sits
+under `(unit_masks & 0x40000) == 0` (`00601280`), and `1/24` carries
+`unit_masks 262158`, so the projection does not apply to it.
+
+### 67.3 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| `do_move`'s captain retarget (`(o + frame) & 0xf`, `find_melee_target`) | it rewrites the target through `change_target`, and `1/24`'s target is `0/3` on both sides through 4688 | not the cause |
+| `fight` re-ran the chase | `fight`'s captain arm rolls `+0x9b0` first, and 4616 has no draw of `1/24`'s | killed |
+| the review's fleeing arm re-aims | with it, 4617's move is the original's and 4673 agrees. With the fall-through returning (the mutation), the walk falls back to 4673 at 4 against 3, and the unit test fails on its first arm | **held** |
+| the range is asked from the walk spot | the walk cannot tell: the unit and its spot are both out of reach on 4616. The unit test's last arm can (a spot in reach, a chaser twelve tiles out), and it fails with `pos` in place of `orders_pos` | **held**, by the listing and the unit test |
+
+### 67.4 The fix
+
+The fix is `sim::orders`' `rechase_fleeing`, which `check_target_path`
+calls where the flank triple holds. `fight`'s chase and the re-aim share
+`find_attack_pos` and `add_move_order`. The ring's label is
+`fight::SITE_ATTACK_POS_REVIEW`, named and never spent, since a unit
+target's sweep draws nothing. The unit test is
+`a_fleeing_target_re_aims_the_chase_on_the_review_s_phase`. It has five
+arms:
+
+- a fleeing target re-aims;
+- a standing target keeps the spot;
+- a target walking toward the chaser keeps the spot;
+- an off-phase frame keeps the spot;
+- a walk spot still in reach keeps it.
+
+### 67.5 What moved
+
+- **Great Lakes 4673 → 4688.** On run356's block 4617, `1/24`'s move
+  reads (4104, 31512) via (4872, 30744) on both sides, where ours read
+  (4200, 31608) via (4968, 30840). Its rows agree from block 4605 to
+  4688. That includes the order on 4673 (kind 10 against 1) and
+  `stopped` on 4674. Frame 4673's draws went 4 against 3 → agreeing.
+- **East Indies holds at 5606**, and the second pair's other tests hold.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism
+  is named): frame 4688, ours 35 draws and the original 35, parting at
+  index 31. The count parts on 4690, 6 against 4.
+  - Both sides spend `1/24`'s `Unit::fight+0x9b0`.
+  - Ours then spends `Guy::set_anim+0x97a < Guy::move+0x19f`, where the
+    original spends a fourth farm draw (`Farms::inc_time+0x1ae`, then
+    `+0x1de`).
+  - Block 4689 parts on `1/24`. The original has struck from its cell
+    centre (3768, 31608): `recharging` 33, `hold_attack` 1, `in_range`
+    1, target `0/3` kept. Ours has not.
+- **What the disk says about the new word, and what it cannot.** The
+  roll is 18653, and `18653 % 5 = 3`, so both sides run the one-in-five
+  re-search. Ours scores:
+  - the human's scout `0/0`, 216 away, at 344 (value 1032, shaped
+    distance 492);
+  - `0/3` at 225 (value 1800, distance 1393).
+
+  Ours retargets to the scout. The original keeps `0/3`, so its search
+  ranked the scout lower.
+  - **Killed**: the stealth arm of `UnitData::is_seen`. The Scout's type
+    flags read `lmahc` in `unitrules.xml`, with no `s`, and
+    `unit_masks`/`unit_masks2` print 0.
+  - **The remaining input**: the scout's `targeted` (`ObjectData +0x3d`),
+    which no dump prints. The scout loses at a `targeted` of 6 or more,
+    where ours reads 0. A packet at 4687 would read it. That is the next
+    item's, beside parked 1015's city count.
+
+### 67.6 What is not established
+
+- **The group arm** (`5e25d1`–`5e26e9`: `Group::is_moving_to`,
+  `Group::kill_next_order`, `Group::action_attack`). It needs a reviewed
+  group head, and `check_target_path_review` reviews none (§36.4's group
+  conjunct).
+- **A building target's fall-through.** It returns 0 at every exit but
+  the building's vslot `+0xbc`, which `repath`s. This crate returns for a
+  building, as before.
+- **The `DEFENSIVE` leash, the `is_on_map` exit and the melee path-length
+  exit** have no capture. They are built from the listing.
+- **`is_in_range@006486b0`'s world-cell test** (`& 0x30 == 0x30` answers
+  no) is not in `Sim::is_in_range_at`.
+
+### 67.7 Coverage
+
+- **Diff-backed**: the re-aim, by run356's block 4617 and frame 4673's
+  draws. It is a floor, and it falls back under the mutation.
+- **Listing-backed**: `5e24e2`–`5e2873`, and `find_attack_pos`'s filter
+  (`00601280:266`, `0061de70:72`).
+- **Unit-backed only**: the walk spot as the range's origin, and the
+  standing, approaching and off-phase refusals.
