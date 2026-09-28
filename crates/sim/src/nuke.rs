@@ -77,9 +77,6 @@ pub struct Nukes {
     /// The buildings whose `ObjectData +0x40 visible` a nuke's launch set
     /// to `0xff` (`Build::do_missile_launch@00622670`'s nuke arm).
     pub shown: Vec<usize>,
-    /// `Game +0x6e0 armageddon`: one a nuke, on its `NUKE_FRAMES`th frame.
-    /// No dump prints it.
-    pub armageddon: i32,
 }
 
 impl Nukes {
@@ -161,9 +158,10 @@ impl Sim {
     /// `Objects::inc_time@0065db70` and once from the landing:
     /// - an effect whose frame is past `NUKE_FRAMES + NUKE_LINGER` (or
     ///   before its start) is dropped, the last moved into its place;
-    /// - on `t == NUKE_FRAMES` the Armageddon counter moves (the game's
-    ///   two guards, a nation count over one or the semaphore's bit, hold
-    ///   in every game here);
+    /// - on `t == NUKE_FRAMES` the original moves the Armageddon counter
+    ///   (`Game +0x6e0`), which is not carried here: no dump prints it and
+    ///   nothing built reads it (the game's end at `get_armageddon` is not
+    ///   built; the no-reader ledger refuses a write nobody reads);
     /// - while the ring lives ([`ring_radius`]), every unit that is active,
     ///   on the map, not a nuke and not struck before by this effect, at
     ///   `vector_dist ≤ r` from the point, takes `Object::do_damage` of
@@ -190,9 +188,6 @@ impl Sim {
         }
         for i in 0..self.nukes.blasts.len() {
             let t = frame - self.nukes.blasts[i].start;
-            if t == NUKE_FRAMES {
-                self.nukes.armageddon += 1;
-            }
             let (at, min, max, shooter) = {
                 let b = &self.nukes.blasts[i];
                 (b.at, b.min, b.max, b.shooter)

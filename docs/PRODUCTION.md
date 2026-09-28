@@ -1987,7 +1987,7 @@ type reaches `add_nuke`.
 
 **Built** (item 1091, chapter thirty-seven):
 - `sim::nuke`, new: `Nukes` (the effects, `nuke_stamp`, `nukes_used`,
-  the shown silos, the Armageddon count), `ring_radius`, `struck_count`,
+  the shown silos), `ring_radius`, `struck_count`,
   `Sim::nuke_land` and `Sim::nuke_do_damage`;
 - `Sim::land`'s nuke arm (`crate::fight`, granted), after the shield;
 - the per-frame call at the head of `Objects::inc_time`'s place in the
@@ -2024,10 +2024,16 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
   three apex knots, which the simulation does not read.
 - **`Object::die`'s hold reads `nuke_effect +0x108`** (`0xc0a888`,
   `647105`..`64710b`: `+0x108 + 1 + total_time − cur_time` for each round
-  the dead object fired), which `Nuke::init` sets to 30 at startup. This
-  crate takes it as 0 (`fight.rs`, `hold_dead_slot`, and `missile_dies`:
-  121 for run371's V2). No dump prints a dead unit's hold, so neither
-  reading is falsified; a packet's read of `0xc0a888` settles it.
+  the dead object fired), **30 in a live game**: run400's packet (logger
+  frame 5066, `~/ron-data/lab-captures/2026-09-28-run400`) holds `+0x104`
+  10, `+0x108` 30 and `+0x110` 110, `Nuke::init`'s and `NukeOut::init`'s
+  values. This crate takes the term as 0 (`fight.rs`, `hold_dead_slot`,
+  and `missile_dies`: 121 for run371's V2 where the original holds 151).
+  No dump prints a dead unit's hold, and no capture on disk reuses such a
+  slot inside the thirty frames; not built (item 1091), parked.
+- The Armageddon counter (`Game +0x6e0`, one a nuke on t = 110): not
+  carried, since no dump prints it and the game's end at
+  `get_armageddon` is not built.
 
 ## What is not established
 
