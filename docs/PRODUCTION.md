@@ -1729,15 +1729,116 @@ stood. `Sim::building_under` is the fix, and
 - ~~**The blast.**~~ Built, above (item 1077). What stands of the
   missile arm is the list below: the nuke, the shield, and `+0x7c0`
   with `S_NUKE_HIT`, which no dump prints.
-- `do_air_physics`' redraw for a missile, `(o + frame) & 7 == 0` and vslot
-  `0x30`: not on run371's frames.
+- ~~`do_air_physics`' redraw for a missile, `(o + frame) & 7 == 0` and vslot
+  `0x30`: not on run371's frames.~~ Read and emulated, "The missile's other
+  arms (item 1078)"; chapter thirty-six stages it.
 - A nuke: no scatter, the spline's other arm, `can_nuke`, and
-  `Nuke::add_nuke`.
-- `MISSILE_DEFENSE_BONUS` on either side.
-- A second missile in `launching`.
+  `Nuke::add_nuke`. Item 1078 dropped it from chapter thirty-six (below).
+- ~~`MISSILE_DEFENSE_BONUS` on either side.~~ Both gates read, below;
+  chapter thirty-six stages each.
+- ~~A second missile in `launching`.~~ A silo holds one missile
+  (`has_nuke`), and a second strike during the countdown passes it over,
+  below.
 - `do_launch`'s head at a building that is not a silo with `recharging`
   set: its call does nothing and the head still returns.
-- The missile's `unit_masks &= ~0x4000000` under `QUEUE_NEW`.
+- ~~The missile's `unit_masks &= ~0x4000000` under `QUEUE_NEW`.~~
+  Unreachable for a missile, below.
+
+
+## The missile's other arms (item 1078)
+
+`docs/GOLDEN.md` §45 is the chapter. Item 1050's list above named five
+arms; each is read here off the listing, two run under the emulator.
+
+**A silo holds one missile.** `ObjectData::has_nuke@00643d40` answers 1
+for a missile in the queue, a missile of the player's whose air order is
+homed on the silo, or one inside it; `action_queue_up` asks it. So a
+second entry in `launching` cannot be trained into one silo.
+
+**A second strike during the countdown finds nothing.**
+`Group::action_launch_flight@006fbfb0` walks each member building's
+chain. A silo holding a nuke (`count_inside` of `0x13b`) or a V2 (`0x139`)
+narrows the choice to missiles, which skip the ctrl/alt and tank gates
+(`6fc3cb`, entered from `6fc378` and `6fc38e`; the missile bit read at
+`6fc3bb`). After `is_busy`, `valid_target` and the reach, the missile
+block `6fc681`..`6fc6ef` (entered only from `6fc5a2` and `6fc5ac`) walks
+the unit's order list to its current order and asks vslot `0x10`, its
+type: non-zero passes the missile over (`6fc6ce`). Under the emulator
+(`tools/emu/launch_arm.py`, the executable's own function with its
+callees answered):
+
+| the missile inside | shift | `action_flight` |
+| --- | --- | --- |
+| a V2, no order | 0 | called, the V2 added |
+| a V2 on its `AIR_ATTACK_GROUND` | 0 | not called |
+| a V2 on its `AIR_ATTACK_GROUND` | 1 | not called |
+| a V2, `valid_target` 0 | 0 | not called |
+| a V2 out of reach | 0 | not called |
+| a nuke, no order | 0 | called |
+| a nuke on its `AIR_ATTACK_GROUND` | 0 | not called |
+
+`action_flight`'s own loop skips a missile on an air order a second time
+(`is_air`: `0x10`, `0x11`, `0x18`). This crate's
+`group_action_launch_flight` multiplies the distance by 200 and still
+chooses it, and `strike_from_inside` lays the order again.
+
+**The altitude redraw on a missile's one step.**
+`Unit::do_air_physics@005e86d0`, on a frame `(o + frame) & 7 == 0`
+(`5e871f`..`5e872c`): `is(0x130)` (the Bomber line) holds 1600 and draws
+nothing; else the draw block `5e8778` is entered only through `5e876c`,
+from vslot `0x30` answering 0 (`5e8761`) or type `0x193` (`5e876a`), then
+`unit_flags & 0x20` clear. **Every `Unit`'s vslot `0x30` is
+`Window::get_button@0041bff0`**, a folded `return 0` (the vtable at
+`0xb417d0`, slot `0x30` = `0x41bff0`), so the ±200 arm (`5e87af`) is
+dead for a unit, and a missile, which is neither a Bomber nor a
+Helicopter, draws. Under the emulator (`tools/emu/redraw_arm.py`, the
+real vtable, a roll of 40000):
+
+| unit | `(o + frame) & 7` | draw | `cruising_alt` |
+| --- | --- | --- | --- |
+| V2 Rocket (`0x139`, FLAGS `h`) | 0 | yes | 1500 |
+| Nuclear Missile (`0x13b`) | 0 | yes | 1500 |
+| a Bomber | 0 | no | 1600 |
+| a Helicopter (`unit_flags & 0x20`) | 0 | no | 1600 |
+| type `0x192` | 0 | yes | 1500 |
+| any of them | 1 | no | 1600 |
+
+`Sim::plane_air_physics` already draws for every non-Bomber, missiles
+included, so the arm is this crate's already; chapter thirty-six stages
+it for the draw's place ahead of the round's two.
+
+**`MISSILE_DEFENSE_BONUS`, twice** (the `push` of its index at `6fbbe9` and `678343`).
+- **At the order**, `Group::action_flight`'s inside arm (`6fbbd7`..
+  `6fbbfb`): a target owned by the player passes; otherwise
+  `LeaderData::has_preq@006db810` of the *target's owner* for the bonus
+  refuses a missile. `rules.xml` gives the bonus Missile Shield.
+- **At the blast**, `Ammo::do_damage@00678060`'s missile arm: the
+  territory owner of the landing cell (`world+0x134`, a cell's `+0xf`;
+  over ocean, the first owned cell of a ring). None (`678337`), not
+  holding the bonus (`678355`), or the shooter's own player (`678363`) goes
+  on to the nuke and the general arms; otherwise the round is closed with
+  no damage (`67845d`: `Ammo::close@006791a0`, return 0), after a message
+  and a sound for the console's player.
+
+This crate has neither gate (`strike_from_inside`, `missile_round`'s
+landing), and no role for the bonus in its tree (`crate::tech`).
+
+**`unit_masks &= ~0x4000000` is unreachable for a missile.** The bit's one
+setter in `.text` is `Unit::add_move_facing_order@005e55c0`'s
+`QUEUE_LAST` arm for a kind-1 move on a type with `role & 0x10` (`5e56cc`,
+the only `or` of `0x4000000` on `+0x68`; the decompile's other `|
+0x4000000` are the leaders' and the roads'). A missile is never given a
+move: `MOVE_TO` refuses it at a silo (§44), and outside a silo it lives
+one call. The clearing is a no-op on every missile.
+
+**Not established.**
+- The nuke. Its type is a research job at the silo in this crate
+  (`Handover::Researched`: about 1,800 frames that place nothing, then
+  about 720 to train). The original's availability rule for it is not
+  read. Its blast, `Nuke::add_nuke@0092ba30` and `Nuke::do_damage@0092bc80`
+  (every frame from `Objects::inc_time`, floats), is unread.
+- Whether chapter thirty-six's V2s are `0/14` and `0/15` in the original:
+  the redraw's frame rests on it.
 
 ## What is not established
 

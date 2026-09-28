@@ -1364,7 +1364,11 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
                 done.skip(&word, "`tech … off` is not modelled");
                 return;
             }
-            match loaded.tech_named(&name) {
+            // `run_cmd`'s `tech` case names its argument through
+            // `parse_type(·, ·, 2)` (`007dd966`..`007dd9b4`), the same
+            // underscore-to-space, exact-then-prefix rule as `add`'s
+            // (item 1078: `missile_shield` is Missile Shield).
+            match type_named(&loaded.tech_names, &name) {
                 Some(t) => {
                     built.sim.gain_tech(who as sim::Player, loaded.tech_tree[t]);
                     done.ran += 1;
@@ -1646,6 +1650,12 @@ mod tests {
         // point, and both launch commands at each base (item 1019,
         // `docs/GOLDEN.md` §44).
         ("chapter35.cmd", &[]),
+        // Chapter thirty-six: chapter thirty-five whole, two more silos and
+        // a V2 each, two who=1 Barracks and a spotter, a strike pressed
+        // twice on one silo, `tech who=1 missile_shield on` with the round
+        // in flight, and a strike from the other silo after it: the
+        // missile's other arms (item 1078, `docs/GOLDEN.md` §45).
+        ("chapter36.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),

@@ -13448,6 +13448,40 @@ fn stage_walk() {
             }
         }
     }
+    // `RON_STAGE_MAP=1` (item 1078, `docs/GOLDEN.md` §45): the territory
+    // on the last frame, one character a cell (`.` unowned, `?` a claim
+    // the original writes −2, else the player), and every live building
+    // with its cell, so a target can be placed by who owns its landing.
+    if std::env::var_os("RON_STAGE_MAP").is_some() {
+        let s = &built.sim;
+        for y in 0..s.world.height() {
+            let row: String = (0..s.world.width())
+                .map(|x| match s.world.owner(sim::world::Cell { x, y }) {
+                    sim::world::Owner::None => '.',
+                    sim::world::Owner::Ambiguous => '?',
+                    sim::world::Owner::Player(p) => char::from(b'0' + p as u8),
+                })
+                .collect();
+            eprintln!("map {y:2} {row}");
+        }
+        for b in s.buildings.iter().filter(|b| b.alive) {
+            let c = b.pos.cell();
+            eprintln!(
+                "bld {}/{} {} pos=({}, {}) cell=({}, {}) owner_there={:?}",
+                b.owner,
+                b.index,
+                build_name(b.ty),
+                b.pos.x,
+                b.pos.y,
+                c.x,
+                c.y,
+                s.world.owner(c)
+            );
+            for q in &b.queue.items {
+                eprintln!("    queue ty={} job_counter={}", q.ty, q.job_counter);
+            }
+        }
+    }
     eprintln!(
         "staged: {} ran, {} unit(s), {} building(s); skipped {:?}",
         applied.ran, applied.units, applied.buildings, applied.skipped
