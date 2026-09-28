@@ -1727,6 +1727,15 @@ directly, as `scout_probe.py` does. And the click-free lane now takes a
 lobby field (`unattended_capture.py --profile KEY=N`), which the second
 pair's packets need every time: the runbook should say so.
 
+(1027) **The commander's worktree holds 53 GB of build output** (the
+commander, 2026-09-28, measured with `du`): `replan-pdb/target/debug/deps`
+is **51 GB**, stale debug test binaries accumulating across merges, with
+2.3 GB of incremental state beside it; `target/release` is 130 MB. The
+whole `.claude/worktrees` tree is 54 GB, and the home volume had 22 GB
+free. A lane's `target` goes with its worktree; the commander's never
+does. `cargo clean` on the debug profile, or a periodic sweep, is the
+pass's call; the user is also looking at unrelated disk use with lore.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

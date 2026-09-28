@@ -27,9 +27,9 @@ the staging lane, and not a headline.*
   took the blind list to 147 (148 with 976's citation).
 - **The ledger is blind from 1000** (parked 1006): items 1000 on are
   booked and deleted by hand until the pass widens its patterns.
-- **The user's**: the archive's disk has **20 GB free** and the tranche
-  wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 32 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026).
+- **The user's**: the disk (22 GB free; 51 GB is this worktree's debug
+  build, parked 1027); whether phase 4 opens on the rules track alone.
+- **Fable backlog: 33 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
