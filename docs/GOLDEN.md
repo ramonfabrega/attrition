@@ -1405,7 +1405,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 358 | thirty-three, an Airbase's launch issuers | `[605, 2740)` | chapter thirty-two whole, an enemy Barracks by the Airbase (2200), and five presses on `0/2007`: `@launchstrike` on it (2260, verb 23), `@launchpatrol` (2280, verb 21) and `@launchpatrolall` (2295, verb 22) on the ground, `@gatherpoint` of action 3 on the Citizen `0/1` (2305) and `@gatherpointadd` after it (2335); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run344's start (§42) — **run 2026-09-27 (item 976), 858 MB, 2,306 s; no falsifier fired: `0/8` the strike on 2262, `0/9` the patrol on 2282, `0/7` and the refuelling `0/6` on 2297, all four on `0/1` with `0/6` alone flags 4 on 2307, all four over P3 alone on 2337** |
 | 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) — **run 2026-09-27 (item 1009), 906 MB, 2,731 s; no falsifier fired: `0/8` on ctrl, `0/9` on alt, `0/7` home to `0/2008` over a full `0/6`, nothing on ctrl's strike, three re-ordered by P1 and not `0/7`, the strikes standing through P2, nothing on alt at `0/2008`** |
 | 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) — **run 2026-09-28 (item 1019), 1.08 GB, 3,256 s, after two `cover=1` takes hung (81 min); the silo queued one V2 of two; 9, 10, 11 and 13 fired on readings the listing had corrected: `0/12` an `ATTACK_TO` to P_h and homed nowhere, `0/10` an air attack on the ground, launched on 2702; word 2445, then 2675; item 1048 built the Helicopter's flight, 2675 → 2701, open; item 1050 built the V2's launch, 2701 → 3260, closed on the draw stream; item 1077 built the blast on 2821, 43 → 42 rows** |
-| 390 | thirty-six, the missile's other arms | `[605, 3420)` | chapter thirty-five whole, two more silos with a V2 each (`0/14`, `0/15`), who=1's Barracks T_home in its own land and T_far in no one's, a spotter, and five lines: `@launchstrike` from `0/2010` on T_home (3019, launched on 3050 with `(14 + 3050) & 7 == 0`), again on T_far during the countdown (3029), `tech who=1 missile_shield on` with the round in flight (3070), `@launchstrike` from `0/2011` on T_far (3080); at `cover=0` on the click-free lane, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run371's start (§45) |
+| 390 | thirty-six, the missile's other arms | `[605, 3420)` | chapter thirty-five whole, two more silos with a V2 each (`0/14`, `0/15`), who=1's Barracks T_home in its own land and T_far in no one's, a spotter, and five lines: `@launchstrike` from `0/2010` on T_home (3019, launched on 3050 with `(14 + 3050) & 7 == 0`), again on T_far during the countdown (3029), `tech who=1 missile_shield on` with the round in flight (3070), `@launchstrike` from `0/2011` on T_far (3080); at `cover=0` on the click-free lane, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run371's start (§45) — **run 2026-09-28 (item 1078), 1.17 GB, 3,278 s; no falsifier fired: the re-press found nothing, the redraw's draw led the round's two, the shield refused `0/15`'s order and closed V2b's round on T_home; word 3111, then 3169 (the price and the order gate), then 3420, closed** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -7930,3 +7930,59 @@ redraw's `0x193` arm.
 **Where it should part.** Unbuilt, the first draw parting is **3111**:
 V2c's two scatter draws, which the reading says it never spends. The
 first value parting is block 3031, `0/14`'s `att`.
+
+**Run 2026-09-28 as run390 (item 1078)** (`docs/RUNS.md` has the table):
+click-free, `cover=0`, 3,278 s, 1.17 GB, `success: true`, every `@` line
+issued and none refused, and run371's game to 2740 (the spotter's
+birth). **No falsifier fired**:
+- 1, 2: the commands processed on 2721, 2726, 3020, 3030 and 3081; the
+  silos, the Barracks and the V2s `0/14` and `0/15` as walked.
+- 3: `0/14` an `AIRATTACKGROUNDORDER` to (38016, 18816), flags 4, `oxx`
+  2010, `recharging` 30 on 3021.
+- 4: on 3031 `0/14`'s `att` still (38016, 18816).
+- 5: trace 3050's game draws open `Unit::do_air_physics+0xba` (17247),
+  then `Ammo::init+0xae8` and `+0xb25` (40766, 9105); `s` 32, and `% 32 −
+  16` gives the dump's +14 and +1. The round's `sz` 530 is 388 over the
+  silo's 142.
+- 6: `0/15` inside `0/2011` with no order, `recharging` 0, on 3082 and to
+  the end.
+- 7: `1/2007` at `damage` 0 to 3171; the round gone on 3170; on 3169 the
+  only draw of `Ammo::do_damage` is the sound generator's (`+0x381`).
+- 8: no bucket of who=1's moved on the tech line's block.
+
+**The first walk: `GOLDEN_WORD_CHAPTER_THIRTY_SIX` = 3111, open**, where
+this section said it would part: V2c's two scatter draws. The first
+value row is 2722, the new V2's price: ours 120 and 120, theirs 100 and
+100 (and 140 against 120 on 2727). This crate never took a fired missile
+out of `num_units`. The widening, run390 whole, pins 284 rows (chapter
+thirty-five's forty-two among them) and chapter thirty-five's twelve
+pool rows.
+
+**Built** (`docs/PRODUCTION.md`, "The missile's other arms"):
+`action_launch_flight`'s missile narrowing and pass-over; a missile that
+fires leaves `num_units`; the shield at the order; the shield at the
+blast. **The value diff, both sides** (ours before, bracketed): 2722,
+`0/2010`'s queue 100/100 and who=0's knowledge and oil 900 and 634 [120,
+880 and 614]; 3031, `0/14`'s `att` (38016, 18816) [(35712, 18816), the
+pass-over's, measured on the staging walk]; 3082, `0/15` with no order
+[an `AIRATTACKGROUNDORDER`]; 3170, `1/2007` at `damage` 0 [wounded]. The
+word goes **3111 → 3169 → 3420**: closed on the draw stream, and every
+frame's word agrees. The widening goes **284 → 266 → 59 rows**: chapter
+thirty-five's forty-two, the new units' `form` (0 against −1), and the
+V2s' seats inside their silos on 2926 and 2931 (+24, +24, parked 646's
+family). `GROUND_INEXACT` 40.
+
+**Mutations**, each on the committed build (`cbcb24f8`), `git diff
+--stat` non-empty first, scored against the unit tests and `cargo test
+--release -p rondata chapter_thirty_six`, restored from git and
+`touch`ed after:
+
+| mutation | sim | ch36's pins |
+| --- | --- | --- |
+| the pass-over's live-order test dropped | the pass-over test | word 3169 (V2b re-pointed onto T_far, no one's land, strikes it); widening 267 |
+| the missile's `track_unit_type(·, −1)` dropped | the count test | **word 3420 still**; widening 65 (the two prices on 2722 and 2727) |
+| the shield at the order dropped | the order-gate test | word 3111; widening 273 |
+| the shield at the blast dropped | the blast-gate test | word 3169; widening 266 |
+
+The count is value-only: no draw reads a price, so only the widening
+holds it.

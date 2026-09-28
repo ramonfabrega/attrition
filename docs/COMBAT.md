@@ -12203,9 +12203,11 @@ the first building of a player below eight, active (this crate's
   `remove_from_inside`, none of them on this frame. The writer of
   `0x8000000` was not found by a grep of the decompile. No reader in
   this crate, and uncompared.
-- The missile arm's other branches stand as PRODUCTION lists them
-  (parked 1078): a nuke, `MISSILE_DEFENSE_BONUS`, leader `+0x7c0` and
-  `S_NUKE_HIT`, which print nothing at `LEADERS=2`.
+- The missile arm's other branches stand as PRODUCTION lists them: a
+  nuke, leader `+0x7c0` and `S_NUKE_HIT`, which print nothing at
+  `LEADERS=2`. ~~`MISSILE_DEFENSE_BONUS`~~ is built at the arm's head
+  (item 1078, `Sim::land`; `docs/PRODUCTION.md` "The missile's other
+  arms"): run390's V2b closed in who=1's land on 3169.
 
 ### 73.6 Coverage
 

@@ -1820,8 +1820,9 @@ it for the draw's place ahead of the round's two.
   no damage (`67845d`: `Ammo::close@006791a0`, return 0), after a message
   and a sound for the console's player.
 
-This crate has neither gate (`strike_from_inside`, `missile_round`'s
-landing), and no role for the bonus in its tree (`crate::tech`).
+Both are built (below): the tree's `missile_defense_preq` role,
+`TECHBONUSES` row 9 on the `0x2ac` base the fishermen use ("Enemy
+missiles will not explode in your territory", preq Missile Shield).
 
 **`unit_masks &= ~0x4000000` is unreachable for a missile.** The bit's one
 setter in `.text` is `Unit::add_move_facing_order@005e55c0`'s
@@ -1831,14 +1832,39 @@ the only `or` of `0x4000000` on `+0x68`; the decompile's other `|
 move: `MOVE_TO` refuses it at a silo (§44), and outside a silo it lives
 one call. The clearing is a no-op on every missile.
 
+**A fired missile leaves `num_units`.** `Unit::close@0060ee50` takes a
+unit that is no squad follower (`+0x8e < 0`) and whose type has
+population (or is `is(0x134)` or a governor-hero) out of the count, with
+`Leader::track_unit_type(type, −1)` at `0060f3db`. This crate's
+`missile_dies` did not, so a dead V2 stayed counted and the next V2 was
+priced a step up the ramp: run390's `0/2010` charged 100 and 100 on
+2722, this crate 120 and 120. **This crate's general death path never
+calls it either**; only the missile's is built here (item 1078), and the
+general one is the commander's to book.
+
+**Built** (item 1078, chapter thirty-six, `docs/GOLDEN.md` §45):
+- `Sim::group_action_launch_flight`'s missile arm: the narrowing
+  (`holds_line` of `NUCLEARMISSILE` and `V2ROCKET`), the missile's own
+  gates, and the pass-over of a missile on a live order;
+- `Sim::missile_dies`' `track_unit_type(·, −1)`;
+- `Sim::missile_defense_held` and `strike_from_inside`'s refusal;
+- `Sim::land`'s missile arm, the shield's close (`crate::fight`);
+- `crate::tech::Roles::missile_defense_preq`, loaded by `rondata`.
+
+Four unit tests (`airbase::tests`: the pass-over, the count, the order
+gate; `fight::tests`: the blast gate), each made to fail by its mutation.
+run390's value diff and the word, 3111 → 3169 → 3420: §45.
+
 **Not established.**
 - The nuke. Its type is a research job at the silo in this crate
   (`Handover::Researched`: about 1,800 frames that place nothing, then
   about 720 to train). The original's availability rule for it is not
   read. Its blast, `Nuke::add_nuke@0092ba30` and `Nuke::do_damage@0092bc80`
   (every frame from `Objects::inc_time`, floats), is unread.
-- Whether chapter thirty-six's V2s are `0/14` and `0/15` in the original:
-  the redraw's frame rests on it.
+- ~~Whether chapter thirty-six's V2s are `0/14` and `0/15` in the
+  original.~~ They are (run390, 2926 and 2931).
+- `UnitData::is_busy` in the launch's chain walk, a shield over ocean
+  (the owner a ring's first owned cell), and a missile's shift press.
 
 ## What is not established
 
