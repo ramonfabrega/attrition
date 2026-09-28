@@ -10624,9 +10624,12 @@ live `2009` was compared with ours' dead frame-976 site.
     is struck on 4779 there and not here (§69.5).~~ **Moved to 4846 by
     item 1040** (`docs/COMBAT.md` §70): the Slinger's three release bays,
     and a busy unit that is not on duty does not answer a hit. **Great
-    Lakes 4846, the lower**: ours 8, the original 9, at index 2,
-    `Guy::set_anim+0x104b` against `Guy::set_anim+0xf2f < Unit::set_anim+
-    0x56 < Unit::fight+0x19f6`; past run356's window, widened on run373.
+    Lakes 4877, the lower** (after 4846 and 4852 in the same item: a
+    building is struck square to its side, and the one-in-five retarget
+    freezes the frame): ours 7, the original 8, at index 1,
+    `Guy::set_anim+0x104b` against `Guy::set_anim+0x97a <
+    Unit::move_step+0x823`; widened on run373, whose block 4861 (frame
+    4860, the army's tick) is the first to part.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

@@ -11522,8 +11522,8 @@ the phase are all printed, and the listing gave the setter and the decay.
   `Farms::inc_time+0x1ae`. Block 4782 is inside run356's window (232 after
   its first block, 24 before its last).
   - On block 4780 the citizen `0/4` has been struck there
-    (`damage_frame` 4779, `damage` 3/5) and not here. **Moved to 4846 by
-    item 1040** (§70): the Slinger's stone left the unit's square, not its
+    (`damage_frame` 4779, `damage` 3/5) and not here. **Moved to 4846, and
+    on to 4877, by item 1040** (§70): the Slinger's stone left the unit's square, not its
     bay, and the struck citizen, not on duty, turned on it here.
   - On 4781 `0/4`'s order parts (kind 10 against 1, `orders_x` 1882
     against 2040).
@@ -11556,7 +11556,7 @@ the phase are all printed, and the listing gave the setter and the decay.
 - **Listing-backed**: `00652561`; `Build::process@0061edf0`'s
   `(frame + o) % 200` block and its heal gate.
 
-## 70. A Slinger's stone leaves its bay, and a busy citizen does not turn (item 1040, 2026-09-28)
+## 70. A Slinger's stone leaves its bay, a busy citizen does not turn, and a building is struck square (item 1040, 2026-09-28)
 
 Item 1040 was booked on Great Lakes' second word, frame 4781 of run347:
 ours 5 draws against the original's 4, parting at index 0. Ours spends
@@ -11665,7 +11665,9 @@ still answers (`local_20` is `NONE`).
 - **Built**:
   - `sim::launch::BAYS`: three rows for piece 32, appended;
   - `sim::fight::Sim::on_duty` and `action_is_attack`;
-  - `target_opportunity`'s return after the flee arm.
+  - `target_opportunity`'s return after the flee arm;
+  - `sim::fight::Sim::building_side`, read by `fight`'s facing (§70.6);
+  - the one-in-five retarget's mark in `sim::orders` (§70.7).
 - **Unit tests**:
   - `run17_s_slinger_stones_leave_from_the_measured_bays`: all 24
     distinct launch points and heights, exactly;
@@ -11674,16 +11676,81 @@ still answers (`local_20` is `NONE`).
     an idle unit.
   - `guard_on_post`'s chariot is now combat-role, as the loader gives
     the real type. 707's AI guard answers through `on_duty` (`GUARD`).
+  - `a_building_is_struck_square_to_its_side`: the four faces, a corner,
+    inside, an unblocked tile and a unit target;
+  - `the_one_in_five_retarget_freezes_the_frame`.
 - **Mutations** on `c50d00c3`, each restored from git and `touch`ed:
 
   | mutation | unit test | run347's walk | run356's widening |
   |---|---|---|---|
   | piece 32's rows keyed to 9032 | fails | falls back to 4810 | `0/4`'s strike row returns on 4780 |
   | the gate off | fails | falls back to 4780, index 0 | `0/4`'s `ATTACK` returns on 4780 |
+  | the side arm answering `None` (on `179f2fc2`) | fails | falls back to 4846, index 2 | none then; run356's `1/22` row is asserted since |
+  | the retarget's mark off (on `179f2fc2`) | fails | falls back to 4852, index 1 | `1/24`'s clock parts on 4853 (run373) |
 
-### 70.6 What moved
+### 70.6 A building is struck square to its side
 
-- **Great Lakes 4781 → 4846.** On run356:
+The same item's second word, 4846 (ours 8 draws, the original 9, at index
+2): the original spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56 <
+Unit::fight+0x19f6`, the swing, and ours does not. run373 (§70.8) is its
+widening.
+
+- **The record.** Block 4847 parts on `1/19` alone, a Hoplite (guy type
+  132) of who=1's army, on its attack spot (3432, 30120) on the row above
+  the human's city (centre (3168, 30816)). On 4846 the original's `1/19`
+  strikes with its facing unchanged, `0x80000000`, due south: `recharging`
+  32 and slot 11 on block 4847. Ours turned to `0x8ec5793b`, the centre's
+  bearing. `set_anim`'s deferral (ANIM §6.2) then held the swing, and it
+  struck on 4847.
+- **The disk, before any reading.** Every strike on the city in run356 and
+  run373 was listed with its facing and the centre's bearing. The Slingers
+  and Bowmen face within a tenth of a degree of the bearing. The Hoplites on the north
+  face do not: `1/22` turns from `0xc0000000` to exactly `0x80000000` on
+  block 4758, where the bearing is `0x959a59e3`. That is run356's standing
+  `1/22` facing row, open since 4758 and unread.
+- **The listing** (`5fe8a7`–`5feb4c`). After `find_angle` to the target's
+  `+0x10/+0x14`, vslot `+0xc` is asked of the target. It is
+  `SubObjectData::is_active` on `Build` and `Wall` and a folded `return 0`
+  on `Unit` and `Animal` (`vtables.txt`). For a building:
+  - the unit's own tile covered (`WallData::covers_tile@006439b0`, tiles
+    `div_3_table[v >> 6]`) keeps the bearing (`5fe8f6`);
+  - else the tile at `x − 0xc0` covered **and** its world mask (`+0x138`)
+    carrying `0x4000`, `BLOCKED` → `0xc0000000`;
+  - else `y − 0xc0` → `0`; else `x + 0xc0` → `0x40000000`; else `y + 0xc0`
+    → `0x80000000` (`cmovne` at `5feb46`);
+  - anything else keeps the bearing.
+
+  The sideways ship's quarter turn follows (`5feb51`). Ghidra prints the
+  arm as a wall's, and it is every building's.
+- **Two readings killed first.** A pivot (`set_attack` answering, §52):
+  `set_attack@005fce70` asks the type's `max_range`, and a Hoplite's is 0.
+  The swing's fifth argument (`jne 5feec6`): `5feec6` is the return address
+  of the swing's own `set_anim` call, so the trace's `+0x19f6` is the
+  ordinary path.
+
+### 70.7 The one-in-five retarget freezes the frame
+
+The third word, 4852 (ours 6 draws, the original 5, at index 1): ours
+spends `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, an attack slot's wrap
+to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
+`% 5 = 3`), and on both the re-search names `0/3` in place of `0/4`.
+
+- **The record.** Block 4853 has the original's `1/24` at `cur_time` 32
+  of 33 with `last_time` 32, a clock that did not step, and `unit_masks2`
+  **16**. It wraps on 4854. Ours wrapped on 4852 and rolled the idle.
+- **The listing.** After `find_new_target@005ff6a0` names another valid
+  target, `005fdf68`–`005fdfea` checks `order_type() == ATTACK` and
+  `recharging` (`+0xae`) zero, re-points the head order, and
+  `orl $0x10, 0x6c(%ebx)` before the return. That is §43.2's frozen mark,
+  which `Guy::inc_time`'s step reads (`local_14 = 0`). This crate set it
+  on the invalid-target and guard arms and not here.
+- **SEAM**: the `jmp 005fd639` taken otherwise (a recharging unit, or the
+  search naming `fight`'s entry arguments), which re-enters `fight` from
+  its head.
+
+### 70.8 What moved
+
+- **Great Lakes 4781 → 4846** (§70.1–§70.3). On run356:
   - `1/24`'s stone of 4775 strikes `0/4` on 4779 on both sides (block
     4780: `damage_frame` 4779, `damage` 3/5, where ours read 0 and 0/0);
   - `0/4` keeps `[MOVE, GATHER]` on both, where ours pushed an `ATTACK`
@@ -11693,15 +11760,28 @@ still answers (`local_20` is `NONE`).
   - 122 first-parting rows close, and none opens. They include `1/1`'s
     and `1/4`'s walks, `1/15`'s path on 4792 and `1/24`'s facing on 4787.
   - Frame 4781's draws went 5 against 4 → agreeing.
-- **East Indies holds at 5606**, ours 4 against 5 at index 0, as booked.
+- **4846 → 4852** (§70.6). On run373, `1/19` strikes on 4846 facing south
+  on both sides, and its figure first parts on 4861. On run356, `1/22`'s
+  facing row (from 4758) closes. Frame 4846's draws went 8 against 9 →
+  agreeing.
+- **4852 → 4877** (§70.7). On run373, `1/24`'s clock no longer parts on
+  4853. Frame 4852's draws went 6 against 5 → agreeing.
+- **East Indies holds at 5606**, ours 4 against 5 at index 0, as booked,
+  at every step.
 - **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
-  named): frame 4846, ours 8 draws and the original 9, parting at index 2.
-  The original spends `Guy::set_anim+0xf2f < Unit::set_anim+0x56 <
-  Unit::fight+0x19f6`, a strike's animation. Ours spends
-  `Guy::set_anim+0x104b`. Block 4847 is past run356's window, and run373
-  is its widening.
+  named): frame 4877, ours 7 draws and the original 8, parting at index 1.
+  The original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`, a
+  unit setting off. Ours spends `Guy::set_anim+0x104b`. Block 4878 is inside
+  run373's window.
+  - **The earliest block to part past the window's standing rows is 4861**
+    (121 keys): frame 4860 is who=1's army tick (`4860 ≡ 252 mod 256`). The
+    army's members (among them `1/12`–`1/19`, `1/22` and `1/24`) take new moves there
+    (`order:move.dest` 1, walking), and hold the city here.
+  - The window opens on a standing row: the citizens `0/2`, `0/3` and
+    `0/4` have taken more damage here since run356's window closed (block
+    4841: `0/4`'s `damage` 6 10/16 against 5 0/16).
 
-### 70.7 What is not established
+### 70.9 What is not established
 
 - **An attack action with no target** takes the `600516` arm in the
   original, whose own returns and `kill_current_order` this crate does not
@@ -11714,17 +11794,26 @@ still answers (`local_20` is `NONE`).
 - **A Slinger at a heading run17 never shows.** The bays are exact on
   twenty headings. The rotation is `get_position`'s, and it is read, not
   measured, between them.
+- **Vslot `+0xc` on a building** is taken as `Sim::active`. The folded
+  `SubObjectData::is_active` was not read for the flag it tests. A
+  building under construction is the case that could differ.
+- **The side arm's west, north and east answers** have no capture. Only
+  the south face is struck on disk (§70.6).
 
-### 70.8 Coverage
+### 70.10 Coverage
 
 - **Diff-backed**:
   - the bays, by run356's block 4780 and the city's strike blocks, and by
     run17's 24 points (a unit test that pins the dump's columns);
-  - the gate, by frame 4780's draws and `0/4`'s stack.
+  - the `on_duty` gate, by frame 4780's draws and `0/4`'s stack;
+  - the side, by run373's block 4847 and run356's `1/22` from 4758;
+  - the frozen mark, by run373's block 4853 and frame 4852's draws.
 
-  Both are floors that fall back under their mutations.
+  Each is a floor that falls back under its mutation (§70.5).
 - **Listing-backed**: `600863`–`600871`, the branches into it, and
-  `600516`.
-- **Decompile-read**: `on_duty@005fff70`, `get_activity@00608370`.
+  `600516`; `5fe8a7`–`5feb51`; `5fde80`–`5fdfea`.
+- **Decompile-read**: `on_duty@005fff70`, `get_activity@00608370`,
+  `covers_tile@006439b0`.
 - **Unit-backed only**: `on_duty`'s `PATROL`, `GROUP_PATROL` and `GUARD`
-  arms for a human unit, and the idle unit's answer.
+  arms for a human unit, the idle unit's answer, and the side arm's other
+  three faces.
