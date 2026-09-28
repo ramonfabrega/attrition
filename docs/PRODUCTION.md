@@ -1521,10 +1521,11 @@ Chapter thirty-five's word went 2445 → 2675, open. Five tests in
 **Not built, and run371 holds it** (parked with the word): ~~the
 Helicopter's walk on its `ATTACK_TO` — its figure stands a frame before
 it walks (2675) — and an idle Helicopter's drift~~ (built by item 1048,
-"The Helicopter's flight" below: both are the separation); the V2's strike from
+"The Helicopter's flight" below: both are the separation); ~~the V2's strike from
 the silo (the missile narrowing of `action_launch_flight`, the air attack
 on the ground, `recharging` 30 and `do_missile_launch`) and its round, a
-spline of 120 frames onto the target.
+spline of 120 frames onto the target~~ (built by item 1050, "The missile's
+launch and round" below); the round's blast on `1/2006` (2821).
 
 ## The Helicopter's flight (item 1048)
 
@@ -1592,6 +1593,135 @@ exemption from `last_z = z`, and the `last_z` write for every other
 figure on a teleport; the tail's `unit_masks &= ~0x10` (`60dc9f`, on every
 path), not modelled here; a Helicopter on an air order (the gate), which no
 capture has.
+
+## The missile's launch and round (item 1050)
+
+`docs/GOLDEN.md` §44 is the chapter; run371's V2 `0/10` and silo
+`0/2009`, 2670..2703, are the evidence. A missile's strike is one order,
+a countdown at the silo, and one call that launches, flies, fires and
+ends it. Every step below is read off the listing and diff-backed.
+
+**The order.** The silo's `@launchstrike` on `1/2006` reaches
+`Group::action_flight@006fb260`'s inside arm (`6fbbb0`..`6fbea0`), which
+takes a missile on `ATTACK`:
+- a valid target;
+- the target's owner not the player and holding `MISSILE_DEFENSE_BONUS`
+  refuses;
+- the reach, `mana · get_speed`;
+- a nuke's `can_nuke`.
+
+It then calls `add_strafe_order(target, silo, 1, QUEUE_NEW, 1)`. That
+adder's head (`5e48c0`..`5e4919`) turns a missile type with a valid
+target into `Unit::add_air_attack_ground_order@005e41c0` at the target's
+point. `mandatory` is dropped there. The order:
+- the ground order's point, `accuracy` and `attack_unit` 0;
+- the `AirOrder`'s home, `cruising_alt` 0x640, `returning` 0;
+- the action bit.
+
+run371 on 2672: `att` (13824, 14976), `oxx` 2009, flags 4.
+`orders_x/y` keep the unit's own point.
+
+**The countdown.** `Object::do_launch@0064f3b0` for a building with
+something inside:
+- while `BuildData::recharging` (`+0x7a`) is not 0, the call is
+  `Build::do_missile_launch@00622670` and nothing else
+  (`64f3e0`..`64f40f`), so `launch_frames` stands;
+- otherwise the walk as for planes. The launch of a missile sets
+  `recharging` to the building type's `+0x1f4`, `RECHARGE`, 30 at a
+  Missile Silo, where a plane comes out. It zeroes `launch_frames` all
+  the same (`64f73b`..`64f7a8`).
+
+`do_missile_launch`, at a building that `is(MISSILESILO)`:
+- `launching` empty zeroes `recharging`;
+- else one off a frame. At 0 the first of `launching` leaves it,
+  `Unit::come_out(0)`, and `Unit::process` (vslot `0x9c`) in the same
+  call.
+
+run371: `launch_frames` 15 → 0 and `recharging` 30 on 2672 (the press's
+own frame, 2671). Then 29, 28 … 1 on 2701, and on 2702 0 with
+`launching` empty and `0/10` gone.
+
+**The exit, the step and the shot.**
+- `come_out` skips its whole gather-point and ring block for a missile
+  (`type +0x1e4 & 0x8000000`, `617f0e`). It puts the unit on the host's
+  own `x`/`y` and its figure's `+0x40` at 90.0. The tail's EXIT is an
+  Airbase's alone.
+- `Unit::do_air_attack_ground@005ea420`:
+  - `do_air_physics` flies one step at the point: 115 along the V2's
+    120° heading, (9984, 12288) → (10083, 12346);
+  - `+0xae` (`recharging`) and the order's `returning` (`+0x2c`) gate
+    it;
+  - `ObjectData::is_in_range@0064e4a0` is passed: a missile not inside
+    skips the whole test;
+  - the facing test is a non-missile's;
+  - `set_attack(−1, −1)`, then `fire_ammo(−1, −1)`;
+  - a missile then dies, `Object::die(this, 0, −1, 0.0)`. `dtype` 0
+    takes no death draw. `Object::die`'s tail holds the number for the
+    round's frames and one: 121.
+
+**The round, `Ammo::init@0067bbf0`'s missile arm.**
+- **The launch point** is the unit's point plus `graphic_events
+  +0xc8..+0xd0` (`67c1d5`..`67c263`). `GraphicEvents::init@008e5390`
+  reads it from `<MISSILEOFFSET x="-109" y="1" z="388"/>` in
+  `effects_graphics.xml` (`sim::air::MISSILE_OFFSET`; the install is
+  re-read by `the_missile_offset_is_the_install_s`). `sz` is the unit's
+  `z_internal` plus 388.
+- **The order is read as a ground order** (`local_38`, `AIR_ATTACK_GROUND`
+  beside `ATTACK_GROUND`):
+  - the accuracy is against the plain distance to the point:
+    `300 − 3 · (4662 / 192)` = 228;
+  - the scatter is the land formula, 11;
+  - it is **doubled for a missile that is not a nuke** (`67c64b`), 22.
+- **The landing** is `point − s/2 + roll % s` on each axis. The two
+  draws are `Ammo::init+0xae8` and `+0xb25`. `ez` is `find_data_z` at
+  the point, never under 0.
+- **The flight is a spline** (`traj` 2). `Spline::calc_nuke_spline@00913ad0`
+  sets `+0x60` to `0x780003` (degree 3, `depth` 120) on both its arms,
+  `generate_bspline` lays `depth + 1` points, and `total_time` is the
+  points less one: **120 frames** at any distance
+  (`sim::air::MISSILE_FLIGHT`). run371's round prints `length 121` and
+  `depth 120`.
+- `v1z` and `dx` are every round's formulas over the time: 626.016663
+  and 38.885948.
+
+run371's 2702: `sx sy sz` 9974 12347 466, `ex ey ez` 13834 14969 78,
+`angle` 1482031104, `accuracy` 228, the trace's seed `0x14e73b8f` giving
+rolls 62369 and 56984.
+
+**The draws are the whole frame's first.** The silo's `Build::process`
+runs before gaia, so the two scatter draws lead 2701's four.
+
+**Built** (item 1050):
+- `Sim::add_air_attack_ground_order` and `add_strafe_order`'s head, and
+  `Body::AirAttackGround`;
+- the inside arm's missile, `strike_from_inside`;
+- `do_launch`'s head and its missile arm, and `Sim::do_missile_launch`;
+- `come_out`'s missile arm;
+- `Sim::do_air_attack_ground`, `Sim::missile_round` and
+  `Sim::missile_dies`.
+
+Three tests in `airbase::tests`, one on run371's own numbers;
+`chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field`
+(220 rows, none parting). Chapter thirty-five's draw stream agrees to
+run371's end, 3260.
+
+**Not established.**
+- **The blast.** The round lands on 2820 and the dump's Barracks
+  `1/2006` (1,200 hits, damage 0) is gone on 2821, where this crate
+  leaves it at 400 damage. `Ammo::do_damage@00678060`'s missile arm is
+  read only to the shield: the territory owner's `MISSILE_DEFENSE_BONUS`
+  stops it, and a V2 is not a nuke, so it plays `S_NUKE_HIT`, counts
+  leader `+0x7c0` and takes the general `hit_target`/`check_hit`. What
+  destroys the building is `Object::do_damage`'s and is not read.
+- `do_air_physics`' redraw for a missile, `(o + frame) & 7 == 0` and vslot
+  `0x30`: not on run371's frames.
+- A nuke: no scatter, the spline's other arm, `can_nuke`, and
+  `Nuke::add_nuke`.
+- `MISSILE_DEFENSE_BONUS` on either side.
+- A second missile in `launching`.
+- `do_launch`'s head at a building that is not a silo with `recharging`
+  set: its call does nothing and the head still returns.
+- The missile's `unit_masks &= ~0x4000000` under `QUEUE_NEW`.
 
 ## What is not established
 

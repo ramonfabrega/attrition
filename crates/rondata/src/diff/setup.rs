@@ -1644,11 +1644,14 @@ impl Built {
             // `GROUPORDER` row; no `TARGETORDER` (`docs/ORDERS.md` §27).
             // An `AirPatrolOrder` is a `PatrolOrder` and an `AirOrder`: a
             // point, a home, no `TARGETORDER` (`docs/ORDERS.md` §34).
+            // An `AirAttackGroundOrder` is the ground order's point and an
+            // `AirOrder`'s home: no `TARGETORDER` either (item 1050).
             Body::Move(_)
             | Body::Cast(_)
             | Body::AttackGround(_)
             | Body::Patrol(_)
             | Body::AirPatrol(_)
+            | Body::AirAttackGround(_)
             | Body::Think => None,
         }
     }
