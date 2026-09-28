@@ -1945,6 +1945,22 @@ impl Sim {
                 .is_some_and(|t| self.unit_types[t].cols.flag(uflags::HELICOPTER))
     }
 
+    /// `Group::is_attacking_to@0070ea70` (item 1012, `docs/COMBAT.md`
+    /// §66): after `normalize`, every member that is alive and on the map
+    /// and has a head order is walking an attack-move — `ATTACK_TO` (2)
+    /// or `GROUP_ATTACK_TO` (`0x15`). A member with no order passes; one
+    /// member fighting, or walking to where it will fight, is a no.
+    pub(crate) fn group_is_attacking_to(&mut self, g: &Group) -> bool {
+        let mut g = g.clone();
+        self.group_normalize(&mut g);
+        g.list.iter().all(|&u| {
+            !(self.units[u].alive() && self.units[u].on_map)
+                || self
+                    .current_order(u)
+                    .is_none_or(|o| matches!(o.index(), index::ATTACK_TO | index::GROUP_ATTACK_TO))
+        })
+    }
+
     /// Whether a member takes an order at all: active, on the map, and not
     /// a plane. Every action's inner loop opens with this.
     fn group_member_orderable(&self, u: usize) -> bool {
@@ -3189,6 +3205,22 @@ impl Sim {
         if !self.group_is_on_map(g) || !self.active(target) {
             return;
         }
+        // **A group's `QUEUE_FIRST` is not a member's** (`00712490:168`,
+        // item 1012): as in [`Self::group_action_move_to`], the leader's
+        // action-flagged orders are copied aside, every member is halted
+        // under the same `ignore` mask, the attack is issued `QUEUE_NEW`,
+        // and the copies come back behind it as group actions at
+        // `QUEUE_LAST`. The attack-move look's group arm is the caller
+        // (`docs/COMBAT.md` §66): run356's army 0 holds the re-issued
+        // `GROUP_ATTACK_TO`, with a new `id` and its `orig`, under each
+        // member's `ATTACK` on block 4606.
+        if queue == QueuePos::First {
+            let insert = self.group_set_up_insert(g);
+            self.group_action_halt(g, ignore);
+            self.group_action_attack(g, target, mandatory, QueuePos::New, ignore);
+            self.group_finish_insert(g, insert);
+            return;
+        }
         // **The leader asks first** (`action_attack@00712490:215`): one
         // `find_attack_pos` a group order, on the group's leader, and
         // only when `is_in_range` says the leader cannot already shoot
@@ -3241,6 +3273,18 @@ impl Sim {
                     }
                     // Otherwise it falls through and is re-ordered.
                 }
+                // **`mandatory == 0` retargets** (`00712490:456`–`470`,
+                // item 1012): `find_melee_target(u, min(d + 0xc0,
+                // respond), &whom, 0, 0, word)` with the word **1 for a
+                // unit target, 2 for a building** (the target's vslot
+                // `+0x1c`), so a member sent at a city takes a building.
+                // What it cannot name falls back to the group's target.
+                //
+                // SEAM: `find_melee_target`'s squad head (a follower takes
+                // its captain's attack without a search) is on the
+                // decompile's path for this call, and the floor refused
+                // it: built, Great Lakes fell from 4618 to 4607, the city's
+                // `targeted` twelve bumps short (`docs/COMBAT.md` §66.3).
                 let t = if mandatory {
                     target
                 } else {
@@ -3248,7 +3292,11 @@ impl Sim {
                         (self.units[u].pos.x - self.pos_of(target).x).abs(),
                         (self.units[u].pos.y - self.pos_of(target).y).abs(),
                     );
-                    self.find_melee_target(u, (d + 0xc0).min(respond))
+                    let word = match target {
+                        Obj::Unit(_) => crate::fight::search::UNITS,
+                        Obj::Building(_) => crate::fight::search::BUILDINGS,
+                    };
+                    self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
                         .unwrap_or(target)
                 };
                 self.add_attack_order(u, t, queue, mandatory, true);
@@ -6666,6 +6714,111 @@ mod tests {
             s.units[a].combat.target,
             Some(Obj::Unit(far)),
             "mandatory 1 keeps the given target"
+        );
+    }
+
+    /// **A member sent at a building retargets among buildings** (item
+    /// 1012, `docs/COMBAT.md` §66): `Group::action_attack`'s `mandatory ==
+    /// 0` retarget hands `find_melee_target` the word 2 for a building
+    /// target (`00712490:456`–`470`). Great Lakes 4605's army, sent at the
+    /// human's city, stood within reach of the human's scout; every member
+    /// took the city.
+    ///
+    /// Made to fail by passing the word 0: the assertion names the soldier.
+    #[test]
+    fn a_group_retarget_from_a_building_takes_a_building() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let bt = s.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let camp = s.add_building(0, Pos::new(0x2000, 0x1000), 0);
+        s.buildings[camp].ty = Some(bt);
+        s.buildings[camp].hits = 800;
+        s.buildings[camp].health = 800;
+        s.buildings[camp].combat = Some(combat::Profile::default());
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let near = spawn(&mut s, 0, t, Pos::new(0x1200, 0x1000));
+        let g = group_of(1, &[a]);
+        s.group_action_attack(&g, Obj::Building(camp), false, QueuePos::New, 0);
+        assert_eq!(
+            s.units[a].combat.target,
+            Some(Obj::Building(camp)),
+            "a member sent at a building took the soldier {near} beside it"
+        );
+    }
+
+    /// **An army group's attack-move looks, and hands what it finds to
+    /// the whole group** (item 1012, `docs/COMBAT.md` §66):
+    /// `Unit::do_group_attack_to@005e74e0`'s fifteen-frame look, then
+    /// `find_nearby_target`'s add arm — a `GROUP_ATTACK_TO` member of a
+    /// group that `is_attacking_to` calls `Group::action_attack(…,
+    /// QUEUE_FIRST, 4)`, so every member attacks and the attack-move comes
+    /// back under each. With one member off the attack-move the group is
+    /// not attacking-to, and the looker takes the find alone.
+    ///
+    /// Made to fail by skipping the look (the first assertion), and by
+    /// answering `group_is_attacking_to` true (the last).
+    #[test]
+    fn an_army_group_s_look_hands_its_find_to_the_group() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let mut g = Group::stack(1);
+        s.group_add(&mut g, a);
+        s.group_add(&mut g, b);
+        assert!(s.push_group(&mut g, true));
+        let g = s.group_of(a).expect("seated");
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x6000, 0x1000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::AttackTo,
+            true,
+        );
+        assert_eq!(s.order_type(a), index::GROUP_ATTACK_TO);
+        let foe = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1400));
+        let Some(Order {
+            body: Body::Move(m),
+            ..
+        }) = s.current_order(a).copied()
+        else {
+            panic!("a group move");
+        };
+        let id = m.group.expect("a group order").id;
+        let frame = 15 * 300 - i64::from(s.units[a].index);
+        let mut solo = s.clone();
+        s.do_group_attack_to_tail(a, frame, id);
+        for u in [a, b] {
+            assert_eq!(s.order_type(u), index::ATTACK, "member {u} was not sent");
+            assert_eq!(s.units[u].combat.target, Some(Obj::Unit(foe)));
+            assert!(
+                s.units[u]
+                    .orders
+                    .iter()
+                    .any(|o| o.index() == index::GROUP_ATTACK_TO),
+                "member {u}'s attack-move did not come back under its attack"
+            );
+        }
+        // One member walking a plain move: the group is not attacking-to.
+        solo.add_move_order(
+            b,
+            Pos::new(0x1200, 0x3000),
+            MoveKind::MoveTo,
+            QueuePos::New,
+            false,
+        );
+        solo.do_group_attack_to_tail(a, frame, id);
+        assert_eq!(solo.order_type(a), index::ATTACK);
+        assert_eq!(
+            solo.order_type(b),
+            index::MOVE_TO,
+            "the find went to the group though a member was off the attack-move"
         );
     }
 

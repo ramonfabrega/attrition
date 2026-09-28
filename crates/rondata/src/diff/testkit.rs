@@ -1229,7 +1229,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a` (four, then
 /// 37 under `Unit::fight+0xcb4`). Inside run356's window, whose block 4606
 /// parts on the army's members' order (kind 21 here against 10 there).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_605;
+///
+/// **4605 → 4618 on item 1012**: an army group's attack-move looks, and
+/// hands its find to the group (`do_group_attack_to@005e74e0`,
+/// `find_nearby_target`'s add arm, `Group::action_attack`'s `QUEUE_FIRST`);
+/// the group retarget searches buildings for a building target (the word
+/// 2, `00712490:470`); a ring started on an edge starts mid-face
+/// (`601ea0`). `docs/COMBAT.md` §66. **The move's value diff (the word's
+/// delta, here; its block is `run356_s_word_frame_is_widened_whole`'s):**
+/// `1/15`'s look on 4605 finds the city `0/2000`, and on block 4606 all
+/// eighteen members of group 65 hold its `ATTACK` over a re-issued
+/// `GROUP_ATTACK_TO` on both sides, where ours had held the bare
+/// `GROUP_ATTACK_TO` (kind 21 against 10, one order against two);
+/// `1/9`–`1/11`'s target is the city, not the human's scout `0/0`; `1/17`
+/// walks to (3912, 30840), not (3864, 31512). Frame 4605's draws went 2
+/// against 43 → 43 against 43. **The new word's delta: ours 94 draws and
+/// the original 4 on frame 4618, parting at index 0**: ours spends
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d` where the original spends
+/// `Unit::do_non_flat_gather+0xcc3`. Inside run356's window, whose block
+/// 4619 parts on `1/0`'s group (66 against 67) and `1/7`'s gather `wait`.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_618;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

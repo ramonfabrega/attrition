@@ -10588,9 +10588,16 @@ live `2009` was compared with ours' dead frame-976 site.
     the window: `1/0`'s turn on 4575 (18 keys, a unit parting since
     4550), and on 4585 a guy's `whom/ox` naming the city `0/2000` on
     `1/21`'s attack-move, the shape `1/24`–`1/26` stood in from 4550.~~
-    **Moved to 4605 by item 1002** (`docs/COMBAT.md` §65): `1/26`'s chase
+    ~~**Moved to 4605 by item 1002** (`docs/COMBAT.md` §65): `1/26`'s chase
     on the city is a building's, which `do_move` asks without the `0x90`
-    margin.
+    margin.~~ **Great Lakes 4605, the lower** (item 1002): ours 2, the
+    original 43, parting at index 0 on `Farms::inc_time+0x1ae` against
+    `find_attack_pos < Group::action_attack+0x41a`. **Moved to 4618 by item
+    1012** (`docs/COMBAT.md` §66): an army group's attack-move looks on
+    4605 and hands the city to the whole group; the retarget searches
+    buildings; `1/17`'s ring starts mid-face. The new word, 4618 (ours 94,
+    the original 4, at index 0: `Guy::set_anim < Unit::do_idle` against
+    `Unit::do_non_flat_gather+0xcc3`), is §66.5's.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word
