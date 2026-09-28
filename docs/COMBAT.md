@@ -5608,6 +5608,11 @@ reached` asserts that row) and never searched again in the window. So
 the incumbent the arm below reads on 644 was chosen twenty-three frames
 earlier.
 
+**Item 523's residue on 847 closed on item 1089** (§79): the bowmen `0/7`
+and `0/8` are followers, and `find_new_target`'s squad head hands them
+their captain's target without a search, so this crate no longer writes
+their pair to `-1`. The whole of run112 agrees, 17,219 of 17,219.
+
 [`sim::Unit::near`] is the field, written at `find_nearby_target`'s own
 site. **SEAM**: the original's is an `ObjectData` member and a building
 carries one too; this crate holds it on a unit only, which nothing
@@ -12805,6 +12810,10 @@ re-pin touches were green first.
     31501).
   - Frame 5105's draws went 11 against 11 at index 3 → agreeing.
   - run373's keys parted go 203 → 156, and run396's 1,253 → 737.
+- **Chapter two's `near_o` closes** (§37.1): item 523's two bowmen on
+  847, `0/7` and `0/8`, are followers whose target died. They no longer
+  search, and run112 agrees on all 17,219 unit frames, against 17,113
+  before.
 - **East Indies holds at 5606. Great Sahara holds at 8.**
 - **The new word** (no mechanism is named): frame 5161, ours 12 draws
   against the original's 13, parting at index 3. The original spends a
