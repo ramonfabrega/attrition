@@ -11668,7 +11668,8 @@ pub(crate) mod tests {
             // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
             // Item 904 took ten (352/36/388 → 352/26/378): who=1's `SITE[4]`
             // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-            (352, 26, 378),
+            // Item 1072 took four (352/26/378 → 348/26/374): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            (348, 26, 374),
             "the floor"
         );
     }
@@ -11808,7 +11809,8 @@ pub(crate) mod tests {
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 904 took ten (388/4/392 → 378/4/382): run178's who=1 `SITE[4]`
         // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!((under, own.len(), firsts.len()), (378, 4, 382), "the floor");
+        // Item 1072 took four (378/4/382 → 374/4/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, own.len(), firsts.len()), (374, 4, 378), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11929,7 +11931,8 @@ pub(crate) mod tests {
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
         // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
+        // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, mid, firsts.len()), (378, 0, 378), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -12072,7 +12075,8 @@ pub(crate) mod tests {
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
         // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
+        // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, mid, firsts.len()), (378, 0, 378), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -12219,7 +12223,8 @@ pub(crate) mod tests {
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
         // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
+        // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, mid, firsts.len()), (378, 0, 378), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12333,7 +12338,8 @@ pub(crate) mod tests {
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
         // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
+        // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, mid, firsts.len()), (378, 0, 378), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12472,7 +12478,8 @@ pub(crate) mod tests {
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 904 took ten (392/0/392 → 382/0/382): run178's who=1 `SITE[4]`
         // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!((under, mid, firsts.len()), (382, 0, 382), "the floor");
+        // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, mid, firsts.len()), (378, 0, 378), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -12622,15 +12629,16 @@ pub(crate) mod tests {
                 within(GREAT_LAKES_STAND_FIRST + 1, WORD_BLOCK),
                 firsts.len(),
             ),
-            (307, 5, 1, 313),
+            // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            (303, 5, 1, 309),
             "the floor"
         );
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // 341 before item 899: `1/60`'s 29 went, and who=0's
             // `production_step` (0 here, 1 there) stands on this block and
-            // not on 20800.
-            312,
+            // not on 20800. Item 1072 took four (312 → 308): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            308,
             "every row standing on the old word's block"
         );
     }
@@ -12713,7 +12721,8 @@ pub(crate) mod tests {
             standing
                 .get(&(WIDENING_GREAT_LAKES_END.0 + 1))
                 .map_or(0, BTreeMap::len),
-            310,
+            // Item 1072 took four (310 → 306): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            306,
             "the floor stands on the second block, and nothing joins it"
         );
     }
