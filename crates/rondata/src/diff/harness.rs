@@ -18334,6 +18334,7 @@ pub(crate) mod tests {
             window,
             near,
             gaia,
+            false,
         )
     }
 
@@ -18341,6 +18342,10 @@ pub(crate) mod tests {
     /// second pair's run346 (item 971) is run54's lobby at Toughest, so its
     /// widenings stand the simulation up from run346's own start dump and
     /// pasture, with run38's head borrowed on the same sameness gate.
+    /// `records` adds [`crate::diff::second::widen_records`]'s rows — the
+    /// group record, the attack order's row and each figure's aim — as
+    /// Great Lakes' second-pair widenings have them since item 1061; East
+    /// Indies' word window asks for them since item 1106.
     pub(crate) fn widen_east_indies_on(
         (base, base_trace): (&str, &str),
         name: &str,
@@ -18348,6 +18353,7 @@ pub(crate) mod tests {
         window: (i64, i64),
         near: &[i64],
         gaia: bool,
+        records: bool,
     ) -> Option<Widened> {
         let inst = install()?;
         let (Some(path), Some(sib), Some(tr), Some(r143)) = (
@@ -18460,6 +18466,13 @@ pub(crate) mod tests {
             // `inside`, the key this walk wrote.
             let raw = ix.read_frame(at).unwrap();
             let flog = Log::parse(&raw);
+            // **The group record and the attack order's row** (items 1061
+            // and 1106), on the windows that ask for them.
+            if records && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
+                compared += crate::diff::second::widen_records(
+                    &built, &frame, block, players, n, &mut here,
+                );
+            }
             for who in 0..2usize {
                 let Some(block) = flog.leader_block(n, who as i64) else {
                     continue;

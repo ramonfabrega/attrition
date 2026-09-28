@@ -1739,27 +1739,30 @@ const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
 /// deleted here, and a field that arrives uncompared must be compared or
 /// added here with the item that owes it.
 const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
-    // **Re-pinned 2026-09-28, item 1061** (DECISIONS 54 §2), on the second
-    // pair's Great Lakes word's window — run373's blocks 4977..4981,
-    // walked from run347's start with the group record and the attack
-    // order's row (`second::widen_records`). Until then the pin walked the
-    // first pair's run202 15383..15387, where no army marched. **A site
-    // gated on the window's content registers only when it runs**, so a
-    // row here is one of two things and the comment says which: a field no
-    // site compares, or a site the window never reached. On these five
-    // blocks the dump holds no death (ours holds the citizen `0/2`'s from
-    // 4979, the word itself, and a record one side holds alone registers
-    // nothing), no `GROUPORDER`, patrol, guard,
-    // garrison, cast, air, strafe or ground order (every order block is a
-    // `UNITORDER`, `MOVEORDER`, `TARGETORDER`, `ATTACKORDER`,
-    // `ATTACKTOORDER`, `GATHERORDER`, `BUILDORDER`, `EXPLORETOORDER` or
-    // `FLEETOORDER`); the second kind leaves this pin the day a window
-    // that reaches it is driven here.
+    // **Re-pinned 2026-09-28, item 1106** (DECISIONS 54 §2), on the second
+    // pair's East Indies word's window — run357's blocks 5605..5609,
+    // walked from run346's start with the group record and the attack
+    // order's row (`second::widen_records`). Item 1061 first pinned it on
+    // Great Lakes' word, run373's 4977..4981, and it followed that word to
+    // run403's 5927..5930 until item 1099 closed the map at its end. **A
+    // site gated on the window's content registers only when it runs**, so
+    // a row here is one of two things and the comment says which: a field
+    // no site compares, or a site the window never reached. On these five
+    // blocks the dump holds no death, no `ATTACKORDER` and no army's group
+    // (every `GROUPDATA` slot reads `army -1`); its order blocks are
+    // `UNITORDER`, `MOVEORDER`, `TARGETORDER`, `GATHERORDER`,
+    // `BUILDORDER`, `EXPLORETOORDER` and `TRADEORDER` only. The second
+    // kind leaves this pin the day a window that reaches it is driven here.
     //
     // `UnitDump`: `uid` is the identity behind `o` (ledger); `flags`,
     // `infiltrated` and the container pair `up`/`up_who`/`down`/
-    // `down_who` no site compares.
-    ("UnitDump", "down down_who flags infiltrated uid up up_who"),
+    // `down_who` no site compares. `damage_o`/`damage_who` are compared
+    // only where both sides hold a live wound window, and no unit is
+    // wounded on these blocks (Great Lakes' war window compared them).
+    (
+        "UnitDump",
+        "damage_o damage_who down down_who flags infiltrated uid up up_who",
+    ),
     // `Guy`: `ox`/`whom`, the figure's aim, are compared since item 1061;
     // `last_pos` is run86's widening's (item 271); `kind`, `guy_num` and
     // `guy_flags` no site compares.
@@ -1770,54 +1773,57 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // air, strafe and ground rows on their orders, none of which stands on
     // this window (the guard's six were compared on run202's, where one
     // stood); `uid`, `metric`, `build_type` and `non_flat_gather` no site
-    // compares. The attack order's own row — `mandatory`, `defensive`,
+    // compares. **The attack order's own row** — `mandatory`, `defensive`,
     // `in_range`, `ever_in_range`, `new_ord`, `def_x`, `def_y` — is
-    // compared since item 1061, on every slot both sides hold an attack.
+    // compared since item 1061 on every slot both sides hold an attack,
+    // and no attack stands on these blocks. `coll_x`/`coll_y` are compared
+    // on a move once the original's pair has left its `(0, 0)` start, and
+    // no move's has here.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt form_id garrison_search \
-         group_angle group_id guard_dx guard_dy guard_idle guard_retry guard_x guard_y \
-         in_group metric non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry \
-         returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
+         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x def_y \
+         defensive ever_in_range form_id garrison_search group_angle group_id guard_dx \
+         guard_dy guard_idle guard_retry guard_x guard_y in_group in_range mandatory metric \
+         new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry returning \
+         sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
     // `mining_size`, `construct_hits`, `ever_seen` and
     // `ever_seen_completed` no site compares. `queue` registers here: a
-    // build is queued. **`job_counter` does not since item 1086**: it is
-    // compared only on an unfinished site (`!active && flags & 4 == 0`),
-    // and none stands on the word's window at 5074..5078, where one did
-    // at 5041..5045 and 5065..5069.
+    // build is queued. `job_counter` is compared only on an unfinished
+    // site (`!active && flags & 4 == 0`, item 1086), and one stands here.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type",
+         max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
     // The group record is compared whole since item 1061
     // (`second::widen_records`) but for `think_frame`, which this crate
-    // does not carry.
-    ("GroupDump", "think_frame"),
+    // does not carry, and `role`, compared on an army's group alone, of
+    // which none stands here.
+    ("GroupDump", "role think_frame"),
 ];
 
 /// **Every field the parser carries is compared by the shared instrument
-/// on the Great Lakes word's own window, or pinned above.** The window is
-/// `harness::tests::great_lakes_word_window` — the word's block and two
-/// on either side, replayed through the chain every widening past run196
-/// replays — walked with the recorder on; a machine without the chain
-/// says so. What this checks that the `UNREAD` pin cannot: that a key
+/// on the newest word's own window, or pinned above.** The window is
+/// `second::east_indies_word_window` since item 1106 — the second pair's
+/// East Indies word's block and two on either side, on run357 walked from
+/// run346's start — walked with the recorder on; a machine without the
+/// captures says so. What this checks that the `UNREAD` pin cannot: that a key
 /// which is *parsed* is also *compared*, per record, with both sides
 /// present — the gap five landings in two tranches turned on.
 #[test]
 fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     use super::compared;
     compared::start();
-    let walked = super::second::great_lakes_word_window();
+    let walked = super::second::east_indies_word_window();
     let seen = compared::stop();
     let Some(w) = walked else {
-        eprintln!("skipping: the Great Lakes word's chain is not all on disk");
+        eprintln!("skipping: the East Indies word's captures are not all on disk");
         return;
     };
     assert!(w.blocks >= 4, "the word's window is {} blocks", w.blocks);
