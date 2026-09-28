@@ -96,6 +96,13 @@ missile's launch and round", its list): a nuke's arms,
 `do_air_physics`' redraw for a missile, and `unit_masks & ~0x4000000`.
 Chapter thirty-five fires one V2 at a time and no defence stands.
 
+## Parked by item 1072, 2026-09-28 — the heal's edges
+
+(1082) **The civilian heal's two unbuilt edges** (COMBAT §72.6):
+`unit_masks2 & 1`, the heal's veto, has no setter found and is never
+set on disk; and `healing` is not carried, so the aircraft heal stands
+as a seam.
+
 ## Parked by item 1061, 2026-09-28 — the chase's edges
 
 (1073) **The one-in-five re-search's fresh order** (COMBAT §71.6): at
@@ -104,8 +111,10 @@ ever_in_range 0` for one block, and this crate re-points the order in
 place. No draw has parted on it.
 
 (1074) **`find_collision`'s conjunct of `do_move`'s kill**, the second
-`SEAM` beside the flank clause 1061 built: its first instance is block
-4980, `1/18`, `collide_o 19`, past the word.
+`SEAM` beside the flank clause 1061 built: ~~its first instance is block
+4980, `1/18`, `collide_o 19`, past the word~~ — that instance followed
+`0/2`'s early death and is gone (1072); on run373 no `collide` row parts
+before 5060 (`1/10`), past the word.
 
 (1075) **`Army::role` is never written** (ours 0 against 1379331 from
 4550; only its reset writes it), and the Town Center group's `ox`/`oy`
@@ -1758,6 +1767,16 @@ coverage driver but not the compared pin (beside 1067); (d) no handoff
 guard reads `LONG_WORD_GREAT_SAHARA`, so the queue's `Third map:` line
 stands unguarded; (e) the install's `rontrace.dll` is `d654cdb2…`, not
 run348's `b451aeb6…`, and no run section says who rebuilt it.
+
+(1083) **Two brief rows from 1072's Loop lines**: (a) an `assert_eq!`
+that fails stops its test, so a re-pin read off one failing run leaves
+the test's later pins unseen — nine of 1072's surfaced only at the gate,
+and one made a killer look as if it had fired; the tests a re-pin
+touches run green before any mutation is scored. (b) A booking's
+"stands from N" was the window's first block, not the gap's first
+frame: 1072's gap opened in 4807..4840, which no dump prints, and the
+`healing` countdown located it; a booking that says "stands from" says
+whether that is the window's edge.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
