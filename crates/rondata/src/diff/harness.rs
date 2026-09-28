@@ -1281,6 +1281,49 @@ fn debug_watch_one(built: &Built, frame: i64, spec: &str) {
     }
 }
 
+/// `RON_DEBUG_AMMO=<lo>-<hi>` — every projectile in flight after the
+/// block's frame: its shooter, target, launch, landing, clock, accuracy and
+/// flags, beside the target's own position (item 1081). No capture here
+/// writes an `AMMO` record, so this side is the only one it can print.
+#[cfg(test)]
+pub(crate) fn debug_ammo(built: &Built, frame: i64) {
+    let Some((lo, hi)) = site_window_named("RON_DEBUG_AMMO") else {
+        return;
+    };
+    if !(lo..=hi).contains(&frame) {
+        return;
+    }
+    let name = |o: sim::combat::Obj| match o {
+        sim::combat::Obj::Unit(u) => {
+            format!("{}/{}", built.sim.units[u].owner, built.sim.units[u].index)
+        }
+        sim::combat::Obj::Building(b) => format!("b{b}"),
+    };
+    for p in &built.sim.projectiles {
+        let tpos = p.target.and_then(|t| match t {
+            sim::combat::Obj::Unit(u) => Some(built.sim.units[u].pos),
+            sim::combat::Obj::Building(_) => None,
+        });
+        eprintln!(
+            "  f{frame} ammo #{} {} -> {:?} at {:?} launch ({},{}) land ({},{}) t{}/{} acc {} roll {} missed {} angle {}",
+            p.slot,
+            name(p.shooter),
+            p.target.map(name),
+            tpos.map(|q| (q.x, q.y)),
+            p.launch.x,
+            p.launch.y,
+            p.landing.x,
+            p.landing.y,
+            p.cur_time,
+            p.total_time,
+            p.accuracy,
+            p.rolling,
+            p.missed,
+            p.angle.0
+        );
+    }
+}
+
 /// `RON_DEBUG_ARMIES=<lo>-<hi>` — every valid army's slot, status, target,
 /// counts and membership over a window, on any capture [`run_traced`] or a
 /// hand-rolled loop drives.
@@ -10831,6 +10874,7 @@ pub(crate) mod tests {
             debug_watch(&built, n);
             debug_armies(&built, n);
             debug_leader(&built, n);
+            debug_ammo(&built, n);
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);
             compared += rows;
