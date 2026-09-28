@@ -959,7 +959,8 @@ impl Sim {
         let angle = if pivoted {
             self.units[i].movement.heading
         } else {
-            self.attack_angle(i, target, direct)
+            let faced = self.building_side(i, target).unwrap_or(direct);
+            self.attack_angle(i, target, faced)
         };
         // `Unit::fight@005fd4d0:724`: `Unit::set_angle(angle, …, 0)` when
         // the angle is new, and that is the setter with the turn-around
@@ -1201,6 +1202,45 @@ impl Sim {
             }
         }
         can
+    }
+
+    /// **A building is struck square to its side** (item 1040,
+    /// `docs/COMBAT.md` §70): `Unit::fight@005fd4d0`'s `5fe8a7`–`5feb4c`.
+    /// For a target whose vslot `+0xc` answers — `SubObjectData::is_active`
+    /// on `Build` and `Wall`, a folded `return 0` on `Unit` and `Animal` —
+    /// the bearing to the centre is replaced by a whole quarter when the
+    /// unit stands beside the footprint: the unit's own tile covered keeps
+    /// the bearing (`5fe8f6`); else the first of the tiles **west, north,
+    /// east, south** (`x − 0xc0`, `y − 0xc0`, `x + 0xc0`, `y + 0xc0`, each
+    /// `div_3_table[v >> 6]`) that the building covers (`WallData::
+    /// covers_tile@006439b0`) **and** whose world mask carries `0x4000`
+    /// (`world +0x138`, [`crate::world::tile::BLOCKED`]) answers `0xc0000000`,
+    /// `0`, `0x40000000` or `0x80000000`. A covered tile that is not
+    /// blocked moves on to the next side; the last falls back to the
+    /// bearing (`cmovne` at `5feb46`). The sideways ship's quarter turn is
+    /// taken after it (`5feb51`).
+    fn building_side(&self, i: usize, target: Obj) -> Option<Angle> {
+        let Obj::Building(b) = target else {
+            return None;
+        };
+        if !self.active(target) {
+            return None;
+        }
+        let here = self.units[i].pos;
+        if self.covers_tile(b, here.tile()) {
+            return None;
+        }
+        const SIDES: [(i32, i32, u32); 4] = [
+            (-0xc0, 0, 0xc000_0000),
+            (0, -0xc0, 0),
+            (0xc0, 0, 0x4000_0000),
+            (0, 0xc0, 0x8000_0000),
+        ];
+        SIDES.iter().find_map(|&(dx, dy, a)| {
+            let t = Pos::new(here.x + dx, here.y + dy).tile();
+            (self.covers_tile(b, t) && self.world.tile_mask(t) & crate::world::tile::BLOCKED != 0)
+                .then_some(Angle(a as i32))
+        })
     }
 
     /// **The angle a unit attacks on** — `Unit::fight@005fd4d0:698–714`

@@ -697,6 +697,42 @@ mod tests {
         );
     }
 
+    /// **The second pair's Great Lakes word, 4846, widened whole** (item
+    /// 1040): run373 is run347's game at run356's detail over blocks
+    /// 4841..5097, walked from run347's start. The word's frame writes
+    /// block 4847, six blocks after the window's first.
+    #[test]
+    fn run373_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run373",
+            &[(
+                "gamelog-run373-greatlakes-toughest-4846.txt",
+                WIDENING_SECOND_GREAT_LAKES_4846.0,
+            )],
+            WIDENING_SECOND_GREAT_LAKES_4846,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run373 whole: blocks 4841..5097");
+        assert!(
+            w.missing.is_empty(),
+            "run373 carries every key: {:?}",
+            w.missing
+        );
+        eprintln!("BY {by:?}");
+    }
+
     /// **run346 — East Indies at Toughest.** The lobby read back from the
     /// dump's own `GAME INFO` is 5, and the harness stands the simulation up
     /// at it; the word is pinned as a floor.

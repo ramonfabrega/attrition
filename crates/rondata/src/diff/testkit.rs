@@ -1378,6 +1378,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_5606: (i64, i64) = (5_601, 5_857);
 /// block 4556 and 250 past it.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
 
+/// `run373_s_word_frame_is_widened_whole`'s window (item 1040): run373 over
+/// run347's game, blocks 4841..5097 — six blocks before the word 4846's
+/// block 4847 and 250 past it.
+pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
+
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
 /// run54's 24,000 frames (item 338) and the one frame in the game where a
@@ -6194,7 +6199,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 979's harness fix moved both past their windows: East Indies to
     // 1576, widened on run352, and Great Lakes to 3776, on run355. Item
     // 989's close tail moved both again: East Indies to 5606, widened on
-    // run357, and Great Lakes to 4555, on run356.
+    // run357, and Great Lakes to 4555, on run356. Item 1040 moved Great
+    // Lakes past run356's window to 4846, widened on run373.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
@@ -6205,8 +6211,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        Some("run356_s_word_frame_is_widened_whole"),
-        989,
-        Some(WIDENING_SECOND_GREAT_LAKES_4555),
+        Some("run373_s_word_frame_is_widened_whole"),
+        1040,
+        Some(WIDENING_SECOND_GREAT_LAKES_4846),
     ),
 ];
