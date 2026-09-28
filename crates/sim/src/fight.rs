@@ -4413,6 +4413,84 @@ mod tests {
         );
     }
 
+    /// **The one-in-five re-search kills the attack first** (item 1099,
+    /// `docs/COMBAT.md` §80): `Unit::fight@005fd4d0:413` is
+    /// `find_new_target(this, &who, 0)`, so with the attack gone the head
+    /// is the attack-move again and the search runs under its `0x20010`,
+    /// which halves a building. run347's `1/24` on 5161: under the attack a
+    /// search names the human's city, under the attack-move the scout it
+    /// is already attacking, and the original strikes the scout.
+    ///
+    /// Made to fail with the arm searching under the attack and
+    /// re-pointing it in place, as it did before: the target is the
+    /// building.
+    #[test]
+    fn the_one_in_five_re_search_runs_under_the_attack_move() {
+        let (mut sim, ty) = at_war();
+        sim.nation[0].human = true;
+        sim.nation[1].human = false;
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let b = sim.add_building(0, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 800;
+        sim.buildings[b].health = 800;
+        sim.buildings[b].combat = Some(Profile {
+            attack: 10,
+            cost: 1600,
+            ..Profile::default()
+        });
+        let me = put(&mut sim, 1, ty, Pos::new(at.x + 3 * 0xc0, at.y));
+        let scout = put(&mut sim, 0, ty, Pos::new(at.x + 4 * 0xc0, at.y + 0xc0));
+        sim.add_move_order(
+            me,
+            Pos::new(at.x - 20 * 0xc0, at.y),
+            crate::orders::MoveKind::AttackTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        sim.add_attack_order(
+            me,
+            Obj::Unit(scout),
+            crate::orders::QueuePos::First,
+            false,
+            false,
+        );
+        // Under the attack the search takes the building; under the
+        // attack-move, the scout.
+        assert_eq!(sim.melee_search_flags(me), 0);
+        assert_eq!(
+            sim.clone().find_melee_target(me, -1),
+            Some(Obj::Building(b)),
+            "the attack's own search"
+        );
+        let mut bare = sim.clone();
+        bare.kill_current_order(me);
+        assert_eq!(
+            bare.find_melee_target(me, -1),
+            Some(Obj::Unit(scout)),
+            "the attack-move's search"
+        );
+        let seed = (1u32..)
+            .find(|&k| {
+                let mut r = sim.rng;
+                r.seed = k;
+                r.roll() % 5 != 0
+            })
+            .unwrap();
+        sim.rng.seed = seed;
+        sim.work(me, 0);
+        assert_eq!(
+            sim.units[me].combat.target,
+            Some(Obj::Unit(scout)),
+            "the re-search searched under the attack"
+        );
+    }
+
     /// **A captain's attack on a building re-searches every frame**
     /// (`docs/COMBAT.md` §62, `Unit::fight@005fd4d0`'s `LAB_005fddf7`,
     /// `005fdeb4` → `005fdf50` → `005fdeea`). Out of its search's reach the
