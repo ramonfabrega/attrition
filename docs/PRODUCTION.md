@@ -1856,15 +1856,184 @@ gate; `fight::tests`: the blast gate), each made to fail by its mutation.
 run390's value diff and the word, 3111 → 3169 → 3420: §45.
 
 **Not established.**
-- The nuke. Its type is a research job at the silo in this crate
+- ~~The nuke. Its type is a research job at the silo in this crate
   (`Handover::Researched`: about 1,800 frames that place nothing, then
   about 720 to train). The original's availability rule for it is not
   read. Its blast, `Nuke::add_nuke@0092ba30` and `Nuke::do_damage@0092bc80`
-  (every frame from `Objects::inc_time`, floats), is unread.
+  (every frame from `Objects::inc_time`, floats), is unread.~~ Read, run
+  and built: "The nuke (item 1091)", below.
 - ~~Whether chapter thirty-six's V2s are `0/14` and `0/15` in the
   original.~~ They are (run390, 2926 and 2931).
 - `UnitData::is_busy` in the launch's chain walk, a shield over ocean
   (the owner a ring's first owned cell), and a missile's shift press.
+
+
+## The nuke (item 1091)
+
+`docs/GOLDEN.md` §46 is the chapter, run397 its capture. Every arm below
+is read off the listing; the launch and the blast run under the emulator.
+
+**Its availability is a research job at the silo.** The record (type
+315, `0x13b`, `unitrules.xml`): `PREQ0` Modern Age, `PREQ1`
+Nation-in-Arms (a Library tech of `AGE` 5), `WHERE` Missile Silo,
+`JOB_TIME` 600, `RESEARCH_PREMIUM_TIME` 3 and `_COST` 2, and **empty
+`FLAGS`**. A unit whose flags carry `h` (`unit_flags & 0x80`) is granted
+by `Leader::gain_tech`'s cascade with its prerequisite (`docs/TECH.md`,
+"Unit flags the tree reads"): the V2 has it, the nuke does not. So its
+availability bit stays clear, the first `@queueup` at a silo lays a
+research entry ("Time", the premium), and only its completion lets a
+second train one. No wonder gates it; `LeaderData::can_nuke@006d53c0` is
+`get_units(0x13b) != 0`, the nuke itself. This crate's walk: the
+research charged 1000k/1200o on 616 and done on 2236 with nothing
+placed; the train 500k/600o, born on 3021.
+
+**The rules' global counts.** `rules.xml`'s `ARMAGEDDON` 4,
+`_PER_NATION` 1, `_PER_TEAM` 2: `Game::get_armageddon@00594020` is `4 +
+nations + 2 · sides`, 10 in a two-player game, and the counter moves once
+a nuke, 110 frames after it lands (below). `NUKE_EMBARGO_*` are the
+market's (`LeaderData::get_nuke_embargo@006d52c0`'s callers are
+`use_market`, `action_buy` and `action_sell`): a player who has nuked
+cannot trade for `900 + 900 · nukes_used` frames past its `nuke_stamp`.
+Nothing gates a launch.
+
+**The launch's nuke arm.** `Build::do_missile_launch@00622670`, on the
+frame `recharging` reaches 0, for a missile on `AIR_ATTACK_GROUND`
+(`6226e4`) that `is(0x13b)` (`62272c`..`62274c`): `visible` (`+0x40`)
+`0xff` (`622756`) and vslot `0x164`, `Wall::update_local_seen@0063ed50`
+(`62275a`), which lays the silo's footprint into every player's seen
+cells; then the message and `S_NUKE_LAUNCHED`. The shield is not asked
+here: a target whose owner took Missile Shield after the press is struck
+all the same (the blast's own read is of the landing cell's owner).
+Under the emulator (`tools/emu/nuke_launch.py`: the executable's own
+`Build` vtable, the missile's type asked through `ObjectData::is`):
+
+| the missile | order | `+0x40` | vslot `0x164` | sound |
+| --- | --- | --- | --- | --- |
+| a nuke | `AIR_ATTACK_GROUND` | `0xff` | ran | 81 |
+| a V2 | `AIR_ATTACK_GROUND` | 0 | no | 291 |
+| a nuke | none | 0 | no | none |
+
+**Its round has no scatter.** `Ammo::init@0067bbf0` zeroes a missile's
+scatter when it `is(0x13b)` and doubles a V2's (`67c64b`); `s − 1 < 1`
+takes neither `Random::get`. The spline is `calc_nuke_spline`'s other arm
+(its fourth argument is `(float)is(0x13b)`), the points differing and the
+120 frames the same.
+
+**The landing is the nuke arm of `Ammo::do_damage@00678060`**
+(`67846d`..`6785db`), after the shield's read of the landing cell's
+owner: the achievement; `S_ATTACK`; `nuke_stamp` (`LeaderData +0x7b4`)
+the frame (`6784bb`) and `nukes_used` (`+0x7bc`) + 1 (`6784c8`);
+`Nuke::add_nuke@0092ba30` with the point, the radius pair `(0x64,
+splash_area · 0xc0)` — (100, 1920) for the nuke — the shooter's player
+and object (`678500`..`678516`); `World::set_seen2` over a circle of
+`splash_area + 1`; a message; `Nuke::do_damage` at once (`6785db`); and
+the round closed. No `hit_target`, no `check_hit`, no splash walk.
+`add_nuke` also plays a sound through the sound generator's own `Random`
+and lays the crater (`TerrainOut::terraform_for_nuke`, the terrain's
+heights, which the simulation's `find_data_z` reads).
+
+**The blast, `Nuke::do_damage@0092bc80`**, the first statement of
+`Objects::inc_time@0065db70` on every frame, and once from the landing:
+- an effect is dropped once `frame ≥ start + 110 + 0x140` (the
+  constants `nuke_effect +0x110` = 110, set by `NukeOut::init@0092c9a0`,
+  and `0x140`);
+- `Game +0x6e0` (Armageddon) + 1 on the frame `(t − 1)/110 < 1 ≤ t/110`,
+  t = 110, unless the lobby's resources are 8 or the game has one
+  nation and no semaphore bit 2;
+- while `t < +0x104 + +0x108` (10 + 30, `Nuke::init@0092c960`), the ring
+  `r = (int)(max · f + (1 − f) · min)` with `f` 0 to t = 10 and `(t −
+  10) / 30` after: SSE scalar float32 throughout (`92bf3a`..`92bf8d`);
+- every unit `Objects::find_units` returns (active, on the map; a cell
+  circle or the players' lists by `total_units`), not struck before by
+  this effect (`Nuke::been_damaged_before@00925c20`) and not `is(0x13b)`,
+  at `vector_dist ≤ r`, takes `Object::do_damage(angle, 1, −1, count, 1,
+  0)` with `count = 0x100 − (d << 8) / (int)max` when above 0
+  (`92c618`..`92c650`);
+- every building on the cell ring of `radius[min(r / 8 + 1, 10)]`, active,
+  not struck before, at the octagonal distance of `|dx| − x_size · 0x60`
+  and `|dy| − y_size · 0x60` (each floored at 0) `< r`, takes the same
+  with `num_guys` 0 when `count ≥ 0` (`92c35f`..`92c3ab`);
+- a struck player at peace with the shooter declares war (`92c502`,
+  `92c71e`), and the rush rules exempt an early age.
+
+Under the emulator (`tools/emu/nuke_blast.py`: the executable's own
+function, one effect laid in `nuke_effect` at `0xc0a780`, the radius read
+off the `find_units` it calls, the count off `Object::do_damage`):
+
+| t | 0..10 | 11 | 12 | 13 | 17 | 20 | 26 | 30 | 38 | 39 | 40 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `r` | 100 | 160 | 221 | 282 | 524 | 706 | 1070 | 1313 | 1798 | 1859 | none |
+
+| d | 0 | 100 | 101 | 518 | 1039 | 1804 | 1859 | 1860, 1870, 1920 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| first t struck, count | 0, 256 | 0, 243 | 11, 243 | 17, 187 | 26, 118 | 39, 16 | 39, 9 | never |
+
+Armageddon moved on t = 110 alone of 109..111; the effect was dropped on
+t = 430 and not on 429. **The ring never reaches `max`**: 1859 on its last
+frame, so a unit at 1860..1920, inside the nominal radius, is never
+struck.
+
+**The floats, carried as integers.** The ring's radius is the one float
+of the blast that reaches the simulation (the pair is two integers
+converted, and `(int)max` is 1920 exactly). `sim::nuke::ring_radius`
+carries it as `min + (max − min) · (t − 10) / 30`, floored, which equals
+the float32 expression on every frame for the nuke's pair (the emulated
+table above; `the_ring_is_the_emulated_original_s_on_every_frame`). The
+oracle is the executable's own SSE instructions under unicorn rather
+than `tools/recomp/lift.py`'s native twin: the function's callees need
+the game's objects, which the harness answers and a lift would have to
+carry. For another pair the floor is not shown to agree, and no other
+type reaches `add_nuke`.
+
+**Built** (item 1091, chapter thirty-seven):
+- `sim::nuke`, new: `Nukes` (the effects, `nuke_stamp`, `nukes_used`,
+  the shown silos), `ring_radius`, `struck_count`,
+  `Sim::nuke_land` and `Sim::nuke_do_damage`;
+- `Sim::land`'s nuke arm (`crate::fight`, granted), after the shield;
+- the per-frame call at the head of `Objects::inc_time`'s place in the
+  frame (`crate::lib`, granted), and `Sim::nukes`;
+- `Sim::missile_round`: a nuke's scatter 0;
+- `Sim::do_missile_launch`: a nuke's launch shows its silo.
+
+Four unit tests, each made to fail by its mutation: `nuke::tests`' ring
+and fraction against the emulated original and the ring on chapter
+thirty-seven's geometry through the round's own landing, and
+`airbase::tests`' launch (the silo shown, no scatter draw).
+**Diff-backed by run397** (`docs/GOLDEN.md` §46): the research done
+with nothing placed, the launch through a shield given after the press,
+the silo's `visible` −1, the round on the point with no draw, the ring
+striking its probes on t = 17, 26 and 39 and F on 39, 1870 never. The
+word 3081 → 3490, closed; the value diff, both sides (ours before,
+bracketed): 3082, the round on (23040, 34560) [off it]; 3201, F at
+damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
+4/16 [0].
+
+**Not established.**
+- The order of several struck on one frame: `find_units`' (a cell circle
+  or the players' lists, by `total_units`) and the cell ring's; here each
+  list's index order. Chapter thirty-seven strikes one unit a frame.
+- `action_declare` on a struck player at peace; the rush rules' exemption.
+- `World::set_seen2` and `update_local_seen`'s seen cells; the crater's
+  heights (`terraform_for_nuke`), which a figure standing in it after the
+  blast would read.
+- The ring for any pair but (100, 1920).
+- `nuke_stamp` and `nukes_used`: `LEADERS=2` does not print them, so
+  this crate's are read by nothing (`sim::nuke::Nukes`); the market's
+  embargo, which reads them, is not built.
+- The spline's other arm: run397's round differs from a V2's only at the
+  three apex knots, which the simulation does not read.
+- **`Object::die`'s hold reads `nuke_effect +0x108`** (`0xc0a888`,
+  `647105`..`64710b`: `+0x108 + 1 + total_time − cur_time` for each round
+  the dead object fired), **30 in a live game**: run400's packet (logger
+  frame 5066, `~/ron-data/lab-captures/2026-09-28-run400`) holds `+0x104`
+  10, `+0x108` 30 and `+0x110` 110, `Nuke::init`'s and `NukeOut::init`'s
+  values. This crate takes the term as 0 (`fight.rs`, `hold_dead_slot`,
+  and `missile_dies`: 121 for run371's V2 where the original holds 151).
+  No dump prints a dead unit's hold, and no capture on disk reuses such a
+  slot inside the thirty frames; not built (item 1091), parked.
+- The Armageddon counter (`Game +0x6e0`, one a nuke on t = 110): not
+  carried, since no dump prints it and the game's end at
+  `get_armageddon` is not built.
 
 ## What is not established
 

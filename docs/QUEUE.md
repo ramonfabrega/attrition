@@ -16,8 +16,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty, and
 it is in the first war; the first pair stays closed at 24,000,
-endpoints 0 off. Every chapter is closed, thirty-five at 3260 and
-thirty-six at 3420 (1050, 1077, 1078). Two lanes run; the count is at ten.*
+endpoints 0 off. Every chapter is closed, thirty-five to thirty-seven
+at 3260, 3420 and 3490. Two lanes run; the count is at eleven.*
 
 - **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
   Great Lakes forty-one frames and one rule of combat a landing, and
@@ -29,16 +29,16 @@ thirty-six at 3420 (1050, 1077, 1078). Two lanes run; the count is at ten.*
   its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 21 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101).
+- **Fable backlog: 22 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5606 of 18,140 · GreatLakes w5161 of 5,930
 Third map: GreatSahara w8 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · 1091 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1102 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1099 and 1091 run; East Indies'
+**Opener: the commander resumes — 1099 and 1102 run; East Indies'
 5606 is booked when either frees.**
 
 ## The queue
@@ -56,13 +56,13 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     scout in the original. No mechanism is named. East Indies' 5606
     follows.
 
-1091. **Chapter thirty-seven: the nuke — no capture yet** (1078 closed
-    thirty-six at 3420 and dropped the nuke to its own chapter). Its
-    availability first (a research job at the silo, ~1,800 frames here);
-    then `Build::do_missile_launch`'s nuke arm, the spline's other arm,
-    and the blast (`Nuke::add_nuke`, `Nuke::do_damage`, every frame, in
-    floats); the shield's order gate after its press. The emulator
-    first; **run397** the capture, run398 a staging run. GOLDEN §46.
+1102. **Chapter thirty-eight: the air line under fire — no capture yet**
+    (1091 closed thirty-seven at 3490; CENSUS's blind list, row 7, the
+    largest family a known staging reaches). Chapters seventeen and
+    nineteen's casts with an anti-aircraft unit: an aircraft shot down
+    (`Ammo::init_crash`), flying low and high, the bomber's re-target,
+    `is_siege`. The emulator first; **run404** the capture, run405 at
+    `cover=1`. GOLDEN §47.
 
 ## How to maintain this file
 

@@ -4490,6 +4490,26 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3420;
 /// whole, (605, 3421).
 pub(crate) const WIDENING_CHAPTER_THIRTY_SIX: (i64, i64) = (605, 3421);
 
+/// **Chapter thirty-seven's golden word** — the nuke (`docs/GOLDEN.md`
+/// §46, item 1091, run397): a cast of its own on the golden start, the
+/// nuke researched at a silo and trained, its strike with the shield given
+/// in the countdown, a round with no scatter, and forty frames of
+/// `Nuke::do_damage`.
+///
+/// **3490, closed, on the first walk with the nuke built** (item 1091):
+/// the draw stream agrees to the window's end, and so does every frame's
+/// word. Unbuilt, the walk read **3081**, the V2's doubled scatter's two
+/// draws on the nuke's launch, which the original never spends (a nuke's
+/// scatter is 0, `67c64b`), and the first value parting on 3082, the
+/// round's landing off the target's point.
+///
+/// **The delta**, this constant's: 3081 → 3490.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SEVEN: i64 = 3490;
+
+/// `chapter_thirty_seven_s_word_frame_is_widened_whole`'s window: run397
+/// whole, (605, 3491).
+pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5038,6 +5058,14 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // it fails).
     ("chapter_thirty_six_holds_to_the_golden_word", 40),
     ("chapter_thirty_six_s_word_frame_is_widened_whole", 40),
+    // Chapter thirty-seven (item 1091): one read, the nuke's round's `ez`
+    // at ground zero (pinned at 0, it fails).
+    ("chapter_thirty_seven_holds_to_the_golden_word", 1),
+    ("chapter_thirty_seven_s_word_frame_is_widened_whole", 1),
+    (
+        "chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field",
+        1,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -6491,6 +6519,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_six_s_word_frame_is_widened_whole"),
         1078,
         Some(WIDENING_CHAPTER_THIRTY_SIX),
+    ),
+    // Item 1091: run397, chapter thirty-seven, the nuke. The widening is
+    // run397 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_THIRTY_SEVEN,
+        Some("chapter_thirty_seven_s_word_frame_is_widened_whole"),
+        1091,
+        Some(WIDENING_CHAPTER_THIRTY_SEVEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
