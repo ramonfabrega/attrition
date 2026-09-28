@@ -34,6 +34,9 @@ L="$B/Logs"
 T=${RON_TMP:-/tmp/ron-runs}
 P=riseofnations_trace.exe
 mkdir -p "$T"
+# The lane is taken before anything it shares is written (parked 974).
+source "$W/tools/gamelog/winelaunch.sh"
+ron_lane_take || exit 75
 
 # --- the probe. Three permissions, each failing differently, and two
 # earlier versions of this block passed while Accessibility was off —

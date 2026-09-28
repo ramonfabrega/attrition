@@ -27,6 +27,9 @@ P=riseofnations_trace.exe
 source "$W/tools/gamelog/lobby.sh"
 lobby_init || exit 1
 SEED=305419896   # 0x12345678, and nothing like the ini's 12345
+# The lane is taken before anything it shares is written (parked 974).
+source "$W/tools/gamelog/winelaunch.sh"
+ron_lane_take || exit 75
 
 python3 "$W/tools/gamelog/window.py" stage 999999 999999
 

@@ -21,6 +21,9 @@ lobby_init || exit 1
 
 echo "--- rontrace.cfg ---"; cat "$G/rontrace.cfg"
 echo "--- rontrace.cmd ---"; cat "$G/rontrace.cmd"
+# The lane is taken before anything it shares is written (parked 974).
+source "$W/tools/gamelog/winelaunch.sh"
+ron_lane_take || exit 75
 
 rm -f "$G/rontrace.log" "$L/gamelog.txt"
 cd "$G"

@@ -52,6 +52,9 @@ L="$R/Logs"
 P=riseofnations_trace.exe
 source "$W/tools/gamelog/lobby.sh"
 lobby_init || exit 1
+# The lane is taken before anything it shares is written (parked 974).
+source "$W/tools/gamelog/winelaunch.sh"
+ron_lane_take || exit 75
 
 python3 "$W/tools/fuzz/seedini.py" "$SEED"
 python3 "$W/tools/gamelog/setlog.py" 0 \

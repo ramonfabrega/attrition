@@ -42,6 +42,14 @@ worker — because `docs/JOURNAL.md` conflicted on 27 of the 58 merges
 since 2026-09-06 (append-only means both sides add at the same anchor).
 Both texts are one journal to this guard.
 
+And since 2026-09-28 (the eighteenth pass, parked 1006) **an item number
+is up to four digits wide**. Every pattern here was `\\d{1,3}`, so from
+item 1000 on `1002. ` booked nothing and `(1003)` parked nothing: the
+counts stood still for a tranche and twenty-odd items were booked and
+deleted by hand. The width is one constant, `N`, and
+`tools/explore/test_queueledger.py` fails on a pattern that spells its
+own. Five digits stay out on purpose — a frame runs to 24,000.
+
 Run from anywhere; `tools/guard.sh` runs it between edits.
 """
 
@@ -66,6 +74,8 @@ JOURNAL = ROOT / "docs/JOURNAL.md"
 # the two texts as one.
 JOURNAL_DIR = ROOT / "docs/journal"
 LEDGER = ROOT / "docs/audit/queue-ledger.md"
+# An item number: one to four digits, and not the head of a longer run.
+N = r"\d{1,4}(?!\d)"
 
 
 def git(*args):
@@ -82,7 +92,7 @@ def parens(text):
     "off by (11,7)" and booking both; a comma form was never used for items.
     """
     out = set()
-    for group in re.findall(r"\((\d{1,3}(?:/\d{1,3})*)\)", text):
+    for group in re.findall(r"\((%s(?:/%s)*)\)" % (N, N), text):
         out |= {int(n) for n in group.split("/")}
     return out
 
@@ -99,10 +109,48 @@ def booked(text):
     out = set()
     lines = text.split("\n")
     for i, line in enumerate(lines):
-        m = re.match(r"(\d{1,3})\.\s", line)
+        m = re.match(r"(%s)\.\s" % N, line)
         if m and (i == 0 or lines[i - 1].strip() == ""):
             out.add(int(m.group(1)))
     return out
+
+
+def references(text):
+    """The dependency forms an item writes about ANOTHER item — `item N`,
+    `takes N`, `N closes` — the only forms that can name a number nobody
+    booked, since `(N)` is itself a booking by the queue's convention.
+    """
+    refs = set()
+    for span in re.findall(r"\b(?:items?|takes)\s+(%s)\b" % N, text, re.I):
+        refs.add(int(span))
+    for span in re.findall(r"\b(%s)\s+closes\b" % N, text):
+        refs.add(int(span))
+    return refs
+
+
+def named_in(journal):
+    """The numbers the journal actually **names as items**, which is not
+    the same as the numbers it contains: an entry's title carries frames,
+    ticks and words too, and "the word 201 → 232" would otherwise close
+    item 232 by coincidence. Two constructs count, and only these:
+
+      `item N` / `items 168, 165 and half of 170` — the phrasing the
+      working agreement asks for, including the entry that closes
+      several at once;
+      a heading whose **title opens with the number** — "2026-09-06 —
+      117 is not a lobby click", the older form, where the number is the
+      subject rather than a measurement.
+    """
+    named = set()
+    # Case-insensitive since item 279: a heading reading `Item 289` failed
+    # the 289/290 merge's deletion of it.
+    for span in re.findall(r"items?\s+((?:%s|,|\s|and|half of)+)" % N, journal, re.I):
+        named |= {int(x) for x in re.findall(N, span)}
+    for h in [l for l in journal.split("\n") if l.startswith("## ")]:
+        m = re.search(r"—\s*(%s)\b" % N, h)
+        if m:
+            named.add(int(m.group(1)))
+    return named
 
 
 def main():
@@ -136,14 +184,7 @@ def main():
         # older `[\d/,\s]+` group pulling 7 and 11 out of "off by (11,7)"
         # and booking both. A comma form was never used for items.
         live |= parens(current)
-        # The dependency forms an item writes about ANOTHER item — the only
-        # forms that can name a number nobody booked, since `(N)` is itself
-        # a booking by the queue's convention.
-        refs = set()
-        for span in re.findall(r"\b(?:items?|takes)\s+(\d{1,3})\b", current, re.I):
-            refs.add(int(span))
-        for span in re.findall(r"\b(\d{1,3})\s+closes\b", current):
-            refs.add(int(span))
+        refs = references(current)
         live |= refs
         referenced |= refs
 
@@ -151,7 +192,6 @@ def main():
     if JOURNAL_DIR.is_dir():
         for f in sorted(JOURNAL_DIR.glob("*.md")):
             journal += "\n" + f.read_text()
-    headings = [l for l in journal.split("\n") if l.startswith("## ")]
     # `- **N** <disposition> — …`. Three dispositions account for a number
     # and let it rest: `landed` (the work is in the tree, and the line says
     # where), `dropped` (retired on purpose, with the reason), `unverified`
@@ -170,7 +210,7 @@ def main():
     ledger = {
         int(n): d
         for n, d in re.findall(
-            r"^- \*\*(\d{1,3})\*\* (landed|dropped|unverified|not-landed|re-booked)\b",
+            r"^- \*\*(%s)\*\* (landed|dropped|unverified|not-landed|re-booked)\b" % N,
             ledger_text,
             re.M,
         )
@@ -178,26 +218,7 @@ def main():
     ledgered = {n for n, d in ledger.items() if d in ("landed", "dropped", "unverified")}
     owed = sorted(n for n, d in ledger.items() if d == "not-landed" and n not in live)
 
-    # The numbers the journal actually **names as items**, which is not the
-    # same as the numbers it contains: an entry's title carries frames,
-    # ticks and words too, and "the word 201 → 232" would otherwise close
-    # item 232 by coincidence. Two constructs count, and only these:
-    #
-    #   `item N` / `items 168, 165 and half of 170` — the phrasing the
-    #   working agreement asks for, including the entry that closes
-    #   several at once;
-    #   a heading whose **title opens with the number** — "2026-09-06 —
-    #   117 is not a lobby click", the older form, where the number is the
-    #   subject rather than a measurement.
-    named = set()
-    # Case-insensitive since item 279: a heading reading `Item 289` failed
-    # the 289/290 merge's deletion of it.
-    for span in re.findall(r"items?\s+((?:\d{1,3}|,|\s|and|half of)+)", journal, re.I):
-        named |= {int(x) for x in re.findall(r"\d{1,3}", span)}
-    for h in headings:
-        m = re.search(r"—\s*(\d{1,3})\b", h)
-        if m:
-            named.add(int(m.group(1)))
+    named = named_in(journal)
 
     silent = [
         n for n in sorted(ever) if n not in live and n not in named and n not in ledgered

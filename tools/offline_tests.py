@@ -27,6 +27,7 @@ SUITES = (
     'test_gamelog_checks',
     'test_tracer_stamp',
     'test_census',
+    'test_queueledger',
     'test_release_gate',
     'test_memcap',
     'test_lab_demo',
