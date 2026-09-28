@@ -1404,6 +1404,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
 | 358 | thirty-three, an Airbase's launch issuers | `[605, 2740)` | chapter thirty-two whole, an enemy Barracks by the Airbase (2200), and five presses on `0/2007`: `@launchstrike` on it (2260, verb 23), `@launchpatrol` (2280, verb 21) and `@launchpatrolall` (2295, verb 22) on the ground, `@gatherpoint` of action 3 on the Citizen `0/1` (2305) and `@gatherpointadd` after it (2335); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run344's start (§42) — **run 2026-09-27 (item 976), 858 MB, 2,306 s; no falsifier fired: `0/8` the strike on 2262, `0/9` the patrol on 2282, `0/7` and the refuelling `0/6` on 2297, all four on `0/1` with `0/6` alone flags 4 on 2307, all four over P3 alone on 2337** |
 | 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) — **run 2026-09-27 (item 1009), 906 MB, 2,731 s; no falsifier fired: `0/8` on ctrl, `0/9` on alt, `0/7` home to `0/2008` over a full `0/6`, nothing on ctrl's strike, three re-ordered by P1 and not `0/7`, the strikes standing through P2, nothing on alt at `0/2008`** |
+| 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=1`, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -1482,8 +1483,9 @@ of chapter one itself.
   a capture-lane item has been paying for. They are not in the interpreter's
   cheat set and no chapter uses them; that is a takes-chain worth pricing,
   not an omission this document is defending.
-- **Seven verbs remain parsed and not applied** (`docs/INPUT.md` §11.8):
-  `die`, `damage`, `craft`, `move`, `resource`, `finish`, `hurry`. Between
+- **~~Seven~~ Six verbs remain parsed and not applied** (`docs/INPUT.md` §11.8):
+  `die`, `damage`, `craft`, `move`, ~~`resource`~~, `finish`, `hurry`.
+  `resource` is applied since item 1019 (§44: `bucket_set`). Between
   them and `select`, which is what the first four of them act on, there is a
   second family of chapters — a unit brought to an exact hit total, a
   building finished on a chosen frame, a resource given — that this design
@@ -7529,3 +7531,152 @@ git and `touch`ed after:
 | the height clamp dropped | the approach test; the widening (21 rows: `0/7`'s `z` and pitch on 2399–2400), not the word |
 | `can_carry` always true | **nothing**: `group_action_flight`'s own room test refuses a full base behind it, and no other refusal is reachable through the one entry that asks it |
 
+
+## 44. Chapter thirty-five — the Helicopter's and missiles' launch arms: a Missile Silo and two V2 Rockets, two Helicopters with and without a point, and both launch commands at each base (item 1019)
+
+**Premise.** §43 closed the launch commands' plane arms and parked the
+Helicopter's and the missiles' (1009): who=0 had neither the goods nor a
+silo, and `BuildData::get_first_gather@0046f140` (`INDEX.tsv` row 3910)
+stayed on the blind list with `Build::train@0062f9b0`'s (row 10495)
+missile and Helicopter `jne` its only entries (1011). As claims to check,
+each read off the listing and run under the emulator first
+(`docs/PRODUCTION.md`, "The Helicopter and the missile under a point"):
+- **`resource` is `bucket_set`** (`ConsoleWin::run_cmd@007d6a70`, row
+  13408; `LeaderData::bucket_set@0043ecf0`, row 2453): `max(0, bucket +
+  amount)` on each good `type_avail` admits, applied by this interpreter
+  from this chapter.
+- **A Helicopter trained with no point comes out at once**; a missile
+  stays inside with no order (`62ff59`..`62ff8f`).
+- **Under a point, a missile or a Helicopter reads the first point
+  alone**: a strike on an enemy building, a flight home to a base that
+  carries it, else a patrol over it for a Helicopter and nothing for a
+  missile.
+- **The launch commands** (§43's rows 15851, 15865, 15968, 15951, 11856,
+  11835, 11836): at a silo, the patrol takes no missile, `MOVE_TO`
+  refuses one, and the strike takes the first V2 of the chain; at an
+  Airbase, a Helicopter's strike reach is 0 and its patrol is a `MOVE_TO`
+  to the point's 48-unit cell centre (1009's emulator rows).
+- **A missile's launch is the silo's countdown**: `Object::do_launch@0064f3b0`
+  (row 10699) sets the silo's `recharging` to 30 and
+  `Build::do_missile_launch@00622670` (row 10428) brings the missile out
+  when it reaches 0.
+- **The Clear sends a flying Helicopter home** (`Build::clear_gather`,
+  row 10434), and one outside with no order is homed nowhere
+  (`UnitData::home_base`, row 10300), so neither the Clear nor a point's
+  hangar walk touches it.
+
+**The `NEVER` rows the staging names before the launch** (parked 1033):
+`BuildData::get_first_gather` (2635 and 2658) and
+`Build::do_missile_launch` (from 2672). No other row of the 145 is on a
+path this staging names; `UnitData::get_speed@006086f0` is the computer's
+own auto-launch, not a human's silo.
+
+**The booking's mutations** (918): the gather loop's missile and
+Helicopter exclusion dropped, and the launch patrol's missile skip
+dropped — **1,121 of 1,121 sim tests pass** each time.
+
+**The writers and readers, counted by offset** (823, 869): PRODUCTION's
+list — the missile flag read in 47 functions, `unit_flags & 0x20` in 73,
+`recharging` written in six and printed by `BUILDS=7`, `launching` in six
+and not printed.
+
+**The cast and the lines** are `chapter35.cmd`'s: chapter thirty-four's
+eighteen to `0/2008` (2210), and twelve more — the resources (2215), the
+silo `0/2009` at (52, 64) (2220), two V2s queued there (2225) and two
+Helicopters at `0/2008` (2240); the silo's launch patrol with V2 `0/10`
+inside (2440); the silo's point P_s, tile (40, 60) (2460); `0/2008`'s
+point P_h, tile (30, 64) (2500); `@launchmove` from the silo onto `0/2008`
+(2650) and `@launchstrike` from it on `1/2006` (2670); the Clear at
+`0/2008` (2800); and at `0/2008`, `@launchstrike` (3000) and
+`@launchpatrol` to P2, tile (20, 70) (3010). One lever a press, each
+between two staged events (879): the silo's patrol after the first V2
+and before any point; each point between its base's two births; the
+silo's `MOVE_TO` and strike after the second V2; the Clear with `0/13`
+flying; the Helicopter's two presses after it has landed.
+
+**The staging, walked by this crate on run362's start** (`stage_walk`,
+the harness's new staging walk) for what it carries: the buckets +500 on
+2215; the silo on 2221 at (9984, 12288); the queues on 2226 and 2241,
+each charged whole; V2 `0/10` on 2430, Helicopter `0/11` on 2445, V2
+`0/12` on 2635, Helicopter `0/13` on 2658. Every arm after a birth is the
+reading's, and this crate carries none of them: it keeps `0/11` inside,
+re-orders it on 2502, and sends nothing on the silo's strike.
+
+**The readings, and the gates between each and its block** (903, 968):
+- **`0/11`'s birth** (2445): out, two draws, no order (the reading);
+  inside (this crate). Gate: the list empty.
+- **The silo's patrol** (2442): nothing (the reading); `0/10` a patrol.
+- **P_h** (2502): `0/11` untouched (the reading); a patrol (this crate,
+  having kept it in). Gate: `0/11` outside with no order.
+- **`0/12` under [P_s]** (2635): no order (the reading); a patrol over
+  P_s (the gather loop). Gate: no building on P_s's tile.
+- **The silo's `MOVE_TO`** (2652): nothing (the reading); a V2 flying to
+  `0/2008`.
+- **`0/13` under [P_h]** (2658): a patrol over P_h, flags 4 (the
+  reading); no order (this crate); flags 0. Gate: P_h on no building.
+- **The silo's strike** (2672): `0/10`, mandatory 1, flags 4 (the
+  reading); `0/12`; none (this crate). Gates: `1/2006` seen, the reach.
+- **The Clear** (2802): `0/13` a strafe home, mandatory 0 (the reading);
+  `0/11`. Gate: `0/13` flying.
+- **The strike at `0/2008`** (3002): nothing (the reading); `0/13`.
+  Gate: `0/13` inside, landed.
+- **The patrol at `0/2008`** (3012): a `MOVE_TO` to (3864, 13464), flags
+  4 (the reading); an `AIRPATROLORDER`; nothing.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5`
+and `misc:COMMANDMANAGER=1` over **`[605, 3260)`**: 2,655 blocks, **250
+of runway** past the last staged event, the press on 3010; at
+**`cover=1`**, so the blind list is measured by the same run (1011).
+`LEADERS=2` prints the buckets, `UNITS=3` each unit's stack, `BUILDS=7`
+the lists, the chain, `launch_frames` and `recharging`, `AMMO=5` the V2's
+blast.
+
+**The premise's killer, and its writers** (§3, point 5): each unit's own
+stack and berth on 2445, 2442, 2502, 2635, 2652, 2658, 2672, 2802, 3002
+and 3012, and the silo's `recharging` from 2672. Their writers: the
+train arm, the two launch arms, `action_flight`'s strike from inside,
+the hangar walk and `clear_gather`, `do_launch` and `do_missile_launch`,
+`land_plane`. **The loops**: the buildings by `group.num`; each base's
+chain by `inside_down` to −1; every unit of the player by `objects[who]`'s
+count (the hangar walk and the Clear); the list from its head, and the
+train arm reads its first point only.
+
+**What would falsify it, and where each could first fire.**
+1. **An issue does not reach the pump.** Trace frames 2225, 2240, 2440,
+   2460, 2500, 2650, 2670, 2800, 3000, 3010: an `INFO 17` with a refusal;
+   or no `process_*` on the frame after.
+2. **The resource line** (2215, `LEADERDATA`): each of who=0's six
+   buckets 500 over 2214's; any other bucket.
+3. **The silo's number**: not `0/2009` on 2221; then 5, 7, 8 and 10
+   cannot fire, and say so.
+4. **`0/11`'s birth** (2445): on the map, `inside` −1, no order (the
+   reading); inside `0/2008`.
+5. **The silo's patrol** (2442): `0/10` inside, no order (the reading);
+   any order.
+6. **P_h** (2502): the list `[P_h]`, `0/11`'s stack as on 2501 (the
+   reading); a patrol.
+7. **`0/12`** (2635): inside, no order (the reading); a patrol over P_s.
+8. **The silo's `MOVE_TO`** (2652): both V2s inside with no order (the
+   reading); either with an order.
+9. **`0/13`** (2658): one `AIRPATROLORDER` over P_h, flags 4 (the
+   reading); none; flags 0.
+10. **The silo's strike** (2672): `0/10` one `STRAFEORDER` on `1/2006`,
+    `mandatory` 1, flags 4, and `0/12` with none (the reading); `0/12`'s;
+    none. Then `0/2009`'s `recharging` 30, falling by one a block, and
+    `0/10` on the map on the block it reads 0.
+11. **The Clear** (2802): `0/13` one `STRAFEORDER` home, `mandatory` 0
+    (the reading); `0/11` any order.
+12. **The strike at `0/2008`** (3002): `0/13` inside with no order (the
+    reading); a strike.
+13. **The patrol at `0/2008`** (3012): `0/13` one `MOVEORDER` to (3864,
+    13464), flags 4 (the reading); an `AIRPATROLORDER`; none.
+
+Falsifiers 4 to 13 test each unit's own stack on its own block (711),
+and 4, 6, 7, 9, 10 and 13 each split two readings or more (789). **Not
+reached**: a Helicopter or a missile under an enemy building's point or a
+base's; `MISSILE_DEFENSE_BONUS`; a nuclear missile; shift on either
+command at a silo; an invalid point.
+
+**Where it should part.** Unbuilt, the first draw parting is **2445**:
+`0/11`'s exit draws, which this crate does not spend; the first value
+parting the same block, `0/11`'s `inside`.

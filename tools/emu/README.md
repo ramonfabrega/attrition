@@ -30,3 +30,21 @@ unmapped memory and the fault names the address: that is the state to lay
 out next, at the offsets `types.txt` in the decompile export gives. A
 function that allocates or calls a DLL needs an import stub first; none
 has been written.
+
+## A function with its callees answered (`hooks.py`)
+
+A game function calls a dozen others and reads its objects through
+vtables. `hooks.py`'s `Harness` hooks each direct callee by address and each
+vtable slot by a stub, records `(name, ecx, args)`, answers `eax` and pops
+the callee's own `ret imm`; objects are laid out by hand in a bump heap at
+the offsets `types.txt` gives, and a read of unmapped memory still names the
+next field to lay. Items 976 and 1009 each built this scaffold as a scratch
+script and lost it with their lanes; item 1019 graduated it.
+
+```
+uv run tools/emu/train_arm.py <install>/riseofnations.exe
+```
+
+is its first user: `Build::train@0062f9b0`'s CARRY_AIR arm for a
+Helicopter, a missile and a Fighter under each shape of gather list
+(`docs/PRODUCTION.md`, "The Helicopter and the missile under a point").

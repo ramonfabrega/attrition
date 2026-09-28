@@ -1640,6 +1640,12 @@ mod tests {
         // a list of `[P1, A3, P2]`, the Clear, and alt at the second base:
         // the launch commands' other arms (item 1009, `docs/GOLDEN.md` §43).
         ("chapter34.cmd", &[]),
+        // Chapter thirty-five: chapter thirty-four to its second Airbase,
+        // `resource` (applied since this chapter), a Missile Silo, two V2
+        // Rockets and two Helicopters trained with and without a gather
+        // point, and both launch commands at each base (item 1019,
+        // `docs/GOLDEN.md` §44).
+        ("chapter35.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),

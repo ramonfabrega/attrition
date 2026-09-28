@@ -921,8 +921,7 @@ train(type):   init_unit at the building's point; go_inside(this)
     if trainer's type & CARRY_AIR:                       # 62fac0
         options.rebuild = 1
         gather points (+0xcc) == 0:                      # 62fadf
-            if unit.is(HELICOPTER 0x136)
-               and num_aircraft_here > num_aircraft_limit: come_out(0)
+            if unit.is(HELICOPTER 0x136): come_out(0)    # no limit test: item 1019
             (else: nothing -- the unit stays inside)
         else, the unit not a missile and not unit_flags & 0x20:
             each gather point: add_air_patrol_order(point, this, who, 1)
@@ -938,6 +937,9 @@ the unit and type through stub vtables): with `CARRY_AIR` and no gather
 point, `init_unit`, `go_inside(2007)`, `is(0x136, 0)` and no `come_out`;
 with one gather point, `add_air_patrol_order(x, y, 2007, 0, 1)` — the
 action bit — and no `come_out`; without `CARRY_AIR`, `come_out(0)`.
+~~A helicopter over the base's limit comes out~~ Any helicopter trained
+with no point comes out: the limit test is the invalid point's alone
+(item 1019, "The Helicopter and the missile under a point").
 
 ~~**The gather point's arm is not built** (SEAM): its writers are
 `Build::add_gather_point` and `Build::clear_gather`, reached from the
@@ -1381,13 +1383,111 @@ wealth or oil on this cast, and the interpreter does not apply the
 `resource` verb).
 
 **Not established, and reading only**: the Helicopter's flight after its
-launch; the missile arms (`NUCLEARMISSILE`, `V2ROCKET`), whose narrowing
+launch (item 1019 stages it: "The Helicopter and the missile under a
+point"); the missile arms (`NUCLEARMISSILE`, `V2ROCKET`), whose narrowing
 is emulated above and not built, and the rush rules; shift on `MOVE_TO`;
 the × 200 for a plane with an order (a plane inside with an order is
 refuelling on every block of these casts); the escort's search
 (`find_new_bomber_target`'s ally arm and `find_new_air_target`, the
 bomber's point search and nothing here); and `0/6`'s `mirror` on run358's
 2314, whose writer is not read.
+
+## The Helicopter and the missile under a point (item 1019)
+
+`docs/GOLDEN.md` §44 is the chapter. The issuers are §43's, by their
+`INDEX.tsv` rows; the arm is `Build::train@0062f9b0` (row 10495) and its
+block `BuildData::get_first_gather@0046f140` (row 3910).
+
+**`Build::train`'s CARRY_AIR arm for the two types the gather loop leaves
+out** (the listing, `62fac0`..`62ff94`):
+
+```
+CARRY_AIR (62fac0): options.rebuild = 1
+  the list empty (+0xcc 0, 62fadf → 62ff59):
+      is(0x136), the Helicopter line → come_out(0)           # 62ff8f → 62feea: no limit test
+  neither a missile (type +0x1e4 & 0x8000000, 62fb02) nor unit_flags & 0x20 (62fb0f):
+      the num_gather loop ("The gather point", item 947)
+  else (62fc47): the FIRST point (x, y)
+      not is_valid (62fc6f → 62fe91): is(0x136) and num_aircraft_here(0) > limit → come_out(0)
+      b = find_building_at(x / 192, y / 192, SEARCH_ALL, −1, FILTER_ALL, 0), its owner at objects +0x200
+      b ≥ 0 and not the trainer (62fcb3, 62fcc7):
+          is_enemy(owner) (62fce5):
+              a missile, and the owner has_preq(MISSILE_DEFENSE_BONUS): return (62fd07, 62fd26)
+              add_strafe_order(b, owner, this, who, 1, QUEUE_NEW, 1)   # a strike, the action bit
+          can_carry(b, unit), b's vslot 0x10, not a missile (62fdff, 62fe1d, 62fe38):
+              add_strafe_order(−1, −1, b, owner, 1, QUEUE_NEW, 1)      # a flight home to b
+      not a missile (62fe68): add_air_patrol_order(x, y, this, who, 1)
+  come_out answering non-zero → the unit dies, −1 (62fefa)
+unit_masks &= ~0x4000000 (62fc17)                              # the defended return skips it
+```
+
+**Under the emulator** (`tools/emu/train_arm.py`, `hooks.py`'s harness:
+every callee and vtable slot answered, the Airbase `0/2007`, the unit `0/10`):
+
+| the list | a Helicopter | a missile |
+| --- | --- | --- |
+| empty, under or over the limit | `come_out(0)` | nothing |
+| empty, `come_out` refusing | `die`, −1 | nothing |
+| a ground point, or two | `add_air_patrol_order(x, y, 2007, 0, 1)`, the first point alone | nothing |
+| a point on the trainer | the patrol | nothing |
+| an invalid point, over the limit; under | `come_out(0)`; nothing | nothing |
+| an enemy building | `add_strafe_order(2006, 1, 2007, 0, 1, 2, 1)` | the same |
+| the same, the enemy defended | the strike | nothing; `62fc17` skipped, `unit_masks` keeps `0x4000000` |
+| a base that carries it | `add_strafe_order(−1, −1, 2008, 0, 1, 2, 1)` | nothing |
+| a base, `can_carry` or vslot `0x10` 0 | the patrol | nothing |
+
+A Fighter under the same lists takes the gather loop: a patrol over each
+point, an enemy building's included. **item 915's pseudocode was wrong
+on the empty list**: its limit test is the invalid point's alone, and a
+Helicopter trained with no point comes out at once. This crate kept it
+inside (`Sim::build_train`'s SEAM).
+
+**Every entry to each block** (`llvm-objdump` over `.text`, 965's rule):
+`62fc47` — the `jne` at `62fb02` and `62fb0f` only, `62fc42`'s `jmp`
+ending the block before it (1011); `62feea` — `62ff8f`'s `jmp` and the
+fall from `62fee1`; `62fe91` — `62fc6f` alone; `62fdc6` — `62fce5` alone;
+`62fd9c` — `62fd07` and `62fd26`. `Build::do_missile_launch@00622670`
+(row 10428) has one call, `Object::do_launch@0064f3b0`'s at `64f454`,
+taken while the building's `recharging` is not 0. The image's other two
+calls to `get_first_gather` are `ScenarioFuncSet`'s, cut from v1.
+
+**The silo's launch** (`Object::do_launch`, read; the emulator did not
+run it): a missile whose order carries the action bit joins `launching`
+(`ObjectData +0x44`) and sets the silo's `recharging` (`BuildData +0x7a`)
+to the silo type's `+0x1f4`, RECHARGE, 30; `launch_frames` goes to 0.
+While `recharging` is not 0, `do_launch` is `do_missile_launch` alone:
+`recharging − 1`, and at 0 the first of `launching` leaves it,
+`come_out(0)` and `Unit::process@00610bc0` (vslot `0x9c`) in the same
+call. So the missile comes out on the thirtieth frame after the one its
+order is launched on. The Missile Silo's `ATTACK` is 0 (type `+0x1e8`),
+so `Build::do_attack`'s own decrement of the field never runs for it.
+
+**The Helicopter's exit** (`Unit::do_spec_anim@005e5880`'s EXIT at an
+`AIRBASE`, `5e59cb`..): two draws, `x` plus `rand % 11 − 197` and `y`
+plus `rand % 11 − 5`, and its figure 200 over the ground.
+
+**The writers and readers, counted by offset** (823, 869):
+- the missile flag (`type +0x1e4 & 0x8000000`, in both the decompiler's
+  spellings, by offset and by word): read in 47 functions of the export,
+  written by the loader;
+- `unit_flags & 0x20`: §43's count, 73 readers and the loader;
+- `recharging` (`+0x7a`): written by `do_launch`, `do_missile_launch`,
+  `Build::do_attack`, `Build::init`, `Build::activate` and two wonders'
+  timers in `Build::process`; read by `do_launch` and `do_attack`.
+  `BUILDS=7` prints it;
+- `launching` (`+0x44`): `do_launch`, `do_missile_launch`, `clear_gather`,
+  `Object::attempt_launch`, the constructor and `close`. Not printed.
+
+**The booking's mutations** (918): the gather loop's missile and
+Helicopter exclusion in `Sim::build_train` dropped, and the launch
+patrol's missile skip (`group_action_launch_patrol`) dropped: **1,121 of
+1,121 sim tests pass** each time. No test holds either.
+
+**Not reached by the emulator**: the flights after either arm — the
+Helicopter's (`do_air_physics`'s `unit_flags & 0x20` arms, and
+`bank_aircraft`, `pitch_aircraft`, `check_fuel`, `land_plane` and
+`do_strafe`'s), and the missile's flight and blast; `do_missile_launch`,
+read above.
 
 ## What is not established
 

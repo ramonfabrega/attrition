@@ -503,9 +503,10 @@ Indies' setup word is `793793043` and it takes none.
   roll together, because this crate's squads do not engage on frame 616 the
   way the original's do. That is the next rules item, and it is a combat
   one. The value diff parts one frame later, at 618.
-- **Seven verbs are parsed and not applied.** `die`, `damage`, `craft`,
-  `move`, `resource`, `finish`, `hurry` — each is refused by name and
-  counted, never silently dropped. `move` in particular is a *teleport*
+- **~~Seven~~ Six verbs are parsed and not applied.** `die`, `damage`, `craft`,
+  `move`, ~~`resource`~~, `finish`, `hurry` — each is refused by name and
+  counted, never silently dropped. `resource` is applied since item 1019
+  (`docs/GOLDEN.md` §44): `bucket_set`, `max(0, bucket + amount)`. `move` in particular is a *teleport*
   (`Unit::find_nearby_spot` then `Unit::set_new_location`), not an order.
 - **The building arm of `add` is unexercised.** No chapter places one yet.
 - **`coord_mode` is inferred from behaviour, not read.** `ConsoleWin::init`

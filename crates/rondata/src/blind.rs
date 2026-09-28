@@ -187,11 +187,16 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// the last the game's own, called from `GroupOut::issue_launch_patrol`).
 /// `BuildData::get_first_gather` stays: its one caller in play,
 /// `Build::train`, reaches it only for a missile or a Helicopter trained
-/// under a gather point (`docs/CENSUS.md`, "item 1011").
+/// under a gather point (`docs/CENSUS.md`, "item 1011"); **146** with item
+/// 1019's `LeaderData::bucket_set` (`docs/GOLDEN.md` §44, the `resource`
+/// verb, before run371).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
+    // Item 1019, `docs/GOLDEN.md` §44: `LeaderData::bucket_set@0043ecf0`,
+    // the `resource` verb's writer; run371 stages it.
+    0x0043_ecf0,
     0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90,
     // Item 955, `docs/GOLDEN.md` §40: `BuildData::get_first_gather@0046f140`.
     0x0046_f140,
