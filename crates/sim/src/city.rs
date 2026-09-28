@@ -2050,9 +2050,13 @@ impl Sim {
         // **`Wall::process@00640450`'s first statement**, on the game's own
         // frame and not the building's phase: every eighth frame, on the one
         // whose low three bits are the owner's player number, a building
-        // asks who has looked at it (`docs/VISION.md` §6.1). The `targeted`
-        // decay that shares the branch is a seam.
+        // asks who has looked at it (`docs/VISION.md` §6.1), and first
+        // quarters its `targeted` count (`ObjectData +0x3d`, signed toward
+        // zero; `docs/COMBAT.md` §68.3). run368's packet holds the human's
+        // city at 0 on logger frame 4688, where a count that never decayed
+        // read 31.
         if frame != 0 && frame & 7 == i64::from(self.buildings[b].owner) {
+            self.buildings[b].targeted /= 4;
             self.check_ever_seen(b, false);
         }
         let phase = self.buildings[b].phase(frame);

@@ -3276,16 +3276,24 @@ impl Sim {
                 // **`mandatory == 0` retargets** (`00712490:456`–`470`,
                 // item 1012): `find_melee_target(u, min(d + 0xc0,
                 // respond), &whom, 0, 0, word)` with the word **1 for a
-                // unit target, 2 for a building** (the target's vslot
-                // `+0x1c`), so a member sent at a city takes a building.
-                // What it cannot name falls back to the group's target.
+                // unit target, 2 for a wall** (the target's vslot
+                // `+0x1c`). What it cannot name falls back to the group's
+                // target. **The arm is under the target's vslot `+0x20`
+                // answering 0** (`00712490:433`–`436`): a `Build` target
+                // takes the other arm, which adds the attack itself with
+                // no search (`action_attack+0xc44`). run369's packet: the
+                // look on 4605 hands the human's city to group 65, and
+                // all eighteen members take it through `+0xc44`, not one
+                // `find_melee_target` between (`docs/COMBAT.md` §68.2).
                 //
                 // SEAM: `find_melee_target`'s squad head (a follower takes
                 // its captain's attack without a search) is on the
                 // decompile's path for this call, and the floor refused
                 // it: built, Great Lakes fell from 4618 to 4607, the city's
                 // `targeted` twelve bumps short (`docs/COMBAT.md` §66.3).
-                let t = if mandatory {
+                let build = matches!(target,
+                    Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE);
+                let t = if mandatory || build {
                     target
                 } else {
                     let d = crate::world::vector_dist(
