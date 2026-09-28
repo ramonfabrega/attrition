@@ -9674,3 +9674,56 @@ units, 2,122 of the unit-frames.
 §4 makes that fact the booking of a third *scored* map at the next pass:
 a different map, with this one staying held out. The booking is the
 pass's.
+
+## run358 — chapter thirty-three, an Airbase's launch issuers (2026-09-27, item 976)
+
+`docs/GOLDEN.md` §42, `tools/gamelog/golden/chapter33.cmd`: chapter
+thirty-two's sixteen lines, an enemy Barracks by the Airbase (2200), and
+five presses on `0/2007` — `@launchstrike` on it (2260), `@launchpatrol`
+to P1 (2280), `@launchpatrolall` to P2 (2295), `@gatherpoint` of action 3
+on the Citizen `0/1` (2305) and `@gatherpointadd` to P3 (2335). The
+chapter and its nine falsifiers were committed before the run
+(`cb60facd`). Launched at 19:13 after att-989's queue exited (its lock's
+pid dead, no `RonDriver`), with the profile's `DIFFICULTY` 0 in both
+blocks.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch33 \
+    --map 14 --end-frame 2740 --log-window 605 2740 --timeout 6600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter33.cmd
+```
+
+**One take** at `cover=0`: **2,344 s** in all (2,306 launch to exit),
+**858 MB** of dump and 14 MB of trace, 2,135 blocks. The receipt says
+`success: true`, exit 0, 2,741 frames, `MAP_STYLE 14`, seed 12345,
+1,093,120 `GROUPDATA`, settings restored. The install's DLL was built from
+this branch's `tracer.c` at `cb60facd` (sha256 `2518ed09…8adb`, stamped);
+the lane's own build of the same source, the one that ran, is
+`d8eeb6b7…e81b`. `waitrun.sh` exited 0. The dump's `GAME INFO` reads
+`DIFFICULTY 0`.
+
+| check | result |
+|---|---|
+| `issuesmatch.py --none-refused … 14` | every `@` line issued, none refused; each launch line grew the package by 28 bytes |
+| `rngcmp.py` vs run344's trace | the same game to 2287 (2,361 frames in common, 73 differ) |
+| the processed commands | `process_flight` on 2261; `process_launch_patrol 13440 9600 2 0 0 0` on 2281 and `7680 11520 1 1 0 0` on 2296; `process_gather_point 1 0 3 0` on 2306 and `9600 7680 0 1` on 2336 |
+
+### §42's falsifiers
+
+| check | predicted (this crate's prototype) | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 2261, 2281, 2296, 2306, 2336 | **as predicted** |
+| 2, the target's number | `1/2006` at (72, 78) | **as predicted**, from 2202 |
+| 3, the strike (2262) | `0/8` a `STRAFEORDER` on `1/2006`, `mandatory` 1, flags 4, and out | **as predicted**: `returning` 0, `oxx` 2007, `xx/yy` (13824, 14976), on the map on 2262 |
+| 4, the plain patrol (2282) | `0/9` over P1, flags 4, and out | **as predicted**: `0/7` fuelled and inside, `0/6` at `mana_burn` 40, untouched |
+| 5, the shift-click (2297) | `0/7` and `0/6` over P2, flags 4 | **as predicted**: `0/6` at `mana_burn` 10 took it; out on 2306 and later |
+| 6, action 3 (2307) | all four a `STRAFEORDER` on `0/1`, `mandatory` 1; `0/6` flags 4 and inside, the others 0 | **as predicted**; `xx/yy` (4104, 28392) |
+| 7, the escort (2308..2336) | `xx/yy` on `0/1`, each plane flying | the strikes stand to 2336 with `xx/yy` on `0/1`, which does not move: the point is not split from a frozen one here; the positions are the widening's |
+| 8, the append (2337) | each one `AIRPATROLORDER` over P3 alone, flags 4 | **as predicted**: the arrays of length 1, the strike gone on all four |
+| 9, the arrivals | over P3 by 2739 | within `0x240` on 2409 (`0/6`), 2421 (`0/7`), 2470 (`0/9`), 2489 (`0/8`) |
+
+**No falsifier fired.** Every order the prototype predicted is the
+original's on its block.
