@@ -75,6 +75,7 @@ pub mod gather;
 pub mod goody;
 pub mod group;
 pub mod grouppath;
+pub mod heal;
 pub mod holdings;
 pub mod launch;
 pub mod market;
@@ -4408,9 +4409,11 @@ impl Sim {
         // `Unit::process@00610bc0`'s head, a caster's arm: a point of
         // craft back (`crate::cast`), before the heal and the work.
         self.recover_mana(i, frame);
-        // `process_healing` runs for every unit, inside or out; the
-        // garrison branch is the only heal this mechanic owns.
+        // `process_healing` runs for every unit, inside or out: the
+        // garrison branch inside, and on the map the civilian heal
+        // (`crate::heal`, `docs/COMBAT.md` §72).
         self.garrison_heal(i, frame);
+        self.civilian_heal(i, frame);
         // **The frozen frame's mark is cleared here** —
         // `Unit::process@00610bc0`'s `unit_masks2 & 0xffffffef`,
         // immediately after `process_healing` and under the same
