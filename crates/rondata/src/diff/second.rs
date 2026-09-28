@@ -548,10 +548,11 @@ mod tests {
         // §64): `1/21`'s attack-move no longer takes the human's unarmed
         // Woodcutter's Camp on 4554, so its `ATTACK_TO` stands on both
         // sides until the army's attack on 4605, and since item 1012 its
-        // order agrees through that too, first parting on 4761.
+        // order agrees through that too; it first parted again on 4761
+        // until item 1028, and since then not in the window.
         assert_eq!(
-            row(1, 21, "order:kind").as_deref(),
-            Some("4761: Kind { ours: 10, theirs: 1 }"),
+            row(1, 21, "order:kind"),
+            None,
             "the unit's order, which parted on 4555 until item 997"
         );
         // **The old word, 4593, agrees** (item 1002, `docs/COMBAT.md`
@@ -589,11 +590,12 @@ mod tests {
         // and idled. Its order agrees from block 4550 to its next explore
         // target on 4737; `1/0`'s group and `1/7`'s gather `wait`, which
         // parted on 4619, no longer part in the window. That target is
-        // chosen after the word, and since item 1023 ours reads 1272 there
-        // (2808 before), still against the original's 504.
+        // chosen after the word; ours read 1272 there from item 1023 and
+        // 2808 again since item 1028 (the army's targets moved), still
+        // against the original's 504.
         assert_eq!(
             row(1, 0, "order:move.x").as_deref(),
-            Some(r#"4737: Move { field: "x", ours: 1272, theirs: 504 }"#),
+            Some(r#"4737: Move { field: "x", ours: 2808, theirs: 504 }"#),
             "the scout's target, which parted on 4550 until item 1014"
         );
         assert_eq!(
@@ -612,29 +614,41 @@ mod tests {
         // of the chase spot, so `check_target_path` re-aims: block 4617
         // prints the move at (4104, 31512) on both sides, where ours kept
         // (4200, 31608). `1/24`'s order (kind 10 against 1 on 4673) and
-        // `stopped` (4674) no longer part; its rows agree from 4605 to 4688,
-        // and its order first parts again on 4722, after the new word.
+        // `stopped` (4674) no longer part; its rows agree from 4605 to 4688.
+        // Its order parted again on 4722 until item 1028, and since then
+        // not in the window.
         assert_eq!(
-            row(1, 24, "order:kind").as_deref(),
-            Some("4722: Kind { ours: 10, theirs: 1 }"),
+            row(1, 24, "order:kind"),
+            None,
             "the chaser's order, which parted on 4673 until item 1023"
         );
-        // **The new word, 4688, writes block 4689** (no mechanism is
-        // named, DECISIONS 42): both sides spend `1/24`'s `Unit::fight+
-        // 0x9b0`; then ours spends `Guy::set_anim+0x97a < Guy::move+0x19f`
-        // where the original spends `Farms::inc_time+0x1ae`, parting at
-        // index 31 of 35. On block 4689 the original's `1/24` has struck
-        // (`recharging` 33, `hold_attack` 1) from its cell centre (3768,
-        // 31608), and ours has not.
+        // **The old word, 4688, agrees** (item 1028, `docs/COMBAT.md` §68):
+        // `1/24` is a computer's raider (stance 3), and `compare_target`'s
+        // RAID arm scores the citizen `0/3` at 9800 and the human's scout
+        // `0/0` at 15, as run368's packet does on logger frame 4688. So its
+        // one-in-five re-search keeps `0/3`, and it strikes: `recharging`
+        // (0 against 33 until 1028) no longer parts on block 4689. Its walk
+        // spot does, (3763, 31600) against the cell centre (3768, 31608).
         assert_eq!(
-            row(1, 24, "recharging").as_deref(),
-            Some("4689: ours 0 theirs 33"),
-            "the chaser's strike, on the new word's block"
+            row(1, 24, "recharging"),
+            None,
+            "the chaser's strike, on 4689 until item 1028"
         );
         assert_eq!(
             row(1, 24, "orders_x").as_deref(),
             Some("4689: ours 3763 theirs 3768"),
             "and its spot, which parted on 4617 until item 1023"
+        );
+        // **The new word, 4690, writes block 4691** (no mechanism is
+        // named, DECISIONS 42): ours 5 draws and the original 4, parting at
+        // index 1, where ours spends `Object::take_damage+0xe1` and the
+        // original `Farms::inc_time+0x1ae`. Nothing parts on block 4691:
+        // the citizen `0/3` holds `damage 0` on both sides from 4688 to
+        // 4693 and first parts on 4723.
+        assert_eq!(
+            row(0, 3, "hits:damage").as_deref(),
+            Some("4723: ours 3 theirs 2"),
+            "the citizen's damage, after the new word"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
