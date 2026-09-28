@@ -1364,6 +1364,77 @@ mod tests {
         assert_eq!(s.units[v2].inside, Some(silo), "the missile waits inside");
     }
 
+    /// **The shield refuses a missile's order** (item 1078, `action_flight`'s
+    /// `6fbbd7`..`6fbbfb`): a target owned by a player holding
+    /// `MISSILE_DEFENSE_BONUS`'s prerequisite takes no missile — run390's
+    /// V2c `0/15` on 3080, inside with no order on 3082 — and the same
+    /// press before the shield orders it. Made to fail with the gate
+    /// dropped (the order laid).
+    #[test]
+    fn the_shield_refuses_a_missile_s_order_on_its_holder() {
+        let (mut s, silo, v2, enemy) = silo_with_a_v2();
+        let mut tree = s.tech_tree.clone();
+        let shield = tree.types.len();
+        tree.types.push(crate::tech::TypeDef::new(
+            "Missile Shield",
+            crate::tech::Kind::Final,
+        ));
+        tree.roles.missile_defense_preq = Some(shield);
+        s.set_tech_tree(tree);
+        for p in &mut s.tech {
+            p.tech.resize(shield + 1, false);
+        }
+        s.tech[1].tech[shield] = true;
+        s.group_action_launch_flight(
+            0,
+            &[silo],
+            Obj::Building(enemy),
+            Flight::Strike,
+            Keys::default(),
+        );
+        assert!(
+            s.units[v2].orders.is_empty(),
+            "refused: who=1 holds the shield"
+        );
+        s.tech[1].tech[shield] = false;
+        s.group_action_launch_flight(
+            0,
+            &[silo],
+            Obj::Building(enemy),
+            Flight::Strike,
+            Keys::default(),
+        );
+        assert_eq!(s.units[v2].orders.len(), 1, "ordered without it");
+    }
+
+    /// **A missile that fires leaves its type's count** (item 1078,
+    /// `Unit::close@0060ee50`'s `track_unit_type(·, −1)`): the next V2 is
+    /// priced as if none stood — run390's `0/2010` charged 100 and 100 on
+    /// 2722, where this crate charged 120. Made to fail with the decrement
+    /// dropped (the count stays 1).
+    #[test]
+    fn a_missile_that_fires_leaves_its_type_s_count() {
+        let (mut s, silo, v2, enemy) = silo_with_a_v2();
+        let ty = s.units[v2].ty.unwrap();
+        s.unit_types[ty].price.pop = 1;
+        let before = s.muster[0].by_type[ty];
+        s.group_action_launch_flight(
+            0,
+            &[silo],
+            Obj::Building(enemy),
+            Flight::Strike,
+            Keys::default(),
+        );
+        s.frame = 2671;
+        s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+        for _ in 0..31 {
+            s.do_launch(silo);
+            s.frame += 1;
+        }
+        assert!(!s.units[v2].alive(), "fired and gone");
+        assert_eq!(s.muster[0].by_type[ty], before - 1, "out of num_units");
+    }
+
     /// **A second strike pressed while the first counts down finds
     /// nothing** (item 1078, `action_launch_flight`'s `6fc681`..`6fc6ef`,
     /// `tools/emu/launch_arm.py`): the V2 on its `AIR_ATTACK_GROUND` is
