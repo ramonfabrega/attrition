@@ -17,7 +17,7 @@ DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty, and
 it is in the first war; the first pair stays closed at 24,000,
 endpoints 0 off. Every chapter is closed, thirty-five at 3260 and
-thirty-six at 3420 (1050, 1077, 1078). Two lanes run; the count is at nine.*
+thirty-six at 3420 (1050, 1077, 1078). Two lanes run; the count is at ten.*
 
 - **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
   Great Lakes forty-one frames and one rule of combat a landing, and
@@ -29,16 +29,16 @@ thirty-six at 3420 (1050, 1077, 1078). Two lanes run; the count is at nine.*
   its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 20 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097).
+- **Fable backlog: 21 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5606 of 18,140 · GreatLakes w5105 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w5161 of 5,930
 Third map: GreatSahara w8 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · 1091 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1089 and 1091 run; East Indies'
+**Opener: the commander resumes — 1099 and 1091 run; East Indies'
 5606 is booked when either frees.**
 
 ## The queue
@@ -49,12 +49,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-1089. **Great Lakes' second word: frame 5105, 11 draws against 11 at
-    index 3** (1074; parked 1089, promoted): theirs `Unit::fight+0x9b0 <
-    Unit::do_attack+0x6ba`, ours `Farms::inc_time+0x1ae`, on run396's
-    block 5106: `1/21`'s `ATTACK` head stands on 5105 on theirs alone,
-    its chase goal parted from 5091. 1089's `find_attack_pos` tolerance
-    (0 against 384) and 1073's fresh order are the hypotheses.
+1099. **Great Lakes' second word: frame 5161, ours 12 draws against 13**
+    (1089), at index 3: theirs a second `Guy::set_anim+0x97a <
+    Guy::inc_time+0x1ed`, ours `Farms::inc_time+0x1ae`, on run396's
+    block 5162, where `1/24` and `1/26` take the city in ours and the
+    scout in the original. No mechanism is named. East Indies' 5606
+    follows.
 
 1091. **Chapter thirty-seven: the nuke — no capture yet** (1078 closed
     thirty-six at 3420 and dropped the nuke to its own chapter). Its

@@ -10358,3 +10358,57 @@ zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 398
 one row the staging named; `LeaderData::can_nuke` (3050) and
 `Nuke::been_damaged_before` (3200), newly cited by §46 and PRODUCTION,
 are entered by it too. `rontrace-run398.log` joins `blind::TRACES`.
+## run400 — Great Lakes at Toughest, a packet at logger frame 5066: `1/13`'s `find_new_target` (2026-09-28, item 1089)
+
+**What it is.** A `RON_STATE_FRAME=5066` packet on the click-free lane over
+run347's game (Great Lakes, `DIFFICULTY 5`). Blocks 5062–5069 are dumped at
+run368's detail, and `!quit` is at 5075. It uses the plan of item 597, as
+run368 did. It launched when att-1091's run397 released the lane
+(`waitrun.sh` on that run's log, exit 0).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run400 \
+    --map 14 --end-frame 5075 --timeout 2400 --log-window 5062 5070 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=5066 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 16:06, one take. `success: true`, exit 0, 54 s launch to exit
+and 62 s in all. The packet is 807,820,156 bytes. Free disk was 64 GB
+before.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run347.log` | **0 differing**, 5,076 identical |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 14`, seed 12345 read back |
+| settings | five files restored |
+
+**Why 5066, and not the word's 5105.** A probe of a decision runs inside
+the decision. The word is 5105, but the decision it follows from is
+`1/13`'s `find_new_target` on trace tick 5066, which writes block 5067. A
+packet at logger frame 5066 is the state before that tick. By 5105, `0/5`'s
+`targeted` would have decayed and been bumped again many times. This
+departs from the letter of `docs/EMULATOR.md` §8 ("the word itself"), and
+the commander approved it before the launch.
+
+**The booking cites what the disk could not answer.** No dump prints
+`targeted` (`ObjectData +0x3d`), and it was the one input under which ours'
+ranking could have preferred `0/4`. The dump prints the order the search
+added, not the search.
+
+**What it settled** (`docs/COMBAT.md` §79.2):
+- `targeted` is 2 on `0/5` and 0 on `0/4`, `0/0`, `0/1`, `1/13`, `1/21`
+  and `1/22`, the same as ours.
+- `find_melee_target(−1, &whom, 0, 1, 0)`, entered directly on `1/13`
+  (`13d5982c`), calls `add_attack_order(4, 0, …)` from
+  `find_melee_target+0x1c5` and answers `o 4 whom 0`. It never calls
+  `find_nearby_target`: the squad head handed `1/13` its captain `1/12`'s
+  target.
+
+The packet stays outside git under `~/ron-data/lab-captures/`. The probes
+(`targeted_probe.py`, and `melee_probe.py` with a `P4` argument), copied
+from item 1028's, and their outputs are at
+`~/ron-data/lab-experiments/2026-09-28-item-1089/`. The copied probes
+first reproduced item 1028's `1/24` list on run368's packet exactly.

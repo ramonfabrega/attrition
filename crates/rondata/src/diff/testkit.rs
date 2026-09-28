@@ -1491,7 +1491,33 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// spends 10 against 11. Block 5106 is past run373's window, nine after its
 /// last: run396 widens it (`WIDENING_SECOND_GREAT_LAKES_5105`). No
 /// mechanism is named.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_105;
+///
+/// **5105 → 5161 on item 1089**: `Unit::find_new_target@005ff6a0` calls
+/// `find_melee_target(−1, NULL, 0, 1, 0)`, whose head hands a follower its
+/// captain's `ATTACK` target with no search (`005ff9c0:32-91`;
+/// `docs/COMBAT.md` §79). `fight`'s invalid-target arm searched. On tick
+/// 5066 `1/13`'s target `0/2` was dead: the original took its captain
+/// `1/12`'s `0/4` (run400's packet, entered on `1/13`), and ours searched
+/// and took `0/5`, whose `targeted` read 2 on both sides. `1/13`'s chase
+/// goal (3384, 31464) then refused `1/21`'s spot on 5090 through
+/// `find_ordered_collision`, and that was 5105. **The move's value diff
+/// (the word's delta, here; its block is
+/// `run373_s_word_frame_is_widened_whole`'s):** on block 5067 `1/13` holds
+/// `ATTACK 0/4` on both sides, where ours held `0/5`; on 5068 it stands at
+/// (4751, 31019) aimed at (2136, 31608), tolerance 384, on both, where ours
+/// stood at (4749, 31041) aimed at (3384, 31464), tolerance 0; on 5091
+/// `1/21`'s goal is (3336, 31368) with `order:flags` 0 on both, where ours
+/// read (3528, 31512) and 16, and on 5092 both stand at (3025, 31501).
+/// Frame 5105's draws went 11 against 11 at index 3 → agreeing; run373's
+/// keys parted 203 → 156. **The new word's delta: ours 12 draws against
+/// the original's 13 on frame 5161, parting at index 3**: the original
+/// spends a second `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, ours
+/// `Farms::inc_time+0x1ae`. Inside run396's window (block 5162, 62 after
+/// its first and 194 before its last): `0/5` died on 5147, and on block
+/// 5162 the original's `1/24` strikes the scout `0/0` (`recharging` 33)
+/// and its follower `1/26` holds it, where ours' `1/24` has re-searched
+/// onto the city `0/2000` and `1/26` has followed. No mechanism is named.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_161;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -6528,7 +6554,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 989's close tail moved both again: East Indies to 5606, widened on
     // run357, and Great Lakes to 4555, on run356. Item 1040 moved Great
     // Lakes past run356's window to 4846, widened on run373, and item 1074
-    // past run373's to 5105, widened on run396.
+    // past run373's to 5105, widened on run396; item 1089 moved it to 5161,
+    // inside run396's window.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
@@ -6540,7 +6567,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
         Some("run396_s_word_frame_is_widened_whole"),
-        1074,
+        1089,
         Some(WIDENING_SECOND_GREAT_LAKES_5105),
     ),
     // **The third map, Great Sahara** (DECISIONS 54 §3, item 1066): its

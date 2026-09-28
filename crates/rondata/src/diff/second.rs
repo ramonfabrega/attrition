@@ -1075,7 +1075,8 @@ mod tests {
     /// last), **item 1072 to 5042**, block 5043 (202 and 54), **item
     /// 1081 to 5066**, block 5067 (226 and 30), **item 1086 to 5075**,
     /// block 5076 (235 after its first and 21 before its last), and **item
-    /// 1074 to 5105**, block 5106, nine past its last: run396 widens it.
+    /// 1074 to 5105**, block 5106, nine past its last: run396 widens it
+    /// (and item 1089 to 5161, run396's block 5162).
     /// This window keeps what it has always held, every old word's block.
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
@@ -1303,12 +1304,20 @@ mod tests {
                 .all(|((who, o, _), _)| (*who, *o) == (1, 0)),
             "only 1/0's figure first parts on 5073..5089"
         );
+        // **`1/13`'s chase on `0/4` and `1/21`'s goal agree** (item 1089,
+        // `docs/COMBAT.md` §79): on tick 5066 `1/13`'s target `0/2` was
+        // dead, and `find_new_target`'s head handed it its captain `1/12`'s
+        // `0/4`, where ours searched and took `0/5`. Its move parted from
+        // 5068 and refused `1/21`'s spot on 5090 through
+        // `find_ordered_collision`, until then.
         assert_eq!(
             (
                 first(1, 35, "form").map(|(f, _)| f),
-                first(1, 21, "order:move.x").map(|(f, _)| f)
+                first(1, 21, "order:move.x"),
+                first(1, 13, "order:move.x"),
+                first(1, 13, "tolerance"),
             ),
-            (Some(5_090), Some(5_091)),
+            (Some(5_090), None, None, None),
             "the first rows past the old word"
         );
         // **The group record and the attack order's row** (item 1061,
@@ -1347,14 +1356,18 @@ mod tests {
         // on item 1081 (`0/1`'s wound on 5040 and what followed it), and
         // 455 → 461 on item 1086 (`1/13`'s rows from 5012 go; the chase on
         // `0/4` from 5068 and the new word's from 5075 arrive), and 461 →
-        // 203 on item 1074 (the five chases on `0/1` walk on from 5075).
-        assert_eq!(w.firsts.len(), 203, "every key parted on run373");
+        // 203 on item 1074 (the five chases on `0/1` walk on from 5075), and
+        // 203 → 156 on item 1089 (`1/13`'s rows from 5067 and `1/21`'s from
+        // 5091 go).
+        assert_eq!(w.firsts.len(), 156, "every key parted on run373");
     }
 
     /// **The second pair's Great Lakes word, 5105, widened whole** (item
     /// 1074): run396 is run347's game at run373's detail over blocks
     /// 5100..5356, walked from run347's start. The word's frame writes block
-    /// 5106, six blocks after the window's first.
+    /// 5106, six blocks after the window's first. **Item 1089 moved it to
+    /// 5161**, block 5162, inside the window (62 after its first and 194
+    /// before its last).
     #[test]
     fn run396_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -1401,44 +1414,56 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| (*f, r.clone()))
         };
-        // **The word, 5105, writes block 5106** (no mechanism is named,
-        // DECISIONS 42): 11 draws on each side, parting at index 3, where
-        // the original spends `Unit::fight+0x9b0 < Unit::do_attack+0x6ba`
-        // and ours `Farms::inc_time+0x1ae`; on 5106 ours spends 10 against
-        // 11. Its figure is `1/21`: on block 5105 the original's has ended
-        // its chase (`ATTACK` head, two orders) and ours walks on (`MOVE`,
-        // three), and on 5106 the original's strikes `0/5` (`recharging`
-        // 32, `hold_attack` 1). Every key first parting on 5105 is
-        // `1/21`'s. Its move has parted since run373's block 5091: ours
-        // aims at (3528, 31512) with `order:flags` 16, the original at
-        // (3336, 31368) with 0, and its second `ATTACK` reads `new_ord` 0
-        // against 1 (parked 1073's shape).
+        // **The old word, 5105, agrees** (item 1089, `docs/COMBAT.md` §79):
+        // `1/21`'s chase goal, parted since run373's block 5091, is gone,
+        // and so is its `order:kind` on 5105. What stands on 5105 is the
+        // attack row alone, `ever_in_range` 1 against 0 and `new_ord` 0
+        // against 1 (parked 1073's shape), from `1/21`'s retarget there.
+        assert_eq!(first(1, 21, "order:kind"), None, "the old word's row");
+        assert_eq!(first(1, 21, "order:move.x"), None, "1/21's chase goal");
         assert_eq!(
-            first(1, 21, "order:kind"),
-            Some((5_105, "Kind { ours: 1, theirs: 10 }".to_string())),
+            first(1, 21, "attack[0].new_ord"),
+            Some((5_105, "ours 0 theirs 1".to_string())),
+            "the attack row's fresh-order shape (parked 1073)"
+        );
+        // **The word, 5161, writes block 5162** (no mechanism is named,
+        // DECISIONS 42): ours 12 draws against the original's 13, parting
+        // at index 3, where the original spends a second
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` and ours
+        // `Farms::inc_time+0x1ae`. `0/5` died on 5147 on both sides; on
+        // block 5161 its chasers `1/24` and `1/26` still name it, and `1/24`
+        // has taken the scout `0/0` fresh, on both. On block 5162 the
+        // original's `1/24` strikes `0/0` (`in_range` 1, `recharging` 33,
+        // `hold_attack` 1) and its follower `1/26` holds `0/0`; ours' `1/24`
+        // has re-searched onto the city `0/2000` and `1/26` has followed.
+        // Every key first parting on 5162 is theirs.
+        assert_eq!(
+            first(1, 24, "order:target"),
+            Some((
+                5_162,
+                "Target { ours: None, theirs: Some((0, 0)) }".to_string()
+            )),
             "the word's row"
         );
         assert_eq!(
-            first(1, 21, "order:move.x"),
-            Some((
-                5_100,
-                "Move { field: \"x\", ours: 3528, theirs: 3336 }".to_string()
-            )),
-            "1/21's chase goal, parted since run373's block 5091"
+            first(1, 24, "recharging"),
+            Some((5_162, "ours 0 theirs 33".to_string())),
+            "the original's 1/24 strikes the scout"
         );
         assert!(
             w.firsts
                 .iter()
-                .filter(|(_, (f, _))| *f == 5_105)
-                .all(|((who, o, _), _)| (*who, *o) == (1, 21)),
-            "only 1/21 first parts on block 5105"
+                .filter(|(_, (f, _))| *f == 5_162)
+                .all(|((who, o, _), _)| (*who, *o) == (1, 24) || (*who, *o) == (1, 26)),
+            "only 1/24 and 1/26 first part on block 5162"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5_100, 139), (5_105, 4), (5_106, 5)],
+            [(5_100, 92), (5_105, 2), (5_128, 1)],
             "the blocks keys first part on, the first three"
         );
-        assert_eq!(w.firsts.len(), 1_253, "every key parted on run396");
+        // Keys parted: 1,253 → 737 on item 1089.
+        assert_eq!(w.firsts.len(), 737, "every key parted on run396");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

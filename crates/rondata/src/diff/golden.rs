@@ -4002,7 +4002,13 @@ fn chapter_two_s_near_o_is_the_dump_s_on_every_unit_frame() {
 /// after it; this crate's pair goes to `-1`. The search throttle is not
 /// the reason (`waiting` stays 0 on both sides), and no mechanism is named
 /// here. Parked for the commander to book by its frame.
-const NEAR_PARTED: &[((i64, i64), i64)] = &[((0, 7), 847), ((0, 8), 847)];
+///
+/// **Empty again on item 1089** (`docs/COMBAT.md` §79): both bowmen are
+/// followers, and `fight`'s invalid-target arm now takes
+/// `find_melee_target`'s squad head, which hands a follower its
+/// captain's target with no search. The search was what wrote this
+/// crate's `-1`; the original never reached it.
+const NEAR_PARTED: &[((i64, i64), i64)] = &[];
 /// `(unit-frames read, live pairs among them, unit-frames agreeing)` for
 /// the row above. All three are pinned because an empty disagreement
 /// list is worthless without them: a reader that stopped parsing would
@@ -4037,7 +4043,8 @@ const NEAR_PARTED: &[((i64, i64), i64)] = &[((0, 7), 847), ((0, 8), 847)];
 /// **And by item 523**, 9530/409/9530 → 17219/859/17113, on the ceiling's
 /// move 766 → 901 with the word 762 → 900: the whole of run112. The 106
 /// that disagree are [`NEAR_PARTED`]'s two bowmen from 847 to the end.
-const NEAR_TALLY: (usize, usize, usize) = (17219, 859, 17113);
+/// **And by item 1089**, 17113 → 17219 agreeing: total again.
+const NEAR_TALLY: (usize, usize, usize) = (17219, 859, 17219);
 
 /// One frame's `near_o`/`near_who` per unit, read out of the raw dump
 /// text — [`ch2_dump_units`]'s sibling, for the pair that reader takes

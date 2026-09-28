@@ -2496,6 +2496,43 @@ impl Sim {
     /// the two entrenched, or already in range), and finds **nothing** when
     /// the captain's action is not an `ATTACK`. A captain, or a follower
     /// whose captain's target has gone, searches.
+    /// `find_melee_target(−1, NULL, 0, 1, 0)` as `find_new_target@005ff6a0`
+    /// calls it, with the order it adds (item 1089, `docs/COMBAT.md` §79).
+    ///
+    /// The head first ([`Self::melee_squad_head`], `005ff9c0:32-91`): a
+    /// follower's captain's target is added `QUEUE_FIRST` under an
+    /// `ATTACK_TO`, a `GROUP_ATTACK_TO` or a `GUARD` in front and
+    /// `QUEUE_NEW` under anything else, with the captain's `mandatory`
+    /// byte (the action's `+0x1c`). Great Lakes' `1/13` on tick 5066 is
+    /// the witness: its target `0/2` dead, it takes its captain `1/12`'s
+    /// `0/4` where the search would have ranked `0/5` first (run400's
+    /// packet, entered directly: `add_attack_order(4, 0, …)` from
+    /// `find_melee_target+0x1c5`, and no `find_nearby_target` at all).
+    ///
+    /// The search's own add is the one this arm always had, `QUEUE_FIRST`.
+    pub(crate) fn find_melee_target_added(&mut self, u: usize) -> Option<Obj> {
+        match self.melee_squad_head(u) {
+            SquadHead::Nothing => None,
+            SquadHead::Captain(t, mandatory) => {
+                let pos = if matches!(
+                    self.order_type(u),
+                    index::ATTACK_TO | index::GROUP_ATTACK_TO | index::GUARD
+                ) {
+                    QueuePos::First
+                } else {
+                    QueuePos::New
+                };
+                self.add_attack_order(u, t, pos, mandatory, false);
+                Some(t)
+            }
+            SquadHead::Search => {
+                let t = self.find_melee_target(u, -1)?;
+                self.add_attack_order(u, t, QueuePos::First, false, false);
+                Some(t)
+            }
+        }
+    }
+
     fn melee_squad_head(&self, u: usize) -> SquadHead {
         if self.units[u].captain {
             return SquadHead::Search;
@@ -7862,11 +7899,14 @@ impl Sim {
             return;
         };
         if !self.valid_target(me, target) {
-            // `find_new_target`: the idle search with the order dropped.
+            // `find_new_target`: the order dropped, then
+            // `find_melee_target(−1, NULL, 0, 1, 0)`, **whose head is the
+            // squad's** (item 1089, `docs/COMBAT.md` §79). A follower takes
+            // its captain's `ATTACK` target with no search, and finds
+            // nothing when its captain is not attacking; a captain, or a
+            // follower whose captain's target it may not take, searches.
             self.kill_current_order(u);
-            if let Some(t) = self.find_melee_target(u, -1) {
-                self.add_attack_order(u, t, QueuePos::First, false, false);
-            }
+            self.find_melee_target_added(u);
             // **The frozen frame's mark** (item 502, `docs/COMBAT.md`
             // §43.2). `Unit::fight@005fd4d0`'s invalid-target branch ends
             // at `LAB_005fdb9e`, and its tail is
@@ -8398,6 +8438,73 @@ mod chase_tests {
     use super::*;
     use crate::combat::Profile;
     use crate::world::World;
+
+    /// **A follower whose target has died takes its captain's**
+    /// (`Unit::find_new_target@005ff6a0` → `find_melee_target(−1, NULL, 0,
+    /// 1, 0)`, whose head is `005ff9c0:32-91`; `docs/COMBAT.md` §79).
+    /// run347's `1/13` on tick 5066: its target `0/2` dead, it takes its
+    /// captain `1/12`'s `0/4`, some 3,000 away, where a search would have
+    /// ranked the nearer `0/5` first. run400's packet entered the function
+    /// on `1/13` and it added `0/4` from its head, with no search at all.
+    ///
+    /// A RAID follower out of reach of its captain's target, so `fight`'s
+    /// own mirror (which needs AGGRESSIVE, DEFENSIVE or the target in
+    /// range) does not hand it over first. Made to fail by taking the head
+    /// out of the invalid-target arm: the follower searches and takes the
+    /// nearer foe.
+    #[test]
+    fn a_follower_whose_target_died_takes_its_captain_s() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |sim: &mut Sim, who: Player, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            u.kind = sim.unit_types[ty].kind;
+            sim.add_unit(u)
+        };
+        let c = 30 * 0x300 + 0x198;
+        let captain = put(&mut sim, 1, Pos::new(c - 16 * 0xc0, c));
+        let me = put(&mut sim, 1, Pos::new(c, c));
+        let far = put(&mut sim, 0, Pos::new(c - 24 * 0xc0, c));
+        let near = put(&mut sim, 0, Pos::new(c + 8 * 0xc0, c));
+        let dead = put(&mut sim, 0, Pos::new(c, c + 6 * 0xc0));
+        sim.units[me].captain = false;
+        sim.units[me].combat.captain = i32::from(sim.units[captain].index);
+        sim.units[me].o_up = Some(captain);
+        sim.units[captain].o_down = Some(me);
+        sim.set_stance(me, combat::Stance::Raid);
+        sim.add_attack_order(captain, Obj::Unit(far), QueuePos::First, false, true);
+        sim.add_attack_order(me, Obj::Unit(dead), QueuePos::First, false, true);
+        sim.units[dead].health = 0;
+        // Off the review's phase, `(frame + o) % 16 != 0`.
+        let frame = 17 - i64::from(sim.units[me].index);
+        assert!(!sim.is_in_range(Obj::Unit(me), Obj::Unit(far)));
+        let mut searched = sim.clone();
+        assert_eq!(
+            searched.find_melee_target(me, -1),
+            Some(Obj::Unit(near)),
+            "the search alone ranks the nearer foe first"
+        );
+        sim.work(me, frame);
+        assert_eq!(
+            sim.units[me].combat.target,
+            Some(Obj::Unit(far)),
+            "the follower took its captain's target"
+        );
+    }
 
     /// **A target running from the chaser's heading keeps the chase in
     /// reach** (`do_move@005f7b30`, the listing `5f7fbe`–`5f7ff6`;

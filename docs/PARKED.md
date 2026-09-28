@@ -102,6 +102,13 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1089, 2026-09-28 — the squad head's other callers
+
+(1100) **The squad head at `find_melee_target`'s other callers whose
+third argument is 0** (COMBAT §79.7): `Sim::find_new_target`, the
+packer's re-search, the guard arm and `think`'s idle search. No capture
+has a follower reach one of them.
+
 ## Parked by item 1074, 2026-09-28 — the kill's other gates
 
 (1095) **`find_collision`'s conjunct of `do_move`'s kill**, parked as
@@ -147,7 +154,8 @@ as a seam.
 (1073) **The one-in-five re-search's fresh order** (COMBAT §71.6): at
 every retarget the original's head attack reads `in_range 0, new_ord 1,
 ever_in_range 0` for one block, and this crate re-points the order in
-place. No draw has parted on it.
+place. No draw has parted on it; it was a hypothesis for 5105 and not
+its mechanism (1089).
 
 (1075) **`Army::role` is never written** (ours 0 against 1379331 from
 4550; only its reset writes it), and the Town Center group's `ox`/`oy`
@@ -1305,11 +1313,10 @@ the captain, three citizens' idle `end_time` 33 against 56, and five
 
 ## Parked by item 523, 2026-09-22 — chapter two closed, and what it left
 
-(524) **`near_o` on `0/7` and `0/8` parts from 847**, pinned in
-`NEAR_PARTED`. On 846 the bowmen drop their attack on the dead `1/7`; the
-original keeps `near_o 7 near_who 1` and this crate clears to −1. Not the
-search throttle (`waiting` is 0). It spends no draw through 900, the
-trace's end, so it names no score. No mechanism named.
+(524) closed 2026-09-28 by item 1089: `find_new_target`'s squad head —
+a follower whose target is dead takes its captain's without searching
+(COMBAT §79) — keeps `near_o` on `0/7` and `0/8`, and `NEAR_PARTED` is
+empty.
 
 (525) **run112's `AMMO` records are compared against nothing this crate
 simulates.** `diff::ammo` does it field for field for run109; run112 has
@@ -1841,6 +1848,15 @@ first** (1074's Loop line): the booked hypothesis named the kill's third
 conjunct, and the pop came from the block's gate one test earlier; a
 probe printing `kill_current_order`'s caller on the word's frame named
 it in one run.
+
+(1101) **The first-parting map keeps one frame per key** (1089's Loop
+line, two parts): (a) `1/13`'s `order:target` parted on 4841 on its
+`ATTACK_TO`, so its `ATTACK`'s target parting on 5066 was invisible to
+the widening, and only `RON_STACKS` showed it; a key per order slot
+(`order[<slot>]:target`), or a map that re-arms a key when it agrees
+again, would have printed the frame. (b) A packet at the decision's
+tick rather than the word's (run400 at 5066, for 5105, with the
+commander's approval) is a shape EMULATOR §8's rule could name.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
