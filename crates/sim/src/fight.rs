@@ -4357,37 +4357,48 @@ mod tests {
         let toward = crate::movement::find_angle(sim.units[me].pos.x - at.x, 0);
         // The review's phase: `(frame + o) % 16 == 0`.
         let on = 16 - i64::from(sim.units[me].index);
-        let chase = |sim: &Sim, heading: Option<crate::movement::Angle>, frame: i64| {
-            let mut s = sim.clone();
-            if let Some(h) = heading {
+        let chase_to =
+            |sim: &Sim, stale: Pos, heading: Option<crate::movement::Angle>, frame: i64| {
+                let mut s = sim.clone();
+                if let Some(h) = heading {
+                    s.add_move_order(
+                        foe,
+                        Pos::new(at.x - 20 * 0xc0, at.y),
+                        crate::orders::MoveKind::MoveTo,
+                        crate::orders::QueuePos::New,
+                        false,
+                    );
+                    s.units[foe].movement.heading = h;
+                }
+                s.add_attack_order(
+                    me,
+                    Obj::Unit(foe),
+                    crate::orders::QueuePos::First,
+                    false,
+                    true,
+                );
                 s.add_move_order(
-                    foe,
-                    Pos::new(at.x - 20 * 0xc0, at.y),
+                    me,
+                    stale,
                     crate::orders::MoveKind::MoveTo,
-                    crate::orders::QueuePos::New,
+                    crate::orders::QueuePos::First,
                     false,
                 );
-                s.units[foe].movement.heading = h;
-            }
-            s.add_attack_order(me, Obj::Unit(foe), crate::orders::QueuePos::First, false, true);
-            s.add_move_order(
-                me,
-                stale,
-                crate::orders::MoveKind::MoveTo,
-                crate::orders::QueuePos::First,
-                false,
-            );
-            let before = s.units[me].orders_pos;
-            s.work(me, frame);
-            let after = s.units[me].orders.iter().find_map(|o| match o.body {
-                crate::orders::Body::Move(m) => Some(m.dest),
-                _ => None,
-            });
-            (before, after, s)
-        };
+                let before = s.units[me].orders_pos;
+                s.work(me, frame);
+                let after = s.units[me].orders.iter().find_map(|o| match o.body {
+                    crate::orders::Body::Move(m) => Some(m.dest),
+                    _ => None,
+                });
+                (before, after, s)
+            };
+        let chase = |sim: &Sim, heading, frame| chase_to(sim, stale, heading, frame);
         let (before, after, s) = chase(&sim, Some(away), on);
         let after = after.expect("the chase keeps a move");
-        assert_ne!(after, before, "the fleeing target's chase kept its stale spot");
+        assert_ne!(
+            after, before,
+            "the fleeing target's chase kept its stale spot"
+        );
         assert!(
             s.is_in_range_at(Obj::Unit(me), after, Obj::Unit(foe)),
             "the new spot reaches the target"
@@ -4400,6 +4411,17 @@ mod tests {
             let (before, after, _) = chase(&sim, heading, frame);
             assert_eq!(after, Some(before), "{why} re-aimed the chase");
         }
+        // The range is asked from the **walk spot** (`orders_x/orders_y`,
+        // `5e2553`/`5e2558`), not from where the chaser stands: a spot that
+        // still reaches the target keeps the chase, though the chaser, at
+        // twelve tiles, is out of reach.
+        let near = Pos::new(at.x + 3 * 0xc0, at.y);
+        let (before, after, _) = chase_to(&sim, near, Some(away), on);
+        assert_eq!(
+            after,
+            Some(before),
+            "a walk spot in reach re-aimed the chase"
+        );
     }
 
     /// **An unpacked packer takes only what it can reach, and a hit from
