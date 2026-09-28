@@ -4391,8 +4391,17 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_FIVE: (i64, i64) = (605, 3261);
 /// it under the shield, and this crate wounds the Barracks (its first
 /// wound's `% 100`). The widening goes 284 → 266 rows, all past 3169.
 ///
-/// **The delta**, this constant's: the first walk, 3111; +58, 3169.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3169;
+/// **3420, closed on the draw stream** (item 1078): the shield closes a
+/// missile's round in its holder's land (`Sim::land`'s missile arm,
+/// `678337`..`67845d`), so V2b's round comes down on T_home on 3169 and
+/// strikes nothing, as in run390. The stream agrees to run390's end, and
+/// so does every frame's word (`values at None`). The widening goes 266
+/// → 59 rows: chapter thirty-five's forty-two, and the new units' `form`
+/// and the V2s' seats inside their silos (parked 646's family).
+///
+/// **The delta**, this constant's: the first walk, 3111; +58, 3169;
+/// +251, 3420, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3420;
 
 /// `chapter_thirty_six_s_word_frame_is_widened_whole`'s window: run390
 /// whole, (605, 3421).
