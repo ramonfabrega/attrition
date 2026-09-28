@@ -105,6 +105,13 @@ pub mod index {
         )
     }
 
+    /// **The air family**, `is_air@0046f000`: `STRAFE`, `AIR_PATROL` and
+    /// `AIR_ATTACK_GROUND` (`0x10`, `0x11`, `0x18`). `Ammo::init`'s lead
+    /// asks it beside [`is_move_family`] (`docs/COMBAT.md` §74).
+    pub const fn is_air_family(kind: u8) -> bool {
+        matches!(kind, STRAFE | AIR_PATROL | AIR_ATTACK_GROUND)
+    }
+
     /// Whether this crate can ever *produce* `kind` — the domain of
     /// [`super::Order::index`]. The complement is the set of
     /// `OrderIndex` values a dump can hold and the simulation cannot,
