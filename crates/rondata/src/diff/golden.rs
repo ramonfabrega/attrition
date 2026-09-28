@@ -13018,6 +13018,172 @@ const WANT_CH36_POOL: &[&str] = &[
     "666 slot 2 speed",
 ];
 
+/// **The nuke's launch and round, field for field, both directions**
+/// (item 1091, `docs/PRODUCTION.md` "The nuke (item 1091)"). On every
+/// block of run397 from the strike to five past the landing,
+/// [`NUKE_LAUNCH`]: the silo `0/2007`'s `recharging`, `launch_frames`,
+/// `launching` and **`visible`** (−1 from 3082: the nuke arm's `+0x40`),
+/// read raw; the nuke `0/10` on the map or gone; and every round it
+/// fired, every field this crate carries — its landing on the target's
+/// point, no scatter.
+#[test]
+fn chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field() {
+    use std::collections::{BTreeMap, BTreeSet};
+    let Some(mut s) = stage_script("ch37", "chapter37") else {
+        return;
+    };
+    let (first, last) = NUKE_LAUNCH;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut rows, mut rounds) = (0usize, 0usize);
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let recs = raw_records(&raw);
+        let sim = &s.built.sim;
+        let mut row = |who: i64, o: i64, what: &str, mine: i64, dumped: i64| {
+            rows += 1;
+            if mine != dumped {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {mine} theirs {dumped}")));
+            }
+        };
+        // The silo.
+        let silo = sim
+            .buildings
+            .iter()
+            .position(|b| b.owner == 0 && b.index == 2007 && b.alive)
+            .expect("the silo stands");
+        let bd = &sim.buildings[silo];
+        let theirs = recs
+            .get(&("BUILDDATA", 0, 2007))
+            .expect("run397 prints the silo");
+        let get = |k: &str| theirs.get(k).copied().unwrap_or(-1);
+        let launching = bd
+            .launching
+            .first()
+            .map_or(-1, |&u| i64::from(sim.units[u].index));
+        row(
+            0,
+            2007,
+            "recharging",
+            i64::from(bd.recharging),
+            get("recharging"),
+        );
+        row(
+            0,
+            2007,
+            "launch_frames",
+            i64::from(bd.launch_frames),
+            get("launch_frames"),
+        );
+        row(
+            0,
+            2007,
+            "launching.length",
+            bd.launching.len() as i64,
+            get("length"),
+        );
+        row(0, 2007, "launching[0]", launching, get("list[scan]"));
+        // The nuke's launch shows the silo to everyone (item 1091).
+        row(
+            0,
+            2007,
+            "visible",
+            sim.nukes.visible_of(silo),
+            get("visible"),
+        );
+        // The nuke.
+        let ours_v2 = sim.unit_by_o(0, 10).is_some();
+        let theirs_v2 = recs.contains_key(&("UNITDATA", 0, 10));
+        row(0, 10, "present", i64::from(ours_v2), i64::from(theirs_v2));
+        // Its rounds.
+        let theirs: BTreeMap<i64, super::ammo::Ammo> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0 && a.who == 0 && a.o == 10)
+            .map(|(a, _)| (a.index, a))
+            .collect();
+        let ours: BTreeMap<i64, sim::combat::Projectile> = sim
+            .projectiles
+            .iter()
+            .filter(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => sim.units[u].owner == 0 && sim.units[u].index == 10,
+                sim::combat::Obj::Building(_) => false,
+            })
+            .map(|p| (i64::from(p.slot), *p))
+            .collect();
+        rounds += theirs.len();
+        let slots: BTreeSet<i64> = theirs.keys().chain(ours.keys()).copied().collect();
+        for slot in slots {
+            let (Some(a), Some(p)) = (theirs.get(&slot), ours.get(&slot)) else {
+                // Held alone: 1 on the side that holds it.
+                row(
+                    0,
+                    10,
+                    &format!("ammo[{slot}]"),
+                    i64::from(ours.contains_key(&slot)),
+                    i64::from(theirs.contains_key(&slot)),
+                );
+                continue;
+            };
+            for (name, mine, dumped) in [
+                ("cur_time", i64::from(p.cur_time), a.cur_time),
+                ("total_time", i64::from(p.total_time), a.total_time),
+                ("whom", -1, a.whom),
+                ("ox", -1, a.ox),
+                ("sx", i64::from(p.launch.x), a.sx),
+                ("sy", i64::from(p.launch.y), a.sy),
+                ("sz", i64::from(p.sz), a.sz),
+                ("ex", i64::from(p.landing.x), a.ex),
+                ("ey", i64::from(p.landing.y), a.ey),
+                ("ez", i64::from(p.ez), a.ez),
+                ("angle", i64::from(p.angle.0), a.angle),
+                ("traj", 2, a.traj),
+                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+                ("accuracy", i64::from(p.accuracy), a.accuracy),
+                ("splash_area", i64::from(p.splash_area), a.splash_area),
+                ("num_guys", i64::from(p.num_guys), a.num_guys),
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
+                row(0, 10, &format!("ammo[{slot}].{name}"), mine, dumped);
+            }
+        }
+    }
+    for ((w, o, what), (f, r)) in &firsts {
+        eprintln!("  ch37 nuke f{f} {w}/{o} {what}: {r}");
+    }
+    eprintln!("ch37 nuke: {rows} rows, {rounds} dumped rounds");
+    assert!(
+        rounds >= 100,
+        "run397 dumps the nuke's round from 3082 to its landing"
+    );
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    assert_eq!(
+        got, WANT_CH37_NUKE,
+        "ch37: what parts in the nuke's launch moved"
+    );
+}
+
+/// Chapter thirty-seven's launch rows (item 1091): none.
+const WANT_CH37_NUKE: &[&str] = &[];
+
+/// `chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field`'s
+/// window: the strike's block to five past the landing.
+const NUKE_LAUNCH: (i64, i64) = (3050, 3206);
+
 /// **The V2's launch, field for field, both directions** (item 1050,
 /// `docs/PRODUCTION.md` "The missile's launch and round"). On every block
 /// of run371 from the silo's strike to two blocks past the round's

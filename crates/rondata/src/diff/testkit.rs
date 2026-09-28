@@ -4972,6 +4972,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // at ground zero (pinned at 0, it fails).
     ("chapter_thirty_seven_holds_to_the_golden_word", 1),
     ("chapter_thirty_seven_s_word_frame_is_widened_whole", 1),
+    (
+        "chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field",
+        1,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

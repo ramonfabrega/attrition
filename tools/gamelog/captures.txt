@@ -8786,6 +8786,39 @@ check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch35/map-14/rontra
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch35/map-14/rontrace.log" rontrace-run372.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=3260)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run372.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$|CommandManager::issue_launch_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
 
+
+run: 398
+tag: ch37-cover-issued
+item: 1091
+why: the blind list for chapter thirty-seven — chapter37.cmd at cover=1 on the queue lane (golden run397, cover=0 on the click-free lane), to take Nuke::add_nuke@0092ba30 off
+# `~/ron-golden/ch37/map-14/rontrace.cmd` line for line to 3210, as run372
+# is run371's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+# `cover=1`, ending ten frames past the landing on 3200.
+frames: 3210
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 4
+cmd: 600 library who=0 6
+cmd: 606 resource who=0 all +2000
+cmd: 610 add missile_silo who=0 100,180
+cmd: 615 @queueup 0 315 1 2007
+cmd: 2300 @queueup 0 315 1 2007
+cmd: 2940 add barracks who=1 120,180
+cmd: 2942 add barracks who=1 131,185
+cmd: 2950 add elite_special_forces who=0 122,180
+cmd: 2952 add elite_special_forces who=0 120,174
+cmd: 2954 add elite_special_forces who=0 110,180
+cmd: 2956 add elite_special_forces who=0 110,182
+cmd: 3050 @launchstrike 0 2006 1 2007
+cmd: 3060 tech who=1 missile_shield on
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch37/map-14/rontrace.log" rontrace-run398.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch37/map-14/rontrace.log" rontrace-run398.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=3210)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run398.log" functions 2>/dev/null | grep -E "Nuke::add_nuke$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
+
 # run381 (item 1066) is not a stanza: it is `startcapture.sh 381 7
 # greatsahara-start` under `viadriver.sh`, run38's `DUMP_ALL` start on Great
 # Sahara — the height table, the checksum trace, the herds and the frame
