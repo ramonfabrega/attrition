@@ -599,11 +599,13 @@ impl Sim {
         self.mark(SITE_CELL);
         let mut score = vector_dist(here.x - c.x, here.y - c.y) * 8 + self.rng.roll() % 8;
 
-        // §8. `treaties[leader] & 3 == 0` is `diplos == 0`, which
-        // `LeaderData::is_enemy` reads as war — so a scout is pushed away
-        // from a hostile leader's cities, and twice as far from a
-        // computer's as from a human's.
-        if scan.leader != who && self.at_war_with(who, scan.leader) {
+        // §8. `treaties[leader] & 3 == 0` — `LeaderData +0x94`, **not**
+        // `diplos` at `+0x74` (`005f6688`: `0xe3a424` is leader 0's
+        // `+0x94`) — is "these two have not met": bit 0 is the met bit
+        // `Leader::meet` sets. So a scout is pushed away from a stranger's
+        // cities, twice as far from a computer's as from a human's, and
+        // stops being pushed once the two have met (§8.3).
+        if scan.leader != who && self.scout_treaty(who, scan.leader) & 3 == 0 {
             score *= 2;
             if self.ai_driven(scan.leader) {
                 score *= 2;
@@ -627,6 +629,17 @@ impl Sim {
         scan.score = score;
         scan.tile = tile;
         scan.ring = scan.ring.min(ring);
+    }
+
+    /// `leaders[who].treaties[other]` (`LeaderData +0x94`), raw: the met
+    /// bit and whatever else is set, with no defeated test — the read
+    /// `think_scout`'s score makes at `005f6688` (`docs/SCOUT.md` §8.3).
+    fn scout_treaty(&self, who: Player, other: Player) -> i32 {
+        self.treaties
+            .get(who as usize)
+            .and_then(|r| r.get(other as usize))
+            .copied()
+            .unwrap_or(0)
     }
 
     /// `WorldData::danger[who][(y >> 1) * reg_xs + (x >> 1)]`, the term
@@ -1378,6 +1391,46 @@ mod tests {
             !s.scout_unit_near(ai, target),
             "a sibling in another region never rejects the cell"
         );
+    }
+
+    /// **§8.3: the rival's multiplier asks whether the two have met, not
+    /// whether they are at war.** `think_scout` tests `treaties[L] & 3`
+    /// (`LeaderData +0x94`) at `005f6688`, where this crate read `diplos`
+    /// (`+0x74`) through `at_war_with`. run360's packet at tick 4506 scores
+    /// the human's cells with no doubling while the two are at war, because
+    /// they met on 4456. Both leaders are at war throughout here, so the
+    /// old reading doubles every row and the met rows fail.
+    #[test]
+    fn a_rival_s_cell_is_doubled_until_the_two_have_met() {
+        let (mut s, ai, _) = scout_sim(true);
+        s.declare_war(0, 1);
+        assert!(s.at_war_with(1, 0), "the two are at war throughout");
+        let here = s.units[ai].pos.cell();
+        let c = Cell::new(here.x + 3, here.y + 1);
+        let score = |s: &mut Sim| {
+            s.rng.seed = 12345;
+            let mut scan = Scan {
+                score: NOTHING,
+                tile: Pos::default(),
+                ring: 3,
+                budget: 0,
+                over: false,
+                leader: 0,
+            };
+            s.scout_cell(ai, 1, c, &mut scan, 1);
+            scan.score
+        };
+        let unmet = score(&mut s);
+        s.nation[0].human = false;
+        let unmet_computer = score(&mut s);
+        s.nation[0].human = true;
+        s.treaty_on(1, 0, 1);
+        let met = score(&mut s);
+        assert!(met > 0 && met < NOTHING, "the cell is a candidate: {met}");
+        assert_eq!(unmet, 2 * met, "a human stranger's cell counts double");
+        assert_eq!(unmet_computer, 4 * met, "a computer stranger's four times");
+        s.nation[0].human = false;
+        assert_eq!(score(&mut s), met, "and a met computer's not at all");
     }
 
     /// The guard on the other half of §11: with the stride at 1 the
