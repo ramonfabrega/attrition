@@ -8297,9 +8297,10 @@ named. Parked.
 
 ### 47.7 What is not established
 
-- **The lead's gate.** The original leads a target whose order `is_move`
+- ~~**The lead's gate.** The original leads a target whose order `is_move`
   or `is_air`. This crate still asks `movement.dest.is_some()`, which is
-  not the same predicate. Every lead on run112 agrees under it.
+  not the same predicate. Every lead on run112 agrees under it.~~ Built,
+  with the angle read from `+0x50` (`heading`): §74.
 - **The splash arm's bearing** follows the same listing and is not
   reached by any capture on disk.
 - **The whole-squad arm** of the relink (a dying head with nobody live
@@ -8323,8 +8324,8 @@ the fourth death on 816), and the word 762 → 900 with its widening.
 `find_angle(ex − sx, ey − sy)` sites, and the lead's `angle`/`avg_speed`
 pair.
 
-**Reading-only**: the whole-squad arm, the group test and the lead's
-`is_move`/`is_air` gate.
+**Reading-only**: the whole-squad arm and the group test. ~~The lead's
+`is_move`/`is_air` gate~~ is diff-backed since §74.
 
 ## 48. A bump from another enemy ends the chase, and chapter one is widened (item 445, 2026-09-22)
 
@@ -12313,9 +12314,14 @@ Built here.
 
 ### 74.5 The killers
 
-Each run as a mutation on the built tree, with `git diff --stat`
-non-empty, restored from git and `touch`ed after. Scored in the table
-below (74.8).
+Each was run as a mutation on `a793d9ff` (after the `ccc update` onto
+1077's booking), with `git diff --stat` non-empty, restored from git and
+`touch`ed after. The pins a re-pin touches were green first.
+
+| mutation | unit test | run347's walk | run373 | the rest |
+|---|---|---|---|---|
+| the gate back to `movement.dest.is_some()` | fails | falls to 5042 | fails on `0/1`'s rows | run356 holds |
+| the angle back to `facing` | fails | holds 5066 | holds | the whole rondata suite holds (576 of 578; the two red are the commander's line and the run's own thread count) |
 
 ### 74.6 What moved
 
@@ -12348,8 +12354,17 @@ below (74.8).
   capture on disk has a building shooting a moving unit near a word.
 - **An air-order target** (`is_air`) is led now and no capture on disk
   shoots at one.
-- **The heading against the facing** is unit-backed only if its killer
-  (74.8) moves no pin: every led round on disk has the two equal.
+- **The heading against the facing** is unit-backed only: its killer
+  (74.5) moves no capture's pin. The listing and the type record name
+  `+0x50`; no round on disk lands differently for it.
 
 ### 74.8 Coverage
 
+- **Diff-backed**: the gate, by run373's `0/1` (5041, 5045, 5077) and
+  frame 5042's draws on run347, and the gate's killer failing both; the
+  three `FLEE_TO` instances on disk (4962, 5024, 5064).
+- **Listing-backed**: `67ce62`–`67ceda`; `is_move@0046f050`,
+  `is_air@0046f000`, `order_type@00616e80` (decompile).
+- **Unit-backed only**: the angle (`heading`, not `facing`), and a
+  destination with no move at the head going unled.
+- **Not backed**: an air-order target, and a building shooter's lead.
