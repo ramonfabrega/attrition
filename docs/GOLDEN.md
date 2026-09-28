@@ -7235,3 +7235,17 @@ strike on `0/1`, `mandatory` 1, `0/6` flags 4 inside and the rest 0; on
 order is the prototype's. Falsifier 7 cannot split the escort's point
 from a frozen one: `0/1` stands still.
 
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_THREE` = 2287,
+open, on the first walk**: theirs alone `Unit::do_air_physics+0xba`, the
+Biplane `0/9`'s altitude redraw over P1, where this crate's stands inside
+with no order. The widening, run358 whole (605, 2741), pins 389 rows and
+eleven pool rows (chapter twenty-two's ten and slot 1's `facing` on 2314).
+**The first parting's field list**, 2262, `0/8` alone: its stack (0
+against 1, the strike), `inside` (2007 against −1), `pos`, `heading`,
+`dest_angle`, `orders_x/y`, `path:length` and its figure's point, height,
+bank, pitch and clock. **Their writers** (889): the stack's is
+`action_launch_flight`'s strike from inside alone; the rest are
+`do_launch`'s `come_out` on the same block, the EXIT at the Airbase, which
+only the strike admits. Then 2282, 2297, 2307 and 2337, each press's
+planes.
+

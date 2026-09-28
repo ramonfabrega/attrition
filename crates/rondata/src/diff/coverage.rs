@@ -305,10 +305,13 @@ const UNREAD: &[(&str, &str)] = &[
     // it removes and refunds is read off `BUILDQUEUE` and the buckets.
     // **Item 928's run312 windows `process_gather_point`** (`x y action
     // add_to_end frame`), the first player's rally point; what it writes is
-    // read off the building's gather list.
+    // read off the building's gather list. **Item 976's run358 windows
+    // `process_launch_patrol`** (`x y queued shift ctrl alt`), the
+    // Airbase's right-click on the ground; what it writes is read off the
+    // planes' stacks.
     (
         "GAME",
-        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather_point process_garrison process_group, process_guard process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -572,6 +575,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch30 = golden_dump("ch30");
     let ch31 = golden_dump("ch31");
     let ch32 = golden_dump("ch32");
+    let ch33 = golden_dump("ch33");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1480,6 +1484,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [1602, 1702, 1741, 1746, 1747, 1751, 1852, 2034, 2106, 2357] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty-two carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirty-three's word, on run358** (item 976): an Airbase's
+    // launch issuers. 2202, the enemy Barracks; 2262, the launch strike;
+    // 2282, the plain launch patrol; 2287, the word; 2297, the shift-click;
+    // 2307, action 3's strikes; 2337, the append's patrols; 2409 and 2489,
+    // the first and last over P3; 2737, the last blocks.
+    if let Some(p) = &ch33 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_THREE;
+        for w in [2202, 2262, 2282, 2287, 2297, 2307, 2337, 2409, 2489, 2737] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(
+                n, 5,
+                "chapter thirty-three carries the window's five blocks"
+            );
             frames += n;
         }
     }
