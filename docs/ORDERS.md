@@ -5338,6 +5338,11 @@ the order and stood still. `a_dead_target_s_move_is_repathed_only_within_
 0x480_of_its_destination` pins both arms and both were made to fail on
 purpose.
 
+**And the arm is reached only on those three tests** (item 1074,
+`docs/COMBAT.md` §77): this crate entered it on `valid_target`, whose
+`is_seen` sent a living target out of sight here too; `5f7ece`–`5f7f11`
+asks `o`/`who`, `flags & 1` and the `uid`, and nothing else.
+
 ### 20.4 What it moved
 
 | | before | after |

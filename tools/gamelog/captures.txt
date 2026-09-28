@@ -8892,3 +8892,14 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 # 24001 is the shutdown dump, both leaders `defeated_by -1`. 10,552,505
 # bytes, trace 22,691,712. `rngcmp.py` against run382: 1,851 in common, 0
 # differ. `docs/RUNS.md` run383.
+
+# ==== item 1074: the second pair's Great Lakes word 5105 widened ====
+#
+# run396 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run396),
+# which takes run373's shape with blocks 5100..5356, `!quit` at 5369,
+# `cover=0` and `--profile DIFFICULTY=5`. Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run347.log rontrace-run396.log   -> 0 differing, 5,370 identical
+#   grep -a -m1 '^  DIFFICULTY 5' / '^  MAP_STYLE 14' on gamelog-run396-greatlakes-toughest-5105.txt
+#   257 window blocks, 5100..5356
+# ==== TAKEN 2026-09-28, one take, 14:10–14:27 ====

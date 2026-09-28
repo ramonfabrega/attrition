@@ -102,14 +102,22 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
-## Parked by item 1086, 2026-09-28 — the review's edges
+## Parked by item 1074, 2026-09-28 — the kill's other gates
 
-(1089) **The review's two edges** (COMBAT §76): `1/13`'s chase on `0/4`
-from 5068, where `find_attack_pos` aims ours at (3384, 31464) with
-tolerance 0 and the original at (2136, 31608) with tolerance 384, seven
-frames before 5075 and not the word's figure; and a reused slot, since
-the original's review reads `objects[whom][ox]` with no `uid` test
-(§76.7). (1074 was promoted to the queue on 5075.)
+(1095) **`find_collision`'s conjunct of `do_move`'s kill**, parked as
+1074 and killed for 5075 by it: the pop came from the block's action
+gate one test earlier (COMBAT §77). The conjunct stays a `SEAM`
+(§77.7), unreached on disk. (1089, the review's edges, was promoted to
+the queue on 5105; 1074 landed.)
+
+(1096) **A target inside something, or out of war, now enters
+`do_move`'s ranged block** (§77.7): the original's gate asks only
+`o`/`who`, `flags & 1` and `uid`. No capture holds either case.
+
+(1098) **The review's reused slot** (COMBAT §76.7; 1089's second edge,
+kept here when 1089 was promoted): the original's review reads
+`objects[whom][ox]` with no `uid` test, so a slot reused by a new unit
+is reviewed as the old target.
 
 ## Parked by item 1081, 2026-09-28 — the lead's edges
 
@@ -1827,6 +1835,12 @@ clamped** (1078's Loop line): the staging walk's first draft appended
 lines after the chapter's last, and the interpreter clamped them to it
 silently; the script test could refuse a script whose frames run
 backwards, for a chapter built by appending to its predecessor.
+
+(1097) **A chase that ends on one side prints its popping call chain
+first** (1074's Loop line): the booked hypothesis named the kill's third
+conjunct, and the pop came from the block's gate one test earlier; a
+probe printing `kill_current_order`'s caller on the word's frame named
+it in one run.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
