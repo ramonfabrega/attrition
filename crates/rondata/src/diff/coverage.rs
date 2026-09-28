@@ -631,6 +631,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r356 = crate::testenv::dump("gamelog-run356-greatlakes-toughest-4555.txt");
     let r357 = crate::testenv::dump("gamelog-run357-islands-toughest-5606.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
+    let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1082,6 +1083,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             n, 4,
             "run373 carries the second pair's Great Lakes word's blocks"
         );
+        frames += n;
+    }
+    // **The third map's word, on run382** (item 1066): Great Sahara's frame
+    // 8 writes block 9, and the window is it with two either side. run10's
+    // detail on a map no other window here is on.
+    if let Some(p) = &r382 {
+        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run382 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

@@ -10716,6 +10716,37 @@ pub(crate) mod tests {
     /// [`widen_great_lakes`] on another Great Lakes game's start: the
     /// second pair's run347 (item 971) is run53's lobby at Toughest.
     pub(crate) fn widen_great_lakes_on(
+        base: (&str, &str),
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+        records: bool,
+    ) -> Option<Widened> {
+        widen_on_siblings(
+            SIBLING_DUMPS,
+            false,
+            base,
+            name,
+            chain,
+            window,
+            pools,
+            near,
+            records,
+        )
+    }
+
+    /// [`widen_great_lakes_on`] on another map's start: `siblings` are the
+    /// dumps its head is borrowed from, and `gaia` adds [`widen_gaia`]'s
+    /// rows. Great Sahara (item 1066) stands up on run381 and has herds.
+    #[expect(
+        clippy::too_many_arguments,
+        reason = "widen_great_lakes_on's inputs plus the map's siblings and gaia"
+    )]
+    pub(crate) fn widen_on_siblings(
+        siblings: &[&str],
+        gaia: bool,
         (base, base_trace): (&str, &str),
         name: &str,
         chain: &[(&str, i64)],
@@ -10742,7 +10773,11 @@ pub(crate) mod tests {
             .collect();
         let (first_block, tail) = window;
         let loaded = crate::load::load(&inst).unwrap();
-        let texts = sibling_texts();
+        let texts: Vec<String> = siblings
+            .iter()
+            .filter_map(|n| dump(n))
+            .map(crate::capture::read)
+            .collect();
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let logs: Vec<Log> = texts.iter().map(|t| Log::parse(t)).collect();
@@ -10883,6 +10918,9 @@ pub(crate) mod tests {
                             .or_insert((n, format!("ours {v} theirs {y}")));
                     }
                 }
+            }
+            if gaia {
+                compared += widen_gaia(&built, &frame, players, n, &mut here, &mut missing);
             }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
@@ -18399,66 +18437,9 @@ pub(crate) mod tests {
                     }
                 }
             }
-            // **Gaia's animals** (parked 577: `compare` walks `0..players`
-            // and never reads `who 8`). Each animal's position and its first
-            // figure's clock, `cur_anim` and `cur_time`, against this
-            // crate's animal of the same number.
+            // **Gaia's animals** (parked 577): [`widen_gaia`].
             if gaia {
-                for t in frame.units.iter().filter(|t| t.who >= players as i64) {
-                    let ours = u8::try_from(t.who)
-                        .ok()
-                        .zip(i16::try_from(t.o).ok())
-                        .and_then(|(w, o)| built.sim.unit_by_o(w, o));
-                    let Some(u) = ours else {
-                        here.entry((t.who, t.o, "gaia:alive".into()))
-                            .or_insert((n, "ours none theirs alive".into()));
-                        continue;
-                    };
-                    let x = &built.sim.units[u];
-                    let g = x.guys.first();
-                    let tg = t.guys.first();
-                    let rows = [
-                        (
-                            "gaia:pos",
-                            (i64::from(x.pos.x), i64::from(x.pos.y)) == (t.pos.x, t.pos.y),
-                            format!(
-                                "ours ({},{}) theirs ({},{})",
-                                x.pos.x, x.pos.y, t.pos.x, t.pos.y
-                            ),
-                        ),
-                        (
-                            "gaia:cur_anim",
-                            g.map(|g| i64::from(g.anim)) == tg.and_then(|g| g.cur_anim),
-                            format!(
-                                "ours {:?} theirs {:?}",
-                                g.map(|g| g.anim),
-                                tg.and_then(|g| g.cur_anim)
-                            ),
-                        ),
-                        (
-                            "gaia:cur_time",
-                            g.map(|g| i64::from(g.cur_time)) == tg.and_then(|g| g.cur_time),
-                            format!(
-                                "ours {:?} theirs {:?}",
-                                g.map(|g| g.cur_time),
-                                tg.and_then(|g| g.cur_time)
-                            ),
-                        ),
-                    ];
-                    // A short `GUY` record (run96's) prints no clock: that
-                    // is a key unprinted, not a parting (item 919).
-                    let printed = tg.is_some_and(|g| g.cur_anim.is_some());
-                    for (what, same, row) in rows {
-                        if what != "gaia:pos" && !printed {
-                            missing.insert(what.into());
-                            continue;
-                        }
-                        compared += 1;
-                        if !same {
-                            here.entry((t.who, t.o, what.into())).or_insert((n, row));
-                        }
-                    }
-                }
+                compared += widen_gaia(&built, &frame, players, n, &mut here, &mut missing);
             }
             for &(w, o) in &row_walk {
                 let now: Vec<String> = here
@@ -18586,6 +18567,80 @@ pub(crate) mod tests {
             standing,
             army_lists,
         })
+    }
+
+    /// **Gaia's animals, both sides, on one block** (parked 577: `compare`
+    /// walks `0..players` and never reads `who 8`). Each animal's position
+    /// and its first figure's clock, `cur_anim` and `cur_time`, against this
+    /// crate's animal of the same number; a figure a short `GUY` record
+    /// prints no clock for is a key unprinted, not a parting (item 919).
+    /// Answers the rows compared. [`widen_east_indies_on`]'s since item 577,
+    /// a helper since item 1066 walked Great Sahara's herds.
+    pub(crate) fn widen_gaia(
+        built: &Built,
+        frame: &Frame,
+        players: usize,
+        n: i64,
+        here: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+        missing: &mut std::collections::BTreeSet<String>,
+    ) -> usize {
+        let mut compared = 0usize;
+        for t in frame.units.iter().filter(|t| t.who >= players as i64) {
+            let ours = u8::try_from(t.who)
+                .ok()
+                .zip(i16::try_from(t.o).ok())
+                .and_then(|(w, o)| built.sim.unit_by_o(w, o));
+            let Some(u) = ours else {
+                here.entry((t.who, t.o, "gaia:alive".into()))
+                    .or_insert((n, "ours none theirs alive".into()));
+                continue;
+            };
+            let x = &built.sim.units[u];
+            let g = x.guys.first();
+            let tg = t.guys.first();
+            let rows = [
+                (
+                    "gaia:pos",
+                    (i64::from(x.pos.x), i64::from(x.pos.y)) == (t.pos.x, t.pos.y),
+                    format!(
+                        "ours ({},{}) theirs ({},{})",
+                        x.pos.x, x.pos.y, t.pos.x, t.pos.y
+                    ),
+                ),
+                (
+                    "gaia:cur_anim",
+                    g.map(|g| i64::from(g.anim)) == tg.and_then(|g| g.cur_anim),
+                    format!(
+                        "ours {:?} theirs {:?}",
+                        g.map(|g| g.anim),
+                        tg.and_then(|g| g.cur_anim)
+                    ),
+                ),
+                (
+                    "gaia:cur_time",
+                    g.map(|g| i64::from(g.cur_time)) == tg.and_then(|g| g.cur_time),
+                    format!(
+                        "ours {:?} theirs {:?}",
+                        g.map(|g| g.cur_time),
+                        tg.and_then(|g| g.cur_time)
+                    ),
+                ),
+            ];
+            // A short `GUY` record (run96's) prints no clock: that
+            // is a key unprinted, not a parting (item 919).
+            let printed = tg.is_some_and(|g| g.cur_anim.is_some());
+            for (what, same, row) in rows {
+                if what != "gaia:pos" && !printed {
+                    missing.insert(what.into());
+                    continue;
+                }
+                compared += 1;
+                if !same {
+                    here.entry((t.who, t.o, what.into())).or_insert((n, row));
+                }
+            }
+        }
+        compared
     }
 
     /// What [`widen_east_indies`] found.
