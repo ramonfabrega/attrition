@@ -461,23 +461,49 @@ pub enum Issued {
     /// group of the player's own buildings: a right-click on the ground
     /// with an Airbase selected (`WorldMap::on_right_up@008c7050:240`).
     /// `@launchpatrolall` is the shift-click's `QUEUE_LAST` and shift 1
-    /// (item 976, `docs/GOLDEN.md` §42).
+    /// (item 976, `docs/GOLDEN.md` §42); `@launchpatrolctrl` and
+    /// `@launchpatrolalt` the plain click with ctrl or alt held (item 1009,
+    /// §43).
     LaunchPatrol {
         who: i32,
         at: Pos,
         all: bool,
+        keys: Keys,
         buildings: Vec<i16>,
     },
     /// `@launchstrike <who> <ox> <whom> <b>…` — `CommandManager::
     /// issue_flight@00941d40(group, ox, whom, ATTACK, 0, 0, 0)` on a group
     /// of the player's own buildings: an Airbase's right-click on an enemy
-    /// (`Console::execute_at_cursor@007c6630`), item 976.
+    /// (`Console::execute_at_cursor@007c6630`), item 976;
+    /// `@launchstrikectrl` and `@launchstrikealt` with ctrl or alt held, and
+    /// `@launchmove` the right-click on another base of one's own, `MOVE_TO`
+    /// (item 1009, §43).
     LaunchStrike {
         who: i32,
         ox: i32,
         whom: i32,
+        orders: i32,
+        keys: Keys,
         buildings: Vec<i16>,
     },
+}
+
+/// The ctrl and alt bytes a launch line carries (item 1009): `ctrl` keeps
+/// the Bomber line, `alt` the Biplane line.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Keys {
+    pub ctrl: bool,
+    pub alt: bool,
+}
+
+impl From<Keys> for sim::airbase::Keys {
+    fn from(k: Keys) -> Self {
+        sim::airbase::Keys {
+            shift: false,
+            ctrl: k.ctrl,
+            alt: k.alt,
+        }
+    }
 }
 
 /// `None` for a line the DLL refuses as unparsed (its refusal 5): not `@`,
@@ -516,7 +542,12 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "gatherpointadd"
             | "launchpatrol"
             | "launchpatrolall"
+            | "launchpatrolctrl"
+            | "launchpatrolalt"
             | "launchstrike"
+            | "launchstrikectrl"
+            | "launchstrikealt"
+            | "launchmove"
     ) {
         return None;
     }
@@ -592,9 +623,10 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             buildings,
         });
     }
-    // `@launchpatrol`'s two numbers are the point, `@launchstrike`'s the
-    // target, and their objects are buildings (item 976).
-    if verb == "launchpatrol" || verb == "launchpatrolall" || verb == "launchstrike" {
+    // `@launchpatrol`'s two numbers are the point, `@launchstrike`'s and
+    // `@launchmove`'s the target, and their objects are buildings (items
+    // 976 and 1009).
+    if let Some(rest) = verb.strip_prefix("launch") {
         let [who, x, y, ref buildings @ ..] = nums[..] else {
             return None;
         };
@@ -606,20 +638,26 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
         if buildings.is_empty() || !(0..8).contains(&who) {
             return None;
         }
-        return Some(if verb == "launchstrike" {
-            Issued::LaunchStrike {
+        let keys = Keys {
+            ctrl: rest.ends_with("ctrl"),
+            alt: rest.ends_with("alt"),
+        };
+        return Some(match rest {
+            "strike" | "strikectrl" | "strikealt" | "move" => Issued::LaunchStrike {
                 who,
                 ox: x,
                 whom: y,
+                orders: if rest == "move" { 1 } else { 10 },
+                keys,
                 buildings,
-            }
-        } else {
-            Issued::LaunchPatrol {
+            },
+            _ => Issued::LaunchPatrol {
                 who,
                 at: Pos::new(x, y),
-                all: verb == "launchpatrolall",
+                all: rest == "patrolall",
+                keys,
                 buildings,
-            }
+            },
         });
     }
     // `@queueup`'s two numbers are the type and the count, and its objects
@@ -951,14 +989,19 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             who,
             at,
             all,
+            keys,
             buildings,
-        }) => crate::input::group_launch_patrol(built, who, &buildings, at, all),
+        }) => crate::input::group_launch_patrol(built, who, &buildings, at, all, keys.into()),
         Some(Issued::LaunchStrike {
             who,
             ox,
             whom,
+            orders,
+            keys,
             buildings,
-        }) => crate::input::group_launch_flight(built, who, &buildings, ox, whom, 10),
+        }) => {
+            crate::input::group_launch_flight(built, who, &buildings, ox, whom, orders, keys.into())
+        }
         None => {
             done.skip(&word, "not an issuer line the DLL runs");
             return;
@@ -1757,6 +1800,7 @@ mod tests {
                 who: 0,
                 at: Pos { x: 13440, y: 9600 },
                 all: false,
+                keys: Keys::default(),
                 buildings: vec![2007],
             })
         );
@@ -1766,6 +1810,7 @@ mod tests {
                 who: 0,
                 at: Pos { x: 7680, y: 11520 },
                 all: true,
+                keys: Keys::default(),
                 buildings: vec![2007],
             })
         );
@@ -1775,9 +1820,52 @@ mod tests {
                 who: 0,
                 ox: 2006,
                 whom: 1,
+                orders: 10,
+                keys: Keys::default(),
                 buildings: vec![2007],
             })
         );
+        // Item 1009: ctrl and alt, and the right-click on a base of one's
+        // own.
+        assert_eq!(
+            parse_issuer("@launchpatrolctrl 0 13440 9600 2007"),
+            Some(Issued::LaunchPatrol {
+                who: 0,
+                at: Pos { x: 13440, y: 9600 },
+                all: false,
+                keys: Keys {
+                    ctrl: true,
+                    alt: false
+                },
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@launchstrikealt 0 2006 1 2007"),
+            Some(Issued::LaunchStrike {
+                who: 0,
+                ox: 2006,
+                whom: 1,
+                orders: 10,
+                keys: Keys {
+                    ctrl: false,
+                    alt: true
+                },
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(
+            parse_issuer("@launchmove 0 2008 0 2007"),
+            Some(Issued::LaunchStrike {
+                who: 0,
+                ox: 2008,
+                whom: 0,
+                orders: 1,
+                keys: Keys::default(),
+                buildings: vec![2007],
+            })
+        );
+        assert_eq!(parse_issuer("@launchpatrolshift 0 1 2 2007"), None);
         assert_eq!(parse_issuer("@launchpatrol 0 13440 9600"), None);
         assert_eq!(parse_issuer("@launchstrike 9 2006 1 2007"), None);
     }

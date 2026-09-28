@@ -1284,6 +1284,59 @@ bytes in all; `issue_flight` on the same group a 25-byte `flight` with
 - The escort's arm is taken when the target's owner is not negative and
   `is_ally` (vslot `0x30` is `Window::get_button`, 0).
 
+**The other arms, under the emulator** (item 1009, `docs/GOLDEN.md`
+§43; a scratch script on `tools/emu/callfn.py`'s machine, out of git).
+`action_launch_patrol` and `action_launch_flight` ran unchanged on
+chapter thirty-two's hangar with a Helicopter (`+0x2b4 & 0x20`, tank 0)
+behind the four, a Missile Silo, V2s and a nuclear missile; the callees
+hooked as 976's were, with `can_carry`, `valid_target`, `count_inside`,
+`num_inside` and `current_age` added:
+
+| the call | what it did |
+| --- | --- |
+| launch patrol, the fighters refuelling, the Helicopter full | the Helicopter: `close_orders`, `clear_partial_path`, `update_action`, a `MOVE_TO` to (13464, 9624) — the point's 48-unit cell centre — facing `find_angle(1824, −4320)`, the point less the plane's own position, flags 4, appended (÷ 4 beats the Bombers' ÷ 1) |
+| the same, every plane refuelling but the Helicopter | the Helicopter's move |
+| `QUEUE_LAST` and shift | a patrol each for the four, the move for the Helicopter |
+| ctrl; alt; the Helicopter alone full | nothing; nothing |
+| a V2 alone full | nothing (the missile skip) |
+| ctrl and alt together | `0/6`: alt is asked first |
+| launch strike alt, on a building | `[6]`; `0/6` refuelling: `[9]` |
+| ctrl | `[8]`; the fighters refuelling: `[8]`; both Bombers refuelling: nothing |
+| ctrl on `[2009, 2007]`, a Barracks beside the Airbase | `[8]` (the filter asks the group's `AIRBASE` count, not the member) |
+| the Helicopter alone full | nothing: `mana` 0, reach 0; with a tank of 450, `[10]` |
+| a silo of two V2s | `[11]`; not a valid target: nothing; the first with a live order: `[12]`; the first refuelling: `[11]` (no fuel gate for a missile); the first out of reach: `[12]`; shift: `[11, 12]` |
+| a V2 and a nuclear missile, either order | `[12]`, the nuke: a base whose every active member holds one narrows to `is(0x13b)` |
+| an Airbase holding the four and a V2 | `[11]`: a missile inside narrows the choice to missiles |
+| launch patrol at the silo, a V2 | nothing |
+| `action_flight(2008, 0, MOVE_TO)`, a second Airbase | `[8]`; `0/8` refuelling: `[7]`; the Helicopter alone full: `[10]` (no reach test); `can_carry` 0: nothing; alt: `[6]`; ctrl: `[8]`; shift: all four |
+| `MOVE_TO` a Missile Silo with a V2 inside | nothing: `is(MISSILESILO)` and `num_inside` set both missile flags, and the arm refuses missiles |
+
+**The listing** (910, 964):
+- the Helicopter's move (`7038d1`..`703a49`, and `703aeb`..`703c49` for
+  the one plane): `find_angle(x − plane.x, y − plane.y)` on the point as
+  clicked (`7038e5`..`703928`), the destination `div_3_table[v >> 4] ·
+  48 + 24` (`70396e`..`703982`), `+0x4c`/`+0x4e` the destination mod
+  0x300, `+0x10`, `+0x18`, `+0x1c`, `+0x24` 0 and `+0x28`, `+0x34`,
+  `+0x38`, `+0x44`, `+0x48` −1, flags `& ~1 | 4 & ~0x20`, `unit_masks &=
+  ~0x4000000`, `+0xc0 = 0`. The patrol's sixth argument is the plane's
+  own pointer (`703c64`), which `add_air_patrol_order` never reads.
+- `action_launch_flight`'s flags (`6fc0bd`..`6fc203`): on `ATTACK`, each
+  active member's `count_inside(NUCLEARMISSILE 0x13b)` sets the nuke
+  flag, and a member without one clears the all-nukes flag and asks
+  `count_inside(V2ROCKET 0x139)`; on any other order, a target that
+  `is(MISSILESILO 0x208)` with anything inside sets both. Either flag
+  sends a non-missile to the next plane (`6fc3ac`) and skips the ctrl/alt
+  and fuel gates.
+- the strike's `valid_target` (`6fc517`) refuses only under the V2 flag;
+  a missile with a live order is passed over (`6fc681`..`6fc6ce`); the
+  line's ÷ 4 and the × 200 are the planes' alone.
+- the `MOVE_TO` arm (`6fc797`..`6fc80c`): not a missile, `can_carry`
+  (`6483c0`: a Helicopter only into an Airbase; a plane not into a
+  silo, and into a carrier (`0x15f`) exactly when it is of the
+  `FIGHTERBOMBER` line (`0x134`); then its own home, or room under
+  `num_aircraft_limit`), and `dist > best` from
+  −1 (`6fc7f4`, `jle`).
+
 **Built, and run358 backs it** (item 976, `docs/GOLDEN.md` §42):
 `crate::airbase` — `Sim::group_action_launch_patrol`,
 `group_action_launch_flight` and `gather_launch`, action 3's arm, which

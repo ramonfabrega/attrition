@@ -12,7 +12,9 @@
  * 8, 9 and 10 are issue_move_to with another `orders` byte; 12 is
  * issue_flight with another; 16 is issue_swarm_around; 22 is
  * issue_launch_patrol with another queue and shift; 23 is issue_flight on a
- * group of buildings (item 976). */
+ * group of buildings (item 976). `launchpatrolctrl`/`launchpatrolalt` are
+ * 21, `launchstrikectrl`/`launchstrikealt` and `launchmove` 23, with ctrl,
+ * alt or MOVE_TO in the call and the same issuer (item 1009). */
 
 #define ISSUE_VERBS 24
 #define ISSUE_PROLOGUE 11
