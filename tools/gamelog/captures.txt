@@ -8536,6 +8536,27 @@ check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsof
 # **The window landed whole** — 257 blocks, 4550..4806.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run356-greatlakes-toughest-4555.txt" | awk '{v=$3+0; if(v>=4550&&v<4807) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=257)}'
 
+run: 373
+tag: greatlakes-toughest-4846
+item: 1040
+why: item 1040 (the Slinger's release bays, and a busy unit off duty does not answer a hit) moved the second pair's Great Lakes word 4781 -> 4846: run347's frame 4846 spends 9 draws against this crate's 8, parting at index 2 on `Guy::set_anim+0xf2f < Unit::set_anim+0x56 < Unit::fight+0x19f6` where ours spends `Guy::set_anim+0x104b` — past run356's blocks 4550..4806 (its dump stops at 4821), and run347's own dump prints no per-frame record there, so no disk holds the word's blocks
+# run356's shape on run347's game, over **blocks 4841..5097**: the word's
+# frame 4846 writes block 4847, six blocks before it and 250 above.
+frames: 5110
+mapstyle: 14
+cfg: -
+profile: DIFFICULTY=5
+end: MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1
+frame_window: 4841 5098
+cover: cover=0
+settle_min: 14000000
+poll_max: 300
+check: python3 tools/gamelog/rngcmp.py rontrace-run347.log rontrace-run373.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=5110)}'
+check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run373-greatlakes-toughest-4846.txt"
+check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run373-greatlakes-toughest-4846.txt"
+# **The window landed whole** — 257 blocks, 4841..5097.
+check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run373-greatlakes-toughest-4846.txt" | awk '{v=$3+0; if(v>=4841&&v<5098) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=257)}'
+
 # ==== item 1011: the issuer chapters thirty-one to thirty-four at cover=1 ====
 #
 # Chapters thirty-one to thirty-four were captured at `cover=0` on the

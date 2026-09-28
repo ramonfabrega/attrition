@@ -10619,9 +10619,17 @@ live `2009` was compared with ours' dead frame-976 site.
     player sets `city_flags` `0xe`, and `0x2` vetoes the city heal until the
     city building's 200-frame decay clears it; ours had healed the human's
     city off its first wound, so 4690's strike was a first wound again.
-    **Great Lakes 4781, the lower**: ours 5, the original 4, at index 0,
+    ~~**Great Lakes 4781, the lower**: ours 5, the original 4, at index 0,
     `Unit::fight+0x9b0` against `Farms::inc_time+0x1ae`; the citizen `0/4`
-    is struck on 4779 there and not here (§69.5).
+    is struck on 4779 there and not here (§69.5).~~ **Moved to 4846 by
+    item 1040** (`docs/COMBAT.md` §70): the Slinger's three release bays,
+    and a busy unit that is not on duty does not answer a hit. **Great
+    Lakes 4877, the lower** (after 4846 and 4852 in the same item: a
+    building is struck square to its side, and the one-in-five retarget
+    freezes the frame): ours 7, the original 8, at index 1,
+    `Guy::set_anim+0x104b` against `Guy::set_anim+0x97a <
+    Unit::move_step+0x823`; widened on run373, whose block 4861 (frame
+    4860, the army's tick) is the first to part.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word
