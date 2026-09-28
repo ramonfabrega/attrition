@@ -1325,7 +1325,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// the citizen `0/4` struck there (`damage_frame` 4779, `damage` 3/5) and
 /// not here, and whose block 4781 parts on `0/4`'s order (kind 10 against
 /// 1).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_781;
+///
+/// **4781 → 4846 on item 1040**: the Slinger's three release bays (piece
+/// 32, `launch::BAYS`, from run17's 27 stones), and `Unit::
+/// target_opportunity`'s `on_duty` return (`600863`), a busy unit that is
+/// not on duty does not answer a hit; `docs/COMBAT.md` §70. **The move's
+/// value diff (the word's delta, here; its block is
+/// `run356_s_word_frame_is_widened_whole`'s):** `1/24`'s stone launched on
+/// 4775 flies 5 frames on both sides, where ours flew 6 from the unit's own
+/// square, so the citizen `0/4` is struck on 4779 on both (`damage_frame`
+/// 4779, `damage` 3/5 on block 4780, where ours read 0 and 0/0); `0/4`
+/// keeps its `GATHER` and walk on both, where ours pushed an `ATTACK` on
+/// 4780 (kind 10, three orders, against a move and two), and it does not
+/// part again in the window. `1/26`'s strikes on the city land on 4689,
+/// 4716, 4722, 4750 and 4782 on both sides (ours a frame late from 4690
+/// until 1040). Frame 4781's draws went 5 against 4 → agreeing. **The new
+/// word's delta: ours 8 draws and the original 9 on frame 4846, parting at
+/// index 2**: the original spends `Guy::set_anim+0xf2f < Unit::set_anim+
+/// 0x56 < Unit::fight+0x19f6`, ours `Guy::set_anim+0x104b`. Past run356's
+/// window; run373 is its widening.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_846;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

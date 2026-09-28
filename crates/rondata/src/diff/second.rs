@@ -511,7 +511,8 @@ mod tests {
     /// and 132 before its last). **Since item 1023 the word is 4688**, block
     /// 4689 (139 blocks after its first and 117 before its last). **Since
     /// item 1034 the word is 4781**, block 4782 (232 blocks after its first
-    /// and 24 before its last).
+    /// and 24 before its last). **Since item 1040 the word is 4846**, block
+    /// 4847, past this window: run373 is its widening.
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -659,30 +660,35 @@ mod tests {
             );
         }
         // What the heal had hidden since 4661: `1/26`'s strikes from the
-        // second on land here a frame after the original's (4689, 4716,
-        // 4722 there; 4690, 4717, 4723 here), and the city's damage agrees
-        // again the block after each.
+        // second on landed here a frame after the original's (4689, 4716,
+        // 4722 there; 4690, 4717, 4723 here) until item 1040: its stones
+        // left the Slinger's own square, not its bay (`launch::BAYS`, piece
+        // 32, `docs/COMBAT.md` §70), and flew a frame long across a
+        // boundary. Now every strike lands on the original's frame.
         assert_eq!(
-            row(0, 2000, "build:damage").as_deref(),
-            Some("4690: ours 2 theirs 4"),
-            "the city's damage, one strike behind on the strike's block"
+            row(0, 2000, "build:damage"),
+            None,
+            "the city's damage, one strike behind on 4690 until item 1040"
         );
         assert_eq!(
             row(0, 3, "hits:damage").as_deref(),
             Some("4723: ours 3 theirs 2"),
             "the citizen's damage, which first parts on 4723"
         );
-        // **The new word, 4781, writes block 4782** (no mechanism is named,
-        // DECISIONS 42): ours 5 draws and the original 4, parting at index
-        // 0, where ours spends `Unit::fight+0x9b0` and the original
-        // `Farms::inc_time+0x1ae`. The citizen `0/4` is struck on 4779 there
-        // and not here (`damage_frame` 0 against 4779 on block 4780), and
-        // its order parts on 4781.
-        assert_eq!(
-            row(0, 4, "damage_frame").as_deref(),
-            Some("4780: ours 0 theirs 4779"),
-            "the citizen struck before the new word"
-        );
+        // **The old word, 4781, agrees** (item 1040, `docs/COMBAT.md` §70):
+        // `1/24`'s stone at the citizen `0/4`, launched on 4775, leaves the
+        // Slinger's bay and flies 5 frames on both sides, so `0/4` is struck
+        // on 4779 on both; and a citizen walking to its drop site under its
+        // `GATHER` is not on duty (`Unit::on_duty@005fff70`), so it does not
+        // turn on the Slinger (`600863`): no `ATTACK` on 4780, no
+        // `fight+0x9b0` on 4781. None of `0/4`'s rows parts in the window.
+        for what in ["damage_frame", "order:kind", "pos"] {
+            assert_eq!(
+                row(0, 4, what),
+                None,
+                "the citizen's {what}, which parted on 4780 until item 1040"
+            );
+        }
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(4550, 76), (4585, 1), (4598, 1)],
