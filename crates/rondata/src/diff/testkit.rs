@@ -1446,7 +1446,32 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// 5067, 226 after its first and 30 before its last): the original's
 /// `1/13` stands under a fresh `ATTACK` there where ours walks on under
 /// its move, which has parted since block 5012. No mechanism is named.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_066;
+///
+/// **5066 → 5075 on item 1086**: `Unit::check_target_path@005e22d0` asks a
+/// unit target's vslot `+0x8`, `SubObjectData::is_active` (`flags & 1`),
+/// at `5e2429`, and a dead one jumps the flank triple (`je 5e24e8`) into
+/// the re-aim: `Object::close` leaves the corpse in its slot, so on every
+/// review the chase is re-aimed at where it fell (`docs/COMBAT.md` §76).
+/// This crate returned for a target that was not active. **The move's
+/// value diff (the word's delta, here; its block is
+/// `run373_s_word_frame_is_widened_whole`'s):** `1/13` chases the citizen
+/// `0/2`, dead since 5000. On block 5012 its move reads (4872, 29928) via
+/// (4872, 31464), tolerance 384 and nine legs, on both sides, where ours
+/// kept (4824, 29928) via its detour's (4104, 31992), tolerance 0 and
+/// nineteen; (4920, 29928) on 5028, (4968, 29976) on 5044 and (4776,
+/// 29880) on 5060 on both. On block 5066 both stand at (4764, 31013),
+/// 1,133 from that goal, under the `ATTACK` (`do_move`'s dead-target
+/// `0x480` arm popped the walk), where ours walked on at (4702, 31263);
+/// on 5067 both take `0/4`. Frame 5066's draws went 9 against 10 →
+/// agreeing; run373's keys parted 455 → 461. **The new word's delta: ours
+/// 11 draws and the original 10 on frame 5075, parting at index 0**: ours
+/// spends `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/20`), the
+/// original `Guy::set_anim+0x97a < Guy::inc_time+0x271`, which ours
+/// spends second. Inside run373's window (block 5076, 235 after its first
+/// and 21 before its last): `1/20` reads `collide 1` on `1/18` there on
+/// ours alone, and `1/10` and `1/11` have ended their chase on ours alone.
+/// No mechanism is named.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_075;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
