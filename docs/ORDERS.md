@@ -895,8 +895,7 @@ target order decides its transit legs are stale.
    `docs/COMBAT.md` §25) — a non-building, non-flank, in-range target (**less
    `+0x90` unless mandatory**, ~~§35.3~~ §36), no collision at its own spot →
    `kill_current_order`; every 16 frames `find_melee_target` may take a closer
-   in-range unit; a building target in range (**no margin**, and not an AI
-   siege type: `docs/COMBAT.md` §65), valid, no collision → kill. A
+   in-range unit; a building target in range, valid, no collision → kill. A
    non-mandatory `ATTACK` action every 4th frame under `repaths` budget →
    `find_new_target(0, 1)` (§12.4 there). A target gone and the unit within
    `0x481` of its point → `repath(); return 0`. A `TRADE_ROUTE` with negative
