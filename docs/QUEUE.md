@@ -17,7 +17,7 @@ DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty, and
 it is in the first war; the first pair stays closed at 24,000,
 endpoints 0 off. Every chapter is closed, thirty-five at 3260
-(1050). Two lanes run; the count is at two (1061, 1050).*
+(1050). Two lanes run; the count is at three (1061, 1050, 1066).*
 
 - **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
   Great Lakes forty-one frames and one rule of combat a landing, and
@@ -25,20 +25,21 @@ endpoints 0 off. Every chapter is closed, thirty-five at 3260
 - **The instrument follows the word** (1061, GROUPS §33): the second
   pair's widening compares the group record and the attack row, and
   the compared pin walks the pair's Great Lakes word's window.
-- **A third map is scored** (1066), and the held-out number is not
-  read until map 9 has a height table.
+- **A third map is scored** (1066, AI §83): Great Sahara, all land,
+  its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 13 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079).
+- **Fable backlog: 14 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080).
 
-Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
+Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5606 of 18,140 · GreatLakes w4978 of 5,930
+Third map: GreatSahara w8 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · 1077 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1066 and 1072 run; 1077 to
-whichever lane frees first.**
+**Opener: the commander resumes — 1072 and 1077 run; East Indies'
+5606 is booked when either frees.**
 
 ## The queue
 
@@ -61,14 +62,6 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     gone on 2821, ours stands at 400 damage of 1200. `Ammo::do_damage`'s
     missile arm is read to its shield only; what destroys the building
     is `Object::do_damage`'s. `fight.rs`, `combat.rs`.
-
-1066. **The third scored map: Great Sahara, map 7, in the first pair's
-    lobby** (DECISIONS 54 §3) — Easiest, seed 12345, `cfg: -`. Three
-    takes, run numbers minted at booking: a `DUMP_ALL` start sibling in
-    run38's shape, a 1,850-block dump in run33's, a `cover=0` trace to
-    24,000 or the game's end. Then its first word with its widening,
-    and a `Scoreboard:` entry. No mechanism is named; the start dump
-    says what the map holds.
 
 ## How to maintain this file
 

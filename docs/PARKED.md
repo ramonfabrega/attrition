@@ -1747,6 +1747,18 @@ answered every value; the reserved run379 and run380 went unused. The
 checklist's 783 row already says a round carries `AMMO`; the pass may
 close this on it.
 
+(1080) **The third map's capture and its guards** (1066's Loop line,
+five parts): (a) `startcapture.sh` prints no banner, has no restore
+trap and never restores the profile's style, and `waitrun.sh` calls its
+success exit 2; (b) a stanza `check:` that pipes `samegame.py` into a
+count needs `|| true`, since the runner carries the first command's
+status through `tee` — the stanza lint could catch it; (c) the compared
+pin walks only the second pair's window, and run382's is in the key
+coverage driver but not the compared pin (beside 1067); (d) no handoff
+guard reads `LONG_WORD_GREAT_SAHARA`, so the queue's `Third map:` line
+stands unguarded; (e) the install's `rontrace.dll` is `d654cdb2…`, not
+run348's `b451aeb6…`, and no run section says who rebuilt it.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
