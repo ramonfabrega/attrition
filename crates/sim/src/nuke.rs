@@ -277,7 +277,8 @@ mod tests {
     /// 3226 and 3239, a fifth at 1870 never, a Barracks at a building
     /// distance of 1824 on 3239, and stamps its player. Made to fail with
     /// the ring at `max` from its first grown frame (every probe on 3211,
-    /// and 1870's struck).
+    /// and 1870's struck), with each-once dropped, and with `Sim::land`'s
+    /// nuke arm dropped (no stamp, and the splash walk).
     #[test]
     fn the_ring_strikes_each_on_the_frame_it_reaches_it() {
         let mut s = Sim::new(
@@ -360,8 +361,17 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
         };
-        s.nuke_land(round, 3200);
+        // Through the round's own landing (`Sim::land`'s nuke arm): the
+        // round's last frame lays the blast, and strikes nothing where it
+        // lands.
+        s.projectiles.push(crate::combat::Projectile {
+            cur_time: 119,
+            ..round
+        });
+        s.process_projectiles(3200);
+        assert!(s.projectiles.is_empty(), "the round is closed");
         assert_eq!((s.nukes.stamp_of(0), s.nukes.used_of(0)), (3200, 1));
+        assert_eq!(s.buildings[far].health, 1200, "no splash walk");
         let mut first = [None; 4];
         let mut far_first = None;
         for f in 3200..3260 {
