@@ -493,8 +493,10 @@ Still open:
   between moves — catapult, flaming arrow, machine gun, merchants, fishermen,
   Katyusha) and `0x8` is **caravan** (`CARA`, `MERCHANTFLEET`). Nothing in
   supply reads them.
-- **The rest of `Unit::process_healing`.** Six other heals share the function
-  and none is derived here.
+- ~~**The rest of `Unit::process_healing`.** Six other heals share the function
+  and none is derived here.~~ **The civilian heal is derived and built in
+  `docs/COMBAT.md` §72 (item 1072).** The ship, aura, hero, Iroquois and
+  patriot heals are still open there.
 
 ---
 

@@ -1000,11 +1000,19 @@ mod tests {
             None,
             "the city's damage, one strike behind on 4690 until item 1040"
         );
-        assert_eq!(
-            row(0, 3, "hits:damage").as_deref(),
-            Some("4723: ours 3 theirs 2"),
-            "the citizen's damage, which first parts on 4723"
-        );
+        // **The citizen heals on its own ground** (item 1072,
+        // `docs/COMBAT.md` §72): `0/3`, struck on 4710 to 3/5, heals a
+        // point and its fraction on frame 4722 (`(3 + 4722) % 45 == 0`) and
+        // again on 4767, 2/0 and 1/0 on blocks 4723 and 4768 on both
+        // sides, where ours held 3/5 (4723's row, ours 3 against 2, until
+        // 1072).
+        for what in ["hits:damage", "hits:damage_frac", "hits_left"] {
+            assert_eq!(
+                row(0, 3, what),
+                None,
+                "the citizen's {what}, which parted on 4723 until item 1072"
+            );
+        }
         // **The old word, 4781, agrees** (item 1040, `docs/COMBAT.md` §70):
         // `1/24`'s stone at the citizen `0/4`, launched on 4775, leaves the
         // Slinger's bay and flies 5 frames on both sides, so `0/4` is struck
@@ -1105,12 +1113,15 @@ mod tests {
         // city and strikes it due south on both sides — a building is
         // struck square to its side — where ours turned 21° to the centre,
         // deferred the swing and struck a frame late. Its figure first
-        // parts on the army's tick, 4861.
+        // parts on the army's tick, 4861, until item 1052, on 4989 until
+        // item 1072 (a chase that ended on `0/2`'s early death), and on
+        // 5085 since.
         assert_eq!(
             first(1, 19, "g.angle[0]").map(|(f, _)| f),
-            Some(4_989),
-            "the Hoplite's facing, which parted on 4847 until item 1040 and \
-             on the army's tick, 4861, until item 1052"
+            Some(5_085),
+            "the Hoplite's facing, which parted on 4847 until item 1040, \
+             on the army's tick, 4861, until item 1052 and on 4989 until \
+             item 1072"
         );
         // **The old word, 4852, agrees** (§70.7): `1/24`'s one-in-five
         // re-search on 4852 names `0/3` on both sides and freezes the
@@ -1145,8 +1156,10 @@ mod tests {
             (18, "order:move.dest_x"),
             (16, "path:length"),
         ] {
+            // Past item 1061's word's block, 4979: `1/13`'s move now
+            // parts on 5012 (item 1072).
             assert!(
-                first(1, o, what).is_none_or(|(f, _)| f > SECOND_WORD_GREAT_LAKES + 1),
+                first(1, o, what).is_none_or(|(f, _)| f > 4_979),
                 "1/{o}'s {what}, which parted on the army's tick, 4861, until \
                  item 1052: {:?}",
                 first(1, o, what)
@@ -1171,23 +1184,56 @@ mod tests {
                 first(1, 11, what)
             );
         }
-        // **The new word, 4978, writes block 4979** (no mechanism is named,
-        // DECISIONS 42): ours 9 draws and the original 8, parting at index
-        // 1, where ours spends `Unit::close+0xcb6` and the original
-        // `Farms::inc_time+0x1ae`. On block 4979 the citizen `0/2` is dead
-        // on ours' side alone: `death:extra` and `hold_frames` 1, at 42
-        // damage against the original's 37. Its damage stands from the
-        // window's first block (6 10/16 against 5 5/16), and the original's
-        // falls a point on 4859 and 4904 where ours' does not.
+        // **The old word, 4978, agrees** (item 1072, `docs/COMBAT.md`
+        // §72): a citizen on its own ground heals a point and its
+        // fraction every 45 frames, `(o + frame) % 45 == 0`. `0/2` healed
+        // on 4813 in the gap between run356 and this window (3/5 → 2/0,
+        // then 3/5 more on 4839), and on 4858, 4903 and 4948: it stands at
+        // 5/5, 4/0, 3/0 and 16/0 on blocks 4841, 4859, 4904 and 4949 on
+        // both sides, where ours held 6/10 from 4841 and died on 4978 at
+        // 42. `0/3`, `0/4` (4841), `0/5` (4901) and `0/1` (4905) close the
+        // same way. Both sides now lose `0/2` on 5000: the original's own
+        // `DEATH_OBJS`, printed only in the quit block 5111, has its
+        // `first_frame` 5000 (and `0/3`'s 4996), so `death:extra` on 5001
+        // (4997 for `0/3`) is the capture's, not a parting.
+        for what in [
+            "hits:damage",
+            "hits:damage_frac",
+            "hits_left",
+            "hits:hold_frames",
+        ] {
+            for o in [1, 2, 3, 4, 5] {
+                assert!(
+                    first(0, o, what).is_none_or(|(f, _)| f > 5_000),
+                    "0/{o}'s {what}, which parted from 4841, 4901 or 4905 \
+                     until item 1072: {:?}",
+                    first(0, o, what)
+                );
+            }
+        }
         assert_eq!(
-            first(0, 2, "death:extra"),
-            Some((4_979, "ours 1 theirs 0".to_string())),
+            (first(0, 2, "death:extra"), first(0, 3, "death:extra")),
+            (
+                Some((5_001, "ours 1 theirs 0".to_string())),
+                Some((4_997, "ours 1 theirs 0".to_string()))
+            ),
+            "the two deaths, on the original's own frames"
+        );
+        // **The new word, 5042, writes block 5043** (no mechanism is named,
+        // DECISIONS 42): ours 8 draws and the original 6, parting at index
+        // 0, where ours spends `Ammo::do_damage+0xc59` and the original
+        // `Farms::inc_time+0x1ae`. Two blocks before it the citizen `0/1`
+        // takes 3/5 on the original's side alone (2/0 → 5/5 on block 5041,
+        // `damage_frame` still 5038), and nothing new parts on 5042 or
+        // 5043.
+        assert_eq!(
+            first(0, 1, "hits:damage"),
+            Some((5_041, "ours 2 theirs 5".to_string())),
             "the new word's row"
         );
-        assert_eq!(
-            first(0, 2, "hits:damage"),
-            Some((4_841, "ours 6 theirs 5".to_string())),
-            "the citizen's damage, standing from the window's first block"
+        assert!(
+            !w.firsts.values().any(|(f, _)| (5_042..=5_043).contains(f)),
+            "nothing first parts on the new word's blocks"
         );
         // **The group record and the attack order's row** (item 1061,
         // `docs/GROUPS.md` §33): five more rows stand from the window's
@@ -1198,8 +1244,9 @@ mod tests {
         // one-in-five re-search (§70.7), with `in_range` 1 against 0 too.
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4_841, 116), (4_853, 3), (4_868, 2)],
-            "the blocks keys first part on, the first three ((4841, 111), \
+            [(4_841, 104), (4_853, 3), (4_868, 2)],
+            "the blocks keys first part on, the first three ((4841, 116) \
+             until item 1072 healed the citizens; (4841, 111), \
              (4868, 2), (4887, 2) until item 1061 compared the group record \
              and the attack order's row; (4841, 111), (4861, 121), (4862, 13) \
              until item 1052)"
@@ -1208,10 +1255,8 @@ mod tests {
             (9, "attack[1].new_ord", (4_841, "ours 0 theirs 1")),
             (24, "attack[0].in_range", (4_853, "ours 1 theirs 0")),
             (24, "attack[0].new_ord", (4_853, "ours 0 theirs 1")),
-            // `1/11`'s head attack and its figure's aim, which parted on
-            // the old word's block 4924 until the flank clause.
-            (11, "attack[0].in_range", (4_985, "ours 0 theirs 1")),
-            (11, "g.ox[0]", (4_986, "ours 1 theirs 2")),
+            // `1/11`'s head attack and its figure's aim parted on 4985 and
+            // 4986 until item 1072: its target `0/2` died on 4978 here.
         ] {
             assert_eq!(
                 first(1, o, what),
@@ -1219,14 +1264,11 @@ mod tests {
                 "1/{o}'s {what}, the attack order's row item 1061 compares"
             );
         }
-        // A standing row the window opens on: the citizen `0/4` has taken
-        // more here since run356's window closed (block 4841: `damage` 6
-        // 10/16 here, 5 0/16 there).
-        assert_eq!(
-            first(0, 4, "hits:damage"),
-            Some((4_841, "ours 6 theirs 5".to_string())),
-            "the citizen's damage, standing from the window's first block"
-        );
+        // The citizen `0/4` stood at 6 10/16 here against 5 0/16 from
+        // the window's first block until item 1072: the heal on 4811
+        // (`(4 + 4811) % 45 == 0`) took it to 5/0 there, and 3/5 more on
+        // 4845 makes 8/5 on both. Keys parted: 1,052 → 471.
+        assert_eq!(w.firsts.len(), 471, "every key parted on run373");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

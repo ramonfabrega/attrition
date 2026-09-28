@@ -1406,7 +1406,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// side alone (`death:extra`, `hold_frames` 1): ours reads 42 damage
 /// against 37, and the gap stands from the window's first block. No
 /// mechanism is named.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_978;
+///
+/// **4978 → 5042 on item 1072**: the civilian heal, the last on-map arm of
+/// `Unit::process_healing@005e0670`: a worker, caravan, merchant or
+/// fisherman captain on an ally's ground takes a point of damage and its
+/// fraction off every `CIVILIAN_HEAL_RATE` (45) frames, `(o + frame) % 45
+/// == 0` (`docs/COMBAT.md` §72). **The move's value diff (the word's
+/// delta, here; its block is `run373_s_word_frame_is_widened_whole`'s):**
+/// `0/2` reads 5/5 on block 4841, 4/0 on 4859, 3/0 on 4904, 16/0 on 4949
+/// and 39/5 on 4994 on both sides, where ours read 6/10 from 4841 and died
+/// on 4978 at 42 against 37; both sides now lose it on frame 5000 (the
+/// original's `DEATH_OBJS` `first_frame` 5000). On run356 `0/3` heals on
+/// 4722 (3/5 → 2/0, block 4723) on both. Frame 4978's draws went 9 against
+/// 8 → agreeing; run373's keys parted 1,052 → 471. **The new word's
+/// delta: ours 8 draws and the original 6 on frame 5042, parting at index
+/// 0**: ours spends `Ammo::do_damage+0xc59`, the original
+/// `Farms::inc_time+0x1ae`. Inside run373's window (block 5043, 202 after
+/// its first and 54 before its last); the citizen `0/1` takes 3/5 on the
+/// original's side alone on 5040 (2/0 → 5/5 on block 5041, `damage_frame`
+/// still 5038). No mechanism is named.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_042;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

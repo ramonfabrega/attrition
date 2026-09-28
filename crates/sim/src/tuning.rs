@@ -772,6 +772,10 @@ pub struct Tuning {
     pub fort_garrison_upgrade: i32,
     /// Frames between garrison heal steps, by heal tech level.
     pub unit_heal_rate: [i32; 4],
+    /// Frames between the civilian heal's steps — a citizen, caravan,
+    /// merchant or fisherman on an ally's ground (`crate::heal`). Zero
+    /// means never.
+    pub civilian_heal_rate: i32,
     /// Percent faster the garrison heal runs in, or with, the Red Fort.
     pub red_fort_heal: i32,
     /// Position units: the near edge of the exit ring a unit leaving a building lands on, beyond the footprint. `3/2 tile`.
@@ -1129,6 +1133,7 @@ impl Tuning {
         tower_garrison_upgrade: 2,
         fort_garrison_upgrade: 5,
         unit_heal_rate: [20, 15, 10, 5],
+        civilian_heal_rate: 45,
         red_fort_heal: 500,
         unit_train_distance: 288,
         unit_train_max_distance: 480,
@@ -1146,7 +1151,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 319] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 320] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1780,6 +1785,7 @@ impl Tuning {
                 Slot::Value(T.fort_garrison_upgrade),
             ),
             ("UNIT_HEAL_RATE", Slot::Entries(&T.unit_heal_rate)),
+            ("CIVILIAN_HEAL_RATE", Slot::Value(T.civilian_heal_rate)),
             ("RED_FORT_HEAL", Slot::Value(T.red_fort_heal)),
             ("UNIT_TRAIN_DISTANCE", Slot::Ratio192(T.unit_train_distance)),
             (
