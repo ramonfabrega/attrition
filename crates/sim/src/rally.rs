@@ -131,6 +131,17 @@ impl Sim {
                 break;
             }
         }
+        // The action-3 arm (`6ff34d`..`6ffa71`): every Airbase takes the
+        // point and launches one plane at it ([`Sim::gather_launch`]); the
+        // general loop below skips them (`6ffbcc`).
+        if action == 3 {
+            let airbases: Vec<usize> = members
+                .iter()
+                .copied()
+                .filter(|&b| self.gather_member(b) && self.building_ident(b) == Ident::Airbase)
+                .collect();
+            self.gather_launch(who, &airbases, at, append);
+        }
         for &b in members {
             if !self.gather_member(b) || (action == 3 && self.building_ident(b) == Ident::Airbase) {
                 continue;
@@ -264,7 +275,7 @@ impl Sim {
     }
 
     /// An action-3 point's `(o, who)` as the object it names.
-    fn gather_object(&self, p: crate::Pos) -> Option<crate::combat::Obj> {
+    pub(crate) fn gather_object(&self, p: crate::Pos) -> Option<crate::combat::Obj> {
         let who = Player::try_from(p.y).ok()?;
         let o = i16::try_from(p.x).ok()?;
         if o >= 2000 {

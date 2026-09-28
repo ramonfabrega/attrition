@@ -3993,7 +3993,15 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_TWO: (i64, i64) = (605, 2361);
 /// the Airbase's launch patrol gave it on 2282, where here it stands inside
 /// with no order. The first value parting is 2262, `0/8`'s stack: the
 /// launch strike.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_THREE: i64 = 2287;
+///
+/// **2740, closed** (item 976, `docs/PRODUCTION.md` "The launch
+/// commands": `Sim::group_action_launch_patrol`,
+/// `group_action_launch_flight`, action 3's launch at an Airbase and
+/// `do_strafe`'s escort). The stream agrees to run358's end, and so does
+/// every word of the value stream.
+///
+/// **The delta**, this constant's: +453, 2287 → 2740, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_THREE: i64 = 2740;
 
 /// `chapter_thirty_three_s_word_frame_is_widened_whole`'s window: run358
 /// whole, (605, 2741). Its pool half, `widen_pool`, reads who=0's
@@ -4515,7 +4523,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_thirty_two_holds_to_the_golden_word", 39),
     ("chapter_thirty_two_s_word_frame_is_widened_whole", 39),
     // Chapter thirty-three is chapter thirty-two's game to 2360 and five
-    // presses on the Airbase after it (item 976): the first walk reads 43.
+    // presses on the Airbase after it (item 976): the first walk reads 43,
+    // and the built arms 43 (pinned at 42, it fails).
     ("chapter_thirty_three_holds_to_the_golden_word", 43),
     ("chapter_thirty_three_s_word_frame_is_widened_whole", 43),
 ];
