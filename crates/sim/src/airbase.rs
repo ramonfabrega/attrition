@@ -932,7 +932,9 @@ mod tests {
         // The tree holds the line's id, so `init_unit` can read its entry.
         if s.tech_tree.types.len() <= line {
             let unit = crate::tech::TypeDef::new("", crate::tech::Kind::Unit(Default::default()));
-            s.tech_tree.types.resize(line + 1, unit);
+            let mut tree = s.tech_tree.clone();
+            tree.types.resize(line + 1, unit);
+            s.set_tech_tree(tree);
         }
         let p = plane(s, b, line);
         let t = s.units[p].ty.unwrap();
@@ -1071,6 +1073,15 @@ mod tests {
         s.buildings[silo].active = true;
         let v2 = air_type(&mut s, b, 0x139, false, true);
         assert!(s.silo_takes(silo, v2), "an empty silo takes a missile");
+        // Through the command: `@queueup 313 2` lays one entry.
+        s.muster[0].researched[v2] = true;
+        s.buildings[silo].queue.capacity = 20;
+        for g in 0..crate::economy::RESOURCES {
+            s.ledgers[0].bucket[g] = 100_000;
+        }
+        assert_eq!(s.action_queue_up(&[silo], v2, 2), 1, "one of two");
+        assert_eq!(s.buildings[silo].queue.items.len(), 1);
+        s.buildings[silo].queue.items.clear();
         s.buildings[silo].queue.items.push(crate::production::Item {
             job_counter: 0,
             ty: v2,
