@@ -8704,3 +8704,11 @@ check: python3 tools/gamelog/cmdsran.py rontrace-run367.log 0:1 37:1 600:1 606:1
 check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch34/map-14/rontrace.log" rontrace-run367.log
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch34/map-14/rontrace.log" rontrace-run367.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=2850)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run367.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$|CommandManager::issue_launch_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+# ==== run364–run367 TAKEN 2026-09-27/28, one runner, one take each, **ALL WHOLE; EVERY CHECK PASSED** ====
+#
+# Launched 23:33:50 through `viadriver.sh … runqueue.sh - 1011`, finished
+# 00:44, four launches, no retake. Every capture is its golden run's game:
+# `rngcmp` 0 differing (1,401 / 2,361 / 2,741 / 2,851 identical);
+# `issuesmatch` 51 `@` records, none refused, each as golden; every issuer
+# its script calls entered. DLL sha256 d654cdb2…599d throughout
+# (`docs/RUNS.md` run364–run367; `docs/CENSUS.md`, "item 1011").

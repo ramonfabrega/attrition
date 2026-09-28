@@ -9880,3 +9880,63 @@ rebuild's inputs. On those terms the original's formula picks ours.
 The packet stays outside git at
 `~/ron-data/lab-captures/2026-09-27-run360/map-14`. The probe and its output
 are at `~/ron-data/lab-experiments/2026-09-27-item-1014/`.
+
+## run364 — chapter thirty-one under `cover=1`, the golden game with coverage (2026-09-28, item 1011)
+
+`~/ron-golden/ch31/map-14/rontrace.cmd` line for line on the queue lane,
+the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+`end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 1400, on the DLL
+built from att-1011's tree (`tracer.c` `ed4390b6…c4c5`, 1009's;
+`rontrace.dll` `d654cdb2…599d`, stamped; the coverage table and trace
+executable byte-identical to the build before). It ran in the one runner
+that took run364–run367 from 23:33 (`runqueue.sh - 1011`), started 23:34,
+settled 23:44, one take: 201.6 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run338 (10 `@` records, none refused),
+`rngcmp` against run338 (**0 differing, 1,401 identical**), and each
+issuer the script calls entered: `issue_gather_point` (616), `issue_queue_up` (618), `issue_build` (790). New on the blind list's side:
+nothing the other traces do not. `rondata::blind::TRACES` carries run364.
+
+## run365 — chapter thirty-two under `cover=1`, the golden game with coverage (2026-09-28, item 1011)
+
+`~/ron-golden/ch32/map-14/rontrace.cmd` line for line on the queue lane,
+the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+`end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 2360, on the DLL
+built from att-1011's tree (`tracer.c` `ed4390b6…c4c5`, 1009's;
+`rontrace.dll` `d654cdb2…599d`, stamped; the coverage table and trace
+executable byte-identical to the build before). It ran in the one runner
+that took run364–run367 from 23:33 (`runqueue.sh - 1011`), started 23:45,
+settled 00:03, one take: 346.0 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run344 (9 `@` records, none refused),
+`rngcmp` against run344 (**0 differing, 2,361 identical**), and each
+issuer the script calls entered: `issue_flight` (620), `issue_queue_up` (1540), `issue_gather_point` (1600). New on the blind list's side:
+nothing the other traces do not. `rondata::blind::TRACES` carries run365.
+
+## run366 — chapter thirty-three under `cover=1`, the golden game with coverage (2026-09-28, item 1011)
+
+`~/ron-golden/ch33/map-14/rontrace.cmd` line for line on the queue lane,
+the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+`end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 2740, on the DLL
+built from att-1011's tree (`tracer.c` `ed4390b6…c4c5`, 1009's;
+`rontrace.dll` `d654cdb2…599d`, stamped; the coverage table and trace
+executable byte-identical to the build before). It ran in the one runner
+that took run364–run367 from 23:33 (`runqueue.sh - 1011`), started 00:04,
+settled 00:24, one take: 399.5 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run358 (14 `@` records, none refused),
+`rngcmp` against run358 (**0 differing, 2,741 identical**), and each
+issuer the script calls entered: `issue_flight` (620), `issue_queue_up` (1540), `issue_gather_point` (1600), `issue_launch_patrol` (2280). New on the blind list's side:
+`Group::action_launch_flight` (2260), `Group::action_launch_patrol` and `CommandManager::issue_launch_patrol` (2280), off `NEVER`, and five uncited (`docs/CENSUS.md`, "item 1011"). `rondata::blind::TRACES` carries run366.
+
+## run367 — chapter thirty-four under `cover=1`, the golden game with coverage (2026-09-28, item 1011)
+
+`~/ron-golden/ch34/map-14/rontrace.cmd` line for line on the queue lane,
+the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+`end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1`, `!quit` at 2850, on the DLL
+built from att-1011's tree (`tracer.c` `ed4390b6…c4c5`, 1009's;
+`rontrace.dll` `d654cdb2…599d`, stamped; the coverage table and trace
+executable byte-identical to the build before). It ran in the one runner
+that took run364–run367 from 23:33 (`runqueue.sh - 1011`), started 00:25,
+settled 00:44, one take: 418.4 MB of gamelog. All four checks passed:
+`cmdsran`, `issuesmatch` against run362 (18 `@` records, none refused),
+`rngcmp` against run362 (**0 differing, 2,851 identical**), and each
+issuer the script calls entered: `issue_flight` (620), `issue_queue_up` (1540), `issue_gather_point` (1600), `issue_launch_patrol` (2260). New on the blind list's side:
+nothing run366 does not. `rondata::blind::TRACES` carries run367.
