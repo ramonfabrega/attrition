@@ -12621,7 +12621,9 @@ instead.
 Run on the committed tree with `git diff --stat` non-empty, restored from
 git and `touch`ed after. The pins the re-pin touches were green first.
 
-KILLER_TABLE
+| mutation | unit test | run347's walk | run373 | run396 |
+|---|---|---|---|---|
+| the gate back on `valid_target`, on `1965ee79` | fails | falls to 5075, 11 against 10 at index 0, the old word's sites | fails on `1/19`'s facing (5085 again) | fails on `1/21`'s `order:kind` (the word's row) |
 
 ### 77.6 What moved
 
