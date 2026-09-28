@@ -606,10 +606,10 @@ and makes the eventual diff mechanical rather than a translation exercise.
   holds or computes** — a value row on a widening, a float residue, a
   field no dump prints — before a reading and before a detail capture;
   not for "why did it diverge", which is the draw stream's. **A packet
-  at frame N is after N−1's decision**, so it is taken at the frame
-  before the divergence; it is a second game on the single capture
-  lane, ~4 min and 843 MB; and lifted C is a reading tool exactly as the
-  decompiler is — never a source, never in git.
+  is taken at the word's own frame, read as a logger frame**; it is a
+  second game on the single capture lane, ~4 min and 843 MB; and lifted
+  C is a reading tool exactly as the decompiler is — never a source,
+  never in git.
 - Constants are not all loaded in the representation the file writes. At least
   one rational arrives scaled to 8.8 fixed point. Read the consumer before
   believing the digits.
