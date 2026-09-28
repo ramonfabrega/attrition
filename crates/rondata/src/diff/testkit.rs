@@ -4478,6 +4478,31 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SEVEN: i64 = 3490;
 /// whole, (605, 3491).
 pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
 
+/// **Chapter thirty-eight's golden word** — the air line under fire
+/// (`docs/GOLDEN.md` §47, item 1102, run404): two Bombers flown at a who=1
+/// Barracks past a Radar Air Defense, an Anti-Aircraft Battery and an
+/// Infantry squad, each flak round's roll by the Bomber's altitude, and
+/// both Bombers shot down.
+///
+/// **742, the first walk** (item 1102): the Anti-Aircraft Battery's first
+/// attack spends `Unit::fight`'s jam roll, `GameAccess::rnd(100)` against
+/// `jam_unit_radar_prob` (`5fee89`), which this crate did not.
+///
+/// **776, open** (item 1102, the jam roll built in `Sim::swing_anim`):
+/// theirs starts a guy's walk (`Guy::set_anim+0xf2f < Guy::move+0x166`)
+/// that ours does not — the Infantry squad's, whose `myspeed` has read 32
+/// against 34 since its birth on 621, and whose army move has parted in
+/// its offsets since 765. The flak roll and the crash are built beside
+/// it: the Battery's first two rounds, misses on 753 and 755, agree field
+/// for field with their flags.
+///
+/// **The delta**, this constant's: 742 → 776.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 776;
+
+/// `chapter_thirty_eight_s_word_frame_is_widened_whole`'s window: run404
+/// whole, (605, 1763).
+pub(crate) const WIDENING_CHAPTER_THIRTY_EIGHT: (i64, i64) = (605, 1763);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -5034,6 +5059,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field",
         1,
     ),
+    // Chapter thirty-eight (item 1102): the two Bombers' bombs on T and R,
+    // chapter seventeen's reads on other ground (pinned at 40, it fails).
+    ("chapter_thirty_eight_holds_to_the_golden_word", 41),
+    ("chapter_thirty_eight_s_word_frame_is_widened_whole", 41),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -6496,6 +6525,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_seven_s_word_frame_is_widened_whole"),
         1091,
         Some(WIDENING_CHAPTER_THIRTY_SEVEN),
+    ),
+    // Item 1102: run404, chapter thirty-eight, the air line under fire.
+    // The widening is run404 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_EIGHT",
+        GOLDEN_WORD_CHAPTER_THIRTY_EIGHT,
+        Some("chapter_thirty_eight_s_word_frame_is_widened_whole"),
+        1102,
+        Some(WIDENING_CHAPTER_THIRTY_EIGHT),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

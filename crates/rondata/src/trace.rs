@@ -357,6 +357,11 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x0061_7a77), // `Unit::do_job+0x67` — `Unit::do_gather`
         sim::orders::SITE_FARM_CELL,
     ),
+    // …and `Unit::fight`'s jam roll (item 1102), the same helper under
+    // `Unit::fight`, whose two calls from `Unit::do_attack@005f1b80`
+    // return to `+0x68e` and `+0x6ba`.
+    (0x0043_ccc0, Some(0x005f_223a), sim::air::SITE_JAM_ROLL),
+    (0x0043_ccc0, Some(0x005f_220e), sim::air::SITE_JAM_ROLL),
     // `Unit::do_move@005f7b30` — the grid draw.
     (0x005f_89b4, None, sim::orders::SITE_MOVE_GRID),
     // `Unit::think_spellcaster@005f27a0` — the special arm's coin, which a
@@ -477,6 +482,16 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // `Objects::add_ammo+0x119`, from either launch route — the
     // animation's release event or `Object::fire_ammo` — so no chain
     // separates them at this depth and none is given.
+    // `Ammo::init`'s air arm (item 1102, `docs/COMBAT.md` §81): an
+    // `ANTI_AIR` shooter's one roll, low or high, and any other's two.
+    (0x0067_c022, None, sim::air::SITE_FLAK_LOW),
+    (0x0067_c053, None, sim::air::SITE_FLAK_HIGH),
+    (0x0067_c08f, None, sim::air::SITE_AIR_TARGET_LOW),
+    (0x0067_c0cc, None, sim::air::SITE_AIR_SHOOTER_LOW),
+    (0x0067_c0ff, None, sim::air::SITE_AIR_TARGET_HIGH),
+    (0x0067_c138, None, sim::air::SITE_AIR_SHOOTER_HIGH),
+    // `Ammo::init_crash@0067b800`'s one game draw, the crash's roll.
+    (0x0067_bb05, None, sim::air::SITE_CRASH_ROLL),
     (0x0067_c8c9, None, sim::fight::SITE_AMMO_SCATTER_X),
     (0x0067_c8fb, None, sim::fight::SITE_AMMO_SCATTER_Y),
     // The attack-ground arm's own pair (`init:461`–`484`), ahead of

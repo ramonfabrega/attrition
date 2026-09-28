@@ -1327,6 +1327,8 @@ impl Sim {
                 anim::ATTACK1
             };
             self.set_anim(i, slot, false, false);
+        } else if self.radar_jams(i) {
+            self.set_anim(i, 0, false, true);
         } else {
             self.set_anim(i, anim::ATTACK1, false, true);
         }
@@ -1593,6 +1595,13 @@ impl Sim {
         node: i8,
         harmless: bool,
     ) {
+        // **A round at an aircraft rolls to hit** (item 1102,
+        // `docs/COMBAT.md` §81): `Ammo::init`'s air arm, ahead of the
+        // Bomber's and the scatter's; its miss is the same flag `0x10`.
+        let harmless = match aim {
+            Aim::At(t) => self.air_round_misses(shooter, t) == Some(true) || harmless,
+            Aim::Ground(_) => harmless,
+        };
         let p = self.profile(shooter);
         let (target, ground) = match aim {
             Aim::At(t) => (Some(t), None),
@@ -2290,6 +2299,12 @@ impl Sim {
             cur_anim = combat::death_anim(4, alt);
             self.mark(SITE_DEATH_ANIM_FACING);
             let _ = self.rng.roll();
+        }
+        // **An aircraft shot down falls, and leaves no death object**
+        // (item 1102, `docs/COMBAT.md` §81): `Objects::kill_guy`'s arm for
+        // a guy of `CAT` Air that is not a missile.
+        if self.crashes(i) {
+            return;
         }
         let u = &self.units[i];
         self.deaths.push(combat::Death {
