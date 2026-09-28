@@ -1025,6 +1025,10 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         let flags = [
             ("city_flags[0x1]", 0x1, ours.alive),
             ("city_flags[0x2]", 0x2, ours.no_heal),
+            // `CITY_ATTACKING` and `CITY_EVER_ATTACKED`, set with `0x2` by
+            // `Object::take_damage` (item 1034, `docs/COMBAT.md` §69).
+            ("city_flags[0x4]", 0x4, ours.attacking),
+            ("city_flags[0x8]", 0x8, ours.ever_attacked),
             ("city_flags[0x10]", 0x10, ours.capital),
             ("city_flags[0x40]", 0x40, ours.alarm),
             // **The temple mark** (item 552): `Build::activate` sets it on

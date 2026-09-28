@@ -1304,7 +1304,28 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// index 1**: ours spends `Object::take_damage+0xe1` where the original
 /// spends `Farms::inc_time+0x1ae`. Inside run356's window, where nothing
 /// parts on block 4691 and the citizen `0/3`'s damage first parts on 4723.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_690;
+///
+/// **4690 → 4781 on item 1034**: `Object::take_damage`'s `city_flags |=
+/// 0xe` (`00652561`) when another player hits a building of a city, and
+/// `Build::process`'s 200-frame decay on the city building, `0x4` first and
+/// then `0x2`, the city heal's veto; `docs/COMBAT.md` §69. ~~Nothing parts
+/// on block 4691~~: the human's city `0/2000` had parted since block 4661,
+/// healed to `damage` 1/0 here against 2/5 after `1/26`'s first strike on
+/// 4657, and to 0 by 4665, so the strike on 4690 was a first wound again.
+/// **The move's value diff (the word's delta, here; its block is
+/// `run356_s_word_frame_is_widened_whole`'s):** block 4658 prints the
+/// city's `city_flags` 18463 (`0x481f`) on both sides, where ours held
+/// `0x2`, `0x4` and `0x8` clear, and they agree to block 4806, `0x4`'s
+/// clear on 4801 included; the city's `damage` holds 2/5 on both sides
+/// from 4658 to 4689, where ours healed it 2/5 → 1/0 → 0/0 on 4661 and
+/// 4665. Frame 4690's draws went 5 against 4 → agreeing. **The new word's
+/// delta: ours 5 draws and the original 4 on frame 4781, parting at index
+/// 0**: ours spends `Unit::fight+0x9b0` where the original spends
+/// `Farms::inc_time+0x1ae`. Inside run356's window, whose block 4780 has
+/// the citizen `0/4` struck there (`damage_frame` 4779, `damage` 3/5) and
+/// not here, and whose block 4781 parts on `0/4`'s order (kind 10 against
+/// 1).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_781;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

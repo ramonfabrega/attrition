@@ -2029,6 +2029,19 @@ impl Sim {
             let bd = &mut self.buildings[b];
             bd.under_attack |= 0x3;
             bd.hit_frame = Some(frame);
+            // **`city_flags |= 0xe`** (`Object::take_damage@00652020`, the
+            // `orw $0xe, 0x4(%eax)` at `00652561`; `docs/COMBAT.md` §69):
+            // under the same `param_5 == 0 && who != param_8` as the latch,
+            // and whatever the latch's peasant arm decided, a building that
+            // belongs to a city (`BuildData +0x72 >= 0`) marks its city
+            // under attack, attacking and ever attacked. The first of the
+            // three is the city heal's veto.
+            if let Some(c) = self.buildings[b].city {
+                let cd = &mut self.cities[c];
+                cd.no_heal = true;
+                cd.attacking = true;
+                cd.ever_attacked = true;
+            }
         }
         self.first_wound_draws(b, by, attrition);
         let site = !self.buildings[b].active && self.buildings[b].ty.is_some();
