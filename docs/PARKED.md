@@ -77,7 +77,9 @@ and nothing else; nothing enemy was near `0/1` on run358.
 ## Parked by item 997, 2026-09-27 — the attack-move's edges
 
 (1003) **A guy's `whom`/`ox` naming `0/2000` on an attack-move**: `1/21`
-on 4585, `1/24`–`1/26` from 4550 (run356). No draw before 4593.
+on 4585, `1/24`–`1/26` from 4550 (run356). No draw before 4593. **1002**:
+it does not cause 4593, and its shape is back on `1/22` and `1/23` at
+4598 and 4599, just before 4605 (item 1012's frame).
 
 (1004) **`BuildData::attack`'s garrison arm**, which this crate's
 `attack_of` lacks (COMBAT §64): read, not built.
@@ -1668,6 +1670,13 @@ silence. The guards' own parsers want the same check.
 wording; the row is a one-line check. And 976's staging took five walks
 to find a target that stays put, is seen and splits the readings: the
 cost was choosing each target before walking it.
+
+(1013) **A code comment named an arm the code did not have** (1002's
+Loop line, filed at its merge): `do_move`'s comment named "the
+building-target kill" inside the ranged gate while this crate had no
+such arm; ORDERS §4.4 had it right. A comment that cites a spec section
+could be checked against it, as the dead-citation guard checks
+addresses.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

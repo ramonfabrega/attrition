@@ -10576,7 +10576,7 @@ live `2009` was compared with ours' dead frame-976 site.
     997** (`docs/COMBAT.md` §64): `1/21`'s attack-move look had taken the
     human's unarmed Woodcutter's Camp, which the original's `flags` word
     refuses.
-  - **Great Lakes 4593**, **the lower** (item 997; no mechanism is
+  - ~~**Great Lakes 4593**, **the lower** (item 997; no mechanism is
     named): ours 4 draws, the original 5, parting at index 2. Ours spends
     `Farms::inc_time+0x1ae` where the original spends
     `Guy::set_anim+0xf2f < Guy::move+0x166`. Inside run356's window
@@ -10587,7 +10587,10 @@ live `2009` was compared with ours' dead frame-976 site.
     orders, `orders_x/y` (4872, 31752)) at (5052, 31644). Earlier rows in
     the window: `1/0`'s turn on 4575 (18 keys, a unit parting since
     4550), and on 4585 a guy's `whom/ox` naming the city `0/2000` on
-    `1/21`'s attack-move, the shape `1/24`–`1/26` stood in from 4550.
+    `1/21`'s attack-move, the shape `1/24`–`1/26` stood in from 4550.~~
+    **Moved to 4605 by item 1002** (`docs/COMBAT.md` §65): `1/26`'s chase
+    on the city is a building's, which `do_move` asks without the `0x90`
+    margin.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

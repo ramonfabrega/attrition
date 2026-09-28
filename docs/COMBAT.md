@@ -10811,3 +10811,108 @@ The unit test is `an_attack_move_passes_over_an_unarmed_building`.
 4555's draws, a floor that falls back under the mutation. **Listing-backed**:
 `005ffc6a`–`005ffcde`, `00649430`–`00649515`, `00649766`–`006497b2`,
 `622c88`. **Unit-backed only**: the siege, tank and RAZE words.
+
+## 65. A ranged chase on a building stops at the edge of its reach (item 1002, 2026-09-27)
+
+Item 1002 was booked on Great Lakes' second word, frame 4593 of run347:
+ours 4 draws against the original's 5, parting at index 2 on
+`Farms::inc_time+0x1ae` against `Guy::set_anim+0xf2f < Guy::move+0x166`.
+No mechanism was named. The block before it (run356, 4592) parted on
+`1/26`: an `ATTACK` there (kind 10, two orders) and a walk here (kind 1,
+three orders).
+
+### 65.1 The frame, from the disk
+
+- **Who and what.** `1/26` is a who=1 ranged soldier (guy type 82, reach
+  6, so `6 × 0xc0 + 6 = 1158`) in army 0, stance RAID. Its attack is not
+  mandatory: the dump's `ATTACKORDER` reads `mandatory 0`, `ox 2000
+  whom 0`, the human's city. It walks its attack position (4872, 31752)
+  under that `ATTACK`, over its army's `ATTACK_TO`.
+- **Both sides agree through block 4591**, at (5079, 31628). There the
+  harness's reach print (`RON_DEBUG_UNIT`, new) reads `attack_dist` 1128.
+  That is inside 1158 but not inside `1158 − 0x90 = 1014`.
+- **The original stops there.** On block 4592 `1/26` stands at (5079,
+  31628) with `stopped 1`, `orders_x/y` its own spot and one `ATTACK`. On
+  4593 it shoots (`recharging 33`, `hold_attack 1`), and the shot's
+  `Guy::set_anim` is the word's fifth draw.
+- **Ours walked on**, to (5052, 31644), because its kill asked with the
+  `0x90` margin.
+
+### 65.2 The listing
+
+`do_move@005f7b30`, the attack under a move. After the gate on the
+attacker's `max_range` (`5f7f1a`), `5f7f27` calls the **target's** vslot
+`+0x1c`: 1 for a building or a wall, 0 for a unit (§64.2's table).
+
+- **A unit** (`je 5f7fbe`): the flank clause, then
+  `is_in_range@006486b0` with the sixth argument `mandatory == 0`, then
+  `find_collision`. This is the kill §35.3 measured. The captain
+  retarget below it is this arm's too.
+- **A building** (`5f7f34`–`5f7faa`):
+  - `unit_masks & 0x40000` with the type's `is_siege` (`+0x10c`) answering
+    → `5f82c1`, the planner;
+  - else `is_in_range@00648d70` (`push 0` at `5f7f53`: its fourth
+    argument, which it hands to `006486b0` as the sixth), so **no
+    margin**;
+  - then `valid_target@00648ba0` and `find_collision@0065b1b0(my spot,
+    o, who, 1) == 0` → `kill_current_order(0)`;
+  - every refusal → `5f82c1`. There is no retarget.
+
+`docs/ORDERS.md` §4.4 step 4 has carried the building arm since the first
+reading: "a building target in range, valid, no collision → kill". The
+code asked every target the unit arm's question.
+
+### 65.3 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| parked 1003: the attack-move's own target (`order:target`, ours none against the city) | the row stands on `1/26` from 4550 to 4604, and 4592 closes under the fix with it still standing | not the cause |
+| the reach differs | both sides agree the unit is not in range on 4590 at 1176 and stop it one frame later; the reach is the type's | killed |
+| a building is asked without the margin | with the building arm, 4592 and 4593 agree and 4593's draws go 5/5. With the margin put back (the mutation), the walk falls back to 4593 and the unit test fails on its first arm | **held** |
+
+### 65.4 The fix
+
+The fix is in `sim::orders`, in the attack block under `do_move`. A
+building target takes the building arm (the siege gate and
+`is_in_range` with no margin), and a unit target keeps the unit arm (the
+margin and the captain retarget). The unit test is
+`a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach`.
+
+### 65.5 What it moved
+
+- **Great Lakes 4593 → 4605.** On run356, `1/26` agrees from 4592 to
+  4605. On block 4606 it first parts again, kind 2 here against 10
+  there. Frame 4593's draws went 4/5 → 5/5.
+- **East Indies holds at 5606.** The first pair holds at 24,000 on both
+  maps.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism
+  is named): frame 4605, ours 2 draws and the original 43, parting at
+  index 0.
+  - Ours spends `Farms::inc_time+0x1ae`.
+  - The original spends 41 `Unit::find_attack_pos+0xea9`: four under
+    `Group::action_attack+0x41a`, then 37 under `Unit::fight+0xcb4`.
+  - Block 4606 parts on the army's members: `1/9`..`1/14` hold the
+    army's `GROUP_ATTACK_TO` (kind 21) here and an `ATTACK` (kind 10)
+    there.
+  - Earlier rows in the window: `1/22`/`1/23`'s `order:target` on
+    4598/4599 (parked 1003's shape), `1/0`'s move destination on 4599,
+    `1/19`/`1/20`'s path by one unit on 4600, the human leader's `wars`
+    and `active_wars` on 4601, and `1/15`..`1/17`'s group id on 4605.
+
+### 65.6 What is not established
+
+- **The siege gate** (`5f7f34`) has no capture: `is_siege` is this
+  crate's `uflags::SIEGE` on the type, as §64.2's word reads it.
+- **`find_collision`** at the attacker's own spot is not modelled in
+  either arm. It only makes the kill rarer.
+- **A wall target** takes the building arm by the vslot. This crate's
+  walls are buildings, so it does too, and no capture shows one.
+
+### 65.7 Coverage
+
+- **Diff-backed**: the building arm's kill, by run356's blocks 4592 and
+  4593 and frame 4593's draws. It is a floor, and it falls back under the
+  mutation.
+- **Listing-backed**: `5f7f1a`–`5f7faa` and `00648d70`.
+- **Unit-backed only**: the siege gate, and the unit arm's margin at the
+  same distance.

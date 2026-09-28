@@ -4221,6 +4221,92 @@ mod tests {
         );
     }
 
+    /// **A ranged chase on a building stops at the edge of its reach**
+    /// (`do_move@005f7b30`, the listing `5f7f27`–`5f7faa`; `docs/COMBAT.md`
+    /// §65). The target's vslot `+0x1c` splits the kill: a unit target is
+    /// asked with `is_in_range`'s `0x90` margin when the attack is not
+    /// mandatory, a building through `is_in_range@00648d70`, whose sixth
+    /// argument is 0. run347's `1/26` stops on the human's city at
+    /// `attack_dist` 1128 against a reach of 1158 (Great Lakes 4593).
+    ///
+    /// Four arms: a building inside the reach but not inside the margin
+    /// kills the move; a unit at the same distance does not; an AI siege
+    /// type is passed over at `5f7f34`; and a building past the reach
+    /// keeps the chase. Made to fail on purpose by asking the building
+    /// with the margin again: the first arm keeps its move.
+    #[test]
+    fn a_ranged_chase_on_a_building_stops_at_the_edge_of_its_reach() {
+        let (mut sim, ty) = at_war();
+        sim.nation[0].human = true;
+        sim.nation[1].human = false;
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let city = sim.add_building(0, at, 0);
+        sim.buildings[city].ty = Some(bt);
+        sim.buildings[city].hits = 800;
+        sim.buildings[city].health = 800;
+        sim.buildings[city].combat = Some(Profile::default());
+        let foe = put(&mut sim, 0, ty, at);
+        let me = put(&mut sim, 1, ty, at);
+        // The reach is `4 × 0xc0 + 6`; find a spot east of the target
+        // inside it but not inside the margin, for each kind of target.
+        let reach = sim.max_range_of(Obj::Unit(me)) * 0xc0 + 6;
+        let spot = |sim: &mut Sim, t: Obj, lo: i32, hi: i32| {
+            (0..0x1000)
+                .map(|dx| Pos::new(at.x + dx, at.y))
+                .find(|&p| {
+                    sim.units[me].pos = p;
+                    let d = sim.attack_dist(Obj::Unit(me), t);
+                    (lo..=hi).contains(&d)
+                })
+                .expect("a spot at that distance")
+        };
+        let inside = spot(&mut sim, Obj::Building(city), reach - 0x8f, reach);
+        let past = spot(&mut sim, Obj::Building(city), reach + 1, reach + 0x40);
+        let unit_inside = spot(&mut sim, Obj::Unit(foe), reach - 0x8f, reach);
+        let chase = |sim: &Sim, from: Pos, t: Obj, siege: bool| {
+            let mut s = sim.clone();
+            if siege {
+                let mut ut = s.unit_types[ty].clone();
+                ut.cols.unit_flags = uflags::SIEGE;
+                let ut = s.add_unit_type(ut);
+                s.units[me].ty = Some(ut);
+            }
+            s.units[me].pos = from;
+            s.add_attack_order(me, t, crate::orders::QueuePos::First, false, true);
+            s.add_move_order(
+                me,
+                Pos::new(at.x - 0x400, at.y),
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::First,
+                false,
+            );
+            assert!(!s.units[me].combat.mandatory);
+            s.work(me, 0);
+            s.units[me].orders.iter().any(crate::orders::Order::is_move)
+        };
+        assert!(
+            !chase(&sim, inside, Obj::Building(city), false),
+            "a building inside the reach kept the chase"
+        );
+        assert!(
+            chase(&sim, unit_inside, Obj::Unit(foe), false),
+            "a unit inside the reach but not the margin ended the chase"
+        );
+        assert!(
+            chase(&sim, inside, Obj::Building(city), true),
+            "an AI siege type stopped on the building"
+        );
+        assert!(
+            chase(&sim, past, Obj::Building(city), false),
+            "a building past the reach ended the chase"
+        );
+    }
+
     /// **An unpacked packer takes only what it can reach, and a hit from
     /// inside its minimum is dropped without a chase**
     /// (`Object::find_nearby_target@00648da0`'s `local_24`, the listing

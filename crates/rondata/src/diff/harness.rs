@@ -2088,7 +2088,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         .collect();
     eprintln!(
         "  f{frame} {who}/{o} #{} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
-         danger {} stance {}/{:?} coll {}@{} tgt {:?} path {:?} orders {:?} {}",
+         danger {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
         built
@@ -2140,6 +2140,26 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
                 built.sim.buildings[b].owner,
                 i64::from(built.sim.buildings[b].index)
             ),
+        }),
+        // The chase's own question (item 1002): `attack_dist` to the
+        // target, the reach, and `do_move`'s in-range verdict with and
+        // without the `0x90` margin, beside `mandatory`.
+        u.combat.target.map(|t| {
+            let me = sim::combat::Obj::Unit(
+                built
+                    .sim
+                    .units
+                    .iter()
+                    .position(|x| std::ptr::eq(x, u))
+                    .unwrap_or(usize::MAX),
+            );
+            (
+                built.sim.attack_dist(me, t),
+                built.sim.max_range_of(me),
+                built.sim.is_in_range_at_margin(me, u.pos, t, false),
+                built.sim.is_in_range_at_margin(me, u.pos, t, true),
+                u.combat.mandatory,
+            )
         }),
         u.path,
         u.orders,
