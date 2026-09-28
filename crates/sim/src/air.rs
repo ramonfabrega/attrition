@@ -1387,10 +1387,10 @@ impl Sim {
     /// takes a unit that is no squad follower (`+0x8e < 0`) and whose type
     /// has population out of `num_units` — `Leader::track_unit_type(type,
     /// −1)` at `0060f3db` (the `pop == 0` arm admits `is(0x134)` and a
-    /// governor-hero alone). A missile is never a follower and its `POP` is
-    /// 1. Without it a dead V2 stayed counted, and the next V2's price and
-    /// time were one step up the ramp: run390's second silo charged 100
-    /// and 100 on 2722, and this crate 120 and 120.
+    /// governor-hero alone). A missile is never a follower, and its `POP`
+    /// is one. Without it a dead V2 stayed counted, and the next V2's
+    /// price and time were one step up the ramp: run390's second silo
+    /// charged 100 and 100 on 2722, and this crate 120 and 120.
     pub(crate) fn missile_dies(&mut self, u: usize) {
         self.units[u].health = self.units[u].health.min(0);
         if let Some(ty) = self.units[u].ty
