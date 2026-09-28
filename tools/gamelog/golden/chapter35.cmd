@@ -22,11 +22,13 @@
 #
 #   run371 (item 1019):
 #   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch35 \
-#       --map 14 --end-frame 3260 --log-window 605 3260 --timeout 10800 \
+#       --map 14 --end-frame 3260 --log-window 605 3260 --timeout 7200 \
 #       --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
 #       --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
-#       --detail misc:COMMANDMANAGER=1 --cover cover=1 \
+#       --detail misc:COMMANDMANAGER=1 \
 #       --cmd-file tools/gamelog/golden/chapter35.cmd
+#   (cover=0: the click-free lane hangs at cover=1, run185. run372 is this
+#   script at cover=1 on the queue lane, captures.txt's stanza.)
 #
 # The window is 2,655 blocks: the last staged event is the press at 3010
 # (processed 3011, read 3012); 3260 leaves 250 blocks past it.
