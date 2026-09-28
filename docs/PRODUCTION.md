@@ -1518,12 +1518,80 @@ the `ATTACK_TO` to (5784, 12312) with flags 4 (2659) and flew there.
 Chapter thirty-five's word went 2445 → 2675, open. Five tests in
 `airbase::tests`; §44 has the mutations.
 
-**Not built, and run371 holds it** (parked with the word): the
+**Not built, and run371 holds it** (parked with the word): ~~the
 Helicopter's walk on its `ATTACK_TO` — its figure stands a frame before
-it walks (2675) — and an idle Helicopter's drift; the V2's strike from
+it walks (2675) — and an idle Helicopter's drift~~ (built by item 1048,
+"The Helicopter's flight" below: both are the separation); the V2's strike from
 the silo (the missile narrowing of `action_launch_flight`, the air attack
 on the ground, `recharging` 30 and `do_missile_launch`) and its round, a
 spline of 120 frames onto the target.
+
+## The Helicopter's flight (item 1048)
+
+`docs/GOLDEN.md` §44 is the chapter; run371's `0/11` and `0/12`,
+2674..2701, are the evidence. A type that **flies like a helicopter**
+(`UnitTypeData +0x2b4 & 0x20`, `ai_load::uflags::HELICOPTER`) walks as a
+ground unit does — `do_move`, `move_step`, `Guy::move` — with three
+differences, each read off the listing and each diff-backed.
+
+**A straight path.** The three planners return at a Helicopter's type
+before they plan:
+- `Unit::find_path@005fb910`: `testb $0x20, 0x2b4(type)` / `jne 5fbf4c`
+  at `5fb96f`, the `xor eax, eax` return — straight, with no
+  walkability test and no `path_recursion`;
+- `PathFinder::find_wpath@00688fc0`: `same cell || +0x2b4 & 0x20` at
+  `689110`, the goal pushed back as it was;
+- `PathFinder::find_tpath@006897d0`: the same at `68990d`, tolerance 0.
+
+So a Helicopter's move is its goal alone, and `move_step` flies it 75 a
+frame along the bearing: run371's `0/12` (−55, −51) from 2677.
+
+**The separation, `Unit::work@0060d180`'s tail** (`60dadd`..`60dc9f`,
+after `do_job` on every path that reaches it):
+
+```
+unit_flags & 0x20, +0x8 & 1, inside_up < 0
+  and the front order none or not is_air (UnitOrder vslot +0x30:
+      `mov eax, 1` on the air orders, Window::get_button's 0 on the base)
+v = find_unit(x, y, SEARCH_ALL, −1, 0x180, 1, FILTER_TYPE, type, 0,
+              FILTER_NOT_ME, o, who)                 # the nearest, ties last
+(dx, dy) = project(find_angle(me − v), 0x30)          # ECX the angle, EDX 48
+me → restrict(me + (dx, dy) / 2)   set_new_location(·, ·, 1, 1)   # sar: toward 0
+v  → restrict(v − (dx, dy))        set_new_location(·, ·, 1, 1)
+unit_masks &= ~0x10
+```
+
+Units work in `o` order, and the exit's own `work` runs inside
+`come_out`, so on 2674 `0/12` steps and pushes `0/11`; on 2675 `0/11`
+pushes `0/12` and `0/12` pushes back; on 2676 once more, and at 368
+apart once more; at 515 they are out of reach. Every one of the dump's
+twelve coordinates on 2675..2677 is the arithmetic's. The teleport puts
+guy 0 on the unit (`param_3`) and its facing on the unit's (`param_4`):
+that is why `0/12`'s figure stands on its unit on 2675 and takes
+`Guy::move:59`'s arrival draw, and why `0/11` drifts (parked 1049).
+
+**The figure's climb**, `Guy::set_new_location@005d86f0`
+(`5d880b`..`5d884a`): for an air type with the flag, `z +=
+clamp(find_data_z(x, y, 0) − z + 1000, −30, 30)`, then with `param_3`
+`last_z = z` (`5d8859`). `Guy::move` writes `last_z = z` at its head
+(`:47`) and ends its moving arm in `set_new_location(·, 0)` (`:190`), so a
+Helicopter climbs 30 a frame walking and 30 a push: `0/12` 188, 248, 308
+… to 727 over a lake bed at −273, `0/11` 158 → 278 over its three pushes.
+
+**Built** (item 1048): `Sim::find_path`'s return, `find_wpath_from`'s
+and `find_tpath`'s flyer arms, `Sim::helicopter_spread` at `Sim::work`'s
+tail, and `Sim::helicopter_climb` in `set_new_location`'s guy half and
+`process_movement`. Five tests in `airbase::tests`, three on run371's
+own numbers.
+
+**Not established**: `find_unit`'s by-cell walk for a ring past one
+(the separation's `0x180` is ring 1, and only two Helicopters are on any
+capture); the separation between a Helicopter and one of an *upgraded*
+type (`is(type, 0)`, the lineage); `Guy::move:46`'s `guy_flags & 0x40`
+exemption from `last_z = z`, and the `last_z` write for every other
+figure on a teleport; the tail's `unit_masks &= ~0x10` (`60dc9f`, on every
+path), not modelled here; a Helicopter on an air order (the gate), which no
+capture has.
 
 ## What is not established
 

@@ -1384,8 +1384,9 @@ impl Sim {
             self.units[u].path.clear();
             return -1;
         }
-        // Same cell, or a flyer (SEAM: no flyers): push back, done.
-        if here.cell() == gc {
+        // Same cell, or a type that flies like a helicopter (`+0x2b4 &
+        // 0x20`, `689110`, item 1048): push back, done.
+        if here.cell() == gc || self.is_helicopter(u) {
             self.units[u].path.push(goal_e);
             return self.units[u].path.len() as i32;
         }
@@ -1580,7 +1581,8 @@ impl Sim {
             return -1;
         }
         let ht = here.tile();
-        if ht == gt {
+        // The same tile, or a helicopter (`68990d`, item 1048).
+        if ht == gt || self.is_helicopter(u) {
             goal_e.tolerance = 0;
             self.units[u].path.push(goal_e);
             return self.units[u].path.len() as i32;

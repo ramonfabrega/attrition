@@ -1053,6 +1053,140 @@ mod tests {
         assert_eq!(s.units[h].airframe.z, ground + 200);
     }
 
+    /// A Helicopter of its own type out of `b` and on the map at `at`, with
+    /// its figure on it and no order.
+    fn heli_at(s: &mut Sim, b: usize, at: Pos) -> usize {
+        // The exit's arm, which faces it north, wants a frame past 0.
+        s.frame = s.frame.max(1);
+        air_type(s, b, HELICOPTER, true, false);
+        let h = *s.buildings[b].garrison.last().unwrap();
+        assert!(s.come_out(h));
+        s.units[h].orders.clear();
+        s.set_new_location(h, at, true);
+        h
+    }
+
+    /// **A Helicopter's move is one straight waypoint** (item 1048: the
+    /// planners' `+0x2b4 & 0x20` returns, `find_path@005fb910`'s `5fb96f`,
+    /// `find_wpath`'s `689110`, `find_tpath`'s `68990d`): run371's `0/12`
+    /// out at (8351, 14690) on its attack-move to P_h's cell takes the goal
+    /// alone, no `path_recursion`, and steps 75 straight at it — the dump's
+    /// (−55, −51). Made to fail with each of the three returns dropped.
+    #[test]
+    fn a_helicopter_flies_one_straight_waypoint() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let h = heli_at(&mut s, b, Pos::new(8351, 14690));
+        let goal = Pos::new(5784, 12312);
+        s.add_air_patrol_order(h, goal, None, true);
+        // Faced along the bearing already: this fixture's type turns
+        // slowly, where the install's Helicopter took it in one frame.
+        let at = s.units[h].pos;
+        let bearing = crate::movement::find_angle(goal.x - at.x, goal.y - at.y);
+        s.units[h].movement.set_facing(bearing);
+        s.frame = 2674;
+        s.work(h, 2674);
+        let path: Vec<Pos> = s.units[h].path.iter().map(|p| p.to).collect();
+        assert_eq!(path, vec![goal], "the goal alone");
+        assert_eq!(s.units[h].path_recursion, 0);
+        assert_eq!(s.units[h].pos, Pos::new(8296, 14639), "75 straight at it");
+    }
+
+    /// **Two Helicopters are set 48 apart by the one working** (item 1048,
+    /// `Unit::work@0060d180`'s tail, `60dadd`..`60dc9f`): run371's `0/12`
+    /// at (8296, 14639) and `0/11` idle at (8355, 14690) on 2674 — the one
+    /// working moves half the vector, the other the whole of it, each with
+    /// its figure put on it: (8278, 14624) and (8392, 14721), block 2675's
+    /// own. Nothing moves while the other is inside. Made to fail with the
+    /// arm dropped.
+    #[test]
+    fn two_helicopters_are_set_48_apart_by_the_one_working() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let near = heli_at(&mut s, b, Pos::new(8355, 14690));
+        s.go_inside(near, b);
+        let me = heli_at(&mut s, b, Pos::new(8296, 14639));
+        s.frame = 2674;
+        s.work(me, 2674);
+        assert_eq!(s.units[me].pos, Pos::new(8296, 14639), "the other inside");
+        assert!(s.come_out(near));
+        s.units[near].orders.clear();
+        s.set_new_location(near, Pos::new(8355, 14690), true);
+        s.work(me, 2674);
+        assert_eq!(s.units[me].pos, Pos::new(8278, 14624));
+        assert_eq!(s.units[near].pos, Pos::new(8392, 14721));
+        for u in [me, near] {
+            assert_eq!(s.units[u].movement.body.pos, s.units[u].pos, "put on it");
+        }
+    }
+
+    /// **The tile planner leaves a Helicopter's goal as it is** (item 1048,
+    /// `PathFinder::find_tpath@006897d0`'s `68990d`): a goal two cells off
+    /// comes back alone, tolerance 0. `find_wpath` answers first on every
+    /// fresh move, so this arm is reached only by a caller that asks the
+    /// tile grid directly. Made to fail with the arm dropped.
+    #[test]
+    fn the_tile_planner_leaves_a_helicopter_s_goal_as_it_is() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let h = heli_at(&mut s, b, Pos::new(8351, 14690));
+        let goal = Pos::new(5784, 12312);
+        s.units[h].path.push(crate::orders::PathData {
+            to: goal,
+            tolerance: 384,
+            flags: crate::orders::path_flag::FINAL,
+        });
+        assert_eq!(s.find_tpath(h), 1);
+        let top = s.units[h].path[0];
+        assert_eq!((top.to, top.tolerance), (goal, 0));
+    }
+
+    /// **A Helicopter on an air order is not set apart** (item 1048, the
+    /// separation's `is_air` gate, `UnitOrder` vslot `+0x30` at `60db14`):
+    /// the pair of run371's 2674, the working one on a strike. No capture
+    /// has the case. Made to fail with the gate dropped.
+    #[test]
+    fn a_helicopter_on_an_air_order_is_not_set_apart() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let near = heli_at(&mut s, b, Pos::new(8355, 14690));
+        let me = heli_at(&mut s, b, Pos::new(8296, 14639));
+        s.add_strafe_order(
+            me,
+            None,
+            Some(b),
+            false,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        s.helicopter_spread(me);
+        assert_eq!(s.units[me].pos, Pos::new(8296, 14639));
+        assert_eq!(s.units[near].pos, Pos::new(8355, 14690));
+    }
+
+    /// **A Helicopter's figure climbs thirty a move toward 1000 over the
+    /// ground** (item 1048, `Guy::set_new_location@005d86f0`'s
+    /// `5d880b`..`5d884a`): by a teleport, which leaves `last_z` on it, and
+    /// by a step of the figure, which leaves `last_z` where it stood —
+    /// run371's `0/12` on 2677, `z` 308 over `last_z` 278. Made to fail
+    /// with either call dropped.
+    #[test]
+    fn a_helicopter_s_figure_climbs_thirty_a_move() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let at = Pos::new(8351, 14690);
+        let h = heli_at(&mut s, b, at);
+        let ground = s.ground_z(at);
+        s.units[h].airframe.z = ground + 158;
+        s.set_new_location(h, at, true);
+        assert_eq!(s.units[h].airframe.z, ground + 188);
+        assert_eq!(s.units[h].airframe.last_z, ground + 188);
+        s.units[h].airframe.z = ground + 990;
+        s.set_new_location(h, at, true);
+        assert_eq!(s.units[h].airframe.z, ground + 1000, "the cap");
+        // A step: the unit ahead of its figure, which follows it.
+        s.units[h].airframe.z = ground + 278;
+        s.units[h].pos = Pos::new(at.x - 55, at.y - 51);
+        s.process_movement(h);
+        let z = s.units[h].airframe;
+        assert_eq!((z.z, z.last_z), (ground + 308, ground + 278));
+    }
+
     /// **A Missile Silo holds one missile at a time** (item 1019,
     /// `Group::action_queue_up@006fdbb0`'s `can_carry(type)` at a silo,
     /// `ObjectData::has_nuke@00643d40`): of `@queueup 313 2`, one V2 is

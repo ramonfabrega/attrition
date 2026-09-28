@@ -4634,6 +4634,17 @@ impl Sim {
             follow.body.pos = m.body.pos;
         }
         self.guys_follow(i, was_at_des);
+        // A helicopter's figure height (item 1048): `Guy::move:47`'s
+        // `last_z = z` at its head, and the moving arm's
+        // `Guy::set_new_location(·, 0)` (`:190`) climbs it at the body's
+        // new point ([`Sim::helicopter_climb`]). SEAM: `:46`'s
+        // `guy_flags & 0x40` exemption, and the write for other figures.
+        if self.is_helicopter(i) {
+            self.units[i].airframe.last_z = self.units[i].airframe.z;
+            if !was_at_des {
+                self.helicopter_climb(i, follow.body.pos);
+            }
+        }
         // `Guy::move:109`'s `turn_towards(des_angle, …, 1)`, which hands
         // `Guy::do_turn` the same override `move_step`'s two turn-in-place
         // arms do — so a standing guy owed a turn asks for its turn

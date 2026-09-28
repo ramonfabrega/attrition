@@ -937,6 +937,13 @@ impl Sim {
             self.units[u].movement.body.pos = to;
             // `Guy::set_new_location(guy 0, pos, 1)` moves the disc now.
             self.coll_follow(u);
+            // Its helicopter climb, and `param_3`'s `last_z = z` after it
+            // (`5d8859`). SEAM: the write for every other figure.
+            if self.is_helicopter(u) {
+                self.helicopter_climb(u, to);
+                let af = &mut self.units[u].airframe;
+                af.last_z = af.z;
+            }
             // `Unit::set_new_location`'s `param_3` does not stop at guy 0.
             // It is handed on as `Guy::set_new_location(guy 0, pos, 1)`,
             // whose crew loop **puts** every tracked figure on its new
