@@ -1319,7 +1319,8 @@ impl Sim {
         );
         let s = crate::combat::scatter(&self.tuning, acc, true, true, false);
         let mut landing = at;
-        if s - 1 >= 1 {
+        // `s − 1 < 1` (`local_28`) takes no draw.
+        if s > 1 {
             self.mark(crate::fight::SITE_AMMO_GROUND_SCATTER_X);
             landing.x += self.rng.roll() % s - s / 2;
             self.mark(crate::fight::SITE_AMMO_GROUND_SCATTER_Y);
