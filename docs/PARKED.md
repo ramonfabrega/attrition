@@ -102,6 +102,21 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1091, 2026-09-28 — the nuke's edges
+
+(1103) **A ranged death's slot is held 30 frames in the original, 0
+here**: `Object::die`'s hold reads `nuke_effect+0x108` (0xc0a888), which
+`Nuke::init` sets to 30 at startup; run400's packet at logger 5066 reads
++0x104 = 10, +0x108 = 30, +0x110 = 110. This crate's `hold_dead_slot`
+and `missile_dies` take 0 (PRODUCTION "The nuke (item 1091)", not
+established). Confirmed by the packet; it touches every ranged death's
+slot reuse. Returns when a word's slot or id parts.
+
+(1104) **Chapter thirty-seven's residue, no draw**: two citizens' anim
+clocks on 617..655; the research's building group in the pool on 617;
+and this crate queues a nuke at a Market, which the original's
+`queue_here` would refuse.
+
 ## Parked by item 1089, 2026-09-28 — the squad head's other callers
 
 (1100) **The squad head at `find_melee_target`'s other callers whose
@@ -1857,6 +1872,12 @@ the widening, and only `RON_STACKS` showed it; a key per order slot
 again, would have printed the frame. (b) A packet at the decision's
 tick rather than the word's (run400 at 5066, for 5105, with the
 commander's approval) is a shape EMULATOR §8's rule could name.
+
+(1105) **A golden capture without `DEATHS` in its end detail** (1091's
+Loop line): every death then reads as a `death:extra` row on our side
+(chapter thirty-seven's two). The widening could skip the death list on
+a capture that did not ask for it, or the chapters' end detail could
+carry `DEATHS=1`.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
