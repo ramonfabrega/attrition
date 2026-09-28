@@ -508,7 +508,8 @@ mod tests {
     /// 200 before its last). **Since item 1012 the word is 4618**, block
     /// 4619 (69 blocks after its first and 187 before its last). **Since
     /// item 1014 the word is 4673**, block 4674 (124 blocks after its first
-    /// and 132 before its last).
+    /// and 132 before its last). **Since item 1023 the word is 4688**, block
+    /// 4689 (139 blocks after its first and 117 before its last).
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -587,10 +588,12 @@ mod tests {
         // sides, where ours took (2, 40), (2040, 31224), arrived on 4618
         // and idled. Its order agrees from block 4550 to its next explore
         // target on 4737; `1/0`'s group and `1/7`'s gather `wait`, which
-        // parted on 4619, no longer part in the window.
+        // parted on 4619, no longer part in the window. That target is
+        // chosen after the word, and since item 1023 ours reads 1272 there
+        // (2808 before), still against the original's 504.
         assert_eq!(
             row(1, 0, "order:move.x").as_deref(),
-            Some(r#"4737: Move { field: "x", ours: 2808, theirs: 504 }"#),
+            Some(r#"4737: Move { field: "x", ours: 1272, theirs: 504 }"#),
             "the scout's target, which parted on 4550 until item 1014"
         );
         assert_eq!(
@@ -603,26 +606,35 @@ mod tests {
             None,
             "the gatherer's wait, 4619 until item 1014"
         );
-        // **The new word, 4673, writes block 4674** (no mechanism is
-        // named, DECISIONS 42): ours spends 4 draws, `Unit::fight+0x9b0`
-        // first, where the original spends 3, `Farms::inc_time+0x1ae`.
-        // The chaser `1/24`: its order parts on block 4673 (an `ATTACK`
-        // here, a move there, two orders against three) and its `stopped`
-        // on 4674; its chase spot has parted since block 4617.
+        // **The old word, 4673, agrees** (item 1023, `docs/COMBAT.md` §67):
+        // on 4616, the review's phase for `1/24` (`(4616 + 24) % 16 == 0`),
+        // its target, the citizen `0/3`, is walking away and out of reach
+        // of the chase spot, so `check_target_path` re-aims: block 4617
+        // prints the move at (4104, 31512) on both sides, where ours kept
+        // (4200, 31608). `1/24`'s order (kind 10 against 1 on 4673) and
+        // `stopped` (4674) no longer part; its rows agree from 4605 to 4688,
+        // and its order first parts again on 4722, after the new word.
         assert_eq!(
             row(1, 24, "order:kind").as_deref(),
-            Some("4673: Kind { ours: 10, theirs: 1 }"),
-            "the chaser's order on the block before the new word's"
+            Some("4722: Kind { ours: 10, theirs: 1 }"),
+            "the chaser's order, which parted on 4673 until item 1023"
         );
+        // **The new word, 4688, writes block 4689** (no mechanism is
+        // named, DECISIONS 42): both sides spend `1/24`'s `Unit::fight+
+        // 0x9b0`; then ours spends `Guy::set_anim+0x97a < Guy::move+0x19f`
+        // where the original spends `Farms::inc_time+0x1ae`, parting at
+        // index 31 of 35. On block 4689 the original's `1/24` has struck
+        // (`recharging` 33, `hold_attack` 1) from its cell centre (3768,
+        // 31608), and ours has not.
         assert_eq!(
-            row(1, 24, "g.stopped[0]").as_deref(),
-            Some("4674: ours 1 theirs 0"),
-            "and on the new word's block"
+            row(1, 24, "recharging").as_deref(),
+            Some("4689: ours 0 theirs 33"),
+            "the chaser's strike, on the new word's block"
         );
         assert_eq!(
             row(1, 24, "orders_x").as_deref(),
-            Some("4617: ours 4200 theirs 4104"),
-            "the chase spot, fifty-six blocks before it"
+            Some("4689: ours 3763 theirs 3768"),
+            "and its spot, which parted on 4617 until item 1023"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),

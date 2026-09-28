@@ -1265,7 +1265,27 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// `Farms::inc_time+0x1ae`. Inside run356's window, whose block 4673 parts
 /// on `1/24`'s order (kind 10 against 1, two orders against three) and
 /// 4674 on its `stopped`; its chase spot has parted since block 4617.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_673;
+///
+/// **4673 → 4688 on item 1023**: `check_target_path`'s review, on the
+/// sixteen-frame phase, re-aims a ranged chase whose unit target is running
+/// away and out of reach of the walk spot (`orders_x/orders_y`) —
+/// `repath`, `find_attack_pos`, a `QUEUE_FIRST` move (`5e24e2`–`5e2873`);
+/// `docs/COMBAT.md` §67. **The move's value diff (the word's delta, here;
+/// its block is `run356_s_word_frame_is_widened_whole`'s):** on 4616,
+/// `(4616 + 24) % 16 == 0`, `1/24` chasing the citizen `0/3` at (2736,
+/// 31924) re-aims, and block 4617 prints its move at (4104, 31512), dest
+/// (4872, 30744), on both sides, where ours kept (4200, 31608), dest
+/// (4968, 30840); `1/24`'s rows agree from block 4605 to 4688, its order on
+/// 4673 (kind 10 against 1) and `stopped` on 4674 included. Frame 4673's
+/// draws went 4 against 3 → agreeing. **The new word's delta: ours 35
+/// draws and the original 35 on frame 4688, parting at index 31** (the
+/// count parts on 4690, 6 against 4): after `1/24`'s `Unit::fight+0x9b0`
+/// on both sides, ours spends `Guy::set_anim+0x97a < Guy::move+0x19f`
+/// where the original spends `Farms::inc_time+0x1ae`. Inside run356's
+/// window, whose block 4689 parts on `1/24`: `recharging` 0 here against
+/// 33, `hold_attack` 0 against 1, `orders_x/y` (3763, 31600) against (3768,
+/// 31608).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_688;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
