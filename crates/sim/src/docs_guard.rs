@@ -954,6 +954,91 @@ fn every_cited_address_names_its_function() {
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
+/// Every qualified function name in `text` — `Class::method`, with or
+/// without a `+0x..` site or an `@address` after it — that `known` does not
+/// hold. A name is qualified or it is not read: a bare `come_out` is as
+/// likely a field as a function.
+fn unknown_functions(text: &str, known: &std::collections::BTreeSet<String>) -> Vec<String> {
+    let mut out = Vec::new();
+    let b = text.as_bytes();
+    for (at, _) in text.match_indices("::") {
+        let ident = |c: u8| c.is_ascii_alphanumeric() || c == b'_';
+        let mut start = at;
+        while start > 0 && ident(b[start - 1]) {
+            start -= 1;
+        }
+        let mut end = at + 2;
+        while end < b.len() && ident(b[end]) {
+            end += 1;
+        }
+        // A class is capitalised and a method is not; `rondata::diff` and
+        // `sim::collide` are this crate's paths and are neither.
+        let (class, method) = (&text[start..at], &text[at + 2..end]);
+        if class.is_empty()
+            || method.is_empty()
+            || !class.as_bytes()[0].is_ascii_uppercase()
+            || !method.as_bytes()[0].is_ascii_lowercase()
+            || (start > 0 && b[start - 1] == b':')
+        {
+            continue;
+        }
+        let name = format!("{class}::{method}");
+        if !known.contains(&name.to_lowercase()) && !out.contains(&name) {
+            out.push(name);
+        }
+    }
+    out
+}
+
+/// **A function a booking names is one the export holds** (parked 1010,
+/// the eighteenth pass). Item 976's queue line named `issue_launch_flight`
+/// from a parked row's wording; the export holds no such function, and the
+/// worker's first hour was finding which one was meant. The address guard
+/// above checks a name against its address; a booking names a function
+/// with a site and no address, so its names are checked against the index
+/// whole. Made to fail first on a line that names one the index lacks.
+#[test]
+fn a_function_a_booking_names_is_in_the_export() {
+    let fixture: std::collections::BTreeSet<String> =
+        ["group::action_launch_flight", "guy::set_anim"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+    assert_eq!(
+        unknown_functions(
+            "ours `Guy::set_anim+0xf2f`, theirs `CommandManager::issue_launch_flight`, \
+             pinned in `rondata::diff` and `Group::action_launch_flight@0070d830`",
+            &fixture
+        ),
+        vec!["CommandManager::issue_launch_flight".to_string()]
+    );
+    let home = std::env::var("HOME").unwrap_or_default();
+    let index_path = format!("{home}/ghidra-projects/decomp/INDEX.tsv");
+    let Ok(index) = std::fs::read_to_string(&index_path) else {
+        eprintln!("skipping: no {index_path} (the Ghidra export is not on this machine)");
+        return;
+    };
+    let known: std::collections::BTreeSet<String> = index
+        .lines()
+        .filter_map(|l| l.split('\t').nth(1))
+        .map(|n| strip_templates(n).to_lowercase())
+        .collect();
+    let queue = read("QUEUE.md");
+    let mut failures = Vec::new();
+    for (n, text) in open_item_texts(&queue) {
+        for name in unknown_functions(&text, &known) {
+            failures.push(format!(
+                "item {n} names `{name}`, which the export does not hold"
+            ));
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "a booking names a function by its `INDEX.tsv` row (parked 1010):\n{}",
+        failures.join("\n")
+    );
+}
+
 /// How many of `rondata::blind::RESIDUE`'s rows say "no reference in the
 /// executable" — the dead list's length, pinned so a new row is a decision.
 const UNREFERENCED: usize = 27;
