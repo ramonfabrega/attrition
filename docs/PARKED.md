@@ -62,6 +62,18 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 976, 2026-09-27 — the launch's edges
+
+(1007) **`0/6`'s `mirror` on 2314 and the pool's slot 1 `facing`**
+(run358), at its EXIT under the escort: theirs 1, ours 0. The EXIT's
+`set_angle(0)` turns 6° and cannot flip it; the one other writer of
+`unit_masks & 2` is `Unit::kill_current_order@005e2cb0`'s move branch, on
+the order the EXIT kills. Not read.
+
+(1008) **The escort's search**: `find_new_bomber_target`'s ally arm and a
+non-bomber's `find_new_air_target`. Built as the bomber's point search
+and nothing else; nothing enemy was near `0/1` on run358.
+
 ## Parked by item 997, 2026-09-27 — the attack-move's edges
 
 (1003) **A guy's `whom`/`ox` naming `0/2000` on an attack-move**: `1/21`
@@ -1649,6 +1661,13 @@ commander, 2026-09-27, at 997's booking): every pattern is `\d{1,3}`
 `(1003)` no park. The ledger's counts stood still from 1000 to 1006
 (492 booked, 532 live), and an item from 1000 on can leave the queue in
 silence. The guards' own parsers want the same check.
+
+(1010) **A booking that names an issuer cites its `INDEX.tsv` row**
+(976's Loop line, filed at its merge): item 976's queue line named
+`issue_launch_flight`, which the export does not hold, from parked 947's
+wording; the row is a one-line check. And 976's staging took five walks
+to find a target that stays put, is seen and splits the readings: the
+cost was choosing each target before walking it.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

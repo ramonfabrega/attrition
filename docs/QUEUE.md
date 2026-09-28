@@ -19,28 +19,28 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **7**): 947 closed chapter
-  thirty-two; 971 took the second pair; 972 measured the held-out map
-  once, **1 and 0** (the next pass books a third scored map); 979 gated
-  the harness's frame-word borrow; 965 took the blind list to 147; 989
-  gave a destroyed camp's ground back; 997 refused an unarmed building to
-  an attack-move: **East Indies 5606, Great Lakes 4593**. 976 is live.
+- **Since the pass** (count from 0b401602: **8**): 947 and 976 closed
+  chapters thirty-two (2360) and thirty-three (2740); 971 took the second
+  pair; 972 measured the held-out map once, **1 and 0** (the next pass
+  books a third scored map); 979, 989 and 997 moved the second pair to
+  **East Indies 5606, Great Lakes 4593**; 965 took the blind list to 147
+  (148 with 976's citation).
 - **The ledger is blind from 1000** (parked 1006): items 1000 on are
   booked and deleted by hand until the pass widens its patterns.
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 27 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006).
+- **Fable backlog: 28 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5606 of 18,140 · GreatLakes w4593 of 5,930
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · 976 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · 1009 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander, two lanes — 1002 on the AI lane (Great Lakes'
-4593, the second pair's lower word) and 976 on the rules lane (chapter
-thirty-three). The count runs from 0b401602; the eighteenth pass at
-twenty.**
+4593, the second pair's lower word) and 1009 on the rules lane (chapter
+thirty-four), then 1011. The count runs from 0b401602; the eighteenth
+pass at twenty.**
 
 ## The queue
 
@@ -57,14 +57,20 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     kind 1 here against 10 there, position (5052, 31644) against (5079,
     31628). East Indies' 5606 follows (989's frame).
 
-976. **Chapter thirty-three: an Airbase's launch issuers — no capture
-    yet** (947's park). Action 3 at an Airbase: `action_gather_point`'s
-    `add_gather_point`, then `action_flight` → `Group::action_launch_flight
-    @006fbfb0` (on `NEVER` since 947), and the right-click's
-    `issue_launch_flight`/`issue_launch_patrol`, a family this crate does
-    not carry; a point after an action-3 one joins a closed patrol. On
-    chapter thirty-two's cast. The emulator first; **run358** the
-    capture, run359 a staging run. GOLDEN §42.
+1009. **Chapter thirty-four: the launch commands' other arms — no
+    capture yet** (976's park). A patrol of `[P1, A3, P2]`, ctrl and alt,
+    `MOVE_TO` to a second base, and the Helicopter and missile arms of
+    both launch commands: read and mostly emulated by 976, never
+    captured. On chapter thirty-three's cast; `action_launch_patrol`
+    enters under the new capture. The emulator first; **run362** the
+    capture, run363 a staging run. GOLDEN §43.
+
+1011. **The issuer chapters thirty-one to thirty-three at `cover=1`**
+    (976, counter two): run338, run344 and run358 were `cover=0`, so
+    `action_launch_flight`, `action_launch_patrol` and the gather point's
+    issuers stay on `NEVER` though each chapter reached them. Re-run the
+    three on the queue lane at `cover=1`, as 934 did for twenty, and let
+    the pin fall with each entered function named.
 
 ## How to maintain this file
 

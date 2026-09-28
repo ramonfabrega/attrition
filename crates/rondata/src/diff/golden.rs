@@ -12488,3 +12488,146 @@ const WANT_CH32_POOL: &[&str] = &[
     "666 slot 2 new_speed",
     "666 slot 2 speed",
 ];
+
+/// **Chapter thirty-three, pinned** — an Airbase's launch issuers
+/// (`docs/GOLDEN.md` §42, item 976, run358). Twenty-two staged lines:
+/// chapter thirty-two's sixteen, an enemy Barracks, `@launchstrike`,
+/// `@launchpatrol`, `@launchpatrolall`, and a `@gatherpoint` of action 3
+/// with a `@gatherpointadd` behind it.
+#[test]
+fn chapter_thirty_three_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch33", "chapter33", 33, 22, 2739) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY_THREE,
+        "chapter thirty-three's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY_THREE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY_THREE,
+        "chapter thirty-three's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §42"
+    );
+    eprintln!(
+        "chapter thirty-three: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run358 whole, both directions** (item 976, `docs/GOLDEN.md` §42):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_three_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch33",
+        "chapter33",
+        WIDENING_CHAPTER_THIRTY_THREE,
+        2739,
+        0,
+        (2261, 2263),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch33 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-two's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_THREE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch33: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY_THREE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch33", "chapter33", WIDENING_CHAPTER_THIRTY_THREE, 0)
+        .expect("run358 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch33 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    let mut want: Vec<String> = WANT_CH33.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch33: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH33_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch33: what parts in the pool moved");
+}
+
+// **What parts under the word** on run358, chapter thirty-three. **The
+// first walk** (item 976, before any build): 389 rows. Chapter
+// thirty-two's standing seventeen (611..655, and the Biplane's birth on
+// 1746); **the first parting's field list**, 2262, `0/8` alone: its
+// stack (`orders.len`, `order:length`, ours 0, theirs 1 — the strike on
+// `1/2006`), `inside` (ours 2007, theirs −1), `pos`, `heading`,
+// `dest_angle`, `orders_x/y`, `path:length`, and its figure's point,
+// height, bank, pitch and clock. **Their writers** (889): the stack's is
+// `action_launch_flight`'s strike from inside the base (`add_strafe_order`)
+// alone; the rest are `Object::do_launch`'s `come_out` on the same block,
+// the EXIT at the Airbase, which the strike is what admits. Then 2282
+// (`0/9`'s patrol), 2297 (`0/7`'s and `0/6`'s), 2307 (every plane's
+// strike on `0/1`), 2337 (the patrols over P3), and each flight after.
+// **The arms built** (item 976, `docs/PRODUCTION.md` "The launch
+// commands"): 389 → 18. What stands is chapter thirty-two's seventeen and
+// `0/6`'s `mirror` on 2314, its EXIT under the escort (ours 0, theirs 1),
+// with the pool's slot 1 `facing` on the same block: its one other writer,
+// `Unit::kill_current_order@005e2cb0`'s move branch, and the order the
+// EXIT kills, are not read (the EXIT's own `set_angle(0)` turns 6° and
+// cannot flip it).
+const WANT_CH33: &[&str] = &[
+    "611 0/6 form",
+    "613 0/7 form",
+    "615 0/8 form",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+    "1746 0/9 form",
+    "1746 0/9 g.des_x[0]",
+    "1746 0/9 g.des_y[0]",
+    "1746 0/9 g.x[0]",
+    "1746 0/9 g.y[0]",
+    "1746 0/9 orders_x",
+    "1746 0/9 orders_y",
+    "1746 0/9 pos",
+    "2314 0/6 mirror",
+];
+
+// **What parts in the pool** on run358: chapter twenty-two's ten, and
+// slot 1's `facing` on 2314.
+const WANT_CH33_POOL: &[&str] = &[
+    "2314 slot 1 facing",
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "666 slot 2 new_speed",
+    "666 slot 2 speed",
+];

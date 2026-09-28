@@ -846,6 +846,96 @@ pub fn group_gather_point(
     list.len()
 }
 
+/// **`CommandPackage::process_launch_patrol@00949230`** on the player's
+/// own buildings: a right-click on the ground with an Airbase selected,
+/// `Group::action_launch_patrol(x, y, queue, shift, ctrl, alt)`
+/// ([`sim::Sim::group_action_launch_patrol`]), after `process_group`'s push
+/// of the building group (item 976, `docs/GOLDEN.md` §42). `all` is the
+/// shift-click's `QUEUE_LAST` and shift; plain, `QUEUE_NEW` and none.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_launch_patrol(
+    built: &mut Built,
+    who: i32,
+    buildings: &[i16],
+    at: Pos,
+    all: bool,
+) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    let (queue, keys) = if all {
+        (
+            sim::orders::QueuePos::Last,
+            sim::airbase::Keys {
+                shift: true,
+                ..sim::airbase::Keys::default()
+            },
+        )
+    } else {
+        (sim::orders::QueuePos::New, sim::airbase::Keys::default())
+    };
+    built.sim.group_action_launch_patrol(&list, at, queue, keys);
+    list.len()
+}
+
+/// **`CommandPackage::process_flight@00947db0`** on the player's own
+/// buildings: an Airbase's right-click on an enemy, `issue_flight` on the
+/// building group itself, whose `Group::action_flight@006fb260` is
+/// `action_launch_flight` ([`sim::Sim::group_action_launch_flight`]),
+/// after `process_group`'s push of the building group (item 976,
+/// `docs/GOLDEN.md` §42). `orders` is the command's, `ATTACK` (10) here.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_launch_flight(
+    built: &mut Built,
+    who: i32,
+    buildings: &[i16],
+    ox: i32,
+    whom: i32,
+    orders: i32,
+) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    let target = i16::try_from(ox).ok().and_then(|o| {
+        if o >= 2000 {
+            built
+                .sim
+                .building_by_o(whom as sim::Player, o)
+                .map(sim::combat::Obj::Building)
+        } else {
+            built
+                .sim
+                .unit_by_o(whom as sim::Player, o)
+                .map(sim::combat::Obj::Unit)
+        }
+    });
+    let kind = match orders {
+        1 => Some(sim::group::Flight::Home),
+        10 => Some(sim::group::Flight::Strike),
+        _ => None,
+    };
+    if let (Some(t), Some(k)) = (target, kind) {
+        built
+            .sim
+            .group_action_launch_flight(player, &list, t, k, sim::airbase::Keys::default());
+    }
+    list.len()
+}
+
 /// **`CommandPackage::process_unqueue@009466f0`** on one of the player's
 /// own buildings: `Build::action_unqueue@00620280(p)`
 /// ([`sim::Sim::action_unqueue`]), the cancel (item 884, `docs/GOLDEN.md`

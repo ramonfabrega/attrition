@@ -4018,6 +4018,30 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_TWO: i64 = 2360;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_THIRTY_TWO: (i64, i64) = (605, 2361);
 
+/// **Chapter thirty-three's golden word** — an Airbase's launch issuers
+/// (item 976, `docs/GOLDEN.md` §42, run358).
+///
+/// **2287, open, on the first walk**: theirs 5 draws against ours 4,
+/// theirs alone `Unit::do_air_physics+0xba` — the Biplane `0/9`'s
+/// altitude redraw on `(9 + 2287) & 7 == 0`, flying the patrol over P1
+/// the Airbase's launch patrol gave it on 2282, where here it stands inside
+/// with no order. The first value parting is 2262, `0/8`'s stack: the
+/// launch strike.
+///
+/// **2740, closed** (item 976, `docs/PRODUCTION.md` "The launch
+/// commands": `Sim::group_action_launch_patrol`,
+/// `group_action_launch_flight`, action 3's launch at an Airbase and
+/// `do_strafe`'s escort). The stream agrees to run358's end, and so does
+/// every word of the value stream.
+///
+/// **The delta**, this constant's: +453, 2287 → 2740, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_THREE: i64 = 2740;
+
+/// `chapter_thirty_three_s_word_frame_is_widened_whole`'s window: run358
+/// whole, (605, 2741). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_THIRTY_THREE: (i64, i64) = (605, 2741);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4532,6 +4556,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // built arm launches the Biplane on 1747, one EXIT read more.
     ("chapter_thirty_two_holds_to_the_golden_word", 39),
     ("chapter_thirty_two_s_word_frame_is_widened_whole", 39),
+    // Chapter thirty-three is chapter thirty-two's game to 2360 and five
+    // presses on the Airbase after it (item 976): the first walk reads 43,
+    // and the built arms 43 (pinned at 42, it fails).
+    ("chapter_thirty_three_holds_to_the_golden_word", 43),
+    ("chapter_thirty_three_s_word_frame_is_widened_whole", 43),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -5949,6 +5978,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_two_s_word_frame_is_widened_whole"),
         947,
         Some(WIDENING_CHAPTER_THIRTY_TWO),
+    ),
+    // Item 976: run358, chapter thirty-three, an Airbase's launch issuers.
+    // The widening is run358 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_THREE",
+        GOLDEN_WORD_CHAPTER_THIRTY_THREE,
+        Some("chapter_thirty_three_s_word_frame_is_widened_whole"),
+        976,
+        Some(WIDENING_CHAPTER_THIRTY_THREE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

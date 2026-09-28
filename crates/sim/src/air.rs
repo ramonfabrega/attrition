@@ -43,7 +43,7 @@ pub const SITE_STRAFE_BOMB: &str = "Unit::do_strafe+0x9d0";
 
 /// `ObjectData::is(0x130)` — the Bomber line, which holds its
 /// `cruising_alt` at 0x640 and throws no redraw.
-const BOMBER: crate::tech::TypeId = 0x130;
+pub(crate) const BOMBER: crate::tech::TypeId = 0x130;
 
 /// `ObjectData::is(0x127)` — the line `do_strafe` lets release a quarter
 /// turn off the nose where every other takes 15° (`0x5eb448`).
@@ -443,7 +443,7 @@ pub enum Flew {
 
 impl Sim {
     /// `ObjectData::is(t, 0)` on a unit's type — the lineage test.
-    fn air_line_is(&self, u: usize, t: crate::tech::TypeId) -> bool {
+    pub(crate) fn air_line_is(&self, u: usize, t: crate::tech::TypeId) -> bool {
         self.units[u]
             .ty
             .and_then(|i| self.unit_types[i].tree)

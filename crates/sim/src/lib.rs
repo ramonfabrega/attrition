@@ -48,6 +48,7 @@ pub mod ai_sites;
 pub mod ai_types;
 pub mod ai_units;
 pub mod air;
+pub mod airbase;
 pub mod anim;
 pub mod army;
 pub mod attack_pos;

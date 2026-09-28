@@ -1690,10 +1690,17 @@ impl Sim {
     /// at, and bombed once in range and within 15° of the heading
     /// ([`Sim::strafe_attack`]).
     ///
-    /// SEAM: a target that is an ally (the escort's sixteen-frame
-    /// re-target), a missile, a helicopter, a flying target's lead point,
-    /// and a strike with no point left (`is_valid(xx, yy)` false turns it
-    /// for home).
+    /// **A strike on one's own or an ally's unit is an escort** (item 976,
+    /// `docs/GOLDEN.md` §42): it flies at the unit, `xx/yy` following it,
+    /// and looks round it every sixteenth frame.
+    ///
+    /// SEAM: the escort's search — `find_new_bomber_target`'s `param_3 ≥
+    /// 0` arm (the ally as the search's own object) and a non-bomber's
+    /// `find_new_air_target` — is the bomber's point search and nothing;
+    /// an escorted unit that is gone (its captain, else a patrol over
+    /// `xx/yy`); a flying unit escorted, projected ahead past `0xc00`; a
+    /// missile, a helicopter, a flying target's lead point, and a strike
+    /// with no point left (`is_valid(xx, yy)` false turns it for home).
     fn do_strafe(&mut self, u: usize, frame: i64) {
         let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
             return;
@@ -1706,9 +1713,35 @@ impl Sim {
             let me = crate::combat::Obj::Unit(u);
             let whom = self.owner_of(target);
             if whom < crate::world::PLAYER_SLOTS && self.is_ally(self.units[u].owner, whom) {
-                return;
-            }
-            if !self.valid_target(me, target) {
+                // **The escort** (`0x5eab9b`..`0x5ead3a`, item 976): a
+                // strike on one's own or an ally's unit follows it. Its
+                // point becomes `xx/yy` each frame, and on `(o + frame) &
+                // 15 == 0` the plane looks round it — a Bomber's
+                // `find_new_bomber_target`, any other's
+                // `find_new_air_target` — and pushes what it finds
+                // `QUEUE_FIRST`, `mandatory 0`, and runs `work` again.
+                let at = self.pos_of(target);
+                if let Some(Order {
+                    body: Body::Strafe(s),
+                    ..
+                }) = self.units[u].orders.front_mut()
+                {
+                    s.at = Some(at);
+                }
+                if (i64::from(self.units[u].index) + frame) & 15 == 0 {
+                    let found = if self.is_bomber(u) {
+                        self.find_new_bomber_target(u, at)
+                    } else {
+                        None
+                    };
+                    if let Some(t) = found.filter(|&t| self.valid_target(me, t)) {
+                        self.add_strafe_order(u, Some(t), sf.home, false, QueuePos::First, false);
+                        self.work(u, frame);
+                        return;
+                    }
+                }
+                goal = Some(at);
+            } else if !self.valid_target(me, target) {
                 if self.units[u].orders.len() > 1 {
                     self.kill_current_order(u);
                     self.set_anim(u, crate::anim::WALK, true, true);
@@ -1722,8 +1755,9 @@ impl Sim {
                 self.add_air_patrol_order(u, at, sf.home, false);
                 self.work(u, frame);
                 return;
+            } else {
+                goal = Some(self.pos_of(target));
             }
-            goal = Some(self.pos_of(target));
         }
         if self.plane_air_physics(u, goal, frame) == crate::air::Flew::Done {
             return;

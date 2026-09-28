@@ -7086,8 +7086,11 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
 - **Reading only**: the leash (run223's target is its patrol's point),
   §34.4's re-target (it runs on 784 and 816 and re-points the strike at
   the Barracks it holds), the look (never reached before the strike),
-  the arrival, the refused strike with an order behind it, the escort's
-  ally arm, a flying target's lead and `local_20`'s doubled bank.
+  the arrival, the refused strike with an order behind it, ~~the escort's
+  ally arm~~ (built, item 976: `docs/GOLDEN.md` §42, run358's four planes
+  on `0/1` from 2307, their positions diff-backed to 2336; the escort's
+  search stays reading only), a flying target's lead and `local_20`'s
+  doubled bank.
 - SEAMs: a non-bomber's `find_new_air_target` and the `semaphore & 2`
   fallback; the `FIGHTERBOMBER` and carrier-relative points;
   `find_new_bomber_target`'s `param_3 ≥ 0` arm and its `0x40000` arm;
