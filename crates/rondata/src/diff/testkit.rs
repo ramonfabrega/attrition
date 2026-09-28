@@ -4044,7 +4044,20 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_THREE: (i64, i64) = (605, 2741);
 
 /// **Chapter thirty-four's golden word** — the launch commands' other
 /// arms (item 1009, `docs/GOLDEN.md` §43, run362).
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FOUR: i64 = 2322;
+///
+/// **2322, open, on the first walk**: theirs 16 draws against ours 15,
+/// theirs alone `Unit::do_air_physics+0xba` — `0/7`'s flight home to
+/// `0/2008`, which the right-click on that base gave it on 2307, where here
+/// it stands inside with no order. The first value parting is 2307,
+/// `0/7`'s stack.
+///
+/// **2850, closed** (item 1009, `docs/PRODUCTION.md` "The launch
+/// commands": `action_launch_flight`'s `MOVE_TO` arm, and the base's
+/// height at 0 or above in the approach home). The stream agrees to
+/// run362's end, and so does every word of the value stream.
+///
+/// **The delta**, this constant's: +528, 2322 → 2850, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FOUR: i64 = 2850;
 
 /// `chapter_thirty_four_s_word_frame_is_widened_whole`'s window: run362
 /// whole, (605, 2851). Its pool half, `widen_pool`, reads who=0's
@@ -4571,7 +4584,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_thirty_three_holds_to_the_golden_word", 43),
     ("chapter_thirty_three_s_word_frame_is_widened_whole", 43),
     // Chapter thirty-four is chapter thirty-three's game to its Barracks
-    // and nine presses after it (item 1009): the first walk reads 43.
+    // and nine presses after it (item 1009): the first walk reads 43, and
+    // the built arms 43 (pinned at 42, it fails).
     ("chapter_thirty_four_holds_to_the_golden_word", 43),
     ("chapter_thirty_four_s_word_frame_is_widened_whole", 43),
 ];

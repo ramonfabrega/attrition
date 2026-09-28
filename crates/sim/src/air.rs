@@ -494,8 +494,12 @@ impl Sim {
     fn home_approach(&self, u: usize, home: usize) -> Approach {
         let b = &self.buildings[home];
         let (tx, ty) = (b.pos.x - 0xc0, b.pos.y);
-        // `+0xc`, the base's `z_internal`: `find_tcoord_z` of its tile.
-        let tz = self.world.tile_z(b.pos.tile());
+        // `+0xc`, the base's `z_internal`: `find_tcoord_z` of its tile as
+        // `SubObject::init@00662300` and `set_new_location@00662680` ask
+        // it, with the fourth argument 1 (`662369`, `66269b`), which
+        // answers 0 for a height under 0 — item 1009's `0/2008`, whose
+        // tile is −42 here and whose `z_internal` run362 prints 0.
+        let tz = self.world.tile_z(b.pos.tile()).max(0);
         let approach: u32 = if b.pos.y <= self.world.height() * 0x240 {
             0
         } else {
@@ -1751,6 +1755,32 @@ mod launch_tests {
         s.go_inside(u, base);
         s.buildings[base].launch_frames = super::FRAMES_BETWEEN_LAUNCHES;
         u
+    }
+
+    /// **A base on ground under 0 is aimed at from 0** (item 1009,
+    /// `docs/GOLDEN.md` §43): the approach home reads the base's
+    /// `z_internal`, which `SubObject::init` takes from `find_tcoord_z`
+    /// with its fourth argument 1 — a negative height answers 0. run362's
+    /// `0/2008` stands on a tile of −42 and prints `z_internal` 0; `0/7`'s
+    /// descent to it parts on 2399 without the clamp.
+    #[test]
+    fn the_approach_home_reads_a_base_on_low_ground_as_height_zero() {
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        s.units[u].pos = Pos::new(8936, 16261);
+        let t = s.buildings[base].pos.tile();
+        s.world.set_tile_z(t, 0);
+        let level = s.home_approach(u, base).z;
+        s.world.set_tile_z(t, -42);
+        assert_eq!(s.home_approach(u, base).z, level, "clamped at 0");
+        s.world.set_tile_z(t, 157);
+        assert_eq!(
+            s.home_approach(u, base).z,
+            level + 157,
+            "above 0 it is read"
+        );
     }
 
     fn group_of(who: Player, list: &[usize]) -> Group {
