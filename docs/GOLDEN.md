@@ -1404,7 +1404,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
 | 358 | thirty-three, an Airbase's launch issuers | `[605, 2740)` | chapter thirty-two whole, an enemy Barracks by the Airbase (2200), and five presses on `0/2007`: `@launchstrike` on it (2260, verb 23), `@launchpatrol` (2280, verb 21) and `@launchpatrolall` (2295, verb 22) on the ground, `@gatherpoint` of action 3 on the Citizen `0/1` (2305) and `@gatherpointadd` after it (2335); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run344's start (§42) — **run 2026-09-27 (item 976), 858 MB, 2,306 s; no falsifier fired: `0/8` the strike on 2262, `0/9` the patrol on 2282, `0/7` and the refuelling `0/6` on 2297, all four on `0/1` with `0/6` alone flags 4 on 2307, all four over P3 alone on 2337** |
 | 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) — **run 2026-09-27 (item 1009), 906 MB, 2,731 s; no falsifier fired: `0/8` on ctrl, `0/9` on alt, `0/7` home to `0/2008` over a full `0/6`, nothing on ctrl's strike, three re-ordered by P1 and not `0/7`, the strikes standing through P2, nothing on alt at `0/2008`** |
-| 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) |
+| 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) — **run 2026-09-28 (item 1019), 1.08 GB, 3,256 s, after two `cover=1` takes hung (81 min); the silo queued one V2 of two; 9, 10, 11 and 13 fired on readings the listing had corrected: `0/12` an `ATTACK_TO` to P_h and homed nowhere, `0/10` an air attack on the ground, launched on 2702; word 2445, then 2675, open** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -7683,3 +7683,65 @@ command at a silo; an invalid point.
 **Where it should part.** Unbuilt, the first draw parting is **2445**:
 `0/11`'s exit draws, which this crate does not spend; the first value
 parting the same block, `0/11`'s `inside`.
+
+**Two readings the listing corrected after the commit, before the
+result.** A Helicopter's `add_air_patrol_order` is no patrol: its arm
+(`5e4363`..`5e43c5`) is `add_move_facing_order` to the point's 48-unit
+cell with kind 2, `ATTACK_TO`, and no home. And a missile's
+`add_strafe_order` is `add_air_attack_ground_order` at the target's point
+(`005e48c0`'s head). Falsifiers 9 to 11 and 13 were written against the
+first readings and fire on them below.
+
+**Run 2026-09-28 as run371 (item 1019)** (`docs/RUNS.md` has the table).
+Two takes at `cover=1` hung before frame 0 on the click-free lane (81
+minutes), and the take is `cover=0`; **run372** is the same script at
+`cover=1` on the queue lane, run371's game on every frame. The same game
+as run362 to 2279. Held: 1 to 6 and 8, 12. **The silo queued one V2 of
+two** (`queued 1` on 2227: `action_queue_up` asks a silo `can_carry`, and
+`has_nuke` holds one missile at a time), so 7 cannot fire and the
+Helicopters are `0/11` and `0/12`. **9 fired**: `0/12` an `ATTACKTOORDER`
+to (5784, 12312), flags 4, on 2659, out on 2674 and at its point from
+2740. **10 fired on the kind**: `0/10` an `AIRATTACKGROUNDORDER`, flags 4,
+home `0/2009`, on 2672; `recharging` 30 falling to 1 on 2701; on 2702
+`0/10` gone and its round in flight, a spline (`traj 2`) of 120 frames
+onto `1/2006`. **11 and 13 fired**: nothing, `0/12` homed nowhere and
+`0/2008` empty. `0/11` drifts idle from (8355, 14690) to (8465, 14784)
+by 2701.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_FIVE` = 2445,
+open, on the first walk**: theirs 7 draws against ours 4, the exit's two
+(`5e59ef`, `5e5a0f`) and `0/11`'s idle. The widening, run371 whole (605,
+3261), pins 469 rows and twelve pool rows (chapter twenty-two's ten and
+the silo's building group on 2227). **The first parting's field list**,
+2446, `0/11` alone, twenty keys: its berth, point, heading, `dest_angle`,
+`orders_x/y`, `idle`, `unit_masks` and its figure's point, height and
+clock; the first value row is 2227, the silo's `queued` and the two
+buckets it charged. **Their writers** (889): `Build::train`'s empty-list
+arm and the EXIT; the queue's is `action_queue_up`'s silo gate alone.
+
+**The arms built: `GOLDEN_WORD_CHAPTER_THIRTY_FIVE` = 2675, open** (item
+1019, `docs/PRODUCTION.md` "The Helicopter and the missile under a
+point"): the empty list's exit and its two draws, the first-point block,
+the Helicopter's `ATTACK_TO`, and the silo's one missile. **The value
+diff, both sides** (ours before the build in brackets): 2227, `queued 1`
+and knowledge and oil 500 and 415 (2 and 380 and 295); 2446, `0/11` on
+the map at (8355, 14690), `idle` 1 (inside `0/2008`); 2502, `0/11` with no
+order (a patrol over P_h); 2659, `0/12` an `ATTACKTOORDER` to P_h's cell
+(no order). The widening goes **469 → 426 rows**, the pool at twelve.
+**What stands**: the birth seats (`0/10`, `0/12`: parked 646's family),
+`0/11`'s `mirror` on 2446 (§42's unread writer of `unit_masks & 2`),
+`0/12`'s figure standing a frame before it walks (the word, 2675), `0/11`'s
+drift, and the V2's strike, launch and round from 2672.
+`GROUND_INEXACT` 39.
+
+**Mutations**, each on the committed build, restored from git and
+`touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the empty list's exit dropped | the no-point test; the word (2445) and the widening (471) |
+| the exit's two draws dropped | the exit test; the word (2445) and the widening (434) |
+| the Helicopter's arm of `add_air_patrol_order` dropped | the first-point test; the word (2674) and the widening (434) |
+| `ATTACK_TO` made `MOVE_TO` | the first-point test; the widening (2659's `order:kind`), not the word |
+| the silo's gate dropped | the silo test; the word (2635) and the widening (437) |
+| the first-point block dropped | the first-point test; the word (2674) and the widening (420) |

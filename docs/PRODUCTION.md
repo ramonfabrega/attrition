@@ -1476,7 +1476,9 @@ plus `rand % 11 − 5`, and its figure 200 over the ground.
   timers in `Build::process`; read by `do_launch` and `do_attack`.
   `BUILDS=7` prints it;
 - `launching` (`+0x44`): `do_launch`, `do_missile_launch`, `clear_gather`,
-  `Object::attempt_launch`, the constructor and `close`. Not printed.
+  `Object::attempt_launch`, the constructor and `close`. ~~Not printed.~~
+  Printed as the silo `OBJECT`'s `list[scan]` while a missile waits
+  (run371, 2672..2701).
 
 **The booking's mutations** (918): the gather loop's missile and
 Helicopter exclusion in `Sim::build_train` dropped, and the launch
@@ -1487,7 +1489,41 @@ patrol's missile skip (`group_action_launch_patrol`) dropped: **1,121 of
 Helicopter's (`do_air_physics`'s `unit_flags & 0x20` arms, and
 `bank_aircraft`, `pitch_aircraft`, `check_fuel`, `land_plane` and
 `do_strafe`'s), and the missile's flight and blast; `do_missile_launch`,
-read above.
+read above. **And two callees the emulator hooked**, whose listing
+corrects the rows above: a Helicopter's `add_air_patrol_order`
+(`5e4363`..`5e43c5`) is `add_move_facing_order(x / 48, y / 48,
+find_angle(point − here), 2, 0, QUEUE_NEW, action)` — kind 2 is
+`ATTACK_TO` (ORDERS §1.2) — with no home; and a missile's
+`add_strafe_order` is `add_air_attack_ground_order` at the target's point
+(`005e48c0`'s head). Read after §44 was committed.
+
+**A Missile Silo holds one missile at a time.** `Group::action_queue_up@006fdbb0`
+asks a member that `is(0x208)` for `ObjectData::can_carry(type)@00645e00`
+before each `queue_up` (`6fdfa2`..`6fe025`) and skips it on a refusal; at a
+silo that is `UnitTypeData::is_missile@0061d430` and not
+`ObjectData::has_nuke@00643d40`, which answers for a missile type in the
+queue, and for a live missile of the player inside the silo or on a
+`STRAFE` homed at it. `queue_up`'s own aircraft-limit test only warns;
+`do_queue`'s silo return (the clock held while a missile is garrisoned,
+"The two early returns") is a second gate and still not modelled.
+
+**Built, and run371 backs it** (item 1019, `docs/GOLDEN.md` §44):
+`Sim::build_train`'s empty list for a Helicopter, `exit_at_airbase`'s two
+draws and 200 over the ground, `Sim::train_first_point` (the block at
+`62fc47`), `add_air_patrol_order`'s Helicopter arm, and
+`Sim::silo_takes`/`has_nuke` in `action_queue_up`. run371: the silo queued
+one V2 of two (2227); the first Helicopter came out at its birth, 189
+west of the base with its two draws (2445); the second, under P_h, took
+the `ATTACK_TO` to (5784, 12312) with flags 4 (2659) and flew there.
+Chapter thirty-five's word went 2445 → 2675, open. Five tests in
+`airbase::tests`; §44 has the mutations.
+
+**Not built, and run371 holds it** (parked with the word): the
+Helicopter's walk on its `ATTACK_TO` — its figure stands a frame before
+it walks (2675) — and an idle Helicopter's drift; the V2's strike from
+the silo (the missile narrowing of `action_launch_flight`, the air attack
+on the ground, `recharging` 30 and `do_missile_launch`) and its round, a
+spline of 120 frames onto the target.
 
 ## What is not established
 
