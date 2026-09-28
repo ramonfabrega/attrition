@@ -1403,7 +1403,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 338 | thirty-one, the gather point's other arms | `[605, 1400)` | chapter thirty's cast and a second Chariot: the City's point on the ground, then on its Woodcutter (action 1), then on a Lookout site, each before one of three Citizens (956's seeker on three units, 948's gather and build arms); 2007's point on the Chariot before its Hoplites (957's third re-seat); 2008's two points, the second by `@gatherpointadd` (verb 20 with `add_to_end` 1), before its Hoplites (946); the staging walked by this crate on run312's start (§40) — **run 2026-09-27 (item 955), 351 MB, 966 s; falsifier 3 fired on all three Citizens: `FILTER_ALL` counts the seeker; every other reading held; the word 740 → 1400, closed** |
 | 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
 | 358 | thirty-three, an Airbase's launch issuers | `[605, 2740)` | chapter thirty-two whole, an enemy Barracks by the Airbase (2200), and five presses on `0/2007`: `@launchstrike` on it (2260, verb 23), `@launchpatrol` (2280, verb 21) and `@launchpatrolall` (2295, verb 22) on the ground, `@gatherpoint` of action 3 on the Citizen `0/1` (2305) and `@gatherpointadd` after it (2335); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run344's start (§42) — **run 2026-09-27 (item 976), 858 MB, 2,306 s; no falsifier fired: `0/8` the strike on 2262, `0/9` the patrol on 2282, `0/7` and the refuelling `0/6` on 2297, all four on `0/1` with `0/6` alone flags 4 on 2307, all four over P3 alone on 2337** |
-| 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) |
+| 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) — **run 2026-09-27 (item 1009), 906 MB, 2,731 s; no falsifier fired: `0/8` on ctrl, `0/9` on alt, `0/7` home to `0/2008` over a full `0/6`, nothing on ctrl's strike, three re-ordered by P1 and not `0/7`, the strikes standing through P2, nothing on alt at `0/2008`** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -7341,8 +7341,10 @@ tests pass**. No test held it; this chapter is its first oracle.
 
 **What the staging cannot reach, and why.** The Helicopter: who=0 holds
 0 wealth and 0 oil on 2400 (run358's `LEADERDATA`), the Helicopter costs
-both, and the cheat set has no resource line; an `add`ed one would reach
-the Airbase only by its own flight, which this crate does not carry
+both. The channel's `resource` verb would fund it (`docs/ORACLE.md`,
+the vocabulary), but this interpreter parses it and does not apply it
+(§16), so staging it is interpreter work first; and an `add`ed one would
+reach the Airbase only by its own flight, which this crate does not carry
 (`crate::air`'s helicopter SEAM), so the word would part before the
 press. The missiles: no Missile Silo and no Nation-in-Arms here, and a
 missile's flight is not carried either. Both stay reading-and-emulator
@@ -7474,3 +7476,13 @@ the × 200; a strike's `valid_target` and the rush rules.
 **Where it should part.** Unbuilt, the first value parting is **2307**,
 `0/7`'s stack (none against the flight home) and its EXIT at `0/2007`;
 the first draw parting the same block or the next.
+
+**Run 2026-09-27 as run362 (item 1009)** (`docs/RUNS.md` has the table).
+One take, `cover=0`, the same game as run358 to 2279. **No falsifier
+fired**: on 2262 `0/8` over the point and out, `0/9` full beside it; on
+2277 `0/9` the strike on `1/2006`, `0/7` full beside it; on 2307 `0/7` a
+flight home to `0/2008` (`returning` 1, `mandatory` 1) and out, `0/6`
+full beside it; on 2314 `0/6` inside with no order; on 2322 the three
+over P1 and `0/7` not; on 2337 the three strikes on `0/1`; on 2352 the
+stacks of 2351; on 2402 the three strafes home; `0/7` in `0/2008` on
+2474; on 2602 `0/7` inside with no order. Every order is the walk's.

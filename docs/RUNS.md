@@ -9768,3 +9768,59 @@ the lane's own build of the same source, the one that ran, is
 
 **No falsifier fired.** Every order the prototype predicted is the
 original's on its block.
+
+## run362 — chapter thirty-four, the launch commands' other arms (2026-09-27, item 1009)
+
+`docs/GOLDEN.md` §43, `tools/gamelog/golden/chapter34.cmd`: chapter
+thirty-three's seventeen lines to its enemy Barracks (2200), a second
+Airbase `0/2008` (2210), and nine presses — `@launchpatrolctrl` (2260),
+`@launchstrikealt` (2275), `@launchmove` onto `0/2008` (2305),
+`@launchstrikectrl` (2312), `[P1, A3, P2]` by `@gatherpoint` and two
+`@gatherpointadd` (2320, 2335, 2350), the Clear (2400), and
+`@launchpatrolalt` at `0/2008` (2600). The chapter and its twelve
+falsifiers were committed before the run (`2ba9e3b1`). Launched 21:26:54
+on the click-free lane: no `RonDriver`, the lane lock's pid (14816,
+run358's) dead, 26 GB free.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch34 \
+    --map 14 --end-frame 2850 --log-window 605 2850 --timeout 6600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter34.cmd
+```
+
+**One take** at `cover=0`: **2,770 s** in all (2,731 launch to exit),
+**906 MB** of dump and 14.5 MB of trace, 2,245 blocks. The receipt says
+`success: true`, exit 0, 2,851 frames, `MAP_STYLE 14`, seed 12345,
+1,149,440 `GROUPDATA`, settings restored. The lane's DLL was built from
+this branch's `tracer.c` at `2ba9e3b1` (stamp `source ed4390b6…c4c5`, the
+committed file's sha256; `rontrace.dll` `6ccb99b6…bc6c`). `waitrun.sh`
+exited 0.
+
+| check | result |
+|---|---|
+| `issuesmatch.py --none-refused … 18` | every `@` line issued, none refused; the nine new each a group and a command (28 bytes, 30 for the fresh group of `0/2008`) |
+| `rngcmp.py` vs run358's trace | the same game to 2279 (2,741 frames in common, 460 differ, the first 2280) |
+| the processed commands | `process_launch_patrol 13440 9600 2 0 1 0` on 2261 (ctrl) and `5760 13440 2 0 0 1` on 2601 (alt); `process_flight` on 2276, 2306 and 2313; `process_gather_point` on 2321, 2336, 2351 and 2401 |
+
+### §43's falsifiers
+
+| check | predicted (this crate's walk) | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 2261, 2276, 2306, 2313, 2321, 2336, 2351, 2401, 2601 | **as predicted** |
+| 2, the second base | `0/2008` at (8544, 14688) | **as predicted**; the 2600 press names it (uid 18) |
+| 3, ctrl on the patrol (2262) | `0/8` over (13440, 9600), out | **as predicted**; `0/9` full inside, untouched |
+| 4, alt on the strike (2277) | `0/9` a `STRAFEORDER` on `1/2006`, `mandatory` 1 | **as predicted**: `xx/yy` (13824, 14976); `0/7` full inside, untouched |
+| 5, `MOVE_TO` (2307) | `0/7` a flight home to `0/2008`, out; `0/6` untouched | **as predicted**: `oxx` 2008, `returning` 1, `mandatory` 1, no target; `0/6` full inside with no order |
+| 6, ctrl on the strike (2314) | nothing | **as predicted**: `0/6` inside, no order |
+| 7, the ground point (2322) | `0/6`, `0/8`, `0/9` over P1, `0/7` not | **as predicted**; `0/6` out on 2323 |
+| 8, A3 (2337) | three `STRAFEORDER`s on `0/1`, `mandatory` 1 | **as predicted**, `xx/yy` (4104, 28392) |
+| 9, P2 (2352) | every stack as on 2351 | **as predicted**: the three strikes stand, one order each |
+| 10, the Clear (2402) | three strafes home, `mandatory` 0; `0/7` untouched | **as predicted** |
+| 11, alt at `0/2008` (2602) | nothing | **as predicted**: `0/7` inside `0/2008`, no order |
+| 12, the arrival | `0/7` in `0/2008` on 2474 | **as predicted**: on the map on 2473, inside on 2474, full on 2558 |
+
+**No falsifier fired.** Every order the walk predicted is the original's
+on its block.
