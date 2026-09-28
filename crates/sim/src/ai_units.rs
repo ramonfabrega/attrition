@@ -295,7 +295,7 @@ impl Sim {
     }
 
     /// `BuildTypeData::is_military_trainer` — the flag on the base type.
-    fn is_military_trainer(&self, rec: usize) -> bool {
+    pub(crate) fn is_military_trainer(&self, rec: usize) -> bool {
         self.build_types[self.build_root(rec)].flags & MILITARY_TRAINER != 0
     }
 

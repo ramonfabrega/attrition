@@ -1463,7 +1463,7 @@ inside `min_range`: `dist = min_range×0xc0 + (max_range×0xc0 − dist)`; then
 a quarter tile; `value = compare_target(o, who, in_range, ai)` — and
 **`in_range` is a permission to test, not a verdict**, see §12.3 —; **`score =
 value / (dist / 0xc0 + 1)`**; the previous mandatory target halves; the
-`flags` preferences halve the wrong class; a cavalry archer's second-weapon
+`flags` preferences halve the wrong class (the word and its filter: §64); a cavalry archer's second-weapon
 search weights by bearing (×4 within 30°, ×2 within 60°, /10 beyond 90°,
 skip beyond 135°); `score == 0 && value != 0 → 1`; strictly greater wins
 (ties to the earlier — nearer ring, lower `dx`); and **after ten unit
@@ -10708,3 +10708,106 @@ guard goes on block 1134, the tick its reload opens, with no draw, so
 before `fight`'s roll. The guard's `visible` bit for who=1 is 0 on every
 block from 1086, so `1/6` fired only while who=1's world map saw the
 guard's cell. The word's widening names no mechanism.
+
+## 64. An attack-move passes over an unarmed building (item 997, 2026-09-27)
+
+Item 997 was booked on Great Lakes' second word, frame 4555 of run347:
+ours 7 draws against the original's 3, parting at index 1 on
+`Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` against
+`Farms::inc_time+0x1ae`. No mechanism was named. The block before it
+(run356, 4555) parted on `1/21`'s order alone: kind 10 and two orders
+here, one `ATTACK_TO` there.
+
+### 64.1 The frame, from the disk
+
+- **Who and what.** `1/21`, a who=1 soldier (TY 82, `unit_masks
+  262152`, stance RAID) in army 0, walks an `ATTACK_TO` to (4824, 34584)
+  on both sides through 4554. The army is attacking (status 18, target
+  the human's city), with `hurry 0`.
+- **Ours pushed an `ATTACK`** on frame 4554 with no draw: the
+  attack-move's look (`do_attack_to`, one frame in fifteen,
+  `(4554 + 21) % 15 == 0`) took **`0/2001`**, the idle human's
+  Woodcutter's Camp (`orig_type 418`, `myhits 800`, at (4224, 28608)),
+  inside the AI radius `UNIT_RESPOND_RANGE × 0x180 = 4608`. On 4555 the
+  chase asked `find_attack_pos`, whose ring walk is the four extra draws.
+- **The original's `1/21` took nothing** and walked on: block 4556 has it
+  at (8986, 29671) under the same single order.
+
+### 64.2 The word, and the filter
+
+`Unit::find_melee_target@005ff9c0` rewrites its caller's `flags` (every
+caller but `do_move`'s passes 0) when the head order's index is
+`ATTACK_TO` (`005ffc75`: `cmp $2`) or `order_type` answers
+`GROUP_ATTACK_TO` (`005ffc81`: `cmp $0x15`). The listing,
+`005ffc86`–`005ffcde`:
+
+- the type's vslot `+0x10c` (`ObjectTypeData::is_siege`) answers →
+  `0x20002`, replaced by the caller's word when `leader_flags & 4` (a
+  human; `cmovne` at `005ffcab`);
+- else vslot `+0x110` (`UnitTypeData::is_tank`, COLLISION's item 696)
+  answers 0 → `0x20010`, else the caller's word (`cmove` at `005ffcc6`);
+- then stance (vslot `+0xf4`) `== 4`, RAZE → `0x20` over either
+  (`005ffcdb`).
+
+`Object::find_nearby_target@00648da0` reads it per candidate right after
+`valid_target` and above `check_target`, so above `near_o`
+(`00649430`–`00649515`). The candidate's virtuals by the PDB's tables:
+`+0x8` answers for a unit and 0 for a building or wall, `+0x1c` 1 for a
+building or wall, `+0x20` 1 for a `Build` and 0 for a wall, `+0x2c`
+`BuildData::is_wonder`, `+0x120` the attack.
+
+- `& 1`: units only.
+- else `& 2`: buildings only; with `& 0x20000`, only one that is armed,
+  a wonder, or `BuildTypeData::is_military_trainer` (`+0x2c0 &
+  0x40000000` on the base type).
+- else `& 0x20000`: a building must be armed.
+
+After the score (`00649766`–`006497b2`), `& 0x10` halves a candidate that
+is not a unit, else `& 0x20` one that is not a `Build`, by a signed `/ 2`,
+before the `score == 0 && value != 0 → 1` clamp. `Build::find_target`
+passes 0 (`622c88`).
+
+So a soldier on an attack-move passes over a Woodcutter's Camp, and would
+take an armed city centre or tower at half weight against a unit.
+
+### 64.3 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| the army is hurrying there, and `do_attack_to`'s six-cell gate skips the look | `hurry` is set only by `find_muster_spot`'s defence of a damaged own building; ours reads 0, and nothing of who=1's is damaged | not the cause |
+| the radius differs | the listing's radius arms are ours (§12.4); the camp sits inside 4608 by either reading | killed |
+| the attack-move's `flags` refuse an unarmed building | with the filter, 4555's draws are 3/3 and `1/21` walks on; with `search_admits` answering true (the mutation), the walk falls back to 4555 at 7 against 3 and the unit test names the camp | **held** |
+
+### 64.4 The fix
+
+`sim::fight`: `Sim::melee_search_flags` is the word, `Sim::search_admits`
+the filter, and `find_nearby_target_with` the search with its fifth
+argument; the halving sits before the clamp. `find_nearby_target` passes 0.
+The unit test is `an_attack_move_passes_over_an_unarmed_building`.
+
+### 64.5 What it moved
+
+- **Great Lakes 4555 → 4593.** On run356, block 4555's six keys of `1/21`
+  (kind 10 against 2, two orders against one, `orders_x/y` (9005, 29653)
+  against (4824, 34584), `dest_angle`) all closed. Its walk agrees until
+  4606. Frame 4555's draws went 7/3 → 3/3.
+- **East Indies holds at 5606**, and the first pair at 24,000 on both maps.
+- The new word is `docs/AI.md` §82.4's.
+
+### 64.6 What is not established
+
+- **The `0x20002` arm, the RAZE `0x20` arm and the `& 1` arm** have no
+  capture. The siege arm's military-trainer test is this crate's
+  `build_types` flag on the base type, not the dump.
+- **`BuildData::attack`'s garrison arm** (§4.1) is not in
+  `Sim::attack_of`, so a building armed only by its garrison would be
+  refused here and taken there. No capture on disk garrisons one.
+- **`do_move`'s own call** passes 1 or 2 as the caller's word (§37.2);
+  this crate makes no such call.
+
+### 64.7 Coverage
+
+**Diff-backed**: the camp's refusal, by run356's block 4555 and frame
+4555's draws, a floor that falls back under the mutation. **Listing-backed**:
+`005ffc6a`–`005ffcde`, `00649430`–`00649515`, `00649766`–`006497b2`,
+`622c88`. **Unit-backed only**: the siege, tank and RAZE words.

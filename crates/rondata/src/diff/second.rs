@@ -501,7 +501,9 @@ mod tests {
     /// **The second pair's Great Lakes word, 4555, widened whole** (item
     /// 989): run356 is run347's game at run355's detail over blocks
     /// 4550..4806, walked from run347's start. The word's frame writes
-    /// block 4556.
+    /// block 4556. **Since item 997 the word is 4593**, block 4594, inside
+    /// the same window (44 blocks after its first and 212 before its last),
+    /// so this capture is its widening too.
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -536,26 +538,36 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The block before the word, 4555** (`docs/AI.md` §82.4): who=1's
-        // `1/21` holds order kind 10 and two orders here against a move
-        // (kind 2) and one there, `orders_x` 9005 against 4824; on the
-        // word's frame ours spends `Unit::find_attack_pos < Unit::fight`.
-        // Its walk parts on 4556, and `1/23` takes the same order on 4568.
-        // Block 4550 stands on 86 keys, the families the window opened on.
-        // No mechanism is named (DECISIONS 42).
+        // **The old word's block, 4555, agrees** (item 997, `docs/COMBAT.md`
+        // §64): `1/21`'s attack-move no longer takes the human's unarmed
+        // Woodcutter's Camp on 4554, so its `ATTACK_TO` stands on both
+        // sides until 4606, where its walk first parts.
         assert_eq!(
             row(1, 21, "order:kind").as_deref(),
-            Some("4555: Kind { ours: 10, theirs: 2 }"),
+            Some("4606: Kind { ours: 2, theirs: 1 }"),
+            "the unit's order, which parted on 4555 until item 997"
+        );
+        // **The new word, 4593, and the block before it** (`docs/AI.md`
+        // §82.4): `1/26` holds an `ATTACK` there, stopped at (5079, 31628),
+        // and walks here toward its attack position (5052, 31644). On the
+        // word's frame the original spends `Guy::set_anim+0xf2f <
+        // Guy::move+0x166`. Block 4550 stands on 86 keys, the families the
+        // window opened on; 4575 is `1/0`'s turn (18 keys) and 4585 a
+        // guy's `whom/ox` on `1/21`'s attack-move. No mechanism is named
+        // (DECISIONS 42).
+        assert_eq!(
+            row(1, 26, "order:kind").as_deref(),
+            Some("4592: Kind { ours: 1, theirs: 10 }"),
             "the unit's order, the block before the word"
         );
         assert_eq!(
-            row(1, 21, "orders_x").as_deref(),
-            Some("4555: ours 9005 theirs 4824"),
-            "and where it goes"
+            row(1, 26, "pos").as_deref(),
+            Some("4592: ours (5052,31644) theirs (5079,31628)"),
+            "and where it stands"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4550, 86), (4555, 6), (4556, 9)],
+            [(4550, 86), (4575, 18), (4585, 1)],
             "the blocks keys first part on, the first three"
         );
     }
