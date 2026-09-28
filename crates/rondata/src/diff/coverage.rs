@@ -1700,14 +1700,16 @@ const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
 /// added here with the item that owes it.
 const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Re-pinned 2026-09-28, item 1061** (DECISIONS 54 §2), on the second
-    // pair's Great Lakes word's window — run373's blocks 4923..4927,
+    // pair's Great Lakes word's window — run373's blocks 4977..4981,
     // walked from run347's start with the group record and the attack
     // order's row (`second::widen_records`). Until then the pin walked the
     // first pair's run202 15383..15387, where no army marched. **A site
     // gated on the window's content registers only when it runs**, so a
     // row here is one of two things and the comment says which: a field no
     // site compares, or a site the window never reached. On these five
-    // blocks the dump holds no death, no `GROUPORDER`, patrol, guard,
+    // blocks the dump holds no death (ours holds the citizen `0/2`'s from
+    // 4979, the word itself, and a record one side holds alone registers
+    // nothing), no `GROUPORDER`, patrol, guard,
     // garrison, cast, air, strafe or ground order (every order block is a
     // `UNITORDER`, `MOVEORDER`, `TARGETORDER`, `ATTACKORDER`,
     // `ATTACKTOORDER`, `GATHERORDER`, `BUILDORDER`, `EXPLORETOORDER` or

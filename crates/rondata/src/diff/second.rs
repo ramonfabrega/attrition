@@ -300,6 +300,65 @@ pub(crate) fn widen_records(
             continue;
         };
         let un = &built.sim.units[u];
+        // `RON_STACKS=1` prints every unit's order stack front first on
+        // both sides, the kind with an attack's target, `in_range` and
+        // `new_ord` — the instance list a chase's push or pop asks for.
+        if std::env::var_os("RON_STACKS").is_some() {
+            let ours: Vec<String> = un
+                .orders
+                .iter()
+                .map(|x| match x.body {
+                    sim::orders::Body::Attack(a) => format!(
+                        "10{:?}r{}n{}",
+                        un.combat.target.map(|t| match t {
+                            sim::combat::Obj::Unit(t) => {
+                                (
+                                    i64::from(built.sim.units[t].owner),
+                                    i64::from(built.sim.units[t].index),
+                                )
+                            }
+                            sim::combat::Obj::Building(b) => (
+                                i64::from(built.sim.buildings[b].owner),
+                                i64::from(built.sim.buildings[b].index),
+                            ),
+                        }),
+                        u8::from(a.in_range),
+                        u8::from(a.new_ord)
+                    ),
+                    _ => x.index().to_string(),
+                })
+                .collect();
+            let theirs: Vec<String> = them
+                .orders_front_first()
+                .map(|x| {
+                    if x.index == 10 {
+                        format!(
+                            "10{:?}r{}n{}",
+                            x.whom.zip(x.ox),
+                            x.in_range.unwrap_or(-1),
+                            x.new_ord.unwrap_or(-1)
+                        )
+                    } else {
+                        x.index.to_string()
+                    }
+                })
+                .collect();
+            if ours
+                .iter()
+                .chain(theirs.iter())
+                .any(|k| k.starts_with("10"))
+            {
+                eprintln!(
+                    "  stacks {n} {who}/{o} ours {} ({},{}) | theirs {} ({},{})",
+                    ours.join(","),
+                    un.pos.x,
+                    un.pos.y,
+                    theirs.join(","),
+                    them.pos.x,
+                    them.pos.y
+                );
+            }
+        }
         // **What each figure is aimed at** (`GuyData +0x8e`/`+0x9f`,
         // printed `ox`/`whom`): chapter one's widening read it on a
         // player's fight, and a war window is where it is written.
@@ -1003,7 +1062,9 @@ mod tests {
     /// item the word moved to 4852 and then 4877**, block 4878, inside the
     /// window (37 blocks after its first and 219 before its last). **Item
     /// 1052 moved it to 4924**, block 4925, inside the window too (84
-    /// blocks after its first and 172 before its last).
+    /// blocks after its first and 172 before its last), and **item 1061
+    /// to 4978**, block 4979 (138 after its first and 118 before its
+    /// last).
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -1091,16 +1152,43 @@ mod tests {
                 first(1, o, what)
             );
         }
-        // **The new word, 4924, writes block 4925** (no mechanism is named,
-        // DECISIONS 42): ours 8 draws and the original 7, parting at index
-        // 0, where ours spends `Guy::set_anim+0xf2f < Guy::move+0x166` and
-        // the original `Guy::set_anim+0x97a < Unit::move_step+0x823`. The
-        // earliest block past the window's standing rows that parts on a
-        // unit's order is 4923: `1/11` holds its `ATTACK` there (kind 10,
-        // two orders) where the original has pushed the chase's move above
-        // it (kind 1, three), and it stands at (5046, 30225) against
-        // (5032, 30200). Before it only value rows: `1/9`'s and `1/24`'s
-        // `orders_x/y` (4868, 4887) and the citizens' and the leader's rows.
+        // **The old word, 4924, agrees** (item 1061, `docs/COMBAT.md` §71):
+        // `do_move`'s flank clause keeps `1/11`'s chase on frame 4922,
+        // where its target `0/1` walks east from its heading (`e =
+        // 0xd3290000`, `flanking` 2), and ends it on 4923, `0/1` turned. So
+        // on block 4923 `1/11` stands at (5032, 30200) under its chase on
+        // both sides, on 4924 there under a fresh `ATTACK` on `0/1`, and
+        // strikes `0/2` on 4925 on both. Its first parting row moves past
+        // the word.
+        for (what, block) in [
+            ("order:kind", 4_980),
+            ("pos", 4_985),
+            ("attack[0].in_range", 4_985),
+        ] {
+            assert!(
+                first(1, 11, what).is_none_or(|(f, _)| f >= block),
+                "1/11's {what}, which parted on 4923 or 4924 until item 1061: {:?}",
+                first(1, 11, what)
+            );
+        }
+        // **The new word, 4978, writes block 4979** (no mechanism is named,
+        // DECISIONS 42): ours 9 draws and the original 8, parting at index
+        // 1, where ours spends `Unit::close+0xcb6` and the original
+        // `Farms::inc_time+0x1ae`. On block 4979 the citizen `0/2` is dead
+        // on ours' side alone: `death:extra` and `hold_frames` 1, at 42
+        // damage against the original's 37. Its damage stands from the
+        // window's first block (6 10/16 against 5 5/16), and the original's
+        // falls a point on 4859 and 4904 where ours' does not.
+        assert_eq!(
+            first(0, 2, "death:extra"),
+            Some((4_979, "ours 1 theirs 0".to_string())),
+            "the new word's row"
+        );
+        assert_eq!(
+            first(0, 2, "hits:damage"),
+            Some((4_841, "ours 6 theirs 5".to_string())),
+            "the citizen's damage, standing from the window's first block"
+        );
         // **The group record and the attack order's row** (item 1061,
         // `docs/GROUPS.md` §33): five more rows stand from the window's
         // first block — army 0's `role`, the Town Center group's `ox`/`oy`
@@ -1120,12 +1208,10 @@ mod tests {
             (9, "attack[1].new_ord", (4_841, "ours 0 theirs 1")),
             (24, "attack[0].in_range", (4_853, "ours 1 theirs 0")),
             (24, "attack[0].new_ord", (4_853, "ours 0 theirs 1")),
-            (11, "attack[0].in_range", (4_924, "ours 1 theirs 0")),
-            (11, "attack[0].new_ord", (4_924, "ours 0 theirs 1")),
-            // The figure's aim, first parting on the word's block: ours
-            // `1/11` aims at the citizen `0/2`, the original's still at
-            // the Town Center `0/2000`.
-            (11, "g.ox[0]", (4_924, "ours 2 theirs 2000")),
+            // `1/11`'s head attack and its figure's aim, which parted on
+            // the old word's block 4924 until the flank clause.
+            (11, "attack[0].in_range", (4_985, "ours 0 theirs 1")),
+            (11, "g.ox[0]", (4_986, "ours 1 theirs 2")),
         ] {
             assert_eq!(
                 first(1, o, what),
@@ -1133,11 +1219,6 @@ mod tests {
                 "1/{o}'s {what}, the attack order's row item 1061 compares"
             );
         }
-        assert_eq!(
-            first(1, 11, "order:kind"),
-            Some((4_923, "Kind { ours: 10, theirs: 1 }".to_string())),
-            "the new word's order row"
-        );
         // A standing row the window opens on: the citizen `0/4` has taken
         // more here since run356's window closed (block 4841: `damage` 6
         // 10/16 here, 5 0/16 there).
