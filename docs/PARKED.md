@@ -62,6 +62,20 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1012, 2026-09-27 — the army's attack
+
+(1015) **`find_melee_target`'s squad head at `Group::action_attack`'s
+retarget**: built, and the floor refused it (it held the word at 4607
+against 4618 without it), so it stands unbuilt with its kill. A packet
+at 4606 reading the city's `+0x3d` decides it (COMBAT §66).
+
+(1016) **`build_ids` has no capital fallback**: `Built::builds` omits
+each capital, so a city target answers None (1003's cause, named by
+1012).
+
+(1017) **The army attack's add arm, its siege and naval branches**: read,
+not built (COMBAT §66).
+
 ## Parked by item 976, 2026-09-27 — the launch's edges
 
 (1007) **`0/6`'s `mirror` on 2314 and the pool's slot 1 `facing`**
@@ -75,11 +89,6 @@ non-bomber's `find_new_air_target`. Built as the bomber's point search
 and nothing else; nothing enemy was near `0/1` on run358.
 
 ## Parked by item 997, 2026-09-27 — the attack-move's edges
-
-(1003) **A guy's `whom`/`ox` naming `0/2000` on an attack-move**: `1/21`
-on 4585, `1/24`–`1/26` from 4550 (run356). No draw before 4593. **1002**:
-it does not cause 4593, and its shape is back on `1/22` and `1/23` at
-4598 and 4599, just before 4605 (item 1012's frame).
 
 (1004) **`BuildData::attack`'s garrison arm**, which this crate's
 `attack_of` lacks (COMBAT §64): read, not built.
@@ -1100,12 +1109,6 @@ it is the instrument half of (525).
 
 ## Parked by item 530, 2026-09-22 — chapter one closed, and what it left
 
-(536) **A marching army group never looks around.** `do_group_attack_to`'s
-look and `find_nearby_target`'s `Group::action_attack` arm for a
-`GROUP_ATTACK_TO` (`docs/ORDERS.md` §22.5) are unimplemented. 530 names it
-the likeliest of its three to surface on the long captures; the AI track
-should check it first when a word lands on an army's march.
-
 (537) **The army group's `speed`/`new_speed` at birth** (`Group::add` →
 `compute_speed`): 0 against 25 on chapter one's 616. A pinned row of the
 chapter's widening; spends no draw.
@@ -1677,6 +1680,12 @@ building-target kill" inside the ranged gate while this crate had no
 such arm; ORDERS §4.4 had it right. A comment that cites a spec section
 could be checked against it, as the dead-citation guard checks
 addresses.
+
+(1018) **A mechanism built from the decompile alone is mutated against
+the walk, not only its unit test** (1012's Loop line, filed at its
+merge): the squad-head mutation scored eleven frames better than the
+reading. A lane runs each sub-mechanism's mutation against the walk
+before calling it built. A candidate checklist row beside 918.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
