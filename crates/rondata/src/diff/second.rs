@@ -128,8 +128,8 @@ pub(crate) fn great_lakes_word_window() -> Option<crate::diff::harness::tests::W
         ),
         "the second pair's word's window",
         &[(
-            "gamelog-run373-greatlakes-toughest-4846.txt",
-            WIDENING_SECOND_GREAT_LAKES_4846.0,
+            "gamelog-run396-greatlakes-toughest-5105.txt",
+            WIDENING_SECOND_GREAT_LAKES_5105.0,
         )],
         (block - 2, block + 2),
         1,
@@ -1349,6 +1349,96 @@ mod tests {
         // `0/4` from 5068 and the new word's from 5075 arrive), and 461 →
         // 203 on item 1074 (the five chases on `0/1` walk on from 5075).
         assert_eq!(w.firsts.len(), 203, "every key parted on run373");
+    }
+
+    /// **The second pair's Great Lakes word, 5105, widened whole** (item
+    /// 1074): run396 is run347's game at run373's detail over blocks
+    /// 5100..5356, walked from run347's start. The word's frame writes block
+    /// 5106, six blocks after the window's first.
+    #[test]
+    fn run396_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
+            (
+                "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+                "rontrace-run347.log",
+            ),
+            "run396",
+            &[(
+                "gamelog-run396-greatlakes-toughest-5105.txt",
+                WIDENING_SECOND_GREAT_LAKES_5105.0,
+            )],
+            WIDENING_SECOND_GREAT_LAKES_5105,
+            1,
+            &[SECOND_WORD_GREAT_LAKES + 1],
+            true,
+        ) else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        // `RON_FIRSTS=<block>`, as on run373.
+        if let Some(from) = std::env::var("RON_FIRSTS")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+        {
+            let mut rows: Vec<_> = w.firsts.iter().filter(|(_, (f, _))| *f >= from).collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        assert_eq!(w.blocks, 257, "run396 whole: blocks 5100..5356");
+        assert!(
+            w.missing.is_empty(),
+            "run396 carries every key: {:?}",
+            w.missing
+        );
+        let first = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| (*f, r.clone()))
+        };
+        // **The word, 5105, writes block 5106** (no mechanism is named,
+        // DECISIONS 42): 11 draws on each side, parting at index 3, where
+        // the original spends `Unit::fight+0x9b0 < Unit::do_attack+0x6ba`
+        // and ours `Farms::inc_time+0x1ae`; on 5106 ours spends 10 against
+        // 11. Its figure is `1/21`: on block 5105 the original's has ended
+        // its chase (`ATTACK` head, two orders) and ours walks on (`MOVE`,
+        // three), and on 5106 the original's strikes `0/5` (`recharging`
+        // 32, `hold_attack` 1). Every key first parting on 5105 is
+        // `1/21`'s. Its move has parted since run373's block 5091: ours
+        // aims at (3528, 31512) with `order:flags` 16, the original at
+        // (3336, 31368) with 0, and its second `ATTACK` reads `new_ord` 0
+        // against 1 (parked 1073's shape).
+        assert_eq!(
+            first(1, 21, "order:kind"),
+            Some((5_105, "Kind { ours: 1, theirs: 10 }".to_string())),
+            "the word's row"
+        );
+        assert_eq!(
+            first(1, 21, "order:move.x"),
+            Some((
+                5_100,
+                "Move { field: \"x\", ours: 3528, theirs: 3336 }".to_string()
+            )),
+            "1/21's chase goal, parted since run373's block 5091"
+        );
+        assert!(
+            w.firsts
+                .iter()
+                .filter(|(_, (f, _))| *f == 5_105)
+                .all(|((who, o, _), _)| (*who, *o) == (1, 21)),
+            "only 1/21 first parts on block 5105"
+        );
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(5_100, 139), (5_105, 4), (5_106, 5)],
+            "the blocks keys first part on, the first three"
+        );
+        assert_eq!(w.firsts.len(), 1_253, "every key parted on run396");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

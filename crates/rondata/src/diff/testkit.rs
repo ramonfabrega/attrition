@@ -1471,7 +1471,27 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// and 21 before its last): `1/20` reads `collide 1` on `1/18` there on
 /// ours alone, and `1/10` and `1/11` have ended their chase on ours alone.
 /// No mechanism is named.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_075;
+///
+/// **5075 → 5105 on item 1074**: `Unit::do_move@005f7b30`'s action block
+/// asks of its `ATTACK`'s target only that the slot be live — `o`/`who`
+/// non-negative, `flags & 1`, the `uid` (`5f7ece`–`5f7f11`) — and nothing
+/// else reaches the dead target's arm at `5f8221` (`docs/COMBAT.md` §77).
+/// This crate asked `valid_target`, whose `is_seen` refused the citizen
+/// `0/1` once player 1 had lost sight of it on frame 5075. **The move's
+/// value diff (the word's delta, here; its block is
+/// `run373_s_word_frame_is_widened_whole`'s):** on block 5076 `1/10` stands
+/// at (5043, 29856), `1/11` at (4898, 29588) and `1/18` at (6084, 29076),
+/// each under `MOVE, ATTACK, ATTACK_TO` on `0/1`, and `1/20` at (5965,
+/// 29093) with `collide 0`, on both sides, where ours read (5028, 29880),
+/// (4901, 29616) and (6084, 29077) under two orders and `1/20` at (5928,
+/// 29112) with `collide 1` on `1/18`. Frame 5075's draws went 11 against
+/// 10 → agreeing; run373's keys parted 461 → 203. **The new word's delta:
+/// frame 5105, 11 draws on each side, parting at index 3**: ours spends
+/// `Farms::inc_time+0x1ae`, the original `Unit::fight+0x9b0`; on 5106 ours
+/// spends 10 against 11. Block 5106 is past run373's window, nine after its
+/// last: run396 widens it (`WIDENING_SECOND_GREAT_LAKES_5105`). No
+/// mechanism is named.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 5_105;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1509,8 +1529,13 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
 /// run347's game, blocks 4841..5097 — six blocks before the word 4846's
 /// block 4847 and 250 past it. The word moved to 4877 (block 4878) inside
 /// it, in the same item, to 4924 (block 4925) on item 1052, and to 4978
-/// (block 4979) on item 1061.
+/// (block 4979) on item 1061, and past it, to 5105, on item 1074.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
+
+/// `run396_s_word_frame_is_widened_whole`'s window (item 1074): run396 over
+/// run347's game, blocks 5100..5356 — six blocks before the word 5105's
+/// block 5106 and 250 past it.
+pub(crate) const WIDENING_SECOND_GREAT_LAKES_5105: (i64, i64) = (5_100, 5_356);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -6414,7 +6439,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 1576, widened on run352, and Great Lakes to 3776, on run355. Item
     // 989's close tail moved both again: East Indies to 5606, widened on
     // run357, and Great Lakes to 4555, on run356. Item 1040 moved Great
-    // Lakes past run356's window to 4846, widened on run373.
+    // Lakes past run356's window to 4846, widened on run373, and item 1074
+    // past run373's to 5105, widened on run396.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
@@ -6425,9 +6451,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        Some("run373_s_word_frame_is_widened_whole"),
-        1040,
-        Some(WIDENING_SECOND_GREAT_LAKES_4846),
+        Some("run396_s_word_frame_is_widened_whole"),
+        1074,
+        Some(WIDENING_SECOND_GREAT_LAKES_5105),
     ),
     // **The third map, Great Sahara** (DECISIONS 54 §3, item 1066): its
     // word is frame 8 on both run382 and run383, and run382 carries every

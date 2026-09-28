@@ -12535,3 +12535,83 @@ Run on `ed732aec` with `git diff --stat` non-empty, restored from git and
   `+0x8` read from the PE; `Object::close`, `Objects::remove`,
   `close_orders`, `is_in_range@006486b0` (decompile).
 - **Unit-backed only**: the living-and-standing and off-phase refusals.
+
+## 77. A living target out of sight keeps the chase (item 1074, 2026-09-28)
+
+Great Lakes' second word, frame 5075 of run347 (DECISIONS 53, 54): ours 11
+draws against the original's 10, parting at index 0. Ours spent `1/20`'s
+`Guy::set_anim+0x97a < Unit::move_step+0x823` first, the original
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. The booking carried
+`Objects::find_collision`'s conjunct of `do_move`'s kill (§71.2's third) as
+the hypothesis, and named no direction (parked 1076).
+
+### 77.1 Every instance on the disk first
+
+- **The whole cast of block 5076** (run373), every key first parting on
+  5075 and 5076, both sides: `1/10`, `1/11` and `1/18` hold `ATTACK,
+  ATTACK_TO` (two orders) on ours against `MOVE, ATTACK, ATTACK_TO` (three)
+  on the original's, and `1/20` reads `collide 1`, `collide_o 18` on ours
+  alone. Nothing else parts there but `1/0`'s figure, which has parted
+  since 5070.
+- **All four chase the same unit**, the citizen `0/1` (`ox 1 whom 0 uid
+  8`). So do `1/19` (below). `0/1` agrees whole on both sides: it walks
+  its `FLEE_TO` head (`GATHER` under it) from (6251, 27650) to (6242,
+  27627), heading −447479808 → −472055808, `visible 0`.
+- **The direction is ours'** (parked 1076): ours popped three walks and
+  the original kept them. `1/20`'s collide follows: it walks into the
+  `1/18` ours stopped, and the stop is the word's first draw.
+- **Not the review.** `(5075 + o) % 16` is 13, 14 and 5 for `1/10`,
+  `1/11` and `1/18`.
+
+### 77.2 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| `find_collision`'s conjunct of `do_move`'s range kill (§71.2's third, the booking's) | `1/10` and `1/11` stand four and three unit cells from their nearest unit (`1/9`), past two `coll_size`s; the conjunct cannot hold for them. And none of the three is in reach of `0/1`, 1,458 to 2,500 away | killed |
+| the flank clause (§71) | `e` is `0x4ee30000`, `0x697d0000` and `0x65540000` against `0/1`'s heading, `flanking` 2, 1 and 1, and `0/1`'s head is a `FLEE_TO`: the triple holds on both sides | killed |
+| **`do_move`'s dead-target arm** | below | **held** |
+
+A probe of ours' `kill_current_order` on frame 5075 named the caller for
+all three: `repath`, from `do_move`, through the dead-target arm (ORDERS
+§20.3). Ours' `valid_target(me, 0/1)` refused because
+`target_is_seen` answered 0 for player 1. `0/1` was active, on the map and
+at war with it. `1/19` and `1/20` reached the same arm on 5075, but each was
+past `0x480` from its walk's goal and walked on.
+
+### 77.3 The listing
+
+`Unit::do_move@005f7b30`, the action block, after `update_action` (a
+cursor walk that asks nothing of the target) and the order's `+0x50`
+target record:
+
+```
+5f7ece: test edx, edx ; js 5f8221     ; ox < 0: the dead arm
+5f7ed6: test eax, eax ; js 5f8221     ; whom < 0
+5f7eed: mov  eax, [0xc0618c]          ; GameAccess::objects
+5f7efc: mov  ecx, [edx+eax]           ; objects[whom][ox]
+5f7eff: testb $0x1, 0x8(%ecx)         ; flags & 1
+5f7f03: je   5f8221
+5f7f09: movw 0x30(%ecx), %ax          ; the slot's uid
+5f7f0d: cmpw 0x10(%esi), %ax          ; the order's
+5f7f11: jne  5f8221
+5f7f17: ...                           ; max_range, the ranged block (§35.3, §65, §71)
+```
+
+That is the whole gate. There is no diplomacy test and no `is_seen`
+anywhere before `5f8221`, and `update_action@0060a870` (the decompile)
+only walks the order list's cursor. So a living target the chaser's
+player cannot see keeps its chase in the ranged block, and when nothing
+there fires, the planner walks on to the order's goal. ORDERS §20.3
+describes `5f8221` correctly. This crate reached it through `valid_target`
+instead.
+
+### 77.4 What this crate built
+
+- **`Sim::do_move`** (`orders.rs`) enters the action block on
+  `obj_alive(t)`, not `valid_target(me, t)`. This crate never recycles a
+  slot, so `alive` is `flags & 1` and the `uid` together.
+- **Unit test**: `a_living_target_out_of_sight_keeps_the_chase`
+  (`orders.rs`, `chase_tests`). A ranged chaser under a fog grid that shows
+  nobody anything walks its chase off the review's phase, within `0x480`
+  of its goal, on a target out of reach. The living target keeps the walk
+  and the dead one loses it.
