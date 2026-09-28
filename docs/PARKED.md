@@ -22,6 +22,32 @@ queue, so moving an item between the two is not a deletion and never reads
 as one. Everything in `docs/QUEUE.md`'s "How to maintain this file" applies
 here too, except the item cap — a parked item is not an open one.
 
+## Parked by the eighteenth Fable pass, 2026-09-28 — names no score
+
+(1068) **The two `add $0x80000000` folds in `Guy`** — `Guy::set_angle`
+at `5d915e` and `Guy::set_new_location` at `5d8998` — are the only
+inlined sine folds besides `Army`'s four that carry a half turn (the
+pass's sweep of all sixty, `docs/audit/2026-09-28-fable-pass-18.md`).
+`docs/ANIM.md` cites both functions and was not read against the
+listing by the pass; the `GUYS` record is dumped and compared, so a
+wrong sign would show as a figure's offset. Returns when a score names
+a figure's `ox`/`oy`.
+
+(1069) **Seventeen constants a test's fixture had banked** (parked 975,
+built by the pass), twelve distinct, by the old guard's lists against
+the new: AI `0x1a3 0x1b8 0x26a 0x26e`; TECH `0x26d 0x26e 0x326`; CITIES
+`0x1a3 0x29b`; ECONOMY `0x1a3 0x30f`; GOLDEN `0x1088 0x1e00`; ATTRITION
+`0x2d1`; COSTS `0x26e`; ORDERS `0x420`; PRODUCTION `0x1088`. With 802's
+and 820's arrivals (809): build it, spell it as an offset, or name why
+the document carries it.
+
+(1070) **Thirteen sections the code cites and no document holds**
+(parked 1013, built by the pass; `NO_SUCH_SECTION` in
+`crates/sim/src/docs_guard.rs`): AI §2.5.1; ANIM §4.1, §4.3, §4.4; ARMY
+§15.8, §15.9, §16.3; CARAVAN §3.1; COMBAT §7.12, §12.5; PATHFINDER
+§18.6; TECH §7 and §13, in a document with no numbered section. Each is
+a comment to mend or a heading to number; thirty-five sites.
+
 ## Parked by the seventeenth Fable pass, 2026-09-27 — names no score
 
 (970) **Sixteen citations of functions the executable never references.**
@@ -63,10 +89,6 @@ refuses a second exception without a reason.
 capture has two planes full on one call.
 
 ## Parked by item 1052, 2026-09-28 — the army's march
-
-(1062) **The second pair's widening compares no `GROUPDATA` record**
-(`facing`, `ox`/`oy`, `order_num`, `o_angle`), only the pool's lists;
-golden's `widen_pool` does. 1061's frame starts on an order.
 
 (1063) **`do_forming`'s per-group step** (ARMY §8.5) is reversed by the
 same listing as the march origin and not built: this crate's army is one
@@ -1535,6 +1557,26 @@ coverage), 932 (GOLDEN §14a is the continuation, since item 928) and
 citation of an unreferenced function); 677, 685, 745, 775, 799, 838,
 852, 894, 900, 927, 953, 954 and 960 stay, and 973 is filed
 (`docs/audit/2026-09-27-fable-pass-17.md`, DECISIONS 53).
+The eighteenth, 2026-09-28, **built nine**, each made to fail first —
+the ledger reads a four-digit item (1006: 506 booked and nothing lost
+in silence); the lane is taken before anything it shares is written
+(974, eight capture scripts); a test's fixture banks no constant (975,
+`UNBUILT` 135 → 152, the seventeen parked as 1069); the runner reads
+the scenario it was started on (984); a capture puts the lobby back
+(987); the held-out map's captures are pinned by run (986); no dumped
+record is linked by its number alone (1001, `rondata::diff::slots`); a
+function a booking names is in the export (1010); a section the code
+cites is one the document holds (1013, thirteen pinned, parked 1070) —
+**cleaned 55 GB of debug build** (1027), **ratified both `FABLE:`
+rows** (1038; 1065 from the listing, with a sweep of all sixty inlined
+folds), moved eleven Loop lines into the brief checklist (992, 995,
+1018, 1032, 1033, 1039, 1046, 1047, 1058, 1060, 1065) with three rows
+of its own, **closed eleven** — 983, 996, 1005 and 1022 done by their
+own landings, 985 ruled, 1026 into 685 and `docs/EMULATOR.md` §8, and
+745, 775, 799, 838 and 852 on two tranches without a reach, the rule
+DECISIONS 54 writes down — and filed 1067; 677, 685, 894, 900, 927,
+953, 954, 960 and 973 stay
+(`docs/audit/2026-09-28-fable-pass-18.md`, DECISIONS 54).
 341 closed 2026-09-18 by item 363.
 
 (452) and of the same family as (449): an instrument that quietly stops
@@ -1574,7 +1616,9 @@ proxy logs `this` and the frame for free and the position only with a
 new proxy kind that reads memory (`tools/trace/tracer.c`, C, validated
 by a capture); 715's new word still spends its third draw on
 `Animal::think_bird+0x82`. Stays; the AI lane's next capture stanza may
-carry the cheap half.
+carry the cheap half. **The eighteenth pass**: one landing of twenty met
+a bird's draw (979, East Indies' 1576); stays on that reach, and closes
+at the next pass without another.
 
 (685) **`tools/recomp/step4.py` cannot run `do_frame` on a packet from
 597's plan**: a stack read falls outside the mapped ranges. A per-function
@@ -1585,48 +1629,12 @@ the process's private data and not the game thread's stack, and
 `do_frame` reads its caller's frame on its nineteenth instruction; the
 packet's tracer build adds the thread's stack (the TEB `find_teb`
 already locates carries `StackBase`/`StackLimit` at +4/+8) to the
-ranges, and the next packet's stanza says so. Stays.
-
-(745) **Nothing pins that each field the simulation carries has a widening
-row** (736's Loop line, filed at its merge). `diff::compared` pins the
-dump's side; `Movement::mirror` sat a tranche carried and read, with no
-row, and was caught only because a brief named the bit. The crate's side
-of the recorder is the same blind spot as a parsed-and-uncompared field. **The fifteenth pass read the ledger**: `rondata::ledger`'s 255 fields are the dump's records as `gamelog.rs` parses them, so the crate's own carried fields have no pin on either side; stays, and the shape is a list of `sim`'s state structs against the widening rows, hand-kept and exact. **The seventeenth pass**: six landings of the tranche met a comparison that compared nothing (795, 880, 882, 884, 919, 923) and none was a carried field without a row; stays, and its trigger is named — the first landing on the second pair that turns on one builds the list with it.
-
-(775) **A hand-written probe prices the wrong tech** (767's Loop line,
-filed at its merge): the harness maps this crate's tech ids to the dump's
-through `diff::leader`'s `ti`, off by one, and a scratch probe does not;
-767's first probe priced the wrong two techs, caught only by an empty
-`make_me`. A `RON_PRICE`-style probe keyed on the dump's `TypeIndex`
-would close the trap. **One probe so far** (the fifteenth pass): a shape graduates into `tools/` on its third reach; stays until then.
-
-(799) **An `UNMODELLED` line is a standing instruction not to look** (785's
-Loop line, filed at its merge): it said "no writer here" of `wonder_mark`,
-which the original moves on forty of run80's records, and hid 785's cause
-from every widening since. A field is unmodelled because it has no writer
-here, which is where a missing writer hides; the ledger could carry "the
-original moves it" as a fail-when-it-parts note. And the commander's
-brief asked a contiguous overlap for a +3387 jump where DECISIONS 50 says
-a window sized to the word; the brief template should say which. **The fifteenth pass split it**: the brief half is a row of the brief checklist (`docs/audit/README.md`); the guard half stays — an `UNMODELLED` key whose value the original moves across the word's own capture must say "the original moves it", read off the `LEADERDATA` blocks of the chain's last dump, with the table's non-literal names (`misc_stamps`, `DIPLOMACY`) expanded by prefix.
-
-(838) **A `group` row with −1 on one side is membership, not a pool id**
-(829's Loop line, filed at its merge): the pool-id rows (689) print as
-ordinary `group` rows, so a content difference (−1 against 71) sat in
-822's floor among forty id shifts and read as noise. Split the two in
-the floor: a row whose one side is −1 is its own family. **The sixteenth
-pass**: one reach; the first parting block's standing rows print by
-default now (830), where such a row reads as itself, and the split waits
-for a second reach.
-
-(852) **A specification that calls a constant "read" when `sim` never
-loads it** (839's Loop line, filed at its merge): ECONOMY's "Territory
-tax" section stated the British modifier as read for a month while
-`BRITISH_TAXATION` was absent from `ron_slots` and the code had no such
-term. A guard: every `UPPER_CASE` constant a specification calls "read"
-has a slot, made to fail first on the pre-839 tree. **The sixteenth
-pass**: stays with its shape — "read" is prose, and the guard needs the
-list of words a specification uses for a loaded constant; one landing
-so far.
+ranges, and the next packet's stanza says so. Stays. **The eighteenth
+pass**: item 1014 met it again on run360 — the fault is at the first
+call, on a renderer object outside the packet (parked 1026, folded
+here) — and entered `think_scout` directly, as 680 did; two reaches,
+both answered by the per-function entry, and `docs/EMULATOR.md` §8 says
+so now. The stack is the third reach's.
 
 (894) **A walk says which blocks each mode compared** (880's Loop line,
 filed at its merge): the pool walk takes its dumps in list order, and a
@@ -1667,205 +1675,26 @@ record it. 953's instrument.
 second gate for a re-pin that sat behind an earlier assertion's panic in
 the same test. The shape is the residue test's — push every failure,
 assert once — applied to the floor tests that pin more than one tuple;
-the lane gate (969) shortens the wait and does not remove it.
+the lane gate (969) shortens the wait and does not remove it. **The
+eighteenth pass**: 989 and 1034 each re-pinned two in one gate; four
+reaches, and it is the next pass's first build.
 
-## Loop, filed 2026-09-27 — the commander's tranche after the seventeenth pass
+## Loop, filed 2026-09-28 — the eighteenth pass's own
 
-Split from the section above at its ceiling (2026-09-28): the Loop
-lines filed by the commander since the seventeenth pass, each at its
-merge or in the turn it was noticed.
+The commander's twenty-eight lines of the tranche before were ruled by
+the eighteenth pass, each named in the section above and in
+`docs/audit/2026-09-28-fable-pass-18.md`; what stands here was filed by
+that pass or since.
 
-(974) **`longtrace.sh` touches the lane's shared state before it holds
-the lane lock** (971's status, 2026-09-27, confirmed in the script): the
-`PROFILE` write and its copy aside (lines 132..134) and `rm -f` of
-`Logs/gamelog.txt` and `rontrace.log` (168) run before `winelaunch.sh`
-takes the lock (170). A second lane launching while a capture runs
-clears the running game's log and rewrites the profile under it; the
-lock refuses only after the damage. 971 avoided it by waiting on the
-other lane's log. The shape: take the lock first, or refuse on a held
-lock before any write.
-
-(975) **A constant a document names can be banked by a unit test's
-fixture** (947's Loop line, filed at its merge): `UNBUILT` GOLDEN fell
-4 → 3 on `11520`, P1's x in 947's own tests, which the decimal clause
-reads from `#[cfg(test)]` code. Entry 52 §1's "not a build" again; the
-guard could skip test modules or say which constant fell and where.
-
-(983) **A widening walker keyed on one base game needs a parameter the
-day a second game shares the map** (971's Loop line, filed at its
-merge): `widen_east_indies` and `widen_great_lakes` take one now; the
-other two dozen callers are unchanged.
-
-(984) **`runqueue.sh` reads `captures.txt` as it runs** (971's Loop
-line): a stanza appended mid-queue for the running item's number is
-taken in the same run. run349 was taken that way, unplanned; a stanza
-written ahead of its lane check can launch before the check is done.
-
-(985) **The held-out map stands up flat** (972's Loop line, filed at its
-merge): both scored maps read a `DUMP_ALL` start sibling for the height
-table (run38; run12 and run13) and map 9 has none. A later
-generalisation number wants one, or the pass decides the gap stands.
-
-(986) **Nothing guards "measured once"** (972's Loop line): a
-`docs_guard` row counting `mapstyle: 9` stanzas in `captures.txt`
-against one would.
-
-(987) **`mapstyle.py` rewrites the profile's style with no restore**
-(972's Loop line): every `longtrace.sh` capture rewrites it, but a lane
-that reads the profile without calling `mapstyle.py` inherits the last
-map. 974's family.
-
-(992) **No walk asserts that an installed frame word left ours alone**
-(979's Loop lines, filed at its merge): `correction_audit` counts the
-installs that moved the seed and nothing reads it. The harness borrowed
-an Easiest sibling's frame words over the Toughest games on a
-setup-stream match; `diff::setup::same_lobby` gates the borrow on an
-equal `GAMEINFO` now, and every later pair varies one setting by design.
-An assertion there would have caught it at 971's first walk.
-
-(995) **A staged gate's brief asks for every entry to the block that
-holds the call**, not only the gates inside it (965's Loop line, filed
-at its merge): 959 asked "what does a hit pass" over three captures, and
-the listing's only entry to the block, `jge 0x652ab5`, answered it
-before the first. A candidate row beside 968 and 903 in the checklist.
-
-(996) **The census's recipe omits `--never`'s blind-list section from
-the paste**, and the heading's text does not say so (965's Loop line).
-
-(1001) **The harness links a dumped building to the first building of
-its number, dead or alive** (989's Loop line, filed at its merge): AI
-§81.4's `damage 1`/`city −1` on both words' blocks were this crate's dead
-site read against the original's live one, and a widening reported them
-as the camp's partings. `unit_by_o` took `alive()` from the start; the
-building and city lookups never did. 989 fixed `link_building`; a grep
-for `.index) ==` without `alive` over `src/diff/` leaves `setup.rs:874`
-and `build.rs:3847` unread.
-
-(1005) **The debug unit print had no combat target** (997's Loop line,
-filed at its merge): a unit whose `Attack` order is the wrapper carries
-its target in `combat::State`, so the first question an `ATTACK` parting
-asks had no print. 997 added `tgt` behind `RON_DEBUG_UNIT`; the pass may
-close it or ask for the same of the other wrapped orders.
-
-(1006) **`tools/queueledger.py` cannot see a four-digit item** (the
-commander, 2026-09-27, at 997's booking): every pattern is `\d{1,3}`
-(lines 85, 102, 143, 145, 195–198), so `1002. ` is no item and
-`(1003)` no park. The ledger's counts stood still from 1000 to 1006
-(492 booked, 532 live), and an item from 1000 on can leave the queue in
-silence. The guards' own parsers want the same check.
-
-(1010) **A booking that names an issuer cites its `INDEX.tsv` row**
-(976's Loop line, filed at its merge): item 976's queue line named
-`issue_launch_flight`, which the export does not hold, from parked 947's
-wording; the row is a one-line check. And 976's staging took five walks
-to find a target that stays put, is seen and splits the readings: the
-cost was choosing each target before walking it.
-
-(1013) **A code comment named an arm the code did not have** (1002's
-Loop line, filed at its merge): `do_move`'s comment named "the
-building-target kill" inside the ranged gate while this crate had no
-such arm; ORDERS §4.4 had it right. A comment that cites a spec section
-could be checked against it, as the dead-citation guard checks
-addresses.
-
-(1018) **A mechanism built from the decompile alone is mutated against
-the walk, not only its unit test** (1012's Loop line, filed at its
-merge): the squad-head mutation scored eleven frames better than the
-reading. A lane runs each sub-mechanism's mutation against the walk
-before calling it built. A candidate checklist row beside 918.
-
-(1022) **The hangar's scratch emulator was rebuilt from nothing a second
-time** (1009's Loop line, filed at its merge): 955 and 1009 each wrote
-one for `add_gather_point` and the Airbase's loops. By the probe rule
-it is a `tools/emu` candidate at the third.
-
-(1026) **`Game::do_frame` faults on a packet at its first call** (1014's
-Loop line, filed at its merge): a renderer object outside the packet, so
-`step4.py`'s default entry is unusable on run360; enter the function
-directly, as `scout_probe.py` does. And the click-free lane now takes a
-lobby field (`unattended_capture.py --profile KEY=N`), which the second
-pair's packets need every time: the runbook should say so.
-
-(1027) **The commander's worktree holds 53 GB of build output** (the
-commander, 2026-09-28, measured with `du`): `replan-pdb/target/debug/deps`
-is **51 GB**, stale debug test binaries accumulating across merges, with
-2.3 GB of incremental state beside it; `target/release` is 130 MB. The
-whole `.claude/worktrees` tree is 54 GB, and the home volume had 22 GB
-free. A lane's `target` goes with its worktree; the commander's never
-does. `cargo clean` on the debug profile, or a periodic sweep, is the
-pass's call; the user is also looking at unrelated disk use with lore.
-
-(1032) **A listing read in two `llvm-objdump` slices lost the
-instruction on the join** (1023's Loop line, filed at its merge): a
-header-trimming `sed` by line count dropped `5e2800`, and for a minute
-it read as a bug in the original. Overlap slices by a line and trim
-headers by pattern; a `tools/` slicer is the probe rule's answer if a
-third lane does it by hand.
-
-(1033) **A booking sentence about `NEVER` is one grep of `blind.rs`
-away** (1011's Loop line, filed at its merge): 1011's booking said the
-gather point's issuer chain "stays on `NEVER`" when four of it had been
-off since run337. And three of 1011's four captures entered nothing new:
-"which `NEVER` rows does this chapter's staging name?" ranks a `cover=1`
-batch before the launch; only chapter thirty-three's did.
-
-(1038) **FABLE: `CLAUDE.md` stated the packet-frame rule the twelfth
-pass struck** (the commander, 2026-09-28, from 1028's Loop line):
-its tooling paragraph said a packet "is taken at the frame before the
-divergence", which `docs/EMULATOR.md` §8 struck for item 597 and parked
-605 — the frame to take is the word itself, read as a logger frame. The
-commander's briefs for 1023 and 1028 inherited it; 1028 read §8 and took
-run368 at 4688, not the booked 4687. **The commander landed the
-one-clause fix in `CLAUDE.md`** (the safety-fix clause of the fan-out
-rules); the pass ratifies or rewrites it.
-
-(1039) **A walk cannot tell the right arm from a wrong one while a value
-it depends on is wrong elsewhere** (1028's Loop line): 1012's hand-off
-passed its floor on an inflated city value, which 1028's packet showed.
-A floor that a mechanism passes is quiet, not proven (898's shape one
-level up).
-
-(1046) **"Nothing parts on the block" read only the block's new rows**
-(1034's Loop line, filed at its merge): 1028's journal said nothing parts
-on 4691 while `0/2000`'s damage had stood parted since 4661. Row-walk
-the parting draw's object back to its first parted field before writing
-that a block is quiet.
-
-(1047) **A brief asked a golden chapter for `cover=1` on the click-free
-lane** (the commander, 2026-09-28, from att-1019's two hung takes): the
-1019 brief said "capture it at `cover=1` ... refused on no issuer since
-934", which conflates 934's queue-lane re-runs with the click-free
-lane, where `cover=1` with the golden lane's callwin proxies never
-starts (run185's documented hang) and the stall guard's relaunch sits
-at the menu. 1019 split it as 1011 did: the chapter at `cover=0` on the
-click-free lane, the blind list at `cover=1` on the queue lane. A brief
-checklist row: name the lane with the cover setting, and 1011's split
-for an issuer chapter that wants both. **1019's Loop line**: run185
-had recorded the hang, so a brief naming a lane and a cover is checked
-against `docs/RUNS.md` in one grep; the stall guard that kills a slow
-`cover=1` launch is the second half of the trap.
-
-(1058) **Before any reading, list every instance of the parting event on
-the disk** (1040's Loop line, filed at its merge): two of 1040's words
-stood on rows already on disk and unread — run356's `1/22` facing from
-4758, and run17's 27 untied Slinger shots. One script over every strike
-on the target and every launch of the piece answered 4846, where the
-listing alone argued the wrong way twice. A candidate checklist row.
-
-(1060) **A parking that shares the word's frames is a candidate for the
-word's mechanism** (1048's Loop line, filed at its merge): the brief's
-first question was answered in one line and the parting sat in the unit
-whose drift was parked as not-mine (1049, closed by 1048). 958's
-whole-cast read found it only because it ran first.
-
-(1065) **FABLE: three second readers' verdict on an inlined idiom was
-wrong** (1052's Loop line, filed at its merge): ARMY §9 and §8.5 rested
-on the verdict that a `sub $0x80000000` before a `jns` is the sine
-fold's first step. It is a reversal, and comparing the inlined sequence
-with `sinx@0092d100`'s own `test; jns` settles it in a minute. 1052
-amended both sections from the listing. A checklist row: a reader who
-calls an inlined idiom "the same as" a named function quotes that
-function's listing beside it.
+(1067) **Nothing holds the compared pin to the word it is meant to
+watch** (the eighteenth pass, from 1052's Loop line and parked 1062):
+`every_parsed_field_is_compared_by_the_instrument_or_pinned` walks the
+first pair's Great Lakes window, closed since item 899, and pins
+ninety-four fields as uncompared — seventeen of the group record among
+them, on the day the second pair's word stood on a group's order. The
+window is item 1061's to move; the guard is the pass's: the pin's walk
+is the window `WIDENINGS` names for the newest pair's lower map, read
+off the same table the default-map guard reads.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

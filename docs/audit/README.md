@@ -174,6 +174,70 @@ tranche's "for the Loop" lines and two measurements of its own.
   brief's own tree**, and the brief says so: `longtrace.sh` refuses
   otherwise (936), and the rebuild is one line.
 
+## The brief checklist, from the eighteenth pass
+
+The section above reached its size; the rows continue here, and
+everything its opening paragraph says applies. The eighteenth pass
+(2026-09-28) added these from the tranche's "for the Loop" lines and
+three measurements of its own.
+
+- **A mutation is scored against the walk, and it is checked to have
+  taken** (918 amended; 1018): the booking's mutation runs against the
+  chapter's or the word's own walk — `cargo test --release -p rondata
+  <the pin>` — and the landing names the pin that failed. Four chapters'
+  booking mutations passed the whole `sim` suite and said nothing of
+  the walk that holds them; 1012's squad-head mutation scored eleven
+  frames *better* than the reading. A mutation the walk does not fail
+  is the finding. **`git diff --stat` is non-empty before the run**: the
+  pass's own first mutation of a new guard matched nothing, changed
+  nothing and passed.
+- **A brief that quotes a parked row greps its nouns first** (the
+  pass's own, from five journals): a function against `INDEX.tsv`
+  (976's `issue_launch_flight`; a guard holds the queue's names now,
+  1010), a `NEVER` sentence against `blind.rs` (1033), a rule against
+  its document's struck text (1028's packet frame), a lobby path
+  against `docs/ORACLE.md` (972's `-config`). A parked row is the
+  previous item's wording, never a citation.
+- **A capture names its lane with its cover** (1047): `cover=1` with
+  the golden lane's call proxies never starts on the click-free lane,
+  which `docs/RUNS.md` had recorded at run185, and the stall guard's
+  relaunch sits at the menu — two hung takes, 81 minutes. An issuer
+  chapter that wants both splits as 1011 did: the chapter at `cover=0`
+  click-free, the blind list at `cover=1` on the queue lane. **And a
+  `cover=1` batch is ranked by the `NEVER` rows each staging names**
+  (1033): three of 1011's four captures entered nothing new.
+- **A staged gate's brief asks for every entry to the block that holds
+  the call**, not only the gates inside it (995): the listing's one
+  `jge` answered what 959 asked of three captures.
+- **Before any reading, every instance of the parting event on the
+  disk is listed** (1058): every strike on the target, every launch of
+  the piece. Two of 1040's words stood on rows already on disk, and the
+  listing alone argued the wrong way twice.
+- **"Nothing parts on the block" is said of the object, walked back to
+  its first parted field** (1046): 1028 called 4691 quiet while
+  `0/2000`'s damage had stood parted since 4661. **And a parking that
+  shares the word's frames is a candidate for the word's mechanism**
+  (1060): 1048's parting sat in the unit whose drift was parked as
+  not-mine.
+- **A floor a mechanism passes is quiet, not proven, while a value it
+  reads is wrong elsewhere** (1039; 898 one level up): 1012's hand-off
+  passed on an inflated city value that 1028's packet showed.
+- **A reader who calls an inlined idiom "the same as" a named function
+  quotes that function's listing beside it** (1065): three second
+  readers called a half turn the sine fold's first step and two
+  sections stood on it for a month. Six of the executable's sixty-eight
+  sites carry one.
+- **A listing read in slices overlaps them by a line and trims headers
+  by pattern** (1032): a `sed` by line count dropped the instruction on
+  the join.
+- **A new pair's brief names the `GAME INFO` line that carries its
+  setting** (992): a sibling's frame words are borrowed only on an equal
+  block (979), and a setting the block does not print passes that gate.
+- **A packet's brief names the function it enters** (1026, 685):
+  `Game::do_frame` is not enterable on a packet, and the click-free
+  lane takes a lobby field as `--profile KEY=N`, which every packet of
+  a pair past the first needs.
+
 ## How a second reading is run
 
 The rules are `CLAUDE.md`'s ("Every mechanic gets a blind second reading",
@@ -312,6 +376,26 @@ readers over the documents amended this week, then blind second readings
 for the nine documents that have never had one — caravan, collision,
 danger, goody, input, merchant, roads, scout, vision — then item 72. Its
 verdicts land here as audit files; its `FABLE:` rows are the next batch.
+
+**2026-09-28, Fable, the eighteenth pass — two rows, the first batch
+since 2026-09-04.** `FABLE:` 1038: the commander's one-clause fix to
+`CLAUDE.md` — a packet is taken at the word's own frame, read as a
+logger frame — is **ratified**; it is `docs/EMULATOR.md` §8's amended
+sentence (item 597, parked 605) and the clause it replaced was the one
+the twelfth pass struck. `FABLE:` 1065: item 1052's overturn of
+`2026-08-25-army.md`'s A.36, A.62 and A.67 is **ratified from the
+listing**. The `sub $0x80000000` at `6f4db1` is an operand, not a flag
+test: its result is stored, masked and looked up, and the cosine's
+`add $0x40000000` is taken from the same stored angle, where
+`sinx@0092d100` opens `test %esi,%esi; jns`. Swept whole, 68 sites
+reach `sin_table@00a46a00` and six carry a half turn before the fold:
+`Army::do_forming` `6f45ec`, `Army::march_to_target` `6f4db1` and
+`6f50a4`, `Army::send_here` `6f99a9` — the four the verdict covered,
+and `docs/ARMY.md` §8.5, §9, §14 and §23 say "back" at all four now —
+and `Guy::set_angle` `5d915e` and `Guy::set_new_location` `5d8998`,
+which no audit row names (parked 1068). The audit file's rows are
+struck in place. The verdict's premise, "opens every `sin_table`
+call", was false of sixty-two.
 
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so

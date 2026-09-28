@@ -12,24 +12,24 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-28, the commander: **twenty landings since the seventeenth
-pass (0b401602), in eighteen hours, and the eighteenth pass is due.**
-The AI's word is the second pair's, at the lobby's top difficulty; the
-first pair stays closed at 24,000, endpoints 0 off. Chapters one to
-thirty-four are closed and thirty-five is open. No lane is live.*
+*2026-09-28, the eighteenth Fable pass (`docs/audit/2026-09-28-fable-pass-18.md`,
+DECISIONS 54): **no score moved in the pass, and none was meant to.**
+The AI's word is the second pair's, at the lobby's top difficulty, and
+it is in the first war; the first pair stays closed at 24,000,
+endpoints 0 off. Chapters one to thirty-four are closed and
+thirty-five is open. No lane is live; the count is at zero.*
 
-- **The tranche**: 947, 976 and 1009 closed chapters thirty-two to
-  thirty-four; 1019 opened thirty-five and 1048 moved it to **2701**. 971
-  took the second pair; 979 to 1052, eleven AI landings, moved it from
-  **10 and 1 to East Indies 5606, Great Lakes 4924** — short of entry
-  53's "past 8,000 on both maps within one tranche". 972 measured the
-  held-out map once, **1 and 0**, so the pass books a third scored map.
-  965, 1011 and 1019 took the blind list **149 → 143**.
-- **The ledger is blind from 1000** (parked 1006): items 1000 on are
-  booked and deleted by hand until the pass widens its patterns.
-- **The user's**: the disk (17 GB free; 51 GB is this worktree's debug
-  build, parked 1027); whether phase 4 opens on the rules track alone.
-- **Fable backlog: 42 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046, 1047, 1058, 1060, 1065).
+- **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
+  Great Lakes forty-one frames and one rule of combat a landing, and
+  its game ends on 5,930: **the pass reads landings to that end**.
+- **The instrument fell behind the word**: fifteen journals met a
+  comparison that compared nothing, and the compared pin walks the
+  first pair's closed window. 1061 opens on it.
+- **A third map is scored** (1066), and the held-out number is not
+  read until map 9 has a height table.
+- **The user's**: whether phase 4 opens on the rules track alone. The
+  disk is not: 73 GB free, after 55 GB of debug build.
+- **Fable backlog: 10 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,9 +37,8 @@ Second pair: EastIndies w5606 of 18,140 · GreatLakes w4924 of 5,930
 Golden: ch35 w2701 of 3261 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1050 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the eighteenth Fable pass, in the main thread — the tranche
-from 0b401602, the `FABLE:` rows (1038, 1065), the Loop backlog, the
-third scored map; then the commander resumes with 1061 and 1050.**
+**Opener: the commander resumes — 1061 on the AI lane, the instrument
+first; 1050 on the rules lane; 1066 to whichever lane frees first.**
 
 ## The queue
 
@@ -50,12 +49,13 @@ unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
 1061. **Great Lakes' second word: frame 4924, ours 8 draws against 7**
-    (1052). Parting at index 0: ours `Guy::set_anim+0xf2f <
+    (1052), parting at index 0: ours `Guy::set_anim+0xf2f <
     Guy::move+0x166`, theirs `Guy::set_anim+0x97a <
-    Unit::move_step+0x823`; widened on run373 (block 4925), where block
-    4923 parts on `1/11`'s order (kind 10 against 1). The second pair's
-    widening compares no `GROUPDATA` (parked 1062). East Indies' 5606
-    follows.
+    Unit::move_step+0x823`; run373's block 4923 parts on `1/11`'s order
+    (kind 10 against 1). **The instrument first** (DECISIONS 54 §2): the
+    widening compares `GROUPDATA` and the attack order's row (parked
+    1062, folded), and the compared pin walks this word's window; then
+    the frame. East Indies' 5606 follows.
 
 1050. **Chapter thirty-five's word: frame 2701, the V2's round** (1048;
     parked 1050 and 1051, folded). Theirs 4 draws against ours 3, led by
@@ -64,6 +64,14 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     the silo's `recharging`, `do_missile_launch` → `come_out` →
     `do_air_attack_ground`), then its spline round (`traj 2`, 120
     frames) and blast on `1/2006`. run371's window.
+
+1066. **The third scored map: Great Sahara, map 7, in the first pair's
+    lobby** (DECISIONS 54 §3) — Easiest, seed 12345, `cfg: -`. Three
+    takes, run numbers minted at booking: a `DUMP_ALL` start sibling in
+    run38's shape, a 1,850-block dump in run33's, a `cover=0` trace to
+    24,000 or the game's end. Then its first word with its widening,
+    and a `Scoreboard:` entry. No mechanism is named; the start dump
+    says what the map holds.
 
 ## How to maintain this file
 

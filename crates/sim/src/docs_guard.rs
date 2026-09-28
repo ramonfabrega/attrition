@@ -337,11 +337,6 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
          guard is checking nothing",
         windows.len()
     );
-    let numbers = |t: &str| -> Vec<i64> {
-        t.split(|c: char| !c.is_ascii_digit())
-            .filter_map(|d| d.parse().ok())
-            .collect()
-    };
     let mut bad = Vec::new();
     for (n, text) in open_item_texts(&q) {
         // A golden chapter's captures are `golden_capture.sh`'s and its
@@ -349,7 +344,11 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
         if !text.contains("capture") || text.to_lowercase().contains("chapter") {
             continue;
         }
-        let map = if text.contains("East Indies") {
+        // The third scored map first (DECISIONS 54): its item names the
+        // other two only to say what it is not.
+        let map = if text.contains("Great Sahara") {
+            7
+        } else if text.contains("East Indies") {
             18
         } else if text.contains("Great Lakes") {
             14
@@ -359,7 +358,7 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
             bad.push(format!("item {n} books a capture and names no map"));
             continue;
         };
-        let Some(frame) = numbers(&text).into_iter().find(|&f| f >= 1000) else {
+        let Some(frame) = booked_frame(&text) else {
             continue;
         };
         for (r, m, lo, hi) in &windows {
@@ -374,6 +373,53 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
     assert!(
         bad.is_empty(),
         "a booking cites what the disk could not answer (CLAUDE.md): {bad:#?}"
+    );
+}
+
+/// The frame an open item books: the number after its first `frame`, else
+/// its first number of four digits or more — **after the item's own
+/// number**. Until the eighteenth pass the guard above took the first
+/// number past 999 anywhere in the item, and from item 1000 on that was
+/// the item's number: every booking's frame read as `1061` or `1050`, and
+/// the ledger's windows were checked against a frame nobody booked
+/// (parked 1006, "the guards' own parsers want the same check").
+fn booked_frame(item: &str) -> Option<i64> {
+    let numbers = |t: &str| -> Vec<i64> {
+        t.split(|c: char| !c.is_ascii_digit())
+            .filter_map(|d| d.parse().ok())
+            .collect()
+    };
+    let body = item.split_once(". ").map_or(item, |(_, rest)| rest);
+    if let Some((_, after)) = body.split_once("frame ") {
+        let digits: String = after
+            .chars()
+            .take_while(|c| c.is_ascii_digit() || *c == ',')
+            .filter(char::is_ascii_digit)
+            .collect();
+        if let Ok(f) = digits.parse::<i64>() {
+            return Some(f);
+        }
+    }
+    numbers(body).into_iter().find(|&f| f >= 1000)
+}
+
+#[test]
+fn an_item_s_frame_is_not_its_number() {
+    assert_eq!(
+        booked_frame("1061. **Great Lakes' second word: frame 4924, ours 8 draws** (1052)."),
+        Some(4924)
+    );
+    assert_eq!(
+        booked_frame("1050. **Chapter thirty-five** (1048; parked 1051): frame 2,701, the round"),
+        Some(2701)
+    );
+    assert_eq!(
+        booked_frame("571. **A squad on block 10899**, a capture"),
+        Some(10899)
+    );
+    assert_eq!(
+        booked_frame("1066. **A third map**, no number past it"),
+        None
     );
 }
 

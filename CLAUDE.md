@@ -109,7 +109,9 @@ artifact is the next phase's tool.
    sim complete, and the renderer waits on them. **A pair that closes is
    succeeded by one that varies a single setting the last held fixed**,
    and the AI's word is the newest pair's; a closed pair's pins stay as
-   floors (`docs/DECISIONS.md` entry 53).
+   floors (`docs/DECISIONS.md` entry 53). **A third map is scored in
+   the first pair's lobby beside them, and the held-out map is measured
+   and never debugged against** (entry 54).
 4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
 5. **AI** — hardest, least-oracled, and less bad than it looked: build order
@@ -322,7 +324,9 @@ rules follow:
   pin in the same landing. **And a word's widening puts its window in
   the coverage driver**: the pin walks only the windows it is handed, so
   a record a new capture prints stays unpinned until its window is
-  driven (621).
+  driven (621). **And the compared pin walks the newest word's
+  window**: a field pinned as uncompared on a closed pair's window is
+  a field nobody watches on the open one (parked 1067).
 - **And grep the disk before booking a capture.** Widen every dumped
   record the mechanic touches first; book the capture only for what no
   record already on disk can answer, and **the booking cites what the
@@ -392,8 +396,10 @@ line; then the batched ratification of the *marked rows only*,
 any verdict that overturns an earlier one, a listing read where the
 decompiler is wrong, the rewrites of this file and the queue, and **the
 loop's own items** — tooling, guards, the queue's rules — which live in
-`docs/PARKED.md`'s Loop section and are never spawned to a worker. It
-writes the next opener. Never Sonnet; the model is said in user-visible text each
+`docs/PARKED.md`'s Loop section and are never spawned to a worker; **a
+Loop item that two tranches running did not reach closes at the pass**,
+its text kept in the pass's record, and its next reach files it again
+(`docs/DECISIONS.md` entry 54). It writes the next opener. Never Sonnet; the model is said in user-visible text each
 time. **A commit's trailer names the model the worker's own system prompt
 names** — never one the brief dictates, and never the harness's attribution
 reminder alone, which has been wrong. A commander may land a **one-clause safety fix in this file itself**
@@ -587,9 +593,10 @@ and makes the eventual diff mechanical rather than a translation exercise.
   sources, and `focus.sh` the single window query; see `docs/ORACLE.md`,
   "Off CrossOver", for why each is needed and `docs/DECISIONS.md` 32 for why
   it is not a licence. `cliclick` drives it; System Events clicks do not
-  reach it. The launch line holds a **lane lock** keyed on the game's own
-  pid: a second launch into a running game refuses and names the holder,
-  and the lock releases itself when the game exits.
+  reach it. The launch line holds a **lane lock** keyed on the capture
+  script's pid and the game's: a capture takes it before its first
+  staging write, a second launch into a held lane refuses and names the
+  holder, and the lock releases itself when both have exited.
 - **A function of the executable can be called outside the game.**
   `tools/emu/callfn.py` maps it under unicorn (`uv run`, dependency declared
   in the script) and enters a function with chosen arguments; a sweep is a

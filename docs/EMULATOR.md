@@ -189,7 +189,14 @@ on a narrow logging window, 843 MB, 177 ranges, 250 ms to copy, 5.5 s to
 decode warm; 516,369 of 602,211 printed occurrences agree with the logger,
 every observed `GUY` record whole, and the terrain's exact single bits.
 Not established by it: atomicity across threads, logger parity, live
-allocation coverage. ~~**A packet at frame N is after tick N−1's
+allocation coverage. **`Game::do_frame` is not enterable on a packet**
+(items 680 and 1014, parked 685): the plan copies the process's private
+data and not the game thread's stack, and the first call faults on a
+renderer object outside the packet, so `step4.py`'s default entry is
+unusable and a brief names the function it enters — `think_scout`,
+`compare_target` — which both items did. **A packet of a pair past the
+first carries its lobby field**: `unattended_capture.py --profile
+KEY=N`, the queue lane's `profile:` key. ~~**A packet at frame N is after tick N−1's
 decision**; the frame to take is the one before the divergence.~~ **The
 frame to take is the word itself, read as a logger frame** (item 597,
 parked 605, the twelfth pass): a packet at logger frame N is the state

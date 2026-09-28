@@ -2166,7 +2166,18 @@ human who knows the other game is theirs to kill; `RON_LANE_WAIT=<seconds>`
 waits that long for a live holder to exit before refusing, for a capture
 queued behind another lane's game (the fifteenth pass, parked 758;
 `tools/explore/test_lane_lock.py`); a launch that does not go through
-`ron_wine` is not covered. On the click-free lane the runner also
+`ron_wine` is not covered. **Since the eighteenth pass (2026-09-28,
+parked 974) the lane is taken before it is written**: every capture
+script calls `ron_lane_take` ahead of its first staging write, which
+takes the same lock on the script's own pid; `ron_wine` then writes the
+game's pid above it, and the lane is held while either lives — so a
+second lane can no longer clear a running game's log on its way to
+being refused, and the minute in which a script archives its log after
+the game's exit is covered too. `longtrace.sh` also copies the profile
+and `check.ini` aside on every capture and puts both back wherever it
+restores the INIs (parked 987), and `runqueue.sh` walks a copy of the
+scenario file taken at its start (parked 984): a stanza appended while
+it runs waits for the next run. On the click-free lane the runner also
 relaunches once when no gamelog has appeared by `--stall-seconds` (300;
 parked 762, DXVK's device setup stalled twice), and its receipt refuses a
 capture that asked for `GROUPS` and printed no `GROUPDATA`

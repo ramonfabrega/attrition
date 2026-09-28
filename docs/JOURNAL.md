@@ -20772,3 +20772,43 @@ census reads the pin (938). Sixteen Loop lines are checklist rows, 697,
 932 and 944 close, and the backlog is fourteen from forty-two. The
 archive's disk has 20 GB free and the tranche wrote 10.2: the user's.
 **DECISIONS 53.** `docs/audit/2026-09-27-fable-pass-17.md`.
+
+## 2026-09-28 — the eighteenth Fable pass: the first war, the instrument behind it, and a third scored map (Fable 5.1, steering)
+
+Twenty landings since the seventeenth pass by the log from `0b401602`,
+in fourteen hours and forty minutes, every worker on Opus 5.5 by
+transcript. The second pair was taken at 10 and 1 and stands at **East
+Indies 5606, Great Lakes 4924**; chapters thirty-two to thirty-four
+closed and thirty-five is open at 2701; the blind list 149 → 143; the
+held-out map 1 and 0. Workers 732.45 USD, 36.6 a landing against 34.1,
+the rules lane at 70.5 against 43.5. The AI lane's 0.032 a frame hides
+two regimes: the opening at 0.010 and **the war at 0.63, forty-one
+frames and one rule of combat a landing** — and entry 53's "past 8,000"
+was written before the capture that showed Great Lakes' game ending on
+5,930. What the pass could see and no landing could: fifteen journals
+of twenty met a comparison that compared nothing, and **the compared
+pin walks the first pair's closed window**, excusing ninety-four fields
+on blocks where no army marched, while the second pair's word stood on
+a group's order its widening did not compare. So item 1061 opens on
+the instrument. **A third map is scored** — Great Sahara, in the first
+pair's lobby, with the `DUMP_ALL` start the held-out map never had
+(item 1066) — and the held-out number is not read until map 9 has a
+height table. **Both `FABLE:` rows ratified**: 1038 as EMULATOR §8 has
+it; 1065 from the listing, the `sub` an operand and not a flag test,
+with a sweep of all sixty-eight `sin_table` sites that found six half
+turns where the overturned verdict had said "every". Built, each made
+to fail first: the ledger reads four digits (506 booked, nothing lost
+in silence); the lane is taken before it is written, by eight capture
+scripts; a test's fixture banks no constant (`UNBUILT` 135 → 152); the
+runner reads its own scenario; a capture puts the lobby back; the
+held-out map's captures are pinned by run; no dumped record is linked
+by its number alone; a function a booking names is in the export; a
+section the code cites is one the document holds, thirteen pinned of
+3,330. The debug build cleaned, 18 → 73 GB free. The pass's own first
+mutation matched nothing and passed, which is a checklist row now.
+Ruled, closed or moved to the brief checklist: items 974, 975, 983,
+984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018,
+1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046, 1047, 1058, 1060 and
+1065, and items 745, 775, 799, 838 and 852 on two tranches without a
+reach. The backlog is ten from forty-two. **DECISIONS 54.**
+`docs/audit/2026-09-28-fable-pass-18.md`.

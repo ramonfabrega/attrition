@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-27
+## Index — what stands, as of 2026-09-28
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -64,7 +64,8 @@ is append-only and amended in place, as it always was.
 - 50 extended by 51 — The instrument records what it compares, and the chain reaps the remote
 - 51 extended by 53 — The brief is a checklist, and the lane's stalls are the runner's
 - 52 extended by 53 — The harness's numbers are not builds, and the first block prints itself
-- 53 standing — The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
+- 53 amended by 54 — The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
+- 54 standing — The war is priced in landings, the instrument follows the word, and a third map is scored
 
 ## 1. Fidelity before divergence
 
@@ -3314,3 +3315,133 @@ word; mutations that failed nothing, against eight; `UNBUILT` against
 136; the order row against 65 cited and 276 entered; the blind list
 against 148 and 117 open; the disk's free space against 20 GB; the
 price per landing against 34.1; and the count at twenty.
+
+## 54. The war is priced in landings, the instrument follows the word, and a third map is scored
+
+**Decided 2026-09-28**, the eighteenth Fable pass, in the main thread
+(`docs/audit/2026-09-28-fable-pass-18.md`). Extends entries 41, 42, 50,
+52 and 53; amends entry 53's estimate and its §4; overturns three rows
+of `docs/audit/2026-08-25-army.md`, which item 1052 had already amended
+in `docs/ARMY.md`.
+
+**What was measured.** Twenty landings since the seventeenth pass by
+the log from `0b401602`, in fourteen hours and forty minutes, every
+worker on Opus 5.5 by transcript. The second pair was taken at East
+Indies 10 and Great Lakes 1 (971) and stands at **5606 and 4924**;
+chapters thirty-two to thirty-four closed and thirty-five is open at
+2701 of 3261; the blind list 149 → 143; the held-out map 1 and 0.
+Workers 732.45 USD, **36.6 a landing against 34.1**: the AI lane 27.9
+over twelve, the rules lane **70.5 over five against 43.5**. Thirteen of
+seventeen words carried the full value diff. Twenty of twenty lane
+gates exited 0 and no forgiven red was a worker's own. Eight landings
+met a mutation that failed nothing, against eight. Fifteen journals met
+a comparison that compared nothing, against six. Three packets were
+taken, the first since the rule; seven landings took no capture at
+all. Two `FABLE:` rows stood, the first in eleven passes.
+
+**What the pass could see and no landing could.**
+
+1. **The AI lane's price has two regimes.** The pair's opening moved
+   10,150 frames in three landings; the war from Great Lakes' 4555 moved
+   369 in nine — forty-one frames and one rule of combat a landing, at
+   26 USD each. Entry 53's "past frame 8,000 on both maps" was written
+   before the capture that showed Great Lakes *ending* on 5,930, in the
+   human's defeat.
+2. **The compared pin watches a closed word.** It walks the first
+   pair's Great Lakes window and pins ninety-four parsed fields as
+   uncompared, seventeen of the group record and thirty-eight of the
+   order record among them, each excused on blocks where no army
+   marched. The second pair's word stood on a group's order and its
+   widening compared no `GROUPDATA`.
+3. **The held-out number is confounded.** Both scored maps stand up on
+   a `DUMP_ALL` start sibling's height table; map 9 has none, and its
+   diff stands the Himalayas up flat. The scout's destination on frame
+   1 parts, as it did on run106; whether that is the rules or the flat
+   ground, the number cannot say.
+4. **A verdict's premise was general and false.** Three second readers
+   ruled that the `sub $0x80000000` "that opens every `sin_table` call"
+   is the sine fold's first step. Of sixty-eight sites that reach the
+   table, six carry a half turn; the rest open with a `test` or the
+   cosine's quarter.
+5. **The 918 row scored its mutation against the wrong suite**, and
+   four chapters answered it in the same sentence.
+6. **The ledger was blind from item 1000**, the capture scripts wrote
+   the lane's shared files before they looked at its lock, and the
+   commander's worktree held 55 GB of debug build.
+
+**Decided.**
+
+1. **The AI's word stays the second pair's, and the war is priced in
+   landings.** The next pass reads landings to the end of Great Lakes'
+   game, not dollars a frame. Nation and personality stay the third and
+   fourth pairs'.
+2. **Item 1061 opens on the instrument.** Before a mechanism is named
+   on 4924, the second pair's widening compares the group record and
+   the attack order's row (parked 1062, folded), and the compared pin's
+   walk moves to the pair's Great Lakes word, its pinned rows re-read
+   on a window where the sites they excuse do run. From here **the
+   compared pin walks the newest word's window** (`CLAUDE.md`); the
+   guard that holds it there is the pass's, parked 1067.
+3. **A third map is scored: Great Sahara, map 7** (item 1066), in the
+   first pair's lobby — Easiest, seed 12345, the profile's lobby — so
+   the one setting moved is the map. By its name it is dry land, where
+   14 and 18 are water maps and 9 is the range; the pass did not verify
+   its terrain, the start dump says what it holds, and a later pass may
+   choose again before an item is opened against its word. It is taken
+   as three things: a `DUMP_ALL` start sibling in run38's shape, a
+   1,850-frame dump in run33's, and a draw-stream trace at `cover=0` to
+   24,000 frames or the game's end. Its word joins the handoff when it
+   is pinned, with its widening.
+4. **The held-out map stays held out, and its number is not read until
+   it has a height table.** Its stanzas are pinned by run
+   (`HELD_OUT_RUNS`, parked 986); a start sibling on map 9 is an
+   instrument and not a debugging, and it is taken with the next
+   measurement, which the pass that wants the number books.
+5. **Both `FABLE:` rows are ratified**: 1038 as `docs/EMULATOR.md` §8
+   has it, 1065 from the listing, with the audit file's A.36, A.62 and
+   A.67 struck in place. `Guy`'s two half turns are parked as 1068.
+6. **Nine Loop items are built, each made to fail first** — 1006, 974,
+   975, 984, 986, 987, 1001, 1010, 1013 — and the debug build is
+   cleaned (1027): **`cargo clean --profile dev` in the commander's
+   worktree is a step of every pass**, because that worktree is the one
+   nothing reaps.
+7. **A Loop item that two tranches running did not reach closes at the
+   pass.** The backlog is read whole at every pass and an item no
+   landing meets is not costing the loop; its text goes into the pass's
+   record, and its next reach files it again with that history. 745,
+   775, 799, 838 and 852 close on it. 983, 985, 996, 1005, 1022 and
+   1026 close on their own landings or rulings; eleven lines are
+   brief-checklist rows with three of the pass's own; 677, 685, 894,
+   900, 927, 953, 954, 960 and 973 stay and 1067 is filed. The backlog
+   is ten, from forty-two.
+8. **The 918 row is amended**: a booking's mutation is scored against
+   the chapter's or the word's own walk, the landing names the pin that
+   failed, and the mutation is checked to have taken. A unit test
+   written from the same reading is the weaker oracle, and the row no
+   longer asks for one where the walk holds the mechanism.
+
+**Not decided, and the user's**: whether phase 4 opens on the rules
+track alone; the thesis sentence from entry 41. The disk is no longer
+one of them: 73 GB are free, and the archive's 9.9 GB a tranche is
+seven tranches' room.
+
+**The estimate, written down to be wrong on record.** Entry 53's was
+wrong by a game's length. This one is in landings: **Great Lakes'
+second game closes at 5,930 within two tranches**, and the first
+reaches past 5,400 — on the reading that the war's rules are shared by
+every fight after the first, so the rate rises from forty-one frames a
+landing as they land. East Indies' 5606 moves only when Great Lakes'
+rules reach it or a second AI lane takes it; nothing here prices its
+12,534 frames, which hold a sea crossing the first pair never made.
+
+**The measure for the next pass**: landings to Great Lakes' end and
+East Indies against 5606; the fields left in
+`UNCOMPARED_BY_THE_INSTRUMENT` and the window it walks; "a comparison
+that compared nothing" against fifteen; the third map's first word and
+its cause's family; mutations that failed nothing on the walk; the
+rules lane's price against 70.5 and chapter thirty-five's landings
+against three; briefs that quoted a stale source against five;
+`UNBUILT` against 152; `NO_SUCH_SECTION` against thirteen; the order
+row against 65 cited and 280 entered; the blind list against 143; the
+disk against 73 GB; the price a landing against 36.6; and the count at
+twenty.
