@@ -12475,9 +12475,12 @@ which asks the slot's position and asks nothing of its liveness):
 
 ### 76.5 The killers
 
-See the journal (`docs/journal/2026-09-28-item-1086.md`) for the trees.
-Each mutation was run with `git diff --stat` non-empty, restored from git
-and `touch`ed after, and the pins the re-pin touches were green first.
+Run on `ed732aec` with `git diff --stat` non-empty, restored from git and
+`touch`ed after. The pins the re-pin touches were green first.
+
+| mutation | unit test | run347's walk | run373 |
+|---|---|---|---|
+| a dead target returns, as before | fails | falls to 5066 | fails on `1/13`'s `pos` (5012) |
 
 ### 76.6 What moved
 
