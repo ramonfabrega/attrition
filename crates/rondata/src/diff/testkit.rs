@@ -1361,7 +1361,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// `Guy::set_anim+0x97a < Unit::move_step+0x823`, ours `Guy::set_anim+
 /// 0x104b`. Inside run373's window (block 4878); the earliest block to
 /// part past its standing rows is 4861, the army's tick.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_877;
+///
+/// **4877 → 4924 on item 1052**: `Army::march_to_target`'s origin is the
+/// army's point a cell **behind** it, `muster_angle − 0x80000000`
+/// (`6f4daa`–`6f4e2b`: the `sub` before the fold is a reversal);
+/// `docs/ARMY.md` §23. On 4860 army 0 is engaged: its first move now lands
+/// at (3352, 32331) rather than on the city, so the second move's
+/// `get_loc` starts the leader's plan at (3996, 30614) and the chain has
+/// the original's eight legs. **The move's value diff (the word's delta,
+/// here; its block is `run373_s_word_frame_is_widened_whole`'s):** on
+/// block 4861 `1/13` stands at (3936, 31125) walking toward (4588, 31018)
+/// and `1/16` at (3884, 30135) toward (5007, 30915) on both sides, with
+/// `dest` 1 and eight legs apiece, where ours held `1/12`–`1/14` a frame
+/// and gave `1/16`–`1/18` a ninth leg 768 west; 121 keys that first
+/// parted there agree. Frame 4877's draws went 7 against 8 → agreeing.
+/// **The new word's delta: ours 8 draws and the original 7 on frame 4924,
+/// parting at index 0**: ours spends `Guy::set_anim+0xf2f < Guy::move+
+/// 0x166`, the original `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+/// Inside run373's window (block 4925); block 4923 parts on `1/11`'s
+/// order (kind 10 against 1).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_924;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1398,7 +1417,7 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
 /// `run373_s_word_frame_is_widened_whole`'s window (item 1040): run373 over
 /// run347's game, blocks 4841..5097 — six blocks before the word 4846's
 /// block 4847 and 250 past it. The word moved to 4877 (block 4878) inside
-/// it, in the same item.
+/// it, in the same item, and to 4924 (block 4925) on item 1052.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside

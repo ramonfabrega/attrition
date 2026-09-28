@@ -3273,7 +3273,7 @@ mod tests {
     /// angle of `−165478400` pointing north at it — the origin is
     /// `(3352, 32331)`, south, where stepping forward put it on the city.
     /// Made to fail first: with the step along `muster_angle` the record
-    /// holds `(2983, 30837)`.
+    /// holds `(2983, 30838)`.
     #[test]
     fn an_engaged_army_forms_a_cell_behind_its_point() {
         let (mut sim, c) = sim_with_city();
