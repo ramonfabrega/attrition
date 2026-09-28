@@ -1662,9 +1662,17 @@ impl Sim {
     /// and `returning` 0, the action bit as asked. The queue argument is
     /// not read on this arm.
     ///
-    /// SEAM: a helicopter (`unit_flags & 0x20`) is given a move instead,
-    /// and a home that is a unit stores the point relative to it; neither
-    /// is reached.
+    /// **A helicopter (`unit_flags & 0x20`) is given a move instead**
+    /// (`5e4363`..`5e43c5`, item 1019, `docs/GOLDEN.md` §44):
+    /// `add_move_facing_order(x / 48, y / 48, find_angle(point − here), 2,
+    /// 0, QUEUE_NEW, action)` — kind 2 is `ATTACK_TO` (ORDERS §1.2), an
+    /// attack-move to the point's 48-unit cell with no home, so a
+    /// helicopter a point sends is homed nowhere. run371's `0/12`, trained
+    /// under `0/2008`'s point: `ATTACKTOORDER` type 2 to (5784, 12312),
+    /// flags 4, on 2659.
+    ///
+    /// SEAM: a home that is a unit stores the point relative to it; not
+    /// reached.
     pub(crate) fn add_air_patrol_order(
         &mut self,
         u: usize,
@@ -1672,6 +1680,21 @@ impl Sim {
         home: Option<usize>,
         action: bool,
     ) {
+        if self.is_helicopter(u) {
+            let here = self.units[u].pos;
+            let angle = find_angle(point.x - here.x, point.y - here.y);
+            self.add_move_facing_order(
+                u,
+                point,
+                MoveKind::AttackTo,
+                QueuePos::New,
+                action,
+                angle,
+                None,
+                false,
+            );
+            return;
+        }
         self.units[u].path.clear();
         self.close_orders(u);
         self.clear_partial_path(u);

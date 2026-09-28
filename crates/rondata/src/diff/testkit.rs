@@ -4129,7 +4129,19 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_FOUR: (i64, i64) = (605, 2851);
 /// Helicopter, `0/11`, trained at `0/2008` with no gather point, comes out
 /// at once and idles, where here it stays inside. The first value parting
 /// is 2227, the silo's queue (one V2 there, two here).
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 2445;
+///
+/// **2675, open** (item 1019, `docs/PRODUCTION.md` "The Helicopter and
+/// the missile under a point": the Helicopter's exit at its birth and its
+/// two draws, the first-point block of `Build::train`, the Helicopter's
+/// attack-move from `add_air_patrol_order`, and the silo's one missile):
+/// theirs 2 draws against ours 1, theirs alone `Guy::set_anim+0x97a <
+/// Guy::move+0x19f` — the second Helicopter, `0/12`, out of `0/2008` on
+/// 2674 on its attack-move to P_h, whose figure stands a frame before it
+/// walks there and walks at once here. The first value parting is 2659,
+/// `0/12`'s birth seat (parked 646's family).
+///
+/// **The delta**, this constant's: +230, 2445 → 2675, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 2675;
 
 /// `chapter_thirty_five_s_word_frame_is_widened_whole`'s window: run371
 /// whole, (605, 3261). Its pool half, `widen_pool`, reads who=0's
@@ -4662,7 +4674,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ("chapter_thirty_four_s_word_frame_is_widened_whole", 43),
     // Chapter thirty-five is chapter thirty-four's game to its second
     // Airbase and a Missile Silo and twelve lines after it (item 1019):
-    // the first walk reads 39.
+    // the first walk reads 39, and the built arms 39 (pinned at 38, it
+    // fails).
     ("chapter_thirty_five_holds_to_the_golden_word", 39),
     ("chapter_thirty_five_s_word_frame_is_widened_whole", 39),
 ];

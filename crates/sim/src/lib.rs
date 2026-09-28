@@ -2727,9 +2727,12 @@ impl Sim {
         // `do_launch` to pass over. run308's Biplane `0/9`, inside `0/2007`
         // from 1746.
         //
-        // A gather point's arm is below (item 947). SEAM: a helicopter's
-        // over the base's aircraft limit (`is(0x136)`, `num_aircraft_here >
-        // num_aircraft_limit`, which does come out); no capture trains one.
+        // A gather point's arm is below (item 947). **A helicopter trained
+        // with no point comes out at once** (item 1019, `docs/PRODUCTION.md`
+        // "The Helicopter and the missile under a point"; `62ff59`..
+        // `62ff8f` → `62feea`): the list empty and the unit `is(0x136)`,
+        // `come_out(0)` with no limit test, which is the invalid point's
+        // alone. SEAM: `come_out`'s refusal, on which the unit dies.
         let hangar = self.buildings[at].ty.is_some_and(|t| self.is_hangar(t));
         let inside = self.squads_inside(at);
         let stays = self.building_ident(at) == crate::build::Ident::University
@@ -2753,6 +2756,11 @@ impl Sim {
             self.check_gatherers(at);
         } else if !hangar && !kept {
             self.come_out(unit);
+        } else if hangar
+            && self.buildings[at].gather.is_empty()
+            && self.air_line_is(unit, crate::airbase::HELICOPTER)
+        {
+            self.come_out(unit);
         }
         // **Under a gather point the aircraft takes a patrol over the list**
         // (item 947, `docs/PRODUCTION.md` "The gather point"; `62fadf`..
@@ -2763,9 +2771,8 @@ impl Sim {
         // after that. The point's `action` is not read here. It stays
         // inside for `do_launch`.
         //
-        // SEAM: the other arm (`62fc47`..), the first point's strike on an
-        // enemy building or its patrol, for a missile or a helicopter; no
-        // capture trains one under a point.
+        // The other arm (`62fc47`..), a missile's or a helicopter's, reads
+        // the first point alone: [`Sim::train_first_point`] (item 1019).
         if hangar
             && !self.buildings[at].gather.is_empty()
             && !self
@@ -2786,6 +2793,15 @@ impl Sim {
                     ap.push(q.pos);
                 }
             }
+        }
+        if hangar
+            && let Some(q) = self.buildings[at].gather.first().copied()
+            && (self
+                .profile(crate::combat::Obj::Unit(unit))
+                .has(crate::combat::mask::MISSILE)
+                || self.is_helicopter(unit))
+        {
+            self.train_first_point(unit, at, q);
         }
         self.economy_changed(who);
         Produced { unit, ty, at }

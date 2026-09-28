@@ -35,7 +35,7 @@ use crate::{Sim, orders::QueuePos};
 const BIPLANE: crate::tech::TypeId = 0x11f;
 
 /// `ObjectData::is(0x136)` — the Helicopter line.
-const HELICOPTER: crate::tech::TypeId = 0x136;
+pub(crate) const HELICOPTER: crate::tech::TypeId = 0x136;
 
 /// The flight command's modifiers as `Console::execute_at_cursor` reads
 /// them: shift (every plane), ctrl (bombers only), alt (fighters only).
@@ -170,6 +170,119 @@ impl Sim {
             return;
         }
         self.add_air_patrol_order(u, at, Some(b), true);
+    }
+
+    /// **`Build::train@0062f9b0`'s block at `62fc47`** (item 1019,
+    /// `docs/PRODUCTION.md` "The Helicopter and the missile under a
+    /// point"): a missile or a helicopter trained under a gather point reads
+    /// the **first** point alone (`BuildData::get_first_gather@0046f140`):
+    ///
+    /// - off the world (`62fc6f`): a helicopter over the base's aircraft
+    ///   limit comes out; nothing else;
+    /// - on a building that is not the trainer (`find_building_at`,
+    ///   `SEARCH_ALL`, `FILTER_ALL`): an enemy's is a strike,
+    ///   `add_strafe_order(b, owner, this, who, 1, QUEUE_NEW, 1)`; a live
+    ///   base of one's own that carries a non-missile is a flight home to
+    ///   it, `add_strafe_order(−1, −1, b, owner, 1, QUEUE_NEW, 1)`;
+    /// - else a non-missile takes `add_air_patrol_order(point, this, 1)` —
+    ///   for a helicopter, the move to the point's cell — and a missile
+    ///   nothing: it stays inside with no order.
+    ///
+    /// Under the emulator (`tools/emu/train_arm.py`) every arm above.
+    ///
+    /// SEAM: an enemy with `MISSILE_DEFENSE_BONUS` refuses a missile's
+    /// strike, and a missile's strike is `add_air_attack_ground_order` at
+    /// the target's point (`Unit::add_strafe_order`'s head); no staging
+    /// reaches either.
+    pub(crate) fn train_first_point(
+        &mut self,
+        u: usize,
+        base: usize,
+        q: crate::rally::GatherPoint,
+    ) {
+        let missile = self.is_missile(u);
+        if !self.in_world(q.pos) {
+            if self.air_line_is(u, HELICOPTER) && self.aircraft_here(base) > 10 {
+                self.come_out(u);
+            }
+            return;
+        }
+        let who = self.units[u].owner;
+        let tile = q.pos.tile();
+        let hit = (0..self.buildings.len())
+            .find(|&b| self.buildings[b].alive && self.covers_tile(b, tile))
+            .filter(|&b| b != base);
+        if let Some(b) = hit {
+            let owner = self.buildings[b].owner;
+            if self.is_enemy(who, owner) {
+                self.add_strafe_order(
+                    u,
+                    Some(Obj::Building(b)),
+                    Some(base),
+                    true,
+                    QueuePos::New,
+                    true,
+                );
+                return;
+            }
+            if !missile && self.base_can_carry(b, u) && self.active(Obj::Building(b)) {
+                self.add_strafe_order(u, None, Some(b), true, QueuePos::New, true);
+                return;
+            }
+        }
+        if !missile {
+            self.add_air_patrol_order(u, q.pos, Some(base), true);
+        }
+    }
+
+    /// **`ObjectData::can_carry(type)@00645e00` at a Missile Silo** (item
+    /// 1019): a missile type (`UnitTypeData::is_missile@0061d430`, the
+    /// `obj_masks` bit) and a silo that `has_nuke` does not answer for.
+    /// `Group::action_queue_up@006fdbb0` asks it of a silo before each
+    /// `queue_up` (`6fdfa2`..`6fe025`) and skips the silo when it refuses.
+    /// run371's `@queueup 0 313 2 2009`: one V2 queued and paid, the second
+    /// refused (`queued 1` on 2227).
+    pub(crate) fn silo_takes(&self, b: usize, ty: usize) -> bool {
+        self.unit_types[ty].combat.obj_masks & crate::combat::mask::MISSILE != 0
+            && !self.has_nuke(b)
+    }
+
+    /// **`ObjectData::has_nuke@00643d40`**: a silo holds one missile at a
+    /// time. It answers 1 for an active building with a missile type in its
+    /// queue, and for any live missile of its player on a `STRAFE` (order
+    /// 16) homed at it or standing inside it.
+    pub(crate) fn has_nuke(&self, b: usize) -> bool {
+        let bd = &self.buildings[b];
+        let missile =
+            |t: usize| self.unit_types[t].combat.obj_masks & crate::combat::mask::MISSILE != 0;
+        if bd.alive
+            && bd.active
+            && bd
+                .queue
+                .items
+                .iter()
+                .any(|i| i.tech.is_none() && missile(i.ty))
+        {
+            return true;
+        }
+        (0..self.units.len()).any(|u| {
+            let un = &self.units[u];
+            un.owner == bd.owner
+                && un.alive()
+                && un.ty.is_some_and(missile)
+                && (un.inside == Some(b)
+                    || matches!(un.orders.front().map(|o| o.body),
+                        Some(crate::orders::Body::Strafe(sf)) if sf.home == Some(b)))
+        })
+    }
+
+    /// `ObjectData::num_aircraft_here(0)`: the aircraft standing in a base.
+    fn aircraft_here(&self, base: usize) -> usize {
+        self.buildings[base]
+            .garrison
+            .iter()
+            .filter(|&&p| self.is_air_unit(p))
+            .count()
     }
 
     /// `ObjectData::can_carry(o, who)@006483c0` for a building and an
@@ -805,5 +918,175 @@ mod tests {
             m.angle,
             crate::movement::find_angle(p.x - here.x, p.y - here.y)
         );
+    }
+
+    /// A type of `line` made a Helicopter (`unit_flags & 0x20`) or a
+    /// missile (`obj_masks & 0x8000000`), its template standing in `b`.
+    fn air_type(
+        s: &mut Sim,
+        b: usize,
+        line: crate::tech::TypeId,
+        heli: bool,
+        missile: bool,
+    ) -> usize {
+        // The tree holds the line's id, so `init_unit` can read its entry.
+        if s.tech_tree.types.len() <= line {
+            let unit = crate::tech::TypeDef::new("", crate::tech::Kind::Unit(Default::default()));
+            s.tech_tree.types.resize(line + 1, unit);
+        }
+        let p = plane(s, b, line);
+        let t = s.units[p].ty.unwrap();
+        if heli {
+            s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+        }
+        if missile {
+            s.unit_types[t].combat.obj_masks |= crate::combat::mask::MISSILE;
+        }
+        t
+    }
+
+    /// **A Helicopter trained with no gather point comes out at once, and
+    /// a missile stays inside** (item 1019, `Build::train@0062f9b0`'s
+    /// `62ff59`..`62ff8f`, the emulator's first row): no limit test on the
+    /// empty list. Made to fail with the arm dropped (the Helicopter
+    /// inside).
+    #[test]
+    fn a_helicopter_trained_with_no_point_comes_out_and_a_missile_stays() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        s.frame = 2445;
+        let heli = air_type(&mut s, b, HELICOPTER, true, false);
+        let v2 = air_type(&mut s, b, 0x139, false, true);
+        let h = s.build_train(b, heli).unit;
+        assert_eq!(s.units[h].inside, None, "the Helicopter out");
+        assert!(s.units[h].orders.is_empty(), "with no order");
+        let m = s.build_train(b, v2).unit;
+        assert_eq!(s.units[m].inside, Some(b), "the missile inside");
+        assert!(s.units[m].orders.is_empty(), "with no order");
+    }
+
+    /// **Under a point, a missile or a Helicopter reads the first point
+    /// alone** (item 1019, the block at `62fc47`; the emulator's rows): on
+    /// the ground a Helicopter takes the move `add_air_patrol_order` gives
+    /// its line and a missile nothing; on an enemy building each a strike,
+    /// mandatory, the action bit; on a base of one's own a Helicopter a
+    /// flight home to it and a missile nothing. Made to fail with
+    /// [`Sim::train_first_point`] dropped.
+    #[test]
+    fn a_missile_or_a_helicopter_under_a_point_reads_the_first_point_alone() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let heli = air_type(&mut s, b, HELICOPTER, true, false);
+        let v2 = air_type(&mut s, b, 0x139, false, true);
+        let ground = Pos::new(5760, 12288);
+        let point = |pos| crate::rally::GatherPoint { pos, action: 0 };
+        s.buildings[b].gather = vec![point(ground), point(Pos::new(7680, 11520))];
+        let h = s.build_train(b, heli).unit;
+        let o = s.units[h].orders.front().copied().expect("a move");
+        let crate::orders::Body::Move(mv) = o.body else {
+            panic!("an ATTACK_TO, not {:?}", o.body);
+        };
+        assert_eq!(mv.kind, crate::orders::MoveKind::AttackTo);
+        assert_eq!(
+            (mv.dest, o.flags & crate::orders::flag::ACTION),
+            (Pos::new(5784, 12312), crate::orders::flag::ACTION)
+        );
+        assert_eq!(s.units[h].orders.len(), 1, "the first point alone");
+        let m = s.build_train(b, v2).unit;
+        assert!(
+            s.units[m].orders.is_empty(),
+            "a missile on the ground: nothing"
+        );
+        // An enemy building on the point: a strike, for either.
+        let enemy = s.add_building(1, Pos::new(13824, 14976), 0);
+        s.buildings[enemy].started = true;
+        s.buildings[enemy].active = true;
+        s.buildings[enemy].combat = Some(combat::Profile::default());
+        s.buildings[enemy].health = 1200;
+        s.buildings[b].gather = vec![point(Pos::new(13824, 14976))];
+        for t in [heli, v2] {
+            let u = s.build_train(b, t).unit;
+            let o = s.units[u].orders.front().copied().expect("a strike");
+            let crate::orders::Body::Strafe(sf) = o.body else {
+                panic!("a STRAFE, not {:?}", o.body);
+            };
+            assert_eq!(sf.target, Some(Obj::Building(enemy)));
+            assert!(sf.mandatory && o.flags & crate::orders::flag::ACTION != 0);
+        }
+        // A base of one's own: a Helicopter flies home to it, a missile stays.
+        let other = second_base(&mut s, b, Pos::new(8544, 14688));
+        s.buildings[other].combat = Some(combat::Profile::default());
+        s.buildings[other].health = 1200;
+        // The Airbase's own 4-by-4 footprint, which the search reads.
+        let t = s.buildings[other].ty.unwrap();
+        (s.build_types[t].x_size, s.build_types[t].y_size) = (4, 4);
+        s.buildings[b].gather = vec![point(Pos::new(8544, 14688))];
+        let u = s.build_train(b, heli).unit;
+        let o = s.units[u].orders.front().copied().expect("a flight home");
+        let crate::orders::Body::Strafe(sf) = o.body else {
+            panic!("a STRAFE home, not {:?}", o.body);
+        };
+        assert_eq!(
+            (sf.target, sf.home, sf.returning),
+            (None, Some(other), true)
+        );
+        let m = s.build_train(b, v2).unit;
+        assert!(s.units[m].orders.is_empty(), "a missile to a base: nothing");
+    }
+
+    /// **A Helicopter's exit spends two draws** (item 1019,
+    /// `Unit::do_spec_anim@005e5880`, `5e59d5`..`5e5a1c`): `x` less `197 −
+    /// rand % 11`, `y` plus `rand % 11 − 5`, and 200 over the ground. Made
+    /// to fail with the arm dropped (no draw, the plane's `x − 0xc0`).
+    #[test]
+    fn a_helicopter_s_exit_spends_two_draws_and_hovers_200_up() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        s.frame = 2445;
+        air_type(&mut s, b, HELICOPTER, true, false);
+        let h = *s.buildings[b].garrison.last().unwrap();
+        let mut r = s.rng.clone();
+        let (dx, dy) = ((r.roll() % 11) as i32 - 197, (r.roll() % 11) as i32 - 5);
+        assert!(s.come_out(h));
+        let at = s.buildings[b].pos;
+        assert_eq!(s.units[h].pos, Pos::new(at.x + dx, at.y + dy));
+        let ground = s.ground_z(at);
+        assert_eq!(s.units[h].airframe.z, ground + 200);
+    }
+
+    /// **A Missile Silo holds one missile at a time** (item 1019,
+    /// `Group::action_queue_up@006fdbb0`'s `can_carry(type)` at a silo,
+    /// `ObjectData::has_nuke@00643d40`): of `@queueup 313 2`, one V2 is
+    /// queued and paid and the second refused — run371's `queued 1` on
+    /// 2227. A missile already inside refuses the first as well. Made to
+    /// fail with the gate dropped (two queued).
+    #[test]
+    fn a_missile_silo_queues_one_missile_at_a_time() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let silo_ty = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::MissileSilo,
+            flags: crate::build::flags::TRAINS,
+            ..crate::build::BuildType::default()
+        });
+        let silo = s.add_building(0, Pos::new(9984, 12288), 0);
+        s.buildings[silo].ty = Some(silo_ty);
+        s.buildings[silo].started = true;
+        s.buildings[silo].active = true;
+        let v2 = air_type(&mut s, b, 0x139, false, true);
+        assert!(s.silo_takes(silo, v2), "an empty silo takes a missile");
+        s.buildings[silo].queue.items.push(crate::production::Item {
+            job_counter: 0,
+            ty: v2,
+            tech: None,
+            good: [-1; 3],
+            cost: [0; 3],
+        });
+        assert!(!s.silo_takes(silo, v2), "one queued: the second is refused");
+        s.buildings[silo].queue.items.clear();
+        let m = s.build_train(silo, v2).unit;
+        assert_eq!(s.units[m].inside, Some(silo));
+        assert!(!s.silo_takes(silo, v2), "one inside: refused");
+        let bomber = air_type(&mut s, b, crate::air::BOMBER, false, false);
+        let empty = s.add_building(0, Pos::new(7680, 12288), 0);
+        s.buildings[empty].ty = Some(silo_ty);
+        s.buildings[empty].active = true;
+        assert!(!s.silo_takes(empty, bomber), "not a missile: refused");
     }
 }
