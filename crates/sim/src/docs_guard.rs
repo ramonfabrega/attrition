@@ -954,6 +954,190 @@ fn every_cited_address_names_its_function() {
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
+/// A section number at the head of `text`: `23`, `4.4`, `14a`, `70.6`.
+fn section_number(text: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut chars = text.chars().peekable();
+    loop {
+        let mut digits = String::new();
+        while let Some(c) = chars.peek().copied().filter(char::is_ascii_digit) {
+            digits.push(c);
+            chars.next();
+        }
+        if digits.is_empty() {
+            break;
+        }
+        out.push_str(&digits);
+        if let Some(c) = chars.peek().copied().filter(char::is_ascii_lowercase) {
+            // `14a` is a section; `4th` and `3rd` are not, and neither is
+            // a number run into a word.
+            let mut rest = chars.clone();
+            rest.next();
+            if !rest.peek().is_some_and(|n| n.is_ascii_alphanumeric()) {
+                out.push(c);
+                chars.next();
+            }
+        }
+        let mut rest = chars.clone();
+        if rest.next() == Some('.') && rest.peek().is_some_and(char::is_ascii_digit) {
+            out.push('.');
+            chars.next();
+        } else {
+            break;
+        }
+    }
+    (!out.is_empty()).then_some(out)
+}
+
+/// The numbered sections a document holds: a heading that opens with a
+/// number, and a paragraph that opens with one in bold (`**70.6**`), which
+/// is how the longer sections number their parts.
+fn sections_of(text: &str) -> std::collections::BTreeSet<String> {
+    let mut out = std::collections::BTreeSet::new();
+    for line in text.lines() {
+        let body = if line.starts_with('#') {
+            line.trim_start_matches('#')
+        } else if line.starts_with("**") {
+            line
+        } else {
+            continue;
+        };
+        let body =
+            body.trim_start_matches(|c: char| c.is_whitespace() || matches!(c, '~' | '*' | '§'));
+        if let Some(n) = section_number(body) {
+            out.insert(n);
+        }
+    }
+    out
+}
+
+/// `(document, section)` for every `DOC §N` or `` `docs/DOC.md` §N `` on a
+/// line. The name and the sign share a line or the citation is not read.
+fn section_cites(line: &str) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    for (at, sign) in line.match_indices('§') {
+        let Some(section) = section_number(line[at + sign.len()..].trim_start()) else {
+            continue;
+        };
+        let before = line[..at].trim_end().trim_end_matches('`');
+        let before = before.strip_suffix(".md").unwrap_or(before);
+        let name: String = before
+            .chars()
+            .rev()
+            .take_while(|c| c.is_ascii_uppercase() || *c == '_')
+            .collect::<Vec<char>>()
+            .into_iter()
+            .rev()
+            .collect();
+        if name.len() >= 2 {
+            out.push((name, section));
+        }
+    }
+    out
+}
+
+/// The sections the code cites and the documents do not hold, pinned on
+/// the day the guard landed: thirteen, at thirty-five sites. Each is a
+/// comment pointing at a section that was renumbered, never numbered
+/// (`docs/TECH.md` has no numbered section at all) or never written. A row
+/// is deleted when its citation is mended; a new one fails.
+const NO_SUCH_SECTION: &[(&str, &str)] = &[
+    ("AI", "2.5.1"),
+    ("ANIM", "4.1"),
+    ("ANIM", "4.3"),
+    ("ANIM", "4.4"),
+    ("ARMY", "15.8"),
+    ("ARMY", "15.9"),
+    ("ARMY", "16.3"),
+    ("CARAVAN", "3.1"),
+    ("COMBAT", "12.5"),
+    ("COMBAT", "7.12"),
+    ("PATHFINDER", "18.6"),
+    ("TECH", "13"),
+    ("TECH", "7"),
+];
+
+/// **A section the code cites is one the document holds** (parked 1013,
+/// the eighteenth pass). A specification's section numbers are an API the
+/// code cites (`CLAUDE.md`), and nothing checked the call: `do_move`'s
+/// comment named an arm under a section this crate's code did not carry,
+/// and measured whole the crates cite 3,330 sections of which thirteen do
+/// not exist. What a comment *says* of a section stays a reading; that the
+/// section is there is this.
+#[test]
+fn a_section_the_code_cites_is_one_the_document_holds() {
+    assert_eq!(
+        section_cites("// the margin (`docs/ORDERS.md` §4.4 step 4), and COMBAT §70.6; §9 alone"),
+        vec![
+            ("ORDERS".to_string(), "4.4".to_string()),
+            ("COMBAT".to_string(), "70.6".to_string()),
+        ]
+    );
+    let held = sections_of(
+        "## 4. The draw\n### 4.4 The arms\n**70.6** A part.\n## Coverage\n## 14a. More\n",
+    );
+    assert_eq!(
+        held.iter().map(String::as_str).collect::<Vec<_>>(),
+        vec!["14a", "4", "4.4", "70.6"]
+    );
+
+    let mut held = std::collections::BTreeMap::new();
+    for entry in std::fs::read_dir(docs()).expect("docs/") {
+        let path = entry.expect("entry").path();
+        if let Some(stem) = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .and_then(|n| n.strip_suffix(".md"))
+        {
+            held.insert(
+                stem.to_string(),
+                sections_of(&std::fs::read_to_string(&path).expect("read")),
+            );
+        }
+    }
+    let mut missing: std::collections::BTreeMap<(String, String), String> =
+        std::collections::BTreeMap::new();
+    let mut stack = vec![docs().join("..").join("crates")];
+    while let Some(dir) = stack.pop() {
+        for entry in std::fs::read_dir(&dir).expect("crates/") {
+            let path = entry.expect("entry").path();
+            if path.is_dir() {
+                stack.push(path);
+            } else if path.extension().is_some_and(|e| e == "rs")
+                && path.file_name().is_some_and(|n| n != "docs_guard.rs")
+            {
+                let text = std::fs::read_to_string(&path).expect("read");
+                for (i, line) in text.lines().enumerate() {
+                    for (doc, section) in section_cites(line) {
+                        if held.get(&doc).is_some_and(|h| !h.contains(&section)) {
+                            missing
+                                .entry((doc, section))
+                                .or_insert_with(|| format!("{}:{}", path.display(), i + 1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let pinned = |d: &str, s: &str| NO_SUCH_SECTION.iter().any(|(pd, ps)| *pd == d && *ps == s);
+    let new: Vec<String> = missing
+        .iter()
+        .filter(|((d, s), _)| !pinned(d, s))
+        .map(|((d, s), at)| format!("docs/{d}.md has no §{s}, cited first at {at}"))
+        .collect();
+    let mended: Vec<String> = NO_SUCH_SECTION
+        .iter()
+        .filter(|(d, s)| !missing.contains_key(&(d.to_string(), s.to_string())))
+        .map(|(d, s)| format!("{d} §{s} is cited nowhere or exists now; delete its row"))
+        .collect();
+    assert!(
+        new.is_empty() && mended.is_empty(),
+        "a section the code cites is one the document holds (parked 1013):\n{}\n{}",
+        new.join("\n"),
+        mended.join("\n")
+    );
+}
+
 /// Every qualified function name in `text` — `Class::method`, with or
 /// without a `+0x..` site or an `@address` after it — that `known` does not
 /// hold. A name is qualified or it is not read: a bare `come_out` is as
