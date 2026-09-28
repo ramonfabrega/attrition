@@ -7990,87 +7990,83 @@ impl Sim {
                 return;
             }
         }
-        // **A captain's attack on a building re-searches every frame**
-        // (`docs/COMBAT.md` §62). The same captain arm as the one-in-five
-        // below, `Unit::fight@005fd4d0`, `LAB_005fddf7`: when the target
-        // is not a unit (vtable `+0x18`, `005fdeb1`-`005fdeb6` → `005fdf50`)
-        // there is no roll and no `poor_target`, only `find_new_target(
-        // this, &who, 0)` at `005fdeea` — the order killed and the idle
-        // search run again. Nothing found, and the attack is gone
-        // (`LAB_005fe001`); another target, and the search's own order
-        // stands with the frozen mark (`005fdf85`-`005fdfea`); the same
-        // one, and `fight` goes on with the order the search added, fresh.
-        // run177's packet: the Fighter `0/6` on tick 632 of chapter six-b.
+        // **`fight`'s captain arm, `LAB_005fddf7`: one search for both
+        // kinds of target** (`docs/COMBAT.md` §62, §80). A captain whose
+        // attack is not mandatory asks for a re-search:
+        //
+        // - on a **building** every frame, with no roll and no
+        //   `poor_target` (vtable `+0x18`, `005fdeb1`-`005fdeb6` →
+        //   `005fdf50`; run177's packet, the Fighter `0/6` on tick 632 of
+        //   chapter six-b);
+        // - on a **unit** after the one-in-five draw (§8.2 step 0,
+        //   `005fde80`-`005fde99`): the draw is spent first and **then**
+        //   the suppressions are read — a combat-role target, `roll % 5 ==
+        //   0`, or the current order carrying the chase latch. So a
+        //   latched order costs the draw and skips the search, which is
+        //   what keeps the frame's count right.
+        //
+        // **Either way the search is `find_new_target(this, &who, 0)` at
+        // `005fdee2`** (`fight@005fd4d0:413`): `repath`, the attack
+        // **killed**, and `find_melee_target(-1, &who, 0, 1, 0)`, which
+        // adds what it finds. The kill is what item 1099 measured: with
+        // the attack gone the head is the attack-move again, so the
+        // search's `flags` word is the attack-move's (`0x20010`, §64.1)
+        // and a city scores half. This crate searched under the attack
+        // and re-pointed it in place (`retarget_attack`), so run347's
+        // `1/24` took the city `0/2000` beside the scout `0/0` on 5161
+        // where the original, re-finding the scout, struck it.
+        //
+        // Nothing found, and the attack is gone (`LAB_005fe001`); another
+        // target, and the search's own order stands with the frozen mark
+        // (`005fdf85`-`005fdfea`, item 1040, §70: under an `ATTACK` with
+        // `recharging` zero, `orl $0x10, 0x6c(%ebx)`, so the figures'
+        // clocks stand still in phase 7); the same one, and `fight` goes
+        // on with the order the search added, **fresh** — which is why the
+        // original's head attack reads `in_range 0, new_ord 1` for one
+        // block after every retarget (parked 1073, §71.6).
         //
         // SEAM: the retarget arm's early return when the search names
         // `fight`'s own entry arguments (`local_20`/`local_24`) after the
         // target was changed above; nothing here changes it in between.
-        if !state.mandatory
-            && state.captain == i32::from(self.units[u].index)
-            && let Obj::Building(_) = target
-        {
-            match self.find_new_target(u, false) {
-                None => return,
-                Some(f) if f != target => {
-                    if matches!(
-                        self.current_order(u).map(|o| &o.body),
-                        Some(Body::Attack(_))
-                    ) {
-                        self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
-                    }
-                    return;
+        // SEAM: the `poor_target` arm (`005fded5`), which runs the same
+        // search for a unit target the roll suppressed, and the cavalry
+        // archer's `find_melee_target` in place of `find_new_target`.
+        if !state.mandatory && state.captain == i32::from(self.units[u].index) {
+            let research = match target {
+                Obj::Building(_) => true,
+                Obj::Unit(t) => {
+                    self.mark(crate::fight::SITE_FIGHT_RESEARCH);
+                    let roll = self.rng.roll();
+                    !self.profile(Obj::Unit(t)).combat_role
+                        && roll % 5 != 0
+                        && flags & flag::FIGHT_REENTRY == 0
                 }
-                Some(_) => {
-                    let Some(Order {
-                        body: Body::Attack(fresh),
-                        ..
-                    }) = self.current_order(u).copied()
-                    else {
+            };
+            if research {
+                match self.find_new_target(u, false) {
+                    None => return,
+                    Some(f) if f != target => {
+                        if self.units[u].combat.recharging == 0
+                            && matches!(
+                                self.current_order(u).map(|o| &o.body),
+                                Some(Body::Attack(_))
+                            )
+                        {
+                            self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+                        }
                         return;
-                    };
-                    a = fresh;
+                    }
+                    Some(_) => {
+                        let Some(Order {
+                            body: Body::Attack(fresh),
+                            ..
+                        }) = self.current_order(u).copied()
+                        else {
+                            return;
+                        };
+                        a = fresh;
+                    }
                 }
-            }
-        }
-        // The one-in-five re-search (`docs/COMBAT.md` §8.2 step 0).
-        if !state.mandatory
-            && state.captain == i32::from(self.units[u].index)
-            && let Obj::Unit(t) = target
-        {
-            self.mark(crate::fight::SITE_FIGHT_RESEARCH);
-            let roll = self.rng.roll();
-            // `Unit::fight@005fd4d0`, `005fde80`-`005fde99`: the draw is
-            // spent first and **then** the two suppressions are read —
-            // `roll % 5 == 0`, or the current order carrying the chase
-            // latch. So a latched order costs the draw and skips the
-            // search, which is what keeps the frame's count right.
-            if !self.profile(Obj::Unit(t)).combat_role
-                && roll % 5 != 0
-                && flags & flag::FIGHT_REENTRY == 0
-                && let Some(f) = self.find_melee_target(u, -1)
-                && f != target
-            {
-                self.retarget_attack(u, f);
-                // **The retarget freezes the frame too** (item 1040,
-                // `docs/COMBAT.md` §70): `005fdf68`–`005fdfea`, the arm
-                // `find_new_target` takes when it names another valid
-                // target. Under an `ATTACK` with `recharging` (`+0xae`)
-                // zero, the head order is re-pointed and `orl $0x10,
-                // 0x6c(%ebx)` sets [`combat::umask2::NOT_FIRING`] before
-                // the return, so the figures' clocks stand still in phase
-                // 7 — the same mark as §43.2's invalid-target arm. SEAM:
-                // the `jmp 005fd639` taken otherwise (a recharging unit,
-                // or the search naming `fight`'s entry arguments), which
-                // re-enters `fight` from its head.
-                if self.units[u].combat.recharging == 0
-                    && matches!(
-                        self.current_order(u).map(|o| &o.body),
-                        Some(Body::Attack(_))
-                    )
-                {
-                    self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
-                }
-                return;
             }
         }
         let in_range = self.is_in_range(me, target);
@@ -8423,13 +8419,6 @@ impl Sim {
             .wrapping_sub(self.units[u].movement.heading.0 as u32)
             .wrapping_sub(0x8000_0000);
         e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu)
-    }
-
-    /// A found better target rewrites the order's target in place.
-    fn retarget_attack(&mut self, u: usize, t: Obj) {
-        let unit = &mut self.units[u];
-        unit.combat.target = Some(t);
-        unit.combat.mandatory = false;
     }
 }
 
