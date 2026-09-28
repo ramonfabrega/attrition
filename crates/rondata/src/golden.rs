@@ -1552,6 +1552,11 @@ mod tests {
         // and a `@gatherpointadd` behind it: an Airbase's launch issuers
         // (item 976, `docs/GOLDEN.md` §42).
         ("chapter33.cmd", &[]),
+        // Chapter thirty-four: chapter thirty-three to its Barracks, a
+        // second Airbase, ctrl and alt on both launch commands, `@launchmove`,
+        // a list of `[P1, A3, P2]`, the Clear, and alt at the second base:
+        // the launch commands' other arms (item 1009, `docs/GOLDEN.md` §43).
+        ("chapter34.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
