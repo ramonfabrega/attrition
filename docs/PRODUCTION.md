@@ -1705,14 +1705,30 @@ Three tests in `airbase::tests`, one on run371's own numbers;
 (220 rows, none parting). Chapter thirty-five's draw stream agrees to
 run371's end, 3260.
 
+**The blast** (item 1077, `docs/COMBAT.md` §73). The round lands on 2820
+at (13834, 14969), on the Barracks `1/2006`, and the dump's Barracks
+(1,200 hits, damage 0) is gone on 2821. `Ammo::do_damage@00678060`'s
+missile arm:
+- the territory owner's `MISSILE_DEFENSE_BONUS` stops it (the shield);
+- a V2 is not a nuke, so it plays `S_NUKE_HIT` and counts leader
+  `+0x7c0`;
+- then it takes the general `hit_target`/`check_hit` and the splash walk.
+
+The round has no target, so `check_hit` names the building under its
+landing tile (`find_building_at`), and the walk strikes that one with
+`splash` 0: attack 150 at the table's 1075% less armor 3, **1610**,
+past 1,200. `Object::do_damage` needed nothing new.
+
+This crate's `check_hit` compared the tile against the building's point
+and never found it. So the Barracks took the fringe's 25%, **400**, and
+stood. `Sim::building_under` is the fix, and
+`chapter_thirty_five_s_v2_blast_is_compared_field_for_field` compares
+2818..2822 both directions (261 rows, none parting).
+
 **Not established.**
-- **The blast.** The round lands on 2820 and the dump's Barracks
-  `1/2006` (1,200 hits, damage 0) is gone on 2821, where this crate
-  leaves it at 400 damage. `Ammo::do_damage@00678060`'s missile arm is
-  read only to the shield: the territory owner's `MISSILE_DEFENSE_BONUS`
-  stops it, and a V2 is not a nuke, so it plays `S_NUKE_HIT`, counts
-  leader `+0x7c0` and takes the general `hit_target`/`check_hit`. What
-  destroys the building is `Object::do_damage`'s and is not read.
+- ~~**The blast.**~~ Built, above (item 1077). What stands of the
+  missile arm is the list below: the nuke, the shield, and `+0x7c0`
+  with `S_NUKE_HIT`, which no dump prints.
 - `do_air_physics`' redraw for a missile, `(o + frame) & 7 == 0` and vslot
   `0x30`: not on run371's frames.
 - A nuke: no scatter, the spline's other arm, `can_nuke`, and

@@ -21,7 +21,7 @@ use crate::attrition::Domain;
 use crate::combat::{self, Obj, Profile, Side, Sixteenths, Stance, Taken, mask, role};
 use crate::movement::{Angle, find_angle};
 use crate::single::Single;
-use crate::world::{Pos, UNITS_PER_CELL, UNITS_PER_TILE, vector_dist};
+use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 use crate::{Player, Sim};
 
 /// `Object::find_nearby_target`'s fifth argument, the `flags` word
@@ -3573,20 +3573,38 @@ impl Sim {
                 return Some(Obj::Unit(i));
             }
         }
-        let tile = p.landing.tile();
-        for (b, bd) in self.buildings.iter().enumerate() {
-            if bd.combat.is_none() || bd.health <= 0 {
-                continue;
-            }
-            let bp = self.profile(Obj::Building(b));
-            let c = bd.pos;
-            let dx = (tile.x - c.x).abs();
-            let dy = (tile.y - c.y).abs();
-            if dx <= bp.x_size * (UNITS_PER_TILE / 2) && dy <= bp.y_size * (UNITS_PER_TILE / 2) {
-                return Some(Obj::Building(b));
-            }
+        self.building_under(p.landing).map(Obj::Building)
+    }
+
+    /// **`check_hit`'s second half** (item 1077, `docs/COMBAT.md` §73):
+    /// `ObjectsData::find_building_at@0065ab40(landing tile, SEARCH_ALL,
+    /// −1, FILTER_ALL)` at `678ece`, reached only for a landing inside the
+    /// world (`678e7a`..`678eac`, `world+0x18 × 0xc0` a side) when
+    /// `find_unit` found nothing. The tile is `div_3_table[c >> 6]`, the
+    /// landing's own tile; the building is the first, on the 3×3 cells
+    /// round it, of a player below eight, active (vslots `0xc` and `0x4c`,
+    /// `SubObjectData::is_active` and `WallData::is_active`) whose
+    /// footprint, `WallData::tile_corner` to `+ x_size`/`+ y_size`, holds
+    /// the tile. Footprints do not overlap, so the walk's order picks
+    /// nothing. This crate compared the tile against the building's point
+    /// in position units, and no building was ever found: a V2 with no
+    /// target that came down on run371's Barracks `1/2006` struck it as a
+    /// splash fringe, 400 of its 1,200, where the original struck it as
+    /// the round's own target and destroyed it on 2821.
+    fn building_under(&self, landing: Pos) -> Option<usize> {
+        if landing.x < 0
+            || landing.y < 0
+            || landing.x >= self.world.width() * UNITS_PER_CELL
+            || landing.y >= self.world.height() * UNITS_PER_CELL
+        {
+            return None;
         }
-        None
+        let tile = landing.tile();
+        (0..self.buildings.len()).find(|&b| {
+            self.buildings[b].owner < crate::world::PLAYER_SLOTS
+                && self.active(Obj::Building(b))
+                && self.covers_tile(b, tile)
+        })
     }
 }
 
@@ -5234,6 +5252,88 @@ mod tests {
         assert_eq!(sim.check_hit(&ammo), Some(Obj::Unit(foe)));
         assert!(sim.units[sheep].is_gaia());
     }
+    /// **A round with no target that comes down on a building strikes it
+    /// as its own target** (item 1077, `docs/COMBAT.md` §73). run371's
+    /// V2: `whom −1`, landing at (13834, 14969) on who=1's Barracks
+    /// `1/2006` at (13824, 14976), a 5×5 footprint, with no unit within two
+    /// tiles. `Ammo::check_hit@00678d90` finds no unit and then
+    /// `find_building_at` on the landing's tile, so the splash arm's walk
+    /// hits the Barracks with `splash` 0: the same damage as a round aimed
+    /// at it, where a fringe takes `SPLASH_PERCENT` of it. A landing one
+    /// tile past the footprint finds nothing.
+    ///
+    /// Made to fail by the tile-against-point comparison this replaced:
+    /// `check_hit` answers `None` and the Barracks takes the fringe's 400.
+    #[test]
+    fn a_round_with_no_target_strikes_the_building_it_lands_on() {
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].combat.attack = 150;
+        sim.unit_types[ty].combat.splash_area = 1;
+        sim.unit_types[ty].combat.splash_percent = 25;
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 5,
+            y_size: 5,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(13824, 14976);
+        let b = sim.add_building(1, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1200;
+        sim.buildings[b].health = 1200;
+        sim.buildings[b].combat = Some(Profile::default());
+        let me = put(&mut sim, 0, ty, Pos::new(9974, 12347));
+        let ammo = combat::Projectile {
+            shooter: Obj::Unit(me),
+            owner: 0,
+            target: None,
+            launch: Pos::new(9974, 12347),
+            landing: Pos::new(13834, 14969),
+            cur_time: 120,
+            total_time: 120,
+            accuracy: 228,
+            angle: crate::movement::Angle(0),
+            splash_area: 1,
+            num_guys: 1,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            air: false,
+            sz: 466,
+            ez: 78,
+            v1z: crate::single::Single::ZERO,
+            slot: 0,
+        };
+        assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
+        // The same round aimed at the Barracks, beside it.
+        let mut aimed = sim.clone();
+        aimed.land(
+            combat::Projectile {
+                target: Some(Obj::Building(b)),
+                ..ammo
+            },
+            2820,
+        );
+        sim.land(ammo, 2820);
+        assert!(
+            sim.buildings[b].health < 1200,
+            "the Barracks was not struck"
+        );
+        assert_eq!(
+            sim.buildings[b].health, aimed.buildings[b].health,
+            "struck as a fringe, not as the round's own target"
+        );
+        // One tile past the footprint's east edge: nothing.
+        let corner = sim.tile_corner(bt, at);
+        let past = Pos::new((corner.x + 5) * 0xc0 + 0x60, 14969);
+        assert_eq!(
+            sim.check_hit(&combat::Projectile {
+                landing: past,
+                ..ammo
+            }),
+            None
+        );
+    }
+
     /// **The tie goes to the cell's chain head, not to the lowest object
     /// number** (§12.2, §32.1) — chapter two's own geometry, which is the
     /// case that separates the two orders.
