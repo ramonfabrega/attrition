@@ -10248,3 +10248,49 @@ staging's path, so run391 is unused, and so is run392.
 | 6, the shield at the order (3082) | `0/15` inside, no order | **as predicted**, to the end |
 | 7, the shield at the blast (3170) | `1/2007` at `damage` 0, the round gone | **as predicted**; 3169's one `Ammo::do_damage` draw is the sound generator's |
 | 8, the tech line (3072) | no bucket of who=1's moves | **as predicted** |
+
+## run397 — chapter thirty-seven, the nuke (2026-09-28, item 1091)
+
+`docs/GOLDEN.md` §46, `tools/gamelog/golden/chapter37.cmd`: a cast of its
+own on the golden start — a Missile Silo `0/2007` (610), the nuke's
+research there (615) and its train (2300), who=1's Barracks T `1/2006` at
+ground zero and F `1/2007` at a building distance of 1824 (2940, 2942),
+four of who=0's Elite Special Forces at 518, 1039, 1804 and 1870 from T
+(2950..2956), `@launchstrike` on T (3050) and `tech who=1 missile_shield
+on` in the countdown (3060). The chapter and its ten falsifiers were
+committed before the run (`298cf771`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch37 \
+    --map 14 --end-frame 3490 --log-window 605 3490 --timeout 9000 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter37.cmd
+```
+
+**The take** at `cover=0` on the click-free lane, 15:09: **3,380 s** in all
+(3,335 launch to exit), **1.12 GB** of dump and 15.2 MB of trace, 2,885
+blocks. The receipt says `success: true`, exit 0, 3,491 frames,
+`MAP_STYLE 14`, seed 12345, 1,477,120 `GROUPDATA`, settings restored.
+`waitrun.sh` exited 0. The lane's lock was stale. 64 GB free after.
+
+| check | result |
+|---|---|
+| `issuesmatch.py --none-refused … 3` | three `@` lines issued, none refused (615, 2300, 3050) |
+| `rngcmp.py` vs run390's trace | the same game to 610; the first differing frame 611, the silo's |
+
+### §46's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 616, 2301 and 3051 | **as predicted** |
+| 2, the research (617, 2237) | the entry laid, then gone with nothing placed | **as predicted**: `queued` 1 on 617, 0 on 2237 |
+| 3, the train (3022) | `0/10` inside `0/2007` | **as predicted**, seated +24, +24 |
+| 4, the strike (3052) | one `AIRATTACKGROUNDORDER` on T's point; `recharging` 30 | **as predicted** |
+| 5, the shield after the press | the launch on 3081 | **as predicted** |
+| 6, the launch (3082) | `visible` −1; the round on (23040, 34560), no draw; 120 frames | **as predicted**: `visible` 0 on 3081, −1 on 3082; `ez` 403 |
+| 7, the landing (3201) | T gone, F and the probes untouched; `nuke_stamp` 3200, `nukes_used` 1 | **as predicted**; the leader half **could not fire**: `LEADERS=2` prints neither |
+| 8, the ring | `0/6` on 3217, `0/7` on 3226, `0/8` on 3239, once each | **as predicted**: `0/6`, `0/7` killed, `0/8` at 56 and 4/16 |
+| 9, the edge | `0/9` untouched | **as predicted**, to 3489 |
+| 10, F | struck on 3239 alone, standing | **as predicted**: 491 and 2/16 on 3240 |

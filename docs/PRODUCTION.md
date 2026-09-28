@@ -1995,8 +1995,18 @@ type reaches `add_nuke`.
 - `Sim::missile_round`: a nuke's scatter 0;
 - `Sim::do_missile_launch`: a nuke's launch shows its silo.
 
-Three unit tests in `nuke::tests`: the ring and the fraction against the
-emulated original, and the ring on chapter thirty-seven's geometry.
+Four unit tests, each made to fail by its mutation: `nuke::tests`' ring
+and fraction against the emulated original and the ring on chapter
+thirty-seven's geometry through the round's own landing, and
+`airbase::tests`' launch (the silo shown, no scatter draw).
+**Diff-backed by run397** (`docs/GOLDEN.md` §46): the research done
+with nothing placed, the launch through a shield given after the press,
+the silo's `visible` −1, the round on the point with no draw, the ring
+striking its probes on t = 17, 26 and 39 and F on 39, 1870 never. The
+word 3081 → 3490, closed; the value diff, both sides (ours before,
+bracketed): 3082, the round on (23040, 34560) [off it]; 3201, F at
+damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
+4/16 [0].
 
 **Not established.**
 - The order of several struck on one frame: `find_units`' (a cell circle
@@ -2007,6 +2017,11 @@ emulated original, and the ring on chapter thirty-seven's geometry.
   heights (`terraform_for_nuke`), which a figure standing in it after the
   blast would read.
 - The ring for any pair but (100, 1920).
+- `nuke_stamp` and `nukes_used`: `LEADERS=2` does not print them, so
+  this crate's are read by nothing (`sim::nuke::Nukes`); the market's
+  embargo, which reads them, is not built.
+- The spline's other arm: run397's round differs from a V2's only at the
+  three apex knots, which the simulation does not read.
 - **`Object::die`'s hold reads `nuke_effect +0x108`** (`0xc0a888`,
   `647105`..`64710b`: `+0x108 + 1 + total_time − cur_time` for each round
   the dead object fired), which `Nuke::init` sets to 30 at startup. This
