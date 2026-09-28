@@ -449,6 +449,15 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
         Some(0x0071_28aa), // `Group::action_attack+0x41a`
         sim::fight::SITE_ATTACK_POS_GROUP,
     ),
+    // The review's re-aim of a fleeing target's chase (item 1023,
+    // `docs/COMBAT.md` §67): `check_target_path@005e22d0` calls the
+    // six-argument thunk at `5e2710`, returning to `+0x445`. Named and
+    // never spent — a unit target's sweep draws nothing.
+    (
+        0x0060_2129,
+        Some(0x005e_2715), // `Unit::check_target_path+0x445`
+        sim::fight::SITE_ATTACK_POS_REVIEW,
+    ),
     // `Unit::fight@005fd4d0+0x9b0` — the one-in-five re-search's roll,
     // spent before either suppression is read (`docs/COMBAT.md` §8.2
     // step 0). One caller, so no chain is needed.
