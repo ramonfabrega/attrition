@@ -823,6 +823,81 @@ pub(crate) fn compare_orders(
         }
     }
 
+    // **The missile's air attack on the ground, whole** (item 1050,
+    // `docs/PRODUCTION.md` "The missile's launch and round"): the
+    // `ATTACKGROUNDORDER` base's point and its two zeroes, and the
+    // `AIRORDER` base's home, altitude, edge turn, `old` and `returning`
+    // — run371's V2 `0/10`, 2672..2701.
+    for (slot, (ours, theirs)) in unit
+        .orders
+        .iter()
+        .zip(them.orders_front_first())
+        .enumerate()
+    {
+        let sim::orders::Body::AirAttackGround(g) = ours.body else {
+            continue;
+        };
+        if i64::from(ours.index()) != theirs.index {
+            continue;
+        }
+        let home = g.home.map(|b| {
+            let b = &built.sim.buildings[b];
+            (i64::from(b.owner), i64::from(b.index))
+        });
+        for (field, mine, logged, key) in [
+            ("att_x", i64::from(g.at.x), theirs.ag_att_x, "ag_att_x"),
+            ("att_y", i64::from(g.at.y), theirs.ag_att_y, "ag_att_y"),
+            ("accuracy", 0, theirs.ag_accuracy, "ag_accuracy"),
+            ("attack_unit", 0, theirs.ag_attack_unit, "ag_attack_unit"),
+            (
+                "oxx",
+                home.map_or(-1, |(_, o)| o),
+                theirs.air_oxx,
+                "air_oxx",
+            ),
+            (
+                "whose",
+                home.map_or(-1, |(w, _)| w),
+                theirs.air_whose,
+                "air_whose",
+            ),
+            (
+                "cruising_alt",
+                i64::from(g.cruising_alt),
+                theirs.cruising_alt,
+                "cruising_alt",
+            ),
+            (
+                "sharp_turn",
+                i64::from(g.sharp_turn),
+                theirs.sharp_turn,
+                "sharp_turn",
+            ),
+            ("old", 0, theirs.air_old, "air_old"),
+            (
+                "returning",
+                i64::from(g.returning),
+                theirs.returning,
+                "returning",
+            ),
+        ] {
+            let Some(logged) = logged else {
+                continue;
+            };
+            compared::note("OrderDump", &[key]);
+            if logged != mine {
+                at(
+                    slot,
+                    OrderMismatch::Air {
+                        field,
+                        ours: mine,
+                        theirs: logged,
+                    },
+                );
+            }
+        }
+    }
+
     // **The air patrol's own row** (item 763, `docs/ORDERS.md` §34):
     // the point arrays whole, their length, the step, and the `AIRORDER`
     // row — the home, the altitude, the edge turn, `old` and whether it

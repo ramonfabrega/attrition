@@ -196,7 +196,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// verb, before run371); **143** with run372 (item 1019: chapter
 /// thirty-five at `cover=1`; `LeaderData::bucket_set`,
 /// `BuildData::get_first_gather` and `Build::do_missile_launch` off, the
-/// three rows the staging named).
+/// three rows the staging named); **144** with item 1050's
+/// `ObjectData::is_in_range@0064e4a0` (`docs/PRODUCTION.md`, "The missile's
+/// launch and round": a missile outside skips its test), which the tracer
+/// cannot hook — `rontrace.funcs.excluded.txt`, "branch target inside the
+/// displaced range" — so no capture takes it off.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -211,6 +215,7 @@ pub const NEVER: &[u32] = &[
     0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140, 0x0060_a310,
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
+    0x0064_e4a0,
     0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370, 0x0067_b800, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
     0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,

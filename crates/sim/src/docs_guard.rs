@@ -1506,7 +1506,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOODY.md", 5),
     ("GROUPS.md", 5),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 13),
+    ("ORDERS.md", 12),
     ("PATHFINDER.md", 1),
     ("PRODUCTION.md", 10),
     ("ROADS.md", 1),

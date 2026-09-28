@@ -190,10 +190,11 @@ impl Sim {
     ///
     /// Under the emulator (`tools/emu/train_arm.py`) every arm above.
     ///
+    /// A missile's strike is `add_air_attack_ground_order` at the target's
+    /// point, through `Unit::add_strafe_order`'s head (item 1050).
+    ///
     /// SEAM: an enemy with `MISSILE_DEFENSE_BONUS` refuses a missile's
-    /// strike, and a missile's strike is `add_air_attack_ground_order` at
-    /// the target's point (`Unit::add_strafe_order`'s head); no staging
-    /// reaches either.
+    /// strike; no staging reaches it.
     pub(crate) fn train_first_point(
         &mut self,
         u: usize,
@@ -997,22 +998,32 @@ mod tests {
             s.units[m].orders.is_empty(),
             "a missile on the ground: nothing"
         );
-        // An enemy building on the point: a strike, for either.
+        // An enemy building on the point: a strike, for either — and a
+        // missile's strike is `add_strafe_order`'s head, an air attack on
+        // the building's point (item 1050; the emulator hooked the adder
+        // and never ran its head).
         let enemy = s.add_building(1, Pos::new(13824, 14976), 0);
         s.buildings[enemy].started = true;
         s.buildings[enemy].active = true;
         s.buildings[enemy].combat = Some(combat::Profile::default());
         s.buildings[enemy].health = 1200;
+        s.buildings[enemy].ever_seen = 3;
         s.buildings[b].gather = vec![point(Pos::new(13824, 14976))];
-        for t in [heli, v2] {
-            let u = s.build_train(b, t).unit;
-            let o = s.units[u].orders.front().copied().expect("a strike");
-            let crate::orders::Body::Strafe(sf) = o.body else {
-                panic!("a STRAFE, not {:?}", o.body);
-            };
-            assert_eq!(sf.target, Some(Obj::Building(enemy)));
-            assert!(sf.mandatory && o.flags & crate::orders::flag::ACTION != 0);
-        }
+        let u = s.build_train(b, heli).unit;
+        let o = s.units[u].orders.front().copied().expect("a strike");
+        let crate::orders::Body::Strafe(sf) = o.body else {
+            panic!("a STRAFE, not {:?}", o.body);
+        };
+        assert_eq!(sf.target, Some(Obj::Building(enemy)));
+        assert!(sf.mandatory && o.flags & crate::orders::flag::ACTION != 0);
+        let u = s.build_train(b, v2).unit;
+        let o = s.units[u].orders.front().copied().expect("a strike");
+        let crate::orders::Body::AirAttackGround(g) = o.body else {
+            panic!("an AIRATTACKGROUNDORDER, not {:?}", o.body);
+        };
+        assert_eq!(g.at, Pos::new(13824, 14976));
+        assert_eq!(g.home, Some(b));
+        assert!(o.flags & crate::orders::flag::ACTION != 0);
         // A base of one's own: a Helicopter flies home to it, a missile stays.
         let other = second_base(&mut s, b, Pos::new(8544, 14688));
         s.buildings[other].combat = Some(combat::Profile::default());
@@ -1233,5 +1244,147 @@ mod tests {
         s.buildings[empty].ty = Some(silo_ty);
         s.buildings[empty].active = true;
         assert!(!s.silo_takes(empty, bomber), "not a missile: refused");
+    }
+
+    /// run371's silo `0/2009` with a V2 inside — `TO_HIT 300`, `ATTENUATE
+    /// 3`, `RECHARGE 30` at the silo — and the Barracks `1/2006` it strikes.
+    fn silo_with_a_v2() -> (Sim, usize, usize, usize) {
+        let mut s = sim();
+        let silo_ty = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::MissileSilo,
+            flags: crate::build::flags::TRAINS,
+            ..crate::build::BuildType::default()
+        });
+        let silo = s.add_building(0, Pos::new(9984, 12288), 0);
+        s.buildings[silo].ty = Some(silo_ty);
+        s.buildings[silo].started = true;
+        s.buildings[silo].active = true;
+        s.buildings[silo].combat = Some(combat::Profile {
+            recharge: 30,
+            ..combat::Profile::default()
+        });
+        let t = air_type(&mut s, silo, 0x139, false, true);
+        s.unit_types[t].combat.to_hit = 300;
+        s.unit_types[t].combat.attenuate = 3;
+        let v2 = s.units.len() - 1;
+        let enemy = enemy_barracks(&mut s, Pos::new(13824, 14976));
+        (s, silo, v2, enemy)
+    }
+
+    /// **A missile's strike from its silo is an air attack on the point**
+    /// (item 1050): the flight command's inside arm takes a missile as it
+    /// takes a plane, and `add_strafe_order`'s head turns the strafe into
+    /// `add_air_attack_ground_order` at the target's point, home the silo,
+    /// with the action bit — run371's `0/10` on 2672. Made to fail with the
+    /// head dropped (a `StrafeOrder`) and with the inside arm's missile
+    /// refusal put back (no order).
+    #[test]
+    fn a_missile_s_strike_from_its_silo_is_an_air_attack_on_the_point() {
+        let (mut s, silo, v2, enemy) = silo_with_a_v2();
+        s.group_action_launch_flight(
+            0,
+            &[silo],
+            Obj::Building(enemy),
+            Flight::Strike,
+            Keys::default(),
+        );
+        assert_eq!(s.units[v2].orders.len(), 1, "one order");
+        let o = s.units[v2].orders[0];
+        assert_eq!(o.index(), crate::orders::index::AIR_ATTACK_GROUND);
+        assert_eq!(o.flags, crate::orders::flag::ACTION, "flags 4");
+        let crate::orders::Body::AirAttackGround(g) = o.body else {
+            panic!("an air attack on the ground")
+        };
+        assert_eq!(
+            g.at,
+            Pos::new(13824, 14976),
+            "att_x/att_y: the target's point"
+        );
+        assert_eq!(g.home, Some(silo), "oxx: the silo");
+        assert_eq!(g.cruising_alt, crate::orders::CRUISING_ALT);
+        assert!(!g.returning);
+        assert_eq!(s.units[v2].inside, Some(silo), "the missile waits inside");
+    }
+
+    /// **The silo counts its missile out, and the missile fires and ends in
+    /// the same call** (item 1050): the launch sets `recharging` to the
+    /// silo's `RECHARGE`, 30, with `launch_frames` 0 and the missile in
+    /// `launching`; each later call takes one off and does nothing else;
+    /// at 0 the missile comes out on the silo's own point, flies one step,
+    /// fires its round from its point plus [`crate::air::MISSILE_OFFSET`],
+    /// and dies with its number held for the round's 120 frames and one.
+    /// run371: 30 on 2672, 1 on 2701, the round on 2702. Made to fail with
+    /// the countdown's head dropped (the missile never leaves), the
+    /// missile's `recharging` dropped (the same), and the silo's point
+    /// dropped from `come_out` (the ring's spot).
+    #[test]
+    fn the_silo_counts_its_missile_out_and_it_fires_on_the_thirtieth() {
+        let (mut s, silo, v2, enemy) = silo_with_a_v2();
+        s.group_action_launch_flight(
+            0,
+            &[silo],
+            Obj::Building(enemy),
+            Flight::Strike,
+            Keys::default(),
+        );
+        s.frame = 2671;
+        s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+        s.do_launch(silo);
+        assert_eq!(s.buildings[silo].recharging, 30);
+        assert_eq!(s.buildings[silo].launch_frames, 0);
+        assert_eq!(s.buildings[silo].launching, vec![v2]);
+        for k in 1..30 {
+            s.frame += 1;
+            s.do_launch(silo);
+            assert_eq!(s.buildings[silo].recharging, 30 - k);
+            assert_eq!(s.buildings[silo].launch_frames, 0, "it stands");
+            assert_eq!(s.units[v2].inside, Some(silo));
+        }
+        assert!(s.projectiles.is_empty());
+        s.frame += 1;
+        s.do_launch(silo);
+        assert_eq!(s.buildings[silo].recharging, 0);
+        assert!(s.buildings[silo].launching.is_empty());
+        assert!(s.buildings[silo].garrison.is_empty());
+        assert!(!s.units[v2].alive(), "the missile ends with its shot");
+        let at = s.units[v2].pos;
+        let from = s.buildings[silo].pos;
+        let step = vector_dist(at.x - from.x, at.y - from.y);
+        assert!(
+            step > 0 && step <= s.get_speed(v2, 1) + 1,
+            "one step from the silo's own point: {at:?}"
+        );
+        assert_eq!(s.projectiles.len(), 1, "one round");
+        let p = s.projectiles[0];
+        let (dx, dy, dz) = crate::air::MISSILE_OFFSET;
+        assert_eq!(p.launch, Pos::new(at.x + dx, at.y + dy));
+        assert_eq!(p.sz, dz, "the ground at 0 and the offset's height");
+        assert_eq!(p.total_time, crate::air::MISSILE_FLIGHT);
+        assert_eq!(p.target, None, "a round at the ground");
+        assert_eq!(s.units[v2].hold_frames, 121, "held for its round");
+    }
+
+    /// **A missile's round, on run371's own numbers** (item 1050,
+    /// `Ammo::init`'s missile arm): from (10083, 12346) at the point
+    /// (13824, 14976), accuracy `300 − 3 · (4662 / 192)` = 228, the land
+    /// formula's 11 **doubled** to 22, and the trace's own frame word
+    /// `0x14e73b8f` — rolls 62369 and 56984, `% 22 − 11` — lands it on
+    /// (13834, 14969) after 120 frames, as the dump's `ex`/`ey` read on 2702.
+    /// Made to fail with the doubling dropped (`s` 11: (13826, 14976)) and
+    /// with the time the flight formula's.
+    #[test]
+    fn a_missile_s_round_is_run371_s_to_the_unit() {
+        let (mut s, silo, v2, _) = silo_with_a_v2();
+        s.come_out(v2);
+        s.units[v2].pos = Pos::new(10083, 12346);
+        let _ = silo;
+        s.rng.seed = 0x14e7_3b8f;
+        s.missile_round(v2, Pos::new(13824, 14976));
+        let p = s.projectiles[0];
+        assert_eq!(p.launch, Pos::new(9974, 12347), "sx, sy");
+        assert_eq!(p.accuracy, 228);
+        assert_eq!(p.landing, Pos::new(13834, 14969), "ex, ey");
+        assert_eq!(p.total_time, 120);
+        assert_eq!(p.angle.0, 1_482_031_104, "the dump's angle");
     }
 }

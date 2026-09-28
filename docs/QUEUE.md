@@ -16,8 +16,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty, and
 it is in the first war; the first pair stays closed at 24,000,
-endpoints 0 off. Chapters one to thirty-four are closed and
-thirty-five is open. Two lanes run; the count is at one (1061).*
+endpoints 0 off. Every chapter is closed, thirty-five at 3260
+(1050). Two lanes run; the count is at two (1061, 1050).*
 
 - **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
   Great Lakes forty-one frames and one rule of combat a landing, and
@@ -29,16 +29,16 @@ thirty-five is open. Two lanes run; the count is at one (1061).*
   read until map 9 has a height table.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 12 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076).
+- **Fable backlog: 13 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5606 of 18,140 · GreatLakes w4978 of 5,930
-Golden: ch35 w2701 of 3261 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1050 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · 1077 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1050 on the rules lane; 1066 on the
-AI lane, then 1072 to whichever lane frees first.**
+**Opener: the commander resumes — 1066 and 1072 run; 1077 to
+whichever lane frees first.**
 
 ## The queue
 
@@ -55,13 +55,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     from 4841; the original's falls a point on 4859 and 4904 and ours
     does not. No mechanism is named. East Indies' 5606 follows.
 
-1050. **Chapter thirty-five's word: frame 2701, the V2's round** (1048;
-    parked 1050 and 1051, folded). Theirs 4 draws against ours 3, led by
-    `Ammo::init+0xae8`/`+0xb25`: the V2's strike and launch
-    (`action_launch_flight`'s missile narrowing, `AIRATTACKGROUNDORDER`,
-    the silo's `recharging`, `do_missile_launch` → `come_out` →
-    `do_air_attack_ground`), then its spline round (`traj 2`, 120
-    frames) and blast on `1/2006`. run371's window.
+1077. **Chapter thirty-five's floor: the V2's blast on 2821** (1050
+    closed the chapter at 3260, PRODUCTION "The missile's launch and
+    round"). Value-only, no draw parts: the dump's Barracks `1/2006` is
+    gone on 2821, ours stands at 400 damage of 1200. `Ammo::do_damage`'s
+    missile arm is read to its shield only; what destroys the building
+    is `Object::do_damage`'s. `fight.rs`, `combat.rs`.
 
 1066. **The third scored map: Great Sahara, map 7, in the first pair's
     lobby** (DECISIONS 54 §3) — Easiest, seed 12345, `cfg: -`. Three

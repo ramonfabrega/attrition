@@ -4279,8 +4279,20 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_FOUR: (i64, i64) = (605, 2851);
 /// `+0xb25`: the V2's round off the silo (parked 1050, 1051). The first
 /// value parting is 2702, `0/10`'s round.
 ///
-/// **The delta**, this constant's: +26, 2675 → 2701, open.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 2701;
+/// **3260, closed** (item 1050, `docs/PRODUCTION.md` "The missile's
+/// launch and round"): the flight command's missile arm and
+/// `add_strafe_order`'s head, an `AIRATTACKGROUNDORDER` on `1/2006`'s point;
+/// the silo's `recharging` 30 at the launch and `do_missile_launch`'s
+/// countdown; the missile out on the silo's own point, its one step, and
+/// `Ammo::init`'s missile arm — the launch offset, the doubled scatter
+/// (`Ammo::init+0xae8`/`+0xb25` on 2701, `s` 22), the spline's 120 frames
+/// — and its end, `Object::die` with no death draw. The stream agrees to
+/// run371's end, and so does every word of the value stream. What the
+/// widening still holds of the V2 is its blast: on 2821 the dump's
+/// Barracks `1/2006` is gone, where here it stands at 400 damage of 1200.
+///
+/// **The delta**, this constant's: +559, 2701 → 3260, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 3260;
 
 /// `chapter_thirty_five_s_word_frame_is_widened_whole`'s window: run371
 /// whole, (605, 3261). Its pool half, `widen_pool`, reads who=0's
@@ -4814,9 +4826,16 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Chapter thirty-five is chapter thirty-four's game to its second
     // Airbase and a Missile Silo and twelve lines after it (item 1019):
     // the first walk reads 39, and the built arms 39 (pinned at 38, it
-    // fails).
-    ("chapter_thirty_five_holds_to_the_golden_word", 39),
-    ("chapter_thirty_five_s_word_frame_is_widened_whole", 39),
+    // fails). **40 with the V2's round** (item 1050): `Ammo::init`'s
+    // `find_data_z` at its point, one read more (pinned at 39, it fails).
+    ("chapter_thirty_five_holds_to_the_golden_word", 40),
+    ("chapter_thirty_five_s_word_frame_is_widened_whole", 40),
+    // The V2's launch, field for field (item 1050): run371 to 2703, the
+    // round's read included.
+    (
+        "chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field",
+        40,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

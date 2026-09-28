@@ -3712,7 +3712,7 @@ impl Sim {
     /// Gives a dead unit's supply slot back — `Unit::close` — and takes it
     /// out of both collision indices, which is `Object::remove_from_world`
     /// (`docs/COLLISION.md` §2, §3). This is every death path's tail.
-    fn close_supply(&mut self, unit: usize) {
+    pub(crate) fn close_supply(&mut self, unit: usize) {
         let owner = self.units[unit].owner as usize;
         if let Some(slot) = self.units[unit].supply_slot.take() {
             self.supply[owner].list.close(slot);

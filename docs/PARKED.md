@@ -88,6 +88,14 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1050, 2026-09-28 — the missile's other arms
+
+(1078) **The missile's arms read and not built** (PRODUCTION "The
+missile's launch and round", its list): a nuke's arms,
+`MISSILE_DEFENSE_BONUS`, a second missile in `launching`,
+`do_air_physics`' redraw for a missile, and `unit_masks & ~0x4000000`.
+Chapter thirty-five fires one V2 at a time and no defence stands.
+
 ## Parked by item 1061, 2026-09-28 — the chase's edges
 
 (1073) **The one-in-five re-search's fresh order** (COMBAT §71.6): at
@@ -1731,6 +1739,13 @@ mechanism** (1061's Loop line): 1061's booking said the original
 stacks said ours *popped* it early. A checklist row could ask the
 first probe to print both sides' event on the frame, not the one side
 the draw points at.
+
+(1079) **A brief that reserves a packet for a round asks first
+whether the capture printed `AMMO`** (1050's Loop line): run371 had,
+and the dump's `AMMO` record, the listing and the install's XML
+answered every value; the reserved run379 and run380 went unused. The
+checklist's 783 row already says a round carries `AMMO`; the pass may
+close this on it.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

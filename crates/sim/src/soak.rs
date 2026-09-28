@@ -131,6 +131,11 @@ fn sample(sim: &Sim) -> Sample {
                         })
                         + p.waypoint as i64
                 }
+                orders::Body::AirAttackGround(g) => {
+                    (g.home.map_or(-1, |b| b as i64) * 4 + i64::from(g.returning) * 2) * 65_536
+                        + i64::from(g.at.x) * 65_536
+                        + i64::from(g.at.y)
+                }
                 orders::Body::Attack(_) | orders::Body::Think => -1,
             });
         }
