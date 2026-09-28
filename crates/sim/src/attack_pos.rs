@@ -720,6 +720,64 @@ mod tests {
         }
     }
 
+    /// **And the walk begins there** (item 1012): an asker square on a
+    /// building's east face takes a spot level with the centre, as run356's
+    /// `1/17` does on block 4606, because both arms leave the face's
+    /// midpoint and the call's budget ends four candidates later. From the
+    /// corner end the four candidates are all near the corner.
+    ///
+    /// Made to fail by starting the ring at [`crate::Sim::side_base`]'s
+    /// end in [`crate::Sim::find_attack_pos`]: the spot is 504 south.
+    #[test]
+    fn a_ring_started_on_an_edge_stands_level_with_the_target() {
+        use crate::combat::Profile;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 70,
+            combat: Profile {
+                attack: 15,
+                max_range: 6,
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let t = Pos::new(20 * 0x300, 20 * 0x300);
+        let city = sim.add_building(0, t, 0);
+        sim.buildings[city].hits = 1200;
+        sim.buildings[city].health = 1200;
+        sim.buildings[city].combat = Some(Profile {
+            x_size: 7,
+            y_size: 7,
+            ..Profile::default()
+        });
+        let mut u = crate::Unit::new(1, 0, Pos::new(t.x + 0x1800, t.y), 70);
+        u.ty = Some(ty);
+        u.on_map = true;
+        let me = sim.add_unit(u);
+        let from = sim.units[me].pos;
+        let p = sim
+            .find_attack_pos(
+                me,
+                Obj::Building(city),
+                from,
+                crate::fight::SITE_ATTACK_POS_FIGHT,
+            )
+            .expect("a spot on the ring");
+        assert!(p.x > t.x, "on the east side: {p:?}");
+        assert!(
+            (p.y - t.y).abs() <= 0x60,
+            "the spot is {} from level with the centre: {p:?}",
+            p.y - t.y
+        );
+    }
+
     /// **The golden record's own melee chase** (§19): chapter one's
     /// `0/6`, ordered onto `1/6` at the end of frame 616, asks where to
     /// stand on 617 and the original's dump answers `(1080, 8280)` —

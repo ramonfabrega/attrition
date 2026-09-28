@@ -265,7 +265,7 @@ pub mod flag {
 
 /// What `find_melee_target`'s squad head answers ([`Sim::melee_squad_head`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum SquadHead {
+enum SquadHead {
     /// A captain, or a follower whose captain's target has gone: search.
     Search,
     /// A follower whose captain is not attacking: `−1`, nothing.
@@ -2381,14 +2381,16 @@ impl Sim {
     }
 
     /// `find_melee_target@005ff9c0`'s head (lines 32–91), for a caller
-    /// whose third argument is 0 — `do_attack_to`'s, `do_group_attack_to`'s
-    /// and `Group::action_attack`'s retarget (item 1012): a **follower**
+    /// whose third argument is 0 — here `do_attack_to`'s and
+    /// `do_group_attack_to`'s look (item 1012; `Group::action_attack`'s
+    /// retarget is the other, and the floor refused it there,
+    /// `docs/COMBAT.md` §66.3): a **follower**
     /// takes its captain's target when the captain's action is an
     /// `ATTACK` on a valid one it may chase (not STAND_GROUND, neither of
     /// the two entrenched, or already in range), and finds **nothing** when
     /// the captain's action is not an `ATTACK`. A captain, or a follower
     /// whose captain's target has gone, searches.
-    pub(crate) fn melee_squad_head(&self, u: usize) -> SquadHead {
+    fn melee_squad_head(&self, u: usize) -> SquadHead {
         if self.units[u].captain {
             return SquadHead::Search;
         }

@@ -3275,31 +3275,29 @@ impl Sim {
                 }
                 // **`mandatory == 0` retargets** (`00712490:456`–`470`,
                 // item 1012): `find_melee_target(u, min(d + 0xc0,
-                // respond), &whom, 0, 0, word)` — its squad head first (a
-                // follower takes its captain's attack, or nothing), and
-                // the search's word **1 for a unit target, 2 for a
-                // building** (the target's vslot `+0x1c`), so a member
-                // sent at a city takes a building. What it cannot name
-                // falls back to the group's target.
+                // respond), &whom, 0, 0, word)` with the word **1 for a
+                // unit target, 2 for a building** (the target's vslot
+                // `+0x1c`), so a member sent at a city takes a building.
+                // What it cannot name falls back to the group's target.
+                //
+                // SEAM: `find_melee_target`'s squad head (a follower takes
+                // its captain's attack without a search) is on the
+                // decompile's path for this call, and the floor refused
+                // it: built, Great Lakes fell from 4618 to 4607, the city's
+                // `targeted` twelve bumps short (`docs/COMBAT.md` §66.3).
                 let t = if mandatory {
                     target
                 } else {
-                    match self.melee_squad_head(u) {
-                        crate::orders::SquadHead::Captain(t, _) => t,
-                        crate::orders::SquadHead::Nothing => target,
-                        crate::orders::SquadHead::Search => {
-                            let d = crate::world::vector_dist(
-                                (self.units[u].pos.x - self.pos_of(target).x).abs(),
-                                (self.units[u].pos.y - self.pos_of(target).y).abs(),
-                            );
-                            let word = match target {
-                                Obj::Unit(_) => crate::fight::search::UNITS,
-                                Obj::Building(_) => crate::fight::search::BUILDINGS,
-                            };
-                            self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
-                                .unwrap_or(target)
-                        }
-                    }
+                    let d = crate::world::vector_dist(
+                        (self.units[u].pos.x - self.pos_of(target).x).abs(),
+                        (self.units[u].pos.y - self.pos_of(target).y).abs(),
+                    );
+                    let word = match target {
+                        Obj::Unit(_) => crate::fight::search::UNITS,
+                        Obj::Building(_) => crate::fight::search::BUILDINGS,
+                    };
+                    self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
+                        .unwrap_or(target)
                 };
                 self.add_attack_order(u, t, queue, mandatory, true);
             }
@@ -6719,18 +6717,16 @@ mod tests {
         );
     }
 
-    /// **A member sent at a building retargets among buildings, and a
-    /// follower takes its captain's** (item 1012, `docs/COMBAT.md` §66):
-    /// `Group::action_attack`'s `mandatory == 0` retarget hands
-    /// `find_melee_target` the word 2 for a building target
-    /// (`00712490:456`–`470`), and runs its squad head first. Great Lakes
-    /// 4605's army, sent at the human's city, stood a unit away from the
-    /// human's scout; every member took the city.
+    /// **A member sent at a building retargets among buildings** (item
+    /// 1012, `docs/COMBAT.md` §66): `Group::action_attack`'s `mandatory ==
+    /// 0` retarget hands `find_melee_target` the word 2 for a building
+    /// target (`00712490:456`–`470`). Great Lakes 4605's army, sent at the
+    /// human's city, stood within reach of the human's scout; every member
+    /// took the city.
     ///
-    /// Made to fail by passing the word 0 (the first assertion names the
-    /// soldier), and by searching for every member (the second names `n2`).
+    /// Made to fail by passing the word 0: the assertion names the soldier.
     #[test]
-    fn a_group_retarget_from_a_building_takes_a_building_and_a_follower_its_captain_s() {
+    fn a_group_retarget_from_a_building_takes_a_building() {
         let mut s = sim();
         let t = fighter(&mut s);
         let bt = s.add_build_type(crate::build::BuildType {
@@ -6751,23 +6747,6 @@ mod tests {
             s.units[a].combat.target,
             Some(Obj::Building(camp)),
             "a member sent at a building took the soldier beside it"
-        );
-        // The squad head: `b` follows `a`, and `n2` is nearer to `b` than
-        // the soldier `a` takes.
-        let b = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1400));
-        let n2 = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1600));
-        let far = spawn(&mut s, 0, t, Pos::new(0x9000, 0x1000));
-        s.units[a].captain = true;
-        s.units[a].o_down = Some(b);
-        s.units[b].captain = false;
-        s.units[b].o_up = Some(a);
-        let g = group_of(1, &[a, b]);
-        s.group_action_attack(&g, Obj::Unit(far), false, QueuePos::New, 0);
-        assert_eq!(s.units[a].combat.target, Some(Obj::Unit(near)));
-        assert_eq!(
-            s.units[b].combat.target,
-            Some(Obj::Unit(near)),
-            "the follower searched for itself and took {n2}"
         );
     }
 
