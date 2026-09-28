@@ -14,47 +14,46 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-09-28, the eighteenth Fable pass (`docs/audit/2026-09-28-fable-pass-18.md`,
 DECISIONS 54): **no score moved in the pass, and none was meant to.**
-The AI's word is the second pair's, at the lobby's top difficulty, and
-it is in the first war; the first pair stays closed at 24,000,
-endpoints 0 off. Every chapter is closed, thirty-five to thirty-seven
-at 3260, 3420 and 3490. Two lanes run; the count is at eleven.*
+The AI's word is the second pair's, at the lobby's top difficulty; the
+first pair stays closed at 24,000, endpoints 0 off. Every chapter is
+closed, thirty-five to thirty-seven at 3260, 3420 and 3490. Two lanes
+run; the count is at twelve.*
 
-- **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
-  Great Lakes forty-one frames and one rule of combat a landing, and
-  its game ends on 5,930: **the pass reads landings to that end**.
+- **Great Lakes' second game is closed at 5,930, its end**, in seven
+  landings from 4924 (1061 … 1099), endpoint 0 off: the pass's measure,
+  inside one tranche where it priced two. **East Indies' 5606 is the lower.**
 - **The instrument follows the word** (1061, GROUPS §33): the second
   pair's widening compares the group record and the attack row, and
-  the compared pin walks the pair's Great Lakes word's window.
+  the compared pin walks the lower map's word window (1106 moves it).
 - **A third map is scored** (1066, AI §83): Great Sahara, all land,
   its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 22 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105).
+- **Fable backlog: 23 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5606 of 18,140 · GreatLakes w5161 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w8 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1102 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1099 and 1102 run; East Indies'
-5606 is booked when either frees.**
+**Opener: the commander resumes — 1106 and 1102 run.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41, 53): the golden word for the rules, the newest pair's word for the AI,
-lower map first — Great Lakes (a guard reads this line). Take the first
+lower map first — East Indies (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-1099. **Great Lakes' second word: frame 5161, ours 12 draws against 13**
-    (1089), at index 3: theirs a second `Guy::set_anim+0x97a <
-    Guy::inc_time+0x1ed`, ours `Farms::inc_time+0x1ae`, on run396's
-    block 5162, where `1/24` and `1/26` take the city in ours and the
-    scout in the original. No mechanism is named. East Indies' 5606
-    follows.
+1106. **East Indies' second word: frame 5606, ours 4 draws against 5**
+    (989; Great Lakes closed by 1099), at index 0: ours
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    `Unit::do_move+0xe84`, widened on run357 (5601..5857): the block
+    before parts on `1/14`'s `order:move.dest`, 0 against 1. **The
+    instrument first**: the compared pin's walk moves to this window.
 
 1102. **Chapter thirty-eight: the air line under fire — no capture yet**
     (1091 closed thirty-seven at 3490; CENSUS's blind list, row 7, the

@@ -102,6 +102,18 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1099, 2026-09-28 — beneath Great Lakes' closed word
+
+(1107) **Value rows under Great Lakes' agreeing draw stream to 5930**
+(the pass's to judge whether the pair is closed in value too): `1/36`'s
+order from its birth on 5165 (`action`, `flags`, the move's `angle`);
+and the AI scout `1/0`'s second figure on run396's 5240, (3081, 20587)
+against (3065, 20580), agreeing again by 5925. Beneath them stand the
+human's leader record (`SITE` regions, `num_units[0]` counting five
+dead citizens, 1092; income; war flags), the human's city record, the
+group record (1075), and the attack-move's `order:target` and the
+army's `form`. None reaches a draw.
+
 ## Parked by item 1091, 2026-09-28 — the nuke's edges
 
 (1103) **A ranged death's slot is held 30 frames in the original, 0
@@ -122,7 +134,8 @@ and this crate queues a nuke at a Market, which the original's
 (1100) **The squad head at `find_melee_target`'s other callers whose
 third argument is 0** (COMBAT §79.7): `Sim::find_new_target`, the
 packer's re-search, the guard arm and `think`'s idle search. No capture
-has a follower reach one of them.
+has a follower reach one of them. Killed as 5161's hypothesis by 1099
+(`1/24` is a captain); it stays parked for its own callers.
 
 ## Parked by item 1074, 2026-09-28 — the kill's other gates
 
@@ -166,11 +179,9 @@ as a seam.
 
 ## Parked by item 1061, 2026-09-28 — the chase's edges
 
-(1073) **The one-in-five re-search's fresh order** (COMBAT §71.6): at
-every retarget the original's head attack reads `in_range 0, new_ord 1,
-ever_in_range 0` for one block, and this crate re-points the order in
-place. No draw has parted on it; it was a hypothesis for 5105 and not
-its mechanism (1089).
+(1073) closed 2026-09-28 by item 1099: the one-in-five re-search is
+`find_new_target`, a fresh order, and `retarget_attack` is deleted
+(COMBAT §80, §71.6).
 
 (1075) **`Army::role` is never written** (ours 0 against 1379331 from
 4550; only its reset writes it), and the Town Center group's `ox`/`oy`
@@ -1878,6 +1889,16 @@ Loop line): every death then reads as a `death:extra` row on our side
 (chapter thirty-seven's two). The widening could skip the death list on
 a capture that did not ask for it, or the chapters' end detail could
 carry `DEATHS=1`.
+
+(1108) **A draw-stream word that reaches a game's end says nothing of
+the end itself** (1099's Loop line, two parts): (a) the city's capture
+spends no draw, and run347's last event was wrong under an agreeing
+stream; a closing whole-map state was on disk and nothing scored it
+until `walk_second` did — a pair's close could name its endpoint as the
+first pair's does. (b) The click-free lane refuses a window past
+`!quit` + 1 and leaves the empty output directory it made, which its
+second launch then refuses; a refusal before staging could remove what
+it made.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
