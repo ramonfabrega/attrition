@@ -114,6 +114,9 @@ pub const TRACES: &[&str] = &[
     "rontrace-run365.log", // ch32
     "rontrace-run366.log", // ch33
     "rontrace-run367.log", // ch34
+    // Item 1019's capture: chapter thirty-five at `cover=1` on the queue
+    // lane (`docs/RUNS.md` run372), run371's game on every frame.
+    "rontrace-run372.log", // ch35
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -185,21 +188,20 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// thirty-four at `cover=1`; run366 enters `Group::action_launch_flight`,
 /// `Group::action_launch_patrol` and `CommandManager::issue_launch_patrol`,
 /// the last the game's own, called from `GroupOut::issue_launch_patrol`).
-/// `BuildData::get_first_gather` stays: its one caller in play,
+/// `BuildData::get_first_gather` stayed: its one caller in play,
 /// `Build::train`, reaches it only for a missile or a Helicopter trained
-/// under a gather point (`docs/CENSUS.md`, "item 1011"); **146** with item
+/// under a gather point (`docs/CENSUS.md`, "item 1011"), which chapter
+/// thirty-five stages; **146** with item
 /// 1019's `LeaderData::bucket_set` (`docs/GOLDEN.md` §44, the `resource`
-/// verb, before run371).
+/// verb, before run371); **143** with run372 (item 1019: chapter
+/// thirty-five at `cover=1`; `LeaderData::bucket_set`,
+/// `BuildData::get_first_gather` and `Build::do_missile_launch` off, the
+/// three rows the staging named).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    // Item 1019, `docs/GOLDEN.md` §44: `LeaderData::bucket_set@0043ecf0`,
-    // the `resource` verb's writer; run371 stages it.
-    0x0043_ecf0,
     0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90,
-    // Item 955, `docs/GOLDEN.md` §40: `BuildData::get_first_gather@0046f140`.
-    0x0046_f140,
     0x0047_0e50, 0x0047_11e0,
     0x0047_80c0, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60, 0x0048_89a0,
     0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
@@ -207,7 +209,7 @@ pub const NEVER: &[u32] = &[
     0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
     0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140, 0x0060_a310,
-    0x0060_a600, 0x0061_a960, 0x0062_2670, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
+    0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
     0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370, 0x0067_b800, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
