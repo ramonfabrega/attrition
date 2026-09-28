@@ -5608,6 +5608,11 @@ reached` asserts that row) and never searched again in the window. So
 the incumbent the arm below reads on 644 was chosen twenty-three frames
 earlier.
 
+**Item 523's residue on 847 closed on item 1089** (§79): the bowmen `0/7`
+and `0/8` are followers, and `find_new_target`'s squad head hands them
+their captain's target without a search, so this crate no longer writes
+their pair to `-1`. The whole of run112 agrees, 17,219 of 17,219.
+
 [`sim::Unit::near`] is the field, written at `find_nearby_target`'s own
 site. **SEAM**: the original's is an `ObjectData` member and a building
 carries one too; this crate holds it on a unit only, which nothing
@@ -12677,3 +12682,180 @@ git and `touch`ed after. The pins the re-pin touches were green first.
 - **Listing-backed**: `5f7ece`–`5f7f11` (llvm-objdump), and
   `update_action@0060a870` (decompile).
 - **Unit-backed only**: the dead target's arm under fog.
+
+## 79. A follower whose target has died takes its captain's (item 1089, 2026-09-28)
+
+Great Lakes' second word, frame 5105 of run347 (DECISIONS 53, 54): 11 draws
+on each side, parting at index 3. The original spent `Unit::fight+0x9b0 <
+Unit::do_attack+0x6ba`, ours `Farms::inc_time+0x1ae`. The figure was
+`1/21`, whose chase goal had parted since run373's block 5091. The booking
+carried two parked readings as hypotheses, 1089's `find_attack_pos`
+tolerance and 1073's fresh order, and named no direction (parked 1076).
+**Neither was the mechanism.** The frame was sixty-six ticks back, on
+another unit.
+
+### 79.1 Walking `1/21` back to its first parted field
+
+- **`1/21`'s own first parted field is its attack row on 4996**:
+  `ever_in_range` 1 against 0 and `new_ord` 0 against 1, which is §71.6's
+  fresh-order shape (parked 1073). No draw parts on it, and the chase goal
+  agrees on 5071, twenty frames after it. So 5091 is the first parting
+  that reaches the draw stream, and 4996 is not its cause.
+- **The re-aim on 5090** (the chase's twenty-frame repath, which pops the
+  move on both sides on 5070 and 5090). `0/5` stands at (3488, 31368),
+  and `1/21` at (3000, 31512). It is melee: `stand` `0x30`, one ring at
+  144. `0/5` is moving, but the flank arm (§32.4) is shut. `1/21`'s
+  `unit_masks` is 331790 (`0x5100E`), and `602822` jumps on `0x40000` to
+  the plain sweep.
+- **The sweep, candidate by candidate** (a scratch probe, not kept): the
+  original's goal (3336, 31368) is ours' `+1` candidate. Ours refused it by
+  `find_ordered_collision` alone: `find_collision` was clear. The refusing
+  order was **`1/13`'s `orders_pos` (3384, 31464)**, a member of the same
+  group 65. The original's `1/13` was aimed at (2136, 31608). That is
+  parked 1089's own row.
+- **`1/21`'s `order:flags` 16 against 0 follows from the goal.** Ours'
+  `chase_reentry` returns early when the goal shares a coordinate with the
+  chaser (y 31512 on both), so the latch was never toggled.
+
+### 79.2 `1/13`, and the frame that parted
+
+- **The first-parting map hid it.** On block 5067 ours' `1/13` holds
+  `ATTACK 0/5` and the original's `ATTACK 0/4`. No row printed it, because
+  `1/13`'s `order:target` key had first parted on 4841 (its `ATTACK_TO`)
+  and the map keeps a key's first parting only. The `RON_STACKS` probe
+  shows it.
+- **Tick 5066.** `1/13`'s target, the citizen `0/2`, died on 5000.
+  `fight`'s invalid-target arm (`LAB_005fdb9e`, §43.2) calls
+  `find_new_target(this, NULL, 0)`. Both traces spend no unit draw on 5066
+  beyond the figures' idles.
+- **Ours searched.** Its ranking was `0/5` 888 (attack distance 1738,
+  `targeted` 2, value 10664) against `0/4` 603 (2842, 0, 10261). For the
+  original to rank `0/4` first, `0/5`'s `targeted` would have to be 24 or
+  more.
+- **run400's packet** (logger frame 5066, `docs/RUNS.md`):
+  - `targeted` reads 2 on `0/5` and 0 on `0/4`, the same as ours. That
+    reading is killed.
+  - `find_melee_target(−1, &whom, 0, 1, 0)`, entered directly on `1/13`,
+    **never calls `find_nearby_target`**. It adds `ATTACK 0/4` from
+    `find_melee_target+0x1c5` and answers `o 4 whom 0`.
+- **`1/13` is a follower.** On block 5066 its `o_up` is 12. `1/12`, its
+  captain, holds `ATTACK 0/4`.
+
+### 79.3 The listing's head
+
+`Unit::find_melee_target@005ff9c0`, lines 32–91 of the decompile, for a
+caller whose third argument is 0:
+
+1. `is_captain` (vslot `+0xe8`, `o_up >> 15`). A captain goes to the
+   search.
+2. A follower reads its captain's action (vslot `+0xe4`, `get_action`). No
+   action, or one that is not `ATTACK` (`+0x10 == 10`), returns −1: no
+   search, no order.
+3. With the captain's target `(o, whom)`, it takes the target when
+   `valid_target` passes and either:
+   - the stance is not `2` and neither of the two entrenched pairs
+     (`unit_masks & 0x2000000` without `unit_masks2 & 0x20000`, on it or
+     on the captain) holds; or
+   - the target is in range.
+
+   With `param_4`, it adds `add_attack_order(o, whom, pos, mandatory, 0)`,
+   where `pos` is `QUEUE_FIRST` under an `ATTACK_TO`, a `GROUP_ATTACK_TO`
+   or a `GUARD` in front and `QUEUE_NEW` otherwise, and `mandatory` is the
+   captain's action's `+0x1c`. It returns without searching.
+4. Otherwise `on_duty`, and the search.
+
+`find_new_target@005ff6a0` kills the current order first and passes
+`(−1, param_1, 0, 1, 0)`. So under `1/13`'s remaining `ATTACK_TO` the add
+is `QUEUE_FIRST`, the position this arm always used.
+
+This is not `fight`'s own mirror (`Unit::fight@005fd4d0`, before the
+validity test, §43.2). That mirror hands a follower its captain's target
+only in `AGGRESSIVE` or `DEFENSIVE`, or when the target is in range.
+`1/13` is `RAID` and 3,000 out, so the mirror passed, and the head is
+what caught it. §66.3's killed row is `Group::action_attack`'s retarget,
+another caller.
+
+### 79.4 What this crate built
+
+- **`Sim::find_melee_target_added`** (`orders.rs`): the head
+  (`melee_squad_head`, item 1012's, until now used by the attack-move's
+  look alone), the add at the head's position with the captain's
+  `mandatory`, and the search with its `QUEUE_FIRST` add otherwise.
+  `fight`'s invalid-target arm calls it after `kill_current_order`.
+- **Unit test**: `a_follower_whose_target_died_takes_its_captain_s`
+  (`orders.rs`, `chase_tests`). A `RAID` follower whose target is dead
+  takes its captain's target, 24 tiles off, where the search alone ranks
+  a nearer foe first.
+
+### 79.5 The killer
+
+The arm was put back to the bare search on `4a89cba2`, with `git diff
+--stat` non-empty, then restored from git and `touch`ed. The pins the
+re-pin touches were green first.
+
+| mutation | unit test | run347's walk | run373 | run396 |
+|---|---|---|---|---|
+| the search without the head | fails | falls to 5105 | fails on `1/13`'s move (5068) and `1/21`'s goal (5091) | fails on the old word's `order:kind` (5105) |
+
+### 79.6 What moved
+
+- **Great Lakes 5105 → 5161.**
+  - On block 5067 `1/13` holds `ATTACK 0/4` on both sides, where ours held
+    `0/5`.
+  - On 5068 it stands at (4751, 31019), aimed at (2136, 31608) with
+    tolerance 384, on both. Ours stood at (4749, 31041), aimed at (3384,
+    31464) with tolerance 0.
+  - On 5091 `1/21`'s goal is (3336, 31368) with `order:flags` 0 on both,
+    where ours read (3528, 31512) and 16. On 5092 both stand at (3025,
+    31501).
+  - Frame 5105's draws went 11 against 11 at index 3 → agreeing.
+  - run373's keys parted go 203 → 156, and run396's 1,253 → 737.
+- **Chapter two's `near_o` closes** (§37.1): item 523's two bowmen on
+  847, `0/7` and `0/8`, are followers whose target died. They no longer
+  search, and run112 agrees on all 17,219 unit frames, against 17,113
+  before.
+- **East Indies holds at 5606. Great Sahara holds at 8.**
+- **The new word** (no mechanism is named): frame 5161, ours 12 draws
+  against the original's 13, parting at index 3. The original spends a
+  second `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, and ours
+  `Farms::inc_time+0x1ae`.
+  - It sits on run396's block 5162, 62 after the window's first block and
+    194 before its last.
+  - `0/5` died on 5147 on both sides. On block 5161 `1/24` has taken the
+    scout `0/0` fresh on both sides, and its follower `1/26` still names
+    `0/5`.
+  - On 5162 the original's `1/24` strikes `0/0` (`in_range` 1,
+    `recharging` 33) and `1/26` holds `0/0`. Ours' `1/24` has re-searched
+    onto the city `0/2000`, and `1/26` has followed it.
+  - Every key first parting on 5162 is one of those two units'.
+
+### 79.7 What is not established
+
+- **The head at `find_melee_target`'s other callers with a third argument
+  of 0** is still ours' bare search:
+  - `Sim::find_new_target` (the collision ladder's, `stand` 1);
+  - the packer's re-search;
+  - the guard arm's search;
+  - `think`'s idle search.
+
+  Each is a SEAM. A captain, which the building arm's re-search requires,
+  searches either way. No capture on disk has a follower reach one of them
+  with a dead or refused target.
+- **The fresh order** (parked 1073) still stands on `1/21`'s attack row
+  from 4996 and on 5105. No draw parts on it.
+- **§76.1 calls `1/13` a captain** (`up −1`, on 4999). On 5066 its `o_up`
+  is 12. The chain in between was not walked here.
+
+### 79.8 Coverage
+
+- **Diff-backed**: the head, by run373's `1/13` on 5067–5068 and `1/21`
+  on 5091–5092, run396's 5105, and frame 5105's draws on run347. It is a
+  floor, and the killer made it fail.
+- **Packet-backed**: `targeted` on `0/4` and `0/5`, and `find_melee_target`
+  entered on `1/13` (run400).
+- **Listing-backed**: `005ff9c0`'s head (decompile, lines 32–91);
+  `find_new_target@005ff6a0`'s call. `find_attack_pos`'s flank gate
+  `602822`–`6028ed` and `flanking@0092cfe0` were read from the listing and
+  build nothing here.
+- **Unit-backed only**: the `QUEUE_NEW` position and the captain's
+  `mandatory`, neither of which `1/13` exercises.
