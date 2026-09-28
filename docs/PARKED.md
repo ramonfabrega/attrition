@@ -62,6 +62,18 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1014, 2026-09-27 — the scout's treaties
+
+(1024) **`treaties` bit 1, set by a raid**: on block 4658 (run356) both
+leaders' `treaties` read 3 there against 1 here, beside city `0/2000`'s
+`raid_stamp` 4657 and `city_flags[0x2]`. This crate does not carry the
+second bit; `& 3` is non-zero either way, so no score names it yet.
+
+(1025) **`danger_build_is_seen` is a fog read at the building's centre**
+where `do_danger`'s `is_seen` is `BuildData::is_seen`, the `ever_seen`
+byte (`fight.rs`'s `build_is_seen`). Both agree at every rebuild in
+1014's window.
+
 ## Parked by item 1009, 2026-09-27 — the launch commands' last arms
 
 (1019) **The Helicopter's and missiles' launch arms, captured**: the
@@ -81,7 +93,9 @@ family (a pushed selection's point).
 (1015) **`find_melee_target`'s squad head at `Group::action_attack`'s
 retarget**: built, and the floor refused it (it held the word at 4607
 against 4618 without it), so it stands unbuilt with its kill. A packet
-at 4606 reading the city's `+0x3d` decides it (COMBAT §66).
+at 4606 reading the city's `+0x3d` decides it (COMBAT §66). **1014**:
+its packet went to 4506, where 1014's word was; 1015's wants its own run
+number.
 
 (1016) **`build_ids` has no capital fallback**: `Built::builds` omits
 each capital, so a city target answers None (1003's cause, named by
@@ -1705,6 +1719,13 @@ before calling it built. A candidate checklist row beside 918.
 time** (1009's Loop line, filed at its merge): 955 and 1009 each wrote
 one for `add_gather_point` and the Airbase's loops. By the probe rule
 it is a `tools/emu` candidate at the third.
+
+(1026) **`Game::do_frame` faults on a packet at its first call** (1014's
+Loop line, filed at its merge): a renderer object outside the packet, so
+`step4.py`'s default entry is unusable on run360; enter the function
+directly, as `scout_probe.py` does. And the click-free lane now takes a
+lobby field (`unattended_capture.py --profile KEY=N`), which the second
+pair's packets need every time: the runbook should say so.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
