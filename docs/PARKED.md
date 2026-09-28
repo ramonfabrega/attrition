@@ -88,6 +88,14 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1081, 2026-09-28 — the lead's edges
+
+(1087) **The lead's two unmeasured edges** (COMBAT §74.7): a building
+shooter's round is never led in this crate
+(`process_building_combat`), and whether the original's reaches the
+lead is not read; and the heading-against-facing half of the lead is
+backed by a unit test only, no dump row.
+
 ## Parked by item 1077, 2026-09-28 — the blast's edges
 
 (1084) **The blast's two unmeasured edges** (COMBAT §73): `who=0`'s
@@ -1784,6 +1792,12 @@ destroys the building; one scratch print of `do_damage`'s arguments on
 the word's frame said the arithmetic was right and the `splash` flag
 wrong. A brief on such a parting could ask for that print before any
 reading.
+
+(1088) **A word whose first row is a wound prints ours' rounds first**
+(1081's Loop line): no second-pair capture prints `AMMO`, so a round's
+landing is visible on one side only, and 1081's word turned on one. A
+row could ask such a word for `RON_DEBUG_AMMO` (1081's test-only print
+in `diff/harness.rs`) before any reading; with 1085, one row.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
