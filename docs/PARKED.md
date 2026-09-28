@@ -62,6 +62,19 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1052, 2026-09-28 — the army's march
+
+(1062) **The second pair's widening compares no `GROUPDATA` record**
+(`facing`, `ox`/`oy`, `order_num`, `o_angle`), only the pool's lists;
+golden's `widen_pool` does. 1061's frame starts on an order.
+
+(1063) **`do_forming`'s per-group step** (ARMY §8.5) is reversed by the
+same listing as the march origin and not built: this crate's army is one
+group.
+
+(1064) **`1/9`'s and `1/24`'s `orders_x/y` value rows on 4868 and 4887**
+(run373): no draw reads them.
+
 ## Parked by item 1048, 2026-09-28 — the Helicopter's flight
 
 (1059) **`Unit::work`'s tail clears `unit_masks & 0x10`** (60dc9f): not
@@ -1844,6 +1857,15 @@ word's mechanism** (1048's Loop line, filed at its merge): the brief's
 first question was answered in one line and the parting sat in the unit
 whose drift was parked as not-mine (1049, closed by 1048). 958's
 whole-cast read found it only because it ran first.
+
+(1065) **FABLE: three second readers' verdict on an inlined idiom was
+wrong** (1052's Loop line, filed at its merge): ARMY §9 and §8.5 rested
+on the verdict that a `sub $0x80000000` before a `jns` is the sine
+fold's first step. It is a reversal, and comparing the inlined sequence
+with `sinx@0092d100`'s own `test; jns` settles it in a minute. 1052
+amended both sections from the listing. A checklist row: a reader who
+calls an inlined idiom "the same as" a named function quotes that
+function's listing beside it.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
