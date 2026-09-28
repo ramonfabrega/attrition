@@ -4407,6 +4407,19 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3420;
 /// whole, (605, 3421).
 pub(crate) const WIDENING_CHAPTER_THIRTY_SIX: (i64, i64) = (605, 3421);
 
+/// **Chapter thirty-seven's golden word** — the nuke (`docs/GOLDEN.md`
+/// §46, item 1091, run397): a cast of its own on the golden start, the
+/// nuke researched at a silo and trained, its strike with the shield given
+/// in the countdown, a round with no scatter, and forty frames of
+/// `Nuke::do_damage`.
+///
+/// **The delta**, this constant's: the first walk, PENDING.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SEVEN: i64 = 0;
+
+/// `chapter_thirty_seven_s_word_frame_is_widened_whole`'s window: run397
+/// whole, (605, 3491).
+pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4955,6 +4968,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // it fails).
     ("chapter_thirty_six_holds_to_the_golden_word", 40),
     ("chapter_thirty_six_s_word_frame_is_widened_whole", 40),
+    // Chapter thirty-seven (item 1091): one read, the nuke's round's `ez`
+    // at ground zero (pinned at 0, it fails).
+    ("chapter_thirty_seven_holds_to_the_golden_word", 1),
+    ("chapter_thirty_seven_s_word_frame_is_widened_whole", 1),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

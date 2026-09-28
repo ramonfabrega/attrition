@@ -12847,6 +12847,95 @@ fn chapter_thirty_six_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch36: what parts in the pool moved");
 }
 
+/// **Chapter thirty-seven, pinned** — the nuke (`docs/GOLDEN.md` §46,
+/// item 1091, run397). Fourteen staged lines on the golden start.
+#[test]
+fn chapter_thirty_seven_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch37", "chapter37", 37, 14, 3489) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY_SEVEN,
+        "chapter thirty-seven's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY_SEVEN}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY_SEVEN,
+        "chapter thirty-seven's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §46"
+    );
+    eprintln!(
+        "chapter thirty-seven: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run397 whole, both directions** (item 1091, `docs/GOLDEN.md` §46):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch37",
+        "chapter37",
+        WIDENING_CHAPTER_THIRTY_SEVEN,
+        3489,
+        0,
+        (3199, 3202),
+        true,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch37 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_SEVEN.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch37: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY_SEVEN.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch37", "chapter37", WIDENING_CHAPTER_THIRTY_SEVEN, 0)
+        .expect("run397 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch37 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    eprintln!("ch37: {} rows, {} pool rows", got.len(), got_pool.len());
+    let mut want: Vec<String> = WANT_CH37.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch37: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH37_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch37: what parts in the pool moved");
+}
+
+/// Chapter thirty-seven's widening rows (item 1091): run397 whole.
+const WANT_CH37: &[&str] = &[];
+
+/// Chapter thirty-seven's pool rows (item 1091).
+const WANT_CH37_POOL: &[&str] = &[];
+
 /// Chapter thirty-six's widening rows (item 1078): run390 whole. Chapter
 /// thirty-five's forty-two, the spotter's and the two V2s' `form` (0
 /// against −1), and the V2s' seats inside their silos on 2926 and 2931
