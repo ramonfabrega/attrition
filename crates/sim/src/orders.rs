@@ -1661,9 +1661,7 @@ impl Sim {
         action: bool,
     ) {
         if let Some(t) = target
-            && self
-                .profile(Obj::Unit(u))
-                .has(crate::combat::mask::MISSILE)
+            && self.profile(Obj::Unit(u)).has(crate::combat::mask::MISSILE)
             && self.valid_target(Obj::Unit(u), t)
         {
             let at = self.pos_of(t);

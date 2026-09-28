@@ -525,15 +525,12 @@ impl Sim {
         if !unit.alive() || !unit.on_map || unit.inside.is_some() {
             return;
         }
-        if self
-            .current_order(u)
-            .is_some_and(|o| {
-                matches!(
-                    o.body,
-                    Body::Strafe(_) | Body::AirPatrol(_) | Body::AirAttackGround(_)
-                )
-            })
-        {
+        if self.current_order(u).is_some_and(|o| {
+            matches!(
+                o.body,
+                Body::Strafe(_) | Body::AirPatrol(_) | Body::AirAttackGround(_)
+            )
+        }) {
             return;
         }
         let Some(v) = self.nearest_of_own_type(u, 0x180) else {

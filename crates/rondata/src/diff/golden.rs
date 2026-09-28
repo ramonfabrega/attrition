@@ -12761,6 +12761,167 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch35: what parts in the pool moved");
 }
 
+/// **The V2's launch, field for field, both directions** (item 1050,
+/// `docs/PRODUCTION.md` "The missile's launch and round"). On every block
+/// of run371 from the silo's strike to two blocks past the round's
+/// release, [`V2_LAUNCH`]:
+/// - the silo `0/2009`'s `recharging`, `launch_frames` and `launching`
+///   (its length and first missile), read raw — no parser carries them;
+/// - the V2 `0/10` on the map or gone, either side;
+/// - every round `0/10` fired, keyed on its pool slot, every field this
+///   crate carries: the release point and height, the landing point and
+///   height, the time, the accuracy, the angle, `v1z`, the flags.
+///
+/// The order the V2 holds, 2672..2701, is the general widening's
+/// (`crate::diff::order`'s air attack row).
+#[test]
+fn chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field() {
+    use std::collections::{BTreeMap, BTreeSet};
+    let Some(mut s) = stage_script("ch35", "chapter35") else {
+        return;
+    };
+    let (first, last) = V2_LAUNCH;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let (mut rows, mut rounds) = (0usize, 0usize);
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let recs = raw_records(&raw);
+        let sim = &s.built.sim;
+        let mut row = |who: i64, o: i64, what: &str, mine: i64, dumped: i64| {
+            rows += 1;
+            if mine != dumped {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {mine} theirs {dumped}")));
+            }
+        };
+        // The silo.
+        let silo = sim
+            .buildings
+            .iter()
+            .position(|b| b.owner == 0 && b.index == 2009 && b.alive)
+            .expect("the silo stands");
+        let bd = &sim.buildings[silo];
+        let theirs = recs
+            .get(&("BUILDDATA", 0, 2009))
+            .expect("run371 prints the silo");
+        let get = |k: &str| theirs.get(k).copied().unwrap_or(-1);
+        let launching = bd
+            .launching
+            .first()
+            .map_or(-1, |&u| i64::from(sim.units[u].index));
+        row(
+            0,
+            2009,
+            "recharging",
+            i64::from(bd.recharging),
+            get("recharging"),
+        );
+        row(
+            0,
+            2009,
+            "launch_frames",
+            i64::from(bd.launch_frames),
+            get("launch_frames"),
+        );
+        row(
+            0,
+            2009,
+            "launching.length",
+            bd.launching.len() as i64,
+            get("length"),
+        );
+        row(0, 2009, "launching[0]", launching, get("list[scan]"));
+        // The V2.
+        let ours_v2 = sim.unit_by_o(0, 10).is_some();
+        let theirs_v2 = recs.contains_key(&("UNITDATA", 0, 10));
+        row(0, 10, "present", i64::from(ours_v2), i64::from(theirs_v2));
+        // Its rounds.
+        let theirs: BTreeMap<i64, super::ammo::Ammo> = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0 && a.who == 0 && a.o == 10)
+            .map(|(a, _)| (a.index, a))
+            .collect();
+        let ours: BTreeMap<i64, sim::combat::Projectile> = sim
+            .projectiles
+            .iter()
+            .filter(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => sim.units[u].owner == 0 && sim.units[u].index == 10,
+                sim::combat::Obj::Building(_) => false,
+            })
+            .map(|p| (i64::from(p.slot), *p))
+            .collect();
+        rounds += theirs.len();
+        let slots: BTreeSet<i64> = theirs.keys().chain(ours.keys()).copied().collect();
+        for slot in slots {
+            let (Some(a), Some(p)) = (theirs.get(&slot), ours.get(&slot)) else {
+                // Held alone: 1 on the side that holds it.
+                row(
+                    0,
+                    10,
+                    &format!("ammo[{slot}]"),
+                    i64::from(ours.contains_key(&slot)),
+                    i64::from(theirs.contains_key(&slot)),
+                );
+                continue;
+            };
+            for (name, mine, dumped) in [
+                ("cur_time", i64::from(p.cur_time), a.cur_time),
+                ("total_time", i64::from(p.total_time), a.total_time),
+                ("whom", -1, a.whom),
+                ("ox", -1, a.ox),
+                ("sx", i64::from(p.launch.x), a.sx),
+                ("sy", i64::from(p.launch.y), a.sy),
+                ("sz", i64::from(p.sz), a.sz),
+                ("ex", i64::from(p.landing.x), a.ex),
+                ("ey", i64::from(p.landing.y), a.ey),
+                ("ez", i64::from(p.ez), a.ez),
+                ("angle", i64::from(p.angle.0), a.angle),
+                ("traj", 2, a.traj),
+                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+                ("accuracy", i64::from(p.accuracy), a.accuracy),
+                ("splash_area", i64::from(p.splash_area), a.splash_area),
+                ("num_guys", i64::from(p.num_guys), a.num_guys),
+            ]
+            .into_iter()
+            .chain(ammo_flag_rows(p, a))
+            {
+                row(0, 10, &format!("ammo[{slot}].{name}"), mine, dumped);
+            }
+        }
+    }
+    for ((w, o, what), (f, r)) in &firsts {
+        eprintln!("  ch35 v2 f{f} {w}/{o} {what}: {r}");
+    }
+    eprintln!("ch35 v2: {rows} rows, {rounds} dumped rounds");
+    assert!(rounds >= 2, "run371 dumps the V2's round on 2702 and 2703");
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    assert_eq!(
+        got, WANT_CH35_V2,
+        "ch35: what parts in the V2's launch moved"
+    );
+}
+
+/// What stands of the V2's launch on [`V2_LAUNCH`] (item 1050): nothing.
+const WANT_CH35_V2: &[&str] = &[];
+
+/// [`chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field`]'s
+/// window: run371's blocks from the silo's strike (2670, the press) to two
+/// past the round's release (2703).
+const V2_LAUNCH: (i64, i64) = (2668, 2704);
+
 // **What parts under the word** on run371, chapter thirty-five. **The
 // first walk** (item 1019, before any build): 469 rows. Chapter
 // thirty-two's standing seventeen (611..655, and the Biplane's birth on
@@ -12783,7 +12944,15 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
 // every block from 2675 to the end; what stands of it is the birth seat's
 // bearing (`dest_angle` and `order:move.angle` on 2659, the heading the
 // arrival turns to on 2719). The rest from 2702 is the V2's round, which
-// the draw stream now reaches (the word, 2701).
+// the draw stream now reaches (the word, 2701). **After item 1050**: 43
+// rows. The V2's launch — its order on 2672, the silo's countdown, its
+// step, round and end on 2701 — took `0/10`'s rows on 2672 and 2702, and
+// with the draw stream agreeing to the end every row the misaligned
+// stream had pushed after 2701 is gone. **The word's block**, 2701 and
+// 2702 (the word, closed at 3260): no row; the V2's own record there is
+// `chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field`'s,
+// 220 rows and none parting. What stands of it is the blast: 2821,
+// `1/2006` gone there, at 400 damage here.
 const WANT_CH35: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
@@ -12822,372 +12991,12 @@ const WANT_CH35: &[&str] = &[
     "2659 0/12 g.z[0]",
     "2659 0/12 order:move.angle",
     "2659 0/12 pos",
-    "2672 0/10 order:length",
-    "2672 0/10 orders.len",
-    "2702 0/10 ammo[0]",
-    "2702 0/10 extra",
-    "2707 1/5 dest_angle",
-    "2707 1/5 order:move.angle",
-    "2707 1/5 order:move.off_x",
-    "2707 1/5 order:move.off_y",
-    "2707 1/5 order:move.x",
-    "2707 1/5 order:move.y",
-    "2707 1/5 orders_x",
-    "2707 1/5 orders_y",
-    "2708 1/5 g.angle[0]",
-    "2708 1/5 g.des_angle[0]",
-    "2708 1/5 g.des_y[0]",
-    "2708 1/5 g.last_speed[0]",
-    "2708 1/5 g.y[0]",
-    "2708 1/5 heading",
-    "2708 1/5 order:move.dest_x",
-    "2708 1/5 order:move.dest_y",
-    "2708 1/5 path[0].to",
-    "2708 1/5 pos",
-    "2710 1/5 g.avg_speed[0]",
-    "2716 0/0 g.cur_anim[0]",
-    "2716 0/0 g.cur_anim[1]",
-    "2716 0/0 g.end_time[0]",
-    "2716 1/5 g.des_x[0]",
-    "2716 1/5 g.x[0]",
-    "2718 1/5 order:kind",
-    "2718 1/5 order:length",
-    "2718 1/5 orders.len",
-    "2718 1/5 path:length",
     "2719 0/12 angle:Heading",
     "2719 0/12 g.des_angle[0]",
     "2719 0/12 heading",
-    "2719 1/5 g.cur_anim[0]",
-    "2719 1/5 g.cur_time[0]",
-    "2719 1/5 g.end_time[0]",
-    "2719 1/5 g.last_time[0]",
-    "2719 1/5 g.stopped[0]",
     "2720 0/12 angle:Facing",
     "2720 0/12 g.angle[0]",
-    "2722 0/3 dest_angle",
-    "2722 0/3 order:move.angle",
-    "2722 0/3 order:move.off_x",
-    "2722 0/3 order:move.off_y",
-    "2722 0/3 order:move.x",
-    "2722 0/3 order:move.y",
-    "2722 0/3 orders_x",
-    "2722 0/3 orders_y",
-    "2723 0/3 g.angle[0]",
-    "2723 0/3 g.des_angle[0]",
-    "2723 0/3 g.des_x[0]",
-    "2723 0/3 g.last_speed[0]",
-    "2723 0/3 g.x[0]",
-    "2723 0/3 heading",
-    "2723 0/3 mirror",
-    "2723 0/3 order:move.dest_x",
-    "2723 0/3 order:move.dest_y",
-    "2723 0/3 path[0].to",
-    "2723 0/3 pos",
-    "2725 0/3 g.avg_speed[0]",
-    "2731 0/3 g.des_y[0]",
-    "2731 0/3 g.y[0]",
-    "2733 0/3 order:kind",
-    "2733 0/3 order:length",
-    "2733 0/3 orders.len",
-    "2733 0/3 path:length",
-    "2734 0/3 g.cur_anim[0]",
-    "2734 0/3 g.cur_time[0]",
-    "2734 0/3 g.end_time[0]",
-    "2734 0/3 g.last_time[0]",
-    "2734 0/3 g.stopped[0]",
-    "2773 1/0 dest_angle",
-    "2773 1/0 order:move.angle",
-    "2773 1/0 order:move.facing",
-    "2773 1/0 order:move.x",
-    "2773 1/0 order:move.y",
-    "2773 1/0 orders_x",
-    "2773 1/0 orders_y",
-    "2773 1/0 path:length",
-    "2773 1/0 path[0].to",
-    "2773 1/0 path[1].to",
-    "2773 1/0 path[2].to",
-    "2777 0/0 g.cur_time[0]",
-    "2777 0/0 g.cur_time[1]",
-    "2777 0/0 g.last_time[0]",
-    "2799 1/0 g.angle[0]",
-    "2799 1/0 g.angle[1]",
-    "2799 1/0 g.des_angle[0]",
-    "2799 1/0 g.des_angle[1]",
-    "2799 1/0 g.des_x[0]",
-    "2799 1/0 g.des_x[1]",
-    "2799 1/0 g.des_y[0]",
-    "2799 1/0 g.des_y[1]",
-    "2799 1/0 g.x[0]",
-    "2799 1/0 g.x[1]",
-    "2799 1/0 g.y[0]",
-    "2799 1/0 g.y[1]",
-    "2799 1/0 heading",
-    "2799 1/0 order:move.dest_x",
-    "2799 1/0 pos",
-    "2800 1/0 g.last_speed[0]",
-    "2805 1/4 order:move.off_x",
-    "2805 1/4 order:move.off_y",
-    "2805 1/4 order:move.x",
-    "2805 1/4 order:move.y",
-    "2805 1/4 orders_x",
-    "2805 1/4 orders_y",
-    "2806 1/4 dest_angle",
-    "2806 1/4 g.angle[0]",
-    "2806 1/4 g.avg_speed[0]",
-    "2806 1/4 g.cur_anim[0]",
-    "2806 1/4 g.cur_time[0]",
-    "2806 1/4 g.des_angle[0]",
-    "2806 1/4 g.des_x[0]",
-    "2806 1/4 g.des_y[0]",
-    "2806 1/4 g.end_time[0]",
-    "2806 1/4 g.last_speed[0]",
-    "2806 1/4 g.last_time[0]",
-    "2806 1/4 g.stopped[0]",
-    "2806 1/4 g.x[0]",
-    "2806 1/4 g.y[0]",
-    "2806 1/4 heading",
-    "2806 1/4 mirror",
-    "2806 1/4 order:kind",
-    "2806 1/4 order:length",
-    "2806 1/4 orders.len",
-    "2806 1/4 path:length",
-    "2806 1/4 pos",
-    "2807 1/4 order:flags",
-    "2807 1/4 order:move.angle",
-    "2807 1/4 order:move.dest",
-    "2808 1/4 collide_o",
-    "2808 1/4 collide_who",
-    "2811 1/0 g.avg_speed[1]",
-    "2811 1/0 g.last_speed[1]",
-    "2816 1/0 g.cur_anim[1]",
-    "2817 1/0 order:move.dest",
-    "2818 1/0 order:move.dest_y",
-    "2818 1/2 order:gather.wait",
     "2821 1/2006 build:extra",
-    "2821 1/5 mirror",
-    "2831 1/0 tolerance",
-    "2831 1/5 order:flags",
-    "2831 1/5 order:move.dest",
-    "2846 0/3 order:flags",
-    "2846 0/3 order:move.dest",
-    "2871 0/3 angle:Facing",
-    "2871 0/3 angle:Heading",
-    "2879 0/4 dest_angle",
-    "2879 0/4 order:move.angle",
-    "2879 0/4 order:move.off_x",
-    "2879 0/4 order:move.off_y",
-    "2879 0/4 order:move.x",
-    "2879 0/4 order:move.y",
-    "2879 0/4 orders_x",
-    "2879 0/4 orders_y",
-    "2880 0/4 g.angle[0]",
-    "2880 0/4 g.des_angle[0]",
-    "2880 0/4 g.des_x[0]",
-    "2880 0/4 g.des_y[0]",
-    "2880 0/4 g.last_speed[0]",
-    "2880 0/4 g.x[0]",
-    "2880 0/4 g.y[0]",
-    "2880 0/4 heading",
-    "2880 0/4 order:move.dest_x",
-    "2880 0/4 order:move.dest_y",
-    "2880 0/4 path[0].to",
-    "2880 0/4 pos",
-    "2881 0/4 g.avg_speed[0]",
-    "2881 1/0 mirror",
-    "2881 1/0 order:move.off_x",
-    "2881 1/0 order:move.off_y",
-    "2882 1/3 dest_angle",
-    "2882 1/3 order:move.angle",
-    "2882 1/3 order:move.off_x",
-    "2882 1/3 order:move.off_y",
-    "2882 1/3 order:move.x",
-    "2882 1/3 order:move.y",
-    "2882 1/3 orders_x",
-    "2882 1/3 orders_y",
-    "2883 1/0 g.avg_speed[0]",
-    "2883 1/0 order:length",
-    "2883 1/0 orders.len",
-    "2883 1/3 g.angle[0]",
-    "2883 1/3 g.avg_speed[0]",
-    "2883 1/3 g.cur_anim[0]",
-    "2883 1/3 g.cur_time[0]",
-    "2883 1/3 g.des_angle[0]",
-    "2883 1/3 g.des_x[0]",
-    "2883 1/3 g.des_y[0]",
-    "2883 1/3 g.end_time[0]",
-    "2883 1/3 g.last_speed[0]",
-    "2883 1/3 g.last_time[0]",
-    "2883 1/3 g.stopped[0]",
-    "2883 1/3 g.x[0]",
-    "2883 1/3 g.y[0]",
-    "2883 1/3 heading",
-    "2883 1/3 mirror",
-    "2883 1/3 order:kind",
-    "2883 1/3 order:length",
-    "2883 1/3 orders.len",
-    "2883 1/3 path:length",
-    "2883 1/3 pos",
-    "2884 1/0 g.cur_time[0]",
-    "2884 1/0 g.cur_time[1]",
-    "2884 1/0 g.last_time[0]",
-    "2884 1/0 g.last_time[1]",
-    "2884 1/0 idle",
-    "2884 1/3 order:flags",
-    "2884 1/3 order:move.dest",
-    "2885 1/3 order:move.dest_x",
-    "2885 1/3 order:move.dest_y",
-    "2885 1/3 path[0].to",
-    "2895 0/5 dest_angle",
-    "2895 0/5 order:move.angle",
-    "2895 0/5 order:move.off_x",
-    "2895 0/5 order:move.off_y",
-    "2895 0/5 order:move.x",
-    "2895 0/5 order:move.y",
-    "2895 0/5 orders_x",
-    "2895 0/5 orders_y",
-    "2896 0/5 g.angle[0]",
-    "2896 0/5 g.avg_speed[0]",
-    "2896 0/5 g.cur_anim[0]",
-    "2896 0/5 g.cur_time[0]",
-    "2896 0/5 g.des_angle[0]",
-    "2896 0/5 g.des_x[0]",
-    "2896 0/5 g.des_y[0]",
-    "2896 0/5 g.end_time[0]",
-    "2896 0/5 g.last_speed[0]",
-    "2896 0/5 g.last_time[0]",
-    "2896 0/5 g.stopped[0]",
-    "2896 0/5 g.x[0]",
-    "2896 0/5 g.y[0]",
-    "2896 0/5 heading",
-    "2896 0/5 mirror",
-    "2896 0/5 order:kind",
-    "2896 0/5 order:length",
-    "2896 0/5 orders.len",
-    "2896 0/5 path:length",
-    "2896 0/5 pos",
-    "2897 0/5 order:flags",
-    "2897 0/5 order:move.dest",
-    "2901 0/4 order:kind",
-    "2901 0/4 order:length",
-    "2901 0/4 orders.len",
-    "2901 0/4 path:length",
-    "2902 0/4 g.cur_anim[0]",
-    "2902 0/4 g.cur_time[0]",
-    "2902 0/4 g.end_time[0]",
-    "2902 0/4 g.last_time[0]",
-    "2902 0/4 g.stopped[0]",
-    "2908 1/-1 leader:bucket[2:wealth]",
-    "2922 1/0 path[10].to",
-    "2922 1/0 path[11].to",
-    "2922 1/0 path[12].to",
-    "2922 1/0 path[13].to",
-    "2922 1/0 path[14].to",
-    "2922 1/0 path[15].to",
-    "2922 1/0 path[16].to",
-    "2922 1/0 path[17].to",
-    "2922 1/0 path[18].to",
-    "2922 1/0 path[19].to",
-    "2922 1/0 path[20].to",
-    "2922 1/0 path[21].to",
-    "2922 1/0 path[22].to",
-    "2922 1/0 path[23].to",
-    "2922 1/0 path[24].to",
-    "2922 1/0 path[25].to",
-    "2922 1/0 path[26].to",
-    "2922 1/0 path[27].to",
-    "2922 1/0 path[28].to",
-    "2922 1/0 path[29].to",
-    "2922 1/0 path[30].to",
-    "2922 1/0 path[31].to",
-    "2922 1/0 path[32].to",
-    "2922 1/0 path[33].to",
-    "2922 1/0 path[34].to",
-    "2922 1/0 path[35].to",
-    "2922 1/0 path[36].to",
-    "2922 1/0 path[37].to",
-    "2922 1/0 path[38].to",
-    "2922 1/0 path[39].to",
-    "2922 1/0 path[3].to",
-    "2922 1/0 path[40].to",
-    "2922 1/0 path[41].to",
-    "2922 1/0 path[42].to",
-    "2922 1/0 path[4].to",
-    "2922 1/0 path[5].to",
-    "2922 1/0 path[6].to",
-    "2922 1/0 path[7].to",
-    "2922 1/0 path[8].to",
-    "2922 1/0 path[9].to",
-    "2924 0/5 angle:Facing",
-    "3004 0/4 mirror",
-    "3005 0/4 order:flags",
-    "3005 0/4 order:move.dest",
-    "3027 0/5 order:move.dest_x",
-    "3027 0/5 order:move.dest_y",
-    "3027 0/5 path[0].to",
-    "3042 1/4 order:move.dest_x",
-    "3042 1/4 order:move.dest_y",
-    "3042 1/4 path[0].to",
-    "3056 1/1 order:gather.wait",
-    "3057 1/1 order:move.off_x",
-    "3057 1/1 order:move.x",
-    "3057 1/1 orders_x",
-    "3058 1/1 order:move.dest_x",
-    "3058 1/1 path[0].to",
-    "3064 1/1 collide",
-    "3064 1/1 collide_o",
-    "3064 1/1 collide_who",
-    "3064 1/1 g.avg_speed[0]",
-    "3064 1/1 g.cur_anim[0]",
-    "3064 1/1 g.cur_time[0]",
-    "3064 1/1 g.des_x[0]",
-    "3064 1/1 g.end_time[0]",
-    "3064 1/1 g.last_speed[0]",
-    "3064 1/1 g.last_time[0]",
-    "3064 1/1 g.stopped[0]",
-    "3064 1/1 g.x[0]",
-    "3064 1/1 order:coll",
-    "3064 1/1 order:move.dest",
-    "3064 1/1 order:move.pause",
-    "3064 1/1 path:length",
-    "3064 1/1 pos",
-    "3065 1/1 g.angle[0]",
-    "3065 1/1 g.des_angle[0]",
-    "3065 1/1 g.des_y[0]",
-    "3065 1/1 g.y[0]",
-    "3065 1/1 heading",
-    "3065 1/1 mirror",
-    "3065 1/1 order:kind",
-    "3065 1/1 order:length",
-    "3065 1/1 orders.len",
-    "3066 1/0 g.cur_anim[0]",
-    "3067 1/1 dest_angle",
-    "3070 0/1 order:gather.wait",
-    "3115 1/5 angle:Facing",
-    "3115 1/5 angle:Heading",
-    "3121 1/3 angle:Facing",
-    "3121 1/3 angle:Heading",
-    "3172 0/5 angle:Heading",
-    "3233 1/0 order:move.last_x",
-    "3233 1/0 order:move.last_y",
-    "3233 1/0 path[31].tolerance",
-    "3233 1/0 path_recursion",
-    "3234 0/2 order:gather.wait",
-    "3237 1/2 dest_angle",
-    "3237 1/2 g.cur_anim[0]",
-    "3237 1/2 g.cur_time[0]",
-    "3237 1/2 g.last_time[0]",
-    "3237 1/2 order:kind",
-    "3237 1/2 order:length",
-    "3237 1/2 orders.len",
-    "3238 1/2 order:gather.goto_build",
-    "3239 1/2 angle:Facing",
-    "3239 1/2 angle:Heading",
-    "3239 1/2 g.angle[0]",
-    "3239 1/2 g.des_angle[0]",
-    "3239 1/2 g.end_time[0]",
-    "3239 1/2 g.stopped[0]",
-    "3239 1/2 heading",
-    "3239 1/2 mirror",
 ];
 
 // **What parts in the pool** on run371: chapter twenty-two's ten, and
