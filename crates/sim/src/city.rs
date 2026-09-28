@@ -145,7 +145,18 @@ pub struct City {
     pub founding_capital: bool,
     pub was_founding_capital: bool,
     pub unassimilated: bool,
+    /// `city_flags & 0x2`, the PDB's `CITY_UNDER_ATTACK`: the city heal's
+    /// veto. Set with `0x4` and `0x8` by `Object::take_damage` when another
+    /// player hits any building of the city, and cleared by the city
+    /// building's 200-frame decay once `0x4` has gone (`docs/COMBAT.md`
+    /// §69).
     pub no_heal: bool,
+    /// `city_flags & 0x4`, `CITY_ATTACKING`: the decay's first stage — the
+    /// 200-frame tick that finds it set clears it and leaves `0x2` (§69).
+    pub attacking: bool,
+    /// `city_flags & 0x8`, `CITY_EVER_ATTACKED`: set with the other two and
+    /// cleared by nothing (§69).
+    pub ever_attacked: bool,
     pub alarm: bool,
     /// `city_flags & 0x2000`: the army's "no muster spot here" mark —
     /// set when `find_muster_spot`'s ring search finds no cell at an
@@ -394,6 +405,8 @@ impl Sim {
             was_founding_capital: false,
             unassimilated: false,
             no_heal: false,
+            attacking: false,
+            ever_attacked: false,
             alarm: false,
             no_muster: false,
             was_capital: 0,
@@ -2037,6 +2050,7 @@ impl Sim {
     /// attrition, deferred ejection, the capture re-test, the assimilation
     /// tick and the city heal. Queues and combat run from `Sim::tick`.
     pub(crate) fn process_building(&mut self, b: usize, frame: i64) {
+        const CITY_ATTACK_DECAY: i64 = 200;
         if !self.buildings[b].alive {
             if self.buildings[b].hold_frames > 0 {
                 if self.buildings[b].garrison.is_empty() {
@@ -2050,9 +2064,13 @@ impl Sim {
         // **`Wall::process@00640450`'s first statement**, on the game's own
         // frame and not the building's phase: every eighth frame, on the one
         // whose low three bits are the owner's player number, a building
-        // asks who has looked at it (`docs/VISION.md` §6.1). The `targeted`
-        // decay that shares the branch is a seam.
+        // asks who has looked at it (`docs/VISION.md` §6.1), and first
+        // quarters its `targeted` count (`ObjectData +0x3d`, signed toward
+        // zero; `docs/COMBAT.md` §68.3). run368's packet holds the human's
+        // city at 0 on logger frame 4688, where a count that never decayed
+        // read 31.
         if frame != 0 && frame & 7 == i64::from(self.buildings[b].owner) {
+            self.buildings[b].targeted /= 4;
             self.check_ever_seen(b, false);
         }
         let phase = self.buildings[b].phase(frame);
@@ -2101,6 +2119,22 @@ impl Sim {
         // (`crate::air`, `docs/ORDERS.md` §38.3, item 836).
         if self.buildings[b].ty.is_some_and(|t| self.is_hangar(t)) {
             self.do_launch(b);
+        }
+        // **The city's under-attack decay** (`Build::process@0061edf0`,
+        // `docs/COMBAT.md` §69): on a city building with a city, every 200
+        // frames of its own phase, `CITY_ATTACKING` goes first and
+        // `CITY_UNDER_ATTACK` — the heal's veto — on the tick after, so a
+        // city heals from 200 to 400 frames after its last hit.
+        if phase % CITY_ATTACK_DECAY == 0
+            && self.building_is_city(b)
+            && let Some(c) = self.buildings[b].city
+        {
+            let cd = &mut self.cities[c];
+            if cd.attacking {
+                cd.attacking = false;
+            } else {
+                cd.no_heal = false;
+            }
         }
         // The capture re-test, twice a second, with the nearest enemy land
         // unit within sixteen tiles.
@@ -2510,6 +2544,8 @@ impl Sim {
         nc.pop = oldc.pop;
         nc.unassimilated = !friendly;
         nc.no_heal = oldc.no_heal;
+        nc.attacking = oldc.attacking;
+        nc.ever_attacked = oldc.ever_attacked;
         if oldc.capital {
             nc.was_capital |= 1 << o;
             if oldc.founding_capital {

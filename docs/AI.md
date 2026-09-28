@@ -10606,10 +10606,22 @@ live `2009` was compared with ours' dead frame-976 site.
     block 4673 parts on `1/24`'s order (kind 10 against 1), and its chase
     spot has parted since 4617.~~ **Moved to 4688 by item 1023**
     (`docs/COMBAT.md` §67): `check_target_path` re-aims a ranged chase on a
-    fleeing unit out of reach of the walk spot. **Great Lakes 4688, the
+    fleeing unit out of reach of the walk spot. ~~**Great Lakes 4688, the
     lower**: 35 against 35 at index 31, `Guy::set_anim+0x97a <
     Guy::move+0x19f` against `Farms::inc_time+0x1ae`; `1/24` strikes `0/3`
-    on 4688 there and retargets to the scout `0/0` here (§67.5).
+    on 4688 there and retargets to the scout `0/0` here (§67.5).~~ **Moved
+    to 4690 by item 1028** (`docs/COMBAT.md` §68): `compare_target`'s RAID
+    arm, a `Build` target handed to the group unsearched, and a building's
+    `targeted` decay. ~~**Great Lakes 4690, the lower**: ours 5, the original
+    4, at index 1, `Object::take_damage+0xe1` against
+    `Farms::inc_time+0x1ae`; nothing parts on block 4691 (§68.5).~~ **Moved
+    to 4781 by item 1034** (`docs/COMBAT.md` §69): a city hit by another
+    player sets `city_flags` `0xe`, and `0x2` vetoes the city heal until the
+    city building's 200-frame decay clears it; ours had healed the human's
+    city off its first wound, so 4690's strike was a first wound again.
+    **Great Lakes 4781, the lower**: ours 5, the original 4, at index 0,
+    `Unit::fight+0x9b0` against `Farms::inc_time+0x1ae`; the citizen `0/4`
+    is struck on 4779 there and not here (§69.5).
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

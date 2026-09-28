@@ -171,7 +171,9 @@ A building has three states: *placed* (`0x1`), *started* (`0x3`), *active*
 | bit | meaning | evidence |
 | --- | --- | --- |
 | `0x1` | slot is a live city | `Cities::init_city` scans for a clear bit; `City::close` clears it |
-| `0x2` | "do not heal / auto-repair" | read by `Build::process`; the setter was not found |
+| `0x2` | "do not heal / auto-repair" — the PDB's `CITY_UNDER_ATTACK` | read by `Build::process`; ~~the setter was not found~~ **set by `Object::take_damage@00652020`** on another player's hit on any building of the city, **cleared by `Build::process`'s 200-frame decay** once `0x4` has gone (`docs/COMBAT.md` §69, item 1034) |
+| `0x4` | `CITY_ATTACKING` | set with `0x2`; the decay's first stage (`docs/COMBAT.md` §69) |
+| `0x8` | `CITY_EVER_ATTACKED` | set with `0x2`; cleared by nothing found (`docs/COMBAT.md` §69) |
 | `0x10` | **capital** | `City::init`'s fifth argument; `find_capital` searches it |
 | `0x40` | alarm (`CITY_ALARM`, PDB `CityFlag`) | `Group::action_alarm`; cleared by `come_out` when the city empties |
 | `0x80` | has an active TEMPLE | `add_to_city` / `remove_from_city` / `activate`; `update_hits` reads it |
@@ -1794,7 +1796,8 @@ one.
 ### 8.2 The city heal
 
 `Build::process`, a city building with `damage != 0`, **`race == who`** and
-`city_flags & 2` clear: every `CITY_HEAL_RATE` (4) frames, phased by `o`,
+`city_flags & 2` clear (set by another player's hit and cleared 200 to 400
+frames after the last one, `docs/COMBAT.md` §69): every `CITY_HEAL_RATE` (4) frames, phased by `o`,
 `repair_damage(get_level(), 0, 1)` — **a city heals its level in hit points
 every four frames, and an unassimilated city does not heal**. An AI owner
 also orders a nearby idle citizen to repair a city past half damage. There is
@@ -2136,7 +2139,9 @@ heal, ejection), then the sites' `construct_hits` refresh.
    by the shipped footprints. Check: a `RULES=1` log dumps the types by name.
 2. **`leader_flags & 4`** (human), **`leader_flags2 & 1`** (no starting
    city?), **tribe bonus 0x17** (the Lakota variant of the capital decision),
-   **`city_flags & 2`** (the heal/repair veto — no setter found),
+   ~~**`city_flags & 2`** (the heal/repair veto — no setter found)~~
+   (`Object::take_damage`'s `|= 0xe` and `Build::process`'s decay,
+   `docs/COMBAT.md` §69, item 1034),
    **`city_mine` vs `city_num`** (always moved together here; a third writer
    must exist). All inferred from use.
 3. **The editor-only verdicts and `TData 0x200`**, **`WData 0x100`/`region2`**,

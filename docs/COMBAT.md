@@ -1549,8 +1549,11 @@ captain does not take the first candidate the cell hands it.
 The implementation carries the skeleton of this — cost, the building class
 multipliers, the `attack × 100 / hits_left` preference, `× dmg`, the combat-
 role and supply bonuses, **the `/5`**, `/(full+1)`, the ceil/compress/floor —
-over what the simulation has, and leaves the raid, spell, stealth and AI
-branches as inputs. See `combat::compare_target`.
+over what the simulation has, and leaves the ~~raid,~~ spell, stealth and AI
+branches as inputs. See `combat::compare_target`. **The raid arm is built
+(item 1028, §68.1)**, and the weights above are corrected there: a
+computer's land raider takes `+900,000` for a peasant or a caravan and
+`+10,000` for a combat unit; the `+9,000,000` is a human raider's.
 
 ### 12.4 Switching and opportunity
 
@@ -10971,8 +10974,11 @@ parted on army 0's members: kind 21 here, kind 10 there.
   min(d + 0xc0, unit_respond_range × 0x240), &whom, 0, 0, word)`, where
   `word` is **1 when the target's vslot `+0x1c` answers 0 (a unit) and 2
   when it answers 1 (a building)**. After the halt, the head is not an
-  attack-move, so §64.2's rewrite leaves the word standing: a member sent
-  at a city searches buildings only.
+  attack-move, so §64.2's rewrite leaves the word standing: ~~a member sent
+  at a city searches buildings only~~. **Corrected by item 1028 (§68.2)**:
+  the retarget is under the target's vslot `+0x20` answering 0, so it
+  searches only for a unit or a wall target, and a city is handed to every
+  member unsearched.
 - **The ring's start** (`601d88`–`601f54`): the start-side switch at
   `601e3e` loads both arms' `x`/`y` slots (`601e04`–`601e1a`). For side 4
   (`601ea0`–`601ef4`) that is `x = t.x + x_size × 0x60 + stand`, `y = t.y`,
@@ -10995,6 +11001,9 @@ parted on army 0's members: kind 21 here, kind 10 there.
 The last row stands against the decompile. Either the followers search at
 this site in the original, or another search bumps the city. A packet at
 4606 that reads the city's `+0x3d` would decide between the two.
+**Answered by item 1028 (§68.2)**: a city target never reaches the search,
+so neither holds. The kill stood on raid-less values, and the word row
+above is the wrong arm.
 
 ### 66.4 The fix
 
@@ -11047,7 +11056,9 @@ this site in the original, or another search bumps the city. A packet at
 - **The siege arm of the add** (`local_2c`: an AI siege unit on a building
   whose `+8 & 0x20` is set takes it `mandatory` and writes the army's
   target) and the naval refusal. No capture reaches either.
-- **The squad head at the retarget** (§66.3, last row).
+- **The squad head at the retarget** (§66.3, last row). ~~For the city~~:
+  a `Build` target never searches (§68.2). It stands for a unit or a wall
+  target, with no capture.
 - **Parked 1003 is the harness.** `Built::builds` links each player's
   pre-placed buildings but not the capital. who=0's table holds
   `2001`–`2006` and not `2000` (handle 0). So `build_ids` answers `None`,
@@ -11192,7 +11203,7 @@ arms:
     1, target `0/3` kept. Ours has not.
 - **What the disk says about the new word, and what it cannot.** The
   roll is 18653, and `18653 % 5 = 3`, so both sides run the one-in-five
-  re-search. Ours scores:
+  re-search. Ours scored (item 1028 corrects it, §68.1):
   - the human's scout `0/0`, 216 away, at 344 (value 1032, shaped
     distance 492);
   - `0/3` at 225 (value 1800, distance 1393).
@@ -11205,7 +11216,10 @@ arms:
   - **The remaining input**: the scout's `targeted` (`ObjectData +0x3d`),
     which no dump prints. The scout loses at a `targeted` of 6 or more,
     where ours reads 0. A packet at 4687 would read it. That is the next
-    item's, beside parked 1015's city count.
+    item's, beside parked 1015's city count. **Killed by item 1028**:
+    run368's packet reads `targeted` 0 on the scout and on `0/3`. The
+    decider is `compare_target`'s raid arm, which values `0/3` at 9800 and
+    the scout at 15. **Moved to 4690** (§68.5).
 
 ### 67.6 What is not established
 
@@ -11229,3 +11243,308 @@ arms:
   (`00601280:266`, `0061de70:72`).
 - **Unit-backed only**: the walk spot as the range's origin, and the
   standing, approaching and off-phase refusals.
+
+## 68. A raider wants the economy, and a Build target is handed out unsearched (item 1028, 2026-09-28)
+
+Item 1028 was booked on Great Lakes' second word, frame 4688 of run347:
+35 draws a side, parting at index 31. Both sides spend `1/24`'s
+`Unit::fight+0x9b0` (roll 18653, so the one-in-five re-search runs). Then
+ours spends `Guy::set_anim+0x97a < Guy::move+0x19f`, where the original
+spends `Farms::inc_time+0x1ae`. On block 4689 the original's `1/24` has
+struck the citizen `0/3`, and ours has retargeted to the human's scout
+`0/0`. The booking's hypothesis was the candidates' `targeted`
+(`ObjectData +0x3d`), which no dump prints. **The packet killed it.**
+
+### 68.1 The RAID arm of `compare_target`
+
+- **The packet.** run368, at logger frame 4688 (after trace tick 4687), is
+  the state `1/24`'s re-search reads (`docs/EMULATOR.md` §8's rule: the
+  word itself, as a logger frame).
+  - `targeted` is 0 on every candidate, the scout and `0/3` included, on
+    both sides. Only the city differs: ours 31, the original 0 (§68.3).
+  - `Unit::find_melee_target@005ff9c0`, entered directly on `1/24`
+    (parked 1026), answers `0/3`.
+  - Hooked at `00649701`/`00649715`/`006497b4`, every candidate's shaped
+    distance equals ours. The **values** do not: `0/3`, `0/4` and `0/5` at
+    9800 (ours 1800), the scout 15 (ours 1032), the city 15 (ours 1866).
+- **Why.** `1/24`'s stance is 3, RAID. Every member of group 65 (`1/9`–
+  `1/26`) has been RAID since before block 4550. `Object::compare_target@
+  0064e5c0` has a raid arm this crate never built (§12.3 had left it as an
+  input).
+- **The flag** (`0064e6b6`–`0064e742`):
+  - `bVar17` is a unit attacker whose type has a stance type
+    (`has_stance_type`) and whose stance (`+0xb1`) is 3;
+  - `bVar3` is the attacker's `unit_masks & 0x40000`, a computer's unit;
+  - `bVar16` is the attacker's type `+0x218 == 1`, a ship. With both, it
+    raids only without the SIEGE objmask (`has_objmask(0x40000)`).
+- **An active building** (`0064ea57`–`0064ea7a`): the attack formula
+  `v × attack × 100 / hits_left` becomes `v / 20` when the target is a
+  `Build` (vslot `+0x20`), active (`+0x4c`) and the attacker raids. After
+  the damage weight a raider jumps past the building's armed ×5 and
+  siege bonus to the tail (`0064f124`).
+- **A unit target**, after the combat-role ×20 (dispatch `0064edc4`):
+  - a computer's land raider (`0064ef69`–`0064efbb`): a peasant
+    (`ObjectData::is_peasant@0046d310`, type `0x32`/`0x33`) or a caravan
+    `+900,000`; else a combat unit (`+0x2c8 & 0x10000`) `+10,000`; else
+    `/10` (`0064ee6e`);
+  - a human's raider (`0064efc3`–`0064eff9`): a peasant or a caravan
+    `+9,000,000`; else `/10`;
+  - a computer's ship (`0064edd8`–`0064ef64`): the `0x150`/`0x13d` lineage
+    tests and the stealth-ship weights. **Not built**; read as the land
+    arm (a SEAM, no capture).
+- **Arithmetic, checked on the packet.** `0/3`: `80,000 + 900,000` →
+  `ceil(/100)` 9800. The scout: `3,200 / 10 = 320` → 4 → the floor, 15. The
+  city's trace on the packet: cost 20, `4 × 20 = 80`, `/20` → 4, × damage 7,
+  → the floor. Out-of-range `/5` is waived for a raider, as before (§12.3).
+
+### 68.2 A `Build` target is handed to the group without a search
+
+With §68.1 alone the walk fell back to 4605: every member of group 65 took
+the Woodcutter's Camp `0/2001` instead of the city. Under raid values every
+building scores the floor, and the nearer ring wins the tie.
+
+- **The packet.** run369, at logger frame 4605, is the state before
+  `1/15`'s look. On it:
+  - `find_nearby_target` with the word 2, from `1/9`, `1/13` and `1/21`,
+    answers `0/2001` for all three (values 15 to 42, the first on the
+    nearer ring). So the members cannot be taking a word-2 search.
+  - `1/15`'s look, `find_melee_target(−1, NULL, 0, 1, 0)` entered
+    directly, finds the city (flags `0x20010`, the city its only
+    candidate). `Group::action_attack@00712490` is called from the add arm
+    and recurses `QUEUE_NEW`. **All eighteen members get
+    `add_attack_order(2000, 0, …)` from `action_attack+0xc44`, and not one
+    `find_melee_target` is called between.**
+- **The listing's reason.** The `mandatory == 0` retarget
+  (`00712490:456`–`470`) is under `00712490:433`–`437`: the target's
+  vslot `+0x20` answers 0, which is a unit or a wall. A `Build` target takes
+  the other arm. So the retarget's word is 1 for a unit and 2 for a
+  **wall**, never for a city. §66.2's "a member sent at a city searches
+  buildings only" was the wrong arm, and the walk could not tell until the
+  city's value stopped carrying it.
+- **Parked 1015 is answered.** Its question was the squad head at this
+  retarget, and the floor's kill of it (§66.3's last row) was a city
+  target. A city target never reaches the search. The squad head stands
+  unbuilt for a unit or a wall target, with no capture.
+
+### 68.3 A building's `targeted` decays
+
+`Wall::process@00640450`'s first statement quarters `+0x3d` (signed,
+toward zero) on every nonzero frame whose low three bits are the owner's
+player number, in the branch that calls `check_ever_seen`. §33's list of
+`+0x3d`'s writers names it, and this crate had carried it as a seam. The
+city read 31 here on logger frame 4688 against the packet's 0.
+
+### 68.4 The fix, and its killers
+
+- **Built**:
+  - `sim::fight::compare_target`'s raid arm (§68.1);
+  - `sim::group::group_action_attack`'s `Build` arm (§68.2);
+  - `sim::city::process_building`'s decay (§68.3);
+  - `sim::anim::is_peasant`, now `pub(crate)`.
+- **Unit tests**:
+  - `a_raider_weighs_a_peasant_over_a_scout_and_a_building_at_a_twentieth`
+  - `a_group_sent_at_a_build_takes_it_without_a_search` (1012's
+    `a_group_retarget_from_a_building_takes_a_building`, rewritten: it
+    passed without exercising anything once a `Build` stopped searching)
+  - `a_building_s_targeted_count_is_quartered_on_its_owner_s_eighth_frame`
+- **Mutations** on `76da8ed2`, each restored from git and `touch`ed:
+
+  | mutation | unit test | run347's walk |
+  |---|---|---|
+  | `raiding` false | fails | falls back to 4607 |
+  | the raid unit weights off | fails | falls back to 4688, index 31 |
+  | a `Build` target searched again | fails | falls back to 4605 |
+  | the AI raider's weight 9,000,000 | fails | holds 4690 |
+  | the attack formula in place of `/20` | fails | holds 4690 |
+  | no building decay | fails | holds 4690 |
+
+### 68.5 What moved
+
+- **Great Lakes 4688 → 4690.** On 4688 `1/24`'s re-search reads, on both
+  sides, `0/3` at value 9800 (score 1225), the scout 15 (score 5) and the
+  city 15 at `targeted` 0 (score 5). It keeps `0/3` and strikes, so block
+  4689's `recharging` (0 against 33) and `hold_attack` no longer part.
+  Frame 4688's draws went 35 against 35, parting at 31 → agreeing. On
+  run356, `1/21`'s order (first parting 4761) and `1/24`'s (4722) no
+  longer part in the window. The scout's target on 4737 reads 2808 again
+  (1272 after 1023), against the original's 504.
+- **East Indies holds at 5606**, and the second pair's other tests hold.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
+  named): frame 4690, ours 5 draws and the original 4, parting at index 1.
+  Ours spends `Object::take_damage+0xe1`, where the original spends
+  `Farms::inc_time+0x1ae`.
+  - ~~Nothing parts on block 4691.~~ The human's city `0/2000` had parted
+    since block 4661, healed here off `1/26`'s first strike (§69.1); a
+    row that stands is not a row that parts, and the block's new rows
+    were read for it. The citizen `0/3` holds `damage 0` on both
+    sides from 4688 to 4693, and first parts on 4723 (3 against 2).
+  - `1/24`'s walk spot parts on 4689, (3763, 31600) against the cell
+    centre (3768, 31608).
+
+### 68.6 What is not established
+
+- **The ship raid arm** (§68.1, `0064edd8`–`0064ef64`) and the raiding
+  ship's two early zeros at `0064e7af`–`0064e821`.
+- **`has_stance_type`'s refusal**: a type with no stance type never raids.
+  This crate sets RAID only where a stance exists.
+- **A detected hidden unit's `/4`** in place of the raid weights, and the
+  spellcaster and spy bonuses above them (§12.3's, unchanged).
+- **The best score's seed is 0** (`0064929e`, `-0x6c`), so a candidate
+  whose value is 0 is never taken. This crate takes the first of those
+  when nothing else stands. No capture reaches one.
+- **A wall target's retarget** (the word 2) has no capture.
+
+### 68.7 Coverage
+
+- **Diff-backed**:
+  - the raid flag and the unit weights, by frame 4688's draws and block
+    4689 (both fall back under their mutations);
+  - the `Build` arm, by frame 4605 (it falls back under its mutation).
+- **Packet-backed**, and unit-backed, but not a floor:
+  - the AI raider's `+900,000` against the human's 9,000,000 (run368:
+    9800);
+  - the building's `/20` (run368: the city's `80 → 4` in the trace);
+  - the decay (run368: the city at 0).
+- **Listing-backed**: `0064e6b6`–`0064e742`, `0064ea57`–`0064ea7a`,
+  `0064edc4`–`0064eff9`, `0064f124`.
+
+## 69. A city under attack does not heal (item 1034, 2026-09-28)
+
+Item 1034 was booked on Great Lakes' second word, frame 4690 of run347:
+ours 5 draws against the original's 4, parting at index 1. Ours spends
+`Object::take_damage+0xe1` (§7.2 step 3, a building's first wound), where
+the original spends `Farms::inc_time+0x1ae`. No mechanism was named.
+
+### 69.1 The frame, from the disk
+
+- **Who and what.** A scratch print of the frame's hits: `1/26` (type 32)
+  strikes the human's city `0/2000` for 2 5/16. On our side the city's
+  `damage` was 0 before the hit, so the roll was a first wound.
+- **The original's city.** On run356 its `damage` reads 2/5 from block 4658
+  (the first strike, frame 4657, on both sides) to 4689, and 4/10 on 4690.
+  Its second strike found `damage` 2, so it threw no roll.
+- **Ours.** The city healed: `damage` 2/5 → 1/0 on block 4661 → 0/0 on
+  4665, one point per four frames (the city heal, `docs/CITIES.md` §8.2).
+  The widening had carried the row since 4661 (`build:damage`, ours 1
+  against 2). 1028's "nothing parts on block 4691" read the block's *new*
+  rows (§68.5, struck).
+- **The earliest parting on the city**, block 4658: `city_flags[0x2]` ours
+  0 against 1, beside `raid_stamp` 4657. The dump's word is 18449 → 18463,
+  `+0xe`: bits `0x2`, `0x4` and `0x8` together. `0x2` is the heal's veto
+  (`docs/CITIES.md` §1.4), and this crate had no writer of it outside
+  tests. The field was already compared; its row had stood unread since
+  the window opened.
+
+### 69.2 The listing
+
+- **The setter.** `Object::take_damage@00652020`, the Build-proper branch
+  (vslot `+0x20` non-zero), under `param_5 == 0` (combat, not attrition)
+  and `this->who != param_8` (another player): after the under-attack
+  latch's arms (`BuildData +0x60 |= 0x30`, skipped only for a peasant or
+  `0x42` attacker outside its own territory), and whichever way they went,
+  a building with a city (`BuildData +0x72 >= 0`) takes
+  `orw $0xe, 0x4(%eax)` at `00652561`: `CITY_UNDER_ATTACK | CITY_ATTACKING
+  | CITY_EVER_ATTACKED`, the PDB's names (`docs/ARMY.md`'s enum list). An
+  AI owner at difficulty above 1 then pushes an alarm group (not built;
+  the human's city never takes it).
+- **The decay.** `Build::process@0061edf0`, after the `is_active` return,
+  on an `OBJECT_CITY` building (`flags & 0x20`) with a city: every frame
+  where `(frame + o) % 200 == 0`, `0x4` is cleared if set, else `0x2`. The
+  same block decrements `CityData +0x61 plundered` (not carried). It runs
+  ahead of the capture re-test and the heal, so a tick that clears `0x2`
+  heals on the same frame.
+- **The writers, counted** (823, 869). The decompile names four:
+  `take_damage` (`|= 0xe`), the decay (a computed store), `City::init`
+  (zero) and `City::capture` (kept, `docs/CITIES.md` §1.4). The listing's `or`/`and`
+  of 2, 4, 8 or `0xe` at a `+4` offset: every other hit is another type's
+  field (the Army's own flags, `Ammo`, `Guy`, the interface).
+  `CITY_EVER_ATTACKED` has no clear.
+- **The heal** (`Build::process`, `0061edf0`, `& 2) == 0` before the
+  `city_heal_rate` phase) and **the AI's repair order** (every 64 frames,
+  past half damage, `& 2) == 0`) both read `0x2`. The second is not built
+  in this crate (`docs/CITIES.md` §8.2's "an AI owner also orders").
+
+### 69.3 The readings, and what killed each
+
+The frame named no mechanism. The disk named the heal in one row walk; no
+reading preceded it. No packet was needed: the city's damage, its flags and
+the phase are all printed, and the listing gave the setter and the decay.
+
+### 69.4 The fix, and its killers
+
+- **Built**:
+  - `sim::fight::damage_building` sets `no_heal`, `attacking` and
+    `ever_attacked` on the building's city under the latch's condition;
+  - `sim::city::process_building`'s 200-frame decay, before the capture
+    re-test;
+  - `sim::city::City` carries `0x4` and `0x8`, and `City::capture` keeps
+    all three;
+  - `rondata::diff::harness` compares `city_flags[0x4]` and `[0x8]`.
+- **Unit test**: `a_city_hit_by_another_player_stops_healing_for_two_
+  decay_ticks` (`cities_tests.rs`): the owner's hit and attrition set
+  nothing; another player's sets all three; no heal until the second
+  tick, and the heal on that tick's frame.
+- **Mutations** on `5bca6101`, each restored from git and `touch`ed:
+
+  | mutation | unit test | run347's walk | run356's widening |
+  |---|---|---|---|
+  | the setter leaves `0x2` clear | fails | falls back to 4690, index 1 | the scout's 4737 row returns |
+  | `0x2` cleared on the first tick | fails | holds 4781 | `city_flags[0x2]` parts on 4801, 0 against 1 |
+  | no decay | fails | holds 4781 | `city_flags[0x4]` parts on 4801, 1 against 0 |
+
+### 69.5 What moved
+
+- **Great Lakes 4690 → 4781.** On run356, the city's `city_flags` `0x2`,
+  `0x4` and `0x8` agree on every block from 4550 to 4806. That includes
+  4658's set and 4801's clear of `0x4` (`(4800 + 2000) % 200 == 0`). Its
+  `damage` holds 2/5 on both sides from 4658 to 4689, where ours healed it
+  to 0 by 4665. Frame 4690's draws went 5 against 4 → agreeing.
+- **Exposed, not introduced**: `1/26`'s strikes on the city from the second
+  on land here a frame after the original's. The original's land on 4689,
+  4716, 4722, 4750 and 4782; ours on 4690, 4717, 4723, 4751 and 4783. The
+  city's `damage` parts on each strike's block and agrees on the next.
+  The first strike (4657) agrees. The heal had hidden this row since 4661.
+- **The scout's explore target on 4737** (2808 against 504 since item
+  1028) now agrees, and `1/0`'s order agrees through the window. Which
+  read of the city moved it is not established.
+- **East Indies holds at 5606** (ours 4, the original 5, at index 0, as
+  booked).
+- **The first pair's standing `0x2` rows close**: run100's window (the
+  human city's, opened with `raid_stamp` on 9451) and run294's block
+  19840.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
+  named): frame 4781, ours 5 draws and the original 4, parting at index 0.
+  Ours spends `Unit::fight+0x9b0`, where the original spends
+  `Farms::inc_time+0x1ae`. Block 4782 is inside run356's window (232 after
+  its first block, 24 before its last).
+  - On block 4780 the citizen `0/4` has been struck there
+    (`damage_frame` 4779, `damage` 3/5) and not here.
+  - On 4781 `0/4`'s order parts (kind 10 against 1, `orders_x` 1882
+    against 2040).
+  - `1/24`'s `g.cur_time` parts from 4753 and its facing from 4787.
+
+### 69.6 What is not established
+
+- **`raid_stamp`** (`CityData +0x18`), written by `Object::do_damage`'s
+  building arm beside `S_RAID_ATTACKED`, is still not carried; its row
+  stands from 4658, asserted against this crate's 0.
+- **`CityData +0x61 plundered`**'s decrement in the same 200-frame block.
+- **The AI owner's alarm push** after the `0xe` (`take_damage`,
+  `Group::action_alarm`), and **the AI's repair order** that reads `0x2`.
+- **The latch's peasant arm**: a peasant or `0x42` attacker outside its
+  own territory skips `+0x60 |= 0x30`. This crate latches every foreign
+  hit. The flags are set either way.
+- **`1/26`'s one-frame lag** from its second strike (§69.5).
+
+### 69.7 Coverage
+
+- **Diff-backed**:
+  - the setter, by run347's frame 4690 (it falls back under its
+    mutation) and by run356's `city_flags[0x2]`/`[0x4]`/`[0x8]` rows;
+  - the decay's two stages, by run356's block 4801: `0x4` clears there
+    and `0x2` does not (the second and third mutations).
+- **Unit-backed only**: `0x2`'s own clear on the second tick, and the heal
+  on that frame. No block on disk reaches 200 frames past a stage-one
+  clear without a new hit (the window ends on 4806).
+- **Listing-backed**: `00652561`; `Build::process@0061edf0`'s
+  `(frame + o) % 200` block and its heal gate.

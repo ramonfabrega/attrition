@@ -3276,16 +3276,25 @@ impl Sim {
                 // **`mandatory == 0` retargets** (`00712490:456`–`470`,
                 // item 1012): `find_melee_target(u, min(d + 0xc0,
                 // respond), &whom, 0, 0, word)` with the word **1 for a
-                // unit target, 2 for a building** (the target's vslot
-                // `+0x1c`), so a member sent at a city takes a building.
-                // What it cannot name falls back to the group's target.
+                // unit target, 2 for a wall** (the target's vslot
+                // `+0x1c`). What it cannot name falls back to the group's
+                // target. **The arm is under the target's vslot `+0x20`
+                // answering 0** (`00712490:433`–`437`): a `Build` target
+                // takes the other arm, which adds the attack itself with
+                // no search (`action_attack+0xc44`). run369's packet: the
+                // look on 4605 hands the human's city to group 65, and
+                // all eighteen members take it through `+0xc44`, not one
+                // `find_melee_target` between (`docs/COMBAT.md` §68.2).
                 //
                 // SEAM: `find_melee_target`'s squad head (a follower takes
                 // its captain's attack without a search) is on the
-                // decompile's path for this call, and the floor refused
-                // it: built, Great Lakes fell from 4618 to 4607, the city's
-                // `targeted` twelve bumps short (`docs/COMBAT.md` §66.3).
-                let t = if mandatory {
+                // decompile's path for a unit or wall target, and no
+                // capture reaches one. Item 1012's kill of it (the city's
+                // `targeted` twelve bumps short) was a city target, which
+                // never reaches the search (`docs/COMBAT.md` §68.2).
+                let build = matches!(target,
+                    Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE);
+                let t = if mandatory || build {
                     target
                 } else {
                     let d = crate::world::vector_dist(
@@ -5648,6 +5657,8 @@ mod tests {
             was_founding_capital: false,
             unassimilated: false,
             no_heal: false,
+            attacking: false,
+            ever_attacked: false,
             alarm: false,
             no_muster: false,
             was_capital: 0,
@@ -6717,16 +6728,18 @@ mod tests {
         );
     }
 
-    /// **A member sent at a building retargets among buildings** (item
-    /// 1012, `docs/COMBAT.md` §66): `Group::action_attack`'s `mandatory ==
-    /// 0` retarget hands `find_melee_target` the word 2 for a building
-    /// target (`00712490:456`–`470`). Great Lakes 4605's army, sent at the
-    /// human's city, stood within reach of the human's scout; every member
-    /// took the city.
+    /// **A member sent at a `Build` takes it, with no search** (item 1028,
+    /// `docs/COMBAT.md` §68.2): `Group::action_attack`'s `mandatory == 0`
+    /// retarget is under the target's vslot `+0x20` answering 0, so only a
+    /// unit or a wall target is re-searched; a `Build` is added to every
+    /// member through `action_attack+0xc44`. run369's packet: the look on
+    /// Great Lakes 4605 hands the human's city to group 65 and all eighteen
+    /// members take it, with the human's costlier camps nearer.
     ///
-    /// Made to fail by passing the word 0: the assertion names the soldier.
+    /// Made to fail by searching a `Build` target again (the word 2 takes
+    /// the costlier camp beside the member).
     #[test]
-    fn a_group_retarget_from_a_building_takes_a_building() {
+    fn a_group_sent_at_a_build_takes_it_without_a_search() {
         let mut s = sim();
         let t = fighter(&mut s);
         let bt = s.add_build_type(crate::build::BuildType {
@@ -6734,20 +6747,124 @@ mod tests {
             y_size: 2,
             ..crate::build::BuildType::default()
         });
-        let camp = s.add_building(0, Pos::new(0x2000, 0x1000), 0);
-        s.buildings[camp].ty = Some(bt);
-        s.buildings[camp].hits = 800;
-        s.buildings[camp].health = 800;
-        s.buildings[camp].combat = Some(combat::Profile::default());
+        let put = |s: &mut Sim, at: Pos, cost: i32| {
+            let b = s.add_building(0, at, 0);
+            s.buildings[b].ty = Some(bt);
+            s.buildings[b].hits = 800;
+            s.buildings[b].health = 800;
+            s.buildings[b].combat = Some(combat::Profile {
+                cost,
+                ..combat::Profile::default()
+            });
+            b
+        };
+        let city = put(&mut s, Pos::new(0x2000, 0x1000), 0);
+        let camp = put(&mut s, Pos::new(0x1400, 0x1000), 5000);
         let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
-        let near = spawn(&mut s, 0, t, Pos::new(0x1200, 0x1000));
         let g = group_of(1, &[a]);
-        s.group_action_attack(&g, Obj::Building(camp), false, QueuePos::New, 0);
+        s.group_action_attack(&g, Obj::Building(city), false, QueuePos::New, 0);
         assert_eq!(
             s.units[a].combat.target,
-            Some(Obj::Building(camp)),
-            "a member sent at a building took the soldier {near} beside it"
+            Some(Obj::Building(city)),
+            "a member sent at a Build searched and took the camp {camp} beside it"
         );
+    }
+
+    /// **A raider wants the economy** (item 1028, `docs/COMBAT.md` §68.1):
+    /// `Object::compare_target`'s RAID arm. For a computer's raider a
+    /// peasant is worth `+900,000` and anything neither a peasant, a
+    /// caravan nor a combat unit a tenth; for a human's the peasant is worth
+    /// `+9,000,000`; an active building is worth `/ 20` of its cost and
+    /// none of its threat. Great Lakes 4688's `1/24` (stance 3) keeps the
+    /// citizen `0/3` at 9800 over the scout `0/0` at 15 (run368's packet).
+    ///
+    /// Made to fail by answering `raiding` false (every assertion), by the
+    /// AI raider's weight `9,000,000` (the second), and by the building's
+    /// formula in place of `/ 20` (the last).
+    #[test]
+    fn a_raider_weighs_a_peasant_over_a_scout_and_a_building_at_a_twentieth() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let citizen = s.add_unit_type(UnitType {
+            hits: 50,
+            worker: crate::orders::Worker::Citizen,
+            combat: combat::Profile {
+                cost: 50,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let scout = s.add_unit_type(UnitType {
+            hits: 50,
+            combat: combat::Profile {
+                cost: 50,
+                ..combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let bt = s.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let tower = s.add_building(0, Pos::new(0x1800, 0x1000), 0);
+        s.buildings[tower].ty = Some(bt);
+        s.buildings[tower].hits = 800;
+        s.buildings[tower].health = 800;
+        s.buildings[tower].combat = Some(combat::Profile {
+            cost: 400,
+            attack: 40,
+            ..combat::Profile::default()
+        });
+        let ai = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let human = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1400));
+        let p = spawn(&mut s, 0, citizen, Pos::new(0x1200, 0x1000));
+        let sc = spawn(&mut s, 0, scout, Pos::new(0x1200, 0x1200));
+        let foe = spawn(&mut s, 1, citizen, Pos::new(0x1200, 0x1400));
+        let value = |s: &Sim, a: usize, o: Obj| s.compare_target(Obj::Unit(a), o, true, false);
+        let calm = (
+            value(&s, ai, Obj::Unit(p)),
+            value(&s, ai, Obj::Unit(sc)),
+            value(&s, ai, Obj::Building(tower)),
+        );
+        s.units[ai].combat.stance = combat::Stance::Raid;
+        s.units[human].combat.stance = combat::Stance::Raid;
+        let raid = (
+            value(&s, ai, Obj::Unit(p)),
+            value(&s, ai, Obj::Unit(sc)),
+            value(&s, ai, Obj::Building(tower)),
+        );
+        // Out of reach and not raiding, `/5`: 100,000 + 400 over five.
+        assert_eq!(calm, (201, 201, 1600), "the same three, not raiding");
+        assert_eq!(
+            raid,
+            (9004, 15, 15),
+            "a computer's raider: 900,000 + 400, 400 / 10 and the floor, 4 × 400 / 20 × 2 and the floor"
+        );
+        assert_eq!(
+            value(&s, human, Obj::Unit(foe)),
+            90_004,
+            "a human's raider: 9,000,000 + 400"
+        );
+    }
+
+    /// **A building's `targeted` count decays** (item 1028, `docs/COMBAT.md`
+    /// §68.3): `Wall::process@00640450`'s first statement quarters it,
+    /// signed toward zero, on every frame whose low three bits are the
+    /// owner's player number, beside `check_ever_seen`. run368's packet
+    /// holds the human's city at 0 on logger frame 4688, where this crate's
+    /// count, never decayed, read 31.
+    ///
+    /// Made to fail by skipping the decay.
+    #[test]
+    fn a_building_s_targeted_count_is_quartered_on_its_owner_s_eighth_frame() {
+        let mut s = sim();
+        let b = s.add_building(0, Pos::new(0x1000, 0x1000), 0);
+        s.buildings[b].targeted = 31;
+        s.process_building(b, 4681);
+        assert_eq!(s.buildings[b].targeted, 31, "4681 is not who 0's frame");
+        s.process_building(b, 4688);
+        assert_eq!(s.buildings[b].targeted, 7, "4688 & 7 == 0: 31 / 4");
     }
 
     /// **An army group's attack-move looks, and hands what it finds to

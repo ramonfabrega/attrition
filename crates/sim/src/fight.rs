@@ -2029,6 +2029,19 @@ impl Sim {
             let bd = &mut self.buildings[b];
             bd.under_attack |= 0x3;
             bd.hit_frame = Some(frame);
+            // **`city_flags |= 0xe`** (`Object::take_damage@00652020`, the
+            // `orw $0xe, 0x4(%eax)` at `00652561`; `docs/COMBAT.md` §69):
+            // under the same `param_5 == 0 && who != param_8` as the latch,
+            // and whatever the latch's peasant arm decided, a building that
+            // belongs to a city (`BuildData +0x72 >= 0`) marks its city
+            // under attack, attacking and ever attacked. The first of the
+            // three is the city heal's veto.
+            if let Some(c) = self.buildings[b].city {
+                let cd = &mut self.cities[c];
+                cd.no_heal = true;
+                cd.attacking = true;
+                cd.ever_attacked = true;
+            }
         }
         self.first_wound_draws(b, by, attrition);
         let site = !self.buildings[b].active && self.buildings[b].ty.is_some();
@@ -2934,12 +2947,36 @@ impl Sim {
             // owner, which the simulation does not yet distinguish.
             let _ = tp.build_class;
         }
+        // **The RAID arm** (`0064e6b6`–`0064e742`, `docs/COMBAT.md` §68.1):
+        // `bVar17`, the attacker's own stance 3, qualified for an AI-driven
+        // (`bVar3`, `unit_masks & 0x40000`) ship (`bVar16`, type `+0x218 ==
+        // 1`), which raids only without the SIEGE objmask. It reweights
+        // every candidate below and waives the range test's `/5`.
+        //
+        // SEAM: `has_stance_type`'s refusal (a type with no stance type is
+        // never raiding) is not read; a stance this crate sets is RAID only
+        // on a type that has one.
+        let (raiding, ai_raider) = match attacker {
+            Obj::Unit(i) if self.units[i].combat.stance == Stance::Raid => {
+                let ai_raider = self.ai_driven(self.units[i].owner);
+                let sea = matches!(ap.domain, Domain::Sea);
+                (!(sea && ai_raider && ap.has(mask::SIEGE)), ai_raider)
+            }
+            _ => (false, false),
+        };
         let t_attack = self.attack_of(target);
         let left = self.hits_left(target);
         if t_attack != 0 && left != 0 && !aa {
-            v = v * i64::from(t_attack) * 100 / i64::from(left);
-            if is_build {
-                v *= 10;
+            // A raider looks at an active building's worth, not its threat:
+            // `iVar5 == 0 || !bVar17 || iVar4 == 0` takes the formula, and
+            // the one case left takes `/ 20` (`0064ea57`–`0064ea7a`).
+            if is_build && raiding && self.active(target) {
+                v /= 20;
+            } else {
+                v = v * i64::from(t_attack) * 100 / i64::from(left);
+                if is_build {
+                    v *= 10;
+                }
             }
         }
         if matches!(attacker, Obj::Building(b) if self.buildings[b].target == Some(target)) {
@@ -3016,8 +3053,10 @@ impl Sim {
         }
         if is_build {
             // Armed buildings: a human owner gets ×5; siege adds 100,000.
+            // A raider jumps past all of it to the tail (`0064f124`,
+            // `if (bVar17) goto LAB_0064f1ed`).
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
-            if armed {
+            if armed && !raiding {
                 v *= 5;
                 if ap.has(mask::SIEGE) {
                     v += 100_000;
@@ -3027,7 +3066,26 @@ impl Sim {
             if tp.combat_role {
                 v *= 20;
             }
-            if tp.combat_role {
+            // **The raid weights** (`0064edc4`–`0064eff9`): a raider wants
+            // the economy. A peasant — exactly `PEASANTS`/`PEASANTSKOREAN`,
+            // `ObjectData::is_peasant`, type `0x32`/`0x33` — or a caravan is
+            // worth `+900,000` to a computer's raider and `+9,000,000` to a
+            // human's; a computer's also takes a combat-role unit at
+            // `+10,000`; anything else is worth a tenth.
+            //
+            // SEAM: an AI ship's raid arm (`bVar16`, `0064edd8`–`0064ef64`:
+            // the `0x150`/`0x13d` lineage tests and the stealth-ship
+            // weights) is read as the land arm; no capture reaches one.
+            let peasant = matches!(target, Obj::Unit(u) if self.is_peasant(u));
+            if raiding {
+                if peasant || tp.is(role::CARAVAN) {
+                    v += if ai_raider { 900_000 } else { 9_000_000 };
+                } else if ai_raider && tp.combat_role {
+                    v += 10_000;
+                } else {
+                    v /= 10;
+                }
+            } else if tp.combat_role {
                 v += 1_000_000;
             } else if tp.is(role::SUPPLY) {
                 v += if matches!(attacker, Obj::Building(_)) {
@@ -3056,8 +3114,6 @@ impl Sim {
         // not STAND_GROUND) is the one this arm actually measures. Reading
         // it the other way round made the golden record's three candidates
         // score equal — see `docs/COMBAT.md` §18.
-        let raiding =
-            matches!(attacker, Obj::Unit(i) if self.units[i].combat.stance == Stance::Raid);
         if in_range && !raiding && !self.is_in_range(attacker, target) {
             v /= 5;
         }

@@ -19,27 +19,27 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **14**): 947, 976 and 1009
+- **Since the pass** (count from 0b401602: **16**): 947, 976 and 1009
   closed chapters thirty-two to thirty-four; 971 took the second pair;
   972 measured the held-out map once, **1 and 0** (the next pass books a
-  third scored map); seven AI landings moved the second pair to **East
-  Indies 5606, Great Lakes 4688**; 965 and 1011 took the blind list
-  **149 → 145** (run353, run366).
+  third scored map); nine AI landings moved the second pair to **East
+  Indies 5606, Great Lakes 4781**; 965 and 1011 took the blind list
+  **149 → 145**.
 - **The ledger is blind from 1000** (parked 1006): items 1000 on are
   booked and deleted by hand until the pass widens its patterns.
 - **The user's**: the disk (22 GB free; 51 GB is this worktree's debug
   build, parked 1027); whether phase 4 opens on the rules track alone.
-- **Fable backlog: 35 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033).
+- **Fable backlog: 39 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046, 1047).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5606 of 18,140 · GreatLakes w4688 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w4781 of 5,930
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1019 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 1028 on the AI lane (Great Lakes'
-4688, a packet at 4687) and 1019 on the rules lane (chapter thirty-five).
-The count runs from 0b401602; the eighteenth pass at twenty.**
+**Opener: the commander, two lanes — 1040 on the AI lane (Great Lakes'
+4781) and 1019 on the rules lane (chapter thirty-five). The count runs
+from 0b401602; the eighteenth pass at twenty.**
 
 ## The queue
 
@@ -49,22 +49,20 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-1028. **Great Lakes' second word: frame 4688, 35 draws a side, parting
-    at index 31** (1023): ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
-    theirs `Farms::inc_time+0x1ae`. On run356, `1/24` strikes `0/3`
-    there and retargets to the scout `0/0` here. The decider is each
-    one's `targeted` (`ObjectData +0x3d`), which no dump prints: **a
-    packet at 4687 on run347's game**, and one at 4606 serves parked
-    1015 with it. East Indies' 5606 follows.
+1040. **Great Lakes' second word: frame 4781, ours 5 draws against 4**
+    (1034). Parting at index 0: ours `Unit::fight+0x9b0`, theirs
+    `Farms::inc_time+0x1ae`; widened on run356 (block 4782), where the
+    citizen `0/4` is struck on 4779 there and not here. Row-walk the
+    parting draw's object back to its first parted field before calling
+    a block quiet (parked 1046). East Indies' 5606 follows.
 
 1019. **Chapter thirty-five: the Helicopter's and missiles' launch arms
     — no capture yet** (1009's park). Both launch commands' Helicopter
-    and missile routes, and `Build::train`'s missile and Helicopter
-    `jne`, the only two entries to `BuildData::get_first_gather`'s block
-    (1011): the staging applies the interpreter's `resource` verb, and
-    the build carries the Helicopter's and missiles' flights, which this
-    crate does not. On chapter thirty-four's cast; the emulator first;
-    **run371** the capture at `cover=1`, run372 a staging run. GOLDEN §44.
+    and missile routes, and `Build::train`'s two `jne` into
+    `BuildData::get_first_gather`'s block (1011); `resource` stages the
+    cost, and the build carries both flights. On chapter thirty-four's
+    cast; **run371** the chapter at `cover=0`, run372 its `cover=1`
+    re-run on the queue lane (1011's split, parked 1047). GOLDEN §44.
 
 ## How to maintain this file
 
