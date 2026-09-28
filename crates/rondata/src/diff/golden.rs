@@ -12914,6 +12914,39 @@ fn chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field() {
     );
 }
 
+/// **The missile's launch offset is the install's** (item 1050):
+/// `<MISSILEOFFSET x y z>` under `EFFECTS` in `Data/effects_graphics.xml`,
+/// which `GraphicEvents::init@008e5390` reads before the first frame, is
+/// [`sim::air::MISSILE_OFFSET`]. The constant is a number from the user's
+/// files; this is what re-derives it from them.
+#[test]
+fn the_missile_offset_is_the_install_s() {
+    let Some(root) = crate::testenv::install_root() else {
+        eprintln!("skipping: no install (set RON_INSTALL)");
+        return;
+    };
+    let path = std::path::Path::new(&root).join("Data/effects_graphics.xml");
+    let text = std::fs::read(&path).expect("effects_graphics.xml");
+    let text = String::from_utf8_lossy(&text);
+    let tag = text
+        .split("<MISSILEOFFSET")
+        .nth(1)
+        .and_then(|t| t.split("/>").next())
+        .expect("one MISSILEOFFSET");
+    let attr = |k: &str| -> i32 {
+        tag.split(&format!("{k}=\""))
+            .nth(1)
+            .and_then(|v| v.split('"').next())
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or_else(|| panic!("MISSILEOFFSET {k} in {tag:?}"))
+    };
+    assert_eq!(
+        (attr("x"), attr("y"), attr("z")),
+        sim::air::MISSILE_OFFSET,
+        "the install's MISSILEOFFSET"
+    );
+}
+
 /// What stands of the V2's launch on [`V2_LAUNCH`] (item 1050): nothing.
 const WANT_CH35_V2: &[&str] = &[];
 
