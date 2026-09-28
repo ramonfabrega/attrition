@@ -4335,6 +4335,73 @@ mod tests {
         );
     }
 
+    /// **A fleeing target re-aims the chase** (`check_target_path@005e22d0`,
+    /// the listing `5e24e2`–`5e2873`; `docs/COMBAT.md` §67). On the review's
+    /// phase, a ranged chaser whose unit target is walking away from it asks
+    /// whether its **walk spot** still reaches the target; when it does not,
+    /// the legs go and `find_attack_pos` puts a new one in front. run347's
+    /// `1/24` re-aims on 4616 after the citizen `0/3` (Great Lakes 4673).
+    ///
+    /// Four arms: the fleeing target re-aims; a standing target, a target
+    /// walking toward the chaser and an off-phase frame keep the stale spot.
+    /// Made to fail on purpose by returning at the fall-through, as this
+    /// crate did: the first arm keeps its stale spot.
+    #[test]
+    fn a_fleeing_target_re_aims_the_chase_on_the_review_s_phase() {
+        let (mut sim, ty) = at_war();
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let foe = put(&mut sim, 0, ty, at);
+        let me = put(&mut sim, 1, ty, Pos::new(at.x + 12 * 0xc0, at.y));
+        let stale = Pos::new(at.x + 10 * 0xc0, at.y);
+        let away = crate::movement::find_angle(at.x - sim.units[me].pos.x, 0);
+        let toward = crate::movement::find_angle(sim.units[me].pos.x - at.x, 0);
+        // The review's phase: `(frame + o) % 16 == 0`.
+        let on = 16 - i64::from(sim.units[me].index);
+        let chase = |sim: &Sim, heading: Option<crate::movement::Angle>, frame: i64| {
+            let mut s = sim.clone();
+            if let Some(h) = heading {
+                s.add_move_order(
+                    foe,
+                    Pos::new(at.x - 20 * 0xc0, at.y),
+                    crate::orders::MoveKind::MoveTo,
+                    crate::orders::QueuePos::New,
+                    false,
+                );
+                s.units[foe].movement.heading = h;
+            }
+            s.add_attack_order(me, Obj::Unit(foe), crate::orders::QueuePos::First, false, true);
+            s.add_move_order(
+                me,
+                stale,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::First,
+                false,
+            );
+            let before = s.units[me].orders_pos;
+            s.work(me, frame);
+            let after = s.units[me].orders.iter().find_map(|o| match o.body {
+                crate::orders::Body::Move(m) => Some(m.dest),
+                _ => None,
+            });
+            (before, after, s)
+        };
+        let (before, after, s) = chase(&sim, Some(away), on);
+        let after = after.expect("the chase keeps a move");
+        assert_ne!(after, before, "the fleeing target's chase kept its stale spot");
+        assert!(
+            s.is_in_range_at(Obj::Unit(me), after, Obj::Unit(foe)),
+            "the new spot reaches the target"
+        );
+        for (heading, frame, why) in [
+            (None, on, "a standing target"),
+            (Some(toward), on, "a target walking toward the chaser"),
+            (Some(away), on + 1, "an off-phase frame"),
+        ] {
+            let (before, after, _) = chase(&sim, heading, frame);
+            assert_eq!(after, Some(before), "{why} re-aimed the chase");
+        }
+    }
+
     /// **An unpacked packer takes only what it can reach, and a hit from
     /// inside its minimum is dropped without a chase**
     /// (`Object::find_nearby_target@00648da0`'s `local_24`, the listing
