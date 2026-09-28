@@ -2268,6 +2268,8 @@ impl Sim {
             Some(Body::AirPatrol(_)) => self.do_air_patrol(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
+        // `60dadd`, after `do_job`: two Helicopters set apart.
+        self.helicopter_spread(u);
     }
 
     /// `Unit::do_explore_to@005f24a0`'s tail — everything the case does
@@ -4813,6 +4815,13 @@ impl Sim {
     /// guard of 2026-08-22 is retired; the soak that found the hang stands
     /// guard over this rewrite.
     fn find_path(&mut self, u: usize, mo: &mut MoveOrder, goal: Pos) -> u8 {
+        // `5fb96f`: a type that flies like a helicopter (`+0x2b4 & 0x20`)
+        // takes `jne 5fbf4c` to the `xor eax, eax` return — straight, with
+        // no walkability test, no `path_recursion` and no march (item
+        // 1048: run371's `0/12` flies one waypoint to P_h on 2675).
+        if self.is_helicopter(u) {
+            return 0;
+        }
         let here = self.units[u].pos;
         let mut goal = goal;
         if goal == here {

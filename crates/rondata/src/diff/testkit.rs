@@ -4180,8 +4180,19 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_FOUR: (i64, i64) = (605, 2851);
 /// walks there and walks at once here. The first value parting is 2659,
 /// `0/12`'s birth seat (parked 646's family).
 ///
-/// **The delta**, this constant's: +230, 2445 → 2675, open.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 2675;
+/// **2701, open** (item 1048, `docs/PRODUCTION.md` "The Helicopter's
+/// flight"): the planners' straight path for a type that flies like a
+/// helicopter (`find_path`, `find_wpath`, `find_tpath`), `Unit::work`'s
+/// separation of two of one type within `0x180`, and the figure's climb
+/// in `Guy::set_new_location`. `0/12` flies straight to P_h and `0/11` is
+/// pushed off it, both to the unit on every block; `0/12`'s figure, put
+/// on its unit by the push, takes the arrival stand on 2675. Theirs 4
+/// draws against ours 3 on 2701, theirs first `Ammo::init+0xae8` and
+/// `+0xb25`: the V2's round off the silo (parked 1050, 1051). The first
+/// value parting is 2702, `0/10`'s round.
+///
+/// **The delta**, this constant's: +26, 2675 → 2701, open.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 2701;
 
 /// `chapter_thirty_five_s_word_frame_is_widened_whole`'s window: run371
 /// whole, (605, 3261). Its pool half, `widen_pool`, reads who=0's

@@ -22,7 +22,7 @@
 
 use crate::Sim;
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
-use crate::orders::CRUISING_ALT;
+use crate::orders::{Body, CRUISING_ALT};
 use crate::single::Single;
 use crate::world::{Pos, UNITS_PER_CELL, vector_dist};
 
@@ -483,6 +483,135 @@ impl Sim {
         self.units[u].ty.is_some_and(|t| {
             self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::HELICOPTER != 0
         })
+    }
+
+    /// **`Unit::work@0060d180`'s tail: two Helicopters set apart** (the
+    /// listing `60dadd`..`60dc9f`, after `do_job`; item 1048,
+    /// `docs/PRODUCTION.md` "The Helicopter's separation").
+    ///
+    /// A unit that flies like a helicopter (`+0x2b4 & 0x20`), alive
+    /// (`+0x8 & 1`) and not inside (`inside_up < 0`), whose front order
+    /// is none or not an air order (`UnitOrder` vslot `+0x30`, `is_air`:
+    /// `mov eax, 1` on the air orders, 0 on the base) asks
+    /// `ObjectsData::find_unit@0065ca80(x, y, SEARCH_ALL, −1, 0x180, 1,
+    /// FILTER_TYPE, its type, 0, FILTER_NOT_ME, o, who)` for the nearest
+    /// unit of its own type within `0x180`. Found, the pair are put 48
+    /// apart along the bearing from it to this one: `project(find_angle(me
+    /// − it), 0x30)`, this one by half the vector (`sar`, toward zero)
+    /// and the other by the whole of it, each through `WorldData::restrict`
+    /// and `set_new_location(·, ·, 1, 1)` — a teleport that snaps the
+    /// figure's facing onto the unit's and puts guy 0 on it. run371's
+    /// `0/11` and `0/12`, 2674..2676.
+    pub(crate) fn helicopter_spread(&mut self, u: usize) {
+        if !self.is_helicopter(u) {
+            return;
+        }
+        let unit = &self.units[u];
+        if !unit.alive() || !unit.on_map || unit.inside.is_some() {
+            return;
+        }
+        if self
+            .current_order(u)
+            .is_some_and(|o| matches!(o.body, Body::Strafe(_) | Body::AirPatrol(_)))
+        {
+            return;
+        }
+        let Some(v) = self.nearest_of_own_type(u, 0x180) else {
+            return;
+        };
+        let (me, it) = (self.units[u].pos, self.units[v].pos);
+        let ang = find_angle(me.x - it.x, me.y - it.y);
+        let (px, py) = (sin_component(ang, 0x30), -cos_component(ang, 0x30));
+        let to = self.restrict_pos(Pos::new(me.x + px / 2, me.y + py / 2));
+        self.spread_to(u, to);
+        let to = self.restrict_pos(Pos::new(it.x - px, it.y - py));
+        self.spread_to(v, to);
+    }
+
+    /// **`Guy::set_new_location@005d86f0`'s helicopter arm** (the listing
+    /// `5d880b`..`5d884a`, item 1048): a figure of an air type that flies
+    /// like a helicopter climbs toward 1000 over the ground at its new
+    /// point, thirty a move at most —
+    /// `z += clamp(find_data_z(x, y, 0) − z + 1000, −30, 30)`. Every move
+    /// of the figure takes it: a teleport's
+    /// and each step of `Guy::move` (`:190`). run371's `0/12` climbs 30 a
+    /// frame to 727 over a lake bed at −273.
+    pub(crate) fn helicopter_climb(&mut self, u: usize, at: Pos) {
+        if !self.is_helicopter(u) || self.unit_domain_of(u) != crate::attrition::Domain::Air {
+            return;
+        }
+        let ground = self.ground_z(at);
+        let af = &mut self.units[u].airframe;
+        af.z += (ground - af.z + 1000).clamp(-30, 30);
+    }
+
+    /// `set_new_location(·, ·, 1, 1)`: guy 0 onto the unit's own facing,
+    /// then the teleport ([`Sim::set_new_location`]'s `move_guys`).
+    fn spread_to(&mut self, u: usize, to: Pos) {
+        let from = self.units[u].pos;
+        let heading = self.units[u].movement.heading;
+        self.units[u].movement.set_facing(heading);
+        self.set_new_location(u, to, true);
+        self.moved_to(u, from, false);
+    }
+
+    /// `ObjectsData::find_unit` as the separation calls it: every
+    /// player's units (leaders below 8), alive and on the map, of the
+    /// unit's own type by `ObjectData::is(type, 0)`, not the unit itself,
+    /// within `range` by `vector_dist`, the last of a tie. The list walk
+    /// (while `total_units` is under `circle_radius[ring]`) is each
+    /// leader's units in `o` order; the circle walk the ring's cells in
+    /// circle order, each cell's chain from its head.
+    fn nearest_of_own_type(&self, u: usize, range: i32) -> Option<usize> {
+        let at = self.units[u].pos;
+        let mine = self.units[u].ty.and_then(|t| self.unit_types[t].tree)?;
+        let fits = |c: usize| -> Option<i32> {
+            let x = &self.units[c];
+            if c == u || !x.alive() || !x.on_map || x.owner >= crate::world::PLAYER_SLOTS {
+                return None;
+            }
+            let same =
+                x.ty.and_then(|t| self.unit_types[t].tree)
+                    .is_some_and(|t| self.tech_tree.is(t, mine, false));
+            if !same {
+                return None;
+            }
+            let d = vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs());
+            (d <= range).then_some(d)
+        };
+        let mut best: Option<(i32, usize)> = None;
+        let mut take = |c: usize| {
+            if let Some(d) = fits(c)
+                && best.is_none_or(|(bd, _)| d <= bd)
+            {
+                best = Some((d, c));
+            }
+        };
+        let circle = crate::ai_place::circle();
+        let ring = ((range + 0x2ff) / 0x300) as usize;
+        let live = self.units.iter().filter(|x| x.alive()).count();
+        if live < circle.radius[ring] {
+            let mut all: Vec<usize> = (0..self.units.len()).collect();
+            all.sort_by_key(|&c| (self.units[c].owner, self.units[c].index));
+            for c in all {
+                take(c);
+            }
+        } else {
+            let c0 = at.cell();
+            let width = self.world.width() as usize;
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                if !self.world.contains(c) {
+                    continue;
+                }
+                let mut next = self.chain_heads[(c.y as usize) * width + (c.x as usize)];
+                while let Some(x) = next {
+                    next = self.units[x].down;
+                    take(x);
+                }
+            }
+        }
+        best.map(|(_, c)| c)
     }
 
     /// **`Unit::check_fuel@005e9be0`, a plane going home to a building**
