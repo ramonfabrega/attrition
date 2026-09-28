@@ -1285,7 +1285,26 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// window, whose block 4689 parts on `1/24`: `recharging` 0 here against
 /// 33, `hold_attack` 0 against 1, `orders_x/y` (3763, 31600) against (3768,
 /// 31608).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_688;
+///
+/// **4688 → 4690 on item 1028**: `Object::compare_target`'s RAID arm — a
+/// computer's raider (stance 3) weighs a peasant `+900,000`, anything
+/// neither a peasant, a caravan nor a combat unit a tenth, and an active
+/// building `/ 20` with no ×5; `Group::action_attack` adds a `Build` target
+/// to every member with no search; a building's `targeted` decays `/4` on
+/// its owner's eighth frame; `docs/COMBAT.md` §68, read on run368's packet
+/// at logger frame 4688 and run369's at 4605. **The move's value diff (the
+/// word's delta, here; its block is `run356_s_word_frame_is_widened_
+/// whole`'s):** on 4688 `1/24`'s re-search scores, on both sides, the
+/// citizen `0/3` at 9800 (score 1225), the scout `0/0` at 15 (score 5) and
+/// the city `0/2000` at 15 with `targeted` 0, where ours scored 1800, 1032
+/// and 1866 with the city's `targeted` 31, and took the scout; block 4689's
+/// `recharging` (0 against 33) and `hold_attack` no longer part. Frame
+/// 4688's draws went 35 against 35 parting at 31 → agreeing. **The new
+/// word's delta: ours 5 draws and the original 4 on frame 4690, parting at
+/// index 1**: ours spends `Object::take_damage+0xe1` where the original
+/// spends `Farms::inc_time+0x1ae`. Inside run356's window, where nothing
+/// parts on block 4691 and the citizen `0/3`'s damage first parts on 4723.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_690;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

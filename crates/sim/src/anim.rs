@@ -1437,7 +1437,7 @@ impl Sim {
     /// answers this `0`, and reading it as any worker put the seated
     /// scholar's idle roll on `IDLE1` where the original takes `IDLE2`
     /// — Great Lakes 8374 (`docs/ANIM.md` §4.1).
-    fn is_peasant(&self, u: usize) -> bool {
+    pub(crate) fn is_peasant(&self, u: usize) -> bool {
         self.worker_of(u) == crate::orders::Worker::Citizen
     }
 
