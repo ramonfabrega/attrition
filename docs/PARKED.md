@@ -62,6 +62,17 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1023, 2026-09-28 — the fleeing target's edges
+
+(1029) **`check_target_path`'s group arm** (`5e25d1`–`5e26e9`): it
+needs a reviewed group head, and none is reviewed (COMBAT §67).
+
+(1030) **A building target's fall-through**, which `repath`s when its
+vslot `+0xbc` answers 0: read, not built.
+
+(1031) **`is_in_range@006486b0`'s world-cell test** (`& 0x30 == 0x30`),
+which this crate's `is_in_range_at` lacks.
+
 ## Parked by item 1014, 2026-09-27 — the scout's treaties
 
 (1024) **`treaties` bit 1, set by a raid**: on block 4658 (run356) both
@@ -1735,6 +1746,13 @@ whole `.claude/worktrees` tree is 54 GB, and the home volume had 22 GB
 free. A lane's `target` goes with its worktree; the commander's never
 does. `cargo clean` on the debug profile, or a periodic sweep, is the
 pass's call; the user is also looking at unrelated disk use with lore.
+
+(1032) **A listing read in two `llvm-objdump` slices lost the
+instruction on the join** (1023's Loop line, filed at its merge): a
+header-trimming `sed` by line count dropped `5e2800`, and for a minute
+it read as a bug in the original. Overlap slices by a line and trim
+headers by pattern; a `tools/` slicer is the probe rule's answer if a
+third lane does it by hand.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
