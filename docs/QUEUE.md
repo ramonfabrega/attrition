@@ -19,26 +19,26 @@ The first pair stays closed at 24,000 on both maps, endpoints 0 off;
 chapters one to thirty-two are closed. The blind list is counter two, on
 the staging lane, and not a headline.*
 
-- **Since the pass** (count from 0b401602: **8**): 947 and 976 closed
+- **Since the pass** (count from 0b401602: **9**): 947 and 976 closed
   chapters thirty-two (2360) and thirty-three (2740); 971 took the second
   pair; 972 measured the held-out map once, **1 and 0** (the next pass
-  books a third scored map); 979, 989 and 997 moved the second pair to
-  **East Indies 5606, Great Lakes 4593**; 965 took the blind list to 147
-  (148 with 976's citation).
+  books a third scored map); 979, 989, 997 and 1002 moved the second pair
+  to **East Indies 5606, Great Lakes 4605**; 965 took the blind list to
+  147 (148 with 976's citation).
 - **The ledger is blind from 1000** (parked 1006): items 1000 on are
   booked and deleted by hand until the pass widens its patterns.
 - **The user's**: the archive's disk has **20 GB free** and the tranche
   wrote 10.2 GB; and whether phase 4 opens on the rules track alone.
-- **Fable backlog: 28 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010).
+- **Fable backlog: 29 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5606 of 18,140 · GreatLakes w4593 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w4605 of 5,930
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · 1009 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander, two lanes — 1002 on the AI lane (Great Lakes'
-4593, the second pair's lower word) and 1009 on the rules lane (chapter
+**Opener: the commander, two lanes — 1012 on the AI lane (Great Lakes'
+4605, the second pair's lower word) and 1009 on the rules lane (chapter
 thirty-four), then 1011. The count runs from 0b401602; the eighteenth
 pass at twenty.**
 
@@ -50,12 +50,13 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-1002. **Great Lakes' second word: frame 4593, ours 4 draws against 5**
-    (997). Parting at index 2: ours `Farms::inc_time+0x1ae`, theirs
-    `Guy::set_anim+0xf2f < Guy::move+0x166`; widened on run356 (block
-    4594 is inside its window). Block 4592 already parts on `1/26`: order
-    kind 1 here against 10 there, position (5052, 31644) against (5079,
-    31628). East Indies' 5606 follows (989's frame).
+1012. **Great Lakes' second word: frame 4605, ours 2 draws against 43**
+    (1002). Parting at index 0: ours `Farms::inc_time+0x1ae`, theirs
+    `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a`; widened
+    on run356, where block 4606 parts on army 0's members (order kind 21
+    here against 10 there). Parked 1003's shape is back on `1/22` and
+    `1/23` at 4598 and 4599: name it or clear it. East Indies' 5606
+    follows.
 
 1009. **Chapter thirty-four: the launch commands' other arms — no
     capture yet** (976's park). A patrol of `[P1, A3, P2]`, ctrl and alt,
