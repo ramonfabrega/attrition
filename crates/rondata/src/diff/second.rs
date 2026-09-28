@@ -7,7 +7,7 @@
 
 use super::*;
 
-use crate::diff::harness::{attributed_sites, debug_leader, site_window};
+use crate::diff::harness::{attributed_sites, debug_leader, debug_watch, site_window};
 use crate::diff::testkit::*;
 use crate::testenv::{dump, install};
 
@@ -64,6 +64,9 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
     for f in 0..last {
         built.tick();
         debug_leader(&built, f);
+        // `RON_DEBUG_UNIT`, on every frame of the long walk: a unit's
+        // history before a widening's first block (item 1106's `1/14`).
+        debug_watch(&built, f + 1);
         if window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
             for (label, who) in attributed_sites(&built) {
                 eprintln!("  f{f} {who}: {label}");

@@ -1455,6 +1455,7 @@ mod tests {
                 built.sim.ledgers[who].rare = rare;
             }
             built.sim.sync_territory();
+            built.sim.settle_borders();
             let ours = owned(&built.sim);
             for (who, mine) in ours.iter().enumerate().take(2) {
                 let blk = log.leader_block(*n, who as i64).expect("a leader row");
@@ -1474,6 +1475,7 @@ mod tests {
                         !(1u64 << (sim::economy::GEMS - sim::economy::BASE_RARE));
                 }
                 built.sim.sync_territory();
+                built.sim.settle_borders();
                 gemless.push(owned(&built.sim));
             }
         }
