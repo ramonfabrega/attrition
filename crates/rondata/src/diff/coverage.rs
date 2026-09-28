@@ -181,9 +181,13 @@ const UNREAD: &[(&str, &str)] = &[
         "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length myhits mylos near_o near_who size uid up up_who visible",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
+    // **Item 989 added `Newcastle`**: a city's name is the record's one
+    // valueless line, so each name is a key of its own. run356's and
+    // run357's windows are the first driven ones to hold a third British
+    // city; the name is read by nothing, as `London` and `Norwich` are not.
     (
         "GAME/FRAME/CITIES/CITY",
-        "London Napata Norwich flags increment length size",
+        "London Napata Newcastle Norwich flags increment length size",
     ),
     // **Item 628 added four keys to the frame-level `GUY` row**:
     // `flags`, `x_internal`, `y_internal` and `z_internal` are not a

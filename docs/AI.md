@@ -10522,7 +10522,7 @@ carried as a hypothesis was wrong: both sides spend the shuffle.
   sides, so the original placed and destroyed the same camp. On 1576,
   with `min_size` 4, it placed one again: the original on the same
   ground, ours not.
-- **`destroy_building`** is `ScenarioFuncSet::destroy_building@009f6fc0`,
+- **`destroy_building`** is `ScenarioFuncSet::destroy_building`,
   vtable `+0x150`, which is `Build::close`. Its tail gives the list's
   tiles back (`docs/ECONOMY.md` §17.1). `sim::city`'s `close_building`
   cleared the footprint and never the list.

@@ -2533,7 +2533,7 @@ gather_from.length = 0                               # +0x9c = 0
   close does not add it. The university's list is always empty, so
   nothing differs.
 - **Every close takes it**: a site the script destroys
-  (`ScenarioFuncSet::destroy_building@009f6fc0` calls vtable `+0x150`,
+  (`ScenarioFuncSet::destroy_building` calls vtable `+0x150`,
   which is `Build::close`), a camp killed, and the old half of a
   transfer (`sim::city`'s `close_building(b, true)`).
 - **The region** is the building's own cell's (`world+0x134`'s short at
