@@ -1344,7 +1344,24 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// index 2**: the original spends `Guy::set_anim+0xf2f < Unit::set_anim+
 /// 0x56 < Unit::fight+0x19f6`, ours `Guy::set_anim+0x104b`. Past run356's
 /// window; run373 is its widening.
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_846;
+///
+/// **4846 → 4852 → 4877, still item 1040**: `Unit::fight`'s building arm
+/// (`5fe8a7`–`5feb4c`), a building struck square to its side, and the
+/// one-in-five retarget's frozen mark (`005fdf68`–`005fdfea`);
+/// `docs/COMBAT.md` §70.6 and §70.7. **The moves' value diff (their
+/// blocks are `run373_s_word_frame_is_widened_whole`'s):** the Hoplite
+/// `1/19` strikes the city from (3432, 30120) on 4846 facing `0x80000000`
+/// on both sides, where ours turned to `0x8ec5…` (the centre's bearing),
+/// held the swing and struck on 4847; its figure first parts on 4861.
+/// `1/24`'s attack slot holds at `cur_time` 32 of 33 on block 4853 on both
+/// sides (`unit_masks2` 16 there), where ours wrapped to the idle and
+/// rolled; its clock no longer parts. Frames 4846 and 4852 went 8 against
+/// 9 and 6 against 5 → agreeing. **The new word's delta: ours 7 draws and
+/// the original 8 on frame 4877, parting at index 1**: the original spends
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, ours `Guy::set_anim+
+/// 0x104b`. Inside run373's window (block 4878); the earliest block to
+/// part past its standing rows is 4861, the army's tick.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_877;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1380,7 +1397,8 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
 
 /// `run373_s_word_frame_is_widened_whole`'s window (item 1040): run373 over
 /// run347's game, blocks 4841..5097 — six blocks before the word 4846's
-/// block 4847 and 250 past it.
+/// block 4847 and 250 past it. The word moved to 4877 (block 4878) inside
+/// it, in the same item.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside

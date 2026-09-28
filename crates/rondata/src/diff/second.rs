@@ -659,6 +659,15 @@ mod tests {
                 "the human city's {bit}, which 1034 carries"
             );
         }
+        // **A Hoplite on the city's north face strikes due south**
+        // (item 1040, `docs/COMBAT.md` §70.6): `1/22`'s facing stood parted
+        // from 4758 (ours the centre's bearing, 0x959a0000, against
+        // 0x80000000) until the side arm.
+        assert_eq!(
+            row(1, 22, "g.angle[0]"),
+            None,
+            "the Hoplite's facing, which parted on 4758 until item 1040"
+        );
         // What the heal had hidden since 4661: `1/26`'s strikes from the
         // second on landed here a frame after the original's (4689, 4716,
         // 4722 there; 4690, 4717, 4723 here) until item 1040: its stones
@@ -700,7 +709,9 @@ mod tests {
     /// **The second pair's Great Lakes word, 4846, widened whole** (item
     /// 1040): run373 is run347's game at run356's detail over blocks
     /// 4841..5097, walked from run347's start. The word's frame writes
-    /// block 4847, six blocks after the window's first.
+    /// block 4847, six blocks after the window's first. **Within the same
+    /// item the word moved to 4852 and then 4877**, block 4878, inside the
+    /// window (37 blocks after its first and 219 before its last).
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -730,7 +741,54 @@ mod tests {
             "run373 carries every key: {:?}",
             w.missing
         );
-        eprintln!("BY {by:?}");
+        let first = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| (*f, r.clone()))
+        };
+        // **The old word, 4846, agrees** (item 1040, `docs/COMBAT.md`
+        // §70.6): the Hoplite `1/19` stands on the row above the human's
+        // city and strikes it due south on both sides — a building is
+        // struck square to its side — where ours turned 21° to the centre,
+        // deferred the swing and struck a frame late. Its figure first
+        // parts on the army's tick, 4861.
+        assert_eq!(
+            first(1, 19, "g.angle[0]").map(|(f, _)| f),
+            Some(4_861),
+            "the Hoplite's facing, which parted on 4847 until item 1040"
+        );
+        // **The old word, 4852, agrees** (§70.7): `1/24`'s one-in-five
+        // re-search on 4852 names `0/3` on both sides and freezes the
+        // frame, so its attack slot holds at 32 of 33 on block 4853 and
+        // wraps on 4854; its clock no longer parts, and its figure first
+        // parts on the army's tick too.
+        for what in ["g.cur_time[0]", "g.last_time[0]", "g.end_time[0]"] {
+            assert!(
+                first(1, 24, what).is_none_or(|(f, _)| f > 4_853),
+                "the Slinger's {what}, which parted on 4853 until item 1040: {:?}",
+                first(1, 24, what)
+            );
+        }
+        // **The new word, 4877, writes block 4878** (no mechanism is named,
+        // DECISIONS 42): ours 7 draws and the original 8, parting at index
+        // 1, where the original spends `Guy::set_anim+0x97a <
+        // Unit::move_step+0x823`. The earliest block past the window's
+        // standing rows is 4861, frame 4860, the army's tick (`4860 ≡ 252
+        // mod 256`): 121 keys, who=1's army members walking off there and
+        // holding the city here.
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(4_841, 111), (4_861, 121), (4_862, 13)],
+            "the blocks keys first part on, the first three"
+        );
+        // A standing row the window opens on: the citizen `0/4` has taken
+        // more here since run356's window closed (block 4841: `damage` 6
+        // 10/16 here, 5 0/16 there).
+        assert_eq!(
+            first(0, 4, "hits:damage").map(|(f, r)| (f, r)),
+            Some((4_841, "ours 6 theirs 5".to_string())),
+            "the citizen's damage, standing from the window's first block"
+        );
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the
