@@ -62,6 +62,14 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 997, 2026-09-27 — the attack-move's edges
+
+(1003) **A guy's `whom`/`ox` naming `0/2000` on an attack-move**: `1/21`
+on 4585, `1/24`–`1/26` from 4550 (run356). No draw before 4593.
+
+(1004) **`BuildData::attack`'s garrison arm**, which this crate's
+`attack_of` lacks (COMBAT §64): read, not built.
+
 ## Parked by item 989, 2026-09-27 — the second pair's cities
 
 (998) **A city still under construction is counted by the original's
@@ -1628,6 +1636,19 @@ as the camp's partings. `unit_by_o` took `alive()` from the start; the
 building and city lookups never did. 989 fixed `link_building`; a grep
 for `.index) ==` without `alive` over `src/diff/` leaves `setup.rs:874`
 and `build.rs:3847` unread.
+
+(1005) **The debug unit print had no combat target** (997's Loop line,
+filed at its merge): a unit whose `Attack` order is the wrapper carries
+its target in `combat::State`, so the first question an `ATTACK` parting
+asks had no print. 997 added `tgt` behind `RON_DEBUG_UNIT`; the pass may
+close it or ask for the same of the other wrapped orders.
+
+(1006) **`tools/queueledger.py` cannot see a four-digit item** (the
+commander, 2026-09-27, at 997's booking): every pattern is `\d{1,3}`
+(lines 85, 102, 143, 145, 195–198), so `1002. ` is no item and
+`(1003)` no park. The ledger's counts stood still from 1000 to 1006
+(492 booked, 532 live), and an item from 1000 on can leave the queue in
+silence. The guards' own parsers want the same check.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
