@@ -10456,8 +10456,11 @@ map and seed, the only `GAMEINFO` variants are run1–5's (`GAME_RULES`,
   - On East Indies the block before the word already parts, on
     `reg_land[11]` (102 against 103) and `2007`'s `city:space`. On Great
     Lakes nothing parts between the window's first block and the word's.
-  - As a hypothesis only (DECISIONS 42): the site's placement, as ours
-    spends `Build::find_gather_tiles` where the original does not.
+  - ~~As a hypothesis only (DECISIONS 42): the site's placement, as ours
+    spends `Build::find_gather_tiles` where the original does not.~~ Both
+    spend it; ours shuffled 62 tiles where the original shuffled 48,
+    because a camp the script destroyed on 976 kept its ground marked
+    here (§82). Great Lakes' 3776 was the same close.
 
 ### 81.5 What stands on the old words' blocks
 
@@ -10489,3 +10492,116 @@ unit test, run346's and run347's walks, and run349's and run350's
 widenings). **Export-backed only**: `Build::queue_up`'s stamps (§81.5),
 and `defensive.bhs`'s rush branch (read in the script itself).
 
+## 82. A destroyed camp keeps its ground, and the second pair moves to 5606 and 4555 (2026-09-27, item 989)
+
+Item 989 was booked on East Indies' frame 1576: ours 272 draws against
+the original's 216, parting at index 192, ours
+`Build::find_gather_tiles+0x10a` where the original spends
+`Animal::think_bird+0x82`. **No mechanism was named**, and the one §81.4
+carried as a hypothesis was wrong: both sides spend the shuffle.
+
+### 82.1 The frame, from the disk
+
+- **The draws, both sides** (the walk's site list on 1576): ours 248
+  `find_gather_tiles+0x10a` then 21 birds and 3 farms; the original 192,
+  then the same 24. The shuffle is `4 × length`, so ours listed 62 tiles
+  and the original 48. That is the whole delta.
+- **The camp.** On run352's block 1577 the original's `1/2009`
+  (`orig_type 418`, a Woodcutter's Camp) stands at (38016, 36480), 48
+  tiles, city 1, `frame_started −1`. It is on neither block 1571 nor
+  1576: it was placed on frame 1576.
+- **Ours' camps**, by a scratch print in `find_gather_tiles` and
+  `close_building`, removed before the first commit:
+  - frame 976: `2009` placed at **(38016, 36480), 48 tiles**, and closed
+    the same frame, unstarted;
+  - frame 1576: `2009` placed at **(31680, 34752), 62 tiles**.
+- **Who closed it**: the script host's `destroy_building`.
+  `aibestbuildlibrary.bhs`'s `place_woodcutter` places a camp, reads
+  `max_workers_at_building`, and destroys it when it is under `min_size`
+  (5), dropping `min_size` by one. Frame 976's 192 draws agree on both
+  sides, so the original placed and destroyed the same camp. On 1576,
+  with `min_size` 4, it placed one again: the original on the same
+  ground, ours not.
+- **`destroy_building`** is `ScenarioFuncSet::destroy_building`,
+  vtable `+0x150`, which is `Build::close`. Its tail gives the list's
+  tiles back (`docs/ECONOMY.md` §17.1). `sim::city`'s `close_building`
+  cleared the footprint and never the list.
+
+### 82.2 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| ours places the camp by another rule (`produce_building`'s spiral) | the original places the frame-976 site again, at the site ours picked on 976; the spiral scored ours' 1576 site because the old one's cells carried `0x1000` | killed: the spiral is right on the ground it is given |
+| the tree tiles differ (a gatherer cut one) | ours' 976 list and the original's 1576 list are the same 48 tiles | killed |
+| a closed camp's tiles stay marked here and are freed there | the close tail in the listing; with it, 1576 draws 216/216 and the camp is the original's; without it (the mutation), 1576 again | **held** |
+
+### 82.3 The fix
+
+`Build::close`'s tail, `GameDaemon::process_all`'s region cycle and
+`Build::process`'s two re-entries (`docs/ECONOMY.md` §17). There is also
+**a harness correction**. `diff::harness::link_building` links a dumped
+`BUILDDATA` or `CITY` record to this crate's **live** building of its
+number, and to a closed one only when none is live. The first building
+that ever held a number had been taken, so from 1576 the original's
+live `2009` was compared with ours' dead frame-976 site.
+- That is where §81.4's `damage 1` against 0 came from: a closed site
+  reads damage equal to its hits, which is 1 for a site never started.
+- And `city −1` against 1.
+
+### 82.4 What it moved
+
+- **East Indies 1576 → 5606**, now the higher. On run352 the keys parted went
+  573 → 90:
+  - block 1577's 115 all closed: `1/2009`'s 91 tile keys, its damage and
+    city, and citizen `1/2`'s walk (`orders_x` 31944 against 37752);
+  - block 1571's capital `2000` `ter[1]`, 0 against 2 → 2 on both. The
+    census's `gather_at` had read the dead camp's marks.
+  - Frame 1576's draws went 272/216 → 216/216.
+- **Great Lakes 3776 → 4555.** On run355 the word's block 3777 went 127
+  keys → 0: `1/2010`'s tiles and damage, `2007`'s `city_down`, city
+  `2000`'s `gatherers` 7 against 8, and citizens `1/6` and `1/28`. No
+  key of who=1 parts on 3772..3804.
+- **The new words, by frame and draw delta** (DECISIONS 42; no mechanism
+  is named):
+  - **East Indies 5606**: ours 4 draws, the original 5, parting at index
+    0. Ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the
+    original spends `Unit::do_move+0xe84`. Widened on run357: the
+    block before the word parts on one key, `1/14`'s `order:move.dest`,
+    0 against 1.
+  - **Great Lakes 4555**, **the lower**: ours 7, the original 3, parting at index 1.
+    Ours spends `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` where
+    the original spends `Farms::inc_time+0x1ae`. Widened on run356: on
+    the block before the word, `1/21` holds order kind 10 and two orders
+    here against a move (kind 2) and one there.
+- **The first pair** holds at 24,000 on both maps.
+
+### 82.5 What stands, drawing nothing before either new word
+
+- **A city still a site, counted by the original's sweep and not here.**
+  East Indies' `2007` on run352's block 1571 reads `land` 9, `filled` 1
+  there and 0 here, with `reg_cities[11]` 2 against 1. Great Lakes'
+  `2009` on run355's block 3805 has the same shape, beside who=1's
+  `territory` 488 here against 290.
+- **`2007`'s site picture one cell apart** from its sweep of 1575:
+  `filled` one high here and the three `space` counts one low, so
+  `reg_land[11]` 102 against 103.
+- Neither moved with the fix. The first-pair residue §58.4 records for
+  the same city is the same one-cell shape.
+
+### 82.6 What this has *not* established
+
+- **The re-walk and `verify_gather_tiles` in a capture**: neither is
+  exercised on disk (`docs/ECONOMY.md` §17.4).
+- **Whether the harness's old link hid other partings.** Every widening
+  that walks a number a closed building gave up now compares the live
+  holder. The gate's widenings are the census of what moved.
+
+### 82.7 Coverage
+
+**Diff-backed**: the camp's site and list by run352's and run355's word
+blocks, and frames 1576 and 3776's draw counts; each is a floor that
+falls back under the close mutation. The harness link is backed by the
+same blocks; they fail under its mutation, and so does
+`a_dumped_building_links_to_the_live_holder_of_its_number`.
+**Script-backed**: `place_woodcutter`'s destroy, read in the script
+itself.

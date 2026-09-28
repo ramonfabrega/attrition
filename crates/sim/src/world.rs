@@ -570,7 +570,10 @@ pub mod tile {
     pub const RIVER: u16 = 0x800;
     /// Some building already gathers from this tile —
     /// `WorldData::is_gathered_from@00472ac0` reads it and
-    /// `World::set_gathered_at@006b46b0` is its only writer. Re-exported as
+    /// `World::set_gathered_at@006b46b0` sets it. Two writers clear it,
+    /// both inline (`and $0xefff`): `Build::close@00628980`'s tail over the
+    /// closing building's own list, and `Build::verify_gather_tiles@00623570`
+    /// over a tile it drops (`docs/ECONOMY.md` §17). Re-exported as
     /// [`crate::gather::GATHERED_FROM`], which is where the gather-site pass
     /// that sets it lives; [`World::gather_at`] is the other reader.
     pub const GATHERED_FROM: u16 = 0x1000;
@@ -579,6 +582,17 @@ pub mod tile {
     /// Blocked (`set_blocked_at`).
     pub const BLOCKED: u16 = 0x4000;
 }
+
+/// `Region.flags`' `0x10`: every active non-flat gather building in the
+/// region runs `Build::find_gather_tiles` again from `Build::process`
+/// (`docs/ECONOMY.md` §17). Only [`World::cycle_gather_flags`] sets it.
+pub const REGION_REFIND_GATHER: i32 = 0x10;
+
+/// `Region.flags`' `0x20`: a gather building in the region has closed and
+/// given its tiles back; the buildings processed after it this frame run
+/// `Build::verify_gather_tiles`, and the next region pass turns it into
+/// [`REGION_REFIND_GATHER`] (`docs/ECONOMY.md` §17).
+pub const REGION_VERIFY_GATHER: i32 = 0x20;
 
 /// How many `<LAND>` records `rules.xml` carries — `NUM_GATHER_LAND`, which
 /// `Lands::init@0067e730` refuses to start without.
@@ -1339,6 +1353,30 @@ impl World {
             self.region_flags.resize(r + 1, 0);
         }
         self.region_flags[r] = flags;
+    }
+
+    /// `Region.flags |= bits` — `Build::close@00628980`'s `or $0x20` on
+    /// the closing building's own region (`docs/ECONOMY.md` §17).
+    pub fn or_region_flags(&mut self, region: u16, bits: i32) {
+        let f = self.region_flags(region);
+        self.set_region_flags(region, f | bits);
+    }
+
+    /// `GameDaemon::process_all@00732700`'s region pass, every frame: each
+    /// region's [`REGION_REFIND_GATHER`] is cleared, and a region carrying
+    /// [`REGION_VERIFY_GATHER`] trades it for `REGION_REFIND_GATHER` — so a
+    /// camp closed in the AI's turn has its region re-walked by every
+    /// other camp there in this frame's `Objects::process_all`, and one
+    /// closed inside that pass is verified by the buildings after it and
+    /// re-walked on the next frame (`docs/ECONOMY.md` §17.2).
+    pub fn cycle_gather_flags(&mut self) {
+        for f in &mut self.region_flags {
+            *f &= !REGION_REFIND_GATHER;
+            if *f & REGION_VERIFY_GATHER != 0 {
+                *f &= !REGION_VERIFY_GATHER;
+                *f |= REGION_REFIND_GATHER;
+            }
+        }
     }
 
     /// `Region.scouted`'s bit for one leader (`docs/TRANSPORT.md` §7).

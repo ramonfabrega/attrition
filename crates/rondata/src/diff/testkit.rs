@@ -1131,7 +1131,27 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// 1576, parting at index 192**: ours spends
 /// `Build::find_gather_tiles+0x10a` where the original spends
 /// `Animal::think_bird+0x82`. **The lower word of the pair again.**
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 1_576;
+///
+/// **1576 → 5606 on item 989** (`docs/AI.md` §82, `docs/ECONOMY.md` §17):
+/// `Build::close` gives a closed camp's ground back. **The move's value
+/// diff (the word's delta, here; its block is
+/// `run352_s_word_frame_is_widened_whole`'s):** `place_woodcutter` places
+/// a camp at (38016, 36480) on frame 976 and destroys it the same frame;
+/// its 48 tiles stayed marked here, so on 1576 the re-placed camp `1/2009`
+/// went to (31680, 34752) with 62 tiles — 248 `find_gather_tiles+0x10a`
+/// draws against 192 — and now lands on (38016, 36480) with the original's
+/// 48; frame 1576's draws went 272 against 216 → 216 against 216. On
+/// run352 the keys parted went 573 → 90: block 1577's 115 (the camp's
+/// tiles, damage 1 against 0 and city −1 against 1, which were this
+/// crate's dead frame-976 site linked by number, and citizen `1/2`'s
+/// `orders_x` 31944 against 37752) all closed, and block 1571's capital
+/// `2000` `ter[1]` 0 against 2 with them. **The new word's delta: ours 4
+/// draws and the original 5 on frame 5606, parting at index 0**: ours
+/// spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where the original
+/// spends `Unit::do_move+0xe84`. **Now the higher word of the pair**
+/// (Great Lakes' is 4555); widened on run357
+/// (`run357_s_word_frame_is_widened_whole`).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1162,8 +1182,20 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 1_576;
 /// new word's delta: ours 223 draws and the original 217 on frame 3776,
 /// parting at index 180**: ours spends `Build::find_gather_tiles+0x10a`
 /// where the original spends `Animal::think_bird+0x82`. Past run350's
-/// window; its widening is owed (the `WIDENINGS` row).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 3_776;
+/// window; widened on run355.
+///
+/// **3776 → 4555 on item 989**, the same close tail as East Indies' 1576
+/// (`docs/AI.md` §82). **The move's value diff (the word's delta, here;
+/// its block is `run355_s_word_frame_is_widened_whole`'s):** on run355 the
+/// word's block 3777 went 127 keys → 0 — the camp `1/2010`'s 79 tile keys
+/// and damage 1 against 0, `2007`'s `city_down`, city `2000`'s
+/// `gatherers` 7 against 8, citizens `1/6` (`orders_x` 42504 against
+/// 41064) and `1/28` — and nothing of who=1 parts before 3805. **The new
+/// word's delta: ours 7 draws and the original 3 on frame 4555, parting at
+/// index 1**: ours spends `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
+/// where the original spends `Farms::inc_time+0x1ae`. **The lower word of
+/// the pair**; widened on run356 (`run356_s_word_frame_is_widened_whole`).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_555;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1186,6 +1218,16 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_1576: (i64, i64) = (1_571, 1_827);
 /// run347's game, blocks 3771..4027 — six blocks before the word 3776's
 /// block 3777 and 250 past it.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_3776: (i64, i64) = (3_771, 4_027);
+
+/// `run357_s_word_frame_is_widened_whole`'s window (item 989): run357 over
+/// run346's game, blocks 5601..5857 — six blocks before the word 5606's
+/// block 5607 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_5606: (i64, i64) = (5_601, 5_857);
+
+/// `run356_s_word_frame_is_widened_whole`'s window (item 989): run356 over
+/// run347's game, blocks 4550..4806 — six blocks before the word 4555's
+/// block 4556 and 250 past it.
+pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -5926,20 +5968,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // on run54's and run53's games at Toughest. East Indies' frame-0
     // parting is widened on run349; Great Lakes' shares its frame and its
     // coin.
+    // Item 979's harness fix moved both past their windows: East Indies to
+    // 1576, widened on run352, and Great Lakes to 3776, on run355. Item
+    // 989's close tail moved both again: East Indies to 5606, widened on
+    // run357, and Great Lakes to 4555, on run356.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run352_s_word_frame_is_widened_whole"),
-        979,
-        Some(WIDENING_SECOND_EAST_INDIES_1576),
+        Some("run357_s_word_frame_is_widened_whole"),
+        989,
+        Some(WIDENING_SECOND_EAST_INDIES_5606),
     ),
-    // Item 979's harness fix moved both past their windows: East Indies to
-    // 1576, widened on run352, and Great Lakes to 3776, on run355.
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        Some("run355_s_word_frame_is_widened_whole"),
-        979,
-        Some(WIDENING_SECOND_GREAT_LAKES_3776),
+        Some("run356_s_word_frame_is_widened_whole"),
+        989,
+        Some(WIDENING_SECOND_GREAT_LAKES_4555),
     ),
 ];
