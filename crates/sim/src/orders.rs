@@ -16,7 +16,7 @@
 //! verifier, and the three grid planners live in `path.rs`
 //! (`docs/PATHFINDER.md`).
 
-use crate::ai_load::uflags2;
+use crate::ai_load::{uflags, uflags2};
 use crate::anim;
 use crate::build::{self, Ident, flags as bflags};
 use crate::combat::{self, Obj};
@@ -2202,8 +2202,13 @@ impl Sim {
                 // §8.3: a `GroupMoveOrder` is stepped by `do_group_move`,
                 // which runs `do_move` for the **leader** alone and steers
                 // every follower off the leader's own position.
-                if m.group.is_some() {
+                if let Some(gm) = m.group {
                     self.do_group_move(u, frame);
+                    // `Unit::do_group_attack_to@005e74e0`: the same look as
+                    // `do_attack_to`'s, after the group step (item 1012).
+                    if m.kind == MoveKind::AttackTo {
+                        self.do_group_attack_to_tail(u, frame, gm.id);
+                    }
                 } else {
                     self.do_move(u, frame);
                 }
@@ -2301,6 +2306,36 @@ impl Sim {
         if !same {
             return;
         }
+        self.attack_move_look(u, true);
+    }
+
+    /// `Unit::do_group_attack_to@005e74e0`'s tail — the look an army's
+    /// marching group takes (item 1012, `docs/COMBAT.md` §66).
+    ///
+    /// The same fifteen-frame phase as [`Self::do_attack_to_tail`], the
+    /// same test that the head is still this order (the original's
+    /// `pUVar2 == param_1`, which the group order's `id` stands in for:
+    /// `ungroup_move_order` replaces it with a plain one), and the same
+    /// `find_melee_target(−1, NULL, 0, 1, 0)` — **without the hurry
+    /// gate**, which `do_attack_to` alone carries. What the look finds is
+    /// handed to the group rather than to the unit when the whole group is
+    /// still walking its attack-move ([`Self::attack_move_add`]).
+    pub(crate) fn do_group_attack_to_tail(&mut self, u: usize, frame: i64, id: i64) {
+        if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
+            return;
+        }
+        if !self.still_group_move(u, id) {
+            return;
+        }
+        self.attack_move_look(u, false);
+    }
+
+    /// The body `do_attack_to` and `do_group_attack_to` share once the
+    /// phase and the head have passed: an unarmed unit or a supply wagon
+    /// pauses (`do_attack_to_pause`); `hurry_gate` is `do_attack_to`'s
+    /// `005f23ca`–`005f243f`; then `find_melee_target`'s squad head and its
+    /// search, whose find [`Self::attack_move_add`] adds.
+    fn attack_move_look(&mut self, u: usize, hurry_gate: bool) {
         let me = Obj::Unit(u);
         let supply = self.units[u]
             .ty
@@ -2310,7 +2345,8 @@ impl Sim {
             return;
         }
         let who = self.units[u].owner;
-        if self.ai_driven(who)
+        if hurry_gate
+            && self.ai_driven(who)
             && let Some(slot) = self.army_of(u)
             && let Some(a) = self.armies[who as usize].list.get(slot)
             && a.hurry != 0
@@ -2339,8 +2375,40 @@ impl Sim {
             }
         }
         if let Some(t) = self.find_melee_target(u, -1) {
-            self.add_attack_order(u, t, QueuePos::First, false, false);
+            self.attack_move_add(u, t);
         }
+    }
+
+    /// `Object::find_nearby_target`'s add arm for a searcher on an
+    /// attack-move (`00648da0`, the decompile's lines 545–606; item 1012,
+    /// `docs/COMBAT.md` §66): a unit whose `order_type` is
+    /// `GROUP_ATTACK_TO`, still an active member of its group
+    /// (`Group::normalize`, `GroupData::member(o, who, 1)`), in a group
+    /// every member of which is still walking its attack-move
+    /// ([`Sim::group_is_attacking_to`]), and **not siege** hands its find
+    /// to the whole group — `Group::action_attack(o, whom, 0, QUEUE_FIRST,
+    /// 4)`. Anything else takes it alone, `add_attack_order(…,
+    /// QUEUE_FIRST, 0, 0)` (`LAB_00649ba0`).
+    ///
+    /// SEAM: the siege arm (`local_2c`: an AI siege unit on a building
+    /// whose `+8 & 0x20` is set takes it `mandatory` and writes the army's
+    /// target, and a plain `ATTACK_TO` is killed first), and the naval
+    /// refusal (`+0x218 == 2`). No capture reaches either.
+    fn attack_move_add(&mut self, u: usize, t: Obj) {
+        let group_move = self.current_order(u).map(Order::index) == Some(index::GROUP_ATTACK_TO);
+        let siege = self.units[u]
+            .ty
+            .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
+        if group_move
+            && !siege
+            && let Some(g) = self.group_of(u)
+            && g.list.contains(&u)
+            && self.group_is_attacking_to(&g)
+        {
+            self.group_action_attack(&g, t, false, QueuePos::First, 4);
+            return;
+        }
+        self.add_attack_order(u, t, QueuePos::First, false, false);
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an

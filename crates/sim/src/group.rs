@@ -1945,6 +1945,22 @@ impl Sim {
                 .is_some_and(|t| self.unit_types[t].cols.flag(uflags::HELICOPTER))
     }
 
+    /// `Group::is_attacking_to@0070ea70` (item 1012, `docs/COMBAT.md`
+    /// §66): after `normalize`, every member that is alive and on the map
+    /// and has a head order is walking an attack-move — `ATTACK_TO` (2)
+    /// or `GROUP_ATTACK_TO` (`0x15`). A member with no order passes; one
+    /// member fighting, or walking to where it will fight, is a no.
+    pub(crate) fn group_is_attacking_to(&mut self, g: &Group) -> bool {
+        let mut g = g.clone();
+        self.group_normalize(&mut g);
+        g.list.iter().all(|&u| {
+            !(self.units[u].alive() && self.units[u].on_map)
+                || self
+                    .current_order(u)
+                    .is_none_or(|o| matches!(o.index(), index::ATTACK_TO | index::GROUP_ATTACK_TO))
+        })
+    }
+
     /// Whether a member takes an order at all: active, on the map, and not
     /// a plane. Every action's inner loop opens with this.
     fn group_member_orderable(&self, u: usize) -> bool {
@@ -3187,6 +3203,22 @@ impl Sim {
         ignore: i32,
     ) {
         if !self.group_is_on_map(g) || !self.active(target) {
+            return;
+        }
+        // **A group's `QUEUE_FIRST` is not a member's** (`00712490:168`,
+        // item 1012): as in [`Self::group_action_move_to`], the leader's
+        // action-flagged orders are copied aside, every member is halted
+        // under the same `ignore` mask, the attack is issued `QUEUE_NEW`,
+        // and the copies come back behind it as group actions at
+        // `QUEUE_LAST`. The attack-move look's group arm is the caller
+        // (`docs/COMBAT.md` §66): run356's army 0 holds the re-issued
+        // `GROUP_ATTACK_TO`, with a new `id` and its `orig`, under each
+        // member's `ATTACK` on block 4606.
+        if queue == QueuePos::First {
+            let insert = self.group_set_up_insert(g);
+            self.group_action_halt(g, ignore);
+            self.group_action_attack(g, target, mandatory, QueuePos::New, ignore);
+            self.group_finish_insert(g, insert);
             return;
         }
         // **The leader asks first** (`action_attack@00712490:215`): one
