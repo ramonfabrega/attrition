@@ -8733,3 +8733,55 @@ check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft G
 # `issuesmatch` 51 `@` records, none refused, each as golden; every issuer
 # its script calls entered. DLL sha256 d654cdb2…599d throughout
 # (`docs/RUNS.md` run364–run367; `docs/CENSUS.md`, "item 1011").
+
+run: 372
+tag: ch35-cover-issued
+item: 1019
+why: the blind list for chapter thirty-five — chapter35.cmd at cover=1 on the queue lane (golden run371, cover=0 on the click-free lane)
+# `~/ron-golden/ch35/map-14/rontrace.cmd` line for line, as 1011's
+# run364–run367 are: the golden lobby (`cfg: -`), the chapter's own
+# `!ffwd`, `cover=1`. The click-free lane cannot take `cover=1` (run185's
+# hang, twice again on 2026-09-28 before run371's cover=0 take). The DLL
+# is the install's d654cdb2…599d, built from `tracer.c` ed4390b6…c4c5,
+# this tree's file. 19 `@` lines, ten of them new.
+frames: 3260
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 4
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1540 @queueup 0 287 1 2007
+cmd: 1600 @gatherpoint 0 11520 7680 0 2007
+cmd: 1700 @gatherpointadd 0 5760 5760 0 2007
+cmd: 1850 @gatherpoint 0 -1 -1 0 2007
+cmd: 2200 add barracks who=1 72,78
+cmd: 2210 add airbase who=0 44,76
+cmd: 2215 resource who=0 all +500
+cmd: 2220 add missile_silo who=0 52,64
+cmd: 2225 @queueup 0 313 2 2009
+cmd: 2240 @queueup 0 310 2 2008
+cmd: 2440 @launchpatrol 0 7680 11520 2009
+cmd: 2460 @gatherpoint 0 7680 11520 0 2009
+cmd: 2500 @gatherpoint 0 5760 12288 0 2008
+cmd: 2650 @launchmove 0 2008 0 2009
+cmd: 2670 @launchstrike 0 2006 1 2009
+cmd: 2800 @gatherpoint 0 -1 -1 0 2008
+cmd: 3000 @launchstrike 0 2006 1 2008
+cmd: 3010 @launchpatrol 0 3840 13440 2008
+check: python3 tools/gamelog/cmdsran.py rontrace-run372.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 2200:1 2210:1 2215:1 2220:1 3260:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch35/map-14/rontrace.log" rontrace-run372.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch35/map-14/rontrace.log" rontrace-run372.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=3260)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run372.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$|CommandManager::issue_launch_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'

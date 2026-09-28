@@ -176,9 +176,12 @@ const UNREAD: &[(&str, &str)] = &[
     // the EXIT's order dies, so it prints from run265's 778 with `length
     // 0` and nothing reads it. It reaches a comparison only when two
     // planes launch from one base in one call, which no capture holds.
+    // A Missile Silo's `launching` (`ObjectData +0x44`), printed as
+    // `list[scan]` while a missile waits in it, joined the row with
+    // run371 (item 1019, `docs/GOLDEN.md` §44).
     (
         "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
-        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length myhits mylos near_o near_who size uid up up_who visible",
+        "down down_who flags healing hold_frames increment infiltrated inside_down inside_down_who launch_frames length list[scan] myhits mylos near_o near_who size uid up up_who visible",
     ),
     ("GAME/FRAME/CITIES", "increment length size"),
     // **Item 989 added `Newcastle`**: a city's name is the record's one
@@ -320,6 +323,18 @@ const UNREAD: &[(&str, &str)] = &[
     // and the strafe's `xx`/`yy` (`docs/ORDERS.md` §32); what stays unread
     // is the `AIRORDER`'s own `UNITORDER` copy, the same second copy as
     // the grouped moves' above, and the patrol's array allocation.
+    // **Item 1019 owes these** (`docs/GOLDEN.md` §44, run371): the V2's
+    // `AIRATTACKGROUNDORDER` — its launch point and the round's time, and
+    // its `AIRORDER`'s second `UNITORDER` copy. No order parser opens the
+    // air attack on the ground; the missile's flight is not carried.
+    (
+        "GAME/FRAME/UNITDATA/AIRATTACKGROUNDORDER",
+        "sx sy total_time",
+    ),
+    (
+        "GAME/FRAME/UNITDATA/AIRATTACKGROUNDORDER/AIRORDER/UNITORDER",
+        "flags",
+    ),
     (
         "GAME/FRAME/UNITDATA/AIRPATROLORDER/AIRORDER/UNITORDER",
         "flags",
@@ -577,6 +592,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch32 = golden_dump("ch32");
     let ch33 = golden_dump("ch33");
     let ch34 = golden_dump("ch34");
+    let ch35 = golden_dump("ch35");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1527,6 +1543,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         ] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty-four carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirty-five's word, on run371** (item 1019): the
+    // Helicopter's and missiles' launch arms. 2221, the silo; 2227, its
+    // queue of one; 2431, the V2's birth; 2446, the first Helicopter out
+    // at its birth and the word; 2502, `0/2008`'s point; 2659, the second
+    // Helicopter under it; 2672, the silo's strike; 2702, the V2's round;
+    // 2740, the Helicopter at its point; 2802, the Clear; 3012, the
+    // patrol at `0/2008`; 3257, the last blocks.
+    if let Some(p) = &ch35 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_FIVE;
+        for w in [
+            2221, 2227, 2431, 2446, 2502, 2659, 2672, 2702, 2740, 2802, 3012, 3257,
+        ] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-five carries the window's five blocks");
             frames += n;
         }
     }

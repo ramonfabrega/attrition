@@ -395,6 +395,10 @@ pub const SITES: &[(u32, Option<u32>, &str)] = &[
     // …and a non-bomber plane's `cruising_alt` redraw, every eighth frame
     // of its flight (`docs/ORDERS.md` §33.1): chapter seventeen's 642.
     (0x005e_878a, None, sim::air::SITE_AIR_ALT),
+    // `Unit::do_spec_anim@005e5880`'s EXIT at an Airbase for a Helicopter:
+    // its two offsets, `x` then `y` (item 1019, run371's 2445).
+    (0x005e_59ef, None, sim::air::SITE_HELI_EXIT_X),
+    (0x005e_5a0f, None, sim::air::SITE_HELI_EXIT_Y),
     // `Herd::process@00741760` — one herd's walk.
     (0x0074_1777, None, sim::gaia::SITE_HERD_X),
     (0x0074_1796, None, sim::gaia::SITE_HERD_Y),

@@ -9940,6 +9940,71 @@ settled 00:44, one take: 418.4 MB of gamelog. All four checks passed:
 `rngcmp` against run362 (**0 differing, 2,851 identical**), and each
 issuer the script calls entered: `issue_flight` (620), `issue_queue_up` (1540), `issue_gather_point` (1600), `issue_launch_patrol` (2260). New on the blind list's side:
 nothing run366 does not. `rondata::blind::TRACES` carries run367.
+
+## run371 — chapter thirty-five, the Helicopter's and missiles' launch arms (2026-09-28, item 1019)
+
+`docs/GOLDEN.md` §44, `tools/gamelog/golden/chapter35.cmd`: chapter
+thirty-four's eighteen lines to its second Airbase (2210), then
+`resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2
+Rockets queued there (2225) and two Helicopters at `0/2008` (2240),
+`@launchpatrol` at the silo (2440), a point at each base (2460, 2500),
+`@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear
+at `0/2008` (2800), and `@launchstrike` and `@launchpatrol` there (3000,
+3010). The chapter and its thirteen falsifiers were committed before the
+run (`55087201`).
+
+**Two takes at `cover=1` hung before frame 0** (01:54 and 03:08, the
+click-free lane): 96 KB of trace, no `FRAME` record, run185's hang. The
+runner's 300 s stall guard killed each healthy first launch — its
+`wine-stalled.log` is run362's whole 29,306 bytes — and the relaunch sat
+at the menu. **81 minutes of the lane.** Both takes are kept aside as
+`~/ron-golden/ch35.dead-20260928-0154` and `-0308`.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch35 \
+    --map 14 --end-frame 3260 --log-window 605 3260 --timeout 7200 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter35.cmd
+```
+
+**The take** at `cover=0`, 03:15:41: **3,256 s** in all (3,214 launch to
+exit), **1.08 GB** of dump and 15.1 MB of trace, 2,655 blocks. The
+receipt says `success: true`, exit 0, 3,261 frames, `MAP_STYLE 14`, seed
+12345, 1,359,360 `GROUPDATA`, settings restored. The lane's DLL was built
+from this branch's `tracer.c` (stamp `source ed4390b6…c4c5`, `defs
+-DRON_AUTOSTART`; `rontrace.dll` `6bbc15b5…0990`). `waitrun.sh` exited 0.
+19 GB free after.
+
+| check | result |
+|---|---|
+| `issuesmatch.py --none-refused … 19` | every `@` line issued, none refused |
+| `rngcmp.py` vs run362's trace | the same game to 2279 (2,851 frames in common, 569 differ, the first 2280: run362's own presses) |
+| the processed commands | `process_queue_up 313 2` on 2226 and `310 2` on 2241; `process_launch_patrol 7680 11520 2 0 0 0` on 2441 and `3840 13440 2 0 0 0` on 3011; `process_gather_point` on 2461, 2501 and 2801; `process_flight` on 2651, 2671 and 3001 |
+
+### §44's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issues | processed on the frame after each press | **as predicted** |
+| 2, the resource line (2215) | six buckets +500 | **as predicted**: no bucket parts before the queue's charge |
+| 3, the silo | `0/2009` on 2221 | **as predicted**, at (9984, 12288) |
+| — the silo's queue (2227) | two V2s queued (the walk) | **one**: `queued 1`, one price paid; the second `@queueup` refused. No V2 `0/12` is born, so the Helicopters are `0/11` and `0/12` |
+| 4, `0/11`'s birth (2445) | out, two draws, no order | **as predicted**: out on 2446 at (8355, 14690), `idle`; the draws `5e59ef`, `5e5a0f` |
+| 5, the silo's patrol (2442) | nothing | **as predicted** |
+| 6, P_h (2502) | `0/11` untouched | **as predicted** |
+| 7, the second V2 (2635) | no order | **cannot fire**: no second V2 |
+| 8, the silo's `MOVE_TO` (2652) | nothing | **as predicted** (`0/10` alone inside) |
+| 9, the second Helicopter (2659) | an `AIRPATROLORDER` over P_h, flags 4 | **fired**: a `MOVEORDER` (`MOVE_TO`) to (5784, 12312), P_h's cell centre, flags 4 — `add_air_patrol_order`'s Helicopter arm (`5e4363`), read after the commit |
+| 10, the silo's strike (2672) | `0/10` a `STRAFEORDER`, flags 4 | **fired on the kind**: an `AIRATTACKGROUNDORDER`, flags 4, home `0/2009` — `add_strafe_order`'s missile head, read after the commit; `recharging` 30 on 2672, 1 on 2701, and `0/10` gone on 2702 with its round in flight |
+| 11, the Clear (2802) | `0/12` a strafe home | **fired**: nothing — `0/12`, at its point from 2740 with no order, is homed nowhere |
+| 12, the strike at `0/2008` (3002) | nothing | **as predicted** (the base empty) |
+| 13, the patrol at `0/2008` (3012) | `0/12` a `MOVE_TO` | **fired**: nothing, the base empty |
+
+`0/11` drifts from (8355, 14690) to (8465, 14784) by 2701, idle. The
+V2's round is a spline shot (`traj 2`, `total_time` 120) from (9974,
+12347) at 466 onto 1/2006's point.
 ## run368 — Great Lakes at Toughest, a packet at logger frame 4688: the raider's re-search (2026-09-28, item 1028)
 
 **What it is.** A `RON_STATE_FRAME=4688` packet on the click-free lane over

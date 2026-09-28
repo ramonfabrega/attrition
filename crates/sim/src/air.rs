@@ -36,6 +36,11 @@ pub const SITE_AIR_TURN: &str = "Unit::do_air_physics+0x639";
 /// (`docs/ORDERS.md` §33.1). Chapter seventeen's first word, 642.
 pub const SITE_AIR_ALT: &str = "Unit::do_air_physics+0xba";
 
+/// `Unit::do_spec_anim@005e5880`'s two draws for a helicopter's exit at an
+/// Airbase (`5e59ea`, `5e5a0a`): the `x` offset, then the `y`.
+pub const SITE_HELI_EXIT_X: &str = "Unit::do_spec_anim+0x16f";
+pub const SITE_HELI_EXIT_Y: &str = "Unit::do_spec_anim+0x18f";
+
 /// **A bomb's release** — `Guy::set_anim+0xf2f < Unit::set_anim+0x56 <
 /// Unit::do_strafe+0x9d0`, the `CHAR_ATTACK2` a Bomber plays over its
 /// target (`docs/ORDERS.md` §34.3). Chapter seventeen's word 805.
@@ -1056,11 +1061,22 @@ impl Sim {
     /// `avg_speed`, which [`Sim::come_out`]'s placement rebuilds from rest:
     /// it is handed back (25 on 778, the value it stood inside with).
     ///
-    /// SEAM: a helicopter's two draws (`x` −197..−187, `y` −5..5) and its
-    /// 200 over the ground; no capture holds one.
+    /// **A helicopter's exit** (`unit_flags & 0x20`, `5e59d5`..`5e5a1c`,
+    /// item 1019): two draws, `x` less `197 − rand % 11` and `y` plus
+    /// `rand % 11 − 5`, in that order, and its figure 200 over the ground
+    /// (`Guy::set_new_z(z + 200, 1)`, `5e5a91`).
     pub(crate) fn exit_at_airbase(&mut self, u: usize, host: usize, avg_speed: i32) {
         let at = self.buildings[host].pos;
-        let spot = Pos::new(at.x - 0xc0, at.y);
+        let heli = self.is_helicopter(u);
+        let spot = if heli {
+            self.mark(SITE_HELI_EXIT_X);
+            let dx = self.rng.roll() % 11 - 0xc5;
+            self.mark(SITE_HELI_EXIT_Y);
+            let dy = self.rng.roll() % 11 - 5;
+            Pos::new(at.x + dx, at.y + dy)
+        } else {
+            Pos::new(at.x - 0xc0, at.y)
+        };
         {
             let m = &mut self.units[u].movement;
             m.heading = Angle(0);
@@ -1076,6 +1092,10 @@ impl Sim {
         let af = &mut self.units[u].airframe;
         af.z = z;
         af.last_z = z;
+        if heli {
+            af.z += 200;
+            af.last_z = af.z;
+        }
         af.last_pitch = af.pitch;
         af.pitch = Single::ZERO;
         af.last_bank = af.bank;
