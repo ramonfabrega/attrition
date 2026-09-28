@@ -2394,6 +2394,18 @@ impl Sim {
         {
             return;
         }
+        // **A busy unit that is not on duty does not answer the hit**
+        // (item 1040, `docs/COMBAT.md` §70): every way past the flee arm
+        // reaches `600863`, `call on_duty@005fff70; jne 600877`, then
+        // `cmp %eax, -0x1c(%ebp)` — the front order's type, `local_20`,
+        // stored at `600150` — `jne 600b16`, the return. So a unit with
+        // any order retaliates only if it is on duty. The one way round it
+        // is the action-is-an-attack arm (`600516`, `jmp 600877`), which
+        // this crate carries as the `target` test above; an attack action
+        // with no target keeps the old path (SEAM).
+        if front.is_some() && !self.action_is_attack(responder) && !self.on_duty(responder) {
+            return;
+        }
         // `LAB_00600877`'s own gate — `type->attack != 0`, the base column.
         // The `obj_masks & CIVILIAN && max_range == 0` test that used to
         // stand here was this crate's **stand-in for the flee arm above**
@@ -2421,6 +2433,54 @@ impl Sim {
             }
         }
         self.retarget(me, Some(attacker), false);
+    }
+
+    /// **`Unit::on_duty@005fff70`**: a combat-role type (`+0x2c8 &
+    /// 0x10000`) whose activity is an `ATTACK_TO`, a `PATROL` (5), a
+    /// `GUARD`, a `GROUP_ATTACK_TO` or a `GROUP_PATROL` (2, 5, `0xc`,
+    /// `0x15`, `0x16`, in the function's own order).
+    ///
+    /// The activity is `UnitData::get_activity@00608370`'s: the first
+    /// order that is neither a move nor an attack (vslot `+0x1c`,
+    /// `is_move_attack`), and when every order is one, the last, answered
+    /// only if it is an `ATTACK_TO` or a `0x15`.
+    pub(crate) fn on_duty(&self, u: usize) -> bool {
+        use crate::orders::{Body, index};
+        if !self.profile(Obj::Unit(u)).combat_role {
+            return false;
+        }
+        let orders = &self.units[u].orders;
+        let move_attack = |o: &crate::orders::Order| {
+            o.is_move() || matches!(o.body, Body::Attack(_) | Body::AttackGround(_))
+        };
+        let activity = match orders.iter().find(|o| !move_attack(o)) {
+            Some(o) => Some(o.index()),
+            None => orders
+                .back()
+                .map(crate::orders::Order::index)
+                .filter(|&k| k == index::ATTACK_TO || k == index::GROUP_ATTACK_TO),
+        };
+        matches!(
+            activity,
+            Some(
+                index::ATTACK_TO | 5 | index::GUARD | index::GROUP_ATTACK_TO | index::GROUP_PATROL
+            )
+        )
+    }
+
+    /// `update_action`'s order answers `is_attack` (vslot `+0x18`): the
+    /// arm of `Unit::target_opportunity` that jumps past `on_duty`
+    /// (`600516`). SEAM: `is_attack`'s overrides are folded in the export,
+    /// so it is taken as the attack and ground-attack orders, as
+    /// [`Sim::guard_activity`] takes it.
+    fn action_is_attack(&self, u: usize) -> bool {
+        use crate::orders::Body;
+        self.action_of(u).is_some_and(|k| {
+            matches!(
+                self.units[u].orders[k].body,
+                Body::Attack(_) | Body::AttackGround(_)
+            )
+        })
     }
 
     /// `Unit::target_opportunity`'s **flee arm** — `6006f0`..`60085b`, the
