@@ -4352,7 +4352,7 @@ mod tests {
         assert_eq!(sim.find_melee_target(me, -1), Some(Obj::Unit(near)));
         let seed = (1u32..)
             .find(|&k| {
-                let mut r = sim.rng.clone();
+                let mut r = sim.rng;
                 r.seed = k;
                 r.roll() % 5 != 0
             })

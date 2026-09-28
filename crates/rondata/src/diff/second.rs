@@ -785,7 +785,7 @@ mod tests {
         // more here since run356's window closed (block 4841: `damage` 6
         // 10/16 here, 5 0/16 there).
         assert_eq!(
-            first(0, 4, "hits:damage").map(|(f, r)| (f, r)),
+            first(0, 4, "hits:damage"),
             Some((4_841, "ours 6 theirs 5".to_string())),
             "the citizen's damage, standing from the window's first block"
         );
