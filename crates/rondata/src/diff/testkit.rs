@@ -4382,8 +4382,17 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_FIVE: (i64, i64) = (605, 3261);
 /// it and fires its two scatter draws on its launch, 3111. The value
 /// stream's first parting under the word is 2722, the V2's price.
 ///
-/// **The delta**, this constant's: the first walk, 3111.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3111;
+/// **3169, open** (item 1078, `docs/PRODUCTION.md` "The missile's other
+/// arms"): a missile that fires leaves `num_units` (`Unit::close`'s
+/// `track_unit_type(·, −1)`), so the two new V2s are priced 100 and 120
+/// as in run390; and the shield refuses a missile's order on its holder,
+/// so V2c `0/15` stays inside with no order on 3082. The word is V2b's
+/// round coming down on T_home `1/2007` in who=1's land: run390 closes
+/// it under the shield, and this crate wounds the Barracks (its first
+/// wound's `% 100`). The widening goes 284 → 266 rows, all past 3169.
+///
+/// **The delta**, this constant's: the first walk, 3111; +58, 3169.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3169;
 
 /// `chapter_thirty_six_s_word_frame_is_widened_whole`'s window: run390
 /// whole, (605, 3421).
