@@ -88,13 +88,13 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
-## Parked by item 1050, 2026-09-28 — the missile's other arms
+## Parked by item 1077, 2026-09-28 — the blast's edges
 
-(1078) **The missile's arms read and not built** (PRODUCTION "The
-missile's launch and round", its list): a nuke's arms,
-`MISSILE_DEFENSE_BONUS`, a second missile in `launching`,
-`do_air_physics`' redraw for a missile, and `unit_masks & ~0x4000000`.
-Chapter thirty-five fires one V2 at a time and no defence stands.
+(1084) **The blast's two unmeasured edges** (COMBAT §73): `who=0`'s
+`leader_flags` gains `0x0A000000` on 2821, a field no instrument
+compares; and a no-splash miss onto a building now strikes the building
+instead of puncturing, which nothing on the disk exercises. (1078, the
+missile's other arms, was promoted to the queue as chapter thirty-six.)
 
 ## Parked by item 1072, 2026-09-28 — the heal's edges
 
@@ -1777,6 +1777,13 @@ touches run green before any mutation is scored. (b) A booking's
 frame: 1072's gap opened in 4807..4840, which no dump prints, and the
 `healing` countdown located it; a booking that says "stands from" says
 whether that is the window's edge.
+
+(1085) **A value parting through `do_damage` prints its arguments
+first** (1077's Loop line): 1050 named `Object::do_damage` as what
+destroys the building; one scratch print of `do_damage`'s arguments on
+the word's frame said the arithmetic was right and the `splash` flag
+wrong. A brief on such a parting could ask for that print before any
+reading.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
