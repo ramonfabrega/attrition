@@ -1262,6 +1262,19 @@ impl Sim {
             return;
         }
         let u = self.buildings[b].launching.remove(0);
+        // The nuke arm (item 1091, `do_missile_launch`): a nuke on its
+        // strike shows the silo to everyone, `+0x40` (`visible`) `0xff`,
+        // then vslot `0x164`, `Wall::update_local_seen@0063ed50`, whose
+        // seen bits nothing here reads.
+        if self.air_line_is(u, crate::airbase::NUCLEARMISSILE)
+            && matches!(
+                self.current_order(u).map(|o| o.body),
+                Some(crate::orders::Body::AirAttackGround(_))
+            )
+            && !self.nukes.shown.contains(&b)
+        {
+            self.nukes.shown.push(b);
+        }
         self.come_out(u);
         let frame = self.frame;
         self.work(u, frame);
@@ -1342,7 +1355,13 @@ impl Sim {
             p.attenuate,
             vector_dist(at.x - launch.x, at.y - launch.y),
         );
-        let s = crate::combat::scatter(&self.tuning, acc, true, true, false);
+        // A nuke's scatter is 0 (`67c64b`: `is(0x13b)` zeroes it where a V2
+        // doubles it), and `s − 1 < 1` takes neither draw (item 1091).
+        let s = if self.air_line_is(u, crate::airbase::NUCLEARMISSILE) {
+            0
+        } else {
+            crate::combat::scatter(&self.tuning, acc, true, true, false)
+        };
         let mut landing = at;
         // `s − 1 < 1` (`local_28`) takes no draw.
         if s > 1 {

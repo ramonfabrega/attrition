@@ -1656,6 +1656,12 @@ mod tests {
         // in flight, and a strike from the other silo after it: the
         // missile's other arms (item 1078, `docs/GOLDEN.md` §45).
         ("chapter36.cmd", &[]),
+        // Chapter thirty-seven: a cast of its own on the golden start — a
+        // Missile Silo, the nuke researched there and trained, two who=1
+        // Barracks and four of who=0's probes at chosen distances, the
+        // strike, and `tech who=1 missile_shield on` in its countdown: the
+        // nuke (item 1091, `docs/GOLDEN.md` §46).
+        ("chapter37.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),

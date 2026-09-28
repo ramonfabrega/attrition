@@ -42,7 +42,7 @@ pub(crate) const HELICOPTER: crate::tech::TypeId = 0x136;
 const V2ROCKET: crate::tech::TypeId = 0x139;
 
 /// `NUCLEARMISSILE` (0x13b), the line it asks for a nuke (`6fc12e`).
-const NUCLEARMISSILE: crate::tech::TypeId = 0x13b;
+pub(crate) const NUCLEARMISSILE: crate::tech::TypeId = 0x13b;
 
 /// The flight command's modifiers as `Console::execute_at_cursor` reads
 /// them: shift (every plane), ctrl (bombers only), alt (fighters only).
@@ -1405,6 +1405,55 @@ mod tests {
             Keys::default(),
         );
         assert_eq!(s.units[v2].orders.len(), 1, "ordered without it");
+    }
+
+    /// **A nuke's launch shows its silo, and its round does not scatter**
+    /// (item 1091, `Build::do_missile_launch@00622670`'s nuke arm and
+    /// `Ammo::init@0067bbf0`'s `67c64b`; `tools/emu/nuke_launch.py`):
+    /// run397's `0/2007` prints `visible` −1 from 3082 and its round lands
+    /// on (23040, 34560), the target's point, with no draw. A V2 shows
+    /// nothing and scatters. Made to fail with the nuke's scatter left the
+    /// V2's (two draws) and with the silo's `+0x40` dropped.
+    #[test]
+    fn a_nuke_s_launch_shows_its_silo_and_its_round_does_not_scatter() {
+        let mut spent = Vec::new();
+        for nuke in [true, false] {
+            let (mut s, silo, m, enemy) = silo_with_a_v2();
+            let ty = s.units[m].ty.unwrap();
+            if nuke {
+                s.unit_types[ty].tree = Some(NUCLEARMISSILE);
+            }
+            s.group_action_launch_flight(
+                0,
+                &[silo],
+                Obj::Building(enemy),
+                Flight::Strike,
+                Keys::default(),
+            );
+            s.frame = 3051;
+            s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+            let mut probe = s.rng;
+            for _ in 0..31 {
+                s.do_launch(silo);
+                s.frame += 1;
+            }
+            let mut n = 0;
+            while probe != s.rng {
+                probe.roll();
+                n += 1;
+                assert!(n < 100, "diverged");
+            }
+            spent.push(n);
+            assert!(!s.units[m].alive(), "fired and gone");
+            assert_eq!(s.nukes.shown.contains(&silo), nuke, "the silo shown");
+            if nuke {
+                assert_eq!(
+                    s.projectiles[0].landing, s.buildings[enemy].pos,
+                    "on the point"
+                );
+            }
+        }
+        assert_eq!(spent[0] + 2, spent[1], "the V2's two scatter draws alone");
     }
 
     /// **A missile that fires leaves its type's count** (item 1078,

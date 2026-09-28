@@ -1406,6 +1406,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) — **run 2026-09-27 (item 1009), 906 MB, 2,731 s; no falsifier fired: `0/8` on ctrl, `0/9` on alt, `0/7` home to `0/2008` over a full `0/6`, nothing on ctrl's strike, three re-ordered by P1 and not `0/7`, the strikes standing through P2, nothing on alt at `0/2008`** |
 | 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) — **run 2026-09-28 (item 1019), 1.08 GB, 3,256 s, after two `cover=1` takes hung (81 min); the silo queued one V2 of two; 9, 10, 11 and 13 fired on readings the listing had corrected: `0/12` an `ATTACK_TO` to P_h and homed nowhere, `0/10` an air attack on the ground, launched on 2702; word 2445, then 2675; item 1048 built the Helicopter's flight, 2675 → 2701, open; item 1050 built the V2's launch, 2701 → 3260, closed on the draw stream; item 1077 built the blast on 2821, 43 → 42 rows** |
 | 390 | thirty-six, the missile's other arms | `[605, 3420)` | chapter thirty-five whole, two more silos with a V2 each (`0/14`, `0/15`), who=1's Barracks T_home in its own land and T_far in no one's, a spotter, and five lines: `@launchstrike` from `0/2010` on T_home (3019, launched on 3050 with `(14 + 3050) & 7 == 0`), again on T_far during the countdown (3029), `tech who=1 missile_shield on` with the round in flight (3070), `@launchstrike` from `0/2011` on T_far (3080); at `cover=0` on the click-free lane, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run371's start (§45) — **run 2026-09-28 (item 1078), 1.17 GB, 3,278 s; no falsifier fired: the re-press found nothing, the redraw's draw led the round's two, the shield refused `0/15`'s order and closed V2b's round on T_home; word 3111, then 3169 (the price and the order gate), then 3420, closed** |
+| 397 | thirty-seven, the nuke | `[605, 3490)` | a cast of its own on the golden start (1094): a Missile Silo `0/2007` (610), the nuke's research there (615) and its train (2300), who=1's Barracks T at ground zero and F at a building distance of 1824 (2940, 2942), four of who=0's Elite Special Forces at 518, 1039, 1804 and 1870 (2950..2956), `@launchstrike` on T (3050) and `tech who=1 missile_shield on` in the countdown (3060); at `cover=0` on the click-free lane, run398 the same at `cover=1` on the queue lane (`Nuke::add_nuke`, a `NEVER` row), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run390's start (§46) — **run 2026-09-28 (item 1091), 1.12 GB, 3,380 s; no falsifier fired (7's leader half could not: `LEADERS=2` prints no `nuke_stamp`): the research done by 2237, the nuke launched on 3081 through the shield, the silo's `visible` −1, the round on the point with no draw, the ring striking on 3217, 3226 and 3239, 1870 never; word 3081, then 3490, closed** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -7986,3 +7987,222 @@ family). `GROUND_INEXACT` 40.
 
 The count is value-only: no draw reads a price, so only the widening
 holds it.
+
+## 46. Chapter thirty-seven — the nuke: its research at the silo, its strike with the shield given after the press, a round with no scatter, and forty frames of `Nuke::do_damage` (item 1091)
+
+**Premise.** §45 dropped the nuke to a chapter of its own: the family no
+capture enters, `Nuke::add_nuke@0092ba30` (a `NEVER` row) and
+`Nuke::do_damage@0092bc80`, called every frame from `Objects::inc_time`
+and run in floats. As claims to check, each read off the listing, and
+the blast's run under the emulator (`tools/emu/nuke_blast.py`;
+`docs/PRODUCTION.md`, "The nuke (item 1091)"):
+- **The nuke's first queue is a research job.** Its record (type 315,
+  `0x13b`) wants `PREQ0` Modern Age and `PREQ1` Nation-in-Arms (a Library
+  tech, `AGE` 5) at `WHERE` Missile Silo, and its `FLAGS` are empty: no
+  `h` (`unit_flags & 0x80`), so `Leader::gain_tech`'s cascade never grants
+  it and the availability bit stays clear until a research entry at the
+  silo completes (`docs/TECH.md`, "Unit flags the tree reads"). The V2
+  carries `h` and trains at once. No wonder gates it.
+- **The shield is not asked again after the press.**
+  `Build::do_missile_launch@00622670` launches whatever `launching` holds
+  on `AIR_ATTACK_GROUND`; `MISSILE_DEFENSE_BONUS` is read at the order
+  (`6fbbdb`) and at the blast (`678337`), and the blast's reads the
+  landing cell's owner, no one's here.
+- **A nuke's launch shows its silo to everyone**: the nuke arm of
+  `do_missile_launch` writes `ObjectData +0x40` (`visible`) `0xff` and
+  calls vslot `0x164`, `Wall::update_local_seen@0063ed50`.
+- **A nuke's round has no scatter**: `Ammo::init@0067bbf0` zeroes a
+  missile's scatter when it `is(0x13b)` (`67c64b`), and `s − 1 < 1` takes
+  neither draw, so the round lands on the target's point. Its spline is
+  `calc_nuke_spline`'s other arm (the fourth argument `is(0x13b)`, 1.0),
+  of the same 120 frames.
+- **The landing is the nuke arm of `Ammo::do_damage@00678060`**
+  (`67846d`..`6785db`): no `hit_target`, no splash walk; `nuke_stamp`
+  (`+0x7b4`, `6784bb`) = the frame and `nukes_used` (`+0x7bc`, `6784c8`)
+  + 1 for the shooter's player;
+  `Nuke::add_nuke` at the landing with the radius pair `(100,
+  splash_area · 192)`, 1920 for the nuke; `Nuke::do_damage` at once; the
+  round closed.
+- **The blast is forty frames of a growing ring**, t = frame − landing:
+  `r = (int)(max · f + (1 − f) · min)` in SSE float32 with `f` 0 to t =
+  10 and `(t − 10) / 30` after, while t < 40 (`92bf3a`..`92bf8d`). A unit
+  at `vector_dist ≤ r`, not struck before by this nuke and not a nuke,
+  takes `Object::do_damage` with `count = 256 − (d << 8) / 1920`; a
+  building by the cell ring, at its footprint-shrunk octagonal distance `<
+  r`, the same. **The ring stops at 1859 on t = 39**: 1920 is never
+  reached. Under the emulator, the executable's own code: `r` 100 to t =
+  10, then 160, 221 … 1798, 1859; `count` 256 at d 0, 187 at 518, 118 at
+  1039, 16 at 1804, 9 at 1859, and nothing at 1860.
+- **Armageddon moves on t = 110 and the nuke is dropped on t = 430**
+  (emulated); `Game::get_armageddon@00594020` is 10 for two nations on two
+  sides, so one nuke ends nothing.
+
+**Dropped, and why** (ranked by what a failure would teach, parked 1033):
+- **A second nuke**: it counts toward Armageddon, and it would re-read the
+  arms the first reads; its only new arm is the per-nuke
+  `been_damaged_before`, which one nuke already exercises on every frame
+  of its ring.
+- **`action_declare` on a struck player at peace** (`92c502`,
+  `92c71e`): the players are at war, and staging a peace costs a lever
+  whose failure teaches diplomacy, not the blast.
+- **A who=1 unit in the ring**: who=1's Elite Special Forces take
+  `ExploreTo` orders on their own under `ai off` (the walk), so the cast's
+  units are who=0's, whom the nuke strikes as it strikes anyone
+  (`FILTER_ALL`).
+- **`TerrainOut::terraform_for_nuke` and `NukeOut::graph_do_damage`**:
+  the terrain's heights and the particles, which no dump prints; a figure
+  standing in the crater after the blast would read them, and none does.
+
+**The `NEVER` rows the staging names**: `Nuke::add_nuke@0092ba30`, on
+the landing (3200). No other row of the 145 is on the path. So run397 at
+`cover=0` on the click-free lane is the chapter, and run398, the same
+script at `cover=1` on the queue lane, takes the row off (1011's split).
+
+**The cast and the lines** are `chapter37.cmd`'s, a cast of its own on
+the golden start rather than chapter thirty-six appended (1094): `!ai
+off`, `library who=0 6` (600); `resource who=0 all +2000` (606); a
+Missile Silo `0/2007` at tile (100, 180) (610); the research
+(`@queueup 0 315 1 2007`, 615) and, past it, the train (2300); who=1's
+Barracks T `1/2006` at (120, 180), ground zero, and F `1/2007` at (131,
+185) (2940, 2942); four of who=0's Elite Special Forces (attack 0, so no
+fight) at (122, 180), (120, 174), (110, 180) and (110, 182) (2950..2956);
+`@launchstrike 0 2006 1 2007` (3050); `tech who=1 missile_shield on`
+(3060). All of it in no one's land (the walk's `RON_STAGE_MAP`).
+
+**The staging, walked by this crate on run390's start** (`stage_walk`,
+`RON_STAGE_ALL=1` for the ground units, new here), trace frames:
+- the research charged 1000k/1200o on 616 (the premium's ×2), done on
+  2236 with nothing placed; the train charged 500k/600o on 2301, `0/10`
+  inside the silo on 3021;
+- T at (23040, 34560), F at (25152, 35520); `0/6` (23544, 34680), `0/7`
+  (23160, 33528), `0/8` (21240, 34680), `0/9` (21240, 35064): at `d`
+  518, 1039, 1804 and 1870 from T's point, and F at a building distance
+  of 1824 (a Barracks is 4 × 4, `x_size · 96` = 384 off each axis);
+- `0/10` an `AIRATTACKGROUNDORDER` to T's point on 3051, launched on
+  3081, landing on 3200.
+Unbuilt, this crate draws the V2's doubled scatter on 3081, and at 3200
+takes the V2's general arm: T and F destroyed, no probe struck.
+
+**The readings, and the gates between each and its block** (903, 968):
+- **The research** (616 → 2236): an entry of the unit type whose bit is
+  clear. Gates: `type_avail` (Modern Age, Nation-in-Arms), the silo's
+  `can_carry` and `has_nuke` (empty).
+- **The train** (2301 → 3021): the bit set, a unit. Gates: the same.
+- **The strike** (3051): the order, `recharging` 30. Gates: T seen (the
+  probes, LOS 12), the reach (`mana 650 · 115`), who=1 not yet shielded,
+  `can_nuke` (`get_units(0x13b)`, the nuke itself).
+- **The shield after the press** (3060 → 3081): no gate; the launch.
+- **The launch** (3081): `+0x40 = 0xff`; the round, no draw.
+- **The landing** (3200): the nuke arm. Gates: the landing cell owned by
+  no one (the shield's read), `is(0x13b)` (`local_20`).
+- **The ring** (3200 → 3239): each probe on the first t with `r ≥ d`
+  (17, 26, 39), F on the first with `r > 1824` (39). Gates:
+  `been_damaged_before` (once each), the unit's vslots `0x8` and `0xbc`.
+
+**The capture must dump** `end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5`
+and `misc:COMMANDMANAGER=1` over **`[605, 3490)`**: 2,885 blocks, **250
+past** the last scheduled event, t = 39 on 3239 (block 3240). `LEADERS=2`
+prints `nuke_stamp` and `nukes_used`; `BUILDS=7` the silo's `visible`,
+`recharging` and `launching`; `AMMO=5` the round.
+
+**What would falsify it, and where each could first fire.** Each tests
+its own unit on its own block (711); the walk's trace frame F is block F
++ 1.
+1. **The issues reach the pump**: `process_queue_up` on 616 and 2301,
+   `process_flight` on 3051.
+2. **The research** (blocks 617, 2237): the silo's entry of type 315 at
+   1000/1200 on 617 (the reading, both sides); gone on 2237 with no unit
+   of type 315 anywhere (the reading); a unit placed.
+3. **The train** (block 3022): `0/10` inside `0/2007`. A nuke of another
+   number moves nothing but its name.
+4. **The strike** (block 3052): `0/10` one `AIRATTACKGROUNDORDER` to
+   (23040, 34560), flags 4, `oxx` 2007; `0/2007`'s `recharging` 30.
+5. **The shield after the press** (blocks 3061..3082): `0/10`'s order
+   kept and its launch on 3081 (the reading, both sides); no launch.
+6. **The launch** (block 3082): `0/2007`'s `visible` −1 (the reading);
+   0. The round's `ex ey` (23040, 34560) exactly and no
+   `Ammo::init+0xae8`/`+0xb25` on trace 3081 (the reading); two draws
+   and a landing off the point (this crate, unbuilt). `total_time` 120.
+7. **The landing** (block 3201): T gone; who=0's `nuke_stamp` 3200 and
+   `nukes_used` 1 (the reading); 0 and 0. F standing and no probe struck
+   (the reading); F gone (this crate, unbuilt).
+8. **The ring** (blocks 3218, 3227, 3240): `0/6` struck on 3217, `0/7` on
+   3226, `0/8` on 3239, each once (the reading); any other frame, or twice.
+9. **The edge** (block 3240 to the end): `0/9` untouched at `d` 1870 (the
+   reading, float32's 1859); struck (a ring that reaches 1920).
+10. **F** (block 3240): wounded on 3239, standing, untouched before (the
+    reading); destroyed, or struck earlier.
+
+Falsifiers 6, 7 and 10 split the reading from this crate's unbuilt
+behaviour (789); 8 and 9 test the float's table on its own unit, one
+probe a frame. **Not reached**: a second nuke; `action_declare`; a
+who=1 unit struck; the crater; the nuke's `Object::die` hold.
+
+**Where it should part.** Unbuilt, the first draw parting is **3081**:
+the scatter's two draws, which the reading says a nuke never spends. The
+first value parting is block 3082, the round's `ex`/`ey` (the silo's
+`visible` is on the uncompared row until this chapter reads it).
+
+**Run 2026-09-28 as run397 (item 1091)** (`docs/RUNS.md` has the table):
+click-free, `cover=0`, 3,380 s, 1.12 GB, `success: true`, every `@` line
+issued and none refused, the game run390's to 610 (the silo). **No
+falsifier fired; one half of 7 could not**:
+- 1, 2, 3: the research laid on 616 (`queued` 1 on 617) and gone by 2237
+  with no nuke placed; the train on 2301; `0/10` inside `0/2007` on 3022.
+- 4, 5: the strike on 3051; the shield on 3060 changed nothing of it,
+  and `0/10` launched on 3081.
+- 6: on 3082 `0/2007`'s `visible` −1 (0 on 3081); the round `ex ey`
+  (23040, 34560), `ez` 403, `total_time` 120, `depth` 120, and no
+  scatter draw (the walk below). The spline's knots differ from a V2's
+  only at the apex (20406, 20405, 10404 against run390's interpolated
+  20400.75, 20271.5, 10142.25).
+- 7: T gone from 3201, F standing at damage 0. **`nuke_stamp` and
+  `nukes_used` are not printed at `LEADERS=2`** (only the start's
+  `LEADERS=9` prints them), so that half could not fire.
+- 8: `0/6` and `0/7` killed on 3217 and 3226 (gone from 3218 and 3227);
+  `0/8` struck once on 3239, damage 56 and 4/16, standing.
+- 9: `0/9` at damage 0 to 3489.
+- 10: F struck on 3239 alone, damage 491 and 2/16 on 3240, standing.
+
+**The first walk, unbuilt: `GOLDEN_WORD_CHAPTER_THIRTY_SEVEN` = 3081**,
+where this section said: the V2's doubled scatter's two draws on the
+nuke's launch. The first value parting is 3082, the round's landing off
+the point; then 3201, F destroyed on our side (the V2's splash walk) and
+standing on theirs; 3218, `0/6` alive on ours; 3240, `0/8` at damage 0
+on ours, 56 and 4/16 on theirs. The widening, run397 whole, 262 rows.
+
+**Built** (`docs/PRODUCTION.md`, "The nuke (item 1091)"): `sim::nuke`
+(the landing's nuke arm, the ring, each struck once), a nuke's scatter
+0, and the silo shown at its launch. **The word goes 3081 → 3490,
+closed**: the draw stream and every frame's word agree to the window's
+end. **The widening goes 262 → 20 rows**, two pool rows: the probes' and
+the nuke's `form` (0 against −1) and the nuke's seat in its silo on
+3022 (+24, +24, parked 646's family); `0/6`'s and `0/7`'s death objects
+on 3218 and 3227, which the capture does not print (no `DEATHS` in its
+end detail) where this crate's list carries them; two citizens'
+animation clocks on 617..655 and the research's building group in the
+pool on 617, a residue outside the nuke that moves no draw.
+`chapter_thirty_seven_s_nuke_is_launched_and_fired_field_for_field`
+compares the silo (with `visible`), the nuke and its round on every
+block of 3050..3206: 3,316 rows, 119 rounds, none parting.
+`GROUND_INEXACT` 1 (the round's `ez`).
+
+**Mutations**, each on the committed build (`bbcf3aa2`), `git diff
+--stat` non-empty first, scored against the sim tests and `cargo test
+--release -p rondata chapter_thirty_seven` (the walk, the widening and
+the launch's value test), restored from git and `touch`ed after:
+
+| mutation | sim | ch37's pins |
+| --- | --- | --- |
+| the nuke's scatter left the V2's | the launch test (added after) | word 3081; widening 252; the launch test |
+| the ring at `max` from its first grown frame | the ring's two tests | word 3211; widening 240 |
+| `Sim::land`'s nuke arm dropped | the ring test (added after) | word 3200; widening 200 |
+| the silo's `visible` dropped | the launch test (added after) | the launch test alone |
+| each struck once dropped | the ring test | none: no probe outlives a second frame in the ring but `0/8`, struck on its last |
+
+The last is held by the unit test alone; the chapter's cast cannot see
+it.
+
+**run398**, the same script at `cover=1` on the queue lane to 3210, is
+run397's game on all 3,211 frames and enters `Nuke::add_nuke` on 3200:
+the blind list goes 145 → 144.
