@@ -1800,6 +1800,17 @@ on 4691 while `0/2000`'s damage had stood parted since 4661. Row-walk
 the parting draw's object back to its first parted field before writing
 that a block is quiet.
 
+(1047) **A brief asked a golden chapter for `cover=1` on the click-free
+lane** (the commander, 2026-09-28, from att-1019's two hung takes): the
+1019 brief said "capture it at `cover=1` ... refused on no issuer since
+934", which conflates 934's queue-lane re-runs with the click-free
+lane, where `cover=1` with the golden lane's callwin proxies never
+starts (run185's documented hang) and the stall guard's relaunch sits
+at the menu. 1019 split it as 1011 did: the chapter at `cover=0` on the
+click-free lane, the blind list at `cover=1` on the queue lane. A brief
+checklist row: name the lane with the cover setting, and 1011's split
+for an issuer chapter that wants both.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

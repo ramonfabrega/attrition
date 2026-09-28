@@ -29,7 +29,7 @@ the staging lane, and not a headline.*
   booked and deleted by hand until the pass widens its patterns.
 - **The user's**: the disk (22 GB free; 51 GB is this worktree's debug
   build, parked 1027); whether phase 4 opens on the rules track alone.
-- **Fable backlog: 38 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046).
+- **Fable backlog: 39 Loop items** (677, 685, 745, 775, 799, 838, 852, 894, 900, 927, 953, 954, 960, 973, 974, 975, 983, 984, 985, 986, 987, 992, 995, 996, 1001, 1005, 1006, 1010, 1013, 1018, 1022, 1026, 1027, 1032, 1033, 1038, 1039, 1046, 1047).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -58,12 +58,11 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
 1019. **Chapter thirty-five: the Helicopter's and missiles' launch arms
     — no capture yet** (1009's park). Both launch commands' Helicopter
-    and missile routes, and `Build::train`'s missile and Helicopter
-    `jne`, the only two entries to `BuildData::get_first_gather`'s block
-    (1011): the staging applies the interpreter's `resource` verb, and
-    the build carries the Helicopter's and missiles' flights, which this
-    crate does not. On chapter thirty-four's cast; the emulator first;
-    **run371** the capture at `cover=1`, run372 a staging run. GOLDEN §44.
+    and missile routes, and `Build::train`'s two `jne` into
+    `BuildData::get_first_gather`'s block (1011); `resource` stages the
+    cost, and the build carries both flights. On chapter thirty-four's
+    cast; **run371** the chapter at `cover=0`, run372 its `cover=1`
+    re-run on the queue lane (1011's split, parked 1047). GOLDEN §44.
 
 ## How to maintain this file
 
