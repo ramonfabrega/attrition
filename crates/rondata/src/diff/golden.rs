@@ -12930,11 +12930,39 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch37: what parts in the pool moved");
 }
 
-/// Chapter thirty-seven's widening rows (item 1091): run397 whole.
-const WANT_CH37: &[&str] = &[];
+/// Chapter thirty-seven's widening rows (item 1091): run397 whole, the
+/// nuke built. The four probes' and the nuke's `form` (0 against −1) and
+/// the nuke's seat inside its silo on 3022 (+24, +24: parked 646's
+/// family); `0/6`'s and `0/7`'s death objects, which this capture's end
+/// detail does not print (no `DEATHS`), on the blocks after the ring
+/// kills them on both sides; and two citizens' animation clocks on
+/// 617..655, a residue outside the nuke that moves no draw.
+const WANT_CH37: &[&str] = &[
+    "2951 0/6 form",
+    "2953 0/7 form",
+    "2955 0/8 form",
+    "2957 0/9 form",
+    "3022 0/10 form",
+    "3022 0/10 g.des_x[0]",
+    "3022 0/10 g.des_y[0]",
+    "3022 0/10 g.x[0]",
+    "3022 0/10 g.y[0]",
+    "3022 0/10 orders_x",
+    "3022 0/10 orders_y",
+    "3022 0/10 pos",
+    "3218 0/6 death:extra",
+    "3227 0/7 death:extra",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+];
 
-/// Chapter thirty-seven's pool rows (item 1091).
-const WANT_CH37_POOL: &[&str] = &[];
+/// Chapter thirty-seven's pool rows (item 1091): the research's building
+/// group on 617, `ox`/`oy` 0 against −1.
+const WANT_CH37_POOL: &[&str] = &["617 slot 1 ox", "617 slot 1 oy"];
 
 /// Chapter thirty-six's widening rows (item 1078): run390 whole. Chapter
 /// thirty-five's forty-two, the spotter's and the two V2s' `form` (0

@@ -594,6 +594,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch34 = golden_dump("ch34");
     let ch35 = golden_dump("ch35");
     let ch36 = golden_dump("ch36");
+    let ch37 = golden_dump("ch37");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1585,6 +1586,21 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty-six carries the window's five blocks");
             frames += n;
+        }
+        // **Chapter thirty-seven's word, on run397** (item 1091): the nuke.
+        // 617, the research's price; 2237, its end; 3022, the nuke's birth;
+        // 3052, its strike; 3082, the launch and its round; 3201, the landing;
+        // 3218, 3227 and 3240, the ring's three strikes; 3487, the last blocks.
+        if let Some(p) = &ch37 {
+            let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_SEVEN;
+            for w in [617, 2237, 3022, 3052, 3082, 3201, 3218, 3227, 3240, 3487] {
+                let n = drive_capture(p, w - 2, w + 2, &mut paths);
+                assert_eq!(
+                    n, 5,
+                    "chapter thirty-seven carries the window's five blocks"
+                );
+                frames += n;
+            }
         }
     }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first

@@ -4413,8 +4413,15 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_SIX: (i64, i64) = (605, 3421);
 /// in the countdown, a round with no scatter, and forty frames of
 /// `Nuke::do_damage`.
 ///
-/// **The delta**, this constant's: the first walk, PENDING.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SEVEN: i64 = 0;
+/// **3490, closed, on the first walk with the nuke built** (item 1091):
+/// the draw stream agrees to the window's end, and so does every frame's
+/// word. Unbuilt, the walk read **3081**, the V2's doubled scatter's two
+/// draws on the nuke's launch, which the original never spends (a nuke's
+/// scatter is 0, `67c64b`), and the first value parting on 3082, the
+/// round's landing off the target's point.
+///
+/// **The delta**, this constant's: 3081 → 3490.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SEVEN: i64 = 3490;
 
 /// `chapter_thirty_seven_s_word_frame_is_widened_whole`'s window: run397
 /// whole, (605, 3491).
@@ -6429,6 +6436,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_six_s_word_frame_is_widened_whole"),
         1078,
         Some(WIDENING_CHAPTER_THIRTY_SIX),
+    ),
+    // Item 1091: run397, chapter thirty-seven, the nuke. The widening is
+    // run397 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_SEVEN",
+        GOLDEN_WORD_CHAPTER_THIRTY_SEVEN,
+        Some("chapter_thirty_seven_s_word_frame_is_widened_whole"),
+        1091,
+        Some(WIDENING_CHAPTER_THIRTY_SEVEN),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
