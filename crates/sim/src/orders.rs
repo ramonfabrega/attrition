@@ -7894,6 +7894,25 @@ impl Sim {
                 && f != target
             {
                 self.retarget_attack(u, f);
+                // **The retarget freezes the frame too** (item 1040,
+                // `docs/COMBAT.md` §70): `005fdf68`–`005fdfea`, the arm
+                // `find_new_target` takes when it names another valid
+                // target. Under an `ATTACK` with `recharging` (`+0xae`)
+                // zero, the head order is re-pointed and `orl $0x10,
+                // 0x6c(%ebx)` sets [`combat::umask2::NOT_FIRING`] before
+                // the return, so the figures' clocks stand still in phase
+                // 7 — the same mark as §43.2's invalid-target arm. SEAM:
+                // the `jmp 005fd639` taken otherwise (a recharging unit,
+                // or the search naming `fight`'s entry arguments), which
+                // re-enters `fight` from its head.
+                if self.units[u].combat.recharging == 0
+                    && matches!(
+                        self.current_order(u).map(|o| &o.body),
+                        Some(Body::Attack(_))
+                    )
+                {
+                    self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+                }
                 return;
             }
         }

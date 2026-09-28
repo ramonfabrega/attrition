@@ -580,6 +580,50 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: -19,
         },
     ),
+    // **Piece 32, the Slingers (type 82): run17's 27 stones**
+    // (`docs/COMBAT.md` §70, item 1040). run17 prints `AMMO=5` over a
+    // Slinger fight but its `GUY` detail is 1, so no record names the
+    // animation. The unit's own `recharging` does: the stone leaves on
+    // the frame the release event is crossed, `starttime − 1` frames after
+    // the block `recharging` jumps, and the piece's three events (21 on
+    // `CHAR_ATTACK1`, 22 on `CHAR_ATTACK2`, 16 on `CHAR_ATTACK3`) are
+    // distinct, so each stone names its key. Three Slingers at twenty
+    // whole-degree headings; each row is the centroid of the region of
+    // integer `(right, fwd)` that reproduces every stone of its key
+    // exactly, and `dz` is `sz` less the figure's `z`, the same on every
+    // stone of the key. Without them every Slinger stone left the unit's
+    // own square and flew a frame long across a boundary: Great Lakes'
+    // second word, 4781.
+    (
+        32,
+        crate::anim::ATTACK1,
+        21,
+        Bay {
+            right: 69_776,
+            fwd: 67_449,
+            dz: 178,
+        },
+    ),
+    (
+        32,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 41_209,
+            fwd: 118_012,
+            dz: 151,
+        },
+    ),
+    (
+        32,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -42_148,
+            fwd: 113_222,
+            dz: 177,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -920,6 +964,58 @@ mod tests {
                 gz + release_dz(120, anim, t, 0).unwrap(),
                 sz,
                 "piece 120 anim {anim} dz"
+            );
+        }
+    }
+
+    /// **Every distinct launch point of run17's 27 Slinger stones**, piece
+    /// 32, reproduced exactly (item 1040): `(anim, starttime, figure x, y,
+    /// angle, figure z, sx, sy, sz)`, the dump's own columns — the `GUY`
+    /// record and the `AMMO` record on the stone's first block (the
+    /// Slingers stand while they throw). The key is the release event the
+    /// stone's launch frame names against the unit's `recharging` jump.
+    /// Twenty headings, so a stored world vector would fail on most.
+    #[test]
+    fn run17_s_slinger_stones_leave_from_the_measured_bays() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        #[rustfmt::skip]
+        const M: &[Row] = &[
+            (crate::anim::ATTACK2, 22, 37176, 20760, -2116288512, -1, 37133, 20877, 150),
+            (crate::anim::ATTACK2, 22, 37512, 20136, -1443561472, -12, 37391, 20163, 139),
+            (crate::anim::ATTACK2, 22, 37656, 19992, -1478754304, -7, 37536, 20025, 144),
+            (crate::anim::ATTACK2, 22, 37512, 19752, -1628569600, -23, 37403, 19812, 128),
+            (crate::anim::ATTACK2, 22, 37656, 19992, -508821504, -7, 37604, 19879, 144),
+            (crate::anim::ATTACK2, 22, 37656, 19992, 69140480, -7, 37709, 19879, 144),
+            (crate::anim::ATTACK2, 22, 37512, 19752, 318177280, -23, 37599, 19663, 128),
+            (crate::anim::ATTACK2, 22, 37512, 20136, 934674432, -12, 37636, 20149, 139),
+            (crate::anim::ATTACK2, 22, 37656, 19992, 965083136, -7, 37779, 20012, 144),
+            (crate::anim::ATTACK2, 22, 37512, 19752, 1141964800, -23, 37625, 19805, 128),
+            (crate::anim::ATTACK2, 22, 38040, 17256, 654901248, 28, 38160, 17223, 179),
+            (crate::anim::ATTACK2, 22, 38184, 17448, 530382848, 31, 38295, 17392, 182),
+            (crate::anim::ATTACK2, 22, 38040, 17400, 593100800, 27, 38156, 17354, 178),
+            (crate::anim::ATTACK2, 22, 38040, 17256, 936706048, 28, 38164, 17269, 179),
+            (crate::anim::ATTACK2, 22, 38184, 17448, 723517440, 31, 38306, 17425, 182),
+            (crate::anim::ATTACK2, 22, 38184, 17448, 438894592, 31, 38287, 17379, 182),
+            (crate::anim::ATTACK2, 22, 38040, 17400, 507314176, 27, 38149, 17340, 178),
+            (crate::anim::ATTACK2, 22, 39192, 17928, 1329725440, 55, 39287, 18008, 206),
+            (crate::anim::ATTACK3, 16, 37512, 20136, -256573440, -12, 37431, 20047, 165),
+            (crate::anim::ATTACK3, 16, 37512, 19752, 587202560, -23, 37569, 19646, 154),
+            (crate::anim::ATTACK3, 16, 38040, 17400, 800587776, 27, 38126, 17316, 204),
+            (crate::anim::ATTACK3, 16, 38040, 17256, 621740032, 28, 38103, 17154, 205),
+            (crate::anim::ATTACK1, 21, 37512, 20136, 131006464, -12, 37592, 20082, 166),
+            (crate::anim::ATTACK1, 21, 38040, 17400, 593100800, 27, 38136, 17408, 205),
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 32, anim, t, 0);
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 32 anim {anim} t {t} facing {ga}"
+            );
+            assert_eq!(
+                gz + release_dz(32, anim, t, 0).unwrap(),
+                sz,
+                "piece 32 anim {anim} dz"
             );
         }
     }

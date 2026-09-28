@@ -630,6 +630,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r355 = crate::testenv::dump("gamelog-run355-greatlakes-toughest-3776.txt");
     let r356 = crate::testenv::dump("gamelog-run356-greatlakes-toughest-4555.txt");
     let r357 = crate::testenv::dump("gamelog-run357-islands-toughest-5606.txt");
+    let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1071,6 +1072,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run356 carries the second pair's Great Lakes word's blocks"
+        );
+        frames += n;
+    }
+    // Item 1040 moved Great Lakes to 4846 (block 4847), on run373.
+    if let Some(p) = &r373 {
+        let n = drive_capture(p, 4_846, 4_849, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run373 carries the second pair's Great Lakes word's blocks"
         );
         frames += n;
     }

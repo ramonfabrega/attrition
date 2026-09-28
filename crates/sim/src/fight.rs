@@ -959,7 +959,8 @@ impl Sim {
         let angle = if pivoted {
             self.units[i].movement.heading
         } else {
-            self.attack_angle(i, target, direct)
+            let faced = self.building_side(i, target).unwrap_or(direct);
+            self.attack_angle(i, target, faced)
         };
         // `Unit::fight@005fd4d0:724`: `Unit::set_angle(angle, …, 0)` when
         // the angle is new, and that is the setter with the turn-around
@@ -1201,6 +1202,45 @@ impl Sim {
             }
         }
         can
+    }
+
+    /// **A building is struck square to its side** (item 1040,
+    /// `docs/COMBAT.md` §70): `Unit::fight@005fd4d0`'s `5fe8a7`–`5feb4c`.
+    /// For a target whose vslot `+0xc` answers — `SubObjectData::is_active`
+    /// on `Build` and `Wall`, a folded `return 0` on `Unit` and `Animal` —
+    /// the bearing to the centre is replaced by a whole quarter when the
+    /// unit stands beside the footprint: the unit's own tile covered keeps
+    /// the bearing (`5fe8f6`); else the first of the tiles **west, north,
+    /// east, south** (`x − 0xc0`, `y − 0xc0`, `x + 0xc0`, `y + 0xc0`, each
+    /// `div_3_table[v >> 6]`) that the building covers (`WallData::
+    /// covers_tile@006439b0`) **and** whose world mask carries `0x4000`
+    /// (`world +0x138`, [`crate::world::tile::BLOCKED`]) answers `0xc0000000`,
+    /// `0`, `0x40000000` or `0x80000000`. A covered tile that is not
+    /// blocked moves on to the next side; the last falls back to the
+    /// bearing (`cmovne` at `5feb46`). The sideways ship's quarter turn is
+    /// taken after it (`5feb51`).
+    fn building_side(&self, i: usize, target: Obj) -> Option<Angle> {
+        let Obj::Building(b) = target else {
+            return None;
+        };
+        if !self.active(target) {
+            return None;
+        }
+        let here = self.units[i].pos;
+        if self.covers_tile(b, here.tile()) {
+            return None;
+        }
+        const SIDES: [(i32, i32, u32); 4] = [
+            (-0xc0, 0, 0xc000_0000),
+            (0, -0xc0, 0),
+            (0xc0, 0, 0x4000_0000),
+            (0, 0xc0, 0x8000_0000),
+        ];
+        SIDES.iter().find_map(|&(dx, dy, a)| {
+            let t = Pos::new(here.x + dx, here.y + dy).tile();
+            (self.covers_tile(b, t) && self.world.tile_mask(t) & crate::world::tile::BLOCKED != 0)
+                .then_some(Angle(a as i32))
+        })
     }
 
     /// **The angle a unit attacks on** — `Unit::fight@005fd4d0:698–714`
@@ -2394,6 +2434,18 @@ impl Sim {
         {
             return;
         }
+        // **A busy unit that is not on duty does not answer the hit**
+        // (item 1040, `docs/COMBAT.md` §70): every way past the flee arm
+        // reaches `600863`, `call on_duty@005fff70; jne 600877`, then
+        // `cmp %eax, -0x1c(%ebp)` — the front order's type, `local_20`,
+        // stored at `600150` — `jne 600b16`, the return. So a unit with
+        // any order retaliates only if it is on duty. The one way round it
+        // is the action-is-an-attack arm (`600516`, `jmp 600877`), which
+        // this crate carries as the `target` test above; an attack action
+        // with no target keeps the old path (SEAM).
+        if front.is_some() && !self.action_is_attack(responder) && !self.on_duty(responder) {
+            return;
+        }
         // `LAB_00600877`'s own gate — `type->attack != 0`, the base column.
         // The `obj_masks & CIVILIAN && max_range == 0` test that used to
         // stand here was this crate's **stand-in for the flee arm above**
@@ -2421,6 +2473,54 @@ impl Sim {
             }
         }
         self.retarget(me, Some(attacker), false);
+    }
+
+    /// **`Unit::on_duty@005fff70`**: a combat-role type (`+0x2c8 &
+    /// 0x10000`) whose activity is an `ATTACK_TO`, a `PATROL` (5), a
+    /// `GUARD`, a `GROUP_ATTACK_TO` or a `GROUP_PATROL` (2, 5, `0xc`,
+    /// `0x15`, `0x16`, in the function's own order).
+    ///
+    /// The activity is `UnitData::get_activity@00608370`'s: the first
+    /// order that is neither a move nor an attack (vslot `+0x1c`,
+    /// `is_move_attack`), and when every order is one, the last, answered
+    /// only if it is an `ATTACK_TO` or a `0x15`.
+    pub(crate) fn on_duty(&self, u: usize) -> bool {
+        use crate::orders::{Body, index};
+        if !self.profile(Obj::Unit(u)).combat_role {
+            return false;
+        }
+        let orders = &self.units[u].orders;
+        let move_attack = |o: &crate::orders::Order| {
+            o.is_move() || matches!(o.body, Body::Attack(_) | Body::AttackGround(_))
+        };
+        let activity = match orders.iter().find(|o| !move_attack(o)) {
+            Some(o) => Some(o.index()),
+            None => orders
+                .back()
+                .map(crate::orders::Order::index)
+                .filter(|&k| k == index::ATTACK_TO || k == index::GROUP_ATTACK_TO),
+        };
+        matches!(
+            activity,
+            Some(
+                index::ATTACK_TO | 5 | index::GUARD | index::GROUP_ATTACK_TO | index::GROUP_PATROL
+            )
+        )
+    }
+
+    /// `update_action`'s order answers `is_attack` (vslot `+0x18`): the
+    /// arm of `Unit::target_opportunity` that jumps past `on_duty`
+    /// (`600516`). SEAM: `is_attack`'s overrides are folded in the export,
+    /// so it is taken as the attack and ground-attack orders, as
+    /// [`Sim::guard_activity`] takes it.
+    fn action_is_attack(&self, u: usize) -> bool {
+        use crate::orders::Body;
+        self.action_of(u).is_some_and(|k| {
+            matches!(
+                self.units[u].orders[k].body,
+                Body::Attack(_) | Body::AttackGround(_)
+            )
+        })
     }
 
     /// `Unit::target_opportunity`'s **flee arm** — `6006f0`..`60085b`, the
@@ -4153,6 +4253,121 @@ mod tests {
         assert_eq!(pushes, 1, "the ready frame re-entered work and fired again");
     }
 
+    /// **A building is struck square to its side** (item 1040,
+    /// `docs/COMBAT.md` §70.6): `Unit::fight@005fd4d0`'s `5fe8a7`–`5feb4c`.
+    /// Great Lakes' Hoplites on the human's city face due south from the
+    /// row above its footprint, where the centre's bearing is 20° off.
+    /// West is asked first, then north, east and south; a covered tile that
+    /// is not blocked, or the unit's own tile covered, keeps the bearing.
+    ///
+    /// Made to fail first with the arm answering `None`.
+    #[test]
+    fn a_building_is_struck_square_to_its_side() {
+        let (mut sim, ty) = at_war();
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let b = sim.add_building(0, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1000;
+        sim.buildings[b].health = 1000;
+        sim.buildings[b].combat = Some(Profile::default());
+        let corner = sim.tile_corner(bt, at);
+        for t in sim.footprint(bt, corner) {
+            sim.world.set_blocked_at(t, true);
+        }
+        let me = put(&mut sim, 1, ty, at);
+        let tile = |x: i32, y: i32| Pos::new(x * 192 + 96, y * 192 + 96);
+        let side = |sim: &mut Sim, p: Pos| {
+            sim.units[me].pos = p;
+            sim.building_side(me, Obj::Building(b)).map(|a| a.0 as u32)
+        };
+        let (cx, cy) = (corner.x, corner.y);
+        assert_eq!(
+            side(&mut sim, tile(cx, cy - 1)),
+            Some(0x8000_0000),
+            "above: south"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx + 2, cy + 3)),
+            Some(0),
+            "below: north"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx - 1, cy + 1)),
+            Some(0x4000_0000),
+            "left: east"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx + 3, cy)),
+            Some(0xc000_0000),
+            "right: west"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx - 1, cy - 1)),
+            None,
+            "a corner: the bearing"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx + 1, cy + 1)),
+            None,
+            "inside: the bearing"
+        );
+        sim.world.set_blocked_at(Pos::new(cx, cy), false);
+        assert_eq!(
+            side(&mut sim, tile(cx, cy - 1)),
+            None,
+            "a covered tile that is not blocked"
+        );
+        let foe = put(&mut sim, 0, ty, at);
+        sim.units[me].pos = tile(cx, cy - 1);
+        assert_eq!(sim.building_side(me, Obj::Unit(foe)), None, "a unit target");
+    }
+
+    /// **The one-in-five retarget freezes the frame** (item 1040,
+    /// `docs/COMBAT.md` §70.7): `Unit::fight@005fd4d0`'s `005fdf68`–
+    /// `005fdfea`. A captain whose roll runs the re-search and finds
+    /// another target keeps its attack under the new target and carries
+    /// `unit_masks2 |= 0x10`, so its figures' clocks stand still for the
+    /// frame. Great Lakes' `1/24` on 4852: its Slinger's attack slot held
+    /// at 32 of 33 there, and wrapped to the idle here.
+    ///
+    /// Made to fail first with the mark left off.
+    #[test]
+    fn the_one_in_five_retarget_freezes_the_frame() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 1, ty, Pos::new(0x4000, 0x4000));
+        let far = put(&mut sim, 0, ty, Pos::new(0x4000 + 9 * 0xc0, 0x4000));
+        let near = put(&mut sim, 0, ty, Pos::new(0x4000 + 2 * 0xc0, 0x4000));
+        sim.add_attack_order(
+            me,
+            Obj::Unit(far),
+            crate::orders::QueuePos::New,
+            false,
+            false,
+        );
+        assert_eq!(sim.find_melee_target(me, -1), Some(Obj::Unit(near)));
+        let seed = (1u32..)
+            .find(|&k| {
+                let mut r = sim.rng;
+                r.seed = k;
+                r.roll() % 5 != 0
+            })
+            .unwrap();
+        sim.rng.seed = seed;
+        sim.units[me].unit_masks2 = 0;
+        sim.work(me, 0);
+        assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(near)));
+        assert_ne!(
+            sim.units[me].unit_masks2 & crate::combat::umask2::NOT_FIRING,
+            0,
+            "the retarget left the frame unfrozen"
+        );
+    }
+
     /// **A captain's attack on a building re-searches every frame**
     /// (`docs/COMBAT.md` §62, `Unit::fight@005fd4d0`'s `LAB_005fddf7`,
     /// `005fdeb4` → `005fdf50` → `005fdeea`). Out of its search's reach the
@@ -4660,6 +4875,56 @@ mod tests {
             sim.units[me].combat.target,
             Some(Obj::Unit(foe)),
             "an idle soldier answers the hit with an attack, not a flight"
+        );
+    }
+
+    /// **A busy unit answers a hit only on duty** (item 1040,
+    /// `docs/COMBAT.md` §70): `Unit::target_opportunity`'s `600863`
+    /// returns for a unit that holds any order and is not
+    /// `Unit::on_duty@005fff70` — a combat-role type whose activity is an
+    /// `ATTACK_TO`, a patrol, a `GUARD` or a group attack or patrol. Great
+    /// Lakes' `0/4`, a citizen walking to its drop site under its
+    /// `GATHER`, took `1/24`'s stone on 4779 and kept walking; this crate
+    /// had it turn on the Slinger.
+    ///
+    /// Made to fail first with the gate removed: the walker answered.
+    #[test]
+    fn a_busy_unit_answers_a_hit_only_on_duty() {
+        use crate::orders::{MoveKind, QueuePos};
+        let answer = |role: bool, kind: Option<MoveKind>| {
+            let (mut sim, ty) = at_war();
+            sim.unit_types[ty].combat.combat_role = role;
+            let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x4100, 0x4000));
+            if let Some(k) = kind {
+                sim.add_move_order(me, Pos::new(0x2000, 0x4000), k, QueuePos::First, false);
+            }
+            let before = sim.units[me].orders.clone();
+            sim.target_opportunity(me, Obj::Unit(foe), 10);
+            let answered = sim.units[me].combat.target == Some(Obj::Unit(foe));
+            assert_eq!(
+                answered,
+                sim.units[me].orders != before,
+                "an answer is an order, and silence leaves the list alone"
+            );
+            answered
+        };
+        assert!(!answer(false, Some(MoveKind::MoveTo)), "a walker");
+        assert!(
+            !answer(true, Some(MoveKind::MoveTo)),
+            "a soldier on a plain move is not on duty"
+        );
+        assert!(
+            answer(true, Some(MoveKind::AttackTo)),
+            "a soldier on an attack-move is"
+        );
+        assert!(
+            !answer(false, Some(MoveKind::AttackTo)),
+            "on duty asks the combat role first"
+        );
+        assert!(
+            answer(false, None),
+            "an idle unit answers whatever its role"
         );
     }
 
@@ -5595,6 +5860,9 @@ mod tests {
         sim.nation[1].human = true;
         let mut t = sim.unit_types[ty].clone();
         t.combat.max_range = 8;
+        // A chariot is a combat unit (`role & 0x10000`), which is what puts
+        // a guard on duty (`Unit::on_duty@005fff70`, item 1040).
+        t.combat.combat_role = true;
         let chariot = sim.add_unit_type(t);
         let post = Pos::new(3480, 12264);
         let wagon = put(&mut sim, 0, chariot, Pos::new(3456, 11904));

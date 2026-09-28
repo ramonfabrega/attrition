@@ -1325,7 +1325,43 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// the citizen `0/4` struck there (`damage_frame` 4779, `damage` 3/5) and
 /// not here, and whose block 4781 parts on `0/4`'s order (kind 10 against
 /// 1).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_781;
+///
+/// **4781 → 4846 on item 1040**: the Slinger's three release bays (piece
+/// 32, `launch::BAYS`, from run17's 27 stones), and `Unit::
+/// target_opportunity`'s `on_duty` return (`600863`), a busy unit that is
+/// not on duty does not answer a hit; `docs/COMBAT.md` §70. **The move's
+/// value diff (the word's delta, here; its block is
+/// `run356_s_word_frame_is_widened_whole`'s):** `1/24`'s stone launched on
+/// 4775 flies 5 frames on both sides, where ours flew 6 from the unit's own
+/// square, so the citizen `0/4` is struck on 4779 on both (`damage_frame`
+/// 4779, `damage` 3/5 on block 4780, where ours read 0 and 0/0); `0/4`
+/// keeps its `GATHER` and walk on both, where ours pushed an `ATTACK` on
+/// 4780 (kind 10, three orders, against a move and two), and it does not
+/// part again in the window. `1/26`'s strikes on the city land on 4689,
+/// 4716, 4722, 4750 and 4782 on both sides (ours a frame late from 4690
+/// until 1040). Frame 4781's draws went 5 against 4 → agreeing. **The new
+/// word's delta: ours 8 draws and the original 9 on frame 4846, parting at
+/// index 2**: the original spends `Guy::set_anim+0xf2f < Unit::set_anim+
+/// 0x56 < Unit::fight+0x19f6`, ours `Guy::set_anim+0x104b`. Past run356's
+/// window; run373 is its widening.
+///
+/// **4846 → 4852 → 4877, still item 1040**: `Unit::fight`'s building arm
+/// (`5fe8a7`–`5feb4c`), a building struck square to its side, and the
+/// one-in-five retarget's frozen mark (`005fdf68`–`005fdfea`);
+/// `docs/COMBAT.md` §70.6 and §70.7. **The moves' value diff (their
+/// blocks are `run373_s_word_frame_is_widened_whole`'s):** the Hoplite
+/// `1/19` strikes the city from (3432, 30120) on 4846 facing `0x80000000`
+/// on both sides, where ours turned to `0x8ec5…` (the centre's bearing),
+/// held the swing and struck on 4847; its figure first parts on 4861.
+/// `1/24`'s attack slot holds at `cur_time` 32 of 33 on block 4853 on both
+/// sides (`unit_masks2` 16 there), where ours wrapped to the idle and
+/// rolled; its clock no longer parts. Frames 4846 and 4852 went 8 against
+/// 9 and 6 against 5 → agreeing. **The new word's delta: ours 7 draws and
+/// the original 8 on frame 4877, parting at index 1**: the original spends
+/// `Guy::set_anim+0x97a < Unit::move_step+0x823`, ours `Guy::set_anim+
+/// 0x104b`. Inside run373's window (block 4878); the earliest block to
+/// part past its standing rows is 4861, the army's tick.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_877;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1358,6 +1394,12 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_5606: (i64, i64) = (5_601, 5_857);
 /// run347's game, blocks 4550..4806 — six blocks before the word 4555's
 /// block 4556 and 250 past it.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
+
+/// `run373_s_word_frame_is_widened_whole`'s window (item 1040): run373 over
+/// run347's game, blocks 4841..5097 — six blocks before the word 4846's
+/// block 4847 and 250 past it. The word moved to 4877 (block 4878) inside
+/// it, in the same item.
+pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside
 /// its university, one of the fourteen `Unit::go_inside+0x280` draws in
@@ -6229,7 +6271,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 979's harness fix moved both past their windows: East Indies to
     // 1576, widened on run352, and Great Lakes to 3776, on run355. Item
     // 989's close tail moved both again: East Indies to 5606, widened on
-    // run357, and Great Lakes to 4555, on run356.
+    // run357, and Great Lakes to 4555, on run356. Item 1040 moved Great
+    // Lakes past run356's window to 4846, widened on run373.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
@@ -6240,8 +6283,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     (
         "SECOND_WORD_GREAT_LAKES",
         SECOND_WORD_GREAT_LAKES,
-        Some("run356_s_word_frame_is_widened_whole"),
-        989,
-        Some(WIDENING_SECOND_GREAT_LAKES_4555),
+        Some("run373_s_word_frame_is_widened_whole"),
+        1040,
+        Some(WIDENING_SECOND_GREAT_LAKES_4846),
     ),
 ];

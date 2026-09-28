@@ -10081,3 +10081,31 @@ not the searches that made it.
 Both packets stay outside git under `~/ron-data/lab-captures/`. The probes
 (`targeted_probe.py`, `melee_probe.py`) and their outputs are at
 `~/ron-data/lab-experiments/2026-09-28-item-1028/`.
+
+## run373 — run347's game at run356's detail over blocks 4841..5097: the second pair's Great Lakes word 4846 widened (2026-09-28, item 1040)
+
+**What it is.** run356's shape on run347's lobby, with `frame_window:
+4841 5098` and `!quit` at 5110: six blocks before the word 4846's block
+4847 and 250 after it. The stanza is in `tools/gamelog/captures.txt`.
+
+**The booking cites what the disk could not answer.** The word had moved
+past run356's last block (its dump stops at 4821, its window at 4806), and
+run347's own dump prints no per-frame record there.
+
+**Taken** 04:36–04:56 through `runqueue.sh - 1040` under `viadriver.sh`,
+one take, after att-1019's run372 released the lane. 519.7 MB of gamelog,
+11.6 MB of trace. Free disk was 18 GB before and after (`df -g ~`).
+- `rngcmp.py` against run347: 5,111 frames in common, **0 differing**.
+- 257 window blocks; `DIFFICULTY 5`, `MAP_STYLE 14`.
+
+**What it holds**: `run373_s_word_frame_is_widened_whole`
+(`docs/COMBAT.md` §70.6–§70.8).
+- Block 4841 stands on 111 keys. Among them are the citizens' damage (more
+  here than there since run356's window closed) and the capital's
+  `order:target` (parked 1003).
+- Block 4847 parted on the Hoplite `1/19`'s facing. It closed under the
+  side arm (§70.6).
+- Block 4853 parted on `1/24`'s clock. It closed under the frozen mark
+  (§70.7).
+- The word moved to 4877 inside the window. Block 4861, frame 4860 (the
+  army's tick), is the first to part after that, on 121 keys.
