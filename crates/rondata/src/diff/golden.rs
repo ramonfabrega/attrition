@@ -12981,6 +12981,8 @@ fn chapter_thirty_five_s_v2_blast_is_compared_field_for_field() {
                 i64::from(mine.is_some()),
                 i64::from(theirs.is_some()),
             );
+            // both sides: a building on one side only is the `present` row
+            // above, which parts; `damage` is read where both hold it.
             if let (Some(b), Some(t)) = (mine, theirs) {
                 row(
                     w,
