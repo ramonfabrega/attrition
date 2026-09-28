@@ -87,11 +87,6 @@ byte (`fight.rs`'s `build_is_seen`). Both agree at every rebuild in
 
 ## Parked by item 1009, 2026-09-27 — the launch commands' last arms
 
-(1019) **The Helicopter's and missiles' launch arms, captured**: the
-staging wants the interpreter's `resource` verb applied, and the
-Helicopter's and missiles' flights, which this crate does not carry.
-1009 parked rather than take run363; its journal gives the reasons.
-
 (1020) **`crate::fight` reads a target building's z without the clamp at
 0** (`fight.rs:340`, `:364`): 1009 saw it and left it, the module being
 another lane's.
@@ -167,10 +162,6 @@ draw reads them.
 state): no draw reads them.
 
 ## Parked by item 972, 2026-09-27 — the held-out map
-
-(988) **run348 is a `cover=1` trace on a map no traced run had touched**:
-the blind list could be re-run with it in `TRACES`. Counter two's, on
-the staging lane.
 
 ## Parked by item 971, 2026-09-27 — the spellcaster's other arms
 
@@ -1753,6 +1744,13 @@ header-trimming `sed` by line count dropped `5e2800`, and for a minute
 it read as a bug in the original. Overlap slices by a line and trim
 headers by pattern; a `tools/` slicer is the probe rule's answer if a
 third lane does it by hand.
+
+(1033) **A booking sentence about `NEVER` is one grep of `blind.rs`
+away** (1011's Loop line, filed at its merge): 1011's booking said the
+gather point's issuer chain "stays on `NEVER`" when four of it had been
+off since run337. And three of 1011's four captures entered nothing new:
+"which `NEVER` rows does this chapter's staging name?" ranks a `cover=1`
+batch before the launch; only chapter thirty-three's did.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
