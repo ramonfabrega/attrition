@@ -106,6 +106,14 @@ pub const TRACES: &[&str] = &[
     // (`docs/RUNS.md` run353), and `Object::take_damage`'s death path calls
     // `Caravans::new_danger` and `Caravan::restart_trade_route` on 1007.
     "rontrace-run353.log",
+    // Item 1011's captures: the issuer chapters thirty-one to thirty-four,
+    // captured at `cover=0` (run338, run344, run358, run362), re-run line
+    // for line under `cover=1` on the queue lane (`docs/RUNS.md` run364–
+    // run367), each the golden game on every frame.
+    "rontrace-run364.log", // ch31
+    "rontrace-run365.log", // ch32
+    "rontrace-run366.log", // ch33
+    "rontrace-run367.log", // ch34
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -173,7 +181,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **147** with run353 (item 965: a Build's killing blow on a caravan,
 /// `new_danger` and `restart_trade_route` off), **148** with item 976's
 /// `Group::action_launch_patrol` (`docs/GOLDEN.md` §42, run358 at
-/// `cover=0`).
+/// `cover=0`), **145** with run364–run367 (item 1011: chapters thirty-one to
+/// thirty-four at `cover=1`; run366 enters `Group::action_launch_flight`,
+/// `Group::action_launch_patrol` and `CommandManager::issue_launch_patrol`,
+/// the last the game's own, called from `GroupOut::issue_launch_patrol`).
+/// `BuildData::get_first_gather` stays: its one caller in play,
+/// `Build::train`, reaches it only for a missile or a Helicopter trained
+/// under a gather point (`docs/CENSUS.md`, "item 1011").
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -195,20 +209,14 @@ pub const NEVER: &[u32] = &[
     0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
     0x006f_49a0, 0x006f_4af0,
-    // Item 947, `docs/GOLDEN.md` §41: `Group::action_launch_flight@006fbfb0`,
-    // action 3's route at an Airbase, which no chapter stages.
-    0x006f_bfb0,
     0x0070_0010, 0x0070_0b90, 0x0070_20c0,
-    // Item 976, `docs/GOLDEN.md` §42: `Group::action_launch_patrol@00703580`,
-    // the Airbase's right-click on the ground; run358 is `cover=0`.
-    0x0070_3580,
     0x0070_84c0,
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
     0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
     0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
-    0x0094_1860, 0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
+    0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0,
     0x009b_8ac0, 0x009e_18b0, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0,

@@ -8535,3 +8535,180 @@ check: grep -a -m1 -q '^  DIFFICULTY 5' "$HOME/ron-data/AppData/Roaming/Microsof
 check: grep -a -m1 -q '^  MAP_STYLE 14' "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run356-greatlakes-toughest-4555.txt"
 # **The window landed whole** — 257 blocks, 4550..4806.
 check: LC_ALL=C grep -ao "BEGIN FRAME [0-9]*" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run356-greatlakes-toughest-4555.txt" | awk '{v=$3+0; if(v>=4550&&v<4807) n[v]=1} END{c=0; for(k in n)c++; print "window blocks: "c; exit !(c>=257)}'
+
+# ==== item 1011: the issuer chapters thirty-one to thirty-four at cover=1 ====
+#
+# Chapters thirty-one to thirty-four were captured at `cover=0` on the
+# click-free lane (run338, run344, run358, run362), so what each reached
+# was unmeasured. Item 934's method: each chapter's golden script line for
+# line, one runner (`runqueue.sh - 1011`), `rngcmp` and `issuesmatch`
+# against the golden trace, and every issuer the script calls entered.
+
+run: 364
+tag: ch31-cover-issued
+item: 1011
+why: the blind list's issuer chapters at cover=1 — chapter thirty-one's script under cover=1 (golden run338, item 955, cover=0)
+# `~/ron-golden/ch31/map-14/rontrace.cmd` line for line, as item 934's
+# run318–run337 are: the golden lobby (`cfg: -`), the chapter's own
+# `!ffwd`, `cover=1`, on the DLL built from att-1011's tree (`tracer.c`
+# ed4390b6…c4c5, 1009's; rontrace.dll sha256 d654cdb2…599d). 10 `@` lines.
+frames: 1400
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=0 14,74
+cmd: 608 add barracks who=0 22,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 615 add chariot who=0 10,80
+cmd: 616 @gatherpoint 0 4608 31104 0 2000
+cmd: 618 @queueup 0 50 3 2000
+cmd: 620 @gatherpoint 0 2040 15480 1 2007
+cmd: 622 @queueup 0 132 1 2007
+cmd: 700 @gatherpoint 0 5184 12672 0 2008
+cmd: 702 @gatherpointadd 0 4992 11136 0 2008
+cmd: 710 @queueup 0 132 1 2008
+cmd: 740 @gatherpoint 0 4224 28608 1 2000
+cmd: 790 @build 0 7296 34176 521 11
+cmd: 840 @gatherpoint 0 7296 34176 1 2000
+check: python3 tools/gamelog/cmdsran.py rontrace-run364.log 0:1 37:1 606:1 608:1 610:1 614:1 615:1 1400:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch31/map-14/rontrace.log" rontrace-run364.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch31/map-14/rontrace.log" rontrace-run364.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1400)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run364.log" functions 2>/dev/null | grep -E "CommandManager::issue_gather_point$|CommandManager::issue_queue_up$|CommandManager::issue_build$" | tee /dev/stderr | awk 'END{exit !(NR==3)}'
+
+run: 365
+tag: ch32-cover-issued
+item: 1011
+why: the blind list's issuer chapters at cover=1 — chapter thirty-two's script under cover=1 (golden run344, item 947, cover=0)
+# `~/ron-golden/ch32/map-14/rontrace.cmd` line for line, as item 934's
+# run318–run337 are: the golden lobby (`cfg: -`), the chapter's own
+# `!ffwd`, `cover=1`, on the DLL built from att-1011's tree (`tracer.c`
+# ed4390b6…c4c5, 1009's; rontrace.dll sha256 d654cdb2…599d). 9 `@` lines.
+frames: 2360
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 3
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1540 @queueup 0 287 1 2007
+cmd: 1600 @gatherpoint 0 11520 7680 0 2007
+cmd: 1700 @gatherpointadd 0 5760 5760 0 2007
+cmd: 1850 @gatherpoint 0 -1 -1 0 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run365.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 2360:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch32/map-14/rontrace.log" rontrace-run365.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch32/map-14/rontrace.log" rontrace-run365.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=2360)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run365.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$" | tee /dev/stderr | awk 'END{exit !(NR==3)}'
+
+run: 366
+tag: ch33-cover-issued
+item: 1011
+why: the blind list's issuer chapters at cover=1 — chapter thirty-three's script under cover=1 (golden run358, item 976, cover=0)
+# `~/ron-golden/ch33/map-14/rontrace.cmd` line for line, as item 934's
+# run318–run337 are: the golden lobby (`cfg: -`), the chapter's own
+# `!ffwd`, `cover=1`, on the DLL built from att-1011's tree (`tracer.c`
+# ed4390b6…c4c5, 1009's; rontrace.dll sha256 d654cdb2…599d). 14 `@` lines.
+frames: 2740
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 4
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1540 @queueup 0 287 1 2007
+cmd: 1600 @gatherpoint 0 11520 7680 0 2007
+cmd: 1700 @gatherpointadd 0 5760 5760 0 2007
+cmd: 1850 @gatherpoint 0 -1 -1 0 2007
+cmd: 2200 add barracks who=1 72,78
+cmd: 2260 @launchstrike 0 2006 1 2007
+cmd: 2280 @launchpatrol 0 13440 9600 2007
+cmd: 2295 @launchpatrolall 0 7680 11520 2007
+cmd: 2305 @gatherpoint 0 1 0 3 2007
+cmd: 2335 @gatherpointadd 0 9600 7680 0 2007
+check: python3 tools/gamelog/cmdsran.py rontrace-run366.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 2200:1 2740:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch33/map-14/rontrace.log" rontrace-run366.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch33/map-14/rontrace.log" rontrace-run366.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=2740)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run366.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$|CommandManager::issue_launch_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+
+run: 367
+tag: ch34-cover-issued
+item: 1011
+why: the blind list's issuer chapters at cover=1 — chapter thirty-four's script under cover=1 (golden run362, item 1009, cover=0)
+# `~/ron-golden/ch34/map-14/rontrace.cmd` line for line, as item 934's
+# run318–run337 are: the golden lobby (`cfg: -`), the chapter's own
+# `!ffwd`, `cover=1`, on the DLL built from att-1011's tree (`tracer.c`
+# ed4390b6…c4c5, 1009's; rontrace.dll sha256 d654cdb2…599d). 18 `@` lines.
+frames: 2850
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 4
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 1540 @queueup 0 287 1 2007
+cmd: 1600 @gatherpoint 0 11520 7680 0 2007
+cmd: 1700 @gatherpointadd 0 5760 5760 0 2007
+cmd: 1850 @gatherpoint 0 -1 -1 0 2007
+cmd: 2200 add barracks who=1 72,78
+cmd: 2210 add airbase who=0 44,76
+cmd: 2260 @launchpatrolctrl 0 13440 9600 2007
+cmd: 2275 @launchstrikealt 0 2006 1 2007
+cmd: 2305 @launchmove 0 2008 0 2007
+cmd: 2312 @launchstrikectrl 0 2006 1 2007
+cmd: 2320 @gatherpoint 0 11520 7680 0 2007
+cmd: 2335 @gatherpointadd 0 1 0 3 2007
+cmd: 2350 @gatherpointadd 0 7680 11520 0 2007
+cmd: 2400 @gatherpoint 0 -1 -1 0 2007
+cmd: 2600 @launchpatrolalt 0 5760 13440 2008
+check: python3 tools/gamelog/cmdsran.py rontrace-run367.log 0:1 37:1 600:1 606:1 610:1 612:1 614:1 616:1 2200:1 2210:1 2850:1
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch34/map-14/rontrace.log" rontrace-run367.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch34/map-14/rontrace.log" rontrace-run367.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=2850)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run367.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$|CommandManager::issue_launch_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+# ==== run364–run367 TAKEN 2026-09-27/28, one runner, one take each, **ALL WHOLE; EVERY CHECK PASSED** ====
+#
+# Launched 23:33:50 through `viadriver.sh … runqueue.sh - 1011`, finished
+# 00:44, four launches, no retake. Every capture is its golden run's game:
+# `rngcmp` 0 differing (1,401 / 2,361 / 2,741 / 2,851 identical);
+# `issuesmatch` 51 `@` records, none refused, each as golden; every issuer
+# its script calls entered. DLL sha256 d654cdb2…599d throughout
+# (`docs/RUNS.md` run364–run367; `docs/CENSUS.md`, "item 1011").
