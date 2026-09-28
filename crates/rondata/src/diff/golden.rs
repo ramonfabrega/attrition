@@ -12774,3 +12774,143 @@ const WANT_CH34_POOL: &[&str] = &[
     "666 slot 2 new_speed",
     "666 slot 2 speed",
 ];
+
+/// **A staging walk** (item 1019, `docs/GOLDEN.md` §44): a chapter's
+/// candidate script staged on a golden capture's start and ticked past
+/// that capture's end, compared with nothing. It prints, on each frame
+/// one changes, the aircraft and missiles of every player (their berth,
+/// point, tank and order stack), each hangar and each building with a
+/// queue or a gather list, and player 0's six buckets.
+///
+/// `RON_STAGE=<run>:<script>:<to frame>`, where `<script>` is a chapter's
+/// stem under `tools/gamelog/golden/` or a path; skipped when unset. Items
+/// 976 and 1009 each built this as a scratch prototype and lost it with
+/// their lanes; the third reach graduates it here.
+#[test]
+fn stage_walk() {
+    let Ok(spec) = std::env::var("RON_STAGE") else {
+        return;
+    };
+    let mut parts = spec.splitn(3, ':');
+    let (Some(run), Some(stem), Some(to)) = (parts.next(), parts.next(), parts.next()) else {
+        panic!("RON_STAGE=<run>:<script>:<to frame>");
+    };
+    let to: i64 = to.parse().expect("RON_STAGE's frame");
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some((dump, tracepath)) = golden(run) else {
+        eprintln!("skipping: no golden capture {run}");
+        return;
+    };
+    let trace = crate::trace::Trace::read(std::path::Path::new(&tracepath))
+        .expect("a finalized golden trace")
+        .expect("missing RONT header");
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&dump);
+    let log = Log::parse(&text);
+    let texts = sibling_texts();
+    let logs = siblings(&texts);
+    let inits: Vec<Initial> = logs.iter().filter_map(|l| l.initial()).collect();
+    let refs: Vec<&Initial> = inits.iter().collect();
+    let mut built = stand_up(&loaded, &log, &refs, &trace);
+    let mut script = if stem.contains('/') {
+        Script::read(std::path::Path::new(stem)).expect("the staged script")
+    } else {
+        script_named(stem)
+    };
+    let mut applied = crate::golden::Applied::default();
+    let mut seen: std::collections::BTreeMap<String, String> = Default::default();
+    let unit_name = |t: Option<usize>| {
+        t.and_then(|t| loaded.unit_type_names.get(t))
+            .cloned()
+            .unwrap_or_default()
+    };
+    let build_name = |t: Option<usize>| {
+        t.and_then(|t| loaded.build_type_names.get(t))
+            .cloned()
+            .unwrap_or_default()
+    };
+    while built.sim.frame <= to {
+        let did = script.stage(built.sim.frame, &mut built, &loaded);
+        applied.merge(&did);
+        built.tick();
+        let f = built.sim.frame - 1;
+        let s = &built.sim;
+        let mut now: Vec<(String, String)> = Vec::new();
+        for (i, u) in s.units.iter().enumerate() {
+            if !u.alive() && !seen.contains_key(&format!("u{i}")) {
+                continue;
+            }
+            let air = matches!(
+                s.profile(sim::combat::Obj::Unit(i)).domain,
+                sim::attrition::Domain::Air
+            );
+            if !air {
+                continue;
+            }
+            let orders: Vec<String> = u
+                .orders
+                .iter()
+                .map(|o| {
+                    let b = format!("{:?}", o.body);
+                    let b: String = b.chars().take(160).collect();
+                    format!("f{} {b}", o.flags)
+                })
+                .collect();
+            now.push((
+                format!("u{i}"),
+                format!(
+                    "{}/{} {} alive={} in={:?} pos=({}, {}) z={} mana_burn={} [{}]",
+                    u.owner,
+                    u.index,
+                    unit_name(u.ty),
+                    u.alive(),
+                    u.inside.map(|b| s.buildings[b].index),
+                    u.pos.x,
+                    u.pos.y,
+                    u.airframe.z,
+                    u.mana_burn,
+                    orders.join(" | ")
+                ),
+            ));
+        }
+        for (i, b) in s.buildings.iter().enumerate() {
+            let hangar = b.ty.is_some_and(|t| s.is_hangar(t));
+            if !(hangar || !b.queue.items.is_empty() || !b.gather.is_empty()) {
+                continue;
+            }
+            let inside: Vec<i16> = b.garrison.iter().map(|&u| s.units[u].index).collect();
+            // The queue by type and price: a job's counter moves every frame.
+            let queue: Vec<(usize, [i16; 3])> =
+                b.queue.items.iter().map(|q| (q.ty, q.cost)).collect();
+            now.push((
+                format!("b{i}"),
+                format!(
+                    "B {}/{} {} alive={} queue={:?} gather={:?} inside={inside:?} launch={}",
+                    b.owner,
+                    b.index,
+                    build_name(b.ty),
+                    b.alive,
+                    queue,
+                    b.gather,
+                    b.launch_frames
+                ),
+            ));
+        }
+        now.push((
+            "leader0".into(),
+            format!("L 0 buckets {:?}", s.ledgers[0].bucket),
+        ));
+        for (k, v) in now {
+            if seen.get(&k) != Some(&v) {
+                eprintln!("f{f} {v}");
+                seen.insert(k, v);
+            }
+        }
+    }
+    eprintln!(
+        "staged: {} ran, {} unit(s), {} building(s); skipped {:?}",
+        applied.ran, applied.units, applied.buildings, applied.skipped
+    );
+}

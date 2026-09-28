@@ -78,6 +78,16 @@ pub enum Cheat {
     /// `bird`, table case `0x52`: a Wild Bird for owner 9 at the console's
     /// cursor, on an air patrol of the same point. It takes no argument.
     Bird,
+    /// `resource [who=N] [good | all] [±]amount` → `LeaderData::bucket_set`
+    /// ([`sim::Sim::cheat_resource`]). `good` is `None` for `all`, and for
+    /// a line whose second token is neither a good nor `all`: that token is
+    /// then the amount (`run_cmd` leaves the type at −1 and does not
+    /// advance, and a negative type takes the `all` arm).
+    Resource {
+        who: i32,
+        good: Option<usize>,
+        amount: i32,
+    },
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -1211,8 +1221,63 @@ fn parse(text: &str) -> Cheat {
             }
         }
         "bird" => Cheat::Bird,
+        "resource" => {
+            // The token walk is `run_cmd`'s (`7dd73f`..`7dd7e8`): an optional
+            // `parse_who(·, −1)`, so only `who=`; then the good by
+            // `parse_type(·, "c", 1)`, a prefix of its name, or `all`, either
+            // of which advances; then `parse_amount` on the token it stands
+            // on. A token that is neither leaves the type at −1 and is read
+            // as the amount, and −1 takes the `all` arm.
+            let mut it = rest.iter().peekable();
+            let who = match it.peek().and_then(|t| parse_who(t, false)) {
+                Some(w) => {
+                    it.next();
+                    w
+                }
+                None => CONSOLE_WHO,
+            };
+            let Some(head) = it.next() else {
+                return Cheat::Unmapped(word);
+            };
+            let (good, amount) = if head.eq_ignore_ascii_case("all") {
+                (None, it.next())
+            } else if let Some(g) = basic_good(head) {
+                (Some(g), it.next())
+            } else {
+                (None, Some(head))
+            };
+            match amount.and_then(|t| parse_amount(t)) {
+                Some(amount) => Cheat::Resource { who, good, amount },
+                None => Cheat::Unmapped(word),
+            }
+        }
         _ => Cheat::Unmapped(word),
     }
+}
+
+/// `parse_type(·, "c", 1)` over the six basic goods, in `resourcerules.xml`'s
+/// order — the bucket index. A prefix, case-insensitively, as
+/// [`type_named`] reads a unit. SEAM: the rares and the other goods of the
+/// table, whose buckets this simulation does not carry.
+fn basic_good(tok: &str) -> Option<usize> {
+    const GOODS: [&str; 6] = ["food", "timber", "wealth", "knowledge", "metal", "oil"];
+    let t = tok.to_ascii_lowercase();
+    GOODS
+        .iter()
+        .position(|g| !t.is_empty() && g.starts_with(&t))
+}
+
+/// `ConsoleWin::parse_amount@007e51a0`: the characters before the first
+/// digit or `-` are skipped (so a leading `+` reads), and the rest is
+/// `String::convert_int`'s. `None` where nothing numeric is left.
+fn parse_amount(tok: &str) -> Option<i32> {
+    let at = tok.find(|c: char| c == '-' || c.is_ascii_digit())?;
+    let t = &tok[at..];
+    let end = t
+        .char_indices()
+        .find(|&(i, c)| !(c.is_ascii_digit() || (i == 0 && c == '-')))
+        .map_or(t.len(), |(i, _)| i);
+    t[..end].parse::<i32>().ok()
 }
 
 /// **The console's cursor on the staged channel**, `console_win +0x518/
@@ -1323,6 +1388,24 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
             } else {
                 done.skip(&word, "no bird type loaded");
             }
+        }
+        Cheat::Resource { who, good, amount } => {
+            // `7dd7e8`: an amount of 0 prints the totals and writes nothing.
+            // `7dd7f4`: `Game::is_solo`, or the command's own flag — a staged
+            // game is solo.
+            if amount == 0 {
+                done.skip(
+                    &word,
+                    "an amount of 0 prints the totals and changes nothing",
+                );
+                return;
+            }
+            if !(0..built.sim.players.len() as i32).contains(&who) {
+                done.skip(&word, "no such leader");
+                return;
+            }
+            built.sim.cheat_resource(who as sim::Player, good, amount);
+            done.ran += 1;
         }
         Cheat::Unmapped(w) => done.skip(&w, "not in the interpreter's cheat set"),
     }
@@ -2068,6 +2151,25 @@ mod tests {
         let s = Script::parse("700 bird\n");
         assert_eq!(s.lines().len(), 1);
         assert!(!s.lines()[0].console);
+    }
+
+    /// **`resource` is `bucket_set`, with `run_cmd`'s token walk**
+    /// (`docs/GOLDEN.md` §44): `who=` alone names a player, a good's prefix
+    /// or `all` advances, and a token that is neither is the amount under
+    /// the `all` arm. `parse_amount` skips a leading `+`.
+    #[test]
+    fn a_resource_line_is_bucket_set() {
+        let r = |who, good, amount| Cheat::Resource { who, good, amount };
+        assert_eq!(parse("resource who=0 all +2000"), r(0, None, 2000));
+        assert_eq!(parse("resource oil 50"), r(0, Some(5), 50));
+        assert_eq!(parse("resource who=1 w -30"), r(1, Some(2), -30));
+        assert_eq!(parse("resource +12345"), r(0, None, 12345));
+        assert_eq!(parse("resource who=0 know +7"), r(0, Some(3), 7));
+        assert_eq!(parse("resource"), Cheat::Unmapped("resource".into()));
+        assert_eq!(parse("resource all"), Cheat::Unmapped("resource".into()));
+        assert_eq!(parse_amount("+2000"), Some(2000));
+        assert_eq!(parse_amount("-50"), Some(-50));
+        assert_eq!(parse_amount("x"), None);
     }
 
     /// The script format, including the two rules a reader gets wrong:

@@ -3217,6 +3217,32 @@ impl Sim {
         self.ledgers[w].dirty = true;
     }
 
+    /// **The `resource` cheat** (`ConsoleWin::run_cmd@007d6a70`'s case,
+    /// the listing `7dd7d8`..`7dd8b2`; `docs/GOLDEN.md` §44): `bucket_set(g,
+    /// max(0, bucket_get(g) + amount))`, the bucket written as it stands,
+    /// with no escrow, income or cap between. One good (`Some(g)`) is
+    /// written whatever its availability; `all` (`None`) walks the six
+    /// basic goods and writes only those `type_avail` answers non-zero for
+    /// (`7dd825`), the rule [`Sim::lay_starting_goods`] pays the opening
+    /// stockpile by. An amount of 0 is refused before either arm (`je` at
+    /// `7dd7e8`) and prints the totals.
+    pub fn cheat_resource(&mut self, who: Player, good: Option<usize>, amount: i32) {
+        let w = who as usize;
+        for g in 0..economy::RESOURCES {
+            let hit = match good {
+                Some(one) => one == g,
+                None => self
+                    .good_tree_type(g)
+                    .is_none_or(|t| self.type_avail(who, t) != tech::NOT_AVAILABLE),
+            };
+            if hit {
+                let b = &mut self.ledgers[w].bucket[g];
+                *b = (*b + amount).max(0);
+            }
+        }
+        self.economy_changed(who);
+    }
+
     /// `game->starting[g]` as one leader is paid it — the amount both
     /// `Leader::init@006e3930` and `Leader::gain_tech@006dcb60` hand to
     /// `bucket_add`, under the same three-armed scale.
