@@ -62,6 +62,17 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1028, 2026-09-28 — the raid's edges
+
+(1035) **The ship raid arm** (`0064edd8`–`0064ef64`) of
+`compare_target`: read, not built (COMBAT §68).
+
+(1036) **The best-score seed of 0** (`0064929e`): this crate takes a
+zero-value candidate where the original's seed does not.
+
+(1037) **The squad head for a unit or a wall target**: 1028 built the
+city's and the building's; the other two are read, not built.
+
 ## Parked by item 1023, 2026-09-28 — the fleeing target's edges
 
 (1029) **`check_target_path`'s group arm** (`5e25d1`–`5e26e9`): it
@@ -95,13 +106,6 @@ another lane's.
 family (a pushed selection's point).
 
 ## Parked by item 1012, 2026-09-27 — the army's attack
-
-(1015) **`find_melee_target`'s squad head at `Group::action_attack`'s
-retarget**: built, and the floor refused it (it held the word at 4607
-against 4618 without it), so it stands unbuilt with its kill. A packet
-at 4606 reading the city's `+0x3d` decides it (COMBAT §66). **1014**:
-its packet went to 4506, where 1014's word was; 1015's wants its own run
-number.
 
 (1016) **`build_ids` has no capital fallback**: `Built::builds` omits
 each capital, so a city target answers None (1003's cause, named by
@@ -1618,6 +1622,12 @@ the same test. The shape is the residue test's — push every failure,
 assert once — applied to the floor tests that pin more than one tuple;
 the lane gate (969) shortens the wait and does not remove it.
 
+## Loop, filed 2026-09-27 — the commander's tranche after the seventeenth pass
+
+Split from the section above at its ceiling (2026-09-28): the Loop
+lines filed by the commander since the seventeenth pass, each at its
+merge or in the turn it was noticed.
+
 (974) **`longtrace.sh` touches the lane's shared state before it holds
 the lane lock** (971's status, 2026-09-27, confirmed in the script): the
 `PROFILE` write and its copy aside (lines 132..134) and `rm -f` of
@@ -1751,6 +1761,22 @@ gather point's issuer chain "stays on `NEVER`" when four of it had been
 off since run337. And three of 1011's four captures entered nothing new:
 "which `NEVER` rows does this chapter's staging name?" ranks a `cover=1`
 batch before the launch; only chapter thirty-three's did.
+
+(1038) **FABLE: `CLAUDE.md` stated the packet-frame rule the twelfth
+pass struck** (the commander, 2026-09-28, from 1028's Loop line):
+its tooling paragraph said a packet "is taken at the frame before the
+divergence", which `docs/EMULATOR.md` §8 struck for item 597 and parked
+605 — the frame to take is the word itself, read as a logger frame. The
+commander's briefs for 1023 and 1028 inherited it; 1028 read §8 and took
+run368 at 4688, not the booked 4687. **The commander landed the
+one-clause fix in `CLAUDE.md`** (the safety-fix clause of the fan-out
+rules); the pass ratifies or rewrites it.
+
+(1039) **A walk cannot tell the right arm from a wrong one while a value
+it depends on is wrong elsewhere** (1028's Loop line): 1012's hand-off
+passed its floor on an inflated city value, which 1028's packet showed.
+A floor that a mechanism passes is quiet, not proven (898's shape one
+level up).
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
