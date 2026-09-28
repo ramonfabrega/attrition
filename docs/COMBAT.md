@@ -11509,6 +11509,9 @@ the phase are all printed, and the listing gave the setter and the decay.
   read of the city moved it is not established.
 - **East Indies holds at 5606** (ours 4, the original 5, at index 0, as
   booked).
+- **The first pair's standing `0x2` rows close**: run100's window (the
+  human city's, opened with `raid_stamp` on 9451) and run294's block
+  19840.
 - **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
   named): frame 4781, ours 5 draws and the original 4, parting at index 0.
   Ours spends `Unit::fight+0x9b0`, where the original spends

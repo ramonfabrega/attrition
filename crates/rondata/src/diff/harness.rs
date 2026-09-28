@@ -8097,7 +8097,9 @@ pub(crate) mod tests {
         /// `CityData::raid_stamp` is `Leader::raid`'s and `0x2` is
         /// `no_heal`, both named as unheld in [`compare`]'s own city
         /// block. They are the one thing besides the queue that opens
-        /// inside the window, and they are who=0's.
+        /// inside the window, and they are who=0's. **Since item 1034
+        /// `0x2` is held** (`docs/COMBAT.md` §69) and agrees; `raid_stamp`
+        /// opens here alone.
         const RAID: i64 = 9_451;
         /// ~~**`1/28` one world unit east**, item 477's row and the
         /// block the word stood on until item 478 moved it past.~~
@@ -8521,10 +8523,15 @@ pub(crate) mod tests {
         // 176, the Barracks and Stable this crate never seats in Norwich
         // (`docs/AI.md` §63). **Nineteen → seventeen on the same item's
         // fix**: both `trade_val` rows agree once the two join Norwich.
+        // **Seventeen → sixteen on item 1034**: the human city's
+        // `city_flags[0x2]`, which opened with `raid_stamp` on 9451
+        // (`RAID`), agrees — `Object::take_damage` sets it and the city
+        // building's 200-frame decay clears it (`docs/COMBAT.md` §69);
+        // `raid_stamp` stands alone.
         assert_eq!(
             cities.len(),
-            17,
-            "the window's standing city residue is not seventeen fields: {cities:?}"
+            16,
+            "the window's standing city residue is not sixteen fields: {cities:?}"
         );
         assert!(
             cities.keys().all(|(w, o, _)| (*w, *o) != (1, 2_019)),
@@ -12813,7 +12820,8 @@ pub(crate) mod tests {
         // **What stands on run294's first block**, past run226's last: the
         // four walkers' `group.id` (group 4 here, 5 there — parked 871;
         // read by equality alone), `1/80`'s formation, who=0's `attacked`
-        // and its city's `city_flags[0x2]`, and who=1's `SITE[1].reg`. And
+        // ~~and its city's `city_flags[0x2]`~~ (item 1034 carries it,
+        // `docs/COMBAT.md` §69), and who=1's `SITE[1].reg`. And
         // after it, nothing. **Until item 899 `1/60`'s world route stood
         // here too** — 22 path slots, slot 15 (32640, 24960) here against
         // (32640, 24192) there — and parted again on 19934..19951 (14
@@ -12829,7 +12837,6 @@ pub(crate) mod tests {
             parted,
             [
                 (19_840, 0, -1, 1),
-                (19_840, 0, 2000, 1),
                 (19_840, 1, -1, 1),
                 (19_840, 1, 40, 1),
                 (19_840, 1, 41, 1),
