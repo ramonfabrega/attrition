@@ -11938,3 +11938,159 @@ decompile prints `flanking`'s argument as `unaff_EDI`; the listing puts
 - **Listing-backed**: `5f7fbe`–`5f7ff6`, `92cfe0`–`92cffd`.
 - **Unit-backed only**: the target walking toward the chaser. No capture
   has one in reach.
+
+## 72. A citizen heals on its own ground (item 1072, 2026-09-28)
+
+Great Lakes' second word, frame 4978 of run347 (DECISIONS 53, 54): ours 9
+draws against the original's 8, parting at index 1. Ours spends
+`Unit::close+0xcb6`, the original `Farms::inc_time+0x1ae`. On run373's
+block 4979 the citizen `0/2` is dead on ours alone, 42 damage against 37.
+The booking named no mechanism and called the heal a hypothesis.
+
+### 72.1 The frame, from the disk
+
+- **Every instance first** (1058). A scan of every unit's `damage` and
+  `damage_frac` on run356 and run373, both sides, lists 22 falls with no
+  hit. All are the human's citizens `0/1`..`0/5`. Each takes one point
+  off and zeroes the fraction, and each sits on the frame `(o + frame) %
+  45 == 0`, the block one later. Two examples: `0/3` on 4722 (3/5 → 2/0
+  on block 4723) and `0/2` on 4858 (5/5 → 4/0 on 4859).
+- **The field that counts it.** `healing` (`ObjectData +0x38`) reads 45
+  on each such block and counts down a frame at a time. On run356 it
+  reads 0 on `0/2` through 4806. On run373 it reads 18 on 4841, so it
+  was set on 4813, in the gap between the two windows.
+- **The gap, by arithmetic.** On 4806 `0/2` stands at 3/5 on both sides.
+  The original heals it on 4813 (`(2 + 4813) % 45 == 0`) to 2/0. `1/9`'s
+  hit on 4839 adds 3/5 and gives 5/5. Ours never healed, so it read 3/5
+  + 3/5 = 6/10. That is run373's first-block row exactly.
+- **The deaths.** This capture prints `DEATH_OBJS` only in its quit
+  block (5111). There the original's `0/3` has `first_frame` 4996 and
+  `0/2` has 5000. Before the heal, ours killed `0/2` on 4978, and
+  `Unit::close+0xcb6`, the death draw (§42.1), was the word.
+
+### 72.2 The listing
+
+`Unit::process_healing@005e0670` is called by `Unit::process@00610bc0`
+for every unit, after `healing` is counted down at the head of `process`.
+Its head returns unless four things hold:
+
+1. the unit is a captain;
+2. it is not air (`domain` `+0x218` != 2);
+3. `UnitData::has_damage@00609b50(1)` holds: the unit or a figure below
+   it has `damage` or `damage_frac`;
+4. `inside_up` (`+0x82`) is negative. Otherwise it takes the garrison
+   branch (`docs/CITIES.md` §6.7).
+
+On the map, a sea unit takes the ship heal and returns, and a supply unit
+(`UnitData::is_supply`, type `+0x2b8 & 0x40`) returns. Six heals follow
+that need a nation bonus, Versailles, a general, a CtW hero or a supply
+period that ships as 0 (`docs/SUPPLY.md`, "Consumer 2"). The last one is
+the civilian heal:
+
+```
+CIVILIAN_HEAL_RATE != 0 and (o + frame) % CIVILIAN_HEAL_RATE == 0
+  and !(unit_masks2 & 1)
+  and (is_worker or is_caravan or is_merchant or type == 0x13d)
+  and (domain == SEA or the cell's owner (+0xf) >= 0 and is_ally):
+    repair_damage(1, 0, 1)
+    healing = max(CIVILIAN_HEAL_RATE, healing)
+```
+
+- `ObjectData::is_worker@0046fa10` is the type ids `0x32`..`0x35`,
+  compared by identity. The `0x13d` test is an identity test too, not a
+  lineage test.
+- `rules.xml` ships `CIVILIAN_HEAL_RATE` as "45 frames (0 means don't heal
+  at all)".
+- `Unit::repair_damage@0060de10`:
+  - first clamps `damage` to `hits(0)`;
+  - then, **when `damage` is non-zero**, takes `param_1` off it (floored
+    at 0) and writes `+0x3b` (`damage_frac`) to 0;
+  - with `param_2` 0 it adds no sparkle, so the heal spends no draw.
+- The sea arm of the territory test cannot be reached: a sea unit has
+  already returned.
+
+### 72.3 What this crate built
+
+- **`sim::heal`**: `Sim::civilian_heal`, called in the unit's process
+  step right after `garrison_heal`. It checks the head's gates, the
+  supply return, the civilian test and the cell's owner through
+  `is_ally`. It then heals a whole point and zeroes the fraction.
+- **`Tuning::civilian_heal_rate`** is 45, checked against the install's
+  constants (`CIVILIAN_HEAL_RATE`).
+- **`healing` is not carried.** The aircraft heal in `Unit::process`,
+  which writes it too, is still a seam (`crate::cast`). The field stays
+  on the compared pin's uncompared list.
+- **Unit test**: `a_citizen_heals_a_point_every_45_frames_in_its_own_territory`.
+  - It checks nothing off the phase.
+  - On the phase it checks a point healed and the fraction cleared.
+  - It checks that a soldier (`0x60`) does not heal.
+  - It checks that nothing heals on a cell nobody owns.
+
+### 72.4 The killers
+
+Each was run as a mutation on `a99cb914`, with `git diff --stat`
+non-empty. Each was restored from git and `touch`ed after.
+
+| mutation | unit test | run347's walk | run373 | run356 | the first pair |
+|---|---|---|---|---|---|
+| the fraction is kept | fails | falls to 4993, 11 against 9 at index 1 (`Unit::close+0xcb6`) | fails | `0/3 damage_frac` on 4723, 5 against 0 | not run |
+| the territory test dropped | fails | holds 5042 | holds | holds | run80's end window fails, 306 → 310 |
+
+### 72.5 What moved
+
+- **Great Lakes 4978 → 5042.**
+  - On run373, `0/2` reads 5/5, 4/0, 3/0, 16/0 and 39/5 on blocks 4841,
+    4859, 4904, 4949 and 4994, on both sides. Before, ours read 6/10 from
+    4841 and died on 4978 at 42.
+  - `0/1`, `0/3`, `0/4` and `0/5` close the same way.
+  - Both sides now lose `0/2` on frame 5000.
+  - Frame 4978's draws went 9 against 8 → agreeing.
+  - run373's keys parted go 1,052 → 471. Parked 1074's first instance
+    (`1/18`'s collide on 4980) went with the rest: it followed `0/2`'s
+    early death.
+- **run356**: `0/3`'s heals on 4722 and 4767 agree. Its row, ours 3
+  against 2 from 4723, closes.
+- **The first pair**: `0/5`'s four damage rows close in every Great Lakes
+  window from run136 to run80. They had stood from 11400 at ours 2/2
+  against the original's 0/0. Every word holds: 24,000, the chapters,
+  and East Indies' 5606.
+- **Great Sahara** (1066's third map) holds at 8.
+- **The new word** (no mechanism is named): frame 5042, ours 8 and the
+  original 6, at index 0. Ours spends `Ammo::do_damage+0xc59`, the
+  original `Farms::inc_time+0x1ae`.
+  - It is inside run373's window, on block 5043.
+  - On block 5041 the citizen `0/1` takes 3/5 on the original's side
+    alone: 2/0 → 5/5, with `damage_frame` still 5038.
+  - Nothing first parts on 5042 or 5043.
+
+### 72.6 What is not established
+
+- **`unit_masks2 & 1`, the civilian heal's veto.**
+  - `UnitData::recharge@0060fdf0` reads the same bit as "under attack".
+  - `Unit::process`'s 32-frame block decays it: `0x2` first, then `0x1`.
+  - Neither the decompile nor a grep of the listing's `or` into `+0x6c`
+    names a setter.
+  - No dumped unit on run373 holds `0x1` or `0x2`; the only values
+    printed are 0 and 16.
+  - This crate reads the bit and never sets it.
+- **The other on-map heals**: the ship heal, Antipater/Wellington, the
+  CtW hero, the Iroquois, the economic patriots and supply. None is built
+  here, and no capture on disk reaches them.
+- **`healing`**, the aircraft heal that also writes it, and the army
+  stay-and-heal arm that reads it (`army.rs`, `think_attack_join_army`).
+- **`damage_frame` on a hit that leaves it alone.** The original's `0/1`
+  on 5040 and `0/2` on 4978 take damage with `damage_frame` unchanged.
+  This is the new word's block and the next item's.
+
+### 72.7 Coverage
+
+- **Diff-backed**:
+  - the phase, the point and the cleared fraction, by run373's and
+    run356's citizens (22 heals) and by the first pair's `0/5`;
+  - the territory test, by run80's end window;
+  - the heal drawing nothing, by run347's walk through 5042.
+- **Listing- and decompile-backed**: `005e0670`'s gates, `0060de10`'s
+  clamp and its `damage != 0` arm, `0046fa10`.
+- **Unit-backed only**: a soldier not healing.
+- **Not backed**: a caravan, a merchant, a fisherman, a supply unit, a
+  sea unit and the veto bit.
