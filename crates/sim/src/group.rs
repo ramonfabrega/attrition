@@ -6746,7 +6746,7 @@ mod tests {
         assert_eq!(
             s.units[a].combat.target,
             Some(Obj::Building(camp)),
-            "a member sent at a building took the soldier beside it"
+            "a member sent at a building took the soldier {near} beside it"
         );
     }
 
