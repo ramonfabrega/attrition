@@ -1696,6 +1696,19 @@ window is item 1061's to move; the guard is the pass's: the pin's walk
 is the window `WIDENINGS` names for the newest pair's lower map, read
 off the same table the default-map guard reads.
 
+(1071) **A rules-lane worker ends its item at three quarters of its
+window** (the eighteenth pass, measured after its gate with `lore trace
+--steps`, on the user's question): item 1019 reached **794,599** tokens
+of context over 397 requests and item 976 **745,277** over 327, where
+the AI lane's 1034 and 1002 ended at 308,814 and 233,508 and the
+commander's whole tranche at 458,446. 1019 also paid the tranche's one
+cache miss — a 61-minute gap behind a hung capture, 490,489 tokens
+written again. The rules lane's 70.5 USD a landing is mostly this:
+196.6 M tokens of cache read on 1019 alone. The shape: a chapter's
+worker clears at the seam the working agreement already names — the
+document written, before the build — or the chapter is booked as two
+items; the pass that rules it reads the next tranche's depths first.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

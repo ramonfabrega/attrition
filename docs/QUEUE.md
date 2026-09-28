@@ -29,7 +29,7 @@ thirty-five is open. No lane is live; the count is at zero.*
   read until map 9 has a height table.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 10 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067).
+- **Fable backlog: 11 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
