@@ -12028,13 +12028,14 @@ CIVILIAN_HEAL_RATE != 0 and (o + frame) % CIVILIAN_HEAL_RATE == 0
 
 ### 72.4 The killers
 
-Each was run as a mutation on `a99cb914`, with `git diff --stat`
-non-empty. Each was restored from git and `touch`ed after.
+Each was run as a mutation, with `git diff --stat` non-empty: the first
+on `a99cb914`, the second on `5fddc659`. Each was restored from git and
+`touch`ed after.
 
 | mutation | unit test | run347's walk | run373 | run356 | the first pair |
 |---|---|---|---|---|---|
 | the fraction is kept | fails | falls to 4993, 11 against 9 at index 1 (`Unit::close+0xcb6`) | fails | `0/3 damage_frac` on 4723, 5 against 0 | not run |
-| the territory test dropped | fails | holds 5042 | holds | holds | run80's end window fails, 306 → 310 |
+| the territory test dropped | fails | holds 5042 | holds | holds | run80 and run136 hold |
 
 ### 72.5 What moved
 
@@ -12087,10 +12088,12 @@ non-empty. Each was restored from git and `touch`ed after.
 - **Diff-backed**:
   - the phase, the point and the cleared fraction, by run373's and
     run356's citizens (22 heals) and by the first pair's `0/5`;
-  - the territory test, by run80's end window;
   - the heal drawing nothing, by run347's walk through 5042.
 - **Listing- and decompile-backed**: `005e0670`'s gates, `0060de10`'s
   clamp and its `damage != 0` arm, `0046fa10`.
-- **Unit-backed only**: a soldier not healing.
+- **Unit-backed only**: a soldier not healing, and the territory test.
+  No capture on disk has a damaged citizen off an ally's ground on its
+  heal phase. The first run of the territory mutation read run80 as
+  failing, but that was a floor pin still unmoved on the merged tree.
 - **Not backed**: a caravan, a merchant, a fisherman, a supply unit, a
   sea unit and the veto bit.
