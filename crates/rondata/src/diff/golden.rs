@@ -12761,6 +12761,174 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
     assert_eq!(got_pool, want_pool, "ch35: what parts in the pool moved");
 }
 
+/// **Chapter thirty-six, pinned** — the missile's other arms
+/// (`docs/GOLDEN.md` §45, item 1078, run390). Forty-two staged lines:
+/// chapter thirty-five's thirty, two silos with a V2 each, two who=1
+/// Barracks and a spotter, three strikes and the shield's tech line.
+#[test]
+fn chapter_thirty_six_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch36", "chapter36", 36, 42, 3419) else {
+        return;
+    };
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY_SIX,
+        "chapter thirty-six's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY_SIX}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY_SIX,
+        "chapter thirty-six's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §45"
+    );
+    eprintln!(
+        "chapter thirty-six: sequence {}, values {:?}",
+        w.sequence, w.value
+    );
+}
+
+/// **run390 whole, both directions** (item 1078, `docs/GOLDEN.md` §45):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_six_s_word_frame_is_widened_whole() {
+    let Some(firsts) = widen_civilians(
+        "ch36",
+        "chapter36",
+        WIDENING_CHAPTER_THIRTY_SIX,
+        3419,
+        0,
+        (3110, 3113),
+        true,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch36 f{f} {w}/{o} {what}: {row}");
+    }
+    // The first block's standing rows are chapter twenty-two's.
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_SIX.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    assert!(
+        floor.iter().all(|w| standing(w)),
+        "ch36: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY_SIX.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch36", "chapter36", WIDENING_CHAPTER_THIRTY_SIX, 0)
+        .expect("run390 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch36 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    eprintln!("ch36: {} rows, {} pool rows", got.len(), got_pool.len());
+    let mut want: Vec<String> = WANT_CH36.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    assert_eq!(got, want, "ch36: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH36_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    assert_eq!(got_pool, want_pool, "ch36: what parts in the pool moved");
+}
+
+/// Chapter thirty-six's widening rows (item 1078): run390 whole. Chapter
+/// thirty-five's forty-two, the spotter's and the two V2s' `form` (0
+/// against −1), and the V2s' seats inside their silos on 2926 and 2931
+/// (+24, +24: parked 646's family, run371's `0/10` again).
+const WANT_CH36: &[&str] = &[
+    "1746 0/9 form",
+    "1746 0/9 g.des_x[0]",
+    "1746 0/9 g.des_y[0]",
+    "1746 0/9 g.x[0]",
+    "1746 0/9 g.y[0]",
+    "1746 0/9 orders_x",
+    "1746 0/9 orders_y",
+    "1746 0/9 pos",
+    "2431 0/10 form",
+    "2431 0/10 g.des_x[0]",
+    "2431 0/10 g.des_y[0]",
+    "2431 0/10 g.x[0]",
+    "2431 0/10 g.y[0]",
+    "2431 0/10 orders_x",
+    "2431 0/10 orders_y",
+    "2431 0/10 pos",
+    "2446 0/11 form",
+    "2446 0/11 mirror",
+    "2659 0/12 dest_angle",
+    "2659 0/12 form",
+    "2659 0/12 g.des_x[0]",
+    "2659 0/12 g.des_y[0]",
+    "2659 0/12 g.last_z[0]",
+    "2659 0/12 g.x[0]",
+    "2659 0/12 g.y[0]",
+    "2659 0/12 g.z[0]",
+    "2659 0/12 order:move.angle",
+    "2659 0/12 pos",
+    "2719 0/12 angle:Heading",
+    "2719 0/12 g.des_angle[0]",
+    "2719 0/12 heading",
+    "2720 0/12 angle:Facing",
+    "2720 0/12 g.angle[0]",
+    "2741 0/13 form",
+    "2926 0/14 form",
+    "2926 0/14 g.des_x[0]",
+    "2926 0/14 g.des_y[0]",
+    "2926 0/14 g.x[0]",
+    "2926 0/14 g.y[0]",
+    "2926 0/14 orders_x",
+    "2926 0/14 orders_y",
+    "2926 0/14 pos",
+    "2931 0/15 form",
+    "2931 0/15 g.des_x[0]",
+    "2931 0/15 g.des_y[0]",
+    "2931 0/15 g.x[0]",
+    "2931 0/15 g.y[0]",
+    "2931 0/15 orders_x",
+    "2931 0/15 orders_y",
+    "2931 0/15 pos",
+    "611 0/6 form",
+    "613 0/7 form",
+    "615 0/8 form",
+    "617 0/1 g.end_time[0]",
+    "623 0/2 g.end_time[0]",
+    "650 0/1 g.cur_time[0]",
+    "650 0/1 g.last_time[0]",
+    "655 0/2 g.cur_time[0]",
+    "655 0/2 g.last_time[0]",
+];
+
+/// Chapter thirty-six's pool rows (item 1078).
+const WANT_CH36_POOL: &[&str] = &[
+    "2227 slot 3 ox",
+    "2227 slot 3 oy",
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "666 slot 2 new_speed",
+    "666 slot 2 speed",
+];
+
 /// **The V2's launch, field for field, both directions** (item 1050,
 /// `docs/PRODUCTION.md` "The missile's launch and round"). On every block
 /// of run371 from the silo's strike to two blocks past the round's
@@ -13445,6 +13613,40 @@ fn stage_walk() {
             if seen.get(&k) != Some(&v) {
                 eprintln!("f{f} {v}");
                 seen.insert(k, v);
+            }
+        }
+    }
+    // `RON_STAGE_MAP=1` (item 1078, `docs/GOLDEN.md` §45): the territory
+    // on the last frame, one character a cell (`.` unowned, `?` a claim
+    // the original writes −2, else the player), and every live building
+    // with its cell, so a target can be placed by who owns its landing.
+    if std::env::var_os("RON_STAGE_MAP").is_some() {
+        let s = &built.sim;
+        for y in 0..s.world.height() {
+            let row: String = (0..s.world.width())
+                .map(|x| match s.world.owner(sim::world::Cell { x, y }) {
+                    sim::world::Owner::None => '.',
+                    sim::world::Owner::Ambiguous => '?',
+                    sim::world::Owner::Player(p) => char::from(b'0' + p),
+                })
+                .collect();
+            eprintln!("map {y:2} {row}");
+        }
+        for b in s.buildings.iter().filter(|b| b.alive) {
+            let c = b.pos.cell();
+            eprintln!(
+                "bld {}/{} {} pos=({}, {}) cell=({}, {}) owner_there={:?}",
+                b.owner,
+                b.index,
+                build_name(b.ty),
+                b.pos.x,
+                b.pos.y,
+                c.x,
+                c.y,
+                s.world.owner(c)
+            );
+            for q in &b.queue.items {
+                eprintln!("    queue ty={} job_counter={}", q.ty, q.job_counter);
             }
         }
     }

@@ -3495,6 +3495,20 @@ impl Sim {
             self.do_damage(p.shooter, t, angle, true, 0x100, false, false, frame);
             return;
         }
+        // **The missile arm's shield** (item 1078, `678337`..`67845d`;
+        // `docs/PRODUCTION.md` "The missile's other arms"): a missile's
+        // round is closed with no damage and no walk when the landing
+        // cell's territory owner holds `MISSILE_DEFENSE_BONUS` and is not
+        // the shooter's player. run390's V2b on 3169, in who=1's land ten
+        // frames' flight after `tech who=1 missile_shield on`. SEAM: a
+        // landing on ocean, whose owner is the first owned cell of a ring.
+        if self.profile(p.shooter).has(mask::MISSILE)
+            && let Some(w) = self.world.owner_at(p.landing).player()
+            && w != p.owner
+            && self.missile_defense_held(w)
+        {
+            return;
+        }
         // Splash: everything on the square of cells the spiral table walks,
         // the intended target at full count and everything else as a fringe.
         let k = combat::splash_cells(p.splash_area);
@@ -5415,6 +5429,91 @@ mod tests {
                 ..ammo
             }),
             None
+        );
+    }
+
+    /// **The shield closes a missile's round in its holder's land**
+    /// (item 1078, `Ammo::do_damage@00678060`'s `678337`..`67845d`):
+    /// run390's V2b came down on who=1's Barracks `1/2007` on 3169, in a
+    /// cell of who=1's, after `tech who=1 missile_shield on`, and the
+    /// Barracks stood at damage 0. The same round with the shield unheld,
+    /// or in a cell no one owns, strikes it. Made to fail with the close
+    /// dropped (the Barracks struck).
+    #[test]
+    fn the_shield_closes_a_missile_s_round_in_its_holder_s_land() {
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].combat.attack = 150;
+        sim.unit_types[ty].combat.splash_area = 1;
+        sim.unit_types[ty].combat.splash_percent = 25;
+        sim.unit_types[ty].combat.obj_masks |= mask::MISSILE;
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 5,
+            y_size: 5,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(13824, 14976);
+        let b = sim.add_building(1, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1200;
+        sim.buildings[b].health = 1200;
+        sim.buildings[b].combat = Some(Profile::default());
+        let me = put(&mut sim, 0, ty, Pos::new(9974, 12347));
+        let ammo = combat::Projectile {
+            shooter: Obj::Unit(me),
+            owner: 0,
+            target: None,
+            launch: Pos::new(9974, 12347),
+            landing: Pos::new(13834, 14969),
+            cur_time: 120,
+            total_time: 120,
+            accuracy: 228,
+            angle: crate::movement::Angle(0),
+            splash_area: 1,
+            num_guys: 1,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            air: false,
+            sz: 466,
+            ez: 78,
+            v1z: crate::single::Single::ZERO,
+            slot: 0,
+        };
+        let mut tree = sim.tech_tree.clone();
+        let shield = tree.types.len();
+        tree.types.push(crate::tech::TypeDef::new(
+            "Missile Shield",
+            crate::tech::Kind::Final,
+        ));
+        tree.roles.missile_defense_preq = Some(shield);
+        sim.set_tech_tree(tree);
+        for p in &mut sim.tech {
+            p.tech.resize(shield + 1, false);
+        }
+        sim.tech[1].tech[shield] = true;
+        let cell = ammo.landing.cell();
+        let mut unowned = sim.clone();
+        unowned
+            .world
+            .set_owner(cell, crate::world::Owner::None, crate::world::Owner::None);
+        sim.world.set_owner(
+            cell,
+            crate::world::Owner::Player(1),
+            crate::world::Owner::None,
+        );
+        let mut unheld = sim.clone();
+        unheld.tech[1].tech[shield] = false;
+        sim.land(ammo, 3169);
+        assert_eq!(sim.buildings[b].health, 1200, "closed under the shield");
+        unheld.land(ammo, 3169);
+        assert!(
+            unheld.buildings[b].health < 1200,
+            "struck with the shield unheld"
+        );
+        unowned.land(ammo, 3169);
+        assert!(
+            unowned.buildings[b].health < 1200,
+            "struck in no one's land"
         );
     }
 
