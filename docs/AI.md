@@ -10612,9 +10612,16 @@ live `2009` was compared with ours' dead frame-976 site.
     on 4688 there and retargets to the scout `0/0` here (§67.5).~~ **Moved
     to 4690 by item 1028** (`docs/COMBAT.md` §68): `compare_target`'s RAID
     arm, a `Build` target handed to the group unsearched, and a building's
-    `targeted` decay. **Great Lakes 4690, the lower**: ours 5, the original
+    `targeted` decay. ~~**Great Lakes 4690, the lower**: ours 5, the original
     4, at index 1, `Object::take_damage+0xe1` against
-    `Farms::inc_time+0x1ae`; nothing parts on block 4691 (§68.5).
+    `Farms::inc_time+0x1ae`; nothing parts on block 4691 (§68.5).~~ **Moved
+    to 4781 by item 1034** (`docs/COMBAT.md` §69): a city hit by another
+    player sets `city_flags` `0xe`, and `0x2` vetoes the city heal until the
+    city building's 200-frame decay clears it; ours had healed the human's
+    city off its first wound, so 4690's strike was a first wound again.
+    **Great Lakes 4781, the lower**: ours 5, the original 4, at index 0,
+    `Unit::fight+0x9b0` against `Farms::inc_time+0x1ae`; the citizen `0/4`
+    is struck on 4779 there and not here (§69.5).
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word
