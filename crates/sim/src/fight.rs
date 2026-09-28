@@ -4723,6 +4723,56 @@ mod tests {
         );
     }
 
+    /// **A busy unit answers a hit only on duty** (item 1040,
+    /// `docs/COMBAT.md` §70): `Unit::target_opportunity`'s `600863`
+    /// returns for a unit that holds any order and is not
+    /// `Unit::on_duty@005fff70` — a combat-role type whose activity is an
+    /// `ATTACK_TO`, a patrol, a `GUARD` or a group attack or patrol. Great
+    /// Lakes' `0/4`, a citizen walking to its drop site under its
+    /// `GATHER`, took `1/24`'s stone on 4779 and kept walking; this crate
+    /// had it turn on the Slinger.
+    ///
+    /// Made to fail first with the gate removed: the walker answered.
+    #[test]
+    fn a_busy_unit_answers_a_hit_only_on_duty() {
+        use crate::orders::{MoveKind, QueuePos};
+        let answer = |role: bool, kind: Option<MoveKind>| {
+            let (mut sim, ty) = at_war();
+            sim.unit_types[ty].combat.combat_role = role;
+            let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x4100, 0x4000));
+            if let Some(k) = kind {
+                sim.add_move_order(me, Pos::new(0x2000, 0x4000), k, QueuePos::First, false);
+            }
+            let before = sim.units[me].orders.clone();
+            sim.target_opportunity(me, Obj::Unit(foe), 10);
+            let answered = sim.units[me].combat.target == Some(Obj::Unit(foe));
+            assert_eq!(
+                answered,
+                sim.units[me].orders != before,
+                "an answer is an order, and silence leaves the list alone"
+            );
+            answered
+        };
+        assert!(!answer(false, Some(MoveKind::MoveTo)), "a walker");
+        assert!(
+            !answer(true, Some(MoveKind::MoveTo)),
+            "a soldier on a plain move is not on duty"
+        );
+        assert!(
+            answer(true, Some(MoveKind::AttackTo)),
+            "a soldier on an attack-move is"
+        );
+        assert!(
+            !answer(false, Some(MoveKind::AttackTo)),
+            "on duty asks the combat role first"
+        );
+        assert!(
+            answer(false, None),
+            "an idle unit answers whatever its role"
+        );
+    }
+
     /// **A dead target outlives its order by the reload** —
     /// `docs/ORDERS.md` §7.12, and the arm is `Unit::fight@005fd4d0:102`
     /// returning before `:196`'s `Object::valid_target`.
@@ -5655,6 +5705,9 @@ mod tests {
         sim.nation[1].human = true;
         let mut t = sim.unit_types[ty].clone();
         t.combat.max_range = 8;
+        // A chariot is a combat unit (`role & 0x10000`), which is what puts
+        // a guard on duty (`Unit::on_duty@005fff70`, item 1040).
+        t.combat.combat_role = true;
         let chariot = sim.add_unit_type(t);
         let post = Pos::new(3480, 12264);
         let wagon = put(&mut sim, 0, chariot, Pos::new(3456, 11904));
