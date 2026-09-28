@@ -10600,11 +10600,16 @@ live `2009` was compared with ours' dead frame-976 site.
     `Unit::do_non_flat_gather+0xcc3`), is §66.5's.~~ **Moved to 4673 by
     item 1014** (`docs/SCOUT.md` §8.3): the AI scout's rival multiplier is
     the met bit, not war, so on tick 4506 it walks to (2808, 32760) as the
-    original does instead of idling on 4618. **Great Lakes 4673, the
+    original does instead of idling on 4618. ~~**Great Lakes 4673, the
     lower**: ours 4, the original 3, at index 0, `Unit::fight+0x9b0` (the
     chaser `1/24`) against `Farms::inc_time+0x1ae`. Inside run356's window:
     block 4673 parts on `1/24`'s order (kind 10 against 1), and its chase
-    spot has parted since 4617.
+    spot has parted since 4617.~~ **Moved to 4688 by item 1023**
+    (`docs/COMBAT.md` §67): `check_target_path` re-aims a ranged chase on a
+    fleeing unit out of reach of the walk spot. **Great Lakes 4688, the
+    lower**: 35 against 35 at index 31, `Guy::set_anim+0x97a <
+    Guy::move+0x19f` against `Farms::inc_time+0x1ae`; `1/24` strikes `0/3`
+    on 4688 there and retargets to the scout `0/0` here (§67.5).
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word
