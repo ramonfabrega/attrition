@@ -1510,6 +1510,14 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `MISSILE_DEFENSE_BONUS` is the tenth (`0x2b5`, pushed at `6fbbe9` and
+    // `678343`), and Missile Shield is its `preq0` in the shipped file — a
+    // missile's order on the holder's object, and its blast in the
+    // holder's land (`docs/PRODUCTION.md`, "The missile's other arms").
+    tree.roles.missile_defense_preq = match bonus_preqs.get(9) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `FISHERMEN1..3` are bonuses 19–21 (`0x2bf`–`0x2c1`) and
     // `MERCHANTS_1..4` are 99–102 (`0x30f`–`0x312`) — the two upgrade
     // ladders `LeaderData::calc_rare` indexes its percentages with

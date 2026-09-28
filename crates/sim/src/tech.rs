@@ -318,6 +318,13 @@ pub struct Roles {
     /// (`docs/CITIES.md` §2.6.1). `None` leaves the bonus granted, the
     /// tree's rule for a role it does not know.
     pub colonize_preq: Option<TypeId>,
+    /// `MISSILE_DEFENSE_BONUS`'s one prerequisite — the technology whose
+    /// ownership is `has_preq(MISSILE_DEFENSE_BONUS)`, the tenth of
+    /// `rules.xml`'s `TECHBONUSES` (`0x2b5`) and **Missile Shield** in the
+    /// shipped file: "Enemy missiles will not explode in your territory"
+    /// (`docs/PRODUCTION.md`, "The missile's other arms"). `None` leaves
+    /// the bonus unheld: a tree that does not know the shield raises none.
+    pub missile_defense_preq: Option<TypeId>,
     /// `LeaderData::get_gov@006d6a20`'s six tests, in its own order —
     /// `SOCIALISM_1`, `CAPITALISM_1`, `MONARCHY_1`, `DEMOCRACY_1`,
     /// `DESPOTISM_1`, `REPUBLIC_1` — each the bonus's three prerequisites

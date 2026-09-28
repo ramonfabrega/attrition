@@ -10240,3 +10240,50 @@ its first block (among them `1/21`'s chase goal, parted since run373's
 order: the original has ended its chase, and ours has not. The compared
 pin's walk (`second::great_lakes_word_window`) reads this capture from
 item 1074 on.
+## run390 — chapter thirty-six, the missile's other arms (2026-09-28, item 1078)
+
+`docs/GOLDEN.md` §45, `tools/gamelog/golden/chapter36.cmd`: chapter
+thirty-five whole, then `resource who=0 all +500` (2705), Missile Silos
+`0/2010` and `0/2011` (2710, 2712), a V2 queued at each (2720, 2725),
+who=1's Barracks `1/2007` in its own land and `1/2008` in no one's (2730,
+2735), a who=0 Elite Special Forces between them (2740), and
+`@launchstrike` from `0/2010` on `1/2007` (3019), again on `1/2008`
+during the countdown (3029), `tech who=1 missile_shield on` (3070), and
+`@launchstrike` from `0/2011` on `1/2008` (3080). The chapter and its
+eight falsifiers were committed before the run (`d9dfa274`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch36 \
+    --map 14 --end-frame 3420 --log-window 605 3420 --timeout 7200 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter36.cmd
+```
+
+**The take** at `cover=0` on the click-free lane, 12:49: **3,278 s** in all
+(3,225 launch to exit), **1.17 GB** of dump and 15.5 MB of trace, 2,815
+blocks. The receipt says `success: true`, exit 0, 3,421 frames, `MAP_STYLE
+14`, seed 12345, 1,441,280 `GROUPDATA`, settings restored. `waitrun.sh`
+exited 0. 65 GB free after. The lane's lock was stale (both holders
+gone) and was taken over. No `cover=1` twin: no `NEVER` row is on the
+staging's path, so run391 is unused, and so is run392.
+
+| check | result |
+|---|---|
+| `issuesmatch.py --none-refused … 24` | every `@` line issued, none refused |
+| `rngcmp.py` vs run371's trace | the same game to 2740 (3,261 frames in common, the first differing 2741: the spotter's birth) |
+| the processed commands | `process_queue_up 313 1` on 2721 and 2726; `process_flight` on 3020, 3030 and 3081 |
+
+### §45's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issues | processed on the frame after each press | **as predicted** |
+| 2, the staging | the silos, the Barracks, `0/14` on 2926 and `0/15` on 2931 | **as predicted**, at the walked points |
+| 3, the strike (3021) | `0/14` an `AIRATTACKGROUNDORDER` to (38016, 18816), flags 4; `recharging` 30 | **as predicted**, `oxx` 2010 |
+| 4, the re-press (3031) | `0/14`'s `att` unchanged | **as predicted** |
+| 5, the redraw (trace 3050) | `do_air_physics+0xba`, then `Ammo::init+0xae8`, `+0xb25` | **as predicted**: rolls 17247, 40766, 9105; `sz` 530 |
+| 6, the shield at the order (3082) | `0/15` inside, no order | **as predicted**, to the end |
+| 7, the shield at the blast (3170) | `1/2007` at `damage` 0, the round gone | **as predicted**; 3169's one `Ammo::do_damage` draw is the sound generator's |
+| 8, the tech line (3072) | no bucket of who=1's moves | **as predicted** |

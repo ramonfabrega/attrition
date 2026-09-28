@@ -1026,14 +1026,27 @@ impl Sim {
     /// head makes it an air attack on the target's point
     /// ([`Sim::add_air_attack_ground_order`]). run371's V2 `0/10` on 2672.
     ///
-    /// SEAM: the target's `MISSILE_DEFENSE_BONUS` against a missile, the
-    /// `NUCLEARMISSILE` arm (`can_nuke`, once a call), `Game::war_allowed`
+    /// **The shield refuses a missile** (item 1078, `6fbbd7`..`6fbbfb`):
+    /// unless the target is the player's own, a target owner holding
+    /// `MISSILE_DEFENSE_BONUS` ([`Sim::missile_defense_held`]) takes no
+    /// missile's order. run390's V2c `0/15` pressed on who=1's Barracks on
+    /// 3080, ten frames after `tech who=1 missile_shield on`: no order, and
+    /// no launch.
+    ///
+    /// SEAM: the `NUCLEARMISSILE` arm (`can_nuke`, once a call), `Game::war_allowed`
     /// (always allowed here), `Object::valid_target`'s capture arm, and an
     /// air patrol's home standing for the "inside"; no capture reaches
     /// any of them.
     pub(crate) fn strike_from_inside(&mut self, u: usize, base: usize, target: crate::combat::Obj) {
         let me = crate::combat::Obj::Unit(u);
         if !self.valid_target(me, target) {
+            return;
+        }
+        let whom = self.owner_of(target);
+        if self.profile(me).has(crate::combat::mask::MISSILE)
+            && whom != self.units[u].owner
+            && self.missile_defense_held(whom)
+        {
             return;
         }
         let (b, t) = (self.buildings[base].pos, self.pos_of(target));
@@ -1049,6 +1062,18 @@ impl Sim {
             crate::orders::QueuePos::New,
             true,
         );
+    }
+
+    /// `LeaderData::has_preq(MISSILE_DEFENSE_BONUS)` (item 1078): the
+    /// player holds the bonus's one prerequisite, Missile Shield
+    /// (`crate::tech::Roles::missile_defense_preq`). A tree without the
+    /// role holds no shield.
+    pub(crate) fn missile_defense_held(&self, who: crate::Player) -> bool {
+        (who as usize) < self.tech.len()
+            && self.tech_tree.roles.missile_defense_preq.is_some_and(|t| {
+                self.tech_tree
+                    .has_tech(&self.setup, &self.tech[who as usize], t)
+            })
     }
 
     /// **`Group::action_buildmask@006fc9a0` on a group of buildings** —
@@ -1357,8 +1382,22 @@ impl Sim {
     /// `total_time − cur_time + 1` of its live ammo, 121 on run371's 2701),
     /// the supply slot and both collision indices, and the object
     /// forgotten.
+    ///
+    /// **And the player's count of the type** (item 1078): `Unit::close`
+    /// takes a unit that is no squad follower (`+0x8e < 0`) and whose type
+    /// has population out of `num_units` — `Leader::track_unit_type(type,
+    /// −1)` at `0060f3db` (the `pop == 0` arm admits `is(0x134)` and a
+    /// governor-hero alone). A missile is never a follower, and its `POP`
+    /// is one. Without it a dead V2 stayed counted, and the next V2's
+    /// price and time were one step up the ramp: run390's second silo
+    /// charged 100 and 100 on 2722, and this crate 120 and 120.
     pub(crate) fn missile_dies(&mut self, u: usize) {
         self.units[u].health = self.units[u].health.min(0);
+        if let Some(ty) = self.units[u].ty
+            && self.unit_types[ty].price.pop != 0
+        {
+            self.track_unit_type(self.units[u].owner, ty, -1);
+        }
         self.relink_squad(u);
         let me = crate::combat::Obj::Unit(u);
         let mut hold = self.units[u].hold_frames.max(1);

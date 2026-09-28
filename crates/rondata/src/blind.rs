@@ -201,6 +201,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// launch and round": a missile outside skips its test), which the tracer
 /// cannot hook — `rontrace.funcs.excluded.txt`, "branch target inside the
 /// displaced range" — so no capture takes it off.
+/// **145** with item 1078's `Nuke::add_nuke@0092ba30` (`docs/GOLDEN.md`
+/// §45: the nuke, dropped from chapter thirty-six with its reasons); the
+/// chapter's other citations are entered already, and run390 at `cover=0`
+/// takes nothing off.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -227,7 +231,7 @@ pub const NEVER: &[u32] = &[
     0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
     0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
-    0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
+    0x0082_c520, 0x008c_7050, 0x0092_ba30, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
     0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0,

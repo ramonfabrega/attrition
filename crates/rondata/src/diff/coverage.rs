@@ -593,6 +593,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch33 = golden_dump("ch33");
     let ch34 = golden_dump("ch34");
     let ch35 = golden_dump("ch35");
+    let ch36 = golden_dump("ch36");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1570,6 +1571,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         ] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty-five carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter thirty-six's word, on run390** (item 1078): the missile's
+    // other arms. 2722, the first new V2's price; 2926, V2b's birth; 3021,
+    // its strike; 3031, the re-press; 3051, the launch and its round;
+    // 3082, the shield at the order; 3112, the word's next block; 3170,
+    // the shield at the blast; 3417, the last blocks.
+    if let Some(p) = &ch36 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_SIX;
+        for w in [2722, 2926, 3021, 3031, 3051, 3082, 3112, 3170, 3417] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-six carries the window's five blocks");
             frames += n;
         }
     }

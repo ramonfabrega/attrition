@@ -4395,6 +4395,43 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 3260;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_THIRTY_FIVE: (i64, i64) = (605, 3261);
 
+/// **Chapter thirty-six's golden word** — the missile's other arms
+/// (`docs/GOLDEN.md` §45, item 1078, run390): chapter thirty-five whole,
+/// two more silos with a V2 each, a strike pressed twice on one silo, the
+/// redraw on the V2's launch frame, and `MISSILE_DEFENSE_BONUS` at the
+/// blast and at the order.
+///
+/// **3111, open, on the first walk** (with `action_launch_flight`'s
+/// missile pass-over already built, item 1078): theirs spends no draw of
+/// V2c `0/15`'s, which the shield refused an order on 3081; ours ordered
+/// it and fires its two scatter draws on its launch, 3111. The value
+/// stream's first parting under the word is 2722, the V2's price.
+///
+/// **3169, open** (item 1078, `docs/PRODUCTION.md` "The missile's other
+/// arms"): a missile that fires leaves `num_units` (`Unit::close`'s
+/// `track_unit_type(·, −1)`), so the two new V2s are priced 100 and 120
+/// as in run390; and the shield refuses a missile's order on its holder,
+/// so V2c `0/15` stays inside with no order on 3082. The word is V2b's
+/// round coming down on T_home `1/2007` in who=1's land: run390 closes
+/// it under the shield, and this crate wounds the Barracks (its first
+/// wound's `% 100`). The widening goes 284 → 266 rows, all past 3169.
+///
+/// **3420, closed on the draw stream** (item 1078): the shield closes a
+/// missile's round in its holder's land (`Sim::land`'s missile arm,
+/// `678337`..`67845d`), so V2b's round comes down on T_home on 3169 and
+/// strikes nothing, as in run390. The stream agrees to run390's end, and
+/// so does every frame's word (`values at None`). The widening goes 266
+/// → 59 rows: chapter thirty-five's forty-two, and the new units' `form`
+/// and the V2s' seats inside their silos (parked 646's family).
+///
+/// **The delta**, this constant's: the first walk, 3111; +58, 3169;
+/// +251, 3420, closed.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_SIX: i64 = 3420;
+
+/// `chapter_thirty_six_s_word_frame_is_widened_whole`'s window: run390
+/// whole, (605, 3421).
+pub(crate) const WIDENING_CHAPTER_THIRTY_SIX: (i64, i64) = (605, 3421);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4938,6 +4975,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "chapter_thirty_five_s_v2_blast_is_compared_field_for_field",
         40,
     ),
+    // Chapter thirty-six is chapter thirty-five's game whole and twelve
+    // lines after it (item 1078): the first walk reads 40 (pinned at 39,
+    // it fails).
+    ("chapter_thirty_six_holds_to_the_golden_word", 40),
+    ("chapter_thirty_six_s_word_frame_is_widened_whole", 40),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -6382,6 +6424,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_five_s_word_frame_is_widened_whole"),
         1019,
         Some(WIDENING_CHAPTER_THIRTY_FIVE),
+    ),
+    // Item 1078: run390, chapter thirty-six, the missile's other arms.
+    // The widening is run390 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_SIX",
+        GOLDEN_WORD_CHAPTER_THIRTY_SIX,
+        Some("chapter_thirty_six_s_word_frame_is_widened_whole"),
+        1078,
+        Some(WIDENING_CHAPTER_THIRTY_SIX),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
