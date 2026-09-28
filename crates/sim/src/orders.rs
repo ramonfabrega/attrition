@@ -2248,11 +2248,14 @@ impl Sim {
     /// `is_supply`, `unit_flags2 & 0x40`, so a Supply Wagon and every
     /// unarmed unit wait for their group instead of looking.
     ///
-    /// SEAM: the search's `flags`
-    /// argument, which `find_melee_target` derives from the type's vslots
-    /// `+0x10c`/`+0x110` for an attack-move. `find_nearby_target`'s naval
-    /// refusal (`+0x218 == 2`). And the siege-on-a-city `mandatory` arm.
-    /// None of them is carried by [`Sim::find_nearby_target`].
+    /// The search's `flags` word, which `find_melee_target` derives from
+    /// the type's vslots `+0x10c`/`+0x110` for an attack-move, is
+    /// [`Sim::melee_search_flags`] (item 997, `docs/COMBAT.md` §64): it
+    /// passes over an unarmed building.
+    ///
+    /// SEAM: `find_nearby_target`'s naval refusal (`+0x218 == 2`), and the
+    /// siege-on-a-city `mandatory` arm. Neither is carried by
+    /// [`Sim::find_nearby_target`].
     pub(crate) fn do_attack_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
         if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
             return;

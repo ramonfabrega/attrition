@@ -5763,8 +5763,9 @@ spends a draw in the capture.
   still never looks. Nothing on the golden record reaches it now. The
   long captures have not been read for it.
 - ~~`do_attack_to_pause`, the unarmed arm.~~ Built by item 569 (§24.9).
-  `find_melee_target`'s `flags`
-  argument, from the type's vslots `+0x10c`/`+0x110`. The naval refusal
+  ~~`find_melee_target`'s `flags`
+  argument, from the type's vslots `+0x10c`/`+0x110`.~~ Built by item
+  997 (`docs/COMBAT.md` §64). The naval refusal
   in the add arm. And `Unit::move_step`'s cavalry-archer write of the
   guy's aim.
 - **The guy's aim at stand-up.** The dump prints it, but the stand-up
