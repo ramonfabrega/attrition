@@ -37,6 +37,13 @@ const BIPLANE: crate::tech::TypeId = 0x11f;
 /// `ObjectData::is(0x136)` — the Helicopter line.
 pub(crate) const HELICOPTER: crate::tech::TypeId = 0x136;
 
+/// `V2ROCKET` (0x139), the line `action_launch_flight`'s `count_inside`
+/// asks for a V2 (`6fc15d`).
+const V2ROCKET: crate::tech::TypeId = 0x139;
+
+/// `NUCLEARMISSILE` (0x13b), the line it asks for a nuke (`6fc12e`).
+const NUCLEARMISSILE: crate::tech::TypeId = 0x13b;
+
 /// The flight command's modifiers as `Console::execute_at_cursor` reads
 /// them: shift (every plane), ctrl (bombers only), alt (fighters only).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -72,6 +79,14 @@ impl Sim {
     /// `type +0x1e4 & 0x8000000`, the missile flag both commands skip.
     fn is_missile(&self, u: usize) -> bool {
         self.profile(Obj::Unit(u)).has(crate::combat::mask::MISSILE)
+    }
+
+    /// `ObjectData::count_inside(COUNT_TYPE, line) != 0`: a unit of the
+    /// line stands inside `b`.
+    fn holds_line(&self, b: usize, line: crate::tech::TypeId) -> bool {
+        self.buildings[b].garrison.iter().any(|&u| {
+            self.units[u].inside == Some(b) && self.units[u].alive() && self.air_line_is(u, line)
+        })
     }
 
     /// The ctrl and alt filters: alt keeps the Biplane line (`is(0x11f)`),
@@ -347,14 +362,22 @@ impl Sim {
     /// The `MOVE_TO` arm, a right-click on another base, is
     /// [`Sim::launch_move`] (item 1009, run362).
     ///
-    /// SEAM: the `NUCLEARMISSILE` and `V2ROCKET` arms — a missile inside
-    /// the base narrows the choice to missiles, which skip the ctrl/alt and
-    /// fuel gates, need `valid_target` under a V2, pass over one with a
-    /// live order, and a base of nothing but nukes asks `is(0x13b)`
-    /// (`6fc0bd`..`6fc203`, `6fc3ac`, `6fc681`; `docs/PRODUCTION.md` "The
-    /// launch commands", item 1009's emulator rows) — and the rush rules'
-    /// early refusal. No capture holds a missile or a rush rule: the
-    /// staging needs a Missile Silo, Nation-in-Arms and oil (§43).
+    /// **The missile arm** (item 1078, `docs/PRODUCTION.md` "The
+    /// missile's other arms"): a member holding a nuke (`count_inside` of
+    /// `0x13b`) or a V2 (`0x139`) narrows the choice to missiles
+    /// (`6fc0bd`..`6fc203`), and a group every member of which holds a
+    /// nuke asks `is(0x13b)` of each. A missile skips the ctrl/alt and
+    /// tank gates (`6fc3cb`); an invalid target passes it over when a V2
+    /// narrowed the choice; the reach is a plane's; and **a missile whose
+    /// current order answers a type is passed over** (`6fc681`..`6fc6ef`),
+    /// so a second strike pressed while the first counts down in
+    /// `launching` finds nothing. Its distance is the base's, with no ÷ 4
+    /// and no × 200. Under the emulator (`tools/emu/launch_arm.py`): a V2
+    /// or a nuke on its `AIR_ATTACK_GROUND` is not chosen, with or without
+    /// shift.
+    ///
+    /// SEAM: `UnitData::is_busy`, and the rush rules' early refusal. No
+    /// capture holds a rush rule.
     pub fn group_action_launch_flight(
         &mut self,
         who: Player,
@@ -385,10 +408,46 @@ impl Sim {
         } else {
             crate::air::BOMBER
         };
+        // `6fc0bd`..`6fc203`: what the members hold narrows the choice.
+        let (mut nukes_only, mut any_nuke, mut any_v2) = (true, false, false);
+        for &b in buildings {
+            if !self.buildings[b].alive {
+                continue;
+            }
+            if self.holds_line(b, NUCLEARMISSILE) {
+                any_nuke = true;
+            } else {
+                nukes_only = false;
+                any_v2 |= self.holds_line(b, V2ROCKET);
+            }
+        }
+        let missiles = any_nuke || any_v2;
         let mut chosen = Group::stack(who);
         let mut best: Option<(i32, usize)> = None;
         for (b, u) in self.planes_inside(buildings) {
             if !self.is_air_unit(u) {
+                continue;
+            }
+            if nukes_only && missiles && !self.air_line_is(u, NUCLEARMISSILE) {
+                continue;
+            }
+            let p = self.buildings[b].pos;
+            if missiles {
+                // `6fc3bb`: a missile, or nothing; `6fc51c`: the target.
+                if !self.is_missile(u) || (any_v2 && !self.valid_target(Obj::Unit(u), target)) {
+                    continue;
+                }
+                let d = vector_dist(t.x - p.x, t.y - p.y);
+                // `6fc681`: a missile on a live order is passed over.
+                if self.unit_mana(u) * self.get_speed(u, 1) < d || !self.units[u].orders.is_empty()
+                {
+                    continue;
+                }
+                if keys.shift {
+                    chosen.list.push(u);
+                } else if best.is_none_or(|(bd, _)| d < bd) {
+                    best = Some((d, u));
+                }
                 continue;
             }
             if airbase && (keys.ctrl || keys.alt) && !self.keys_admit(u, keys) {
@@ -397,7 +456,6 @@ impl Sim {
             if !keys.shift && self.units[u].mana_burn != 0 {
                 continue;
             }
-            let p = self.buildings[b].pos;
             let mut d = vector_dist(t.x - p.x, t.y - p.y);
             if self.unit_mana(u) * self.get_speed(u, 1) < d {
                 continue;
@@ -1304,6 +1362,50 @@ mod tests {
         assert_eq!(g.cruising_alt, crate::orders::CRUISING_ALT);
         assert!(!g.returning);
         assert_eq!(s.units[v2].inside, Some(silo), "the missile waits inside");
+    }
+
+    /// **A second strike pressed while the first counts down finds
+    /// nothing** (item 1078, `action_launch_flight`'s `6fc681`..`6fc6ef`,
+    /// `tools/emu/launch_arm.py`): the V2 on its `AIR_ATTACK_GROUND` is
+    /// passed over, with or without shift, and keeps the first target's
+    /// point — chapter thirty-six's `0/14` on 3029. Made to fail with the
+    /// live-order test dropped (the V2 re-pointed to the second target).
+    #[test]
+    fn a_second_strike_during_the_countdown_passes_the_missile_over() {
+        let (mut s, silo, v2, enemy) = silo_with_a_v2();
+        let other = enemy_barracks(&mut s, Pos::new(35712, 18816));
+        s.group_action_launch_flight(
+            0,
+            &[silo],
+            Obj::Building(enemy),
+            Flight::Strike,
+            Keys::default(),
+        );
+        s.frame = 2671;
+        s.buildings[silo].launch_frames = crate::air::FRAMES_BETWEEN_LAUNCHES;
+        s.do_launch(silo);
+        assert_eq!(s.buildings[silo].recharging, 30, "counting down");
+        for shift in [false, true] {
+            let keys = Keys {
+                shift,
+                ..Keys::default()
+            };
+            s.group_action_launch_flight(0, &[silo], Obj::Building(other), Flight::Strike, keys);
+            assert_eq!(s.units[v2].orders.len(), 1, "one order still");
+            let crate::orders::Body::AirAttackGround(g) = s.units[v2].orders[0].body else {
+                panic!("the air attack on the ground")
+            };
+            assert_eq!(
+                g.at,
+                Pos::new(13824, 14976),
+                "the first target's point, shift {shift}"
+            );
+        }
+        assert_eq!(
+            s.buildings[silo].launching,
+            vec![v2],
+            "one entry in launching"
+        );
     }
 
     /// **The silo counts its missile out, and the missile fires and ends in
