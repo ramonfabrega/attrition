@@ -4042,6 +4042,15 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_THREE: i64 = 2740;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_THIRTY_THREE: (i64, i64) = (605, 2741);
 
+/// **Chapter thirty-four's golden word** — the launch commands' other
+/// arms (item 1009, `docs/GOLDEN.md` §43, run362).
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FOUR: i64 = 2322;
+
+/// `chapter_thirty_four_s_word_frame_is_widened_whole`'s window: run362
+/// whole, (605, 2851). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_THIRTY_FOUR: (i64, i64) = (605, 2851);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4561,6 +4570,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // and the built arms 43 (pinned at 42, it fails).
     ("chapter_thirty_three_holds_to_the_golden_word", 43),
     ("chapter_thirty_three_s_word_frame_is_widened_whole", 43),
+    // Chapter thirty-four is chapter thirty-three's game to its Barracks
+    // and nine presses after it (item 1009): the first walk reads 43.
+    ("chapter_thirty_four_holds_to_the_golden_word", 43),
+    ("chapter_thirty_four_s_word_frame_is_widened_whole", 43),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -5987,6 +6000,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_three_s_word_frame_is_widened_whole"),
         976,
         Some(WIDENING_CHAPTER_THIRTY_THREE),
+    ),
+    // Item 1009: run362, chapter thirty-four, the launch commands' other
+    // arms. The widening is run362 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_FOUR",
+        GOLDEN_WORD_CHAPTER_THIRTY_FOUR,
+        Some("chapter_thirty_four_s_word_frame_is_widened_whole"),
+        1009,
+        Some(WIDENING_CHAPTER_THIRTY_FOUR),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
