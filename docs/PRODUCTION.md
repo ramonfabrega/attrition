@@ -1581,7 +1581,7 @@ Helicopter climbs 30 a frame walking and 30 a push: `0/12` 188, 248, 308
 **Built** (item 1048): `Sim::find_path`'s return, `find_wpath_from`'s
 and `find_tpath`'s flyer arms, `Sim::helicopter_spread` at `Sim::work`'s
 tail, and `Sim::helicopter_climb` in `set_new_location`'s guy half and
-`process_movement`. Three tests in `airbase::tests`, each on run371's
+`process_movement`. Five tests in `airbase::tests`, three on run371's
 own numbers.
 
 **Not established**: `find_unit`'s by-cell walk for a ring past one
