@@ -10626,10 +10626,12 @@ live `2009` was compared with ours' dead frame-976 site.
     and a busy unit that is not on duty does not answer a hit. **Great
     Lakes 4877, the lower** (after 4846 and 4852 in the same item: a
     building is struck square to its side, and the one-in-five retarget
-    freezes the frame): ours 7, the original 8, at index 1,
-    `Guy::set_anim+0x104b` against `Guy::set_anim+0x97a <
-    Unit::move_step+0x823`; widened on run373, whose block 4861 (frame
-    4860, the army's tick) is the first to part.
+    freezes the frame). ~~Great Lakes 4877: ours 7, the original 8, at
+    index 1.~~ **Moved to 4924 by item 1052** (`docs/ARMY.md` §23: an
+    engaged army forms a cell behind its point). **Great Lakes 4924, the
+    lower**: ours 8, the original 7, at index 0, `Guy::set_anim+0xf2f <
+    Guy::move+0x166` against `Guy::set_anim+0x97a <
+    Unit::move_step+0x823`; inside run373 (block 4925).
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

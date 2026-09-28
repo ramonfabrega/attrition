@@ -752,13 +752,17 @@ sin_table(angle, d)`, `y' = y − sin_table(angle + 0x40000000, d)`,
    attacked city): `action_siege_attack_to` as above — the same call,
    siege or not. The friendly test is **`is_ally`** (`6f4559`), so a leader
    merely at peace does not qualify; `target_who == me` skips it.
-5. **Step** for the next group: `x' += 0x180 · sin(muster_angle)`, `y' −=
-   0x180 · cos(muster_angle)` — half a cell **along** the muster angle.
-   The listing's leading `sub eax, 0x80000000` is the first step of
-   `docs/MOVEMENT.md`'s sine fold (the far half of the circle negates the
-   distance), not a reversal; the first reading read it as one, and both
-   second readers (A.36, A.62, A.67) as the fold. So the groups stand in a
-   column from the origin onward, lowest category first (§3.3).
+5. **Step** for the next group: ~~`x' += 0x180 · sin(muster_angle)`, `y' −=
+   0x180 · cos(muster_angle)` — half a cell **along** the muster angle~~
+   **half a cell back, along `muster_angle − 0x80000000`** (`6f45e9`–
+   `6f465a`). ~~The listing's leading `sub eax, 0x80000000` is the first
+   step of the sine fold, not a reversal~~: the first reading had it right
+   and the second readers (A.36, A.62, A.67) did not. `sinx@0092d100`'s
+   fold is `test; jns`, and a `sub` ahead of it moves which half negates
+   (§23, where march_to_target's twin of this step is diff-backed). So the
+   groups stand in a column from the origin **backward**. This crate's
+   army is one group (§3.2), so the step is not built; `FABLE:` ratify the
+   overturned verdict.
 
 Returns 1. Note what it does not do: it never checks the army has
 arrived; `process` step 4 moves the muster cell and this issues the
@@ -809,9 +813,10 @@ return (§6 step 5 turns it back into 2 next tick). Then, if still `status
 **`Army::march_to_target@006f4d80`** — with a target: if
 `!is_engaged()`: `status = (status & ~4) | 0x12` and return — the walk is
 §6 step 4 plus §8. If engaged and **`status & 4` clear** — the first tick
-of the fight — the formation origin is `(x, y)` stepped **one cell along
-`muster_angle`** (`0x300 · sin`, `−0x300 · cos`; listing `6f4daa`–`6f4e2b`,
-the same fold as §8.5), `angle = find_angle(x' − target.x, y' −
+of the fight — the formation origin is `(x, y)` stepped ~~**one cell along
+`muster_angle`**~~ **one cell back, along `muster_angle − 0x80000000`**,
+away from the target (listing `6f4daa`–`6f4e2b`; the `sub` is a reversal,
+not the fold — §23, item 1052), `angle = find_angle(x' − target.x, y' −
 target.y)` (`6f4e70`) — the direction from the target to the origin
 (A.62), the stance rule (§8.2 — here without the `!= me` clause
 `do_forming` carries, which `is_enemy`'s diagonal makes redundant),
@@ -2424,3 +2429,140 @@ and the old group's list on 18933, and the guard's walk on 18939 (run257). **Dec
 (`army.rs`, `group.rs`), with
 `a_closed_army_s_group_keeps_its_slot_its_list_and_its_pointers` made to
 fail with the orphan removed.
+
+## 23. An engaged army forms a cell behind its point — Great Lakes 4877 → 4924 (item 1052, 2026-09-28)
+
+The word was 4877 on run347 (ours 7 draws, the original 8, at index 1).
+Its widening, run373, had block 4861 as the first to part past the
+window's standing rows: frame 4860 is who=1's army 0 tick
+(`4860 ≡ 252 mod 256`, §5). No mechanism was named.
+
+### 23.1 The frame, read whole first
+
+**Every army tick on disk**, before any reading (parked 1058). Army 0 is
+the only army of who=1 with members on either window. It ticks on 4604
+and 4605 (run356) and on 4860 (run373). The group record (`GROUPDATA` 65)
+reads `order_num` 14 → 15 → 17 over the first two and 17 → 19 over the
+third, with `(ox, oy)` (4177, 34758) throughout. The 4604/4605 moves are
+`do_forming`'s and agree. 4860 is the only tick on disk where the army is
+**engaged**, so `march_to_target` issues its one move (`status |= 4`,
+§9) and `do_forming`, finding the members' attacks cleared, moves them
+again.
+
+**The members, both sides** (block 4860 → 4861). On both, every member's
+stack becomes one `ATTACK_TO` to its `do_forming` slot, and the slots
+agree. The difference is the walk:
+
+- `1/12`, `1/13` and `1/14` walk on 4860 there (`1/13` from (3912, 31128)
+  to (3936, 31125), `dest` 1); here they stood a frame (`dest` 0);
+- `1/16`, `1/17`, `1/18`, `1/20`, `1/23` and `1/24` walk on both, but ours
+  took a first leg 768 west of the original's (`1/16`: (4239, 30915)
+  against (5007, 30915)), nine legs against eight.
+
+A scratch print of the planner: the group's chain from `get_loc`'s start
+(3771, 30465) has a head waypoint (3960, 30984) the original's lacks. On
+`1/12`–`1/14` that leg is popped in `do_move` on arrival, so the walk
+starts a frame late. Starts tried by hand: every start in cell `(4, 39)`
+plans the extra leg, every start in `(5, 39)` plans the original's eight.
+
+**Why the start.** `get_loc`'s second arm (`docs/GROUPS.md` §12.5):
+`leader − order + (ox, oy)`, where `order` and `(ox, oy)` are the first
+move's — the leader's slot and the move's point. So the start is the
+leader less its first-move slot offset, and the offset turns with the
+first move's angle, `find_angle(origin − target)`. Here the origin was
+(2983, 30838), one cell **north** of the army's point (3168, 31584), on
+the human's city, and the formation faced west.
+
+### 23.2 The listing
+
+`Army::march_to_target@006f4d80`, `6f4daa`–`6f4e2b`:
+
+```text
+6f4daa  mov  0x50(%ebx),%eax        ; muster_angle
+6f4db1  sub  $0x80000000,%eax
+6f4dbf  movl $0x300,-0x18(%ebp)
+6f4dc6  jns  6f4dd5                 ; on the sub's sign
+6f4dc8  movl $0xfffffd00,-0x18(%ebp)
+6f4dcf  and  $0x7fffffff,%edx
+…       0x7fffffff − a, cmove        ; the quarter mirror
+6f4de9  call sin_table
+6f4df1  add  %eax,%edi              ; x +=
+…       + 0x40000000, the same fold
+6f4e2b  sub  %eax,%esi              ; y −=
+```
+
+`sinx@0092d100` is the plain fold: `test %esi,%esi; jns; neg %edx; and
+$0x7fffffff`. The `sub` ahead of the `jns` moves which half of the
+circle negates, so the step is `sinx(muster_angle − 0x80000000, 0x300)`,
+**the opposite direction**. `muster_angle` points at the target (it is
+turned by `0x80000000` in `find_target`, §12), so the origin is a cell
+**behind** the army's point. §9 had called the `sub` the fold's first
+step, after the second readers (A.36, A.62, A.67). On Great Lakes the
+origin is (3352, 32331), and the first move's leader offset gives
+`get_loc` the start (3996, 30614), in cell `(5, 39)`.
+
+`Army::do_forming`'s per-group step (`6f45e9`–`6f465a`) has the same
+`sub` (§8.5). This crate's army is one group, so it is not built.
+
+### 23.3 The readings, and what killed each
+
+| reading | killer | verdict |
+| --- | --- | --- |
+| the members' orders differ | the dump's stacks on 4861 are one `ATTACK_TO` each, at the same slots, both sides | killed |
+| a recharging or mid-swing member cannot step | `1/13` and `1/16` stand in the same attack slot (13, 28 of 32) here, and one walked | killed |
+| the group record parts before the tick | `order_num`, `(ox, oy)`, `o_angle` agree on 4860 (a scratch print); `facing` parts on 4861 only, a consequence of the leader's turn (`Unit::set_angle`'s toggle) a frame late | killed |
+| the pathfinder plans differently | the chain from (3996, 30614) is the original's eight legs to the waypoint | killed |
+| the first move's origin | stepped back, the walk moves to 4924 and every 4861 row agrees. Stepped forward (the mutation), the unit test fails with (2983, 30838) and the walk falls back to 4877 | **held** |
+
+### 23.4 The fix
+
+`army::march_origin(pos, muster_angle)`, which `march_to_target` reads.
+`an_engaged_army_forms_a_cell_behind_its_point` sets army 0's point and
+muster angle from 4860 and asserts the group's `(ox, oy)` after the move,
+(3352, 32331). It fails with the forward step. The mutation was run on the
+built tree at `59127c7b`, restored from git and `touch`ed.
+
+### 23.5 What it moved
+
+**Great Lakes 4877 → 4924. East Indies holds at 5606.** The value diff
+(`run373_s_word_frame_is_widened_whole`):
+
+- On block 4861, `1/13` stands at (3936, 31125) walking to (4588, 31018)
+  on both sides, and `1/16` at (3884, 30135) walking to (5007, 30915);
+  `1/12`–`1/14` have `dest` 1 and every member eight legs. Ours had stood
+  `1/12`–`1/14` and given `1/16`–`1/18` a ninth leg.
+- run373's keys parted go 1,462 → 1,013. Its first-part blocks go
+  `(4841, 111), (4861, 121), (4862, 13)` → `(4841, 111), (4868, 2),
+  (4887, 2)`. The Hoplite `1/19`'s figure first parts on 4989 (was 4861).
+- Frame 4877's draws went 7 against 8 → agreeing.
+
+**The new word** (no mechanism is named): frame 4924, ours 8 draws and
+the original 7, parting at index 0. Ours spends `Guy::set_anim+0xf2f <
+Guy::move+0x166`, the original `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. Block 4925 is inside run373. Block 4923 parts on
+`1/11`'s order: ours holds its `ATTACK` (kind 10, two orders), the
+original has pushed the chase's move above it (kind 1, three), and it
+stands at (5046, 30225) against (5032, 30200). Before it only value rows
+part: `1/9`'s `orders_x/y` on 4868 (5065, 29672 against 5064, 29688),
+`1/24`'s on 4887, and the citizens' and the leader's rows the window
+already carried.
+
+### 23.6 What this has *not* established
+
+- **`do_forming`'s per-group step** (§8.5) is read, not diff-backed: no
+  army here has two groups.
+- **The second pair's widening does not compare the group record.** It
+  compares the pool's lists, and `GROUPDATA`'s `facing`, `(ox, oy)`,
+  `order_num` and `o_angle` were read by a scratch print for this item.
+  golden's `widen_pool` compares them.
+- **The first move's own layout** is not dumped: the origin is inferred
+  from the second move's start, which the original's chain fixes to a
+  cell, and from the listing.
+
+### 23.7 Coverage
+
+**Diff-backed**: the origin's direction, by run373's block 4861 and the
+walk (each falls back under the mutation). **Listing-backed**:
+`6f4daa`–`6f4e2b`, `sinx@0092d100`, and `do_forming`'s `6f45e9`–`6f465a`
+(read, not built). **Built**: `army::march_origin`, with
+`an_engaged_army_forms_a_cell_behind_its_point`.
