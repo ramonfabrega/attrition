@@ -2969,7 +2969,10 @@ impl Sim {
     /// unit; nothing in this crate sets either, so the roll is spent and
     /// never jams.
     pub(crate) fn radar_jams(&mut self, u: usize) -> bool {
-        if !self.profile(crate::combat::Obj::Unit(u)).has(crate::combat::mask::ANTI_AIR) {
+        if !self
+            .profile(crate::combat::Obj::Unit(u))
+            .has(crate::combat::mask::ANTI_AIR)
+        {
             return false;
         }
         self.mark(SITE_JAM_ROLL);
@@ -2996,7 +2999,9 @@ impl Sim {
             return false;
         };
         if self.unit_types[t].cols.cat != CAT_AIR
-            || self.profile(crate::combat::Obj::Unit(u)).has(crate::combat::mask::MISSILE)
+            || self
+                .profile(crate::combat::Obj::Unit(u))
+                .has(crate::combat::mask::MISSILE)
         {
             return false;
         }
@@ -3061,9 +3066,19 @@ impl Sim {
             return Some(r >= if low { sp.fly_low } else { sp.fly_high });
         }
         let (first, second, theirs, own) = if low {
-            (SITE_AIR_TARGET_LOW, SITE_AIR_SHOOTER_LOW, tp.fly_low, sp.fly_low)
+            (
+                SITE_AIR_TARGET_LOW,
+                SITE_AIR_SHOOTER_LOW,
+                tp.fly_low,
+                sp.fly_low,
+            )
         } else {
-            (SITE_AIR_TARGET_HIGH, SITE_AIR_SHOOTER_HIGH, tp.fly_high, sp.fly_high)
+            (
+                SITE_AIR_TARGET_HIGH,
+                SITE_AIR_SHOOTER_HIGH,
+                tp.fly_high,
+                sp.fly_high,
+            )
         };
         self.mark(first);
         if self.rng.roll() % 100 >= theirs {
@@ -3154,17 +3169,32 @@ mod flak_tests {
     #[test]
     fn a_plane_flies_low_within_0x900_of_its_strike_or_its_home_returning() {
         let mut s = sim();
-        let t = building(&mut s, 1, Pos::new(21120, 16512), combat::Profile::default());
-        let home = building(&mut s, 0, Pos::new(11616, 13920), combat::Profile::default());
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
+        let home = building(
+            &mut s,
+            0,
+            Pos::new(11616, 13920),
+            combat::Profile::default(),
+        );
         let b = unit(&mut s, 0, Pos::new(21120 - 2303, 16512), bomber());
-        s.units[b].orders.push_back(strafe(Some(Obj::Building(t)), Some(home), false));
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), Some(home), false));
         assert!(s.is_flying_low(b), "2303 off its target");
         assert!(!s.is_flying_high(b));
         s.units[b].pos = Pos::new(21120 - 2304, 16512);
         assert!(!s.is_flying_low(b), "2304 off its target");
         assert!(s.is_flying_high(b));
         s.units[b].pos = Pos::new(21120 - 1600, 16512 - 1600);
-        assert!(!s.is_flying_low(b), "the diagonal (1600, 1600) is past the reach");
+        assert!(
+            !s.is_flying_low(b),
+            "the diagonal (1600, 1600) is past the reach"
+        );
         s.buildings[t].alive = false;
         s.units[b].pos = Pos::new(21120, 16512);
         assert!(!s.is_flying_low(b), "a dead target is not a strike");
@@ -3190,7 +3220,12 @@ mod flak_tests {
     #[test]
     fn an_anti_air_round_draws_once_against_its_own_fly_figure() {
         let mut s = sim();
-        let t = building(&mut s, 1, Pos::new(21120, 16512), combat::Profile::default());
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
         let radar = building(
             &mut s,
             0,
@@ -3203,7 +3238,9 @@ mod flak_tests {
             },
         );
         let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
-        s.units[b].orders.push_back(strafe(Some(Obj::Building(t)), None, false));
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), None, false));
         for (at, figure) in [(21120, 75), (21120 - 5000, 33)] {
             s.units[b].pos = Pos::new(at, 16512);
             let mut probe = s.rng;
@@ -3225,10 +3262,16 @@ mod flak_tests {
             },
         );
         let seed = s.rng.seed;
-        assert_eq!(s.air_round_misses(Obj::Unit(fighter), Obj::Unit(b)), Some(false));
+        assert_eq!(
+            s.air_round_misses(Obj::Unit(fighter), Obj::Unit(b)),
+            Some(false)
+        );
         assert_eq!(s.rng.seed, seed, "no draw");
         // A ground target takes no arm at all.
-        assert_eq!(s.air_round_misses(Obj::Building(radar), Obj::Building(t)), None);
+        assert_eq!(
+            s.air_round_misses(Obj::Building(radar), Obj::Building(t)),
+            None
+        );
     }
 
     /// **An `ANTI_AIR` attacker spends the jam roll, and nothing else
@@ -3246,7 +3289,12 @@ mod flak_tests {
                 ..combat::Profile::default()
             },
         );
-        let inf = unit(&mut s, 1, Pos::new(20000, 16632), combat::Profile::default());
+        let inf = unit(
+            &mut s,
+            1,
+            Pos::new(20000, 16632),
+            combat::Profile::default(),
+        );
         let seed = s.rng.seed;
         assert!(!s.radar_jams(inf));
         assert_eq!(s.rng.seed, seed, "no draw for a type without ANTI_AIR");
@@ -3283,7 +3331,12 @@ mod flak_tests {
         let mty = s.units[missile].ty.unwrap();
         s.unit_types[mty].cols.cat = super::CAT_AIR;
         assert!(!s.crashes(missile), "a missile takes add_death");
-        let foot = unit(&mut s, 0, Pos::new(21120, 16512), combat::Profile::default());
+        let foot = unit(
+            &mut s,
+            0,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
         assert!(!s.crashes(foot), "Foot takes add_death");
         assert_eq!(s.rng.seed, seed, "no draw for either");
     }
@@ -3295,7 +3348,12 @@ mod flak_tests {
     #[test]
     fn a_round_fired_at_a_plane_is_harmless_when_its_roll_misses() {
         let mut s = sim();
-        let t = building(&mut s, 1, Pos::new(21120, 16512), combat::Profile::default());
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
         let radar = building(
             &mut s,
             0,
@@ -3309,7 +3367,9 @@ mod flak_tests {
             },
         );
         let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
-        s.units[b].orders.push_back(strafe(Some(Obj::Building(t)), None, false));
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), None, false));
         let (mut hits, mut misses) = (0, 0);
         for seed in 1..60u32 {
             s.rng = combat::Rng::new(seed);
@@ -3330,7 +3390,10 @@ mod flak_tests {
             assert_eq!(s.projectiles[0].harmless, missed, "seed {seed}");
             if missed { misses += 1 } else { hits += 1 }
         }
-        assert!(hits > 0 && misses > 0, "both arms reached: {hits} hits, {misses} misses");
+        assert!(
+            hits > 0 && misses > 0,
+            "both arms reached: {hits} hits, {misses} misses"
+        );
     }
 
     /// **A shooter that is not `ANTI_AIR` rolls against the target's figure
@@ -3340,7 +3403,12 @@ mod flak_tests {
     #[test]
     fn any_other_shooter_rolls_the_target_s_figure_before_its_own() {
         let mut s = sim();
-        let t = building(&mut s, 1, Pos::new(21120, 16512), combat::Profile::default());
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
         let inf = unit(
             &mut s,
             0,
@@ -3351,7 +3419,9 @@ mod flak_tests {
             },
         );
         let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
-        s.units[b].orders.push_back(strafe(Some(Obj::Building(t)), None, false));
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), None, false));
         for seed in 1..400u32 {
             s.rng = combat::Rng::new(seed);
             let mut probe = s.rng;
@@ -3362,7 +3432,10 @@ mod flak_tests {
                 probe.roll() % 100 >= 33
             };
             assert_eq!(s.air_round_misses(Obj::Unit(inf), Obj::Unit(b)), Some(want));
-            assert_eq!(s.rng.seed, probe.seed, "seed {seed}: one draw, or two past the first");
+            assert_eq!(
+                s.rng.seed, probe.seed,
+                "seed {seed}: one draw, or two past the first"
+            );
         }
     }
 }

@@ -1612,7 +1612,10 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_EIGHT;
         for w in [743, 754, 777, 783, 1007, 1020, 1759] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
-            assert_eq!(n, 5, "chapter thirty-eight carries the window's five blocks");
+            assert_eq!(
+                n, 5,
+                "chapter thirty-eight carries the window's five blocks"
+            );
             frames += n;
         }
     }
