@@ -13528,6 +13528,10 @@ fn stage_walk() {
     };
     let mut applied = crate::golden::Applied::default();
     let mut seen: std::collections::BTreeMap<String, String> = Default::default();
+    // `RON_STAGE_ALL=1` (item 1091, `docs/GOLDEN.md` §46): every unit, not
+    // the aircraft and missiles alone, with its health — a blast's cast is
+    // on the ground.
+    let all = std::env::var_os("RON_STAGE_ALL").is_some();
     let unit_name = |t: Option<usize>| {
         t.and_then(|t| loaded.unit_type_names.get(t))
             .cloned()
@@ -13553,7 +13557,7 @@ fn stage_walk() {
                 s.profile(sim::combat::Obj::Unit(i)).domain,
                 sim::attrition::Domain::Air
             );
-            if !air {
+            if !air && !all {
                 continue;
             }
             let orders: Vec<String> = u
@@ -13568,11 +13572,12 @@ fn stage_walk() {
             now.push((
                 format!("u{i}"),
                 format!(
-                    "{}/{} {} alive={} in={:?} pos=({}, {}) z={} mana_burn={} [{}]",
+                    "{}/{} {} alive={} hp={} in={:?} pos=({}, {}) z={} mana_burn={} [{}]",
                     u.owner,
                     u.index,
                     unit_name(u.ty),
                     u.alive(),
+                    u.health,
                     u.inside.map(|b| s.buildings[b].index),
                     u.pos.x,
                     u.pos.y,
@@ -13584,7 +13589,7 @@ fn stage_walk() {
         }
         for (i, b) in s.buildings.iter().enumerate() {
             let hangar = b.ty.is_some_and(|t| s.is_hangar(t));
-            if !(hangar || !b.queue.items.is_empty() || !b.gather.is_empty()) {
+            if !(all || hangar || !b.queue.items.is_empty() || !b.gather.is_empty()) {
                 continue;
             }
             let inside: Vec<i16> = b.garrison.iter().map(|&u| s.units[u].index).collect();
@@ -13594,11 +13599,14 @@ fn stage_walk() {
             now.push((
                 format!("b{i}"),
                 format!(
-                    "B {}/{} {} alive={} queue={:?} gather={:?} inside={inside:?} launch={}",
+                    "B {}/{} {} alive={} hp={} pos=({}, {}) queue={:?} gather={:?} inside={inside:?} launch={}",
                     b.owner,
                     b.index,
                     build_name(b.ty),
                     b.alive,
+                    b.health,
+                    b.pos.x,
+                    b.pos.y,
                     queue,
                     b.gather,
                     b.launch_frames
