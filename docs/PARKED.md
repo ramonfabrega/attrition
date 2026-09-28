@@ -62,6 +62,19 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1040, 2026-09-28 — the strike's sides
+
+(1053) **The citizens' damage standing on run373's first block**: `0/4`
+at 6 10/16 against 5 0/16, from strikes between blocks 4807 and 4840,
+which no window covers.
+
+(1054) **Vslot `+0xc`'s flag on a building**, taken as `Sim::active` in
+COMBAT §70: read, not established.
+
+(1055) **The strike's side arm, its other three faces; the `jmp
+005fd639` arms of the one-in-five retarget; and `target_opportunity`'s
+`600516` attack-action arm**: read, not captured (COMBAT §70).
+
 ## Parked by item 1019, 2026-09-28 — the Helicopter and the V2
 
 (1049) **An idle Helicopter's drift**: `0/11` from (8355, 14690) to
@@ -78,9 +91,6 @@ the sim and in the dump's parser; the silo's `recharging` countdown; and
 blast on `1/2006`. It needs 1050 first.
 
 ## Parked by item 1034, 2026-09-28 — the city under attack
-
-(1041) **`1/26`'s one-frame strike lag on the city from its second
-strike**: 4690 here against 4689 there (run356).
 
 (1042) **`raid_stamp` is still uncarried** (1024's neighbour): city
 `0/2000`'s stamp beside the latch 1034 built (COMBAT §69).
@@ -716,7 +726,8 @@ table did not move the citizens.
 
 (710) **The AI guard's roll at `fight+0x824`, `k` = 3, the captain
 shortcut, and the retaliation's `on_duty` return** (COMBAT §63.6): read
-from the listing, reached by no capture.
+from the listing, reached by no capture. **1040 built the `on_duty`
+return** (COMBAT §70); the roll, `k` = 3 and the captain shortcut stand.
 
 ## Parked by item 696, 2026-09-24 — past chapter eleven's 734
 
@@ -1829,6 +1840,13 @@ for an issuer chapter that wants both. **1019's Loop line**: run185
 had recorded the hang, so a brief naming a lane and a cover is checked
 against `docs/RUNS.md` in one grep; the stall guard that kills a slow
 `cover=1` launch is the second half of the trap.
+
+(1058) **Before any reading, list every instance of the parting event on
+the disk** (1040's Loop line, filed at its merge): two of 1040's words
+stood on rows already on disk and unread — run356's `1/22` facing from
+4758, and run17's 27 untied Slinger shots. One script over every strike
+on the target and every launch of the piece answered 4846, where the
+listing alone argued the wrong way twice. A candidate checklist row.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
