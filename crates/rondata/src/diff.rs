@@ -45,6 +45,8 @@ mod report;
 mod second;
 mod setup;
 mod shutdown;
+#[cfg(test)]
+mod slots;
 mod unit;
 
 #[cfg(test)]

@@ -3840,11 +3840,7 @@ mod tests {
             if f + 1 < FIRST {
                 continue;
             }
-            let b = built
-                .sim
-                .buildings
-                .iter()
-                .position(|b| i64::from(b.owner) == FARM.0 && i64::from(b.index) == FARM.1)
+            let b = crate::diff::harness::link_building(&built.sim, FARM.0, FARM.1)
                 .expect("this crate has the farm");
             let bd = &built.sim.buildings[b];
             ours.push((f + 1, i64::from(bd.damage), i64::from(bd.damage_frac)));

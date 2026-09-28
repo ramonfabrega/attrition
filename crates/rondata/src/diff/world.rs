@@ -3459,12 +3459,7 @@ mod tests {
         let mut parting = Vec::new();
         for r in &theirs_builds {
             let Some(want) = r.ever_seen else { continue };
-            let Some(b) = built
-                .sim
-                .buildings
-                .iter()
-                .position(|b| i64::from(b.owner) == r.who && i64::from(b.index) == r.o)
-            else {
+            let Some(b) = crate::diff::harness::link_building(&built.sim, r.who, r.o) else {
                 continue;
             };
             let got = i64::from(built.sim.buildings[b].ever_seen);
