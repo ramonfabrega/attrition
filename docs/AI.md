@@ -10664,3 +10664,130 @@ same blocks; they fail under its mutation, and so does
 `a_dumped_building_links_to_the_live_holder_of_its_number`.
 **Script-backed**: `place_woodcutter`'s destroy, read in the script
 itself.
+
+## 83. The third scored map: Great Sahara, and its first word at frame 8 (2026-09-28, item 1066)
+
+DECISIONS 54 §3 scores a third map in the first pair's lobby: Easiest,
+seed 12345, the profile's lobby, and `MAP_STYLE 7` in place of 14 or 18.
+With only the map moved, a parting names the map and not the lobby. The
+floors are `rondata::diff::FLOORS`' `GreatSahara` row and
+`LONG_WORD_GREAT_SAHARA`, and `rondata::diff::third` holds the tests. **No
+mechanism is named here, and none was built** (§3 of the entry). A later
+pass may choose the third map again before an item is opened against its
+word.
+
+### 83.1 The lever, and the read-back
+
+`-config check.ini` pins the style at 14 (`docs/ORACLE.md`, "The lobby is
+a file"), so all three captures take the profile's lobby, which
+`mapstyle.py` writes. That is run39's path and run348's. Each dump's
+`GAME INFO` has 85 lines, and on all three they are run39's line for line
+except `MAP_STYLE 7`. `DIFFICULTY 0` and seed 12345 read back on each. The
+profile read `DIFFICULTY 0` in `<SOLO>` and `<MULTI>` before every launch,
+and it was put back after each (`docs/RUNS.md`, run381–run383).
+
+### 83.2 What the map holds
+
+This is run381's `DUMP_ALL` head, read with the harness's own parsers
+(`rondata <install> --gamelog … --diff`) and a count of the `WORLD`
+block's cells.
+
+- **All land, no water.** The map is 60 × 60 cells, and **all 3,600 cells
+  are `BASELAND`**: there is no `SANDY` and no `OCEAN`, where East Indies
+  has 755 `OCEAN` cells. `sea_resources` is 0. The `WORLD` scalars read
+  `forest_size 151`, `mountain_size 138`, `rock_size 42`, `total_metal
+  55`, `total_oil 10`, `goodies 22`, `land_resources 14`, map seed 7236.
+  There are two regions, nine placed mountain ranges (134 solid cells),
+  two herds, 24 goods (14 linked to a cell) and six farms, none of them a
+  pasture.
+- **West against east.** The human's capital `0/2000` stands at (6240,
+  30048) and the AI's `1/2000` at (40800, 16992), on a map 46,080 wide.
+  The nations are the first pair's: tribe 4 against tribe 11.
+
+### 83.3 Standing up, and frame 0
+
+run381 is its own sibling. Its head carries the height table, the cells,
+the regions, the herds, the goods and the checksum trace, and the
+simulation stands up on it with **nothing borrowed from another map**.
+**Frame 0 is 99 draws against the original's 99 on the first try.** The
+setup's personality roll lands where the original's does (`0x2f3cdb21` →
+`0x76137975`), and the ten starting citizens' derived gather targets are
+the ones the original issued. East Indies' frame 0 is 175 draws for
+comparison. Why the two differ was not read.
+
+### 83.4 The score and the word
+
+- **run382 scores ticks 6, orders 5**
+  (`run382_s_desert_game_is_the_third_map_s_score`). The first order
+  parting is the AI citizen `1/2` on frame 6, `Move.dest_x` 38232 against
+  38328. Its position parts on frame 7. Player 0 first parts on frame 103,
+  on the six citizens' first walk (`0/3`–`0/5` and `1/3`–`1/5`, `Move.x`
+  192 apart).
+- **The word is frame 8 on both captures**
+  (`run382_s_trace_says_where_the_third_map_s_word_parts`,
+  `run383_s_long_trace_says_where_the_third_map_s_word_parts`). Ours
+  spends 6 draws and the original 7, parting at index 0. The original
+  spends `Guy::set_anim+0x97a < Unit::move_step+0x823` first, and ours
+  `Farms::inc_time+0x1ae`. Frames 0..7 agree draw for draw. run383's
+  first 1,851 frames are run382's word for word (`rngcmp.py`), so the
+  long capture adds nothing before the word.
+- **run383 ran the whole 24,000.** Its trace holds 24,001 frames, the
+  game ended on the `!quit`, and block 24001 is the shutdown dump with both
+  leaders at `defeated_by -1` (scores 421 and 2,495).
+
+### 83.5 The widening: the first parting, by unit and field
+
+`run382_s_word_frame_is_widened_whole` walks run382's blocks 1..259 (the
+word's block 9, every block before it, and 250 after it) from run382's
+start with run381's head. It compares every record run10's detail prints,
+both directions: units, buildings, figures, orders, cities, both leaders'
+short records and gaia's eight animals. The dump prints no `GROUPDATA`, so
+no pool or group row is walked, and the 1,060 keys it does not print
+(the long leader record and gaia's clocks) are pinned as unprinted, not
+as agreeing. There are 244 keys parted over the window.
+
+| block | unit | field | ours | theirs |
+|---|---|---|---|---|
+| 1 | ten citizens and the scout | `form` | −1 | 9 (0 on `0/0`) |
+| 1 | `0/2000` | `city:filled`, `land`, `space[0..2]`, … | 0 | 53, 97, 57/57/44, … |
+| 6 | `1/2` | `collide` | 1 | 0 |
+| 6 | `1/2` | `order:move.dest_x`, `dest_y` | 38232, 16056 | 38328, 15768 |
+| 6 | `1/2` | `path:length` | 1 | 2 |
+| 7 | `1/2` | `pos` | (38352, 15814) | (38328, 15768) |
+| 8 | `1/2` | `collide_who`/`collide_o` | 1/1 | −1/−1 |
+| **9** | `1/2` | `collide_frame` | 6 | 8 |
+| **9** | `1/2` | facing, heading | −328728576 | −1925840896 |
+
+Block 1's 22 keys are the first pair's standing families (§33.4), and
+run350's block 1 has them too. **The first parting past them is one
+unit, the AI citizen `1/2`, and it is a collision's timing.** Ours marks
+the collision on frame 6 and walks a one-leg side-step to (38232, 16056).
+The original holds its two-leg move to (38328, 15768) and marks its
+collision on frame 8. On block 8 the two destinations have swapped sides.
+Both sides name the same partner, the citizen `1/1`: ours from block 8,
+the original from block 10. On the word's block both stand at (38328,
+15768) again, and what parts is the collision's age and the figure's
+facing. The original's frame 8 opens on a `move_step` animation draw that
+ours does not spend. `1/1` itself first parts on block 14. Gaia's
+animals agree until block 31.
+
+### 83.6 What this has *not* established
+
+- **Why `1/2` collides two frames early.** The rows above are the value
+  diff. No reading was done and no mechanism is named, by the entry's rule.
+- **Whether the parting is the map's.** Nobody has checked whether the
+  first pair's early frames hold a collision between the capital's first
+  two AI citizens. Both of those maps are closed, so if they do, the
+  question becomes which rule this map's geometry reaches that theirs did
+  not.
+- **Anything past frame 8.** run383 holds the draw stream to 24,000 with
+  no per-frame record, so a word past run382's 1,850 blocks needs a
+  capture sized to it (DECISIONS 50 §7).
+
+### 83.7 Coverage
+
+**Diff-backed**: everything in §83.2–§83.5. The map's contents come from
+run381's head through the harness's parsers. The score, the word and the
+widening are pinned by `rondata::diff::third`'s four tests, and each pin
+was raised by one and failed. The coverage driver reads run382's blocks
+7..11. **Reading-only**: nothing.

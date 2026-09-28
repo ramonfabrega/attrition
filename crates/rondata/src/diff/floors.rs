@@ -18,8 +18,10 @@ pub struct MapFloors {
     pub word: i64,
 }
 
-/// East Indies first — the lower pair leads and is the headline.
-pub const FLOORS: [MapFloors; 2] = [
+/// East Indies first — the lower pair leads and is the headline. Great
+/// Sahara is the third scored map (DECISIONS 54 §3, item 1066), in the first
+/// pair's lobby with the map moved; `diff::third` scores it.
+pub const FLOORS: [MapFloors; 3] = [
     MapFloors {
         map: "EastIndies",
         ticks: 1851,
@@ -31,6 +33,12 @@ pub const FLOORS: [MapFloors; 2] = [
         ticks: 1772,
         orders: 1772,
         word: 1850,
+    },
+    MapFloors {
+        map: "GreatSahara",
+        ticks: 6,
+        orders: 5,
+        word: 8,
     },
 ];
 
