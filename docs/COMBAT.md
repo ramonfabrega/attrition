@@ -11770,6 +11770,9 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
   at every step.
 - **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
   named): frame 4877, ours 7 draws and the original 8, parting at index 1.
+  **Moved to 4924 by item 1052**: block 4861 was the army's first move of
+  the fight, formed a cell forward of its point here and a cell behind
+  there (`docs/ARMY.md` §23).
   The original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`, a
   unit setting off. Ours spends `Guy::set_anim+0x104b`. Block 4878 is inside
   run373's window.

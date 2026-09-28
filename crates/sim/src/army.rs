@@ -191,6 +191,16 @@ pub fn step_along(p: Pos, angle: Angle, d: i32) -> Pos {
     )
 }
 
+/// `Army::march_to_target`'s formation origin (§9, §23): the army's point
+/// one cell **behind** it, `muster_angle − 0x80000000`.
+pub fn march_origin(pos: Pos, muster_angle: Angle) -> Pos {
+    step_along(
+        pos,
+        Angle(muster_angle.0.wrapping_sub(i32::MIN)),
+        UNITS_PER_CELL,
+    )
+}
+
 /// `|dx|, |dy|` through `vector_dist`.
 const fn dist(a: Pos, b: Pos) -> i32 {
     vector_dist((a.x - b.x).abs(), (a.y - b.y).abs())
@@ -1233,13 +1243,23 @@ impl Sim {
         if self.armies[w].list[slot].status & status::MARCHED != 0 {
             return;
         }
-        // The formation origin: the army's point stepped one cell along the
-        // muster angle, and the facing from the target back to it.
+        // The formation origin: the army's point stepped one cell **back**
+        // along the muster angle — `muster_angle − 0x80000000`, away from
+        // the target — and the facing from the target to it.
+        //
+        // `6f4daa`–`6f4e2b` open on `sub $0x80000000` and only then fold
+        // (`jns`; `−0x300` and `& 0x7fffffff` on the far half), where the
+        // plain fold is `sinx@0092d100`'s `test; jns`. The sub moves which
+        // half negates, so the step is `−0x300 · sin(muster_angle)`: a
+        // reversal, not the fold (`docs/ARMY.md` §23, item 1052). Great
+        // Lakes' army 0 on 4860: stepped forward, the leader's first move
+        // hands `get_loc` a start one cell west and the second plans one
+        // leg more than the original.
         let (pos, ang, target, hurry) = {
             let a = &self.armies[w].list[slot];
             (a.pos, a.muster_angle, a.target, a.hurry)
         };
-        let origin = step_along(pos, ang, UNITS_PER_CELL);
+        let origin = march_origin(pos, ang);
         let Some(t) = target else { return };
         let tp = self.pos_of(t);
         let angle = find_angle(origin.x - tp.x, origin.y - tp.y);
@@ -3242,6 +3262,61 @@ mod tests {
             "a hit on the AI leader's city building did not reach \
              `Armies::emergency`"
         );
+    }
+
+    /// **The engaged army forms a cell behind its point** (§23, item
+    /// 1052): `march_to_target`'s origin is `(x, y)` stepped one cell
+    /// along `muster_angle − 0x80000000`, away from the target
+    /// (`6f4daa`–`6f4e2b`). The group's `(ox, oy)` is where the move was
+    /// ordered to. Great Lakes' army 0 on 4860 is the case: point
+    /// `(3168, 31584)`, one cell south of the human's city, and a muster
+    /// angle of `−165478400` pointing north at it — the origin is
+    /// `(3352, 32331)`, south, where stepping forward put it on the city.
+    /// Made to fail first: with the step along `muster_angle` the record
+    /// holds `(2983, 30838)`.
+    #[test]
+    fn an_engaged_army_forms_a_cell_behind_its_point() {
+        let (mut sim, c) = sim_with_city();
+        let t = soldier_type(&mut sim);
+        let slot = sim.init_army(1, Some(c));
+        let p = Pos::new(3168, 31584);
+        let foe_pos = Pos::new(3168, 30816);
+        let fb = sim.add_building(0, foe_pos, 1);
+        sim.buildings[fb].hits = 1200;
+        sim.buildings[fb].health = 1200;
+        sim.declare_war(1, 0);
+        {
+            let a = &mut sim.armies[1].list[slot];
+            a.pos = p;
+            a.muster_angle = Angle(-165_478_400);
+            a.target = Some(Obj::Building(fb));
+            a.status = status::MARCHING | status::FORMING;
+        }
+        let mine: Vec<usize> = (0..2)
+            .map(|k| put(&mut sim, 1, t, Pos::new(p.x + k * 0x40, p.y - 0x200)))
+            .collect();
+        for &u in &mine {
+            sim.army_add_unit(1, slot, u);
+            sim.add_attack_order(u, Obj::Building(fb), QueuePos::New, true, true);
+        }
+        assert!(
+            sim.army_is_engaged(1, slot),
+            "the fixture: both are fighting"
+        );
+        sim.march_to_target(1, slot);
+        assert_ne!(
+            sim.armies[1].list[slot].status & status::MARCHED,
+            0,
+            "the orders went out"
+        );
+        let g = sim.army_group(1, slot);
+        let o = sim.gstate(&g).expect("the army's record").o;
+        assert_eq!(
+            o,
+            Pos::new(3352, 32331),
+            "a cell behind, away from the city"
+        );
+        assert_eq!(o, march_origin(p, Angle(-165_478_400)));
     }
 
     #[test]

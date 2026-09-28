@@ -711,7 +711,9 @@ mod tests {
     /// 4841..5097, walked from run347's start. The word's frame writes
     /// block 4847, six blocks after the window's first. **Within the same
     /// item the word moved to 4852 and then 4877**, block 4878, inside the
-    /// window (37 blocks after its first and 219 before its last).
+    /// window (37 blocks after its first and 219 before its last). **Item
+    /// 1052 moved it to 4924**, block 4925, inside the window too (84
+    /// blocks after its first and 172 before its last).
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -754,8 +756,9 @@ mod tests {
         // parts on the army's tick, 4861.
         assert_eq!(
             first(1, 19, "g.angle[0]").map(|(f, _)| f),
-            Some(4_861),
-            "the Hoplite's facing, which parted on 4847 until item 1040"
+            Some(4_989),
+            "the Hoplite's facing, which parted on 4847 until item 1040 and \
+             on the army's tick, 4861, until item 1052"
         );
         // **The old word, 4852, agrees** (§70.7): `1/24`'s one-in-five
         // re-search on 4852 names `0/3` on both sides and freezes the
@@ -769,17 +772,54 @@ mod tests {
                 first(1, 24, what)
             );
         }
-        // **The new word, 4877, writes block 4878** (no mechanism is named,
-        // DECISIONS 42): ours 7 draws and the original 8, parting at index
-        // 1, where the original spends `Guy::set_anim+0x97a <
-        // Unit::move_step+0x823`. The earliest block past the window's
-        // standing rows is 4861, frame 4860, the army's tick (`4860 ≡ 252
-        // mod 256`): 121 keys, who=1's army members walking off there and
-        // holding the city here.
+        // **The old word, 4877, agrees** (item 1052, `docs/ARMY.md` §23):
+        // the army's tick on 4860 (`4860 ≡ 252 mod 256`) finds army 0
+        // engaged and forms it a cell **behind** its point, `muster_angle −
+        // 0x80000000`, before `do_forming` moves it again. The leader
+        // `1/12`'s first move hands the second's `get_loc` a start in the
+        // original's cell (3996, 30614), and the group's chain plans the
+        // original's eight legs, not nine. So on block 4861 every member
+        // walks its `ATTACK_TO` on both sides: `1/13` at (3936, 31125)
+        // toward (4588, 31018), `1/16` toward (5007, 30915), `1/12` with
+        // its move under way, where ours stood `1/12`–`1/14` a frame
+        // (`dest` 0) and took a leg 768 west for `1/16`–`1/18`.
+        for (o, what) in [
+            (12, "order:move.dest"),
+            (13, "order:move.dest"),
+            (14, "order:move.dest"),
+            (13, "pos"),
+            (16, "order:move.dest_x"),
+            (17, "order:move.dest_x"),
+            (18, "order:move.dest_x"),
+            (16, "path:length"),
+        ] {
+            assert!(
+                first(1, o, what).is_none_or(|(f, _)| f > SECOND_WORD_GREAT_LAKES + 1),
+                "1/{o}'s {what}, which parted on the army's tick, 4861, until \
+                 item 1052: {:?}",
+                first(1, o, what)
+            );
+        }
+        // **The new word, 4924, writes block 4925** (no mechanism is named,
+        // DECISIONS 42): ours 8 draws and the original 7, parting at index
+        // 0, where ours spends `Guy::set_anim+0xf2f < Guy::move+0x166` and
+        // the original `Guy::set_anim+0x97a < Unit::move_step+0x823`. The
+        // earliest block past the window's standing rows that parts on a
+        // unit's order is 4923: `1/11` holds its `ATTACK` there (kind 10,
+        // two orders) where the original has pushed the chase's move above
+        // it (kind 1, three), and it stands at (5046, 30225) against
+        // (5032, 30200). Before it only value rows: `1/9`'s and `1/24`'s
+        // `orders_x/y` (4868, 4887) and the citizens' and the leader's rows.
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4_841, 111), (4_861, 121), (4_862, 13)],
-            "the blocks keys first part on, the first three"
+            [(4_841, 111), (4_868, 2), (4_887, 2)],
+            "the blocks keys first part on, the first three ((4841, 111), \
+             (4861, 121), (4862, 13) until item 1052)"
+        );
+        assert_eq!(
+            first(1, 11, "order:kind"),
+            Some((4_923, "Kind { ours: 10, theirs: 1 }".to_string())),
+            "the new word's order row"
         );
         // A standing row the window opens on: the citizen `0/4` has taken
         // more here since run356's window closed (block 4841: `damage` 6
