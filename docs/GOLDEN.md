@@ -7486,3 +7486,46 @@ full beside it; on 2314 `0/6` inside with no order; on 2322 the three
 over P1 and `0/7` not; on 2337 the three strikes on `0/1`; on 2352 the
 stacks of 2351; on 2402 the three strafes home; `0/7` in `0/2008` on
 2474; on 2602 `0/7` inside with no order. Every order is the walk's.
+
+**Where this crate parted: `GOLDEN_WORD_CHAPTER_THIRTY_FOUR` = 2322,
+open, on the first walk**: theirs 16 draws against ours 15, theirs alone
+`Unit::do_air_physics+0xba` — `0/7` flying home to `0/2008`, where this
+crate's stands inside with no order (and takes ctrl's strike on 2314,
+being a Bomber still inside). The widening, run362 whole (605, 2851),
+pins 421 rows and twelve pool rows. **The first parting's field list**,
+2307, `0/7` alone: its stack (0 against 1, the flight home), `inside`
+(2007 against −1), `pos`, `heading`, `dest_angle`, `orders_x/y`,
+`path:length` and its figure's point, height, bank, pitch and clock.
+**Their writers** (889): the stack's is `action_launch_flight`'s
+`MOVE_TO` arm alone, through `action_flight`'s flight home; the rest are
+`do_launch`'s EXIT on the same block, which the order admits.
+
+**The arm built: `GOLDEN_WORD_CHAPTER_THIRTY_FOUR` = 2850, closed**
+(item 1009, `docs/PRODUCTION.md` "The launch commands"): the `MOVE_TO`
+arm (`Sim::launch_move`), and the approach home reading the base's height
+at 0 or above. **The value diff, both sides** (ours before the build in
+brackets): 2307, `0/7` one `STRAFEORDER` home to `0/2008`, `returning`
+1, flags 4, on the map at (11423, 13876) (inside, no order, at (11417,
+13984)); 2314, `0/6` inside with no order and `0/7` flying (`0/7` a
+strike on `1/2006` from inside); every position of the flight after; on
+2399 `0/7`'s figure at `z` 1151 and pitch −2.0 (1148 and −4.0 before the
+clamp, the base's tile −42 read as −42); the value stream agrees to
+run362's end. The widening goes **421 → 17 rows**, chapter thirty-two's
+standing seventeen; the pool keeps twelve, chapter twenty-two's ten and
+slot 3's `ox`/`oy` on 2602, the building group of `0/2008` whose action
+writes no point (parked 760 and 792's family). `GROUND_INEXACT` 43.
+
+**Mutations**, each on the committed build (`c8604d59`), restored from
+git and `touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the ctrl/alt filter dropped (976's arm, which no test held) | the ctrl/alt test; the word (2263) and the widening (408 rows) |
+| ctrl asked before alt | the ctrl/alt test alone: no press holds both |
+| the `MOVE_TO` arm dropped | the `MOVE_TO` test; the word (2322) and the widening (421) |
+| the last of equals (`>=`) | the `MOVE_TO` test; the word (2306) and the widening (380) |
+| the fuel gate dropped on `MOVE_TO` | the `MOVE_TO` test alone: both planes inside were full on 2305 |
+| the Helicopter's move dropped | the Helicopter test alone: no capture holds one |
+| the height clamp dropped | the approach test; the widening (21 rows: `0/7`'s `z` and pitch on 2399–2400), not the word |
+| `can_carry` always true | **nothing**: `group_action_flight`'s own room test refuses a full base behind it, and no other refusal is reachable through the one entry that asks it |
+

@@ -1350,12 +1350,44 @@ alone flagged on 2307, and all four patrolled P3 alone on 2337; chapter
 thirty-three closed at 2740. Four tests in `airbase::tests`, each failing
 under its arm's mutation (§42's table).
 
-**Not established, and reading only**: ctrl and alt; the Helicopter's
-move; the missile arms (`NUCLEARMISSILE`, `V2ROCKET`) and the rush rules;
-`MOVE_TO` to a second base (the farthest plane `can_carry` admits);
-`[P1, A3, P2]`; the escort's search (`find_new_bomber_target`'s ally arm
-and `find_new_air_target`, the bomber's point search and nothing here);
-and `0/6`'s `mirror` on 2314, whose writer is not read.
+**Built, and run362 backs it** (item 1009, `docs/GOLDEN.md` §43):
+`Sim::launch_move`, `action_launch_flight`'s `MOVE_TO` arm, and ctrl and
+alt through both entries (`rondata::input` passes the command's bytes).
+run362: ctrl's patrol sent the Bomber `0/8` where the Fighter's ÷ 10
+would have sent `0/9` (2262); alt's strike sent `0/9` where the Bomber
+line's ÷ 4 would have sent `0/7` (2277); the right-click on `0/2008` sent
+`0/7`, the first of two full planes, home there (2307, `returning` 1,
+`mandatory` 1, flags 4), and it landed on 2474; ctrl's strike with only a
+fighter full sent nothing (2314); the ground point re-ordered the three
+homed at `0/2007` and not `0/7` (2322); `[P1, A3, P2]` left the strikes
+standing (2352); alt at `0/2008` with a Bomber alone full there sent
+nothing (2602). Chapter thirty-four closed at 2850.
+
+**The approach home reads the base's height at 0 or above.**
+`home_approach` stood for `check_fuel`'s `+0xc`, the base's `z_internal`,
+with `find_tcoord_z` of the base's tile; but the `z_internal` a building is
+born with is `SubObject::init@00662300`'s call, which pushes the fourth
+argument 1 (`662369`), and `find_tcoord_z` answers 0 for a negative height
+under it. `0/2008` stands on a tile of −42 and prints `z_internal` 0;
+without the clamp `0/7`'s descent to it rolls −4 where the original holds
+−2, on 2399. `pitch_aircraft`'s own ground reads push 0 (`5e8f17`) and keep
+the negative height. A building's height is read the same way in
+`crate::fight`'s targets (`z: tile_z(bd.pos.tile())`); no capture puts a
+target building on ground under 0.
+
+**The Helicopter's launch move is built from the emulator alone**
+(`Sim::launch_one`): no capture holds a Helicopter (§43: who=0 has no
+wealth or oil on this cast, and the interpreter does not apply the
+`resource` verb).
+
+**Not established, and reading only**: the Helicopter's flight after its
+launch; the missile arms (`NUCLEARMISSILE`, `V2ROCKET`), whose narrowing
+is emulated above and not built, and the rush rules; shift on `MOVE_TO`;
+the × 200 for a plane with an order (a plane inside with an order is
+refuelling on every block of these casts); the escort's search
+(`find_new_bomber_target`'s ally arm and `find_new_air_target`, the
+bomber's point search and nothing here); and `0/6`'s `mirror` on run358's
+2314, whose writer is not read.
 
 ## What is not established
 

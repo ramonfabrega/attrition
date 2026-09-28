@@ -728,7 +728,8 @@ mod tests {
     /// **`MOVE_TO` onto another base** (item 1009, §43): the first fuelled
     /// plane of equals — the farthest, strict — flies home to it; a
     /// refuelling plane is passed over; shift sends every one; a base
-    /// with no room takes none.
+    /// with no room takes none — which `group_action_flight`'s own room
+    /// test would refuse too, so `can_carry` dropped fails nothing here.
     #[test]
     fn a_right_click_on_another_base_sends_the_first_fuelled_plane_to_it() {
         let to = Pos::new(8544, 14688);
