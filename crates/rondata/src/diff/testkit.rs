@@ -4120,6 +4120,22 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FOUR: i64 = 2850;
 /// `GROUPDATA` on the same blocks.
 pub(crate) const WIDENING_CHAPTER_THIRTY_FOUR: (i64, i64) = (605, 2851);
 
+/// **Chapter thirty-five's golden word** — the Helicopter's and missiles'
+/// launch arms (item 1019, `docs/GOLDEN.md` §44, run371).
+///
+/// **2445, open, on the first walk**: theirs 7 draws against ours 4 —
+/// `Unit::do_spec_anim`'s two for a Helicopter's exit (`5e59ef`,
+/// `5e5a0f`) and `Guy::set_anim+0x97a < Unit::do_idle+0x7d`: the first
+/// Helicopter, `0/11`, trained at `0/2008` with no gather point, comes out
+/// at once and idles, where here it stays inside. The first value parting
+/// is 2227, the silo's queue (one V2 there, two here).
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 2445;
+
+/// `chapter_thirty_five_s_word_frame_is_widened_whole`'s window: run371
+/// whole, (605, 3261). Its pool half, `widen_pool`, reads who=0's
+/// `GROUPDATA` on the same blocks.
+pub(crate) const WIDENING_CHAPTER_THIRTY_FIVE: (i64, i64) = (605, 3261);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -4644,6 +4660,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // the built arms 43 (pinned at 42, it fails).
     ("chapter_thirty_four_holds_to_the_golden_word", 43),
     ("chapter_thirty_four_s_word_frame_is_widened_whole", 43),
+    // Chapter thirty-five is chapter thirty-four's game to its second
+    // Airbase and a Missile Silo and twelve lines after it (item 1019):
+    // the first walk reads 39.
+    ("chapter_thirty_five_holds_to_the_golden_word", 39),
+    ("chapter_thirty_five_s_word_frame_is_widened_whole", 39),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -6079,6 +6100,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_four_s_word_frame_is_widened_whole"),
         1009,
         Some(WIDENING_CHAPTER_THIRTY_FOUR),
+    ),
+    // Item 1019: run371, chapter thirty-five, the Helicopter's and
+    // missiles' launch arms. The widening is run371 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_FIVE",
+        GOLDEN_WORD_CHAPTER_THIRTY_FIVE,
+        Some("chapter_thirty_five_s_word_frame_is_widened_whole"),
+        1019,
+        Some(WIDENING_CHAPTER_THIRTY_FIVE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
