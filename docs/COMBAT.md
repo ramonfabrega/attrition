@@ -5468,7 +5468,8 @@ flags date to the same block.
   flank triple holds. No capture on file reaches either arm — run112's
   four reviews all have a stationary target — so this crate returns
   false there and the arms are unmodelled.~~ **The fleeing unit's arm is
-  §67** (item 1023, run347's `1/24` on 4616). The group arm and a
+  §67** (item 1023, run347's `1/24` on 4616), **and the inactive unit's
+  is §76** (item 1086, run347's `1/13` on 5011). The group arm and a
   building target's fall-through stay unmodelled (§67.5).
 - **The two guards above the review**: `ptype +0x2b8 & 4` with
   `unit_masks & 0x80000` (the packable lineage, which takes an
@@ -12368,3 +12369,166 @@ Each was run as a mutation on `a793d9ff` (after the `ccc update` onto
 - **Unit-backed only**: the angle (`heading`, not `facing`), and a
   destination with no move at the head going unled.
 - **Not backed**: an air-order target, and a building shooter's lead.
+
+## 76. A dead target is re-aimed at on the review (item 1086, 2026-09-28)
+
+Great Lakes' second word, frame 5066 of run347 (DECISIONS 53, 54): ours 9
+draws against the original's 10, parting at index 0. Ours spent
+`Guy::set_anim+0xf2f < Guy::move+0x166`, the original `Guy::set_anim+0x97a
+< Guy::move+0x19f`. The figure was `1/13`, whose move had parted since
+block 5012. The booking named no mechanism and no direction.
+
+### 76.1 Every instance on the disk first
+
+- **5012 is the move's first parting, not a window's edge** (parked 1083
+  b). `1/13` agrees whole on every block from 4841 to 5011, both sides;
+  every one of its rows that parts first parts on 5012.
+- **Who and what.** `1/13` (guy type 82, group 65, a captain: `up −1`,
+  `down 25`) holds `MOVE, ATTACK, ATTACK_TO` from block 4999: a chase on
+  the citizen `0/2` (`ox 2 whom 0 uid 9`). `0/2` dies on frame 5000 on
+  both sides (§72.5) and is gone from the dump's units from block 5001.
+  The `ATTACK` on it stands on both sides to 5066.
+- **The one-sided writes are all the original's, and all on `1/13`'s
+  review phase**, `(frame + 13) % 16 == 0`. Block by block, the original's
+  move (`x`, `y`, the goal leg and the next):
+
+  | frame | the original's move | ours (before) |
+  |---|---|---|
+  | 5010 | (4824, 29928) via the detour's (4104, 31992), tolerance 0, 19 legs, `coll` (3969, 32147) | same |
+  | **5011** | **(4872, 29928)** via (4872, 31464), tolerance 384, 9 legs, `coll` 0 | unchanged |
+  | 5027 | (4920, 29928) | unchanged |
+  | 5043 | (4968, 29976) | unchanged |
+  | 5059 | (4776, 29880) | unchanged |
+
+  No other unit's move changes on these blocks. The goal moves with the
+  chaser, not with the target: `find_attack_pos` runs from where `1/13`
+  stands, at a corpse that does not move.
+- **None of the four frames spends a unit draw** in the original's trace
+  (5011's are six farm draws and three `Surf`), so neither `fight`'s
+  captain arm (`+0x9b0`) nor a ring walk wrote them.
+- **The word follows.** On 5065 and 5066 the original stands at (4764,
+  31013), 1,133 from its goal (4776, 29880): `do_move`'s dead-target arm
+  (`vector_dist ≤ 0x480` from the walk's own goal, `docs/ORDERS.md` §20)
+  pops the walk, and the stop is the word's draw. Ours, walking to its
+  stale (4824, 29928), was 1,335 out.
+
+### 76.2 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| `check_target_path`'s fleeing arm (§67) on the corpse | `Unit::close@0060ee50` ends in `close_orders@005e37f0`, which kills every order whose `get_type` is non-zero, so the corpse's `is_moving@00610af0` answers 0 and the flank triple cannot hold | killed |
+| the review's range arm | `is_in_range@006486b0` returns 0 for a slot whose `flags & 1` is down, so the review returns 0 there | killed |
+| the suspended search (`+0x104`, `do_move`'s head) | `start_dist` is 0 on every block of `1/13` (`docs/PATHFINDER.md` §18.6) | killed |
+| `do_move`'s captain retarget, `fight`'s chase | each rolls a draw, and the four frames spend none of `1/13`'s | killed |
+| `check_target_path`'s `+0x8` jump | below | **held** |
+
+### 76.3 The listing
+
+`check_target_path@005e22d0`, for an `ATTACK` (`local_14 == 10`) on a unit
+slot, after the `is_seen` test (vslot `+0x48`, `UnitData::is_seen@00607a60`,
+which asks the slot's position and asks nothing of its liveness):
+
+```
+5e2418: mov  eax, [0xc0618c]        ; GameAccess::objects
+5e2420: mov  eax, [edi+eax+0x14]    ; objects[whom]
+5e2424: mov  ecx, [eax+4*ecx]       ; [ox]
+5e2429: call [eax+0x8]              ; vslot +0x8
+5e242e: je   0x5e24e8               ; zero: past the flank triple
+5e2434: ...                         ; the flank triple (§36.3, §67.2)
+5e24e8: ...                         ; the fall-through: is_on_map, then §67.2's steps
+```
+
+- **Vslot `+0x8` is read off the executable's own vtables**, since the
+  export's names are COMDAT-folded: `Unit::vftable@00b417d0 + 8` holds
+  `0x46cda0`, `movzx eax, byte [ecx+8]; and eax, 1; ret` —
+  `SubObjectData::is_active`, the slot's allocation flag. `Build::vftable`
+  and `Wall::vftable` hold `0x41bff0`, `xor eax, eax; ret`. So a living
+  unit takes the flank triple, and a building or **a dead unit** jumps
+  past it.
+- **The corpse is still in its slot.** `Object::close@00647160` clears
+  `flags` (`+0x8`) and sets `hold_frames` to 30, and `Objects::remove
+  @00658980` only lowers the player's slot mark. Neither touches the
+  pointer in `objects[whom][ox]`, the position or `inside_up`. So the
+  fall-through's `is_on_map@0046ce30` (`inside_up >> 15`) answers 1 for a
+  unit that died on the map, and `is_in_range` from the walk spot answers
+  0 (the slot is not active). The ranged chaser then takes §67.2's steps
+  4 and 6: `repath`, `find_attack_pos` from its own position, and
+  `add_move_order(…, QUEUE_FIRST)` at the corpse.
+- **`find_attack_pos` finds a spot only on its far arm.** Its near arm
+  takes a sweep's spot only when the asker would be in range from it
+  (§32), and nobody is in range of a corpse; then nothing is found, the
+  legs go (§67.2 step 4) and `do_attack` takes over. `1/13` was about
+  fifteen tiles out, past `(max_range + 8)`, on the far arm.
+
+### 76.4 What this crate built
+
+- **`Sim::check_target_path`** (`orders.rs`) asks `alive()` after
+  `target_is_seen`, and a dead unit target goes to
+  **`rechase_fleeing`**, which is §67's fall-through unchanged. A living
+  target that is not active (inside something) still returns, as before.
+  It used to return for every target that was not `active`.
+- **Unit test**: `a_dead_target_is_re_aimed_at_on_the_review_s_phase`
+  (`fight.rs`). A dead, standing target fifteen-plus tiles out is
+  re-aimed at on the review's phase, and the new spot is nearer the
+  corpse than the stale one. The same target alive and standing, and the
+  dead one off the phase, keep the stale spot.
+
+### 76.5 The killers
+
+See the journal (`docs/journal/2026-09-28-item-1086.md`) for the trees.
+Each mutation was run with `git diff --stat` non-empty, restored from git
+and `touch`ed after, and the pins the re-pin touches were green first.
+
+### 76.6 What moved
+
+- **Great Lakes 5066 → 5075.**
+  - On block 5012 `1/13`'s move reads (4872, 29928) via (4872, 31464),
+    tolerance 384 and nine legs on both sides, where ours kept (4824,
+    29928) via (4104, 31992), tolerance 0 and nineteen. (4920, 29928) on
+    5028, (4968, 29976) on 5044 and (4776, 29880) on 5060 on both.
+  - On block 5066 both stand at (4764, 31013) under the `ATTACK`, and on
+    5067 both have taken `0/4`. Ours had walked on to (4702, 31263).
+  - Frame 5066's draws went 9 against 10 → agreeing.
+  - run373's keys parted go 455 → 461: `1/13`'s rows from 5012 go, and
+    the chase on `0/4` (from 5068) and the new word's rows arrive.
+- **East Indies holds at 5606. Great Sahara holds at 8.**
+- **The new word** (no mechanism is named): frame 5075, ours 11 draws
+  and the original 10, parting at index 0.
+  - Ours spends `1/20`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`
+    first. The original's first is `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271`, which is ours' second.
+  - It sits on block 5076, inside run373's window (21 before its last).
+  - On block 5076 `1/20` reads `collide 1` on `1/18` on ours alone.
+    `1/10` and `1/11` have ended their chase on ours alone (`ATTACK`
+    heads, two orders, against three). Every key first parting on 5075
+    and 5076 is one of those four's, or `1/0`'s figure's.
+  - This is where parked 1074 said its first `collide` row now stands
+    (`1/20`, 5076): `Objects::find_collision`'s conjunct of `do_move`'s
+    kill, which §35.3 and §36.4 carry as a SEAM.
+  - `1/13` itself first parts on 5068. Its chase on `0/4` is aimed at
+    (2136, 31608), tolerance 384, ten legs, against ours (3384, 31464),
+    tolerance 0, eight.
+
+### 76.7 What is not established
+
+- **A reused slot.** The original reads `objects[whom][ox]` with no `uid`
+  test, so once `hold_frames` has run out and a new unit takes the
+  corpse's `o`, the review asks the newcomer. This crate's target is the
+  corpse's own entry, and it never recycles one. No capture on disk
+  reaches it.
+- **A dead target inside something** (`inside_up` set) would `repath`
+  at the fall-through's first step. It is built as `rechase_fleeing`'s
+  `on_map` test, with no capture.
+- **The near arm's refusal** (a dead target within `max_range + 8` tiles)
+  ends the chase with its legs gone. It is built through
+  `find_attack_pos`, and it is unit-backed only.
+
+### 76.8 Coverage
+
+- **Diff-backed**: the re-aim, by run373's `1/13` on 5012, 5028, 5044
+  and 5060, and frame 5066's draws on run347. It is a floor, and the
+  killer made it fail.
+- **Listing-backed**: `5e2418`–`5e242e`, and the three vtables' slot
+  `+0x8` read from the PE; `Object::close`, `Objects::remove`,
+  `close_orders`, `is_in_range@006486b0` (decompile).
+- **Unit-backed only**: the living-and-standing and off-phase refusals.
