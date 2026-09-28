@@ -2727,9 +2727,12 @@ impl Sim {
         // `do_launch` to pass over. run308's Biplane `0/9`, inside `0/2007`
         // from 1746.
         //
-        // A gather point's arm is below (item 947). SEAM: a helicopter's
-        // over the base's aircraft limit (`is(0x136)`, `num_aircraft_here >
-        // num_aircraft_limit`, which does come out); no capture trains one.
+        // A gather point's arm is below (item 947). **A helicopter trained
+        // with no point comes out at once** (item 1019, `docs/PRODUCTION.md`
+        // "The Helicopter and the missile under a point"; `62ff59`..
+        // `62ff8f` → `62feea`): the list empty and the unit `is(0x136)`,
+        // `come_out(0)` with no limit test, which is the invalid point's
+        // alone. SEAM: `come_out`'s refusal, on which the unit dies.
         let hangar = self.buildings[at].ty.is_some_and(|t| self.is_hangar(t));
         let inside = self.squads_inside(at);
         let stays = self.building_ident(at) == crate::build::Ident::University
@@ -2751,7 +2754,11 @@ impl Sim {
         };
         if stays {
             self.check_gatherers(at);
-        } else if !hangar && !kept {
+        } else if (!hangar && !kept)
+            || (hangar
+                && self.buildings[at].gather.is_empty()
+                && self.air_line_is(unit, crate::airbase::HELICOPTER))
+        {
             self.come_out(unit);
         }
         // **Under a gather point the aircraft takes a patrol over the list**
@@ -2763,9 +2770,8 @@ impl Sim {
         // after that. The point's `action` is not read here. It stays
         // inside for `do_launch`.
         //
-        // SEAM: the other arm (`62fc47`..), the first point's strike on an
-        // enemy building or its patrol, for a missile or a helicopter; no
-        // capture trains one under a point.
+        // The other arm (`62fc47`..), a missile's or a helicopter's, reads
+        // the first point alone: [`Sim::train_first_point`] (item 1019).
         if hangar
             && !self.buildings[at].gather.is_empty()
             && !self
@@ -2786,6 +2792,15 @@ impl Sim {
                     ap.push(q.pos);
                 }
             }
+        }
+        if hangar
+            && let Some(q) = self.buildings[at].gather.first().copied()
+            && (self
+                .profile(crate::combat::Obj::Unit(unit))
+                .has(crate::combat::mask::MISSILE)
+                || self.is_helicopter(unit))
+        {
+            self.train_first_point(unit, at, q);
         }
         self.economy_changed(who);
         Produced { unit, ty, at }
@@ -3215,6 +3230,32 @@ impl Sim {
             self.ledgers[w].bucket[g] = amount;
         }
         self.ledgers[w].dirty = true;
+    }
+
+    /// **The `resource` cheat** (`ConsoleWin::run_cmd@007d6a70`'s case,
+    /// the listing `7dd7d8`..`7dd8b2`; `docs/GOLDEN.md` §44): `bucket_set(g,
+    /// max(0, bucket_get(g) + amount))`, the bucket written as it stands,
+    /// with no escrow, income or cap between. One good (`Some(g)`) is
+    /// written whatever its availability; `all` (`None`) walks the six
+    /// basic goods and writes only those `type_avail` answers non-zero for
+    /// (`7dd825`), the rule [`Sim::lay_starting_goods`] pays the opening
+    /// stockpile by. An amount of 0 is refused before either arm (`je` at
+    /// `7dd7e8`) and prints the totals.
+    pub fn cheat_resource(&mut self, who: Player, good: Option<usize>, amount: i32) {
+        let w = who as usize;
+        for g in 0..economy::RESOURCES {
+            let hit = match good {
+                Some(one) => one == g,
+                None => self
+                    .good_tree_type(g)
+                    .is_none_or(|t| self.type_avail(who, t) != tech::NOT_AVAILABLE),
+            };
+            if hit {
+                let b = &mut self.ledgers[w].bucket[g];
+                *b = (*b + amount).max(0);
+            }
+        }
+        self.economy_changed(who);
     }
 
     /// `game->starting[g]` as one leader is paid it — the amount both

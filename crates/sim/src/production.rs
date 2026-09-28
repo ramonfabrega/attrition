@@ -672,8 +672,9 @@ impl crate::Sim {
     ///
     /// - **a train job**, a unit type whose availability bit is set: `num`
     ///   times over, each live, finished member gets `Build::queue_up(type,
-    ///   1)`, whose answer is not read. A missile silo asks
-    ///   `can_carry(type)` first; no silo is carried here.
+    ///   1)`, whose answer is not read. A Missile Silo (`is(0x208)`) asks
+    ///   `can_carry(type)` first and is skipped on a refusal
+    ///   ([`Sim::silo_takes`], item 1019).
     /// - **a research job**, a unit type whose bit is clear: the research
     ///   arm, [`Sim::research_arm`], once whatever `num` says, behind
     ///   `LeaderData::researching@006db510` over every unit line
@@ -696,7 +697,11 @@ impl crate::Sim {
         let mut laid = 0;
         for _ in 0..num {
             for &b in &list {
-                if live(self, b) && self.queue_up(b, ty).is_ok() {
+                let silo = self.building_ident(b) == crate::build::Ident::MissileSilo;
+                if live(self, b)
+                    && (!silo || self.silo_takes(b, ty))
+                    && self.queue_up(b, ty).is_ok()
+                {
                     laid += 1;
                 }
             }
