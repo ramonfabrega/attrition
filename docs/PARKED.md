@@ -88,6 +88,20 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1078, 2026-09-28 — the missile's other edges
+
+(1092) **The general death path never lowers `num_units`**: the
+original's `Unit::close@0060ee50` calls `track_unit_type(·, −1)` at
+`0060f3db`, and this crate does so for a missile's death alone (1078),
+so a player's count only grows. The AI reads those counts; 1074 said
+its frame does not turn on one. Returns when a word's decision does.
+
+(1093) **Chapter thirty-six's no-score edges** (PRODUCTION "The
+missile's other arms (item 1078)"): `UnitData::is_busy` in the launch's
+chain walk, the shield over ocean, and a missile's shift press; and
+646's family gains two rows, the spotter's and the V2s' `form` (0
+against −1) and the V2s' seats inside a silo (+24, +24).
+
 ## Parked by item 1086, 2026-09-28 — the review's edges
 
 (1089) **The review's two edges** (COMBAT §76): `1/13`'s chase on `0/4`
@@ -1807,6 +1821,12 @@ read off the PE beside the name** (1086's Loop line): `vtables.txt`
 names slot `+0x8` by a folded function and COMBAT §67.2 read it as "is
 it a unit"; `Unit::vftable + 8` in the executable's own bytes is `flags
 & 1`, `is_active`, and a dead target's review turned on it.
+
+(1094) **A chapter script's frames out of order are refused, not
+clamped** (1078's Loop line): the staging walk's first draft appended
+lines after the chapter's last, and the interpreter clamped them to it
+silently; the script test could refuse a script whose frames run
+backwards, for a chapter built by appending to its predecessor.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
