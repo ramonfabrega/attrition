@@ -180,6 +180,13 @@ pub const SITE_FIRST_WOUND: &str = "Object::take_damage+0xe1";
 /// birds up over the building. Cosmetic, and it still moves the stream.
 pub const SITE_FIRST_WOUND_FLOCK: &str = "Object::take_damage+0x18b";
 
+/// `find_attack_pos`'s ring draw under `Unit::check_target_path`'s re-aim
+/// of a fleeing target (`5e2710`, returning to `+0x445`; item 1023). Named
+/// and never spent: the re-aim asks only for a unit target, whose sweep
+/// draws nothing.
+pub const SITE_ATTACK_POS_REVIEW: &str =
+    "Unit::find_attack_pos+0xea9 < Unit::check_target_path+0x445";
+
 /// The same draw from `Group::action_attack@00712490+0x41a`, which calls
 /// the nine-argument form **once**, on the group's leader, and only when
 /// `ObjectData::is_in_range` says the leader cannot already shoot

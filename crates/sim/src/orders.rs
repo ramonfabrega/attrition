@@ -2640,12 +2640,14 @@ impl Sim {
     ///
     /// Returns whether the review changed the order list.
     ///
-    /// SEAM: everything past the range test. The original falls through to
-    /// `find_attack_pos`, `add_move_order`, `find_new_target` and
-    /// `Group::action_attack` when the target is **inactive**, or when the
-    /// flank triple holds (a flanked, moving target). Neither is reached
-    /// by any capture on file — run112's four reviews all have a
-    /// stationary target — and the arms are `docs/COMBAT.md` §36.4.
+    /// **A fleeing target re-aims the chase** (item 1023, `docs/COMBAT.md`
+    /// §67): when the flank triple holds, the original does not return —
+    /// it falls through to [`Self::rechase_fleeing`].
+    ///
+    /// SEAM: a **building** target (vslot `+0x8` answers 0) takes the same
+    /// fall-through, and every exit it can reach there returns 0 but one —
+    /// the building's vslot `+0xbc` answering 0, which `repath`s. This
+    /// crate returns for a building, as it always has.
     fn check_target_path(&mut self, u: usize) -> bool {
         let me = Obj::Unit(u);
         let Some(t) = self.units[u].combat.target else {
@@ -2664,12 +2666,94 @@ impl Sim {
         // `5e2493`: the negative half of the window is tested inline and
         // jumps past the call, so `flanking` alone is not the predicate.
         if e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu) {
-            return false;
+            return self.rechase_fleeing(u, t);
         }
         if !self.is_in_range(me, t) {
             return false;
         }
         self.repath(u);
+        true
+    }
+
+    /// **`check_target_path@005e22d0`'s fall-through for a fleeing unit
+    /// target** (item 1023, `docs/COMBAT.md` §67), from the listing
+    /// (`5e24e2`–`5e2873`), for an `ATTACK` action (`local_14 == 10`):
+    ///
+    /// 1. the target's vslot `+0xbc`, `UnitData::is_on_map`, answers 0 →
+    ///    `repath`, return 1 (`5e24f9`, `5e2529`);
+    /// 2. `is_in_range@006486b0(o, who, orders_x, orders_y, ·, 0, 0)` —
+    ///    asked from **where the unit is walking**, the unit's own `+0x70`/
+    ///    `+0x74`, with no margin — answers yes → return 0 (`5e254e`–
+    ///    `5e2568`);
+    /// 3. a melee type (`max_range` `+0x1fc` zero) whose path holds one
+    ///    node returns 0 (`5e2586`–`5e2599`), and so does a building target
+    ///    (`5e25b0`);
+    /// 4. a head that is not a group order (`vt+0x2c`, `5e25c6`) or a unit
+    ///    in no group → `repath`, then `find_attack_pos(o, who, 1, &x, &y,
+    ///    0)` from the unit's own position (`5e26f7`–`5e2710`); nothing
+    ///    found → return 1 with the legs gone;
+    /// 5. a `DEFENSIVE` stance (`vt+0xf4 == 1`) on an attack that is not
+    ///    `mandatory` (`+0x1c`), not flagged `& 4`, and `defensive`
+    ///    (`+0x1d`) with a post (`+0x14`/`+0x18` both non-negative):
+    ///    standing `max(unit_defensive_respond_range, max_range) × 0xc0` or
+    ///    further from the post (`vector_dist` of the two absolute
+    ///    differences) → `find_new_target(this, NULL, 0)`, return 1
+    ///    (`5e2719`–`5e2832`);
+    /// 6. else `add_move_order(x, y, 1, 0, QUEUE_FIRST, 0, ·, −1, −1)`,
+    ///    return 1 (`5e2840`–`5e2868`) — the same move `fight`'s chase
+    ///    pushes.
+    ///
+    /// `find_attack_pos`'s third argument only picks the sweep's filter,
+    /// `FILTER_CAN_COLLIDE` (5) against `fight`'s `FILTER_NOT_ME` (3), and
+    /// `UnitType::find_nearby_spot` takes the one pairwise branch for both
+    /// (`0061de70:72`), so this crate passes nothing for it.
+    ///
+    /// SEAM: the group arm (`5e25d1`–`5e26e9`, `Group::is_moving_to` and
+    /// `Group::action_attack`) needs a group head, and
+    /// [`Self::check_target_path_review`] reviews no group head.
+    fn rechase_fleeing(&mut self, u: usize, t: Obj) -> bool {
+        let me = Obj::Unit(u);
+        let Obj::Unit(tu) = t else { return false };
+        if !self.units[tu].on_map {
+            self.repath(u);
+            return true;
+        }
+        if self.is_in_range_at(me, self.units[u].orders_pos, t) {
+            return false;
+        }
+        if self.profile(me).max_range == 0 && self.units[u].path.len() == 1 {
+            return false;
+        }
+        self.repath(u);
+        let here = self.units[u].pos;
+        let Some(dest) = self.find_attack_pos(u, t, here, crate::fight::SITE_ATTACK_POS_REVIEW)
+        else {
+            return true;
+        };
+        if let Some(Order {
+            body: Body::Attack(a),
+            flags,
+        }) = self.current_order(u).copied()
+            && self.units[u].combat.stance == combat::Stance::Defensive
+            && !self.units[u].combat.mandatory
+            && flags & 4 == 0
+            && a.defensive
+            && let Some(post) = a.def
+            && post.x >= 0
+            && post.y >= 0
+        {
+            let reach = self
+                .tuning
+                .unit_defensive_respond_range
+                .max(self.max_range_of(me))
+                * 0xc0;
+            let at = self.units[u].pos;
+            if crate::world::vector_dist((at.x - post.x).abs(), (at.y - post.y).abs()) >= reach {
+                self.find_new_target(u, false);
+                return true;
+            }
+        }
+        self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
         true
     }
 
