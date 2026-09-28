@@ -3597,7 +3597,37 @@ impl Sim {
                     // `0/11` at 671, where the dump has all three
                     // hoplites on `0/11` for every block of the capture.
                     // `docs/COMBAT.md` §38.
-                    if self.profile(me).max_range != 0 {
+                    // **The building arm** (item 1002, `docs/COMBAT.md`
+                    // §65): the target's vslot `+0x1c` (1 for a building
+                    // or a wall) splits the block at `5f7f27`. A building
+                    // is asked through the four-argument
+                    // `is_in_range@00648d70`, which passes the sixth
+                    // argument **0** — no `0x90` margin, `mandatory` or
+                    // not — after an AI-driven siege type
+                    // (`unit_masks & 0x40000`, `is_siege` `+0x10c`) is
+                    // passed over at `5f7f34`–`5f7f4a`. Either refusal
+                    // goes to the planner at `5f82c1`: the flank clause
+                    // and the captain retarget below are the unit
+                    // target's alone. run347's `1/26`, a ranged soldier
+                    // on the human's city, stops at (5079, 31628) at
+                    // `attack_dist` 1128 against a reach of 1158.
+                    //
+                    // SEAM: `Objects::find_collision(my own spot, o, who,
+                    // 1) == 0` (`5f7f9d`) is not modelled, as in the unit
+                    // arm; it only makes the kill rarer.
+                    if self.profile(me).max_range != 0
+                        && let crate::combat::Obj::Building(_) = t
+                    {
+                        let siege = self.units[u].ty.is_some_and(|ty| {
+                            self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                        });
+                        if !(siege && self.ai_driven(self.units[u].owner))
+                            && self.is_in_range(me, t)
+                        {
+                            self.kill_current_order(u);
+                            return Did::Something;
+                        }
+                    } else if self.profile(me).max_range != 0 {
                         // **`is_in_range`'s sixth argument**, and this is
                         // the executable's only caller that sets it: a
                         // non-`mandatory` chase is dropped `0x90` inside
