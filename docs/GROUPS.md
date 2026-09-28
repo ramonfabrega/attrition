@@ -4577,3 +4577,92 @@ at the detour with tolerance 0. **Mutation**: with the re-read taken out
 on the built tree, the unit test reads (2424, 4728) and 384 against the
 detour (1644, 4332) and 0, and run294's `1/40` rows on 19876 come back
 (item 795's journal).
+
+## 33. The second pair's widening compares the group record and the attack order's row (item 1061, 2026-09-28)
+
+DECISIONS 54 §2, parked 1062 folded. Until this item the second pair's
+widening compared the pool's **lists** and nothing else of `GROUPDATA`,
+and no shared site compared the `ATTACKORDER`'s own row. The pair's word
+stood on a group's order in a war.
+
+### 33.1 What is compared
+
+`diff::second::widen_records`, on every block of a widening that asks for
+it (run356's and run373's), both directions:
+
+- **Every player's 64 pool slots** that either side holds: the list,
+  `num`, `army`, `form`, `order_num`, `ox`/`oy`, `o_dist`, `o_angle`,
+  `facing`, `form_num`, `speed`, `new_speed`, `stamp`, `buildings`,
+  `disband`, `priority`, and each slot's `off`, `curr` and `angle`.
+  `role` is compared on an army's group, against `Army::role`
+  (`docs/ARMY.md` §3.1). `disband` and `priority` are compared against 0,
+  which this crate implies by writing neither. A slot one side holds alone
+  is a `held` row. Keys are `(who, -3, "group:<id>.<field>")`.
+- **The `ATTACKORDER`'s own row** on every order slot both sides hold as
+  an attack: `defensive`, `in_range`, `ever_in_range`, `new_ord`, `def_x`,
+  `def_y`, and on the front-most attack `mandatory`, which this crate keeps
+  on the unit (`combat::State`). Keys are `(who, o, "attack[<slot>].<field>")`.
+- **Each figure's aim**, `GuyData`'s `ox`/`whom`. A building is named by
+  its `(owner, index)`, as `widen_block` links it.
+
+`think_frame` is the one scalar left, because this crate does not carry
+it.
+
+### 33.2 What it read
+
+On run356 (4550..4806) and run373 (4841..5097), from run347's start:
+
+- **Standing from 4550**:
+  - army 0's group (slot 65) `role`, ours 0 against 1379331: this crate's
+    `Army::role` is never filled;
+  - the Town Center's building group (slot 64) `ox`/`oy`, ours −1 against
+    0.
+- **4600**: the army group's `curr[*]` parts by one to three units, on the
+  block `1/19`'s and `1/20`'s headings part. That family was already in
+  the widening.
+- **4753** (`1/24`), **4841** (`1/9`'s second attack), **4853** (`1/24`,
+  the block after its one-in-five re-search, §70.7 of `docs/COMBAT.md`),
+  **4898** (`1/9`), and on to the word: the attack row parts, always one
+  shape. Ours reads `new_ord 0, ever_in_range 1` (and `in_range 1` from
+  4853), where the original reads `new_ord 1, ever_in_range 0,
+  in_range 0`.
+- **4924, the word's block**: `1/11`'s head attack reads `in_range 1,
+  new_ord 0` here against `in_range 0, new_ord 1`. Its figure aims at the
+  citizen `0/2` here and at the Town Center `0/2000` in the original.
+
+No row of the group record parts between 4600 and 4987 but `role` and
+slot 64's point, which stand throughout. On 4987 slot 66, a second
+group, has its point and angle part, and on 4997 army 0's `facing`, both
+past the word.
+
+### 33.3 The compared pin
+
+`coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`
+walks `second::great_lakes_word_window` since this item: run373's
+4923..4927, the word's block with two on either side. Before, it walked
+the first pair's run202 15383..15387.
+
+Its pinned rows were re-read against that window's dump:
+
+- the attack row's seven fields, the `GROUPDATA` scalars bar
+  `think_frame`, `GroupMemberDump` whole, `BuildDump`'s `job_counter` and
+  `queue`, `QueueItemDump` whole, and `Guy`'s `ox`/`whom` left the pin;
+- the guard order's six fields arrived. No guard stands on these blocks.
+  The dump's order blocks there are `UNITORDER`, `MOVEORDER`,
+  `TARGETORDER`, `ATTACKORDER`, `ATTACKTOORDER`, `GATHERORDER`,
+  `BUILDORDER`, `EXPLORETOORDER` and `FLEETOORDER` only.
+
+### 33.4 What this has *not* established
+
+- **Why the attack row parts.** One reading fits every instance: the
+  original's attack is a fresh order where this crate's has struck. That
+  is item 1061's part two, `docs/COMBAT.md` §71.
+- **`role`**: `Army::role` is not written by `add_group` here. Nothing in
+  this crate reads it yet.
+- **Slot 64's point**: a building group's `(ox, oy)`, −1 here against 0,
+  is `copied`'s default against `Group::clear`'s. Nothing reads it.
+
+### 33.5 Coverage
+
+**Diff-backed**: every block of run356 and run373, pinned in both
+widening tests. **Mutation**: see item 1061's journal.

@@ -2461,9 +2461,10 @@ pub(crate) mod tests {
     /// replays, from run53's start through twelve captures, and the
     /// word's block with two on either side. `run202_s_word_frame_is_
     /// widened_whole` walks the whole window from the same chain;
-    /// `coverage`'s compared pin walks only these blocks, with the
-    /// recorder on. **The chain is one place** so that the capture a
-    /// moved word adds is added once and the pin follows the word.
+    /// `coverage`'s compared pin walked only these blocks, with the
+    /// recorder on, until item 1061 moved it to the second pair's word
+    /// (`second::great_lakes_word_window`). **The chain is one place** so
+    /// that the capture a moved word adds is added once.
     pub(crate) fn great_lakes_word_chain() -> Vec<(&'static str, i64)> {
         vec![
             (
@@ -2513,20 +2514,6 @@ pub(crate) mod tests {
                 WIDENING_GREAT_LAKES_GIVEUP.1 + 1,
             ),
         ]
-    }
-
-    /// [`widen_great_lakes`] over the word's block and two on either side,
-    /// on [`great_lakes_word_chain`]. `None` when a capture of the chain
-    /// is not on this machine.
-    pub(crate) fn great_lakes_word_window() -> Option<Widened> {
-        const WORD_BLOCK: i64 = GREAT_LAKES_RETURN_BLOCK;
-        widen_great_lakes(
-            "the word's window",
-            &great_lakes_word_chain(),
-            (WORD_BLOCK - 2, WORD_BLOCK + 2),
-            11_800,
-            &[WORD_BLOCK],
-        )
     }
 
     #[test]
@@ -10722,6 +10709,7 @@ pub(crate) mod tests {
             window,
             pools,
             near,
+            false,
         )
     }
 
@@ -10734,6 +10722,7 @@ pub(crate) mod tests {
         window: (i64, i64),
         pools: i64,
         near: &[i64],
+        records: bool,
     ) -> Option<Widened> {
         let inst = install()?;
         let Some(path) = dump(base) else {
@@ -10812,6 +10801,13 @@ pub(crate) mod tests {
             housed += fr.inside_housed;
             let raw = ix.read_frame(at).unwrap();
             let flog = Log::parse(&raw);
+            // **The group record and the attack order's row** (item 1061),
+            // on the windows that ask for them: `second::widen_records`.
+            if records && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n) {
+                compared += crate::diff::second::widen_records(
+                    &built, &frame, block, players, n, &mut here,
+                );
+            }
             if n >= pools
                 && let Some((_, block)) = flog.frames().into_iter().find(|(k, _)| *k == n)
             {
