@@ -4253,6 +4253,121 @@ mod tests {
         assert_eq!(pushes, 1, "the ready frame re-entered work and fired again");
     }
 
+    /// **A building is struck square to its side** (item 1040,
+    /// `docs/COMBAT.md` §70.6): `Unit::fight@005fd4d0`'s `5fe8a7`–`5feb4c`.
+    /// Great Lakes' Hoplites on the human's city face due south from the
+    /// row above its footprint, where the centre's bearing is 20° off.
+    /// West is asked first, then north, east and south; a covered tile that
+    /// is not blocked, or the unit's own tile covered, keeps the bearing.
+    ///
+    /// Made to fail first with the arm answering `None`.
+    #[test]
+    fn a_building_is_struck_square_to_its_side() {
+        let (mut sim, ty) = at_war();
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let b = sim.add_building(0, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1000;
+        sim.buildings[b].health = 1000;
+        sim.buildings[b].combat = Some(Profile::default());
+        let corner = sim.tile_corner(bt, at);
+        for t in sim.footprint(bt, corner) {
+            sim.world.set_blocked_at(t, true);
+        }
+        let me = put(&mut sim, 1, ty, at);
+        let tile = |x: i32, y: i32| Pos::new(x * 192 + 96, y * 192 + 96);
+        let side = |sim: &mut Sim, p: Pos| {
+            sim.units[me].pos = p;
+            sim.building_side(me, Obj::Building(b)).map(|a| a.0 as u32)
+        };
+        let (cx, cy) = (corner.x, corner.y);
+        assert_eq!(
+            side(&mut sim, tile(cx, cy - 1)),
+            Some(0x8000_0000),
+            "above: south"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx + 2, cy + 3)),
+            Some(0),
+            "below: north"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx - 1, cy + 1)),
+            Some(0x4000_0000),
+            "left: east"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx + 3, cy)),
+            Some(0xc000_0000),
+            "right: west"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx - 1, cy - 1)),
+            None,
+            "a corner: the bearing"
+        );
+        assert_eq!(
+            side(&mut sim, tile(cx + 1, cy + 1)),
+            None,
+            "inside: the bearing"
+        );
+        sim.world.set_blocked_at(Pos::new(cx, cy), false);
+        assert_eq!(
+            side(&mut sim, tile(cx, cy - 1)),
+            None,
+            "a covered tile that is not blocked"
+        );
+        let foe = put(&mut sim, 0, ty, at);
+        sim.units[me].pos = tile(cx, cy - 1);
+        assert_eq!(sim.building_side(me, Obj::Unit(foe)), None, "a unit target");
+    }
+
+    /// **The one-in-five retarget freezes the frame** (item 1040,
+    /// `docs/COMBAT.md` §70.7): `Unit::fight@005fd4d0`'s `005fdf68`–
+    /// `005fdfea`. A captain whose roll runs the re-search and finds
+    /// another target keeps its attack under the new target and carries
+    /// `unit_masks2 |= 0x10`, so its figures' clocks stand still for the
+    /// frame. Great Lakes' `1/24` on 4852: its Slinger's attack slot held
+    /// at 32 of 33 there, and wrapped to the idle here.
+    ///
+    /// Made to fail first with the mark left off.
+    #[test]
+    fn the_one_in_five_retarget_freezes_the_frame() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 1, ty, Pos::new(0x4000, 0x4000));
+        let far = put(&mut sim, 0, ty, Pos::new(0x4000 + 9 * 0xc0, 0x4000));
+        let near = put(&mut sim, 0, ty, Pos::new(0x4000 + 2 * 0xc0, 0x4000));
+        sim.add_attack_order(
+            me,
+            Obj::Unit(far),
+            crate::orders::QueuePos::New,
+            false,
+            false,
+        );
+        assert_eq!(sim.find_melee_target(me, -1), Some(Obj::Unit(near)));
+        let seed = (1u32..)
+            .find(|&k| {
+                let mut r = sim.rng.clone();
+                r.seed = k;
+                r.roll() % 5 != 0
+            })
+            .unwrap();
+        sim.rng.seed = seed;
+        sim.units[me].unit_masks2 = 0;
+        sim.work(me, 0);
+        assert_eq!(sim.units[me].combat.target, Some(Obj::Unit(near)));
+        assert_ne!(
+            sim.units[me].unit_masks2 & crate::combat::umask2::NOT_FIRING,
+            0,
+            "the retarget left the frame unfrozen"
+        );
+    }
+
     /// **A captain's attack on a building re-searches every frame**
     /// (`docs/COMBAT.md` §62, `Unit::fight@005fd4d0`'s `LAB_005fddf7`,
     /// `005fdeb4` → `005fdf50` → `005fdeea`). Out of its search's reach the
