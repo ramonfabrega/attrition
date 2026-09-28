@@ -10645,7 +10645,8 @@ pub(crate) mod tests {
         // (parked 275), once `push_group` keeps an equal group's record.
         // **Item 729 took one more (211 → 210)**: `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // **Item 882 took three (210 → 207)**: `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
-        assert_eq!(under, 207, "the floor under the word");
+        // Item 1072 took four (207 → 203): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!(under, 203, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -11186,7 +11187,8 @@ pub(crate) mod tests {
         // Item 890 took three (207/223 → 207/220): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, firsts.len()), (207, 220), "the floor");
+        // Item 1072 took four (207/220 → 203/216): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, firsts.len()), (203, 216), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -11394,7 +11396,8 @@ pub(crate) mod tests {
         // Item 890 took three (223/355 → 220/352): who=1's `MAKE[1]`, `[3]` and `[4]`
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
-        assert_eq!((under, firsts.len()), (220, 352), "the floor");
+        // Item 1072 took four (220/352 → 216/348): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!((under, firsts.len()), (216, 348), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11604,7 +11607,8 @@ pub(crate) mod tests {
         // Item 729: 317 → 316, `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 904: 316 → 311, who=1's `SITE[4]`, standing from 14176 — the
         // rock arm's city site at (47, 33) (`docs/AI.md` §78).
-        assert_eq!(standing_n, 311, "every row standing on 14651");
+        // Item 1072 took four (311 → 307): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!(standing_n, 307, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
@@ -11749,7 +11753,8 @@ pub(crate) mod tests {
         // Item 723 took one (315 → 314): the scout's formation mirror
         // (parked 275), an equal group's record kept.
         // Item 729 took one more (314 → 313): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
-        assert_eq!(standing_n, 313, "every row standing on 14983");
+        // Item 1072 took four (313 → 309): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+        assert_eq!(standing_n, 309, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
@@ -11860,7 +11865,8 @@ pub(crate) mod tests {
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 723 took one (315 → 314): the scout's formation mirror.
-            313,
+            // Item 1072 took four (313 → 309): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            309,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -12001,7 +12007,8 @@ pub(crate) mod tests {
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
-            (313, 314),
+            // Item 1072 took four (313/314 → 309/310): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            (309, 310),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -12151,7 +12158,8 @@ pub(crate) mod tests {
                 standing.get(&OLD_BLOCK).map_or(0, BTreeMap::len),
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
-            (309, 309),
+            // Item 1072 took four (309/309 → 305/305): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            (305, 305),
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -12271,7 +12279,8 @@ pub(crate) mod tests {
         // item 742, whose give-up took `1/23`'s 43 keys off it.
         assert_eq!(
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
-            312,
+            // Item 1072 took four (312 → 308): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            308,
             "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
@@ -12409,7 +12418,8 @@ pub(crate) mod tests {
             // `MAKE` list's twelve (323) until item 785: the twelve went,
             // and so did four standing rows the wonder pass had kept —
             // `MAKE[0]`, `[1]` and `[8]`'s `city` and `SITE[1].reg`.
-            (311, 311, 307),
+            // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            (307, 307, 303),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -12515,7 +12525,8 @@ pub(crate) mod tests {
         assert_eq!(
             (tail, carried),
             // 28 before item 899: `1/60`'s 23 went.
-            (307, 5),
+            // Item 1072 took four (307 → 303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+            (303, 5),
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -12643,7 +12654,8 @@ pub(crate) mod tests {
         assert_eq!(
             by.into_iter().collect::<Vec<_>>(),
             [
-                (WIDENING_GREAT_LAKES_END.0, 310),
+                // Item 1072 took four (310 → 306): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
+                (WIDENING_GREAT_LAKES_END.0, 306),
                 (WIDENING_GREAT_LAKES_END.1, 48)
             ],
             "the blocks keys first part on, and how many"
