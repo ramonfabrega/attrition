@@ -2934,7 +2934,7 @@ impl Sim {
             // owner, which the simulation does not yet distinguish.
             let _ = tp.build_class;
         }
-        // **The RAID arm** (`0064e62b`–`0064e6b6`, `docs/COMBAT.md` §68):
+        // **The RAID arm** (`0064e6b6`–`0064e742`, `docs/COMBAT.md` §68.1):
         // `bVar17`, the attacker's own stance 3, qualified for an AI-driven
         // (`bVar3`, `unit_masks & 0x40000`) ship (`bVar16`, type `+0x218 ==
         // 1`), which raids only without the SIEGE objmask. It reweights
@@ -2956,7 +2956,7 @@ impl Sim {
         if t_attack != 0 && left != 0 && !aa {
             // A raider looks at an active building's worth, not its threat:
             // `iVar5 == 0 || !bVar17 || iVar4 == 0` takes the formula, and
-            // the one case left takes `/ 20` (`0064eb3c`).
+            // the one case left takes `/ 20` (`0064ea57`–`0064ea7a`).
             if is_build && raiding && self.active(target) {
                 v /= 20;
             } else {
@@ -3040,7 +3040,7 @@ impl Sim {
         }
         if is_build {
             // Armed buildings: a human owner gets ×5; siege adds 100,000.
-            // A raider jumps past all of it to the tail (`0064f0e6`,
+            // A raider jumps past all of it to the tail (`0064f124`,
             // `if (bVar17) goto LAB_0064f1ed`).
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
             if armed && !raiding {
@@ -3053,14 +3053,14 @@ impl Sim {
             if tp.combat_role {
                 v *= 20;
             }
-            // **The raid weights** (`0064ed1b`–`0064eea1`): a raider wants
+            // **The raid weights** (`0064edc4`–`0064eff9`): a raider wants
             // the economy. A peasant — exactly `PEASANTS`/`PEASANTSKOREAN`,
             // `ObjectData::is_peasant`, type `0x32`/`0x33` — or a caravan is
             // worth `+900,000` to a computer's raider and `+9,000,000` to a
             // human's; a computer's also takes a combat-role unit at
             // `+10,000`; anything else is worth a tenth.
             //
-            // SEAM: an AI ship's raid arm (`bVar16`, `0064ed2b`–`0064ee3c`:
+            // SEAM: an AI ship's raid arm (`bVar16`, `0064edd8`–`0064ef64`:
             // the `0x150`/`0x13d` lineage tests and the stealth-ship
             // weights) is read as the land arm; no capture reaches one.
             let peasant = matches!(target, Obj::Unit(u) if self.is_peasant(u));

@@ -3279,7 +3279,7 @@ impl Sim {
                 // unit target, 2 for a wall** (the target's vslot
                 // `+0x1c`). What it cannot name falls back to the group's
                 // target. **The arm is under the target's vslot `+0x20`
-                // answering 0** (`00712490:433`–`436`): a `Build` target
+                // answering 0** (`00712490:433`–`437`): a `Build` target
                 // takes the other arm, which adds the attack itself with
                 // no search (`action_attack+0xc44`). run369's packet: the
                 // look on 4605 hands the human's city to group 65, and
@@ -3288,9 +3288,10 @@ impl Sim {
                 //
                 // SEAM: `find_melee_target`'s squad head (a follower takes
                 // its captain's attack without a search) is on the
-                // decompile's path for this call, and the floor refused
-                // it: built, Great Lakes fell from 4618 to 4607, the city's
-                // `targeted` twelve bumps short (`docs/COMBAT.md` §66.3).
+                // decompile's path for a unit or wall target, and no
+                // capture reaches one. Item 1012's kill of it (the city's
+                // `targeted` twelve bumps short) was a city target, which
+                // never reaches the search (`docs/COMBAT.md` §68.2).
                 let build = matches!(target,
                     Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE);
                 let t = if mandatory || build {
@@ -6744,7 +6745,7 @@ mod tests {
             y_size: 2,
             ..crate::build::BuildType::default()
         });
-        let mut put = |s: &mut Sim, at: Pos, cost: i32| {
+        let put = |s: &mut Sim, at: Pos, cost: i32| {
             let b = s.add_building(0, at, 0);
             s.buildings[b].ty = Some(bt);
             s.buildings[b].hits = 800;

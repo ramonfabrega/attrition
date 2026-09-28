@@ -9880,3 +9880,80 @@ rebuild's inputs. On those terms the original's formula picks ours.
 The packet stays outside git at
 `~/ron-data/lab-captures/2026-09-27-run360/map-14`. The probe and its output
 are at `~/ron-data/lab-experiments/2026-09-27-item-1014/`.
+
+## run368 — Great Lakes at Toughest, a packet at logger frame 4688: the raider's re-search (2026-09-28, item 1028)
+
+**What it is.** A `RON_STATE_FRAME=4688` packet on the click-free lane over
+run347's game (Great Lakes, `DIFFICULTY 5`). Blocks 4684–4691 are dumped
+at run356's detail, and `!quit` is at 4697. The plan is item 597's, as for
+run360. The lane lock was stale: att-1011's runner had exited, and nothing
+else ran.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run368 \
+    --map 14 --end-frame 4697 --timeout 2400 --log-window 4684 4692 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=4688 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 01:03, one take. `success: true`, exit 0, 55 s launch to exit
+and 64 s in all. The packet is 807,996,408 bytes.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run347.log` | **0 differing**, 4,698 identical |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 14`, seed 12345 read back |
+| settings | five files restored |
+
+**Why 4688, and not the booked 4687.** The word is trace tick 4688, and
+block 4689 is the first to print its strike. `docs/EMULATOR.md` §8's rule
+(the twelfth pass) is to take the word itself as a logger frame. The
+booking's "a packet at N is after N−1's decision" is the rule that pass
+struck. A packet at 4687 would have left tick 4687 to emulate, and
+`Game::do_frame` faults on a packet (parked 1026).
+
+**The booking cites what the disk could not answer.** No dump prints
+`targeted` (`ObjectData +0x3d`), and 1023 grepped for it.
+
+**What it settled** (`docs/COMBAT.md` §68.1, §68.3):
+- `targeted` is 0 on the scout `0/0`, the citizens and every building,
+  the city included, where ours read 31 on the city.
+- `find_melee_target`, entered directly on `1/24`, answers `0/3`.
+- Every candidate's shaped distance equals ours, and the values do not:
+  the RAID arm.
+
+## run369 — Great Lakes at Toughest, a packet at logger frame 4605: the army's hand-off (2026-09-28, item 1028)
+
+**What it is.** A `RON_STATE_FRAME=4605` packet over run347's game, blocks
+4601–4608 dumped, `!quit` at 4614. It is the booking's second packet, for
+parked 1015. It was taken at 4605 rather than 4606 because the question
+became the look's hand-off on tick 4605 itself.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run369 \
+    --map 14 --end-frame 4614 --timeout 2400 --log-window 4601 4609 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=4605 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 01:17, one take, exit 0. The packet is 821,648,320 bytes.
+`rngcmp.py` against `rontrace-run347.log` shows **0 differing** of 4,615,
+and `DIFFICULTY 5` read back. Free disk went 23 → 22 GB across the two.
+
+**The booking cites what the disk could not answer.** With §68.1 built,
+the walk fell back to 4605: our members took `0/2001`, where every member
+of group 65 holds the city on block 4606. The dump prints the result,
+not the searches that made it.
+
+**What it settled** (`docs/COMBAT.md` §68.2):
+- A word-2 search from `1/9`, `1/13` or `1/21` answers `0/2001`.
+- `1/15`'s look finds the city, and `Group::action_attack` gives all
+  eighteen members `add_attack_order(2000)` from `+0xc44`, with no search.
+
+Both packets stay outside git under `~/ron-data/lab-captures/`. The probes
+(`targeted_probe.py`, `melee_probe.py`) and their outputs are at
+`~/ron-data/lab-experiments/2026-09-28-item-1028/`.
