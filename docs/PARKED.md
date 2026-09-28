@@ -62,6 +62,21 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1019, 2026-09-28 — the Helicopter and the V2
+
+(1049) **An idle Helicopter's drift**: `0/11` from (8355, 14690) to
+(8465, 14784) by 2701, from 2675, the block `0/12` exits beside it
+(run371).
+
+(1050) **The V2's strike and launch** (2672..2702, run371):
+`action_launch_flight`'s missile narrowing; the `AIRATTACKGROUNDORDER` in
+the sim and in the dump's parser; the silo's `recharging` countdown; and
+`do_missile_launch` → `come_out` → `Unit::process` →
+`do_air_attack_ground`, whose in-range arm fires and dies.
+
+(1051) **The V2's round**: a spline shot (`traj 2`, 120 frames) and its
+blast on `1/2006`. It needs 1050 first.
+
 ## Parked by item 1034, 2026-09-28 — the city under attack
 
 (1041) **`1/26`'s one-frame strike lag on the city from its second
@@ -136,7 +151,8 @@ not built (COMBAT §66).
 (run358), at its EXIT under the escort: theirs 1, ours 0. The EXIT's
 `set_angle(0)` turns 6° and cannot flip it; the one other writer of
 `unit_masks & 2` is `Unit::kill_current_order@005e2cb0`'s move branch, on
-the order the EXIT kills. Not read.
+the order the EXIT kills. Not read. **1019**: the same writer stands on
+run371's `0/11` on 2446.
 
 (1008) **The escort's search**: `find_new_bomber_target`'s ally arm and a
 non-bomber's `find_new_air_target`. Built as the bomber's point search
@@ -1809,7 +1825,10 @@ starts (run185's documented hang) and the stall guard's relaunch sits
 at the menu. 1019 split it as 1011 did: the chapter at `cover=0` on the
 click-free lane, the blind list at `cover=1` on the queue lane. A brief
 checklist row: name the lane with the cover setting, and 1011's split
-for an issuer chapter that wants both.
+for an issuer chapter that wants both. **1019's Loop line**: run185
+had recorded the hang, so a brief naming a lane and a cover is checked
+against `docs/RUNS.md` in one grep; the stall guard that kills a slow
+`cover=1` launch is the second half of the trap.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
