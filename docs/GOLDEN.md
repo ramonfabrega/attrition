@@ -7249,3 +7249,34 @@ bank, pitch and clock. **Their writers** (889): the stack's is
 only the strike admits. Then 2282, 2297, 2307 and 2337, each press's
 planes.
 
+**The arms built: `GOLDEN_WORD_CHAPTER_THIRTY_THREE` = 2740, closed**
+(item 976, `docs/PRODUCTION.md` "The launch commands"): the two launch
+commands (`crate::airbase`), action 3's launch at an Airbase, and
+`do_strafe`'s escort. **The value diff, both sides** (ours before the
+build in brackets): 2262, `0/8` one `STRAFEORDER` on `1/2006`, flags 4
+(none), on the map at (11424, 13860) (inside, at (11417, 13995)); 2282,
+`0/9` over P1, flags 4, and out (inside with no order); 2297, `0/7` and
+`0/6` over P2 (no order); 2307, all four on `0/1`, `0/6` flags 4 (the
+stacks of 2306); 2337, all four over P3 alone (the strikes); every
+position of the escort and the patrols after; the value stream agrees to
+run358's end. The widening goes **389 → 18 rows**, the pool at eleven:
+chapter thirty-two's seventeen and `0/6`'s `mirror` on 2314 with slot 1's
+`facing`, its EXIT under the escort (ours 0, theirs 1). The EXIT's own
+`Unit::set_angle(0)` turns 6° and cannot flip it; the other writer of
+`unit_masks & 2`, `Unit::kill_current_order@005e2cb0`'s move branch, is
+not read. `GROUND_INEXACT` stays at 43.
+
+**Mutations**, each on the committed build (`41364b7a`), restored from git
+and `touch`ed after:
+
+| mutation | fails |
+| --- | --- |
+| the Biplane line's ÷ 10 dropped | the launch patrol's test; the word (2287) and the widening |
+| the fuel gate dropped | the same test; the word (2287) and the widening |
+| the fuel gate held under shift | the same test; the widening |
+| the strike's line the Biplane's for a building | the launch strike's test; the word (2263) and the widening |
+| action 3's `action_flight` dropped | the action-3 test; the widening |
+| the escort reverted to a `return` | the escort's test; the word (2307) and the widening |
+| the general loop's Airbase skip dropped | the action-3 test; the widening |
+| the × 200 for a plane with an order dropped | **nothing**: no press on this cast weighs a plane with an order against one without |
+

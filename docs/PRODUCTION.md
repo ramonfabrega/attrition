@@ -1284,8 +1284,25 @@ bytes in all; `issue_flight` on the same group a 25-byte `flight` with
 - The escort's arm is taken when the target's owner is not negative and
   `is_ally` (vslot `0x30` is `Window::get_button`, 0).
 
-**Built**: not yet; `rondata::input::group_launch_patrol` and
-`group_launch_flight` push the building group and order no plane.
+**Built, and run358 backs it** (item 976, `docs/GOLDEN.md` §42):
+`crate::airbase` — `Sim::group_action_launch_patrol`,
+`group_action_launch_flight` and `gather_launch`, action 3's arm, which
+`Sim::action_gather_point` calls for the group's Airbases — and
+`do_strafe`'s escort (`crate::orders`). The entries are
+`rondata::input::group_launch_patrol` and `group_launch_flight`. run358:
+the Bomber `0/8` struck the Barracks on 2262, the Biplane `0/9` patrolled
+P1 on 2282 with the Bomber `0/7` fuelled beside it, `0/7` and the
+refuelling `0/6` patrolled P2 on 2297, all four struck `0/1` with `0/6`
+alone flagged on 2307, and all four patrolled P3 alone on 2337; chapter
+thirty-three closed at 2740. Four tests in `airbase::tests`, each failing
+under its arm's mutation (§42's table).
+
+**Not established, and reading only**: ctrl and alt; the Helicopter's
+move; the missile arms (`NUCLEARMISSILE`, `V2ROCKET`) and the rush rules;
+`MOVE_TO` to a second base (the farthest plane `can_carry` admits);
+`[P1, A3, P2]`; the escort's search (`find_new_bomber_target`'s ally arm
+and `find_new_air_target`, the bomber's point search and nothing here);
+and `0/6`'s `mirror` on 2314, whose writer is not read.
 
 ## What is not established
 
