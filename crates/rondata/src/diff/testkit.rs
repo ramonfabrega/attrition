@@ -4289,9 +4289,15 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_FOUR: (i64, i64) = (605, 2851);
 /// — and its end, `Object::die` with no death draw. The stream agrees to
 /// run371's end, and so does every word of the value stream. What the
 /// widening still holds of the V2 is its blast: on 2821 the dump's
-/// Barracks `1/2006` is gone, where here it stands at 400 damage of 1200.
+/// Barracks `1/2006` is gone, where here it stood at 400 damage of 1200.
+/// **Item 1077 built it, and the word does not move**: the round has no
+/// target, and `Ammo::check_hit`'s `find_building_at` on its landing tile
+/// makes the Barracks its own, struck whole rather than as a fringe
+/// (`docs/COMBAT.md` §73). The widening's V2 row on 2821 is gone (43 → 42,
+/// its block in `chapter_thirty_five_s_word_frame_is_widened_whole`).
 ///
-/// **The delta**, this constant's: +559, 2701 → 3260, closed.
+/// **The delta**, this constant's: +559, 2701 → 3260, closed; item 1077,
+/// +0.
 pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_FIVE: i64 = 3260;
 
 /// `chapter_thirty_five_s_word_frame_is_widened_whole`'s window: run371
@@ -4834,6 +4840,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // round's read included.
     (
         "chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field",
+        40,
+    ),
+    // The V2's blast, field for field (item 1077): run371 to 2822, the
+    // same reads as the walk to there.
+    (
+        "chapter_thirty_five_s_v2_blast_is_compared_field_for_field",
         40,
     ),
 ];

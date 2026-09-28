@@ -12914,6 +12914,145 @@ fn chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field() {
     );
 }
 
+/// **The V2's blast, field for field, both directions** (item 1077,
+/// `docs/PRODUCTION.md` "The missile's launch and round", `docs/COMBAT.md`
+/// §73). On every block of [`V2_BLAST`], run371's last two before the
+/// round comes down on 2820 to two after:
+/// - every building either side, on the map or gone, and its `damage`
+///   where both hold it — the Barracks `1/2006` the round lands on among
+///   them, 0 on 2820 and gone on 2821 in the dump;
+/// - every unit either side, on the map or gone;
+/// - the V2's round, held or closed.
+///
+/// The round has no target (`whom −1`); `Ammo::check_hit`'s
+/// `find_building_at` on its landing tile makes the Barracks its own
+/// target, struck whole rather than as a fringe.
+#[test]
+fn chapter_thirty_five_s_v2_blast_is_compared_field_for_field() {
+    use std::collections::{BTreeMap, BTreeSet};
+    let Some(mut s) = stage_script("ch35", "chapter35") else {
+        return;
+    };
+    let (first, last) = V2_BLAST;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut rows = 0usize;
+    let mut barracks = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let raw = s.ix.read_frame(at).unwrap();
+        let recs = raw_records(&raw);
+        let sim = &s.built.sim;
+        let mut row = |who: i64, o: i64, what: &str, mine: i64, dumped: i64| {
+            rows += 1;
+            if mine != dumped {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {mine} theirs {dumped}")));
+            }
+        };
+        // Every building, both directions.
+        let ours: BTreeMap<(i64, i64), &sim::Building> = sim
+            .buildings
+            .iter()
+            .filter(|b| b.alive)
+            .map(|b| ((i64::from(b.owner), i64::from(b.index)), b))
+            .collect();
+        let keys: BTreeSet<(i64, i64)> = recs
+            .keys()
+            .filter(|(k, _, _)| *k == "BUILDDATA")
+            .map(|&(_, w, o)| (w, o))
+            .chain(ours.keys().copied())
+            .collect();
+        for (w, o) in keys {
+            let theirs = recs.get(&("BUILDDATA", w, o));
+            let mine = ours.get(&(w, o));
+            row(
+                w,
+                o,
+                "present",
+                i64::from(mine.is_some()),
+                i64::from(theirs.is_some()),
+            );
+            if let (Some(b), Some(t)) = (mine, theirs) {
+                row(
+                    w,
+                    o,
+                    "damage",
+                    i64::from(b.damage),
+                    t.get("damage").copied().unwrap_or(-1),
+                );
+                if (w, o) == (1, 2006) {
+                    barracks += 1;
+                }
+            }
+        }
+        // Every unit, both directions.
+        let ours: BTreeSet<(i64, i64)> = sim
+            .units
+            .iter()
+            .filter(|u| u.alive() && !u.is_gaia())
+            .map(|u| (i64::from(u.owner), i64::from(u.index)))
+            .collect();
+        let theirs: BTreeSet<(i64, i64)> = recs
+            .keys()
+            .filter(|(k, w, _)| *k == "UNITDATA" && *w < 8)
+            .map(|&(_, w, o)| (w, o))
+            .collect();
+        for &(w, o) in ours.union(&theirs) {
+            row(
+                w,
+                o,
+                "present",
+                i64::from(ours.contains(&(w, o))),
+                i64::from(theirs.contains(&(w, o))),
+            );
+        }
+        // The round.
+        let theirs = super::ammo::blocks(&raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0 && a.who == 0 && a.o == 10)
+            .count();
+        let ours = sim
+            .projectiles
+            .iter()
+            .filter(|p| match p.shooter {
+                sim::combat::Obj::Unit(u) => sim.units[u].owner == 0 && sim.units[u].index == 10,
+                sim::combat::Obj::Building(_) => false,
+            })
+            .count();
+        row(0, 10, "rounds", ours as i64, theirs as i64);
+    }
+    for ((w, o, what), (f, r)) in &firsts {
+        eprintln!("  ch35 blast f{f} {w}/{o} {what}: {r}");
+    }
+    eprintln!("ch35 blast: {rows} rows, the Barracks held both sides on {barracks} blocks");
+    assert_eq!(barracks, 3, "run371 dumps the Barracks on 2818..2820");
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    assert_eq!(
+        got, WANT_CH35_BLAST,
+        "ch35: what parts in the V2's blast moved"
+    );
+}
+
+/// What stands of the V2's blast on [`V2_BLAST`] (item 1077): nothing.
+const WANT_CH35_BLAST: &[&str] = &[];
+
+/// [`chapter_thirty_five_s_v2_blast_is_compared_field_for_field`]'s
+/// window: run371's blocks 2818..2822, the round's landing on 2820 and
+/// the Barracks gone on 2821.
+const V2_BLAST: (i64, i64) = (2818, 2823);
+
 /// **The missile's launch offset is the install's** (item 1050):
 /// `<MISSILEOFFSET x y z>` under `EFFECTS` in `Data/effects_graphics.xml`,
 /// which `GraphicEvents::init@008e5390` reads before the first frame, is
@@ -12984,8 +13123,14 @@ const V2_LAUNCH: (i64, i64) = (2668, 2704);
 // stream had pushed after 2701 is gone. **The word's block**, 2701 and
 // 2702 (the word, closed at 3260): no row; the V2's own record there is
 // `chapter_thirty_five_s_v2_is_counted_out_and_fired_field_for_field`'s,
-// 220 rows and none parting. What stands of it is the blast: 2821,
-// `1/2006` gone there, at 400 damage here.
+// 220 rows and none parting. What stood of it was the blast: 2821,
+// `1/2006` gone there, at 400 damage here. **After item 1077**: 42 rows.
+// The round, with no target, makes the Barracks under its landing tile
+// its own target (`Ammo::check_hit`'s `find_building_at`), and strikes it
+// whole: `1/2006` is gone on 2821 both sides. The blast's own record is
+// `chapter_thirty_five_s_v2_blast_is_compared_field_for_field`'s, none
+// parting. What stands is the birth seats and the second Helicopter's
+// bearing, parked.
 const WANT_CH35: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
@@ -13029,7 +13174,6 @@ const WANT_CH35: &[&str] = &[
     "2719 0/12 heading",
     "2720 0/12 angle:Facing",
     "2720 0/12 g.angle[0]",
-    "2821 1/2006 build:extra",
 ];
 
 // **What parts in the pool** on run371: chapter twenty-two's ten, and

@@ -11938,3 +11938,118 @@ decompile prints `flanking`'s argument as `unaff_EDI`; the listing puts
 - **Listing-backed**: `5f7fbe`–`5f7ff6`, `92cfe0`–`92cffd`.
 - **Unit-backed only**: the target walking toward the chaser. No capture
   has one in reach.
+
+## 73. A round with no target strikes the building it lands on (item 1077, 2026-09-28)
+
+### 73.1 The frame
+
+Chapter thirty-five's V2 (`docs/GOLDEN.md` §44, run371). Its round is
+fired at a point, not an object: `whom −1`, `ox −1` on every block it
+flies (`docs/PRODUCTION.md`, "The missile's launch and round"). It comes
+down on 2820 at (13834, 14969). That is on who=1's Barracks `1/2006` at
+(13824, 14976), a 5×5 footprint, with no unit of any player within two
+tiles.
+
+- **The dump**: `1/2006` prints `damage 0`, `myhits 1200` on 2819 and
+  2820, and no `BUILDDATA` on 2821 or after. The round's `AMMO` record
+  is on 2820 (`cur_time 119`) and gone on 2821. Nothing else on the
+  frame moves but the clocks, who=1's economy and who=0's
+  `leader_flags` (19 → `0x0A000013`, a field this harness does not
+  compare).
+- **This crate**, before item 1077: the Barracks at 400 damage on 2821
+  and standing to the end of the run. `RON_DEBUG_BLAST`, a scratch
+  print, showed the one hit: `do_damage` with `count` 256, **`splash`
+  1**, attack 1500 (tenths), table 1075%, armor 3. So `16125 × 25 / 100
+  = 4031`, and `(4031 + 5) / 10 − 3` = 400.
+- Struck with `splash` 0 it is `(16125 + 5) / 10 − 3` = 1610, past the
+  Barracks' 1,200.
+
+The draw stream agrees across the frame either way: the building's first
+wound draws its `% 100` on both sides (§9.5), and its fall takes no draw.
+
+### 73.2 The rule
+
+`Ammo::do_damage@00678060`'s splash arm gives `splash` 0 to the object
+`hit_target`/`check_hit` left in `whom`/`ox`, and `splash` 1 to every
+other object its walk reaches (§9.3). A round with no target fails
+`hit_target`, and **`Ammo::check_hit@00678d90`** then names it (§9.4,
+the listing `678d90`..`678f7f`):
+
+1. `ObjectsData::find_unit` at the landing point, radius `0x180`, in the
+   ammo's domain class (the call at `678e13`). A unit found beyond its
+   own `target_size` is dropped (`678e4c`..`678e61`).
+2. **Failing a unit**, and only for a landing inside the world
+   (`678e7a`..`678eac`: `0 ≤ x < world+0x18 × 0xc0`, the same for `y`),
+   `ObjectsData::find_building_at@0065ab40` on the landing's own tile,
+   `div_3_table[c >> 6]` (the call at `678ece`). Its answer is `whom`
+   (`678ed9`), and a building found returns 1 (`678ee7`).
+
+`find_building_at(tx, ty, SEARCH_ALL, −1, FILTER_ALL)`:
+- the tile inside the world and marked as a building's (`& 3 == 3`);
+- the 3×3 cells round the tile's cell, in `move_x`/`move_y` order, and
+  each cell's object chain;
+- the first object of a player below eight, `is_active` at vslots `0xc`
+  and `0x4c` (`SubObjectData::is_active`, `WallData::is_active`), whose
+  footprint holds the tile: `WallData::tile_corner` ≤ tile < corner
+  plus the type's `+0x234`/`+0x238` (`x_size`/`y_size`).
+
+So **the building a round comes down on is its target**, struck whole,
+whenever no unit stands within two tiles. §9.4 said so; the code did
+not.
+
+### 73.3 What this crate had
+
+`check_hit`'s second half compared the landing's tile against the
+building's point in **position units** (`|tile − pos| ≤ size × 96`). A
+tile is under 256 and a point is in the thousands, so it found a
+building only near the map's corner, and in no capture on disk. Every
+shot on disk that missed and came down on a building went into the
+ground (no splash) or struck it as a fringe (splash).
+
+### 73.4 Built
+
+`Sim::building_under` (`crates/sim/src/fight.rs`): the world bound, then
+the first building of a player below eight, active (this crate's
+`Sim::active`), whose footprint (`Sim::covers_tile`, the same
+`tile_corner`) holds the landing's tile. `check_hit` falls back to it.
+
+- **Unit test**: `fight::tests::a_round_with_no_target_strikes_the_building_it_lands_on`,
+  on run371's own geometry. It fails on the old comparison: `check_hit`
+  answers `None`, and the Barracks takes the fringe's damage.
+- **The value diff**: `chapter_thirty_five_s_v2_blast_is_compared_field_for_field`,
+  run371's blocks 2818..2822, both directions. It covers every
+  building's presence and `damage`, every player's unit's presence, and
+  the V2's round. 261 rows, none parting: `1/2006` at `damage 0` on
+  2820 on both sides, and gone on 2821 on both.
+- Chapter thirty-five's word stays at 3260. Its widening goes 43 → 42:
+  the V2 row on 2821 is gone.
+
+### 73.5 What is not established
+
+- **A shot without splash** that misses and comes down on a building now
+  strikes it where it punctured the ground before. That trades two
+  puncture draws (§39) for the building's wound. No pin on disk moved
+  (the gate), so no capture on disk has one. None has been seen on
+  either side.
+- **The walk's order** among buildings whose footprints hold one tile.
+  Footprints do not overlap, so this crate takes the lowest index. A
+  wall's (`WallData`) footprint was not read against it.
+- **`find_building_at`'s tile mark** (`world+0x138`, `& 3 == 3`) is taken
+  as "a building's footprint is on the tile". This crate reads the
+  footprint, not the mark.
+- **who=0's `leader_flags` gains `0x0A000000` on 2821.** Its writers of
+  `0x2000000` are `Unit::init`, `Object::insert_inside` and
+  `remove_from_inside`, none of them on this frame. The writer of
+  `0x8000000` was not found by a grep of the decompile. No reader in
+  this crate, and uncompared.
+- The missile arm's other branches stand as PRODUCTION lists them
+  (parked 1078): a nuke, `MISSILE_DEFENSE_BONUS`, leader `+0x7c0` and
+  `S_NUKE_HIT`, which print nothing at `LEADERS=2`.
+
+### 73.6 Coverage
+
+- **Diff-backed**: the V2's strike on the Barracks, by run371's blocks
+  2818..2822 (the value test) and the widening's run371 whole.
+- **Listing-backed**: `check_hit`'s building arm, `678e7a`..`678ee7`.
+- **Reading-only**: `find_building_at`'s walk and predicates
+  (decompile).
