@@ -4726,6 +4726,77 @@ mod tests {
         );
     }
 
+    /// **A dead target is re-aimed at** (`check_target_path@005e22d0`,
+    /// `5e2429`–`5e242e`; `docs/COMBAT.md` §76). The slot's vslot `+0x8`
+    /// is `SubObjectData::is_active`, and a dead target's `je 5e24e8`
+    /// jumps the flank triple into the same fall-through a fleeing one
+    /// takes: its walk spot cannot reach a corpse, so on the review's phase
+    /// the legs go and `find_attack_pos` aims a new one at where it fell.
+    /// run347's `1/13` re-aims on 5011, 5027, 5043 and 5059 at `0/2`, dead
+    /// since 5000 (Great Lakes 5066).
+    ///
+    /// Three arms: the dead target re-aims, standing still; the same target
+    /// alive and standing, and the dead one off the phase, keep the stale
+    /// spot. Made to fail on purpose by returning for a dead target, as
+    /// this crate did: the first arm keeps its stale spot.
+    #[test]
+    fn a_dead_target_is_re_aimed_at_on_the_review_s_phase() {
+        let (mut sim, ty) = at_war();
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let foe = put(&mut sim, 0, ty, at);
+        // Past `(max_range + 8)` tiles, `find_attack_pos`' far arm, which
+        // takes the sweep's spot without asking the range (a corpse is in
+        // nobody's): `1/13` was some fifteen tiles out.
+        let me = put(&mut sim, 1, ty, Pos::new(at.x + 16 * 0xc0, at.y));
+        // Ten tiles from the chaser, so `do_move`'s dead-target arm
+        // (`0x480` from the walk's own goal) leaves it standing.
+        let stale = Pos::new(at.x + 6 * 0xc0, at.y + 3 * 0xc0);
+        // The review's phase: `(frame + o) % 16 == 0`.
+        let on = 16 - i64::from(sim.units[me].index);
+        let chase = |sim: &Sim, dead: bool, frame: i64| {
+            let mut s = sim.clone();
+            s.add_attack_order(
+                me,
+                Obj::Unit(foe),
+                crate::orders::QueuePos::First,
+                false,
+                true,
+            );
+            s.add_move_order(
+                me,
+                stale,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::First,
+                false,
+            );
+            if dead {
+                s.units[foe].health = 0;
+            }
+            let before = s.units[me].orders_pos;
+            s.work(me, frame);
+            let after = s.units[me].orders.iter().find_map(|o| match o.body {
+                crate::orders::Body::Move(m) => Some(m.dest),
+                _ => None,
+            });
+            (before, after)
+        };
+        let (before, after) = chase(&sim, true, on);
+        let after = after.expect("the chase keeps a move");
+        assert_ne!(after, before, "the dead target's chase kept its stale spot");
+        assert!(
+            crate::world::vector_dist((after.x - at.x).abs(), (after.y - at.y).abs())
+                < crate::world::vector_dist((before.x - at.x).abs(), (before.y - at.y).abs()),
+            "the new spot is not aimed at the corpse: {after:?}"
+        );
+        for (dead, frame, why) in [
+            (false, on, "a living standing target"),
+            (true, on + 1, "an off-phase frame"),
+        ] {
+            let (before, after) = chase(&sim, dead, frame);
+            assert_eq!(after, Some(before), "{why} re-aimed the chase");
+        }
+    }
+
     /// **An unpacked packer takes only what it can reach, and a hit from
     /// inside its minimum is dropped without a chase**
     /// (`Object::find_nearby_target@00648da0`'s `local_24`, the listing

@@ -2759,10 +2759,24 @@ impl Sim {
         let Some(t) = self.units[u].combat.target else {
             return false;
         };
-        if !self.target_is_seen(me, t) || !self.active(t) {
+        if !self.target_is_seen(me, t) {
             return false;
         }
         let Obj::Unit(tu) = t else { return false };
+        // **A dead target is re-aimed at** (item 1086, `docs/COMBAT.md`
+        // §76): `5e2429` asks the slot's vslot `+0x8`, which on a unit is
+        // `SubObjectData::is_active@0046cda0` (`flags & 1`, read off the
+        // vtable's own bytes), and `je 5e24e8` jumps a dead one past the
+        // flank triple into the fall-through. `Object::close` clears the
+        // flag and leaves the object in `objects[whom][ox]` with its
+        // position and `inside_up`, so the chase is re-aimed at the
+        // corpse's last spot on every review.
+        if !self.units[tu].alive() {
+            return self.rechase_fleeing(u, t);
+        }
+        if !self.active(t) {
+            return false;
+        }
         // `5e2434`-`5e24b3`: the target's facing against the bearing to it.
         let (tp, mp) = (self.pos_of(t), self.units[u].pos);
         let bearing = crate::movement::find_angle(tp.x - mp.x, tp.y - mp.y);
