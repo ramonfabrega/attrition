@@ -188,8 +188,11 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
         let did = script.stage(built.sim.frame, &mut built, &loaded);
         applied.merge(&did);
         let f = built.sim.frame;
+        let seed = built.sim.rng.seed;
         built.tick();
         if sites.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
+            // The frame's opening word, so each roll can be named (922).
+            eprintln!("  f{f} seed {seed:#010x}");
             for (label, who) in crate::diff::harness::attributed_sites(&built) {
                 eprintln!("  f{f} {who}: {label}");
             }

@@ -4787,9 +4787,10 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Chapter thirty-five is chapter thirty-four's game to its second
     // Airbase and a Missile Silo and twelve lines after it (item 1019):
     // the first walk reads 39, and the built arms 39 (pinned at 38, it
-    // fails).
-    ("chapter_thirty_five_holds_to_the_golden_word", 39),
-    ("chapter_thirty_five_s_word_frame_is_widened_whole", 39),
+    // fails). **40 with the V2's round** (item 1050): `Ammo::init`'s
+    // `find_data_z` at its point, one read more (pinned at 39, it fails).
+    ("chapter_thirty_five_holds_to_the_golden_word", 40),
+    ("chapter_thirty_five_s_word_frame_is_widened_whole", 40),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

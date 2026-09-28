@@ -80,6 +80,12 @@ pub mod index {
     /// target it may not take, `add_air_patrol_order` over the strike's
     /// point (`docs/ORDERS.md` §34).
     pub const AIR_PATROL: u8 = 17;
+    /// `AirAttackGroundOrder` — [`super::Body::AirAttackGround`], a
+    /// missile's strike: `Unit::add_strafe_order@005e48c0`'s head turns a
+    /// strafe of a missile type on a valid target into
+    /// `add_air_attack_ground_order@005e41c0` at the target's point
+    /// (`docs/PRODUCTION.md`, "The missile's launch and round").
+    pub const AIR_ATTACK_GROUND: u8 = 24;
 
     /// **The move family** — the seven kinds whose class derives from
     /// `MoveOrder`, which `kill_current_order`, `work`, `repath`,
@@ -694,6 +700,29 @@ pub struct AttackGroundOrder {
     pub attack_unit: u8,
 }
 
+/// The fields of `AirAttackGroundOrder` (item 1050): the
+/// `ATTACKGROUNDORDER` base's point, and the `AIRORDER` base as
+/// `Unit::add_air_attack_ground_order@005e41c0` fills it — `+0x18/+0x1c`
+/// the home base (`oxx/whose`), `+0x20` `cruising_alt` 0x640, and
+/// `sharp_turn`, `old` and `returning` (`+0x2c`) 0. The base's `accuracy`
+/// and `attack_unit` are written 0 and never read on this arm; the
+/// class's own `total_time`, `sx`, `sy` are not written by the adder and
+/// print 0 (run371, 2672..2701).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AirAttackGroundOrder {
+    /// `att_x`/`att_y`: the target's point when the order was laid.
+    pub at: Pos,
+    /// `AirOrder::oxx/whose`: the silo it waits in.
+    pub home: Option<usize>,
+    /// `AirOrder::cruising_alt`, [`CRUISING_ALT`] when added.
+    pub cruising_alt: i32,
+    /// `AirOrder::sharp_turn`, the edge coin's ±1.
+    pub sharp_turn: i32,
+    /// `AirOrder::returning` (`+0x2c` of the base `get_attack_ground`
+    /// answers): `do_air_attack_ground` fires nothing while it is set.
+    pub returning: bool,
+}
+
 /// The order kinds this crate implements.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Body {
@@ -711,6 +740,7 @@ pub enum Body {
     Patrol(PatrolOrder),
     Strafe(StrafeOrder),
     AirPatrol(AirPatrolOrder),
+    AirAttackGround(AirAttackGroundOrder),
     Think,
 }
 
@@ -759,6 +789,7 @@ impl Order {
             Body::Patrol(_) => index::GROUP_PATROL,
             Body::Strafe(_) => index::STRAFE,
             Body::AirPatrol(_) => index::AIR_PATROL,
+            Body::AirAttackGround(_) => index::AIR_ATTACK_GROUND,
             Body::Think => index::THINK,
         }
     }
@@ -1613,10 +1644,13 @@ impl Sim {
     /// action bit as asked. The `QUEUE_NEW` head and the `QUEUE_FIRST`
     /// rotation are [`Self::enqueue`]'s, as for `add_guard_order`.
     ///
-    /// SEAM: the missile arm at its head — a type with `unit_flags &
-    /// 0x8000000` and a valid target becomes `add_air_attack_ground_order`
-    /// at the target's point — is not taken: no missile reaches a flight
-    /// here.
+    /// **The missile arm at its head** (`5e48c0`..`5e4919`, item 1050): a
+    /// type with the missile flag (`type +0x1e4 & 0x8000000`) and a target
+    /// `Object::valid_target` passes is given
+    /// [`Sim::add_air_attack_ground_order`] at the target's point instead,
+    /// with the home, the queue and the action bit; `mandatory` is not
+    /// passed on. run371's V2 `0/10` on 2672: an `AIRATTACKGROUNDORDER` on
+    /// `1/2006`'s point, home `0/2009`, flags 4.
     pub fn add_strafe_order(
         &mut self,
         u: usize,
@@ -1626,6 +1660,16 @@ impl Sim {
         pos: QueuePos,
         action: bool,
     ) {
+        if let Some(t) = target
+            && self
+                .profile(Obj::Unit(u))
+                .has(crate::combat::mask::MISSILE)
+            && self.valid_target(Obj::Unit(u), t)
+        {
+            let at = self.pos_of(t);
+            self.add_air_attack_ground_order(u, at, home, pos, action);
+            return;
+        }
         let at = target.map(|t| self.pos_of(t));
         let order = Order {
             flags: if action { flag::ACTION } else { 0 },
@@ -1651,6 +1695,37 @@ impl Sim {
             self.units[u].orders.push_front(order);
             return;
         }
+        self.enqueue(u, order, pos);
+    }
+
+    /// **`Unit::add_air_attack_ground_order(x, y, home_o, home_who, queue,
+    /// action)@005e41c0`** (item 1050): under `QUEUE_NEW`, `unit_masks &=
+    /// ~0x4000000`, the path emptied (`+0xc0 = 0`), `close_orders`,
+    /// `clear_partial_path` and `update_action`; then one
+    /// [`AirAttackGroundOrder`] appended — the point, `accuracy` and
+    /// `attack_unit` 0, the home, `cruising_alt` 0x640, `returning` 0 —
+    /// with the action bit as asked; `QUEUE_FIRST` rotates it to the
+    /// front; and `update_action` again — the generic enqueue's shape.
+    pub(crate) fn add_air_attack_ground_order(
+        &mut self,
+        u: usize,
+        at: Pos,
+        home: Option<usize>,
+        pos: QueuePos,
+        action: bool,
+    ) {
+        // SEAM: `unit_masks &= ~0x4000000` under `QUEUE_NEW`, the defended
+        // return's bit, which this crate does not carry.
+        let order = Order {
+            flags: if action { flag::ACTION } else { 0 },
+            body: Body::AirAttackGround(AirAttackGroundOrder {
+                at,
+                home,
+                cruising_alt: CRUISING_ALT,
+                sharp_turn: 0,
+                returning: false,
+            }),
+        };
         self.enqueue(u, order, pos);
     }
 
@@ -2266,6 +2341,7 @@ impl Sim {
             Some(Body::Patrol(p)) => self.do_patrol(u, p),
             Some(Body::Strafe(_)) => self.do_strafe(u, frame),
             Some(Body::AirPatrol(_)) => self.do_air_patrol(u, frame),
+            Some(Body::AirAttackGround(_)) => self.do_air_attack_ground(u, frame),
             Some(Body::Think) => self.do_think_order(u, frame),
         }
         // `60dadd`, after `do_job`: two Helicopters set apart.

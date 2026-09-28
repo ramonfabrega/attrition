@@ -342,10 +342,30 @@ impl Sim {
         // `docs/PRODUCTION.md` "The gather point"): the captain's `angle`
         // and the sweep's bias become the bearing to the free spot nearest
         // the head point. None leaves the sweep from due south.
-        let gather = self.gather_exit(captain, b);
+        //
+        // **A missile comes out on its silo's own point** (item 1050): the
+        // whole block that reads the gather point and sweeps the ring is
+        // gated on the type's missile flag being clear (`617f0e`, `type
+        // +0x1e4 & 0x8000000`); a missile takes the host's `x`/`y` and its
+        // figure's `+0x40` 90.0. run371's V2 `0/10` is fired on 2701 from
+        // (10083, 12346), one 115-step at its 120° heading from the silo
+        // `0/2009`'s (9984, 12288).
+        let missile = self
+            .profile(Obj::Unit(captain))
+            .has(crate::combat::mask::MISSILE);
+        let gather = if missile {
+            None
+        } else {
+            self.gather_exit(captain, b)
+        };
         // **The captain first, then the chain, and each member searches for
         // itself** (`00617c10:535`). See [`Sim::come_out_spot`].
-        let Some(spot) = self.come_out_spot(captain, b, gather.map(|g| g.1)) else {
+        let spot = if missile {
+            Some(self.buildings[b].pos)
+        } else {
+            self.come_out_spot(captain, b, gather.map(|g| g.1))
+        };
+        let Some(spot) = spot else {
             return false;
         };
         self.buildings[b].garrison.retain(|&c| c != captain);

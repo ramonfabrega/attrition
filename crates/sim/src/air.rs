@@ -75,6 +75,21 @@ const HALF_QUARTER: u32 = 0x2000_0000;
 /// saturates (run223's Airbase reads 15 from its landing on).
 pub const FRAMES_BETWEEN_LAUNCHES: i32 = 15;
 
+/// `<MISSILEOFFSET x="-109" y="1" z="388"/>` under `EFFECTS` in
+/// `effects_graphics.xml`, which `GraphicEvents::init@008e5390` reads into
+/// `graphic_events +0xc8/+0xcc/+0xd0` before the first frame and
+/// `Ammo::init` adds to a missile's point for its round's start (item
+/// 1050). run371's `sz` 466 is the silo tile's 78 plus the third term.
+/// `rondata`'s survey re-reads it off the install.
+pub const MISSILE_OFFSET: (i32, i32, i32) = (-109, 1, 388);
+
+/// A missile round's frames: `Spline::calc_nuke_spline@00913ad0` sets the
+/// spline's `depth` to 120 (`+0x60 = 0x780003`, degree 3) on both its
+/// arms, `generate_bspline` lays `depth + 1` points, and `Ammo::init`
+/// takes `total_time` as the points less one (item 1050; run371's round
+/// prints `length 121`, `depth 120`, `total_time 120`).
+pub const MISSILE_FLIGHT: i32 = 120;
+
 // The banking's constants, by their bits — `single::Single` exists so that
 // none of them is a float.
 const F2: Single = Single::from_bits(0x4000_0000);
@@ -512,7 +527,12 @@ impl Sim {
         }
         if self
             .current_order(u)
-            .is_some_and(|o| matches!(o.body, Body::Strafe(_) | Body::AirPatrol(_)))
+            .is_some_and(|o| {
+                matches!(
+                    o.body,
+                    Body::Strafe(_) | Body::AirPatrol(_) | Body::AirAttackGround(_)
+                )
+            })
         {
             return;
         }
@@ -1004,6 +1024,11 @@ impl Sim {
     /// the target, home the base, `returning 0`. The plane stays inside;
     /// [`Sim::do_launch`] puts it out.
     ///
+    /// **A missile takes the same arm** (`6fbbb0`..`6fbea0`, item 1050):
+    /// the valid target, the reach, and then `add_strafe_order`, whose
+    /// head makes it an air attack on the target's point
+    /// ([`Sim::add_air_attack_ground_order`]). run371's V2 `0/10` on 2672.
+    ///
     /// SEAM: the target's `MISSILE_DEFENSE_BONUS` against a missile, the
     /// `NUCLEARMISSILE` arm (`can_nuke`, once a call), `Game::war_allowed`
     /// (always allowed here), `Object::valid_target`'s capture arm, and an
@@ -1011,9 +1036,6 @@ impl Sim {
     /// any of them.
     pub(crate) fn strike_from_inside(&mut self, u: usize, base: usize, target: crate::combat::Obj) {
         let me = crate::combat::Obj::Unit(u);
-        if self.profile(me).has(crate::combat::mask::MISSILE) {
-            return;
-        }
         if !self.valid_target(me, target) {
             return;
         }
@@ -1100,12 +1122,25 @@ impl Sim {
     ///   the EXIT, [`Sim::exit_at_airbase`]) and `launch_frames` is 0;
     /// - one without is killed, and leaves `launching`.
     ///
-    /// SEAM: a missile silo's `do_missile_launch` and a missile's arm, a
-    /// strafe home to another, full base turned `AirPatrolOrder`, and the
-    /// chain's order, which is the garrison list's here (one plane in
-    /// every capture).
+    /// **A missile's launch is the silo's countdown** (item 1050): while
+    /// the building's `recharging` (`BuildData +0x7a`) is not 0, the call
+    /// is [`Sim::do_missile_launch`] and nothing else (`64f3e0`..`64f40f`),
+    /// so `launch_frames` stands; and the launch of a missile sets
+    /// `recharging` to the building type's `RECHARGE` (`+0x1f4`, 30 at a
+    /// Missile Silo) where a plane comes out (`64f73b`..`64f7a8`), and
+    /// zeroes `launch_frames` as a plane's does. run371's silo `0/2009`:
+    /// `launch_frames` 15 → 0 and `recharging` 30 on 2672, the order's own
+    /// frame.
+    ///
+    /// SEAM: a strafe home to another, full base turned `AirPatrolOrder`,
+    /// and the chain's order, which is the garrison list's here (one plane
+    /// in every capture).
     pub(crate) fn do_launch(&mut self, b: usize) {
         if self.buildings[b].garrison.is_empty() {
+            return;
+        }
+        if self.buildings[b].recharging != 0 {
+            self.do_missile_launch(b);
             return;
         }
         let was = self.buildings[b].launch_frames;
@@ -1156,10 +1191,14 @@ impl Sim {
                 self.buildings[b].launching.push(u);
             }
             if !launched {
-                let out = !self
+                let missile = self
                     .profile(crate::combat::Obj::Unit(u))
-                    .has(crate::combat::mask::MISSILE)
-                    && self.come_out(u);
+                    .has(crate::combat::mask::MISSILE);
+                if missile {
+                    self.buildings[b].recharging =
+                        self.profile(crate::combat::Obj::Building(b)).recharge;
+                }
+                let out = !missile && self.come_out(u);
                 self.buildings[b].launch_frames = 0;
                 launched = true;
                 // **The walk ends at a launch** (item 915, `docs/GOLDEN.md`
@@ -1173,6 +1212,166 @@ impl Sim {
                 }
             }
         }
+    }
+
+    /// **`Build::do_missile_launch@00622670`** (item 1050): at a building
+    /// that `is(MISSILESILO)`, while `launching` holds a missile, one off
+    /// `recharging` a frame; at 0 the first of `launching` leaves it,
+    /// comes out ([`Sim::come_out`], on the silo's own point) and is
+    /// processed in the same call — `Unit::process` (vslot `0x9c`), whose
+    /// order step is [`Sim::do_air_attack_ground`]: the flight's first step,
+    /// the round and the missile's end, all inside the silo's own
+    /// `Build::process`. An empty `launching` zeroes `recharging`. The
+    /// strike's message and sound, and a nuke's `+0x40` and vslot `0x164`,
+    /// write nothing this crate carries. run371: `recharging` 30 on 2672,
+    /// 1 on 2701, and on 2702 `0/10` gone, `launching` empty and its round
+    /// in flight — the trace's `Ammo::init+0xae8`/`+0xb25` on 2701, ahead
+    /// of every draw of the frame's gaia.
+    pub(crate) fn do_missile_launch(&mut self, b: usize) {
+        if self.building_ident(b) != crate::build::Ident::MissileSilo {
+            return;
+        }
+        if self.buildings[b].launching.is_empty() {
+            self.buildings[b].recharging = 0;
+            return;
+        }
+        self.buildings[b].recharging -= 1;
+        if self.buildings[b].recharging != 0 {
+            return;
+        }
+        let u = self.buildings[b].launching.remove(0);
+        self.come_out(u);
+        let frame = self.frame;
+        self.work(u, frame);
+    }
+
+    /// **`Unit::do_air_attack_ground@005ea420`** (item 1050), for the one
+    /// unit that takes the order here, a missile:
+    /// - `do_air_physics` flies the frame's step at the point
+    ///   ([`Sim::plane_air_physics`]); a 0 return ends the call;
+    /// - the unit's own `recharging` (`+0xae`) not 0, or the order's
+    ///   `returning` (`+0x2c`), ends it;
+    /// - `ObjectData::is_in_range@0064e4a0` of the point: a missile that is
+    ///   not inside skips the whole test and is in range, so there is no
+    ///   reach here;
+    /// - the facing test is a non-missile's, and is passed over;
+    /// - `set_attack(−1, −1)`, and a type neither strafing nor of the
+    ///   Bomber line with an ammo piece fires at once, `fire_ammo(−1, −1)`
+    ///   — [`Sim::missile_round`];
+    /// - and a missile then dies ([`Sim::missile_dies`]).
+    ///
+    /// SEAM: every non-missile arm — the facing test's `is(0x127)`, the
+    /// `CHAR_ATTACK2` release, the reload and the Bomber's mana cost. This
+    /// crate lays the order on a missile alone
+    /// ([`Sim::add_strafe_order`]'s head).
+    pub(crate) fn do_air_attack_ground(&mut self, u: usize, frame: i64) {
+        let Some(crate::orders::Body::AirAttackGround(g)) = self.current_order(u).map(|o| o.body)
+        else {
+            return;
+        };
+        if matches!(self.plane_air_physics(u, Some(g.at), frame), Flew::Done) {
+            return;
+        }
+        if self.units[u].combat.recharging != 0 || g.returning {
+            return;
+        }
+        let me = crate::combat::Obj::Unit(u);
+        if !self.profile(me).has(crate::combat::mask::MISSILE) {
+            return;
+        }
+        self.clear_attack(u);
+        self.missile_round(u, g.at);
+        self.missile_dies(u);
+    }
+
+    /// **`Ammo::init@0067bbf0`'s missile arm** (item 1050): the round of a
+    /// shooter with the missile flag whose order is an air attack on the
+    /// ground (`local_38`, the order's `AttackGroundOrder` base).
+    /// - It leaves from the unit's point plus [`MISSILE_OFFSET`]
+    ///   (`graphic_events +0xc8..+0xd0`, `67c1d5`..`67c263`), `sz` the
+    ///   unit's `z_internal` plus its third term.
+    /// - Its accuracy is `to_hit − attenuate · (dist / 192)` against the
+    ///   plain distance to the point, and its scatter the land-unit
+    ///   formula **doubled** for a missile that is not a nuke (`67c64b`) —
+    ///   two draws, `Ammo::init+0xae8` and `+0xb25`, `point − s/2 + roll %
+    ///   s` on each axis; `ez` is `find_data_z` at the point, never under 0.
+    /// - Its flight is a spline (`traj` 2, `Spline::calc_nuke_spline`),
+    ///   and its time the spline's points less one: `depth` is 120 on both
+    ///   of `calc_nuke_spline`'s arms (`+0x60 = 0x780003`), so
+    ///   [`MISSILE_FLIGHT`] frames whatever the distance.
+    /// - `v1z` is every round's formula over `sz`, `ez` and the time.
+    ///
+    /// run371's V2 on 2701 (seed `0x14e73b8f`, rolls 62369 and 56984):
+    /// accuracy 228 over 4,662, `s` 22, `ex` 13834 and `ey` 14969 off the
+    /// point (13824, 14976), `sz` 466, `ez` 78, 120 frames, `v1z`
+    /// 626.016663.
+    ///
+    /// SEAM: a nuke (`is(0x13b)`: no scatter, and the spline's other arm),
+    /// the spline's own points, which the simulation never reads, and
+    /// `Ammo::init`'s `balance.attacks` count.
+    pub(crate) fn missile_round(&mut self, u: usize, at: Pos) {
+        let me = crate::combat::Obj::Unit(u);
+        let p = self.profile(me);
+        let here = self.units[u].pos;
+        let launch = Pos::new(here.x + MISSILE_OFFSET.0, here.y + MISSILE_OFFSET.1);
+        let sz = self.world.tile_z(here.tile()).max(0) + MISSILE_OFFSET.2;
+        let acc = crate::combat::accuracy(
+            p.to_hit,
+            p.attenuate,
+            vector_dist(at.x - launch.x, at.y - launch.y),
+        );
+        let s = crate::combat::scatter(&self.tuning, acc, true, true, false);
+        let mut landing = at;
+        if s - 1 >= 1 {
+            self.mark(crate::fight::SITE_AMMO_GROUND_SCATTER_X);
+            landing.x += self.rng.roll() % s - s / 2;
+            self.mark(crate::fight::SITE_AMMO_GROUND_SCATTER_Y);
+            landing.y += self.rng.roll() % s - s / 2;
+        }
+        let ez = self.ground_z(at).max(0);
+        self.add_ammo(crate::combat::Projectile {
+            shooter: me,
+            owner: self.units[u].owner,
+            target: None,
+            launch,
+            landing,
+            cur_time: 0,
+            total_time: MISSILE_FLIGHT,
+            accuracy: acc,
+            angle: find_angle(landing.x - launch.x, landing.y - launch.y),
+            splash_area: p.splash_area,
+            num_guys: 1,
+            air: false,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            sz,
+            ez,
+            v1z: crate::combat::arc_v1z(sz, ez, MISSILE_FLIGHT),
+            slot: 0,
+        });
+    }
+
+    /// **`Object::die(this, 0, −1, 0.0)`** for a missile that has fired
+    /// (item 1050): `dtype` 0, so `Unit::close` takes no death draw and
+    /// leaves no death object; the squad relink, the slot held while its
+    /// round flies (`Object::die`'s tail, the same as a combat death's:
+    /// `total_time − cur_time + 1` of its live ammo, 121 on run371's 2701),
+    /// the supply slot and both collision indices, and the object
+    /// forgotten.
+    pub(crate) fn missile_dies(&mut self, u: usize) {
+        self.units[u].health = self.units[u].health.min(0);
+        self.relink_squad(u);
+        let me = crate::combat::Obj::Unit(u);
+        let mut hold = self.units[u].hold_frames.max(1);
+        for p in &self.projectiles {
+            if p.shooter == me {
+                hold = hold.max(p.total_time - p.cur_time + 1);
+            }
+        }
+        self.units[u].hold_frames = hold;
+        self.close_supply(u);
+        self.forget(me);
     }
 
     /// **`Unit::do_spec_anim@005e5880`'s EXIT at an `AIRBASE`** — the
@@ -1301,6 +1500,12 @@ impl Sim {
                 sharp_turn: p.sharp_turn,
                 returning: p.returning,
             }),
+            Some(crate::orders::Body::AirAttackGround(g)) => Some(AirBase {
+                home: g.home,
+                cruising_alt: g.cruising_alt,
+                sharp_turn: g.sharp_turn,
+                returning: g.returning,
+            }),
             _ => None,
         }
     }
@@ -1309,6 +1514,9 @@ impl Sim {
         match self.units[u].orders.front_mut().map(|o| &mut o.body) {
             Some(crate::orders::Body::Strafe(sf)) => f(&mut sf.cruising_alt, &mut sf.sharp_turn),
             Some(crate::orders::Body::AirPatrol(p)) => f(&mut p.cruising_alt, &mut p.sharp_turn),
+            Some(crate::orders::Body::AirAttackGround(g)) => {
+                f(&mut g.cruising_alt, &mut g.sharp_turn)
+            }
             _ => {}
         }
     }
@@ -1325,6 +1533,7 @@ impl Sim {
         match self.units[u].orders.front_mut().map(|o| &mut o.body) {
             Some(crate::orders::Body::Strafe(sf)) => sf.returning = on,
             Some(crate::orders::Body::AirPatrol(p)) => p.returning = on,
+            Some(crate::orders::Body::AirAttackGround(g)) => g.returning = on,
             _ => {}
         }
     }
