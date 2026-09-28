@@ -9768,3 +9768,60 @@ the lane's own build of the same source, the one that ran, is
 
 **No falsifier fired.** Every order the prototype predicted is the
 original's on its block.
+
+## run360 — Great Lakes at Toughest, a packet at tick 4506: the AI scout's choice (2026-09-27, item 1014)
+
+**What it is.** A `RON_STATE_FRAME=4506` packet on the click-free lane over
+run347's game (Great Lakes, `DIFFICULTY 5`). Blocks 4500–4511 are dumped at
+run356's detail, and `!quit` is at 4515.
+- It is the first second-pair capture on this lane. The lane gained
+  `--profile KEY=N` for it (`unattended_capture.py`), the queue lane's
+  `profile:` key. It writes both of `Player.dat`'s game blocks after
+  staging, and the staged `PlayerProfile` backup restores them.
+- The plan is item 597's, reused.
+- The lane lock was stale: pid 84639 was dead, and nothing else ran.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-27-run360 \
+    --map 14 --end-frame 4515 --timeout 2400 --log-window 4500 4512 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=4506 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 22:59–23:00, one take. `success: true`, exit 0, 67 s launch to
+exit and 77 s in all. The packet is 821,504,932 bytes, and the take is
+862 MB with its dump. Free disk went 24 → 22 GB.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run347.log` | **0 differing**, 4,516 identical |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 14`, seed 12345 read back |
+| `frame_snapshot.py` against the plan | logger return's roots unchanged, receipt checked |
+| settings | five files restored, and `DIFFICULTY 0` back in the profile |
+
+**Why 4506.** The AI scout `1/0` chooses its explore target during tick
+4506, and block 4507 is the first to print it. Per `docs/EMULATOR.md` §8,
+the packet for that decision is logger frame 4506.
+
+**The booking cites what the disk could not answer.** run347 prints no
+unit records. run355 ends at 4027 and run356 opens at 4550, and neither
+prints the danger map or `treaties`. Every term that the disk did print
+agreed: the scout's position, the buildings' `ever_seen`, and the 4400
+rebuild's inputs. On those terms the original's formula picks ours.
+
+**What it settled** (`docs/SCOUT.md` §8.3):
+- Block 4506 has the scout at (4320, 28896), and block 4507 sends it to
+  (2808, 32760).
+- The packet's `danger[1]` equals this crate's around the human's city.
+- `think_scout`, run on unit `1/0` under unicorn, scores the human's cells
+  without the stranger's ×2, because `treaties[0] & 3` is set: the two
+  leaders met on 4456.
+- The probe enters `think_scout` directly, because `Game::do_frame`'s first
+  call on this packet goes through a renderer object the packet does not
+  hold.
+
+The packet stays outside git at
+`~/ron-data/lab-captures/2026-09-27-run360/map-14`. The probe and its output
+are at `~/ron-data/lab-experiments/2026-09-27-item-1014/`.

@@ -424,8 +424,9 @@ best = score; target = (4*wx + 2, 4*wy + 2); best_ring = min(best_ring, ring);
 ```
 
 Read down it: **near beats far** (the `dist * 8`), **one's own ground beats
-a neighbour's** (the `+4` and the `× 2`/`× 4` around a rival's city), **a
-computer rival is worth twice a human one**, and **a cell with the right
+a neighbour's** (the `+4`, and the `× 2`/`× 4` around a city of a rival
+**not yet met**: `treaties` bit 0 is the met bit, §8.3), **a computer
+stranger is worth twice a human one**, and **a cell with the right
 good on it is worth double** while the leader is still small. `score /= 2`
 is the arithmetic halving (`cltd; sub; sar`), rounding toward zero.
 
@@ -521,6 +522,50 @@ are unchanged. What it removes is a standing-unit false positive that no
 capture has yet reached —
 `a_sibling_blocks_a_cell_only_while_it_is_ordered_into_that_region` is
 the guard, and it was made to fail first.
+
+### 8.3 The multiplier is the met bit, not war (item 1014, 2026-09-27)
+
+The pseudocode above has always read `treaties[L] & 3`, and the code read
+`diplos` instead: `at_war_with`, with a comment calling the two the same.
+They are different fields. `005f6688` loads from `0xe3a424`, indexed by the scout's
+leader and `L`, and `0xe3a424` is leader 0's `+0x94`. The PDB names `+0x94` **`treaties`**
+and `+0x74` `diplos` (`LeaderData`, `types.txt`). Bit 0 of `treaties` is
+the met bit, which `Leader::meet` sets through `treaty_on` (`docs/VISION.md`
+§6.2), and nothing in a game clears it. So the rule is: a **stranger's**
+city is doubled (a computer stranger's four times), and **once the two
+leaders have met, a rival's city is scored like anyone's**. War has
+nothing to do with it.
+
+**The frame, from the disk and the packet.** Great Lakes' second word was
+frame 4618, where ours spent 94 draws against the original's 4. Ours idled
+the AI scout `1/0` on arrival there. The original's scout was still
+walking.
+- The target parted on tick 4506, when both scouts choose with the same
+  draws, entry for entry, from (4320, 28896). Ours took cell (2, 40) at 116
+  over (3, 42) at 125. run360's block 4507 prints the original's target,
+  (2808, 32760), which is cell (3, 42).
+- Every input on the disk agreed. The AI sets each human building's
+  `ever_seen` bit on the same block on both sides, and the danger map the
+  packet holds at 4506 is this crate's exactly: `danger[1]` at (1, 20),
+  (1, 21) and (2, 20) reads 44, 31 and 60.
+- `think_scout` run under unicorn on run360's packet
+  (`~/ron-data/lab-experiments/2026-09-27-item-1014/scout_probe.py`)
+  prints each candidate's terms. The human's cells come out as `dist × 8
+  + roll` with no doubling, e.g. (4, 41) = 38 + 60 + 4. The two had met on
+  4456, the frame the AI first saw building `0/2001`.
+- Undoubled, ours scores (4, 41) 97, (2, 40) 82 and (3, 42) **80**, which
+  is the original's choice.
+
+**Why the first pair never showed it.** In every capture of the first pair
+where a scout reaches a rival city, the two leaders have not yet met, so
+the two readings agree. run94's 8001 (§8.2) is one such frame. Its
+arithmetic doubles, and it still does.
+
+**The killer.** `a_rival_s_cell_is_doubled_until_the_two_have_met`
+(`scout.rs`) holds both leaders at war and scores one cell four ways:
+unmet human ×2, unmet computer ×4, met either ×1. With `at_war_with` put
+back, it fails on its first assertion (54 against 2 × 27), and run347's
+walk falls back to 4618.
 
 ## 9. The order
 
