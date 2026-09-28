@@ -691,6 +691,35 @@ mod tests {
         );
     }
 
+    /// **An edge start is the face's midpoint** (item 1012,
+    /// `docs/COMBAT.md` §66): the start-side switch at `601e3e` puts both
+    /// arms on `(t.x + x_size × 0x60 + d, t.y)` for side 4
+    /// (`601ea0`-`601ef4`), and likewise for 2, 6 and 8; only an arm
+    /// stepping onto an edge from a corner enters it at an end. Great Lakes
+    /// 4605's `1/17`, square on the city's east face, stands at (3912,
+    /// 30840) in run356's block 4606, level with the centre.
+    ///
+    /// Made to fail by starting an edge at [`crate::Sim::side_base`]'s
+    /// end: every edge assertion names the corner.
+    #[test]
+    fn an_edge_start_is_the_face_s_midpoint() {
+        let t = Pos::new(10_000, 10_000);
+        let (xs, ys) = (384, 384);
+        let d = 0x30;
+        let at = |side| crate::Sim::start_base(side, t, xs, ys, d);
+        assert_eq!(at(2), Pos::new(t.x, t.y - ys - d), "north");
+        assert_eq!(at(4), Pos::new(t.x + xs + d, t.y), "east");
+        assert_eq!(at(6), Pos::new(t.x, t.y + ys + d), "south");
+        assert_eq!(at(8), Pos::new(t.x - xs - d, t.y), "west");
+        for side in [1, 3, 5, 7] {
+            assert_eq!(
+                at(side),
+                crate::Sim::side_base(side, t, xs, ys, d, 0),
+                "side {side} is a corner, and starts on it"
+            );
+        }
+    }
+
     /// **The golden record's own melee chase** (§19): chapter one's
     /// `0/6`, ordered onto `1/6` at the end of frame 616, asks where to
     /// stand on 617 and the original's dump answers `(1080, 8280)` —
