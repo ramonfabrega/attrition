@@ -20,6 +20,12 @@ pub(crate) struct Walk {
     pub sequence: i64,
     pub last: i64,
     pub difficulty: i32,
+    /// **The closing whole-map state, scored** (item 1099): a long trace
+    /// that ends on the game's own end writes one, as run347 does on 5931
+    /// when the human is defeated, and the first pair's
+    /// [`crate::diff::endpoint::walk_to_close`] compares every unit,
+    /// building and city on it. `None` when the dump has none.
+    pub endpoint: Option<crate::diff::endpoint::EndpointResult>,
 }
 
 /// The two maps' setup differs in one borrow each, as run54's and run53's
@@ -103,11 +109,30 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
             }
         }
     }
+    let endpoint = log.final_state().map(|fin| {
+        let r = crate::diff::endpoint::walk_to_close(&mut built, &fin, 8);
+        eprintln!(
+            "{gamelog}: endpoint {}: {} compared, {} off, {} unlinked, {} extra, {} torn; \
+             builds {}/{} unlinked/diverged, cities {}/{}",
+            r.frame,
+            r.compared,
+            r.off.len(),
+            r.unlinked.len(),
+            r.extra.len(),
+            r.torn.len(),
+            r.build_unlinked,
+            r.build_diverged,
+            r.city_unlinked,
+            r.city_diverged,
+        );
+        r
+    });
     Some(Walk {
         count,
         sequence,
         last,
         difficulty,
+        endpoint,
     })
 }
 
@@ -955,16 +980,20 @@ mod tests {
         // `0/0` at 15, as run368's packet does on logger frame 4688. So its
         // one-in-five re-search keeps `0/3`, and it strikes: `recharging`
         // (0 against 33 until 1028) no longer parts on block 4689. Its walk
-        // spot does, (3763, 31600) against the cell centre (3768, 31608).
+        // spot parted there, (3763, 31600) against the cell centre (3768,
+        // 31608), **until item 1099** (`docs/COMBAT.md` §80): the re-search
+        // is `find_new_target`, which kills the attack and adds it fresh,
+        // and `fight` snaps the unit to its cell centre under the new order.
         assert_eq!(
             row(1, 24, "recharging"),
             None,
             "the chaser's strike, on 4689 until item 1028"
         );
         assert_eq!(
-            row(1, 24, "orders_x").as_deref(),
-            Some("4689: ours 3763 theirs 3768"),
-            "and its spot, which parted on 4617 until item 1023"
+            row(1, 24, "orders_x"),
+            None,
+            "and its spot, which parted on 4617 until item 1023 and on 4689 \
+             until item 1099"
         );
         // **The old word, 4690, agrees** (item 1034, `docs/COMBAT.md` §69):
         // `1/26`'s first strike on the human's city on 4657 sets its
@@ -1031,11 +1060,13 @@ mod tests {
         // `docs/GROUPS.md` §33): three rows stand from the window's first
         // block — army 0's group (slot 65) `role`, ours 0 against the
         // original's `LAND | MILITARY | …` word, and the Town Center's
-        // building group (slot 64) `ox`/`oy`, ours −1 against 0 — and two
-        // families part inside it: the army group's `curr` on 4600, with
-        // `1/19`'s heading on the same block, and the `ATTACKORDER`'s own
-        // row on 4753, `1/24`'s `ever_in_range` 1 against 0 and `new_ord` 0
-        // against 1.
+        // building group (slot 64) `ox`/`oy`, ours −1 against 0 — and the
+        // army group's `curr` parts inside it on 4600, with `1/19`'s
+        // heading on the same block. The `ATTACKORDER`'s own row on 4753,
+        // `1/24`'s `ever_in_range` 1 against 0 and `new_ord` 0 against 1,
+        // parted **until item 1099** (`docs/COMBAT.md` §80): the one-in-five
+        // re-search adds its order fresh, as the original's does (parked
+        // 1073).
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(4550, 79), (4585, 1), (4598, 1)],
@@ -1052,13 +1083,18 @@ mod tests {
                 "group:65.curr[0]",
                 "4600: ours Some((190, 414)) theirs Some((192, 414))",
             ),
-            (1, 24, "attack[0].ever_in_range", "4753: ours 1 theirs 0"),
-            (1, 24, "attack[0].new_ord", "4753: ours 0 theirs 1"),
         ] {
             assert_eq!(
                 row(who, o, what).as_deref(),
                 Some(want),
                 "{who}/{o} {what}, the record item 1061 compares"
+            );
+        }
+        for what in ["attack[0].ever_in_range", "attack[0].new_ord"] {
+            assert_eq!(
+                row(1, 24, what),
+                None,
+                "1/24 {what}, which parted on 4753 until item 1099"
             );
         }
     }
@@ -1507,6 +1543,30 @@ mod tests {
             w.count,
             w.sequence,
             w.last
+        );
+        // **The game's end, whole** (item 1099): the human is defeated on
+        // 5931, when the AI takes its city, and run347 closes on that
+        // frame's whole-map state. Every unit, building and city is
+        // compared there (`crate::diff::endpoint::walk_to_close`). The three
+        // cities unlinked are the instrument's: a closing `CITY` record
+        // prints `x`, `y`, `pop` and `who` and no `o`, and a city links by
+        // its building's `o`. Their three points are the buildings `1/2000`,
+        // `1/2009` and `1/2017`, which link here with nothing diverged, as
+        // the first pair's closed endpoints carry three. Before the capture
+        // tally's
+        // filter the human's seven buildings stood unlinked as the
+        // original's `1/2017`..`1/2023`, because this crate's AI never took
+        // the city.
+        let e = w.endpoint.expect("run347 closes on a whole-map state");
+        assert_eq!(e.frame, 5_931, "run347's closing dump");
+        assert_eq!(e.compared, 42, "the units the closing dump holds");
+        assert_eq!(
+            e.counts(),
+            [0, 0, 0, 0, 0, 3, 0],
+            "off, unlinked, extra, build_unlinked, build_diverged, \
+             city_unlinked, city_diverged at the game's end: {:?} {:?}",
+            e.off,
+            e.unlinked
         );
     }
 }
