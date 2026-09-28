@@ -109,9 +109,10 @@ impl Sim {
     /// it; `0/8` and `0/7` refuelling, `0/6` still; every plane on a patrol,
     /// `0/6`; every plane refuelling, nothing; shift, all four.
     ///
-    /// SEAM: a helicopter's move in place of the patrol (`703919`..
-    /// `7039f0`), and the console's feedback; no capture holds a
-    /// helicopter, and the feedback writes no state.
+    /// A type that flies like a helicopter takes a move in place of the
+    /// patrol ([`Sim::launch_one`], item 1009, the emulator's row alone:
+    /// no capture holds a helicopter). The console's feedback writes no
+    /// state and is not modelled.
     pub fn group_action_launch_patrol(
         &mut self,
         buildings: &[usize],
@@ -142,15 +143,62 @@ impl Sim {
                 best = Some((d, b, u));
             }
             if all {
-                self.add_air_patrol_order(u, at, Some(b), true);
+                self.launch_one(u, at, b);
             }
         }
         if all {
             return;
         }
         if let Some((_, b, u)) = best {
-            self.add_air_patrol_order(u, at, Some(b), true);
+            self.launch_one(u, at, b);
         }
+    }
+
+    /// The launch patrol's order for the one plane (`7038bd`..`703c7a`,
+    /// `703aeb`..`703c87`): `add_air_patrol_order(x, y, base, who, 1)`, or
+    /// for a type that **flies like a helicopter** (`+0x2b4 & 0x20`,
+    /// `7038d1`) a `MOVE_TO` built in place — `close_orders(0)`,
+    /// `clear_partial_path`, `update_action`, then a `MoveOrder` to the
+    /// point's 48-unit cell centre, facing `find_angle(point − here)`, with
+    /// the action bit (`703a22`), appended.
+    fn launch_one(&mut self, u: usize, at: Pos, b: usize) {
+        if self.is_helicopter(u) {
+            self.close_orders(u);
+            self.clear_partial_path(u);
+            self.update_action(u);
+            self.add_move_order(u, at, crate::orders::MoveKind::MoveTo, QueuePos::Last, true);
+            return;
+        }
+        self.add_air_patrol_order(u, at, Some(b), true);
+    }
+
+    /// `ObjectData::can_carry(o, who)@006483c0` for a building and an
+    /// aircraft: not a missile; a helicopter only into an Airbase, a plane
+    /// not into a Missile Silo; then its own home, or room under
+    /// `num_aircraft_limit`.
+    fn base_can_carry(&self, base: usize, u: usize) -> bool {
+        let Some(t) = self.buildings[base].ty else {
+            return false;
+        };
+        let ident = self.build_types[t].ident;
+        if self.is_missile(u) || !self.is_hangar(t) {
+            return false;
+        }
+        if self.is_helicopter(u) && ident != crate::build::Ident::Airbase {
+            return false;
+        }
+        if ident == crate::build::Ident::MissileSilo {
+            return false;
+        }
+        if self.home_base(u) == Some(base) {
+            return true;
+        }
+        let here = self.buildings[base]
+            .garrison
+            .iter()
+            .filter(|&&p| self.is_air_unit(p))
+            .count();
+        here < 10
     }
 
     /// **`Group::action_launch_flight(ox, whom, orders, shift, ctrl, alt)@
@@ -182,12 +230,17 @@ impl Sim {
     /// unit of one's own; `0/8` refuelling, `0/7`; both Bombers
     /// refuelling, `0/6`; shift, all four.
     ///
-    /// SEAM: the `NUCLEARMISSILE` and `V2ROCKET` arms (a missile inside
-    /// the base narrows the choice to missiles and asks `valid_target`),
-    /// the rush rules' early refusal, and the `MOVE_TO` arm to another
-    /// base, which takes the **farthest** plane that `can_carry` admits
-    /// (`6fc797`..`6fc802`); no capture holds a missile, a rush rule or a
-    /// second base.
+    /// The `MOVE_TO` arm, a right-click on another base, is
+    /// [`Sim::launch_move`] (item 1009, run362).
+    ///
+    /// SEAM: the `NUCLEARMISSILE` and `V2ROCKET` arms — a missile inside
+    /// the base narrows the choice to missiles, which skip the ctrl/alt and
+    /// fuel gates, need `valid_target` under a V2, pass over one with a
+    /// live order, and a base of nothing but nukes asks `is(0x13b)`
+    /// (`6fc0bd`..`6fc203`, `6fc3ac`, `6fc681`; `docs/PRODUCTION.md` "The
+    /// launch commands", item 1009's emulator rows) — and the rush rules'
+    /// early refusal. No capture holds a missile or a rush rule: the
+    /// staging needs a Missile Silo, Nation-in-Arms and oil (§43).
     pub fn group_action_launch_flight(
         &mut self,
         who: Player,
@@ -201,7 +254,11 @@ impl Sim {
             Obj::Unit(i) => self.units.get(i).is_some_and(|u| u.alive()),
             Obj::Building(b) => self.buildings.get(b).is_some_and(|b| b.alive),
         };
-        if kind != Flight::Strike || !live {
+        if !live {
+            return;
+        }
+        if kind == Flight::Home {
+            self.launch_move(who, buildings, target, keys);
             return;
         }
         let airbase = buildings
@@ -250,6 +307,60 @@ impl Sim {
             return;
         }
         self.group_action_flight(&chosen, target, kind);
+    }
+
+    /// **`action_launch_flight`'s `MOVE_TO` arm** (`6fc797`..`6fc80c`): a
+    /// right-click on another base of one's own. The ctrl/alt and fuel
+    /// gates as for a strike; then a plane that is not a missile and that
+    /// the target `can_carry`s; the **farthest** — `dist > best` from −1
+    /// (`6fc7f4`), the base's distance, so the first of one base — or
+    /// every one under shift; and `action_flight(o, whom, MOVE_TO)` on
+    /// them. A target that is a Missile Silo with anything inside narrows
+    /// the choice to missiles (`6fc18c`..`6fc203`), which this arm then
+    /// refuses: nothing goes.
+    fn launch_move(&mut self, who: Player, buildings: &[usize], target: Obj, keys: Keys) {
+        let Obj::Building(to) = target else {
+            return;
+        };
+        if self.building_ident(to) == crate::build::Ident::MissileSilo
+            && !self.buildings[to].garrison.is_empty()
+        {
+            return;
+        }
+        let airbase = buildings
+            .iter()
+            .any(|&b| self.building_ident(b) == crate::build::Ident::Airbase);
+        let t = self.pos_of(target);
+        let mut chosen = Group::stack(who);
+        let mut best: Option<(i32, usize)> = None;
+        for (b, u) in self.planes_inside(buildings) {
+            if !self.is_air_unit(u) {
+                continue;
+            }
+            if airbase && (keys.ctrl || keys.alt) && !self.keys_admit(u, keys) {
+                continue;
+            }
+            if !keys.shift && self.units[u].mana_burn != 0 {
+                continue;
+            }
+            if !self.base_can_carry(to, u) {
+                continue;
+            }
+            let p = self.buildings[b].pos;
+            let d = vector_dist(t.x - p.x, t.y - p.y);
+            if keys.shift {
+                chosen.list.push(u);
+            } else if best.is_none_or(|(bd, _)| d > bd) {
+                best = Some((d, u));
+            }
+        }
+        if let Some((_, u)) = best {
+            chosen.list.push(u);
+        }
+        if chosen.list.is_empty() {
+            return;
+        }
+        self.group_action_flight(&chosen, target, Flight::Home);
     }
 
     /// **The action-3 arm of `Group::action_gather_point@006ff1b0`**
@@ -497,6 +608,36 @@ mod tests {
         }
     }
 
+    /// **`[P1, A3, P2]`** (item 1009, `docs/GOLDEN.md` §43, run362 on
+    /// 2322, 2337 and 2352): a ground point is a patrol for every homed
+    /// plane; A3 behind it a strike that closes the patrol; and P2 behind
+    /// that goes into the walk's dead patrol, so the strike stands, alone.
+    #[test]
+    fn a_point_behind_an_action_three_point_behind_a_patrol_leaves_the_strike() {
+        let (mut s, b, planes) = hangar([0, 0, 0, 0]);
+        let c = friend(&mut s, Pos::new(4104, 28392));
+        let p1 = Pos::new(11520, 7680);
+        s.action_gather_point(0, &[b], p1, 0, false);
+        assert!(
+            planes
+                .iter()
+                .all(|&u| patrol_of(&s, u).map(|x| x.0) == Some(p1))
+        );
+        let a3 = Pos::new(i32::from(s.units[c].index), 0);
+        s.action_gather_point(0, &[b], a3, 3, true);
+        let p2 = Pos::new(7680, 11520);
+        s.action_gather_point(0, &[b], p2, 0, true);
+        assert_eq!(s.buildings[b].gather.len(), 3);
+        for p in planes {
+            assert_eq!(s.units[p].orders.len(), 1, "plane {p}");
+            assert_eq!(
+                strike_of(&s, p).map(|x| x.0),
+                Some(Some(Obj::Unit(c))),
+                "plane {p}"
+            );
+        }
+    }
+
     /// **The escort** (`Unit::do_strafe@005eab00`'s ally arm, §42): a
     /// strike on one's own unit is flown at the unit, its `xx/yy`
     /// following it; this crate's `return` for an ally left the plane where
@@ -531,6 +672,138 @@ mod tests {
             off(&s) < off0,
             "turned at it: {:#x} from {off0:#x}",
             off(&s)
+        );
+    }
+
+    /// **ctrl and alt** (item 1009, `docs/GOLDEN.md` §43, the emulator's
+    /// rows): on the patrol ctrl keeps the Bomber line, so the first Bomber
+    /// goes where the Fighter's ÷ 10 would have won; on the strike alt keeps
+    /// the Biplane line, so the first fuelled fighter goes where the Bomber
+    /// line's ÷ 4 would have; ctrl on the strike with only a fighter full
+    /// sends nothing; ctrl and alt together are alt's.
+    #[test]
+    fn ctrl_keeps_the_bombers_and_alt_the_fighters_on_both_launch_commands() {
+        let p = Pos::new(13440, 9600);
+        let ctrl = Keys {
+            ctrl: true,
+            ..Keys::default()
+        };
+        let alt = Keys {
+            alt: true,
+            ..Keys::default()
+        };
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 40, 0]);
+        s.group_action_launch_patrol(&[b], p, QueuePos::New, ctrl);
+        assert_eq!(patrol_of(&s, b8), Some((p, crate::orders::flag::ACTION)));
+        assert!([b7, f6, f9].iter().all(|&u| s.units[u].orders.is_empty()));
+
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 0, 0]);
+        s.group_action_launch_patrol(&[b], p, QueuePos::New, Keys { ctrl: true, ..alt });
+        assert!(patrol_of(&s, f6).is_some(), "alt is asked first");
+        assert!([b8, b7, f9].iter().all(|&u| s.units[u].orders.is_empty()));
+
+        let target = Pos::new(13920, 15072);
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 40, 0]);
+        let t = Obj::Building(enemy_barracks(&mut s, target));
+        s.group_action_launch_flight(0, &[b], t, Flight::Strike, alt);
+        assert!(strike_of(&s, f9).is_some(), "the fuelled fighter");
+        assert!([b8, b7, f6].iter().all(|&u| s.units[u].orders.is_empty()));
+
+        let (mut s, b, planes) = hangar([40, 40, 0, 40]);
+        let t = Obj::Building(enemy_barracks(&mut s, target));
+        s.group_action_launch_flight(0, &[b], t, Flight::Strike, ctrl);
+        assert!(planes.iter().all(|&u| s.units[u].orders.is_empty()));
+    }
+
+    /// A second who=0 Airbase at `at`, finished.
+    fn second_base(s: &mut Sim, first: usize, at: Pos) -> usize {
+        let ty = s.buildings[first].ty;
+        let b = s.add_building(0, at, 0);
+        s.buildings[b].ty = ty;
+        s.buildings[b].started = true;
+        s.buildings[b].active = true;
+        b
+    }
+
+    /// **`MOVE_TO` onto another base** (item 1009, §43): the first fuelled
+    /// plane of equals — the farthest, strict — flies home to it; a
+    /// refuelling plane is passed over; shift sends every one; a base
+    /// with no room takes none — which `group_action_flight`'s own room
+    /// test would refuse too, so `can_carry` dropped fails nothing here.
+    #[test]
+    fn a_right_click_on_another_base_sends_the_first_fuelled_plane_to_it() {
+        let to = Pos::new(8544, 14688);
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([40, 0, 0, 0]);
+        let b2 = second_base(&mut s, b, to);
+        let t = Obj::Building(b2);
+        s.group_action_launch_flight(0, &[b], t, Flight::Home, Keys::default());
+        let home = |s: &Sim, u: usize| match s.units[u].orders.front() {
+            Some(o) => match o.body {
+                crate::orders::Body::Strafe(ref sf) => Some((sf.home, sf.returning, o.flags)),
+                _ => None,
+            },
+            None => None,
+        };
+        assert_eq!(
+            home(&s, b7),
+            Some((Some(b2), true, crate::orders::flag::ACTION)),
+            "0/7, the first full"
+        );
+        assert!([b8, f6, f9].iter().all(|&u| s.units[u].orders.is_empty()));
+
+        let (mut s, b, planes) = hangar([40, 0, 0, 0]);
+        let b2 = second_base(&mut s, b, to);
+        let shift = Keys {
+            shift: true,
+            ..Keys::default()
+        };
+        s.group_action_launch_flight(0, &[b], Obj::Building(b2), Flight::Home, shift);
+        assert!(planes.iter().all(|&u| home(&s, u).is_some()), "shift: all");
+
+        let (mut s, b, planes) = hangar([0, 0, 0, 0]);
+        let b2 = second_base(&mut s, b, to);
+        for _ in 0..10 {
+            let u = plane(&mut s, b2, BIPLANE);
+            assert_eq!(s.units[u].inside, Some(b2));
+        }
+        s.group_action_launch_flight(0, &[b], Obj::Building(b2), Flight::Home, Keys::default());
+        assert!(
+            planes.iter().all(|&u| s.units[u].orders.is_empty()),
+            "no room under num_aircraft_limit"
+        );
+    }
+
+    /// **The Helicopter's move** (item 1009, §43, the emulator's row; no
+    /// capture holds one): a type that flies like a helicopter takes a
+    /// `MOVE_TO` to the point's cell centre, facing from itself to the
+    /// point as clicked, with the action bit — and wins over the Bombers
+    /// by the Helicopter line's ÷ 4.
+    #[test]
+    fn a_helicopter_launched_on_the_ground_takes_a_move_to_the_cell_centre() {
+        let p = Pos::new(13440, 9600);
+        let (mut s, b, [b8, b7, f6, f9]) = hangar([0, 0, 40, 40]);
+        let h = plane(&mut s, b, HELICOPTER);
+        let t = s.units[h].ty.unwrap();
+        s.unit_types[t].cols.unit_flags |= crate::ai_load::uflags::HELICOPTER;
+        let here = s.units[h].pos;
+        s.group_action_launch_patrol(&[b], p, QueuePos::New, Keys::default());
+        assert!(
+            [b8, b7, f6, f9]
+                .iter()
+                .all(|&u| s.units[u].orders.is_empty())
+        );
+        let o = s.units[h].orders.front().copied().expect("the move");
+        assert_eq!(
+            o.flags & crate::orders::flag::ACTION,
+            crate::orders::flag::ACTION
+        );
+        let crate::orders::Body::Move(m) = o.body else {
+            panic!("a MOVE_TO, not {:?}", o.body);
+        };
+        assert_eq!(m.dest, Pos::new(13464, 9624));
+        assert_eq!(
+            m.angle,
+            crate::movement::find_angle(p.x - here.x, p.y - here.y)
         );
     }
 }

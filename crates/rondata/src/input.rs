@@ -852,6 +852,8 @@ pub fn group_gather_point(
 /// ([`sim::Sim::group_action_launch_patrol`]), after `process_group`'s push
 /// of the building group (item 976, `docs/GOLDEN.md` §42). `all` is the
 /// shift-click's `QUEUE_LAST` and shift; plain, `QUEUE_NEW` and none.
+/// `keys`' ctrl and alt are the command's own bytes (item 1009,
+/// `docs/GOLDEN.md` §43); its shift is `all`'s.
 ///
 /// Returns the number of the player's live buildings named.
 pub fn group_launch_patrol(
@@ -860,6 +862,7 @@ pub fn group_launch_patrol(
     buildings: &[i16],
     at: Pos,
     all: bool,
+    keys: sim::airbase::Keys,
 ) -> usize {
     let player = who as sim::Player;
     let list: Vec<usize> = buildings
@@ -870,27 +873,24 @@ pub fn group_launch_patrol(
         return 0;
     }
     built.sim.push_command_buildings(player, &list);
-    let (queue, keys) = if all {
-        (
-            sim::orders::QueuePos::Last,
-            sim::airbase::Keys {
-                shift: true,
-                ..sim::airbase::Keys::default()
-            },
-        )
+    let queue = if all {
+        sim::orders::QueuePos::Last
     } else {
-        (sim::orders::QueuePos::New, sim::airbase::Keys::default())
+        sim::orders::QueuePos::New
     };
+    let keys = sim::airbase::Keys { shift: all, ..keys };
     built.sim.group_action_launch_patrol(&list, at, queue, keys);
     list.len()
 }
 
 /// **`CommandPackage::process_flight@00947db0`** on the player's own
-/// buildings: an Airbase's right-click on an enemy, `issue_flight` on the
-/// building group itself, whose `Group::action_flight@006fb260` is
-/// `action_launch_flight` ([`sim::Sim::group_action_launch_flight`]),
-/// after `process_group`'s push of the building group (item 976,
-/// `docs/GOLDEN.md` §42). `orders` is the command's, `ATTACK` (10) here.
+/// buildings: an Airbase's right-click on an enemy, or on another base of
+/// its own, `issue_flight` on the building group itself, whose
+/// `Group::action_flight@006fb260` is `action_launch_flight`
+/// ([`sim::Sim::group_action_launch_flight`]), after `process_group`'s push
+/// of the building group (item 976, `docs/GOLDEN.md` §42). `orders` is the
+/// command's, `ATTACK` (10) on an enemy and `MOVE_TO` (1) on a base (item
+/// 1009, §43); `keys` its shift, ctrl and alt bytes.
 ///
 /// Returns the number of the player's live buildings named.
 pub fn group_launch_flight(
@@ -900,6 +900,7 @@ pub fn group_launch_flight(
     ox: i32,
     whom: i32,
     orders: i32,
+    keys: sim::airbase::Keys,
 ) -> usize {
     let player = who as sim::Player;
     let list: Vec<usize> = buildings
@@ -931,7 +932,7 @@ pub fn group_launch_flight(
     if let (Some(t), Some(k)) = (target, kind) {
         built
             .sim
-            .group_action_launch_flight(player, &list, t, k, sim::airbase::Keys::default());
+            .group_action_launch_flight(player, &list, t, k, keys);
     }
     list.len()
 }

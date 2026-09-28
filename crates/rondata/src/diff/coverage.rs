@@ -576,6 +576,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch31 = golden_dump("ch31");
     let ch32 = golden_dump("ch32");
     let ch33 = golden_dump("ch33");
+    let ch34 = golden_dump("ch34");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1500,6 +1501,22 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
                 n, 5,
                 "chapter thirty-three carries the window's five blocks"
             );
+            frames += n;
+        }
+    }
+    // **Chapter thirty-four's word, on run362** (item 1009): the launch
+    // commands' other arms. 2211, the second Airbase; 2262, ctrl's patrol;
+    // 2277, alt's strike; 2307, the flight to `0/2008`; 2314, ctrl's
+    // strike refused; 2322, the ground point and the word; 2337, A3;
+    // 2352, P2; 2402, the Clear; 2474, the landing at `0/2008`; 2602,
+    // alt at `0/2008`; 2847, the last blocks.
+    if let Some(p) = &ch34 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_FOUR;
+        for w in [
+            2211, 2262, 2277, 2307, 2314, 2322, 2337, 2352, 2402, 2474, 2602, 2847,
+        ] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-four carries the window's five blocks");
             frames += n;
         }
     }

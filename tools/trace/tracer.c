@@ -559,6 +559,10 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         QUEUE_LAST and shift 1
  *   `@launchstrike <who> <ox> <whom> <b> [<b> ...]` building ids,
  *                                         issue_flight with ATTACK
+ *   `@launchpatrolctrl`, `@launchpatrolalt`, `@launchstrikectrl`,
+ *   `@launchstrikealt`                    the same with ctrl or alt 1
+ *   `@launchmove <who> <ox> <whom> <b> [<b> ...]` a base of one's own,
+ *                                         issue_flight with MOVE_TO
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -731,7 +735,12 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * air range (`execute_at_cursor`), which `Group::action_flight@006fb260`
  * turns into `action_launch_flight`. Neither issuer tests the objects:
  * `Group::action_launch_patrol@00703580` and `action_launch_flight@006fbfb0`
- * pick the planes at process time.
+ * pick the planes at process time. `@launchpatrolctrl`/`@launchpatrolalt`
+ * pass ctrl or alt 1 on the plain click, `@launchstrikectrl`/
+ * `@launchstrikealt` the same on `issue_flight`, and `@launchmove` is
+ * `issue_flight(group, ox, whom, MOVE_TO 1, 0, 0, 0)` — the right-click on
+ * another base of one's own (`execute_at_cursor`'s `group_air` arm, whose
+ * last three are shift, ctrl and alt) — item 1009, `docs/GOLDEN.md` §43.
  *
  * `@unqueue` calls `CommandManager::issue_unqueue@00942c40(&command_manager,
  * b, p)` once per building, as `Options::exec@007188c0`'s option 0xa6
@@ -810,7 +819,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * attack's and a repair's the target's, a form's the formation and
      * the rotation; an eject has none. `@gatherpointadd` is verb 20 with
      * `add_to_end` 1 (item 955), the shift-click that appends a point. */
-    i32 gather_add = 0;
+    i32 gather_add = 0, launch_ctrl = 0, launch_alt = 0, launch_move = 0;
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "patrol ")   ? 1
                : issue_verb(&t, "guard ")    ? 2
@@ -834,8 +843,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "gatherpointadd ") ? (gather_add = 1, 20)
                : issue_verb(&t, "gatherpoint ") ? 20
                : issue_verb(&t, "launchpatrolall ") ? 22
+               : issue_verb(&t, "launchpatrolctrl ") ? (launch_ctrl = 1, 21)
+               : issue_verb(&t, "launchpatrolalt ") ? (launch_alt = 1, 21)
                : issue_verb(&t, "launchpatrol ") ? 21
+               : issue_verb(&t, "launchstrikectrl ") ? (launch_ctrl = 1, 23)
+               : issue_verb(&t, "launchstrikealt ") ? (launch_alt = 1, 23)
                : issue_verb(&t, "launchstrike ") ? 23
+               : issue_verb(&t, "launchmove ") ? (launch_move = 1, 23)
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
@@ -922,13 +936,16 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
     if (verb >= 21) {
-        /* issue_launch_patrol(group, x, y, queue, shift, ctrl 0, alt 0) —
+        /* issue_launch_patrol(group, x, y, queue, shift, ctrl, alt) —
          * QUEUE_NEW for `@launchpatrol`, QUEUE_LAST and shift for
          * `@launchpatrolall` — or issue_flight(group, ox, whom, ATTACK, 0,
-         * 0, 0) for `@launchstrike`, on a group of buildings (item 976). */
+         * ctrl, alt) for `@launchstrike`, on a group of buildings (item
+         * 976); ctrl or alt 1 for the `ctrl`/`alt` spellings, and MOVE_TO
+         * for `@launchmove` (item 1009). */
         typedef void(__thiscall *launch_fn)(void *, void *, i32, i32, i32, i32, i32, i32);
         ((launch_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y,
-                                    verb == 23 ? 10 : verb == 22 ? 1 : 2, verb == 22, 0, 0);
+                                    verb == 23 ? (launch_move ? 1 : 10) : verb == 22 ? 1 : 2, verb == 22,
+                                    launch_ctrl, launch_alt);
     } else if (verb == 20) {
         /* issue_gather_point(group, x, y, action, add_to_end 0): a
          * right-click with a selection of buildings, or the Clear
