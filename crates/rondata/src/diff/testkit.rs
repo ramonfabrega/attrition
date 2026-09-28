@@ -1211,7 +1211,25 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// `Farms::inc_time+0x1ae` where the original spends `Guy::set_anim+0xf2f
 /// < Guy::move+0x166`. Inside run356's window, whose block 4592 parts on
 /// `1/26`'s order (kind 1 here against 10 there).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_593;
+///
+/// **4593 → 4605 on item 1002**: a ranged chase on a building is asked
+/// `is_in_range` without the `0x90` margin (`do_move@005f7b30`'s building
+/// arm, `5f7f27`–`5f7faa`; `docs/COMBAT.md` §65). **The move's value diff
+/// (the word's delta, here; its block is
+/// `run356_s_word_frame_is_widened_whole`'s):** `1/26`, a ranged soldier
+/// chasing the human's city `0/2000` at `attack_dist` 1128 against a reach
+/// of 1158, now stops at (5079, 31628) on block 4592 as the original does,
+/// where ours had walked on to (5052, 31644) toward its attack position
+/// (4872, 31752); its `order:kind` 1 against 10, `orders_x/y` and three
+/// orders against two → one `ATTACK` on both, and on block 4593 its
+/// position, `recharging` 33 and `hold_attack` 1 agree. Frame 4593's
+/// draws went 4 against 5 → 5 against 5. **The new word's delta: ours 2
+/// draws and the original 43 on frame 4605, parting at index 0**: ours
+/// spends `Farms::inc_time+0x1ae` where the original spends
+/// `Unit::find_attack_pos+0xea9 < Group::action_attack+0x41a` (four, then
+/// 37 under `Unit::fight+0xcb4`). Inside run356's window, whose block 4606
+/// parts on the army's members' order (kind 21 here against 10 there).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_605;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which

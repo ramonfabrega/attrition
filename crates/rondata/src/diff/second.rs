@@ -503,7 +503,9 @@ mod tests {
     /// 4550..4806, walked from run347's start. The word's frame writes
     /// block 4556. **Since item 997 the word is 4593**, block 4594, inside
     /// the same window (44 blocks after its first and 212 before its last),
-    /// so this capture is its widening too.
+    /// so this capture is its widening too. **Since item 1002 the word is
+    /// 4605**, block 4606, inside it again (56 blocks after its first and
+    /// 200 before its last).
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -547,23 +549,34 @@ mod tests {
             Some("4606: Kind { ours: 2, theirs: 1 }"),
             "the unit's order, which parted on 4555 until item 997"
         );
-        // **The new word, 4593, and the block before it** (`docs/AI.md`
-        // §82.4): `1/26` holds an `ATTACK` there, stopped at (5079, 31628),
-        // and walks here toward its attack position (5052, 31644). On the
-        // word's frame the original spends `Guy::set_anim+0xf2f <
-        // Guy::move+0x166`. Block 4550 stands on 86 keys, the families the
-        // window opened on; 4575 is `1/0`'s turn (18 keys) and 4585 a
-        // guy's `whom/ox` on `1/21`'s attack-move. No mechanism is named
-        // (DECISIONS 42).
+        // **The old word, 4593, agrees** (item 1002, `docs/COMBAT.md`
+        // §65): `1/26`'s chase on the human's city `0/2000` stops at
+        // (5079, 31628) on block 4592 on both sides — a building target is
+        // asked without the `0x90` margin — and holds its `ATTACK` there
+        // until block 4605, where both sides drop it; the two first part on
+        // 4606, its order kind 2 here against 10 there.
         assert_eq!(
             row(1, 26, "order:kind").as_deref(),
-            Some("4592: Kind { ours: 1, theirs: 10 }"),
-            "the unit's order, the block before the word"
+            Some("4606: Kind { ours: 2, theirs: 10 }"),
+            "the unit's order, which parted on 4592 until item 1002"
         );
         assert_eq!(
             row(1, 26, "pos").as_deref(),
-            Some("4592: ours (5052,31644) theirs (5079,31628)"),
+            Some("4606: ours (5081,31662) theirs (5072,31635)"),
             "and where it stands"
+        );
+        // **The new word, 4605, writes block 4606** (no mechanism is
+        // named, DECISIONS 42): the original spends 41 `find_attack_pos`
+        // draws there, four under `Group::action_attack` and 37 under
+        // `Unit::fight`, and the army's members hold an `ATTACK` (kind 10)
+        // where ours hold the army's `GROUP_ATTACK_TO` (kind 21). Before
+        // it, 4598..4601 part on `1/22`/`1/23`'s `order:target` (parked
+        // 1003's shape), `1/0`'s move, `1/19`/`1/20`'s path by one unit
+        // and the human leader's `wars`; 4605 on `1/15`..`1/17`'s group id.
+        assert_eq!(
+            row(1, 9, "order:kind").as_deref(),
+            Some("4606: Kind { ours: 21, theirs: 10 }"),
+            "an army member's order on the new word's block"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
