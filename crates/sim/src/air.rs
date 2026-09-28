@@ -3288,6 +3288,51 @@ mod flak_tests {
         assert_eq!(s.rng.seed, seed, "no draw for either");
     }
 
+    /// **A fired round at a plane carries the roll's miss** (item 1102):
+    /// `Object::fire_ammo`'s round takes `Ammo::init`'s air arm, whose miss
+    /// is the round's `0x10`, this crate's `harmless` — run404's Battery
+    /// round of 753 (flags 18, a miss) against a hit.
+    #[test]
+    fn a_round_fired_at_a_plane_is_harmless_when_its_roll_misses() {
+        let mut s = sim();
+        let t = building(&mut s, 1, Pos::new(21120, 16512), combat::Profile::default());
+        let radar = building(
+            &mut s,
+            0,
+            Pos::new(22272, 16512),
+            combat::Profile {
+                obj_masks: mask::ANTI_AIR,
+                fly_high: 33,
+                fly_low: 75,
+                max_range: 10 * 192,
+                ..combat::Profile::default()
+            },
+        );
+        let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
+        s.units[b].orders.push_back(strafe(Some(Obj::Building(t)), None, false));
+        let (mut hits, mut misses) = (0, 0);
+        for seed in 1..60u32 {
+            s.rng = combat::Rng::new(seed);
+            let mut probe = s.rng;
+            let missed = probe.roll() % 100 >= 75;
+            s.projectiles.clear();
+            s.fire_ammo_pub(
+                Obj::Building(radar),
+                Obj::Unit(b),
+                crate::movement::Angle(0),
+                800,
+                Pos::new(22272, 16512),
+                235,
+                0,
+                false,
+            );
+            assert_eq!(s.projectiles.len(), 1);
+            assert_eq!(s.projectiles[0].harmless, missed, "seed {seed}");
+            if missed { misses += 1 } else { hits += 1 }
+        }
+        assert!(hits > 0 && misses > 0, "both arms reached: {hits} hits, {misses} misses");
+    }
+
     /// **A shooter that is not `ANTI_AIR` rolls against the target's figure
     /// first** (item 1102): the emulator's Infantry (0/33) at a low Bomber
     /// — rolls 9 and 32 hit, 9 and 33 miss, a first roll of 10 misses with
