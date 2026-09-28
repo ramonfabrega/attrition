@@ -12615,3 +12615,61 @@ instead.
   nobody anything walks its chase off the review's phase, within `0x480`
   of its goal, on a target out of reach. The living target keeps the walk
   and the dead one loses it.
+
+### 77.5 The killer
+
+Run on the committed tree with `git diff --stat` non-empty, restored from
+git and `touch`ed after. The pins the re-pin touches were green first.
+
+KILLER_TABLE
+
+### 77.6 What moved
+
+- **Great Lakes 5075 → 5105.**
+  - On block 5076 `1/10` stands at (5043, 29856), `1/11` at (4898,
+    29588) and `1/18` at (6084, 29076), each under `MOVE, ATTACK,
+    ATTACK_TO` on `0/1`, on both sides. Ours read (5028, 29880), (4901,
+    29616) and (6084, 29077) under two orders.
+  - `1/20` stands at (5965, 29093) with `collide 0` on both, where ours
+    read (5928, 29112) and `collide 1` on `1/18`.
+  - Frame 5075's draws went 11 against 10 → agreeing.
+  - run373's keys parted go 461 → 203. Nothing parts on 5073..5089 but
+    `1/0`'s figure; `1/19`'s facing no longer parts in the window.
+- **East Indies holds at 5606. Great Sahara holds at 8.**
+- **The new word** (no mechanism is named): frame 5105, 11 draws on each
+  side, parting at index 3.
+  - The original spends `Unit::fight+0x9b0 < Unit::do_attack+0x6ba`, and
+    ours `Farms::inc_time+0x1ae`. On 5106 ours spends 10 against 11.
+  - It sits on block 5106, past run373's window, so **run396** widens it
+    (blocks 5100..5356, `docs/RUNS.md`).
+  - Its figure is `1/21`. On block 5105 the original's has ended its
+    chase (`ATTACK` head, two orders) and ours walks on (`MOVE`, three).
+    On 5106 the original's strikes `0/5` (`recharging` 32, `hold_attack`
+    1). Every key first parting on 5105 is `1/21`'s.
+  - `1/21`'s chase goal has parted since run373's block 5091: ours aims
+    at (3528, 31512) with `order:flags` 16, the original at (3336, 31368)
+    with 0. Its second `ATTACK` reads `new_ord` 0 against 1 on run396's
+    first block, which is parked 1073's shape. How the chase is aimed is
+    parked 1089's family (`1/13`'s on `0/4`, from 5068).
+
+### 77.7 What is not established
+
+- **`find_collision`'s conjunct** (§71.2's third) is still a `SEAM`. This
+  frame was not it: the kill was never reached.
+- **A target inside something.** Its `flags & 1` stays up, so the
+  original enters the ranged block with it. This crate's `obj_alive` does
+  too, but what `is_in_range` answers there is not read, and no capture
+  holds one.
+- **A target no longer at war.** It also enters the block now. No capture
+  has a ceasefire in a chase.
+- **The original's `is_seen` of `0/1`** is not read on either side; the
+  dump prints `visible 0`, and the listing makes it moot here.
+
+### 77.8 Coverage
+
+- **Diff-backed**: the three walks kept on 5075, by run373's blocks 5076
+  onwards and frame 5075's draws on run347. It is a floor, and the killer
+  made it fail.
+- **Listing-backed**: `5f7ece`–`5f7f11` (llvm-objdump), and
+  `update_action@0060a870` (decompile).
+- **Unit-backed only**: the dead target's arm under fog.
