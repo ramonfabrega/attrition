@@ -5756,12 +5756,9 @@ spends a draw in the capture.
 
 ### 22.5 What is not established
 
-- **`do_group_attack_to@005e74e0`'s own look.** It is the same fifteen-
-  frame search without the hurry gate, and `find_nearby_target`'s add arm
-  hands a `GROUP_ATTACK_TO` find to `Group::action_attack` when the group
-  `is_attacking_to`. Neither is implemented, and a marching army group
-  still never looks. Nothing on the golden record reaches it now. The
-  long captures have not been read for it.
+- ~~**`do_group_attack_to@005e74e0`'s own look.** Neither is
+  implemented, and a marching army group still never looks.~~ Built by
+  item 1012 (`docs/COMBAT.md` §66), on Great Lakes 4605 at Toughest.
 - ~~`do_attack_to_pause`, the unarmed arm.~~ Built by item 569 (§24.9).
   ~~`find_melee_target`'s `flags`
   argument, from the type's vslots `+0x10c`/`+0x110`.~~ Built by item

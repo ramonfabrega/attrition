@@ -390,7 +390,7 @@ impl crate::Sim {
         let angle_step = (0x4000_0000i64 / k.max(1)) as i32;
 
         // Both arms start on the same side, at the same point.
-        let base = Self::side_base(start, t, xs, ys, stand, 0);
+        let base = Self::start_base(start, t, xs, ys, stand);
         let arc_start = (steps_per_side / 2) + 1;
         let mut arms = [
             Arm {
@@ -523,6 +523,26 @@ impl crate::Sim {
             4 => Pos::new(t.x + xs + stand, if far { t.y + ys } else { t.y - ys }),
             6 => Pos::new(if far { t.x - xs } else { t.x + xs }, t.y + ys + stand),
             _ => Pos::new(t.x - xs - stand, if far { t.y - ys } else { t.y + ys }),
+        }
+    }
+
+    /// **The starting point**, which both arms share (`601d88`-`601f54`,
+    /// the switch on the start side at `601e3e`; item 1012,
+    /// `docs/COMBAT.md` §66). A corner side starts at the corner, and an
+    /// **edge** side at the face's **midpoint** pushed out by the
+    /// stand-off: side 4's case (`601ea0`-`601ef4`) is `x = t.x + x_size
+    /// × 0x60 + stand`, `y = t.y`, and both arms' slots take the pair at
+    /// `601e04`-`601e1a`. Only an arm that *steps onto* an edge from a
+    /// corner enters it at an end ([`Self::side_base`]). Great Lakes 4605's
+    /// `1/17`, the one asker square on the city's east face, stands at
+    /// (3912, 30840) in run356's block 4606, level with the centre.
+    fn start_base(side: i32, t: Pos, xs: i32, ys: i32, stand: i32) -> Pos {
+        match side {
+            2 => Pos::new(t.x, t.y - ys - stand),
+            4 => Pos::new(t.x + xs + stand, t.y),
+            6 => Pos::new(t.x, t.y + ys + stand),
+            8 => Pos::new(t.x - xs - stand, t.y),
+            _ => Self::side_base(side, t, xs, ys, stand, 0),
         }
     }
 
@@ -668,6 +688,93 @@ mod tests {
         assert_eq!(
             crate::Sim::side_base(5, t, xs, ys, d, 0),
             Pos::new(t.x + xs, t.y + ys)
+        );
+    }
+
+    /// **An edge start is the face's midpoint** (item 1012,
+    /// `docs/COMBAT.md` §66): the start-side switch at `601e3e` puts both
+    /// arms on `(t.x + x_size × 0x60 + d, t.y)` for side 4
+    /// (`601ea0`-`601ef4`), and likewise for 2, 6 and 8; only an arm
+    /// stepping onto an edge from a corner enters it at an end. Great Lakes
+    /// 4605's `1/17`, square on the city's east face, stands at (3912,
+    /// 30840) in run356's block 4606, level with the centre.
+    ///
+    /// Made to fail by starting an edge at [`crate::Sim::side_base`]'s
+    /// end: every edge assertion names the corner.
+    #[test]
+    fn an_edge_start_is_the_face_s_midpoint() {
+        let t = Pos::new(10_000, 10_000);
+        let (xs, ys) = (384, 384);
+        let d = 0x30;
+        let at = |side| crate::Sim::start_base(side, t, xs, ys, d);
+        assert_eq!(at(2), Pos::new(t.x, t.y - ys - d), "north");
+        assert_eq!(at(4), Pos::new(t.x + xs + d, t.y), "east");
+        assert_eq!(at(6), Pos::new(t.x, t.y + ys + d), "south");
+        assert_eq!(at(8), Pos::new(t.x - xs - d, t.y), "west");
+        for side in [1, 3, 5, 7] {
+            assert_eq!(
+                at(side),
+                crate::Sim::side_base(side, t, xs, ys, d, 0),
+                "side {side} is a corner, and starts on it"
+            );
+        }
+    }
+
+    /// **And the walk begins there** (item 1012): an asker square on a
+    /// building's east face takes a spot level with the centre, as run356's
+    /// `1/17` does on block 4606, because both arms leave the face's
+    /// midpoint and the call's budget ends four candidates later. From the
+    /// corner end the four candidates are all near the corner.
+    ///
+    /// Made to fail by starting the ring at [`crate::Sim::side_base`]'s
+    /// end in [`crate::Sim::find_attack_pos`]: the spot is 504 south.
+    #[test]
+    fn a_ring_started_on_an_edge_stands_level_with_the_target() {
+        use crate::combat::Profile;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 70,
+            combat: Profile {
+                attack: 15,
+                max_range: 6,
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let t = Pos::new(20 * 0x300, 20 * 0x300);
+        let city = sim.add_building(0, t, 0);
+        sim.buildings[city].hits = 1200;
+        sim.buildings[city].health = 1200;
+        sim.buildings[city].combat = Some(Profile {
+            x_size: 7,
+            y_size: 7,
+            ..Profile::default()
+        });
+        let mut u = crate::Unit::new(1, 0, Pos::new(t.x + 0x1800, t.y), 70);
+        u.ty = Some(ty);
+        u.on_map = true;
+        let me = sim.add_unit(u);
+        let from = sim.units[me].pos;
+        let p = sim
+            .find_attack_pos(
+                me,
+                Obj::Building(city),
+                from,
+                crate::fight::SITE_ATTACK_POS_FIGHT,
+            )
+            .expect("a spot on the ring");
+        assert!(p.x > t.x, "on the east side: {p:?}");
+        assert!(
+            (p.y - t.y).abs() <= 0x60,
+            "the spot is {} from level with the centre: {p:?}",
+            p.y - t.y
         );
     }
 

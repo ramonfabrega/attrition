@@ -10736,7 +10736,8 @@ here, one `ATTACK_TO` there.
 ### 64.2 The word, and the filter
 
 `Unit::find_melee_target@005ff9c0` rewrites its caller's `flags` (every
-caller but `do_move`'s passes 0) when the head order's index is
+caller but `do_move`'s ~~passes 0~~ and `Group::action_attack`'s retarget
+passes 0; the retarget passes 1 or 2, §66.2) when the head order's index is
 `ATTACK_TO` (`005ffc75`: `cmp $2`) or `order_type` answers
 `GROUP_ATTACK_TO` (`005ffc81`: `cmp $0x15`). The listing,
 `005ffc86`–`005ffcde`:
@@ -10916,3 +10917,147 @@ margin and the captain retarget). The unit test is
 - **Listing-backed**: `5f7f1a`–`5f7faa` and `00648d70`.
 - **Unit-backed only**: the siege gate, and the unit arm's margin at the
   same distance.
+
+## 66. An army group's attack-move looks, and hands its find to the group (item 1012, 2026-09-27)
+
+Item 1012 was booked on Great Lakes' second word, frame 4605 of run347:
+ours 2 draws against the original's 43, parting at index 0 on
+`Farms::inc_time+0x1ae` against `Unit::find_attack_pos+0xea9 <
+Group::action_attack+0x41a`. No mechanism was named. Block 4606 of run356
+parted on army 0's members: kind 21 here, kind 10 there.
+
+### 66.1 The frame, from the disk
+
+- **What the original did.** On block 4606 every member of group 65
+  (`1/9`–`1/26`, army 0) holds an `ATTACK` on the human's city `0/2000`
+  (`mandatory 0`, `new_ord 1`). Under it, the `GROUP_ATTACK_TO` is re-issued
+  with a new `id` and the old `orig` (4177, 34758). `1/9`–`1/14` hold the
+  bare `ATTACK`, and `1/16` onward already walk toward their attack
+  positions (kind 1).
+- **The trace names the caller.** The four draws are
+  `find_attack_pos < action_attack+0x41a < action_attack+0x2e5`, which is
+  `Group::action_attack` recursing into itself. That is its `QUEUE_FIRST`
+  arm (`00712490:168`): `set_up_insert`, `action_halt(ignore)`, recurse
+  `QUEUE_NEW`, `finish_insert`. `Army::engagement` passes `QUEUE_NEW`, and
+  `check_target_path` passes `mandatory 1`, so neither is the caller.
+- **The looker.** `(4605 + o) % 15 == 0` puts `o` at 0, 15 and 30.
+  `1/15` is a captain (`o_up −1`) walking `GROUP_ATTACK_TO`. The members
+  it follows in the list were processed before the call, which is why
+  `1/9`–`1/14` hold a bare `ATTACK` and the rest have already walked.
+- **Why 4605 and not before.** Until block 4605, `1/21`–`1/26` had `ATTACK`
+  or `MOVE` heads, so `Group::is_attacking_to` was false. By block 4605
+  every member's head is `ATTACK_TO` or `GROUP_ATTACK_TO`.
+- **Collisions are not the cause.** `do_group_move`'s collide arm also
+  calls `Group::action_attack(…, QUEUE_FIRST)`, but no member's `collide_o`
+  names an enemy on blocks 4603–4606.
+
+### 66.2 The listing
+
+- **`Unit::do_group_attack_to@005e74e0`** runs `do_group_move`, then
+  `do_attack_to`'s own look: the head is still this order, the
+  fifteen-frame phase, armed and not supply → `find_melee_target(−1,
+  NULL, 0, 1, 0)`, else `do_attack_to_pause`. It has **no hurry gate**.
+- **`Object::find_nearby_target@00648da0`'s add arm** (decompile lines
+  545–606): a searcher whose `order_type` is `GROUP_ATTACK_TO`, whose
+  group (after `normalize`) holds it active (`member(o, who, 1)`), and
+  whose group `is_attacking_to`, and which is **not siege**, calls
+  `Group::action_attack(o, whom, 0, QUEUE_FIRST, 4)`. Anything else calls
+  `add_attack_order(…, QUEUE_FIRST, param_1, 0)` (`LAB_00649ba0`).
+- **`Group::is_attacking_to@0070ea70`**: every live, on-map member with a
+  head order has a head of type 2 or `0x15`.
+- **The retarget's word** (`00712490:456`–`470`): `find_melee_target(u,
+  min(d + 0xc0, unit_respond_range × 0x240), &whom, 0, 0, word)`, where
+  `word` is **1 when the target's vslot `+0x1c` answers 0 (a unit) and 2
+  when it answers 1 (a building)**. After the halt, the head is not an
+  attack-move, so §64.2's rewrite leaves the word standing: a member sent
+  at a city searches buildings only.
+- **The ring's start** (`601d88`–`601f54`): the start-side switch at
+  `601e3e` loads both arms' `x`/`y` slots (`601e04`–`601e1a`). For side 4
+  (`601ea0`–`601ef4`) that is `x = t.x + x_size × 0x60 + stand`, `y = t.y`,
+  and sides 2, 6 and 8 have the same shape. So an edge start is the face's
+  **midpoint**, as §17.2 has always said. The code had started an edge at
+  the corner end, which is only where an arm stepping onto an edge enters
+  it.
+
+### 66.3 The readings, and what killed each
+
+| reading | killer | verdict |
+|---|---|---|
+| `Army::engagement` (it attacks with every group) | it passes `QUEUE_NEW`, the army ticks at `frame ≡ 252 (mod 256)` (4604), and the members keep their `GROUP_ATTACK_TO` under the attack | killed |
+| `do_group_move`'s collide arm | no member's `collide_o` names an enemy on 4603–4606 | killed |
+| `do_group_attack_to`'s look, handed to the group | with it, 4605 draws 43/43; with the look skipped (the mutation) the walk falls back to 4605 and the unit test fails | **held** |
+| the retarget's word | without it, `1/9`–`1/11` take the scout `0/0` (in reach through the ring rounding) where the original takes the city; with the word 0 the walk falls back to 4606 at index 0 | **held** |
+| the edge start at mid-face | `1/17`, the one asker square on the east face, picks (3864, 31512) from the corner and (3912, 30840) from the midpoint, the dump's value; with the corner start the walk falls back to 4606 at index 27 | **held** |
+| `find_melee_target`'s squad head at the retarget (a follower takes its captain's `ATTACK` without a search), read from the decompile's path | built, it moved the walk **back** from 4618 to 4607. `1/24` flips from the citizen `0/3` to the city on frame 4606, because the city's `targeted` (bumped only by a search's winner, §33.1) is twelve bumps short | **killed by the floor**; not built, parked |
+
+The last row stands against the decompile. Either the followers search at
+this site in the original, or another search bumps the city. A packet at
+4606 that reads the city's `+0x3d` would decide between the two.
+
+### 66.4 The fix
+
+- **`sim::orders`**: the dispatch runs `do_group_attack_to_tail` after
+  `do_group_move` for a `GROUP_ATTACK_TO`. `attack_move_look` is the body
+  it shares with `do_attack_to_tail`, which keeps the hurry gate.
+  `attack_move_add` is the add arm, and `melee_squad_head` is the old inline
+  head moved into a helper.
+- **`sim::group`**: `group_is_attacking_to`, `group_action_attack`'s
+  `QUEUE_FIRST` insert arm, and the word at the retarget.
+- **`sim::fight`**: `find_melee_target_with` and `melee_search_flags_with`,
+  which carry the caller's word. A human's siege and a tank keep it.
+- **`sim::attack_pos`**: `start_base`.
+- **Unit tests**:
+  - `an_army_group_s_look_hands_its_find_to_the_group`
+  - `a_group_retarget_from_a_building_takes_a_building`
+  - `an_edge_start_is_the_face_s_midpoint`
+  - `a_ring_started_on_an_edge_stands_level_with_the_target`
+
+### 66.5 What it moved
+
+- **Great Lakes 4605 → 4618.** On run356's block 4606 every member of
+  group 65 holds the city's `ATTACK` over a re-issued `GROUP_ATTACK_TO` on
+  both sides, where ours had held the bare `GROUP_ATTACK_TO` (kind 21
+  against 10, one order against two). `1/17` walks to (3912, 30840) on
+  both. Frame 4605's draws went 2/43 → 43/43. The only rows standing on
+  4606 are `order:target` on the city, and those are the harness's
+  (§66.6).
+- **East Indies holds at 5606.** The first pair holds at 24,000 on both
+  maps.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism
+  is named): frame 4618, ours 94 draws and the original 4, parting at
+  index 0. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, and
+  the original spends `Unit::do_non_flat_gather+0xcc3`.
+  - Block 4619 parts on `1/0`'s group (66 against 67), its `idle` and its
+    move, and on `1/7`'s gather `wait` (361 against 335).
+  - Block 4617 parts on `1/24`'s chase spot, (4200, 31608) against
+    (4104, 31512).
+  - The word is inside run356's window: 69 blocks after its first and 187
+    before its last.
+
+### 66.6 What is not established
+
+- **The siege arm of the add** (`local_2c`: an AI siege unit on a building
+  whose `+8 & 0x20` is set takes it `mandatory` and writes the army's
+  target) and the naval refusal. No capture reaches either.
+- **The squad head at the retarget** (§66.3, last row).
+- **Parked 1003 is the harness.** `Built::builds` links each player's
+  pre-placed buildings but not the capital. who=0's table holds
+  `2001`–`2006` and not `2000` (handle 0). So `build_ids` answers `None`,
+  and every `ATTACK` on a city reads `order:target` ours `None`, as on
+  `1/24`–`1/26` from 4550. `unit_ids` has had an `(owner, index)`
+  fallback since item 462, and `build_ids` has none.
+
+### 66.7 Coverage
+
+- **Diff-backed**:
+  - the look and the group hand-off, by run356's block 4606 and frame
+    4605's draws;
+  - the word, by `1/9`–`1/11`'s targets and frame 4606's draws;
+  - the edge start, by `1/17`'s spot.
+
+  Each is a floor that falls back under its mutation.
+- **Listing-backed**: `601d88`–`601f54`.
+- **Decompile-read**: `005e74e0`, `0070ea70`, `00648da0:545–606`,
+  `00712490:168–174, 456–470`.
+- **Unit-backed only**: `is_attacking_to`'s refusal. Answering it true
+  does not move the walk.

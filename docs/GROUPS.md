@@ -1382,7 +1382,8 @@ for `engagement` (`docs/ARMY.md` §11), which calls it with `mandatory = 0`,
   destination**. Otherwise it falls through and is re-ordered. And the main
   path is
   `add_attack_order(unit, o', whom', queue, mandatory, action 1)` where,
-  **when `mandatory == 0`**, `o'` is `Unit::find_melee_target` within
+  **when `mandatory == 0`**, `o'` is `Unit::find_melee_target` (its word 1
+  for a unit target and 2 for a building, `docs/COMBAT.md` §66.2) within
   `min(dist + 0xc0, unit_respond_range × 0x240)` of the unit and the given
   target is only the fallback;
 - `group.order_num += 1`.
