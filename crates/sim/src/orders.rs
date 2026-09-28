@@ -3953,9 +3953,22 @@ impl Sim {
                         // non-`mandatory` chase is dropped `0x90` inside
                         // the attacker's reach rather than at its edge
                         // (`docs/COMBAT.md` §35.3).
+                        //
+                        // **And the target must not be running from the
+                        // chaser's own heading** (item 1061, `docs/COMBAT.md`
+                        // §71): `5f7fbe`–`5f7ff6`, ahead of the range test,
+                        // `e = target +0x50 − my +0x50 − 0x80000000`; `e`
+                        // at or past `0x2aaaaaaa` (`jb`), `flanking@0092cfe0`
+                        // on `ecx` non-zero and the target's `vt+0xd8`,
+                        // `UnitData::is_moving`, non-zero jump to `5f803f`,
+                        // the captain's retarget, past the kill. It is
+                        // `check_target_path`'s triple against the
+                        // attacker's heading rather than the bearing.
                         let margin = !self.units[u].combat.mandatory;
                         let at = self.units[u].pos;
-                        if self.is_in_range_at_margin(me, at, t, margin) {
+                        if !self.chase_target_flees(u, t)
+                            && self.is_in_range_at_margin(me, at, t, margin)
+                        {
                             self.kill_current_order(u);
                             return Did::Something;
                         }
@@ -8328,11 +8341,115 @@ impl Sim {
         found
     }
 
+    /// **`do_move`'s flank clause on a chase** (item 1061, `docs/COMBAT.md`
+    /// §71), `Unit::do_move@005f7b30`, `5f7fbe`–`5f7ff6`: a unit target whose
+    /// heading, less the chaser's own, less a half turn, lies at or past
+    /// `0x2aaaaaaa` and inside [`combat::flanking`]'s window, and which is
+    /// moving, is running away from the chaser, and the chase is not ended
+    /// for being in range. A building target never flees here.
+    pub(crate) fn chase_target_flees(&self, u: usize, t: Obj) -> bool {
+        let Obj::Unit(tu) = t else { return false };
+        let e = (self.units[tu].movement.heading.0 as u32)
+            .wrapping_sub(self.units[u].movement.heading.0 as u32)
+            .wrapping_sub(0x8000_0000);
+        e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu)
+    }
+
     /// A found better target rewrites the order's target in place.
     fn retarget_attack(&mut self, u: usize, t: Obj) {
         let unit = &mut self.units[u];
         unit.combat.target = Some(t);
         unit.combat.mandatory = false;
+    }
+}
+
+#[cfg(test)]
+mod chase_tests {
+    use super::*;
+    use crate::combat::Profile;
+    use crate::world::World;
+
+    /// **A target running from the chaser's heading keeps the chase in
+    /// reach** (`do_move@005f7b30`, the listing `5f7fbe`–`5f7ff6`;
+    /// `docs/COMBAT.md` §71). run347's `1/11` walks its chase on frame 4922
+    /// at (5046, 30225), heading −321454080, after the citizen `0/1` at
+    /// (4035, 28584) walking east, heading `0x40000000`: `e = 0xd3290000`,
+    /// `flanking` 2, so the original keeps walking, and ends the chase on
+    /// 4923, when `0/1` has turned and `flanking` reads 0.
+    ///
+    /// Three arms, on a frame off the review's phase: a target walking
+    /// ahead of the chaser, in reach, keeps the chase; a target standing
+    /// there, or walking toward the chaser, ends it. Made to fail by
+    /// taking the flank clause out of the kill: the first arm ends its
+    /// chase.
+    #[test]
+    fn a_target_running_from_the_chaser_s_heading_keeps_the_chase() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |sim: &mut Sim, who: Player, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 100);
+            u.ty = Some(ty);
+            u.on_map = true;
+            u.kind = sim.unit_types[ty].kind;
+            sim.add_unit(u)
+        };
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let foe = put(&mut sim, 0, at);
+        let me = put(&mut sim, 1, Pos::new(at.x + 2 * 0xc0, at.y));
+        let west = crate::movement::find_angle(-1, 0);
+        let east = crate::movement::find_angle(1, 0);
+        sim.units[me].movement.heading = west;
+        assert!(
+            sim.is_in_range_at_margin(Obj::Unit(me), sim.units[me].pos, Obj::Unit(foe), true),
+            "the chaser stands inside its reach less the margin"
+        );
+        // Off the review's phase, `(frame + o) % 16 != 0`.
+        let frame = 17 - i64::from(sim.units[me].index);
+        let chase = |heading: Option<crate::movement::Angle>| {
+            let mut s = sim.clone();
+            if let Some(h) = heading {
+                s.add_move_order(
+                    foe,
+                    Pos::new(at.x - 20 * 0xc0, at.y),
+                    MoveKind::MoveTo,
+                    QueuePos::New,
+                    false,
+                );
+                s.units[foe].movement.heading = h;
+            }
+            s.add_attack_order(me, Obj::Unit(foe), QueuePos::First, false, true);
+            s.add_move_order(
+                me,
+                Pos::new(at.x - 10 * 0xc0, at.y),
+                MoveKind::MoveTo,
+                QueuePos::First,
+                false,
+            );
+            assert!(!s.units[me].combat.mandatory);
+            s.work(me, frame);
+            s.units[me].orders.iter().any(Order::is_move)
+        };
+        assert!(
+            chase(Some(west)),
+            "a target running along the chaser's heading ended the chase"
+        );
+        assert!(!chase(None), "a standing target kept the chase");
+        assert!(
+            !chase(Some(east)),
+            "a target walking toward the chaser kept the chase"
+        );
     }
 }
 

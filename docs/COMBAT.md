@@ -11820,3 +11820,121 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
 - **Unit-backed only**: `on_duty`'s `PATROL`, `GROUP_PATROL` and `GUARD`
   arms for a human unit, the idle unit's answer, and the side arm's other
   three faces.
+
+## 71. A chase in reach is not ended while its target runs from the chaser's heading (item 1061, 2026-09-28)
+
+Great Lakes' second word, frame 4924 (DECISIONS 53, 54). The item's
+booking read block 4923 as the original pushing the chase's move above
+`1/11`'s `ATTACK`. The disk says the other way round: both sides carry the
+chase from block 4921, and **ours ends it a frame early**.
+
+### 71.1 The frame, from the disk
+
+- **The whole cast first.** A probe (`RON_STACKS=1` on the second pair's
+  widenings) prints every AI unit's order stack front first on both sides,
+  on every block of run356 and run373. Across 4550..4922 there are 72
+  chase pushes and pops, and every one is on the same block on both sides.
+- **The first one-sided event is the word's.** Ours pops `1/11`'s chase
+  on block 4923; the original pops it on 4924. The same early pop recurs
+  on `1/26` (4938 against 4947) and `1/25` (4963 against later).
+- **Block 4922 agrees whole.** `1/11` stands at (5046, 30225) with heading
+  −321454080, `MOVE` over a fresh `ATTACK` on the citizen `0/1` (`in_range
+  0`, `new_ord 1`) over its `ATTACK_TO`. `0/1` is at (4035, 28584), heading
+  `0x40000000`, walking east at 25.
+- **Neither frame is the review's.** `check_target_path`'s phase is
+  `(frame + 11) mod 16`, 5 on frame 4922 and 6 on 4923. So the pop is
+  `do_move`'s own kill (§35.3).
+
+### 71.2 The listing
+
+`Unit::do_move@005f7b30`'s kill on a ranged attacker's unit target is
+`LAB_005f7faa`, reached only when all three hold:
+
+1. **Not the flank** (`5f7fbe`–`5f7ff6`):
+   - `ecx = target +0x50 − this +0x50 − 0x80000000`;
+   - `cmp $0x2aaaaaaa` then `jb`: below it, go to the range test;
+   - `call flanking@0092cfe0`, which reads `ecx`; zero, go to the range
+     test;
+   - `call *0xd8(target)`, `UnitData::is_moving`; zero, go to the range
+     test;
+   - otherwise `jne 5f803f`, the captain's retarget, past the kill.
+2. `is_in_range@00648d70` with the sixth argument `mandatory == 0` (§35.3).
+3. `Objects::find_collision(own spot, o, who, 1) == 0` (`5f7f9d`).
+
+This crate carried the second alone. §35.3 and `orders.rs` named the first
+and third as `SEAM`s "that only make it rarer". Rarer is the word's
+direction: a later pop.
+
+The flank triple is `check_target_path`'s (§67), with the angle taken
+from the attacker's own heading rather than the bearing to the target. The
+decompile prints `flanking`'s argument as `unaff_EDI`; the listing puts
+`e` in `ecx`, and `flanking`'s first instruction is `cmp $0xd5555555,
+%ecx`.
+
+### 71.3 The values
+
+| frame | `1/11` heading | `0/1` heading | `e` | `flanking(e)` | flank holds |
+| --- | --- | --- | --- | --- | --- |
+| 4922 | −321454080 | `0x40000000` | `0xd3290000` | 2 | yes: no kill |
+| 4923 | −319422464 | 1480523776 | `0xeb490000` | 0 | no: kill |
+
+`0/1` is player 0's unit, stepped before `1/11` in the frame. On frame
+4923 it has already turned to the heading block 4924 prints.
+
+### 71.4 The fix, and its killer
+
+- **Built**: `Sim::chase_target_flees`, which `do_move`'s unit-target kill
+  asks before `is_in_range_at_margin`.
+- **Unit test**: `a_target_running_from_the_chaser_s_heading_keeps_the_chase`.
+  A ranged chaser in reach, off the review's phase. A target walking
+  along its heading keeps the chase; a standing one, or one walking toward
+  it, ends it.
+- **Mutation** on `1d641483`, the conjunct taken out, restored from git and
+  `touch`ed:
+  - run347's walk falls back to 4924, 8 against 7 at index 0;
+  - `run373_s_word_frame_is_widened_whole` fails on `1/11`'s
+    `order:kind` at 4923;
+  - the unit test fails.
+
+### 71.5 What moved
+
+- **Great Lakes 4924 → 4978.**
+  - On block 4923 `1/11` stands at (5032, 30200) under its chase on both
+    sides.
+  - On 4924 it stands there under a fresh `ATTACK` on `0/1`.
+  - On 4925 it stands at (5016, 30216) on `0/2`, with `in_range 1`,
+    `new_ord 0`, `recharging` 30 and `hold_attack` 1, on both sides.
+  - Frame 4924 went 8 against 7 → agreeing.
+  - run373's keys parted go 1,093 → 1,052.
+- **East Indies holds at 5606**, ours 4 against 5 at index 0.
+- **The new word** (no mechanism is named): frame 4978, ours 9 and the
+  original 8, at index 1. Ours spends `Unit::close+0xcb6`, the original
+  `Farms::inc_time+0x1ae`.
+  - Block 4979 holds the citizen `0/2` dead on ours' side alone
+    (`death:extra`, `hold_frames` 1), at 42 damage against 37.
+  - The gap stands from run373's first block, 6 10/16 against 5 5/16.
+  - The original's damage falls a point on 4859 and on 4904; ours' does
+    not.
+
+### 71.6 What is not established
+
+- **`find_collision`'s conjunct** is still a `SEAM`. Block 4980 is its
+  first instance on disk: `1/18` keeps its chase in the original with
+  `collide 1`, `collide_o 19`, where ours ends it. That is past the word.
+- **`is_moving` on a unit whose head is not a move.** This crate's
+  `is_moving` reads the head order. `UnitData::is_moving`'s body was not
+  read.
+- **The re-search's fresh order.** On every one-in-five retarget on disk
+  (4753, 4853, 4898 and more), the original's head attack reads fresh for
+  one block (`in_range 0`, `new_ord 1`, `ever_in_range 0`), and this
+  crate's is re-pointed in place (`retarget_attack`). The values agree
+  again on the next block and no draw has parted on it yet
+  (`docs/GROUPS.md` §33.2).
+
+### 71.7 Coverage
+
+- **Diff-backed**: the pop's frame, by run373's blocks 4923..4925 and
+  frame 4924's draws; every chase event on run356 and run373 to 4979.
+- **Listing-backed**: `5f7fbe`–`5f7ff6`, `92cfe0`–`92cffd`.
+- **Unit-backed only**: the target walking toward the chaser. No capture
+  has one in reach.

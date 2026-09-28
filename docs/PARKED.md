@@ -88,6 +88,22 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1061, 2026-09-28 — the chase's edges
+
+(1073) **The one-in-five re-search's fresh order** (COMBAT §71.6): at
+every retarget the original's head attack reads `in_range 0, new_ord 1,
+ever_in_range 0` for one block, and this crate re-points the order in
+place. No draw has parted on it.
+
+(1074) **`find_collision`'s conjunct of `do_move`'s kill**, the second
+`SEAM` beside the flank clause 1061 built: its first instance is block
+4980, `1/18`, `collide_o 19`, past the word.
+
+(1075) **`Army::role` is never written** (ours 0 against 1379331 from
+4550; only its reset writes it), and the Town Center group's `ox`/`oy`
+reads −1 against 0. The second pair's widening compares both now, and
+nothing reads either.
+
 ## Parked by item 1052, 2026-09-28 — the army's march
 
 (1063) **`do_forming`'s per-group step** (ARMY §8.5) is reversed by the
@@ -1708,6 +1724,13 @@ written again. The rules lane's 70.5 USD a landing is mostly this:
 worker clears at the seam the working agreement already names — the
 document written, before the build — or the chapter is booked as two
 items; the pass that rules it reads the next tranche's depths first.
+
+(1076) **A booking's direction is a hypothesis as much as its
+mechanism** (1061's Loop line): 1061's booking said the original
+*pushed* a chase move on 4923, and one probe of both sides' order
+stacks said ours *popped* it early. A checklist row could ask the
+first probe to print both sides' event on the frame, not the one side
+the draw points at.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

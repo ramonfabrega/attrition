@@ -1699,78 +1699,64 @@ const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
 /// deleted here, and a field that arrives uncompared must be compared or
 /// added here with the item that owes it.
 const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
-    // Pinned 2026-09-25, the fourteenth pass, on run202's blocks 15383..
-    // 15387: 137 registrations. **A site gated on the window's content
-    // registers only when it runs**, so a row here is one of two things
-    // and the comment says which: a field no site compares, or a site
-    // the window never reached (no death, no queued build, no patrol,
-    // guard, garrison, cast or ground order, no group move, no
-    // collision point on these six blocks). The second kind leaves this
-    // pin the day a window that reaches it is driven here.
+    // **Re-pinned 2026-09-28, item 1061** (DECISIONS 54 §2), on the second
+    // pair's Great Lakes word's window — run373's blocks 4977..4981,
+    // walked from run347's start with the group record and the attack
+    // order's row (`second::widen_records`). Until then the pin walked the
+    // first pair's run202 15383..15387, where no army marched. **A site
+    // gated on the window's content registers only when it runs**, so a
+    // row here is one of two things and the comment says which: a field no
+    // site compares, or a site the window never reached. On these five
+    // blocks the dump holds no death (ours holds the citizen `0/2`'s from
+    // 4979, the word itself, and a record one side holds alone registers
+    // nothing), no `GROUPORDER`, patrol, guard,
+    // garrison, cast, air, strafe or ground order (every order block is a
+    // `UNITORDER`, `MOVEORDER`, `TARGETORDER`, `ATTACKORDER`,
+    // `ATTACKTOORDER`, `GATHERORDER`, `BUILDORDER`, `EXPLORETOORDER` or
+    // `FLEETOORDER`); the second kind leaves this pin the day a window
+    // that reaches it is driven here.
     //
     // `UnitDump`: `uid` is the identity behind `o` (ledger); `flags`,
     // `infiltrated` and the container pair `up`/`up_who`/`down`/
     // `down_who` no site compares.
     ("UnitDump", "down down_who flags infiltrated uid up up_who"),
-    // `Guy`: `ox`/`whom` are chapter one's word and compared by its own
-    // widening (item 530), `last_pos` by run86's (item 271); `kind`,
-    // `guy_num` and `guy_flags` no site compares.
-    ("Guy", "guy_flags guy_num kind last_pos ox whom"),
+    // `Guy`: `ox`/`whom`, the figure's aim, are compared since item 1061;
+    // `last_pos` is run86's widening's (item 271); `kind`, `guy_num` and
+    // `guy_flags` no site compares.
+    ("Guy", "guy_flags guy_num kind last_pos"),
     // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
     // and `orig_x`/`orig_y` to run29's field-table test on purpose
-    // (`compare_orders`). `orig` is carried on every move since item 738
-    // (`MoveOrder::orig`, `finish_insert`'s replay point, run219), and
-    // comparing it adds two rows past Great Lakes' word to run218's
-    // fenced widening, `1/0`'s explore on 16470 whose point has already
-    // parted: the compare waits for that widening's owner; `coll_x`/`coll_y` are compared since the window
-    // moved to run211's 15609 (item 722), where a collision point stands
-    // on both sides; the `GROUPORDER`, patrol, guard, garrison, cast and ground
-    // rows on their orders, none of which stand on this window; `uid`,
-    // `metric`, `build_type`, `non_flat_gather` and the attack order's
-    // `mandatory defensive in_range ever_in_range new_ord def_x def_y`
-    // no site compares. The strafe's row since item 746 — `mandatory`,
-    // the `AIRORDER`'s `air_oxx air_whose cruising_alt sharp_turn air_old
-    // returning` and `strafe_xx strafe_yy` — is compared on every strafe
-    // (`compare_orders`, run223), and none stands on this window.
+    // (`compare_orders`); the `GROUPORDER`, patrol, guard, garrison, cast,
+    // air, strafe and ground rows on their orders, none of which stands on
+    // this window (the guard's six were compared on run202's, where one
+    // stood); `uid`, `metric`, `build_type` and `non_flat_gather` no site
+    // compares. The attack order's own row — `mandatory`, `defensive`,
+    // `in_range`, `ever_in_range`, `new_ord`, `def_x`, `def_y` — is
+    // compared since item 1061, on every slot both sides hold an attack.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
-         ever_in_range form_id garrison_search group_angle group_id in_group in_range \
-         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
-         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
+         attempts build_type cast_paid cast_spell cruising_alt form_id garrison_search \
+         group_angle group_id guard_dx guard_dy guard_idle guard_retry guard_x guard_y \
+         in_group metric non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry \
+         returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
-    // `BuildDump`: `queue` registers with a non-empty queue whose depths
-    // agree, and none stands on this window. **`orig_type` no site
-    // compares** — the comparator's own comment
-    // says `orig_type` was "parsed and neither compared" and is compared
-    // now, and it is not: the position is. The pin's first catch, the
-    // day it was built; parked for a widening rather than fixed here.
-    // **Item 763 compares `damage` and `damage_frac`** (parked 728's
-    // two of three, run223's bombed Barracks); `orig_type` remains.
-    // `flags`, `max_age`, `mtn`, `cliff`, `mining_size`,
-    // `construct_hits`, `ever_seen` and `ever_seen_completed` no site
-    // compares. `job_counter` is compared only while **both** sides call
-    // a site unfinished (the construction clock, `harness.rs`), and no
-    // site stands unfinished on run226's 17098..17102, the window since
-    // item 742; run218's 16459..16463 had one.
+    // `BuildDump`: **`orig_type` no site compares** (parked 728, the
+    // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
+    // `mining_size`, `construct_hits`, `ever_seen` and
+    // `ever_seen_completed` no site compares. `job_counter` and `queue`
+    // register here: a site stands unfinished and a build is queued.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type queue",
+         max_age mining_size mtn orig_type",
     ),
-    // Registered with `BuildDump.queue`, on a queued build.
-    ("QueueItemDump", "cost good job_counter ty"),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
-    // The pool lists compare `id`, `who` and the members' `o`; the rest of
-    // the group record is `diff::army`'s and the groups tests'.
-    (
-        "GroupDump",
-        "army buildings disband facing form form_num new_speed num o_angle o_dist \
-         order_num ox oy priority role speed stamp think_frame",
-    ),
-    ("GroupMemberDump", "angle curr_x curr_y off_x off_y"),
+    // The group record is compared whole since item 1061
+    // (`second::widen_records`) but for `think_frame`, which this crate
+    // does not carry.
+    ("GroupDump", "think_frame"),
 ];
 
 /// **Every field the parser carries is compared by the shared instrument
@@ -1785,7 +1771,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     use super::compared;
     compared::start();
-    let walked = super::harness::tests::great_lakes_word_window();
+    let walked = super::second::great_lakes_word_window();
     let seen = compared::stop();
     let Some(w) = walked else {
         eprintln!("skipping: the Great Lakes word's chain is not all on disk");

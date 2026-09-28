@@ -17,28 +17,28 @@ DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty, and
 it is in the first war; the first pair stays closed at 24,000,
 endpoints 0 off. Chapters one to thirty-four are closed and
-thirty-five is open. No lane is live; the count is at zero.*
+thirty-five is open. Two lanes run; the count is at one (1061).*
 
 - **The tranche, ruled**: twenty landings, 36.6 USD each. The war moves
   Great Lakes forty-one frames and one rule of combat a landing, and
   its game ends on 5,930: **the pass reads landings to that end**.
-- **The instrument fell behind the word**: fifteen journals met a
-  comparison that compared nothing, and the compared pin walks the
-  first pair's closed window. 1061 opens on it.
+- **The instrument follows the word** (1061, GROUPS §33): the second
+  pair's widening compares the group record and the attack row, and
+  the compared pin walks the pair's Great Lakes word's window.
 - **A third map is scored** (1066), and the held-out number is not
   read until map 9 has a height table.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 11 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071).
+- **Fable backlog: 12 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5606 of 18,140 · GreatLakes w4924 of 5,930
+Second pair: EastIndies w5606 of 18,140 · GreatLakes w4978 of 5,930
 Golden: ch35 w2701 of 3261 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · 1050 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1061 on the AI lane, the instrument
-first; 1050 on the rules lane; 1066 to whichever lane frees first.**
+**Opener: the commander resumes — 1050 on the rules lane; 1066 on the
+AI lane, then 1072 to whichever lane frees first.**
 
 ## The queue
 
@@ -48,14 +48,12 @@ lower map first — Great Lakes (a guard reads this line). Take the first
 unstarted on either track unless a better order is obvious, and say so; the
 backlog is `docs/PARKED.md`, and an item returns only when a score names it.
 
-1061. **Great Lakes' second word: frame 4924, ours 8 draws against 7**
-    (1052), parting at index 0: ours `Guy::set_anim+0xf2f <
-    Guy::move+0x166`, theirs `Guy::set_anim+0x97a <
-    Unit::move_step+0x823`; run373's block 4923 parts on `1/11`'s order
-    (kind 10 against 1). **The instrument first** (DECISIONS 54 §2): the
-    widening compares `GROUPDATA` and the attack order's row (parked
-    1062, folded), and the compared pin walks this word's window; then
-    the frame. East Indies' 5606 follows.
+1072. **Great Lakes' second word: frame 4978, ours 9 draws against 8**
+    (1061), parting at index 1: ours `Unit::close+0xcb6`, theirs
+    `Farms::inc_time+0x1ae`. Widened on run373 (block 4979): citizen
+    `0/2` dies on ours alone, damage 42 against 37, the gap standing
+    from 4841; the original's falls a point on 4859 and 4904 and ours
+    does not. No mechanism is named. East Indies' 5606 follows.
 
 1050. **Chapter thirty-five's word: frame 2701, the V2's round** (1048;
     parked 1050 and 1051, folded). Theirs 4 draws against ours 3, led by

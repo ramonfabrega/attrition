@@ -1380,7 +1380,28 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// 0x166`, the original `Guy::set_anim+0x97a < Unit::move_step+0x823`.
 /// Inside run373's window (block 4925); block 4923 parts on `1/11`'s
 /// order (kind 10 against 1).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_924;
+///
+/// **4924 → 4978 on item 1061**: `do_move`'s flank clause
+/// (`5f7fbe`–`5f7ff6`): a chase is not ended for being in reach while its
+/// unit target, moving, runs from the chaser's own heading
+/// (`docs/COMBAT.md` §71). On frame 4922 `1/11` chases `0/1` walking east,
+/// `e = 0xd3290000`, `flanking` 2: ours ended the chase, the original
+/// walked on. **The move's value diff (the word's delta, here; its block
+/// is `run373_s_word_frame_is_widened_whole`'s):** on block 4923 `1/11`
+/// stands at (5032, 30200) with its chase on top (three orders) on both
+/// sides, where ours held (5046, 30225) under its `ATTACK` (two); on 4924
+/// it stands there under a fresh `ATTACK` on `0/1` (`in_range 0`,
+/// `new_ord 1`) on both, and on 4925 at (5016, 30216) on `0/2` with
+/// `in_range 1`, `new_ord 0`, `recharging` 30 and `hold_attack` 1 on
+/// both. Frame 4924's draws went 8 against 7 → agreeing; run373's keys
+/// parted 1,093 → 1,052. **The new word's delta: ours 9 draws and the
+/// original 8 on frame 4978, parting at index 1**: ours spends
+/// `Unit::close+0xcb6`, the original `Farms::inc_time+0x1ae`. Inside
+/// run373's window (block 4979), where the citizen `0/2` is dead on ours'
+/// side alone (`death:extra`, `hold_frames` 1): ours reads 42 damage
+/// against 37, and the gap stands from the window's first block. No
+/// mechanism is named.
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_978;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
@@ -1417,7 +1438,8 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_4555: (i64, i64) = (4_550, 4_806);
 /// `run373_s_word_frame_is_widened_whole`'s window (item 1040): run373 over
 /// run347's game, blocks 4841..5097 — six blocks before the word 4846's
 /// block 4847 and 250 past it. The word moved to 4877 (block 4878) inside
-/// it, in the same item, and to 4924 (block 4925) on item 1052.
+/// it, in the same item, to 4924 (block 4925) on item 1052, and to 4978
+/// (block 4979) on item 1061.
 pub(crate) const WIDENING_SECOND_GREAT_LAKES_4846: (i64, i64) = (4_841, 5_097);
 
 /// The frame East Indies' **first scholar** — `1/22` — is seated inside

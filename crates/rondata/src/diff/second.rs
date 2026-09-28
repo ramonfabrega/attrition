@@ -111,6 +111,324 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
     })
 }
 
+/// **The compared pin's window** (item 1061, DECISIONS 54 §2): the newest
+/// pair's lower map's word — Great Lakes at Toughest, [`SECOND_WORD_GREAT_LAKES`]
+/// — its block and two on either side, on run373 walked from run347's
+/// start, with the group record and the attack order's row
+/// ([`widen_records`]). `coverage`'s compared pin walks these blocks with
+/// the recorder on. Until item 1061 it walked the first pair's Great Lakes
+/// window, closed since item 899, where no army marched. `None` when the
+/// captures are not on this machine.
+pub(crate) fn great_lakes_word_window() -> Option<crate::diff::harness::tests::Widened> {
+    let block = SECOND_WORD_GREAT_LAKES + 1;
+    crate::diff::harness::tests::widen_great_lakes_on(
+        (
+            "gamelog-run347-greatlakes-toughest-24k-trace.txt",
+            "rontrace-run347.log",
+        ),
+        "the second pair's word's window",
+        &[(
+            "gamelog-run373-greatlakes-toughest-4846.txt",
+            WIDENING_SECOND_GREAT_LAKES_4846.0,
+        )],
+        (block - 2, block + 2),
+        1,
+        &[block],
+        true,
+    )
+}
+
+/// **The group record and the attack order's row, both directions** (item
+/// 1061, DECISIONS 54 §2; parked 1062): what the second pair's widening
+/// did not compare while its word stood on a group's order. On one block,
+/// for every player's 64 pool slots that either side holds, the whole
+/// `GROUPDATA` record — the list, `num`, `army`, `form`, `order_num`,
+/// `ox`/`oy`, `o_dist`, `o_angle`, `facing`, `form_num`, `speed`,
+/// `new_speed`, `stamp`, `buildings`, `disband`, `priority`, `role` and each
+/// slot's `off`, `curr` and `angle` — keyed `(who, -3, "group:<id>.<field>")`;
+/// and on every unit, each order slot both sides hold as an `ATTACKORDER`,
+/// its own row past the target — `mandatory`, `defensive`, `in_range`,
+/// `ever_in_range`, `new_ord`, `def_x`, `def_y` — keyed
+/// `(who, o, "attack[<slot>].<field>")`; and each figure's aim, `ox` and
+/// `whom`, keyed `(who, o, "g.<field>[<k>]")`. A slot one side holds alone
+/// is a `held` row. Answers the rows compared.
+///
+/// `disband` and `priority` are compared against 0: this crate writes
+/// neither, and a player-1 pool slot the original sets either on is the
+/// finding. `role` is compared on an army's group only, where this crate
+/// keeps the word (`Army::role`, `docs/ARMY.md` §3.1); a pushed group
+/// carries none here. `think_frame` this crate does not carry.
+pub(crate) fn widen_records(
+    built: &Built,
+    frame: &Frame,
+    block: crate::gamelog::Block<'_>,
+    players: usize,
+    n: i64,
+    here: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+) -> usize {
+    let mut rows = 0usize;
+    let pool = crate::gamelog::groups(block);
+    for who in 0..players as i64 {
+        let Ok(w) = sim::Player::try_from(who) else {
+            continue;
+        };
+        for slot in 0..64u8 {
+            let id = who * 64 + i64::from(slot);
+            let theirs = pool.iter().find(|g| g.id == id).filter(|g| g.num > 0);
+            let army = built
+                .sim
+                .armies
+                .get(who as usize)
+                .into_iter()
+                .flat_map(|x| x.list.iter())
+                .find(|a| a.valid && a.group.pool == Some(slot));
+            let mut list = built.sim.pool_list(w, slot);
+            let mut ours = built.sim.pool_state(w, slot);
+            let mut buildings = false;
+            if list.is_empty()
+                && ours.is_none()
+                && let Some((st, b)) = built.sim.pool_building_group(w, slot)
+            {
+                list = b;
+                ours = Some(st);
+                buildings = true;
+            }
+            if theirs.is_none() && list.is_empty() {
+                continue;
+            }
+            let mut row = |key: &str, o: String, t: String| {
+                rows += 1;
+                if o != t {
+                    here.entry((who, -3, format!("group:{id}.{key}")))
+                        .or_insert((n, format!("ours {o} theirs {t}")));
+                }
+            };
+            let (Some(t), Some(o)) = (theirs, ours) else {
+                row(
+                    "held",
+                    format!("{list:?}"),
+                    format!(
+                        "{:?}",
+                        theirs.map(|t| t.members.iter().map(|m| m.o).collect::<Vec<_>>())
+                    ),
+                );
+                continue;
+            };
+            let tl: Vec<i64> = t.members.iter().map(|m| m.o).take(t.num as usize).collect();
+            let ol: Vec<i64> = list.iter().map(|&x| i64::from(x)).collect();
+            compared::note(
+                "GroupDump",
+                &[
+                    "num",
+                    "army",
+                    "form",
+                    "order_num",
+                    "ox",
+                    "oy",
+                    "o_dist",
+                    "o_angle",
+                    "facing",
+                    "form_num",
+                    "speed",
+                    "new_speed",
+                    "stamp",
+                    "buildings",
+                    "disband",
+                    "priority",
+                ],
+            );
+            row("list", format!("{ol:?}"), format!("{tl:?}"));
+            for (k, ov, tv) in [
+                ("num", ol.len() as i64, t.num),
+                ("army", army.map_or(-1, |a| i64::from(a.army)), t.army),
+                ("form", i64::from(o.form), t.form),
+                ("order_num", i64::from(o.order_num), t.order_num),
+                ("ox", i64::from(o.o.x), t.ox),
+                ("oy", i64::from(o.o.y), t.oy),
+                ("o_dist", i64::from(o.o_dist), t.o_dist),
+                ("o_angle", i64::from(o.o_angle.0), t.o_angle),
+                ("facing", i64::from(o.facing), t.facing),
+                ("form_num", i64::from(o.form_num), t.form_num),
+                ("speed", i64::from(o.speed), t.speed),
+                ("new_speed", i64::from(o.new_speed), t.new_speed),
+                ("stamp", o.stamp, t.stamp),
+                ("buildings", i64::from(buildings), t.buildings),
+                ("disband", 0, t.disband),
+                ("priority", 0, t.priority),
+            ] {
+                row(k, ov.to_string(), tv.to_string());
+            }
+            if let Some(a) = army {
+                compared::note("GroupDump", &["role"]);
+                row("role", a.role.to_string(), t.role.to_string());
+            }
+            let slots = (o.form_num.max(0) as usize).max(t.form_num.max(0) as usize);
+            if slots > 0 {
+                compared::note(
+                    "GroupMemberDump",
+                    &["off_x", "off_y", "curr_x", "curr_y", "angle"],
+                );
+            }
+            for i in 0..slots {
+                let tm = t.members.get(i);
+                row(
+                    &format!("off[{i}]"),
+                    format!("{:?}", o.off.get(i)),
+                    format!("{:?}", tm.map(|m| (m.off_x, m.off_y))),
+                );
+                row(
+                    &format!("curr[{i}]"),
+                    format!("{:?}", o.curr.get(i).map(|p| (p.x, p.y))),
+                    format!("{:?}", tm.map(|m| (m.curr_x, m.curr_y))),
+                );
+                row(
+                    &format!("angle[{i}]"),
+                    format!("{:?}", o.angles.get(i)),
+                    format!("{:?}", tm.map(|m| m.angle)),
+                );
+            }
+        }
+    }
+    for them in &frame.units {
+        if !(0..players as i64).contains(&them.who) {
+            continue;
+        }
+        let (Ok(who), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+            continue;
+        };
+        let Some(u) = built.sim.unit_by_o(who, o) else {
+            continue;
+        };
+        let un = &built.sim.units[u];
+        // `RON_STACKS=1` prints every unit's order stack front first on
+        // both sides, the kind with an attack's target, `in_range` and
+        // `new_ord` — the instance list a chase's push or pop asks for.
+        if std::env::var_os("RON_STACKS").is_some() {
+            let ours: Vec<String> = un
+                .orders
+                .iter()
+                .map(|x| match x.body {
+                    sim::orders::Body::Attack(a) => format!(
+                        "10{:?}r{}n{}",
+                        un.combat.target.map(|t| match t {
+                            sim::combat::Obj::Unit(t) => {
+                                (
+                                    i64::from(built.sim.units[t].owner),
+                                    i64::from(built.sim.units[t].index),
+                                )
+                            }
+                            sim::combat::Obj::Building(b) => (
+                                i64::from(built.sim.buildings[b].owner),
+                                i64::from(built.sim.buildings[b].index),
+                            ),
+                        }),
+                        u8::from(a.in_range),
+                        u8::from(a.new_ord)
+                    ),
+                    _ => x.index().to_string(),
+                })
+                .collect();
+            let theirs: Vec<String> = them
+                .orders_front_first()
+                .map(|x| {
+                    if x.index == 10 {
+                        format!(
+                            "10{:?}r{}n{}",
+                            x.whom.zip(x.ox),
+                            x.in_range.unwrap_or(-1),
+                            x.new_ord.unwrap_or(-1)
+                        )
+                    } else {
+                        x.index.to_string()
+                    }
+                })
+                .collect();
+            if ours
+                .iter()
+                .chain(theirs.iter())
+                .any(|k| k.starts_with("10"))
+            {
+                eprintln!(
+                    "  stacks {n} {who}/{o} ours {} ({},{}) | theirs {} ({},{})",
+                    ours.join(","),
+                    un.pos.x,
+                    un.pos.y,
+                    theirs.join(","),
+                    them.pos.x,
+                    them.pos.y
+                );
+            }
+        }
+        // **What each figure is aimed at** (`GuyData +0x8e`/`+0x9f`,
+        // printed `ox`/`whom`): chapter one's widening read it on a
+        // player's fight, and a war window is where it is written.
+        for (k, g) in them.guys.iter().enumerate() {
+            let Some(og) = un.guys.get(k) else { continue };
+            let aim = match og.aim {
+                None => (-1, -1),
+                Some(sim::combat::Obj::Unit(t)) => {
+                    let tu = &built.sim.units[t];
+                    (i64::from(tu.owner), i64::from(tu.index))
+                }
+                // A building by its `(owner, index)`, the identity
+                // `widen_block` links on: `build_ids` names only the ones
+                // the start dump placed.
+                Some(sim::combat::Obj::Building(b)) => {
+                    let x = &built.sim.buildings[b];
+                    (i64::from(x.owner), i64::from(x.index))
+                }
+            };
+            for (name, mine, dumped) in [("whom", aim.0, g.whom), ("ox", aim.1, g.ox)] {
+                let Some(dumped) = dumped else { continue };
+                compared::note("Guy", &[name]);
+                rows += 1;
+                if mine != dumped {
+                    here.entry((them.who, them.o, format!("g.{name}[{k}]")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+        let mut first = true;
+        for (slot, (ours, od)) in un.orders.iter().zip(them.orders_front_first()).enumerate() {
+            let sim::orders::Body::Attack(a) = ours.body else {
+                continue;
+            };
+            if od.index != i64::from(sim::orders::index::ATTACK) {
+                continue;
+            }
+            let def = a.def.unwrap_or(sim::Pos::new(-1, -1));
+            let mut fields = vec![
+                ("defensive", i64::from(a.defensive), od.defensive),
+                ("in_range", i64::from(a.in_range), od.in_range),
+                (
+                    "ever_in_range",
+                    i64::from(a.ever_in_range),
+                    od.ever_in_range,
+                ),
+                ("new_ord", i64::from(a.new_ord), od.new_ord),
+                ("def_x", i64::from(def.x), od.def_x),
+                ("def_y", i64::from(def.y), od.def_y),
+            ];
+            // `mandatory` lives on the unit (`combat::State`), so it is
+            // the front-most attack's.
+            if first {
+                fields.push(("mandatory", i64::from(un.combat.mandatory), od.mandatory));
+                first = false;
+            }
+            for (name, mine, dumped) in fields {
+                let Some(dumped) = dumped else { continue };
+                compared::note("OrderDump", &[name]);
+                rows += 1;
+                if mine != dumped {
+                    here.entry((them.who, them.o, format!("attack[{slot}].{name}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+    }
+    rows
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,6 +536,7 @@ mod tests {
             WIDENING_SECOND_GREAT_LAKES,
             1,
             &[2],
+            false,
         ) else {
             return;
         };
@@ -385,6 +704,7 @@ mod tests {
             WIDENING_SECOND_GREAT_LAKES_3776,
             1,
             &[3_777],
+            false,
         ) else {
             return;
         };
@@ -529,6 +849,7 @@ mod tests {
             WIDENING_SECOND_GREAT_LAKES_4555,
             1,
             &[SECOND_WORD_GREAT_LAKES + 1],
+            true,
         ) else {
             return;
         };
@@ -698,12 +1019,40 @@ mod tests {
                 "the citizen's {what}, which parted on 4780 until item 1040"
             );
         }
+        // **The group record and the attack order's row** (item 1061,
+        // `docs/GROUPS.md` §33): three rows stand from the window's first
+        // block — army 0's group (slot 65) `role`, ours 0 against the
+        // original's `LAND | MILITARY | …` word, and the Town Center's
+        // building group (slot 64) `ox`/`oy`, ours −1 against 0 — and two
+        // families part inside it: the army group's `curr` on 4600, with
+        // `1/19`'s heading on the same block, and the `ATTACKORDER`'s own
+        // row on 4753, `1/24`'s `ever_in_range` 1 against 0 and `new_ord` 0
+        // against 1.
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4550, 76), (4585, 1), (4598, 1)],
-            "the blocks keys first part on, the first three (86, 18 and 1 on \
-             4550, 4575 and 4585 until item 1014, the scout's ten and eighteen)"
+            [(4550, 79), (4585, 1), (4598, 1)],
+            "the blocks keys first part on, the first three ((4550, 76) until \
+             item 1061 compared the group record; 86, 18 and 1 on 4550, 4575 \
+             and 4585 until item 1014, the scout's ten and eighteen)"
         );
+        for (who, o, what, want) in [
+            (1, -3, "group:65.role", "4550: ours 0 theirs 1379331"),
+            (1, -3, "group:64.ox", "4550: ours -1 theirs 0"),
+            (
+                1,
+                -3,
+                "group:65.curr[0]",
+                "4600: ours Some((190, 414)) theirs Some((192, 414))",
+            ),
+            (1, 24, "attack[0].ever_in_range", "4753: ours 1 theirs 0"),
+            (1, 24, "attack[0].new_ord", "4753: ours 0 theirs 1"),
+        ] {
+            assert_eq!(
+                row(who, o, what).as_deref(),
+                Some(want),
+                "{who}/{o} {what}, the record item 1061 compares"
+            );
+        }
     }
 
     /// **The second pair's Great Lakes word, 4846, widened whole** (item
@@ -713,7 +1062,9 @@ mod tests {
     /// item the word moved to 4852 and then 4877**, block 4878, inside the
     /// window (37 blocks after its first and 219 before its last). **Item
     /// 1052 moved it to 4924**, block 4925, inside the window too (84
-    /// blocks after its first and 172 before its last).
+    /// blocks after its first and 172 before its last), and **item 1061
+    /// to 4978**, block 4979 (138 after its first and 118 before its
+    /// last).
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -730,6 +1081,7 @@ mod tests {
             WIDENING_SECOND_GREAT_LAKES_4846,
             1,
             &[SECOND_WORD_GREAT_LAKES + 1],
+            true,
         ) else {
             return;
         };
@@ -800,27 +1152,73 @@ mod tests {
                 first(1, o, what)
             );
         }
-        // **The new word, 4924, writes block 4925** (no mechanism is named,
-        // DECISIONS 42): ours 8 draws and the original 7, parting at index
-        // 0, where ours spends `Guy::set_anim+0xf2f < Guy::move+0x166` and
-        // the original `Guy::set_anim+0x97a < Unit::move_step+0x823`. The
-        // earliest block past the window's standing rows that parts on a
-        // unit's order is 4923: `1/11` holds its `ATTACK` there (kind 10,
-        // two orders) where the original has pushed the chase's move above
-        // it (kind 1, three), and it stands at (5046, 30225) against
-        // (5032, 30200). Before it only value rows: `1/9`'s and `1/24`'s
-        // `orders_x/y` (4868, 4887) and the citizens' and the leader's rows.
+        // **The old word, 4924, agrees** (item 1061, `docs/COMBAT.md` §71):
+        // `do_move`'s flank clause keeps `1/11`'s chase on frame 4922,
+        // where its target `0/1` walks east from its heading (`e =
+        // 0xd3290000`, `flanking` 2), and ends it on 4923, `0/1` turned. So
+        // on block 4923 `1/11` stands at (5032, 30200) under its chase on
+        // both sides, on 4924 there under a fresh `ATTACK` on `0/1`, and
+        // strikes `0/2` on 4925 on both. Its first parting row moves past
+        // the word.
+        for (what, block) in [
+            ("order:kind", 4_980),
+            ("pos", 4_985),
+            ("attack[0].in_range", 4_985),
+        ] {
+            assert!(
+                first(1, 11, what).is_none_or(|(f, _)| f >= block),
+                "1/11's {what}, which parted on 4923 or 4924 until item 1061: {:?}",
+                first(1, 11, what)
+            );
+        }
+        // **The new word, 4978, writes block 4979** (no mechanism is named,
+        // DECISIONS 42): ours 9 draws and the original 8, parting at index
+        // 1, where ours spends `Unit::close+0xcb6` and the original
+        // `Farms::inc_time+0x1ae`. On block 4979 the citizen `0/2` is dead
+        // on ours' side alone: `death:extra` and `hold_frames` 1, at 42
+        // damage against the original's 37. Its damage stands from the
+        // window's first block (6 10/16 against 5 5/16), and the original's
+        // falls a point on 4859 and 4904 where ours' does not.
+        assert_eq!(
+            first(0, 2, "death:extra"),
+            Some((4_979, "ours 1 theirs 0".to_string())),
+            "the new word's row"
+        );
+        assert_eq!(
+            first(0, 2, "hits:damage"),
+            Some((4_841, "ours 6 theirs 5".to_string())),
+            "the citizen's damage, standing from the window's first block"
+        );
+        // **The group record and the attack order's row** (item 1061,
+        // `docs/GROUPS.md` §33): five more rows stand from the window's
+        // first block — army 0's `role`, the Town Center group's `ox`/`oy`
+        // (run356 has all three from 4550) and `1/9`'s second `ATTACK`,
+        // `ever_in_range` 1 against 0 and `new_ord` 0 against 1 — and the
+        // same attack row parts on 4853 on `1/24`, the block after its
+        // one-in-five re-search (§70.7), with `in_range` 1 against 0 too.
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4_841, 111), (4_868, 2), (4_887, 2)],
+            [(4_841, 116), (4_853, 3), (4_868, 2)],
             "the blocks keys first part on, the first three ((4841, 111), \
-             (4861, 121), (4862, 13) until item 1052)"
+             (4868, 2), (4887, 2) until item 1061 compared the group record \
+             and the attack order's row; (4841, 111), (4861, 121), (4862, 13) \
+             until item 1052)"
         );
-        assert_eq!(
-            first(1, 11, "order:kind"),
-            Some((4_923, "Kind { ours: 10, theirs: 1 }".to_string())),
-            "the new word's order row"
-        );
+        for (o, what, want) in [
+            (9, "attack[1].new_ord", (4_841, "ours 0 theirs 1")),
+            (24, "attack[0].in_range", (4_853, "ours 1 theirs 0")),
+            (24, "attack[0].new_ord", (4_853, "ours 0 theirs 1")),
+            // `1/11`'s head attack and its figure's aim, which parted on
+            // the old word's block 4924 until the flank clause.
+            (11, "attack[0].in_range", (4_985, "ours 0 theirs 1")),
+            (11, "g.ox[0]", (4_986, "ours 1 theirs 2")),
+        ] {
+            assert_eq!(
+                first(1, o, what),
+                Some((want.0, want.1.to_string())),
+                "1/{o}'s {what}, the attack order's row item 1061 compares"
+            );
+        }
         // A standing row the window opens on: the citizen `0/4` has taken
         // more here since run356's window closed (block 4841: `damage` 6
         // 10/16 here, 5 0/16 there).
