@@ -10568,11 +10568,26 @@ live `2009` was compared with ours' dead frame-976 site.
     original spends `Unit::do_move+0xe84`. Widened on run357: the
     block before the word parts on one key, `1/14`'s `order:move.dest`,
     0 against 1.
-  - **Great Lakes 4555**, **the lower**: ours 7, the original 3, parting at index 1.
+  - ~~**Great Lakes 4555**, **the lower**: ours 7, the original 3, parting at index 1.
     Ours spends `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` where
     the original spends `Farms::inc_time+0x1ae`. Widened on run356: on
     the block before the word, `1/21` holds order kind 10 and two orders
-    here against a move (kind 2) and one there.
+    here against a move (kind 2) and one there.~~ **Moved to 4593 by item
+    997** (`docs/COMBAT.md` §64): `1/21`'s attack-move look had taken the
+    human's unarmed Woodcutter's Camp, which the original's `flags` word
+    refuses.
+  - **Great Lakes 4593**, **the lower** (item 997; no mechanism is
+    named): ours 4 draws, the original 5, parting at index 2. Ours spends
+    `Farms::inc_time+0x1ae` where the original spends
+    `Guy::set_anim+0xf2f < Guy::move+0x166`. Inside run356's window
+    (block 4594). The block before the word, 4592, parts on `1/26`, a
+    member of the same army: the original holds an `ATTACK` (kind 10, two
+    orders), stopped at (5079, 31628), and on 4593 `recharging 33` and
+    `hold_attack 1`; ours walks toward its attack position (kind 1, three
+    orders, `orders_x/y` (4872, 31752)) at (5052, 31644). Earlier rows in
+    the window: `1/0`'s turn on 4575 (18 keys, a unit parting since
+    4550), and on 4585 a guy's `whom/ox` naming the city `0/2000` on
+    `1/21`'s attack-move, the shape `1/24`–`1/26` stood in from 4550.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

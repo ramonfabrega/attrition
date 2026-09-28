@@ -2088,7 +2088,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         .collect();
     eprintln!(
         "  f{frame} {who}/{o} #{} TY {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} \
-         danger {} stance {}/{:?} coll {}@{} path {:?} orders {:?} {}",
+         danger {} stance {}/{:?} coll {}@{} tgt {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
         built
@@ -2129,6 +2129,18 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         // widening compares only once ours has stamped one (item 795).
         u.collide,
         u.collide_frame,
+        // The combat target, which an `Attack` order does not carry
+        // (item 997: the attack-move's look pushed one on 4554).
+        u.combat.target.map(|t| match t {
+            sim::combat::Obj::Unit(v) => (
+                built.sim.units[v].owner,
+                i64::from(built.sim.units[v].index)
+            ),
+            sim::combat::Obj::Building(b) => (
+                built.sim.buildings[b].owner,
+                i64::from(built.sim.buildings[b].index)
+            ),
+        }),
         u.path,
         u.orders,
         clocks.join(" ")
@@ -10761,6 +10773,7 @@ pub(crate) mod tests {
             let frame = ix.frame_state(at).unwrap();
             blocks += 1;
             debug_watch(&built, n);
+            debug_armies(&built, n);
             debug_leader(&built, n);
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (fr, rows) = widen_block(&built, &frame, players, n, &mut here);

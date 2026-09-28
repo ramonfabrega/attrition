@@ -1195,7 +1195,23 @@ pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
 /// index 1**: ours spends `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`
 /// where the original spends `Farms::inc_time+0x1ae`. **The lower word of
 /// the pair**; widened on run356 (`run356_s_word_frame_is_widened_whole`).
-pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_555;
+///
+/// **4555 → 4593 on item 997**: an attack-move's look passes over an
+/// unarmed building (`find_melee_target`'s `0x20010`, `docs/COMBAT.md`
+/// §64). **The move's value diff (the word's delta, here; its block is
+/// `run356_s_word_frame_is_widened_whole`'s):** on frame 4554 `1/21`'s
+/// look (`(4554 + 21) % 15 == 0`) had taken the human's Woodcutter's Camp
+/// `0/2001` at (4224, 28608) and pushed an `ATTACK` over its `ATTACK_TO`;
+/// block 4555's `order:kind` 10 against 2, `orders_x/y` (9005, 29653)
+/// against (4824, 34584) and two orders against one → one `ATTACK_TO` to
+/// (4824, 34584) on both, and on block 4556 its position (9000, 29640)
+/// against (8986, 29671) → (8986, 29671) on both. Frame 4555's draws went
+/// 7 against 3 → 3 against 3. **The new word's delta: ours 4 draws and
+/// the original 5 on frame 4593, parting at index 2**: ours spends
+/// `Farms::inc_time+0x1ae` where the original spends `Guy::set_anim+0xf2f
+/// < Guy::move+0x166`. Inside run356's window, whose block 4592 parts on
+/// `1/26`'s order (kind 1 here against 10 there).
+pub(crate) const SECOND_WORD_GREAT_LAKES: i64 = 4_593;
 
 /// `run349_s_word_frame_is_widened_whole`'s window (item 971): run349
 /// whole, blocks 1..250 over run346's game. The word is frame 0, which
