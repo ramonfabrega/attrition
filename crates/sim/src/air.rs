@@ -2867,3 +2867,575 @@ mod launch_tests {
         assert!(sf.returning);
     }
 }
+
+/// `Ammo::init@0067bbf0`'s air arm (`67bef8`..`67c16a`, item 1102,
+/// `docs/COMBAT.md` §81): an `ANTI_AIR` shooter's one draw, at a fixed-wing
+/// target flying low. The trace names a draw by its return address.
+pub const SITE_FLAK_LOW: &str = "Ammo::init+0x432";
+/// The same shooter's draw at a target flying high.
+pub const SITE_FLAK_HIGH: &str = "Ammo::init+0x463";
+/// Any other shooter's first draw at a low target, against the target's own
+/// `FLY_LOW`.
+pub const SITE_AIR_TARGET_LOW: &str = "Ammo::init+0x49f";
+/// Its second, against its own `FLY_LOW`.
+pub const SITE_AIR_SHOOTER_LOW: &str = "Ammo::init+0x4dc";
+/// Any other shooter's first draw at a high target, against the target's
+/// own `FLY_HIGH`.
+pub const SITE_AIR_TARGET_HIGH: &str = "Ammo::init+0x50f";
+/// Its second, against its own `FLY_HIGH`.
+pub const SITE_AIR_SHOOTER_HIGH: &str = "Ammo::init+0x548";
+
+/// `UnitData::is_flying_low@0060a140`'s reach: `vector_dist < 0x900`.
+pub const LOW_REACH: i32 = 0x900;
+
+/// `Unit::fight@005fd4d0`'s jam roll (`5fee89`): `GameAccess::rnd(100)`,
+/// frameless, so its chain names `Unit::fight`'s own return into
+/// `Unit::do_attack` (item 1102, `docs/COMBAT.md` §81).
+pub const SITE_JAM_ROLL: &str = "GameAccess::rnd+0x20 < Unit::do_attack";
+
+/// `Ammo::init_crash@0067b800`'s one draw from the game's stream (its
+/// return, `67bb05`): the falling plane's `rolling = r % 7 − 3`.
+pub const SITE_CRASH_ROLL: &str = "Ammo::init_crash+0x305";
+
+/// `rules.xml`'s `unit_cats` index of `Air`, the `CAT` (`+0x14`) that
+/// `Objects::kill_guy@00659410` compares with 8 at `659473`.
+pub const CAT_AIR: i32 = 8;
+
+/// `JAM_UNIT_RADAR_PROB`, rules.xml's `50%`: `Constants +0x21c`.
+pub const JAM_UNIT_RADAR_PROB: i32 = 50;
+
+impl Sim {
+    /// A unit of the air domain that is neither a Helicopter nor a missile —
+    /// `is_flying_low`'s and `Ammo::init`'s three type tests (`+0x218` 2,
+    /// `+0x2b4 & 0x20` clear, `+0x1e4 & 0x8000000` clear).
+    pub(crate) fn is_fixed_wing(&self, u: usize) -> bool {
+        let p = self.profile(crate::combat::Obj::Unit(u));
+        matches!(p.domain, crate::attrition::Domain::Air)
+            && !self.is_helicopter(u)
+            && !p.has(crate::combat::mask::MISSILE)
+    }
+
+    /// **`UnitData::is_flying_low@0060a140`** — a distance, not an altitude
+    /// (item 1102, `docs/COMBAT.md` §81; the listing, `60a140`..`60a2ff`,
+    /// run whole under `tools/emu/flak_arm.py`). A fixed-wing unit on the
+    /// map is low when its front order is a `STRAFE` whose target is live
+    /// and within [`LOW_REACH`] of it, or an `AIR_ATTACK_GROUND` whose point
+    /// is; failing that, when its air order (`get_air_order`, vslot `0xfc`)
+    /// has `returning` set and its live home is within the reach. No order
+    /// is not low, and nor is any order that is not an air order.
+    pub(crate) fn is_flying_low(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        if !self.is_fixed_wing(u) || !unit.alive() || unit.inside.is_some() {
+            return false;
+        }
+        let here = unit.pos;
+        let near = |p: Pos| vector_dist(p.x - here.x, p.y - here.y) < LOW_REACH;
+        match self.current_order(u).map(|o| o.body) {
+            None => return false,
+            Some(Body::Strafe(sf)) => {
+                if let Some(t) = sf.target
+                    && self.active(t)
+                    && near(self.pos_of(t))
+                {
+                    return true;
+                }
+            }
+            Some(Body::AirAttackGround(g)) => {
+                if near(g.at) {
+                    return true;
+                }
+            }
+            Some(_) => {}
+        }
+        self.current_air(u).is_some_and(|a| {
+            a.returning
+                && a.home
+                    .is_some_and(|b| self.buildings[b].alive && near(self.buildings[b].pos))
+        })
+    }
+
+    /// **An `ANTI_AIR` attacker rolls whether its radar is jammed**
+    /// (item 1102, `docs/COMBAT.md` §81): `Unit::fight@005fd4d0`'s
+    /// animation choice, past the ship's, the Patrol Boat's and the
+    /// Immortals' arms (`5fee5a`..`5feec1`), asks the type's
+    /// `has_objmask(0x80000000)`; an `ANTI_AIR` type draws
+    /// `GameAccess::rnd(100)` and, when it is under
+    /// [`JAM_UNIT_RADAR_PROB`] and `ObjectData::is_jammed@00653660` finds a
+    /// jammer, plays animation 0 in place of `CHAR_ATTACK1`. run404's first
+    /// Battery shot spends it on 742.
+    ///
+    /// SEAM: `is_jammed` is −1 unless the owner's leader carries
+    /// `leader_flags & 0x40000` and an enemy's special stands over the
+    /// unit; nothing in this crate sets either, so the roll is spent and
+    /// never jams.
+    pub(crate) fn radar_jams(&mut self, u: usize) -> bool {
+        if !self
+            .profile(crate::combat::Obj::Unit(u))
+            .has(crate::combat::mask::ANTI_AIR)
+        {
+            return false;
+        }
+        self.mark(SITE_JAM_ROLL);
+        let roll = self.rnd(100);
+        roll < JAM_UNIT_RADAR_PROB && self.is_jammed(u)
+    }
+
+    /// **`Objects::kill_guy@00659410`'s plane arm** (item 1102,
+    /// `docs/COMBAT.md` §81): a guy whose type's `CAT` is Air and that is
+    /// not a missile (`659473` → `659613`) takes a free `Ammo` and
+    /// `Ammo::init_crash@0067b800`, never `add_death`. The crash draws once
+    /// from the game's stream ([`SITE_CRASH_ROLL`]) and twice from a local
+    /// `Random` seeded by the guy's point, which no trace of the game's
+    /// stream counts. Returns whether the unit crashed, so its caller lays
+    /// no death object. run404's two Bombers: `rolling` −1 and −2, from 58907
+    /// and 56687.
+    ///
+    /// SEAM: the falling round itself — its landing (a float fall time
+    /// and `sin_table` drift), its `rolling`, and `Ammo::check_hit` when it
+    /// comes down — is not laid; run404's two land with no draw from the
+    /// game's stream.
+    pub(crate) fn crashes(&mut self, u: usize) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if self.unit_types[t].cols.cat != CAT_AIR
+            || self
+                .profile(crate::combat::Obj::Unit(u))
+                .has(crate::combat::mask::MISSILE)
+        {
+            return false;
+        }
+        self.mark(SITE_CRASH_ROLL);
+        let _rolling = self.rng.roll() % 7 - 3;
+        true
+    }
+
+    /// `ObjectData::is_jammed@00653660`, as far as this crate reaches: no
+    /// leader here carries `leader_flags & 0x40000`, so never.
+    fn is_jammed(&self, _u: usize) -> bool {
+        false
+    }
+
+    /// `UnitData::is_flying_high@0060a310`: a fixed-wing unit on the map that
+    /// is not low.
+    ///
+    /// SEAM: its caller is `valid_target`'s air ladder (`docs/COMBAT.md`
+    /// §61), which still reads every plane as high; run404's Infantry
+    /// never weighed a low Bomber, so no capture parts on it.
+    #[allow(dead_code)]
+    pub(crate) fn is_flying_high(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        self.is_fixed_wing(u) && unit.alive() && unit.inside.is_none() && !self.is_flying_low(u)
+    }
+
+    /// **`Ammo::init@0067bbf0`'s air arm** (item 1102, `docs/COMBAT.md`
+    /// §81): the round's miss (`flags |= 0x10`), or `None` when the arm is
+    /// not entered. It is entered for a live fixed-wing target, unless the
+    /// shooter is a unit on `ATTACK_GROUND` (0x17) or `AIR_ATTACK_GROUND`
+    /// (0x18) (`67be7e`, `67bec4`). An `ANTI_AIR` shooter of the air domain
+    /// never misses and draws nothing; any other `ANTI_AIR` shooter draws
+    /// once and misses unless `r % 100` is under its own `FLY_LOW` (the
+    /// target low) or `FLY_HIGH`; a shooter that is not `ANTI_AIR` draws
+    /// against the target's own figure first and, past it, its own.
+    pub(crate) fn air_round_misses(
+        &mut self,
+        shooter: crate::combat::Obj,
+        target: crate::combat::Obj,
+    ) -> Option<bool> {
+        use crate::combat::{Obj, mask};
+        let Obj::Unit(t) = target else {
+            return None;
+        };
+        if !self.active(target) || !self.is_fixed_wing(t) {
+            return None;
+        }
+        if let Obj::Unit(s) = shooter
+            && matches!(self.current_order(s).map(|o| o.index()), Some(0x17 | 0x18))
+        {
+            return None;
+        }
+        let sp = self.profile(shooter);
+        let tp = self.profile(target);
+        let low = self.is_flying_low(t);
+        if sp.has(mask::ANTI_AIR) {
+            if matches!(sp.domain, crate::attrition::Domain::Air) {
+                return Some(false);
+            }
+            self.mark(if low { SITE_FLAK_LOW } else { SITE_FLAK_HIGH });
+            let r = self.rng.roll() % 100;
+            return Some(r >= if low { sp.fly_low } else { sp.fly_high });
+        }
+        let (first, second, theirs, own) = if low {
+            (
+                SITE_AIR_TARGET_LOW,
+                SITE_AIR_SHOOTER_LOW,
+                tp.fly_low,
+                sp.fly_low,
+            )
+        } else {
+            (
+                SITE_AIR_TARGET_HIGH,
+                SITE_AIR_SHOOTER_HIGH,
+                tp.fly_high,
+                sp.fly_high,
+            )
+        };
+        self.mark(first);
+        if self.rng.roll() % 100 >= theirs {
+            return Some(true);
+        }
+        self.mark(second);
+        Some(self.rng.roll() % 100 >= own)
+    }
+}
+
+#[cfg(test)]
+mod flak_tests {
+    use crate::attrition::Domain;
+    use crate::combat::{self, Obj, mask};
+    use crate::orders::{Body, Order, StrafeOrder};
+    use crate::world::Pos;
+    use crate::{Sim, Unit, UnitType};
+
+    fn sim() -> Sim {
+        let mut s = Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(128, 128),
+            2,
+        );
+        s.at_war[0][1] = true;
+        s.at_war[1][0] = true;
+        s.rng = combat::Rng::new(12345);
+        s
+    }
+
+    fn building(s: &mut Sim, who: crate::Player, at: Pos, prof: combat::Profile) -> usize {
+        let b = s.add_building(who, at, 0);
+        s.buildings[b].started = true;
+        s.buildings[b].active = true;
+        s.buildings[b].combat = Some(prof);
+        s.buildings[b].health = 1200;
+        b
+    }
+
+    fn unit(s: &mut Sim, who: crate::Player, at: Pos, prof: combat::Profile) -> usize {
+        let ty = s.add_unit_type(UnitType {
+            hits: 300,
+            kind: crate::attrition::UnitKind {
+                domain: prof.domain,
+                ..crate::attrition::UnitKind::default()
+            },
+            combat: prof,
+            ..UnitType::default()
+        });
+        let index = i16::try_from(s.units.len()).unwrap();
+        let mut u = Unit::new(who, index, at, 300);
+        u.ty = Some(ty);
+        u.on_map = true;
+        let u = s.add_unit(u);
+        s.units[u].kind = s.unit_types[ty].kind;
+        u
+    }
+
+    /// run223's Bomber: FLY_HIGH 0, FLY_LOW 10, of the air domain.
+    fn bomber() -> combat::Profile {
+        combat::Profile {
+            domain: Domain::Air,
+            fly_high: 0,
+            fly_low: 10,
+            ..combat::Profile::default()
+        }
+    }
+
+    fn strafe(target: Option<Obj>, home: Option<usize>, returning: bool) -> Order {
+        Order {
+            flags: 0,
+            body: Body::Strafe(StrafeOrder {
+                target,
+                mandatory: false,
+                home,
+                cruising_alt: crate::orders::CRUISING_ALT,
+                sharp_turn: 0,
+                returning,
+                at: None,
+            }),
+        }
+    }
+
+    /// **`is_flying_low` is a distance to the strike** (item 1102): the
+    /// emulated original's table — 1 at 2303 and 0 at 2304 on the strafe's
+    /// arm and on a returning plane's home, 0 on the diagonal (1600, 1600),
+    /// 0 with `returning` clear, and never inside or for a missile.
+    #[test]
+    fn a_plane_flies_low_within_0x900_of_its_strike_or_its_home_returning() {
+        let mut s = sim();
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
+        let home = building(
+            &mut s,
+            0,
+            Pos::new(11616, 13920),
+            combat::Profile::default(),
+        );
+        let b = unit(&mut s, 0, Pos::new(21120 - 2303, 16512), bomber());
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), Some(home), false));
+        assert!(s.is_flying_low(b), "2303 off its target");
+        assert!(!s.is_flying_high(b));
+        s.units[b].pos = Pos::new(21120 - 2304, 16512);
+        assert!(!s.is_flying_low(b), "2304 off its target");
+        assert!(s.is_flying_high(b));
+        s.units[b].pos = Pos::new(21120 - 1600, 16512 - 1600);
+        assert!(
+            !s.is_flying_low(b),
+            "the diagonal (1600, 1600) is past the reach"
+        );
+        s.buildings[t].alive = false;
+        s.units[b].pos = Pos::new(21120, 16512);
+        assert!(!s.is_flying_low(b), "a dead target is not a strike");
+        s.units[b].orders.clear();
+        s.units[b].orders.push_back(strafe(None, Some(home), true));
+        s.units[b].pos = Pos::new(11616 + 2303, 13920);
+        assert!(s.is_flying_low(b), "returning, 2303 off its home");
+        s.units[b].pos = Pos::new(11616 + 2304, 13920);
+        assert!(!s.is_flying_low(b), "returning, 2304 off its home");
+        s.units[b].orders.clear();
+        s.units[b].orders.push_back(strafe(None, Some(home), false));
+        s.units[b].pos = Pos::new(11616, 13920);
+        assert!(!s.is_flying_low(b), "not returning");
+        s.units[b].orders.clear();
+        assert!(!s.is_flying_low(b), "no order");
+    }
+
+    /// **An `ANTI_AIR` shooter rolls once, against its own figure by the
+    /// target's altitude** (item 1102): run under `tools/emu/flak_arm.py`,
+    /// a Battery (50/90) hits a low Bomber on 89 and misses on 90, and a
+    /// high one hits on 49 and misses on 50. Here the Radar Air Defense's
+    /// 33/75 on this crate's stream, one draw a round.
+    #[test]
+    fn an_anti_air_round_draws_once_against_its_own_fly_figure() {
+        let mut s = sim();
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
+        let radar = building(
+            &mut s,
+            0,
+            Pos::new(22272, 16512),
+            combat::Profile {
+                obj_masks: mask::ANTI_AIR,
+                fly_high: 33,
+                fly_low: 75,
+                ..combat::Profile::default()
+            },
+        );
+        let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), None, false));
+        for (at, figure) in [(21120, 75), (21120 - 5000, 33)] {
+            s.units[b].pos = Pos::new(at, 16512);
+            let mut probe = s.rng;
+            let r = probe.roll() % 100;
+            let missed = s.air_round_misses(Obj::Building(radar), Obj::Unit(b));
+            assert_eq!(missed, Some(r >= figure), "roll {r} against {figure}");
+            assert_eq!(s.rng.seed, probe.seed, "one draw");
+        }
+        // An ANTI_AIR shooter of the air domain takes no roll.
+        let fighter = unit(
+            &mut s,
+            0,
+            Pos::new(20000, 16512),
+            combat::Profile {
+                obj_masks: mask::ANTI_AIR,
+                domain: Domain::Air,
+                fly_low: 25,
+                ..combat::Profile::default()
+            },
+        );
+        let seed = s.rng.seed;
+        assert_eq!(
+            s.air_round_misses(Obj::Unit(fighter), Obj::Unit(b)),
+            Some(false)
+        );
+        assert_eq!(s.rng.seed, seed, "no draw");
+        // A ground target takes no arm at all.
+        assert_eq!(
+            s.air_round_misses(Obj::Building(radar), Obj::Building(t)),
+            None
+        );
+    }
+
+    /// **An `ANTI_AIR` attacker spends the jam roll, and nothing else
+    /// does** (item 1102): `Unit::fight`'s `GameAccess::rnd(100)` at
+    /// `5fee89`, run404's 742. No jammer exists here, so it never jams.
+    #[test]
+    fn an_anti_air_attacker_rolls_its_radar_and_no_other_does() {
+        let mut s = sim();
+        let aa = unit(
+            &mut s,
+            1,
+            Pos::new(22392, 16632),
+            combat::Profile {
+                obj_masks: mask::ANTI_AIR,
+                ..combat::Profile::default()
+            },
+        );
+        let inf = unit(
+            &mut s,
+            1,
+            Pos::new(20000, 16632),
+            combat::Profile::default(),
+        );
+        let seed = s.rng.seed;
+        assert!(!s.radar_jams(inf));
+        assert_eq!(s.rng.seed, seed, "no draw for a type without ANTI_AIR");
+        let mut probe = s.rng;
+        let _ = probe.roll();
+        assert!(!s.radar_jams(aa), "no jammer, no jam");
+        assert_eq!(s.rng.seed, probe.seed, "one draw");
+    }
+
+    /// **A plane shot down draws its crash's roll and lays no death
+    /// object** (item 1102): `kill_guy`'s arm for `CAT` Air; a missile and
+    /// any other category take `add_death`.
+    #[test]
+    fn a_plane_of_cat_air_crashes_and_a_missile_does_not() {
+        let mut s = sim();
+        let b = unit(&mut s, 0, Pos::new(21120, 16512), bomber());
+        let ty = s.units[b].ty.unwrap();
+        s.unit_types[ty].cols.cat = super::CAT_AIR;
+        let mut probe = s.rng;
+        let _ = probe.roll();
+        assert!(s.crashes(b));
+        assert_eq!(s.rng.seed, probe.seed, "one draw");
+        let seed = s.rng.seed;
+        let missile = unit(
+            &mut s,
+            0,
+            Pos::new(21120, 16512),
+            combat::Profile {
+                obj_masks: mask::MISSILE,
+                domain: Domain::Air,
+                ..combat::Profile::default()
+            },
+        );
+        let mty = s.units[missile].ty.unwrap();
+        s.unit_types[mty].cols.cat = super::CAT_AIR;
+        assert!(!s.crashes(missile), "a missile takes add_death");
+        let foot = unit(
+            &mut s,
+            0,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
+        assert!(!s.crashes(foot), "Foot takes add_death");
+        assert_eq!(s.rng.seed, seed, "no draw for either");
+    }
+
+    /// **A fired round at a plane carries the roll's miss** (item 1102):
+    /// `Object::fire_ammo`'s round takes `Ammo::init`'s air arm, whose miss
+    /// is the round's `0x10`, this crate's `harmless` — run404's Battery
+    /// round of 753 (flags 18, a miss) against a hit.
+    #[test]
+    fn a_round_fired_at_a_plane_is_harmless_when_its_roll_misses() {
+        let mut s = sim();
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
+        let radar = building(
+            &mut s,
+            0,
+            Pos::new(22272, 16512),
+            combat::Profile {
+                obj_masks: mask::ANTI_AIR,
+                fly_high: 33,
+                fly_low: 75,
+                max_range: 10 * 192,
+                ..combat::Profile::default()
+            },
+        );
+        let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), None, false));
+        let (mut hits, mut misses) = (0, 0);
+        for seed in 1..60u32 {
+            s.rng = combat::Rng::new(seed);
+            let mut probe = s.rng;
+            let missed = probe.roll() % 100 >= 75;
+            s.projectiles.clear();
+            s.fire_ammo_pub(
+                Obj::Building(radar),
+                Obj::Unit(b),
+                crate::movement::Angle(0),
+                800,
+                Pos::new(22272, 16512),
+                235,
+                0,
+                false,
+            );
+            assert_eq!(s.projectiles.len(), 1);
+            assert_eq!(s.projectiles[0].harmless, missed, "seed {seed}");
+            if missed { misses += 1 } else { hits += 1 }
+        }
+        assert!(
+            hits > 0 && misses > 0,
+            "both arms reached: {hits} hits, {misses} misses"
+        );
+    }
+
+    /// **A shooter that is not `ANTI_AIR` rolls against the target's figure
+    /// first** (item 1102): the emulator's Infantry (0/33) at a low Bomber
+    /// — rolls 9 and 32 hit, 9 and 33 miss, a first roll of 10 misses with
+    /// no second draw.
+    #[test]
+    fn any_other_shooter_rolls_the_target_s_figure_before_its_own() {
+        let mut s = sim();
+        let t = building(
+            &mut s,
+            1,
+            Pos::new(21120, 16512),
+            combat::Profile::default(),
+        );
+        let inf = unit(
+            &mut s,
+            0,
+            Pos::new(20000, 16512),
+            combat::Profile {
+                fly_low: 33,
+                ..combat::Profile::default()
+            },
+        );
+        let b = unit(&mut s, 1, Pos::new(21120, 16512), bomber());
+        s.units[b]
+            .orders
+            .push_back(strafe(Some(Obj::Building(t)), None, false));
+        for seed in 1..400u32 {
+            s.rng = combat::Rng::new(seed);
+            let mut probe = s.rng;
+            let r1 = probe.roll() % 100;
+            let want = if r1 >= 10 {
+                true
+            } else {
+                probe.roll() % 100 >= 33
+            };
+            assert_eq!(s.air_round_misses(Obj::Unit(inf), Obj::Unit(b)), Some(want));
+            assert_eq!(
+                s.rng.seed, probe.seed,
+                "seed {seed}: one draw, or two past the first"
+            );
+        }
+    }
+}

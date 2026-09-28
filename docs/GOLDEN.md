@@ -1407,6 +1407,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) — **run 2026-09-28 (item 1019), 1.08 GB, 3,256 s, after two `cover=1` takes hung (81 min); the silo queued one V2 of two; 9, 10, 11 and 13 fired on readings the listing had corrected: `0/12` an `ATTACK_TO` to P_h and homed nowhere, `0/10` an air attack on the ground, launched on 2702; word 2445, then 2675; item 1048 built the Helicopter's flight, 2675 → 2701, open; item 1050 built the V2's launch, 2701 → 3260, closed on the draw stream; item 1077 built the blast on 2821, 43 → 42 rows** |
 | 390 | thirty-six, the missile's other arms | `[605, 3420)` | chapter thirty-five whole, two more silos with a V2 each (`0/14`, `0/15`), who=1's Barracks T_home in its own land and T_far in no one's, a spotter, and five lines: `@launchstrike` from `0/2010` on T_home (3019, launched on 3050 with `(14 + 3050) & 7 == 0`), again on T_far during the countdown (3029), `tech who=1 missile_shield on` with the round in flight (3070), `@launchstrike` from `0/2011` on T_far (3080); at `cover=0` on the click-free lane, with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run371's start (§45) — **run 2026-09-28 (item 1078), 1.17 GB, 3,278 s; no falsifier fired: the re-press found nothing, the redraw's draw led the round's two, the shield refused `0/15`'s order and closed V2b's round on T_home; word 3111, then 3169 (the price and the order gate), then 3420, closed** |
 | 397 | thirty-seven, the nuke | `[605, 3490)` | a cast of its own on the golden start (1094): a Missile Silo `0/2007` (610), the nuke's research there (615) and its train (2300), who=1's Barracks T at ground zero and F at a building distance of 1824 (2940, 2942), four of who=0's Elite Special Forces at 518, 1039, 1804 and 1870 (2950..2956), `@launchstrike` on T (3050) and `tech who=1 missile_shield on` in the countdown (3060); at `cover=0` on the click-free lane, run398 the same at `cover=1` on the queue lane (`Nuke::add_nuke`, a `NEVER` row), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run390's start (§46) — **run 2026-09-28 (item 1091), 1.12 GB, 3,380 s; no falsifier fired (7's leader half could not: `LEADERS=2` prints no `nuke_stamp`): the research done by 2237, the nuke launched on 3081 through the shield, the silo's `visible` −1, the round on the point with no draw, the ring striking on 3217, 3226 and 3239, 1870 never; word 3081, then 3490, closed** |
+| 404 | thirty-eight, the air line under fire | `[605, 1762)` | a cast of its own on the golden start (1094): an Airbase `0/2007` and two Bombers `0/6`, `0/7` (606..612), who=1's Barracks T `1/2006`, a Radar Air Defense R `1/2007`, an Infantry squad I `1/6`..`1/8` and an Anti-Aircraft Battery A `1/9` (616..622), `@flight` home (640) and `@strike` on T in flight (644); at `cover=0` on the click-free lane, run405 the same at `cover=1` on the queue lane (`is_flying_low`, `is_flying_high`, `Ammo::init_crash`, `NEVER` rows), with `GROUPS=1` at `GUYS=4`, `AMMO=5` and `DEATHS=1`; the staging walked by this crate's `stage_walk` on run397's start (§47) — **run 2026-09-28 (item 1102), 321 MB, 895 s; the receipt refused it: `DEATHS=1` beside `GROUPS=1` printed no pool; no falsifier fired, 6 could not: 43 flak rounds one draw each, every matched flag its roll's, both Bombers shot down on 1006 and 1019 with a crash round and no death object; word 742 (the jam roll), then 776, open (item 1102: the jam roll, the flak roll and the crash built)** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -1492,6 +1493,12 @@ of chapter one itself.
   second family of chapters — a unit brought to an exact hit total, a
   building finished on a chosen frame, a resource given — that this design
   does not reach and that costs interpreter work rather than a capture.
+- **Whether `DEATHS` and `GROUPS` can share an end detail.** run404 asked
+  for both and printed no `GROUPDATA` on any block, and no `DEATH` either,
+  though its only deaths were two planes, which the listing says lay none
+  (§47). Which level silenced the pool, and whether `DEATHS` printed at
+  all, is not established; a capture with a ground death and both asked
+  settles it.
 
 ## 17. Chapter nine — the move line, the first issuer chapter (item 676)
 
@@ -8206,3 +8213,217 @@ it.
 **run398**, the same script at `cover=1` on the queue lane to 3210, is
 run397's game on all 3,211 frames and enters `Nuke::add_nuke` on 3200:
 the blind list goes 145 → 144.
+
+## 47. Chapter thirty-eight — the air line under fire: two Bombers at a Barracks past two anti-aircraft shooters and an Infantry squad, each flak round's roll by the Bomber's altitude, and a Bomber shot down (item 1102)
+
+**Premise.** `docs/CENSUS.md`'s ranked list, row 7 ("Combat, air physics
+and the spells", 13) is the largest family a known staging reaches, and
+CENSUS names the staging: chapter seventeen's flight (and nineteen's
+cast) with an anti-aircraft unit. As claims to check, each read off the
+listing and run under the emulator (`tools/emu/flak_arm.py`):
+- **A round at a fixed-wing aircraft rolls to hit** in `Ammo::init@0067bbf0`'s
+  air arm (`67bef8`..`67c16a`), entered when the shooter is not a unit on
+  an `ATTACK_GROUND` (0x17) or `AIR_ATTACK_GROUND` (0x18) (`67be7e`,
+  `67bec4`) and the target is a live aircraft (`+0x218` 2), not a
+  Helicopter (`+0x2b4 & 0x20`) and not a missile. An `ANTI_AIR` shooter
+  (vslot `0x148(0x80000000)`) of the air domain takes no roll. Any other
+  `ANTI_AIR` shooter draws **once**, at `Ammo::init+0x432` if
+  `UnitData::is_flying_low@0060a140` answers 1 and at `+0x463` if not, and
+  misses (`flags |= 0x10`) unless `r % 100` is under **its own**
+  `FLY_LOW` or `FLY_HIGH`. A shooter that is not `ANTI_AIR` draws at
+  `+0x49f` (low) or `+0x50f` (high) against the **target's** `FLY_LOW` or
+  `FLY_HIGH` first and, past it, at `+0x4dc` or `+0x548` against its own.
+- **`is_flying_low` is a distance, not an altitude** (the listing,
+  `60a140`..`60a2ff`, which the decompile's reading of the `AIR_ATTACK_GROUND`
+  arm gets wrong): 1 when a fixed-wing, non-missile unit on the map is on a
+  `STRAFE` with a live target, or an `AIR_ATTACK_GROUND`, within
+  `vector_dist < 0x900` of that target's point; else 1 when its
+  `get_air_order` (vslot `0xfc`) has `returning` set and its home base is
+  within `0x900`. Under the emulator: 1 at 2303 and 0 at 2304 on each arm, 0
+  at (1600, 1600), 0 with `returning` 0. `is_flying_high@0060a310` is "on
+  the map and not low".
+- **Who asks `is_flying_high`**: `ObjectData::valid_target_const@006472c0`'s
+  ladder (`docs/COMBAT.md` §61), only for a searcher that is not `ANTI_AIR`
+  and, past the target's own row, one whose `FLY_HIGH` is 0. So an
+  `ANTI_AIR` shooter never asks it; an Infantry (FLY 0/33) asks it of each
+  Bomber (FLY 0/10) it weighs, and takes one only while it is low.
+- **A Bomber shot down is a falling round, not a death object.**
+  `Objects::kill_guy@00659410` sends a guy whose type's `+0x14` is 8 and
+  that is not a missile to `659613`: a free `Ammo` slot and
+  `Ammo::init_crash@0067b800`, and never `add_death` (`659473`). The crash
+  draws once from the game's stream, at `Ammo::init_crash+0x305`
+  (`rolling = r % 7 − 3`), then twice from a local `Random` seeded by the
+  guy's point, and lays `num_guys` 1, `who`/`o` the plane's, `whom`/`ox`
+  −1, `flags` `& 0xe3 | 2`, `sz` its altitude.
+
+**Row 7's thirteen**, by name off `NEVER` (923 recorded no membership, and
+the ranked rows sum to 148 against `NEVER`'s 144, so this is a reading by
+callers): `is_flying_low`, `is_flying_high`, `Ammo::init_crash`,
+`ObjectData::is_siege@0046ef90`, `UnitData::get_speed@006086f0`,
+`ObjectData::is_in_range@0064e4a0`, `SpellType::cast_civilian@006704a0`,
+`cast_to_arms@00670880` and `cast_create_decoy@00674370`, nine tied by
+their callers; the other four are not recoverable from CENSUS — the nearest
+by caller, `MoveOrder::is_fleeing@004889a0` (`target_opportunity`'s),
+`Unit::resolve_block@005fccc0` (`do_move`'s), `Units::make_valid@0061a960`
+and `UnitBalance::next@009b8ac0`, are on no air path.
+
+**Ranked, and what dropped** (parked 1033): kept, **`is_flying_low`** (every
+flak round asks it, and its answer picks the roll: a failure teaches the
+flak's whole hit model), **`init_crash`** (the kill: a draw and a round),
+**`is_flying_high`** (the Infantry's ladder; it may not fire, below).
+Dropped: `get_speed` — its one caller is `Object::do_launch`'s sortie arm,
+which searches every player's objects and orders an idle plane out; its
+gate is unread, a reading before a chapter. `is_siege` — its two calls in
+`Object::do_damage@0064a480` are a sea-domain responder to a struck friend
+and a computer's siege unit in an army charging a city (the navy's and the
+AI's). `is_in_range` — the tracer cannot hook it (a branch target inside
+the displaced range); no capture takes it off. The three spells — the
+City's alarm (`Group::action_alarm` and `SpellType::cast`) and a General's
+decoy — share nothing with the air line; they want a chapter of the spell
+issuer on a City and a General, as 1078 dropped the nuke.
+
+**The nouns** (the eighteenth pass's first row): every function above is in
+`INDEX.tsv`; every `NEVER` address against `blind.rs`. From the loaders:
+the **Anti-Aircraft Battery** is `Modern Age`, `WHERE` Siege Factory,
+`FROM` the Anti-Aircraft Gun (Industrial, `h`), `OBJ_MASK` `6VT`
+(`ANTI_AIR`), FLY 50/90, range 17; the **Radar Air Defense** is the
+Lookout line's Modern building, `OBJ_MASKS` `Z6`, FLY 33/75, range 10; the
+**Infantry** is `IFG` (not `ANTI_AIR`), FLY 0/33, range 13; the **Bomber**
+FLY 0/10, 300 hits. `add` has no age test.
+
+**Why a building beside the unit.** Every who=1 unit here is AI-driven
+(`0x40000`): in the walk the Battery takes an `ATTACKTO` on its birth and
+all four take the army's `ATTACKTO` east on 764. The Radar Air Defense
+cannot walk, so its rounds are the chapter's steady ones; the Battery's
+come while it walks, and its FLY differ, so each round's roll names its
+threshold.
+
+**The cast and the lines** are `chapter38.cmd`'s, a cast of its own on the
+golden start (1094): `!ai off`, `library who=0 6` (600); the Airbase
+`0/2007` at (60, 72) (606); Bombers `0/6` (52, 84) and `0/7` (68, 84)
+(610, 612); who=1's Barracks T `1/2006` at (110, 86) (616), the Radar Air
+Defense R `1/2007` at (116, 86) (618), an Infantry squad I `1/6`..`1/8` at
+(104, 86) (620), the Battery A `1/9` at (120, 80) (622); `@flight 0 2007 0
+6 7` (640) and `@strike 0 2006 1 6 7` (644), chapter seventeen's pair of
+lines. T and R stand in no one's land (`RON_STAGE_MAP`: cells (27, 21) and
+(29, 21); who=1's land starts at x 47).
+
+**The staging, walked by this crate on run397's start**, trace frames:
+the strafes home on 641, the patrols on 645; A's first attack on 0/7 on
+741, 0/7 struck on 751; the patrols' strafes on T on 745 and 746; the
+army's `ATTACKTO` on 764; R's rounds on 0/7 from 786; 0/7 re-targets R on
+818; **0/7 dead on 921, 0/6 on 1224**. Without A (walk B) 0/7 dies on 969
+and 0/6, untouched, is home on 1512. Unbuilt, this crate draws nothing
+for a flak round and nothing for a crash.
+
+**The gates between each reading and its block** (903, 968): a round's
+roll — the shooter `ANTI_AIR` and not of the air domain, the target a live
+Bomber, the shooter not on a ground order; its site — the Bomber's front
+order and its distance to that order's target on the round's frame; the
+crash — the Bomber's last guy killed (`kill_guy`), not a missile.
+
+**The capture must dump**
+`end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5,DEATHS=1` and
+`misc:COMMANDMANAGER=1` over **`[605, 1762)`**: 1,157 blocks, **250 past**
+the last event the walk schedules (0/6 home on 1512, walk B). `AMMO=5`
+prints each round's `flags`, `rolling` and `num_guys` (783); `DEATHS=1`
+because a crash is claimed to leave no death object (parked 1105).
+
+**What would falsify it, and where each could first fire.** Each tests its
+own unit (711): a round, a Bomber, a searcher.
+1. **The issues reach the pump**: `process_flight` on 641 and 645.
+2. **The flight** (blocks 642, 646): one `STRAFEORDER` a Bomber home,
+   `returning 1`; one `AIRPATROLORDER` over (21120, 16512) (run223's).
+3. **The roll's site, per round**: each round of R's or A's at a Bomber
+   spends exactly one draw on its init frame, at `+0x432` when that Bomber
+   is within `0x900` of its front order's target and `+0x463` when not;
+   none at `+0x49f`..`+0x548`. First: A's first round (~741). Unbuilt,
+   none.
+4. **The roll's threshold, per round**: its `flags & 0x10` set iff `r %
+   100` ≥ the shooter's own FLY_LOW or FLY_HIGH by the site (A 90/50, R
+   75/33), `r` that draw's value.
+5. **A miss does not wound**: no Bomber's damage moves on a flagged
+   round's landing.
+6. **The Infantry's ladder**: no round of I's at a Bomber whose distance
+   to its target is ≥ `0x900`; a round of I's spends `+0x49f` and, when
+   `r % 100 < 10`, `+0x4dc`. **May not fire**: I leave on 764 in the walk.
+7. **A Bomber shot down** (its death's block): one draw at
+   `Ammo::init_crash+0x305` on that frame; a new `AMMO` with `rolling`
+   `r % 7 − 3`, `num_guys` 1, the Bomber's `who`/`o`, `whom`/`ox` −1,
+   `flags & 2` set and `& 0x1c` clear, `sz` its altitude; **no death
+   object**. Unbuilt, no draw, no round.
+8. **Inside, nothing**: no round at 0/6 or 0/7 inside `0/2007`.
+
+**Where it should part.** Unbuilt, at the first flak round's init — A's,
+on or after 741 in the walk: the one draw the original spends and this
+crate does not. Every round after it is a draw short here, and the
+Bombers' damage parts with the first miss.
+
+**Run 2026-09-28 as run404 (item 1102)** (`docs/RUNS.md` has the table):
+click-free, `cover=0`, 895 s, 321 MB, the game run397's to 605. **The
+receipt refused it** (`success: false`): with `DEATHS=1` beside `GROUPS=1`
+in the end detail, the dump printed **no `GROUPDATA`** on any block — the
+first capture to ask for both (parked 1105's remedy against 733's pool).
+Every other record is whole on all 1,157 blocks, so the take stands as
+the chapter; the pool is not compared. **No falsifier fired; 6 did not
+reach**:
+- 1, 2: both issues processed on 641 and 645; the strafes home and the
+  patrols over T agree with this crate's on 642 and 646 (no widening row).
+- 3, 4: **43 rounds at the Bombers, each one draw** at `+0x432` (31) or
+  `+0x463` (13) and none at `+0x49f`..`+0x548`; the first A's on 753
+  (high, 94: a miss). Of the 38 matched to a new `AMMO` on the next
+  block, **every flag agrees with its roll** against its shooter's own
+  figure; five draws print no new round on the next block (817, 857,
+  867, 929, 932), not read. A site against the Bomber's distance to T
+  holds on every row but 963's `+0x463` at 2,279, whose front order is
+  not read.
+- 5: the Bombers' damage moves only on hit rounds' landings.
+- 6: **could not fire**: the Infantry never fired at a Bomber (no
+  `+0x49f`); they left on the army's move of 764, as walked.
+- 7: **both Bombers shot down**, `0/6` on 1006 and `0/7` on 1019: one
+  draw at `Ammo::init_crash+0x305` each (58907 and 56687), a new `AMMO`
+  on 1007 and 1020 with `rolling` −1 and −2 (`r % 7 − 3` of each),
+  `num_guys` 1, `whom`/`ox` −1, `flags` 2, `sz` 1783 and 1624; **no
+  `DEATH` record** on any block (none printed at all: the only deaths are
+  the two planes, so the silence is the listing's `659473` beside a
+  `DEATHS` level that printed nothing else). The crash's two further
+  draws are a local `Random`'s (`rng@0x22283c`), and its landing spends
+  no draw from the game's stream.
+- 8: no round at a Bomber inside `0/2007`.
+
+**run405**, the same script at `cover=1` on the queue lane to 1030, is
+run404's game on all 1,031 frames and enters `is_flying_low` and
+`is_flying_high` on 730 and `Ammo::init_crash` on 1006: **the blind list
+144 → 141**.
+
+**The first walk, unbuilt: `GOLDEN_WORD_CHAPTER_THIRTY_EIGHT` = 742**,
+not the first round: the Battery's first attack spends **`Unit::fight`'s
+jam roll**, `GameAccess::rnd(100)` against `jam_unit_radar_prob` (50)
+for a type with `ANTI_AIR`, in the animation choice past the ship's, the
+Patrol Boat's and the Immortals' arms (`5fee5a`..`5feec1`), which
+`docs/COMBAT.md` §8 had read as "a unit with `DETECT`" on "the other
+RNG". `ObjectData::is_jammed@00653660` is −1 here, so only the draw
+matters.
+
+**Built** (`docs/COMBAT.md` §81; the three spots in `fight.rs` granted):
+the jam roll (`Sim::swing_anim`), the flak roll at `Sim::fire_ammo_aim`'s
+head (`air::air_round_misses`, the miss the round's `harmless`), and the
+crash in `Sim::close_unit` (`air::crashes`: the draw, and no death
+object). **The word goes 742 → 776, open**: theirs starts a guy's walk
+(`Guy::set_anim+0xf2f < Guy::move+0x166`) that ours does not — the
+Infantry's, whose `myspeed` reads 32 against 34 from their birth on 621
+and whose army move parts in its offsets from 765: outside the air line.
+The value diff, both sides: A's rounds of 753 and 755 agree field for
+field, `flags` 18 on both; A's `att` point on 742, (21430, 17228) here
+and (21369, 17239) there, the Battery's own path parting from 624. The
+widening, run404 whole, **685 rows**.
+
+**Mutations**, each on the committed build (`ab624132`, `0e6e8b3c` for the
+call-site test), `git diff --stat` non-empty first, scored against `sim`'s
+`flak_tests` and `cargo test --release -p rondata chapter_thirty_eight`:
+
+| mutation | sim | ch38's pins |
+| --- | --- | --- |
+| the jam roll dropped | the jam test | word 742; widening |
+| the flak roll's call dropped | the call-site test | word 753; widening 678 |
+| the crash dropped | the crash test | widening 681 (word 776 still) |

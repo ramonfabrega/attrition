@@ -120,6 +120,9 @@ pub const TRACES: &[&str] = &[
     // Item 1091's capture: chapter thirty-seven at `cover=1` on the queue
     // lane to 3210 (`docs/RUNS.md` run398), run397's game on every frame.
     "rontrace-run398.log", // ch37
+    // Item 1102: chapter thirty-eight at `cover=1` on the queue lane to
+    // 1030 (`docs/RUNS.md` run405), run404's game on every frame.
+    "rontrace-run405.log", // ch38
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -209,7 +212,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// chapter's other citations are entered already, and run390 at `cover=0`
 /// takes nothing off. **144** with run398 (item 1091: chapter
 /// thirty-seven at `cover=1`, `docs/GOLDEN.md` §46; `Nuke::add_nuke`
-/// entered on 3200, the one row its staging named).
+/// entered on 3200, the one row its staging named); **141** with run405
+/// (item 1102: chapter thirty-eight at `cover=1`, `docs/GOLDEN.md` §47;
+/// `UnitData::is_flying_low@0060a140` and `is_flying_high@0060a310` on
+/// 730, `Ammo::init_crash@0067b800` on 1006, the three rows its staging
+/// named).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -221,11 +228,11 @@ pub const NEVER: &[u32] = &[
     0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005e_1f20, 0x005e_3310, 0x005e_3400,
     0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
-    0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850, 0x0060_a140, 0x0060_a310,
+    0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850,
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
     0x0064_e4a0,
-    0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370, 0x0067_b800, 0x0068_3730,
+    0x0065_cfd0, 0x0067_04a0, 0x0067_0880, 0x0067_4370, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
     0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,

@@ -10413,6 +10413,74 @@ from item 1028's, and their outputs are at
 `~/ron-data/lab-experiments/2026-09-28-item-1089/`. The copied probes
 first reproduced item 1028's `1/24` list on run368's packet exactly.
 
+## run404 — chapter thirty-eight, the air line under fire (2026-09-28, item 1102)
+
+`docs/GOLDEN.md` §47, `tools/gamelog/golden/chapter38.cmd`: a cast of its
+own on the golden start — an Airbase `0/2007` and two Bombers `0/6`,
+`0/7` (606..612), who=1's Barracks T `1/2006`, a Radar Air Defense
+`1/2007`, an Infantry squad `1/6`..`1/8` and an Anti-Aircraft Battery
+`1/9` (616..622), `@flight` home (640) and `@strike` on T in flight (644).
+The chapter and its eight falsifiers were committed before the run
+(`9954ebe7`).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch38 \
+    --map 14 --end-frame 1762 --log-window 605 1762 --timeout 5400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter38.cmd
+```
+
+**The take** at `cover=0` on the click-free lane, 17:40: **895 s** in all
+(878 launch to exit), **321 MB** of dump and 12.1 MB of trace, 1,157
+blocks, exit 0, 1,763 frames, settings restored. **The receipt says
+`success: false`**: `GROUPS was asked for and no GROUPDATA block was
+printed` — the first capture to ask for `DEATHS=1` beside `GROUPS=1`
+(§47, GOLDEN §16). `waitrun.sh` exited 2 on it. The lane's lock was
+stale. 63 GB free after.
+
+| check | result |
+|---|---|
+| issues | two `@` lines, processed on 641 and 645 |
+| `GROUPDATA` | none on any block; every other record whole |
+| `DEATH` | none on any block (the only deaths are the two planes) |
+
+### §47's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issues | processed on 641, 645 | **as predicted** |
+| 2, the flight | strafes home, then patrols over T | **as predicted** (no widening row) |
+| 3, the roll's site | one draw a flak round, `+0x432`/`+0x463` | **as predicted**: 43 draws, 31 and 13, none of the other arm; 963's `+0x463` at 2,279 from T not read |
+| 4, the threshold | `flags & 0x10` iff `r % 100` ≥ the shooter's figure | **as predicted** on all 38 matched rounds; 5 draws print no round |
+| 5, a miss | does not wound | **as predicted** |
+| 6, the Infantry | no round at a high Bomber | **could not fire**: no round of theirs at a Bomber |
+| 7, the crash | one draw at `init_crash+0x305`, the round, no death | **as predicted**: 1006 and 1019, `rolling` −1 and −2, no `DEATH` |
+| 8, inside | no round | **as predicted** |
+
+## run405 — chapter thirty-eight at `cover=1`, to 1030 (2026-09-28, item 1102)
+
+`captures.txt`'s stanza: `chapter38.cmd` line for line with the chapter's
+own `!ffwd 2`, the golden lobby (`cfg: -`), `cover=1`, on the queue lane,
+ending eleven frames past the second crash, and the end detail without
+`DEATHS` (run398's).
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 405
+```
+
+**The take**, 18:00 → 18:11, `captured, checks ok`: 181 MB of gamelog,
+9.1 MB of trace.
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run404 | two issue records, none refused; golden 2 |
+| `rngcmp.py` vs run404 | 1,031 frames identical, none differing |
+| `report.py … functions` | `UnitData::is_flying_low` and `is_flying_high` entered on 730, `Ammo::init_crash` on 1006 |
+
+**The blind list 144 → 141**: the three rows the staging named.
+`rontrace-run405.log` joins `blind::TRACES`.
 ## run403 — run347's game at run396's detail over blocks 5925..5930: the second pair's Great Lakes word at the game's end (2026-09-28, item 1099)
 
 **What it is.** run396's shape on the click-free lane: run347's lobby

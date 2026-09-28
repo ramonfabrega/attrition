@@ -595,6 +595,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch35 = golden_dump("ch35");
     let ch36 = golden_dump("ch36");
     let ch37 = golden_dump("ch37");
+    let ch38 = golden_dump("ch38");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1601,6 +1602,21 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
                 );
                 frames += n;
             }
+        }
+    }
+    // **Chapter thirty-eight's word, on run404** (item 1102): the air line
+    // under fire. 743, the Battery's jam roll; 754, its first round (a
+    // miss); 777, the word's next block; 783, the first low round; 1007
+    // and 1020, the two crashes; 1759, the last blocks.
+    if let Some(p) = &ch38 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_EIGHT;
+        for w in [743, 754, 777, 783, 1007, 1020, 1759] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(
+                n, 5,
+                "chapter thirty-eight carries the window's five blocks"
+            );
+            frames += n;
         }
     }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
