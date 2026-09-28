@@ -62,6 +62,22 @@ refuses a second exception without a reason.
 (930) **`do_launch`'s walk ending at a launch**: built and tested; no
 capture has two planes full on one call.
 
+## Parked by item 1034, 2026-09-28 — the city under attack
+
+(1041) **`1/26`'s one-frame strike lag on the city from its second
+strike**: 4690 here against 4689 there (run356).
+
+(1042) **`raid_stamp` is still uncarried** (1024's neighbour): city
+`0/2000`'s stamp beside the latch 1034 built (COMBAT §69).
+
+(1043) **`CityData +0x61`, `plundered`'s decrement**: read, not built.
+
+(1044) **The AI's alarm push and its repair order**, both of which read
+`city_flags & 0x2`: read, not built.
+
+(1045) **The latch's peasant arm** (`Object::take_damage`'s `orw` at
+00652561 for a peasant hit): read, not built.
+
 ## Parked by item 1028, 2026-09-28 — the raid's edges
 
 (1035) **The ship raid arm** (`0064edd8`–`0064ef64`) of
@@ -1777,6 +1793,12 @@ it depends on is wrong elsewhere** (1028's Loop line): 1012's hand-off
 passed its floor on an inflated city value, which 1028's packet showed.
 A floor that a mechanism passes is quiet, not proven (898's shape one
 level up).
+
+(1046) **"Nothing parts on the block" read only the block's new rows**
+(1034's Loop line, filed at its merge): 1028's journal said nothing parts
+on 4691 while `0/2000`'s damage had stood parted since 4661. Row-walk
+the parting draw's object back to its first parted field before writing
+that a block is quiet.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
