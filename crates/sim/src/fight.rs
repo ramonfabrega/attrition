@@ -1710,7 +1710,7 @@ impl Sim {
         }
         .max(1);
         // The lead: a unit target that is moving has the landing point pushed
-        // along its facing for the time of flight (§9.1, §47.4). The
+        // along its angle for the time of flight (§9.1, §47.4). The
         // magnitude is its **first figure's `avg_speed`**, not the unit's
         // per-frame speed. `Ammo::init@0067bbf0` loads `ecx = T.angle`
         // (`UnitData +0x50`) and `edx = guys.list[0]->avg_speed`
@@ -1721,11 +1721,24 @@ impl Sim {
         // ramping its average: run112's `1/7` on 766 walks 24 a frame at
         // `avg_speed` 9, and a lead of 24 put `0/9`'s shot 55 units past
         // where the original's lands.
+        //
+        // **The gate is the target's order, and the angle is `+0x50`**
+        // (§74). `67ce62`-`67ce99`: `UnitData::order_type`, then
+        // `is_move@0046f050`, and on a zero `order_type` again and
+        // `is_air@0046f000`, whose zero jumps past the lead. A fleeing
+        // citizen between two legs has a `FLEE_TO` head and no
+        // `movement.dest`, which this crate asked until item 1081, and
+        // run373's `0/1` on 5024 was led by the original and missed by
+        // this crate. `UnitData +0x50` is `angle`, which is
+        // [`crate::Movement::heading`] here, not the figure's facing.
         if let Some(Obj::Unit(t)) = target
-            && self.units[t].movement.dest.is_some()
+            && {
+                let k = self.order_type(t);
+                crate::orders::index::is_move_family(k) || crate::orders::index::is_air_family(k)
+            }
         {
             let u = &self.units[t];
-            let facing = u.movement.facing;
+            let angle = u.movement.heading;
             let avg = u
                 .guys
                 .first()
@@ -1733,8 +1746,8 @@ impl Sim {
                 .map_or(u.movement.body.avg_speed, |f| f.body.avg_speed);
             landing = clamp(
                 Pos::new(
-                    landing.x + crate::movement::sin_component(facing, avg) * total_time,
-                    landing.y - crate::movement::cos_component(facing, avg) * total_time,
+                    landing.x + crate::movement::sin_component(angle, avg) * total_time,
+                    landing.y - crate::movement::cos_component(angle, avg) * total_time,
                 ),
                 &self.world,
             );
@@ -4713,6 +4726,77 @@ mod tests {
         );
     }
 
+    /// **A dead target is re-aimed at** (`check_target_path@005e22d0`,
+    /// `5e2429`–`5e242e`; `docs/COMBAT.md` §76). The slot's vslot `+0x8`
+    /// is `SubObjectData::is_active`, and a dead target's `je 5e24e8`
+    /// jumps the flank triple into the same fall-through a fleeing one
+    /// takes: its walk spot cannot reach a corpse, so on the review's phase
+    /// the legs go and `find_attack_pos` aims a new one at where it fell.
+    /// run347's `1/13` re-aims on 5011, 5027, 5043 and 5059 at `0/2`, dead
+    /// since 5000 (Great Lakes 5066).
+    ///
+    /// Three arms: the dead target re-aims, standing still; the same target
+    /// alive and standing, and the dead one off the phase, keep the stale
+    /// spot. Made to fail on purpose by returning for a dead target, as
+    /// this crate did: the first arm keeps its stale spot.
+    #[test]
+    fn a_dead_target_is_re_aimed_at_on_the_review_s_phase() {
+        let (mut sim, ty) = at_war();
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let foe = put(&mut sim, 0, ty, at);
+        // Past `(max_range + 8)` tiles, `find_attack_pos`' far arm, which
+        // takes the sweep's spot without asking the range (a corpse is in
+        // nobody's): `1/13` was some fifteen tiles out.
+        let me = put(&mut sim, 1, ty, Pos::new(at.x + 16 * 0xc0, at.y));
+        // Ten tiles from the chaser, so `do_move`'s dead-target arm
+        // (`0x480` from the walk's own goal) leaves it standing.
+        let stale = Pos::new(at.x + 6 * 0xc0, at.y + 3 * 0xc0);
+        // The review's phase: `(frame + o) % 16 == 0`.
+        let on = 16 - i64::from(sim.units[me].index);
+        let chase = |sim: &Sim, dead: bool, frame: i64| {
+            let mut s = sim.clone();
+            s.add_attack_order(
+                me,
+                Obj::Unit(foe),
+                crate::orders::QueuePos::First,
+                false,
+                true,
+            );
+            s.add_move_order(
+                me,
+                stale,
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::First,
+                false,
+            );
+            if dead {
+                s.units[foe].health = 0;
+            }
+            let before = s.units[me].orders_pos;
+            s.work(me, frame);
+            let after = s.units[me].orders.iter().find_map(|o| match o.body {
+                crate::orders::Body::Move(m) => Some(m.dest),
+                _ => None,
+            });
+            (before, after)
+        };
+        let (before, after) = chase(&sim, true, on);
+        let after = after.expect("the chase keeps a move");
+        assert_ne!(after, before, "the dead target's chase kept its stale spot");
+        assert!(
+            crate::world::vector_dist((after.x - at.x).abs(), (after.y - at.y).abs())
+                < crate::world::vector_dist((before.x - at.x).abs(), (before.y - at.y).abs()),
+            "the new spot is not aimed at the corpse: {after:?}"
+        );
+        for (dead, frame, why) in [
+            (false, on, "a living standing target"),
+            (true, on + 1, "an off-phase frame"),
+        ] {
+            let (before, after) = chase(&sim, dead, frame);
+            assert_eq!(after, Some(before), "{why} re-aimed the chase");
+        }
+    }
+
     /// **An unpacked packer takes only what it can reach, and a hit from
     /// inside its minimum is dropped without a chase**
     /// (`Object::find_nearby_target@00648da0`'s `local_24`, the listing
@@ -5716,7 +5800,7 @@ mod tests {
     }
 
     /// **The lead is the target's first figure's `avg_speed`, along its
-    /// facing** (`docs/COMBAT.md` §47.4, `Ammo::init@0067bbf0`,
+    /// angle** (`docs/COMBAT.md` §47.4, `Ammo::init@0067bbf0`,
     /// `0067ceb4`-`0067cec7`), and not the unit's per-frame speed. Two
     /// copies of one sim fire the same shot, the draws identical, and
     /// differ only in the target figure's average. The landings differ by
@@ -5728,10 +5812,18 @@ mod tests {
         let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
         let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
         let facing = crate::movement::Angle(723_976_192);
+        sim.add_move_order(
+            foe,
+            Pos::new(0x1800, 0x1000),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::First,
+            false,
+        );
         {
             let m = &mut sim.units[foe].movement;
             m.dest = Some(Pos::new(0x1800, 0x1000));
             m.facing = facing;
+            m.heading = facing;
             m.speed = 24;
         }
         let fire = |avg: i32| {
@@ -5757,6 +5849,77 @@ mod tests {
                 crate::movement::sin_component(facing, 9) * t,
                 -crate::movement::cos_component(facing, 9) * t
             ),
+        );
+    }
+
+    /// **The lead's gate is the target's order, and its angle is
+    /// `UnitData +0x50`** (item 1081, `docs/COMBAT.md` §74). `Ammo::init`
+    /// asks `UnitData::order_type` of `is_move@0046f050`, then of
+    /// `is_air@0046f000` (`67ce62`-`67ce99`), and leads along `angle`
+    /// (`67ceba`), this crate's `heading`. run373's `0/1` on 5024 fled
+    /// between two legs, a `FLEE_TO` head with no `movement.dest`: the
+    /// original led `1/11`'s round onto it and this crate, asking
+    /// `movement.dest`, missed. A target with a destination and no move
+    /// at its head is not led.
+    #[test]
+    fn the_lead_asks_the_target_s_order_and_leads_along_its_angle() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
+        let heading = crate::movement::Angle(117_506_048);
+        let facing = crate::movement::Angle(550_174_720);
+        let fire = |s: &Sim, avg: i32| {
+            let mut s = s.clone();
+            s.units[foe].movement.body.avg_speed = avg;
+            s.fire_ammo(
+                Obj::Unit(me),
+                Obj::Unit(foe),
+                Angle(0),
+                0,
+                Pos::new(0x1000, 0x1000),
+                0,
+            );
+            let p = *s.projectiles.last().expect("a shot");
+            (p.landing, p.total_time)
+        };
+        // A flight between two legs: the head is `FLEE_TO`, the body has no
+        // destination, and the figure still faces the old leg.
+        let mut fleeing = sim.clone();
+        fleeing.add_move_order(
+            foe,
+            Pos::new(0x1300, 0x0800),
+            crate::orders::MoveKind::FleeTo,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        {
+            let m = &mut fleeing.units[foe].movement;
+            m.dest = None;
+            m.heading = heading;
+            m.facing = facing;
+        }
+        let (still, t) = fire(&fleeing, 0);
+        let (moving, _) = fire(&fleeing, 23);
+        assert_eq!(
+            (moving.x - still.x, moving.y - still.y),
+            (
+                crate::movement::sin_component(heading, 23) * t,
+                -crate::movement::cos_component(heading, 23) * t
+            ),
+            "a fleeing target is led along its angle, whatever its body's \
+             destination and its figure's facing"
+        );
+        // A destination with no move at the head: not led.
+        let mut standing = sim.clone();
+        {
+            let m = &mut standing.units[foe].movement;
+            m.dest = Some(Pos::new(0x1800, 0x1000));
+            m.heading = heading;
+        }
+        assert_eq!(
+            fire(&standing, 23).0,
+            fire(&standing, 0).0,
+            "no move and no air order at the head, no lead"
         );
     }
 

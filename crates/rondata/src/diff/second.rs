@@ -1070,9 +1070,11 @@ mod tests {
     /// item the word moved to 4852 and then 4877**, block 4878, inside the
     /// window (37 blocks after its first and 219 before its last). **Item
     /// 1052 moved it to 4924**, block 4925, inside the window too (84
-    /// blocks after its first and 172 before its last), and **item 1061
+    /// blocks after its first and 172 before its last), **item 1061
     /// to 4978**, block 4979 (138 after its first and 118 before its
-    /// last).
+    /// last), **item 1072 to 5042**, block 5043 (202 and 54), **item
+    /// 1081 to 5066**, block 5067 (226 and 30), and **item 1086 to 5075**,
+    /// block 5076 (235 after its first and 21 before its last).
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -1096,6 +1098,18 @@ mod tests {
         let mut by: BTreeMap<i64, usize> = BTreeMap::new();
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
+        }
+        // `RON_FIRSTS=<block>` prints every key's first parting from that
+        // block on, both sides' values beside it (item 1081).
+        if let Some(from) = std::env::var("RON_FIRSTS")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+        {
+            let mut rows: Vec<_> = w.firsts.iter().filter(|(_, (f, _))| *f >= from).collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
         }
         assert_eq!(w.blocks, 257, "run373 whole: blocks 4841..5097");
         assert!(
@@ -1219,21 +1233,75 @@ mod tests {
             ),
             "the two deaths, on the original's own frames"
         );
-        // **The new word, 5042, writes block 5043** (no mechanism is named,
-        // DECISIONS 42): ours 8 draws and the original 6, parting at index
-        // 0, where ours spends `Ammo::do_damage+0xc59` and the original
-        // `Farms::inc_time+0x1ae`. Two blocks before it the citizen `0/1`
-        // takes 3/5 on the original's side alone (2/0 → 5/5 on block 5041,
-        // `damage_frame` still 5038), and nothing new parts on 5042 or
-        // 5043.
+        // **The old word, 5042, agrees** (item 1081, `docs/COMBAT.md` §74):
+        // `Ammo::init`'s lead asks the target's order (`is_move`, then
+        // `is_air`) and leads along its `angle` (`UnitData +0x50`). The
+        // citizen `0/1` fled between two legs on 5024 — a `FLEE_TO` head
+        // and no `movement.dest`, which this crate asked — so `1/11`'s
+        // round came down on (6225, 28816) unled, missed on 5040, rolled
+        // and punctured the ground on 5042 (`Ammo::do_damage+0xc59`,
+        // `+0xc7e`). Led, it comes down on (6497, 28561) and strikes `0/1`
+        // at (6260, 28466) on 5040: 2/0 → 5/5 on block 5041, 8/10 on 5045
+        // and 12/4 on 5077 (`damage_frame` 5076) on both sides, where ours
+        // read 2/0, 5/5 and 5/5.
+        for what in [
+            "hits:damage",
+            "hits:damage_frac",
+            "hits_left",
+            "damage_frame",
+        ] {
+            assert_eq!(
+                first(0, 1, what),
+                None,
+                "0/1's {what}, which parted on 5041 (5077 for damage_frame) \
+                 until item 1081"
+            );
+        }
+        // **The old word, 5066, agrees** (item 1086, `docs/COMBAT.md`
+        // §76): `check_target_path`'s `is_active` jump (`5e2429`) sends a
+        // dead target into the re-aim, so `1/13`'s chase on `0/2`, dead
+        // since 5000, is re-aimed at the corpse on every review — 5011,
+        // 5027, 5043, 5059 — on both sides: (4872, 29928) via (4872,
+        // 31464), tolerance 384 and nine legs on block 5012, where ours kept
+        // its detour to (4104, 31992). On 5066 both stand at (4764, 31013)
+        // under the `ATTACK`, and on 5067 both take `0/4`. Its rows first
+        // part on 5068, where the chase on `0/4` is aimed at (2136, 31608)
+        // against ours (3384, 31464).
+        for what in ["pos", "order:kind", "order:move.dest_x", "path:length"] {
+            assert!(
+                first(1, 13, what).is_none_or(|(f, _)| f >= 5_068),
+                "1/13's {what}, which parted on 5012 (5066 for the order) \
+                 until item 1086: {:?}",
+                first(1, 13, what)
+            );
+        }
+        // **The new word, 5075, writes block 5076** (no mechanism is named,
+        // DECISIONS 42): ours 11 draws and the original 10, parting at
+        // index 0, where ours spends `1/20`'s `Guy::set_anim+0x97a <
+        // Unit::move_step+0x823` and the original `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, ours' second. On block 5076 `1/20` reads
+        // `collide 1` on `1/18` on ours alone, and `1/10` and `1/11` have
+        // ended their chase on ours alone (`ATTACK` heads, two orders,
+        // against three); every key first parting on 5075 and 5076 is one
+        // of those four's or `1/0`'s figure's.
         assert_eq!(
-            first(0, 1, "hits:damage"),
-            Some((5_041, "ours 2 theirs 5".to_string())),
+            first(1, 20, "collide"),
+            Some((5_076, "ours 1 theirs 0".to_string())),
             "the new word's row"
         );
+        for o in [10, 11] {
+            assert_eq!(
+                first(1, o, "order:kind"),
+                Some((5_076, "Kind { ours: 10, theirs: 1 }".to_string())),
+                "1/{o}'s chase, ended on ours alone"
+            );
+        }
         assert!(
-            !w.firsts.values().any(|(f, _)| (5_042..=5_043).contains(f)),
-            "nothing first parts on the new word's blocks"
+            w.firsts
+                .iter()
+                .filter(|(_, (f, _))| (5_075..=5_076).contains(f))
+                .all(|((who, o, _), _)| *who == 1 && [0, 10, 11, 18, 20].contains(o)),
+            "only 1/0, 1/10, 1/11, 1/18 and 1/20 first part on the new word's blocks"
         );
         // **The group record and the attack order's row** (item 1061,
         // `docs/GROUPS.md` §33): five more rows stand from the window's
@@ -1267,8 +1335,11 @@ mod tests {
         // The citizen `0/4` stood at 6 10/16 here against 5 0/16 from
         // the window's first block until item 1072: the heal on 4811
         // (`(4 + 4811) % 45 == 0`) took it to 5/0 there, and 3/5 more on
-        // 4845 makes 8/5 on both. Keys parted: 1,052 → 471.
-        assert_eq!(w.firsts.len(), 471, "every key parted on run373");
+        // 4845 makes 8/5 on both. Keys parted: 1,052 → 471, 471 → 455
+        // on item 1081 (`0/1`'s wound on 5040 and what followed it), and
+        // 455 → 461 on item 1086 (`1/13`'s rows from 5012 go; the chase on
+        // `0/4` from 5068 and the new word's from 5075 arrive).
+        assert_eq!(w.firsts.len(), 461, "every key parted on run373");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the
