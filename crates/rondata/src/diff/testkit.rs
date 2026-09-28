@@ -1097,6 +1097,11 @@ fn indexed_siblings_preserve_every_initial_field_except_audit_bodies() {
 /// `run299_s_word_frame_is_widened_whole` keeps the move's value diff.
 pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 
+/// **The third map's long word** (DECISIONS 54 §3, item 1066): run383,
+/// Great Sahara's draw stream to 24,000 at `cover=0`, walked from its own
+/// start with run381's `DUMP_ALL` head (`diff::third`).
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 8;
+
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
 /// start dump by `diff::second`.
@@ -6346,5 +6351,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("run373_s_word_frame_is_widened_whole"),
         1040,
         Some(WIDENING_SECOND_GREAT_LAKES_4846),
+    ),
+    // **The third map, Great Sahara** (DECISIONS 54 §3, item 1066): its
+    // word is frame 8 on both run382 and run383, and run382 carries every
+    // block from 1 to 259 at run10's detail, so the score capture is its
+    // own widening (`diff::third`).
+    (
+        "LONG_WORD_GREAT_SAHARA",
+        LONG_WORD_GREAT_SAHARA,
+        Some("run382_s_word_frame_is_widened_whole"),
+        1066,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA),
     ),
 ];

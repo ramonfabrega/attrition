@@ -10109,3 +10109,94 @@ one take, after att-1019's run372 released the lane. 519.7 MB of gamelog,
   (§70.7).
 - The word moved to 4877 inside the window. Block 4861, frame 4860 (the
   army's tick), is the first to part after that, on 121 keys.
+
+## run381 — Great Sahara's `DUMP_ALL` start, in run38's shape (2026-09-28, item 1066)
+
+**The third scored map's sibling** (DECISIONS 54 §3). This is run38's
+recipe with the map moved:
+`zsh tools/gamelog/viadriver.sh tools/gamelog/startcapture.sh 381 7
+greatsahara-start`. It took two `DUMP_ALL` frame blocks, `cover=1
+window=0-1`, `2 !quit`, and the profile's lobby (no `-config`, which pins
+the style at 14). It ran in one take: launched at 09:49:26, the start
+clicked at 09:50:22, settled at 09:56. The dump is 149,587,702 bytes
+(run38's is 151 MB) and the trace 8,280,576 bytes over six frames. The DLL
+is sha256 `d654cdb2…599d`, a later build than run348's `b451aeb6…3dca`,
+and the same one run382 and run383 ran. The lane lock was stale (att-1040's
+pid 37944, dead) and no `RonDriver` was running. The disk had 70 GB free.
+`waitrun.sh` under `WAITRUN_RUNNER=gamelog/startcapture.sh` exits 2 on
+this script, which prints no banner, so the log's tail is the verdict: it
+read `MAP_STYLE 7` and `seed 12345`.
+
+**`GAME INFO` is run39's 85 lines, line for line, except `MAP_STYLE 7`**.
+`DIFFICULTY 0` reads back. The profile and `check.ini` were copied before
+the launch and put back after it once the lane was idle, and the profile
+read `MAP_STYLE 14` and `DIFFICULTY 0` in both blocks again.
+
+**It stands the map up alone.** `rondata <install> --gamelog
+gamelog-run381-greatsahara-start.txt --trace rontrace-run381.log --diff`
+loads 3,600 cells, two regions, nine placed mountain ranges, two herds and
+24 goods from the head, and rolls the AI's personality where the original
+did. It reads **`rng: frame 0: ours 99 draws, the original's 99`**, three
+frames with no unit parting. What the map holds (all land, west against
+east) is in `docs/AI.md` §83.2.
+
+## run382 — Great Sahara in run33's shape, the third map's score (2026-09-28, item 1066)
+
+This is run348's stanza with the map moved, 9 → 7, through
+`viadriver.sh tools/gamelog/runqueue.sh - 1066`. It used run10's
+detail, the window `[0, 1900)`, `5 !ffwd 30`, `1850 !quit` and
+`cover=1`, on the queue lane (1047). It ran in one take from 10:00 (the
+start clicked at 10:00:52) to 10:10. The dump is 176,714,287 bytes with
+1,851 blocks, and the trace 8,804,416 bytes. `GAME INFO` is run39's except
+`MAP_STYLE 7`.
+
+| check | result |
+|---|---|
+| `MAP_STYLE 7`, `seed 12345`, `DIFFICULTY 0`, blocks ≥ 1850 | pass (1,851) |
+| `rngcmp.py` against run381 | 6 in common, 0 differ |
+| `samegame.py` against run381, the count | **2 in common**, 2 differ (run381's blocks are `DUMP_ALL`; run38 against run39 reads the same) |
+
+The queue called the take "checks FAILED" on the last line. That was the
+stanza's fault, not the capture's: the runner's pipe status carried
+`samegame.py`'s exit 1 through `tee`, so the line asserted the verdict it
+was written not to assert. The stanza now reads `(… || true) | tee`.
+
+**The number: ticks 6, orders 5.** The first word is 8.
+
+```
+rondata <install> --gamelog gamelog-run382-greatsahara-longtrace.txt \
+        --sibling gamelog-run381-greatsahara-start.txt \
+        --trace rontrace-run382.log --diff        # on 11d1dbaa
+
+  note: rng: frame 0: ours 99 draws, the original's 99 — installed 0xa1258b91
+  1851 frames stepped, 28000 unit-frames compared, 0 unit-frames the sim has no unit for
+  ticks before divergence: 6
+  ticks before an order diverges: 5
+  who 1 o 2: first order disagreement at frame 6 — Move { field: "dest_x", ours: 38232, theirs: 38328 }
+  player 0: first divergence at frame 103 — unit o 3 ours (4996, 30617) theirs (5009, 30576)
+  player 1: first divergence at frame 7 — unit o 2 ours (38352, 15814) theirs (38328, 15768)
+```
+
+The widening over its blocks 1..259, and the first parting by unit and
+field, are in `docs/AI.md` §83.5.
+
+## run383 — Great Sahara's draw stream to 24,000, `cover=0` (2026-09-28, item 1066)
+
+This is run347's stanza with the map moved and no `profile:` line, so the
+profile's `DIFFICULTY 0` stands. It used `end: MISC`, run10's `start:`,
+`cover=0` and `cfg: -`, and ran in the same queue as run382 from 10:10
+(the start clicked at 10:11:19) to 10:14. The dump is 10,552,505 bytes and
+the trace 22,691,712. `GAME INFO` is run39's except `MAP_STYLE 7`.
+`rngcmp.py` against run382 reads 1,851 in common and 0 differ, so the long
+capture is the score capture's game.
+
+**Where it ends, and why: at 24,000, on the `!quit`.** The trace holds a
+`FRAME` record for all 24,001 frames. The dump's last block, 24001, is the
+shutdown dump, and both leaders read `defeated_by -1`, with scores 421 for
+the human and 2,495 for the AI. Nobody won an Easiest game against an idle
+human in twenty-seven minutes of game time.
+
+**The long word is 8**, the same frame as run382's
+(`run383_s_long_trace_says_where_the_third_map_s_word_parts`): ours 6
+draws against 7, parting at index 0, `Farms::inc_time+0x1ae` against
+`Guy::set_anim+0x97a < Unit::move_step+0x823`.

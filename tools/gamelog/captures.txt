@@ -8785,3 +8785,77 @@ check: python3 tools/gamelog/cmdsran.py rontrace-run372.log 0:1 37:1 600:1 606:1
 check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch35/map-14/rontrace.log" rontrace-run372.log
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch35/map-14/rontrace.log" rontrace-run372.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=3260)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run372.log" functions 2>/dev/null | grep -E "CommandManager::issue_flight$|CommandManager::issue_queue_up$|CommandManager::issue_gather_point$|CommandManager::issue_launch_patrol$" | tee /dev/stderr | awk 'END{exit !(NR==4)}'
+
+# run381 (item 1066) is not a stanza: it is `startcapture.sh 381 7
+# greatsahara-start` under `viadriver.sh`, run38's `DUMP_ALL` start on Great
+# Sahara — the height table, the checksum trace, the herds and the frame
+# seeds the two stanzas below are stood up from (`docs/RUNS.md`, run381).
+
+run: 382
+tag: greatsahara-longtrace
+item: 1066
+why: the third scored map (DECISIONS 54 §3) — Great Sahara in run33's shape, the first pair's lobby with only the map moved
+# **run348's stanza with the map moved, 9 → 7.** `longtrace.sh`'s defaults
+# are run33's and run39's — seed 12345, run10's `[Start Game]` and `[End
+# Frame]` detail, the cheap window [0, 1900), `5 !ffwd 30`, `1850 !quit`,
+# `cover=1`, no input — so nothing below overrides them. `cfg: -` because
+# `-config check.ini` pins the style at 14 (`docs/ORACLE.md`, "The lobby is
+# a file"): the lobby is the profile's, run39's path. The profile reads
+# `DIFFICULTY 0` in `<SOLO>` and `<MULTI>` before the launch and nothing
+# here writes it. **`cover=1` names the queue lane** (1047): this runs
+# through `runqueue.sh` under `viadriver.sh`, never the click-free lane.
+frames: 1850
+mapstyle: 7
+cfg: -
+poll_max: 240
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run382-greatsahara-longtrace.txt" | grep -qw "MAP_STYLE 7"
+check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run382-greatsahara-longtrace.txt" | grep -qw "seed 12345"
+check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run382-greatsahara-longtrace.txt" | grep -qw "DIFFICULTY 0"
+check: grep -a -c "BEGIN FRAME" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run382-greatsahara-longtrace.txt" | awk '{print "blocks", $1; exit !($1 >= 1850)}'
+# Same game as run381: the trace's word on every frame both hold, the count
+# asserted with the verdict (run83: nothing in common is not agreement).
+check: python3 tools/gamelog/rngcmp.py rontrace-run381.log rontrace-run382.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=6)}'
+# And the dumps' blocks in common: the count is asserted and the verdict is
+# not, because run381's blocks are `DUMP_ALL` and these are run10's detail
+# (run38 against run39 reads the same, 2 in common, 2 differ). The `|| true`
+# is load-bearing: the runner's pipe status carries `samegame.py`'s own exit
+# through `tee`, and the take's first form of this line failed on the
+# verdict it meant not to assert.
+check: (python3 tools/gamelog/samegame.py gamelog-run381-greatsahara-start.txt gamelog-run382-greatsahara-longtrace.txt || true) | tee /dev/stderr | awk '/ in common /{for(i=1;i<=NF;i++) if($i=="common") c=$(i-2)+0} END{exit !(c>=2)}'
+# ==== TAKEN 2026-09-28, one take, 10:00–10:10 through `viadriver.sh` ====
+#
+# 1,851 blocks, 176,714,287 bytes, trace 8,804,416. DLL sha256
+# d654cdb2…599d. `GAME INFO` is run39's 85 lines but `MAP_STYLE 7`. Every
+# check passed but the `samegame.py` line's first form (above): 2 in
+# common, 2 differ, as run38 against run39. `docs/RUNS.md` run382.
+
+run: 383
+tag: greatsahara-24k-trace
+item: 1066
+why: the third scored map's long capture — Great Sahara's draw stream to 24,000 frames or the game's end, in run346's and run347's shape
+# **run347's stanza with the map moved and the lobby's difficulty left
+# alone**: `cover=0` (only the draw stream is asked for; run80 ran a 24,000
+# frame game in forty seconds at it), `end: MISC`, run10's `start:` so the
+# harness stands the sim up from the dump, `cfg: -`, and **no `profile:`
+# line** — the profile's `DIFFICULTY 0` is the first pair's, which is the
+# point. If the AI ends the game before 24,000 the last frame is recorded
+# either way, and its `GAME INFO` and last block say where and why.
+frames: 24000
+mapstyle: 7
+cfg: -
+end: MISC
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+cover: cover=0
+settle_min: 500000
+check: grep -a -m1 "MAP_STYLE" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run383-greatsahara-24k-trace.txt" | grep -qw "MAP_STYLE 7"
+check: grep -a -m1 "(int)seed" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run383-greatsahara-24k-trace.txt" | grep -qw "seed 12345"
+check: grep -a -m1 " DIFFICULTY " "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run383-greatsahara-24k-trace.txt" | grep -qw "DIFFICULTY 0"
+# The first 1,851 frames are run382's game draw for draw (cover=1 against
+# cover=0 is invisible to the simulation: run33, run53).
+check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1850)}'
+# ==== TAKEN 2026-09-28, one take, 10:10–10:14 through `viadriver.sh` ====
+#
+# The trace holds all 24,001 frames and the game ran to the `!quit`: block
+# 24001 is the shutdown dump, both leaders `defeated_by -1`. 10,552,505
+# bytes, trace 22,691,712. `rngcmp.py` against run382: 1,851 in common, 0
+# differ. `docs/RUNS.md` run383.

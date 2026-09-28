@@ -47,6 +47,8 @@ mod setup;
 mod shutdown;
 #[cfg(test)]
 mod slots;
+#[cfg(test)]
+mod third;
 mod unit;
 
 #[cfg(test)]
