@@ -1404,7 +1404,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 344 | thirty-two, an Airbase's gather point | `[605, 2360)` | chapter twenty-nine's cast and `@gatherpoint` on the Airbase `0/2007` three times: P1 with `0/6` flying and `0/7`, `0/8` inside (1600), P2 appended before the Biplane's birth (1700), and the Clear with all four flying (1850); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run308's start (§41) — **run 2026-09-27 (item 947), 705 MB, 2,111 s; no falsifier fired: every plane re-ordered on 1602 and 1702, the Biplane on `[P1, P2]` from 1746 and out on 1747, the strafes home on 1852, all four in by 2106** |
 | 358 | thirty-three, an Airbase's launch issuers | `[605, 2740)` | chapter thirty-two whole, an enemy Barracks by the Airbase (2200), and five presses on `0/2007`: `@launchstrike` on it (2260, verb 23), `@launchpatrol` (2280, verb 21) and `@launchpatrolall` (2295, verb 22) on the ground, `@gatherpoint` of action 3 on the Citizen `0/1` (2305) and `@gatherpointadd` after it (2335); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run344's start (§42) — **run 2026-09-27 (item 976), 858 MB, 2,306 s; no falsifier fired: `0/8` the strike on 2262, `0/9` the patrol on 2282, `0/7` and the refuelling `0/6` on 2297, all four on `0/1` with `0/6` alone flags 4 on 2307, all four over P3 alone on 2337** |
 | 362 | thirty-four, the launch commands' other arms | `[605, 2850)` | chapter thirty-three's cast to its Barracks, a second Airbase `0/2008` (2210), and nine presses on `0/2007`: `@launchpatrolctrl` (2260, verb 21 with ctrl), `@launchstrikealt` on `1/2006` (2275, verb 23 with alt), `@launchmove` onto `0/2008` (2305, verb 23 with `MOVE_TO`), `@launchstrikectrl` (2312), the list `[P1, A3, P2]` (2320, 2335, 2350) and the Clear (2400); and `@launchpatrolalt` at `0/2008` (2600); with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate on run358's start (§43) — **run 2026-09-27 (item 1009), 906 MB, 2,731 s; no falsifier fired: `0/8` on ctrl, `0/9` on alt, `0/7` home to `0/2008` over a full `0/6`, nothing on ctrl's strike, three re-ordered by P1 and not `0/7`, the strikes standing through P2, nothing on alt at `0/2008`** |
-| 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) — **run 2026-09-28 (item 1019), 1.08 GB, 3,256 s, after two `cover=1` takes hung (81 min); the silo queued one V2 of two; 9, 10, 11 and 13 fired on readings the listing had corrected: `0/12` an `ATTACK_TO` to P_h and homed nowhere, `0/10` an air attack on the ground, launched on 2702; word 2445, then 2675, open** |
+| 371 | thirty-five, the Helicopter's and missiles' launch arms | `[605, 3260)` | chapter thirty-four's cast to `0/2008` (2210), `resource who=0 all +500` (2215), a Missile Silo `0/2009` (2220), two V2s queued there (2225) and two Helicopters at `0/2008` (2240): `@launchpatrol` at the silo (2440), a point at each base between its births (2460, 2500), `@launchmove` and `@launchstrike` from the silo (2650, 2670), the Clear at `0/2008` (2800), `@launchstrike` and `@launchpatrol` there (3000, 3010); at `cover=0` (run372 the same script at `cover=1`, for the blind list), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run362's start (§44) — **run 2026-09-28 (item 1019), 1.08 GB, 3,256 s, after two `cover=1` takes hung (81 min); the silo queued one V2 of two; 9, 10, 11 and 13 fired on readings the listing had corrected: `0/12` an `ATTACK_TO` to P_h and homed nowhere, `0/10` an air attack on the ground, launched on 2702; word 2445, then 2675; item 1048 built the Helicopter's flight, 2675 → 2701, open** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -7745,3 +7745,44 @@ drift, and the V2's strike, launch and round from 2672.
 | `ATTACK_TO` made `MOVE_TO` | the first-point test; the widening (2659's `order:kind`), not the word |
 | the silo's gate dropped | the silo test; the word (2635) and the widening (437) |
 | the first-point block dropped | the first-point test; the word (2674) and the widening (420) |
+
+
+**The Helicopter's flight: `GOLDEN_WORD_CHAPTER_THIRTY_FIVE` = 2701,
+open** (item 1048, `docs/PRODUCTION.md` "The Helicopter's flight"). The
+word's own record, both sides: on block 2675 theirs has `0/12` at (8278,
+14624), one waypoint to P_h's cell (tolerance 0, `path_recursion` 0), its
+figure *on* the unit (`x = des_x = last_x`, `last_speed` 0) on the `WALK`
+slot with `stopped` 1 — so `Guy::move:59` takes the arrival stand on
+2675 (`cur_anim` 0 on 2676) — where ours had it at (8292, 14643) on a
+three-waypoint ground path (tolerance 384, `path_recursion` 1) with its
+figure 59 behind. And `0/11`, idle at (8355, 14690), is teleported
+(+37, +31), (+55, +47), (+18, +16) on 2674..2676, its figure climbing
+30 a move (158 → 188 → 248 → 278): parked 1049's drift is the same
+mechanism. **1019's reading, that the stand is the order's first step,
+was wrong**: the stand is the separation's teleport. Three arms, each
+read off the listing:
+- the planners' `unit_flags & 0x20` returns (`find_path`'s `5fb96f`,
+  `find_wpath`'s `689110`, `find_tpath`'s `68990d`): a straight path;
+- `Unit::work@0060d180`'s tail (`60dadd`..`60dc9f`): two of one type
+  within `0x180`, neither inside and neither on an air order, set 48
+  apart, the one working by half the vector and the other by all of it,
+  each by `set_new_location(·, ·, 1, 1)`;
+- `Guy::set_new_location@005d86f0`'s climb (`5d880b`..`5d884a`):
+  `z += clamp(ground − z + 1000, ±30)` on every move of the figure.
+
+**The value diff** on the word's frames (ours before in brackets):
+2675, `0/12` (8278, 14624) [(8292, 14643)], `0/11` (8392, 14721)
+[(8355, 14690)], `0/11`'s `z` 188 [158]; 2676, `0/12` `cur_anim` 0,
+`stopped` 1 [8, 0] at (8169, 14526), `0/11` (8447, 14768); 2677,
+`0/12`'s figure `z` 308 over `last_z` 278. **A row walk** (`RON_ROW_WALK`,
+new in `widen_civilians`) has `0/12`'s point, figure and height agreeing
+on every block from 2675 to 3259; what stands of it is its birth seat
+(2659..2674, 646's family) and that seat's bearing on the order
+(`dest_angle`, the heading its arrival turns to on 2719). The widening
+goes **426 → 403 rows**, the pool at twelve. **The word is 2701**:
+theirs 4 draws against ours 3, theirs first `Ammo::init+0xae8` and
+`+0xb25`, the V2's round off the silo (parked 1050, 1051); the first
+value parting 2702, `0/10`'s round.
+
+**Mutations**, each on the committed build (`09ad7dd6`), restored from
+git and `touch`ed after: see `docs/journal/2026-09-28-item-1048.md`.

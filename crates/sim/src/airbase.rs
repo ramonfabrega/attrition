@@ -1118,6 +1118,48 @@ mod tests {
         }
     }
 
+    /// **The tile planner leaves a Helicopter's goal as it is** (item 1048,
+    /// `PathFinder::find_tpath@006897d0`'s `68990d`): a goal two cells off
+    /// comes back alone, tolerance 0. `find_wpath` answers first on every
+    /// fresh move, so this arm is reached only by a caller that asks the
+    /// tile grid directly. Made to fail with the arm dropped.
+    #[test]
+    fn the_tile_planner_leaves_a_helicopter_s_goal_as_it_is() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let h = heli_at(&mut s, b, Pos::new(8351, 14690));
+        let goal = Pos::new(5784, 12312);
+        s.units[h].path.push(crate::orders::PathData {
+            to: goal,
+            tolerance: 384,
+            flags: crate::orders::path_flag::FINAL,
+        });
+        assert_eq!(s.find_tpath(h), 1);
+        let top = s.units[h].path[0];
+        assert_eq!((top.to, top.tolerance), (goal, 0));
+    }
+
+    /// **A Helicopter on an air order is not set apart** (item 1048, the
+    /// separation's `is_air` gate, `UnitOrder` vslot `+0x30` at `60db14`):
+    /// the pair of run371's 2674, the working one on a strike. No capture
+    /// has the case. Made to fail with the gate dropped.
+    #[test]
+    fn a_helicopter_on_an_air_order_is_not_set_apart() {
+        let (mut s, b, _) = hangar([0, 0, 0, 0]);
+        let near = heli_at(&mut s, b, Pos::new(8355, 14690));
+        let me = heli_at(&mut s, b, Pos::new(8296, 14639));
+        s.add_strafe_order(
+            me,
+            None,
+            Some(b),
+            false,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        s.helicopter_spread(me);
+        assert_eq!(s.units[me].pos, Pos::new(8296, 14639));
+        assert_eq!(s.units[near].pos, Pos::new(8355, 14690));
+    }
+
     /// **A Helicopter's figure climbs thirty a move toward 1000 over the
     /// ground** (item 1048, `Guy::set_new_location@005d86f0`'s
     /// `5d880b`..`5d884a`): by a teleport, which leaves `last_z` on it, and
