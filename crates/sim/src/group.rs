@@ -5657,6 +5657,8 @@ mod tests {
             was_founding_capital: false,
             unassimilated: false,
             no_heal: false,
+            attacking: false,
+            ever_attacked: false,
             alarm: false,
             no_muster: false,
             was_capital: 0,

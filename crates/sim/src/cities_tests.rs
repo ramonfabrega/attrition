@@ -4397,3 +4397,68 @@ fn a_lone_unit_under_a_ground_point_is_re_seated_past_the_spot_it_stands_on() {
         "one candidate on, on the same ring: {p:?} against {exit:?}"
     );
 }
+
+/// **A city hit by another player stops healing for two decay ticks**
+/// (item 1034, `docs/COMBAT.md` §69): `Object::take_damage`'s `city_flags
+/// |= 0xe` on any building of the city, then `Build::process`'s 200-frame
+/// decay on the city building — `CITY_ATTACKING` on the first tick,
+/// `CITY_UNDER_ATTACK`, the heal's veto, on the second. Its own owner's
+/// hit and attrition set nothing. Great Lakes' 4690 was a city that healed
+/// off its first wound while the original's held it.
+///
+/// Made to fail by taking the setter out of `damage_building` (the
+/// second assertion), and by clearing `0x2` on the first decay tick.
+#[test]
+fn a_city_hit_by_another_player_stops_healing_for_two_decay_ticks() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b, c) = city_at(&mut sim, &t, 1, 32, 32);
+    let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+    let own = spawn(&mut sim, 1, hoplite, tile_pos(36, 32));
+    let foe = spawn(&mut sim, 0, hoplite, tile_pos(36, 33));
+    let flags = |s: &Sim| {
+        let cd = &s.cities[c];
+        (cd.no_heal, cd.attacking, cd.ever_attacked)
+    };
+    let hit = |s: &mut Sim, by: usize, f: i64| {
+        s.do_damage(
+            combat::Obj::Unit(by),
+            combat::Obj::Building(b),
+            movement::Angle(0),
+            false,
+            256,
+            false,
+            true,
+            f,
+        );
+    };
+    hit(&mut sim, own, 100);
+    let eight = combat::Sixteenths { whole: 8, frac: 0 };
+    sim.damage_building(b, eight, None, 100, true);
+    assert_eq!(
+        flags(&sim),
+        (false, false, false),
+        "its owner and attrition"
+    );
+    hit(&mut sim, foe, 101);
+    assert_eq!(flags(&sim), (true, true, true), "another player's hit: 0xe");
+    // The decay ticks on the city building's own phase.
+    let o = i64::from(sim.buildings[b].index);
+    let first = (1000 - o).rem_euclid(200) + 200;
+    let bd = &mut sim.buildings[b];
+    bd.damage = 10;
+    bd.sync_health();
+    for f in 102..first {
+        sim.process_building(b, f);
+    }
+    assert_eq!(sim.buildings[b].damage, 10, "no heal while under attack");
+    sim.process_building(b, first);
+    assert_eq!(flags(&sim), (true, false, true), "the first tick: 0x4");
+    for f in first + 1..first + 200 {
+        sim.process_building(b, f);
+    }
+    assert_eq!(sim.buildings[b].damage, 10, "still no heal");
+    sim.process_building(b, first + 200);
+    assert_eq!(flags(&sim), (false, false, true), "the second: 0x2");
+    assert_eq!(sim.buildings[b].damage, 9, "and the heal, the same frame");
+}

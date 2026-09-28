@@ -509,7 +509,9 @@ mod tests {
     /// 4619 (69 blocks after its first and 187 before its last). **Since
     /// item 1014 the word is 4673**, block 4674 (124 blocks after its first
     /// and 132 before its last). **Since item 1023 the word is 4688**, block
-    /// 4689 (139 blocks after its first and 117 before its last).
+    /// 4689 (139 blocks after its first and 117 before its last). **Since
+    /// item 1034 the word is 4781**, block 4782 (232 blocks after its first
+    /// and 24 before its last).
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -589,14 +591,17 @@ mod tests {
         // sides, where ours took (2, 40), (2040, 31224), arrived on 4618
         // and idled. Its order agrees from block 4550 to its next explore
         // target on 4737; `1/0`'s group and `1/7`'s gather `wait`, which
-        // parted on 4619, no longer part in the window. That target is
-        // chosen after the word; ours read 1272 there from item 1023 and
-        // 2808 again since item 1028 (the army's targets moved), still
-        // against the original's 504.
+        // parted on 4619, no longer part in the window. That target read
+        // 1272 here from item 1023 and 2808 again from item 1028, against
+        // the original's 504; **since item 1034 it agrees**, and the
+        // scout's order agrees through the window. Which read of the city
+        // moved it is not established: the fix changed only the city's
+        // three flags and its heal (`docs/COMBAT.md` §69).
         assert_eq!(
-            row(1, 0, "order:move.x").as_deref(),
-            Some(r#"4737: Move { field: "x", ours: 2808, theirs: 504 }"#),
-            "the scout's target, which parted on 4550 until item 1014"
+            row(1, 0, "order:move.x"),
+            None,
+            "the scout's target, which parted on 4550 until item 1014 and on \
+             4737 until item 1034"
         );
         assert_eq!(
             row(1, 0, "group"),
@@ -639,16 +644,44 @@ mod tests {
             Some("4689: ours 3763 theirs 3768"),
             "and its spot, which parted on 4617 until item 1023"
         );
-        // **The new word, 4690, writes block 4691** (no mechanism is
-        // named, DECISIONS 42): ours 5 draws and the original 4, parting at
-        // index 1, where ours spends `Object::take_damage+0xe1` and the
-        // original `Farms::inc_time+0x1ae`. Nothing parts on block 4691:
-        // the citizen `0/3` holds `damage 0` on both sides from 4688 to
-        // 4693 and first parts on 4723.
+        // **The old word, 4690, agrees** (item 1034, `docs/COMBAT.md` §69):
+        // `1/26`'s first strike on the human's city on 4657 sets its
+        // `city_flags` `0x2 | 0x4 | 0x8` on both sides, and the city no
+        // longer heals the wound off (ours 1/0 against 2/5 on 4661 until
+        // 1034), so 4690's strike is not a first wound and throws no
+        // `take_damage+0xe1`. The three bits now agree through the window,
+        // `0x4`'s clear on 4801 (`(4800 + 2000) % 200 == 0`) included.
+        for bit in ["0x2", "0x4", "0x8"] {
+            assert_eq!(
+                row(0, 2000, &format!("city:city_flags[{bit}]")),
+                None,
+                "the human city's {bit}, which 1034 carries"
+            );
+        }
+        // What the heal had hidden since 4661: `1/26`'s strikes from the
+        // second on land here a frame after the original's (4689, 4716,
+        // 4722 there; 4690, 4717, 4723 here), and the city's damage agrees
+        // again the block after each.
+        assert_eq!(
+            row(0, 2000, "build:damage").as_deref(),
+            Some("4690: ours 2 theirs 4"),
+            "the city's damage, one strike behind on the strike's block"
+        );
         assert_eq!(
             row(0, 3, "hits:damage").as_deref(),
             Some("4723: ours 3 theirs 2"),
-            "the citizen's damage, after the new word"
+            "the citizen's damage, which first parts on 4723"
+        );
+        // **The new word, 4781, writes block 4782** (no mechanism is named,
+        // DECISIONS 42): ours 5 draws and the original 4, parting at index
+        // 0, where ours spends `Unit::fight+0x9b0` and the original
+        // `Farms::inc_time+0x1ae`. The citizen `0/4` is struck on 4779 there
+        // and not here (`damage_frame` 0 against 4779 on block 4780), and
+        // its order parts on 4781.
+        assert_eq!(
+            row(0, 4, "damage_frame").as_deref(),
+            Some("4780: ours 0 theirs 4779"),
+            "the citizen struck before the new word"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),

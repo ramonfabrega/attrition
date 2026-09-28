@@ -11373,7 +11373,10 @@ city read 31 here on logger frame 4688 against the packet's 0.
   named): frame 4690, ours 5 draws and the original 4, parting at index 1.
   Ours spends `Object::take_damage+0xe1`, where the original spends
   `Farms::inc_time+0x1ae`.
-  - Nothing parts on block 4691. The citizen `0/3` holds `damage 0` on both
+  - ~~Nothing parts on block 4691.~~ The human's city `0/2000` had parted
+    since block 4661, healed here off `1/26`'s first strike (§69.1); a
+    row that stands is not a row that parts, and the block's new rows
+    were read for it. The citizen `0/3` holds `damage 0` on both
     sides from 4688 to 4693, and first parts on 4723 (3 against 2).
   - `1/24`'s walk spot parts on 4689, (3763, 31600) against the cell
     centre (3768, 31608).
@@ -11404,3 +11407,144 @@ city read 31 here on logger frame 4688 against the packet's 0.
   - the decay (run368: the city at 0).
 - **Listing-backed**: `0064e6b6`–`0064e742`, `0064ea57`–`0064ea7a`,
   `0064edc4`–`0064eff9`, `0064f124`.
+
+## 69. A city under attack does not heal (item 1034, 2026-09-28)
+
+Item 1034 was booked on Great Lakes' second word, frame 4690 of run347:
+ours 5 draws against the original's 4, parting at index 1. Ours spends
+`Object::take_damage+0xe1` (§7.2 step 3, a building's first wound), where
+the original spends `Farms::inc_time+0x1ae`. No mechanism was named.
+
+### 69.1 The frame, from the disk
+
+- **Who and what.** A scratch print of the frame's hits: `1/26` (type 32)
+  strikes the human's city `0/2000` for 2 5/16. On our side the city's
+  `damage` was 0 before the hit, so the roll was a first wound.
+- **The original's city.** On run356 its `damage` reads 2/5 from block 4658
+  (the first strike, frame 4657, on both sides) to 4689, and 4/10 on 4690.
+  Its second strike found `damage` 2, so it threw no roll.
+- **Ours.** The city healed: `damage` 2/5 → 1/0 on block 4661 → 0/0 on
+  4665, one point per four frames (the city heal, `docs/CITIES.md` §8.2).
+  The widening had carried the row since 4661 (`build:damage`, ours 1
+  against 2). 1028's "nothing parts on block 4691" read the block's *new*
+  rows (§68.5, struck).
+- **The earliest parting on the city**, block 4658: `city_flags[0x2]` ours
+  0 against 1, beside `raid_stamp` 4657. The dump's word is 18449 → 18463,
+  `+0xe`: bits `0x2`, `0x4` and `0x8` together. `0x2` is the heal's veto
+  (`docs/CITIES.md` §1.4), and this crate had no writer of it outside
+  tests. The field was already compared; its row had stood unread since
+  the window opened.
+
+### 69.2 The listing
+
+- **The setter.** `Object::take_damage@00652020`, the Build-proper branch
+  (vslot `+0x20` non-zero), under `param_5 == 0` (combat, not attrition)
+  and `this->who != param_8` (another player): after the under-attack
+  latch's arms (`BuildData +0x60 |= 0x30`, skipped only for a peasant or
+  `0x42` attacker outside its own territory), and whichever way they went,
+  a building with a city (`BuildData +0x72 >= 0`) takes
+  `orw $0xe, 0x4(%eax)` at `00652561`: `CITY_UNDER_ATTACK | CITY_ATTACKING
+  | CITY_EVER_ATTACKED`, the PDB's names (`docs/ARMY.md`'s enum list). An
+  AI owner at difficulty above 1 then pushes an alarm group (not built;
+  the human's city never takes it).
+- **The decay.** `Build::process@0061edf0`, after the `is_active` return,
+  on an `OBJECT_CITY` building (`flags & 0x20`) with a city: every frame
+  where `(frame + o) % 200 == 0`, `0x4` is cleared if set, else `0x2`. The
+  same block decrements `CityData +0x61 plundered` (not carried). It runs
+  ahead of the capture re-test and the heal, so a tick that clears `0x2`
+  heals on the same frame.
+- **The writers, counted** (823, 869). The decompile names four:
+  `take_damage` (`|= 0xe`), the decay (a computed store), `City::init`
+  (zero) and `City::capture` (kept, `docs/CITIES.md` §1.4). The listing's `or`/`and`
+  of 2, 4, 8 or `0xe` at a `+4` offset: every other hit is another type's
+  field (the Army's own flags, `Ammo`, `Guy`, the interface).
+  `CITY_EVER_ATTACKED` has no clear.
+- **The heal** (`Build::process`, `0061edf0`, `& 2) == 0` before the
+  `city_heal_rate` phase) and **the AI's repair order** (every 64 frames,
+  past half damage, `& 2) == 0`) both read `0x2`. The second is not built
+  in this crate (`docs/CITIES.md` §8.2's "an AI owner also orders").
+
+### 69.3 The readings, and what killed each
+
+The frame named no mechanism. The disk named the heal in one row walk; no
+reading preceded it. No packet was needed: the city's damage, its flags and
+the phase are all printed, and the listing gave the setter and the decay.
+
+### 69.4 The fix, and its killers
+
+- **Built**:
+  - `sim::fight::damage_building` sets `no_heal`, `attacking` and
+    `ever_attacked` on the building's city under the latch's condition;
+  - `sim::city::process_building`'s 200-frame decay, before the capture
+    re-test;
+  - `sim::city::City` carries `0x4` and `0x8`, and `City::capture` keeps
+    all three;
+  - `rondata::diff::harness` compares `city_flags[0x4]` and `[0x8]`.
+- **Unit test**: `a_city_hit_by_another_player_stops_healing_for_two_
+  decay_ticks` (`cities_tests.rs`): the owner's hit and attrition set
+  nothing; another player's sets all three; no heal until the second
+  tick, and the heal on that tick's frame.
+- **Mutations** on `5bca6101`, each restored from git and `touch`ed:
+
+  | mutation | unit test | run347's walk | run356's widening |
+  |---|---|---|---|
+  | the setter leaves `0x2` clear | fails | falls back to 4690, index 1 | the scout's 4737 row returns |
+  | `0x2` cleared on the first tick | fails | holds 4781 | `city_flags[0x2]` parts on 4801, 0 against 1 |
+  | no decay | fails | holds 4781 | `city_flags[0x4]` parts on 4801, 1 against 0 |
+
+### 69.5 What moved
+
+- **Great Lakes 4690 → 4781.** On run356, the city's `city_flags` `0x2`,
+  `0x4` and `0x8` agree on every block from 4550 to 4806. That includes
+  4658's set and 4801's clear of `0x4` (`(4800 + 2000) % 200 == 0`). Its
+  `damage` holds 2/5 on both sides from 4658 to 4689, where ours healed it
+  to 0 by 4665. Frame 4690's draws went 5 against 4 → agreeing.
+- **Exposed, not introduced**: `1/26`'s strikes on the city from the second
+  on land here a frame after the original's. The original's land on 4689,
+  4716, 4722, 4750 and 4782; ours on 4690, 4717, 4723, 4751 and 4783. The
+  city's `damage` parts on each strike's block and agrees on the next.
+  The first strike (4657) agrees. The heal had hidden this row since 4661.
+- **The scout's explore target on 4737** (2808 against 504 since item
+  1028) now agrees, and `1/0`'s order agrees through the window. Which
+  read of the city moved it is not established.
+- **East Indies holds at 5606** (ours 4, the original 5, at index 0, as
+  booked).
+- **The first pair's standing `0x2` rows close**: run100's window (the
+  human city's, opened with `raid_stamp` on 9451) and run294's block
+  19840.
+- **The new word, by frame and draw delta** (DECISIONS 42; no mechanism is
+  named): frame 4781, ours 5 draws and the original 4, parting at index 0.
+  Ours spends `Unit::fight+0x9b0`, where the original spends
+  `Farms::inc_time+0x1ae`. Block 4782 is inside run356's window (232 after
+  its first block, 24 before its last).
+  - On block 4780 the citizen `0/4` has been struck there
+    (`damage_frame` 4779, `damage` 3/5) and not here.
+  - On 4781 `0/4`'s order parts (kind 10 against 1, `orders_x` 1882
+    against 2040).
+  - `1/24`'s `g.cur_time` parts from 4753 and its facing from 4787.
+
+### 69.6 What is not established
+
+- **`raid_stamp`** (`CityData +0x18`), written by `Object::do_damage`'s
+  building arm beside `S_RAID_ATTACKED`, is still not carried; its row
+  stands from 4658, asserted against this crate's 0.
+- **`CityData +0x61 plundered`**'s decrement in the same 200-frame block.
+- **The AI owner's alarm push** after the `0xe` (`take_damage`,
+  `Group::action_alarm`), and **the AI's repair order** that reads `0x2`.
+- **The latch's peasant arm**: a peasant or `0x42` attacker outside its
+  own territory skips `+0x60 |= 0x30`. This crate latches every foreign
+  hit. The flags are set either way.
+- **`1/26`'s one-frame lag** from its second strike (§69.5).
+
+### 69.7 Coverage
+
+- **Diff-backed**:
+  - the setter, by run347's frame 4690 (it falls back under its
+    mutation) and by run356's `city_flags[0x2]`/`[0x4]`/`[0x8]` rows;
+  - the decay's two stages, by run356's block 4801: `0x4` clears there
+    and `0x2` does not (the second and third mutations).
+- **Unit-backed only**: `0x2`'s own clear on the second tick, and the heal
+  on that frame. No block on disk reaches 200 frames past a stage-one
+  clear without a new hit (the window ends on 4806).
+- **Listing-backed**: `00652561`; `Build::process@0061edf0`'s
+  `(frame + o) % 200` block and its heal gate.
