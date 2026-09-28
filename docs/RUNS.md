@@ -10294,3 +10294,28 @@ blocks. The receipt says `success: true`, exit 0, 3,491 frames,
 | 8, the ring | `0/6` on 3217, `0/7` on 3226, `0/8` on 3239, once each | **as predicted**: `0/6`, `0/7` killed, `0/8` at 56 and 4/16 |
 | 9, the edge | `0/9` untouched | **as predicted**, to 3489 |
 | 10, F | struck on 3239 alone, standing | **as predicted**: 491 and 2/16 on 3240 |
+
+## run398 — chapter thirty-seven at `cover=1`, to 3210 (2026-09-28, item 1091)
+
+`captures.txt`'s stanza: `chapter37.cmd` line for line with the chapter's
+own `!ffwd`, the golden lobby (`cfg: -`), `cover=1`, on the queue lane,
+ending ten frames past the landing. The click-free lane cannot take
+`cover=1` (run185; 1011's split).
+
+```
+zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 398
+```
+
+**The take**, 16:17 → 16:39, `captured, checks ok`: 433 MB of gamelog,
+10.0 MB of trace. Every check passed:
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run397 | three issue records, none refused; golden 3 |
+| `rngcmp.py` vs run397 | 3,211 frames identical, none differing |
+| `report.py … functions` | `Nuke::add_nuke` entered on 3200 |
+
+**The blind list 145 → 144**: `Nuke::add_nuke@0092ba30` off `NEVER`, the
+one row the staging named; `LeaderData::can_nuke` (3050) and
+`Nuke::been_damaged_before` (3200), newly cited by §46 and PRODUCTION,
+are entered by it too. `rontrace-run398.log` joins `blind::TRACES`.

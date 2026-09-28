@@ -8202,3 +8202,7 @@ the launch's value test), restored from git and `touch`ed after:
 
 The last is held by the unit test alone; the chapter's cast cannot see
 it.
+
+**run398**, the same script at `cover=1` on the queue lane to 3210, is
+run397's game on all 3,211 frames and enters `Nuke::add_nuke` on 3200:
+the blind list goes 145 → 144.

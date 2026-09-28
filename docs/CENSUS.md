@@ -588,7 +588,7 @@ one that would.
 
 ## The blind list, ranked
 
-~~The 225~~ ~~The 151~~ ~~The 148~~ ~~The 145~~ **The 143** (item 1019: run372 took `get_first_gather` and `do_missile_launch`), by the staging that would enter each
+~~The 225~~ ~~The 151~~ ~~The 148~~ ~~The 145~~ ~~The 143~~ **The 144** (item 1019: run372 took `get_first_gather` and `do_missile_launch`; items 1050 and 1078 added `is_in_range` and `Nuke::add_nuke`; item 1091's run398 took `add_nuke`), by the staging that would enter each
 family, largest family that a known staging reaches first. A run that enters a family is worth more
 than one that enters a function, so the unit here is the family.
 **Item 940 moved 22 dead functions out of rows 6 to 10 into row 12**.
