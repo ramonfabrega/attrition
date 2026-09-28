@@ -506,7 +506,9 @@ mod tests {
     /// so this capture is its widening too. **Since item 1002 the word is
     /// 4605**, block 4606, inside it again (56 blocks after its first and
     /// 200 before its last). **Since item 1012 the word is 4618**, block
-    /// 4619 (69 blocks after its first and 187 before its last).
+    /// 4619 (69 blocks after its first and 187 before its last). **Since
+    /// item 1014 the word is 4673**, block 4674 (124 blocks after its first
+    /// and 132 before its last).
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
         use std::collections::BTreeMap;
@@ -571,37 +573,62 @@ mod tests {
         // takes a building with the word 2, and `1/17`'s ring starts
         // mid-face. Every member holds the city's `ATTACK` over the
         // re-issued `GROUP_ATTACK_TO` on block 4606 on both sides; `1/9`
-        // first parts on 4771.
+        // first parted on 4771 until item 1014, and since then its order
+        // agrees through the window.
         assert_eq!(
-            row(1, 9, "order:kind").as_deref(),
-            Some("4771: Kind { ours: 10, theirs: 1 }"),
+            row(1, 9, "order:kind"),
+            None,
             "an army member's order, which parted on 4606 until item 1012"
         );
-        // **The new word, 4618, writes block 4619** (no mechanism is
-        // named, DECISIONS 42): ours spends 94 `Guy::set_anim` draws under
-        // `Unit::do_idle` where the original spends 4 under
-        // `Unit::do_non_flat_gather`. Block 4619 parts on `1/0`'s group,
-        // 66 here against 67 there, its idle and its move, and on `1/7`'s
-        // gather `wait`; block 4617 on `1/24`'s chase spot.
+        // **The old word, 4618, agrees** (item 1014, `docs/SCOUT.md` §8.3):
+        // the AI scout `1/0` chooses its explore target on tick 4506 with
+        // the human's cells undoubled — `treaties[0] & 3` is the met bit,
+        // set on 4456 — and takes cell (3, 42), (2808, 32760), on both
+        // sides, where ours took (2, 40), (2040, 31224), arrived on 4618
+        // and idled. Its order agrees from block 4550 to its next explore
+        // target on 4737; `1/0`'s group and `1/7`'s gather `wait`, which
+        // parted on 4619, no longer part in the window.
         assert_eq!(
-            row(1, 0, "group").as_deref(),
-            Some("4619: ours 66 theirs 67"),
-            "the unit's group on the new word's block"
+            row(1, 0, "order:move.x").as_deref(),
+            Some(r#"4737: Move { field: "x", ours: 2808, theirs: 504 }"#),
+            "the scout's target, which parted on 4550 until item 1014"
         );
         assert_eq!(
-            row(1, 7, "order:gather.wait").as_deref(),
-            Some(r#"4619: Gather { field: "wait", ours: 361, theirs: 335 }"#),
-            "the gatherer's wait on the new word's block"
+            row(1, 0, "group"),
+            None,
+            "the scout's group, 4619 until 1014"
+        );
+        assert_eq!(
+            row(1, 7, "order:gather.wait"),
+            None,
+            "the gatherer's wait, 4619 until item 1014"
+        );
+        // **The new word, 4673, writes block 4674** (no mechanism is
+        // named, DECISIONS 42): ours spends 4 draws, `Unit::fight+0x9b0`
+        // first, where the original spends 3, `Farms::inc_time+0x1ae`.
+        // The chaser `1/24`: its order parts on block 4673 (an `ATTACK`
+        // here, a move there, two orders against three) and its `stopped`
+        // on 4674; its chase spot has parted since block 4617.
+        assert_eq!(
+            row(1, 24, "order:kind").as_deref(),
+            Some("4673: Kind { ours: 10, theirs: 1 }"),
+            "the chaser's order on the block before the new word's"
+        );
+        assert_eq!(
+            row(1, 24, "g.stopped[0]").as_deref(),
+            Some("4674: ours 1 theirs 0"),
+            "and on the new word's block"
         );
         assert_eq!(
             row(1, 24, "orders_x").as_deref(),
             Some("4617: ours 4200 theirs 4104"),
-            "the chase spot two blocks before it"
+            "the chase spot, fifty-six blocks before it"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(4550, 86), (4575, 18), (4585, 1)],
-            "the blocks keys first part on, the first three"
+            [(4550, 76), (4585, 1), (4598, 1)],
+            "the blocks keys first part on, the first three (86, 18 and 1 on \
+             4550, 4575 and 4585 until item 1014, the scout's ten and eighteen)"
         );
     }
 

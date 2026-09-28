@@ -10595,9 +10595,16 @@ live `2009` was compared with ours' dead frame-976 site.
     `find_attack_pos < Group::action_attack+0x41a`. **Moved to 4618 by item
     1012** (`docs/COMBAT.md` §66): an army group's attack-move looks on
     4605 and hands the city to the whole group; the retarget searches
-    buildings; `1/17`'s ring starts mid-face. The new word, 4618 (ours 94,
+    buildings; `1/17`'s ring starts mid-face. ~~The new word, 4618 (ours 94,
     the original 4, at index 0: `Guy::set_anim < Unit::do_idle` against
-    `Unit::do_non_flat_gather+0xcc3`), is §66.5's.
+    `Unit::do_non_flat_gather+0xcc3`), is §66.5's.~~ **Moved to 4673 by
+    item 1014** (`docs/SCOUT.md` §8.3): the AI scout's rival multiplier is
+    the met bit, not war, so on tick 4506 it walks to (2808, 32760) as the
+    original does instead of idling on 4618. **Great Lakes 4673, the
+    lower**: ours 4, the original 3, at index 0, `Unit::fight+0x9b0` (the
+    chaser `1/24`) against `Farms::inc_time+0x1ae`. Inside run356's window:
+    block 4673 parts on `1/24`'s order (kind 10 against 1), and its chase
+    spot has parted since 4617.
 - **The first pair** holds at 24,000 on both maps.
 
 ### 82.5 What stands, drawing nothing before either new word

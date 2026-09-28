@@ -11033,6 +11033,11 @@ this site in the original, or another search bumps the city. A packet at
     (4104, 31512).
   - The word is inside run356's window: 69 blocks after its first and 187
     before its last.
+  - **Moved to 4673 by item 1014** (`docs/SCOUT.md` §8.3). The idle
+    units were the AI scout `1/0` alone, and it had taken the wrong
+    explore target on 4506. `1/0`'s group and `1/7`'s `wait` no longer
+    part. `1/24`'s chase spot (block 4617) now stands 56 blocks before the
+    new word, which is `1/24`'s.
 
 ### 66.6 What is not established
 

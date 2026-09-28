@@ -51,6 +51,21 @@ def mute(profile):
     path.write_bytes(text.encode('utf-8'))
 
 
+def set_lobby(profile, pairs):
+    # A lobby field the map style does not carry — the second pair's
+    # `DIFFICULTY=5` (DECISIONS 53) — in both of the profile's game blocks,
+    # the same write `tools/gamelog/profile.py` makes for the queue lane.
+    # Same file as set_map, so the staged `PlayerProfile` backup restores it.
+    path = profile / 'PlayerProfile' / 'Player.dat'
+    text = path.read_bytes().decode('utf-8')
+    for pair in pairs:
+        key, value = pair.split('=')
+        text, n = re.subn(rf'<{key} value="-?\d+"/>', f'<{key} value="{int(value)}"/>', text)
+        if n < 2:
+            raise ValueError(f'expected {key} in <SOLO> and <MULTI>, found {n}')
+    path.write_bytes(text.encode('utf-8'))
+
+
 def stalled_before_frame_zero(gamelog):
     """True while the game has written no gamelog at all — what a launch
     stalled in DXVK's device setup looks like (parked 762). A gamelog with
@@ -168,6 +183,8 @@ def capture(args, output, style):
         staged = True
         set_map(args.profile, style)
         mute(args.profile)
+        report['lobby'] = getattr(args, 'lobby', None) or []
+        set_lobby(args.profile, report['lobby'])
         rise = args.profile / 'rise.ini'
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
         env = os.environ.copy()
@@ -287,7 +304,12 @@ def main():
                     help='extra tracer.c define, repeatable (e.g. RON_TARGET_PROBE)')
     ap.add_argument('--cmd-file',type=Path)
     ap.add_argument('--ffwd-minute',type=int)
+    ap.add_argument('--profile', action='append', dest='lobby', metavar='KEY=N',
+                    help="a lobby field in the profile's <SOLO>/<MULTI> blocks, repeatable "
+                         "(the queue lane's `profile:` key; e.g. DIFFICULTY=5)")
     args=ap.parse_args()
+    if any(not re.fullmatch(r'[A-Z_0-9]+=-?\d+', p) for p in args.lobby or []):
+        ap.error('--profile takes KEY=N')
     args.maps=tuple(args.maps or (14,18))
     signal.signal(signal.SIGTERM, interrupted)
     args.install,args.profile,args.output=(p.resolve() for p in (args.install,args.profile,args.output))
