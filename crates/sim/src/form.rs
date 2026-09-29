@@ -800,11 +800,7 @@ impl Sim {
         dest: Pos,
         angle: Angle,
     ) {
-        let Leading {
-            cap: last_cap,
-            slot: last_slot,
-            right_side,
-        } = lead;
+        let (last_cap, last_slot, right_side) = (lead.cap, lead.slot, lead.right_side);
         let gs = self.units[u]
             .ty
             .map_or(0, |t| self.unit_types[t].combat.guy_spacing);

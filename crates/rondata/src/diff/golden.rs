@@ -13342,6 +13342,10 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
                     "765 1/{o}: the order's point"
                 );
             }
+            // both sides: a unit whose current order is a move on one side
+            // only is the widening's `order:kind` row, not this test's; the
+            // count of packs found (twenty) is what keeps this from passing
+            // quiet.
             if let (Some(m), Some(t)) = (ours, theirs)
                 && let (Some(r), Some(a)) = (t.retry, t.attempts)
             {
