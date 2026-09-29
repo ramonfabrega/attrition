@@ -561,9 +561,8 @@ air aims at its `z` ± `min(300, …)`. No capture reaches it.
 
 ## Parked by item 839, 2026-09-26 — the tax's remainder
 
-(851) **who=1's `leftover[2:wealth]`**, eight sixteenths over from
-East Indies 17753..18176, which no dump compares; it carries the purse
-one over on 18511. Names no score yet.
+(851) closed 2026-09-28 by item 1106: the border pass (`sim::border_pass`,
+AI §84) carries who=1's `leftover[2:wealth]` with the original's.
 
 ## Parked by item 836, 2026-09-26 — the launch line's edges
 
@@ -1246,10 +1245,12 @@ cause; beside (546), the region gate's `nocoll` arm that reads it.
 
 ## Parked by item 552, 2026-09-23 — the namesake's unwired edges
 
-(568) **The budgeted border sweep.** `GameDaemon::check_borders` spends 256
-cells a frame after a five-block delay; observed on all three of chapter
-four's levers, not modelled. It is run132's only border parting (301, 30
-cells a sweep early) and spends no draw.
+(568) **The budgeted border sweep's last edge.** ~~`GameDaemon::check_borders`
+spends 256 cells a frame after a five-block delay; observed on all three
+of chapter four's levers, not modelled.~~ Built by item 1106
+(`sim::border_pass`, AI §84): chapter four's border agrees on 17 blocks,
+up from 4. What stands: `reg_terr` is still read live, not through the
+sweep.
 
 (569) booked 2026-09-23: 567 moved chapter four's word to 1416, and its
 widening names the wagon.
@@ -1935,6 +1936,13 @@ spellings only** (1109's Loop line): COMBAT §83.2 names `LOOKOUT` and
 `OBSERVATIONPOST`, unbuilt, by TypeIndex name and decimal, and the guard
 does not see them. The guard could read enum names; the successor that
 builds the cycle carries both constants.
+
+(1116) **A documented simplification is a hypothesis about which frames
+it touches** (1106's Loop line): `ATTRITION.md` had written the budgeted
+border pass down on 2026-08-20 and this crate carried the
+simplification for five weeks, "until a diff says it matters". A guard
+could list every such sentence in `docs/` with the first word frame
+each could reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
