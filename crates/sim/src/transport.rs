@@ -1005,6 +1005,14 @@ impl Sim {
         // water; it is a sea unit crossing the shore the other way, so the
         // step is taken while the caster still holds the land.
         self.set_new_location(b, spot, true);
+        // **And the move onto the water reveals** (`docs/VISION.md` §11).
+        // The call is `set_new_location(boat, x, y, 1, 1)` — `671027`..
+        // `67102f` push `1, 1, y, x` — and `005f8d20`'s tile arm, on a
+        // half-cell crossing, calls `update_seen(param_3 == 0)`: the
+        // **whole disc** at the spot, on top of the one `add_to_world`
+        // threw at the caster's point. This crate's `set_new_location`
+        // carries no reveal; its move-step caller does it in `moved_to`.
+        self.moved_to(b, at, false);
         let angle = self.units[u].movement.heading;
         self.units[b].movement.set_facing(angle);
         // The orders, in order, then the boat throws away the cast at the
@@ -1623,6 +1631,45 @@ mod tests {
         // And the walker is cargo: off the map, its clock stopped.
         assert_eq!(f.sim.units[u].inside_unit, Some(boat));
         assert!(!f.sim.units[u].on_map);
+    }
+
+    /// §6.2 line 3 and `docs/VISION.md` §11: the boat is born on the
+    /// caster's point, which `add_to_world` lights, and `set_new_location
+    /// (boat, spot, 1, 1)` then crosses a half-cell onto the water and
+    /// lights the **whole disc at the spot**. A fog cell three half-cells
+    /// seaward of the spot is out of the birth disc's reach and inside the
+    /// spot's: seen only when the second reveal is thrown.
+    #[test]
+    fn a_boat_born_on_the_shore_lights_its_disc_on_the_water() {
+        let mut f = fix();
+        assert!(f.sim.world.set_fog(vec![0; 24 * 16]));
+        let b = barge(&mut f.sim);
+        // `LOS 6`: a fog radius of 3.
+        f.sim.unit_types[b].los = 6;
+        let u = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        f.sim.init_guys(u, Some(f.citizen));
+        f.sim.units[u].auto_transport = true;
+        assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
+        let born = f.sim.units[u].pos;
+        let boat = f.sim.units.len();
+        f.sim.work(u, 1);
+        assert_eq!(f.sim.units.len(), boat + 1, "a boat");
+        let spot = f.sim.units[boat].pos;
+        let half = |p: i32| p / 0x180;
+        assert_ne!(
+            (half(spot.x), half(spot.y)),
+            (half(born.x), half(born.y)),
+            "the spot is another half-cell"
+        );
+        let (fx, fy) = (half(spot.x) + 3, half(spot.y));
+        assert!(
+            (fx - half(born.x)).abs() > 3,
+            "the probe is beyond the birth disc"
+        );
+        assert!(
+            f.sim.world.seen2(fx, fy).is_some_and(|v| v & 2 != 0),
+            "the spot's disc is lit for its owner"
+        );
     }
 
     /// The other arm of the same test: a boat that steps off the water
