@@ -13216,8 +13216,8 @@ leaves between its owner's units and the next leader's, and its first
 **Writers of `recharging`** (`+0x7a` on a `Build`, by offset): the
 constructor, `Build::init` and `Build::activate` (0); `Wall::do_construct`
 (+1 while building); `do_attack`'s countdown and reload; `Wall::inc_time`;
-and three that other types own (the Kremlin `0x21a` and Terracotta
-`0x211` arms of `Build::process`, `Object::do_launch`'s airbase,
+and three that other types own (the Kremlin's and the Terracotta Army's
+arms of `Build::process`, `Object::do_launch`'s airbase,
 `Build::do_missile_launch`). `Unit::*` and `Guy::move` write `UnitData
 +0x7a`, a different field.
 
@@ -13299,6 +13299,19 @@ for the event, but `node_flags` and `turret_angles` are parsed by nothing
 here (the coverage pin lists them), so the turret's arrival is unwitnessed.
 That is the next item's frame, and a hypothesis.
 
+**Mutations**, each on the committed build (`08758cb9`), `git diff --stat`
+non-empty first, restored from git and `touch`ed, scored against `sim`'s
+two tests, the loader's `the_radar_air_defense_winds_up_on_its_unit_s_packet`
+and `cargo test --release -p rondata chapter_thirty_eight`:
+
+| mutation | sim | loader | ch38's pins |
+| --- | --- | --- | --- |
+| `do_attack`'s in-range return dropped | the call-site test | ok | word 777; widening 639 |
+| the head's countdown kept for a cycle building | the call-site test | ok | word test (the height-read pin); widening |
+| the cycle's call dropped | the cycle test | ok | word test (the height-read pin, 43 against 41); widening |
+| the swing one frame longer (`<` for `<=`) | the cycle test | ok | widening 674 (word 779 still) |
+| a building's `ATTENUATE` through `abs` again | ok | **fails** | both pass: no widening compares a round's `accuracy` |
+
 ### 84.7 What is not established
 
 - **`near_o`** gates the cycle, and this crate holds it on units only; the
@@ -13312,6 +13325,10 @@ That is the next item's frame, and a hypothesis.
 - `do_attack`'s out-of-range arm clears the target (`622c1c`), which
   `process_building_combat` does not; nothing on disk parts on it yet.
 - The rounds of 817, 857 and 867 that print no `AMMO` record.
+- A round's `accuracy` is compared by no widening (the golden one matches
+  a round by `(who, o, slot)` only), so the sign rests on one printed
+  round and the loader's test; and past 779 the stream has parted, so
+  the Radar's landings cannot be value-compared on run404.
 
 ### 84.8 Coverage
 

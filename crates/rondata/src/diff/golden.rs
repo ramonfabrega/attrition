@@ -6370,21 +6370,6 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
     out
 }
 
-/// **One golden capture of the civilians' chapters, widened whole**
-/// (items 578 and 628): every record on every block of `[first, last)` —
-/// [`crate::diff::harness::widen_block`] on every unit, figure, building
-/// and city, the leader record for both players at `LEADERS=2`, and the
-/// per-frame `GOOD` list keyed on `o`. The civilians of `who` (`o >= 6`)
-/// are printed both sides on the blocks of `print`. Returns each parted
-/// key's first block and row; `None` when the capture is not on disk.
-///
-/// `ammo` adds the **`AMMO` record, both directions**, for a capture that
-/// dumps it (chapter six, item 648): a live round (`flags & 2`) keyed on
-/// its shooter and pool slot, as chapter five's widening keys it, and a
-/// round either side holds alone is a row. The civilians' captures do not
-/// dump `AMMO`, so for them it is off and a round of this crate's would
-/// be compared against nothing.
-#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 /// **An anti-air building's cycle rows** (item 1112, `docs/COMBAT.md`
 /// §84): each `BUILDDATA`'s `recharging`, `attack_ox` and `attack_whom`,
 /// keyed on its `SUBOBJECT`'s `(who, o)`. The widening compares them on
@@ -6407,6 +6392,21 @@ pub(super) fn cycle_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64), [
         .collect()
 }
 
+/// **One golden capture of the civilians' chapters, widened whole**
+/// (items 578 and 628): every record on every block of `[first, last)` —
+/// [`crate::diff::harness::widen_block`] on every unit, figure, building
+/// and city, the leader record for both players at `LEADERS=2`, and the
+/// per-frame `GOOD` list keyed on `o`. The civilians of `who` (`o >= 6`)
+/// are printed both sides on the blocks of `print`. Returns each parted
+/// key's first block and row; `None` when the capture is not on disk.
+///
+/// `ammo` adds the **`AMMO` record, both directions**, for a capture that
+/// dumps it (chapter six, item 648): a live round (`flags & 2`) keyed on
+/// its shooter and pool slot, as chapter five's widening keys it, and a
+/// round either side holds alone is a row. The civilians' captures do not
+/// dump `AMMO`, so for them it is off and a round of this crate's would
+/// be compared against nothing.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn widen_civilians(
     run: &str,
     stem: &str,
@@ -6638,16 +6638,16 @@ fn widen_civilians(
                 .sim
                 .projectiles
                 .iter()
-                .filter_map(|p| match p.shooter {
+                .map(|p| match p.shooter {
                     sim::combat::Obj::Unit(u) => {
                         let un = &s.built.sim.units[u];
-                        Some((i64::from(un.owner), i64::from(un.index), i64::from(p.slot)))
+                        (i64::from(un.owner), i64::from(un.index), i64::from(p.slot))
                     }
                     // A building's round too (item 1112): the dump's
                     // `who`/`o` are the building's.
                     sim::combat::Obj::Building(b) => {
                         let bd = &s.built.sim.buildings[b];
-                        Some((i64::from(bd.owner), i64::from(bd.index), i64::from(p.slot)))
+                        (i64::from(bd.owner), i64::from(bd.index), i64::from(p.slot))
                     }
                 })
                 .collect();

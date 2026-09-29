@@ -8462,3 +8462,12 @@ diff --stat` non-empty first, restored from git and `touch`ed:
 | the foot line's `×34/32` dropped | `the_gunpowder_foot_line_takes_its_own_scale` | widening (word 777 still) |
 | the anti-air angle's call dropped | `an_anti_air_strike_at_a_plane_does_not_turn_the_unit` | word 776; widening |
 | the Modern Infantry's `×5/4` dropped | `a_modern_infantry_steps_five_quarters_of_its_speed` | widening (word 777 still) |
+
+**Item 1112: 777 → 779, open.** The Radar Air Defense's round is its
+animation's: `Wall::inc_time`'s cycle, and the `<UNIT>` packet's release
+(`docs/COMBAT.md` §84, with the mutations). The value diff on block 778,
+both sides: `1/2007` `recharging 1`, `attack_ox 7`, `attack_whom 0`; ours
+spends no draw on 777. **779** is the Battery `1/9`'s frame-4 release on
+node 0: ours 9 draws, theirs 6. Theirs holds it, the turret short of its
+aim (`node_flags` 14 on block 780), a field parsed nowhere here.
+Widening: **665 rows**.
