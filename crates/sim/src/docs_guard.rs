@@ -1989,3 +1989,179 @@ fn a_journal_carries_no_tool_call_markup() {
         found.join("\n")
     );
 }
+
+/// What a `SEAM` says when it cites the disk for an absence.
+const SEAM_ABSENCES: &[&str] = &[
+    "no capture",
+    "no dump ",
+    "no run ",
+    "no trace ",
+    "never captured",
+    "never reached",
+    "never entered",
+    "never executed",
+    "not on disk",
+];
+
+/// The `SEAM`s in one source text that claim an absence on the disk and
+/// name no scan, as `(line, the seam's opening words)`. A comment block is
+/// read whole and split on the word, so a block of several seams is
+/// several. A seam names its scan with `scan:` and the command in
+/// backticks.
+fn unscanned_seams(text: &str) -> Vec<(usize, String)> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        if !lines[i].trim_start().starts_with("//") {
+            i += 1;
+            continue;
+        }
+        let from = i;
+        let mut block = String::new();
+        while i < lines.len() && lines[i].trim_start().starts_with("//") {
+            let l = lines[i].trim_start().trim_start_matches(['/', '!']).trim();
+            block.push_str(l);
+            block.push(' ');
+            i += 1;
+        }
+        let mut rest = block.as_str();
+        while let Some(at) = rest.find("SEAM") {
+            let seam = &rest[at..];
+            let end = seam[4..].find("SEAM").map_or(seam.len(), |e| e + 4);
+            let one = &seam[..end];
+            let low = one.to_lowercase();
+            if SEAM_ABSENCES.iter().any(|a| low.contains(a)) && !low.contains("scan: `") {
+                out.push((from + 1, one.chars().take(90).collect()));
+            }
+            rest = &seam[end..];
+        }
+    }
+    out
+}
+
+/// `(file under crates/, seams)` — every `SEAM` that says no capture holds
+/// its arm and names no scan that looked, on the day of the pin. **Exact,
+/// and it may only fall**: a seam that gains its scan, or is built, lowers
+/// its row. The forty-nine are parked as item 1135, to be scanned against
+/// an archive that has grown a war and a second pair since most were
+/// written.
+const UNSCANNED_SEAMS: &[(&str, usize)] = &[
+    ("rondata/src/artdata.rs", 1),
+    ("rondata/src/golden.rs", 1),
+    ("rondata/src/input.rs", 2),
+    ("sim/src/ai_census.rs", 1),
+    ("sim/src/air.rs", 2),
+    ("sim/src/airbase.rs", 1),
+    ("sim/src/anim.rs", 1),
+    ("sim/src/caravan.rs", 1),
+    ("sim/src/cast.rs", 2),
+    ("sim/src/collide.rs", 1),
+    ("sim/src/fight.rs", 6),
+    ("sim/src/group.rs", 5),
+    ("sim/src/lib.rs", 2),
+    ("sim/src/orders.rs", 13),
+    ("sim/src/pivot.rs", 1),
+    ("sim/src/rally.rs", 5),
+    ("sim/src/roads.rs", 1),
+    ("sim/src/site_recruit.rs", 2),
+    ("sim/src/transport.rs", 1),
+];
+
+/// **A `SEAM` that says "no capture has X" names the scan that found
+/// none** (parked 1132, the nineteenth pass). `form.rs` called the object
+/// number "not a quantity the simulation can reproduce" and `orders.rs`
+/// said "no capture has a packed type"; both were read as reasons, neither
+/// was checked against the disk once run404 existed, and one scan of every
+/// `GUY` type for the flag would have named two mechanisms an item
+/// earlier (item 1113). An absence is true of the archive on the day it
+/// was looked for, and the archive grows at every landing: a seam that
+/// carries `scan:` and its command can be run again by the next capture,
+/// and one that does not is a standing instruction not to look.
+///
+/// Made to fail first on an empty pin, which listed the forty-nine.
+#[test]
+fn a_seam_that_cites_the_disk_names_its_scan() {
+    let sample = "    // SEAM: the merchant arm, which no capture on\n    \
+                  // disk reaches.\n    let x = 1;\n    \
+                  /// SEAM: `has_general` doubles it; no capture has a general\n    \
+                  /// (scan: `grep -lac GENERAL gamelog-run*.txt`, none of 303).\n    \
+                  /// SEAM: the carrier arm, unread.\n";
+    assert_eq!(
+        unscanned_seams(sample),
+        vec![(
+            1,
+            "SEAM: the merchant arm, which no capture on disk reaches. ".to_string()
+        )]
+    );
+    fn walk(dir: &std::path::Path, out: &mut Vec<PathBuf>) {
+        for entry in std::fs::read_dir(dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display())) {
+            let path = entry.expect("entry").path();
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                out.push(path);
+            }
+        }
+    }
+    let root = docs().join("../crates");
+    let mut files = Vec::new();
+    walk(&root, &mut files);
+    files.sort();
+    let mut per_file: Vec<(String, Vec<(usize, String)>)> = Vec::new();
+    for path in &files {
+        let name = path
+            .strip_prefix(&root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .to_string();
+        // This file quotes the phrases it looks for.
+        if name.ends_with("docs_guard.rs") {
+            continue;
+        }
+        let found = unscanned_seams(&std::fs::read_to_string(path).expect("read"));
+        if !found.is_empty() {
+            per_file.push((name, found));
+        }
+    }
+    let mut failures = Vec::new();
+    for (name, found) in &per_file {
+        let pin = UNSCANNED_SEAMS
+            .iter()
+            .find(|(n, _)| n == name)
+            .map_or(0, |(_, c)| *c);
+        if found.len() > pin {
+            failures.push(format!(
+                "crates/{name} holds {} seams that cite the disk and name no scan, pinned at \
+                 {pin} — write `scan: ` and the command in backticks, with what it found and \
+                 over how many dumps:\n{}",
+                found.len(),
+                found
+                    .iter()
+                    .map(|(l, s)| format!("    {l}: {s}"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            ));
+        } else if found.len() < pin {
+            failures.push(format!(
+                "crates/{name} is down to {} unscanned seams from a pin of {pin}; lower the \
+                 pin in UNSCANNED_SEAMS to bank it",
+                found.len()
+            ));
+        }
+    }
+    for (name, pin) in UNSCANNED_SEAMS {
+        if *pin > 0 && !per_file.iter().any(|(n, _)| n == name) {
+            failures.push(format!(
+                "crates/{name} has no unscanned seam; delete its UNSCANNED_SEAMS row"
+            ));
+        }
+    }
+    if !failures.is_empty() {
+        eprintln!("the pin as measured, in source form:");
+        for (name, found) in &per_file {
+            eprintln!("    ({name:?}, {}),", found.len());
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
