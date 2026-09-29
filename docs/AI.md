@@ -11306,3 +11306,86 @@ word, and this window cannot say when it first parted: run382 stops at
 **Diff-backed**: §88.1 by the third map's four tests; §88.2 by
 `run416_s_word_frame_is_widened_whole`. The compared pin walks run416's
 12782..12786, and the coverage driver drives the same blocks.
+
+## 90. A barge keeps its goal ashore, and the second pair's East Indies word moves to 6609 (2026-09-29, item 1143)
+
+Item 1143 was booked on East Indies' frame 6321 at Toughest: ours 9 draws
+against the original's 8, parting at index 2, ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, the original `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. §87.2 had the barge `1/42`, carrying the citizen
+`1/32`, already apart on run419's first block 6316. **No mechanism was
+named.**
+
+### 90.1 The frame, both sides
+
+- **The draw delta** (`report.py rontrace-run419.log draws 6321`): the
+  original's eight are two `Unit::do_job` rolls, four `Guy::inc_time`
+  wraps and two farm rolls. Ours spends the barge's idle `set_anim` at
+  index 2 (seed `c0609b5d`, the original's first wrap), then the same.
+- **The event**: on 6321 ours holds `1/42` with no order at (38028,11542),
+  its passenger aboard; the original's barge still moves, and on 6322 it
+  has put `1/32` ashore at (38040,11400) and closed.
+- **Walked back to its first parted field** (`RON_DEBUG_UNIT` on the long
+  walk, and run414's last blocks): the barge's path agrees field for field
+  on run414's 6226 — its last entry (38016,11136) `flags 1` on both sides.
+  On **6271**, in the gap 6227..6315 no dump covers, ours takes that final
+  leg and rewrites it to **(38028,11542)**, `flags 1`; the original prints
+  it on 6316 unchanged in place and **`flags 5`**.
+- **The direction** was ours. `Unit::find_path`'s pull-back (`docs/ORDERS.md`
+  §4.6) walked the land goal back toward the barge, 406 units north and
+  onto its own column, to the first tile its `invalid_loc` took: a boat's
+  refuses land unless the path's top carries `flags & 4`, and ours' did
+  not.
+
+### 90.2 The rule
+
+The writer of that bit is `Unit::do_move`'s waypoint take, read off the
+listing (`5f8544`–`5f86f4`; `docs/ORDERS.md` §4.4). A **final** waypoint,
+or any waypoint under `TRADE_ROUTE`, whose tile's `get_tregion@006b52e0`
+is not the unit's is popped and pushed back with `flags | 4` and tolerance
+0. ORDERS §4.4 had read the row since its second reading, as a turn in
+place, and listed it as not modelled; the bit is also `invalid_loc`'s
+transport relax (`docs/TRANSPORT.md` §6.3), which is what lets a barge
+walk onto the shore and `set_new_location` put its passenger out (§6.4).
+Built in `Sim::do_move`.
+
+### 90.3 What moved
+
+- **East Indies 6321 → 6609.** On run419 the barge's `pos` (6316),
+  `orders.len` (6321) and `extra` (6322) and the passenger's `inside` and
+  `pos` (6322) all agree. The first block went 169 → 160 keys and the
+  window's 992 → 317. What is left of the landing is `1/32`'s figure
+  `avg_speed` on 6322, ours 0 against 11.
+- **Residue that moved and was there before**: the barge identities
+  `1/36` against `1/38` (a later ride's boat takes another free index)
+  part on 6393 now, 6402 before the build.
+- **The new word, 6609** (no mechanism is named): ours 9 draws, the
+  original 7, at index 2. The original's are two `Unit::do_job` rolls,
+  `Guy::set_anim < Unit::set_anim < Unit::move_step+0x823`, an
+  `Animal::do_idle+0x83`, and three `Guy::inc_time` wraps. Ours spends
+  no `move_step` stop, so the animal's idle roll takes the original's
+  stop seed and goes on to `+0x1a4`, `+0x1d4` and `+0x212` before the
+  same three wraps.
+- **run420 is its widening** (blocks 6604..6860,
+  `run420_s_word_frame_is_widened_whole`). Its first block stands on 263
+  keys, 31 frames past run419's last, the gap 6573..6603.
+  - Among them the AI unit `1/28`, whose `pos` agrees through run419's
+    6572, walks apart: (29017,24361) against (28893,24233) on 6604.
+  - On the word's block 6610 the original stands it against the animal
+    `8/3` (`collide_o` 3, `collide_who` 8, `order:coll` (28743,24227),
+    seven waypoints), and ours walks on with one. On 6611 the animal
+    stands at (28661,24120) here and (28680,24120) there.
+  - That is the block's reading, not a mechanism.
+
+### 90.4 What this has *not* established
+
+- The region check's `TRADE_ROUTE` arm on a non-final leg: built from the
+  listing, and no capture has been read on it.
+- The passenger's figure `avg_speed` after the landing (6322), and where
+  in 6573..6603 `1/28` parts.
+
+### 90.5 Coverage
+
+**Diff-backed**: the move, run419's rows above. **Listing-backed**: the
+branch (`5f8544`–`5f86f4`). **Pinned capture-free**:
+`a_barge_taking_a_goal_ashore_flags_it_and_keeps_it`.

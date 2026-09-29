@@ -646,6 +646,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r357 = crate::testenv::dump("gamelog-run357-islands-toughest-5606.txt");
     let r414 = crate::testenv::dump("gamelog-run414-islands-toughest-5975.txt");
     let r419 = crate::testenv::dump("gamelog-run419-islands-toughest-6321.txt");
+    let r420 = crate::testenv::dump("gamelog-run420-islands-toughest-6609.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1111,6 +1112,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run419 carries the second pair's East Indies word 6321's blocks"
+        );
+        frames += n;
+    }
+    // Item 1143 moved it to 6609 (block 6610), past run419: run420 is its
+    // widening.
+    if let Some(p) = &r420 {
+        let n = drive_capture(p, 6_609, 6_612, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run420 carries the second pair's East Indies word 6609's blocks"
         );
         frames += n;
     }
@@ -1815,7 +1826,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // item moved the walk here, 5772..5776 since it moved the word to 5773,
     // and run414's 5974..5978 since item 1115 moved it to 5975 (the pin
     // unchanged), and run414's 6150..6154 since item 1120 moved it to 6151,
-    // and run419's 6320..6324 since item 1127 moved it to 6321. Item 1061 first pinned it on
+    // and run419's 6320..6324 since item 1127 moved it to 6321, and run420's
+    // 6608..6612 since item 1143 moved it to 6609. Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
@@ -1906,7 +1918,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// `second::east_indies_word_window` since item 1106 — the second pair's
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
-/// item 1127) walked from run346's start — walked with the
+/// item 1127; run420 at 6609 since item 1143) walked from run346's start —
+/// walked with the
 /// recorder on; a machine without the
 /// captures says so. What this checks that the `UNREAD` pin cannot: that a key
 /// which is *parsed* is also *compared*, per record, with both sides
