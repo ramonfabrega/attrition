@@ -4639,8 +4639,24 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
 /// Unit::move_step+0x823`, where theirs has stood at (20604, 16968) since
 /// 777 — ours 12 draws, theirs 8.
 ///
-/// **The delta**, this constant's: 779 → 794.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 794;
+/// **878, open** (item 1113, `docs/GROUPS.md` §34). 794's walk was two
+/// Modern Infantry mechanisms. `Form::compute_dests` scatters a
+/// modern-infantry **follower** off its captain by the destination, its
+/// object number and its list index (`72d454`): block 765's points, both
+/// sides, `1/7` (38568, 13368) and `1/8` (38712, 13176), where ours stood a
+/// cell past each (off_y 360 against 312). And `Unit::do_move` **packs** a
+/// walking one every 128 frames on its phase `(o · 0x11 + frame) & 0x7f ==
+/// 0` (`5f82df`): block 778, both sides, `1/7` at (20604, 16968) with
+/// `cur_anim 23`, `retry 22`, `attempts −3` — theirs's stand from 777,
+/// which ours walked through into the Battery. run404's twenty packs agree.
+/// 878: ours shoots `0/7` down (`Unit::close+0xcb6`,
+/// `Ammo::init_crash+0x305`), theirs does not until 1019 — ours 7 draws,
+/// theirs 5. Walked back: the Radar Air Defense's target on 837
+/// (`attack_ox` 7 against 6, the draw site `+0x432` against `+0x463`),
+/// `0/7`'s patrol leg on 820, its hit a frame late on 784 (parked 1125).
+///
+/// **The delta**, this constant's: 794 → 878.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 878;
 
 /// `chapter_thirty_eight_s_word_frame_is_widened_whole`'s window: run404
 /// whole, (605, 1763).
@@ -5211,6 +5227,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     (
         "chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_block",
         1,
+    ),
+    // Item 1113's squad test walks run404 whole to its last block but
+    // one, the Bombers' bombs with it: 31 reads (pinned at 0, it fails).
+    (
+        "chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase",
+        31,
     ),
 ];
 

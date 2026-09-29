@@ -3853,6 +3853,53 @@ mod infantry_step_tests {
         s.units[u].pos.x - from.x
     }
 
+    /// **The pack** (item 1113, `Unit::do_move`'s `5f82df`-`5f8390`): once
+    /// every 128 frames, on its own phase `(o · 0x11 + frame) & 0x7f`, a
+    /// walking Modern Infantry stops, plays `CHAR_PACK` and waits out the
+    /// animation with `retry` its `end_time` and `attempts` −3. run404's
+    /// `1/7` (o 7) packs on 777 and `1/6` (o 6) on 794, 128 apart from
+    /// nothing but their numbers.
+    #[test]
+    fn a_walking_modern_infantry_packs_on_its_own_phase() {
+        const PIECE: i32 = 7;
+        let packs = |age: i32, flags: u32| {
+            let (mut s, u) = walker(age, flags);
+            s.units[u].index = 7;
+            s.units[u].guys.push(crate::anim::Guy::fresh(PIECE));
+            s.art
+                .piece_lengths
+                .entry(PIECE)
+                .or_default()
+                .insert(crate::anim::PACK, 22);
+            let from = s.units[u].pos;
+            s.order_move(u, Pos::new(from.x + 0x60 * 60, from.y));
+            let mut seen = Vec::new();
+            for _ in 0..300 {
+                let f = s.frame;
+                let at = s.units[u].pos;
+                s.tick();
+                let mo = s.units[u].orders.iter().find_map(|o| match &o.body {
+                    crate::orders::Body::Move(m) => Some((m.retry, m.attempts)),
+                    _ => None,
+                });
+                if s.units[u].guys[0].anim == crate::anim::PACK && mo == Some((22, -3)) {
+                    seen.push((f, at == s.units[u].pos));
+                }
+            }
+            seen
+        };
+        // o 7: `7 · 0x11 + 9 = 128`, so frames 9 and 137 of the walk (it
+        // has arrived by 265), and the unit stands on each, `retry` 22
+        // frames of `CHAR_PACK`.
+        assert_eq!(
+            packs(6, 0x100),
+            [(9, true), (137, true)],
+            "a Modern Infantry packs on its own phase"
+        );
+        assert!(packs(5, 0x100).is_empty(), "not past age 5: it walks on");
+        assert!(packs(6, 0).is_empty(), "not the flag: it walks on");
+    }
+
     #[test]
     fn a_modern_infantry_steps_five_quarters_of_its_speed() {
         // The step east is the trig component of the step, one short of it:
