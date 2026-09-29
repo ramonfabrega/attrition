@@ -1662,6 +1662,11 @@ mod tests {
         // strike, and `tech who=1 missile_shield on` in its countdown: the
         // nuke (item 1091, `docs/GOLDEN.md` §46).
         ("chapter37.cmd", &[]),
+        // Chapter thirty-eight: a cast of its own on the golden start — an
+        // Airbase and two Bombers flown at a who=1 Barracks past a Radar Air
+        // Defense, an Anti-Aircraft Battery and an Infantry squad: the air
+        // line under fire (item 1102, `docs/GOLDEN.md` §47).
+        ("chapter38.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),

@@ -13001,3 +13001,101 @@ first, but for the commander's two queue lines.
   5930, run356, run373, run396 and run403; the endpoint at 5931.
 - **Listing-backed**: `005fddf7`–`005fdeea`, `005ff6a0`'s kill.
 - **Unit-backed only**: nothing beyond what the captures carry.
+
+## 81. The air line under fire: the jam roll, the flak roll, and a plane shot down (item 1102, 2026-09-28)
+
+Golden chapter thirty-eight (`docs/GOLDEN.md` §47, run404, run405) flies
+two Bombers at a Barracks past a Radar Air Defense, an Anti-Aircraft
+Battery and an Infantry squad. Three mechanisms spend draws there that
+this crate did not; each is read off the listing, run under the emulator
+where it could be (`tools/emu/flak_arm.py`), and checked on run404.
+
+### 81.1 The jam roll
+
+`Unit::fight@005fd4d0`'s animation choice, past the ship's rock
+(`unit_flags & 0x2000000`), the Patrol Boat's and the Immortals' arms
+(`5fed6c`..`5fee2d`), asks `has_objmask(0x80000000)` of the attacker's
+type (`5fee5a`, the default slot `0046cf10` forwarding to the type's
+`0xf0`). An `ANTI_AIR` type draws `GameAccess::rnd(100)` (`5fee89`) and
+plays animation 0 when it is under `jam_unit_radar_prob` (`Constants
++0x21c`, rules.xml's `50%`) **and** `ObjectData::is_jammed@00653660`
+answers ≥ 0; otherwise `CHAR_ATTACK1` as before. `is_jammed` is −1
+unless the owner's leader carries `leader_flags & 0x40000` and an enemy
+special stands over the unit, so the draw is spent and never jams here.
+§8 step 4's "a unit with `DETECT` … `GameAccess::rnd`, the other RNG"
+was this: the mask is `ANTI_AIR`, and `rnd` draws `game_random`.
+run404's Battery spends it on 742, `Unit::fight+0x9b0`'s draw first.
+
+### 81.2 The flak roll
+
+`Ammo::init@0067bbf0`'s air arm (`67bef8`..`67c16a`) runs for a live
+fixed-wing target (`+0x218` 2, not `unit_flags & 0x20`, not a missile),
+entered from `67be7e` (a shooter whose vslot `0x18` answers 0, a
+building) and `67bec4` (a unit not on `0x17`/`0x18`), with `esi` 100
+from `67be77`. An `ANTI_AIR` shooter of the air domain takes no roll. Any
+other `ANTI_AIR` shooter draws once, at `+0x432` (return `67c022`) when
+`UnitData::is_flying_low@0060a140` answers 1 and at `+0x463` when not,
+and misses — `flags |= 0x10`, the same bit as `do_damage="0"`, so the
+round closes without `Ammo::do_damage` — unless `r % 100` is under its
+**own** `FLY_LOW` or `FLY_HIGH`. A shooter that is not `ANTI_AIR` draws
+against the **target's** figure first (`+0x49f`/`+0x50f`) and, past it,
+its own (`+0x4dc`/`+0x548`). Under the emulator: a Battery (50/90) hits
+a low Bomber on 89 and misses on 90, a high one on 49 and 50; an
+Infantry (0/33) hits a low one on 9 then 32, misses on 9 then 33 or on
+10 alone.
+
+**`is_flying_low` is a distance** (`60a140`..`60a2ff`, run whole under
+the emulator): a fixed-wing unit on the map, on a `STRAFE` with a live
+target or an `AIR_ATTACK_GROUND`, within `vector_dist < 0x900` of that
+target's point or that order's point; failing that, its `get_air_order`
+with `returning` set and its live home within `0x900`. `is_flying_high`
+is "on the map and not low". run404: 43 rounds, one draw each, 31 low
+and 13 high; every one of the 38 matched to its record carries the flag
+its roll gives.
+
+### 81.3 A plane shot down
+
+`Objects::kill_guy@00659410` sends a guy whose type's `CAT` (`+0x14`) is
+Air (8) and that is not a missile (`659473` → `659613`) to a free `Ammo`
+and `Ammo::init_crash@0067b800`, never `add_death`. `Unit::close`'s death
+animation draw (`+0xcb6`) is still spent first. The crash draws once from
+the game's stream (`+0x305`, `rolling = r % 7 − 3`) and twice from a
+local `Random` seeded by the guy's point (`+0x397`, `+0x3af`, the
+`bank_dx`/`bank_dy` ±30), and lays `num_guys` 1, `who`/`o` the plane's,
+`whom`/`ox` −1, `flags & 0xe3 | 2`, `sz` its altitude, a landing drifted
+along its heading by a float fall time. run404's `0/6` on 1006 and `0/7`
+on 1019: `rolling` −1 and −2, from 58907 and 56687; the crashes come
+down with no draw from the game's stream.
+
+### 81.4 What this crate built
+
+- `sim::air`: `is_fixed_wing`, `is_flying_low`, `is_flying_high`,
+  `air_round_misses`, `radar_jams`, `crashes`; the sites
+  `SITE_JAM_ROLL`, `SITE_FLAK_LOW`/`HIGH`, `SITE_AIR_TARGET_*`,
+  `SITE_AIR_SHOOTER_*`, `SITE_CRASH_ROLL`, and their `SITES` rows.
+- `fight.rs`, three granted spots: `Sim::swing_anim`'s last arm asks
+  `radar_jams`; `Sim::fire_ammo_aim`'s head asks `air_round_misses`, whose
+  miss is the round's `harmless`; `Sim::close_unit` lays no death object
+  when `crashes`.
+
+### 81.5 What is not established
+
+- **The crash's round** is not laid: its landing (a float fall time and a
+  `sin_table` drift), `rolling`, `check_hit` when it comes down. No draw
+  from the game's stream follows it on run404.
+- **`is_flying_high` in `valid_target`'s ladder**: this crate still reads
+  every plane as high there (§61). run404's Infantry never weighed a low
+  Bomber; run405 enters both functions on 730, from a search whose
+  answer run404 does not print.
+- **Five of run404's 43 flak draws print no new round** on the next
+  block (817, 857, 867, 929, 932), and 963's high site stands at 2,279
+  from T; the Bomber's front order on each is not read.
+- **`is_jammed`'s arm**: no capture has a jammer.
+
+### 81.6 Coverage
+
+- **Diff-backed**: the jam roll (run404 742 → 776); the flak roll's first
+  two rounds, 753 and 755, field for field with their flags; the crash's
+  draw by its site on the stream (§47's table), and by the killer.
+- **Listing-backed**: every gate above; `kill_guy`'s arm.
+- **Emulator-backed**: `is_flying_low` whole; the air arm's thresholds.

@@ -15,9 +15,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-09-28, the eighteenth Fable pass (`docs/audit/2026-09-28-fable-pass-18.md`,
 DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty; the
-first pair stays closed at 24,000, endpoints 0 off. Every chapter is
-closed, thirty-five to thirty-seven at 3260, 3420 and 3490. Two lanes
-run; the count is at twelve.*
+first pair stays closed at 24,000, endpoints 0 off. Chapters to
+thirty-seven are closed; thirty-eight is open at 776 (1102). Two lanes
+run; the count is at thirteen.*
 
 - **Great Lakes' second game is closed at 5,930, its end**, in seven
   landings from 4924 (1061 … 1099), endpoint 0 off: the pass's measure,
@@ -35,10 +35,10 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5606 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w8 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1102 next
+Golden: ch38 w776 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1109 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1106 and 1102 run.**
+**Opener: the commander resumes — 1106 and 1109 run.**
 
 ## The queue
 
@@ -55,13 +55,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     before parts on `1/14`'s `order:move.dest`, 0 against 1. **The
     instrument first**: the compared pin's walk moves to this window.
 
-1102. **Chapter thirty-eight: the air line under fire — no capture yet**
-    (1091 closed thirty-seven at 3490; CENSUS's blind list, row 7, the
-    largest family a known staging reaches). Chapters seventeen and
-    nineteen's casts with an anti-aircraft unit: an aircraft shot down
-    (`Ammo::init_crash`), flying low and high, the bomber's re-target,
-    `is_siege`. The emulator first; **run404** the capture, run405 at
-    `cover=1`. GOLDEN §47.
+1109. **Chapter thirty-eight's word: frame 776** (1102: the jam, flak
+    and crash built; run404's window 605..1763). The Infantry squad's
+    `myspeed` parts from its birth on 621, 32 against 34 (who=1's
+    Modern-age Infantry), then the army's `ATTACKTO` offsets on 765,
+    `off_y` 360 against 312. No mechanism is named; `get_speed` in
+    `orders.rs` is the AI lane's, granted by spot. GOLDEN §47.
 
 ## How to maintain this file
 

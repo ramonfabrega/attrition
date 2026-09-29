@@ -102,6 +102,21 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1102, 2026-09-28 — the air line's other edges
+
+(1110) **Chapter thirty-eight's rows beside its word** (COMBAT §81.5):
+the Battery's army move parting from 624 (`dest` ±2..4, then its path);
+the Radar Air Defense's `constr_time` 30000 against 22556 on 619; the
+crash's round (its landing, a float fall time); `is_flying_high` in
+`valid_target`'s ladder; five flak draws with no printed round; and
+`get_speed`'s sortie arm (`Object::do_launch`), which wants a reading
+before a chapter.
+
+(1111) **A spell-issuer chapter**: the Spy's three other spells (CENSUS
+row 7) want a City and a General staged under the issuer, which
+chapter thirty-eight's cast does not carry. A candidate for a later
+chapter.
+
 ## Parked by item 1099, 2026-09-28 — beneath Great Lakes' closed word
 
 (1107) **Value rows under Great Lakes' agreeing draw stream to 5930**
@@ -1888,7 +1903,11 @@ commander's approval) is a shape EMULATOR §8's rule could name.
 Loop line): every death then reads as a `death:extra` row on our side
 (chapter thirty-seven's two). The widening could skip the death list on
 a capture that did not ask for it, or the chapters' end detail could
-carry `DEATHS=1`.
+carry `DEATHS=1`. **~~`DEATHS=1`~~ is not the remedy as written**
+(1102's Loop line): beside `GROUPS=1` in run404's end detail no
+`GROUPDATA` printed, and the receipt refused the take; either the two
+cannot share an end line or `DEATHS` belongs elsewhere in it — one
+capture with a ground death and both asked would say which.
 
 (1108) **A draw-stream word that reaches a game's end says nothing of
 the end itself** (1099's Loop line, two parts): (a) the city's capture

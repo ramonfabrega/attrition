@@ -8819,6 +8819,36 @@ check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch37/map-14/rontra
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch37/map-14/rontrace.log" rontrace-run398.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=3210)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run398.log" functions 2>/dev/null | grep -E "Nuke::add_nuke$" | tee /dev/stderr | awk 'END{exit !(NR==1)}'
 
+run: 405
+tag: ch38-cover
+item: 1102
+why: the blind list for chapter thirty-eight — chapter38.cmd at cover=1 on the queue lane (golden run404, cover=0 on the click-free lane), to take UnitData::is_flying_low@0060a140, Ammo::init_crash@0067b800 and, if the Infantry weighs a Bomber, UnitData::is_flying_high@0060a310 off
+# `~/ron-golden/ch38/map-14/rontrace.cmd` line for line to 1030, as run398
+# is run397's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+# `cover=1`, ending eleven frames past the second crash on 1019. The end
+# detail is run398's: no `DEATHS` beside `GROUPS` (run404 lost its pool).
+frames: 1030
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,AMMO=5,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add bomber who=0 52,84
+cmd: 612 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 618 add radar_air_defense who=1 116,86
+cmd: 620 add infantry who=1 104,86
+cmd: 622 add anti-aircraft_battery who=1 120,80
+cmd: 640 @flight 0 2007 0 6 7
+cmd: 644 @strike 0 2006 1 6 7
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch38/map-14/rontrace.log" rontrace-run405.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch38/map-14/rontrace.log" rontrace-run405.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1030)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run405.log" functions 2>/dev/null | grep -E "UnitData::is_flying_low$|Ammo::init_crash$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
 # run381 (item 1066) is not a stanza: it is `startcapture.sh 381 7
 # greatsahara-start` under `viadriver.sh`, run38's `DUMP_ALL` start on Great
 # Sahara — the height table, the checksum trace, the herds and the frame
