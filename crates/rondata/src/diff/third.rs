@@ -73,6 +73,7 @@ pub(crate) fn walk_sahara((gamelog, tracelog): (&str, &str)) -> Option<Word> {
         let at = built.sim.frame;
         built.tick();
         crate::diff::harness::debug_leader(&built, at);
+        crate::diff::harness::debug_ammo(&built, at);
         let Some((f, ours)) = built.frame_sites.last() else {
             continue;
         };
