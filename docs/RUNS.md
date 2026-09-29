@@ -11088,3 +11088,47 @@ walked from run383's start with run381's head. Block 15581 stands on 159
 keys, and the word's block 15587 parts on `1/29`'s figure clock, after its
 head order parted on 15585 (`docs/AI.md` §97.5). The compared pin and the
 coverage driver walk 15585..15589.
+
+## run428 — run383's game at run414's detail over blocks 15977..16233: Great Sahara's long word 15982 widened (2026-09-29, item 1177)
+
+**What it is.** run426's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+15977..16233, and `!quit` at 16247. The word's frame 15982 writes block
+15983, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run428 \
+    --map 7 --end-frame 16247 --timeout 12000 --log-window 15977 16234 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run426 ends at block
+15837 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 12:11–12:31 in one take. The first launch, at 12:07, was
+refused. The lane lock still named run426's pid 15593, and a `next-server`
+had since taken that pid, so the lock read as live. The launch went through
+at 12:11, once that process had exited. The refused launch's staging
+directory is kept beside it as `2026-09-29-run428-refused`. The capture
+was waited on with `waitrun.sh` (exit 0). The receipt: `success: true`,
+exit 0, 1,153 s from launch to exit, 16,248 frames, map 7 and seed 12345
+verified, five files restored. The dump (531.2 MB, 257 blocks and the
+closing one) and the trace (56.4 MB) were moved into `Logs` as
+`gamelog-run428-greatsahara-15982.txt` and `rontrace-run428.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 16,248 identical |
+| window blocks | 257, 15977..16233 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run428_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. Block 15977 stands on 151
+keys. The human's city `0/2004` parts on its `damage` on 15978, who=1's
+make list on 15982, and the word's block 15983 on who=1's new site
+`1/2024`, 192 east of the original's (`docs/COMBAT.md` §65.8). The compared
+pin and the coverage driver walk 15981..15985.
+
