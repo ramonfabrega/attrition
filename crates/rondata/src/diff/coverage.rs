@@ -1836,11 +1836,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `mining_size`, `construct_hits`, `ever_seen` and
     // `ever_seen_completed` no site compares. `queue` registers here: a
     // build is queued. `job_counter` is compared only on an unfinished
-    // site (`!active && flags & 4 == 0`, item 1086), and one stands here.
+    // site (`!active && flags & 4 == 0`, item 1086), and one stood on
+    // 5974..5978; **since item 1120 none does** on run414's 6150..6154, so
+    // `job_counter` is pinned as a site the window never reaches.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+         job_counter max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
