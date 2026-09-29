@@ -1372,7 +1372,23 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 15_982;
 /// index 30**: ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where
 /// the original spends `PathFinder::calc_road_cost+0x46`, 3206 times under
 /// `astar_caravan_road`. Inside run425's window (block 7513).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 7_512;
+///
+/// **7512 → 8519 on item 1185** (`docs/ROADS.md` §9.5):
+/// `World::set_blocked_at@006b4900` takes the road off every tile it
+/// blocks, `set_road_at(x, y, 0, 0, 0)` through the mesh's door. The Temple
+/// `1/2025`, started on 7479 over the caravan road, kept its road under the
+/// blocked tile (200, 202) here, so on 7512 the caravan `1/15` taking that
+/// tile's waypoint did not verify its route. **The move's value diff (the
+/// word's delta, here; its block is `run425_s_word_frame_is_widened_whole`'s):**
+/// on run425's block 7513 `1/15`'s `path[0].flags` ours 33 against 1 →
+/// agreeing, and `path[1..22].flags` 32 against 0 → agreeing; the window's
+/// keys went 614 → 317. Frame 7512's draws went 39 against 3243 →
+/// agreeing. **The new word's delta: ours 2 draws and the original 3 on
+/// frame 8519, parting at index 0**: ours spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` where the original spends `Guy::set_anim+0x97a <
+/// Guy::move+0x19f`. Past run425's window (its last block 7633), widened on
+/// run439 (block 8520).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_519;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1810,6 +1826,10 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_6609: (i64, i64) = (6_604, 6_860);
 /// run346's game, blocks 7377..7633 — six blocks before the word 7382's
 /// block 7383 and 250 past it; the word 7512's block 7513 since item 1174.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_7382: (i64, i64) = (7_377, 7_633);
+/// **run439's window** (item 1185): the second pair's East Indies at
+/// run425's detail, blocks 8514..8770 — six blocks before the word 8519's
+/// block 8520 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_8519: (i64, i64) = (8_514, 8_770);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -7000,13 +7020,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
     // 6609, past that, widened on run420; item 1156 to 6743, inside it;
     // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
-    // inside it.
+    // inside it; item 1185 to 8519, past it, widened on run439.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run425_s_word_frame_is_widened_whole"),
-        1174,
-        Some(WIDENING_SECOND_EAST_INDIES_7382),
+        Some("run439_s_word_frame_is_widened_whole"),
+        1185,
+        Some(WIDENING_SECOND_EAST_INDIES_8519),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

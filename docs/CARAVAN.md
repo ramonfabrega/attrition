@@ -655,6 +655,13 @@ until 14533. On block 14530 all 24 of the walk's waypoints have lost
 asked. With both, Great Lakes' word moves **14529 → 14650**
 (`docs/AI.md` §68).
 
+East Indies at Toughest, 7512 (item 1185): `1/15` takes (38560, 38816),
+tile (200, 202), under the Temple `1/2025` started on 7479. The road there
+goes the frame the Temple starts, when `set_blocked_at` blocks the tile
+(`docs/ROADS.md` §9.5) — a reading: no dump prints the tile. The route is
+verified and planned again, 3,206 road draws, and on block 7513 all 23
+waypoints have lost `0x20`. The word moves **7512 → 8519**.
+
 ### 10.4 What is not established
 
 - `TerrainOut::caravan_step` is not modelled. Its sound and ruts are the
