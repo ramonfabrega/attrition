@@ -116,6 +116,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1164, 2026-09-29 — the other exit
+
+(1175) **`come_out`'s building arm zeroes the body's speeds** (TRANSPORT
+§6.4, AI §95): `Sim::come_out` in `garrison.rs` builds the movement from
+`Movement::at` and zeroes the speeds except a plane's; the original goes
+through the same `set_new_location` as the landing and keeps them. Not
+built: no row on the word's frames names it.
+
 ## Parked by item 1163, 2026-09-29 — the rares' count
 
 (1172) **who=1's `known_rares` on run417's 13184, 7 here against 6**
@@ -148,10 +156,10 @@ third-map walk passes, because a tech gain recomputes the cap before
 
 ## Parked by item 1143, 2026-09-29 — the barge's other edges
 
-(1157) **The barge's residue after 1143** (AI §90): `1/32`'s figure
-`avg_speed` on run419's 6322, ours 0 against 11, after the landing; and
-the later barge identities `1/36` against `1/38`, apart on 6393 (6402 on
-the old tree). No draw reads either while 6609 stands.
+(1157) **The later barge identities `1/36` against `1/38`** (AI §90,
+§95): apart on 6393 (6402 on the old tree); on run420 and run421 an
+identity swap and nothing more (1164). Its `avg_speed` half, `1/32`'s
+figure on 6322, closed with 1164's landing speeds.
 
 (1158) **The waypoint take's `TRADE_ROUTE` arm on a non-final leg**
 (ORDERS §4.4, AI §90.2): built from the listing, never read on a
@@ -2101,7 +2109,8 @@ kept both sides. The append-only files could merge by union, as
 `docs/RUNS.md` does. **Three reaches** (1147, 1156: the same pair of
 files, §91 beside §93 the second time; 1163: `diff/third.rs`, where two
 lanes re-pinned the same widening counts — a count two lanes re-pin is
-always a conflict).
+always a conflict). **Four** (1164: `diff/harness.rs`'s floor triples,
+re-measured by hand on the merged tree, and §94 beside §95).
 
 (1162) **A pinned uncompared field with a live reader in `sim` is not
 asked for** (1147's Loop line): `pop_cap` was parsed and uncompared,
@@ -2130,6 +2139,13 @@ behind a positive wrap, an unaffordable offer valued below an affordable
 one, the second time after AI §49 that the tail's wrap direction was the
 mechanism. The factor printed beside each value would have shown it on
 the first read. One reach.
+
+(1176) **Three widenings pinned the same missing rule as "what is left
+of the landing"** (1164's Loop line): run414, run419 and run420 each
+pinned a passenger's figure `avg_speed` apart after a landing, and it
+was one unbuilt exit rule each time. A guard could flag a pinned row
+whose field is a speed or a clock, standing on the frame a unit leaves
+a container, for a reading of the container's exit. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
