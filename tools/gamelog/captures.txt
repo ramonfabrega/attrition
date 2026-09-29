@@ -9150,6 +9150,19 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   run449 window blocks: 257 (17618..17874)
 # ==== TAKEN 2026-09-29: run448 14:46, 85 s; run449 14:55–15:13; no wait ====
 
+# ==== item 1206: Great Sahara's gap before 17623, and the game's end ====
+#
+# run457 and run458 are not stanzas. Both ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the commands in `docs/RUNS.md`).
+# run457: run449's shape, blocks 17140..17618, `!quit` at 17632. run458:
+# run449's shape, blocks 23744..24000, `!quit` at 24000. Their checks, as a
+# stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log rontrace-run457.log    -> 0 differing, 17,633 identical
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log rontrace-run458.log    -> 0 differing, 24,001 identical
+#   grep -a -m1 'MAP_STYLE' / ' DIFFICULTY ' / '(int)seed' -> 7, 0, 12345 (both)
+#   run457 window blocks: 479 (17140..17618); run458: 257 (23744..24000)
+# ==== TAKEN 2026-09-29: run457 15:54–16:30; run458 16:51–17:13; no wait ====
+
 # ==== item 1156: East Indies at Toughest, the gap 6573..6603 before the word 6609 ====
 #
 # run421 is not a stanza. It ran on the click-free lane
