@@ -3341,28 +3341,53 @@ impl Sim {
         if arrows == 0 {
             return;
         }
-        // Find or re-find a target.
-        let needs = match bd.target {
-            None => true,
-            Some(t) => {
-                !self.valid_target(me, t)
-                    || (!bd.ordered
-                        && ((bd.phase(frame) + 14) & 0x1f) == 0
-                        && matches!(t, Obj::Unit(u) if self.units[u].movement.dest.is_none()
-                            && !self.profile(t).combat_role))
-            }
-        };
-        if needs && !bd.ordered {
-            let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
+        // **The target, as `Build::do_attack@006228f0`'s listing takes it**
+        // (`622a37`..`622b4c`, item 1131, `docs/COMBAT.md` §8.6):
+        // - a building without an explicit order (`build_masks & 4`) calls
+        //   `Build::find_target@00622c80` on **every** call (`622a3f`), and
+        //   `compare_target`'s current-target ×2 (or /2) is what holds it;
+        // - no target: cleared, and return (`622a5a` → `622c1c`);
+        // - one `valid_target` refuses: `find_target`, and return without
+        //   a shot (`622a75` → `622b25`);
+        // - unordered, on `(o + frame + 14) & 0x1f == 0`: `find_target` and
+        //   return, unless the target is a unit that is not moving and is
+        //   combat-role (`type +0x2c8 & 0x10000`) or casting
+        //   (`action_type == CAST_SPELL`, `622b20`);
+        // - out of range (`622b45`): the target is cleared (`622c1c`).
+        // `find_target` itself clears the order bit (`& 0xfffb`).
+        let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
+        if !bd.ordered {
             self.buildings[b].target = self.find_nearby_target(me, radius);
-        } else if needs {
-            self.buildings[b].target = None;
-            self.buildings[b].ordered = false;
         }
         let Some(target) = self.buildings[b].target else {
+            self.buildings[b].ordered = false;
             return;
         };
+        if !self.valid_target(me, target) {
+            self.buildings[b].target = self.find_nearby_target(me, radius);
+            self.buildings[b].ordered = false;
+            return;
+        }
+        if !self.buildings[b].ordered && ((self.buildings[b].phase(frame) + 14) & 0x1f) == 0 {
+            let keep = match target {
+                Obj::Unit(u) => {
+                    self.units[u].movement.dest.is_none()
+                        && (self.profile(target).combat_role
+                            || matches!(
+                                self.current_order(u).map(|o| o.body),
+                                Some(crate::orders::Body::Cast(_))
+                            ))
+                }
+                Obj::Building(_) => false,
+            };
+            if !keep {
+                self.buildings[b].target = self.find_nearby_target(me, radius);
+                return;
+            }
+        }
         if !self.is_in_range(me, target) {
+            self.buildings[b].target = None;
+            self.buildings[b].ordered = false;
             return;
         }
         // `do_attack`'s in-range arm returns before `fire_ammo` for the
