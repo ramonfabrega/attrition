@@ -229,10 +229,15 @@ pub(crate) fn sahara_14587_window() -> Option<crate::diff::harness::tests::Widen
         &[(SAHARA_WORD_14587, WIDENING_GREAT_SAHARA_14587.0)],
         WIDENING_GREAT_SAHARA_14587,
         1,
-        &[LONG_WORD_GREAT_SAHARA + 1],
+        &[SAHARA_14587_BLOCK],
         true,
     )
 }
+
+/// **The old word's block, 14588** (item 1163): frame 14587 writes it.
+/// Item 1171 moved the word to 15586, and run418 stays the move's value
+/// diff.
+pub(crate) const SAHARA_14587_BLOCK: i64 = 14_588;
 
 /// **The compared pin's window on the third map** (item 1133, parked
 /// 1067): the long word's block and two on either side — frame
@@ -595,38 +600,40 @@ mod tests {
             Some(r#"14582: Group { field: "id", ours: 14330130, theirs: 14336430 }"#),
             "the army group's id"
         );
-        // **The block before the word's, 14587**: group 64 holds 21 slots
-        // here against 15 there, and its member `1/52` stands at
-        // (28637, 20233) here against (28623, 20241).
+        // **The block before the old word's, 14587** (item 1171, the
+        // move's value diff): on frame 14586 the original's army group 64
+        // loses `1/28`–`1/30` and `1/65`–`1/67` to group 68, and its
+        // arrays shift with the list — 15 slots, `1/52` fifth at `off`
+        // (−3, 0), `curr` (68, 126). Until item 1171 this crate shifted
+        // the list alone: 21 slots, and `1/52`, fifth, read `1/47`'s old
+        // `curr` (−173, −16), walked for (28373, 20104) and stood at
+        // (28637, 20233) against the original's (28623, 20241). Every
+        // slot and `1/52`'s position now agree.
+        for what in ["group:64.off[4]", "group:64.curr[4]", "group:64.curr[15]"] {
+            pin_eq!(row(1, -3, what), None, "group 64's {what} agrees");
+        }
+        pin_eq!(row(1, 52, "pos"), None, "1/52's position agrees");
+        // **The old word's block, 14588** (frame 14587, ours 9 draws
+        // against 10 until item 1171): the original's `1/52` collided with
+        // `1/30`, and so does this crate's now.
+        pin_eq!(row(1, 52, "collide_o"), None, "the old word's collision");
+        // What 14587 still parts on: the new group 68's speed pair, ours
+        // 26 against 0 — standing since before item 1171, and no draw
+        // reads it over the window.
         pin_eq!(
-            row(1, 52, "pos").as_deref(),
-            Some("14587: ours (28637,20233) theirs (28623,20241)"),
-            "1/52's position"
-        );
-        // **The word's block, 14588** (frame 14587, ours 9 draws against
-        // 10, at index 3 ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`
-        // and theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`): the
-        // original's `1/52` collides with `1/30`, and this crate's does not.
-        pin_eq!(
-            row(1, 52, "collide_o").as_deref(),
-            Some("14588: ours -1 theirs 30"),
-            "the word's block: 1/52's collision"
+            row(1, -3, "group:68.speed").as_deref(),
+            Some("14587: ours 26 theirs 0"),
+            "group 68's speed"
         );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= LONG_WORD_GREAT_SAHARA + 1)
+                .filter(|(b, _)| **b <= SAHARA_14587_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [
-                (14582, 155),
-                (14584, 1),
-                (14585, 1),
-                (14587, 61),
-                (14588, 6)
-            ],
-            "the blocks keys first part on, to the word's"
+            [(14582, 155), (14584, 1), (14585, 1), (14587, 2)],
+            "the blocks keys first part on, to the old word's"
         );
-        pin_eq!(w.firsts.len(), 833, "every key parted on run418");
+        pin_eq!(w.firsts.len(), 168, "every key parted on run418");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

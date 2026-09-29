@@ -5013,6 +5013,52 @@ mod tests {
         );
     }
 
+    /// **A member that stays keeps its own slot** (item 1171,
+    /// `docs/GROUPS.md` §30.3): `Group::kill@00714110` shifts the four
+    /// offset arrays and the angle byte down with the list, so the
+    /// formation a follower reads at its new index is still its own.
+    ///
+    /// Great Sahara's frame 14586 is the case: six members of army group
+    /// 64 leave for group 68, and `1/52`, listed eighth and now fifth,
+    /// walked to the fifth *old* slot — `1/47`'s — and stood.
+    ///
+    /// **Made to fail on purpose**: with `kill_from_named` back to a
+    /// retain on the list alone, `b` reads `a`'s offset.
+    #[test]
+    fn a_member_leaving_an_army_group_takes_its_slot_with_it() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let slot = s.init_army(1, None);
+        for u in [a, b, c] {
+            s.army_add_unit(1, slot, u);
+        }
+        let st = &mut s.armies[1].list[slot].group;
+        st.off = vec![(1, 1), (2, 2), (3, 3)];
+        st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
+        st.angles = vec![1, 2, 3];
+        assert!(s.push_group(&mut group_of(1, &[a]), true));
+        let st = &s.armies[1].list[slot].group;
+        assert_eq!(s.armies[1].list[slot].units, vec![b, c], "`a` left");
+        assert_eq!(
+            (st.off.clone(), st.curr.clone(), st.angles.clone()),
+            (
+                vec![(2, 2), (3, 3)],
+                vec![Pos::new(20, 20), Pos::new(30, 30)],
+                vec![2, 3]
+            ),
+            "the arrays shift with the list"
+        );
+        let g = s.group_of(b).expect("`b` is still the army's");
+        assert_eq!(
+            s.group_slot_point(&g, b, 0),
+            Some(Pos::new(0x1100 + 20, 0x1000 + 20)),
+            "and `b`, now first, reads its own slot"
+        );
+    }
+
     /// An army of two on land takes **`GroupMoveOrder`s** and a lone one
     /// does not (`docs/ORDERS.md` §8.2's gate), and a group with no army
     /// takes none at all — this crate's own line, since a player's
