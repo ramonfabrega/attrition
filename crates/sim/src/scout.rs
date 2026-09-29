@@ -683,6 +683,13 @@ impl Sim {
     /// function reads out of it asks that the candidate unit's own cell
     /// **region** equal the target cell's — `WData +4` on both sides, the
     /// plain cell region rather than `get_tregion`.
+    ///
+    /// **And "on its way" is literal: the distance is to where the sibling
+    /// is going.** `0065be35` reads `UnitData +0x70/+0x74` — `orders_x`/
+    /// `orders_y` — against the candidate's centre; the XOR-ed position at
+    /// `+0x10/+0x14` is read only for the region test above
+    /// (`docs/SCOUT.md` §8.1; item 1156). The merchant's
+    /// `Sim::merchant_refused` had it from the same listing.
     fn scout_unit_near(&self, u: usize, c: Cell) -> bool {
         let who = self.units[u].owner;
         let ty = self.units[u].ty;
@@ -702,7 +709,7 @@ impl Sim {
                 && other.ty == ty
                 && MOVE_FAMILY.contains(&self.order_type(o))
                 && self.world.region_of(other.pos.cell()) == region
-                && vector_dist(other.pos.x - at.x, other.pos.y - at.y) <= 0x600
+                && vector_dist(other.orders_pos.x - at.x, other.orders_pos.y - at.y) <= 0x600
         })
     }
 
@@ -1392,6 +1399,61 @@ mod tests {
         assert!(
             !s.scout_unit_near(ai, target),
             "a sibling in another region never rejects the cell"
+        );
+    }
+
+    /// **`find_unit_ordered` measures where the sibling is going, not where
+    /// it stands** (item 1156, `docs/SCOUT.md` §8.1): `0065be35` reads
+    /// `UnitData +0x70/+0x74` — `orders_x`/`orders_y` — against the
+    /// candidate's centre; the XOR-ed position is read only for the `0x200`
+    /// region test. East Indies' `1/28` took cell (37,32) on 6576 because
+    /// the citizen `1/22` was asked about by its body, more than two cells
+    /// off; headed to (27384,25080) it rejects the cell, and the scan takes
+    /// (34,29) as the original's walk does.
+    #[test]
+    fn a_sibling_blocks_a_cell_by_where_it_is_going_not_where_it_stands() {
+        let (mut s, ai, _) = scout_sim(true);
+        let here = s.units[ai].pos.cell();
+        let target = Cell::new(here.x + 4, here.y);
+        let at = Pos::new(target.x * 768 + 384, target.y * 768 + 384);
+        let far = Pos::new(at.x, at.y + 6 * 768);
+        let mut sib = crate::Unit::new(1, s.units.len() as i16, at, 20);
+        sib.ty = s.units[ai].ty;
+        let sib = s.add_unit(sib);
+        let walk = |s: &mut Sim, to: Pos| {
+            s.units[sib].orders.clear();
+            s.add_move_facing_order(
+                sib,
+                to,
+                MoveKind::MoveTo,
+                crate::orders::QueuePos::New,
+                false,
+                crate::movement::Angle(0),
+                None,
+                false,
+            );
+        };
+
+        // Standing on the candidate, walking six cells away from it.
+        walk(&mut s, far);
+        assert!(
+            vector_dist(
+                s.units[sib].orders_pos.x - at.x,
+                s.units[sib].orders_pos.y - at.y
+            ) > 0x600,
+            "`orders_x/y` is six cells off"
+        );
+        assert!(
+            !s.scout_unit_near(ai, target),
+            "a sibling on the cell but headed elsewhere does not reject it"
+        );
+
+        // Six cells off, walking onto it.
+        s.units[sib].pos = far;
+        walk(&mut s, at);
+        assert!(
+            s.scout_unit_near(ai, target),
+            "a sibling headed for the cell rejects it from six cells off"
         );
     }
 

@@ -116,6 +116,11 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1156, 2026-09-29 — the barge's path flag
+
+(1165) **`1/42`'s `path[16].flags`, ours 4 against 0 on run421's 6576**
+(AI §93): beside item 1143's region-check `| 4`, and not read.
+
 ## Parked by item 1147, 2026-09-29 — the rare's other arm
 
 (1160) **The rare mask's change arm is held by a unit test alone**
@@ -2075,13 +2080,22 @@ falls back to a raw merge** (1147's Loop line): two sections side by
 side in `docs/AI.md` (§90 beside §91) and two stanzas at the end of
 `tools/gamelog/captures.txt` stopped `ccc update att-1147`; a raw merge
 kept both sides. The append-only files could merge by union, as
-`docs/RUNS.md` does. One reach.
+`docs/RUNS.md` does. **Two reaches** (1147, 1156: the same pair of
+files, §91 beside §93 the second time).
 
 (1162) **A pinned uncompared field with a live reader in `sim` is not
 asked for** (1147's Loop line): `pop_cap` was parsed and uncompared,
 and this crate reads it in the AI's research, unit and army decisions;
 it held Great Sahara at 12783. A guard crossing the coverage pin with
 `sim`'s readers would have named it. Kin of 1119. One reach.
+
+(1166) **A function read right for one caller and wrong for another
+stood four weeks** (1156's Loop line): `find_unit_ordered`'s distance
+was read correctly for the merchant (item 186) and wrongly for the scout
+(SCOUT §8.1), and the export's `unaff_` operands were the tell in both.
+A guard listing every call site of a function whose export body prints
+`unaff_` arguments, beside the `SEAM` or document line each caller
+cites, would have put the two readings side by side. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
