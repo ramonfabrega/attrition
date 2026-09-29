@@ -11382,8 +11382,8 @@ Built in `Sim::do_move`.
 
 - The region check's `TRADE_ROUTE` arm on a non-final leg: built from the
   listing, and no capture has been read on it.
-- The passenger's figure `avg_speed` after the landing (6322), and where
-  in 6573..6603 `1/28` parts.
+- The passenger's figure `avg_speed` after the landing (6322). ~~And where
+  in 6573..6603 `1/28` parts.~~ On 6577, its region scan's cell: §93.
 
 ### 90.5 Coverage
 
@@ -11522,3 +11522,76 @@ before the word.
 **Read only**: §91.2's listing, bit and offset. The dump's 55 against a
 Military table's 50 is the only value that proves them, and it is on one
 map.
+
+## 93. A sibling is counted where it is going, and the second pair's East Indies word moves to 6743 (2026-09-29, item 1156)
+
+Item 1156 was booked on East Indies' frame 6609 at Toughest: ours 9 draws
+against the original's 7, parting at index 2, ours `Animal::do_idle+0x83`,
+the original `Guy::set_anim+0x97a < Unit::move_step+0x823`. §90.3 had the
+AI citizen `1/28` apart on run420's first block 6604 and first parting in
+the gap 6573..6603 no dump covers. **No mechanism was named.**
+
+### 93.1 The frame, both sides
+
+- **The draw delta** (`report.py rontrace-run420.log draws 6609`): the
+  original's index 2 is `1/28`'s stop, `Unit::set_anim < Unit::move_step+0x823`
+  (seed `16947416`), where it stands against the animal `8/3`; ours spends
+  that seed on the animal's idle roll and walks on.
+- **Walked back to its first parted field** (`RON_DEBUG_UNIT` on the long
+  walk, and **run421**, booked for the gap 6573..6603): `1/28` arrives at
+  (29568,24192) on 6576 on both sides. On 6577 the original holds
+  `orders_x/y` **(26616,22776)**, its leg to (26592,22752) — cell (34,29) —
+  and ours held (28920,25080), cell (37,32). On 6588 `do_explore_to`'s
+  fifteen-frame look re-aims both onto the goody box at (28056,24216)
+  (`docs/GOODY.md` §7), from different places, so the re-aim did not
+  part: the leg taken on 6576 did.
+- **The event** is `Unit::think_scout`'s region scan (`docs/SCOUT.md` §11),
+  reached through `think_peasant+0x2ac`: both sides draw the same 26
+  `+0xaba` jitters on 6576, so the same cells pass the fog, location and
+  surface tests. Ours' scores, printed in the scan: (37,32) at 38 wins;
+  the three row-31 cells beside the box (76, 110, 136) are refused by
+  `find_unit_ordered`, which found `1/22`.
+
+### 93.2 The rule
+
+`ObjectsData::find_unit_ordered@0065bc40` measures a candidate sibling at
+**`UnitData +0x70/+0x74`**, `orders_x`/`orders_y` (`0065be35`–`0065be51`,
+`types.txt`'s names), where the decompiler prints `vector_dist(unaff_EDI,
+unaff_ESI)`; the XOR-ed position is read only for the `0x200` region test.
+`Sim::scout_unit_near` measured the body. `1/22` stood at (27221,25195),
+more than `0x600` from (37,32)'s centre, and was headed for (27384,25080),
+inside it. Measured there it refuses (37,32), and the scan takes (34,29)
+at 128. `docs/SCOUT.md` §8.1, amended in place; the merchant's search had
+the same listing right.
+
+### 93.3 What moved
+
+- **The value diff, run421** (`run421_s_gap_is_walked_whole`): `1/28`'s
+  `orders_x/y` (28920,25080) against (26616,22776) on 6577 → agreeing.
+  What else parts on the gap's 44 blocks (282 keys) is the first block's
+  263 standing keys, one-member groups' `speed`/`form`, the barge
+  identities `1/36`/`1/38`, and `1/42`'s `path[16].flags`, ours 4 against
+  0 on 6576.
+- **East Indies 6609 → 6743.** On run420 `1/28`'s `pos`, its move's
+  `angle`, group 65's `o_angle`, its `collide_o` (6610) and `path:length`
+  all agree; the first block went 263 → 249 keys, the window's 1444 → 963.
+  The animal `8/3` now stands apart first on 6791.
+- **The new word, 6743** (no mechanism is named): ours 4 draws, the
+  original 8, at index 2, ours `Guy::set_anim+0x104b`, the original
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run420's window
+  (block 6744). The citizen `1/33`, aboard the barge that is `1/36` here and
+  `1/38` there (`inside` apart since 6604; parked since item 1143), is put
+  ashore: its `orders_x/y` (37439,33407) against (38952,24840) on 6735, and
+  its `pos` (38944,24864) against (38952,24840) on 6743. That is the
+  block's reading, not a mechanism.
+
+### 93.4 What this has *not* established
+
+- `find_unit_ordered`'s `FILTER_BASE_TYPE` against this crate's `ty`: the
+  same for two citizens, not read for a lineage that differs.
+
+### 93.5 Coverage
+
+**Diff-backed**: `1/28`'s rows above, run421 and run420. **Listing-backed**: the
+distance's operands (`0065be2c`–`0065be51`). **Pinned capture-free**:
+`a_sibling_blocks_a_cell_by_where_it_is_going_not_where_it_stands`.

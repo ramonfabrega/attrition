@@ -1118,12 +1118,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         frames += n;
     }
     // Item 1143 moved it to 6609 (block 6610), past run419: run420 is its
-    // widening.
+    // widening. Item 1156 moved it to 6743 (block 6744), inside run420.
     if let Some(p) = &r420 {
         let n = drive_capture(p, 6_609, 6_612, &mut paths);
         assert_eq!(
             n, 4,
             "run420 carries the second pair's East Indies word 6609's blocks"
+        );
+        frames += n;
+        let n = drive_capture(p, 6_743, 6_746, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run420 carries the second pair's East Indies word 6743's blocks"
         );
         frames += n;
     }
@@ -1836,7 +1842,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // and run414's 5974..5978 since item 1115 moved it to 5975 (the pin
     // unchanged), and run414's 6150..6154 since item 1120 moved it to 6151,
     // and run419's 6320..6324 since item 1127 moved it to 6321, and run420's
-    // 6608..6612 since item 1143 moved it to 6609. Item 1061 first pinned it on
+    // 6608..6612 since item 1143 moved it to 6609, and run420's 6742..6746
+    // since item 1156 moved it to 6743. Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
@@ -1927,7 +1934,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// `second::east_indies_word_window` since item 1106 — the second pair's
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
-/// item 1127; run420 at 6609 since item 1143) walked from run346's start —
+/// item 1127; run420 at 6609 since item 1143, and at 6743 since item
+/// 1156) walked from run346's start —
 /// walked with the
 /// recorder on; a machine without the
 /// captures says so. What this checks that the `UNREAD` pin cannot: that a key
