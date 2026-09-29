@@ -4650,7 +4650,7 @@ fn untargeted_sim() -> (Sim, [usize; 4], crate::tech::TypeId) {
     let general_t = tree.add(TypeDef::unit("General", Traits::default()));
     let foot_t = tree.add(TypeDef::unit("Hoplites", Traits::default()));
     sim.set_tech_tree(tree);
-    let mut ty = |sim: &mut Sim, ti: i32, hits: i32, los: i32, attack: i32, mana: i32, t| {
+    let ty = |sim: &mut Sim, ti: i32, hits: i32, los: i32, attack: i32, mana: i32, t| {
         let mut u = UnitType {
             hits,
             los,

@@ -13442,7 +13442,7 @@ fn run422_s_casts_are_the_original_s_field_for_field() {
                 i64::from(un.cavarch_who),
                 get("cavarch_who"),
             );
-            let masks = them.unit_masks.map(i64::from);
+            let masks = them.unit_masks;
             note(
                 them.who,
                 them.o,
