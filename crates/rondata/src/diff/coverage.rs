@@ -1093,6 +1093,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
+    // Item 1120 moved it to 6151 (block 6152), inside run414.
+    if let Some(p) = &r414 {
+        let n = drive_capture(p, 6_151, 6_154, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run414 carries the second pair's East Indies word 6151's blocks"
+        );
+        frames += n;
+    }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);
         assert_eq!(
@@ -1783,7 +1792,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // the attack order's row (`second::widen_records`): 5605..5609 when the
     // item moved the walk here, 5772..5776 since it moved the word to 5773,
     // and run414's 5974..5978 since item 1115 moved it to 5975 (the pin
-    // unchanged). Item 1061 first pinned it on
+    // unchanged), and run414's 6150..6154 since item 1120 moved it to 6151. Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
@@ -1842,11 +1851,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `mining_size`, `construct_hits`, `ever_seen` and
     // `ever_seen_completed` no site compares. `queue` registers here: a
     // build is queued. `job_counter` is compared only on an unfinished
-    // site (`!active && flags & 4 == 0`, item 1086), and one stands here.
+    // site (`!active && flags & 4 == 0`, item 1086), and one stood on
+    // 5974..5978; **since item 1120 none does** on run414's 6150..6154, so
+    // `job_counter` is pinned as a site the window never reaches.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+         job_counter max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -1861,7 +1872,7 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// on the newest word's own window, or pinned above.** The window is
 /// `second::east_indies_word_window` since item 1106 — the second pair's
 /// East Indies word's block and two on either side, on its widening
-/// (run414 since item 1115) walked from run346's start — walked with the
+/// (run414 since item 1115, at 6151 since item 1120) walked from run346's start — walked with the
 /// recorder on; a machine without the
 /// captures says so. What this checks that the `UNREAD` pin cannot: that a key
 /// which is *parsed* is also *compared*, per record, with both sides
