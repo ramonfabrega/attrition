@@ -205,7 +205,11 @@ ahead of it. 597's Mine is first printed on block 10583, its placement is
 tick 10582, and the packet that holds the state before it is
 `RON_STATE_FRAME=10582` — not the 10581 "the frame before" named, which
 would have left tick 10581 to emulate. The block where the placed thing
-first appears settles it. Three packets since (run144, run147, run150):
+first appears settles it. **A word whose decision was made on an earlier
+tick takes its packet at the decision's** (parked 1101, the nineteenth
+pass): item 1089's word was 5105 and the target it turned on was chosen
+on 5066, so run400 was taken at 5066 with the commander's word; the
+brief names the tick and what was decided on it. Three packets since (run144, run147, run150):
 76–221 s and 819–843 MB each. It is a second game on the single capture
 lane, serialized with the loop's captures, and disk holds about a hundred
 of them.

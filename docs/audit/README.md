@@ -66,9 +66,11 @@ a pass, never by a worker; a worker's Loop line names the omission.
   or a **staging-only packet** where the class is decided at process time
   (808; 790's 59 s of lane answered every predicate before a word was
   written).
-- **The module is reserved when two items sit in one, and the fence
+- ~~**The module is reserved when two items sit in one, and the fence
   lifts at the other lane's merge** (726); a module the brief neither
-  gave nor fenced is named in the landing ("say if it should move").
+  gave nor fenced is named in the landing ("say if it should move").~~
+  **Code is not fenced** (the nineteenth pass, DECISIONS 55 §5; the row
+  is in that pass's section below).
 - **The restore in a mutation run comes from version control, or is
   `touch`ed**: a `shutil.move` from a copy puts back the older mtime and
   cargo does not rebuild (784). **Commit, then mutate, then restore**
@@ -77,14 +79,15 @@ a pass, never by a worker; a worker's Loop line names the omission.
 The sixteenth pass (2026-09-26) added the rows below from the tranche's
 twenty "for the Loop" lines and one measurement of its own.
 
-- **A brief names the fenced modules and nothing else**: a module no
+- ~~**A brief names the fenced modules and nothing else**: a module no
   other lane holds is the worker's to touch and to name in the landing,
   and a grant is asked only for a fenced one — seven of twenty landings
   stopped for a mid-item grant and eight more said "not named in the
-  brief" of a module nobody else held (the sixteenth pass).
-- **A grant, like a title, names a module and a frame, never a
+  brief" of a module nobody else held (the sixteenth pass).~~
+- ~~**A grant, like a title, names a module and a frame, never a
   function** (856): 842's brief granted `do_strafe`'s `fire_ammo` from
-  836's reading, and the round's path was the release events.
+  836's reading, and the round's path was the release events.~~ Both
+  rows: DECISIONS 55 §5, no grant is asked or given.
 - **The writers of the counter that parted are counted** (823): one
   scratch print of every group action on the word's tick, each record's
   `order_num` beside it, named 811's cause in one run. **And a field's
@@ -237,6 +240,67 @@ three measurements of its own.
   `Game::do_frame` is not enterable on a packet, and the click-free
   lane takes a lobby field as `--profile KEY=N`, which every packet of
   a pair past the first needs.
+
+## The brief checklist, from the nineteenth pass
+
+The rows continue, and everything the first section's opening paragraph
+says applies. The nineteenth pass (2026-09-29) added these from the
+tranche's "for the Loop" lines and five measurements of its own. **Parked
+1137 regroups all three sections by the kind of brief that reads them.**
+
+- **Code is not fenced** (the pass's own, DECISIONS 55 §5): a brief
+  reserves the run numbers, the section numbers where another lane is
+  in the same document and the item numbers it may mint, and it says
+  where the other lane's word sits as information. A worker touches
+  what its word needs, takes `ccc update` before its gate, and measures
+  on the merged tree; **it never hands its word over for where the code
+  sits**. Nine grants and five handovers in one tranche, and the three
+  merges that refused were two appended sections and a pin row.
+- **The first probe prints both sides' event on the word's frame,
+  before any reading** (1076, 1085, 1088, 1097): both sides' order
+  stacks (`RON_STACKS`), the arguments of the call the value parts
+  through (`do_damage`'s said the arithmetic was right and the `splash`
+  flag wrong), ours' rounds where the first row is a wound
+  (`RON_DEBUG_AMMO`), the caller of the `kill_current_order` that ended
+  a chase. **A booking's direction is a hypothesis as its mechanism
+  is**: three of ten said which side had acted and had it backwards.
+- **A value diff is on the word's frame, or on the frame the state
+  first parted, walked back from it** (DECISIONS 55 §8): where nothing
+  dumped parts on the word's own frame the landing says so and gives the
+  first parted field with its frame.
+- **A brief that reserves a packet for a round asks first whether the
+  capture printed `AMMO`** (1079; 783 one step on): run371 had, and two
+  reserved runs went unused.
+- **The tests a re-pin touches run green before a mutation is scored**
+  (1083): a pin behind an earlier one's failure made a killer look as if
+  it had fired. A floor or widening test reports every pin that moved in
+  one run (`diff::testkit::pins`), and a new one takes `Pins::hold()`.
+  **"Stands from N" says whether N is the window's first block or the
+  gap's first frame**: 1072's gap opened in blocks no dump prints.
+- **A mutation is checked to mean what it is for**, past having taken
+  (the pass's own): a line appended on frame 700 to a chapter that ends
+  on 644 changed the file and tested nothing.
+- **A vtable slot the export names by a folded function is read off the
+  PE beside the name** (1090): `vtables.txt` called `Unit::vftable + 8`
+  by a COMDAT twin and a section read it as "is it a unit"; the bytes
+  are `flags & 1`.
+- **A gate's own test uses a key the measured table lacks** (1126): a
+  release gate nested inside `pivot::release`'s lookup was silent for
+  every piece but the one the table measures, and its test used that
+  one.
+- **A `SEAM` that says no capture holds its arm carries `scan:` and the
+  command** (1132), so the next capture can run it again; a guard pins
+  the forty-nine that do not (parked 1135).
+- **A fixture for a sea or air unit sets the domain in all three
+  fields** — the type's `kind`, the type's `combat`, the unit's `kind`
+  (1130, parked 1134): vision read one and movement another, and the
+  test passed without its fix.
+- **A stanza `check:` that pipes `samegame.py` into a count wraps the
+  call in `(… || true)`** (1080): the runner's `pipefail` carries the
+  verdict the line meant not to assert.
+- **A worker's own test run is `--test-threads 2`, or under
+  `tools/memcap.sh`** (1081, 1086, 1089): three read the thread-width
+  guard's red as their mutation's.
 
 ## How a second reading is run
 
@@ -396,6 +460,12 @@ and `Guy::set_angle` `5d915e` and `Guy::set_new_location` `5d8998`,
 which no audit row names (parked 1068). The audit file's rows are
 struck in place. The verdict's premise, "opens every `sin_table`
 call", was false of sixty-two.
+
+**Batch 19, 2026-09-29, the nineteenth pass
+(`docs/audit/2026-09-29-fable-pass-19.md`): empty.** No `FABLE:` row
+stood and no commander's clause was landed in `CLAUDE.md` in the
+tranche; `docs/ARMY.md` §8's step 5 still read "`FABLE:` ratify", the
+marker batch 18 had ratified, and says so now.
 
 **The cheapest way to shorten this list is not a pass.** Most of what is
 owed is arithmetic and predicates a capture can settle outright, so

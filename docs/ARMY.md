@@ -761,8 +761,9 @@ sin_table(angle, d)`, `y' = y − sin_table(angle + 0x40000000, d)`,
    fold is `test; jns`, and a `sub` ahead of it moves which half negates
    (§23, where march_to_target's twin of this step is diff-backed). So the
    groups stand in a column from the origin **backward**. This crate's
-   army is one group (§3.2), so the step is not built; `FABLE:` ratify the
-   overturned verdict.
+   army is one group (§3.2), so the step is not built; ~~`FABLE:` ratify the
+   overturned verdict~~ **ratified from the listing by the eighteenth
+   pass** (`docs/audit/2026-09-28-fable-pass-18.md`, row 1065).
 
 Returns 1. Note what it does not do: it never checks the army has
 arrived; `process` step 4 moves the muster cell and this issues the

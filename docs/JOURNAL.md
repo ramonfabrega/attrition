@@ -20812,3 +20812,47 @@ Ruled, closed or moved to the brief checklist: items 974, 975, 983,
 1065, and items 745, 775, 799, 838 and 852 on two tranches without a
 reach. The backlog is ten from forty-two. **DECISIONS 54.**
 `docs/audit/2026-09-28-fable-pass-18.md`.
+
+## 2026-09-29 — the nineteenth Fable pass: a game closed, the fences lifted, and the third map's word opened (Fable 5.1, steering)
+
+Twenty landings since the eighteenth pass by the log from `7e9025da`,
+in fifteen hours and seven minutes, every worker on Opus 5.5 by
+transcript. **Great Lakes' second game closed at its end, 5,930, in
+seven landings** — entry 54 had priced two tranches — with its closing
+state 0 off; East Indies 5606 → 6151 in three; chapters thirty-five to
+thirty-seven closed and thirty-eight is open at 878 of 1763 after
+five; the third map scored at 6/5 with its word on frame 8; the blind
+list 143 → 142. Workers 715.85 USD, 35.8 a landing against 36.6, the
+rules lane at 44.2 against 70.5 with no rule written for it. What the
+pass could see and no landing could: **the fences on code were paid for
+and never collected on** — nine spot grants and five words handed over
+on the rules lane for where the code sat, while the three merges that
+refused were two appended sections and one pin row — so **code is not
+fenced** from here, and a brief reserves only what two lanes could take
+in silence. **The third map's word opens** as item 1133 and the AI lane
+takes it ahead of East Indies for three landings or until it passes
+1,850: two maps in lockstep for 24,000 frames said nothing of a third
+map's first ten, and the price of a new map in a closed lobby is the
+number the finish line lacks. Nineteen journals of twenty met a
+comparison that compared nothing; the AI track's pin follows its word
+and walks both open windows now, 97 fields uncompared → 79. Built, each
+made to fail first: a floor test reports every pin that moved
+(`diff::testkit::pins`, ninety-one tests and 579 assertions converted,
+three moved pins back in one run); the AI track's words are a table
+with their lengths, so the default map is the lower open word, the
+`Third map:` line is read, a closed game names the test that scored its
+end and the compared pin is held to every open word; `startcapture.sh`
+has its sibling's banner, trap and lobby; no chapter script writes a
+frame below its predecessor's; a refused click-free capture leaves no
+directory; a `SEAM` that cites the disk names its scan, forty-nine
+pinned. The domain is one fact in three fields and thirty-three
+fixtures disagree with themselves about it: measured, parked, not
+landed. The rules lane's compared pin was tried and failed on a harness
+pin keyed on the calling test's name; it stays. The pass's own second
+mutation had taken and meant nothing, which is a checklist row now.
+Ruled, closed, built or moved to the brief checklist: items 973, 1067,
+1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1108, 1116,
+1121, 1123, 1126, 1130 and 1132, and items 677, 894, 900, 927, 953,
+954 and 960 on two tranches without a reach. The backlog is six from
+thirty-one. **DECISIONS 55.**
+`docs/audit/2026-09-29-fable-pass-19.md`.

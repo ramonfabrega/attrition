@@ -3,7 +3,7 @@
 Newest last. Each entry records what was chosen, what it was chosen over, and
 why — so a future session can tell a considered decision from an accident.
 
-## Index — what stands, as of 2026-09-28
+## Index — what stands, as of 2026-09-29
 
 Nobody reads this file whole; a session reads the entry it is pointed at,
 and an entry that has been amended or superseded does not say so at its
@@ -51,21 +51,22 @@ is append-only and amended in place, as it always was.
 - 37 standing — `forbid(unsafe_code)` is the whole tree's
 - 38 extended by 41 — A lab branch lands by merge
 - 39 extended by 40 — The queue holds what names a score
-- 40 extended by 42 and 45 — The loop governs itself
+- 40 extended by 42 and 45, amended by 55 — The loop governs itself
 - 41 extended by 42, amended by 53 — Two tracks: the rules on a golden record, the AI on the long captures
-- 42 extended by 43 — The frame is the item; the loop's holes become guards
+- 42 extended by 43 and 55 — The frame is the item; the loop's holes become guards
 - 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
 - 44 extended by 50 — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
 - 45 extended by 50 — The chain's last link is the spawn, and lanes are throughput, not a pair
 - 46 standing — A printed field is read or pinned, and struck text is not live text
-- 47 standing — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
+- 47 amended by 55 — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
 - 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
 - 49 standing — The rules track's next axis is the issuer, and the day's holes are guards
-- 50 extended by 51 — The instrument records what it compares, and the chain reaps the remote
-- 51 extended by 53 — The brief is a checklist, and the lane's stalls are the runner's
+- 50 extended by 51 and 55 — The instrument records what it compares, and the chain reaps the remote
+- 51 extended by 53, amended by 55 — The brief is a checklist, and the lane's stalls are the runner's
 - 52 extended by 53 — The harness's numbers are not builds, and the first block prints itself
 - 53 amended by 54 — The first pair is closed; the AI's word moves to a second pair — and a lane's gate can be green
-- 54 standing — The war is priced in landings, the instrument follows the word, and a third map is scored
+- 54 amended by 55 — The war is priced in landings, the instrument follows the word, and a third map is scored
+- 55 standing — A closed game chooses nothing, code is not fenced, and the third map's word opens
 
 ## 1. Fidelity before divergence
 
@@ -3445,3 +3446,134 @@ against three; briefs that quoted a stale source against five;
 row against 65 cited and 280 entered; the blind list against 143; the
 disk against 73 GB; the price a landing against 36.6; and the count at
 twenty.
+
+## 55. A closed game chooses nothing, code is not fenced, and the third map's word opens
+
+**Decided 2026-09-29**, the nineteenth Fable pass, in the main thread
+(`docs/audit/2026-09-29-fable-pass-19.md`). Extends entries 42, 50 and
+54; amends entry 47's default-map guard, entry 54 §3 and the fence
+clauses of entries 40 and 51; overturns nothing.
+
+**What was measured.** Twenty landings since the eighteenth pass by
+the log from `7e9025da`, in fifteen hours and seven minutes, every
+worker on Opus 5.5 by transcript. **Great Lakes' second game closed at
+its end, 5,930, in seven landings**, its closing state 0 off; East
+Indies 5606 → 6151 in three; chapters thirty-five to thirty-seven
+closed and thirty-eight is open at 878 of 1763 after five; the third
+map scored at 6/5, its word 8; the blind list 143 → 142. Workers 715.85
+USD, **35.8 a landing against 36.6**: the AI lane 29.7 over ten, the
+rules lane **44.2 over nine against 70.5**. Thirteen of twenty words
+carried the value diff on the word's own frame and seven on the frames
+the state first parted. Twenty of twenty lane gates exited 0. Nineteen
+landings ran a mutation against the walk, and five met one no walk
+held. Nineteen journals met a comparison that compared nothing, against
+fifteen. Nine landings took a spot grant and five handed their next
+word over behind a fence; three `ccc update`s refused, none on code.
+No `FABLE:` row stood.
+
+**What the pass could see and no landing could.**
+
+1. **The fences were paid for and never collected on.** A brief fenced
+   a module to the lane whose word sat in it, and with both lanes in
+   the war both words sat in `fight.rs`, `orders.rs` and `anim.rs`. The
+   rules lane handed its word over five times in nine landings for
+   where the code was. The three merges that refused were two sections
+   appended at one anchor and one pin row: the collisions that happened
+   were in what the fences did not cover.
+2. **The guards read two constants by name and knew no game's length.**
+   When East Indies passed 5,930 the default-map guard asked the queue
+   to name a map no item can move, and the commander wrote a line that
+   said both. Nothing read the third map's line. The compared pin was
+   on the word because an item had put it there.
+3. **A third map in a closed lobby parts on frame 8.** Two maps in
+   lockstep for 24,000 frames did not say what a third would do in its
+   first ten. The word is a citizen's collision, two frames late, on a
+   map that is all land.
+4. **Forty-nine `SEAM`s cite the disk for an absence** and none names
+   the scan that looked. Most were written before the archive held a
+   war, a second pair or a third map.
+5. **The domain is one fact in three fields** — the type's kind, the
+   type's combat profile, the unit's kind — and thirty-three tests in
+   nine modules build a type two of them disagree about.
+6. **A booking's direction is wrong more often than it is checked.**
+   Entry 42 took the mechanism out of the title; three bookings of ten
+   still said which side had acted, and had it backwards.
+
+**Decided.**
+
+1. **The third map's word opens**, as item 1133: frame 8, ours 6 draws
+   against 7, at index 0, the first parting on `1/2`'s collision on
+   block 6. No mechanism is named. **The AI lane takes it ahead of East
+   Indies for three landings or until its word passes 1,850, whichever
+   is first**, and then returns to the second pair's lower open word,
+   which item 1127 holds. The number the pass wants is the price of a
+   new map in a lobby already closed, and three landings buy it. Entry
+   54 §3's "a later pass may choose again" is answered: the map stays
+   Great Sahara.
+2. **The AI track's words are a table**, `AI_WORDS`: a row a game, with
+   its length, the test that scored its end once it is closed, and the
+   function that walks its window while it is open. **The default map
+   is the newest pair's lower open word**; a closed game chooses
+   nothing, and a pair with no open game says `closed`, which is the day
+   the next pair is owed. The `Second pair:` and `Third map:` lines are
+   read against the table, lengths and all, and both are the
+   commander's lines.
+3. **A game closes with its end scored.** A draw stream that agrees to
+   a game's last frame says nothing of the event that ended it; a closed
+   row names the test that compared the closing whole-map state.
+4. **The compared pin walks every open word's window**, the third
+   map's beside the second pair's, and a guard holds the list to the
+   table. The rules lane's half — every chapter under one recording —
+   was tried and is not built (parked 1119).
+5. **Code is not fenced.** A brief reserves what two lanes could take
+   in silence: the run number, the section number where another lane is
+   in the same document, the item numbers it may mint. Two lanes in one
+   module merge, or conflict out loud at `ccc update` or at the gate;
+   the lane that lands second takes the update before its gate and
+   measures on the merged tree, which the rules already ask. **A worker
+   never hands its word over for where the code sits.** A brief says
+   where the other lane's word is, as information. The grant exchange
+   and entry 51's fence rows stand struck in the checklist.
+6. **A floor test reports every pin that moved.** `Pins::hold()` and
+   the `pin` macros, on the ninety-one tests that pin a floor or a
+   widening; a widening `WIDENINGS` names is held to them.
+7. **A `SEAM` that cites the disk names its scan**, as `scan:` and the
+   command; the forty-nine that do not are pinned and may only fall
+   (parked 1135).
+8. **The value diff is on the word's frame, or on the frame the state
+   first parted, walked back from it.** Where nothing dumped parts on
+   the word's own frame the landing says so and gives the first parted
+   field and its frame; seven of the tranche's twenty did, and the
+   measure counts them as whole from here.
+9. **Seven Loop items are built, each made to fail first** — 973, 1067,
+   1080, 1094, 1108, 1121, 1132; eight are brief-checklist rows; 1071
+   closes on its measurement, 1116 and 1123 on a sweep, 1130 is measured
+   and parked as 1134; **677, 894, 900, 927, 953, 954 and 960 close on
+   two tranches without a reach**; 685, 1101, 1105, 1114 and 1119 stay,
+   and 1137 is filed. The backlog is six, from thirty-one.
+
+**Not decided, and the user's**: whether phase 4 opens on the rules
+track alone; the thesis sentence from entry 41; and **whether a third
+lane runs** — the machine has the memory for three gates and the
+capture lane is one, so it is a question of spend and of what waits on
+the lane, and the pass has not measured either.
+
+**The estimate, written down to be wrong on record.** Entry 54's was
+beaten by a tranche. This one: **the third map's word passes 1,850
+inside its three landings**, on the reading that a closed lobby's rules
+are already built and what parts on a new map is terrain; and **East
+Indies passes 7,500 by the next pass**, at seven landings of the lane
+and the war's newer rate. Chapter thirty-eight closes in three more.
+
+**The measure for the next pass**: the third map's word against 8 and
+its landings; East Indies against 6151; chapter thirty-eight's landings
+against five; merges and updates that refused on code, against none;
+handovers behind another lane's module, against five, and grants,
+against nine; "a comparison that compared nothing" against nineteen;
+gates red on a worker's re-pin, against two; `UNSCANNED_SEAMS` against
+forty-nine; `UNCOMPARED_BY_THE_INSTRUMENT` against seventy-nine;
+mutations no walk held, against five; bookings whose direction was
+wrong, against three; `UNBUILT` against 149; `NO_SUCH_SECTION` against
+thirteen; the order row against 65 and 280; the blind list against 142;
+the commander's price a landing against 4.4; the disk against 64 GB;
+the price a landing against 35.8; and the count at twenty.

@@ -12,23 +12,24 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, the commander after the eighteenth pass: **twenty landings
-from `7e9025da`, and the steering pass is due.** Both headlines moved;
-every floor held on every gate; the first pair stays closed at 24,000,
-endpoints 0 off. No lane is live.*
+*2026-09-29, after the nineteenth Fable pass (DECISIONS 55,
+`docs/audit/2026-09-29-fable-pass-19.md`): **no landing since, and the
+count is zero from the pass's commit.** No score moved in the pass;
+every floor holds. No lane is live.*
 
-- **The AI track**: Great Lakes 4924 → 5930, closed at its game's end,
-  endpoint 0 off, in seven landings (1061 … 1099) — one tranche where
-  DECISIONS 54 priced two. East Indies 5606 → 6151 in four (1106 … 1120).
-- **The rules track**: chapters thirty-five to thirty-seven closed (the
-  V2, the missile's arms, the nuke); thirty-eight, the air line under
-  fire, open at 878 after five landings; the blind list 143 → 141.
-- **A third map is scored** (1066, AI §83): Great Sahara, word 8.
-- **For the pass**: the default-map guard asks for a closed map (1121);
-  some twenty spot grants let two lanes share `fight.rs`, `orders.rs`, `anim.rs`.
-- **The user's**: whether phase 4 opens on the rules track alone. The
-  disk: 56 GB free, from 73 at the tranche's start.
-- **Fable backlog: 31 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116, 1119, 1121, 1123, 1126, 1130, 1132).
+- **The AI track**: **the third map's word opens** — item 1133, Great
+  Sahara's frame 8 — and the lane takes it ahead of East Indies for
+  three landings or until it passes 1,850, whichever is first; then
+  1127, East Indies' 6151. Great Lakes' second game is closed at its end.
+- **The rules track**: chapter thirty-eight, open at 878 of 1763 (1131).
+- **Code is not fenced** (DECISIONS 55 §5): a brief reserves run,
+  section and item numbers and says where the other lane's word sits.
+  No grant is asked or given; no word is handed over for where the code is.
+- **A floor test reports every pin that moved** (`Pins::hold()`,
+  `pin_eq!`); a widening `WIDENINGS` names is held to it.
+- **The user's**: whether phase 4 opens on the rules track alone, and
+  whether a third lane runs. The disk: 64 GB free.
+- **Fable backlog: 6 Loop items** (685, 1101, 1105, 1114, 1119, 1137).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,16 +38,24 @@ Third map: GreatSahara w8 of 24,000
 Golden: ch38 w878 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1131 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the nineteenth Fable pass, over landings 1061 to 1113; then
-the commander resumes — 1127 on the AI lane, 1131 on the rules lane.**
+**Opener: the commander resumes — 1133 on the AI lane, 1131 on the
+rules lane; the twentieth pass at twenty landings from this one's commit.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **Two headlines** (DECISIONS
 41, 53): the golden word for the rules, the newest pair's word for the AI,
-lower map first — Great Lakes, closed at its end, so East Indies (1121).
+lower map first — East Indies, behind the third map's three landings (DECISIONS 55).
 Take the first unstarted on either track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
+
+1133. **Great Sahara's word: frame 8, ours 6 draws against 7** (1066;
+    DECISIONS 55 §1), at index 0: theirs `Guy::set_anim+0x97a <
+    Unit::move_step+0x823`, ours `Farms::inc_time+0x1ae`, widened on
+    run382 (blocks 1..259), where the AI citizen `1/2` parts first: on
+    block 6 `collide` ours 1 against 0 and its path one leg short, on 9
+    `collide_frame` 6 against 8. Three landings or past 1,850, then
+    1127. No mechanism is named.
 
 1127. **East Indies' second word: frame 6151, ours 9 draws against 8**
     (1120), at index 0: ours `Unit::move_step+0x823`, theirs
@@ -81,9 +90,9 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
   constant is the worker's to re-pin; the line is the commander's.** The
   chain — merge, book, gate, push, reap, spawn — is `CLAUDE.md`'s.
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
-  `GOLDEN_WORD_*`, `ENDPOINTS` with `Scoreboard:`, `Long captures:`,
+  `GOLDEN_WORD_*`, `ENDPOINTS`, `AI_WORDS` with `Scoreboard:`, `Long captures:`,
   `Golden:` (`<name> closed`, or `every chapter closed` first), `Endpoint <frame>:`,
-  `Fable backlog: N Loop items` and `lower map first — <map>` — read
+  `Second pair:`, `Third map:`, `Fable backlog: N Loop items` and `lower map first — <map>` — read
   literally and **never wrapped**, or the count guard matches this line
   instead (twice, 09-19). The length guard counts every line to the next `## `.
 - **A capture is a draw-stream trace first, detail on demand** (DECISIONS

@@ -111,7 +111,9 @@ artifact is the next phase's tool.
    and the AI's word is the newest pair's; a closed pair's pins stay as
    floors (`docs/DECISIONS.md` entry 53). **A third map is scored in
    the first pair's lobby beside them, and the held-out map is measured
-   and never debugged against** (entry 54).
+   and never debugged against** (entry 54). **A game that ends closes
+   with its closing state scored, and the lower map is the lower open
+   word** (entry 55).
 4. **Renderer** — thin client. Original assets first; they are the visual
    oracle.
 5. **AI** — hardest, least-oracled, and less bad than it looked: build order
@@ -172,8 +174,10 @@ value diff beside it** — the dump's own coordinates on the frame it moved —
 because a draw stream can agree on a wrong destination for a long time,
 and only a value comparison tells the two apart — **and a widening's row
 count is not one**: the value diff names the record, the field and both
-sides' values on the word's frame, and eight of one tranche's twenty
-landings reported a floor triple in its place. This is the stopping rule
+sides' values on the word's frame — or, where nothing dumped parts
+there, on the frame the state first parted, walked back from it — and
+eight of one tranche's twenty landings reported a floor triple in its
+place. This is the stopping rule
 for the long middle: the residue chase is productive and unbounded, and
 only the number says whether the whole is converging. **A residue item is
 booked by its frame and its draw delta**; a mechanism its title names is
@@ -459,11 +463,14 @@ a gate runs**: the handoff is rewritten before the gate, not during it.
 **A reap that refuses is a lane with work on the floor**: a killed lane
 looks exactly like one that never started, so a handoff never says a lane
 produced nothing until `git status` in that lane has said so. **A brief
-reserves what two lanes could both take** — the run number, the
-section number when another lane is in the same document, **and the code
-module when two items sit in one** (`sim::collide` twice and `do_guard`'s
-site in one tranche, parked 726); **a fence lifts at the other lane's
-merge**, and the merge's turn tells the lane still running. **A pinned
+reserves what two lanes could take in silence** — the run number, the
+section number when another lane is in the same document, the item
+numbers it may mint — **and code is not fenced**: two lanes in one
+module merge, or conflict out loud at `ccc update` or at the gate; the
+lane that lands second takes the update before its gate; a brief says
+where the other lane's word sits as information, no grant is asked or
+given, and **a worker never hands its word over for where the code
+sits** (`docs/DECISIONS.md` entry 55). **A pinned
 constant and its comment are the worker's to re-pin; the queue's lines
 are the commander's to write**, and a worker whose gate is red only on
 those lines has done its half — **which its gate says, under `--lane`,
