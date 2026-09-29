@@ -898,8 +898,10 @@ impl Sim {
     /// after a fix zeroes the whole array, and only the census's step 9
     /// counts it again. A `calc_gather` recompute in between sums 0 into
     /// `known_rares`, and `create_units`' Merchant arm reads that sum
-    /// (`docs/AI.md` §76). `reg_terr`'s zero is the transient this crate's
-    /// wholesale recompute does not model (parked 568).
+    /// (`docs/AI.md` §76). `reg_terr`'s zero is the transient this crate
+    /// does not model (parked 568): the cells themselves reach the map at the
+    /// pass's pace since item 1106 ([`crate::border_pass`]), and `reg_terr`
+    /// is read off them.
     ///
     /// Every [`Sim::sync_territory`] is a fix: its call sites are the
     /// original's (`Build::activate`, `Build::finished`, `Build::close`,

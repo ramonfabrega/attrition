@@ -3975,9 +3975,9 @@ impl Sim {
     /// what it does in play: there, `GameDaemon::check_borders` recomputes
     /// invalidated regions on a shared budget of 256 cells a frame, so a cell
     /// can carry stale ownership for up to `land cells / 256` frames after a
-    /// city changes hands. Steady-state ownership is identical; the transient
-    /// is a deliberate simplification until a recorded-game diff says it
-    /// matters. See `docs/ATTRITION.md`, "Territory".
+    /// city changes hands. In play this is the *target* a fix computes, and
+    /// [`crate::border_pass`] copies it onto the map at that pace (item 1106,
+    /// `docs/ATTRITION.md`, "Territory").
     pub fn recompute_territory(&mut self) {
         let players = u8::try_from(self.players.len()).expect("too many players");
         territory::compute_all_territory(&mut self.world, &self.tuning, &self.sources, players);

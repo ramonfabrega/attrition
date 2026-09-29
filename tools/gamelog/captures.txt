@@ -8943,3 +8943,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   grep -a -m1 '^  DIFFICULTY 5' / '^  MAP_STYLE 14' on gamelog-run403-greatlakes-toughest-5930.txt
 #   6 window blocks, 5925..5930
 # ==== TAKEN 2026-09-28, one take, 17:35–17:36 (two refused before staging) ====
+
+# ==== item 1106: East Indies at Toughest, a packet at logger frame 5518 ====
+#
+# run407 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run407):
+# run346's lobby (`--map 18`, `--profile DIFFICULTY=5`), `cover=0`, blocks
+# 5514..5521, `!quit` at 5527, `RON_STATE_FRAME=5518`. Its checks, as a
+# stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run346.log <run407>/rontrace.log   -> 0 differing, 5,528 identical
+#   receipt: map_style 18, seed 12345, success true, settings restored
+# ==== TAKEN 2026-09-28, one take, 18:38–18:39 ====
+

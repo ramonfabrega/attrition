@@ -10791,3 +10791,159 @@ run381's head through the harness's parsers. The score, the word and the
 widening are pinned by `rondata::diff::third`'s four tests, and each pin
 was raised by one and failed. The coverage driver reads run382's blocks
 7..11. **Reading-only**: nothing.
+
+## 84. A border fix reaches the map 256 cells a frame, and the second pair's East Indies word moves to 5773 (2026-09-28, item 1106)
+
+Item 1106 was booked on East Indies' frame 5606 at Toughest: ours 4 draws
+against the original's 5, parting at index 0. Ours spent
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, the original
+`Unit::do_move+0xe84`. The block before, 5605, parted on one key, `1/14`'s
+`order:move.dest`. **No mechanism was named**, and the booking's framing,
+that the original's move was the one that drew, was the wrong way round:
+ours had sent `1/14` three ticks early.
+
+### 84.1 Every instance first
+
+- **With the group record in the walk** (`docs/GROUPS.md` §33.3), run357's
+  block 5601 parts on 172 keys. `1/14` is a Citizen, alone in pool slot 67,
+  and it had parted before the window. Its position is (36525, 23051)
+  against (36908, 23630). Its stack is a `BUILDORDER` on the site `1/2019`
+  under an `EXPLORETOORDER` to (38328, 23304) here and (38328, 23352) there.
+  Group 67's point is (29568, 23424) against (30336, 24960), and its
+  `stamp` 5518 against 5521.
+- **Ours' history** (`RON_DEBUG_UNIT` on the long walk): `1/14` is born on
+  2630, explores, and builds the AI's third city `1/2017` from 4918. It is
+  idle on 5518 and takes a group move west on that tick.
+- **The pushing call chain** (a scratch backtrace, removed): `think_peasant`
+  → the colonist arm `think_civilian_transport(u, 1)` → `push_group`. The
+  cell it picks comes from a strided search whose phase is `o + frame`
+  (`005f40d0`), so three ticks move the cell.
+- **The draw stream agrees through 5605**, so the decision drew nothing on
+  either side.
+
+### 84.2 The packet, and the gate that refused
+
+The colonist arm's gate (`005f40d0`) has three conjuncts: `xport_peasants <
+city_num` (`+0x9c0 < +0x3f8`), the unit's cell owned by its leader (`world
++0x134`, `+0xf`), and `reg_cities[region] != 0` (`+0x125e`). No dump prints
+the cell byte, so **run407** is a packet at logger frame 5518
+(`docs/RUNS.md`). Its log window prints the rest:
+
+| block | `1/2017` | `1/14` | who=1 |
+|---|---|---|---|
+| 5517 | `job_counter` 59900 | building | `reg_terr[11]` 269 |
+| 5518 | finished (flags 39) | no order, `idle` 0 | `city_num` 3, `reg_cities[5]` 1 |
+| 5519 | | `idle` 1, group 66 | `reg_terr` all 0 |
+| 5521 | | `idle` 2, group 66 | `reg_terr[5]` 34 |
+
+The packet: the cell (48, 29) is **unowned**, and every land region's
+resume index is **0**. The city's `City::init` fixed the borders
+(`00737050`, the loop over `+0x2c`), and nothing had yet written the new
+ground.
+
+### 84.3 The listing
+
+- `GameDaemon::check_borders@00732060` runs once a frame. It zeroes
+  `borders`, then walks the 64 land slots and calls
+  `World::compute_reg_territory` on each whose index is below its size.
+- `compute_reg_territory@006b0bb0` zeroes the region's `reg_terr` when its
+  index is 0. It returns early when `0xff < game_daemon->borders`.
+  Otherwise, for each cell from the index, in the region's list
+  (`+0x7c`), it bumps `borders`, computes the claim, and writes the cell's
+  owner and runner-up bytes. That is **256 cells a frame across all the
+  regions**. A region that reaches its end sets `0x2000000`, the economy
+  flag, on every live leader. `check_borders`' tail sums `territory` once
+  every region is done.
+- The packet's regions hold 260, 153, 139, 182, 151, … cells, and the cell
+  is region 5's 113th. The pass writes region 1's first 256 on tick 5518.
+  On 5519 it writes the rest of region 1, region 2 and 99 of region 3. On
+  5520 it writes the rest of region 3, region 4 and region 5's first 34:
+  **the dump's `reg_terr[5]` of 34 on block 5521**. On 5521 it reaches the
+  cell, the gate passes, and the group is stamped 5521.
+- `docs/ATTRITION.md`, "Territory", had described this pass since
+  2026-08-20. This crate recomputed wholesale at the fix, as a stated
+  simplification "until a recorded-game diff says it matters". This is
+  that diff.
+
+### 84.4 A second writer, and what killed each reading
+
+| reading | killer | verdict |
+|---|---|---|
+| the city finishes later in the original | `1/2017` finishes on block 5518 on both sides | killed |
+| the idle gate waits longer there | `1/14` is idle on 5519 there, as here, with `0x40000` (threshold 1) | killed |
+| `xport_peasants < city_num` refuses | 0 against 3 on every block | killed |
+| the cell is not yet the leader's | unowned on the packet; the pass reaches it on 5521 | **held** |
+
+With the pass built, ours' gate refused on 5518 too, but the think fell to
+its tail. There `reg_cities[region] == 0` sends a citizen to
+`think_scout(0)` (`005f5760`), and ours explored. The dump reads
+`reg_cities[5]` 1 on block 5518. **Ours' only writer was the census
+sweep's recount** (step 8). The original has two more: `City::init`
+`+= 1` (`00737050`, beside `reg_pop`) and `City::close` `−= 1`
+(`00737550`), both on the city building's cell region below `0x40`.
+
+### 84.5 What this crate built
+
+- **`sim::border_pass`.** A fix in play (`Sim::sync_territory`) computes
+  the target owners and resets every land region's index. The daemon's
+  pass (`Sim::check_borders`, before the unit loop) copies up to 256 cells
+  a frame, land regions in order and row-major within each (`Regions::
+  rebuild_coords`' order). A finished region marks every ledger dirty, and
+  the pass's end updates the holdings.
+- **A fix before the first frame is setup's** and lands whole
+  (`Sim::in_play`), as `compute_all_territory`'s unlimited budget does.
+  `Sim::settle_borders` finishes a pass at once.
+- **`reg_cities`' lifecycle writers** in `init_city` and `close_city`
+  (`Sim::bump_reg_cities`).
+- **Unit tests**:
+  - `border_pass::tests::a_fix_reaches_the_map_at_256_cells_a_frame_in_region_order`;
+  - `cities_tests::a_city_finished_in_play_counts_at_once_and_takes_its_ground_at_the_pass_s_pace`.
+
+### 84.6 What moved
+
+- **East Indies 5606 → 5773.** On run357's block 5601 the keys went 172 →
+  139, and none arrived:
+  - `1/14`'s 27 rows (`pos`, the route, the figure);
+  - group 67's four (`ox` 29568 against 30336, `stamp` 5518 against 5521);
+  - who=0's `gather_stamp`, 5520 against 5528;
+  - `1/2017`'s `city:peasant_dist`, 2 against 1.
+
+  Blocks 5605 and 5607 part on nothing. Frame 5606's draws went 4 against
+  5 → agreeing.
+- **The new word, 5773** (no mechanism is named): ours 4 draws, the
+  original 3,209, parting at index 0. Ours spends `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271`, the original `PathFinder::calc_road_cost+0x46`.
+  Inside run357 (block 5774): the Caravan `1/33`, trained on 5772, holds a
+  route of two orders there and none here. The cities `1/2000` and
+  `1/2017` each list one caravan fewer here.
+- **Keys close on every other widening the pass reaches, and none opens.**
+  The first pair's widenings run149 … run299, run96 and the two leader
+  windows (run91, run107) each lose one or two keys, who=0's
+  `gather_stamp` or a wealth row (parked 851's among them). run352's block
+  1571 goes 82 → 80. run355's who=1 `territory`, 488 against 290 on block
+  3805, closes. Chapter four's border agrees cell for cell on 17 blocks
+  where it did on 4.
+- **The first pair holds at 24,000**, Great Lakes' second game at its end
+  (5930), the third map at 8, and every golden chapter's walk.
+
+### 84.7 What this has *not* established
+
+- **`reg_terr` is still read live off the owners** (`Sim::reg_terr`), not
+  zeroed and recounted by the pass. It follows the visible grid, so a
+  region the pass has not reached reads its old owners where the original
+  reads 0 (parked 568's transient, narrowed).
+- **The city flags the pass writes** (`City +0x65`, the `0x1000` border
+  contact) and **a fix mid-pass that changes the sources** are still
+  applied from the fix's target. The sources change only through a fix
+  here, and a fix restarts the pass.
+- **Sea cells** are never passed. This crate writes them `None` at the fix
+  and they stay `None`, as the original's do.
+
+### 84.8 Coverage
+
+**Diff-backed**: the move of the word and every closed key above, by
+run346's walk, run357's widening and the widenings the gate runs. **Packet-
+backed**: the cell's owner and the regions' indices on 5518 (run407).
+**Listing-backed**: the budget and the order, which the dump's
+`reg_terr[5]` of 34 on 5521 confirms, and `City::init`/`City::close`'s
+`reg_cities` writers.
