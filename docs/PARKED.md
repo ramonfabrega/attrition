@@ -116,6 +116,21 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1200, 2026-09-29 — the air line's other arms
+
+(1210) **The death-object cull, measured** (COMBAT §59.7): the Hoplite
+death piece's two packets over `corpse_fade_end`'s 627 are 16 and 29
+frames. Building it frees dead numbers in every capture, so it wants a
+gate of its own.
+
+(1211) **The splash's neutral object**: the original strikes it (only
+its own and mutual allies are left out of a non-target); this crate
+leaves it out.
+
+(1212) **The air line's unbuilt arms**: the escort's non-bomber search
+(`do_strafe`'s ally arm, `None` here), and a plane that is neither
+Bomber nor strafer, whose release is `fire_ammo` (`5eb4bc`).
+
 ## Parked by item 1194, 2026-09-29 — the food row and the other javelins
 
 (1207) **run442's 16783: who=1's `bucket[0:food]` 118 against 125**,
@@ -127,11 +142,10 @@ them).
 
 ## Parked by item 1182, 2026-09-29 — row 7's other arms
 
-(1201) **Two of row 7's rows no golden staging reaches** (GOLDEN §50):
-`resolve_block`, which `do_move` asks where `PathFinder::astar_path`
-flags a passable building tile — a wall's gate across an enemy's path
-would enter it; and `make_valid`, the allocate arm past `Objects::init`'s
-200 preallocated slots, the registry's rather than row 7's.
+(1201) **`make_valid`, a row 7 row no golden staging reaches** (GOLDEN
+§50): the allocate arm past `Objects::init`'s 200 preallocated slots,
+the registry's rather than row 7's. Its sibling `resolve_block` is
+booked as chapter forty-two (1209).
 
 (1202) **`is_siege`'s second arm**: a computer's siege attacker at a City
 at zero, and `Army::charge`. The console's `damage` verb would stage it;
@@ -2309,6 +2323,13 @@ is the whole instrument for a release node, where `AMMO` answers only
 the headings a fight shows; it graduates into `tools/recomp/` as one
 script taking a piece, keys and a packet and printing `Bay` rows
 (CLAUDE.md, "a probe shape reached for a third time"). One reach.
+
+(1213) **A booked mechanism a five-minute listing read would have
+killed** (1200's Loop line): 1182 named the reach and `fire_ammo` for
+839, and the cause was a wood's cell test; the widening's value rows
+(`recharging`, `cur_anim`) named the release, not its predicate, which
+needed the release's inputs printed frame by frame. A booking that
+names an arm could carry its predicate's listing lines. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, eighteen landings since the nineteenth pass: East Indies
+*2026-09-29, nineteen landings since the nineteenth pass: East Indies
 6151 → 8820 (1127, 1143, 1156, 1164, 1174, 1185, 1191); Great Sahara
 6/5 → 1850/1850, long word 8 → 17623 (1133, 1147, 1163, 1171, 1177,
-1189, 1194); chapters thirty-eight to forty closed, forty-one open at 839.*
+1189, 1194); chapters thirty-eight to forty-one closed (… 1182, 1200).*
 
 - **Three lanes, on the user's word** (DECISIONS 55, amended): the
   second pair's — 1197, East Indies' 8820; **the third map's** — 1206,
-  Great Sahara's frame 17623; the rules' — 1200, chapter forty-one's 839.
+  Great Sahara's frame 17623; the rules' — 1209, chapter forty-two.
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
@@ -31,17 +31,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 29 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1199, 1205, 1208).
+- **Fable backlog: 30 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1199, 1205, 1208, 1213).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w8820 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w17623 of 24,000
-Golden: ch41 w839 of 1,771 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · 1209 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander resumes on three live lanes, `att-<item>` —
-1197, 1206 and 1200; the twentieth pass at twenty landings, two to go.**
+1197, 1206 and 1209; the twentieth pass at twenty landings, one to go.**
 
 ## The queue
 
@@ -67,12 +67,13 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     and `1/70`, two of the four figures the original wraps on 8820. No
     mechanism is named.
 
-1200. **Chapter forty-one's word: frame 839, ours 4 draws against 3**
-    (1182), the Biplane's strafe release on who=0's Hoplites 19 frames
-    early here, through `do_strafe`'s non-bomber arm — its reach and
-    `fire_ammo` — widened whole on run437 (605..1771,
-    `chapter_forty_one_s_word_frame_is_widened_whole`). That arm is
-    1182's reading, not a mechanism. GOLDEN §50.
+1209. **Chapter forty-two: a Gate across a path — no capture yet**
+    (1200 closed forty-one at 1770; CENSUS row 7's last two).
+    `Unit::resolve_block`, which `do_move` asks where
+    `PathFinder::astar_path` flags a passable building tile: a wall with a
+    Gate across an enemy's path, both sides' walkers. Which arms a staging reaches is the item's
+    first finding. The emulator first; **run460** the capture, run461 at
+    `cover=1`. GOLDEN §51.
 
 ## How to maintain this file
 
