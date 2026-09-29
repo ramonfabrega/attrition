@@ -1410,6 +1410,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 404 | thirty-eight, the air line under fire | `[605, 1762)` | a cast of its own on the golden start (1094): an Airbase `0/2007` and two Bombers `0/6`, `0/7` (606..612), who=1's Barracks T `1/2006`, a Radar Air Defense R `1/2007`, an Infantry squad I `1/6`..`1/8` and an Anti-Aircraft Battery A `1/9` (616..622), `@flight` home (640) and `@strike` on T in flight (644); at `cover=0` on the click-free lane, run405 the same at `cover=1` on the queue lane (`is_flying_low`, `is_flying_high`, `Ammo::init_crash`, `NEVER` rows), with `GROUPS=1` at `GUYS=4`, `AMMO=5` and `DEATHS=1`; the staging walked by this crate's `stage_walk` on run397's start (§47) — **run 2026-09-28 (item 1102), 321 MB, 895 s; the receipt refused it: `DEATHS=1` beside `GROUPS=1` printed no pool; no falsifier fired, 6 could not: 43 flak rounds one draw each, every matched flag its roll's, both Bombers shot down on 1006 and 1019 with a crash round and no death object; word 742 (the jam roll), then 776, open (item 1102: the jam roll, the flak roll and the crash built); then 777, open (item 1109: the foot line's speed, the anti-air angle and the Modern Infantry's step); then 779, open (item 1112: the anti-air building's `Wall::inc_time` cycle, `docs/COMBAT.md` §84); then 794, open (item 1117: the release gate is the event's, `docs/COMBAT.md` §85); then 878, open (item 1113: the Modern Infantry squad's scatter and pack, `docs/GROUPS.md` §34); then 1762, closed (item 1131: an armed building's ×5 a computer's, an object's `z` clamped, a building's `damage_o`, and `do_attack`'s target flow, `docs/COMBAT.md` §8.6)** |
 | 422 | thirty-nine, the spell issuer's untargeted crafts | `[605, 1100)` | a cast of its own on the golden start: `library who=0 1` and `tech who=0 militia on`, two Citizens, a Militia, a General beside a Hoplite and a Slinger squad (606..616); To Arms on each Citizen (620, 640), Civilian on the Militia (660) and on the first Citizen (700), Create Decoys (720); at `cover=0` on the click-free lane, run423 the same at `cover=1` on the queue lane (the three casts, `NEVER` rows), with `GROUPS=1` at `GUYS=4`; the predicates read on run424's packet at 619 (§48) — **run 2026-09-29 (item 1111), 224 MB, 651 s, the third take (the first staged nothing, the second's `tech` line only reported); no falsifier fired: both Citizens Militia on 626 and 646 with `rare` 50, back on 666 and 706 with `rare` 50 kept, two decoy squads on 821 aging a frame; word 820 with the conversions built, then 1100, closed (item 1111: the decoy, and a Citizen's hits and LOS from the Militia line)** |
 | 430 | forty, the casts' other arms | `[605, 1150)` | a cast of its own on the golden start: `peace 1`, To Arms refused before the Militia (606) and on who=1's land (612), D bled there and walked out (700), converted both ways wounded (800, 840); three Militia's `@repair`, `@build` and `@gather` (630..650, the last the DLL's new verb 25); a Militia garrisoned in the City (660) and `@alarm` twice (880, 900, verb 24); at `cover=0` on the click-free lane, run431 the same at `cover=1` on the queue lane (`action_alarm`, `action_gather`, `NEVER` rows), with `CITIES=5`, `GROUPS=1` at `GUYS=4`; the staging walked off run422's dump and this crate's walk (§49) — **run 2026-09-29 (item 1167), 231 MB, 757 s; no falsifier fired; word 900 (the all-clear's draw on the pump's frame), then 1150, closed** |
+| 437 | forty-one, CENSUS row 7's last seven | `[605, 1770)` | a cast of its own on the golden start: who=1's Airbase and Biplane, flown home through `be 1` held across the pump (620, 621), a sortie over who=1's City under attack from who=0's Hoplites (700); a trireme at a who=1 Barracks (630) whose Citizen repairs under its rounds (900, 901); at `cover=0` on the click-free lane, run438 the same to 1140 at `cover=1` on the queue lane (`get_speed`, `is_siege`, `NEVER` rows), with `CITIES=5` and `AMMO=5` at `GUYS=4`; run436 the first take, `be 0` on the issuing frame (§50) — **run 2026-09-29 (item 1182), 321 MB, 888 s; no falsifier fired; word 623, 964, then 839 (the Biplane's strafe released 19 frames early)** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -8264,7 +8265,7 @@ callers): `is_flying_low`, `is_flying_high`, `Ammo::init_crash`,
 `ObjectData::is_siege@0046ef90`, `UnitData::get_speed@006086f0`,
 `ObjectData::is_in_range@0064e4a0`, `SpellType::cast_civilian@006704a0`,
 `cast_to_arms@00670880` and `cast_create_decoy@00674370`, nine tied by
-their callers; the other four are not recoverable from CENSUS — the nearest
+their callers; ~~the other four are not recoverable from CENSUS~~ (§50) — the nearest
 by caller, `MoveOrder::is_fleeing@004889a0` (`target_opportunity`'s),
 `Unit::resolve_block@005fccc0` (`do_move`'s), `Units::make_valid@0061a960`
 and `UnitBalance::next@009b8ac0`, are on no air path.
@@ -8273,9 +8274,9 @@ and `UnitBalance::next@009b8ac0`, are on no air path.
 flak round asks it, and its answer picks the roll: a failure teaches the
 flak's whole hit model), **`init_crash`** (the kill: a draw and a round),
 **`is_flying_high`** (the Infantry's ladder; it may not fire, below).
-Dropped: `get_speed` — its one caller is `Object::do_launch`'s sortie arm,
+Dropped: ~~`get_speed`~~ (§50) — its one caller is `Object::do_launch`'s sortie arm,
 which searches every player's objects and orders an idle plane out; its
-gate is unread, a reading before a chapter. `is_siege` — its two calls in
+gate is unread, a reading before a chapter. ~~`is_siege`~~ (§50) — its two calls in
 `Object::do_damage@0064a480` are a sea-domain responder to a struck friend
 and a computer's siege unit in an army charging a city (the navy's and the
 AI's). `is_in_range` — the tracer cannot hook it (a branch target inside
@@ -8853,3 +8854,201 @@ SEAMs. `find_garrison_build`'s room test is `num_inside < limit` here,
 `num_inside + control_cost <= limit` in the listing — one for a pop-1
 Citizen. `eject_contents`' own Civilian arm (a Militia put out unconverted)
 is read and built, and unreached: the all-clear converts first.
+
+## 50. Chapter forty-one — CENSUS row 7's last seven: a computer's Airbase sends its Biplane over its City under attack, and a trireme's hits on a Barracks spill onto the Citizen repairing it (item 1182)
+
+**Premise.** `docs/CENSUS.md`'s row 7 kept seven `NEVER` rows past chapter
+forty. Three of them were named by caller (§47); the other four were not
+recoverable from the census, and §47 named the nearest by caller. Each is
+read here off its callers in the image (`report.py <exe> refs`) and the
+branch that reaches the call:
+
+| function | caller, and the branch | verdict |
+|---|---|---|
+| `UnitData::get_speed@006086f0` | `Object::do_launch+0x13c1` (`650771`): a computer's base's sortie | **staged** here; run438 enters it on 778 |
+| `ObjectData::is_siege@0046ef90` | `Object::do_damage+0x1f33` (`64c3b3`), a sea attacker's spill onto a building's hands; `+0x2187` (`64c607`), a computer's attacker at a City at zero | **staged** (the first arm); run438 enters it on 1088 |
+| `ObjectData::is_in_range@0064e4a0` | `Unit::do_air_attack_ground+0x92` (`5ea4b2`), `do_attack_ground` twice | **entered and unseen**: the tracer cannot hook it; run372's strike on 2701 fires only past its answer. `RESIDUE` |
+| `MoveOrder::is_fleeing@004889a0` | its two vtordisp thunks, vslot `+0x28` of the move orders | **undispatched**: no instruction calls the slot on an order (`docs/ORDERS.md` §1.3). `RESIDUE` |
+| `UnitBalance::next@009b8ac0` | `Game::check_victory`, `Setup::build_empire`, `TurnControl::toggle_pause` | **the unit-balance mode**: all three sit under semaphore byte 1's bit 2, which `Game::run_unit_balance` alone sets (`GAME_UNIT_BALANCE`, not a match). `RESIDUE` |
+| `Unit::resolve_block@005fccc0` | `Unit::do_move` three times, on a waypoint with flag `0x10` | **a gate's staging**: `PathFinder::astar_path` sets the flag on a passable building tile, a Gate. No wall has been staged; a chapter of its own |
+| `Units::make_valid@0061a960` | `Objects::find_free`'s allocate arms, `SubObject::walk_data`, `ScenarioRead::load_unit_chunk` | **a registry's staging**: `Objects::init` preallocates `num_def_units` = 200 slots a player (`Game::init_data`), so only a player past 200 unit slots reaches it |
+
+**The readings**, each off the listing:
+
+- **The sortie** (`Object::do_launch@0064f3b0`, `64f81c`..`6508a7`). It is
+  reached past the chain walk, so only once `launch_frames` has saturated.
+  The gates are:
+  - the owner not human (`leader_flags & 4`);
+  - `(frame + id) % 32 == 0`;
+  - not `leader_flags2 & 8`, the combat AI's scenario switch, which `ai
+    off` does not touch.
+
+  A base that `is(MISSILESILO)` takes the silo's arm instead. Otherwise the
+  best target is chosen over the eight leaders `L` with `leader_flags & 3
+  == 3` that the owner is not at peace with (`is_peace` answers no for a
+  player and itself). A strictly greater value replaces the best, from −1:
+  - **L's cities** with `city_flags & 3 == 3`, alive **and under attack**.
+    A city is skipped when the owner lacks `STEALTHBOMBER` and an enemy
+    `AIRDEFENSE` stands within `0x900`. Its value is `damage/100 + 1000`,
+    doubled when `L` is an ally, over `vector_dist(city − base)/768 + 1`.
+  - **Its forts and its wonders, when `L` is an enemy.** A wonder carries a
+    ×10 when the team's wonder value is behind the enemy's, and a ×100
+    when the difficulty is 3 or more and another team is winning.
+
+  With a target, every air unit of the base's chain is cleared. When
+  `dist(target − base) < get_speed(it, 1) × mana(it)` it is patrolled over
+  the target (`add_air_patrol_order`, the action bit 0). Over a friend's
+  city only a plane of the Biplane line goes.
+- **The spill** (`Object::do_damage@0064a480`, `64c10c`..`64c4e3`). It
+  follows `take_damage` on a building target, whether or not the hit
+  killed. It walks the cells of `circle_radius[1]` round the building's
+  cell, each chain in order. A candidate must be:
+  - an enemy of the attacker's, active and on the map;
+  - with its front order (`UnitData::order_type`) `BUILD_AT` or `REPAIR`;
+  - with its action order's target this building (`valid_filter` 9 and 10);
+  - not a Korean's under `KOREAN_BUILD_UNDER_FIRE`;
+  - within the building's larger half-extent × 192.
+
+  What the candidate takes depends on the attacker:
+  - an aircraft: nothing;
+  - a sea attacker asks `ObjectData::is_siege` of itself (`64c3b3`), and a
+    siege one spills nothing;
+  - a land siege type: `count / 4`;
+  - anything else, within `max(max_range × 192, 0x180)` of the building:
+    `count / 8`.
+
+  The share is dealt as `do_damage(…, splash 0, quiet 1)`, and both
+  divisions round toward zero.
+- **The seat at the pump.** In a solo game `CommandManager::process_turn`
+  stamps the package with `console->play` as the pump walks it (`:154`).
+  `CommandPackage::process_group` then drops a group whose player is not
+  that player's (`:117`). So `be N` must stand across the pump for a
+  command to another player's units.
+- **A packed packer in range unpacks first** (`Unit::fight@005fd4d0:512`..
+  `543`). It is given `add_cast_order(UNPACK, QUEUE_FIRST)` and does not
+  strike. The computer's siege sub-arm ahead of it (a better spot against
+  an armed building) is a SEAM.
+- **A non-bomber's patrol search** is `Unit::find_new_air_target@005ebc70`
+  (`5ebc70`..`5ebfd6`), with `r = AIRCRAFT_RESPOND_RANGE × 0xc0`:
+  - a computer's plane searches round itself;
+  - first come enemy air units within `r` of the plane (`find_units`,
+    `FILTER_DOMAIN` air), the best by `compare_target(t, 1, 0)`;
+  - then none when the plane is more than `range × 0x3c0` from the point;
+  - then every enemy unit within `r` of the point.
+
+  A valid answer is struck from the patrol's last leg, or from any leg when
+  it flies.
+
+**The staging, walked before each capture** (`RON_STAGE`, `RON_STAGE_ALL`;
+the walk prints the sea as `~`, and each city's attack bits). Two
+predicates were not on disk:
+- `add` puts a plane **outside** its base, and nothing a channel line
+  reaches puts a computer's plane inside (chapter six-b's reading);
+- the DLL issues only for `console->play`, its refusal 1.
+
+`be` (chat case 43) moves the seat. That put the Biplane home by its own
+flight. `add`ed buildings join **no city**: chapter thirty-eight's
+`1/2006` and `1/2007` read `city -1`. So the City under attack is who=0's
+Hoplites on a member Farm, not the trireme on the Barracks.
+
+**run436, the first take** (`docs/RUNS.md`). Its script carried `be 0` on
+the issuing frame and a Catapult at the Barracks. The DLL issued both
+who=1 commands, and the dump logs `process_flight 621` and
+`process_swarm_around … 721`. But the Biplane holds no order on any
+block to 1600, and the Citizen never repairs: the pump's seat, read
+above. The harness now drops such a line at its own pump
+(`golden::Script::pump`). `run436_s_other_seat_s_commands_are_dropped_at_the_pump`
+walks run436 with its own lines. The Catapult unpacked in place, then
+parted on 704 over its crew's swing roll (`Unit::set_anim+0xb6`, two
+draws the original spends and this crate defers). It is not this
+chapter's mechanism, so the re-take drops it.
+
+**The cast and the lines** (`chapter41.cmd`), on the golden start:
+- `!ai off`;
+- who=1's Airbase `1/2006` (606) and Biplane `1/6` (608);
+- a Barracks `1/2007` on the east lake's west shore (610) and a Citizen
+  `1/7` (612);
+- who=0's trireme `0/6` in the lake (614) and Hoplites `0/7..9` on who=1's
+  land (616);
+- `be 1` / `@flight 1 2006 1 6` (620), `be 0` (621);
+- `@attack` of the trireme on the Barracks (630), and of `0/7` on who=1's
+  Farm `1/2002` (700);
+- `be 1` / `@repair 1 2007 1 7` (900), `be 0` (901).
+
+The window is `[605, 1770)`.
+
+**Run 2026-09-29 as run437 (item 1182)**, 321 MB, 888 s. **No falsifier
+fired**:
+- the Biplane takes its strafe home on 621, is inside `1/2006` by block
+  742, and holds its `AIRPATROLORDER` from block 779 — the sortie on 778,
+  over who=1's City (42336, 16224);
+- it is out on 810, home on 1330 and out again on 1480;
+- the Citizen repairs from 902 and carries a spill's wound on block 1130.
+
+**run438**, the same lines at `cover=1` to 1140 on the queue lane: every
+issue as run437's, 1,141 frames of draws identical, `get_speed` entered
+on 778 and `is_siege` on 1088. `NEVER` 138 → 136.
+
+**Where this crate parted, and what closed it:**
+1. **623**, the Biplane's flight. It was not dropped here, so ours flew.
+   The pump's seat closed it, and run436 is its test.
+2. **858, and the word 964**. The patrol's search is a Bomber's alone in
+   this crate (`do_air_patrol`'s SEAM). The original's Biplane strafes
+   who=0's Hoplites from 826. `find_new_air_target` closed it, with the
+   leg exception for a flying target.
+3. **The word is 839**, ours 4 draws against 3. The Biplane's strafe on
+   the Hoplites releases on 839 in this crate and on 858 in the original.
+   The value diff on block 840 is `1/6`:
+   - `recharging` 31 against 0;
+   - guy 0 on `CHAR_ATTACK` (12) against the walk (8), `end_time` 32
+     against 8;
+   - two rounds this crate holds alone.
+
+   The original holds its fire at 711 units from its target on 855 and at
+   603 on 857, both on the nose, and fires at 549. The Biplane's `RANGE`
+   is `2-7`. `do_strafe`'s release for a non-bomber — its reach through
+   `attack_dist`'s plane arm (vslot `0xc0`), and its `fire_ammo` in place
+   of `CHAR_ATTACK2` — is the SEAM the word stands on.
+
+**The widening is run437 whole**, both directions, with no pool: the
+capture prints no `GROUPS`, which its verifier refuses when no block
+prints one (parked 735). It gives 513 rows. Under the word, 35 rows, all
+standing families:
+- the birth `form` (parked 1169);
+- the first block's `filled_gather_slots`;
+- the human City's census (parked 1183);
+- the trireme's attack `order:target`, which this crate keeps on the unit;
+- **`1/2000`'s `raid_stamp`, written on 671 as who=0's Hoplites stand on
+  who=1's land**, which this crate has no writer for.
+
+From 840, the word's cascade.
+
+**Mutations**, each on the committed build, `git diff --stat` non-empty,
+restored from git and touched — the table below.
+
+| mutation | held by |
+|---|---|
+| the sortie off | the word, the widening, the sortie's unit test |
+| the sortie ignores the city's attack bit | the sortie's unit test |
+| the sortie ignores the owner's human bit | the sortie's unit test |
+| the sortie's ally doubling dropped | **nothing**: only who=1's own City is under attack here, and no test ranks two |
+| the non-bomber search answers none | the word, the widening |
+| a flying target's any-leg exception dropped | **nothing**: the patrol has one point, so every leg is the last |
+| the spill off | the spill's unit test (the first spill, 1088, is past the word) |
+| the spill's eighth read as a quarter | the widening, the spill's unit test |
+| the spill's sea-siege arm dropped | the spill's unit test (the trireme is not siege) |
+| the packed packer's unpack off | run436's test, the unpack's unit test |
+| the pump's seat drop off | run436's test |
+| the DLL's refusal 1 off | `an_issuer_line_for_another_seat_is_refused_as_the_dll_refuses_it` |
+
+**What is not established.**
+- The silo's sortie arm, the forts' and wonders' values, the
+  `AIRDEFENSE` search's radius and `STEALTHBOMBER`: no staging reaches
+  them.
+- The spill's land non-siege and land-siege shares against a capture:
+  the unit test holds them, and run436's Catapult parted before its first
+  spill.
+- `is_siege`'s second arm, a computer's siege attacker at a City at zero
+  (`Army::charge`). The console's `damage` verb would stage it and is not
+  modelled.
+- `resolve_block` and `make_valid`, as the table says.

@@ -1945,7 +1945,104 @@ impl Sim {
         if !killed && let Obj::Unit(t) = target {
             self.units[t].combat.entrenched = false;
         }
+        if let Obj::Building(b) = target {
+            self.spill_onto_builders(attacker, b, angle, ammo, count, frame);
+        }
         Some(taken)
+    }
+
+    /// **A hit on a building spills onto the hands at work on it**
+    /// (`Object::do_damage@0064a480`'s tail, `64c10c`..`64c4e3`, item
+    /// 1182, `docs/GOLDEN.md` §50). Reached for a building target only
+    /// (`64bec5`, `is_build`), after `take_damage`, whether it killed or
+    /// not. For each cell of `circle_x/y[..circle_radius[1]]` round the
+    /// building's cell, its object chain, in chain order:
+    ///
+    /// ```text
+    /// an enemy of the attacker's (Search::valid_search mode 3), active and
+    ///   on the map, whose FRONT order is BUILD_AT or REPAIR (valid_filter
+    ///   9, UnitData::order_type) and whose action's target is this
+    ///   building (valid_filter 10);
+    /// not a Korean's under KOREAN_BUILD_UNDER_FIRE (has_tribe_bonus 0x10);
+    /// vector_dist(it, building) <= max(x_size, y_size) * 192;
+    /// the attacker: air, none; sea and is_siege, none (`64c3b3`,
+    ///   ObjectData::is_siege@0046ef90);
+    ///   a land siege type: count / 4, no reach test;
+    ///   else vector_dist(it, building) <= max(max_range * 192, 0x180):
+    ///   count / 8;
+    /// do_damage(attacker, it, angle, ·, ammo, count', splash 0, quiet 1)
+    /// ```
+    ///
+    /// Both divisions are the sign-fixed shifts of the listing (`cdq; and
+    /// edx, 3|7; add; sar`), toward zero. SEAM: `num_guys` (§7.1), which
+    /// this crate's `do_damage` does not carry, is passed through there.
+    fn spill_onto_builders(
+        &mut self,
+        attacker: Obj,
+        b: usize,
+        angle: Angle,
+        ammo: bool,
+        count: i32,
+        frame: i64,
+    ) {
+        let ap = self.profile(attacker);
+        let bp = self.profile(Obj::Building(b));
+        let at = self.owner_of(attacker);
+        let centre = self.buildings[b].pos;
+        let home = centre.cell();
+        let circ = crate::ai_place::circle();
+        for k in 0..circ.radius[1] {
+            let cell = crate::Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
+            if cell.x < 0
+                || cell.y < 0
+                || cell.x >= self.world.width()
+                || cell.y >= self.world.height()
+            {
+                continue;
+            }
+            for u in self.cell_chain(cell) {
+                let unit = &self.units[u];
+                if !self.is_enemy(unit.owner, at) || !unit.alive() || !unit.on_map {
+                    continue;
+                }
+                let front = unit.orders.front().map(|o| o.body);
+                if !matches!(front, Some(crate::orders::Body::Build(x) | crate::orders::Body::Repair(x)) if x == b)
+                {
+                    continue;
+                }
+                if self.nation[unit.owner as usize].koreans
+                    && self.tuning.korean_build_under_fire != 0
+                {
+                    continue;
+                }
+                let d = vector_dist(unit.pos.x - centre.x, unit.pos.y - centre.y);
+                if d > bp.x_size.max(bp.y_size) * 192 {
+                    continue;
+                }
+                let share = match ap.domain {
+                    Domain::Air => continue,
+                    Domain::Sea if ap.siege => continue,
+                    Domain::Land if ap.siege => (count + ((count >> 31) & 3)) >> 2,
+                    _ => {
+                        let reach = (self.max_range_of(attacker) * 192).max(0x180);
+                        if d > reach {
+                            continue;
+                        }
+                        (count + ((count >> 31) & 7)) >> 3
+                    }
+                };
+                self.do_damage(
+                    attacker,
+                    Obj::Unit(u),
+                    angle,
+                    ammo,
+                    share,
+                    false,
+                    true,
+                    frame,
+                );
+            }
+        }
     }
 
     /// `Object::take_damage` (§7.2) on a unit figure or a building.
@@ -4226,6 +4323,130 @@ mod tests {
     /// **Made to fail on purpose**: with the arm's call taken out of
     /// `think`, the human's catapult takes the attack order on its first
     /// idle frame, which is 587's word.
+    /// **A hit on a building spills onto the enemy hands repairing it**
+    /// (`Object::do_damage@0064a480`'s tail, item 1182, `docs/GOLDEN.md`
+    /// §50): an eighth for a sea attacker that is not siege and a land one,
+    /// a quarter for a land siege type, nothing for a sea siege type (the
+    /// `is_siege` arm at `64c3b3`) or an aircraft, and nothing onto a
+    /// citizen of the building's side that is not at work on it. Made to
+    /// fail with the sea arm's `is_siege` test dropped, and with the
+    /// quarter read as an eighth.
+    #[test]
+    fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
+        use crate::orders::{Body, Order};
+        for (domain, siege, repairing, share) in [
+            (Domain::Sea, false, true, Some(8)),
+            (Domain::Sea, true, true, None),
+            (Domain::Land, true, true, Some(4)),
+            (Domain::Land, false, true, Some(8)),
+            (Domain::Air, false, true, None),
+            (Domain::Land, false, false, None),
+        ] {
+            let (mut sim, ty) = at_war();
+            let mut at = sim.unit_types[ty].clone();
+            at.combat.domain = domain;
+            at.combat.siege = siege;
+            at.kind.domain = domain;
+            let at = sim.add_unit_type(at);
+            let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].health = 1200;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 2,
+                y_size: 2,
+                ..Profile::default()
+            });
+            let hand = put(&mut sim, 1, ty, Pos::new(3300, 3000));
+            if repairing {
+                sim.units[hand].orders.push_back(Order {
+                    flags: 0,
+                    body: Body::Repair(b),
+                });
+            }
+            let me = put(&mut sim, 0, at, Pos::new(3600, 3000));
+            let count = 0x800;
+            sim.do_damage(
+                Obj::Unit(me),
+                Obj::Building(b),
+                Angle(0),
+                false,
+                count,
+                false,
+                false,
+                700,
+            );
+            let spilt: Vec<_> = sim
+                .hits
+                .iter()
+                .filter(|h| h.target == Obj::Unit(hand))
+                .copied()
+                .collect();
+            match share {
+                None => assert!(spilt.is_empty(), "{domain:?} siege {siege}: a spill"),
+                Some(k) => {
+                    assert_eq!(spilt.len(), 1, "{domain:?} siege {siege}: no spill");
+                    let ap = sim.profile(Obj::Unit(me));
+                    let want = combat::scale(
+                        spilt[0].damage,
+                        count / k,
+                        true,
+                        false,
+                        ap.ammo_per_att,
+                        ap.uber_size,
+                    );
+                    assert_eq!(spilt[0].dealt, want, "{domain:?} siege {siege}: the share");
+                }
+            }
+        }
+    }
+
+    /// **A packed packer in range of its attack unpacks first**
+    /// (`Unit::fight@005fd4d0:512`–`543`, item 1182): a human's packed
+    /// catapult holding an attack on a building in range is given the
+    /// unpack at the head and strikes nothing, where it used to fall through
+    /// to the strike. Made to fail with [`Sim::packed_unpacks`] answering
+    /// false.
+    #[test]
+    fn a_packed_packer_in_range_unpacks_before_it_strikes() {
+        use crate::orders::{Body, spell};
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                uber_size: 1,
+                siege: true,
+                packs: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+        assert!(sim.units[me].combat.packed);
+        let b = sim.add_building(1, Pos::new(0x4000 + 6 * 192, 0x4000), 0);
+        sim.buildings[b].started = true;
+        sim.buildings[b].active = true;
+        sim.buildings[b].health = 1200;
+        sim.buildings[b].combat = Some(Profile::default());
+        sim.add_attack_order(
+            me,
+            Obj::Building(b),
+            crate::orders::QueuePos::New,
+            true,
+            true,
+        );
+        let frame = sim.frame;
+        sim.work(me, frame);
+        assert!(
+            matches!(sim.units[me].orders.front().map(|o| o.body), Some(Body::Cast(c)) if c.spell == spell::UNPACK),
+            "no unpack at the head: {:?}",
+            sim.units[me].orders
+        );
+        assert!(sim.hits.is_empty(), "a packed engine struck");
+    }
+
     #[test]
     fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
         use crate::orders::{Body, spell};

@@ -32,7 +32,7 @@ use crate::world::{Player, Pos, vector_dist};
 use crate::{Sim, orders::QueuePos};
 
 /// `ObjectData::is(0x11f)` — the Biplane line, the fighters.
-const BIPLANE: crate::tech::TypeId = 0x11f;
+pub(crate) const BIPLANE: crate::tech::TypeId = 0x11f;
 
 /// `ObjectData::is(0x136)` — the Helicopter line.
 pub(crate) const HELICOPTER: crate::tech::TypeId = 0x136;
