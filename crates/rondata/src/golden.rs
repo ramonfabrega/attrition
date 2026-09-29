@@ -237,9 +237,49 @@ impl Script {
     /// `add hoplite` spends three `Guy::init_real+0x52` draws and without
     /// this they were the frame's first three and invisible.
     pub fn stage(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
+        let mut done = self.pump(frame, built);
         built.sim.phase_marks.clear();
-        let done = self.apply(frame, built, loaded);
+        done.merge(&self.apply(frame, built, loaded));
         built.sim.staged_marks = std::mem::take(&mut built.sim.phase_marks);
+        done
+    }
+
+    /// **The turn pump**: the issuer lines written on `frame − 1`, run
+    /// before the tick of `frame` ([`Script::apply`] says why), with their
+    /// draws put at the **tail of `frame − 1`'s record** — the trace's
+    /// frame runs from one `do_frame` entry to the next, and the pump
+    /// walks the package between them (item 1167: run430's all-clear
+    /// spends `cast_civilian`'s `set_type` draw, `Guy::init_real+0x52`,
+    /// last on trace frame 900, after the frame's farms). No command
+    /// before chapter forty's drew inside the pump. [`Script::stage`]
+    /// calls it first; a walk that records each frame's opening word
+    /// calls it before reading the word, which is the word the trace
+    /// holds at `do_frame`'s entry.
+    pub fn pump(&mut self, frame: i64, built: &mut Built) -> Applied {
+        let mut done = Applied::default();
+        let (due, later): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending)
+            .into_iter()
+            .partition(|(f, _)| *f <= frame);
+        self.pending = later;
+        if due.is_empty() {
+            return done;
+        }
+        built.sim.phase_marks.clear();
+        for (f, line) in due {
+            if f < frame {
+                done.skip(&command_word(&line.text), "the frame was stepped past");
+            } else {
+                issue(&line, built, &mut done);
+            }
+        }
+        let marks = std::mem::take(&mut built.sim.phase_marks);
+        if built.sim.trace_phases
+            && let Some(sites) = crate::diff::mark_sites(&marks, built.sim.rng.seed)
+            && let Some((f, v)) = built.frame_sites.last_mut()
+            && *f == frame - 1
+        {
+            v.extend(sites);
+        }
         done
     }
 
@@ -266,18 +306,7 @@ impl Script {
     /// `f` is run here before the tick of `f + 1`, ahead of any cheat line
     /// staged on `f + 1`, as the pump runs ahead of `do_frame`'s entry.
     pub fn apply(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
-        let mut done = Applied::default();
-        let (due, later): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending)
-            .into_iter()
-            .partition(|(f, _)| *f <= frame);
-        self.pending = later;
-        for (f, line) in due {
-            if f < frame {
-                done.skip(&command_word(&line.text), "the frame was stepped past");
-            } else {
-                issue(&line, built, &mut done);
-            }
-        }
+        let mut done = self.pump(frame, built);
         while self.next < self.lines.len() && self.lines[self.next].frame < frame {
             let word = command_word(&self.lines[self.next].text);
             done.skip(&word, "the frame was stepped past");

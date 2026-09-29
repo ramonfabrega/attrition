@@ -18,8 +18,8 @@ use crate::orders::{Body, CastOrder, MoveKind, Order, QueuePos, flag, spell};
 use crate::{Player, Pos, Sim};
 
 /// `TypeIndex` rows the three untargeted crafts name (`enums/TypeIndex.txt`).
-const PEASANTS: i32 = 0x32;
-const MILITIA: i32 = 0x42;
+pub(crate) const PEASANTS: i32 = 0x32;
+pub(crate) const MILITIA: i32 = 0x42;
 const MINUTEMAN: i32 = 0x43;
 const PARTISAN: i32 = 0x44;
 /// `LeaderData::get_general_upgrade`, which no staged leader raises.

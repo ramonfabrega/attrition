@@ -184,6 +184,9 @@ fn walk_script(run: &str, stem: &str, n: u32, staged: usize, length: i64) -> Opt
     // answers it.
     let sites = crate::diff::harness::site_window_named("RON_GOLDEN_SITES");
     for _ in 0..last {
+        // The pump first: the trace's frame opens at `do_frame`'s entry,
+        // after it (item 1167).
+        applied.merge(&script.pump(built.sim.frame, &mut built));
         words.push((built.sim.frame, built.sim.rng.seed));
         let did = script.stage(built.sim.frame, &mut built, &loaded);
         applied.merge(&did);
@@ -13242,6 +13245,153 @@ fn chapter_thirty_nine_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty, pinned** — the casts' other arms (`docs/GOLDEN.md`
+/// §49, item 1167, run430). Twenty-one staged lines on the golden start.
+#[test]
+fn chapter_forty_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch40", "chapter40", 40, 21, 1149) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY,
+        "chapter forty's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY,
+        "chapter forty's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §49"
+    );
+}
+
+/// **run430 whole, both directions** (item 1167, `docs/GOLDEN.md` §49):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_forty_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch40",
+        "chapter40",
+        WIDENING_CHAPTER_FORTY,
+        1149,
+        0,
+        (630, 640),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch40 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch40", "chapter40", WIDENING_CHAPTER_FORTY, 0)
+        .expect("run430 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch40 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    eprintln!("ch40: {} rows, {} pool rows", got.len(), got_pool.len());
+    let mut want: Vec<String> = WANT_CH40.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch40: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH40_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch40: what parts in the pool moved");
+}
+
+/// Chapter forty's widening rows (item 1167): run430 whole, the casts'
+/// other arms built. Three standing families and nothing of the
+/// chapter's: `Unit::init`'s birth `form` (9 for a Citizen, 0 else,
+/// against this crate's −1; parked 1169) on every unit of the start and
+/// every one the script adds; the first block's `filled_gather_slots`;
+/// and the human City's census — `CITIES=5` is new to a golden widening,
+/// and this crate keeps `busy`, `filled`, `gatherers`, `land`, `space`,
+/// `ter`, `peasant_dist` and `free` for a computer's cities only
+/// (`crate::ai`), so `0/2000` reads 0 on each (`free` from 801, the first
+/// block it is not 0 there) and the computer's `1/2000` is one cell off
+/// on `filled` and `land` from the first block.
+const WANT_CH40: &[&str] = &[
+    "605 0/-1 leader:filled_gather_slots[0:food]",
+    "605 0/-1 leader:filled_gather_slots[1:timber]",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/2000 city:busy",
+    "605 0/2000 city:filled",
+    "605 0/2000 city:gatherers",
+    "605 0/2000 city:land",
+    "605 0/2000 city:peasant_dist",
+    "605 0/2000 city:space[0]",
+    "605 0/2000 city:space[1]",
+    "605 0/2000 city:space[2]",
+    "605 0/2000 city:ter[0]",
+    "605 0/2000 city:ter[1]",
+    "605 0/2000 city:ter[3]",
+    "605 0/2000 city:ter[4]",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 0/6 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/2000 city:filled",
+    "605 1/2000 city:land",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "611 0/7 form",
+    "615 0/8 form",
+    "617 0/9 form",
+    "619 0/10 form",
+    "621 0/11 form",
+    "801 0/2000 city:free",
+];
+
+/// Chapter forty's pool rows (item 1167): each press's pushed selection's
+/// `ox`/`oy` (0 against −1, chapters nineteen's, thirty-four's and
+/// thirty-nine's family); the `speed`/`new_speed` refreshes the original
+/// makes off its cursor's frame (chapter thirty-nine's parked pair); and
+/// slot 4's `form` on 702, D's group, which takes the Citizen's birth
+/// `form` 9 (parked 1169).
+const WANT_CH40_POOL: &[&str] = &[
+    "608 slot 1 ox",
+    "608 slot 1 oy",
+    "614 slot 0 ox",
+    "614 slot 0 oy",
+    "614 slot 1 new_speed",
+    "614 slot 1 speed",
+    "632 slot 0 new_speed",
+    "632 slot 0 speed",
+    "632 slot 2 ox",
+    "632 slot 2 oy",
+    "642 slot 2 new_speed",
+    "642 slot 2 speed",
+    "642 slot 3 ox",
+    "642 slot 3 oy",
+    "662 slot 3 new_speed",
+    "662 slot 3 speed",
+    "662 slot 5 ox",
+    "662 slot 5 oy",
+    "702 slot 4 form",
+    "702 slot 5 new_speed",
+    "702 slot 5 speed",
+    "882 slot 4 new_speed",
+    "882 slot 4 speed",
+];
+
 /// **run422 whole, both directions** (item 1111, `docs/GOLDEN.md` §48):
 /// every dumped record on every block of the capture, and the pool.
 #[test]
@@ -13358,13 +13508,18 @@ const WANT_CH39_POOL: &[&str] = &[
 /// untargeted press), the decoy bit `unit_masks & 1` and the started bit
 /// `& 0x20000`; and on every `CASTORDER` either side holds, its target,
 /// its point, its craft and `paid`. Nothing parts.
-#[test]
-fn run422_s_casts_are_the_original_s_field_for_field() {
+#[allow(clippy::type_complexity)]
+fn casts_field_for_field(
+    run: &str,
+    stem: &str,
+    (first, last): (i64, i64),
+) -> Option<(
+    usize,
+    usize,
+    std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+)> {
     use std::collections::BTreeMap;
-    let Some(mut s) = stage_script("ch39", "chapter39") else {
-        return;
-    };
-    let (first, last) = WIDENING_CHAPTER_THIRTY_NINE;
+    let mut s = stage_script(run, stem)?;
     let players = s.built.sim.players.len() as i64;
     let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
     let mut rows = 0usize;
@@ -13503,6 +13658,18 @@ fn run422_s_casts_are_the_original_s_field_for_field() {
                 .or_insert((n, format!("{side} holds it alone")));
         }
     }
+    Some((rows, decoys, firsts))
+}
+
+/// run422's casts through [`casts_field_for_field`] (item 1111): nothing
+/// parts.
+#[test]
+fn run422_s_casts_are_the_original_s_field_for_field() {
+    let Some((rows, decoys, firsts)) =
+        casts_field_for_field("ch39", "chapter39", WIDENING_CHAPTER_THIRTY_NINE)
+    else {
+        return;
+    };
     for ((w, o, what), (f, row)) in &firsts {
         eprintln!("  run422 f{f} {w}/{o} {what}: {row}");
     }
@@ -13520,6 +13687,38 @@ fn run422_s_casts_are_the_original_s_field_for_field() {
     assert_eq!(
         got, want,
         "run422: what parts in the casts' own fields moved"
+    );
+}
+
+/// **run430's casts, field for field, both directions** (item 1167,
+/// `docs/GOLDEN.md` §49), through [`casts_field_for_field`] over
+/// [`WIDENING_CHAPTER_FORTY`]: D's refused press on who=1's land and its
+/// two wounded conversions, the three Militia's Civilians ahead of a
+/// repair, a build and a gather (each `CASTORDER`'s point, craft and
+/// `paid`), and M4's `rare` through the all-clear. Nothing parts.
+#[test]
+fn run430_s_casts_are_the_original_s_field_for_field() {
+    let Some((rows, _, firsts)) =
+        casts_field_for_field("ch40", "chapter40", WIDENING_CHAPTER_FORTY)
+    else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run430 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!(
+        "run430's casts: {rows} rows compared, {} parted",
+        firsts.len()
+    );
+    assert!(rows > 0, "run430 carries the fields it prints");
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    let want: Vec<String> = Vec::new();
+    assert_eq!(
+        got, want,
+        "run430: what parts in the casts' own fields moved"
     );
 }
 
