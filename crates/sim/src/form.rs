@@ -300,6 +300,52 @@ impl Form {
     }
 }
 
+/// What a follower hangs off in `Form::compute_dests`' walk: the last
+/// captain passed (`local_1c`), its `cat_id` (`local_24`), and which side the
+/// next follower takes (`bVar4`).
+#[derive(Clone, Copy, Debug)]
+struct Leading {
+    cap: usize,
+    slot: i32,
+    right_side: bool,
+}
+
+/// `Form::compute_dests`' **modern-infantry scatter** (`72d454`–`72d50f`),
+/// the `(x, y)` a follower for which `UnitData::is_modern_infantry` holds
+/// adds to its step off its captain.
+///
+/// Both terms are three-valued, keyed on the formation's destination
+/// (`dest`, the call's `Coord`s), the member's **object number** `o` (the
+/// group's list entry), its **index** `i` in that list and the last
+/// captain's `cat_id` (`slot`):
+///
+/// ```text
+/// y += ((dest.x/113 · o · i + 7·slot) / 5 % 3) · 48 − 48
+/// x += ((dest.y/97  · o · i + 13·slot) / 7 % 3) · gs / 4 − gs / 4
+/// ```
+///
+/// Every division truncates (each is a magic multiply with the sign fixed,
+/// `0x487ede05 >> 5`, `0x66666667 >> 1`, `0x151d07eb >> 3`, `0x92492493`
+/// `+ n >> 2`, and the two `/ 4` the `>> 31 & 3` idiom), `% 3` is `idivl`'s
+/// signed remainder, and the products are 32-bit `imul`s, so they wrap.
+/// `gs` is the member's own type's `guy_spacing` (`+0x224`, reloaded at
+/// `72d4b0`). `docs/GROUPS.md` §34.
+pub(crate) fn form_scatter(dest: Pos, o: i16, i: usize, slot: i32, gs: i32) -> (i32, i32) {
+    let o = i32::from(o);
+    let i = i as i32;
+    let along = (dest.x / 113)
+        .wrapping_mul(o)
+        .wrapping_mul(i)
+        .wrapping_add(slot.wrapping_mul(7));
+    let y = (along / 5 % 3) * 0x30 - 0x30;
+    let across = (dest.y / 97)
+        .wrapping_mul(o)
+        .wrapping_mul(i)
+        .wrapping_add(slot.wrapping_mul(13));
+    let x = (across / 7 % 3).wrapping_mul(gs) / 4 - gs / 4;
+    (x, y)
+}
+
 impl Sim {
     /// `Form::categorize@0072e250` — sort the members into categories and
     /// measure each category's spacing.
@@ -572,12 +618,21 @@ impl Sim {
         // captain hangs off slot 0.
         let mut last_cap = 0usize;
         let mut right_side = true;
+        // `local_24`: the last captain's `cat_id`, which the modern-infantry
+        // scatter reads (`72d469`). Set by the same captain arm, and 0 before
+        // the first.
+        let mut last_slot = 0;
         for (i, &u) in g.list.iter().enumerate() {
             if !self.form_member_active(u) {
                 continue;
             }
             if !self.units[u].captain {
-                self.form_follower_slot(f, u, i, last_cap, right_side, angle);
+                let lead = Leading {
+                    cap: last_cap,
+                    slot: last_slot,
+                    right_side,
+                };
+                self.form_follower_slot(f, u, i, lead, dest, angle);
                 right_side = false;
                 continue;
             }
@@ -585,6 +640,7 @@ impl Sim {
             right_side = true;
             let c = f.category[i];
             let slot = f.cat_id[i];
+            last_slot = slot;
             let w = f.x_spacing[c];
             if f.wedge == c as i32 {
                 let (x, y) = self.form_wedge_slot(f, c, slot, w, k);
@@ -732,20 +788,23 @@ impl Sim {
     /// follower has no `x` of its own to lean on. For Line, and for every
     /// formation but the four that tilt, it is zero.
     ///
-    /// Unreached: the `is_modern_infantry` scatter at `72d456`, three
-    /// `guy_spacing`-sized jitters keyed on the destination, the object
-    /// number and the member index. No traced game has put modern infantry in
-    /// a formation, and the object number is not a quantity the simulation
-    /// can reproduce.
+    /// A **modern infantry** follower is then scattered
+    /// ([`form_scatter`], `72d454`–`72d50f`), after its facing byte
+    /// and before its destination: `docs/GROUPS.md` §34.
     fn form_follower_slot(
         &self,
         f: &mut Form,
         u: usize,
         i: usize,
-        last_cap: usize,
-        right_side: bool,
+        lead: Leading,
+        dest: Pos,
         angle: Angle,
     ) {
+        let Leading {
+            cap: last_cap,
+            slot: last_slot,
+            right_side,
+        } = lead;
         let gs = self.units[u]
             .ty
             .map_or(0, |t| self.unit_types[t].combat.guy_spacing);
@@ -777,6 +836,12 @@ impl Sim {
             (std::cmp::Ordering::Less, std::cmp::Ordering::Greater)
             | (std::cmp::Ordering::Greater, std::cmp::Ordering::Less) => 0x20,
             _ => 0,
+        };
+        let (dx, dy) = if self.is_modern_infantry(u) {
+            let (sx, sy) = form_scatter(dest, self.units[u].index, i, last_slot, gs);
+            (dx + sx, dy + sy)
+        } else {
+            (dx, dy)
         };
         let step = Self::form_rotate(Pos::new(0, 0), angle, (dx, dy));
         f.to[i] = Pos::new(f.to[last_cap].x + step.x, f.to[last_cap].y + step.y);
@@ -1450,6 +1515,85 @@ mod tests {
             assert_eq!(a.x - c.x, 144, "squad {squad}: to follows off");
             assert_eq!(a.y - c.y, 0);
         }
+    }
+
+    /// **run404's squad** (`docs/GROUPS.md` §34, item 1113): the Infantry
+    /// `1/6` (captain), `1/7` and `1/8` (its followers) laid out by the
+    /// army's `ATTACKTO` of 764 — the point (38646, 13305), the angle
+    /// −541917184, `facing 1`. A modern-infantry follower is scattered off
+    /// its captain by the destination, its object number and its index, and
+    /// run404's block 765 prints each member's `path[0].to` as theirs laid
+    /// it: `1/7` a quarter of a spacing in, `1/8` a cell forward. Without the
+    /// scatter both stand a whole `guy_spacing` either side, and ours
+    /// walked `1/7` into the Battery on 794.
+    #[test]
+    fn a_modern_infantry_follower_is_scattered_off_its_captain() {
+        let layout = |age: i32| {
+            let mut s = sim();
+            let t = ty(&mut s, mask::FOOT, 144, 144);
+            s.unit_types[t].combat.uber_size = 3;
+            s.unit_types[t].combat.guy_spacing = 144;
+            s.unit_types[t].combat.age = age;
+            s.unit_types[t].cols.unit_flags |= 0x100;
+            let list: Vec<usize> = (0..3)
+                .map(|k| {
+                    let u = spawn(&mut s, t, Pos::new(20124 + k * 64, 16654));
+                    s.units[u].index = 6 + k as i16;
+                    s.units[u].captain = k == 0;
+                    u
+                })
+                .collect();
+            s.form_compute(
+                &group(&list),
+                Pos::new(38646, 13305),
+                Angle(-541_917_184),
+                formation::LINE,
+                50,
+                true,
+                false,
+                &[],
+            )
+        };
+        let f = layout(6);
+        assert!(f.to.len() == 3 && f.off.len() == 3);
+        // Block 765's `path[0].to`, theirs, for `1/6`, `1/7` and `1/8`.
+        assert_eq!(
+            f.to,
+            [
+                Pos::new(38646, 13305),
+                Pos::new(38569, 13382),
+                Pos::new(38712, 13169)
+            ],
+            "the squad's destinations, as run404 prints them"
+        );
+        // Off the captain: `1/7` −144 + 36 across, `1/8` +144 across and a
+        // cell (48) forward.
+        assert_eq!(f.off[1], (f.off[0].0 - 108, f.off[0].1));
+        assert_eq!(f.off[2], (f.off[0].0 + 144, f.off[0].1 + 48));
+        // The Industrial Riflemen's age: not modern infantry, no scatter.
+        let g = layout(5);
+        assert_eq!(g.off[1], (g.off[0].0 - 144, g.off[0].1));
+        assert_eq!(g.off[2], (g.off[0].0 + 144, g.off[0].1));
+    }
+
+    /// The scatter's arithmetic on its own, including a dividend the
+    /// original's `idivl` leaves negative: the remainder keeps the sign, so
+    /// `y` can reach −144.
+    #[test]
+    fn the_scatter_truncates_and_keeps_a_negative_remainder() {
+        // run404's `1/7` and `1/8`.
+        assert_eq!(form_scatter(Pos::new(38646, 13305), 7, 1, 0, 144), (36, 0));
+        assert_eq!(form_scatter(Pos::new(38646, 13305), 8, 2, 0, 144), (0, 48));
+        // `(342·o·i + 7·slot)/5 % 3` at its other two values: 0 and 2.
+        assert_eq!(form_scatter(Pos::new(38646, 13305), 6, 0, 0, 144).1, -48);
+        assert_eq!(form_scatter(Pos::new(38646, 13305), 6, 1, 0, 144).1, 48);
+        // A product past `i32::MAX` wraps as `imul` does, and the remainder
+        // of a negative quotient is negative.
+        let (_, y) = form_scatter(Pos::new(100_000, 100_000), 30_000, 127, 0, 144);
+        let along = (100_000i32 / 113).wrapping_mul(30_000).wrapping_mul(127);
+        assert!(along < 0, "the fixture must wrap");
+        assert_eq!(y, (along / 5 % 3) * 48 - 48);
+        assert!(y <= -48, "a negative remainder steps back, as far as −144");
     }
 
     #[test]
