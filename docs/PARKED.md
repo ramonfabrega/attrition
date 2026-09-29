@@ -2204,6 +2204,14 @@ keys, read as noise. A guard listing each key a widening pins as
 standing whose field has a live reader in `sim`, with that reader, at
 the widening's run, would have put both in front. One reach.
 
+(1188) **A queue item whose bold title wraps fails the booking gate,
+and the commander's reflex cannot see it** (the commander, booking
+1174): `test_brief.py`'s `test_the_live_queue_composes` wants the
+title whole on one line; `tools/guard.sh` does not run the offline
+tests, so the booking's guard run was green and the gate on `6b117410`
+was red at its first step. `guard.sh` taking `test_brief.py`, or the
+queue guard reading the title's line, would have caught it. One reach.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared

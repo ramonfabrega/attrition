@@ -31,7 +31,7 @@ chapters thirty-eight to forty closed (1131, 1111, 1167).*
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 24 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187).
+- **Fable backlog: 25 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -59,12 +59,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     against a `MOVE_TO` there, 2 orders against 3; the army group's ids
     are six frames apart again. Its own lane. No mechanism is named.
 
-1185. **East Indies' second word: frame 7512, ours 39 draws against
-    3243** (1174), at index 30: ours `Guy::set_anim+0x97a <
-    Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`, 3206
-    times under `astar_caravan_road`, widened on run425 (block 7513),
-    where the caravan `1/15`'s `path[].flags` part and who=1's `caras`
-    stands 3 against 2 from 7478. No mechanism is named.
+1185. **East Indies' second word: frame 7512, ours 39 draws against 3243**
+    (1174), at index 30: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    theirs `PathFinder::calc_road_cost+0x46`, 3206 times under
+    `astar_caravan_road`, widened on run425 (block 7513), where the
+    caravan `1/15`'s `path[].flags` part and who=1's `caras` stands 3
+    against 2 from 7478. No mechanism is named.
 
 1182. **Chapter forty-one: CENSUS row 7's last seven — no capture yet**
     (1167 closed forty at 1150). `UnitData::get_speed`, `Object::do_launch`'s
