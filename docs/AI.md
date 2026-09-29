@@ -11742,7 +11742,9 @@ The original's `1/52` collides with `1/30` on the word's frame and stops
 through `move_step`; ours walks on. The army group's id is stamped with
 its frame, and the stamps are six frames apart (14330 against 14336). The
 compared pin now walks run418's 14586..14590, where this group's order row
-is compared (`coverage.rs`). **No mechanism is named.**
+is compared (`coverage.rs`). ~~**No mechanism is named.**~~ — **§97**:
+`push_group`'s walk shifted army group 64's list and not its slot
+arrays, so `1/52` walked for `1/47`'s slot on 14586.
 
 ### 94.7 What this has *not* established
 
@@ -11884,3 +11886,120 @@ blocks 7377..7633; `run425_s_word_frame_is_widened_whole` walks it.
 - **Pinned capture-free**:
   - `a_passenger_comes_ashore_at_the_average_it_boarded_with`;
   - `a_computer_player_s_passenger_is_ordered_where_it_lands_and_a_human_s_where_it_boarded`.
+
+## 97. A kill shifts the group's slots with its list, and Great Sahara's word moves to 15586 (2026-09-29, item 1171)
+
+§94.6's word was frame 14587, ours 9 draws against 10, at index 3. Both
+sides spend three `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::move_step+0x823`. The original then spends a fourth (seed `7ce0cc85`),
+and both go on to six `+0x97a < Guy::inc_time+0x271`
+(`report.py rontrace-run418.log draws 14587`; ours `RON_DEBUG_SITES`). §94.6
+named no mechanism. Its word's-block row, `1/52` colliding with `1/30` in
+the original only, was the event: the fourth `move_step` draw is `1/52`'s
+stop.
+
+### 97.1 The frame the state first parted, walked back
+
+`1/52`'s first parted field on run418 is its position on block 14587, so
+frame 14586 is where it parts. The rows below are run418's dump and
+`RON_DEBUG_UNIT=1/51@…,1/52@…` on the widening.
+
+| block | `1/52` | ours | theirs |
+|---|---|---|---|
+| 14586 | `pos`, order | (28637, 20233), `GROUP_ATTACK_TO` in group 64 | the same |
+| 14587 | `pos` | (28637, 20233), `last_speed` 0 | (28623, 20241), `last_speed` 16 |
+| 14587 | order | `ATTACK_TO` (28248, 20424), no group | the same |
+| 14587 | waypoint (`dest_x/y`, `dest 0`) | (28373, 20104) | (28614, 20246) |
+
+Both waypoints are `1/52`'s formation slot as its follower arm computes it
+(`docs/ORDERS.md` §8.3, `do_group_move@005e79a0`): the leader `1/51`'s position on that
+frame, (28546, 20120), plus the slot's rotated offset. The original's
+offset is (68, 126). Ours was (−173, −16), which is `1/47`'s. It walked
+toward a slot 295 away, cut across the formation and did not step. Later
+in the same frame `1/53`'s follower arm ended the formation and
+ungrouped the squad `1/51`–`1/53`, on both sides.
+
+### 97.2 Why the offset was another member's
+
+On frame 14586 the AI pushes `1/28`–`1/30` and `1/65`–`1/67` out of army
+group 64 into a new group 68 (`GROUP_MOVE`, stance 5), on both sides. The
+original's group 64 prints 15 slots on block 14587, `1/52` fifth at `off`
+(−3, 0), `curr` (68, 126). A probe in the follower arm printed ours: the
+list is 15, and `off`/`curr` are still 21 long, in the old order.
+`push_group`'s walk (`docs/GROUPS.md` §30.3) took the leaving squads out of
+the list with a retain and left the arrays. `Group::kill@00714110` shifts
+`list`, `angles` and the four offset arrays together (§4.2 there already
+said "all five"). So `1/52`, listed fifth, read slot 4 of the old table.
+
+### 97.3 The build
+
+- `Sim::kill_from_named` calls `Sim::seat_kill`, which is `Group::kill` on
+  a seat, once per member, with the arrays shifted.
+- `unseat_group`'s broader removal goes through `Sim::seat_drop`, which
+  shifts the arrays too.
+- A unit test, `a_member_leaving_an_army_group_takes_its_slot_with_it`.
+
+### 97.4 What moved
+
+- **run383's long word: 14587 → 15586**, on the tree merged with item 1164.
+- **The value diff, run418's block 14587**
+  (`run418_s_word_frame_is_widened_whole`): group 64's `off[4]` (2, 3) →
+  (−3, 0) and `curr[4]` (−173, −16) → (68, 126). Slots 15–20, which the
+  original does not print, are gone. `1/52`'s `pos` (28637, 20233) →
+  (28623, 20241). The old word's block 14588 agrees, `1/52`'s
+  `collide_o` 30 on both sides. run418's parted keys fall 833 → 168.
+  14587 still parts on group 68's `speed`/`new_speed`, 26 here against 0,
+  which parted there before this item too.
+- Every other walk in the suite holds without a re-pin.
+
+**Mutation M** turns both removals back into a list-only retain. It was
+committed first, run with the constant at 14587, then restored from git
+and touched. The long trace falls back to **14587, 9 against 10**, at
+`Guy::inc_time+0x271`. run418's widening moves 7 pins, and the unit test
+fails.
+
+### 97.5 The new word, 15586, widened
+
+**Frame 15586: ours 7 draws against 6, at index 3.** Both sides spend
+`Animal::do_idle`'s `+0x97a` and two `Unit::do_job+0x67` rolls. Ours then
+spends a `Guy::set_anim+0xf2f < Guy::move+0x166` the original does not,
+and both end on three `+0x97a < Guy::inc_time+0x271`. run426
+(`docs/RUNS.md`) is run383's game at run414's detail over blocks
+15581..15837. `run426_s_word_frame_is_widened_whole` walks it, both
+directions, and no key is left unprinted. 741 keys part over the window.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 15581 | both | 159 standing keys: run418's families | | |
+| 15581 | the army group's members | `order:group.id` | 15354136 | 15360436 |
+| 15582 | `1/-1` | `MAKE[1].val`, `MAKE[4].val` | 59500 | 51000 |
+| 15585 | `1/29` | head order, `orders.len` | `ATTACK`, 2 | `MOVE_TO`, 3 |
+| 15585 | `1/29` | `pos` | (7292, 27822) | (7269, 27840) |
+| 15586 | `1/29` | `attack[0].in_range` / `recharging` | 1 / 30 | 0 / 0 |
+| **15587** | `1/29` | `g.cur_anim[0]` | 13 | 9 |
+
+`1/29` is one of group 68's raiders, walking for the human's city. Ours
+has dropped its move and stands attacking `0/2004`; the original's is
+still walking, with a third order under it. The army group's id is again
+stamped six frames apart. The compared pin and the coverage driver now
+walk run426's 15585..15589. **No mechanism is named.**
+
+### 97.6 What this has *not* established
+
+- `Army::normalize`'s own cull (`Sim::army_normalize`) still rewrites an
+  army's list without shifting its arrays, where `Group::normalize`
+  (`Sim::seat_normalize`) shifts them. No walk on disk parts on it, and
+  this item did not build it.
+- Group 68's `speed`/`new_speed` on block 14587, 26 here against 0. It
+  parted before this item as well, and no draw reads it over run418.
+- Why the army group forms six frames apart (§94.7's open question,
+  again on run426), and whether it is the new word's cause.
+
+### 97.7 Coverage
+
+**Diff-backed**: §97.1's and §97.4's rows by
+`run418_s_word_frame_is_widened_whole`, which moves 7 pins under mutation
+M, as does the long trace's floor. §97.5 is `run426_s_…`. **Read only**:
+§97.2's array layout, read off `Group::kill@00714110`'s decompile and the
+type record's `GroupData` (`off_x +0x4c` … `list +0x8cc`). **Pinned
+capture-free**: `a_member_leaving_an_army_group_takes_its_slot_with_it`.

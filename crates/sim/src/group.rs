@@ -609,16 +609,12 @@ impl Sim {
         // A pool slot is a group too, and `(*old->vtbl+0x10)` is asked of
         // whichever one holds the member — so a unit pushed twice leaves
         // the first slot rather than sitting in two groups at once.
-        for slot in &mut self.pushed {
-            slot.list.retain(|u| !leaving.contains(u));
+        for i in 0..self.pushed.len() {
+            self.seat_drop(Seat::Pushed(i), &leaving);
         }
         for slot in 0..self.armies[w].list.len() {
-            let a = &mut self.armies[w].list[slot];
-            if a.units.iter().any(|u| leaving.contains(u)) {
-                a.units.retain(|u| !leaving.contains(u));
-                if !touched.contains(&slot) {
-                    touched.push(slot);
-                }
+            if self.seat_drop(Seat::Army(g.who, slot), &leaving) && !touched.contains(&slot) {
+                touched.push(slot);
             }
         }
         for slot in touched {
@@ -655,38 +651,57 @@ impl Sim {
     /// army 0's orphan for army 1's fresh group on 71. Returns the army
     /// slots of `who` it took members from, for their `normalize`.
     pub(crate) fn kill_from_named(&mut self, who: Player, list: &[usize], pool: u8) -> Vec<usize> {
-        let mut named: Vec<u8> = Vec::new();
-        for &m in list {
-            if let Some(s) = self.units[m].group_ptr
-                && self.units[m].alive()
-                && s != pool
-                && !named.contains(&s)
-            {
-                named.push(s);
-            }
-        }
-        let leaving = self.leaving_squads(list);
+        // **Per member, through the seat's own `Group::kill`** (item 1171,
+        // `docs/GROUPS.md` §30). `kill@00714110` shifts all six parallel
+        // arrays down over the leaving index — `list +0x8cc`, `angles
+        // +0x84c`, and `off_x`/`off_y`/`curr_x`/`curr_y` from `+0x4c` in
+        // steps of `0x200` — so a member that stays keeps its own offset
+        // at its new index. A retain on the list alone left the offsets
+        // where they were: Great Sahara's army group 64 lost `1/28`–`1/30`
+        // and `1/65`–`1/67` to group 68 on frame 14586, and `1/52`, now
+        // listed fifth, walked to the fifth *old* slot, `1/47`'s.
         let frame = self.frame;
         let mut touched = Vec::new();
-        for s in named {
+        for &m in list {
+            let Some(s) = self.units[m].group_ptr else {
+                continue;
+            };
+            if !self.units[m].alive() || s == pool {
+                continue;
+            }
             let Some(seat) = self.pool_seat(who, s) else {
                 continue;
             };
+            let before = self.seat_list(seat).len();
+            self.seat_kill(seat, m, false, false);
             let (l, st) = self.seat_parts(seat);
-            let before = l.len();
-            l.retain(|u| !leaving.contains(u));
             if l.len() < before {
+                // `num == 0` runs `clear(-1)` where a survivor stamps.
                 if l.is_empty() {
                     st.clear(frame);
-                } else {
-                    st.stamp = frame;
                 }
-                if let Seat::Army(_, a) = seat {
+                if let Seat::Army(_, a) = seat
+                    && !touched.contains(&a)
+                {
                     touched.push(a);
                 }
             }
         }
         touched
+    }
+
+    /// Drop every member `leaving` names from a seat's list, shifting the
+    /// per-member arrays with it ([`Self::seat_remove_at`]), last to first.
+    fn seat_drop(&mut self, seat: Seat, leaving: &[usize]) -> bool {
+        let (l, st) = self.seat_parts(seat);
+        let mut dropped = false;
+        for i in (0..l.len()).rev() {
+            if leaving.contains(&l[i]) {
+                Self::seat_remove_at(l, st, i);
+                dropped = true;
+            }
+        }
+        dropped
     }
 
     // ------------------------------------------------------------------
@@ -5039,6 +5054,52 @@ mod tests {
             s.armies[1].list[slot].units,
             vec![b],
             "a non-member's push is not the army's business"
+        );
+    }
+
+    /// **A member that stays keeps its own slot** (item 1171,
+    /// `docs/GROUPS.md` §30.3): `Group::kill@00714110` shifts the four
+    /// offset arrays and the angle byte down with the list, so the
+    /// formation a follower reads at its new index is still its own.
+    ///
+    /// Great Sahara's frame 14586 is the case: six members of army group
+    /// 64 leave for group 68, and `1/52`, listed eighth and now fifth,
+    /// walked to the fifth *old* slot — `1/47`'s — and stood.
+    ///
+    /// **Made to fail on purpose**: with `kill_from_named` back to a
+    /// retain on the list alone, `b` reads `a`'s offset.
+    #[test]
+    fn a_member_leaving_an_army_group_takes_its_slot_with_it() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+        let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let slot = s.init_army(1, None);
+        for u in [a, b, c] {
+            s.army_add_unit(1, slot, u);
+        }
+        let st = &mut s.armies[1].list[slot].group;
+        st.off = vec![(1, 1), (2, 2), (3, 3)];
+        st.curr = vec![Pos::new(10, 10), Pos::new(20, 20), Pos::new(30, 30)];
+        st.angles = vec![1, 2, 3];
+        assert!(s.push_group(&mut group_of(1, &[a]), true));
+        let st = &s.armies[1].list[slot].group;
+        assert_eq!(s.armies[1].list[slot].units, vec![b, c], "`a` left");
+        assert_eq!(
+            (st.off.clone(), st.curr.clone(), st.angles.clone()),
+            (
+                vec![(2, 2), (3, 3)],
+                vec![Pos::new(20, 20), Pos::new(30, 30)],
+                vec![2, 3]
+            ),
+            "the arrays shift with the list"
+        );
+        let g = s.group_of(b).expect("`b` is still the army's");
+        assert_eq!(
+            s.group_slot_point(&g, b, 0),
+            Some(Pos::new(0x1100 + 20, 0x1000 + 20)),
+            "and `b`, now first, reads its own slot"
         );
     }
 

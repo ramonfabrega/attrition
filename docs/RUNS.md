@@ -11100,3 +11100,43 @@ item 1111, block 14582 stands on 155 keys, and the word's block 14588
 parts on 6, led by `1/52`'s collision with `1/30` in the original
 (`docs/AI.md` §94.6). The compared pin and the coverage driver walk
 14586..14590.
+
+## run426 — run383's game at run414's detail over blocks 15581..15837: Great Sahara's long word 15586 widened (2026-09-29, item 1171)
+
+**What it is.** run418's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+15581..15837, and `!quit` at 15851. The word's frame 15586 writes block
+15587, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run426 \
+    --map 7 --end-frame 15851 --timeout 12000 --log-window 15581 15838 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run418 ends at block
+14838 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 11:03–11:24 in one take. The lane lock named item 1167's
+`longtrace.sh`, whose two pids had both exited, so the launch took it over
+and there was no wait. It was waited on with `waitrun.sh` (exit 0). The
+receipt: `success: true`, exit 0, 1,220 s from launch to exit, 15,852
+frames, map 7 and seed 12345 verified, five files restored. The dump
+(532.8 MB, 257 blocks and the closing one) and the trace (54.6 MB) were
+moved into `Logs` as `gamelog-run426-greatsahara-15586.txt` and
+`rontrace-run426.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 15,852 identical |
+| window blocks | 257, 15581..15837 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run426_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. Block 15581 stands on 159
+keys, and the word's block 15587 parts on `1/29`'s figure clock, after its
+head order parted on 15585 (`docs/AI.md` §97.5). The compared pin and the
+coverage driver walk 15585..15589.

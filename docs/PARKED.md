@@ -116,6 +116,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1171, 2026-09-29 — the group's other shifts
+
+(1178) **`Sim::army_normalize` rewrites an army's list without shifting
+its slot arrays**, where `Group::normalize` does (AI §97.6). No walk on
+disk parts on it.
+
+(1179) **Group 68's `speed`/`new_speed` on run418's 14587, ours 26
+against 0** (AI §97): older than 1171, and no draw reads it there.
+
 ## Parked by item 1164, 2026-09-29 — the other exit
 
 (1175) **`come_out`'s building arm zeroes the body's speeds** (TRANSPORT
@@ -2146,6 +2155,17 @@ pinned a passenger's figure `avg_speed` apart after a landing, and it
 was one unbuilt exit rule each time. A guard could flag a pinned row
 whose field is a speed or a clock, standing on the frame a unit leaves
 a container, for a reading of the container's exit. One reach.
+
+(1180) **A lane lock whose two pids are dead reads as a busy lane**
+(1171's Loop line): 1167's `longtrace.sh` lock stood after both its
+pids had exited, and only `ps` said so; the launch took it over. A
+waiter that reads the lock could say "stale" by itself. One reach.
+
+(1181) **A move's waypoint is compared only under `dest 1`** (1171's
+Loop line): the original printed the follower's waypoint (28614, 20246)
+under `dest 0`, and that value named Great Sahara's 14587 mechanism,
+one `eprintln` away. Compared as a field of its own, it would have been
+the first row. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
