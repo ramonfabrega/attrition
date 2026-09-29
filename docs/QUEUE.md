@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, fourteen landings since the nineteenth pass (DECISIONS 55):
+*2026-09-29, fifteen landings since the nineteenth pass (DECISIONS 55):
 East Indies 6151 → 8519 (1127, 1143, 1156, 1164, 1174, 1185); Great
-Sahara 6/5 → 1850/1850, long word 8 → 15982 (1133, 1147, 1163, 1171,
-1177); chapters thirty-eight to forty closed (1131, 1111, 1167).*
+Sahara 6/5 → 1850/1850, long word 8 → 16681 (1133, 1147, 1163, 1171,
+1177, 1189); chapters thirty-eight to forty closed (1131, 1111, 1167).*
 
 - **Three lanes, on the user's word** (DECISIONS 55, amended): the
-  second pair's — 1191, East Indies' 8519; **the third map's** — 1189,
-  Great Sahara's frame 15982; the rules' — 1182, chapter forty-one.
+  second pair's — 1191, East Indies' 8519; **the third map's** — 1194,
+  Great Sahara's frame 16681; the rules' — 1182, chapter forty-one.
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
@@ -36,12 +36,12 @@ Sahara 6/5 → 1850/1850, long word 8 → 15982 (1133, 1147, 1163, 1171,
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w8519 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w15982 of 24,000
+Third map: GreatSahara w16681 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · 1182 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander resumes on three live lanes, `att-<item>` —
-1191, 1189 and 1182; the twentieth pass at twenty landings, six to go.**
+1191, 1194 and 1182; the twentieth pass at twenty landings, five to go.**
 
 ## The queue
 
@@ -51,14 +51,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1189. **Great Sahara's word: frame 15982, ours 17 draws against 16**
-    (1177), at index 0: ours `Leader::use_market+0x1ed`, theirs
-    `Leader::produce_building+0x1805`, widened on run428 (blocks
-    15977..16233), where who=1's `MAKE[2].val` parts on 15982 (59500
-    against 51000), its site `1/2024` on 15983 (`x` 41280 against 41088)
-    and the human's city `0/2004`'s `damage` on 15978. The draw and the
-    value pair are 1174's East Indies 7382's; that cause is on this base
-    and did not close it. No mechanism is named.
+1194. **Great Sahara's word: frame 16681, ours 11 draws against 8**
+    (1189), at index 4: ours `Guy::set_anim+0xf2f < Guy::inc_time+0x271`,
+    theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`, widened on run442
+    (blocks 16676..16932), where the human's building `0/2004`, at 397
+    of 400 on both sides, is gone there on 16681 and held here, who=1's
+    food parts (146 against 166), and on 16682 `1/28`'s order (10
+    against 19). No mechanism is named.
 
 1191. **East Indies' second word: frame 8519, ours 2 draws against 3**
     (1185), at index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
