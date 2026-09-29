@@ -1127,7 +1127,20 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// original's on both. **The new word's delta**: frame 13182, ours 9 draws
 /// against 8, at index 3 ours `Leader::make_stuff+0x63d` and theirs
 /// `GameAccess::rnd+0x20 < Unit::do_job+0x67`, widened on run417.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 13_182;
+///
+/// **13182 → 14587 on item 1163, and the mechanism was Wine's research
+/// discount** (`docs/AI.md` §94, `docs/COSTS.md` "Researching an upgrade"):
+/// `get_cost`'s research arm takes `WINE_UNIT_UPGRADES` off, and the AI
+/// holds Wine. **The word's delta**: on frame 13182 ours 9 draws against
+/// 8, one `Leader::make_stuff+0x63d` more → 8 against 8. The value diff is
+/// run416's block 12784 (`run416_s_word_frame_is_widened_whole`): `1/2014`'s
+/// Militia research `queue[0].cost[0]`/`[1]` 80/80 against 64/64 → 64/64,
+/// and the food bucket 16 short with it, which had priced the Slingers out
+/// of 13180's make list. **The new word's delta**: frame 14587, ours 9 draws
+/// against 10, at index 3 ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+/// and theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, widened on
+/// run418.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 14_587;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -1297,7 +1310,24 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 13_182;
 /// index 2**: ours spends `Guy::set_anim+0x104b` where the original spends
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run420's window
 /// (block 6744, 140 blocks after its first and 116 before its last).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_743;
+///
+/// **6743 → 7382 on item 1164** (`docs/TRANSPORT.md` §6.4, `docs/AI.md`
+/// §95): a passenger comes ashore at the `avg_speed` it boarded with —
+/// `Guy +0x84` has no writer in either `set_new_location` — and a computer
+/// player's takes `come_out`'s tail `update_action` from the spot
+/// (`618813`..`618836`). **The move's value diff (the word's delta, here;
+/// its block is `run420_s_word_frame_is_widened_whole`'s):** on run420's
+/// block 6735 the AI merchant `1/33`'s `g.avg_speed[0..2]` ours 0 against
+/// 12 → agreeing, and its `orders_x/y` (37439,33407) against (38952,24840)
+/// → agreeing; on 6736 its guys' `angle` -120852736 against 93895616 →
+/// agreeing; on 6743 its `pos` (38944,24864) against (38952,24840) →
+/// agreeing, the original still turning to face its path. The window's
+/// keys went 963 → 303. Frame 6743's draws went 4 against 8 → agreeing.
+/// **The new word's delta: ours 15 draws and the original 9 on frame 7382,
+/// parting at index 0**: ours spends `Leader::use_market+0x1ed` where the
+/// original spends `Leader::make_stuff+0x221`. Past run420's window (its
+/// last block 6860), widened on run425 (block 7383).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 7_382;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1730,6 +1760,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_6321: (i64, i64) = (6_316, 6_572);
 /// block 6610 and 250 past it. **Since item 1156 the word is 6743**, block
 /// 6744, inside it (140 blocks after its first and 116 before its last).
 pub(crate) const WIDENING_SECOND_EAST_INDIES_6609: (i64, i64) = (6_604, 6_860);
+
+/// `run425_s_word_frame_is_widened_whole`'s window (item 1164): run425 over
+/// run346's game, blocks 7377..7633 — six blocks before the word 7382's
+/// block 7383 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_7382: (i64, i64) = (7_377, 7_633);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -6918,13 +6953,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // window, and re-pinned the word's block there. Item 1115 moved it to 5975,
     // widened on run414, and item 1120 to 6151, inside run414's window.
     // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
-    // 6609, past that, widened on run420; item 1156 to 6743, inside it.
+    // 6609, past that, widened on run420; item 1156 to 6743, inside it;
+    // item 1164 to 7382, past it, widened on run425.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run420_s_word_frame_is_widened_whole"),
-        1156,
-        Some(WIDENING_SECOND_EAST_INDIES_6609),
+        Some("run425_s_word_frame_is_widened_whole"),
+        1164,
+        Some(WIDENING_SECOND_EAST_INDIES_7382),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
@@ -6941,12 +6977,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // test keeps the move's value diff on block 6. Item 1147 moved it to
     // **13182**, past run416's last block, and took run417 over
     // 13177..13433; run416's test keeps the move's value diff on 12780.
+    // Item 1163 moved it to **14587**, past run417's last block, and took
+    // run418 over 14582..14838; run416's test keeps the move's value diff
+    // on 12784.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run417_s_word_frame_is_widened_whole"),
-        1147,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_13182),
+        Some("run418_s_word_frame_is_widened_whole"),
+        1163,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_14587),
     ),
 ];
 

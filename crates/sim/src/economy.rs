@@ -145,6 +145,13 @@ pub const WHALES: usize = 31;
 pub const HORSES: usize = 14;
 /// `TypeIndex::RUBBER` — the same arm's second rare, byte 1 bit 1.
 pub const RUBBER: usize = 15;
+/// `TypeIndex::WINE` — the rare `TypeData::get_cost@00664090`'s **research**
+/// arm reads: `testb $0x4, 0x6da4(%ecx)`, else the same at `0x6dcc`
+/// (`00664edd`), byte 0 bit 2 of `rare` or of `rare_conquest`, which is bit
+/// `8 - `[`BASE_RARE`]` = 2`. Holding it takes `WINE_UNIT_UPGRADES` off a
+/// unit's research before the premium (`docs/COSTS.md`, "Researching an
+/// upgrade is not building a unit"; `docs/AI.md` §94).
+pub const WINE: usize = 8;
 /// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
 ///
 /// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &

@@ -1747,6 +1747,54 @@ fn a_research_is_charged_for_the_army_it_refits() {
     assert_eq!(sim.research_modifiers(0, old), None);
 }
 
+#[test]
+fn wine_takes_a_fifth_off_a_research_and_nothing_off_a_train() {
+    // `get_cost:427`–`428` (`00664edd`): the research arm takes
+    // `WINE_UNIT_UPGRADES` off before the premium when `rare` holds Wine.
+    // Great Sahara's own numbers (`docs/AI.md` §94): the AI's Militia
+    // research at `1/2014` on run416's 12784, 8 food and 8 metal at the
+    // unit factor with `RESEARCH_PREMIUM_COST` 1 — 80 each here until
+    // Wine was carried, 64 each in the original.
+    use crate::tech::{TechTree, TypeDef, UnitTraits};
+
+    let mut tree = TechTree::new();
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let militia_t = tree.add(TypeDef::unit("Militia", UnitTraits::default()).at(barracks));
+    let mut sim = skirmish(4);
+    sim.set_tech_tree(tree);
+    let militia = sim.add_unit_type(UnitType {
+        tree: Some(militia_t),
+        price: cost::Price {
+            pop: 1,
+            ..cost::Price::free()
+                .with_base(economy::Resource::Food, 8)
+                .with_base(economy::Resource::Metal, 8)
+        },
+        cols: crate::ai_load::UnitCols {
+            research_premium_cost: 256,
+            ..crate::ai_load::UnitCols::default()
+        },
+        ..citizen_type()
+    });
+    let (food, metal) = (
+        economy::Resource::Food.index(),
+        economy::Resource::Metal.index(),
+    );
+    let pair = |p: [i32; economy::RESOURCES]| (p[food], p[metal]);
+    assert_eq!(pair(sim.price_of(0, militia)), (80, 80), "no Wine");
+    sim.ledgers[0].rare |= 1 << (economy::WINE - economy::BASE_RARE);
+    assert_eq!(
+        pair(sim.price_of(0, militia)),
+        (64, 64),
+        "Wine takes 20% off the research"
+    );
+    // Another player's Wine is nobody else's discount.
+    assert_eq!(sim.research_modifiers(1, militia).map(|r| r.wine), Some(0));
+    // Owned, the Militia is a train job, and the arm is the research's alone.
+    sim.tech[0].tech[militia_t] = true;
+    assert_eq!(pair(sim.price_of(0, militia)), (80, 80), "the train arm");
+}
+
 // ---------------------------------------------------------------------------
 // Combat — `docs/COMBAT.md`
 // ---------------------------------------------------------------------------

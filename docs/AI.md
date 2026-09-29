@@ -6967,8 +6967,8 @@ run125's last, so its widening is owed a capture.
 
 ### 56.5 What this has *not* established
 
-- **The research arm's other terms are not carried.** Wine's
-  `WINE_UNIT_UPGRADES` before the premium, `SPECIAL_UPGRADE` (every one of
+- **The research arm's other terms are not carried.** ~~Wine's
+  `WINE_UNIT_UPGRADES` before the premium~~ (built, §94), `SPECIAL_UPGRADE` (every one of
   the 364 records has an empty `<UPGRADE/>`), and the American and Dutch
   discounts after the military one. None is loaded.
 - **The available arm's bump loop** (`get_cost:159`–`205`): the old unit
@@ -11508,8 +11508,10 @@ before the word.
 
 - The other readers of the rare mask. `calc_pop_cap` is the one this
   document now models; it was found because it moved a number.
-- Whether the Militia's price on 12784 and the citizens' hits on 12945 are
-  one cause or two, and which of them the word at 13182 descends from.
+- ~~Whether the Militia's price on 12784 and the citizens' hits on 12945 are
+  one cause or two, and which of them the word at 13182 descends from.~~
+  Two: the word descends from the Militia's price, which is Wine's research
+  discount (§94). The citizens' hits still stand on run417's first block.
 
 ### 91.7 Coverage
 
@@ -11595,3 +11597,290 @@ the same listing right.
 **Diff-backed**: `1/28`'s rows above, run421 and run420. **Listing-backed**: the
 distance's operands (`0065be2c`–`0065be51`). **Pinned capture-free**:
 `a_sibling_blocks_a_cell_by_where_it_is_going_not_where_it_stands`.
+
+## 94. The research arm's Wine discount, and Great Sahara's word moves to 14587 (2026-09-29, item 1163)
+
+§91's word was frame 13182, ours 9 draws against 8. Both sides spend one
+`use_market` and two `Leader::make_stuff+0x221` rolls. Then ours spends one
+`Leader::make_stuff+0x63d`, the slot loop's expiry (§2.6 step 6), where the
+original goes straight to its two `GameAccess::rnd+0x20 < Unit::do_job+0x67`
+rolls (seeds `f7f1d4fc`, `fb2f2c2b`). The rest of the frame agrees
+(`report.py rontrace-run417.log draws 13182`; ours from
+`run383_s_long_trace_says_where_the_third_map_s_word_parts` with
+`RON_DEBUG_SITES=1`). §91 named no mechanism. It named two partings between
+the captures as candidates, and the first of them is the word's.
+
+### 94.1 The make list, both sides
+
+`RON_DEBUG_LEADER=13176-13184` on run417's widening printed ours, and the
+dump's who=1 `LEADERDATA` printed theirs. Both lists are empty on 13177 and
+13178, and they agree on the Upgrades step's list on 13179 and 13180. The
+Units step (block 13181) parts:
+
+| slot | ours | theirs |
+|---|---|---|
+| 0 | Longbowmen (177), 9999999 | **Slingers (82)**, 9999999 |
+| 1 | Merchant (61), 211538 | Longbowmen (177), 9999999 |
+| 2 | —, 211538 | Merchant (61), 211538 |
+| 6 | Longbowmen, 9999999 | Slingers, 9999999 |
+
+The original offers the Slingers and ours does not. On 13183 the barracks
+`1/2017` queues the Slingers there and the Longbowmen here. The extra
+expiry roll on 13182 comes from the head's repeat, which is a different
+unit on each side.
+
+### 94.2 Why ours drops the Slingers
+
+A probe in `create_units` for who=1, the Slingers, city 1, frame 13180,
+gave `v` 4800000, `remaining` 3, and `val = v × 3 × 10 = 144,000,000`.
+`want` and the divisor are both 33. `check_income`'s factor was **64**,
+because `type_affordable` answered 0: the Slingers cost 55 food and 55
+timber, and this crate held **53 food against the original's 69**. The
+tail `fac × (want × val / divisor) / 256` wraps 33 × 144,000,000 to
+457,032,704. That divides to 13,849,475, and at a factor of 64 it gives
+3,462,368, **positive**, so no clamp. At a factor of 256 the same product
+wraps negative and clamps to 9,999,999. That is the original's value, and
+ours on 12780 and 12980, when the Slingers were affordable. The Longbowmen
+were unaffordable on both sides and clamp on both, because `remaining` is 1
+and the product is smaller. `offer_value`'s docstring explains why the
+wrap is kept.
+
+So the word is the food bucket, 16 short. It has stood short since
+run416's block 12784.
+
+### 94.3 The 16: the Militia research, priced without Wine
+
+On run416's 12784 building `1/2014` (`orig_type` 439) queues type 66, the
+Militia, which it does not yet own, so this is a research. The price is
+**80 food and 80 metal here against 64 and 64 there**. Ours comes from
+`research_modifiers`: base 8 and 8, the unit factor 10,
+`RESEARCH_PREMIUM_COST` 256, no refit, and no upgrade discount (Military
+level 1 against the type's 1). 64 is 80 × 4 / 5.
+
+`TypeData::get_cost@00664090`'s research arm (`get_cost:425`–`432`), read
+off the listing:
+
+```
+00664eb5  testb %dl, 0x6c18(%esi,%eax)   ; the availability bit: set → the train arm
+00664ed0  testb $0x80, 0x2b4(%eax)       ; the type's `h` flag: set → the train arm
+00664edd  testb $0x4, 0x6da4(%ecx)       ; rare.ptr[0] & 4
+00664ee6  testb $0x4, 0x6dcc(%ecx)       ; else rare_conquest.ptr[0] & 4
+00664eef  ecx = 100 − constants.wine_unit_upgrades    ; +0x8d8
+00664f04  ecx *= cost ; the /100 magic 0x51eb851f, sar 5, toward zero
+00664f13  cost = cost × RESEARCH_PREMIUM >> 8, × RESEARCH_PREMIUM_COST >> 8
+```
+
+`rare` is `LeaderData +0x6d98` with its data at `+0xc` (§91.2), so the bit
+is **2 = `WINE`(8) − `BASE_RARE`(6)** (`enums/TypeIndex.txt`).
+`WINE_UNIT_UPGRADES` is `20%` in `rules.xml`. The only other function that
+reads `+0x8d8` is `get_desc_parsed`, the description text, and the
+building arm's `RESEARCH_PREMIUM` (`get_cost:705`) has no Wine test.
+run416's who=1 record prints `rares_collected` at 2, 4 and 19: Wine, Dye
+and Peacocks. The AI holds Wine. `cost::Research`'s docstring had listed
+Wine as a term not carried.
+
+### 94.4 The build
+
+- `economy::WINE` (8), and `Tuning::wine_unit_upgrades` (20,
+  `WINE_UNIT_UPGRADES`, checked against the install with the other slots).
+- `cost::Research::wine`: the percentage, which `cost_of`'s research arm
+  applies before the premium.
+- `Sim::research_modifiers` sets it from `has_rare(who, WINE)`, which is
+  `rare` with `rare_conquest` folded in.
+
+`harness_tests::wine_takes_a_fifth_off_a_research_and_nothing_off_a_train`
+holds it on the Militia's own numbers: 80 without Wine, 64 with it, the
+same 80 on the train arm, and another player's Wine gives nothing.
+
+### 94.5 What moved
+
+- **run383's long word: 13182 → 14587.** On frame 13182, 9 against 8 → 8
+  against 8.
+- **The value diff, run416's block 12784**
+  (`run416_s_word_frame_is_widened_whole`): `1/2014`'s `queue[0].cost[0]`
+  and `cost[1]`, 80 and 80 against 64 and 64, → 64 and 64. The food and
+  metal buckets, 70 and 199 against 86 and 215, → the original's. Block
+  12784 no longer parts, and run416's parted keys fall 258 → 254.
+- **run417** (`run417_s_word_frame_is_widened_whole`): the parted keys fall
+  935 → 277 on this item's own tree. On the tree merged with item 1111,
+  which built a citizen's hits and line of sight, they fall 831 → 173
+  (run416's 254 → 250). The food bucket agrees over the window. The make
+  list agrees on 13181, with the Slingers at the head; the only thing that
+  parts on that block is the city shift (§53.2). The old word's block 13183
+  agrees. What parts next is who=1's `known_rares` on 13184 (7 here against
+  6), then an AI group of three on 13222 that the original stands up and
+  this crate does not.
+- Every other walk in the suite holds without a re-pin: every floor, every
+  pair's word, every closed chapter, and run382's 1850/1850.
+
+**Mutation W** turns the Wine term off in `research_modifiers`. It was
+committed first, run on the merged tree with the constant at 14587, then
+restored from git and touched. The long trace falls back to **13182, 9
+against 8, at `make_stuff+0x63d`**. `run416_s_…`, `run417_s_…`,
+`run418_s_…` and the unit test fail.
+
+### 94.6 The new word, 14587, widened
+
+**Frame 14587: ours 9 draws against 10, at index 3.** Both sides spend
+three `Guy::set_anim+0x97a < Unit::move_step+0x823`. The original then
+spends a fourth, and ours goes on to `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. run418 (`docs/RUNS.md`) is run383's game at run414's
+detail over blocks 14582..14838. `run418_s_word_frame_is_widened_whole`
+walks it from run383's start, both directions, and no key is left
+unprinted. The counts are on the merged tree.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 14582 | both | 155 standing keys: run417's families and the AI's army group | | |
+| 14582 | 12 AI soldiers (`1/28` … `1/57`) | `order:group.id` | 14330130 | 14336430 |
+| 14582 | `1/-3` | `group:64.role` | 0 | 1379331 |
+| 14587 | `1/-3` | group 64's slots | 21 | 15 |
+| 14587 | `1/52` | `pos` | (28637, 20233) | (28623, 20241) |
+| **14588** | `1/52` | `collide_o` / `collide_who` | −1 / −1 | 30 / 1 |
+
+The original's `1/52` collides with `1/30` on the word's frame and stops
+through `move_step`; ours walks on. The army group's id is stamped with
+its frame, and the stamps are six frames apart (14330 against 14336). The
+compared pin now walks run418's 14586..14590, where this group's order row
+is compared (`coverage.rs`). **No mechanism is named.**
+
+### 94.7 What this has *not* established
+
+- `rare_conquest`'s arm of the test is not held by any capture apart.
+  `has_rare` folds it into `rare`, as for Horses and Tobacco.
+- The order of Wine against `RESEARCH_PREMIUM` is read off the listing, and
+  no run separates it: the Militia's `RESEARCH_PREMIUM_COST` is 1, so on
+  this purchase the two orders give the same number.
+- `known_rares` on run417's 13184, 7 here against 6. It is the first
+  non-standing parting after the make list agrees, and nothing here reads
+  it.
+- Why the army group forms six frames apart, and whether that is the new
+  word's cause.
+
+### 94.8 Coverage
+
+**Diff-backed**: §94.3's price and §94.5's value diff by
+`run416_s_word_frame_is_widened_whole`, and §94.1's list by
+`run417_s_word_frame_is_widened_whole`. Both fail under mutation W, and
+so does the long trace's floor. §94.6 is `run418_s_…`. **Read only**:
+§94.2's arithmetic. The probe printed its terms, and the wrap is
+`offer_value`'s, which Great Lakes' floor already holds. §94.3's listing,
+bit and offset are also read only, and one purchase on one map is the
+value that proves them. **Pinned capture-free**:
+`wine_takes_a_fifth_off_a_research_and_nothing_off_a_train`.
+
+## 95. A passenger comes ashore at the speed it boarded with, and the second pair's East Indies word moves to 7382 (2026-09-29, item 1164)
+
+Item 1164 was booked on East Indies' frame 6743 at Toughest: ours 4 draws
+against the original's 8, parting at index 2, ours `Guy::set_anim+0x104b`,
+the original `Guy::set_anim+0x97a < Guy::inc_time+0x271`. §93.3 had the
+merchant `1/33` put ashore from the barge that is `1/36` here and `1/38`
+there, its `orders_x/y` apart on 6735 and its `pos` on 6743. **No mechanism
+was named.**
+
+### 95.1 The frame, both sides
+
+- **The draw delta** (`report.py rontrace-run420.log draws 6743`; ours
+  `RON_DEBUG_SITES`): the original draws four `+0x97a < Guy::inc_time+0x271
+  < Unit::inc_time+0x6e`, three `+0x104b < Unit::inc_time+0x3e` and
+  `Farms::inc_time+0x1ae` (seeds `f534a7e2` … `258f6a57`). Ours draws two
+  `+0x97a` for `1/15`, one `+0x104b` for the bird `9/7`, and the farm's.
+  On 6739 and 6741 ours' `1/33` spends two `+0x97a` for its crew, as the
+  original does.
+- **Both sides' event** (`RON_DEBUG_UNIT=1/33@6725-6745` against run420's
+  blocks): the barge lands `1/33` on 6734 on both sides, at (38952,24840),
+  with the same eleven-step path and the same move to (38328,23352). Its
+  guy 0 then turns in place, anim 7, from 165478400 to the path's
+  -1925840896.
+  - The original's steps are -71582784, -95443712, -143165568,
+    -143165568, then -286331136 a frame. It faces the path on 6745 and
+    steps to (38944,24864).
+  - Ours stepped -286331136 from the first frame. It faced the path on
+    6743 and walked on, so on 6743 its crew took no idle roll.
+- **The first parted field**, walked back: 6735's `g.avg_speed[0..2]`,
+  ours 0 against the original's 12. The original's decays 9, 6, 4, 3, 2,
+  1, 0 over the turn, and `docs/MOVEMENT.md`'s `turn_speed` divides by
+  `avg_speed / 4 + 1`: 4, 3, 2, 2, 1. That is the ramp, step for step. On
+  the same block `orders_x/y` parts, (37439,33407) against the landing
+  point.
+
+### 95.2 The rule
+
+- **The speeds**: `GuyData +0x80`/`+0x84` (`last_speed`, `avg_speed`) have
+  three writers by offset: `Guy::move`, `Guy::clear` and `Guy::init_real`.
+  `Guy::process` and `Guy::set_anim` read `+0x84`.
+  - Neither `Unit::set_new_location@005f8d20` nor
+    `Guy::set_new_location@005d86f0` writes either field.
+  - So a passenger lands at the average the ride froze.
+  - Ours' `disembark` built the passenger's movement from `Movement::at`,
+    and `seat_guys` built each crew body from `Body::at`. Both zeroed it.
+- **The landing point**: `come_out`'s tail at `6187c8`..`618836`, read in
+  the listing. It skips a human's unit (`leaders.list[who] & 4`), a plane
+  and the `0x32..0x35` citizen types. It gives every other unit step 1's
+  `update_action` again, from the spot.
+- Both are in `docs/TRANSPORT.md` §6.4, amended in place.
+
+### 95.3 What moved
+
+- **The value diff, run420** (`run420_s_word_frame_is_widened_whole`):
+  - 6735: `1/33`'s `g.avg_speed[0..2]` 0 against 12 → agreeing, and its
+    `orders_x/y` (37439,33407) against (38952,24840) → agreeing.
+  - 6736: its guys' `angle` -120852736 against 93895616 → agreeing.
+  - 6743: its `pos` (38944,24864) against (38952,24840) → agreeing.
+  - 6791: the animal `8/3`'s `pos` → agreeing.
+  - The window went 963 → 303 keys.
+- **Earlier landings agree too**:
+  - run414's passengers `1/23` and `1/22`, their figure `avg_speed`
+    (6026, 6069): 176 → 174 keys.
+  - run419's `1/32`, 0 against 11 on 6322: 317 → 304 keys.
+  - run420's `1/0` on 6658: its figure `avg_speed` and `orders_x/y`.
+- **East Indies 6743 → 7382.** Frame 6743's draws, 4 against 8 → agreeing.
+- **The new word, 7382** (no mechanism is named): ours 15 draws, the
+  original 9, at index 0. Ours spends `Leader::use_market+0x1ed`, the
+  original `Leader::make_stuff+0x221`.
+  - It is past run420's last block (6860), so it is widened on **run425**
+    (§95.5).
+  - From 6781 run420 already has player 1's make list apart (`MAKE[].city`
+    on 6781, 6782 and 6784), then `gather_stamp` on 6792. That is where it
+    stands, not a mechanism.
+
+### 95.4 What this has *not* established
+
+- `come_out`'s **building** arm (`Sim::come_out`, `garrison.rs`) still
+  builds the unit's movement from `Movement::at`, which zeroes the body's
+  speeds except for a plane's. It reads through the same
+  `set_new_location`, so the original keeps them there too. Not built: no
+  row on the word's frames names it.
+- The plane clause of the tail (`6187e4`..`6187f7`) is not built. A barge
+  carries no plane.
+
+### 95.5 The new word, 7382, widened
+
+**run425** (`docs/RUNS.md`) is run346's game at run420's detail over
+blocks 7377..7633; `run425_s_word_frame_is_widened_whole` walks it.
+
+- Block 7377 stands on 238 keys, from the gap 6861..7376.
+- Player 1's make list parts first:
+  - `MAKE[].val` on 7379 (slot 0: ours 1800000 against 4194000, about
+    three sevenths in every slot);
+  - `MAKE[7].val` on 7380;
+  - `MAKE[].city` on 7381.
+- On the word's block 7383: its `bucket`s, `num_queued`, and the citizen
+  `1/12`'s order.
+- On the word's frame ours draws two `Leader::use_market+0x1ed` and three
+  `Leader::produce_building+0x1805` that the original does not, and then
+  the same `make_stuff` draws.
+- run420 had the make list's `city` apart from 6781. That is the block's
+  reading, not a mechanism.
+
+### 95.6 Coverage
+
+- **Diff-backed**:
+  - `1/33`'s rows, run420;
+  - the earlier passengers' figure speeds, run414 and run419;
+  - the word 7382's window, run425.
+- **Listing-backed**: the tail's branch (`6187c8`..`618836`).
+- **Export-backed, by offset**: the speed fields' writers.
+- **Pinned capture-free**:
+  - `a_passenger_comes_ashore_at_the_average_it_boarded_with`;
+  - `a_computer_player_s_passenger_is_ordered_where_it_lands_and_a_human_s_where_it_boarded`.

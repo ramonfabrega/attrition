@@ -8064,19 +8064,10 @@ const WANT_CH20: &[&str] = &[
     // Item 850: a unit that goes inside in its own work takes its figures'
     // frame (`docs/ANIM.md` §15). The Chariots' `g.avg_speed`, 20 against
     // 15 (`0/6`, from 704) and 18 against 13 (`0/7`, from 830), stood from
-    // each one's boarding frame; `0/7`'s agrees now, and `0/6`'s first
-    // parts on its disembark, 1160, ours 0 against 15, with the values it
-    // read there before.
-    "1160 0/6 g.avg_speed[0]",
-    "1160 0/6 g.avg_speed[1]",
-    "1162 0/6 g.cur_anim[0]",
-    "1162 0/6 g.cur_anim[1]",
-    "1162 0/6 g.end_time[0]",
-    "1162 0/6 g.end_time[1]",
-    "1165 0/6 angle:Facing",
-    "1165 0/6 g.angle[0]",
-    "1165 0/6 g.angle[1]",
-    "1165 0/6 g.des_angle[1]",
+    // each one's boarding frame; `0/7`'s agrees now, and `0/6`'s parted on
+    // its disembark, 1160, ours 0 against 15, and its turn after — until
+    // item 1164 put it ashore at the average it boarded with
+    // (`docs/TRANSPORT.md` §6.4): ten rows, all agreeing.
     "611 0/6 form",
     "613 0/7 form",
     "704 0/8 form",

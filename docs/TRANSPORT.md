@@ -605,6 +605,20 @@ half of a coastal cell those differ — so the boat's `BLOCK_RADIUS 3` disc
 marks nothing at all. With the crate's earlier plain `region_of` the barge
 filled its own cell and the first three rings were refused.
 
+**`come_out`'s tail, for a computer player's unit** (item 1164). Past
+`set_new_location` (`6186c1`), `6187c8` skips on `leaders.list[who] & 4`
+(`is_human`), and `6187e4`..`618811` skip a plane and the types `0x32..0x35`.
+Every other unit takes step 1's four again **from the spot** (`618813`..
+`618836`), so `orders_x/y` is the landing point; `dest_angle` stays the
+boarding heading, as the `set_angle` comes after. A human's unit keeps its
+boarding point (run249's `0/6`).
+
+**And the passenger keeps its speeds** (item 1164): `GuyData +0x80`/`+0x84`
+are written by `Guy::move`, `Guy::clear` and `Guy::init_real` alone, never by
+either `set_new_location`, so the passenger lands at the average the ride
+froze, and its first turns ashore are `turn_speed`'s divided ones
+(`docs/AI.md` §95 has run420's measurement).
+
 `crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
 own order. What is **not** established: step 5's `is(0x45)` clause and the
 `leader_options` bit (the crate's `auto_transport` is never cleared by

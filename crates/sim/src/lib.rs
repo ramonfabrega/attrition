@@ -2071,6 +2071,11 @@ impl Sim {
             }
         }
         Some(cost::Research {
+            wine: if self.has_rare(who, economy::WINE) {
+                self.tuning.wine_unit_upgrades
+            } else {
+                0
+            },
             premium_cost: unit.cols.research_premium_cost,
             refit,
             discount,
