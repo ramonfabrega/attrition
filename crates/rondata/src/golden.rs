@@ -141,6 +141,12 @@ pub struct Script {
     /// Issuer lines run on an earlier frame, each with the frame whose
     /// tick first sees its command (see [`Script::apply`]).
     pending: Vec<(i64, Staged)>,
+    /// **The console's seat**, `MiscAccess::console->who` and `->play`,
+    /// which `be` moves (item 1182). The DLL refuses an issuer line whose
+    /// player is not `console->play` (`tracer.c`, its refusal 1), so a
+    /// command to another player's units is staged as `be N`, the `@`
+    /// line, `be 0`, all on one frame.
+    seat: i32,
 }
 
 impl Script {
@@ -178,6 +184,7 @@ impl Script {
             lines,
             next: 0,
             pending: Vec::new(),
+            seat: CONSOLE_WHO,
         }
     }
 
@@ -316,13 +323,67 @@ impl Script {
             let line = self.lines[self.next].clone();
             self.next += 1;
             if line.text.starts_with('@') {
+                // The DLL's refusal 1: the line's player is not the
+                // console's (`console->play`), and nothing is issued.
+                if issued_who(&line.text).is_some_and(|w| w != self.seat) {
+                    done.skip(
+                        &command_word(&line.text),
+                        "not the console's seat (refusal 1)",
+                    );
+                    continue;
+                }
                 self.pending.push((frame + 1, line));
+                continue;
+            }
+            if command_word(&line.text) == "be" {
+                self.be(&line, built, &mut done);
+                continue;
+            }
+            // Every other cheat reads `console->who` for its default
+            // player, and this interpreter's defaults are player 0's.
+            if self.seat != CONSOLE_WHO {
+                done.skip(&command_word(&line.text), "a cheat under another seat");
                 continue;
             }
             run(&line, built, loaded, &mut done);
         }
         done
     }
+}
+
+impl Script {
+    /// **`be [who]`**, chat table case 43 (`ConsoleWin::run_cmd@007d6a70`,
+    /// the arm that writes `console->who` and `console->play`): the
+    /// argument is `parse_who(·, console->who)`, so a bare number is a
+    /// player; a live leader other than the seat takes it, and `play` is
+    /// `LeaderData::get_player`, that leader's slot. The rest of the arm is
+    /// the interface's — the selection cleared, the camera, the fog's
+    /// redraw bit — and reaches no field a walk compares. A bare `be`
+    /// prints the leaders and changes nothing.
+    fn be(&mut self, line: &Staged, built: &Built, done: &mut Applied) {
+        if line.console {
+            done.skip("be", "the wrong half of run_cmd's two switches");
+            return;
+        }
+        let who = line
+            .text
+            .split_whitespace()
+            .nth(1)
+            .and_then(|t| parse_who(t, true));
+        match who {
+            Some(w) if (w as usize) < built.sim.players.len() => {
+                self.seat = w;
+                done.ran += 1;
+            }
+            _ => done.skip("be", "no live leader named"),
+        }
+    }
+}
+
+/// The player an issuer line names, its first argument (`tracer.c`'s
+/// `issue_int(&t, &who)`).
+fn issued_who(text: &str) -> Option<i32> {
+    text.split_whitespace().nth(1)?.parse().ok()
 }
 
 /// An issuer line, parsed the way `tools/trace/tracer.c`'s `issue_line`

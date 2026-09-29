@@ -1945,7 +1945,104 @@ impl Sim {
         if !killed && let Obj::Unit(t) = target {
             self.units[t].combat.entrenched = false;
         }
+        if let Obj::Building(b) = target {
+            self.spill_onto_builders(attacker, b, angle, ammo, count, frame);
+        }
         Some(taken)
+    }
+
+    /// **A hit on a building spills onto the hands at work on it**
+    /// (`Object::do_damage@0064a480`'s tail, `64c10c`..`64c4e3`, item
+    /// 1182, `docs/GOLDEN.md` §50). Reached for a building target only
+    /// (`64bec5`, `is_build`), after `take_damage`, whether it killed or
+    /// not. For each cell of `circle_x/y[..circle_radius[1]]` round the
+    /// building's cell, its object chain, in chain order:
+    ///
+    /// ```text
+    /// an enemy of the attacker's (Search::valid_search mode 3), active and
+    ///   on the map, whose FRONT order is BUILD_AT or REPAIR (valid_filter
+    ///   9, UnitData::order_type) and whose action's target is this
+    ///   building (valid_filter 10);
+    /// not a Korean's under KOREAN_BUILD_UNDER_FIRE (has_tribe_bonus 0x10);
+    /// vector_dist(it, building) <= max(x_size, y_size) * 192;
+    /// the attacker: air, none; sea and is_siege, none (`64c3b3`,
+    ///   ObjectData::is_siege@0046ef90);
+    ///   a land siege type: count / 4, no reach test;
+    ///   else vector_dist(it, building) <= max(max_range * 192, 0x180):
+    ///   count / 8;
+    /// do_damage(attacker, it, angle, ·, ammo, count', splash 0, quiet 1)
+    /// ```
+    ///
+    /// Both divisions are the sign-fixed shifts of the listing (`cdq; and
+    /// edx, 3|7; add; sar`), toward zero. SEAM: `num_guys` (§7.1), which
+    /// this crate's `do_damage` does not carry, is passed through there.
+    fn spill_onto_builders(
+        &mut self,
+        attacker: Obj,
+        b: usize,
+        angle: Angle,
+        ammo: bool,
+        count: i32,
+        frame: i64,
+    ) {
+        let ap = self.profile(attacker);
+        let bp = self.profile(Obj::Building(b));
+        let at = self.owner_of(attacker);
+        let centre = self.buildings[b].pos;
+        let home = centre.cell();
+        let circ = crate::ai_place::circle();
+        for k in 0..circ.radius[1] {
+            let cell = crate::Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
+            if cell.x < 0
+                || cell.y < 0
+                || cell.x >= self.world.width()
+                || cell.y >= self.world.height()
+            {
+                continue;
+            }
+            for u in self.cell_chain(cell) {
+                let unit = &self.units[u];
+                if !self.is_enemy(unit.owner, at) || !unit.alive() || !unit.on_map {
+                    continue;
+                }
+                let front = unit.orders.front().map(|o| o.body);
+                if !matches!(front, Some(crate::orders::Body::Build(x) | crate::orders::Body::Repair(x)) if x == b)
+                {
+                    continue;
+                }
+                if self.nation[unit.owner as usize].koreans
+                    && self.tuning.korean_build_under_fire != 0
+                {
+                    continue;
+                }
+                let d = vector_dist(unit.pos.x - centre.x, unit.pos.y - centre.y);
+                if d > bp.x_size.max(bp.y_size) * 192 {
+                    continue;
+                }
+                let share = match ap.domain {
+                    Domain::Air => continue,
+                    Domain::Sea if ap.siege => continue,
+                    Domain::Land if ap.siege => (count + ((count >> 31) & 3)) >> 2,
+                    _ => {
+                        let reach = (self.max_range_of(attacker) * 192).max(0x180);
+                        if d > reach {
+                            continue;
+                        }
+                        (count + ((count >> 31) & 7)) >> 3
+                    }
+                };
+                self.do_damage(
+                    attacker,
+                    Obj::Unit(u),
+                    angle,
+                    ammo,
+                    share,
+                    false,
+                    true,
+                    frame,
+                );
+            }
+        }
     }
 
     /// `Object::take_damage` (§7.2) on a unit figure or a building.

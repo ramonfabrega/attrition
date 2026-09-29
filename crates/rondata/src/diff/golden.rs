@@ -14916,6 +14916,25 @@ fn stage_walk() {
             "leader0".into(),
             format!("L 0 buckets {:?}", s.ledgers[0].bucket),
         ));
+        // Item 1182: each city's members and its attack bits, which the
+        // computer's sortie reads (`city_flags & 3`).
+        if all {
+            for (c, city) in s.cities.iter().enumerate() {
+                let members: Vec<i16> =
+                    city.members.iter().map(|&m| s.buildings[m].index).collect();
+                now.push((
+                    format!("c{c}"),
+                    format!(
+                        "C {}/{} alive={} under_attack={} attacking={} members={members:?}",
+                        city.owner,
+                        s.buildings[city.building].index,
+                        city.alive,
+                        city.no_heal,
+                        city.attacking
+                    ),
+                ));
+            }
+        }
         for (k, v) in now {
             if seen.get(&k) != Some(&v) {
                 eprintln!("f{f} {v}");
@@ -14932,6 +14951,17 @@ fn stage_walk() {
         for y in 0..s.world.height() {
             let row: String = (0..s.world.width())
                 .map(|x| match s.world.owner(sim::world::Cell { x, y }) {
+                    // Item 1182: the sea, so a hull and a shore can be
+                    // placed off the same print.
+                    sim::world::Owner::None
+                        if s.world
+                            .region_of(sim::world::Cell { x, y })
+                            .is_some_and(|r| {
+                                matches!(s.world.terrain(r), sim::world::Terrain::Sea)
+                            }) =>
+                    {
+                        '~'
+                    }
                     sim::world::Owner::None => '.',
                     sim::world::Owner::Ambiguous => '?',
                     sim::world::Owner::Player(p) => char::from(b'0' + p),
