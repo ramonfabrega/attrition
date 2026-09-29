@@ -1646,6 +1646,9 @@ mod tests {
         let b = barge(&mut f.sim);
         // `LOS 6`: a fog radius of 3.
         f.sim.unit_types[b].los = 6;
+        // A sea unit sees from its own half-cell (`docs/VISION.md` §3):
+        // no forward projection to carry the birth disc onto the water.
+        f.sim.unit_types[b].kind.domain = Domain::Sea;
         let u = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
         f.sim.init_guys(u, Some(f.citizen));
         f.sim.units[u].auto_transport = true;
