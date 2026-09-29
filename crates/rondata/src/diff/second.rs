@@ -28,75 +28,6 @@ pub(crate) struct Walk {
     pub endpoint: Option<crate::diff::endpoint::EndpointResult>,
 }
 
-thread_local! {
-    static SCRATCH: std::cell::RefCell<Option<(Vec<(sim::world::Owner, sim::world::Owner)>, Vec<u8>)>> =
-        const { std::cell::RefCell::new(None) };
-}
-
-fn scratch_road(sim: &sim::Sim, f: i64) {
-    for (w, l) in sim.caravans.iter().enumerate() {
-        for (v, van) in l.slots.iter().enumerate() {
-            if let Some(st) = van.search.as_ref() {
-                let rows = st.nodes_listed();
-                eprintln!(
-                    "  scratch f{f} search who {w} slot {v}: {} nodes",
-                    rows.len()
-                );
-                if let Ok(path) = std::env::var("RON_SCRATCH_ROAD_OUT") {
-                    use std::io::Write;
-                    let mut out = std::fs::File::create(format!("{path}-f{f}.txt")).unwrap();
-                    for (open, x, y, ln, val, z, par) in rows {
-                        let (px, py) = par.unwrap_or((-1, -1));
-                        writeln!(
-                            out,
-                            "{} {x} {y} {ln} {val} {z} {px} {py}",
-                            if open { "open" } else { "closed" }
-                        )
-                        .unwrap();
-                    }
-                }
-            }
-        }
-    }
-    let owners = sim.world.owners();
-    let (w, h) = (sim.world.width() * 2, sim.world.height() * 2);
-    let mut fog = Vec::new();
-    for fy in 0..h {
-        for fx in 0..w {
-            fog.push(sim.world.seen2(fx, fy).unwrap_or(0xff));
-        }
-    }
-    SCRATCH.with(|c| {
-        let mut c = c.borrow_mut();
-        if let Some((po, pf)) = c.as_ref() {
-            let oc: Vec<usize> = (0..owners.len()).filter(|&i| owners[i] != po[i]).collect();
-            let fc: Vec<usize> = (0..fog.len()).filter(|&i| fog[i] != pf[i]).collect();
-            eprintln!(
-                "  scratch tick {f}: pass {:?}, owners changed {} (first {:?}), fog changed {} (first {:?})",
-                sim.border_pass.as_ref().map(|p| p.index.clone()),
-                oc.len(),
-                oc.iter().take(5).map(|i| (i % sim.world.width() as usize, i / sim.world.width() as usize)).collect::<Vec<_>>(),
-                fc.len(),
-                fc.iter().take(5).map(|i| (i % w as usize, i / w as usize)).collect::<Vec<_>>(),
-            );
-        }
-        if let Some((_, pf)) = c.as_ref() {
-            for i in (0..fog.len()).filter(|&i| fog[i] != pf[i]) {
-                let (fx, fy) = ((i % w as usize) as i32, (i / w as usize) as i32);
-                let near: Vec<String> = sim
-                    .units
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, u)| u.alive() && (u.pos.x / 384 - fx).abs() < 12 && (u.pos.y / 384 - fy).abs() < 12)
-                    .map(|(i, u)| format!("{}/{}@({},{})", u.owner, i, u.pos.x, u.pos.y))
-                    .collect();
-                eprintln!("    fog ({fx},{fy}) {:#x} -> {:#x} near {near:?}", pf[i], fog[i]);
-            }
-        }
-        *c = Some((owners, fog));
-    });
-}
-
 /// The two maps' setup differs in one borrow each, as run54's and run53's
 /// own tests do: East Indies takes run38's start dump and the pasture from
 /// its own trace, Great Lakes the sibling dumps.
@@ -136,9 +67,6 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
         // `RON_DEBUG_UNIT`, on every frame of the long walk: a unit's
         // history before a widening's first block (item 1106's `1/14`).
         debug_watch(&built, f + 1);
-        if std::env::var_os("RON_SCRATCH_ROAD").is_some() && (5766..5792).contains(&f) {
-            scratch_road(&built.sim, f);
-        }
         if window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
             for (label, who) in attributed_sites(&built) {
                 eprintln!("  f{f} {who}: {label}");
@@ -219,8 +147,9 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
 /// pin walks these blocks with the recorder on. Item 1061 moved it to
 /// Great Lakes' word on run373, and it followed that word to run403's last
 /// blocks; item 1099 closed Great Lakes at its end, 5930, and item 1106
-/// moved the walk here (`docs/GROUPS.md` §33.3). `None` when the captures
-/// are not on this machine.
+/// moved the walk here (`docs/GROUPS.md` §33.3); item 1115 moved the word
+/// to 5975, and the walk to run414. `None` when the captures are not on
+/// this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail + 1`.
@@ -230,7 +159,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run357-islands-toughest-5606.txt",
+        "gamelog-run414-islands-toughest-5975.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -949,27 +878,107 @@ mod tests {
             Some("5601: ours 0 theirs 9"),
             "the family's row stands"
         );
-        // **The word 5773's block, 5774** (item 1106; no mechanism is
-        // named): the Caravan `1/33`, trained on 5772 (who=1's `caras` 1
-        // here against 2), has its `action` flag on 5773 here and not
-        // there, and on 5774 idles here (`idle` 99, no order) where the
-        // original holds a route of two orders to (39288, 40056); the
-        // cities `1/2000` and `1/2017` each list one caravan fewer here.
-        // The original's frame 5773 spends 3,209 draws, the first
-        // `PathFinder::calc_road_cost+0x46`.
+        // **The word 5773's block, 5774** (item 1106): the Caravan `1/33`,
+        // trained on 5772, idled here (`idle` 99, no order) where the
+        // original held a route of two orders to (39288, 40056). **Since
+        // item 1115 none of its rows part** (`docs/CARAVAN.md` §11):
+        // `do_trade` takes Newcastle across the water when the caravan
+        // `can_transport`, the trade order carries no bit 4, and the move
+        // to London faces its bearing, 546111488.
+        for what in [
+            "orders.len",
+            "order:flags",
+            "order:action",
+            "order:move.angle",
+            "dest_angle",
+        ] {
+            assert_eq!(row(1, 33, what), None, "`1/33`'s {what}");
+        }
         assert_eq!(
-            row(1, 33, "orders.len").as_deref(),
-            Some("5774: ours 0 theirs 2"),
-            "the Caravan's route, the word's block"
-        );
-        assert_eq!(
-            row(1, 2017, "city:vans.length").as_deref(),
-            Some("5774: ours 0 theirs 1"),
+            row(1, 2017, "city:vans.length"),
+            None,
             "and the new city's caravan list"
+        );
+        // **Standing: the census's newborn lag** (item 1115, parked): the
+        // original counts a caravan in `caras` at `Unit::set_type`
+        // (`0x980` +1), this crate at its next census sweep, so who=1 reads
+        // 1 against 2 on blocks 5772..5774 and agrees from 5775.
+        assert_eq!(
+            row(1, -1, "leader:caras").as_deref(),
+            Some("5772: ours 1 theirs 2"),
+            "the census lags the birth"
+        );
+        // **And the first caravan's** (item 1115): `1/15`, London to Norwich,
+        // walked its legs facing `find_angle(1, 1)` here and its bearing
+        // there, and carried the trade order's bit 4; block 5601's four
+        // rows (`order:move.angle`, `dest_angle`, `order:flags`,
+        // `order:action`) closed with `1/33`'s, 139 → 135.
+        for what in ["order:move.angle", "dest_angle", "order:flags"] {
+            assert_eq!(row(1, 15, what), None, "`1/15`'s {what}");
+        }
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(5601, 135), (5682, 5), (5704, 2)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's East Indies word, 5975, widened whole** (item
+    /// 1115): run414 is run346's game at run357's detail over blocks
+    /// 5970..6226, walked from run346's own start. The word's frame writes
+    /// block 5976.
+    #[test]
+    fn run414_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run414",
+            "gamelog-run414-islands-toughest-5975.txt",
+            WIDENING_SECOND_EAST_INDIES_5975,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run414 whole: blocks 5970..6226");
+        assert!(
+            w.missing.is_empty(),
+            "run414 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 5975** (item 1115; no mechanism is named): the AI sea
+        // scout `1/35`'s region scan accepts 46 cells here against 45
+        // there, one `Unit::think_scout+0xaba` draw more, and every draw
+        // after it on the frame reads the next seed. None of `1/35`'s rows
+        // part — its target agrees. The first to part is `1/40`, born on
+        // the frame: its three figures' clocks start at 1 here and 0 there.
+        assert_eq!(row(1, 35, "pos"), None, "the scout itself agrees");
+        assert_eq!(
+            row(1, 40, "g.cur_time[0]").as_deref(),
+            Some("5976: ours 1 theirs 0"),
+            "the newborn's figure, the word's block"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5601, 139), (5682, 5), (5704, 2)],
+            [(5970, 156), (5976, 5), (5977, 1)],
             "the blocks keys first part on, the first three"
         );
     }

@@ -127,26 +127,6 @@ pub struct RoadSearch {
     goal: (i32, i32),
 }
 
-impl RoadSearch {
-    /// Every node on the open and closed lists, for a comparison against
-    /// the original's parked search (`CaravanData +0x28`, `+0x30`):
-    /// `(open, x, y, length, value, z_val, parent's point)`.
-    pub fn nodes_listed(&self) -> Vec<(bool, i32, i32, i32, i32, i32, Option<(i32, i32)>)> {
-        let row = |open: bool, id: u32| {
-            let n = self.nodes[id as usize];
-            let par = n
-                .parent
-                .map(|p| (self.nodes[p as usize].x, self.nodes[p as usize].y));
-            (open, n.x, n.y, n.length, n.value, n.z_val, par)
-        };
-        self.open
-            .values()
-            .map(|&id| row(true, id))
-            .chain(self.closed.values().map(|&id| row(false, id)))
-            .collect()
-    }
-}
-
 /// What one call of the search came back with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RoadPlan {
