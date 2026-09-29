@@ -11291,7 +11291,8 @@ prints. None of its keys is left unprinted.
 
 **No mechanism is named.** The AI's make list parts two blocks before the
 word, and this window cannot say when it first parted: run382 stops at
-1851.
+1851. *(Item 1147: the 12780 row was who=1's population cap, uncompared
+until then; §91.)*
 
 ### 88.3 What this has *not* established
 
@@ -11389,6 +11390,138 @@ Built in `Sim::do_move`.
 **Diff-backed**: the move, run419's rows above. **Listing-backed**: the
 branch (`5f8544`–`5f86f4`). **Pinned capture-free**:
 `a_barge_taking_a_goal_ashore_flags_it_and_keeps_it`.
+
+## 91. The AI holds Peacocks, and Great Sahara's word moves to 13182 (2026-09-29, item 1147)
+
+§88's word was frame 12783, ours 12 draws against 11. Both sides spend
+two `Leader::make_stuff+0x221` rolls, and then ours spends **eight**
+`Leader::make_stuff+0x63d` (the slot loop's expiry, §2.6 step 6) against
+the original's seven. The rest of the frame agrees (`report.py
+rontrace-run416.log draws 12783`; ours from
+`run383_s_long_trace_says_where_the_third_map_s_word_parts` with
+`RON_DEBUG_SITES=1`).
+
+### 91.1 The value, walked back to its field
+
+Run416's first parting past the standing block is the make list on 12780:
+slots 1 and 10, the Mercenaries offer (`t` 572 here, 573 in the dump's
+numbering), priced **9999999 here against 1632000 there**. A probe in
+`tech_value` gave ours: base 20000, weight 136, `val` 2720000. The
+category-0 arm divides that by ten to 272000. Then `cap < 200` and
+`cap × 5 / 6 < effective_pop` read **50 × 5 / 6 = 41 < 44**, which
+multiplies by 20. Recency and shortages multiply by 3 and 2, giving
+32,640,000, and `income 256 × val` wraps to the 9,999,999 clamp. The
+original's 1632000 is exactly `272000 × 3 × 2`, with no `×20`.
+
+The dump's who=1 record on 12779 and 12780 prints `effective_pop 44` (which
+agrees, and is compared) and **`pop_cap 55`**. This crate held 50, and
+`pop_cap` stood on the coverage pin as parsed but never compared
+(`coverage.rs`), so nothing had seen it.
+
+### 91.2 Where 55 comes from
+
+`Leader::calc_pop_cap@006dc490`'s tail, read off the listing at
+`006dc656`:
+
+```
+testb $0x8, 0x6da6(%esi)      ; rare.ptr[2] & 8
+jne   6dc668
+testb $0x8, 0x6dce(%esi)      ; rare_conquest.ptr[2] & 8
+je    6dc695
+cap = (PEACOCKS_POP + 100) × cap / 100   ; imul, then the /100 magic
+```
+
+`rare` is `LeaderData +0x6d98`, a `BitMask<44>` whose data begins at `+0xc`,
+so the byte is `ptr[2]` and the bit is **19 = `PEACOCKS`(25) −
+`BASE_RARE`(6)** (`enums/TypeIndex.txt`). Every path through the function
+jumps to that tail, the scenario and ignore-cap ones included. 50 × 110 /
+100 = 55. On 12780 the AI's merchant `1/18` prints `rare 25`: it holds
+Peacocks.
+
+`calc_pop_cap` is called from `Leader::calc_gather@006ceee0:353`, in the
+rare mask's change arm after the assignment, and from `gain_tech`, the
+city and building writers and the scenario functions. This crate had the
+term in `cost::pop_cap`, but nothing ever set `PopBonuses::peacocks`, and its
+change arm (`Sim::tick`, `Leader::gather`'s tail) never recomputed the cap.
+
+### 91.3 The build
+
+- `economy::PEACOCKS` (25).
+- `Sim::recompute_pop_caps` reads the live mask for each player, as the
+  original's test reads it on every call.
+- The rare mask's change arm calls it.
+
+`rares::tests::peacocks_raise_the_owner_s_pop_cap_by_a_tenth` and
+`the_rare_mask_s_change_recomputes_the_pop_cap` hold the two halves.
+
+`pop_cap` is now a compared leader row (`leader::rows`), and it has left
+the coverage pin. On every window the suite walks it agrees on both
+leaders: the first pair's leader windows (run19, 84, 91, 107, 115, 117),
+the East Indies and Great Lakes widenings from run139 to run299, and both
+of Great Sahara's.
+
+### 91.4 What moved
+
+- **run383's long word: 12783 → 13182.** On frame 12783, 12 against 11 →
+  11 against 11.
+- **The value diff, run416's block 12780**
+  (`run416_s_word_frame_is_widened_whole`): who=1's `pop_cap` 50 against
+  55, and `MAKE[1].val` and `MAKE[10].val` 9999999 against 1632000, → the
+  original's values on both. Over run416 the parted keys fall 951 → 258.
+  The word's block 12784 falls from 10 keys to 4, and `1/39`'s figure
+  agrees. What is left there is the food and metal buckets (70 and 199
+  here against 86 and 215) and building `1/2014`'s queued Militia (66),
+  priced 80 food and 80 metal here against 64 each there. That 16 is
+  both buckets' gap.
+- Every floor, every pair's word, every closed chapter and run382's
+  1850/1850 hold.
+
+### 91.5 The new word, 13182, widened
+
+**Frame 13182: ours 9 draws against 8, at index 3.** Ours spends
+`Leader::make_stuff+0x63d`; theirs spends `GameAccess::rnd+0x20 <
+Unit::do_job+0x67` (seed `f7f1d4fc`). The original's frame is one
+`use_market`, two `make_stuff+0x221`, two `Unit::do_job` rolls, two
+`Guy::set_anim` and one `Farms::inc_time`. run417 (`docs/RUNS.md`) is
+run383's game at run414's detail over blocks 13177..13433, and
+`run417_s_word_frame_is_widened_whole` walks it from run383's start, both
+directions, every record the capture prints. None of its keys is left
+unprinted.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 13177 | both | 238 standing keys: run416's families, plus what parted between the captures | | |
+| 13177 | `1/-1` | `bucket[0:food]` / `bucket[4:metal]` | 52 / 126 | 68 / 142 |
+| 13177 | 25 AI citizens | `myhits` / `mylos` (first on run416's 12945) | 40 / 2 | 50 / 4 |
+| 13181 | `1/-1` | `MAKE[1].t` / `val` | 61 / 211538 | 177 / 9999999 |
+| **13183** | `1/2017` | `queue[3].type` | 177 | 82 |
+| **13183** | `0/3` | `order:move.off_x` | 312 | 504 |
+| **13183** | `1/-1` | `bucket[2:wealth]` | 72 | 137 |
+
+**No mechanism is named.** Two partings stand between the captures, and
+either may be the word's. Run416 shows the first on 12784 (the Militia's
+price, 80 against 64) and the second on 12945 (the citizens' hits and line
+of sight, 40 and 2 against 50 and 4). The make list parts two blocks
+before the word.
+
+### 91.6 What this has *not* established
+
+- The other readers of the rare mask. `calc_pop_cap` is the one this
+  document now models; it was found because it moved a number.
+- Whether the Militia's price on 12784 and the citizens' hits on 12945 are
+  one cause or two, and which of them the word at 13182 descends from.
+
+### 91.7 Coverage
+
+**Diff-backed**: §91.1 and §91.4 by run416's widening, which pins
+`pop_cap` and the Mercenaries slot as agreeing over blocks 12778..13034.
+§91.2's cap is diff-backed on every window the suite walks. §91.5 is
+`run417_s_word_frame_is_widened_whole`. The compared pin walks run417's
+13181..13185, and the coverage driver drives the same blocks and run416's
+12782..12786.
+**Read only**: §91.2's listing, bit and offset. The dump's 55 against a
+Military table's 50 is the only value that proves them, and it is on one
+map.
 
 ## 93. A sibling is counted where it is going, and the second pair's East Indies word moves to 6743 (2026-09-29, item 1156)
 
