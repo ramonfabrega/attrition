@@ -927,7 +927,7 @@ two world cells it returns with the stack still `[goal]`.
 top = path[length−1]
 dest = 1; unit_masks &= ~8; dest_x/y = top; UnitData::tolerance = top.tolerance
 if (top.flags & 1 or the action is TRADE_ROUTE) and get_tregion(top tile) != get_tregion(unit tile):
-        pop; push top with flags |= 4, tolerance = 0                  // the shore bit (below)
+        pop; push top with flags |= 4, tolerance = 0                  // turn; shore (AI §90)
 c = detect_unit_collision(top, …)
 if c: if (top.flags & 1) and the action is TRADE_ROUTE/GATHER/ATTACK/BUILD_AT → kill the order
       else if the collider's order is not a move: t = collider.type.big_radius * 3;
@@ -944,23 +944,6 @@ reading had it run for a *non*-final waypoint; it runs for the **goal**, or
 for a `TRADE_ROUTE` leg, and it also zeroes the tolerance. The turn-in-place
 is what a unit does before crossing into a different terrain region at the
 *end* of a leg, not in the middle of one.
-
-**And the bit is not only a turn** (item 1143, the listing `5f8544`–`5f86f4`;
-built in `Sim::do_move`). The same `flags & 4` on the path's top is what
-`UnitData::invalid_loc`'s head reads as its transport relax
-(`docs/TRANSPORT.md` §6.3), so a **barge** taking a final waypoint on land
-keeps it: `find_path`'s pull-back (§4.6) asks `invalid_loc` with all five
-flags clear and is answered valid, and the barge walks onto the shore, where
-`set_new_location` puts its passenger out (`docs/TRANSPORT.md` §6.4).
-Without it the pull-back walks the goal back to the first water tile and
-the barge stands there, loaded. The branch, off the listing: a non-final
-entry skips to the collision test at `5f86f9` unless the action is
-`TRADE_ROUTE` (`5f8549`); a final one, or any entry under `TRADE_ROUTE` once
-the road test at `5f855f` has run, reaches the region test at `5f865b`. The
-region is `get_tregion@006b52e0` (`World::tregion_alt`), the unit's tile
-against the entry's. The unit's own `+0x60` tolerance keeps the old
-entry's, written at `5f8541` before the test; only the re-pushed entry's is
-0. East Indies' barge `1/42` is the case (`docs/AI.md` §90).
 
 **The collision test is the block's teeth, and it is diff-backed** (item 63).
 It is `detect_unit_collision`'s third call site — the only one that runs
