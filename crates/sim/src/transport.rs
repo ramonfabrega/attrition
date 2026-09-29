@@ -1809,6 +1809,58 @@ mod tests {
         );
     }
 
+    /// §6.4's way in, and `docs/ORDERS.md` §4.4's region check (item 1143):
+    /// a barge that **takes** a final waypoint on land — another tile
+    /// region than its own — re-pushes it with `flags | 4` and tolerance 0,
+    /// so `find_path`'s `invalid_loc` takes the land tile and the barge
+    /// keeps its goal. Without the check the pull-back walks the goal back
+    /// to the water and the barge stops a tile short of the shore with its
+    /// passenger aboard, East Indies' `1/42` on 6321.
+    #[test]
+    fn a_barge_taking_a_goal_ashore_flags_it_and_keeps_it() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[b].kind.domain = Domain::Sea;
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(40, 14));
+        let boat = unit(&mut f.sim, 1, b, tile_pos(40, 14));
+        f.sim.units[boat].auto_transport = true;
+        f.sim.init_guys(boat, Some(b));
+        f.sim.board(rider, boat);
+        let goal = tile_pos(28, 14);
+        f.sim.add_move_order(
+            boat,
+            goal,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        f.sim.units[boat].orders[0].flags |= crate::orders::flag::PATHED;
+        f.sim.units[boat].path.push(crate::orders::PathData {
+            to: goal,
+            tolerance: 96,
+            flags: crate::orders::path_flag::FINAL,
+        });
+        assert_ne!(
+            f.sim.world.tregion_alt(goal.tile()),
+            f.sim.world.tregion_alt(f.sim.units[boat].pos.tile()),
+            "the goal is in another tile region"
+        );
+        f.sim.work(boat, 1);
+        assert_eq!(
+            f.sim.units[boat]
+                .path
+                .last()
+                .map(|p| (p.to, p.tolerance, p.flags)),
+            Some((goal, 0, 1 | crate::orders::path_flag::TRANSPORT)),
+            "the final leg is flagged, and its point is the land tile still"
+        );
+        assert_eq!(
+            f.sim.current_move(boat).map(|m| m.waypoint),
+            Some(goal),
+            "and the barge walks at it"
+        );
+    }
+
     /// §7: the island search picks a coastal cell of another region that
     /// a sea region coasts with mine, and issues the move.
     #[test]

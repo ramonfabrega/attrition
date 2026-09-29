@@ -11291,7 +11291,8 @@ prints. None of its keys is left unprinted.
 
 **No mechanism is named.** The AI's make list parts two blocks before the
 word, and this window cannot say when it first parted: run382 stops at
-1851.
+1851. *(Item 1147: the 12780 row was who=1's population cap, uncompared
+until then; §91.)*
 
 ### 88.3 What this has *not* established
 
@@ -11306,3 +11307,291 @@ word, and this window cannot say when it first parted: run382 stops at
 **Diff-backed**: §88.1 by the third map's four tests; §88.2 by
 `run416_s_word_frame_is_widened_whole`. The compared pin walks run416's
 12782..12786, and the coverage driver drives the same blocks.
+
+## 90. A barge keeps its goal ashore, and the second pair's East Indies word moves to 6609 (2026-09-29, item 1143)
+
+Item 1143 was booked on East Indies' frame 6321 at Toughest: ours 9 draws
+against the original's 8, parting at index 2, ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, the original `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. §87.2 had the barge `1/42`, carrying the citizen
+`1/32`, already apart on run419's first block 6316. **No mechanism was
+named.**
+
+### 90.1 The frame, both sides
+
+- **The draw delta** (`report.py rontrace-run419.log draws 6321`): the
+  original's eight are two `Unit::do_job` rolls, four `Guy::inc_time`
+  wraps and two farm rolls. Ours spends the barge's idle `set_anim` at
+  index 2 (seed `c0609b5d`, the original's first wrap), then the same.
+- **The event**: on 6321 ours holds `1/42` with no order at (38028,11542),
+  its passenger aboard; the original's barge still moves, and on 6322 it
+  has put `1/32` ashore at (38040,11400) and closed.
+- **Walked back to its first parted field** (`RON_DEBUG_UNIT` on the long
+  walk, and run414's last blocks): the barge's path agrees field for field
+  on run414's 6226 — its last entry (38016,11136) `flags 1` on both sides.
+  On **6271**, in the gap 6227..6315 no dump covers, ours takes that final
+  leg and rewrites it to **(38028,11542)**, `flags 1`; the original prints
+  it on 6316 unchanged in place and **`flags 5`**.
+- **The direction** was ours. `Unit::find_path`'s pull-back (`docs/ORDERS.md`
+  §4.6) walked the land goal back toward the barge, 406 units north and
+  onto its own column, to the first tile its `invalid_loc` took: a boat's
+  refuses land unless the path's top carries `flags & 4`, and ours' did
+  not.
+
+### 90.2 The rule
+
+The writer of that bit is `Unit::do_move`'s waypoint take, read off the
+listing (`5f8544`–`5f86f4`; `docs/ORDERS.md` §4.4). A **final** waypoint,
+or any waypoint under `TRADE_ROUTE`, whose tile's `get_tregion@006b52e0`
+is not the unit's is popped and pushed back with `flags | 4` and tolerance
+0. ORDERS §4.4 had read the row since its second reading, as a turn in
+place, and listed it as not modelled; the bit is also `invalid_loc`'s
+transport relax (`docs/TRANSPORT.md` §6.3), which is what lets a barge
+walk onto the shore and `set_new_location` put its passenger out (§6.4).
+Built in `Sim::do_move`.
+
+### 90.3 What moved
+
+- **East Indies 6321 → 6609.** On run419 the barge's `pos` (6316),
+  `orders.len` (6321) and `extra` (6322) and the passenger's `inside` and
+  `pos` (6322) all agree. The first block went 169 → 160 keys and the
+  window's 992 → 317. What is left of the landing is `1/32`'s figure
+  `avg_speed` on 6322, ours 0 against 11.
+- **Residue that moved and was there before**: the barge identities
+  `1/36` against `1/38` (a later ride's boat takes another free index)
+  part on 6393 now, 6402 before the build.
+- **The new word, 6609** (no mechanism is named): ours 9 draws, the
+  original 7, at index 2. The original's are two `Unit::do_job` rolls,
+  `Guy::set_anim < Unit::set_anim < Unit::move_step+0x823`, an
+  `Animal::do_idle+0x83`, and three `Guy::inc_time` wraps. Ours spends
+  no `move_step` stop, so the animal's idle roll takes the original's
+  stop seed and goes on to `+0x1a4`, `+0x1d4` and `+0x212` before the
+  same three wraps.
+- **run420 is its widening** (blocks 6604..6860,
+  `run420_s_word_frame_is_widened_whole`). Its first block stands on 263
+  keys, 31 frames past run419's last, the gap 6573..6603.
+  - Among them the AI unit `1/28`, whose `pos` agrees through run419's
+    6572, walks apart: (29017,24361) against (28893,24233) on 6604.
+  - On the word's block 6610 the original stands it against the animal
+    `8/3` (`collide_o` 3, `collide_who` 8, `order:coll` (28743,24227),
+    seven waypoints), and ours walks on with one. On 6611 the animal
+    stands at (28661,24120) here and (28680,24120) there.
+  - That is the block's reading, not a mechanism.
+
+### 90.4 What this has *not* established
+
+- The region check's `TRADE_ROUTE` arm on a non-final leg: built from the
+  listing, and no capture has been read on it.
+- The passenger's figure `avg_speed` after the landing (6322). ~~And where
+  in 6573..6603 `1/28` parts.~~ On 6577, its region scan's cell: §93.
+
+### 90.5 Coverage
+
+**Diff-backed**: the move, run419's rows above. **Listing-backed**: the
+branch (`5f8544`–`5f86f4`). **Pinned capture-free**:
+`a_barge_taking_a_goal_ashore_flags_it_and_keeps_it`.
+
+## 91. The AI holds Peacocks, and Great Sahara's word moves to 13182 (2026-09-29, item 1147)
+
+§88's word was frame 12783, ours 12 draws against 11. Both sides spend
+two `Leader::make_stuff+0x221` rolls, and then ours spends **eight**
+`Leader::make_stuff+0x63d` (the slot loop's expiry, §2.6 step 6) against
+the original's seven. The rest of the frame agrees (`report.py
+rontrace-run416.log draws 12783`; ours from
+`run383_s_long_trace_says_where_the_third_map_s_word_parts` with
+`RON_DEBUG_SITES=1`).
+
+### 91.1 The value, walked back to its field
+
+Run416's first parting past the standing block is the make list on 12780:
+slots 1 and 10, the Mercenaries offer (`t` 572 here, 573 in the dump's
+numbering), priced **9999999 here against 1632000 there**. A probe in
+`tech_value` gave ours: base 20000, weight 136, `val` 2720000. The
+category-0 arm divides that by ten to 272000. Then `cap < 200` and
+`cap × 5 / 6 < effective_pop` read **50 × 5 / 6 = 41 < 44**, which
+multiplies by 20. Recency and shortages multiply by 3 and 2, giving
+32,640,000, and `income 256 × val` wraps to the 9,999,999 clamp. The
+original's 1632000 is exactly `272000 × 3 × 2`, with no `×20`.
+
+The dump's who=1 record on 12779 and 12780 prints `effective_pop 44` (which
+agrees, and is compared) and **`pop_cap 55`**. This crate held 50, and
+`pop_cap` stood on the coverage pin as parsed but never compared
+(`coverage.rs`), so nothing had seen it.
+
+### 91.2 Where 55 comes from
+
+`Leader::calc_pop_cap@006dc490`'s tail, read off the listing at
+`006dc656`:
+
+```
+testb $0x8, 0x6da6(%esi)      ; rare.ptr[2] & 8
+jne   6dc668
+testb $0x8, 0x6dce(%esi)      ; rare_conquest.ptr[2] & 8
+je    6dc695
+cap = (PEACOCKS_POP + 100) × cap / 100   ; imul, then the /100 magic
+```
+
+`rare` is `LeaderData +0x6d98`, a `BitMask<44>` whose data begins at `+0xc`,
+so the byte is `ptr[2]` and the bit is **19 = `PEACOCKS`(25) −
+`BASE_RARE`(6)** (`enums/TypeIndex.txt`). Every path through the function
+jumps to that tail, the scenario and ignore-cap ones included. 50 × 110 /
+100 = 55. On 12780 the AI's merchant `1/18` prints `rare 25`: it holds
+Peacocks.
+
+`calc_pop_cap` is called from `Leader::calc_gather@006ceee0:353`, in the
+rare mask's change arm after the assignment, and from `gain_tech`, the
+city and building writers and the scenario functions. This crate had the
+term in `cost::pop_cap`, but nothing ever set `PopBonuses::peacocks`, and its
+change arm (`Sim::tick`, `Leader::gather`'s tail) never recomputed the cap.
+
+### 91.3 The build
+
+- `economy::PEACOCKS` (25).
+- `Sim::recompute_pop_caps` reads the live mask for each player, as the
+  original's test reads it on every call.
+- The rare mask's change arm calls it.
+
+`rares::tests::peacocks_raise_the_owner_s_pop_cap_by_a_tenth` and
+`the_rare_mask_s_change_recomputes_the_pop_cap` hold the two halves.
+
+`pop_cap` is now a compared leader row (`leader::rows`), and it has left
+the coverage pin. On every window the suite walks it agrees on both
+leaders: the first pair's leader windows (run19, 84, 91, 107, 115, 117),
+the East Indies and Great Lakes widenings from run139 to run299, and both
+of Great Sahara's.
+
+### 91.4 What moved
+
+- **run383's long word: 12783 → 13182.** On frame 12783, 12 against 11 →
+  11 against 11.
+- **The value diff, run416's block 12780**
+  (`run416_s_word_frame_is_widened_whole`): who=1's `pop_cap` 50 against
+  55, and `MAKE[1].val` and `MAKE[10].val` 9999999 against 1632000, → the
+  original's values on both. Over run416 the parted keys fall 951 → 258.
+  The word's block 12784 falls from 10 keys to 4, and `1/39`'s figure
+  agrees. What is left there is the food and metal buckets (70 and 199
+  here against 86 and 215) and building `1/2014`'s queued Militia (66),
+  priced 80 food and 80 metal here against 64 each there. That 16 is
+  both buckets' gap.
+- Every floor, every pair's word, every closed chapter and run382's
+  1850/1850 hold.
+
+### 91.5 The new word, 13182, widened
+
+**Frame 13182: ours 9 draws against 8, at index 3.** Ours spends
+`Leader::make_stuff+0x63d`; theirs spends `GameAccess::rnd+0x20 <
+Unit::do_job+0x67` (seed `f7f1d4fc`). The original's frame is one
+`use_market`, two `make_stuff+0x221`, two `Unit::do_job` rolls, two
+`Guy::set_anim` and one `Farms::inc_time`. run417 (`docs/RUNS.md`) is
+run383's game at run414's detail over blocks 13177..13433, and
+`run417_s_word_frame_is_widened_whole` walks it from run383's start, both
+directions, every record the capture prints. None of its keys is left
+unprinted.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 13177 | both | 238 standing keys: run416's families, plus what parted between the captures | | |
+| 13177 | `1/-1` | `bucket[0:food]` / `bucket[4:metal]` | 52 / 126 | 68 / 142 |
+| 13177 | 25 AI citizens | `myhits` / `mylos` (first on run416's 12945) | 40 / 2 | 50 / 4 |
+| 13181 | `1/-1` | `MAKE[1].t` / `val` | 61 / 211538 | 177 / 9999999 |
+| **13183** | `1/2017` | `queue[3].type` | 177 | 82 |
+| **13183** | `0/3` | `order:move.off_x` | 312 | 504 |
+| **13183** | `1/-1` | `bucket[2:wealth]` | 72 | 137 |
+
+**No mechanism is named.** Two partings stand between the captures, and
+either may be the word's. Run416 shows the first on 12784 (the Militia's
+price, 80 against 64) and the second on 12945 (the citizens' hits and line
+of sight, 40 and 2 against 50 and 4). The make list parts two blocks
+before the word.
+
+### 91.6 What this has *not* established
+
+- The other readers of the rare mask. `calc_pop_cap` is the one this
+  document now models; it was found because it moved a number.
+- Whether the Militia's price on 12784 and the citizens' hits on 12945 are
+  one cause or two, and which of them the word at 13182 descends from.
+
+### 91.7 Coverage
+
+**Diff-backed**: §91.1 and §91.4 by run416's widening, which pins
+`pop_cap` and the Mercenaries slot as agreeing over blocks 12778..13034.
+§91.2's cap is diff-backed on every window the suite walks. §91.5 is
+`run417_s_word_frame_is_widened_whole`. The compared pin walks run417's
+13181..13185, and the coverage driver drives the same blocks and run416's
+12782..12786.
+**Read only**: §91.2's listing, bit and offset. The dump's 55 against a
+Military table's 50 is the only value that proves them, and it is on one
+map.
+
+## 93. A sibling is counted where it is going, and the second pair's East Indies word moves to 6743 (2026-09-29, item 1156)
+
+Item 1156 was booked on East Indies' frame 6609 at Toughest: ours 9 draws
+against the original's 7, parting at index 2, ours `Animal::do_idle+0x83`,
+the original `Guy::set_anim+0x97a < Unit::move_step+0x823`. §90.3 had the
+AI citizen `1/28` apart on run420's first block 6604 and first parting in
+the gap 6573..6603 no dump covers. **No mechanism was named.**
+
+### 93.1 The frame, both sides
+
+- **The draw delta** (`report.py rontrace-run420.log draws 6609`): the
+  original's index 2 is `1/28`'s stop, `Unit::set_anim < Unit::move_step+0x823`
+  (seed `16947416`), where it stands against the animal `8/3`; ours spends
+  that seed on the animal's idle roll and walks on.
+- **Walked back to its first parted field** (`RON_DEBUG_UNIT` on the long
+  walk, and **run421**, booked for the gap 6573..6603): `1/28` arrives at
+  (29568,24192) on 6576 on both sides. On 6577 the original holds
+  `orders_x/y` **(26616,22776)**, its leg to (26592,22752) — cell (34,29) —
+  and ours held (28920,25080), cell (37,32). On 6588 `do_explore_to`'s
+  fifteen-frame look re-aims both onto the goody box at (28056,24216)
+  (`docs/GOODY.md` §7), from different places, so the re-aim did not
+  part: the leg taken on 6576 did.
+- **The event** is `Unit::think_scout`'s region scan (`docs/SCOUT.md` §11),
+  reached through `think_peasant+0x2ac`: both sides draw the same 26
+  `+0xaba` jitters on 6576, so the same cells pass the fog, location and
+  surface tests. Ours' scores, printed in the scan: (37,32) at 38 wins;
+  the three row-31 cells beside the box (76, 110, 136) are refused by
+  `find_unit_ordered`, which found `1/22`.
+
+### 93.2 The rule
+
+`ObjectsData::find_unit_ordered@0065bc40` measures a candidate sibling at
+**`UnitData +0x70/+0x74`**, `orders_x`/`orders_y` (`0065be35`–`0065be51`,
+`types.txt`'s names), where the decompiler prints `vector_dist(unaff_EDI,
+unaff_ESI)`; the XOR-ed position is read only for the `0x200` region test.
+`Sim::scout_unit_near` measured the body. `1/22` stood at (27221,25195),
+more than `0x600` from (37,32)'s centre, and was headed for (27384,25080),
+inside it. Measured there it refuses (37,32), and the scan takes (34,29)
+at 128. `docs/SCOUT.md` §8.1, amended in place; the merchant's search had
+the same listing right.
+
+### 93.3 What moved
+
+- **The value diff, run421** (`run421_s_gap_is_walked_whole`): `1/28`'s
+  `orders_x/y` (28920,25080) against (26616,22776) on 6577 → agreeing.
+  What else parts on the gap's 44 blocks (282 keys) is the first block's
+  263 standing keys, one-member groups' `speed`/`form`, the barge
+  identities `1/36`/`1/38`, and `1/42`'s `path[16].flags`, ours 4 against
+  0 on 6576.
+- **East Indies 6609 → 6743.** On run420 `1/28`'s `pos`, its move's
+  `angle`, group 65's `o_angle`, its `collide_o` (6610) and `path:length`
+  all agree; the first block went 263 → 249 keys, the window's 1444 → 963.
+  The animal `8/3` now stands apart first on 6791.
+- **The new word, 6743** (no mechanism is named): ours 4 draws, the
+  original 8, at index 2, ours `Guy::set_anim+0x104b`, the original
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run420's window
+  (block 6744). The citizen `1/33`, aboard the barge that is `1/36` here and
+  `1/38` there (`inside` apart since 6604; parked since item 1143), is put
+  ashore: its `orders_x/y` (37439,33407) against (38952,24840) on 6735, and
+  its `pos` (38944,24864) against (38952,24840) on 6743. That is the
+  block's reading, not a mechanism.
+
+### 93.4 What this has *not* established
+
+- `find_unit_ordered`'s `FILTER_BASE_TYPE` against this crate's `ty`: the
+  same for two citizens, not read for a lineage that differs.
+
+### 93.5 Coverage
+
+**Diff-backed**: `1/28`'s rows above, run421 and run420. **Listing-backed**: the
+distance's operands (`0065be2c`–`0065be51`). **Pinned capture-free**:
+`a_sibling_blocks_a_cell_by_where_it_is_going_not_where_it_stands`.

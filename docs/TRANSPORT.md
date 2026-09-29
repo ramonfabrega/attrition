@@ -525,6 +525,16 @@ Three predicates, and none of them is `can_transport` alone:
 
 ### 6.4 Coming ashore — `eject_contents` and `come_out`, the cast run backwards (2026-09-01)
 
+**How a barge reaches the shore at all** (item 1143). The boat's goal is
+on land, and a sea unit's `invalid_loc` refuses land unless the path's top
+carries `flags & 4` (§6.3). `do_move`'s waypoint take sets that bit on a
+final entry in another tile region than the boat's (`docs/ORDERS.md` §4.4,
+`5f865b`), so `find_path` keeps the land goal rather than pulling it back to
+the water, and the step that crosses the waterline is this arm. East Indies'
+barge `1/42` takes its final leg to (38016, 11136) on frame 6271 and prints
+it `flags 5` on 6316; without the bit this crate walked it to (38028, 11542),
+the last water tile, and stood it there loaded (`docs/AI.md` §90).
+
 `set_new_location`'s sea arm calls `Object::eject_contents(0, -1, 1, 1)`
 (`5f8fc8`: the four pushes are `param_4 = 1, param_3 = 1, param_2 = -1,
 param_1 = 0`) and then dies if `num_inside(1)` is 0. For each contained

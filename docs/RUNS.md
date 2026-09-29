@@ -10861,3 +10861,115 @@ run422's script line for line on the queue lane, `cover=1`, to 830
 | `report.py … functions` | `cast_to_arms` f625, `cast_civilian` f665, `cast_create_decoy` f820 |
 
 The three casts leave `NEVER`, 142 → 139 (`crates/rondata/src/blind.rs`).
+## run417 — run383's game at run414's detail over blocks 13177..13433: Great Sahara's long word 13182 widened (2026-09-29, item 1147)
+
+**What it is.** run416's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+13177..13433, and `!quit` at 13447. The word's frame 13182 writes block
+13183, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run417 \
+    --map 7 --end-frame 13447 --timeout 9000 --log-window 13177 13434 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run416 ends at block
+13034 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 07:28–07:46 in one take, waited on with `waitrun.sh` (exit 0).
+The receipt: `success: true`, exit 0, 1,081 s from launch to exit, 13,448
+frames, map 7 and seed 12345 verified, five files restored. The lane lock
+was stale (its pid had gone and no wine was running). The dump (502.0 MB,
+257 blocks) and the trace (43.3 MB) were moved into `Logs` as
+`gamelog-run417-greatsahara-13182.txt` and `rontrace-run417.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 13,448 identical |
+| window blocks | 257, 13177..13433 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run417_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. Block 13177 stands on 238
+keys, the make list parts on 13181, and the word's block 13183 parts on 18
+keys (`docs/AI.md` §91.5). The compared pin and the coverage driver walk
+13181..13185.
+
+## run420 — run346's game at run419's detail over blocks 6604..6860: the second pair's East Indies word 6609 widened (2026-09-29, item 1143)
+
+**What it is.** run419's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 6604..6860, `!quit` at 6874. The word's frame 6609 writes block
+6610: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run420-take2 \
+    --map 18 --end-frame 6874 --timeout 4000 --log-window 6604 6861 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run419 ends at block
+6572. No dump prints the word's blocks.
+
+**Taken** in two takes. The first (06:49, `2026-09-29-run420`) exited 9
+2.4 s after launch, before the menu — the pre-menu failure
+`docs/lab/2026-09-09-autostart.md` records — and its receipt says `success:
+false`; it is kept. The second (06:50–07:12, `2026-09-29-run420-take2`)
+was waited on with `waitrun.sh`: `success: true`, exit 0, 1,301 s from
+launch to exit. The dump (580.6 MB) and the trace (52.4 MB) were moved into
+`Logs` as `gamelog-run420-islands-toughest-6609.txt` and
+`rontrace-run420.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 6,875 identical |
+| window blocks | 257, 6604..6860 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run420_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 6604 stands on 263 keys, from the gap
+6573..6603. Among them `1/28` walks apart. The word's block 6610 parts on
+13 keys: the original stands `1/28` against the animal `8/3`, and ours
+walks on (`docs/AI.md` §90.3). The compared pin walks its 6608..6612, and
+the coverage driver drives 6609..6612.
+
+## run421 — run346's game at run420's detail over blocks 6567..6610: the gap before the second pair's East Indies word 6609 (2026-09-29, item 1156)
+
+**What it is.** run420's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 6567..6610, `!quit` at 6624.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run421 \
+    --map 18 --end-frame 6624 --timeout 4000 --log-window 6567 6611 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run419 ends at block
+6572 and run420 starts at 6604; `1/28` agrees on the one and is apart on
+the other, so the frame it parts on and the order it took were in the gap
+6573..6603 that no dump covers.
+
+**Taken** 08:22–08:26, after waiting 530 s for item 1111's capture to free
+the lane; waited on with `waitrun.sh`: `success: true`, exit 0, 225 s from
+launch to exit. The dump (99.4 MB) and the trace (49.8 MB) were moved into
+`Logs` as `gamelog-run421-islands-toughest-gap6573.txt` and
+`rontrace-run421.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 6,625 identical |
+| window blocks | 44, 6567..6610 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run421_s_gap_is_walked_whole` (`diff::second`), walked
+from run346's start. On block 6577 the original's `1/28` holds `orders_x/y`
+(26616,22776), its leg to (26592,22752), cell (34,29); the old tree sent it
+to (28920,25080), and since item 1156 it agrees (`docs/AI.md` §93,
+`docs/SCOUT.md` §8.1).

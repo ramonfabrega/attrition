@@ -367,6 +367,20 @@ where they read 38, and its Transport Barge reads 30 where it read 25. Its
 citizens and its scout do not move — they are not naval. `38 × 120 / 100` is
 **45**, and the truncation is the original's.
 
+**Peacocks**, rare bit 19 (`TypeIndex` 25), are the one rare the population
+cap reads (item 1147). The change arm above calls `Leader::calc_pop_cap`
+after the assignment (`calc_gather@006ceee0:353`), and `calc_pop_cap`'s tail
+(`006dc656`, read off the listing: `testb $0x8, 0x6da6(%esi)`, else the
+same at `0x6dce`) multiplies the cap by `(PEACOCKS_POP + 100) / 100`, `+10%`
+as shipped, on every path through the function. Until item 1147 this crate
+had the term in `cost::pop_cap` and nothing ever set it, and the change arm
+did not recompute the cap at all. Now `Sim::recompute_pop_caps` reads the
+live mask ([`economy::PEACOCKS`]) and the change arm calls it. run416 is the
+capture: Great Sahara's AI has a merchant `1/18` on Peacocks (`rare 25`), and
+its `pop_cap` is **55** where the Military table gives 50. The Mercenaries
+offer's `cap × 5 / 6 < effective_pop` test then read 41 < 44 here against
+45 there, and the word it moved was 12783 (`docs/AI.md` §91).
+
 ### The territory tax
 
 ```

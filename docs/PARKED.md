@@ -116,6 +116,29 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1156, 2026-09-29 — the barge's path flag
+
+(1165) **`1/42`'s `path[16].flags`, ours 4 against 0 on run421's 6576**
+(AI §93): beside item 1143's region-check `| 4`, and not read.
+
+## Parked by item 1147, 2026-09-29 — the rare's other arm
+
+(1160) **The rare mask's change arm is held by a unit test alone**
+(AI §91): with `recompute_pop_caps` removed from the change arm, every
+third-map walk passes, because a tech gain recomputes the cap before
+12780; only `the_rare_mask_s_change_recomputes_the_pop_cap` fails.
+
+## Parked by item 1143, 2026-09-29 — the barge's other edges
+
+(1157) **The barge's residue after 1143** (AI §90): `1/32`'s figure
+`avg_speed` on run419's 6322, ours 0 against 11, after the landing; and
+the later barge identities `1/36` against `1/38`, apart on 6393 (6402 on
+the old tree). No draw reads either while 6609 stands.
+
+(1158) **The waypoint take's `TRADE_ROUTE` arm on a non-final leg**
+(ORDERS §4.4, AI §90.2): built from the listing, never read on a
+capture.
+
 ## Parked by item 1131, 2026-09-29 — the flak's quiet fields
 
 (1152) **`widen_block` compares no unit `z`, and no widening compares
@@ -2043,6 +2066,36 @@ thirty-eight's first parting; it was the first row and not the cause,
 since `0/6` parted the same way on 854 with no hit behind it. One grep
 across units would have killed the framing — rule 711's killer applied
 across units rather than across rows. A clause or a brief row. One reach.
+
+(1159) **A document's "not modelled" row was a word's whole mechanism**
+(1143's Loop line): ORDERS §4.4 had read and listed the waypoint take's
+region check as not modelled, under a name ("turn in place") that hid
+the bit's second reader, and it held East Indies at 6321. A guard that
+lists a document's "not modelled" rows beside the functions the word's
+draw chain and parted fields touch would have put it in front of the
+item on its first read. Kin of 1146. One reach.
+
+(1161) **`ccc update` refuses on append-only conflicts, and the lane
+falls back to a raw merge** (1147's Loop line): two sections side by
+side in `docs/AI.md` (§90 beside §91) and two stanzas at the end of
+`tools/gamelog/captures.txt` stopped `ccc update att-1147`; a raw merge
+kept both sides. The append-only files could merge by union, as
+`docs/RUNS.md` does. **Two reaches** (1147, 1156: the same pair of
+files, §91 beside §93 the second time).
+
+(1162) **A pinned uncompared field with a live reader in `sim` is not
+asked for** (1147's Loop line): `pop_cap` was parsed and uncompared,
+and this crate reads it in the AI's research, unit and army decisions;
+it held Great Sahara at 12783. A guard crossing the coverage pin with
+`sim`'s readers would have named it. Kin of 1119. One reach.
+
+(1166) **A function read right for one caller and wrong for another
+stood four weeks** (1156's Loop line): `find_unit_ordered`'s distance
+was read correctly for the merchant (item 186) and wrongly for the scout
+(SCOUT §8.1), and the export's `unaff_` operands were the tell in both.
+A guard listing every call site of a function whose export body prints
+`unaff_` arguments, beside the `SEAM` or document line each caller
+cites, would have put the two readings side by side. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

@@ -12760,13 +12760,13 @@ pub(crate) mod tests {
         else {
             return;
         };
-        // run80's leader records are the short form: 1,058 of the keys this
+        // run80's leader records are the short form: 1,059 of the keys this
         // crate's leader rows carry (the `MAKE` list, `SITE`, `PERSONALITY`,
         // `num_units`/`num_queued` and the economy) are on no block, so
         // they are named here rather than read as agreeing.
         pin_eq!(
             missing.len(),
-            1_058,
+            1_059,
             "the keys run80's record does not carry"
         );
         pin_eq!(
@@ -12844,14 +12844,14 @@ pub(crate) mod tests {
         else {
             return;
         };
-        // run96's leader records are the short form, as run80's are: 1,058
+        // run96's leader records are the short form, as run80's are: 1,059
         // of the leader keys and the 1,531 region keys are on no block. Its
         // `GUY` records are the short form too, so a gaia animal's clock
         // (`cur_anim`, `cur_time`) is named here rather than read as
         // parting; its position is compared on every block.
         pin_eq!(
             missing.len(),
-            1_058 + 1_531 + 2,
+            1_059 + 1_531 + 2,
             "the keys run96's records do not carry"
         );
         pin_eq!(
@@ -15066,8 +15066,9 @@ pub(crate) mod tests {
         // **The leader half is whole**: every key `leader::rows` carries is
         // on run139's record, both leaders, all forty blocks. 1,055 before
         // item 785, which compares `wonder_mark` (`docs/AI.md` §75), and
-        // 1,056 before item 883, which compares the three tech counters.
-        pin_eq!(leader_rows, 84_720, "40 blocks x 2 leaders x 1,059 keys");
+        // 1,056 before item 883, which compares the three tech counters,
+        // and 1,059 before item 1147, which compares `pop_cap`.
+        pin_eq!(leader_rows, 84_800, "40 blocks x 2 leaders x 1,060 keys");
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **Where each key first parts, block by block.** The 169 on the
         // window's first block are standing residue under the cycle: the
@@ -15197,8 +15198,8 @@ pub(crate) mod tests {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "250 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "250 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         pin_eq!(
             missing,
@@ -15336,8 +15337,8 @@ pub(crate) mod tests {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "630 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "630 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         pin_eq!(
             missing,
@@ -15600,8 +15601,8 @@ pub(crate) mod tests {
         };
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "120 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "120 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         // **Under the word and on it, both directions.** The leader rows
         // are who=1's make list (`MAKE[].city`) and the human's
@@ -15837,8 +15838,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "343 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "343 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -16032,8 +16033,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "705 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "705 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -16253,8 +16254,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "512 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "512 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -16518,8 +16519,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -16650,8 +16651,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -16811,8 +16812,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -17052,8 +17053,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -17199,8 +17200,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -17318,8 +17319,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -17447,8 +17448,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -18033,8 +18034,8 @@ pub(crate) mod tests {
         );
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "257 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "257 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         let row = |((w, o, what), (f, row)): (&(i64, i64, String), &(i64, String))| {
             format!("{f} {w}/{o} {what}: {row}")
@@ -18146,8 +18147,8 @@ pub(crate) mod tests {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "170 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "170 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         pin_eq!(
             missing,
@@ -18293,8 +18294,8 @@ pub(crate) mod tests {
         pin_eq!(blocks, (TAIL - FIRST + 1) as usize, "the walk is whole");
         pin_eq!(
             leader_rows,
-            (TAIL - FIRST + 1) as usize * 2 * (1_059 + 1_531),
-            "150 blocks x 2 leaders x (1,059 + 1,531) keys"
+            (TAIL - FIRST + 1) as usize * 2 * (1_060 + 1_531),
+            "150 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         pin_eq!(
             missing,
@@ -18900,8 +18901,8 @@ pub(crate) mod tests {
         // 1,531 keys a leader), which no widening had read.
         pin_eq!(
             leader_rows,
-            1_864_800,
-            "360 blocks x 2 leaders x (1,059 + 1,531) keys"
+            1_865_520,
+            "360 blocks x 2 leaders x (1,060 + 1,531) keys"
         );
         pin_eq!(missing, BTreeSet::new(), "no key unprinted");
         // **The old word's blocks, 10397..10399, and the move's value

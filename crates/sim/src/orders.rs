@@ -4247,6 +4247,35 @@ impl Sim {
             {
                 self.caravan_road_step(u, top.to);
             }
+            // **The region check** (`5f8544`–`5f86f4`, §4.4; item 1143): a
+            // **final** waypoint, or any waypoint under a `TRADE_ROUTE`
+            // action, whose tile's `get_tregion@006b52e0` is not the unit's
+            // own is popped and pushed back with `flags | 4` and tolerance
+            // 0. The unit's own tolerance keeps the old entry's (`5f8541`
+            // wrote it first). The bit is `invalid_loc`'s transport relax,
+            // read off the path's top: a barge whose goal is on land keeps
+            // it rather than `find_path` pulling it back to the water, and
+            // walks onto the shore, where `set_new_location` disembarks it
+            // (`docs/TRANSPORT.md` §6.4). East Indies' barge `1/42` stopped
+            // a tile short of the shore on 6321 without it.
+            let trade = self
+                .action_of(u)
+                .is_some_and(|i| self.units[u].orders[i].index() == index::TRADE_ROUTE);
+            let top = if (top.flags & path_flag::FINAL != 0 || trade)
+                && self.world.tregion_alt(top.to.tile())
+                    != self.world.tregion_alt(self.units[u].pos.tile())
+            {
+                let flagged = PathData {
+                    tolerance: 0,
+                    flags: top.flags | path_flag::TRANSPORT,
+                    ..top
+                };
+                self.units[u].path.pop();
+                self.units[u].path.push(flagged);
+                flagged
+            } else {
+                top
+            };
 
             // **The waypoint's own collision test** (§4.4), the one call of
             // `detect_unit_collision` that is not `move_step`'s or
@@ -4267,9 +4296,8 @@ impl Sim {
             // into it.
             //
             // SEAM: the original also spells `TRADE_ROUTE` in the kill's
-            // action set and runs a region check just above (a
-            // turn-in-place before a leg that ends in another terrain
-            // region); neither is modelled — `docs/ORDERS.md` §4.4.
+            // action set, which is not modelled — `docs/ORDERS.md` §4.4.
+            // (The region check just above is, since item 1143.)
             //
             // **And a ship never asks.** The call is `(x, y, 0, 0, 0, 0, 0)`
             // on the listing (`5f86f9`–`5f8707`); with `boats` zero the

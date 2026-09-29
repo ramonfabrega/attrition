@@ -810,6 +810,13 @@ if peacocks:  cap = cap * (100 + PEACOCKS_POP) / 100
 if Colossus:  cap = cap + COLOSSUS_POP_CAP
 ```
 
+`peacocks` is the Peacocks bit of `rare` or `rare_conquest` (`LeaderData
++0x6da6 & 8` or `+0x6dce & 8`, bit 19 = `PEACOCKS − BASE_RARE`; the listing
+at `006dc656`), and it applies on the scenario and ignore-cap paths too,
+which jump to it. It is read live on every call, and the rare mask's change
+arm in `Leader::calc_gather` is one of the callers (`docs/ECONOMY.md`, "What
+an owned rare does"; item 1147, which wired it: nothing had ever set it).
+
 **The index is not the age.** `Leader::calc_pop_cap` reads `epoch[0]`, and
 `LeaderData::compute_epoch` builds that by counting how many consecutive
 `BASE_MILITARYTYPES` techs the player holds — the Military library line, The

@@ -1497,8 +1497,14 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// `SAM` (the anti-air building's cycle, `docs/COMBAT.md` §84).
 /// **Item 1115 banked one**: PATHFINDER 1 → 0, `0x8c`, `avoid_sea`, which
 /// `crate::roads`' shore surcharge now cites; the row is gone.
+/// **Item 1147 raised two, and it is not a build**: AI 35 → 37 and ECONOMY
+/// 15 → 17, `0x6da6` and `0x6dce`, the `rare` and `rare_conquest` bytes
+/// `Leader::calc_pop_cap`'s listing tests for Peacocks (`006dc656`). They
+/// are `LeaderData` field offsets, quoted as the listing prints them, and
+/// this crate keeps the masks as `Ledger::rare`, not at an offset;
+/// `economy::PEACOCKS` is the bit they carry.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 35),
+    ("AI.md", 37),
     ("ANIM.md", 4),
     ("ARMY.md", 9),
     ("ATTRITION.md", 1),
@@ -1506,7 +1512,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COLLISION.md", 1),
     ("COMBAT.md", 9),
     ("COSTS.md", 5),
-    ("ECONOMY.md", 15),
+    ("ECONOMY.md", 17),
     ("GOLDEN.md", 5),
     ("GOODY.md", 5),
     ("GROUPS.md", 5),

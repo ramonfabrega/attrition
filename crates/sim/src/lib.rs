@@ -1918,8 +1918,17 @@ impl Sim {
     /// Recomputes every player's population cap from scratch —
     /// `Leader::calc_pop_cap`, which the original also calls wholesale
     /// whenever anything that feeds it changes.
+    ///
+    /// The peacocks term is read off the live rare mask, as the original's
+    /// `testb $0x8, 0x6da6(%esi)` reads it on every call ([`economy::PEACOCKS`]),
+    /// so a recompute for any other cause sees the mask as it stands.
     pub fn recompute_pop_caps(&mut self) {
-        for m in &mut self.muster {
+        let peacocks = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
+        for (who, m) in self.muster.iter_mut().enumerate() {
+            m.bonuses.peacocks = self
+                .ledgers
+                .get(who)
+                .is_some_and(|l| l.rare & peacocks != 0);
             m.cap = cost::pop_cap(&self.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
@@ -4154,6 +4163,12 @@ impl Sim {
                 if gems_moved {
                     self.sync_territory();
                 }
+                // And then `calc_pop_cap(this)` (`006ceee0:353`), whose one
+                // rare arm is Peacocks: Great Sahara's AI holds them, its
+                // cap is 55 where the lobby's Military table gives 50, and
+                // the Mercenaries offer's `cap × 5 / 6 < effective_pop` read
+                // 41 < 44 here against 45 there (item 1147).
+                self.recompute_pop_caps();
             }
             // `Leader::process` also answers the wall-stats dirty flag here,
             // before any building is touched.
