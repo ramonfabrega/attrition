@@ -216,7 +216,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// (item 1102: chapter thirty-eight at `cover=1`, `docs/GOLDEN.md` §47;
 /// `UnitData::is_flying_low@0060a140` and `is_flying_high@0060a310` on
 /// 730, `Ammo::init_crash@0067b800` on 1006, the three rows its staging
-/// named).
+/// named); **142** with item 1117's `Guy::set_pivot_angle@005d8fc0`
+/// (`docs/COMBAT.md` §85.2: turret 0 pointed ahead when no node bears),
+/// dead in the image — `Unit::move_step` carries it inline — and so on
+/// [`RESIDUE`] too.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -225,7 +228,7 @@ pub const NEVER: &[u32] = &[
     0x0047_0e50, 0x0047_11e0,
     0x0047_80c0, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60, 0x0048_89a0,
     0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
-    0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005e_1f20, 0x005e_3310, 0x005e_3400,
+    0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005d_8fc0, 0x005e_1f20, 0x005e_3310, 0x005e_3400,
     0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
     0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850,
@@ -295,6 +298,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x005a_bc70,
         "Setup::build_leader: no reference in the executable",
+    ),
+    (
+        0x005d_8fc0,
+        "Guy::set_pivot_angle: no call and no absolute reference in the \
+         executable; Unit::move_step's cavalry-archer arm carries it inline \
+         (item 1117, docs/COMBAT.md §85.2)",
     ),
     (
         0x0060_8850,

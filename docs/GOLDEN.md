@@ -8472,17 +8472,6 @@ node 0: ours 9 draws, theirs 6. Theirs holds it, the turret short of its
 aim (`node_flags` 14 on block 780), a field parsed nowhere here.
 Widening: **665 rows**.
 
-**Item 1117: 779 → 794, open.** The instrument first: `GUY`'s
-`turret_angles`, `des_turret_angles`, `node_flags` and `des_node_flags`
-are compared on every golden window (`golden::widen_turrets`), and they
-part on this chapter alone. Block 780 reads `node_flags` 14 on **both**
-sides, so ours fired the Battery's node-0 round through a clear bit. The
-release gate had been keyed on the piece's measured pivot vectors, and
-only the Chariot's are measured. It is the event's now (`docs/COMBAT.md`
-§85). The value diff on block 780, both sides: `1/9` at `cur_anim 12`,
-`cur_time 4`, `node_flags 14`, `des_node_flags 1`, and no round of `1/9`
-in the air. **794** is `1/7`'s walk, parted on 765 (parked 1113). Ours is
-still walking into the Battery; theirs has stood since 777. Ours draws 12,
-theirs 8. From 784, the Battery's node-1 round leaves from the figure's
-square in ours (the piece's release vectors are unmeasured, §85.5).
-Widening: **668 rows**.
+**Item 1117: 779 → 794, open.** The release gate is the event's
+(`docs/COMBAT.md` §85): on 780 both sides read `1/9`'s `node_flags 14`
+and hold its round. 794 is `1/7`'s walk (1113). Widening: **668 rows**.

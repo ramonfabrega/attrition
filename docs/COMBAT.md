@@ -13400,8 +13400,10 @@ aim), `Guy::set_pivot_angle@005d8fc0` (turret 0 at zero), and that
 function's inlined copy in `Unit::move_step@005faf30:79–94`, the
 cavalry-archer arm when figure 0's `des_node_flags` is 0. `+0x98`:
 `set_all_pivots` and `set_pivot_angle`, and the same inline copy. This
-crate has the first three. The fourth and fifth are a SEAM, reached only
-by a figure none of whose nodes bears (§85.5).
+crate has the first three. `set_pivot_angle` itself is dead in the image:
+no call and no absolute reference (`blind::RESIDUE`). Its inline copy is
+a SEAM, reached only by a cavalry archer none of whose nodes bears
+(§85.5).
 
 ### 85.3 Every instance on disk
 
@@ -13450,8 +13452,9 @@ point is one cell past theirs (parked 1113). Theirs stands at (20604,
   packet's `AttachPos` entries, as run147's were for the Chariot.
 - **The Battery's node vector for the bearing** (`pivot::NODES`): its
   aim is 2,359,296 off from 743 for that reason.
-- `set_pivot_angle` and its `move_step` copy, which point turret 0 ahead
-  when no node bears. No capture on disk has shown it.
+- `set_pivot_angle`'s inline copy in `move_step`, which points turret 0
+  ahead when no node of a cavalry archer bears. No capture on disk has
+  shown it.
 - `guy_flags & 0x100` gates `Guy::process`' turn in the original. This
   crate turns every figure of a type with restrictions.
 
