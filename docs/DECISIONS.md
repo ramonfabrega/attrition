@@ -3577,3 +3577,22 @@ wrong, against three; `UNBUILT` against 149; `NO_SUCH_SECTION` against
 thirteen; the order row against 65 and 280; the blind list against 142;
 the commander's price a landing against 4.4; the disk against 64 GB;
 the price a landing against 35.8; and the count at twenty.
+
+**Amended 2026-09-29, the same day, on the user's word** ("Lets try a
+third lane sure"), after the pass's gate. **Three lanes run, one to an
+open word**: the second pair's lower open map (item 1127), the third
+map (item 1133) and the rules track's chapter (item 1131). §1's bound —
+three landings ahead of East Indies — is withdrawn with the reason for
+it: the third map has its own lane and East Indies keeps its own; the
+measure is unchanged, the third map's landings to 1,850. The capture
+lane stays one (parked 1139). **The count stays twenty** for this
+tranche, because two of the loop's rules changed at once and both are
+read at the next pass; at three lanes that is some nine hours where the
+last three tranches ran fifteen. **The commander clears at the seam
+after every tenth landing**: its session reached 631 k tokens of
+context with no clear taken, 47 of its 89 USD were spent above 400 k,
+and a third lane's messages would carry it to the window's edge inside
+a tranche, where a compaction lands wherever the chain happens to be.
+What was measured for the user's questions — a landing's 76 minutes
+against 44, half of it waiting on the machine — is in the pass's record
+and parked as 1138.

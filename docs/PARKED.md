@@ -1885,6 +1885,34 @@ chapter's walk as a function the pin can call with the chapter's own
 name, or a recorder that outlives its thread; the AI track's pin walks
 both open words now and no round is printed on either.
 
+(1138) **Half a landing's wall clock is waiting on the machine, and
+the share grows with every landing** (the nineteenth pass, measured
+after its gate on the user's question, `lore trace --steps`): a worker
+of this tranche ran **76 minutes, 37 working and 38 waiting** on a gate,
+a suite or a capture, where the tranches after the eleventh and twelfth
+passes ran 43 and 45, with 12 and 19 waiting. The rondata release suite
+is 618 s at four threads alone and gained twenty-eight tests in the
+tranche; every landing pays it whole at least once and nine paid it
+twice. Captures were taken on nine of twenty and are not where the time
+went. Three lanes gate at twelve threads of sixteen. **And the
+commander's chain is serial**: a lane stood empty fourteen minutes a
+landing, 4.6 hours of the tranche's 15.1, between its landing and its
+refill, which is the booking gate; at three lanes that is the loop's
+narrowest point. The next pass reads the three-lane tranche's split
+first; the shapes are a spawn that follows the booking commit with the
+gate beside it, a wider gate under a higher cap on a machine of 128 GB,
+and a suite that says which tests a change can reach — none is chosen.
+
+(1139) **The capture lane is one prefix, one install and one profile**
+(the nineteenth pass, on the user's question): `~/wine-ron`'s lock,
+`game/`'s `rontrace.cfg`, `.cmd` and INIs, and `Player.dat` are each
+written per capture, and the queue lane also owns the cursor. The
+click-free lane needs no mouse, so a second one is a second prefix, a
+second copy of the install and its own user-data directory;
+`~/ron-capture-lane-2` holds a profile backup of 2026-09-18 and nothing
+else. Not built: the lane was not what the tranche waited on. Returns
+when three lanes' journals say they waited on it, with the minutes.
+
 (1137) **The brief checklist is three sections and fifty-five rows, read
 whole by every brief** (the nineteenth pass): it took a dozen rows at
 each of three passes, and the commander's session cost 4.4 USD a landing

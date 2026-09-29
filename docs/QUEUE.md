@@ -17,19 +17,20 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 count is zero from the pass's commit.** No score moved in the pass;
 every floor holds. No lane is live.*
 
-- **The AI track**: **the third map's word opens** — item 1133, Great
-  Sahara's frame 8 — and the lane takes it ahead of East Indies for
-  three landings or until it passes 1,850, whichever is first; then
-  1127, East Indies' 6151. Great Lakes' second game is closed at its end.
-- **The rules track**: chapter thirty-eight, open at 878 of 1763 (1131).
+- **Three lanes, on the user's word** (DECISIONS 55, amended): the
+  second pair's — 1127, East Indies' 6151; **the third map's** — 1133,
+  Great Sahara's frame 8; the rules' — 1131, chapter thirty-eight at 878.
+  One capture lane still; a lane that waits on it says for how long.
+- **The commander clears at the seam after every tenth landing**, the
+  handoff written first (631 k at the last tranche's end, no clear taken).
 - **Code is not fenced** (DECISIONS 55 §5): a brief reserves run,
   section and item numbers and says where the other lane's word sits.
   No grant is asked or given; no word is handed over for where the code is.
 - **A floor test reports every pin that moved** (`Pins::hold()`,
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
-- **The user's**: whether phase 4 opens on the rules track alone, and
-  whether a third lane runs. The disk: 64 GB free.
-- **Fable backlog: 6 Loop items** (685, 1101, 1105, 1114, 1119, 1137).
+- **The user's**: whether phase 4 opens on the rules track alone. The
+  disk: 64 GB free.
+- **Fable backlog: 8 Loop items** (685, 1101, 1105, 1114, 1119, 1137, 1138, 1139).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,15 +39,15 @@ Third map: GreatSahara w8 of 24,000
 Golden: ch38 w878 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1131 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1133 on the AI lane, 1131 on the
-rules lane; the twentieth pass at twenty landings from this one's commit.**
+**Opener: the commander resumes on three lanes — 1127, 1133 and 1131;
+the twentieth pass at twenty landings from this one's commit.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **Two headlines** (DECISIONS
-41, 53): the golden word for the rules, the newest pair's word for the AI,
-lower map first — East Indies, behind the third map's three landings (DECISIONS 55).
-Take the first unstarted on either track unless a better order is obvious,
+In dependency order, headline-nearest first. **Three lanes, one to an open
+word** (DECISIONS 41, 53, 55): the golden word for the rules, the third map's, and the newest pair's,
+lower map first — East Indies (Great Lakes is closed at its end).
+Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
 1133. **Great Sahara's word: frame 8, ours 6 draws against 7** (1066;
@@ -54,8 +55,8 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     Unit::move_step+0x823`, ours `Farms::inc_time+0x1ae`, widened on
     run382 (blocks 1..259), where the AI citizen `1/2` parts first: on
     block 6 `collide` ours 1 against 0 and its path one leg short, on 9
-    `collide_frame` 6 against 8. Three landings or past 1,850, then
-    1127. No mechanism is named.
+    `collide_frame` 6 against 8. Its own lane; the measure is its
+    landings to 1,850. No mechanism is named.
 
 1127. **East Indies' second word: frame 6151, ours 9 draws against 8**
     (1120), at index 0: ours `Unit::move_step+0x823`, theirs

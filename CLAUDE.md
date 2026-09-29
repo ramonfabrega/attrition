@@ -487,10 +487,10 @@ commit. **The chain's last link is the spawn.** A reap frees a lane, and
 the same turn refills it with the queue's first unstarted item on that
 track; the turn does not end with a lane empty and the queue not, and it
 never asks whether to continue — the queue's opener is the answer.
-**Lanes are independent.** Two lanes are throughput, not a pair: each
-lands, is chained and is refilled without reference to the other's
-state, and the only coupling between them is the merge and what the
-brief reserves. **The commander counts landings since the last steering pass — by
+**Lanes are independent.** Lanes are throughput, not a pair — **one to
+an open word, and the queue's handoff says how many**: each lands, is
+chained and is refilled without reference to another's state, and the
+only coupling between them is the merge and what the brief reserves. **The commander counts landings since the last steering pass — by
 `git log` from that pass's commit, never from its own last clear — and
 stops at twenty**, writing the handoff and saying the steering pass is
 due; **and a finding it would raise at that pass is filed in
@@ -498,9 +498,11 @@ due; **and a finding it would raise at that pass is filed in
 handoff's `Fable backlog:` count moving with it — a finding narrated in
 chat has told nobody (parked 509), **and a journal's own "for the Loop"
 line is filed at its merge**: four journals of one tranche named the
-same broken waiter and the pass found it in the table (656's sequel); a
-free clear between is taken at a seam in the chain (`ccc clear <own ref>
---then continue`), never in the middle of one. A second lane may run a
+same broken waiter and the pass found it in the table (656's sequel);
+**the commander clears at the seam after every tenth landing** (`ccc
+clear <own ref> --then continue`), the handoff written first, never in
+the middle of a chain — a clear left free was not taken in three
+tranches (`docs/DECISIONS.md` entry 55). A second lane may run a
 parked value-diff row *beside* the word's frame, never instead of it — a
 rule about what it works on, never about when it is spawned.
 `docs/DECISIONS.md` entries 40 and 45.
