@@ -36,9 +36,9 @@ pub const FLOORS: [MapFloors; 3] = [
     },
     MapFloors {
         map: "GreatSahara",
-        ticks: 6,
-        orders: 5,
-        word: 8,
+        ticks: 1850,
+        orders: 1850,
+        word: 1850,
     },
 ];
 

@@ -1214,6 +1214,7 @@ pub(crate) fn start_of_game(
         // §9.3's assignment. `2001` for the first `ordered`; then successive
         // farms from `2002`, the cursor advancing past each one taken.
         let site_at = |o: i64| sites.iter().find(|(n, _)| *n == o).map(|(_, h)| *h);
+        let mut births: Vec<(usize, i64, usize)> = Vec::new();
         let mut cursor = 0i64;
         for (i, link) in citizens.iter().enumerate() {
             let target = if i < ordered {
@@ -1234,6 +1235,22 @@ pub(crate) fn start_of_game(
                 continue;
             }
             sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
+            births.push((link.unit, link.o, b));
+        }
+        // **Born at the building, then out** (`docs/COLLISION.md` §2.4):
+        // each citizen's `come_out` clears what its birth disc and its new
+        // one do not share, in creation order. A cell a unit born later
+        // covers is painted again by that unit; SEAM: another player's and
+        // gaia's units are treated as painted later, since the order
+        // `Setup::build_game` builds the players in is not modelled here.
+        for &(u, o, b) in &births {
+            let birth = sim.buildings[b].pos;
+            let later: Vec<usize> = units
+                .iter()
+                .filter(|l| l.who != w || l.o > o)
+                .map(|l| l.unit)
+                .collect();
+            sim.birth_come_out(u, birth, &later);
         }
     }
     // `Setup::build_game@005ac190` builds the starting positions in the

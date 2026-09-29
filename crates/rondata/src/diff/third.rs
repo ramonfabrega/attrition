@@ -117,6 +117,11 @@ pub(crate) fn walk_sahara((gamelog, tracelog): (&str, &str)) -> Option<Word> {
     })
 }
 
+/// **The first word's block, 9** (item 1066): frame 8 writes it. Item 1133
+/// moved the word to 12783, past every block run382 holds, and this block
+/// stays the move's value diff and the coverage driver's run382 window.
+pub(crate) const SAHARA_FIRST_WORD_BLOCK: i64 = 9;
+
 /// **The widening's window** (item 1066): run382's blocks 1..259. The
 /// word's frame 8 writes block 9; every block before it is on the capture,
 /// and 250 follow it (DECISIONS 50 §7, stated in blocks).
@@ -139,7 +144,7 @@ pub(crate) fn sahara_word_window() -> Option<crate::diff::harness::tests::Widene
         // run10's detail prints no `GROUPDATA`: a pool or group row here
         // would compare against a record the capture never wrote.
         i64::MAX,
-        &[LONG_WORD_GREAT_SAHARA + 1],
+        &[SAHARA_FIRST_WORD_BLOCK],
         false,
     )
 }
@@ -170,6 +175,12 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // `RON_FIRSTS=1` prints every key's first parting past block 1.
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, row)) in w.firsts.iter().filter(|(_, (f, _))| *f > 1) {
+                eprintln!("  first {f} {who}/{o} {what}: {row}");
+            }
+        }
         // **What run10's detail does not print** is a key unprinted, never
         // a parting: the leader's long record (`LEADERS=1` prints the short
         // one) and gaia's clocks (`GUYS=2` prints no `cur_anim`).
@@ -189,67 +200,46 @@ mod tests {
                 || (*who, *o) == (0, 2000) && what.starts_with("city:")),
             "block 1's rows are the standing families"
         );
-        // **The first parting past block 1 is block 6, one unit**: the AI
-        // citizen `1/2` on its way from the capital. Ours marks a collision
-        // (`collide` 1 against 0) and walks a one-leg move to (38232,
-        // 16056) where the original holds a two-leg move to (38328, 15768).
-        for (what, want) in [
-            ("collide", "ours 1 theirs 0"),
-            (
-                "order:move.dest_x",
-                "Move { field: \"dest_x\", ours: 38232, theirs: 38328 }",
-            ),
-            (
-                "order:move.dest_y",
-                "Move { field: \"dest_y\", ours: 16056, theirs: 15768 }",
-            ),
-            ("path:length", "PathLength { ours: 1, theirs: 2 }"),
+        // **The move's value diff (item 1133): block 6 and the old word's
+        // block 9 agree.** Until the setup's birth was modelled
+        // (`docs/COLLISION.md` §20), `1/2` parted here first: blocked by
+        // `1/1` on frame 5, ours refused both sidestep cells on `1/1`'s
+        // corner (797, 329) and marked `collide` 1 with a one-leg move to
+        // (38232, 16056), where the original, whose `1/2` had cleared that
+        // corner coming out of the camp `1/2001`, pushed the sidestep to
+        // (38328, 15768) with `collide` 0 and a two-leg path. On block 9 the
+        // collision's frame was 6 against 8 and the facing −328728576
+        // against −1925840896. Every one of those rows now agrees.
+        for what in [
+            "collide",
+            "order:move.dest_x",
+            "order:move.dest_y",
+            "path:length",
+            "pos",
+            "collide_frame",
+            "angle:Facing",
         ] {
-            pin_eq!(
-                first(1, 2, what),
-                Some((6, want.to_string())),
-                "1/2's {what}, the first parting"
-            );
+            pin_eq!(first(1, 2, what), None, "1/2's {what} agrees");
         }
-        // Its position parts on block 7, (38352, 15814) against (38328,
-        // 15768), and on block 8 the two destinations have swapped sides:
-        // the original takes the side-step two frames after ours.
+        // **The first parting past block 1 is now block 202, one key**: the
+        // AI scout `1/0`'s `mylos`, ours 6 against 4. It moves no draw and
+        // no order over run382's 1,850 frames.
         pin_eq!(
-            first(1, 2, "pos"),
-            Some((7, "ours (38352,15814) theirs (38328,15768)".to_string())),
-            "1/2's position"
-        );
-        // **The word's block, 9**: `1/2` stands at (38328, 15768) on both
-        // sides again, and what parts is its collision's age and its facing
-        // — `collide_frame` 6 against 8, `collide` 2 against 1, facing
-        // −328728576 against −1925840896. Its partner is `1/1` on both
-        // sides (ours from block 8, the original's from block 10). The
-        // original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`
-        // first on frame 8 and ours `Farms::inc_time+0x1ae`.
-        pin_eq!(
-            first(1, 2, "collide_frame"),
-            Some((9, "ours 6 theirs 8".to_string())),
-            "the word's block: the collision's frame"
+            first(1, 0, "mylos"),
+            Some((202, "ours 6 theirs 4".to_string())),
+            "the scout's line of sight, the first parting past block 1"
         );
         pin_eq!(
-            first(1, 2, "angle:Facing"),
-            Some((9, "ours -328728576 theirs -1925840896".to_string())),
-            "the word's block: the facing"
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(1, 22), (202, 1)],
+            "the blocks keys first part on"
         );
-        pin_eq!(
-            by.iter().take(5).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1, 22), (6, 4), (7, 8), (8, 2), (9, 3)],
-            "the blocks keys first part on, the first five"
-        );
-        // Gaia's herds hold until block 31 (`8/2`'s position).
+        // Gaia's herds hold over the whole window.
         pin!(
-            w.firsts
-                .iter()
-                .filter(|((who, _, _), _)| *who >= 8)
-                .all(|(_, (f, _))| *f >= 31),
-            "gaia's animals agree to block 30"
+            w.firsts.iter().all(|((who, _, _), _)| *who < 8),
+            "gaia's animals agree to block 259"
         );
-        pin_eq!(w.firsts.len(), 244, "keys parted over the window");
+        pin_eq!(w.firsts.len(), 23, "keys parted over the window");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

@@ -1119,11 +1119,12 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
-    // **The third map's word, on run382** (item 1066): Great Sahara's frame
-    // 8 writes block 9, and the window is it with two either side. run10's
+    // **The third map's first word, on run382** (item 1066): Great Sahara's
+    // frame 8 writes block 9, and the window is it with two either side.
+    // Item 1133 moved the word past run382; the block stays driven. run10's
     // detail on a map no other window here is on.
     if let Some(p) = &r382 {
-        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let b = crate::diff::third::SAHARA_FIRST_WORD_BLOCK;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run382 carries the third map's word's blocks");
         frames += n;
