@@ -116,6 +116,25 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1182, 2026-09-29 — row 7's other arms
+
+(1201) **Two of row 7's rows no golden staging reaches** (GOLDEN §50):
+`resolve_block`, which `do_move` asks where `PathFinder::astar_path`
+flags a passable building tile — a wall's gate across an enemy's path
+would enter it; and `make_valid`, the allocate arm past `Objects::init`'s
+200 preallocated slots, the registry's rather than row 7's.
+
+(1202) **`is_siege`'s second arm**: a computer's siege attacker at a City
+at zero, and `Army::charge`. The console's `damage` verb would stage it;
+it is not modelled.
+
+(1203) **The Catapult's crew swing** (run436, 704): a packed engine
+unpacks in place and strikes a building, and the original's crew roll at
+`Unit::set_anim+0xb6` on the swing frame where this crate defers them.
+
+(1204) **`1/2000`'s `raid_stamp`**, written on 671 as enemy units stand
+on the City's land; nothing here writes it.
+
 ## Parked by item 1191, 2026-09-29 — the dead boat's other arms
 
 (1198) **A boat that dies stepping ashore** (TRANSPORT §6.4): 1191's
@@ -2267,6 +2286,12 @@ a widening** (1191's Loop line): `1/56`'s arrival stand parted no key,
 and the scan that found it asked which figures *vanish* between two
 blocks, not which fields part. A widening listing the units present on
 block N and absent on N + 1 beside its firsts would have. One reach.
+
+(1205) **A command to another player's units reads the seat twice**
+(1182's Loop line): the DLL's guard reads it when the line is issued and
+the pump when the package is walked; run436's take read the one it
+could see and lost both commands. `be` had never been staged. A staging
+walk that names each `@` line's seat at both reads would have. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
