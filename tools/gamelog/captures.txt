@@ -8849,6 +8849,39 @@ check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch38/map-14/rontra
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch38/map-14/rontrace.log" rontrace-run405.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1030)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run405.log" functions 2>/dev/null | grep -E "UnitData::is_flying_low$|Ammo::init_crash$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
 
+run: 423
+tag: ch39-cover
+item: 1111
+why: the blind list for chapter thirty-nine — chapter39.cmd at cover=1 on the queue lane (golden run422, cover=0 on the click-free lane), to take SpellType::cast_to_arms@00670880, cast_civilian@006704a0 and cast_create_decoy@00674370 off
+# `~/ron-golden/ch39/map-14/rontrace.cmd` line for line to 830, as run405 is
+# run404's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+# `cover=1`, ending nine frames past the decoys on 821. The end detail is
+# run405's without `AMMO`, which run422 did not print.
+frames: 830
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 1
+cmd: 604 tech who=0 militia on
+cmd: 606 add citizen who=0 30,150
+cmd: 608 add citizen who=0 34,150
+cmd: 610 add militia who=0 38,150
+cmd: 612 add general who=0 40,180
+cmd: 614 add hoplites who=0 44,180
+cmd: 616 add slingers who=0 40,184
+cmd: 620 @spell 0 660 -1 -1 0 0 6
+cmd: 640 @spell 0 660 -1 -1 0 0 7
+cmd: 660 @spell 0 659 -1 -1 0 0 8
+cmd: 700 @spell 0 659 -1 -1 0 0 6
+cmd: 720 @spell 0 634 -1 -1 0 0 9
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch39/map-14/rontrace.log" rontrace-run423.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch39/map-14/rontrace.log" rontrace-run423.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=830)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run423.log" functions 2>/dev/null | grep -E "SpellType::cast_to_arms$|SpellType::cast_civilian$|SpellType::cast_create_decoy$" | tee /dev/stderr | awk 'END{exit !(NR==3)}'
+
 # run381 (item 1066) is not a stanza: it is `startcapture.sh 381 7
 # greatsahara-start` under `viadriver.sh`, run38's `DUMP_ALL` start on Great
 # Sahara — the height table, the checksum trace, the herds and the frame

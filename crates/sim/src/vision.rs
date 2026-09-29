@@ -149,8 +149,22 @@ impl Sim {
         }
         // Term 3: the citizen upgrades and the nomad start. `TypeIndex`
         // `0x32`/`0x33` are the two citizens.
-        if matches!(unit.type_index, 0x32 | 0x33) && self.lobby.starting_town == 0 {
-            los += 2;
+        // Each of the Militia line's bits the leader holds adds two
+        // (`leader +0x6c20 & 4`, `& 8`), and PARTISAN's shares its two with
+        // the nomad start (`0060e56a`..`0060e5b4`; run422's Citizens see 4
+        // from the block after `tech who=0 militia on`, `docs/GOLDEN.md`
+        // §48).
+        if matches!(unit.type_index, 0x32 | 0x33) {
+            let owner = unit.owner;
+            if self.holds_unit_bit(owner, 0x42) {
+                los += 2;
+            }
+            if self.holds_unit_bit(owner, 0x43) {
+                los += 2;
+            }
+            if self.holds_unit_bit(owner, 0x44) || self.lobby.starting_town == 0 {
+                los += 2;
+            }
         }
         // Term 4: the science line.
         let epoch = self
@@ -175,6 +189,11 @@ impl Sim {
             // Term 5b: the two merchants and the fur trapper see a fixed
             // radius that ignores everything above.
             los = epoch + 4;
+        }
+        // The last word: a decoy (`unit_masks & 1`) sees one tile
+        // (`0060e84a`; run422's decoys print `mylos 1`).
+        if unit.decoy {
+            return 1;
         }
         los
     }

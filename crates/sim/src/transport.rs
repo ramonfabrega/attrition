@@ -743,6 +743,14 @@ impl Sim {
             && let crate::orders::Body::Cast(c) = &mut front.body
         {
             c.paid = true;
+            // `pay_cast_costs@00676c40`: a unit caster's `mana_burn` takes
+            // the craft's `MANA` (`+0x1d0`) — Create Decoys' 1,000 on the
+            // General (`docs/GOLDEN.md` §48); the pack, unpack and
+            // transport crafts ask none.
+            let mana = self.spell(s).map_or(0, |d| d.mana);
+            self.units[u].mana_burn = self.units[u]
+                .mana_burn
+                .saturating_add(i16::try_from(mana).unwrap_or(i16::MAX));
         }
         if self.units[u].spell_time == 0 {
             let packed = self.units[u].combat.packed;
@@ -830,6 +838,17 @@ impl Sim {
             // `is_castable`'s `0x28c`/`0x28e`/`0x290`/`0x292` case: a map
             // unit that is still packed.
             self.cast_unpack(u);
+        }
+        // The untargeted crafts of chapter thirty-nine, behind the same
+        // `is_castable(o, who, 1) == 3` (`docs/GOLDEN.md` §48).
+        if matches!(s, spell::TO_ARMS | spell::CIVILIAN | spell::CREATE_DECOY)
+            && self.spell_castable(s, u)
+        {
+            match s {
+                spell::TO_ARMS => self.cast_to_arms(u),
+                spell::CIVILIAN => self.cast_civilian(u),
+                _ => self.cast_create_decoy(u),
+            }
         }
         self.kill_current_order(u);
     }
