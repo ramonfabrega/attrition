@@ -4294,8 +4294,16 @@ impl Sim {
 
         // The speed, and the straight-line check. `do_move` takes it from
         // the `+0x17c` virtual, which an animal overrides
-        // ([`Sim::get_speed`]).
-        let speed = self.get_speed(u, 0);
+        // ([`Sim::get_speed`]), then `× ai_speed` above 1 and the Modern
+        // Infantry's `× 5 / 4`, truncating (`5f8893`..`5f88cb`; item 1109:
+        // run404's Infantry steps 42 on a speed of 34).
+        let mut speed = self.get_speed(u, 0);
+        if self.ai_speed > 1 {
+            speed *= self.ai_speed;
+        }
+        if self.is_modern_infantry(u) {
+            speed = speed * 5 / 4;
+        }
         // `if (masks & 8) goto STEP` (§4.4): the jump the straight-line
         // check takes when it succeeds lands **past** the pause check, so a
         // unit that verifies its line this frame steps this frame even with

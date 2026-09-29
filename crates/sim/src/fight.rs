@@ -954,8 +954,9 @@ impl Sim {
         // is chosen: the unit's own figures are aimed, and a type with a
         // pivot asks it whether it can bear. When it can, `fight:722`
         // keeps `this->angle` and the unit shoots **without turning**
-        // (`docs/COMBAT.md` §52).
-        let pivoted = self.set_attack(i, target);
+        // (`docs/COMBAT.md` §52) — and so does an `ANTI_AIR` unit at an
+        // aircraft, whatever its pivots answered (`5fe81f`, §83).
+        let pivoted = self.set_attack(i, target) || self.anti_air_keeps_angle(i, target);
         let angle = if pivoted {
             self.units[i].movement.heading
         } else {
