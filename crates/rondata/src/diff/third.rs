@@ -239,11 +239,36 @@ pub(crate) fn sahara_14587_window() -> Option<crate::diff::harness::tests::Widen
 /// diff.
 pub(crate) const SAHARA_14587_BLOCK: i64 = 14_588;
 
+/// run426: run383's game at run414's detail over blocks 15581..15837, the
+/// long word 15586's widening (item 1171) — six blocks before the word's
+/// block 15587 and 250 after, on the click-free lane.
+pub(crate) const SAHARA_WORD_15586: &str = "gamelog-run426-greatsahara-15586.txt";
+
+/// **run426's window** (item 1171): blocks 15581..15837.
+pub(crate) const WIDENING_GREAT_SAHARA_15586: (i64, i64) = (15_581, 15_837);
+
+/// run426's blocks over [`WIDENING_GREAT_SAHARA_15586`], walked from
+/// run383's start with run381's head, as [`sahara_long_word_window`] walks
+/// run416. `None` when the captures are not on this machine.
+pub(crate) fn sahara_15586_window() -> Option<crate::diff::harness::tests::Widened> {
+    crate::diff::harness::tests::widen_on_siblings(
+        &[SAHARA_START],
+        true,
+        SAHARA_LONG,
+        "run426",
+        &[(SAHARA_WORD_15586, WIDENING_GREAT_SAHARA_15586.0)],
+        WIDENING_GREAT_SAHARA_15586,
+        1,
+        &[LONG_WORD_GREAT_SAHARA + 1],
+        true,
+    )
+}
+
 /// **The compared pin's window on the third map** (item 1133, parked
 /// 1067): the long word's block and two on either side — frame
 /// [`LONG_WORD_GREAT_SAHARA`] writes its block, and the walk reads
-/// `first..=tail + 1` — on run418 since item 1163 (run417 from item 1147,
-/// run416 before it),
+/// `first..=tail + 1` — on run426 since item 1171 (run418 from item 1163,
+/// run417 from item 1147, run416 before it),
 /// walked from run383's start with the group record and the attack order's
 /// row. `coverage`'s compared pin walks it. Until item 1133 it was run382's
 /// blocks 1..259, now [`sahara_first_word_window`]. `None` when the
@@ -255,7 +280,7 @@ pub(crate) fn sahara_word_window() -> Option<crate::diff::harness::tests::Widene
         true,
         SAHARA_LONG,
         "the third map's word's window",
-        &[(SAHARA_WORD_14587, word - 1)],
+        &[(SAHARA_WORD_15586, word - 1)],
         (word - 1, word + 2),
         1,
         &[word + 1],
@@ -634,6 +659,94 @@ mod tests {
             "the blocks keys first part on, to the old word's"
         );
         pin_eq!(w.firsts.len(), 168, "every key parted on run418");
+    }
+
+    /// **The third map's long word, 15586, widened whole** (item 1171):
+    /// [`sahara_15586_window`] over run426's blocks 15581..15837. The
+    /// word's frame writes block 15587.
+    #[test]
+    fn run426_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = sahara_15586_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+        }
+        pin_eq!(w.blocks, 257, "run426 whole: blocks 15581..15837");
+        pin!(
+            w.missing.is_empty(),
+            "run426 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **Block 15581 stands on 159 keys**: run418's standing families,
+        // the army group among them — its members' `order:group.id` is
+        // 15354136 here against 15360436 there, stamped six frames apart
+        // again.
+        pin_eq!(
+            row(1, 52, "order:group.id").as_deref(),
+            Some(r#"15581: Group { field: "id", ours: 15354136, theirs: 15360436 }"#),
+            "the army group's id"
+        );
+        // **15582: who=1's make list**, the values of two offers.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[1].val").as_deref(),
+            Some("15582: ours 59500 theirs 51000"),
+            "a make offer's value"
+        );
+        // **15585: the raider `1/29`** (group 68's, walking for the human's
+        // city): its head order is an `ATTACK` here and a `MOVE_TO` there,
+        // two orders against three, and it stands 29 apart.
+        pin_eq!(
+            row(1, 29, "order:kind").as_deref(),
+            Some("15585: Kind { ours: 10, theirs: 1 }"),
+            "1/29's head order"
+        );
+        pin_eq!(
+            row(1, 29, "pos").as_deref(),
+            Some("15585: ours (7292,27822) theirs (7269,27840)"),
+            "1/29's position"
+        );
+        // **The word's block, 15587** (frame 15586, ours 7 draws against
+        // 6, at index 3 ours `Guy::set_anim+0xf2f < Guy::move+0x166` and
+        // theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`): `1/29`'s
+        // figure clock.
+        pin_eq!(
+            row(1, 29, "g.cur_anim[0]").as_deref(),
+            Some("15587: ours 13 theirs 9"),
+            "the word's block: 1/29's animation"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= LONG_WORD_GREAT_SAHARA + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [
+                (15581, 159),
+                (15582, 7),
+                (15584, 1),
+                (15585, 21),
+                (15586, 7),
+                (15587, 4)
+            ],
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 741, "every key parted on run426");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

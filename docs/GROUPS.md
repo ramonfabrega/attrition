@@ -4225,6 +4225,18 @@ member's `+0x80` names**, when it is not the slot being written, `(*groups[+0x80
   or clears the record when the list empties. The broader removal this
   crate did before (every pushed list and every army that holds the
   squad, §3.3) stays after it.
+  ~~takes the member's squad out of it~~ — **through the seat's own
+  `Group::kill`** (`Sim::seat_kill`, §4.2), since item 1171. The walk
+  took the squad out of the *list* with a retain and left `off`,
+  `curr` and `angles` where they were. `kill@00714110` shifts all six
+  parallel arrays down over the hole in one loop: `list +0x8cc`, `angles
+  +0x84c`, and `off_x`/`off_y`/`curr_x`/`curr_y` from `+0x4c` in steps
+  of `0x200` (the type record's `GroupData`). So after a kill every
+  member that stays read the slot of whoever had stood that many places
+  ahead of it. The broader removal's own retains (`Sim::seat_drop`) shift
+  the arrays too. Great Sahara's frame 14586 is the case (`docs/AI.md`
+  §97): army group 64 loses six members to group 68, and `1/52`, listed
+  fifth, walked to `1/47`'s old slot and stood.
 - **`Army::add_unit`'s fresh group goes through the same `push_group`**
   (`Army::add_unit@006f9f40`: `Group::clear` a stack group, `Group::add`,
   `push_group(who, g, 1)`, `add_group`, which writes only `army`). So the
