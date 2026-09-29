@@ -3183,12 +3183,38 @@ impl Sim {
             v *= i64::from(dmg);
         }
         if is_build {
-            // Armed buildings: a human owner gets ×5; siege adds 100,000.
-            // A raider jumps past all of it to the tail (`0064f124`,
-            // `if (bVar17) goto LAB_0064f1ed`).
+            // **Armed buildings, a computer's weight** (`0064f124`–`0064f1ed`,
+            // item 1131, `docs/COMBAT.md` §12.3): `param_4` is the target
+            // type's `attack`, zeroed for an ANTI_AIR target of an attacker
+            // not of the air domain. A city (`flags & 0x20`) with nobody
+            // inside takes none of the weight. Then `testb $0x4,
+            // leader_flags` on the **attacker's** leader: a human (`jne`)
+            // skips it, and a computer takes `+1,000,000` with the SIEGE
+            // mask, else `×5`. Siege against armed adds `+100,000` for any
+            // owner. A raider jumps past all of it (`if (bVar17) goto
+            // LAB_0064f1ed`).
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
             if armed && !raiding {
-                v *= 5;
+                let empty_city = match target {
+                    Obj::Building(b) => {
+                        self.buildings[b]
+                            .ty
+                            .is_some_and(|t| crate::build::is_city(&self.build_types, t))
+                            && self.num_inside(b) == 0
+                    }
+                    Obj::Unit(_) => false,
+                };
+                let human = self
+                    .nation
+                    .get(self.owner_of(attacker) as usize)
+                    .is_some_and(|n| n.human);
+                if !empty_city && !human {
+                    if ap.has(mask::SIEGE) {
+                        v += 1_000_000;
+                    } else {
+                        v *= 5;
+                    }
+                }
                 if ap.has(mask::SIEGE) {
                     v += 100_000;
                 }
