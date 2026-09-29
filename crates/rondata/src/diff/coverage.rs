@@ -2010,13 +2010,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 1106, 1120). Item 1133 moved the third map's window to run416's
     // 12782..12786, where none is; one is on East Indies' 6321 window (item
     // 1127), so `job_counter` stays off. **Item 1185 moved East Indies'
-    // window to run439's 8518..8522**, where no unfinished site stands,
-    // and none does on the third map's window: `job_counter` is back on
-    // the pin, the second kind — a site the windows never reached.
+    // window to run439's 8518..8522**, where no unfinished site stands;
+    // one does on the third map's run428 window (item 1177), so
+    // `job_counter` stays off.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type",
+         max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
