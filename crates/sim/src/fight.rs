@@ -3918,6 +3918,101 @@ mod tests {
         sim.add_unit(u)
     }
 
+    /// A round of `shooter`'s landing at `at`, on `target`, done.
+    fn round(
+        sim: &Sim,
+        shooter: usize,
+        target: Option<Obj>,
+        at: Pos,
+        splash: i32,
+    ) -> combat::Projectile {
+        combat::Projectile {
+            shooter: Obj::Unit(shooter),
+            owner: sim.units[shooter].owner,
+            target,
+            launch: sim.units[shooter].pos,
+            landing: at,
+            cur_time: 1,
+            total_time: 1,
+            accuracy: 100,
+            angle: Angle(0),
+            splash_area: splash,
+            num_guys: 1,
+            air: false,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            sz: 0,
+            ez: 0,
+            v1z: combat::arc_v1z(0, 0, 1),
+            slot: 0,
+        }
+    }
+
+    /// **A splash round strikes its own target whoever owns it**
+    /// (`Ammo::do_damage`, `6787d9`..`6787e1`, item 1200): the team test
+    /// is asked only of an object that is not the round's target. Chapter
+    /// forty-one's Biplane on 858, whose round `check_hit` put on who=1's
+    /// own `1/2003`: the original spends that building's first-wound roll.
+    /// Another of the shooter's buildings in the splash is left out, and
+    /// so is an enemy's standing clear of it. Made to fail with the
+    /// target's exemption dropped.
+    #[test]
+    fn a_splash_round_strikes_its_own_target_whoever_owns_it() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+        let building = |sim: &mut Sim, who: Player, p: Pos| {
+            let b = sim.add_building(who, p, 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 1,
+                y_size: 1,
+                ..Profile::default()
+            });
+            sim.buildings[b].health = 500;
+            b
+        };
+        let mine = building(&mut sim, 1, Pos::new(2016, 2016));
+        let other = building(&mut sim, 1, Pos::new(2208, 2016));
+        let p = round(&sim, me, Some(Obj::Building(mine)), Pos::new(2016, 2016), 1);
+        sim.land(p, 858);
+        let struck: Vec<Obj> = sim.hits.iter().map(|h| h.target).collect();
+        assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
+        assert!(!sim.hits[0].splash, "at the full count");
+        let _ = other;
+    }
+
+    /// **An aircraft's round passes over its own side** (`Ammo::check_hit`,
+    /// `678db9`..`678dcc`, item 1200): an air shooter that is not a
+    /// missile searches `SEARCH_NON_FRIENDLY`, which leaves out its own
+    /// player's units and nothing else; any other shooter searches them
+    /// all. Chapter forty-one's Biplane on 969, whose round came down
+    /// beside who=1's `1/1`. Made to fail with the test dropped.
+    #[test]
+    fn an_aircraft_s_round_passes_over_its_own_side() {
+        for air in [true, false] {
+            let (mut sim, ty) = at_war();
+            let mut t = sim.unit_types[ty].clone();
+            t.combat.domain = if air { Domain::Air } else { Domain::Land };
+            let shooter_ty = sim.add_unit_type(t);
+            let mut foot = sim.unit_types[ty].clone();
+            foot.combat.target_size = 300;
+            let foot = sim.add_unit_type(foot);
+            let me = put(&mut sim, 1, shooter_ty, Pos::new(1000, 1000));
+            let own = put(&mut sim, 1, foot, Pos::new(3050, 3000));
+            let foe = put(&mut sim, 0, foot, Pos::new(3100, 3000));
+            let p = round(&sim, me, None, Pos::new(3000, 3000), 0);
+            sim.land(p, 969);
+            let want = if air { foe } else { own };
+            assert_eq!(
+                sim.hits.last().map(|h| h.target),
+                Some(Obj::Unit(want)),
+                "air {air}"
+            );
+        }
+    }
+
     /// **A ship that attacks sideways turns broadside, to the nearer side**
     /// (`Unit::fight@005fd4d0:698–714`, `docs/COMBAT.md` §49). run127's
     /// own numbers: who=1's trireme at (12408, 35832), heading `0x55555555`
