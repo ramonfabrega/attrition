@@ -1237,7 +1237,7 @@ pub(crate) fn start_of_game(
             sim.add_gather_order(link.unit, b, sim::orders::QueuePos::New, false);
             births.push((link.unit, link.o, b));
         }
-        // **Born at the building, then out** (`docs/COLLISION.md` §2.4):
+        // **Born at the building, then out** (`docs/COLLISION.md` §20):
         // each citizen's `come_out` clears what its birth disc and its new
         // one do not share, in creation order. A cell a unit born later
         // covers is painted again by that unit; SEAM: another player's and

@@ -6798,15 +6798,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_SECOND_GREAT_LAKES_5930),
     ),
     // **The third map, Great Sahara** (DECISIONS 54 §3, item 1066): its
-    // word is frame 8 on both run382 and run383, and run382 carries every
-    // block from 1 to 259 at run10's detail, so the score capture is its
-    // own widening (`diff::third`).
+    // word was frame 8 on both run382 and run383, and run382 carries every
+    // block from 1 to 259 at run10's detail, so the score capture was its
+    // own widening (`diff::third`). Item 1133 moved it to **12783**, past
+    // every block run382 holds, and took run416 over 12778..13034; run382's
+    // test keeps the move's value diff on block 6.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run382_s_word_frame_is_widened_whole"),
-        1066,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA),
+        Some("run416_s_word_frame_is_widened_whole"),
+        1133,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_12783),
     ),
 ];
 

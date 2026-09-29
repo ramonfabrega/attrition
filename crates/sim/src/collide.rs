@@ -703,7 +703,7 @@ impl Sim {
     }
 
     /// **A starting citizen's birth, on the occupancy index**
-    /// (`docs/COLLISION.md` §2.4). `Setup::build_units@005aafc0` creates
+    /// (`docs/COLLISION.md` §20). `Setup::build_units@005aafc0` creates
     /// each of them with `Objects::init_unit` at its building's own point —
     /// `Unit::init@00612100:69` snaps it to the 48-grid, and its
     /// `set_new_location(·, ·, 1, 1)` at `:549` puts guy 0 there — and then

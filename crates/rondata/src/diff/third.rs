@@ -133,7 +133,7 @@ pub(crate) const WIDENING_GREAT_SAHARA: (i64, i64) = (1, 259);
 /// every record run10's detail prints. It prints no `GROUPDATA`, so the
 /// group record, the attack row's `second::widen_records` pass and the pool
 /// lists are not walked. `None` when the captures are not on this machine.
-pub(crate) fn sahara_word_window() -> Option<crate::diff::harness::tests::Widened> {
+pub(crate) fn sahara_first_word_window() -> Option<crate::diff::harness::tests::Widened> {
     crate::diff::harness::tests::widen_on_siblings(
         &[SAHARA_START],
         true,
@@ -149,12 +149,61 @@ pub(crate) fn sahara_word_window() -> Option<crate::diff::harness::tests::Widene
     )
 }
 
+/// run416: run383's game at run414's detail over blocks 12778..13034, the
+/// long word 12783's widening (item 1133) — six blocks before the word's
+/// block 12784 and 250 after, on the click-free lane.
+pub(crate) const SAHARA_WORD_12783: &str = "gamelog-run416-greatsahara-12783.txt";
+
+/// **run416's window** (item 1133): blocks 12778..13034.
+pub(crate) const WIDENING_GREAT_SAHARA_12783: (i64, i64) = (12_778, 13_034);
+
+/// run416's blocks over [`WIDENING_GREAT_SAHARA_12783`], walked from
+/// run383's start with run381's head: every record run414's detail prints,
+/// both directions, the pool and group rows and the attack order's row
+/// included. `None` when the captures are not on this machine.
+pub(crate) fn sahara_long_word_window() -> Option<crate::diff::harness::tests::Widened> {
+    crate::diff::harness::tests::widen_on_siblings(
+        &[SAHARA_START],
+        true,
+        SAHARA_LONG,
+        "run416",
+        &[(SAHARA_WORD_12783, WIDENING_GREAT_SAHARA_12783.0)],
+        WIDENING_GREAT_SAHARA_12783,
+        1,
+        &[LONG_WORD_GREAT_SAHARA + 1],
+        true,
+    )
+}
+
+/// **The compared pin's window on the third map** (item 1133, parked
+/// 1067): the long word's block and two on either side — frame
+/// [`LONG_WORD_GREAT_SAHARA`] writes its block, and the walk reads
+/// `first..=tail + 1` — on run416, walked from run383's start with the group
+/// record and the attack order's row. `coverage`'s compared pin walks it.
+/// Until item 1133 it was run382's blocks 1..259, now
+/// [`sahara_first_word_window`]. `None` when the captures are not on this
+/// machine.
+pub(crate) fn sahara_word_window() -> Option<crate::diff::harness::tests::Widened> {
+    let word = LONG_WORD_GREAT_SAHARA;
+    crate::diff::harness::tests::widen_on_siblings(
+        &[SAHARA_START],
+        true,
+        SAHARA_LONG,
+        "the third map's word's window",
+        &[(SAHARA_WORD_12783, word - 1)],
+        (word - 1, word + 2),
+        1,
+        &[word + 1],
+        true,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     /// **The third map's word, widened whole** (item 1066, CLAUDE.md "A
-    /// word is pinned with its widening"): [`sahara_word_window`] over
+    /// word is pinned with its widening"): [`sahara_first_word_window`] over
     /// run382's blocks 1..259, both directions, every record run10's detail
     /// prints. The word's frame 8 writes block 9. No mechanism is named
     /// (DECISIONS 54 §3); the rows below are the value diff.
@@ -162,7 +211,7 @@ mod tests {
     fn run382_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
         use std::collections::BTreeMap;
-        let Some(w) = sahara_word_window() else {
+        let Some(w) = sahara_first_word_window() else {
             return;
         };
         pin_eq!(w.blocks, 259, "run382 over blocks 1..259");
@@ -240,6 +289,88 @@ mod tests {
             "gaia's animals agree to block 259"
         );
         pin_eq!(w.firsts.len(), 23, "keys parted over the window");
+    }
+
+    /// **The third map's long word, 12783, widened whole** (item 1133):
+    /// [`sahara_long_word_window`] over run416's blocks 12778..13034. The
+    /// word's frame writes block 12784.
+    #[test]
+    fn run416_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = sahara_long_word_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+        }
+        pin_eq!(w.blocks, 257, "run416 whole: blocks 12778..13034");
+        pin!(
+            w.missing.is_empty(),
+            "run416 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **Block 12778 stands on 133 keys**, the standing families: who=0's
+        // leader counters this crate does not fill for the human, who=1's
+        // `tech_cat_frame`, the citizens' `form`, `orders_x/y` and figure
+        // angle, and the capital's city record.
+        pin_eq!(
+            row(1, -1, "leader:tech_frame").as_deref(),
+            Some("12778: ours 0 theirs 8376"),
+            "a standing row"
+        );
+        // **The first parting past it is the AI's make list on 12780**:
+        // slots 1 and 10 priced 9999999 in ours against 1632000. The
+        // list's `city`, `cat`, `num` and `t` follow on 12782 and 12783.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[1].val").as_deref(),
+            Some("12780: ours 9999999 theirs 1632000"),
+            "the make list's first parting"
+        );
+        // **The word's block, 12784** (frame 12783, ours 12 draws against
+        // 11, at index 9 ours `Leader::make_stuff+0x63d` and theirs
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`): the leader's food
+        // bucket 149 against 86 and `num_queued[82]` 0 against 3, three
+        // buildings' queues, and `1/39`'s figure clock.
+        pin_eq!(
+            row(1, -1, "leader:bucket[0:food]").as_deref(),
+            Some("12784: ours 149 theirs 86"),
+            "the word's block: the food bucket"
+        );
+        pin_eq!(
+            row(1, 39, "g.cur_anim[0]").as_deref(),
+            Some("12784: ours 31 theirs 29"),
+            "the word's block: 1/39's figure"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= LONG_WORD_GREAT_SAHARA + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [
+                (12778, 133),
+                (12780, 2),
+                (12782, 14),
+                (12783, 1),
+                (12784, 10)
+            ],
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 951, "every key parted on run416");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

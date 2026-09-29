@@ -3437,3 +3437,125 @@ with `top_only`. `Sim::do_move`'s suspended block asks it.
   `detect_unit_collision@00617060:60-96, 443-467`, `do_move@005f7b30`'s
   suspended block.
 - **Unit-tested, made to fail on purpose**: the test above.
+
+## 20. Born at the building, then out: the second citizen out of a camp leaves a hole in the first one's block — Great Sahara 8 → 12783 (item 1133, 2026-09-29)
+
+§2's bits are not refcounted, and the first place that bites is the
+setup. `Setup::build_units@005aafc0` creates every starting citizen of a
+town start **at its building's own point** and then steps it off
+(`docs/ORDERS.md` §9.3): `Objects::init_unit@0065e0c0` →
+`Unit::init@00612100`, whose line 69 snaps the point to the 48-grid and
+whose line 549 is `set_new_location(·, ·, 1, 1)`, and then
+`Unit::come_out@00617c10`, whose `find_nearby_spot` answer goes through a
+second `set_new_location(·, ·, 1, 1)` at line 518. Both reach
+`Guy::set_new_location@005d86f0`, and a figure that changes unit cell there
+calls `CollCheck::move_unit@00682ad0(from, to)` — §2's clear-then-set. So
+each citizen's exit clears **every cell of the birth disc its new disc
+does not cover**, whoever else stands on it.
+
+Two citizens share the woodcutter's camp `2001` on a Small Town start
+(`ordered` 2, §9.3). The first comes out, paints its disc, and the second
+is born on the same cell and comes out to another side: its clear pass
+takes the first one's cells that lie inside the birth disc. This crate
+stood every unit up from the dump with its whole disc painted, so it
+started the game with a block the original does not have.
+
+### 20.1 The frame
+
+Great Sahara's word was frame 8, ours 6 draws against 7: the original's
+first draw was `Guy::set_anim+0x97a < Unit::move_step+0x823`, the blocked
+stand (§5). The draw belongs to the AI citizen `1/2`, blocked by `1/1` a
+second time. The first time is frame 5, and both sides agree on it — the
+same collision point (38340, 15837), the same partner `1/1`, the same
+stand draw. They part on what `resolve_unit_collision` does next (§6
+step 4). With `c = (798, 329)` and `1/2` in `(799, 329)` the step is
+cardinal, and the two sidestep cells are `(798, 330)` and `(798, 328)`:
+
+| | `(798, 330)` | `(798, 328)` | block 6 |
+|---|---|---|---|
+| original | refused | **taken** | `collide` 0, sidestep to (38328, 15768), path 2 |
+| ours | refused on `(797, 329)` | refused on `(797, 329)` | `collide` 1, wait, path 1 |
+
+`(797, 329)` is a diagonal of the probe around `(798, 328)` and a corner
+of `1/1`'s block: `1/1`'s figure stands in `(796, 330)` from block 4 to 7.
+The original can only have taken the cell if that bit was clear.
+
+### 20.2 Where the hole comes from
+
+Only `1/1` and `1/2` stand within a world cell of the spot from the start
+dump to block 9 (run382, every `UNITDATA` and its `GUY`). Both start 2,500
+units west of the capital, beside `1/2001` at (38208, 15744), whose birth
+cell is `(796, 328)`:
+
+- `1/1` is born on `(796, 328)` and comes out to `(796, 329)`: its disc is
+  `(795..797, 328..330)`.
+- `1/2` is born on `(796, 328)` and comes out to `(799, 328)`, three cells
+  east. Its new disc is `(798..800, 327..329)`, so its clear pass takes the
+  whole birth disc `(795..797, 327..329)` — **and with it `1/1`'s rows 328
+  and 329**.
+- On frame 3 `1/1` steps to `(796, 330)`, painting row 331 and clearing
+  row 328.
+
+That leaves `(797, 329)` clear and `(797, 331)` set on frame 5, which is
+exactly the pair of answers the original gave. This crate refused both
+cells until frame 7, when `1/1`'s own step to `(797, 331)` cleared the
+corner. Then it took the same sidestep two frames late, and the stand on
+frame 8 was the original's second block, which ours never had.
+
+### 20.3 The model
+
+`Sim::birth_come_out(u, birth, later)`, called by
+`rondata::diff::setup::start_of_game` after §9.3's assignment, citizen by
+citizen in creation order: every cell of the disc around `ucell(birth)`
+outside the disc around the unit's own cell, under §2's region gate, is
+cleared — **unless a unit in `later` covers it**, because a unit born
+after this exit paints its own disc afterwards. `later` is the same
+player's units with a higher object number, and every other owner's.
+
+### 20.4 What it moved
+
+- **Great Sahara: 6/5 → 1850/1850 and the word 8 → 1850 on run382**, which
+  is now walked whole; **the long word 8 → 12783 on run383**. The new
+  word: frame 12783, ours 12 draws against 11, at index 9 ours
+  `Leader::make_stuff+0x63d` and theirs `Guy::set_anim+0x97a <
+  Guy::inc_time+0x271`.
+- **The value diff, run382's block 6**: `1/2`'s `collide` 1 against 0,
+  `dest` (38232, 16056) against (38328, 15768) and `path.length` 1 against
+  2 → the original's values on both sides. Over blocks 1..259 the parted
+  keys fall 244 → 23: block 1's 22 standing rows, and the AI scout `1/0`'s
+  `mylos`, 6 against 4, on block 202.
+- Every other floor, pair word and closed chapter holds.
+
+### 20.5 What is not established
+
+- **Whether the birth disc is painted at all.** `Object::init@00647750`
+  calls `Object::add_to_world@0064d8c0` before `Unit::init` sets
+  `guy_mark`, and whether `Unit::init`'s own move paints the birth disc
+  depends on where a fresh guy's point starts, which was not read. On this
+  map it does not matter: every birth cell is cleared by the last citizen
+  out of it, except what that citizen's own new disc covers. It would
+  matter for a birth disc its own citizen's new disc overlaps.
+- **The order the players are built in.** Another player's units, and
+  gaia's, are treated as painted after every exit (a SEAM in
+  `start_of_game`). No capture has two players' starting units within a
+  disc of each other.
+- **The `later` clause is held by the unit test alone.** With it removed,
+  all four of `diff::third`'s tests still pass; the suite under that
+  mutation was not run.
+- **Units that are not citizens.** The scout comes from `place_unit`,
+  which takes `Build::train` with a city (§9.3). No birth is replayed for
+  it here.
+
+### 20.6 Coverage
+
+- **Diff-backed**: §20.1–§20.2's rows, by
+  `run382_s_word_frame_is_widened_whole` (the move's value diff, now
+  empty), and the move by `run382_s_desert_game_is_the_third_map_s_score`
+  and the two word tests in `rondata::diff::third`.
+- **Decompile-read**: `build_units`' birth at the building and
+  `come_out` (§9.3's own reading), `Guy::set_new_location`'s call to
+  `move_unit` on a unit-cell change.
+- **Unit-tested, made to fail on purpose**:
+  `collide::tests::the_second_citizen_out_of_a_camp_leaves_a_hole_in_the_first_s_block`,
+  which fails with `later` ignored. Removing the call in
+  `start_of_game` fails all four third-map tests.
