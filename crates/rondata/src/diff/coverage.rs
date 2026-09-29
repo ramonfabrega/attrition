@@ -669,6 +669,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r428 = crate::testenv::dump(super::third::SAHARA_WORD_15982);
     let r442 = crate::testenv::dump(super::third::SAHARA_WORD_16681);
     let r449 = crate::testenv::dump(super::third::SAHARA_WORD_17623);
+    let r457 = crate::testenv::dump(super::third::SAHARA_GAP_17140);
+    let r458 = crate::testenv::dump(super::third::SAHARA_END);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1264,10 +1266,26 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run442 carries the old word's blocks");
         frames += n;
     }
+    // Item 1206 moved it to 24000, the trace's end: run449's window stays
+    // as the move's, and run457's block 17493 is the move's value diff.
     if let Some(p) = &r449 {
-        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let b = super::third::SAHARA_17623_BLOCK;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run449 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run449 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r457 {
+        let b = super::third::SAHARA_GAP_17493_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run457 carries the move's blocks");
+        frames += n;
+    }
+    // **And the word's own, run458's last blocks** (item 1206): the word
+    // 24000 writes the closing block 24001, the last any dump holds.
+    if let Some(p) = &r458 {
+        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let n = drive_capture(p, b - 4, b, &mut paths);
+        assert!(n >= 4, "run458 carries the third map's closing blocks: {n}");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2102,19 +2120,15 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // at run414's detail since item 1133 (run382's blocks 1..259 before), is
     // walked under the same recorder, and a field is compared when a site on
     // either window compared it.
-    let third = super::third::sahara_word_window();
+    // Item 1206 closed the third map at its trace's end, 24000, so its
+    // row names its endpoint and no window, and only the second pair's
+    // East Indies word is open.
     let seen = compared::stop();
-    let (Some(mut w), Some(third)) = (walked, third) else {
+    let Some(w) = walked else {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };
     assert!(w.blocks >= 4, "the word's window is {} blocks", w.blocks);
-    assert!(
-        third.blocks >= 4,
-        "the third map's window is {} blocks",
-        third.blocks
-    );
-    w.blocks += third.blocks;
     assert!(
         !seen.is_empty(),
         "the instrument registered nothing on {} blocks",

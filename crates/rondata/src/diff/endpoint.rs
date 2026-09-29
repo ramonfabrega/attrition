@@ -194,9 +194,13 @@ pub const GREAT_LAKES_SETUP: &[&str] = &[
 /// `east_indies_closing_dumps_are_the_original_s` has used since item 252.
 pub const EAST_INDIES_SETUP: &[&str] = &["gamelog-run38-islands-start.txt"];
 
+/// Great Sahara's — run381's `DUMP_ALL` start, the sibling every third-map
+/// walk stands up from (`diff::third::SAHARA_START`).
+pub const GREAT_SAHARA_SETUP: &[&str] = &["gamelog-run381-greatsahara-start.txt"];
+
 /// The finish line itself, East Indies first as [`FLOORS`] is: the lower map
 /// leads.
-pub const ENDPOINTS: [Endpoint; 2] = [
+pub const ENDPOINTS: [Endpoint; 3] = [
     Endpoint {
         map: "EastIndies",
         capture: "run54-islands-24k-trace",
@@ -1553,6 +1557,26 @@ pub const ENDPOINTS: [Endpoint; 2] = [
         city_unlinked: 3,
         city_diverged: 0,
     },
+    Endpoint {
+        map: "GreatSahara",
+        capture: "run383-greatsahara-24k-trace",
+        trace: "rontrace-run383.log",
+        frame: ENDPOINT_FRAME,
+        map_lists: (2, 24),
+        setup: GREAT_SAHARA_SETUP,
+        siblings: &[],
+        // **Measured on item 1206**, the landing that closed the third
+        // map's word at the trace's end: every one of the 88 units the
+        // closing dump holds stands where the original's does. The three
+        // cities unlinked are the same count East Indies' row carries.
+        off: 0,
+        unlinked: 0,
+        extra: 0,
+        build_unlinked: 0,
+        build_diverged: 0,
+        city_unlinked: 3,
+        city_diverged: 0,
+    },
 ];
 
 /// The two rungs under East Indies' endpoint, each its own game (see the
@@ -2438,6 +2462,16 @@ mod tests {
     #[test]
     fn great_lakes_endpoint_is_pinned() {
         let row = &ENDPOINTS[1];
+        let Some(r) = score(row) else { return };
+        pinned(row, &r);
+    }
+
+    /// **Great Sahara at 24,001** (item 1206), against run383's closing
+    /// dump: the third map's word reached the trace's end, and a game that
+    /// ends closes with its closing state scored (DECISIONS 55).
+    #[test]
+    fn great_sahara_endpoint_is_pinned() {
+        let row = &ENDPOINTS[2];
         let Some(r) = score(row) else { return };
         pinned(row, &r);
     }

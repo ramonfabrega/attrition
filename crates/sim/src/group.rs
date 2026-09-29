@@ -3532,12 +3532,13 @@ impl Sim {
             return false;
         };
         st.reorigin(i);
-        let off = st.off.clone();
-        let theta = self.units[member].movement.heading;
-        let curr = Sim::form_update_positions(&off, theta);
-        if let Some(st) = self.gstate_mut(g) {
-            st.curr = curr;
-        }
+        // `713b94`: the tail is `call 0x713810` — the whole of
+        // `update_positions` off the taking member, **waypoint arm
+        // included**, not a turn by its heading (Great Sahara 17493, item
+        // 1206). `modify_group_order` before it writes only the group
+        // order's `oxx` and `whose`, so the waypoint it reads is the
+        // member's own.
+        self.group_update_positions(g, member);
         true
     }
 
@@ -5100,6 +5101,68 @@ mod tests {
             s.group_slot_point(&g, b, 0),
             Some(Pos::new(0x1100 + 20, 0x1000 + 20)),
             "and `b`, now first, reads its own slot"
+        );
+    }
+
+    /// **A member that takes the formation over turns it by its waypoint**
+    /// (item 1206, `docs/GROUPS.md` §6.8): `refresh_group_order`'s tail is
+    /// `update_positions` whole (`713b94: call 0x713810`), so when the
+    /// taking member's move has a waypoint the table points at it, not
+    /// along the member's heading. Great Sahara's 17493 is the case: `1/51`
+    /// leaves army group 64, `1/62` takes it over standing, and the dumped
+    /// `curr` is `find_angle` to `1/62`'s waypoint, 2.5° off its heading.
+    ///
+    /// **Made to fail on purpose**: with the tail back to a turn by
+    /// `movement.heading`, the table is the heading's.
+    #[test]
+    fn a_member_taking_the_formation_over_turns_it_by_its_waypoint() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        // run457's 17493, `1/62`: heading −615972864, waypoint (−7, −6)
+        // off its own square.
+        let here = s.units[b].pos;
+        let wp = Pos::new(here.x - 7, here.y - 6);
+        s.units[b].movement.heading = Angle(-615_972_864);
+        for o in &mut s.units[b].orders {
+            if let Some(m) = o.move_mut() {
+                m.has_waypoint = true;
+                m.waypoint = wp;
+            }
+        }
+        let i = g.list.iter().position(|&u| u == b).expect("b is listed");
+        s.armies[1].list[slot].group.off = if i == 0 {
+            vec![(0, 0), (21, 0)]
+        } else {
+            vec![(21, 0), (0, 0)]
+        };
+        assert!(s.group_refresh_order(&g, b));
+        let st = &s.armies[1].list[slot].group;
+        let theta = find_angle(-7, -6);
+        assert_eq!(theta, Angle(-586_678_272), "the bearing run457 dumps");
+        assert_eq!(
+            st.curr,
+            Sim::form_update_positions(&st.off, theta),
+            "the table turns by the waypoint's bearing"
+        );
+        assert_ne!(
+            st.curr,
+            Sim::form_update_positions(&st.off, Angle(-615_972_864)),
+            "and not by the heading"
         );
     }
 
