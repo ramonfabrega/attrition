@@ -4569,11 +4569,15 @@ impl Sim {
                         mo = m;
                     }
                 }
-                mo.waypoint = top.to;
-                self.units[u].tolerance = top.tolerance;
+                // `dest_x`/`dest_y` and the unit's `+0x60` tolerance are
+                // **not** the new top's yet: `TAKE` hands `find_path` the
+                // top itself and writes the move only once the line is
+                // verified (`do_move:694`..`698`, below). A near plan whose
+                // line fails keeps the old waypoint — run460's Knight at
+                // peace, looping on the ring's corner from 811, holds its
+                // goal (42720, 20064) and tolerance 0 (item 1209).
                 self.units[u].path_recursion = 0;
-                let goal = mo.waypoint;
-                let r2 = self.find_path(u, &mut mo, goal);
+                let r2 = self.find_path(u, &mut mo, top.to);
                 if r2 == 0 {
                     self.units[u].line_ok = true;
                 }

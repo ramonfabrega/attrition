@@ -618,6 +618,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch39 = golden_dump("ch39");
     let ch40 = golden_dump("ch40");
     let ch41 = golden_dump("ch41");
+    let ch42 = golden_dump("ch42");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1834,6 +1835,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         ] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-one carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-two, on run460** (item 1209): `resolve_block`'s
+    // arms. 622, the Knight's attack on the ring's corner; 812, the
+    // peace arm's `agendas`; 819, the peace walk's held waypoint; 907,
+    // the own-side Knight's move; 1157, the last blocks.
+    if let Some(p) = &ch42 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_TWO;
+        for w in [622, 812, 819, 907, 1157] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-two carries the window's five blocks");
             frames += n;
         }
     }

@@ -4950,6 +4950,18 @@ pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
 /// and a strafer's round that never rolls (1529).
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 1770;
 
+/// Chapter forty-two's golden word (item 1209, `docs/GOLDEN.md` §51,
+/// run460): a ring of who=1's Barracks, `Unit::resolve_block`'s arms —
+/// **1160, closed** on the first take, sequence and values. It stood on
+/// 819 once, a value word: the peace walk's move `dest_x`/`dest_y`
+/// (42234, 20790) against (42720, 20064), tolerance 96 against 0 —
+/// `TAKE` wrote the new top before its line was verified (`do_move:694`).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_TWO: i64 = 1160;
+
+/// `chapter_forty_two_s_word_frame_is_widened_whole`'s window: run460
+/// whole, 605 to its end.
+pub(crate) const WIDENING_CHAPTER_FORTY_TWO: (i64, i64) = (605, 1161);
+
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
 pub(crate) const WIDENING_CHAPTER_FORTY_ONE: (i64, i64) = (605, 1771);
@@ -7019,6 +7031,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1209: run460, chapter forty-two, a ring of Barracks and four
+    // walkers; closed at 1160. The widening is run460 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_TWO",
+        GOLDEN_WORD_CHAPTER_FORTY_TWO,
+        Some("chapter_forty_two_s_word_frame_is_widened_whole"),
+        1209,
+        Some(WIDENING_CHAPTER_FORTY_TWO),
     ),
     // Items 1182 and 1200: run437, chapter forty-one, the computer's
     // sortie, the build-site spill and the Biplane's strafes; closed at

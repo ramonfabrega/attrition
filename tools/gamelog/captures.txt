@@ -9207,3 +9207,39 @@ cmd: 901 be 0
 check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch41/map-14/rontrace.log" rontrace-run438.log
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch41/map-14/rontrace.log" rontrace-run438.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1140)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run438.log" functions 2>/dev/null | grep -E "^006086f0 |^0046ef90 " | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+run: 461
+tag: ch42-cover
+item: 1209
+why: the blind list for chapter forty-two — chapter42.cmd at cover=1 on the queue lane (golden run460, cover=0 on the click-free lane), to take Unit::resolve_block@005fccc0 (the Knight's TAKE on the ring's corner, 621; the peace arm from 811) off
+# `~/ron-golden/ch42/map-14/rontrace.cmd` line for line to 920, as run438
+# is run437's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+# `cover=1`, ending thirteen frames past the own-side Knight's move on 906.
+frames: 920
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add barracks who=1 215,106
+cmd: 607 add barracks who=1 219,106
+cmd: 608 add barracks who=1 222,110
+cmd: 609 add barracks who=1 218,114
+cmd: 610 add barracks who=1 222,114
+cmd: 611 add barracks who=1 214,110
+cmd: 612 add barracks who=1 214,114
+cmd: 614 add knight who=0 219,108
+cmd: 620 @move 0 42720 20064 6
+cmd: 700 add scout who=0 217,109
+cmd: 706 @move 0 42720 20064 7
+cmd: 800 peace 1
+cmd: 810 @move 0 42720 20064 6
+cmd: 900 add knight who=1 217,110
+cmd: 906 be 1
+cmd: 906 @move 1 42720 20064 6
+cmd: 907 be 0
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch42/map-14/rontrace.log" rontrace-run461.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch42/map-14/rontrace.log" rontrace-run461.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=920)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run461.log" functions 2>/dev/null | grep -E "^005fccc0 " | tee /dev/stderr | awk 'END{exit !(NR==1)}'
