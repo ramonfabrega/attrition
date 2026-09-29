@@ -2072,11 +2072,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // Indies' run439 window is walked: it holds no group move, no guard
     // and no move whose `coll` pair has left `(0, 0)`, so the group row
     // (`group_id`, `group_angle`, `in_group`, `form_id`, `oxx`, `whose`),
-    // the guard's six and `coll_x`/`coll_y` return to this pin.
+    // the guard's six and `coll_x`/`coll_y` return to this pin. **Item
+    // 1197 moved East Indies' window to run445's 8907**, where `1/35`'s
+    // move has left `(0, 0)`: `coll_x`/`coll_y` are compared there, and
+    // left this pin again at 1206's booking (the two landed apart).
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
+         attempts build_type cast_paid cast_spell cruising_alt def_x \
          def_y defensive ever_in_range form_id garrison_search group_angle group_id \
          guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
          mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
