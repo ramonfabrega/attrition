@@ -116,6 +116,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1197, 2026-09-29 — the thirty frames' unheld arms
+
+(1215) **A close's thirty-frame hold, held by the listing alone on four
+arms** (COMBAT §59.3, §59.7): 1197's mutations D′ (attrition's kill, the
+upgrade's squad trim, a closed dock's gull) and D″ (a missile's end)
+fail no walk, and the hold's exact edge against `process_all`'s visit
+is bounded (18..43), not diffed.
+
 ## Parked by item 1200, 2026-09-29 — the air line's other arms
 
 (1210) **The death-object cull, measured** (COMBAT §59.7): the Hoplite
@@ -2308,7 +2316,12 @@ stand there, and this tranche's later ones start here.
 a widening** (1191's Loop line): `1/56`'s arrival stand parted no key,
 and the scan that found it asked which figures *vanish* between two
 blocks, not which fields part. A widening listing the units present on
-block N and absent on N + 1 beside its firsts would have. One reach.
+block N and absent on N + 1 beside its firsts would have. **Again**
+(1197): 8820's "figure clocks of `1/68` and `1/70`" were the numbering
+— a close holds its number thirty frames — and a widening keyed on
+`(who, o)` turned every unit above the slot into a standing key; it
+could compare `uid`, which the dump prints and this crate does not
+carry. Two reaches.
 
 (1205) **A command to another player's units reads the seat twice**
 (1182's Loop line): the DLL's guard reads it when the line is issued and
