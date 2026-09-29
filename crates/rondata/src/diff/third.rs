@@ -381,25 +381,28 @@ mod tests {
             None,
             "the old word's block: 1/39's figure agrees"
         );
-        // **What is left on the old word's block, 12784**: the food and
-        // metal buckets, 70 and 199 here against 86 and 215 there, and the
-        // unit `1/2014` queued at 80 food and 80 timber here against 64.
+        // **The move's value diff (item 1163): the old word's block 12784
+        // agrees.** Until Wine's research discount was carried
+        // (`docs/AI.md` §94), `1/2014` queued the Militia research (66) at
+        // 80 food and 80 metal here against 64 there, and the food and
+        // metal buckets parted here, 70 and 199 against 86 and 215. The AI
+        // holds Wine, and `get_cost`'s research arm takes 20% off.
         pin_eq!(
-            row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("12784: ours 70 theirs 86"),
-            "the old word's block: the food bucket"
+            row(1, -1, "leader:bucket[0:food]"),
+            None,
+            "the old word's block: the food bucket agrees"
         );
         pin_eq!(
-            row(1, 2014, "queue:queue[0].cost[0]").as_deref(),
-            Some("12784: ours 80 theirs 64"),
-            "the old word's block: the queued unit's price"
+            row(1, 2014, "queue:queue[0].cost[0]"),
+            None,
+            "the old word's block: the Militia research's price agrees"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SAHARA_12783_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(12778, 133), (12782, 5), (12783, 1), (12784, 4)],
+            [(12778, 133), (12782, 5), (12783, 1)],
             "the blocks keys first part on, to the old word's"
         );
         // The make list's first value parting past it is now 12979, the
@@ -409,7 +412,7 @@ mod tests {
             Some("12979: ours 10000 theirs 40002"),
             "the make list's first value parting"
         );
-        pin_eq!(w.firsts.len(), 258, "every key parted on run416");
+        pin_eq!(w.firsts.len(), 254, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):
@@ -445,48 +448,72 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 13177 stands on 238 keys**: run416's standing families,
-        // and what parted between the two captures — who=1's food and metal
-        // buckets 16 short (run416's block 12784 queued `1/2014`'s unit at
-        // 80 each here against 64 there), and 25 AI citizens' `myhits` 40
-        // against 50 and `mylos` 2 against 4, which run416 first shows on
-        // 12945.
+        // **Block 13177 stands on 236 keys**: run416's standing families,
+        // and 25 AI citizens' `myhits` 40 against 50 and `mylos` 2 against
+        // 4, which run416 first shows on 12945. **The move's value diff
+        // (item 1163)**: who=1's food and metal buckets, 16 short here
+        // until Wine's research discount was carried (run416's block 12784,
+        // `docs/AI.md` §94), agree.
         pin_eq!(
-            row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("13177: ours 52 theirs 68"),
-            "the food bucket, standing from run416's 12784"
+            row(1, -1, "leader:bucket[0:food]"),
+            None,
+            "the food bucket agrees over the window"
         );
         pin_eq!(
             row(1, 1, "myhits").as_deref(),
             Some("13177: ours 40 theirs 50"),
             "a citizen's hits, standing from run416's 12945"
         );
-        // **The make list parts on 13181**: slot 1 holds the Merchant
-        // (61) at 211538 here, Longbowmen (177) at 9999999 there.
+        // **The make list agrees on 13181**, where it parted: slot 0 is the
+        // Slingers (82) and slot 1 the Longbowmen (177), both at the
+        // clamp. With the food 16 short, this crate could not afford the
+        // Slingers (53 food against 55), took `check_income`'s factor 64
+        // for 256, and the offer wrapped positive to 3462368 and fell out
+        // of the list. What parts on 13181 is the city shift alone
+        // (`docs/AI.md` §53.2): six slots' `city`, ours one above theirs.
         pin_eq!(
-            row(1, -1, "leader:MAKE[1].val").as_deref(),
-            Some("13181: ours 211538 theirs 9999999"),
-            "the make list's first parting"
+            row(1, -1, "leader:MAKE[1].val"),
+            None,
+            "the make list's values agree"
         );
-        // **The word's block, 13183** (frame 13182, ours 9 draws against 8,
-        // at index 3 ours `Leader::make_stuff+0x63d` and theirs
-        // `GameAccess::rnd+0x20 < Unit::do_job+0x67`): building `1/2017`'s
-        // fourth queued unit is Longbowmen here and Slingers there, and the
-        // human citizen `0/3`'s move offset is 312 against 504.
         pin_eq!(
-            row(1, 2017, "queue:queue[3].type").as_deref(),
-            Some("13183: ours 177 theirs 82"),
-            "the word's block: the barracks' queue"
+            row(1, -1, "leader:MAKE[0].t"),
+            None,
+            "the make list's head is the Slingers on both sides"
+        );
+        // **The old word's block, 13183** (frame 13182): the barracks
+        // `1/2017` queues the Slingers on both sides.
+        pin_eq!(
+            row(1, 2017, "queue:queue[3].type"),
+            None,
+            "the old word's block: the barracks' queue agrees"
         );
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= LONG_WORD_GREAT_SAHARA + 1)
+                .filter(|(b, _)| **b <= 13_183)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(13177, 238), (13181, 14), (13183, 18)],
-            "the blocks keys first part on, to the word's"
+            [(13177, 236), (13181, 6)],
+            "the blocks keys first part on, to the old word's"
         );
-        pin_eq!(w.firsts.len(), 935, "every key parted on run417");
+        pin!(
+            w.firsts
+                .iter()
+                .filter(|(_, (f, _))| *f == 13_181)
+                .all(
+                    |((_, _, what), _)| what.starts_with("leader:MAKE[") && what.ends_with(".city")
+                ),
+            "13181 is the city shift alone"
+        );
+        // **What parts next**: the rares the AI knows on 13184, 7 here
+        // against 6, then an AI group of three on 13222 that the original
+        // stands up and this crate does not.
+        pin_eq!(
+            row(1, -1, "leader:known_rares").as_deref(),
+            Some("13184: ours 7 theirs 6"),
+            "the known rares"
+        );
+        pin_eq!(w.firsts.len(), 277, "every key parted on run417");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's
