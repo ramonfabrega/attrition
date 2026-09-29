@@ -31,7 +31,7 @@ every floor holds. No lane is live.*
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 9 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141).
+- **Fable backlog: 10 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

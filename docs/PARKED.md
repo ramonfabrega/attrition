@@ -1966,6 +1966,17 @@ commit a person can revert; **after two passes nobody read, the loop
 stops and waits**; and what is the user's — spend, the irreversible,
 what the project is — is never decided by either.
 
+(1142) **A cheaper model is admitted by a trial, and the first trial
+is the pass's own table** (the nineteenth pass, on the user's question
+about a newer Sonnet): `CLAUDE.md` says never Sonnet, for readings whose
+errors were in the predicates (`docs/DECISIONS.md` entries 22 and 23),
+and which model runs is spend, so it is the user's to open. A worker's
+cost is its cache reads and half its landing is the machine's, so a
+cheaper worker buys tokens and no wall clock. The trial that risks no
+score: the pass's journal table, which a lean subagent on Opus wrote
+this pass, written again by the candidate from the same twenty
+journals and the two compared cell by cell. Not run.
+
 (1139) **The capture lane is one prefix, one install and one profile**
 (the nineteenth pass, on the user's question): `~/wine-ron`'s lock,
 `game/`'s `rontrace.cfg`, `.cmd` and INIs, and `Player.dat` are each
