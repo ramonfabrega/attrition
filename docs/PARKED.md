@@ -116,6 +116,29 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1133, 2026-09-29 — the camp's other edges
+
+(1148) **`1/0`'s `mylos` parts on run382's block 202, 6 against 4**
+(AI §88): the one row left on Great Sahara's first window beside block
+1's standing rows; the draws and the orders hold to 1850 past it.
+
+(1149) **`later` in `birth_come_out` is held by the unit test alone**
+(COLLISION §20): with the clause ignored, all four `diff::third` tests
+pass; only `the_second_citizen_out_of_a_camp_leaves_a_hole_in_the_first_s_block`
+fails. No third-map walk reaches the arm.
+
+## Parked by item 1127, 2026-09-29 — the soft row's other orders
+
+(1144) **Every order class's `+0x14`, the `is_moving` the soft row asks**
+(COLLISION §19.4): only `MoveOrder`'s (`mov eax,1`, behind a `vtordisp`
+thunk) and `UnitOrder`'s (`xor eax,eax`) were read off the PE; the
+other order classes' slots are unread, and each decides whether a unit
+standing under that order is soft to a moving neighbour.
+
+(1145) **`MAKE[4].val` parts on run414's block 6182** (1127's window):
+still apart after the caravan row closed `1/15`, inside the window and
+before the word; no score names it while 6321 stands.
+
 ## Parked by item 915, 2026-09-27 — the repeat launch's edges
 
 (929) **The helicopter's over-the-limit arm** in `Build::train`
@@ -1986,6 +2009,26 @@ second copy of the install and its own user-data directory;
 `~/ron-capture-lane-2` holds a profile backup of 2026-09-18 and nothing
 else. Not built: the lane was not what the tranche waited on. Returns
 when three lanes' journals say they waited on it, with the minutes.
+
+(1146) **A `SEAM` that says no capture has entered its arm carries no
+`scan:`, and one was a word's whole mechanism** (1127's Loop line):
+`soft_collision`'s `TRADE_ROUTE` seam held East Indies at 6151, and its
+`scan:` would have been a one-line grep for the half-step bit on two
+`TRADEORDER` units. A guard that asks every such seam for a `scan:` line
+would have found the word a tranche earlier. One reach.
+
+(1150) **The click-free lane's first take can die before frame 0 on a
+Wine page fault** (1133's Loop line): run416's first take faulted 3.5 s
+after launch, and the receipt called it `extra lifecycle or fault
+records`; a retry ran clean. The receipt could name the fault and the
+lane could retry once on its own. One reach.
+
+(1151) **The compared pin is the union of every window it walks, so a
+lane measures it only on the merged tree** (1133's Loop line):
+`coll_x`, `coll_y` and `job_counter` went back on the pin when the third
+map's window shrank to five blocks, and came off at the merge because
+1127's East Indies window compares them. One lane's gate went red on a
+pin another lane's window decides. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

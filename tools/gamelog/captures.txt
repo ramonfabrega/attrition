@@ -8971,3 +8971,27 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   run414 window blocks: 257 (5970..6226)
 #   receipts: map_style 18, seed 12345, success true, settings restored
 # ==== TAKEN 2026-09-28, one take each: 20:28, 20:35–20:54, 20:58 ====
+
+# ==== item 1127: East Indies at Toughest, the word 6321's window ====
+#
+# run419 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run419):
+# run346's lobby (`--map 18`, `--profile DIFFICULTY=5`), `cover=0`,
+# blocks 6316..6572, `!quit` at 6586. Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run346.log rontrace-run419.log   -> 0 differing, 6,587 identical
+#   grep -a -m1 '^  DIFFICULTY 5' / '^  MAP_STYLE 18' on gamelog-run419-islands-toughest-6321.txt
+#   run419 window blocks: 257 (6316..6572)
+#   receipt: map_style 18, seed 12345, success true, settings restored
+# ==== TAKEN 2026-09-29, one take, 05:55–06:15 ====
+
+# ==== item 1133: the third map's long word 12783 widened ====
+#
+# run416 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run416):
+# run383's lobby (`--map 7`, `--profile DIFFICULTY=0`), `cover=0`, run414's
+# detail, blocks 12778..13034, `!quit` at 13048.
+# Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log rontrace-run416.log   -> 0 differing, 13,049 identical
+#   grep -a -m1 'MAP_STYLE' / ' DIFFICULTY ' / '(int)seed' -> 7, 0, 12345
+#   run416 window blocks: 257 (12778..13034)
+# ==== TAKEN 2026-09-29, the second take 06:25–06:42; the first died before frame 0 ====
