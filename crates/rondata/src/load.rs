@@ -2504,6 +2504,39 @@ mod tests {
         assert_eq!(l.tree.types.len(), 50 + 364 + 129 + 85);
     }
 
+    /// **An anti-air building's cycle and a building's signed `ATTENUATE`**
+    /// (item 1112, `docs/COMBAT.md` §84): the Radar Air Defense takes the
+    /// `<UNIT>`'s 20 and 10 frames and its one release on frame 2, and the
+    /// measured launch; the Lookout and the Observation Post take no cycle;
+    /// the Radar's `ATTENUATE` is −5 as read, where a unit's is its absolute
+    /// value (`BuildType::init` against `UnitType::init`).
+    #[test]
+    fn the_radar_air_defense_winds_up_on_its_unit_s_packet() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let cycle = |t: i32| {
+            let b = l.build_of_type_index(t).unwrap();
+            l.tree.types[l.build_tree[b]].wall_cycle.clone()
+        };
+        assert_eq!(
+            cycle(sim::air::RADAR),
+            Some(sim::air::WallCycle {
+                wind: 20,
+                swing: 10,
+                releases: vec![(2, 0, false)],
+                launch: Some((136, -136, 227)),
+            })
+        );
+        assert!(cycle(sim::air::AIRDEFENSE).is_some_and(|c| c.releases.len() == 1));
+        assert!(cycle(sim::air::SAM).is_some_and(|c| c.releases.len() == 3));
+        assert_eq!(cycle(sim::air::LOOKOUT), None);
+        assert_eq!(cycle(sim::air::OBSERVATIONPOST), None);
+        let radar = l.build_of_type_index(sim::air::RADAR).unwrap();
+        let p = l.build_types[radar].combat.as_ref().unwrap();
+        assert_eq!((p.to_hit, p.attenuate), (300, -5));
+        assert!(l.unit_types.iter().all(|u| u.combat.attenuate >= 0));
+    }
+
     /// One figure's hit, in sixteenths, from the loaded profiles — `get_damage`
     /// then `scale` as `Object::do_damage` runs them (`docs/COMBAT.md` §6–§7),
     /// with the target facing `facing` and the attack arriving along `angle`.
