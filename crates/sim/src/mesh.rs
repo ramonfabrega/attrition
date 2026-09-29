@@ -1200,6 +1200,14 @@ mod tests {
         );
         sim.set_blocked_at(Pos::new(21, 20), false);
         assert!(!is_road(&sim, 21, 20), "unblocking lays nothing");
+        // **Every call clears**, not only a tile's first blocking: the
+        // original's `set_road_at` sits outside the `& 0x4000` guard that
+        // keeps the counts.
+        sim.set_blocked_at(Pos::new(21, 20), true);
+        lay(&mut sim, &[(21, 20)]);
+        assert!(is_road(&sim, 21, 20), "a road laid over a blocked tile");
+        sim.set_blocked_at(Pos::new(21, 20), true);
+        assert!(!is_road(&sim, 21, 20), "goes when it is blocked again");
     }
 
     /// **And a building that starts over a road takes it** — the same arm,
