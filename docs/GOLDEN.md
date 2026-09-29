@@ -9210,6 +9210,21 @@ block's `filled_gather_slots`, the human City's census (parked 1183), the
 Knight's attack `order:target` kept on the unit, and chapter eight's
 `treaties[·]` 3 on the first blow (623).
 
+**Mutations**, each on the committed build, `git diff --stat` non-empty,
+restored from git and touched:
+
+| mutation | held by |
+|---|---|
+| the armed arm off | the word (622), the widening, both unit tests |
+| an own footprint passes | the word (923), the widening, the `invalid_loc` test |
+| an unarmed walker passes | the word (718), the widening, the `invalid_loc` test |
+| war and peace swapped | the word (624), the widening, the `resolve_block` test |
+| the `agendas` bit not written | the widening (812), the `resolve_block` test |
+| `TAKE`'s call off | the word (624), the widening |
+| `TAKE` writes the top before `find_path` | the widening (819) |
+| a flagged waypoint taken, its call off | **nothing**: the Knight's flagged top is taken at `TAKE` |
+| a failed near line, its call off | **nothing**: `TAKE`'s has returned (war) or set the bit (peace), and it returns 1 either way |
+
 **What is not established.**
 - The own arm and `build_masks & 1`: dead by the listing; no staging can
   reach them.
