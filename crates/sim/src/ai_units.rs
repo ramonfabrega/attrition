@@ -2147,7 +2147,8 @@ impl Sim {
                 // round's answer.
                 return round != 0 && first == Some(true);
             };
-            let ok = self.queue_up(b, rec).is_ok();
+            // `Build::queue_up(b, t, escrow)` (`produce_unit:407`).
+            let ok = self.queue_up_with(b, rec, escrow != 0).is_ok();
             if round == 0 {
                 first = Some(ok);
             }
@@ -2171,17 +2172,14 @@ impl Sim {
     }
 
     /// `num` orders at the one building the walk chose; the first order's
-    /// success is the result.
-    ///
-    /// **Seam** — `Build::queue_up(b, t, escrow)` spends from the escrow
-    /// reservation when `escrow != 0`; [`Sim::queue_up`] takes no such
-    /// argument and always spends from the ordinary purse.
+    /// success is the result. Each is `Build::queue_up(b, t, escrow)`, which
+    /// draws the escrow reservation down when `escrow != 0`
+    /// ([`Sim::queue_up_with`], `docs/AI.md` §98).
     fn queue_batch(&mut self, at: Option<usize>, rec: usize, num: i32, escrow: i32) -> bool {
-        let _ = escrow;
         let Some(b) = at else { return false };
         let mut first = false;
         for i in 0..num.max(1) {
-            let ok = self.queue_up(b, rec).is_ok();
+            let ok = self.queue_up_with(b, rec, escrow != 0).is_ok();
             if i == 0 {
                 first = ok;
             }
@@ -2950,6 +2948,41 @@ mod tests {
         sim.upgrade_units(0);
         assert_eq!(draws(&mut sim, before), 0);
         assert_eq!(sim.ai[0].make_list.list[7].t, -1);
+    }
+
+    /// `Build::queue_up(t, escrow)` (`docs/AI.md` §98): the affordability
+    /// test counts the whole stockpile (`can_pay_cost(…, 1)`, `0x6214b2`),
+    /// and the flag goes to `pay_cost`: an escrowed purchase draws the
+    /// reservation down, floored at zero; any other abandons it for a good
+    /// it had to reach into. East Indies' Cataphract on 7382 is the
+    /// receipt: the original's metal escrow 37 is 0 after it, where an
+    /// unflagged payment of 60 out of 209 would have left it.
+    #[test]
+    fn an_escrowed_order_draws_the_reservation_down_and_an_ordinary_one_abandons_it() {
+        let (mut sim, ids) = barracks_sim(false);
+        sim.unit_types[ids.rec].price.base[0] = 60;
+        let charges = sim.price_of(0, ids.rec);
+        let g = (0..crate::economy::RESOURCES)
+            .find(|&g| charges[g] > 0)
+            .expect("the unit costs something");
+        let price = charges[g];
+        sim.ledgers[0].bucket = [0; crate::economy::RESOURCES];
+        sim.ledgers[0].bucket[g] = price + 5;
+        sim.ledgers[0].escrow[g] = 10;
+        // Only the whole bucket covers it, and the order goes through.
+        sim.queue_up_with(ids.b, ids.rec, true)
+            .expect("the whole bucket pays");
+        assert_eq!(sim.ledgers[0].bucket[g], 5);
+        assert_eq!(sim.ledgers[0].escrow[g], 0, "10 − price, floored");
+        sim.ledgers[0].bucket[g] = price + 5;
+        sim.ledgers[0].escrow[g] = 10;
+        sim.queue_up_with(ids.b, ids.rec, false)
+            .expect("the same test");
+        assert_eq!(sim.ledgers[0].escrow[g], 0, "reached into: abandoned");
+        sim.ledgers[0].bucket[g] = price + 50;
+        sim.ledgers[0].escrow[g] = 10;
+        sim.queue_up_with(ids.b, ids.rec, false).expect("queued");
+        assert_eq!(sim.ledgers[0].escrow[g], 10, "not reached into: kept");
     }
 
     #[test]

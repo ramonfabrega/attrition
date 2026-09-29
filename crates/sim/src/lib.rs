@@ -2243,6 +2243,21 @@ impl Sim {
     /// The two gates are the original's and in its order — affordability
     /// first, then room in the queue.
     pub fn queue_up(&mut self, at: usize, ty: usize) -> Result<usize, production::QueueFail> {
+        self.queue_up_with(at, ty, false)
+    }
+
+    /// [`Sim::queue_up`] with the caller's escrow flag — `Build::queue_up(t,
+    /// escrow)`. The affordability test counts the **whole** stockpile
+    /// whatever the flag (`can_pay_cost(who, −1, o, 1)`, `0x6214b2`), and the
+    /// flag goes to the charge (`pay_cost(…, escrow, …)`, `0x621949`): an
+    /// escrowed purchase draws the reservation down, any other abandons it
+    /// where it had to reach into it (`docs/AI.md` §98).
+    pub(crate) fn queue_up_with(
+        &mut self,
+        at: usize,
+        ty: usize,
+        escrow: bool,
+    ) -> Result<usize, production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         // `BuildData::can_make`: not active, or in an unassimilated city, makes
@@ -2266,13 +2281,18 @@ impl Sim {
         }
         let charges = self.price_of(who, ty);
         let available = self.holdings[who as usize].available;
-        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+        if cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1 {
             return Err(production::QueueFail::Cost);
         }
         if !self.buildings[at].queue.has_room() {
             return Err(production::QueueFail::Full);
         }
-        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        cost::pay(
+            &charges,
+            &mut self.ledgers[who as usize],
+            &available,
+            escrow,
+        );
         let slot = self.buildings[at].queue.push(ty, &charges);
         self.muster[who as usize].queued_by_type[ty] += 1;
         self.track_tree_queued(who, ty, 1);
@@ -2387,6 +2407,17 @@ impl Sim {
         at: usize,
         t: tech::TypeId,
     ) -> Result<usize, production::QueueFail> {
+        self.queue_tech_with(at, t, false)
+    }
+
+    /// [`Sim::queue_tech`] with the caller's escrow flag, as
+    /// [`Sim::queue_up_with`]: the same `Build::queue_up`.
+    pub(crate) fn queue_tech_with(
+        &mut self,
+        at: usize,
+        t: tech::TypeId,
+        escrow: bool,
+    ) -> Result<usize, production::QueueFail> {
         let at = self.queue_home(at);
         let who = self.buildings[at].owner;
         if !self.buildings[at].active
@@ -2414,13 +2445,18 @@ impl Sim {
         }
         let charges = self.tech_price(who, t);
         let available = self.holdings[who as usize].available;
-        if !cost::can_pay(&charges, &self.ledgers[who as usize], &available, 1) {
+        if cost::affordable(&charges, &self.ledgers[who as usize], &available, true) < 1 {
             return Err(production::QueueFail::Cost);
         }
         if !self.buildings[at].queue.has_room() {
             return Err(production::QueueFail::Full);
         }
-        cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+        cost::pay(
+            &charges,
+            &mut self.ledgers[who as usize],
+            &available,
+            escrow,
+        );
         let slot = self.buildings[at].queue.push_tech(t, &charges);
         self.tech[who as usize].queued[t] += 1;
         self.economy_changed(who);
@@ -3400,6 +3436,22 @@ impl Sim {
         ) {
             self.civic_epoch_sweep(who);
         }
+        // Step 11's city arm: a gain that is a prerequisite of the city line
+        // (Medieval for the Large City, Industrial for the Major) runs
+        // `City::check_upgrade` on every one of the leader's cities
+        // (`0x6dec2f`), so a city that already holds its kinds levels up on
+        // the frame the age lands rather than at its next building's
+        // completion (`docs/AI.md` §98).
+        for _ in events
+            .iter()
+            .filter(|e| matches!(e, tech::Gained::CityCheck))
+        {
+            for c in self.cities_of(who) {
+                if self.cities[c].alive {
+                    self.check_upgrade(c);
+                }
+            }
+        }
         // **An age re-places every one of the leader's units where it
         // already stands** — `Leader::gain_tech@006dcb60:2366`, gated on
         // `TypeData::is_age_type` (the type vtable's `+0x34`, `is_epoch_type`
@@ -4126,6 +4178,13 @@ impl Sim {
             // and who=1's food and wealth caps are 300, not 250, on 17085
             // (`docs/ECONOMY.md` §15).
             self.holdings[who].wonders = self.wonders_held(player);
+            // `do_gather`'s escrow arm reads `escrow_rate` on every frame,
+            // and a human never escrows (`docs/AI.md` §98).
+            self.holdings[who].escrow_rate = if self.nation[who].human {
+                [0; economy::RESOURCES]
+            } else {
+                self.ai[who].census.escrow_rate
+            };
             economy::process(
                 &self.tuning,
                 &mut self.ledgers[who],

@@ -1184,6 +1184,59 @@ fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
     let _ = t.fort;
 }
 
+/// `Leader::gain_tech`'s buildings cascade, the city arm (`0x6dec2f`,
+/// `docs/AI.md` §98): a city that already holds its kinds while the Large
+/// City is still locked levels up **on the gain** of the Large City's
+/// prerequisite, not at its next building's completion. East Indies'
+/// London and Norwich did so with the Medieval Age in the original and
+/// stood Small here until a building finished, which put the AI's `pop` at
+/// 3 against 7 and every research offer at three sevenths.
+#[test]
+fn the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let medieval = tree.add(TypeDef::age("Medieval Age", 1));
+    let town = tree.add(TypeDef::building("Large City").needs(0, medieval));
+    tree.ages[0] = Some(classical);
+    tree.ages[1] = Some(medieval);
+    tree.roles.town = Some(town);
+    tree.add_tribe(tech::Tribe::default());
+    tree.finalize();
+    sim.build_types[t.town].tree = Some(town);
+    sim.tech_tree = tree;
+    for w in 0..sim.tech.len() {
+        sim.tech[w] = tech::PlayerTech::new(&sim.tech_tree);
+    }
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let sites = [
+        (t.barracks, tile_pos(40, 40)),
+        (t.library, tile_pos(24, 40)),
+        (t.market, tile_pos(40, 24)),
+        (t.temple, tile_pos(24, 24)),
+        (t.farm, tile_pos(44, 32)),
+    ];
+    for (ty, pos) in sites {
+        let p = sim.place_building(0, ty, pos).unwrap();
+        finish(&mut sim, p);
+    }
+    assert_eq!(sim.num_kinds(c), 6, "the kinds are there");
+    assert_eq!(sim.city_level_of(c), 1, "the Large City is locked");
+    assert_eq!(sim.ai[0].census.pop, 1);
+    sim.gain_tech(0, classical);
+    assert_eq!(
+        sim.city_level_of(c),
+        1,
+        "an age the Large City does not need"
+    );
+    sim.gain_tech(0, medieval);
+    assert_eq!(sim.city_level_of(c), 2, "levelled up on the gain");
+    assert_eq!(sim.buildings[b].ty, Some(t.town));
+    assert_eq!(sim.ai[0].census.pop, 3, "and `pop` follows it");
+}
+
 /// `LeaderData::pop` and `reg_pop` — `CityData::get_pop_value@00738450`,
 /// which is **1, 3, 5** and not the level, summed over the leader's live
 /// cities. The number is `create_units`' and `research_techs`' whole `base`

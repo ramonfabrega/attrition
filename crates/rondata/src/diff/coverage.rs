@@ -1145,6 +1145,13 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             "run425 carries the second pair's East Indies word 7382's blocks"
         );
         frames += n;
+        // Item 1174 moved it to 7512 (block 7513), inside run425.
+        let n = drive_capture(p, 7_512, 7_515, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run425 carries the second pair's East Indies word 7512's blocks"
+        );
+        frames += n;
     }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);
@@ -1877,7 +1884,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // and run419's 6320..6324 since item 1127 moved it to 6321, and run420's
     // 6608..6612 since item 1143 moved it to 6609, and run420's 6742..6746
     // since item 1156 moved it to 6743, and run425's 7381..7385 since item
-    // 1164 moved it to 7382. Item 1061 first pinned it on
+    // 1164 moved it to 7382, and run425's 7511..7515 since item 1174 moved
+    // it to 7512. Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
@@ -1973,7 +1981,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item
-/// 1156; run425 at 7382 since item 1164) walked from run346's start —
+/// 1156; run425 at 7382 since item 1164, and at 7512 since item 1174)
+/// walked from run346's start —
 /// walked with the
 /// recorder on; a machine without the
 /// captures says so. What this checks that the `UNREAD` pin cannot: that a key

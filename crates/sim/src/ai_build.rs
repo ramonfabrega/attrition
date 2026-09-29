@@ -1354,10 +1354,10 @@ impl Sim {
         }
         let Some((_, b)) = best else { return false };
         match self.type_class(t) {
-            Class::Tech => self.queue_tech(b, t).is_ok(),
+            Class::Tech => self.queue_tech_with(b, t, escrow != 0).is_ok(),
             Class::Unit => self
                 .unit_record(t)
-                .is_some_and(|r| self.queue_up(b, r).is_ok()),
+                .is_some_and(|r| self.queue_up_with(b, r, escrow != 0).is_ok()),
             // A building upgrade has nowhere to go: the production queue
             // holds units and technologies. Named in the module header.
             _ => false,

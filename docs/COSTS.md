@@ -1068,7 +1068,9 @@ a capture has one.
   `starting_resources`. Only row 1 is modelled, and only because every
   capture on disk plays it and run40 measures it as the unscaled constant; a
   capture on any other row would be the first to test the rest.
-- **What writes `escrow_rate`.**
+- ~~**What writes `escrow_rate`.**~~ `Leader::plan_strategy`'s census,
+  40 once the leader holds more than two cities (`docs/AI.md` §2.3 step 1);
+  the escrow's feed and the producers' flag are §98.
 - **Whether the maximum in `can_pay_cost` is visible in play**, which needs
   phase 2.
 - ~~**The tech tree.**~~ **Closed** by `docs/TECH.md`: `has_preq`,

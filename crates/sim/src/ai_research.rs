@@ -779,7 +779,6 @@ impl Sim {
     /// no slot for yet; and a building's "is upgrading" vslot has no model,
     /// so no candidate is excluded for it.
     pub fn produce_tech(&mut self, who: Player, t: TypeId, escrow: i32) -> bool {
-        let _ = escrow;
         let w = who as usize;
         if self.tech_tree.has_tech(&self.setup, &self.tech[w], t) || self.researching(who, t) {
             return true;
@@ -841,9 +840,9 @@ impl Sim {
             let Some(rec) = self.unit_record(t) else {
                 return false;
             };
-            return self.queue_up(b, rec).is_ok();
+            return self.queue_up_with(b, rec, escrow != 0).is_ok();
         }
-        self.queue_tech(b, t).is_ok()
+        self.queue_tech_with(b, t, escrow != 0).is_ok()
     }
 
     /// The gates both searches share: alive, finished, of the research
