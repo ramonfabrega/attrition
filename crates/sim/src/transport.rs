@@ -488,9 +488,11 @@ impl Sim {
         if let Some(g) = rec.gull
             && let Some(gull) = self.units.get_mut(g)
         {
-            // `Unit::close(0, −1, 0)`.
+            // `Unit::close(0, −1, 0)`, and `Object::close`'s hold on the
+            // number at its foot (`docs/COMBAT.md` §59.3).
             gull.health = 0;
             gull.on_map = false;
+            gull.hold_frames = Sim::CLOSE_HOLD;
         }
         let docks = &mut self.docks[w];
         while docks.mark > 0 && !docks.slots[docks.mark - 1].active() {
@@ -1260,6 +1262,11 @@ impl Sim {
             }
         }
         self.units[boat].health = 0;
+        // `Object::die(boat, 0, −1, 0)`: `close`, whose `Object::close`
+        // holds the number thirty frames (`docs/COMBAT.md` §59.3). East
+        // Indies' barge `1/62` and Merchant Fleet `1/59` were reused here
+        // at once, and the original's next births took the numbers above.
+        self.hold_dead_slot(boat);
         self.units[boat].on_map = false;
         self.coll_remove(boat);
         self.chain_remove(boat);
@@ -1795,6 +1802,62 @@ mod tests {
             f.sim.units[boat].guys[0].anim,
             crate::anim::DEFAULT,
             "and its figure took the arrival stand on the way out"
+        );
+    }
+
+    /// **The boat's number is held thirty frames** (`docs/COMBAT.md`
+    /// §59.3): `Object::die(boat, 0, −1, 0)` makes no death object, but
+    /// `close` ends in `Object::close`'s `hold_frames = 0x1e`, and
+    /// `Objects::find_free` will not hand the number out until
+    /// `process_all` has taken it to zero. East Indies' barge `1/62` died
+    /// on 8195, and the original numbered its owner's next birth, on 8210,
+    /// past it; this crate gave that birth the barge's number.
+    ///
+    /// Made to fail by leaving [`Sim::disembark`]'s boat with no hold.
+    #[test]
+    fn a_boat_that_puts_its_passenger_ashore_holds_its_number_thirty_frames() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let at = Pos::new(32 * UNITS_PER_TILE + 4, tile_pos(32, 14).y);
+        let boat = unit(&mut f.sim, 1, b, at);
+        f.sim.units[boat].auto_transport = true;
+        f.sim.init_guys(boat, Some(b));
+        f.sim.board(rider, boat);
+        f.sim.add_move_order(
+            boat,
+            tile_pos(30, 14),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        // 1191's state: the body on its unit, facing its waypoint.
+        let bearing = crate::movement::Angle(-1_130_299_392);
+        let u = &mut f.sim.units[boat];
+        u.movement.speed = 25;
+        u.movement.turning.type_turn_speed = i32::MAX;
+        u.movement.facing = bearing;
+        u.movement.heading = bearing;
+        u.movement.body.pos = at;
+        u.movement.body.avg_speed = 25;
+        f.sim.process_unit(boat, 1, &mut Vec::new());
+        assert!(!f.sim.units[boat].alive(), "the boat stepped ashore");
+        assert_eq!(f.sim.units[boat].hold_frames, Sim::CLOSE_HOLD);
+        let number = f.sim.units[boat].index;
+        for _ in 1..Sim::CLOSE_HOLD {
+            f.sim.tick();
+            assert_ne!(
+                f.sim.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE),
+                Some(number),
+                "the dead boat's number is held"
+            );
+        }
+        f.sim.tick();
+        assert_eq!(f.sim.units[boat].hold_frames, 0);
+        assert_eq!(
+            f.sim.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE),
+            Some(number),
+            "and handed out once the hold is spent"
         );
     }
 

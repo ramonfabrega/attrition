@@ -3072,6 +3072,8 @@ impl Sim {
                 }
                 if !self.units[u].captain {
                     self.units[u].health = 0;
+                    // `Unit::die`, and `Object::close`'s hold (§59.3).
+                    self.hold_dead_slot(u);
                     continue;
                 }
                 let damage: i32 = self
@@ -4713,6 +4715,9 @@ impl Sim {
         let killed = !unit.alive();
         if killed {
             self.relink_squad(i);
+            // `Object::take_damage`'s `die`, and `close`'s thirty-frame
+            // hold on the number (`docs/COMBAT.md` §59.3).
+            self.hold_dead_slot(i);
             self.close_supply(i);
         }
         Some(Tick {

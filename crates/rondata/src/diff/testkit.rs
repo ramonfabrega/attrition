@@ -1435,7 +1435,27 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 17_623;
 /// original spends a third `Guy::set_anim+0x97a < Guy::inc_time+0x271`
 /// where ours has none. Past run439's window (its last block 8770), widened
 /// on run445 (block 8821).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_820;
+///
+/// **8820 → 8907 on item 1197** (`docs/COMBAT.md` §59.3): every close
+/// holds the dead number thirty frames — `Object::close@00647160`'s
+/// `hold_frames = 0x1e` — and this crate held only a combat death's. The
+/// transports that died putting their passengers ashore in the gap before
+/// run439 (the barge `1/62` on 8195, the Merchant Fleet `1/59` on 8411) had
+/// their numbers handed on at once here, so the three King's Longbowmen the
+/// original numbers `1/68`–`1/70` stood at `1/59`, `1/68`, `1/69`, and the
+/// idle rolls went to other figures. **The move's value diff (the word's
+/// delta, here; its block is `run445_s_word_frame_is_widened_whole`'s):** on
+/// run445's first block 8815 `1/68`'s `g.cur_time[0]` ours 21 against 25 →
+/// agreeing and `1/70`'s `g.cur_anim[0]` ours 35 against 1 → agreeing (both
+/// through 8944); the block's standing keys went 504 → 183 and run445's
+/// 1176 → 627; run439's went 608 → 198, and 1185's `1/68`/`1/69` `dest`
+/// rows on 8516 and 8519 agree. Frame 8820's draws went 2 against 3 →
+/// agreeing. **The new word's delta: ours 2 draws and the original 28 on
+/// frame 8907, parting at index 1**: the original spends
+/// `Unit::think_scout+0x941` and 26 `Unit::think_scout+0xaba` where ours
+/// spends one `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run445's
+/// window (block 8908).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_907;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1880,7 +1900,7 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_8519: (i64, i64) = (8_514, 8_770);
 
 /// **run445's window** (item 1191): the second pair's East Indies at
 /// run439's detail, blocks 8815..9071 — six blocks before the word 8820's
-/// block 8821 and 250 past it.
+/// block 8821 and 250 past it; the word 8907's block 8908 since item 1197.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_8820: (i64, i64) = (8_815, 9_071);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
@@ -7105,12 +7125,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 6609, past that, widened on run420; item 1156 to 6743, inside it;
     // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
     // inside it; item 1185 to 8519, past it, widened on run439; item 1191
-    // to 8820, past it, widened on run445.
+    // to 8820, past it, widened on run445; item 1197 to 8907, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run445_s_word_frame_is_widened_whole"),
-        1191,
+        1197,
         Some(WIDENING_SECOND_EAST_INDIES_8820),
     ),
     (
