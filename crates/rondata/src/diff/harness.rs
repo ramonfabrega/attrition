@@ -10868,11 +10868,31 @@ pub(crate) mod tests {
         let mut changed: Vec<(i64, i64, i64, bool, bool)> = Vec::new();
         let mut standing: BTreeMap<i64, BTreeMap<(i64, i64, String), String>> = BTreeMap::new();
         let is_near = |n: i64| near.iter().any(|b| (b - 2..=b + 2).contains(&n));
+        // `RON_SWEEP=<frame>:<who>/<o>` — every collision sweep one unit
+        // makes on one sim-frame, as run116's test prints it (item 1171).
+        let sweep: Option<(i64, i32, i32)> = std::env::var("RON_SWEEP").ok().and_then(|v| {
+            let (f, u) = v.split_once(':')?;
+            let (w, o) = u.split_once('/')?;
+            Some((f.parse().ok()?, w.parse().ok()?, o.parse().ok()?))
+        });
         // Frame `f` writes block `f + 1`, so the window's last block is
         // frame `tail - 1`'s. `0..=tail` read block `tail + 1` too, which no
         // chain held until run211 followed run202 (item 722).
         for f in 0..tail {
+            if let Some((sf, w, o)) = sweep
+                && sf == f
+            {
+                built.sim.sweep_watch = Some(sim::collide::SweepWatch::new(sf, w, o));
+            }
             built.tick();
+            if let Some((sf, _, _)) = sweep
+                && sf == f
+                && let Some(w) = built.sim.sweep_watch.take()
+            {
+                for l in w.rendered() {
+                    eprintln!("  sweep {sf}: {l}");
+                }
+            }
             let n = f + 1;
             if n < first_block {
                 continue;
