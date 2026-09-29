@@ -8983,3 +8983,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   run419 window blocks: 257 (6316..6572)
 #   receipt: map_style 18, seed 12345, success true, settings restored
 # ==== TAKEN 2026-09-29, one take, 05:55–06:15 ====
+
+# ==== item 1143: East Indies at Toughest, the word 6609's window ====
+#
+# run420 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run420):
+# run346's lobby (`--map 18`, `--profile DIFFICULTY=5`), `cover=0`,
+# blocks 6604..6860, `!quit` at 6874. Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run346.log rontrace-run420.log   -> 0 differing, 6,875 identical
+#   grep -a -m1 '^  DIFFICULTY 5' / '^  MAP_STYLE 18' on gamelog-run420-islands-toughest-6609.txt
+#   run420 window blocks: 257 (6604..6860)
+#   receipt: map_style 18, seed 12345, success true, settings restored
+# ==== TAKEN 2026-09-29, the second take, 06:50–07:12 (the first exited 9 before the menu) ====

@@ -1234,7 +1234,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 8;
 /// Unit::do_idle+0x7d` where the original spends `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`. Past run414's window, widened on run419
 /// (`run419_s_word_frame_is_widened_whole`, block 6322).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_321;
+///
+/// **6321 → 6609 on item 1143** (`docs/ORDERS.md` §4.4, `docs/AI.md` §90):
+/// the waypoint take's region check — a final waypoint in another tile
+/// region than the unit's is re-pushed with `flags | 4` — lets the barge
+/// `1/42` keep its goal ashore rather than `find_path` pulling it back to
+/// the water. **The move's value diff (the word's delta, here; its block is
+/// `run419_s_word_frame_is_widened_whole`'s):** on run419's first block
+/// 6316 the barge's `pos` ours (38028,11677) against (38016,11689) →
+/// agreeing, its leg (38028,11542) `flags 1` against (38016,11136) `flags 5`
+/// → agreeing; on 6321 its `orders.len` 0 against 1 → agreeing; on 6322
+/// `1/32`'s `inside` 42 against -1 and `pos` (37976,15372) against
+/// (38040,11400) → agreeing, and the barge closed on both sides. run419's
+/// first block went 169 → 160 keys, the window's 992 → 317. Frame 6321's
+/// draws went 9 against 8 → agreeing. **The new word's delta: ours 9 draws
+/// and the original 7 on frame 6609, parting at index 2**: ours spends
+/// `Animal::do_idle+0x83` where the original spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`. Past run419's window, widened on run420
+/// (`run420_s_word_frame_is_widened_whole`, block 6610).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_609;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1661,6 +1679,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_5975: (i64, i64) = (5_970, 6_226);
 /// run346's game, blocks 6316..6572 — six blocks before the word 6321's
 /// block 6322 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_6321: (i64, i64) = (6_316, 6_572);
+
+/// `run420_s_word_frame_is_widened_whole`'s window (item 1143): run420 over
+/// run346's game, blocks 6604..6860 — six blocks before the word 6609's
+/// block 6610 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_6609: (i64, i64) = (6_604, 6_860);
 
 /// `run356_s_word_frame_is_widened_whole`'s window (item 989): run356 over
 /// run347's game, blocks 4550..4806 — six blocks before the word 4555's
@@ -6789,13 +6812,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // closing state. Item 1106 moved East Indies to 5773, inside run357's
     // window, and re-pinned the word's block there. Item 1115 moved it to 5975,
     // widened on run414, and item 1120 to 6151, inside run414's window.
-    // Item 1127 moved it to 6321, past it, widened on run419.
+    // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
+    // 6609, past that, widened on run420.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run419_s_word_frame_is_widened_whole"),
-        1127,
-        Some(WIDENING_SECOND_EAST_INDIES_6321),
+        Some("run420_s_word_frame_is_widened_whole"),
+        1143,
+        Some(WIDENING_SECOND_EAST_INDIES_6609),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

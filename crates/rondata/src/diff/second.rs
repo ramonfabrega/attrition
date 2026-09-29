@@ -161,8 +161,9 @@ pub(crate) fn walk_second_probed(
 /// blocks; item 1099 closed Great Lakes at its end, 5930, and item 1106
 /// moved the walk here (`docs/GROUPS.md` §33.3); item 1115 moved the word
 /// to 5975, and the walk to run414; item 1120 moved the word to 6151,
-/// inside it; item 1127 moved it to 6321, and the walk to run419. `None`
-/// when the captures are not on this machine.
+/// inside it; item 1127 moved it to 6321, and the walk to run419; item 1143
+/// moved it to 6609, and the walk to run420. `None` when the captures are
+/// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail + 1`.
@@ -172,7 +173,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run419-islands-toughest-6321.txt",
+        "gamelog-run420-islands-toughest-6609.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -1049,7 +1050,8 @@ mod tests {
     /// **The second pair's East Indies word, 6321, widened whole** (item
     /// 1127): run419 is run346's game at run414's detail over blocks
     /// 6316..6572, walked from run346's own start. The word's frame writes
-    /// block 6322.
+    /// block 6322. **Since item 1143 the word is 6609**, block 6610, past
+    /// this window: run420 is its widening.
     #[test]
     fn run419_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -1088,49 +1090,121 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The first block stands on 169 keys**: 89 frames past run414's
-        // last block, the gap 6227..6315 no dump covers. Among them the
-        // newborn `1/42` (born on 6190 by run414), a barge carrying the
-        // citizen `1/32` (`inside_down` 32 on 6321), already sails apart —
-        // `pos` (38028,11677) against (38016,11689), its leg's end
-        // (38028,11542) against (38016,11136) — with its `form` -1
-        // against 0, run414's 6191 row.
+        // **The word 6321** (item 1127) **closed on item 1143**
+        // (`docs/ORDERS.md` §4.4): the barge `1/42` (born on 6190 by
+        // run414), carrying the citizen `1/32`, took its final leg ashore on
+        // 6271, in the gap 6227..6315 no dump covers, and the waypoint
+        // take's region check flags it `| 4` there, so `find_path` keeps the
+        // land goal. It sailed apart before — `pos` (38028,11677) against
+        // (38016,11689) on 6316, its leg (38028,11542) against (38016,
+        // 11136) — stood with no order on 6321, and still carried `1/32` on
+        // 6322 where the original had landed it at (38040,11400). All of it
+        // agrees; the barge's `form` -1 against 0 stands from run414's 6191,
+        // and the passenger's figure `avg_speed` 0 against 11 on 6322 is
+        // what is left of the landing.
+        for what in ["pos", "orders.len", "extra"] {
+            pin_eq!(row(1, 42, what), None, "`1/42`'s {what}");
+        }
+        for what in ["inside", "pos"] {
+            pin_eq!(row(1, 32, what), None, "`1/32`'s {what}");
+        }
         pin_eq!(
-            row(1, 42, "pos").as_deref(),
-            Some("6316: ours (38028,11677) theirs (38016,11689)"),
-            "the newborn walks apart in the gap"
-        );
-        // **The word 6321** (item 1127; no mechanism is named): ours 9
-        // draws against 8, at index 2, ours `Unit::do_idle+0x7d` on
-        // `1/42`, the original a `Guy::inc_time+0x271` wrap. On block 6321
-        // ours holds the barge with no order, its leg ended at (38028,
-        // 11542), and the original with one to (38040, 11160); on the
-        // word's block 6322 the original has landed `1/32` at (38040,11400)
-        // and closed the barge, and this crate still carries both.
-        pin_eq!(
-            row(1, 42, "orders.len").as_deref(),
-            Some("6321: ours 0 theirs 1"),
-            "the newborn has no order here"
-        );
-        pin_eq!(
-            row(1, 32, "inside").as_deref(),
-            Some("6322: ours 42 theirs -1"),
-            "and a citizen is inside it"
+            row(1, 32, "g.avg_speed[0]").as_deref(),
+            Some("6322: ours 0 theirs 11"),
+            "the passenger's figure speed, put ashore"
         );
         pin_eq!(
-            row(1, 42, "extra").as_deref(),
-            Some("6322: this crate holds it alone"),
-            "which the original no longer holds"
+            by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [
+                (6316, 160),
+                (6322, 1),
+                (6331, 2),
+                (6334, 1),
+                (6337, 4),
+                (6338, 2)
+            ],
+            "the blocks keys first part on, the first six"
+        );
+        pin_eq!(w.firsts.len(), 317, "every key parted on run419");
+    }
+
+    /// **The second pair's East Indies word, 6609, widened whole** (item
+    /// 1143): run420 is run346's game at run419's detail over blocks
+    /// 6604..6860, walked from run346's own start. The word's frame writes
+    /// block 6610.
+    #[test]
+    fn run420_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run420",
+            "gamelog-run420-islands-toughest-6609.txt",
+            WIDENING_SECOND_EAST_INDIES_6609,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        pin_eq!(w.blocks, 257, "run420 whole: blocks 6604..6860");
+        pin!(
+            w.missing.is_empty(),
+            "run420 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The first block stands on 263 keys**: 31 frames past run419's
+        // last block, the gap 6573..6603 no dump covers. Among them the AI
+        // unit `1/28`, whose `pos` agrees through run419's 6572 and here
+        // walks apart: (29017,24361) against (28893,24233).
+        pin_eq!(
+            row(1, 28, "pos").as_deref(),
+            Some("6604: ours (29017,24361) theirs (28893,24233)"),
+            "`1/28` walks apart in the gap"
+        );
+        // **The word 6609** (item 1143; no mechanism is named): ours 9
+        // draws against 7, at index 2, ours `Animal::do_idle+0x83`, the
+        // original `Guy::set_anim+0x97a < Unit::move_step+0x823`. On the
+        // word's block 6610 the original stands `1/28` against the animal
+        // `8/3` (`collide_o` 3, `collide_who` 8, `order:coll` (28743,
+        // 24227), seven waypoints), and ours walks on with one; on 6611 the
+        // animal stands at (28661,24120) here and (28680,24120) there.
+        pin_eq!(
+            row(1, 28, "collide_o").as_deref(),
+            Some("6610: ours -1 theirs 3"),
+            "the original stands it against an animal"
+        );
+        pin_eq!(
+            row(8, 3, "gaia:pos").as_deref(),
+            Some("6611: ours (28661,24120) theirs (28680,24120)"),
+            "which stands apart a block later"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(6316, 169), (6321, 9), (6322, 15)],
+            [(6604, 263), (6610, 13)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 992, "every key parted on run419");
+        pin_eq!(w.firsts.len(), 1444, "every key parted on run420");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item
