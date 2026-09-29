@@ -2375,9 +2375,16 @@ impl Sim {
         }
     }
 
-    /// A dead object is dropped from ammo in flight and from a building's
-    /// target slot — what `close` does through `hold_frames` and
-    /// `valid_target`.
+    /// A dead object is dropped from ammo in flight — what `close` does
+    /// through `hold_frames` and `valid_target`.
+    ///
+    /// **Nor is a building's target** (item 1131): `Build::process`
+    /// runs `do_attack` every frame `attack_ox`/`attack_whom` are set,
+    /// and `do_attack`'s own `find_target` or `valid_target` replaces a
+    /// dead one. run404's Radar `1/2007` still prints `attack_ox 6` on
+    /// block 1007, after `0/6` was shot down on 1006, and fires at `0/7`
+    /// on tick 1007; clearing it here left `do_attack` waiting for its
+    /// 32-frame phase.
     ///
     /// **A unit's attack target is not dropped here, and that is the
     /// original's own behaviour** (item 502, `docs/COMBAT.md` §43.3).
@@ -2400,12 +2407,6 @@ impl Sim {
     /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
     /// so the order it should have dropped stood for ever.
     pub(crate) fn forget(&mut self, dead: Obj) {
-        for b in &mut self.buildings {
-            if b.target == Some(dead) {
-                b.target = None;
-                b.ordered = false;
-            }
-        }
         for p in &mut self.projectiles {
             if p.target == Some(dead) {
                 p.target = None;
