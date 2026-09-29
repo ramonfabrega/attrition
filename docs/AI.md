@@ -11768,3 +11768,119 @@ so does the long trace's floor. §94.6 is `run418_s_…`. **Read only**:
 bit and offset are also read only, and one purchase on one map is the
 value that proves them. **Pinned capture-free**:
 `wine_takes_a_fifth_off_a_research_and_nothing_off_a_train`.
+
+## 95. A passenger comes ashore at the speed it boarded with, and the second pair's East Indies word moves to 7382 (2026-09-29, item 1164)
+
+Item 1164 was booked on East Indies' frame 6743 at Toughest: ours 4 draws
+against the original's 8, parting at index 2, ours `Guy::set_anim+0x104b`,
+the original `Guy::set_anim+0x97a < Guy::inc_time+0x271`. §93.3 had the
+merchant `1/33` put ashore from the barge that is `1/36` here and `1/38`
+there, its `orders_x/y` apart on 6735 and its `pos` on 6743. **No mechanism
+was named.**
+
+### 95.1 The frame, both sides
+
+- **The draw delta** (`report.py rontrace-run420.log draws 6743`; ours
+  `RON_DEBUG_SITES`): the original draws four `+0x97a < Guy::inc_time+0x271
+  < Unit::inc_time+0x6e`, three `+0x104b < Unit::inc_time+0x3e` and
+  `Farms::inc_time+0x1ae` (seeds `f534a7e2` … `258f6a57`). Ours draws two
+  `+0x97a` for `1/15`, one `+0x104b` for the bird `9/7`, and the farm's.
+  On 6739 and 6741 ours' `1/33` spends two `+0x97a` for its crew, as the
+  original does.
+- **Both sides' event** (`RON_DEBUG_UNIT=1/33@6725-6745` against run420's
+  blocks): the barge lands `1/33` on 6734 on both sides, at (38952,24840),
+  with the same eleven-step path and the same move to (38328,23352). Its
+  guy 0 then turns in place, anim 7, from 165478400 to the path's
+  -1925840896.
+  - The original's steps are -71582784, -95443712, -143165568,
+    -143165568, then -286331136 a frame. It faces the path on 6745 and
+    steps to (38944,24864).
+  - Ours stepped -286331136 from the first frame. It faced the path on
+    6743 and walked on, so on 6743 its crew took no idle roll.
+- **The first parted field**, walked back: 6735's `g.avg_speed[0..2]`,
+  ours 0 against the original's 12. The original's decays 9, 6, 4, 3, 2,
+  1, 0 over the turn, and `docs/MOVEMENT.md`'s `turn_speed` divides by
+  `avg_speed / 4 + 1`: 4, 3, 2, 2, 1. That is the ramp, step for step. On
+  the same block `orders_x/y` parts, (37439,33407) against the landing
+  point.
+
+### 95.2 The rule
+
+- **The speeds**: `GuyData +0x80`/`+0x84` (`last_speed`, `avg_speed`) have
+  three writers by offset: `Guy::move`, `Guy::clear` and `Guy::init_real`.
+  `Guy::process` and `Guy::set_anim` read `+0x84`.
+  - Neither `Unit::set_new_location@005f8d20` nor
+    `Guy::set_new_location@005d86f0` writes either field.
+  - So a passenger lands at the average the ride froze.
+  - Ours' `disembark` built the passenger's movement from `Movement::at`,
+    and `seat_guys` built each crew body from `Body::at`. Both zeroed it.
+- **The landing point**: `come_out`'s tail at `6187c8`..`618836`, read in
+  the listing. It skips a human's unit (`leaders.list[who] & 4`), a plane
+  and the `0x32..0x35` citizen types. It gives every other unit step 1's
+  `update_action` again, from the spot.
+- Both are in `docs/TRANSPORT.md` §6.4, amended in place.
+
+### 95.3 What moved
+
+- **The value diff, run420** (`run420_s_word_frame_is_widened_whole`):
+  - 6735: `1/33`'s `g.avg_speed[0..2]` 0 against 12 → agreeing, and its
+    `orders_x/y` (37439,33407) against (38952,24840) → agreeing.
+  - 6736: its guys' `angle` -120852736 against 93895616 → agreeing.
+  - 6743: its `pos` (38944,24864) against (38952,24840) → agreeing.
+  - 6791: the animal `8/3`'s `pos` → agreeing.
+  - The window went 963 → 303 keys.
+- **Earlier landings agree too**:
+  - run414's passengers `1/23` and `1/22`, their figure `avg_speed`
+    (6026, 6069): 176 → 174 keys.
+  - run419's `1/32`, 0 against 11 on 6322: 317 → 304 keys.
+  - run420's `1/0` on 6658: its figure `avg_speed` and `orders_x/y`.
+- **East Indies 6743 → 7382.** Frame 6743's draws, 4 against 8 → agreeing.
+- **The new word, 7382** (no mechanism is named): ours 15 draws, the
+  original 9, at index 0. Ours spends `Leader::use_market+0x1ed`, the
+  original `Leader::make_stuff+0x221`.
+  - It is past run420's last block (6860), so it is widened on **run425**
+    (§95.5).
+  - From 6781 run420 already has player 1's make list apart (`MAKE[].city`
+    on 6781, 6782 and 6784), then `gather_stamp` on 6792. That is where it
+    stands, not a mechanism.
+
+### 95.4 What this has *not* established
+
+- `come_out`'s **building** arm (`Sim::come_out`, `garrison.rs`) still
+  builds the unit's movement from `Movement::at`, which zeroes the body's
+  speeds except for a plane's. It reads through the same
+  `set_new_location`, so the original keeps them there too. Not built: no
+  row on the word's frames names it.
+- The plane clause of the tail (`6187e4`..`6187f7`) is not built. A barge
+  carries no plane.
+
+### 95.5 The new word, 7382, widened
+
+**run425** (`docs/RUNS.md`) is run346's game at run420's detail over
+blocks 7377..7633; `run425_s_word_frame_is_widened_whole` walks it.
+
+- Block 7377 stands on 238 keys, from the gap 6861..7376.
+- Player 1's make list parts first:
+  - `MAKE[].val` on 7379 (slot 0: ours 1800000 against 4194000, about
+    three sevenths in every slot);
+  - `MAKE[7].val` on 7380;
+  - `MAKE[].city` on 7381.
+- On the word's block 7383: its `bucket`s, `num_queued`, and the citizen
+  `1/12`'s order.
+- On the word's frame ours draws two `Leader::use_market+0x1ed` and three
+  `Leader::produce_building+0x1805` that the original does not, and then
+  the same `make_stuff` draws.
+- run420 had the make list's `city` apart from 6781. That is the block's
+  reading, not a mechanism.
+
+### 95.6 Coverage
+
+- **Diff-backed**:
+  - `1/33`'s rows, run420;
+  - the earlier passengers' figure speeds, run414 and run419;
+  - the word 7382's window, run425.
+- **Listing-backed**: the tail's branch (`6187c8`..`618836`).
+- **Export-backed, by offset**: the speed fields' writers.
+- **Pinned capture-free**:
+  - `a_passenger_comes_ashore_at_the_average_it_boarded_with`;
+  - `a_computer_player_s_passenger_is_ordered_where_it_lands_and_a_human_s_where_it_boarded`.

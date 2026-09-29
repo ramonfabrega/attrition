@@ -14348,18 +14348,14 @@ pub(crate) mod tests {
              0x19` — and runs a 30-frame clock from the frame it enters"
         );
         // The whole residue, pinned by value: `1/0`'s walk slot on seven
-        // frames, and nothing else in 84,888 fields.
+        // frames, and nothing else in 84,888 fields — until item 1164.
         assert_eq!(
             wrong,
-            vec![
-                "frame 8242: 1/0 guy 1 cur_anim ours 7 theirs 8",
-                "frame 8243: 1/0 guy 0 cur_anim ours 7 theirs 8",
-                "frame 8243: 1/0 guy 1 cur_anim ours 7 theirs 8",
-                "frame 8244: 1/0 guy 0 cur_anim ours 7 theirs 8",
-                "frame 8244: 1/0 guy 1 cur_anim ours 7 theirs 8",
-                "frame 8245: 1/0 guy 0 cur_anim ours 7 theirs 8",
-                "frame 8248: 1/0 guy 0 cur_anim ours 7 theirs 8",
-            ],
+            // Item 1164 took the whole of it: `1/0`'s walk slot on seven
+            // frames, 8242..8248, ours 7 against 8, was the scout ashore
+            // turning at a zeroed average; it lands at the one it boarded
+            // with (`docs/TRANSPORT.md` §6.4).
+            Vec::<String>::new(),
             "run98's clock residue below the word, whole"
         );
     }
@@ -14863,7 +14859,11 @@ pub(crate) mod tests {
         // `order:move.facing` on 8481, 0 here against 1 there, agrees now —
         // the slot keeps its record's `facing` and the record's history is
         // the original's (`Group::kill`'s clear, `docs/GROUPS.md` §30).
-        pin_eq!(under, 169, "the floor under the word");
+        // **Item 1164 took twenty-four (169 → 145)**: the scout `1/0`'s
+        // disembark on 8242 and what followed it, its figures ashore at the
+        // average they boarded with and its order point the landing
+        // (`docs/TRANSPORT.md` §6.4).
+        pin_eq!(under, 145, "the floor under the word");
         // **The birth under the old word, 10187..10188** (item 579): the
         // first block any of `1/32`'s inputs parts on is its own birth.
         // Trireme `1/32` (type 340) is trained at Dock `1/2010`, (44160,
@@ -15737,9 +15737,9 @@ pub(crate) mod tests {
                 // Item 803: its `dest_angle` (ours −1740439552 against
                 // −1743650816) is gone, the disembark's `update_action`
                 // being step 1's (`docs/TRANSPORT.md` §15); its order
-                // point moved from (7320, 21912) and still parts.
-                "15800 1/0 orders_x: ours 8364 theirs 8088",
-                "15800 1/0 orders_y: ours 14588 theirs 17976",
+                // point moved from (7320, 21912) and parted, (8364, 14588)
+                // against (8088, 17976), until item 1164: an AI's
+                // passenger is ordered where it lands (§6.4), and agrees.
                 "15783 1/60 form: ours -1 theirs 0",
                 // Item 829: the pool id reads 71 here where it read 69 —
                 // a closed army's group now holds its slot (`docs/ARMY.md`
@@ -15779,7 +15779,9 @@ pub(crate) mod tests {
         // Item 919: 210/213, the 208 gaia clock rows named unprinted (the
         // short `GUY` record prints none), not a parting closed.
         // Item 1115 took the caravan's four rows here ((210, 213) → (206, 209); `docs/CARAVAN.md` §11.3).
-        pin_eq!((first, firsts.len()), (106, 109), "the floor");
+        // Item 1164 took two (106/109 → 106/107): `1/0`'s `orders_x/y` on
+        // 15800, above.
+        pin_eq!((first, firsts.len()), (106, 107), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
@@ -16142,14 +16144,12 @@ pub(crate) mod tests {
                 // `update_action` being step 1's (`docs/TRANSPORT.md` §15);
                 // its `orders_y` moved from 38040 and still parts.
                 // Item 850: the scout's `g.avg_speed`, agreeing from its
-                // boarding now (`docs/ANIM.md` §15), first parts on its
-                // disembark, where ours seats the figures at 0.
-                "16782 1/0 g.avg_speed[0]: ours 0 theirs 17",
-                "16782 1/0 g.avg_speed[1]: ours 0 theirs 17",
-                "16784 1/0 g.cur_anim[0]: ours 7 theirs 8",
-                "16784 1/0 g.cur_anim[1]: ours 7 theirs 8",
+                // boarding now (`docs/ANIM.md` §15), first parted on its
+                // disembark, where ours seated the figures at 0. Item 1164:
+                // it lands at the average it boarded with, and an AI's is
+                // ordered where it lands — `avg_speed`, `cur_anim` and
+                // `orders_y` agree (`docs/TRANSPORT.md` §6.4).
                 "16782 1/0 mirror: ours 0 theirs 1",
-                "16782 1/0 orders_y: ours 26090 theirs 29304",
             ],
             "every key first parting past the word"
         );
@@ -16173,7 +16173,9 @@ pub(crate) mod tests {
         // (`docs/GROUPS.md` §29).
         // Item 1106: → 267/282/288, who=1's `territory` on 16528 and who=0's `gather_stamp` on 16529, the border pass (`docs/AI.md` §84).
         // Item 1115 took the caravan's four rows here ((267, 282, 288) → (263, 278, 284); `docs/CARAVAN.md` §11.3).
-        pin_eq!((first, under_n, firsts.len()), (159, 166, 172), "the floor");
+        // Item 1164 took five past the word (172 → 167): the scout's
+        // landing, above.
+        pin_eq!((first, under_n, firsts.len()), (159, 166, 167), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -17244,7 +17246,9 @@ pub(crate) mod tests {
             // and `1/66`'s `off`, `x/y`, paths and `1/65`'s position) and
             // 580 keys past it; none opened (`docs/GROUPS.md` §30).
             // Item 1106: → 285/0/285/297, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 5574 against 5566 on 20002 and `bucket[2:wealth]` 95 against 94 on 20130.
-            (165, 0, 165, 177),
+            // Item 1164: → 165/0/165/171, six past the first block, the
+            // landings' figure speeds and orders (`docs/TRANSPORT.md` §6.4).
+            (165, 0, 165, 171),
             "the floor"
         );
     }
@@ -18217,7 +18221,9 @@ pub(crate) mod tests {
         // **Item 870 took seven (218/229/231 → 211/222/224)**: the first
         // block's `group` rows (`1/0` 70 here against 69, `1/11` 64
         // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-        pin_eq!((first, under, firsts.len()), (148, 154, 156), "the floor");
+        // Item 1164 took three (148/154/156 → 148/151/153): `1/31`'s
+        // disembark on 10875, as run149's (`docs/TRANSPORT.md` §6.4).
+        pin_eq!((first, under, firsts.len()), (148, 151, 153), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -18363,7 +18369,11 @@ pub(crate) mod tests {
         // block's `group` rows (`1/0` 70 here against 69, `1/11` 64
         // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1106 took one (212/212/220 → 211/211/219): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 10336 against 10344 on 10730.
-        pin_eq!((first, under, firsts.len()), (148, 148, 155), "the floor");
+        // Item 1164 took three (148/148/155 → 148/148/152): `1/31`'s figure
+        // `avg_speed` ashore, 0 against 11 on 10875, and what it turned
+        // with, agree — a passenger lands at the average it boarded with
+        // (`docs/TRANSPORT.md` §6.4).
+        pin_eq!((first, under, firsts.len()), (148, 148, 152), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -19062,7 +19072,11 @@ pub(crate) mod tests {
         // against 65, `1/11` 64 against −1, `1/35`, `1/38` 68 against 66)
         // and the scout's `mirror` and `order:move.facing`: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1106 took one (207/232/240 → 205/231/239): both leaders' `gather_stamp` on the first block, 10380, close, and who=1's parts first on 10384 instead, 10383 against 10343: a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84).
-        pin_eq!((first, under, firsts.len()), (141, 167, 175), "the floor");
+        // Item 1164 took twenty (141/167/175 → 127/147/155), fourteen of
+        // them from the first block: the landings walked from run54's
+        // start, each passenger ashore at the average it boarded with and
+        // an AI's ordered where it lands (`docs/TRANSPORT.md` §6.4).
+        pin_eq!((first, under, firsts.len()), (127, 147, 155), "the floor");
     }
 
     #[test]
