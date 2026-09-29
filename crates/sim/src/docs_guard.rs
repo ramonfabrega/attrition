@@ -1492,6 +1492,8 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// COSTS, ORDERS and PRODUCTION 1 each — none a mechanism carried. 135 →
 /// 152; the arrivals are listed in `docs/audit/2026-09-28-fable-pass-18.md`
 /// and parked with 802's and 820's.
+/// **Item 1115 banked one**: PATHFINDER 1 → 0, `0x8c`, `avoid_sea`, which
+/// `crate::roads`' shore surcharge now cites; the row is gone.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 35),
     ("ANIM.md", 4),
@@ -1507,7 +1509,6 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GROUPS.md", 5),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 12),
-    ("PATHFINDER.md", 1),
     ("PRODUCTION.md", 10),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
