@@ -1594,6 +1594,24 @@ impl World {
         self.index(c).map_or(Owner::None, |i| self.who[i])
     }
 
+    /// Every cell's `(who, who2)`, row-major — what a border fix's pass
+    /// copies onto the map ([`crate::border_pass`]).
+    pub fn owners(&self) -> Vec<(Owner, Owner)> {
+        self.who
+            .iter()
+            .copied()
+            .zip(self.who2.iter().copied())
+            .collect()
+    }
+
+    /// Writes every cell's `(who, who2)` from [`World::owners`]' shape.
+    pub fn set_owners(&mut self, all: &[(Owner, Owner)]) {
+        for (i, &(a, b)) in all.iter().enumerate().take(self.who.len()) {
+            self.who[i] = a;
+            self.who2[i] = b;
+        }
+    }
+
     /// The runner-up claimant of a cell.
     pub fn second(&self, c: Cell) -> Owner {
         self.index(c).map_or(Owner::None, |i| self.who2[i])

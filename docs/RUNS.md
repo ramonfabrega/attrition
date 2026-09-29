@@ -10525,5 +10525,62 @@ Free disk was 63 GB before and after.
 (`docs/COMBAT.md` §80.6). It parts on 112 keys, every one standing on its
 first block and every family among them standing on run396's first block
 too; nothing parts on 5926..5930, and no position. The compared pin's walk
-(`second::great_lakes_word_window`) reads its last four blocks from item
-1099 on.
+(`second::great_lakes_word_window`) read its last four blocks from item
+1099 until item 1106 moved it to East Indies' word
+(`second::east_indies_word_window`, run357).
+
+## run407 — East Indies at Toughest, a packet at logger frame 5518: `1/14`'s colonist gate and the border pass (2026-09-28, item 1106)
+
+**What it is.** A `RON_STATE_FRAME=5518` packet on the click-free lane over
+run346's game (East Indies, `DIFFICULTY 5`), with blocks 5514..5521 dumped
+at run400's detail and `!quit` at 5527. It uses item 597's plan, as run400
+did.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run407 \
+    --map 18 --end-frame 5527 --timeout 2400 --log-window 5514 5522 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=5518 \
+    --tracer-def 'RON_STATE_PLAN="<plan>/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 18:38, one take. `success: true`, exit 0, 59 s from launch to exit
+and 69 s in all. The packet is 827,988,952 bytes. Free disk was 62 GB
+before. The lane lock was stale: att-1102's `longtrace.sh` pids had exited,
+and no game or driver was running.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 5,528 identical |
+| `GAME INFO` | `MAP_STYLE 18`, seed 12345 read back; lobby `DIFFICULTY=5` |
+| settings | five files restored |
+
+**Why 5518.** Ours seats the citizen `1/14` in pool group 67 on tick 5518,
+the first frame it is idle after it finishes the city `1/2017` (tick 5517).
+The original's group is stamped 5521. A packet at logger frame 5518 is the
+state before ours' deciding tick.
+
+**The booking cites what the disk could not answer.** No dump prints
+`1/14` between run352's window (to 1827) and run357's (from 5601), and no
+dump prints the world's per-cell owner byte or a region's border resume
+index. Those are the colonist gate's input (`think_civilian_transport`'s
+`world +0x134`, `+0xf`) and the pass that writes it.
+
+**What it settled** (`docs/AI.md` §84):
+- The dump window: `1/2017` finishes on block 5518 on both sides
+  (`job_counter` 59900 → 0, flags 35 → 39). `1/14` has no order from 5518
+  and goes idle on 5519 (`idle` 1, 2, 2 on 5519..5521), still in group 66.
+  who=1's `city_num` 3 and `xport_peasants` 0 hold. `reg_cities[5]` is
+  already 1 on 5518. `reg_terr` empties on 5519 and region 5's reads 34 on
+  5521.
+- The packet (`borders_probe.py`): `1/14`'s cell (48, 29) is **unowned**
+  (−1, −1). Every land region's resume index is **0**: regions 1..12 of 260,
+  153, 139, 182, 151, 96, 100, 12, 125, 151, 269 and 31 cells. The cell is
+  region 5's list position 112. At 256 cells a frame the pass reaches it
+  on tick 5521, and after tick 5520 region 5's index is 34, which is the
+  dump's `reg_terr[5]`.
+
+The packet stays outside git under `~/ron-data/lab-captures/`. The probe
+and its output are at `~/ron-data/lab-experiments/2026-09-28-item-1106/`.
+

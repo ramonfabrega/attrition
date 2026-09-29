@@ -483,11 +483,17 @@ does the work for one map region, and is driven two ways:
   captured, a cell can carry **stale ownership for up to `land cells / 256`
   frames**, and `process_attrition` reads whatever is there.
 
-`crates/sim` recomputes wholesale, every region, whenever territory changes.
+~~`crates/sim` recomputes wholesale, every region, whenever territory changes.
 That is a deliberate simplification: steady-state ownership is identical, and
 the transient — a few frames of stale borders on a large map — is not worth
-reproducing until a recorded-game diff says it matters. (An earlier draft said
-the original recomputed wholesale too. It does not.)
+reproducing until a recorded-game diff says it matters.~~ **A diff said so on
+2026-09-28** (item 1106, `docs/AI.md` §84): East Indies' AI citizen reads its
+new city's cell in the colonist gate, and the pass reaches it four ticks after
+the fix. `crates/sim::border_pass` now copies the fix's owners onto the map at
+256 cells a frame, land regions in order; a fix before the first frame is
+setup's and lands whole. `reg_terr` is still read off the visible owners
+rather than zeroed and recounted (§84.7). (An earlier draft said the original
+recomputed wholesale too. It does not.)
 
 ### The shape of it
 

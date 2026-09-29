@@ -7,7 +7,7 @@
 
 use super::*;
 
-use crate::diff::harness::{attributed_sites, debug_leader, site_window};
+use crate::diff::harness::{attributed_sites, debug_leader, debug_watch, site_window};
 use crate::diff::testkit::*;
 use crate::testenv::{dump, install};
 
@@ -64,6 +64,9 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
     for f in 0..last {
         built.tick();
         debug_leader(&built, f);
+        // `RON_DEBUG_UNIT`, on every frame of the long walk: a unit's
+        // history before a widening's first block (item 1106's `1/14`).
+        debug_watch(&built, f + 1);
         if window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
             for (label, who) in attributed_sites(&built) {
                 eprintln!("  f{f} {who}: {label}");
@@ -136,33 +139,29 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
     })
 }
 
-/// **The compared pin's window** (item 1061, DECISIONS 54 §2): the newest
-/// pair's lower map's word — Great Lakes at Toughest, [`SECOND_WORD_GREAT_LAKES`]
-/// — its block and two on either side, on run373 walked from run347's
-/// start, with the group record and the attack order's row
-/// ([`widen_records`]). `coverage`'s compared pin walks these blocks with
-/// the recorder on. Until item 1061 it walked the first pair's Great Lakes
-/// window, closed since item 899, where no army marched. `None` when the
-/// captures are not on this machine.
-///
-/// **Since item 1099 the word is the game's end**, 5930, and its own block
-/// 5931 is the closing whole-map state no detail capture prints: the walk
-/// reads run403's last four blocks, 5927..5930.
-pub(crate) fn great_lakes_word_window() -> Option<crate::diff::harness::tests::Widened> {
-    let last = SECOND_WORD_GREAT_LAKES;
-    crate::diff::harness::tests::widen_great_lakes_on(
+/// **The compared pin's window** (items 1061 and 1106, DECISIONS 54 §2):
+/// the newest pair's lower map's word — East Indies at Toughest,
+/// [`SECOND_WORD_EAST_INDIES`] — its block and two on either side, on the
+/// word's own widening walked from run346's start with the group record
+/// and the attack order's row ([`widen_records`]). `coverage`'s compared
+/// pin walks these blocks with the recorder on. Item 1061 moved it to
+/// Great Lakes' word on run373, and it followed that word to run403's last
+/// blocks; item 1099 closed Great Lakes at its end, 5930, and item 1106
+/// moved the walk here (`docs/GROUPS.md` §33.3). `None` when the captures
+/// are not on this machine.
+pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
+    let word = SECOND_WORD_EAST_INDIES;
+    // Frame `f` writes block `f + 1`, and the walk reads `first..=tail + 1`.
+    crate::diff::harness::tests::widen_east_indies_on(
         (
-            "gamelog-run347-greatlakes-toughest-24k-trace.txt",
-            "rontrace-run347.log",
+            "gamelog-run346-islands-toughest-24k-trace.txt",
+            "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        &[(
-            "gamelog-run403-greatlakes-toughest-5930.txt",
-            WIDENING_SECOND_GREAT_LAKES_5930.0,
-        )],
-        (last - 3, last + 1),
-        1,
-        &[last],
+        "gamelog-run357-islands-toughest-5606.txt",
+        (word - 1, word + 2),
+        &[word + 1],
+        true,
         true,
     )
 }
@@ -266,6 +265,11 @@ pub(crate) fn widen_records(
                     "priority",
                 ],
             );
+            // The slot's identity and its list, member for member: what
+            // the second pair's Great Lakes walk registered through its
+            // pool-list pass, which East Indies' walk does not run.
+            compared::note("GroupDump", &["id", "who", "members"]);
+            compared::note("GroupMemberDump", &["o"]);
             row("list", format!("{ol:?}"), format!("{tl:?}"));
             for (k, ov, tv) in [
                 ("num", ol.len() as i64, t.num),
@@ -483,6 +487,7 @@ mod tests {
             WIDENING_SECOND_EAST_INDIES,
             &[2],
             true,
+            false,
         ) else {
             return;
         };
@@ -649,6 +654,7 @@ mod tests {
             WIDENING_SECOND_EAST_INDIES_1576,
             &[1_577],
             true,
+            false,
         ) else {
             return;
         };
@@ -706,9 +712,19 @@ mod tests {
             Some("1576: ours 64 theirs 65"),
             "the city's site picture"
         );
+        // Item 1106 closed two on 1571 (82 → 80): who=1's
+        // `reg_cities[11]`, 1 against 2 — `City::init` counts a city on the
+        // frame it is made, which the note above had read as a site the
+        // original counted — and who=0's `gather_stamp`, 1424 against 1432
+        // (`docs/AI.md` §84).
+        assert_eq!(
+            row(1, -1, "leader:reg_cities[11]"),
+            None,
+            "the new city counts at once"
+        );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1571, 82), (1576, 5), (1601, 1)],
+            [(1571, 80), (1576, 5), (1601, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -781,14 +797,16 @@ mod tests {
             Some("3805: ours 0 theirs 9"),
             "the city site's sweep"
         );
+        // **Closed by item 1106**: who=1's `territory` is summed when the
+        // border pass ends (`docs/AI.md` §84), and agrees on 3805.
         assert_eq!(
-            row(1, -1, "leader:territory").as_deref(),
-            Some("3805: ours 488 theirs 290"),
+            row(1, -1, "leader:territory"),
+            None,
             "and who=1's territory"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(3771, 78), (3801, 1), (3805, 4)],
+            [(3771, 78), (3801, 1), (3805, 3)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -810,6 +828,7 @@ mod tests {
             WIDENING_SECOND_EAST_INDIES_5606,
             &[SECOND_WORD_EAST_INDIES + 1],
             true,
+            true,
         ) else {
             return;
         };
@@ -828,21 +847,51 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The block before the word, 5605, parts on one key**
-        // (`docs/AI.md` §82.4): who=1's unit `1/14` has a move order whose
-        // `dest` reads 0 here against 1 there, and its path's third slot
-        // parts on the word's block. The original's extra draw on 5606 is
-        // `Unit::do_move+0xe84`. Block 5601 stands on 159 keys, the
-        // families the window opened on. No mechanism is named (DECISIONS
-        // 42).
+        // **Item 989's word, 5606: its block before, 5605, parted on one
+        // key** (`docs/AI.md` §82.4, §84): `1/14`'s move `dest` 0 here
+        // against 1, its path's third slot on 5607, and on 5601 its
+        // position and route. **Since item 1106 none parts**: the citizen
+        // that finished the city `1/2017` on tick 5517 takes its colonist
+        // move on 5521, when the border pass reaches its cell, and not on
+        // 5518 (run407's packet).
+        for what in ["order:move.dest", "path[2].to", "pos", "order:move.y"] {
+            assert_eq!(row(1, 14, what), None, "`1/14`'s {what}");
+        }
+        // **Since item 1106 the walk compares the group record and the
+        // attack order's row** (`widen_records`). Every pool slot reads
+        // `form` 0 here against 9, the family the units' `form` rows are,
+        // and slots 69 and 71's point −1 against 0, a building group's
+        // (`docs/GROUPS.md` §33.2). **Slot 67 is `1/14`'s alone**: before
+        // the border pass it stood on 5601 with `ox` 29568 against 30336
+        // and `stamp` 5518 against 5521, and now agrees but for `form`.
+        assert_eq!(row(1, -3, "group:67.ox"), None, "`1/14`'s group's point");
+        assert_eq!(row(1, -3, "group:67.stamp"), None, "and its frame");
         assert_eq!(
-            row(1, 14, "order:move.dest").as_deref(),
-            Some(r#"5605: Move { field: "dest", ours: 0, theirs: 1 }"#),
-            "the unit's move, the block before the word"
+            row(1, -3, "group:67.form").as_deref(),
+            Some("5601: ours 0 theirs 9"),
+            "the family's row stands"
+        );
+        // **The word 5773's block, 5774** (item 1106; no mechanism is
+        // named): the Caravan `1/33`, trained on 5772 (who=1's `caras` 1
+        // here against 2), has its `action` flag on 5773 here and not
+        // there, and on 5774 idles here (`idle` 99, no order) where the
+        // original holds a route of two orders to (39288, 40056); the
+        // cities `1/2000` and `1/2017` each list one caravan fewer here.
+        // The original's frame 5773 spends 3,209 draws, the first
+        // `PathFinder::calc_road_cost+0x46`.
+        assert_eq!(
+            row(1, 33, "orders.len").as_deref(),
+            Some("5774: ours 0 theirs 2"),
+            "the Caravan's route, the word's block"
+        );
+        assert_eq!(
+            row(1, 2017, "city:vans.length").as_deref(),
+            Some("5774: ours 0 theirs 1"),
+            "and the new city's caravan list"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5601, 159), (5605, 1), (5607, 1)],
+            [(5601, 139), (5682, 5), (5704, 2)],
             "the blocks keys first part on, the first three"
         );
     }

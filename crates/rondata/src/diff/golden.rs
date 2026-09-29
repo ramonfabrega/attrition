@@ -5500,9 +5500,32 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         .filter(|c| c.3 == 0)
         .map(|c| (c.0, c.2[0]))
         .collect();
+    // **Since item 1106 the sweep's own blocks settle too** (`docs/AI.md`
+    // §84): the border pass writes the fix's owners at 256 cells a frame,
+    // as the original's does, so the blocks where the original's count is
+    // mid-sweep (276, 282, 285 after the Temple; 308 … 319 after Religion;
+    // 346 … 406 after Civic 3) agree cell for cell as well.
     assert_eq!(
         settled,
-        vec![(295, 266), (310, 296), (411, 327), (511, 445)],
+        vec![
+            (295, 266),
+            (306, 276),
+            (307, 282),
+            (308, 285),
+            (310, 296),
+            (406, 308),
+            (407, 314),
+            (408, 316),
+            (410, 319),
+            (411, 327),
+            (505, 346),
+            (506, 366),
+            (507, 384),
+            (508, 397),
+            (509, 403),
+            (510, 406),
+            (511, 445)
+        ],
         "the blocks on which every owner agrees, with the original's count"
     );
     assert!(
@@ -5539,15 +5562,18 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
     assert_eq!(other, Vec::<String>::new(), "a building or city row parts");
-    // **run132's first parting is 301**, the Temple's frame, and it is the
-    // sweep's: 30 cells this crate owns a sweep early. The chapter's word,
-    // 1277, is in run133's window; this is the border window's own.
+    // ~~**run132's first parting is 301**, the Temple's frame, and it is the
+    // sweep's: 30 cells this crate owns a sweep early.~~ **Since item 1106
+    // nothing parts past the first block**: the border pass writes the
+    // sweep at the original's 256 cells a frame (`docs/AI.md` §84). The
+    // chapter's word, 1277, is in run133's window; this is the border
+    // window's own.
     let first_parting = firsts
         .iter()
         .filter(|(_, (f, _))| *f != FIRST)
         .map(|(_, (f, _))| *f)
         .min();
-    assert_eq!(first_parting, Some(301), "run132's first parting moved");
+    assert_eq!(first_parting, None, "run132's first parting moved");
     assert_eq!(
         firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
         14,

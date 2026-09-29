@@ -55,6 +55,7 @@ pub mod attack_pos;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
+pub mod border_pass;
 pub mod build;
 pub mod calc_gather;
 pub mod caravan;
@@ -1139,6 +1140,15 @@ pub struct Sim {
     /// `GameDaemon::check_borders` (`Region::fix_borders@00680f60`): the
     /// next one zeroes `reg_known_rares` ([`Sim::fix_borders`]).
     pub borders_fixed: bool,
+    /// **The fixed pass still reaching the map** (item 1106,
+    /// [`border_pass`]): the owners a fix computed and every region's resume
+    /// index. `None` once every land region is done.
+    pub border_pass: Option<border_pass::BorderPass>,
+    /// Whether a frame has run. A border fix before the first is setup's —
+    /// `World::compute_all_territory` with the budget unlimited, on the
+    /// map at once — and one after it takes the daemon's pass
+    /// ([`border_pass`], item 1106).
+    pub in_play: bool,
     /// One per player: the object-number marks [`Sim::find_free`] allocates
     /// against.
     pub marks: Vec<Marks>,
@@ -1545,6 +1555,8 @@ impl Sim {
             removed: Vec::new(),
             wall_stats_dirty: vec![false; players],
             borders_fixed: false,
+            border_pass: None,
+            in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
             // of owners 8 and 9 and take numbers from their own bands.
             marks: vec![Marks::default(); players.max(10)],
@@ -3963,9 +3975,9 @@ impl Sim {
     /// what it does in play: there, `GameDaemon::check_borders` recomputes
     /// invalidated regions on a shared budget of 256 cells a frame, so a cell
     /// can carry stale ownership for up to `land cells / 256` frames after a
-    /// city changes hands. Steady-state ownership is identical; the transient
-    /// is a deliberate simplification until a recorded-game diff says it
-    /// matters. See `docs/ATTRITION.md`, "Territory".
+    /// city changes hands. In play this is the *target* a fix computes, and
+    /// [`crate::border_pass`] copies it onto the map at that pace (item 1106,
+    /// `docs/ATTRITION.md`, "Territory").
     pub fn recompute_territory(&mut self) {
         let players = u8::try_from(self.players.len()).expect("too many players");
         territory::compute_all_territory(&mut self.world, &self.tuning, &self.sources, players);
@@ -4041,6 +4053,7 @@ impl Sim {
     ///   more tick up to 32 frames after walking out — and, symmetrically,
     ///   takes nothing for up to 32 frames after walking in.
     pub fn tick(&mut self) -> Vec<Tick> {
+        self.in_play = true;
         let frame = self.frame;
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
@@ -4194,8 +4207,8 @@ impl Sim {
 
         // `GameDaemon::process_all` → `check_borders`, after the market and
         // before the pool: a border fix since the last one zeroes every
-        // leader's `reg_known_rares` (`docs/AI.md` §76). The cells
-        // themselves were recomputed wholesale at the fix (parked 568).
+        // leader's `reg_known_rares` (`docs/AI.md` §76), and the fixed
+        // pass writes its 256 cells (`border_pass`, item 1106).
         self.check_borders();
 
         // `GameDaemon::process_all` → `Groups::process`, its last act: one

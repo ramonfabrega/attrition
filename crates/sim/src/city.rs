@@ -437,8 +437,28 @@ impl Sim {
         if capital && let Some(r) = reg {
             self.ai[who as usize].census.home_reg = i32::from(r);
         }
+        // **`reg_cities[reg]` + 1** (`City::init@00737050`, beside `reg_pop`'s
+        // add, on the city building's cell region below `0x40`): the count is
+        // the city lifecycle's as well as the census sweep's recount, so a
+        // city stands in its region's count on the frame it is made (item
+        // 1106: East Indies' `1/2017` on tick 5517, and the AI citizen that
+        // built it does not take the region for an empty one on 5518).
+        self.bump_reg_cities(who, reg, 1);
         self.fix_world_vals(c);
         c
+    }
+
+    /// `LeaderData::reg_cities` (`+0x125e`) by one city: `City::init`'s
+    /// `+1`, `City::close`'s `−1`. A census not yet sized by its first
+    /// sweep takes nothing; the sweep's recount stands it up.
+    fn bump_reg_cities(&mut self, who: Player, reg: Option<u16>, by: i32) {
+        if let Some(r) = reg
+            && r < 0x40
+            && let Some(a) = self.ai.get_mut(who as usize)
+            && let Some(n) = a.census.reg_cities.get_mut(r as usize)
+        {
+            *n += by;
+        }
     }
 
     /// `City::fix_world_vals@00735aa0`, the last thing `City::init` does,
@@ -473,6 +493,10 @@ impl Sim {
         let building = self.cities[c].building;
         self.armies_city_closed(c, building);
         let was_capital = self.cities[c].capital;
+        // `City::close@00737550`'s `reg_cities[reg] − 1`, the region of the
+        // city building's cell as `City::init` counted it.
+        let reg = self.world.region_of(self.buildings[building].pos.cell());
+        self.bump_reg_cities(owner, reg, -1);
         self.cities[c].alive = false;
         self.lost_city_stamp[owner as usize] = Some(self.frame);
         self.remove_source_of_city(c);
@@ -781,10 +805,13 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// The territory sources the cities and forts project, rebuilt from the
-    /// records — and the borders recomputed wholesale (`docs/ATTRITION.md`'s
-    /// stated simplification).
+    /// records — a border fix (`Regions::fix_all_borders@0067f7d0`). The
+    /// owners the new sources claim are computed here and reach the map at
+    /// the daemon's pace, 256 cells a frame ([`crate::border_pass`], item
+    /// 1106); [`Sim::settle_borders`] is setup's wholesale pass.
     pub fn sync_territory(&mut self) {
         self.fix_borders();
+        let before = self.world.owners();
         // `World::compute_reg_territory` rebuilds its whole per-player table
         // at the top of every region pass (`006b0bb0` lines 125–260) rather
         // than caching it, so the Civic level a leader holds *now* is what
@@ -856,7 +883,7 @@ impl Sim {
             self.buildings[b].fort_source = Some(self.sources.len() - 1);
         }
         self.recompute_territory();
-        self.update_territory_holdings();
+        self.start_border_pass(before);
     }
 
     /// `Region::fix_borders@00680f60` (and `Regions::fix_all_borders`,
@@ -871,8 +898,10 @@ impl Sim {
     /// after a fix zeroes the whole array, and only the census's step 9
     /// counts it again. A `calc_gather` recompute in between sums 0 into
     /// `known_rares`, and `create_units`' Merchant arm reads that sum
-    /// (`docs/AI.md` §76). `reg_terr`'s zero is the transient this crate's
-    /// wholesale recompute does not model (parked 568).
+    /// (`docs/AI.md` §76). `reg_terr`'s zero is the transient this crate
+    /// does not model (parked 568): the cells themselves reach the map at the
+    /// pass's pace since item 1106 ([`crate::border_pass`]), and `reg_terr`
+    /// is read off them.
     ///
     /// Every [`Sim::sync_territory`] is a fix: its call sites are the
     /// original's (`Build::activate`, `Build::finished`, `Build::close`,
@@ -893,13 +922,13 @@ impl Sim {
     /// zeroes a region again on every frame its pass has not yet reached
     /// under the 256-cell budget; this crate zeroes once (§76.5).
     pub(crate) fn check_borders(&mut self) {
-        if !self.borders_fixed {
-            return;
+        if self.borders_fixed {
+            self.borders_fixed = false;
+            for a in &mut self.ai {
+                a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
+            }
         }
-        self.borders_fixed = false;
-        for a in &mut self.ai {
-            a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
-        }
+        self.advance_border_pass();
     }
 
     fn remove_source_of_city(&mut self, c: usize) {

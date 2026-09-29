@@ -285,6 +285,55 @@ fn a_finished_city_projects_territory_and_the_radius_mask() {
     );
 }
 
+/// **A city finished in play counts in its region at once and reaches its
+/// ground at the border pass's pace** (item 1106, `docs/AI.md` §84): its
+/// `City::init` raises `reg_cities` on the frame it is made, and the fix it
+/// raises writes 256 cells a frame, row-major, so its own cell — the region
+/// list's 1,221st — is its owner's on the fifth pass, and `territory` is
+/// summed again only when the region is done. Before the first frame a fix
+/// is setup's and lands whole
+/// (`a_finished_city_projects_territory_and_the_radius_mask`). East Indies'
+/// `1/14` finished `1/2017` on tick 5517, and the original's colonist gate,
+/// which reads that cell, passed on 5521 (run407's packet).
+#[test]
+fn a_city_finished_in_play_counts_at_once_and_takes_its_ground_at_the_pass_s_pace() {
+    let mut w = World::new(40, 40);
+    let r = w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(39, 39));
+    let mut sim = Sim::new(Tuning::RON, w, 2);
+    for l in &mut sim.ledgers {
+        l.bucket = [10_000; economy::RESOURCES];
+    }
+    let t = install_types(&mut sim);
+    sim.ai[0].census.reg_cities = vec![0; sim.world.region_count()];
+    sim.in_play = true;
+    let here = tile_pos(80, 120);
+    assert_eq!(here.cell(), Cell::new(20, 30), "row-major index 1,220");
+    let (_, c) = city_at(&mut sim, &t, 0, 80, 120);
+    assert!(sim.cities[c].alive);
+    assert_eq!(
+        sim.ai[0].census.reg_cities[r as usize], 1,
+        "City::init counts it"
+    );
+    assert_eq!(
+        sim.world.owner_at(here),
+        Owner::None,
+        "the fix writes no cell"
+    );
+    assert_eq!(sim.holdings[0].territory, 0);
+    let mut frames = 0;
+    while sim.world.owner_at(here) != Owner::Player(0) {
+        sim.check_borders();
+        frames += 1;
+        assert!(frames < 10, "the pass ends");
+    }
+    assert_eq!(frames, 5, "1,221 cells at 256 a frame");
+    assert_eq!(sim.holdings[0].territory, 0, "the region is not done yet");
+    while sim.border_pass.is_some() {
+        sim.check_borders();
+    }
+    assert!(sim.holdings[0].territory > 0, "summed when the pass ends");
+}
+
 /// **`City::fix_world_vals`: a city wears the map's site values down
 /// round it** (`docs/AI.md` §67). The last thing `City::init` does is
 /// quarter `WData.val` on every cell of the circle round the centre out to

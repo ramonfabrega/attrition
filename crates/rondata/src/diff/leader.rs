@@ -2408,7 +2408,8 @@ mod tests {
         (0, "ally_mask"),
         (0, "filled_gather_slots[0:food]"),
         (0, "filled_gather_slots[1:timber]"),
-        (0, "gather_stamp"),
+        // `(0, "gather_stamp")` closed by item 1106: the border pass's
+        // economy flag (`docs/AI.md` §84).
         (0, "gatherers"),
         (0, "min_other_team_terr"),
         (0, "my_team_terr"),
@@ -2616,7 +2617,8 @@ mod tests {
         (0, "ally_mask"),
         (0, "filled_gather_slots[0:food]"),
         (0, "filled_gather_slots[1:timber]"),
-        (0, "gather_stamp"),
+        // `(0, "gather_stamp")` closed by item 1106: the border pass's
+        // economy flag (`docs/AI.md` §84).
         (0, "gatherers"),
         (0, "min_other_team_terr"),
         (0, "my_team_terr"),
