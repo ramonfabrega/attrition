@@ -927,7 +927,7 @@ two world cells it returns with the stack still `[goal]`.
 top = path[length−1]
 dest = 1; unit_masks &= ~8; dest_x/y = top; UnitData::tolerance = top.tolerance
 if (top.flags & 1 or the action is TRADE_ROUTE) and get_tregion(top tile) != get_tregion(unit tile):
-        pop; push top with flags |= 4, tolerance = 0                  // turn in place first
+        pop; push top with flags |= 4, tolerance = 0                  // turn; shore (AI §90)
 c = detect_unit_collision(top, …)
 if c: if (top.flags & 1) and the action is TRADE_ROUTE/GATHER/ATTACK/BUILD_AT → kill the order
       else if the collider's order is not a move: t = collider.type.big_radius * 3;
@@ -3892,10 +3892,11 @@ what is listed as an input is stated as such in the code):
   drops its loose near waypoints and plans on the tile grid, one that has
   keeps them and plans on the 48 grid, and the length a positive return is
   compared against is read *after* the pops, per arm.
-  What is not modelled: the waypoint take's
+  ~~What is not modelled: the waypoint take's
   region check (the turn-in-place before a leg ending in another terrain
-  region) and its `TRADE_ROUTE` arms, suspended searches, `resolve_block`,
-  the entrench wait.
+  region) and its `TRADE_ROUTE` arms,~~ The waypoint take's region check
+  and its `TRADE_ROUTE` arm are built (item 1143, §4.4). What is not
+  modelled: suspended searches, `resolve_block`, the entrench wait.
 - **`do_build`/`do_repair`/`do_garrison`** — §5.2, §5.6, §5.7 on the existing
   `do_construct`/`repair_*`/`garrison` seams, with adjacency = `attack_dist <
   96` (replacing the tile-based stand-in), the swarm ring (`ExploreTo` to the
@@ -7086,8 +7087,11 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
   seventeen's word, 821.~~ Released, and diff-backed on run235, by
   item 770: §35.
 - **Reading only**: the leash (run223's target is its patrol's point),
-  §34.4's re-target (it runs on 784 and 816 and re-points the strike at
-  the Barracks it holds), the look (never reached before the strike),
+  ~~§34.4's re-target (it runs on 784 and 816 and re-points the strike at
+  the Barracks it holds)~~ (diff-backed on run404 by item 1131: `0/7`'s and
+  `0/6`'s strikes stay on the Barracks through every re-target to their
+  deaths, once `compare_target` gives an armed building's ×5 to a computer
+  alone, `docs/COMBAT.md` §12.3), the look (never reached before the strike),
   the arrival, the refused strike with an order behind it, ~~the escort's
   ally arm~~ (built, item 976: `docs/GOLDEN.md` §42, run358's four planes
   on `0/1` from 2307, their positions diff-backed to 2336; the escort's

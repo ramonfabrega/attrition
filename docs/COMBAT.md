@@ -1038,12 +1038,30 @@ whenever the object adjacent to it (`near_o`) is in range. `do_attack`:
 - Every 32 frames the seen-by mask is cleared; `hits_left() == 0` returns;
   `is_jammed` (a radar-jammed building) sets the misfire flag and returns;
   `get_garrison_arrows() == 0` returns.
-- Without an explicit attack order (`build_masks & 4`), `find_target` —
+- ~~Without an explicit attack order (`build_masks & 4`), `find_target` —
   `Object::find_nearby_target(max(x_size, y_size) + 2 × max_range) × 0x60`
   (§12) — whenever it has no target, and every 32 frames (`(frame + o + 14)
   & 0x1f == 0`) when its current target is a unit that is **not moving** and
   is not a `role & 0x10000` spellcaster: the tower prefers a moving target
-  and re-looks for one every two seconds. An invalid target → `find_target`.
+  and re-looks for one every two seconds. An invalid target → `find_target`.~~
+  **The listing, `622a37`–`622c1c` (item 1131)**: without an explicit attack
+  order (`build_masks & 4`, which `Group::action_attack` sets at `712654`),
+  `Build::find_target@00622c80` — `find_nearby_target((max(x_size, y_size) +
+  2 × max_range) × 0x60)` (§12), clearing the order bit — runs on **every**
+  call (`622a3f`). `compare_target`'s current-target ×2 (or /2 with two
+  arrows) is what holds a target (§12.3). Then: no target → cleared, return
+  (`622c1c`); `valid_target` refuses → `find_target`, return without a shot
+  (`622b25`); unordered, on `(frame + o + 14) & 0x1f == 0` → `find_target`
+  and return, **unless** the target is a unit that is not moving
+  (`UnitData::is_moving`, the front order's vslot `0x14`: 0 for a
+  `StrafeOrder`, read off the PE) and is combat-role (`type +0x2c8 &
+  0x10000`) or casting (`action_type == CAST_SPELL`); out of range
+  (`is_in_range@00648d70`, `622b45`) → the target is cleared (`622c1c`).
+  `Build::process@61ee64` runs `do_attack` every frame a target is held,
+  else on `(frame + o) & 0x1f == 0`, else when `near_o` is in range (a SEAM
+  here, parked 1118). A dead target is **not** cleared by anything: run404's
+  Radar prints `attack_ox 6` on block 1007, after `0/6` was shot down on
+  1006, and turns to `0/7` on tick 1007.
 - In range → `fire_ammo(target)` (§9; `ammo_per_att` ammo at random points
   in the footprint), the seen-by update, and **`recharging = type.recharge /
   arrows`**, `arrows = get_garrison_arrows()`.
@@ -1509,7 +1527,16 @@ target `×3/2`; a moving one `/4`; a supply wagon `×5000`. Then `dmg =
 get_damage(o, who, ~~angle 0~~ the bearing (§46.5), splash 0,
 check_overkill 0 (§53.2))`: `v ×= dmg` (AI: `v /= dmg`, or 0). Building
 targets (not raiding): armed and not human → `+1,000,000` with the SIEGE mask
-else `×5`; siege vs armed `+100,000`. Unit targets: combat-role `×20`;
+else `×5`; siege vs armed `+100,000`. *(Item 1131, the listing
+`64f124`–`64f1ed`: "human" is the **attacker's** `leader_flags & 4`
+(`testb $0x4, 0xe3a390(who · 0x6eec)`, `jne` past the weight); "armed" is the
+target type's `attack`, zeroed for an ANTI_AIR target of an attacker not of
+the air domain. The arm between (`64f171`: a target whose object flags carry
+`0x20` takes the weight only with `num_inside` non-zero) is a SEAM: read as
+"a city", it moved Great Lakes' second game from its close at 5930 to 5158,
+and what the bit is was not read. This crate gave the ×5 to every attacker
+until then, and run404's human `0/7` re-pointed its strafe at the
+Radar on tick 818 for it.)* Unit targets: combat-role `×20`;
 spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
 hidden unit `/4`; raid weights (citizens and caravans `+9,000,000`, else
 `/10`; the stealth-ship weights); not raiding: combat-role `+1,000,000`, a
@@ -8016,6 +8043,18 @@ buildings. Every one agrees. Ten of the figure reads touched an
 ambiguous corner: `1/0` walking the shore at z 8–15 over 713–726. All
 ten still agree, and the ten are pinned.
 
+**An object's own `z` is clamped at zero** (item 1131). `find_tcoord_z
+@008544a0` takes a fourth argument: 1 returns a negative height as 0, and a
+tile on the map whose surface is ocean (`& 0x30 == 0x20`) is 0 either way.
+Every writer of `ObjectData +0xc` passes 1 — `Unit::update_z` (`pushl $0x1`
+at `00606598`), `Unit::set_new_location`, `Unit::come_out`, `SubObject::init`
+and `SubObject::set_new_location` — and only the air physics' ground probes
+pass 0. No dump on disk prints a negative `z_internal`. This crate handed
+`get_damage` the raw [`sim::World::tile_z`], so a plane over run404's river
+east of the Barracks, at −4 to −6, took the river step's ×2 (§6 step 16):
+64 from the Radar where the original dealt 32. It is
+[`sim::World::object_z`] now, for both sides of the damage and the ranking.
+
 ### 46.3 The guard
 
 [`sim::Sim::ground_z`] counts a read that touched an ambiguous corner, or
@@ -13190,7 +13229,8 @@ record on the next block with `cur_time 1`. The three that do not (817,
   `TypeData::is`, the type vtable's slot `0x60`, is identity.
 - **In range** (`622b52`..`622ba3`): the same test returns at `622c2e`,
   before `Object::fire_ammo` at `622bb8`. Out of range (`622b4c`), the
-  target is cleared at `622c1c`; this crate keeps it (§84.7).
+  target is cleared at `622c1c`; ~~this crate keeps it (§84.7)~~ and so
+  does this crate's since item 1131 (§8.6).
 
 `Wall::inc_time@0063fb60`'s anti-air arm, on `BuildData::recharging`
 (`+0x7a`), past `is_active` (an unfinished building returns above it),
@@ -13324,8 +13364,9 @@ and `cargo test --release -p rondata chapter_thirty_eight`:
   `-DEFAULT-AGE0`, and only the three numbers above back it.
 - The Air Defense Gun's and the SAM's launch vectors; a jammed building;
   a piece outside the first `0x81` (not reachable with the shipped art).
-- `do_attack`'s out-of-range arm clears the target (`622c1c`), which
-  `process_building_combat` does not; nothing on disk parts on it yet.
+- ~~`do_attack`'s out-of-range arm clears the target (`622c1c`), which
+  `process_building_combat` does not; nothing on disk parts on it yet.~~
+  Built by item 1131 with the rest of `do_attack`'s target flow (§8.6).
 - The rounds of 817, 857 and 867 that print no `AMMO` record.
 - A round's `accuracy` is compared by no widening (the golden one matches
   a round by `(who, o, slot)` only), so the sign rests on one printed

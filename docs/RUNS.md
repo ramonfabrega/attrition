@@ -10805,3 +10805,42 @@ walked from run383's start with run381's head. Block 13177 stands on 238
 keys, the make list parts on 13181, and the word's block 13183 parts on 18
 keys (`docs/AI.md` §91.5). The compared pin and the coverage driver walk
 13181..13185.
+
+## run420 — run346's game at run419's detail over blocks 6604..6860: the second pair's East Indies word 6609 widened (2026-09-29, item 1143)
+
+**What it is.** run419's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 6604..6860, `!quit` at 6874. The word's frame 6609 writes block
+6610: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run420-take2 \
+    --map 18 --end-frame 6874 --timeout 4000 --log-window 6604 6861 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run419 ends at block
+6572. No dump prints the word's blocks.
+
+**Taken** in two takes. The first (06:49, `2026-09-29-run420`) exited 9
+2.4 s after launch, before the menu — the pre-menu failure
+`docs/lab/2026-09-09-autostart.md` records — and its receipt says `success:
+false`; it is kept. The second (06:50–07:12, `2026-09-29-run420-take2`)
+was waited on with `waitrun.sh`: `success: true`, exit 0, 1,301 s from
+launch to exit. The dump (580.6 MB) and the trace (52.4 MB) were moved into
+`Logs` as `gamelog-run420-islands-toughest-6609.txt` and
+`rontrace-run420.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 6,875 identical |
+| window blocks | 257, 6604..6860 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run420_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 6604 stands on 263 keys, from the gap
+6573..6603. Among them `1/28` walks apart. The word's block 6610 parts on
+13 keys: the original stands `1/28` against the animal `8/3`, and ours
+walks on (`docs/AI.md` §90.3). The compared pin walks its 6608..6612, and
+the coverage driver drives 6609..6612.

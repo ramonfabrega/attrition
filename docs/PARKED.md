@@ -116,6 +116,29 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1143, 2026-09-29 — the barge's other edges
+
+(1157) **The barge's residue after 1143** (AI §90): `1/32`'s figure
+`avg_speed` on run419's 6322, ours 0 against 11, after the landing; and
+the later barge identities `1/36` against `1/38`, apart on 6393 (6402 on
+the old tree). No draw reads either while 6609 stands.
+
+(1158) **The waypoint take's `TRADE_ROUTE` arm on a non-final leg**
+(ORDERS §4.4, AI §90.2): built from the listing, never read on a
+capture.
+
+## Parked by item 1131, 2026-09-29 — the flak's quiet fields
+
+(1152) **`widen_block` compares no unit `z`, and no widening compares
+the strafe's `ox`** (GOLDEN §47): chapter three's widening alone has the
+`z` row. Two quiet fields on the path 1131 walked.
+
+(1153) **The armed ×5's city arm at `64f171`** (COMBAT §12.3): a target
+whose object flags carry `0x20` takes the ×5 only with somebody inside.
+A `SEAM`; reading it as "an empty city" moved Great Lakes' second game
+5930 → 5158, so the bit is unread. `Build::process`'s `near_o` arm stays
+1118's first edge.
+
 ## Parked by item 1133, 2026-09-29 — the camp's other edges
 
 (1148) **`1/0`'s `mylos` parts on run382's block 202, 6 against 4**
@@ -220,11 +243,6 @@ crash's round (its landing, a float fall time); `is_flying_high` in
 `valid_target`'s ladder; five flak draws with no printed round; and
 `get_speed`'s sortie arm (`Object::do_launch`), which wants a reading
 before a chapter.
-
-(1111) **A spell-issuer chapter**: the Spy's three other spells (CENSUS
-row 7) want a City and a General staged under the issuer, which
-chapter thirty-eight's cast does not carry. A candidate for a later
-chapter.
 
 ## Parked by item 1099, 2026-09-28 — beneath Great Lakes' closed word
 
@@ -2029,6 +2047,21 @@ lane measures it only on the merged tree** (1133's Loop line):
 map's window shrank to five blocks, and came off at the merge because
 1127's East Indies window compares them. One lane's gate went red on a
 pin another lane's window decides. One reach.
+
+(1155) **A first-row framing is killed by a second unit's rows on the
+same key** (1131's Loop line): 1113 named `0/7`'s hit on 784 as chapter
+thirty-eight's first parting; it was the first row and not the cause,
+since `0/6` parted the same way on 854 with no hit behind it. One grep
+across units would have killed the framing — rule 711's killer applied
+across units rather than across rows. A clause or a brief row. One reach.
+
+(1159) **A document's "not modelled" row was a word's whole mechanism**
+(1143's Loop line): ORDERS §4.4 had read and listed the waypoint take's
+region check as not modelled, under a name ("turn in place") that hid
+the bit's second reader, and it held East Indies at 6321. A guard that
+lists a document's "not modelled" rows beside the functions the word's
+draw chain and parted fields touch would have put it in front of the
+item on its first read. Kin of 1146. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

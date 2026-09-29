@@ -912,6 +912,22 @@ impl World {
             .unwrap_or(0)
     }
 
+    /// **An object's own `z`** (`ObjectData +0xc`, printed `z_internal`):
+    /// `TerrainOut::find_tcoord_z@008544a0` with its fourth argument **1**,
+    /// which every writer of the field passes (`Unit::update_z`'s `pushl
+    /// $0x1` at `00606598`, `Unit::set_new_location`, `Unit::come_out`,
+    /// `SubObject::init` and `SubObject::set_new_location`; item 1131,
+    /// `docs/COMBAT.md` §46.2). A tile on the map whose surface is ocean
+    /// answers 0, and a negative height answers 0: no object stands below
+    /// zero. The air physics' ground probes pass 0 and read
+    /// [`World::tile_z`].
+    pub fn object_z(&self, t: Pos) -> i32 {
+        if self.tile_in_bounds(t) && self.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN {
+            return 0;
+        }
+        self.tile_z(t).max(0)
+    }
+
     /// The corner grid's stride, `4·xs + 1`.
     pub const fn corner_stride(&self) -> i32 {
         self.width * TILES_PER_CELL + 1

@@ -322,8 +322,9 @@ impl Sim {
                     facing: u.movement.facing,
                     trench_facing: u.movement.facing,
                     // The object's own `z` (`+0xc`), which `Unit::update_z`
-                    // writes as `find_tcoord_z` at its tile (§46.2).
-                    z: self.world.tile_z(u.pos.tile()),
+                    // writes as `find_tcoord_z` at its tile, clamped at zero
+                    // (§46.2, item 1131).
+                    z: self.world.object_z(u.pos.tile()),
                     damage_frame: u.combat.damage_frame,
                     damage_o: u.combat.damage_o,
                     captain: u.combat.captain,
@@ -345,7 +346,7 @@ impl Sim {
                     build_proper: true,
                     under_construction: !bd.active,
                     attacks: self.attack_of(o) != 0,
-                    z: self.world.tile_z(bd.pos.tile()),
+                    z: self.world.object_z(bd.pos.tile()),
                     tile_owned_by_attacker: self
                         .world
                         .owner_at(bd.pos)
@@ -363,13 +364,18 @@ impl Sim {
             Obj::Unit(i) => Side {
                 unit: true,
                 captain: self.units[i].combat.captain,
-                z: self.world.tile_z(self.units[i].pos.tile()),
+                z: self.world.object_z(self.units[i].pos.tile()),
                 ..Side::default()
             },
+            // `ObjectData::get_captain@00472400` is the object's own `o`,
+            // which `do_damage` step 2 writes as the target's `damage_o`
+            // (item 1131: run404's `0/7` reads 2007 from the Radar's hit
+            // on 828).
             Obj::Building(b) => Side {
                 building: true,
                 build_proper: true,
-                z: self.world.tile_z(self.buildings[b].pos.tile()),
+                captain: i32::from(self.buildings[b].index),
+                z: self.world.object_z(self.buildings[b].pos.tile()),
                 ..Side::default()
             },
         }
@@ -2369,9 +2375,16 @@ impl Sim {
         }
     }
 
-    /// A dead object is dropped from ammo in flight and from a building's
-    /// target slot — what `close` does through `hold_frames` and
-    /// `valid_target`.
+    /// A dead object is dropped from ammo in flight — what `close` does
+    /// through `hold_frames` and `valid_target`.
+    ///
+    /// **Nor is a building's target** (item 1131): `Build::process`
+    /// runs `do_attack` every frame `attack_ox`/`attack_whom` are set,
+    /// and `do_attack`'s own `find_target` or `valid_target` replaces a
+    /// dead one. run404's Radar `1/2007` still prints `attack_ox 6` on
+    /// block 1007, after `0/6` was shot down on 1006, and fires at `0/7`
+    /// on tick 1007; clearing it here left `do_attack` waiting for its
+    /// 32-frame phase.
     ///
     /// **A unit's attack target is not dropped here, and that is the
     /// original's own behaviour** (item 502, `docs/COMBAT.md` §43.3).
@@ -2394,12 +2407,6 @@ impl Sim {
     /// raider into [`crate::Sim::do_attack`]'s stance arm, which returns,
     /// so the order it should have dropped stood for ever.
     pub(crate) fn forget(&mut self, dead: Obj) {
-        for b in &mut self.buildings {
-            if b.target == Some(dead) {
-                b.target = None;
-                b.ordered = false;
-            }
-        }
         for p in &mut self.projectiles {
             if p.target == Some(dead) {
                 p.target = None;
@@ -3183,12 +3190,32 @@ impl Sim {
             v *= i64::from(dmg);
         }
         if is_build {
-            // Armed buildings: a human owner gets ×5; siege adds 100,000.
-            // A raider jumps past all of it to the tail (`0064f124`,
-            // `if (bVar17) goto LAB_0064f1ed`).
+            // **Armed buildings, a computer's weight** (`0064f124`–`0064f1ed`,
+            // item 1131, `docs/COMBAT.md` §12.3): `param_4` is the target
+            // type's `attack`, zeroed for an ANTI_AIR target of an attacker
+            // not of the air domain. Then `testb $0x4,
+            // leader_flags` on the **attacker's** leader: a human (`jne`)
+            // skips it, and a computer takes `+1,000,000` with the SIEGE
+            // mask, else `×5`. Siege against armed adds `+100,000` for any
+            // owner. A raider jumps past all of it (`if (bVar17) goto
+            // LAB_0064f1ed`).
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
+            // SEAM: the arm at `64f171` — a target whose object flags
+            // carry `0x20` takes the weight only with `num_inside` non-zero
+            // — is not carried: read as "a city" it moves Great Lakes'
+            // second game off its close (5930 → 5158, `1/9`'s strike).
             if armed && !raiding {
-                v *= 5;
+                let human = self
+                    .nation
+                    .get(self.owner_of(attacker) as usize)
+                    .is_some_and(|n| n.human);
+                if !human {
+                    if ap.has(mask::SIEGE) {
+                        v += 1_000_000;
+                    } else {
+                        v *= 5;
+                    }
+                }
                 if ap.has(mask::SIEGE) {
                     v += 100_000;
                 }
@@ -3309,28 +3336,53 @@ impl Sim {
         if arrows == 0 {
             return;
         }
-        // Find or re-find a target.
-        let needs = match bd.target {
-            None => true,
-            Some(t) => {
-                !self.valid_target(me, t)
-                    || (!bd.ordered
-                        && ((bd.phase(frame) + 14) & 0x1f) == 0
-                        && matches!(t, Obj::Unit(u) if self.units[u].movement.dest.is_none()
-                            && !self.profile(t).combat_role))
-            }
-        };
-        if needs && !bd.ordered {
-            let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
+        // **The target, as `Build::do_attack@006228f0`'s listing takes it**
+        // (`622a37`..`622b4c`, item 1131, `docs/COMBAT.md` §8.6):
+        // - a building without an explicit order (`build_masks & 4`) calls
+        //   `Build::find_target@00622c80` on **every** call (`622a3f`), and
+        //   `compare_target`'s current-target ×2 (or /2) is what holds it;
+        // - no target: cleared, and return (`622a5a` → `622c1c`);
+        // - one `valid_target` refuses: `find_target`, and return without
+        //   a shot (`622a75` → `622b25`);
+        // - unordered, on `(o + frame + 14) & 0x1f == 0`: `find_target` and
+        //   return, unless the target is a unit that is not moving and is
+        //   combat-role (`type +0x2c8 & 0x10000`) or casting
+        //   (`action_type == CAST_SPELL`, `622b20`);
+        // - out of range (`622b45`): the target is cleared (`622c1c`).
+        // `find_target` itself clears the order bit (`& 0xfffb`).
+        let radius = (p.x_size.max(p.y_size) + 2 * self.max_range_of(me)) * 0x60;
+        if !bd.ordered {
             self.buildings[b].target = self.find_nearby_target(me, radius);
-        } else if needs {
-            self.buildings[b].target = None;
-            self.buildings[b].ordered = false;
         }
         let Some(target) = self.buildings[b].target else {
+            self.buildings[b].ordered = false;
             return;
         };
+        if !self.valid_target(me, target) {
+            self.buildings[b].target = self.find_nearby_target(me, radius);
+            self.buildings[b].ordered = false;
+            return;
+        }
+        if !self.buildings[b].ordered && ((self.buildings[b].phase(frame) + 14) & 0x1f) == 0 {
+            let keep = match target {
+                Obj::Unit(u) => {
+                    self.units[u].movement.dest.is_none()
+                        && (self.profile(target).combat_role
+                            || matches!(
+                                self.current_order(u).map(|o| o.body),
+                                Some(crate::orders::Body::Cast(_))
+                            ))
+                }
+                Obj::Building(_) => false,
+            };
+            if !keep {
+                self.buildings[b].target = self.find_nearby_target(me, radius);
+                return;
+            }
+        }
         if !self.is_in_range(me, target) {
+            self.buildings[b].target = None;
+            self.buildings[b].ordered = false;
             return;
         }
         // `do_attack`'s in-range arm returns before `fire_ammo` for the

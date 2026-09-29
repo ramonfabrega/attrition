@@ -3798,6 +3798,149 @@ mod flak_tests {
             );
         }
     }
+
+    /// A Bomber that strikes: run404's `0/7`, with an attack so
+    /// `get_damage` weighs something.
+    fn striking_bomber() -> combat::Profile {
+        combat::Profile {
+            attack: 100,
+            max_range: 3,
+            min_range: 1,
+            cost: 300,
+            ..bomber()
+        }
+    }
+
+    /// **An armed building's ×5 is a computer attacker's** (item 1131,
+    /// `compare_target`'s `64f1a2`: `testb $0x4, leader_flags` of the
+    /// attacker, `jne` past the weight). run404's human `0/7` weighs the
+    /// Radar Air Defense at a fifth of what a computer's Bomber does, and
+    /// that is what keeps its strafe on the Barracks on trace tick 818.
+    #[test]
+    fn a_human_s_bomber_weighs_an_armed_building_without_the_computer_s_five() {
+        let weigh = |human: bool| {
+            let mut s = sim();
+            s.nation[0].human = human;
+            let r = radar(&mut s, true);
+            if let Some(p) = s.buildings[r].combat.as_mut() {
+                p.cost = 250;
+            }
+            let plane = unit(&mut s, 0, Pos::new(22456, 16287), striking_bomber());
+            s.compare_target(Obj::Unit(plane), Obj::Building(r), true, false)
+        };
+        let (human, computer) = (weigh(true), weigh(false));
+        assert!(human > 15, "a weight above the floor: {human}");
+        assert!(
+            computer >= 4 * human,
+            "the computer's ×5: {computer} against {human}"
+        );
+    }
+
+    /// **No object stands below zero** (item 1131, `Unit::update_z`'s
+    /// `pushl $0x1` at `00606598`): a plane over a tile whose height is
+    /// negative presents `z` 0 to `get_damage`, so the river step (`T.z <
+    /// 0`, ×2) never doubles a hit on it. run404's `0/7` over the river
+    /// east of the Barracks took 32 from the Radar where ours dealt 64.
+    #[test]
+    fn a_plane_over_a_tile_below_zero_takes_no_river_doubling() {
+        let hit = |z: i32| {
+            let mut s = sim();
+            let r = radar(&mut s, true);
+            let at = Pos::new(22512, 16266);
+            s.world.set_tile_z(at.tile(), z);
+            let plane = unit(&mut s, 0, at, striking_bomber());
+            s.do_damage(
+                Obj::Building(r),
+                Obj::Unit(plane),
+                crate::movement::Angle(0),
+                true,
+                0x100,
+                false,
+                true,
+                800,
+            );
+            300 - s.units[plane].health
+        };
+        assert!(hit(0) > 0, "the Radar hurts it");
+        assert_eq!(hit(-6), hit(0), "z below zero is z 0");
+        let mut w = crate::world::World::new(8, 8);
+        let t = Pos::new(3, 3);
+        w.set_tile_z(t, -6);
+        assert_eq!(w.object_z(t), 0);
+        w.set_tile_z(t, 17);
+        assert_eq!(w.object_z(t), 17);
+        w.set_tile_field(
+            t,
+            crate::world::tile::SURFACE,
+            crate::world::tile::SURFACE_OCEAN,
+        );
+        assert_eq!(w.object_z(t), 0, "an ocean tile is 0");
+    }
+
+    /// **A building's hit records its own `o`** (item 1131,
+    /// `ObjectData::get_captain@00472400`): run404's `0/7` reads `damage_o
+    /// 2007` from the Radar's round landing on 828.
+    #[test]
+    fn a_building_s_hit_records_its_own_object_number() {
+        let mut s = sim();
+        let r = radar(&mut s, true);
+        let plane = unit(&mut s, 0, Pos::new(22512, 16266), striking_bomber());
+        s.do_damage(
+            Obj::Building(r),
+            Obj::Unit(plane),
+            crate::movement::Angle(0),
+            true,
+            0x100,
+            false,
+            false,
+            828,
+        );
+        assert_eq!(
+            s.units[plane].combat.damage_o,
+            i32::from(s.buildings[r].index)
+        );
+    }
+
+    /// **An unordered building re-finds its target on every `do_attack`**
+    /// (item 1131, `622a3f`): a moving target weighs a quarter, so the
+    /// Radar leaves it for a still plane beside it on a frame that is not
+    /// its phase. run404's `1/2007` turns from `0/7` to `0/6` on trace
+    /// tick 836.
+    #[test]
+    fn an_unordered_building_re_finds_its_target_on_every_call() {
+        let mut s = sim();
+        let r = radar(&mut s, true);
+        let a = unit(&mut s, 0, Pos::new(22900, 16000), striking_bomber());
+        let b = unit(&mut s, 0, Pos::new(22900, 17000), striking_bomber());
+        s.units[a].movement.dest = Some(Pos::new(30000, 16000));
+        s.buildings[r].target = Some(Obj::Unit(a));
+        let frame = 16;
+        assert_ne!(
+            (s.buildings[r].phase(frame) + 14) & 0x1f,
+            0,
+            "not the phase's frame"
+        );
+        s.process_building_combat(r, frame);
+        assert_eq!(s.buildings[r].target, Some(Obj::Unit(b)));
+    }
+
+    /// **A building's target outlives its death** (item 1131): run404's
+    /// Radar still holds `attack_ox 6` on block 1007, after `0/6` was shot
+    /// down on 1006, so `Build::process` runs `do_attack` on tick 1007 and
+    /// its `find_target` turns it to `0/7`.
+    #[test]
+    fn a_building_keeps_a_dead_target_until_do_attack_replaces_it() {
+        let mut s = sim();
+        let r = radar(&mut s, true);
+        let a = unit(&mut s, 0, Pos::new(22900, 16000), striking_bomber());
+        let b = unit(&mut s, 0, Pos::new(22900, 17000), striking_bomber());
+        s.buildings[r].target = Some(Obj::Unit(a));
+        s.units[a].health = 0;
+        s.forget(Obj::Unit(a));
+        assert_eq!(s.buildings[r].target, Some(Obj::Unit(a)), "kept");
+        s.process_building_combat(r, 16);
+        assert_eq!(s.buildings[r].target, Some(Obj::Unit(b)), "replaced");
+    }
 }
 
 /// **The Modern Infantry's step** (item 1109): `Unit::do_move`'s
