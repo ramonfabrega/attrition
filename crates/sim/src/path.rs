@@ -410,11 +410,31 @@ impl Sim {
             && !(surface == tile::SURFACE_FOREST && forest_walker)
             && self.world.tile_mask(self.units[u].pos.tile()) & tile::BLOCKED == 0
         {
-            // With `enemy_builds_only`, an armed unit passes its own side's
-            // buildings. SEAM: building ownership at a tile is not indexed;
-            // every blocked tile refuses. The original returns 0 here for
-            // an armed unit over its own building.
-            let _ = enemy_builds_only;
+            // **`enemy_builds_only`: an armed unit passes a building that
+            // is not its owner's** (`00607fb6`..`0060800a`, item 1209). With
+            // the caller's `param_5`, a type whose base attack (`+0x1e8`)
+            // is non-zero, over a tile `is_built_at`, asks
+            // `find_any_building_at(t, who)` and refuses (4) only when the
+            // building found is its own: another player's, and a tile
+            // where nothing is found (`find_who` −1), are valid. The tile
+            // grid passes it (`valid_tcoord`), so an armed walker's near
+            // plan may cross another player's footprint at `calc_cost`'s
+            // 4000 a tile, and those nodes carry `astar_path`'s building
+            // flag into `resolve_block` ([`Sim::resolve_block`]). A
+            // Citizen is armed here: its `attack` is 40.
+            if enemy_builds_only
+                && self.profile(crate::combat::Obj::Unit(u)).attack != 0
+                && crate::world::is_built_at(mask)
+            {
+                let found = self
+                    .find_any_building_at(t, owner)
+                    .map(|b| self.buildings[b].owner);
+                return if found == Some(owner) {
+                    loc::BUILDING
+                } else {
+                    loc::VALID
+                };
+            }
             return loc::BUILDING;
         }
         loc::VALID
@@ -1320,7 +1340,7 @@ impl Sim {
                 0
             };
             if n.building {
-                flags |= 0x10;
+                flags |= path_flag::BLOCK;
             }
             if n.transport {
                 flags |= path_flag::TRANSPORT;

@@ -1124,6 +1124,12 @@ pub struct Sim {
     /// [`Sim::treaty_on`] is its only writer and [`Sim::has_met`] its only
     /// reader; `docs/VISION.md` §6.2 and `docs/AI.md` §46.
     pub treaties: Vec<Vec<i32>>,
+    /// `LeaderData::agendas` (`+0xb4`), `int[8]`. One bit is modelled:
+    /// **`2`, "your building stood in my armed unit's walk"**, which
+    /// `Unit::resolve_block@005fccc0` ors into its owner's slot for a
+    /// building of a player it is not at war with (`5fcdda`, item 1209);
+    /// one direction only, where `treaty_on` writes both.
+    pub agendas: Vec<Vec<i32>>,
     /// Whether each player has been defeated — `leader_flags & 2` clear.
     pub defeated: Vec<bool>,
     /// `LeaderData::lost_city_stamp`: the frame each player last lost a city.
@@ -1556,6 +1562,7 @@ impl Sim {
             borders: vec![territory::PlayerBorders::plain(&tuning); players],
             allied: vec![vec![false; players]; players],
             treaties: vec![vec![0; players]; players],
+            agendas: vec![vec![0; players]; players],
             defeated: vec![false; players],
             lost_city_stamp: vec![None; players],
             city_tally: vec![city::Tally::default(); players],
@@ -1642,6 +1649,10 @@ impl Sim {
             row.push(0);
         }
         self.treaties.push(vec![0; who + 1]);
+        for row in &mut self.agendas {
+            row.push(0);
+        }
+        self.agendas.push(vec![0; who + 1]);
         u8::try_from(who).expect("too many players")
     }
 
