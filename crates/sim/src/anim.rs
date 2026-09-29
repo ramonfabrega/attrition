@@ -1700,16 +1700,22 @@ impl Sim {
                     // from `get_position`'s pivot branch — the pivot node
                     // at the figure's facing plus the release node at the
                     // facing **and the turret's angle**.
+                    //
+                    // **The gate is the event's, not the vectors'** (item
+                    // 1117, §85): `008e4c28`–`008e4c4c` read the event's
+                    // own node (`movsbl +0x23`, `& 3`) against the piece's
+                    // restriction count, then the package's `node_flags`,
+                    // so it holds a round on every pivot piece — the
+                    // Battery's among them, whose `get_position` entries
+                    // `pivot::RELEASES` has not measured.
                     let pivot = crate::pivot::release(guy.gpiece, guy.anim, start);
                     let pivots = self.units[u]
                         .ty
                         .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))
                         .map_or(0, |n| n.len());
-                    if let Some(r) = pivot {
-                        let k = (r.node & 3) as usize;
-                        if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
-                            continue;
-                        }
+                    let k = (i32::from(node) & 3) as usize;
+                    if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
+                        continue;
                     }
                     let facing = guy
                         .follow

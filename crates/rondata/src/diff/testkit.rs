@@ -4577,8 +4577,21 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
 /// on node 0 in ours; theirs holds it, its turret short of its aim
 /// (`node_flags` 14, bit 0 clear) — ours 9 draws, theirs 6.
 ///
-/// **The delta**, this constant's: 777 → 779.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 779;
+/// **794, open** (item 1117, `docs/COMBAT.md` §85). The release gate is
+/// the event's: `execute_game_events` holds a pivot piece's release on
+/// node `n` while `node_flags` lacks bit `n & 3`, whether or not the
+/// piece's `get_position` vectors are measured, and the Battery's are
+/// not. The value diff on block 780, both sides: `1/9` at `cur_anim 12`,
+/// `cur_time 4`, `node_flags 14`, `des_node_flags 1`, and no round of
+/// `1/9` in the air (ours had one). 782's node-1 round is released on
+/// both sides; it leaves from the figure's square in ours. 794 is `1/7`'s
+/// walk, parted since its `ATTACKTO` point on 765 (parked 1113): ours is
+/// still walking at (21185, 17322) and spends `Guy::set_anim+0x97a <
+/// Unit::move_step+0x823`, where theirs has stood at (20604, 16968) since
+/// 777 — ours 12 draws, theirs 8.
+///
+/// **The delta**, this constant's: 779 → 794.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 794;
 
 /// `chapter_thirty_eight_s_word_frame_is_widened_whole`'s window: run404
 /// whole, (605, 1763).
