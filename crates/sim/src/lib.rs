@@ -258,8 +258,14 @@ pub struct Unit {
     /// **`UnitData::cavarch_o`/`cavarch_who` (`+0xa2`/`+0xa8`)** and the
     /// uid beside them (`+0xa6`) — a caster's target, written by
     /// `Group::action_spell` and again by each frame of `do_cast`'s
-    /// targeted arm (`docs/GOLDEN.md` §27). `None` is `(-1, -1)`.
+    /// targeted arm (`docs/GOLDEN.md` §27). `None` is `cavarch_o` −1.
     pub cast_target: Option<combat::Obj>,
+    /// **`cavarch_who` (`+0xa8`) itself**: 0 from `Unit::init`, the
+    /// target's owner once `action_spell` or `do_cast` writes a target, and
+    /// −1 after an untargeted press — `action_spell` writes the pair
+    /// `(ox, whom)` = `(−1, −1)` whenever it differs from what is held
+    /// (`docs/GOLDEN.md` §48).
+    pub cavarch_who: i8,
     /// **`unit_masks & 0x20000`** — "the cast has started": set on a
     /// targeted cast's first in-range frame, cleared by
     /// `kill_current_order`, and one of the three bits that stop mana
@@ -862,6 +868,7 @@ impl Unit {
             spell_time: 0,
             mana_burn: 0,
             cast_target: None,
+            cavarch_who: 0,
             casting: false,
             infiltrated: 0,
             airframe: air::Airframe::default(),
@@ -2869,7 +2876,7 @@ impl Sim {
             let index = self
                 .find_free(who, UNIT_BASE, BUILD_BASE)
                 .unwrap_or(i16::MAX);
-            let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
+            let mut unit = Unit::new(who, index, pos, self.type_hits(who, ty));
             unit.kind = self.unit_types[ty].kind;
             unit.ty = Some(ty);
             unit.type_index = self.unit_types[ty].type_index;
@@ -3128,7 +3135,7 @@ impl Sim {
             self.track_unit_type(who, old, -1);
         }
         let damage = self.units[u].max_health - self.units[u].health;
-        let hits = self.unit_types[rec].hits;
+        let hits = self.type_hits(who, rec);
         {
             let unit = &mut self.units[u];
             unit.ty = Some(rec);
@@ -3365,6 +3372,14 @@ impl Sim {
         // reassembled at the next dirty-grid frame, which is what reads a
         // Commerce level into the caps.
         self.economy_changed(who);
+        // `Object::update_hits`'s Citizen arm reads the Militia line's bits
+        // (`docs/GOLDEN.md` §48).
+        if self
+            .unit_record(t)
+            .is_some_and(|r| matches!(self.unit_types[r].type_index, 0x42..=0x44))
+        {
+            self.refresh_citizen_hits(who);
+        }
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {

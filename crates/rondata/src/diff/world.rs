@@ -2651,28 +2651,9 @@ mod tests {
         );
         assert_eq!(tile_bad.len(), 264, "the `0x4` residue at 17146");
         assert_eq!(danger_bad, Vec::<String>::new(), "the danger map");
-        assert_eq!(
-            fog_bad,
-            [
-                (86, 59, 0, 2),
-                (79, 60, 0, 2),
-                (80, 60, 0, 2),
-                (86, 60, 0, 2),
-                (81, 61, 0, 2),
-                (86, 61, 0, 2),
-                (81, 62, 0, 2),
-                (86, 62, 0, 2),
-                (91, 62, 0, 2),
-                (81, 63, 0, 2),
-                (87, 63, 0, 2),
-                (88, 63, 0, 2),
-                (89, 63, 0, 2),
-                (90, 63, 0, 2),
-                (99, 91, 0, 2),
-                (102, 92, 0, 2),
-            ],
-            "the fog at 17146"
-        );
+        // Item 1111: the 16 half-cells agree — who=1's citizens see their
+        // Militia line's two tiles more (`docs/GOLDEN.md` §48).
+        assert_eq!(fog_bad, Vec::new(), "the fog at 17146");
         built.sim.trace_costs = true;
         built.sim.cost_marks.clear();
         built.tick();
@@ -5116,12 +5097,11 @@ mod tests {
             (522, 105_493),
             "the frames and steps compared"
         );
+        // Item 1111: 15986's step agrees since the Citizens' Militia-line
+        // LOS and hits (`docs/GOLDEN.md` §48); why it parted is not read.
         assert_eq!(
             parted,
-            ["15986 at 3 of 9/9 (group plan false) Some((1, 73)): \
-                 ours Some(((44928, 13440, 45696, 13440, 4, 768, 2), 44)) \
-                 theirs Some(((44928, 13440, 45696, 13440, 4, 768, 2), 32))"
-                .to_string()],
+            Vec::<String>::new(),
             "the frames whose priced steps part, and where"
         );
     }

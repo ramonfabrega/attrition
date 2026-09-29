@@ -85,9 +85,12 @@ Korean Citizen, `0x3a` Spy, `0x3d`/`0x3e` Merchant and Armed Merchant,
 `0x45` Scout, `0x190` Fur Trapper.
 
 **What this simulation computes** is 1–5b and 12, and of those the type's
-own `los`, the citizen terms, the science term and **term 5** can be
-nonzero in a capture on disk: no run has furs, dogs, a militia upgrade, a
-nomad start or a merchant, but run58 has two packed Fishermen and term 5
+own `los`, the citizen terms, the science term, **term 5** and **term 12**
+can be nonzero in a capture on disk. ~~Terms 3's three bits and 12 were
+claimed here and not in the code~~ until item 1111 built them
+(`docs/GOLDEN.md` §48): run422's Citizens see 4 from the block after `tech
+who=0 militia on`, and its decoys 1, both diff-backed by the chapter's
+widening. No run has furs, dogs, a nomad start or a merchant, but run58 has two packed Fishermen and term 5
 is where their `mylos 4` comes from — and `4 → 6` on the frame `1/14`
 deploys, which is the clamp lifting (`docs/ORDERS.md` §6.9). It was a
 seam here until 2026-09-01, written as the type test alone because this

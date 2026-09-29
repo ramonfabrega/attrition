@@ -4786,6 +4786,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 1762;
 /// whole, (605, 1763).
 pub(crate) const WIDENING_CHAPTER_THIRTY_EIGHT: (i64, i64) = (605, 1763);
 
+/// **Chapter thirty-nine's word** (item 1111, `docs/GOLDEN.md` §48,
+/// run422): the spell issuer's untargeted crafts.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_NINE: i64 = 1100;
+
+/// `chapter_thirty_nine_s_word_frame_is_widened_whole`'s window: run422
+/// whole, (605, 1101).
+pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -6832,6 +6840,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_eight_s_word_frame_is_widened_whole"),
         1102,
         Some(WIDENING_CHAPTER_THIRTY_EIGHT),
+    ),
+    // Item 1111: run422, chapter thirty-nine, the spell issuer's
+    // untargeted crafts. The widening is run422 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_THIRTY_NINE",
+        GOLDEN_WORD_CHAPTER_THIRTY_NINE,
+        Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
+        1111,
+        Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (

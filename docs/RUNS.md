@@ -10768,6 +10768,99 @@ word's block 6322 parts on 15 keys: the original has landed `1/32` and
 closed the barge, and ours still carries both (`docs/AI.md` §87.2). The
 compared pin walks its 6320..6324, and the coverage driver drives
 6321..6324.
+
+## run424 — chapter thirty-nine's staging, a packet at logger frame 619 (2026-09-29, item 1111)
+
+**What it is.** `chapter39.cmd`'s births without its `@spell` lines and,
+as taken, without its `tech` line, to 625, with a `RON_STATE_FRAME=619`
+packet (814,832,508 bytes; run144's plan). 60 s launch to exit, `success:
+true`, 626 frames. The lane lock was stale.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run424 \
+    --map 14 --end-frame 625 --log-window 605 625 --timeout 2400 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file <chapter39.cmd's births> \
+    --tracer-def RON_STATE_FRAME=619 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"'
+```
+
+**What the disk could not answer.** Whether a Citizen of the golden start
+may take To Arms under `library who=0 1`, what each cast writes, and what
+the tech verb's type parse admits: no dump prints `is_castable` or
+`has_tech`, and no capture had issued an untargeted craft.
+
+**What it answered** (`tools/recomp/step4.py`'s machinery, scratch):
+`is_castable(To Arms)` 0 on both Citizens with `has_preq(MILITIA)` 1 and
+`has_tech` 0; after `Leader::gain_tech(MILITIA)`, 3. The console `tech`
+verb's category string, `tubs`. `cast_civilian` on the Militia: `rare` 0 →
+50, `set_type(50, 0)`, one `Random::get(0, 0xffff)`, `form` 9;
+`cast_to_arms`: `rare` 50, `set_type(66, 0)`; `cast_create_decoy`: the
+Slingers' copy at (7800, 34296) first, then a Steam stats call the stubs do
+not answer. `docs/GOLDEN.md` §48.
+
+## run422 — chapter thirty-nine, the spell issuer's untargeted crafts (2026-09-29, item 1111)
+
+`docs/GOLDEN.md` §48, `tools/gamelog/golden/chapter39.cmd`: a cast of its
+own on the golden start — `library who=0 1`, `tech who=0 militia on`, two
+Citizens, a Militia, a General, a Hoplite and a Slinger squad (604..616);
+To Arms on each Citizen (620, 640), Civilian on the Militia and on the
+first Citizen (660, 700), Create Decoys (720).
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch39 \
+    --map 14 --end-frame 1100 --log-window 605 1100 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter39.cmd
+```
+
+**Three takes** at `cover=0` on the click-free lane, each `success: true`:
+- 07:59, deleted: `rontrace.cmd` held only `!ffwd` and `!quit`, since the
+  script's lines were written only inside its header comments.
+- 08:10, deleted: `tech who=0 militia` only reports without `on`
+  (`run_cmd`'s `parse_binary`); both To Arms presses issued, none refused
+  at the command, and neither laid an order.
+- **08:28, kept**: 651 s launch to exit, **224 MB**, 1,101 frames, the
+  pool printed.
+
+| check | result |
+|---|---|
+| `cmdsran.py` | every chat line returned 1 |
+| `issuesmatch.py --none-refused 5` | five `@` lines, none refused |
+
+### §48's falsifiers
+
+| check | predicted | observed |
+| --- | --- | --- |
+| 1, the issues | 621, 641, 661, 701, 721 | **as predicted** |
+| 2, the order | one `CASTORDER`, no move | **as predicted** on 622 (`spell_time` 1) |
+| 3, To Arms | a Militia, `rare` 50, `form` 0 by 627 | **626** and B **646** |
+| 4, C's Civilian | a Citizen, `rare` 50 | **666** |
+| 5, A's Civilian | `rare` still 50 | **706** |
+| 6, G's order | `mana_burn` +1,000, no bucket down | **as predicted** on 722, recovering one a frame |
+| 7, the decoys | two squads, Slingers first | **821**: `0/16`..`18`, `0/19`..`21` |
+| 8, the age | +1 a frame | **as predicted** (1 on 821) |
+
+Every Citizen of who=0 is at 50 hits and LOS 4 from 605, the block after
+the `tech` line: `Object::update_hits`'s and `Unit::update_los`'s Militia
+arm.
+
+## run423 — chapter thirty-nine at `cover=1`, to 830 (2026-09-29, item 1111)
+
+run422's script line for line on the queue lane, `cover=1`, to 830
+(`tools/gamelog/captures.txt`, `run: 423`), 08:55–09:04:
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run422 | five issue records, none refused; golden 5 |
+| `rngcmp.py` vs run422 | 831 frames identical, none differing |
+| `report.py … functions` | `cast_to_arms` f625, `cast_civilian` f665, `cast_create_decoy` f820 |
+
+The three casts leave `NEVER`, 142 → 139 (`crates/rondata/src/blind.rs`).
 ## run417 — run383's game at run414's detail over blocks 13177..13433: Great Sahara's long word 13182 widened (2026-09-29, item 1147)
 
 **What it is.** run416's shape on the click-free lane: `--map 7`,

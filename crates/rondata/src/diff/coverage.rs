@@ -608,6 +608,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch36 = golden_dump("ch36");
     let ch37 = golden_dump("ch37");
     let ch38 = golden_dump("ch38");
+    let ch39 = golden_dump("ch39");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1707,6 +1708,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter thirty-nine's word, on run422** (item 1111): the spell
+    // issuer's untargeted crafts. 626 and 646, To Arms; 666 and 706,
+    // Civilian; 722, the General's order; 821, the decoys; 1097, the last
+    // blocks.
+    if let Some(p) = &ch39 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_NINE;
+        for w in [626, 646, 666, 706, 722, 821, 1097] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-nine carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
     // a frame out; 852, `0/7`'s.
@@ -1901,14 +1914,18 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // walked that window too. Item 1133 moved the third map's window to
     // run416's 12782..12786, where none has; East Indies' word at 6321
     // (item 1127) has one, so the pair stays off.
+        // **Item 1163 moved the third map's window to run418's
+        // 14586..14590**, where the AI's army stands in a group with an
+        // attack order on its members: the attack row, `whose`/`oxx`,
+        // `form_id` and the group row (`group_id`, `group_angle`,
+        // `in_group`) are compared there, and left this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x def_y \
-         defensive ever_in_range form_id garrison_search group_angle group_id guard_dx \
-         guard_dy guard_idle guard_retry guard_x guard_y in_group in_range mandatory metric \
-         new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry returning \
-         sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
+         attempts build_type cast_paid cast_spell cruising_alt garrison_search guard_dx \
+         guard_dy guard_idle guard_retry guard_x guard_y metric non_flat_gather orig_x \
+         orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx strafe_yy \
+         tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

@@ -168,6 +168,16 @@ pub mod spell {
     pub const COUNTERINTEL: i32 = 0x277;
     pub const INFORMER: i32 = 0x27f;
 
+    /// The three untargeted crafts chapter thirty-nine casts
+    /// (`docs/GOLDEN.md` §48): the General's `CREATE_DECOY` (`lm`,
+    /// `MANA 1000`, `JOB_TIME 100`), which `SpellType::cast` hands to
+    /// `cast_create_decoy@00674370`; the Militia's `CIVILIAN` and the
+    /// Citizen's and Scholar's `TO_ARMS` (no flags, `JOB_TIME 5`), handed
+    /// to `cast_civilian@006704a0` and `cast_to_arms@00670880`.
+    pub const CREATE_DECOY: i32 = 0x27a;
+    pub const CIVILIAN: i32 = 0x293;
+    pub const TO_ARMS: i32 = 0x294;
+
     /// The four **pack** rows and the four **unpack** ones, in the pairs
     /// `add_cast_order` rewrites `PACK`/`UNPACK` into: the siege engine's
     /// (the generic pair, and the one the file names `Catapult`), the

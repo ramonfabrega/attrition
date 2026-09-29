@@ -8219,7 +8219,14 @@ fn run245_s_cast_is_the_original_s_field_for_field() {
                 get("spell_time"),
             );
             note(them.who, them.o, "cavarch_o", to, get("cavarch_o"));
-            note(them.who, them.o, "cavarch_who", tw, get("cavarch_who"));
+            let _ = tw;
+            note(
+                them.who,
+                them.o,
+                "cavarch_who",
+                i64::from(un.cavarch_who),
+                get("cavarch_who"),
+            );
             note(
                 them.who,
                 them.o,
@@ -13208,6 +13215,311 @@ fn chapter_thirty_eight_holds_to_the_golden_word() {
     eprintln!(
         "chapter thirty-eight: sequence {}, values {:?}",
         w.sequence, w.value
+    );
+}
+
+/// **Chapter thirty-nine, pinned** — the spell issuer's untargeted crafts
+/// (`docs/GOLDEN.md` §48, item 1111, run422). Fourteen staged lines on the
+/// golden start.
+#[test]
+fn chapter_thirty_nine_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch39", "chapter39", 39, 14, 1099) else {
+        return;
+    };
+    eprintln!(
+        "chapter thirty-nine: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_THIRTY_NINE,
+        "chapter thirty-nine's golden word fell to {} from {GOLDEN_WORD_CHAPTER_THIRTY_NINE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_THIRTY_NINE,
+        "chapter thirty-nine's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §48"
+    );
+}
+
+/// **run422 whole, both directions** (item 1111, `docs/GOLDEN.md` §48):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_thirty_nine_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch39",
+        "chapter39",
+        WIDENING_CHAPTER_THIRTY_NINE,
+        1099,
+        0,
+        (620, 627),
+        false,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch39 f{f} {w}/{o} {what}: {row}");
+    }
+    let standing = |what: &str| {
+        what == "form"
+            || what == "build:extra"
+            || what.starts_with("leader:filled_gather_slots")
+            || what.starts_with("g.gpiece")
+    };
+    let floor: Vec<&String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_NINE.0)
+        .map(|((_, _, what), _)| what)
+        .collect();
+    pin!(
+        floor.iter().all(|w| standing(w)),
+        "ch39: the standing rows on the first block moved ({}): {floor:?}",
+        floor.len()
+    );
+    let mut got: Vec<String> = firsts
+        .iter()
+        .filter(|(_, (f, _))| *f > WIDENING_CHAPTER_THIRTY_NINE.0)
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch39", "chapter39", WIDENING_CHAPTER_THIRTY_NINE, 0)
+        .expect("run422 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch39 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    eprintln!("ch39: {} rows, {} pool rows", got.len(), got_pool.len());
+    let mut want: Vec<String> = WANT_CH39.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch39: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH39_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch39: what parts in the pool moved");
+}
+
+/// Chapter thirty-nine's widening rows (item 1111): run422 whole, the
+/// three casts built. What stands is `Unit::init`'s birth `form` (9 for a
+/// Citizen, 0 else, against this crate's −1) on every unit the script adds
+/// and on the six decoys of 821 — the standing row of every chapter; a cast
+/// writes the byte, and from each conversion on it agrees.
+const WANT_CH39: &[&str] = &[
+    "607 0/6 form",
+    "609 0/7 form",
+    "611 0/8 form",
+    "613 0/9 form",
+    "615 0/10 form",
+    "615 0/11 form",
+    "615 0/12 form",
+    "617 0/13 form",
+    "617 0/14 form",
+    "617 0/15 form",
+    "821 0/16 form",
+    "821 0/17 form",
+    "821 0/18 form",
+    "821 0/19 form",
+    "821 0/20 form",
+    "821 0/21 form",
+];
+
+/// Chapter thirty-nine's pool rows (item 1111): each press's pushed
+/// selection's `ox`/`oy` (0 against −1, chapters nineteen's and
+/// thirty-four's family), and two `speed`/`new_speed` refreshes the
+/// original makes off its cursor's frame — slot 0 (B, a Militia since
+/// 646) at 24 on 662, slot 2 (C, a Citizen since 666) at 25 on 702 —
+/// where this crate's cursor reaches them on 704 and 706.
+const WANT_CH39_POOL: &[&str] = &[
+    "622 slot 1 ox",
+    "622 slot 1 oy",
+    "642 slot 0 ox",
+    "642 slot 0 oy",
+    "662 slot 0 new_speed",
+    "662 slot 0 speed",
+    "662 slot 2 ox",
+    "662 slot 2 oy",
+    "702 slot 2 new_speed",
+    "702 slot 2 speed",
+    "702 slot 3 ox",
+    "702 slot 3 oy",
+];
+
+/// **run422's casts, field for field, both directions** (item 1111,
+/// `docs/GOLDEN.md` §48). The fields the three untargeted crafts write that
+/// no parser carries (`diff::coverage` pins them unread for the widenings),
+/// read raw from every block of [`WIDENING_CHAPTER_THIRTY_NINE`] on every
+/// unit of either player: `rare` (the former type To Arms keeps and
+/// Civilian reads), `mana_burn` (the General's 1,000 and each decoy's
+/// age), `spell_time`, `cavarch_o`/`cavarch_who` (−1/−1 after an
+/// untargeted press), the decoy bit `unit_masks & 1` and the started bit
+/// `& 0x20000`; and on every `CASTORDER` either side holds, its target,
+/// its point, its craft and `paid`. Nothing parts.
+#[test]
+fn run422_s_casts_are_the_original_s_field_for_field() {
+    use std::collections::BTreeMap;
+    let Some(mut s) = stage_script("ch39", "chapter39") else {
+        return;
+    };
+    let (first, last) = WIDENING_CHAPTER_THIRTY_NINE;
+    let players = s.built.sim.players.len() as i64;
+    let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+    let mut rows = 0usize;
+    let mut decoys = 0usize;
+    for f in 0..last - 1 {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+        let n = f + 1;
+        if n < first {
+            continue;
+        }
+        let Some(at) = s.ix.frames().iter().position(|x| x.number == n) else {
+            continue;
+        };
+        let frame = s.ix.frame_state(at).unwrap();
+        let raw = s.ix.read_frame(at).unwrap();
+        let recs = raw_records(&raw);
+        let sim = &s.built.sim;
+        let target_o = |o: Option<sim::combat::Obj>| match o {
+            Some(sim::combat::Obj::Unit(x)) => i64::from(sim.units[x].index),
+            Some(sim::combat::Obj::Building(b)) => i64::from(sim.buildings[b].index),
+            None => -1,
+        };
+        let mut alone: Vec<(i64, i64, &str)> = Vec::new();
+        let mut note = |who: i64, o: i64, what: &str, ours: i64, theirs: Option<i64>| {
+            let Some(theirs) = theirs else {
+                return;
+            };
+            rows += 1;
+            if ours != theirs {
+                firsts
+                    .entry((who, o, what.to_string()))
+                    .or_insert((n, format!("ours {ours} theirs {theirs}")));
+            }
+        };
+        for them in &frame.units {
+            if !(0..players).contains(&them.who) {
+                continue;
+            }
+            let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+                continue;
+            };
+            let Some(u) = sim.unit_by_o(w, o) else {
+                continue;
+            };
+            let un = &sim.units[u];
+            let r = recs.get(&("UNITDATA", them.who, them.o));
+            let get = |k: &str| r.and_then(|r| r.get(k).copied());
+            note(them.who, them.o, "rare", i64::from(un.rare), get("rare"));
+            note(
+                them.who,
+                them.o,
+                "mana_burn",
+                i64::from(un.mana_burn),
+                get("mana_burn"),
+            );
+            note(
+                them.who,
+                them.o,
+                "spell_time",
+                i64::from(un.spell_time),
+                get("spell_time"),
+            );
+            note(
+                them.who,
+                them.o,
+                "cavarch_o",
+                target_o(un.cast_target),
+                get("cavarch_o"),
+            );
+            note(
+                them.who,
+                them.o,
+                "cavarch_who",
+                i64::from(un.cavarch_who),
+                get("cavarch_who"),
+            );
+            let masks = them.unit_masks;
+            note(
+                them.who,
+                them.o,
+                "decoy",
+                i64::from(un.decoy),
+                masks.map(|m| m & 1),
+            );
+            if un.decoy {
+                decoys += 1;
+            }
+            note(
+                them.who,
+                them.o,
+                "casting",
+                i64::from(un.casting),
+                masks.map(|m| i64::from(m & 0x20000 != 0)),
+            );
+            let ours_cast = un.orders.iter().find_map(|x| match x.body {
+                sim::orders::Body::Cast(c) => Some(c),
+                _ => None,
+            });
+            let theirs_cast = them.orders.iter().find(|x| x.kind == "CASTORDER");
+            match (ours_cast, theirs_cast) {
+                (Some(c), Some(t)) => {
+                    note(them.who, them.o, "cast.ox", target_o(c.target), t.ox);
+                    note(them.who, them.o, "cast.x", i64::from(c.at.x), t.x);
+                    note(them.who, them.o, "cast.y", i64::from(c.at.y), t.y);
+                    note(
+                        them.who,
+                        them.o,
+                        "cast.spell",
+                        i64::from(c.spell),
+                        t.cast_spell,
+                    );
+                    note(
+                        them.who,
+                        them.o,
+                        "cast.paid",
+                        i64::from(c.paid),
+                        t.cast_paid,
+                    );
+                }
+                (None, None) => {}
+                (mine, _) => alone.push((
+                    them.who,
+                    them.o,
+                    if mine.is_some() {
+                        "this crate"
+                    } else {
+                        "the dump"
+                    },
+                )),
+            }
+        }
+        for (who, o, side) in alone {
+            firsts
+                .entry((who, o, "cast".into()))
+                .or_insert((n, format!("{side} holds it alone")));
+        }
+    }
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  run422 f{f} {w}/{o} {what}: {row}");
+    }
+    eprintln!(
+        "run422's casts: {rows} rows compared, {decoys} decoy rows, {} parted",
+        firsts.len()
+    );
+    assert!(rows > 0, "run422 carries the fields it prints");
+    assert!(decoys > 0, "run422's decoys are compared");
+    let got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    let want: Vec<String> = Vec::new();
+    assert_eq!(
+        got, want,
+        "run422: what parts in the casts' own fields moved"
     );
 }
 

@@ -11473,7 +11473,7 @@ pub(crate) mod tests {
         // **Item 718 took four (134 → 130)**: trained units' `orders_x`/`orders_y`
         // on their exit block, `come_out`'s `update_action` on the captain
         // (`docs/ORDERS.md` §29), and nothing arrived.
-        pin_eq!(past, 130, "the keys first parting after 12537");
+        pin_eq!(past, 122, "the keys first parting after 12537");
         // **The floor**: 259 keys to run163's last block, and 2,120 to
         // run174's. The floor had been 275 to run163, as item 661 left it,
         // and 2,197 to run174. The fix took sixteen under 12399, all
@@ -11494,7 +11494,7 @@ pub(crate) mod tests {
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 1072 took four (220/352 → 216/348): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-        pin_eq!((under, firsts.len()), (212, 344), "the floor");
+        pin_eq!((under, firsts.len()), (212, 336), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11651,20 +11651,8 @@ pub(crate) mod tests {
                 "14584 1/-1 leader:known_rares: ours 4 theirs 0",
                 "13556 1/-1 leader:scholars: ours 11 theirs 12",
                 "13163 1/71 form: ours -1 theirs 9",
-                "13163 1/71 hits:myhits: ours 40 theirs 50",
-                "13163 1/71 hits_left: ours 40 theirs 50",
-                "13163 1/71 myhits: ours 40 theirs 50",
-                "13163 1/71 mylos: ours 2 theirs 4",
                 "13344 1/72 form: ours -1 theirs 9",
-                "13344 1/72 hits:myhits: ours 40 theirs 50",
-                "13344 1/72 hits_left: ours 40 theirs 50",
-                "13344 1/72 myhits: ours 40 theirs 50",
-                "13344 1/72 mylos: ours 2 theirs 4",
                 "13525 1/73 form: ours -1 theirs 9",
-                "13525 1/73 hits:myhits: ours 40 theirs 50",
-                "13525 1/73 hits_left: ours 40 theirs 50",
-                "13525 1/73 myhits: ours 40 theirs 50",
-                "13525 1/73 mylos: ours 2 theirs 4",
                 "13556 1/74 form: ours -1 theirs 9",
                 "13556 1/74 g.angle[0]: ours 1431655765 theirs 0",
                 "13556 1/74 orders_x: ours 40416 theirs 40440",
@@ -11708,7 +11696,7 @@ pub(crate) mod tests {
         // rock arm's city site at (47, 33) (`docs/AI.md` §78).
         // Item 1072 took four (311 → 307): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (307 → 306): who=0's `gather_stamp`, the border pass's economy flag (`docs/AI.md` §84).
-        pin_eq!(standing_n, 302, "every row standing on 14651");
+        pin_eq!(standing_n, 166, "every row standing on 14651");
         // **The floor**: run174's 374 to its last block, exactly as
         // `run174_s_word_frame_is_widened_whole` pins it — the chain is
         // the same walk — then the rows under the word on run178's own
@@ -11733,7 +11721,7 @@ pub(crate) mod tests {
             // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
             // Item 1072 took four (352/26/378 → 348/26/374): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
-            (344, 25, 369),
+            (336, 13, 349),
             "the floor"
         );
     }
@@ -11858,7 +11846,7 @@ pub(crate) mod tests {
         // (parked 275), an equal group's record kept.
         // Item 729 took one more (314 → 313): `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // Item 1072 took four (313 → 309): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-        pin_eq!(standing_n, 305, "every row standing on 14983");
+        pin_eq!(standing_n, 169, "every row standing on 14983");
         // **The floor**: run178's 416 to its last block, exactly as
         // `run178_s_word_frame_is_widened_whole` pins it — the chain is the
         // same walk — then run192's own, to the word's block and past it.
@@ -11877,7 +11865,7 @@ pub(crate) mod tests {
         // Item 1072 took four (378/4/382 → 374/4/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (374/4/378 → 373/4/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((373, 4, 377) → (369, 4, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, own.len(), firsts.len()), (369, 4, 373), "the floor");
+        pin_eq!((under, own.len(), firsts.len()), (349, 4, 353), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -11975,7 +11963,8 @@ pub(crate) mod tests {
             // Item 723 took one (315 → 314): the scout's formation mirror.
             // Item 1072 took four (313 → 309): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1115 took four (309 → 305): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
-            305,
+            // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
+            169,
             "every row standing on 15176"
         );
         // **The floor**: run192's 422 to its last block, exactly as
@@ -12003,7 +11992,7 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (373, 0, 373), "the floor");
+        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -12121,7 +12110,7 @@ pub(crate) mod tests {
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
             // Item 1072 took four (313/314 → 309/310): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (305, 306),
+            (169, 170),
             "every row standing on 15384 and on 15385"
         );
         // **The floor**: run196's walk exactly — run192's 422, and nothing
@@ -12150,7 +12139,7 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (373, 0, 373), "the floor");
+        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -12276,7 +12265,7 @@ pub(crate) mod tests {
                 standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             ),
             // Item 1072 took four (309/309 → 305/305): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (301, 301),
+            (165, 165),
             "every row standing on 15609 and on the word's block, 15620"
         );
         // **The floor**: run202's walk, then run211's own keys up to the
@@ -12301,7 +12290,7 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (373, 0, 373), "the floor");
+        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12402,7 +12391,8 @@ pub(crate) mod tests {
             standing.get(&WORD_BLOCK).map_or(0, BTreeMap::len),
             // Item 1072 took four (312 → 308): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1115 took four (308 → 304): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
-            304,
+            // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
+            168,
             "every row standing on the old word's block, 16461"
         );
         // **The floor**: run211's walk (398, nothing on run211's own blocks
@@ -12420,7 +12410,7 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (373, 0, 373), "the floor");
+        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12545,7 +12535,8 @@ pub(crate) mod tests {
             // and so did four standing rows the wonder pass had kept —
             // `MAKE[0]`, `[1]` and `[8]`'s `city` and `SITE[1].reg`.
             // Item 1072 took four (311/311/307 → 307/307/303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (303, 303, 299),
+            // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
+            (167, 167, 163),
             "every row standing on 17100 (item 742's word's block), 17129 \
              (757's) and 17182 (776's)"
         );
@@ -12563,7 +12554,7 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (373, 0, 373), "the floor");
+        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**
@@ -12656,7 +12647,7 @@ pub(crate) mod tests {
             (tail, carried),
             // 28 before item 899: `1/60`'s 23 went.
             // Item 1072 took four (307 → 303): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (299, 5),
+            (163, 5),
             "run226's standing rows on its last block, and the gap's on run243's first"
         );
         // **The old word's value diff** (item 795): on 20569 the
@@ -12716,7 +12707,7 @@ pub(crate) mod tests {
                 firsts.len(),
             ),
             // Item 1072 took four (307/5/1/313 → 303/5/1/309): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            (299, 5, 1, 305),
+            (163, 5, 1, 169),
             "the floor"
         );
         // Item 1115 took the caravan's four rows here (308 → 304; `docs/CARAVAN.md` §11.3).
@@ -12725,7 +12716,7 @@ pub(crate) mod tests {
             // 341 before item 899: `1/60`'s 29 went, and who=0's
             // `production_step` (0 here, 1 there) stands on this block and
             // not on 20800. Item 1072 took four (312 → 308): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            304,
+            168,
             "every row standing on the old word's block"
         );
     }
@@ -12791,7 +12782,8 @@ pub(crate) mod tests {
             [
                 // Item 1072 took four (310 → 306): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
                 // Item 1115 took four (306 → 302): the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
-                (WIDENING_GREAT_LAKES_END.0, 302),
+                // Item 1111 took the AI citizens' Militia-line rows (`docs/GOLDEN.md` §48).
+                (WIDENING_GREAT_LAKES_END.0, 166),
                 (WIDENING_GREAT_LAKES_END.1, 48)
             ],
             "the blocks keys first part on, and how many"
@@ -12813,7 +12805,7 @@ pub(crate) mod tests {
                 .get(&(WIDENING_GREAT_LAKES_END.0 + 1))
                 .map_or(0, BTreeMap::len),
             // Item 1072 took four (310 → 306): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
-            302,
+            166,
             "the floor stands on the second block, and nothing joins it"
         );
     }
@@ -12878,7 +12870,7 @@ pub(crate) mod tests {
                 // Item 1106: 293 → 292, who=1's `leftover[2:wealth]` 844
                 // against 836 closed (`docs/AI.md` §84).
                 // Item 1115: 292 → 288, the caravan's leg faces its bearing and its trade order carries no bit 4 (`order:move.angle`, `dest_angle`, `order:flags`, `order:action`; `docs/CARAVAN.md` §11.3).
-                (WIDENING_EAST_INDIES_END.0, 288),
+                (WIDENING_EAST_INDIES_END.0, 164),
                 (WIDENING_EAST_INDIES_END.1, 49)
             ],
             "the blocks keys first part on, and how many"
@@ -12906,7 +12898,7 @@ pub(crate) mod tests {
                 .get(&(WIDENING_EAST_INDIES_END.0 + 1))
                 .map_or(0, BTreeMap::len),
             // Item 1106: 293 → 292, who=1's `leftover[2:wealth]` (`docs/AI.md` §84).
-            288,
+            164,
             "the floor stands on the second block, and nothing joins it"
         );
     }
@@ -15290,7 +15282,7 @@ pub(crate) mod tests {
         // first block's `group` rows — `1/0` 70 here against 69, `1/11` 64
         // against −1, `1/31` 66 against 65 and `1/32`..`1/38` 68 against
         // 66: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-        pin_eq!((first, under_n, firsts.len()), (211, 211, 219), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (147, 147, 151), "the floor");
     }
 
     /// **run159 — East Indies' word 11590, widened whole, both directions**
@@ -15368,19 +15360,11 @@ pub(crate) mod tests {
                 "11318 1/-1 leader:peasants: ours 17 theirs 18",
                 "11363 1/-1 leader:scholars: ours 12 theirs 13",
                 "11318 1/41 form: ours -1 theirs 9",
-                "11318 1/41 hits:myhits: ours 40 theirs 50",
-                "11318 1/41 hits_left: ours 40 theirs 50",
-                "11318 1/41 myhits: ours 40 theirs 50",
-                "11318 1/41 mylos: ours 2 theirs 4",
                 "11363 1/42 form: ours -1 theirs 9",
                 "11363 1/42 g.angle[0]: ours 1431655765 theirs 0",
                 "11363 1/42 orders_x: ours 36000 theirs 36024",
                 "11363 1/42 orders_y: ours 35808 theirs 35832",
                 "11499 1/43 form: ours -1 theirs 9",
-                "11499 1/43 hits:myhits: ours 40 theirs 50",
-                "11499 1/43 hits_left: ours 40 theirs 50",
-                "11499 1/43 myhits: ours 40 theirs 50",
-                "11499 1/43 mylos: ours 2 theirs 4",
             ],
             "the rows under the word and on it"
         );
@@ -15547,7 +15531,7 @@ pub(crate) mod tests {
         // block's `group` rows — `1/0` 65 here against 64, `1/11` 64
         // against −1, `1/31` 66 against 65, `1/32`..`1/38` 68 against 66:
         // who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-        pin_eq!((first, under_n, firsts.len()), (216, 234, 235), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (148, 158, 159), "the floor");
     }
 
     /// **run166 — East Indies' word 13640, widened whole, both directions**
@@ -15699,7 +15683,7 @@ pub(crate) mod tests {
         // → 257/266/266): the `group` rows — `1/0` 70 here against 69,
         // `1/11` 64 against −1, `1/32`..`1/38` 68 against 66, `1/48`,
         // `1/49`, `1/52` 69 against 68, and `1/53`'s on 13594 (`docs/GROUPS.md` §29).
-        pin_eq!((first, under_n, firsts.len()), (253, 262, 262), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (153, 162, 162), "the floor");
     }
 
     /// **run78 — East Indies' old word 15782, the move's value diff**
@@ -15776,7 +15760,7 @@ pub(crate) mod tests {
             // Item 919 208 fewer: run78's `GUY` records are the short form,
             // so gaia's 104 animals' `cur_anim` and `cur_time` read `theirs
             // None` and are named unprinted now, not parting.
-            207,
+            107,
             "every row standing on the old word's block"
         );
         // **The floor**: 437 keys standing on the window's first block,
@@ -15795,7 +15779,7 @@ pub(crate) mod tests {
         // Item 919: 210/213, the 208 gaia clock rows named unprinted (the
         // short `GUY` record prints none), not a parting closed.
         // Item 1115 took the caravan's four rows here ((210, 213) → (206, 209); `docs/CARAVAN.md` §11.3).
-        pin_eq!((first, firsts.len()), (206, 209), "the floor");
+        pin_eq!((first, firsts.len()), (106, 109), "the floor");
     }
 
     /// **run221 — East Indies' word 15985, widened whole, both directions**
@@ -15910,13 +15894,7 @@ pub(crate) mod tests {
             .collect();
         pin_eq!(
             scout,
-            [
-                "15894 1/31 form: ours -1 theirs 9",
-                "15894 1/31 hits:myhits: ours 40 theirs 50",
-                "15894 1/31 hits_left: ours 40 theirs 50",
-                "15894 1/31 myhits: ours 40 theirs 50",
-                "15894 1/31 mylos: ours 2 theirs 4",
-            ],
+            ["15894 1/31 form: ours -1 theirs 9",],
             "1/31's rows through the word's blocks"
         );
         pin_eq!(
@@ -15927,7 +15905,8 @@ pub(crate) mod tests {
                 .filter(|((w, o, _), _)| *w == 1 && *o == 31)
                 .count(),
             // Item 870: 6 → 5, its `group` agreeing (`docs/GROUPS.md` §29).
-            5,
+            // Item 1111 took the AI citizens' four Militia-line rows (`myhits`, `hits:myhits`, `hits_left`, `mylos`: `docs/GOLDEN.md` §48).
+            1,
             "1/31's rows standing on 15985, the word's pre-state"
         );
         let one_sided: Vec<(i64, i64, i64, bool, bool)> = changed
@@ -15948,7 +15927,7 @@ pub(crate) mod tests {
             // took seventeen: the `group` rows, `1/0` 70 here against 69,
             // `1/11` 64 against −1, army 1's `1/48`..`1/60` 71 against 70
             // (`docs/GROUPS.md` §29).
-            258,
+            158,
             "every row standing on the word's block"
         );
         // **Past the word to the window's end** (the word left for 16683,
@@ -15968,10 +15947,6 @@ pub(crate) mod tests {
                 "16168 1/-1 leader:gather_stamp: ours 16167 theirs 15991",
                 "16166 1/-1 leader:peasants: ours 25 theirs 26",
                 "16166 1/59 form: ours -1 theirs 9",
-                "16166 1/59 hits:myhits: ours 40 theirs 50",
-                "16166 1/59 hits_left: ours 40 theirs 50",
-                "16166 1/59 myhits: ours 40 theirs 50",
-                "16166 1/59 mylos: ours 2 theirs 4",
                 "16166 1/59 path_recursion: ours 0 theirs 1",
             ],
             "every key first parting past the word"
@@ -15991,7 +15966,7 @@ pub(crate) mod tests {
         // block's `group` rows (`1/0` 70 here against 69, `1/11` 64 against
         // −1, army 1's `1/48`..`1/60` 71 against 70) (`docs/GROUPS.md` §29).
         // Item 1115 took the caravan's four rows here ((261, 261, 271) → (257, 257, 267); `docs/CARAVAN.md` §11.3).
-        pin_eq!((first, under_n, firsts.len()), (257, 257, 267), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (157, 157, 163), "the floor");
     }
 
     /// **run227 — East Indies' word 16683, widened whole, both directions**
@@ -16086,15 +16061,7 @@ pub(crate) mod tests {
                 // Item 850: the scout `1/0`'s `g.avg_speed[0]` and `[1]`,
                 // 23 against 17, agree (`docs/ANIM.md` §15).
                 "16363 1/61 form: ours -1 theirs 9",
-                "16363 1/61 hits:myhits: ours 40 theirs 50",
-                "16363 1/61 hits_left: ours 40 theirs 50",
-                "16363 1/61 myhits: ours 40 theirs 50",
-                "16363 1/61 mylos: ours 2 theirs 4",
                 "16544 1/62 form: ours -1 theirs 9",
-                "16544 1/62 hits:myhits: ours 40 theirs 50",
-                "16544 1/62 hits_left: ours 40 theirs 50",
-                "16544 1/62 myhits: ours 40 theirs 50",
-                "16544 1/62 mylos: ours 2 theirs 4",
                 "16681 1/63 form: ours -1 theirs 0",
             ],
             "the rows under the word and on it"
@@ -16152,7 +16119,7 @@ pub(crate) mod tests {
             // against 68, `1/11` 64 against −1, army 1's `1/48`..`1/60` 71
             // against 70 among them — who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 274/274, who=1's `territory` 305 against 302, summed at the border pass's end (`docs/AI.md` §84).
-            [270, 270],
+            [158, 158],
             "every row standing on the word's pre-state and its block"
         );
         // **Past the word to the window's end** (the word left for 16982,
@@ -16206,7 +16173,7 @@ pub(crate) mod tests {
         // (`docs/GROUPS.md` §29).
         // Item 1106: → 267/282/288, who=1's `territory` on 16528 and who=0's `gather_stamp` on 16529, the border pass (`docs/AI.md` §84).
         // Item 1115 took the caravan's four rows here ((267, 282, 288) → (263, 278, 284); `docs/CARAVAN.md` §11.3).
-        pin_eq!((first, under_n, firsts.len()), (263, 278, 284), "the floor");
+        pin_eq!((first, under_n, firsts.len()), (159, 166, 172), "the floor");
     }
 
     /// **run233 — East Indies' word 17189, widened whole, both directions**
@@ -16444,7 +16411,7 @@ pub(crate) mod tests {
             // (`docs/ECONOMY.md` §16). Item 870: → 284/284/283/283, the
             // `group` rows of `1/0`, `1/11`, `1/31`..`1/38`, army 0's
             // column and the squad (`docs/GROUPS.md` §29).
-            [280, 280, 279, 279],
+            [168, 168, 167, 167],
             "every row standing on each word's pre-state and its block"
         );
         // **The floor**: 293 keys standing on the window's first block —
@@ -16473,7 +16440,7 @@ pub(crate) mod tests {
         // Item 1115 took the caravan's four rows here ((277, 289, 296, 302) → (273, 285, 292, 298); `docs/CARAVAN.md` §11.3).
         pin_eq!(
             (first, before(OLD_BLOCK), before(WORD_BLOCK), firsts.len()),
-            (273, 285, 292, 298),
+            (161, 173, 180, 186),
             "the floor"
         );
     }
@@ -16605,7 +16572,7 @@ pub(crate) mod tests {
             // `group` on 17575, 64 on both sides (ours −1 before): the
             // trained squad's birth push, `come_out`'s (parked 689,
             // `docs/GROUPS.md` §31).
-            (281, 0, 281, 300),
+            (169, 0, 169, 188),
             "the floor"
         );
     }
@@ -16758,7 +16725,7 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/11` 64 against −1, `1/48`..`1/71` 72
             // against 71): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 275/4/279/285, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 2380 against 2372 on 18177.
-            (271, 4, 275, 281),
+            (159, 4, 163, 169),
             "the floor"
         );
     }
@@ -17009,7 +16976,7 @@ pub(crate) mod tests {
         pin_eq!(
             (first, rows.len(), on_word, firsts.len()),
             // Item 1106: → 287/1/288/289, who=1's `leftover[2:wealth]` 3588 against 3580 on the first block, the border pass's economy flag (`docs/AI.md` §84).
-            (283, 1, 284, 285),
+            (167, 1, 168, 169),
             "the floor"
         );
     }
@@ -17137,7 +17104,7 @@ pub(crate) mod tests {
             .iter()
             .filter(|((w, _, k), v)| *w == 1 && k == "hits_left" && *v == "ours 40 theirs 50")
             .count();
-        pin_eq!(hits, 29, "who=1's citizens' hits_left on the first block");
+        pin_eq!(hits, 0, "who=1's citizens' hits_left on the first block");
         // **The floor**: every key standing on the first block, the keys
         // first parting under the word, the rows standing on the word's
         // block, and every key in all. **Item 850** took it 318/5/323/1,433
@@ -17157,7 +17124,7 @@ pub(crate) mod tests {
             // 29 `group` rows (`1/0` 65 here against 72, `1/11` 64 against
             // −1, army 1's 70 against 69): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
             // Item 1106: → 288/0/289/290, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 1938 against 1930 on 19408.
-            (284, 0, 285, 286),
+            (168, 0, 169, 170),
             "the floor"
         );
     }
@@ -17277,7 +17244,7 @@ pub(crate) mod tests {
             // and `1/66`'s `off`, `x/y`, paths and `1/65`'s position) and
             // 580 keys past it; none opened (`docs/GROUPS.md` §30).
             // Item 1106: → 285/0/285/297, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 5574 against 5566 on 20002 and `bucket[2:wealth]` 95 against 94 on 20130.
-            (281, 0, 281, 293),
+            (165, 0, 165, 177),
             "the floor"
         );
     }
@@ -17404,7 +17371,7 @@ pub(crate) mod tests {
             // this crate no longer places close; across the runway 934 keys
             // close, and the one that stands past the word is who=0's step.
             // Item 1106: → 283/3/286/287, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` 2108 against 2100 on 20777.
-            (279, 3, 282, 283),
+            (163, 3, 166, 167),
             "the floor"
         );
     }
@@ -17520,10 +17487,6 @@ pub(crate) mod tests {
                 "23192 1/-1 leader:gather_stamp: ours 23191 theirs 23183",
                 "23366 1/-1 leader:peasants: ours 29 theirs 30",
                 "23366 1/81 form: ours -1 theirs 9",
-                "23366 1/81 hits:myhits: ours 40 theirs 50",
-                "23366 1/81 hits_left: ours 40 theirs 50",
-                "23366 1/81 myhits: ours 40 theirs 50",
-                "23366 1/81 mylos: ours 2 theirs 4",
             ],
             "the runway to the new word"
         );
@@ -17553,7 +17516,7 @@ pub(crate) mod tests {
             // closes the word's three rows on 23421 and the 62 keys that
             // first parted past it; nothing parts on 23422..23433.
             // Item 1106: → 282/2/284/288/293, who=1's wealth, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84): `leftover[2:wealth]` 4990 against 4982 on 23177.
-            (278, 2, 280, 284, 289),
+            (162, 2, 164, 164, 169),
             "the floor"
         );
     }
@@ -18106,7 +18069,7 @@ pub(crate) mod tests {
             // (`1/11` 64 against −1, `1/48`..`1/71` 72 against 71)
             // (`docs/GROUPS.md` §29).
             // Item 1106: → 284/1/283/285, who=1's wealth, the border pass's economy flag (`docs/AI.md` §84): `leftover[2:wealth]` on 18428 and `bucket[2:wealth]` on 18511.
-            (280, 1, 279, 281),
+            (168, 1, 167, 169),
             "the floor"
         );
     }
@@ -18254,7 +18217,7 @@ pub(crate) mod tests {
         // **Item 870 took seven (218/229/231 → 211/222/224)**: the first
         // block's `group` rows (`1/0` 70 here against 69, `1/11` 64
         // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
-        pin_eq!((first, under, firsts.len()), (207, 218, 220), "the floor");
+        pin_eq!((first, under, firsts.len()), (148, 154, 156), "the floor");
     }
 
     /// **run149 — East Indies' word 10782, widened whole, both directions**
@@ -18400,7 +18363,7 @@ pub(crate) mod tests {
         // block's `group` rows (`1/0` 70 here against 69, `1/11` 64
         // against −1, `1/32`..`1/38` 68 against 66): who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1106 took one (212/212/220 → 211/211/219): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 10336 against 10344 on 10730.
-        pin_eq!((first, under, firsts.len()), (207, 207, 215), "the floor");
+        pin_eq!((first, under, firsts.len()), (148, 148, 155), "the floor");
     }
 
     /// One of East Indies' `LEADERS=9` windows walked whole, both
@@ -19099,7 +19062,7 @@ pub(crate) mod tests {
         // against 65, `1/11` 64 against −1, `1/35`, `1/38` 68 against 66)
         // and the scout's `mirror` and `order:move.facing`: who=1's pool numbering, the original's since item 870 (`docs/GROUPS.md` §29).
         // Item 1106 took one (207/232/240 → 205/231/239): both leaders' `gather_stamp` on the first block, 10380, close, and who=1's parts first on 10384 instead, 10383 against 10343: a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84).
-        pin_eq!((first, under, firsts.len()), (201, 227, 235), "the floor");
+        pin_eq!((first, under, firsts.len()), (141, 167, 175), "the floor");
     }
 
     #[test]
