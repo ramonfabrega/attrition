@@ -693,6 +693,15 @@ impl Sim {
                 u.movement.des_angle,
             ),
         };
+        // The body's two speeds stand through the snap: `set_new_location
+        // (·, ·, 1, 1)` moves the guys and writes neither, so a unit that
+        // walked in comes out with the average it froze at the door
+        // (run430's `0/5` on 902: 15 inside, 11 after one frame out —
+        // item 1167).
+        let body = crate::movement::Body {
+            pos: spot,
+            ..u.movement.body
+        };
         u.movement = crate::Movement {
             speed: u.movement.speed,
             turning: u.movement.turning,
@@ -701,6 +710,7 @@ impl Sim {
             frame_facing,
             des_angle,
             mirror: u.movement.mirror != flip,
+            body,
             ..crate::Movement::at(spot)
         };
         // `Object::add_to_world` reaches `update_seen(0)` — the whole

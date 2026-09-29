@@ -14,9 +14,10 @@
  * issue_launch_patrol with another queue and shift; 23 is issue_flight on a
  * group of buildings (item 976). `launchpatrolctrl`/`launchpatrolalt` are
  * 21, `launchstrikectrl`/`launchstrikealt` and `launchmove` 23, with ctrl,
- * alt or MOVE_TO in the call and the same issuer (item 1009). */
+ * alt or MOVE_TO in the call and the same issuer (item 1009). 24 `alarm`
+ * and 25 `gather` (item 1167). */
 
-#define ISSUE_VERBS 24
+#define ISSUE_VERBS 26
 #define ISSUE_PROLOGUE 11
 
 #define RVA_ISSUE_MOVE_TO 0x541720u
@@ -37,6 +38,8 @@
 #define RVA_ISSUE_UNQUEUE 0x542c40u /* the WallOut overload, VA 0x942c40 */
 #define RVA_ISSUE_GATHER_POINT 0x541b20u
 #define RVA_ISSUE_LAUNCH_PATROL 0x541860u
+#define RVA_ISSUE_ALARM 0x541d00u
+#define RVA_ISSUE_GATHER 0x541a20u
 
 static const u32 ISSUER_RVA[ISSUE_VERBS] = {
     RVA_ISSUE_MOVE_TO,   RVA_ISSUE_PATROL,        RVA_ISSUE_GUARD,        RVA_ISSUE_FOLLOW,
@@ -44,7 +47,8 @@ static const u32 ISSUER_RVA[ISSUE_VERBS] = {
     RVA_ISSUE_MOVE_TO,   RVA_ISSUE_MOVE_TO,       RVA_ISSUE_MOVE_TO,      RVA_ISSUE_FLIGHT,
     RVA_ISSUE_FLIGHT,    RVA_ISSUE_BUILD,         RVA_ISSUE_SPELL,        RVA_ISSUE_SET_TRANSPORT,
     RVA_ISSUE_SWARM_AROUND, RVA_ISSUE_BUILDMASK,  RVA_ISSUE_QUEUE_UP,     RVA_ISSUE_UNQUEUE,
-    RVA_ISSUE_GATHER_POINT, RVA_ISSUE_LAUNCH_PATROL, RVA_ISSUE_LAUNCH_PATROL, RVA_ISSUE_FLIGHT};
+    RVA_ISSUE_GATHER_POINT, RVA_ISSUE_LAUNCH_PATROL, RVA_ISSUE_LAUNCH_PATROL, RVA_ISSUE_FLIGHT,
+    RVA_ISSUE_ALARM,     RVA_ISSUE_GATHER};
 
 /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
  * issue_patrol's, issue_guard's, issue_follow's, issue_garrison's and
@@ -63,7 +67,11 @@ static const u32 ISSUER_RVA[ISSUE_VERBS] = {
  * issue_unqueue's is `sub esp, 0x10`, for its 15-byte one.
  * issue_gather_point's is `sub esp, 0x14`, for its 17-byte one.
  * issue_launch_patrol's is issue_flight's `sub esp, 0x1c`, for its
- * 0x19-byte command (item 976). */
+ * 0x19-byte command (item 976). issue_alarm's is `push ecx` for its
+ * one-byte command (type 0x1b), then the `&command_manager` load and
+ * the type's `movb`; issue_gather's is `sub esp, 0xc`, for its 9-byte
+ * one (type 0x13, `[ox i32][queued i32]`) — item 1167, off the listing
+ * (`941d00`, `941a20`). */
 static const u8 ISSUER_PROLOGUE_BYTES[ISSUE_VERBS][ISSUE_PROLOGUE] = {
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -88,7 +96,9 @@ static const u8 ISSUER_PROLOGUE_BYTES[ISSUE_VERBS][ISSUE_PROLOGUE] = {
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x14, 0xb9, 0x60, 0xff, 0xe8, 0x00},
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-    {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+    {0x55, 0x8b, 0xec, 0x83, 0xec, 0x1c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+    {0x55, 0x8b, 0xec, 0x51, 0xb9, 0x60, 0xff, 0xe8, 0x00, 0xc6, 0x45},
+    {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
 
 /* Is the issuer at `va`, whose first bytes are `live`, the shipped build's
  * `want`? `stub` is the coverage stub `arm_all` planted over the entry, 0

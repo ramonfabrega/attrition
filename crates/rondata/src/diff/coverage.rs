@@ -321,10 +321,13 @@ const UNREAD: &[(&str, &str)] = &[
     // read off the building's gather list. **Item 976's run358 windows
     // `process_launch_patrol`** (`x y queued shift ctrl alt`), the
     // Airbase's right-click on the ground; what it writes is read off the
-    // planes' stacks.
+    // planes' stacks. **Item 1167's run430 windows `process_alarm`**
+    // (`frame`) and **`process_gather`** (`ox queued frame`), the City's
+    // alarm and the first player's gather; what they lay is read off the
+    // City's `city_flags` and the units' stacks.
     (
         "GAME",
-        "process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        "process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -609,6 +612,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch37 = golden_dump("ch37");
     let ch38 = golden_dump("ch38");
     let ch39 = golden_dump("ch39");
+    let ch40 = golden_dump("ch40");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1737,6 +1741,20 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [626, 646, 666, 706, 722, 821, 1097] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter thirty-nine carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty's word, on run430** (item 1167): the casts' other
+    // arms. 608 and 614, the two refused presses; 632, 642 and 652, the
+    // Militia's Civilians ahead of a repair, a build and a gather; 806 and
+    // 846, D's wounded conversions; 882 and 902, the bell and the
+    // all-clear (`CITIES=5`: the City's `city_flags`); 1075, the Barracks
+    // finished; 1147, the last blocks.
+    if let Some(p) = &ch40 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY;
+        for w in [608, 614, 632, 642, 652, 806, 846, 882, 902, 1075, 1147] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty carries the window's five blocks");
             frames += n;
         }
     }

@@ -126,6 +126,9 @@ pub const TRACES: &[&str] = &[
     // Item 1111: chapter thirty-nine at `cover=1` on the queue lane to 830
     // (`docs/RUNS.md` run423), run422's game on every frame.
     "rontrace-run423.log", // ch39
+    // Item 1167: chapter forty at `cover=1` on the queue lane to 910
+    // (`docs/RUNS.md` run431), run430's game on every frame.
+    "rontrace-run431.log", // ch40
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -137,9 +140,9 @@ pub const TRACES: &[&str] = &[
 /// entry checked is the issuer's body as the instrument calls it, never a
 /// path the game takes. Counted apart so the blind list's shrink says how
 /// much of it is the game's own: 77 off with item 934, 69 of them the
-/// game's. The other three of 940's eleven — `issue_attack_ground`,
-/// `issue_gather`, `issue_come_out` — no chapter issues, and they stay on
-/// [`NEVER`].
+/// game's. Of the other three of 940's eleven, `issue_gather` left with
+/// run431 (item 1167, chapter forty's `@gather`); `issue_attack_ground` and
+/// `issue_come_out` no chapter issues, and they stay on [`NEVER`].
 pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
     (
         0x0094_1580,
@@ -172,6 +175,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
     (
         0x0094_2c40,
         "CommandManager::issue_unqueue (the building overload): run332, chapter twenty-five's `@unqueue`",
+    ),
+    (
+        0x0094_1a20,
+        "CommandManager::issue_gather: run431, chapter forty's `@gather`",
     ),
 ];
 
@@ -228,7 +235,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// on 820, the three rows its staging named); **141** with the two §48
 /// cites that no trace enters: `Group::action_alarm@0070ec30`, the City's
 /// alarm, an issuer no chapter stages, and `Options::do_spell@0071d7a0`,
-/// the button the DLL's `@spell` stands in for.
+/// the button the DLL's `@spell` stands in for; **138** with run431 (item
+/// 1167: chapter forty at `cover=1`, `docs/GOLDEN.md` §49;
+/// `Group::action_gather@00700b90` on 650 and `Group::action_alarm@0070ec30`
+/// on 880, the two issuers its staging named, and `CommandManager::
+/// issue_gather@00941a20`, [`ENTERED_BY_THE_DLL_ONLY`]).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -249,14 +260,14 @@ pub const NEVER: &[u32] = &[
     0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
     0x006f_49a0, 0x006f_4af0,
-    0x0070_0010, 0x0070_0b90, 0x0070_20c0,
+    0x0070_0010, 0x0070_20c0,
     0x0070_84c0,
     0x0070_8820, 0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60,
-    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_ec30, 0x0071_3390,
+    0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0071_3390,
     0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740,
     0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40, 0x0073_c7e0, 0x0073_e000,
     0x0082_c520, 0x008c_7050, 0x0092_fc50, 0x0093_ee70, 0x0094_17a0,
-    0x0094_1960, 0x0094_1a20, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
+    0x0094_1960, 0x0094_2c90, 0x0094_3f30, 0x0094_65d0,
     0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_9ed0, 0x0094_c1c0, 0x0095_2d90, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0,
     0x009b_8ac0, 0x009e_18b0, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0,

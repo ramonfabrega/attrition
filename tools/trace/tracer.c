@@ -514,7 +514,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-four verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-six verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -563,6 +563,9 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@launchstrikealt`                    the same with ctrl or alt 1
  *   `@launchmove <who> <ox> <whom> <b> [<b> ...]` a base of one's own,
  *                                         issue_flight with MOVE_TO
+ *   `@alarm <who> <b> [<b> ...]`          building ids, issue_alarm
+ *   `@gather <who> <ox> <o> [<o> ...]`    the building's id, issue_gather
+ *                                         with QUEUE_NEW
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -751,6 +754,21 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * (`Build::action_unqueue@00620280`). The issuer reads the building's
  * `who`, `o` and `uid` and nothing else.
  *
+ * `@alarm` calls `CommandManager::issue_alarm@00941d00(&command_manager,
+ * group)` and appends a 1-byte `alarm` (type 0x1b) behind a group of
+ * buildings (item 1167, `docs/GOLDEN.md` §49): the City's alarm button,
+ * whose `GroupOut::issue_alarm@00708b40` adds nothing but the semaphore
+ * test. `Group::action_alarm@0070ec30` rings the bell or sounds the
+ * all-clear off the city's own `0x40` bit at process time.
+ *
+ * `@gather` calls `CommandManager::issue_gather@00941a20(&command_manager,
+ * group, ox, QUEUE_NEW 2)` and appends a 9-byte `gather` (type 0x13,
+ * `[ox][queued]`) behind a group of units (item 1167): a right-click on a
+ * building of one's own that takes gatherers. The DLL skips `GroupOut::
+ * issue_gather@0070aa20`'s full-building feedback; `CommandPackage::
+ * process_gather@009488b0` asks the building's `+8 & 1` and `Group::
+ * action_gather@00700b90` takes the members at process time.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -758,7 +776,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * shipped one; 3 an object is out of the registry, not active, not `who`'s,
  * not that id, or not a captain (`add_group` would drop it silently) — for
  * `@eject`, `@buildmask`, `@queueup`, `@unqueue`, `@gatherpoint` and the
- * three `@launch` verbs, not a building; 4 the
+ * three `@launch` verbs and `@alarm`, not a building; 4 the
  * package cannot hold a fresh group and the move (the issuer returns void and
  * appends nothing); 5 the text did not parse; 6 the package did not grow. */
 #define RVA_CONSOLE 0x806210u /* MiscAccess::console, VA 0xc06210 (Console *) */
@@ -812,7 +830,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
      * `settransport`, 16 `repair`, 17 `buildmask`, 18 `queueup`, 19
      * `unqueue`, 20 `gatherpoint`, 21 `launchpatrol`, 22 `launchpatrolall`,
-     * 23 `launchstrike`:
+     * 23 `launchstrike`, 24 `alarm`, 25 `gather`:
      * the issuer and its prologue (`issue_guard.h`)
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -850,6 +868,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "launchstrikealt ") ? (launch_alt = 1, 23)
                : issue_verb(&t, "launchstrike ") ? 23
                : issue_verb(&t, "launchmove ") ? (launch_move = 1, 23)
+               : issue_verb(&t, "alarm ")    ? 24
+               : issue_verb(&t, "gather ")   ? 25
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
@@ -858,11 +878,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * `@settransport` has one number, the flag, which rides in `x`, and
      * `@buildmask` one, the mask, likewise, and `@unqueue` one, the
      * selector; `@queueup`'s type and count ride in `x` and `y`;
-     * `@gatherpoint`'s action rides in `type`, after its point. */
+     * `@gatherpoint`'s action rides in `type`, after its point;
+     * `@alarm` has none, as `@eject`, and `@gather` one, the building's
+     * id, in `x`. */
     if (!issue_int(&t, &who) ||
         (verb == 14 && (!issue_int(&t, &type) || !issue_int(&t, &ox) || !issue_int(&t, &whom))) ||
-        ((verb == 15 || verb == 17 || verb == 19) && !issue_int(&t, &x)) ||
-        (verb != 5 && verb != 15 && verb != 17 && verb != 19 &&
+        ((verb == 15 || verb == 17 || verb == 19 || verb == 25) && !issue_int(&t, &x)) ||
+        (verb != 5 && verb != 15 && verb != 17 && verb != 19 && verb != 24 && verb != 25 &&
          (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
         ((verb == 13 || verb == 20) && !issue_int(&t, &type))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
@@ -878,7 +900,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
     u32 rva = ISSUER_RVA[verb];
-    u32 size = verb >= 21  ? 0x19
+    u32 size = verb == 25  ? 0x09
+               : verb == 24  ? 0x01
+               : verb >= 21  ? 0x19
                : verb == 20  ? 0x11
                : verb == 19  ? 0x0f
                : verb >= 17  ? 0x09
@@ -904,9 +928,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         return;
     }
     /* A unit verb names live captains, from `units`; `@eject`,
-     * `@buildmask`, `@queueup`, `@unqueue` and `@gatherpoint` name live
-     * buildings, from `objects`, on `Build::vftable`. */
-    i32 on_buildings = verb == 5 || verb >= 17;
+     * `@buildmask`, `@queueup`, `@unqueue`, `@gatherpoint`, the `@launch`
+     * verbs and `@alarm` name live buildings, from `objects`, on
+     * `Build::vftable`. */
+    i32 on_buildings = verb == 5 || (verb >= 17 && verb <= 24);
     u8 *objects = on_buildings ? *(u8 **)(g_base + RVA_OBJECTS) : 0;
     u8 *band = on_buildings ? (objects ? objects + 4 + (u32)who * 0x1c : 0)
                             : (u8 *)(g_base + RVA_UNITS + (u32)who * 0x1c);
@@ -935,7 +960,16 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb >= 21) {
+    if (verb == 25) {
+        /* issue_gather(group, ox, QUEUE_NEW 2): a right-click on a
+         * building of one's own. */
+        typedef void(__thiscall *gather_fn)(void *, void *, i32, i32);
+        ((gather_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, 2);
+    } else if (verb == 24) {
+        /* issue_alarm(group): the City's alarm button. */
+        typedef void(__thiscall *alarm_fn)(void *, void *);
+        ((alarm_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout);
+    } else if (verb >= 21) {
         /* issue_launch_patrol(group, x, y, queue, shift, ctrl, alt) —
          * QUEUE_NEW for `@launchpatrol`, QUEUE_LAST and shift for
          * `@launchpatrolall` — or issue_flight(group, ox, whom, ATTACK, 0,
