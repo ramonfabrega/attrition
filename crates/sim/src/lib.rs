@@ -4599,6 +4599,29 @@ impl Sim {
         // runs the clock, an attack runs `fight`, an idle unit thinks.
         self.work(i, frame);
         if !self.units[i].alive() {
+            // **A boat that stepped ashore in its own work still takes its
+            // figures' `Guy::move`** (item 1191, `docs/TRANSPORT.md` §6.4).
+            // `Unit::process@00610bc0` runs the `+0x188` think and then
+            // `Guy::process` over the guy array with no test between them,
+            // and the boat's death inside the think —
+            // `Unit::set_new_location`'s sea arm, `eject_contents` then
+            // `Object::die(0)` → `Unit::close` → `Object::close` — writes
+            // neither the array nor its counts. So a boat standing on its
+            // `des` on the walk with `stopped` set pays the arrival stand on
+            // the frame it dies: East Indies' `1/56` on 8519, whose draw is
+            // invisible in every dump because the boat is gone on 8520.
+            //
+            // [`Sim::disembark`] is the only death this crate takes inside
+            // a unit's own work; it leaves the boat dead and off the map.
+            // SEAM: a unit killed in its own work with a death animation
+            // (`Unit::close`'s `param_1 != 0`) has its figures handed to
+            // `Objects::kill_guy` first, and this crate kills none that way
+            // there. And `coll_follow` and `coll_repaint` skip the dead
+            // boat, where the original's `Guy::process` repaints its disc on
+            // its sixty-fourth frame regardless: not modelled.
+            if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
+                self.process_movement(i);
+            }
             return;
         }
         if !self.units[i].on_map {

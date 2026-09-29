@@ -165,7 +165,7 @@ pub(crate) fn walk_second_probed(
 /// moved it to 6609, and the walk to run420; item 1156 moved it to 6743,
 /// inside it; item 1164 moved it to 7382, and the walk to run425; item
 /// 1174 moved it to 7512, inside it; item 1185 moved it to 8519, and the
-/// walk to run439. `None`
+/// walk to run439; item 1191 moved it to 8820, and the walk to run445. `None`
 /// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
@@ -177,7 +177,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run439-islands-toughest-8519.txt",
+        "gamelog-run445-islands-toughest-8820.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -1414,7 +1414,7 @@ mod tests {
             "run439",
             "gamelog-run439-islands-toughest-8519.txt",
             WIDENING_SECOND_EAST_INDIES_8519,
-            &[SECOND_WORD_EAST_INDIES + 1],
+            &[8_520],
             true,
             true,
         ) else {
@@ -1436,13 +1436,17 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word 8519** (item 1185; no mechanism is named): ours 2 draws
-        // against 3, at index 0, ours `Guy::set_anim+0x97a <
+        // **The word 8519** (item 1185; no mechanism was named): ours 2
+        // draws against 3, at index 0, ours `Guy::set_anim+0x97a <
         // Guy::inc_time+0x271`, the original `Guy::set_anim+0x97a <
         // Guy::move+0x19f`. The first block stands on 481 keys from the gap
         // 7634..8513, among them `1/68` and `1/69` each on the other's walk;
-        // their moves' `dest` part on 8516 and 8519, and on the word's
-        // block 8520 `1/21`'s figure clock.
+        // their moves' `dest` part on 8516 and 8519. **Item 1191 closed it**:
+        // the original's extra draw is the boat `1/56`'s arrival stand on
+        // the frame it steps ashore and dies (`docs/TRANSPORT.md` §6.4), and
+        // ours gave the roll to `1/21`'s wrap — on the word's block 8520
+        // `1/21`'s `g.cur_anim[0]` ours 26 against 25 and `g.end_time[0]`
+        // 100 against 30 → agreeing.
         pin_eq!(
             row(1, 69, "order:move.dest").as_deref(),
             Some("8516: Move { field: \"dest\", ours: 0, theirs: 1 }"),
@@ -1455,8 +1459,78 @@ mod tests {
         );
         pin_eq!(
             row(1, 21, "g.cur_anim[0]").as_deref(),
-            Some("8520: ours 26 theirs 25"),
-            "the word's block: `1/21`'s figure clock"
+            None,
+            "the word's block: `1/21`'s figure clock agrees (item 1191)"
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= 8_520)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(8514, 481), (8516, 1), (8519, 1)],
+            "the blocks keys first part on, to the old word's block 8520"
+        );
+        // Item 1191: 1243 → 608.
+        pin_eq!(w.firsts.len(), 608, "every key parted on run439");
+    }
+
+    /// **The second pair's East Indies word 8820, widened whole** (item
+    /// 1191): run445 is run346's game at run439's detail over blocks
+    /// 8815..9071, walked from run346's own start — every dumped record on
+    /// the word's block 8821 and the six before it, both directions.
+    #[test]
+    fn run445_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run445",
+            "gamelog-run445-islands-toughest-8820.txt",
+            WIDENING_SECOND_EAST_INDIES_8820,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run445 whole: blocks 8815..9071");
+        pin!(
+            w.missing.is_empty(),
+            "run445 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 8820** (item 1191; no mechanism is named): ours 2 draws
+        // against 3, at index 2, the original's third a `Guy::set_anim+0x97a
+        // < Guy::inc_time+0x271` ours does not make. Nothing new parts on
+        // the word's block 8821 or before it: the first block stands on 504
+        // keys from the gap 8771..8814, and among them the figure clocks of
+        // two units the original wraps on 8820 — `1/68` (its idle loop,
+        // `cur_time` 30 → 0) and `1/70` (`IDLE1` → `DEFAULT`).
+        pin_eq!(
+            row(1, 68, "g.cur_time[0]").as_deref(),
+            Some("8815: ours 21 theirs 25"),
+            "`1/68`'s clock stands four frames short"
+        );
+        pin_eq!(
+            row(1, 70, "g.cur_anim[0]").as_deref(),
+            Some("8815: ours 35 theirs 1"),
+            "and `1/70` stands on another animation"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
@@ -1467,10 +1541,10 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8514, 481), (8516, 1), (8519, 1), (8520, 2)],
+            [(8815, 504)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1243, "every key parted on run439");
+        pin_eq!(w.firsts.len(), 1176, "every key parted on run445");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
