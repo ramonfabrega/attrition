@@ -9392,7 +9392,9 @@ node's point `(−102, −59)` (§54).
   `(float)angle_to_degrees(i << 24)`, indexed by the angle's top byte
   (`a28ffe`). run147's packet holds it: `0, 1, 3, 4, 6, 7, 8, …, 359`.
 - The event fires only if `has_restrictions` is 0, or `node & 3` is past
-  the count, or `node_flags` has bit `node & 3`.
+  the count, or `node_flags` has bit `node & 3`. The gate reads the
+  event's node and the piece's restriction count, never the pivot
+  vectors: §85 (item 1117), which found this crate keying it on them.
 
 `GraphicPieces::get_position@0090b750`'s pivot branch, taken when `node &
 3 < param_7` and `param_6` is set (`90b866`–`90b926`):
@@ -13337,3 +13339,126 @@ Diff-backed on run404: the cycle (`recharging`, `attack_ox`,
 stream), its launch, time and angle (block 798), and the accuracy's sign
 (one round). Read alone: `verify_load`'s type list and slice, the jam
 arm, the out-of-range clear.
+
+## 85. The release gate is the event's, not the vectors' (item 1117, 2026-09-28)
+
+Chapter thirty-eight's word stood at 779: the Anti-Aircraft Battery
+`1/9`'s `CHAR_ATTACK2` round on node 0, frame 4, which ours fired and
+theirs held. Item 1112 read block 780 as the turret short of its aim
+(`node_flags` 14). No reader in this crate parsed the turret, so that was
+a hypothesis (DECISIONS 42). `docs/journal/2026-09-28-item-1117.md` has
+the story.
+
+### 85.1 The instrument first
+
+`GuyData +0x20 turret_angles[4]`, `+0x30 des_turret_angles[4]`, `+0x96
+node_flags` and `+0x98 des_node_flags` are parsed now (`gamelog::Guy`).
+`golden::widen_turrets` compares them against `sim::anim::Turret`, both
+directions, on every figure of every golden widening that walks
+`widen_block` (the civilians' chapters, three, four and five). This crate
+did not carry `des_node_flags`; it is `Turret::des_flags` now, cleared
+with `node_flags` in `set_all_pivots`' one 32-bit store (`005d8bc0:46`)
+and set per node whose range holds the bearing (`:129`).
+
+What parts, on every golden window: **chapter thirty-eight alone**.
+Chapter fifteen's pivot figure (who=1's `o 6`, 154 aimed records) agrees
+on every block. On run404 the Battery's aim is 2,359,296 off theirs from
+its first on 743. Both sides then turn in step, 15° a frame. The bits
+first part on 801. **On block 780 both sides read `node_flags` 14,
+`des_node_flags` 1.** So ours fired through a clear bit.
+
+### 85.2 The gate, from the listing
+
+`GraphicEvents::execute_game_events@008e48e0`, the release arm,
+`008e4c28`–`008e4c4c`:
+
+- `has_restrictions(gpiece)` (`GraphicPieces::has_restrictions@0090b640`:
+  the piece's type less `0x32` indexes `pivot_restrictions`, and `+0x14`
+  of the row is the count). If it is 0, the event passes.
+- `movsbl 0x23(event)`, `and $3`: the **event's own node**, sign-extended,
+  and its low two bits. If that is at least the count, the event passes.
+- `movzwl 0x30(package)` is the package's `node_flags`
+  (`Guy::execute_events@005d99c0:57` copies the figure's). With bit `node
+  & 3` clear, the event is skipped to `008e4d0d`. It is not deferred: an
+  event whose frame passes while the bit is clear never fires.
+
+Nothing in it reads `get_position`'s entries. This crate held the round
+only when `pivot::release` had a row for `(piece, anim, frame)`, and the
+Chariot's piece 145 is the only one measured. The Battery's piece has no
+row, so its node-0 events fired whatever the bits said.
+
+**Built**: `guy_release_events` takes `k = (event node as i32) & 3`
+against the type's restriction count (`art.pivots`, the same count the
+launch branch uses) and the figure's `node_flags`, on every piece.
+`pivot::tests::a_turret_short_of_its_aim_holds_its_release_on_any_piece`
+fails with the gate keyed on `release` again.
+
+**Who writes `+0x96` on a figure**, by offset, every spelling:
+`Guy::clear@005db590` (the 32-bit zero), `Guy::set_all_pivots` (the zero,
+then bit `k` within 15°), `Guy::process@005e0230:36` (each turret on its
+aim), `Guy::set_pivot_angle@005d8fc0` (turret 0 at zero), and that
+function's inlined copy in `Unit::move_step@005faf30:79–94`, the
+cavalry-archer arm when figure 0's `des_node_flags` is 0. `+0x98`:
+`set_all_pivots` and `set_pivot_angle`, and the same inline copy. This
+crate has the first three. The fourth and fifth are a SEAM, reached only
+by a figure none of whose nodes bears (§85.5).
+
+### 85.3 Every instance on disk
+
+A pivot figure that aimed (`des_node_flags` non-zero) is in six dumps
+out of 298: run404 (2,038 records), chapter fifteen (154), run147 (60),
+and the islands windows run25, 26, 27 and 29 (2, 2, 14, 14). run404's
+Battery fires 38 rounds, in pairs. At facing 1222246400, every node-1
+round of a `CHAR_ATTACK2` pair leaves from the same point, (−105, −42),
+`dz` 172 (783, 808, 858, 883, 908). The node-0 rounds move with the
+turret (805, 838, 855, 880, 905, 964, 989, 1013), as §55.2's pivot
+branch says.
+
+### 85.4 What moved
+
+**779 → 794.** The value diff on block 780, both sides: `1/9` at
+`cur_anim 12`, `cur_time 4`, `node_flags 14`, `des_node_flags 1`,
+`turret_angles[0]` 1476220240 against `des_turret_angles[0]` −1978269696
+(theirs; ours is 2,359,296 off on both), and **no round of `1/9` in the
+air** (ours had `780 1/9 ammo[0]`). The node-1 round is released on 782
+on both sides (block 783, `cur_time 1`). Theirs leaves from (21279,
+17214). Ours leaves from the figure's square, (21384, 17256), because
+the piece's node-1 vector is unmeasured (§85.5). So ours flies 3 frames
+where theirs flies 2, and `0/7`'s hit rows part on 784.
+
+**794** is `1/7`'s walk. It parted on 765, where the army's `ATTACKTO`
+point is one cell past theirs (parked 1113). Theirs stands at (20604,
+16968) from 777. Ours is still walking at (21185, 17322) and spends
+`Guy::set_anim+0x97a < Unit::move_step+0x823`. Ours draws 12, theirs 8.
+
+**Mutations**, each on the committed build (`7a9702ba`), `git diff
+--stat` non-empty first, restored from git and `touch`ed:
+
+| mutation | sim | ch38's pins |
+| --- | --- | --- |
+| the gate keyed on `pivot::release` again | the gate's test | word test (fell to 779), word block, widening |
+| `set_all_pivots`' `des_flags` write dropped | ok | word block (`des_node_flags` 0 against 1), widening |
+| the golden `node_flags` row dropped (the instrument, on `d2d310ca`) | ok | widening |
+
+### 85.5 What is not established
+
+- **The Battery's release vectors.** Node 1 (non-pivot) and node 0
+  (the pivot branch's two entries) are unmeasured for its piece. From
+  784, run404's rounds leave from the figure's square in ours.
+  Measuring them needs either run404's 38 rounds fitted per `(anim,
+  frame, node)` as `launch::BAYS` rows (one facing for most keys), or a
+  packet's `AttachPos` entries, as run147's were for the Chariot.
+- **The Battery's node vector for the bearing** (`pivot::NODES`): its
+  aim is 2,359,296 off from 743 for that reason.
+- `set_pivot_angle` and its `move_step` copy, which point turret 0 ahead
+  when no node bears. No capture on disk has shown it.
+- `guy_flags & 0x100` gates `Guy::process`' turn in the original. This
+  crate turns every figure of a type with restrictions.
+
+### 85.6 Coverage
+
+Diff-backed on run404: the four turret fields on every figure and block
+of the window, and the held round on 780 (the word block test, the
+widening, the draw stream to 793). On chapter fifteen: the four fields.
+Read alone: the gate's `has_restrictions == 0` arm, and the writers in
+§85.2 that this crate does not have.
