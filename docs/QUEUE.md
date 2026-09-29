@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, nine landings since the nineteenth pass (DECISIONS 55):
+*2026-09-29, ten landings since the nineteenth pass (DECISIONS 55):
 East Indies 6151 → 7382 (1127, 1143, 1156, 1164); Great Sahara 6/5 →
-1850/1850, long word 8 → 14587 (1133, 1147, 1163); chapters
-thirty-eight and thirty-nine closed (1131, 1111).*
+1850/1850, long word 8 → 15586 (1133, 1147, 1163, 1171); chapters
+thirty-eight and thirty-nine closed (1131, 1111). The commander clears.*
 
 - **Three lanes, on the user's word** (DECISIONS 55, amended): the
-  second pair's — 1174, East Indies' 7382; **the third map's** — 1171,
-  Great Sahara's frame 14587; the rules' — 1167, chapter forty.
+  second pair's — 1174, East Indies' 7382; **the third map's** — 1177,
+  Great Sahara's frame 15586; the rules' — 1167, chapter forty.
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
@@ -31,17 +31,17 @@ thirty-eight and thirty-nine closed (1131, 1111).*
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 21 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176).
+- **Fable backlog: 23 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w7382 of 18,140 · GreatLakes w5930 of 5,930
-Third map: GreatSahara w14587 of 24,000
+Third map: GreatSahara w15586 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · 1167 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes on three lanes — 1174, 1171 and 1167;
-the twentieth pass at twenty landings from the nineteenth's commit.**
+**Opener: the commander resumes on three live lanes, `att-<item>` —
+1174, 1177 and 1167; the twentieth pass at twenty landings, ten to go.**
 
 ## The queue
 
@@ -51,13 +51,13 @@ lower map first — East Indies (Great Lakes is closed at its end).
 Take the first unstarted on a lane's own track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1171. **Great Sahara's word: frame 14587, ours 9 draws against 10**
-    (1163), at index 3: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`, widened on
-    run418 (blocks 14582..14838), where `1/52` collides with `1/30` on
-    14588 in the original only, and the AI army group 64 holds 21 slots
-    here against 15, its members' group id formed on 14330 against
-    14336. Its own lane. No mechanism is named.
+1177. **Great Sahara's word: frame 15586, ours 7 draws against 6**
+    (1171), at index 3: ours `Guy::set_anim+0xf2f < Guy::move+0x166`,
+    theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`, widened on run426
+    (blocks 15581..15837), where who=1's make offers part on 15582 and
+    group 68's raider `1/29` has an `ATTACK` at its head on 15585 here
+    against a `MOVE_TO` there, 2 orders against 3; the army group's ids
+    are six frames apart again. Its own lane. No mechanism is named.
 
 1174. **East Indies' second word: frame 7382, ours 15 draws against 9**
     (1164), at index 0: ours `Leader::use_market+0x1ed`, theirs
