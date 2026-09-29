@@ -1196,7 +1196,29 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// word's delta**: frame 17623, ours 7 draws against 8, at index 2 ours
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
 /// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, widened on run449.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 17_623;
+///
+/// **17623 → 24000 on item 1206, the trace's own end, and the mechanism
+/// was `refresh_group_order`'s tail** (`docs/GROUPS.md` §6.8): the member
+/// that takes a formation over re-turns the slot table through
+/// `update_positions` whole (`713b94`), waypoint arm included, and ours
+/// turned it by the member's heading. On 17493 `1/51` left army group 64
+/// and `1/62` took it over standing, 2.5° between its heading and its
+/// waypoint's bearing, and who=1's soldiers walked to slots that far off
+/// for 130 frames. **The word's delta**: on frame 17623 ours 7 draws
+/// against 8, one `Guy::set_anim+0x97a < Unit::do_idle+0x7d` fewer → 8
+/// against 8. The value diff is run457's block 17493
+/// (`run457_s_gap_is_widened_whole`): group 64's `curr[8]` (627, −793)
+/// against (661, −765) → the original's, and all fifteen slots with it;
+/// and run449's block 17618, `1/52`'s `pos` (28322, 20471) against
+/// (28344, 20484) → the original's, 1,352 keys → 157, every one on the
+/// first block. **The new word's delta: none** — ours and the original
+/// spend the same draws on every frame of run383's trace, 0..23999, and
+/// the word is the trace's last frame. At the end block, 24001, every one
+/// of the 88 units the endpoint compares stands where the original's does
+/// (`ENDPOINTS`' Great Sahara row: 0 off, 0 unlinked, 0 extra).
+/// `run458_s_word_frame_is_widened_whole` widens run458, the game's last
+/// blocks.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 24_000;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -7159,13 +7181,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run418's test keeps the move's value diff on 14661 and run428's on
     // 15983. Item 1194 moved it to **17623**, past run442's last block,
     // and took run449 over 17618..17874; run442's test keeps the move's
-    // value diff on 16681 and 16682, and run428's on 15978.
+    // value diff on 16681 and 16682, and run428's on 15978. Item 1206
+    // moved it to **24000**, the trace's own end, on `refresh_group_order`'s
+    // tail; run457 (17140..17618, the gap run449's first block stood on)
+    // and run449 keep the move's value diff, and run458, the game's last
+    // blocks, is widened whole.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run449_s_word_frame_is_widened_whole"),
-        1194,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_17623),
+        Some("run458_s_word_frame_is_widened_whole"),
+        1206,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_END),
     ),
 ];
 
@@ -7413,7 +7439,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara",
         word: LONG_WORD_GREAT_SAHARA,
         length: 24_000,
-        endpoint: None,
-        window: Some("sahara_word_window"),
+        endpoint: Some("great_sahara_endpoint_is_pinned"),
+        window: None,
     },
 ];

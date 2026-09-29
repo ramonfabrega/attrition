@@ -11461,3 +11461,92 @@ walked from run383's start with run381's head, finds 1,352 keys parted:
   finished.
 
 The compared pin and the coverage driver walk 17622..17626.
+
+## run457 — run383's game at run449's detail over blocks 17140..17618: the gap before Great Sahara's word 17623 (2026-09-29, item 1206)
+
+**What it is.** run449's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+17140..17618, and `!quit` at 17632.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run457 \
+    --map 7 --end-frame 17632 --timeout 12000 --log-window 17140 17619 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run449's first block,
+17618, already stood on the positions of four of who=1's soldiers, and
+run442 ends at 16932. run383 prints only its start and its closing blocks,
+and the traces print draws alone, so no record on disk held 16933..17617.
+The draws bounded the window's start: the four soldiers' arrival idles on
+17137..17142 agree with the original's stream.
+
+**Taken** 15:54–16:30 in one take, with no wait. The lane lock named my own
+predecessor's finished run449. I waited on the capture with `waitrun.sh`
+(exit 0). The receipt: `success: true`, exit 0, 2,132 s from launch to
+exit, 17,633 frames, map 7 and seed 12345 verified. The dump (998.8 MB, 479
+blocks) and the trace (65.1 MB) were moved into `Logs` as
+`gamelog-run457-greatsahara-gap-17140.txt` and `rontrace-run457.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 17,633 identical |
+| window blocks | 479, 17140..17618 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run457_s_gap_is_widened_whole` (`diff::third`), walked
+from run383's start with run381's head. Block 17140 stands on 154 keys,
+run442's families. On 17493 `1/51` leaves army group 64, `1/62` takes the
+formation over, and every one of group 64's fifteen `curr` slots parts:
+`refresh_group_order`'s tail is `update_positions` whole
+(`docs/GROUPS.md` §6.8). With that built, the window falls from 283 keys to
+172 and nothing parts past 17403. The coverage driver reads 17491..17495.
+
+## run458 — run383's game at run449's detail over blocks 23744..24000: Great Sahara's end, the long word 24000 widened (2026-09-29, item 1206)
+
+**What it is.** run449's shape on the click-free lane over the game's last
+257 blocks: `--map 7`, `--profile DIFFICULTY=0`, seed 12345, `cover=0`, the
+same detail, blocks 23744..24000, and `!quit` at 24000, run383's own.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run458 \
+    --map 7 --end-frame 24000 --timeout 12000 --log-window 23744 24001 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** Item 1206 moved the
+long word to 24000, the trace's last frame. run383's closing dump holds
+blocks 24000 and 24001, and the endpoint scores them, but the widening's
+reader finds no frame state in a closing dump. No other dump of this game
+reaches past 17874, so no record held the game's last blocks at run449's
+detail.
+
+**Taken** 16:51–17:13 in one take, with no wait. The lane lock named my own
+run457, which had finished. I waited on the capture with `waitrun.sh`
+(exit 0). The receipt: `success: true`, exit 0, 1,288 s from launch to exit,
+24,001 frames, map 7 and seed 12345 verified, five files restored. The dump
+(534.3 MB, blocks 23744..24000, with no closing block) and the trace
+(91.3 MB) were moved into `Logs` as `gamelog-run458-greatsahara-end.txt`
+and `rontrace-run458.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 24,001 identical |
+| window blocks | 257, 23744..24000 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run458_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head, finds 157 keys:
+
+- Block 23744 stands on 154 of them, run442's families.
+- Past it, three more: the human's `production_step` on 23801, and who=1's
+  `MAKE[1].city` on 23981 and `gather_stamp` on 23984.
+- No unit's position or order parts in the game's last 257 blocks.
+
+The word's own block, 24001, is run383's closing dump:
+`endpoint::great_sahara_endpoint_is_pinned` scores it at 0 off,
+0 unlinked and 0 extra over 88 units. The coverage driver reads
+23997..24000.

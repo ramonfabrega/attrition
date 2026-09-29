@@ -1898,12 +1898,6 @@ mod tests {
         for (who, o, what, want) in [
             (1, -3, "group:65.role", "4550: ours 0 theirs 1379331"),
             (1, -3, "group:64.ox", "4550: ours -1 theirs 0"),
-            (
-                1,
-                -3,
-                "group:65.curr[0]",
-                "4600: ours Some((190, 414)) theirs Some((192, 414))",
-            ),
         ] {
             pin_eq!(
                 row(who, o, what).as_deref(),
@@ -1911,6 +1905,15 @@ mod tests {
                 "{who}/{o} {what}, the record item 1061 compares"
             );
         }
+        // **Item 1206 closed group 65's `curr[0]`** (4600: ours (190, 414)
+        // against (192, 414)): a member that takes the formation over turns
+        // it through `update_positions`' waypoint arm, not by its heading
+        // (`docs/GROUPS.md` §6.8).
+        pin_eq!(
+            row(1, -3, "group:65.curr[0]"),
+            None,
+            "1/-3 group:65.curr[0] agrees on 4600"
+        );
         for what in ["attack[0].ever_in_range", "attack[0].new_ord"] {
             pin_eq!(
                 row(1, 24, what),

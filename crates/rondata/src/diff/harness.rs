@@ -10711,7 +10711,8 @@ pub(crate) mod tests {
         // **Item 729 took one more (211 → 210)**: `0/frame_attacked`, `Object::take_damage`'s stamp (`docs/AI.md` §71).
         // **Item 882 took three (210 → 207)**: `1/62`..`1/64`'s `group` on 11424, 69 on both sides (ours −1 before): `come_out`'s push of the trained squad (parked 561, `docs/GROUPS.md` §31).
         // Item 1072 took four (207 → 203): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-        pin_eq!(under, 199, "the floor under the word");
+        // Item 1206 took sixteen (199 → 183): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!(under, 183, "the floor under the word");
         let pair: Vec<String> = firsts
             .iter()
             .filter(|((w, o, what), (f, _))| {
@@ -11313,7 +11314,8 @@ pub(crate) mod tests {
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 1072 took four (207/220 → 203/216): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-        pin_eq!((under, firsts.len()), (199, 212), "the floor");
+        // Item 1206 took sixteen (199/212 → 183/196): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, firsts.len()), (183, 196), "the floor");
     }
 
     /// **run174 — Great Lakes' word 12429, widened whole, both directions**
@@ -11523,7 +11525,8 @@ pub(crate) mod tests {
         // `escrow` from 12382 and 12385, 0 here against 1 before; a gather
         // offer is escrowed on every exit of the head test (`docs/AI.md` §77.5).
         // Item 1072 took four (220/352 → 216/348): `0/5`'s five damage rows (`damage_frac`, `hits:damage`, `hits:damage_frac`, `hits_left`), standing from 11400 at ours 2/2 against the original's 0/0: the civilian heal (`docs/COMBAT.md` §72).
-        pin_eq!((under, firsts.len()), (212, 336), "the floor");
+        // Item 1206 took sixteen (212/336 → 196/320): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, firsts.len()), (196, 320), "the floor");
     }
 
     /// **run178 — Great Lakes' word 14382, widened whole, both directions**
@@ -11750,7 +11753,8 @@ pub(crate) mod tests {
             // and `SITE[8]`, the rock arm's city site at (47, 33) (`docs/AI.md` §78).
             // Item 1072 took four (352/26/378 → 348/26/374): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
             // Item 1106: → 348/25/373, who=0's `gather_stamp` on 14537, the border pass's economy flag (`docs/AI.md` §84).
-            (336, 13, 349),
+            // Item 1206 took sixteen (336/13/349 → 320/13/333): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+            (320, 13, 333),
             "the floor"
         );
     }
@@ -11894,7 +11898,8 @@ pub(crate) mod tests {
         // Item 1072 took four (378/4/382 → 374/4/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (374/4/378 → 373/4/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((373, 4, 377) → (369, 4, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, own.len(), firsts.len()), (349, 4, 353), "the floor");
+        // Item 1206 took sixteen (349/4/353 → 333/4/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, own.len(), firsts.len()), (333, 4, 337), "the floor");
     }
 
     /// **run196 — Great Lakes' word 15175, widened whole, both directions**
@@ -12021,7 +12026,8 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
+        // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, mid, firsts.len()), (337, 0, 337), "the floor");
     }
 
     /// **run202 — Great Lakes' word 15384, widened whole, both directions**
@@ -12168,7 +12174,8 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
+        // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, mid, firsts.len()), (337, 0, 337), "the floor");
     }
 
     /// **run211 — Great Lakes' word 15608, widened whole, both directions**
@@ -12319,7 +12326,8 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
+        // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, mid, firsts.len()), (337, 0, 337), "the floor");
     }
 
     /// **run218 — Great Lakes' word 16460, widened whole, both directions**
@@ -12439,7 +12447,8 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
+        // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, mid, firsts.len()), (337, 0, 337), "the floor");
     }
 
     /// **run226 — Great Lakes' word 17099, widened whole, both directions**
@@ -12583,7 +12592,8 @@ pub(crate) mod tests {
         // Item 1072 took four (382/0/382 → 378/0/378): `0/5`'s four damage rows, standing from 11400 at ours 2/2 against 0/0: the civilian heal (`docs/COMBAT.md` §72).
         // Item 1106 took one (378/0/378 → 377/0/377): who=0's `gather_stamp`, a region's end raising the economy flag at the border pass's pace (`docs/AI.md` §84), 14536 against 14080 on 14537.
         // Item 1115 took the caravan's four rows here ((377, 0, 377) → (373, 0, 373); `docs/CARAVAN.md` §11.3).
-        pin_eq!((under, mid, firsts.len()), (353, 0, 353), "the floor");
+        // Item 1206 took sixteen (353/0/353 → 337/0/337): `1/34` and `1/36`'s heading, facing, guy angles and move destination rows on 11799, a formation handed over through `update_positions`' waypoint arm (`docs/GROUPS.md` §6.8).
+        pin_eq!((under, mid, firsts.len()), (337, 0, 337), "the floor");
     }
 
     /// **run243 — Great Lakes' word 20568, widened whole, both directions**

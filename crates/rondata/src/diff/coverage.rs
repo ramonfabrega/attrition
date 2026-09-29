@@ -669,6 +669,8 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r428 = crate::testenv::dump(super::third::SAHARA_WORD_15982);
     let r442 = crate::testenv::dump(super::third::SAHARA_WORD_16681);
     let r449 = crate::testenv::dump(super::third::SAHARA_WORD_17623);
+    let r457 = crate::testenv::dump(super::third::SAHARA_GAP_17140);
+    let r458 = crate::testenv::dump(super::third::SAHARA_END);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1271,10 +1273,26 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run442 carries the old word's blocks");
         frames += n;
     }
+    // Item 1206 moved it to 24000, the trace's end: run449's window stays
+    // as the move's, and run457's block 17493 is the move's value diff.
     if let Some(p) = &r449 {
-        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let b = super::third::SAHARA_17623_BLOCK;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run449 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run449 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r457 {
+        let b = super::third::SAHARA_GAP_17493_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run457 carries the move's blocks");
+        frames += n;
+    }
+    // **And the word's own, run458's last blocks** (item 1206): the word
+    // 24000 writes the closing block 24001, the last any dump holds.
+    if let Some(p) = &r458 {
+        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let n = drive_capture(p, b - 4, b, &mut paths);
+        assert!(n >= 4, "run458 carries the third map's closing blocks: {n}");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -2050,13 +2068,19 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1194 moved it to run449's 17622..17626**, where neither an
     // attack nor a cast stands and a guard order does: the attack row and
     // the cast pair return to this pin, and the guard's six leave it.
+    // **Item 1206 closed the third map at its trace's end**, so only East
+    // Indies' run439 window is walked: it holds no group move, no guard
+    // and no move whose `coll` pair has left `(0, 0)`, so the group row
+    // (`group_id`, `group_angle`, `in_group`, `form_id`, `oxx`, `whose`),
+    // the guard's six and `coll_x`/`coll_y` return to this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
-         ever_in_range garrison_search in_range mandatory metric new_ord \
-         non_flat_gather orig_x orig_y patrol_x patrol_y retry returning sharp_turn \
-         strafe_xx strafe_yy tolerance uid waypoint",
+         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
+         def_y defensive ever_in_range form_id garrison_search group_angle group_id \
+         guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
+         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
+         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
@@ -2073,11 +2097,12 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 1127), so `job_counter` stays off. **Item 1185 moved East Indies'
     // window to run439's 8518..8522**, where no unfinished site stands;
     // one does on the third map's run428 window (item 1177), so
-    // `job_counter` stays off.
+    // `job_counter` stays off. **Item 1206 closed the third map**, and
+    // with only run439's window walked `job_counter` returns to this pin.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+         job_counter max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -2089,9 +2114,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 ];
 
 /// **Every field the parser carries is compared by the shared instrument
-/// on every open word's own window, or pinned above.** The windows are
-/// the third map's (`third::sahara_word_window`, the nineteenth pass) and
-/// `second::east_indies_word_window` since item 1106 — the second pair's
+/// on every open word's own window, or pinned above.** The window is
+/// `second::east_indies_word_window` since item 1106 (the third map's,
+/// `third::sahara_word_window`, was walked beside it from the nineteenth
+/// pass until item 1206 closed that map at its end) — the second pair's
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item
@@ -2114,19 +2140,15 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     // at run414's detail since item 1133 (run382's blocks 1..259 before), is
     // walked under the same recorder, and a field is compared when a site on
     // either window compared it.
-    let third = super::third::sahara_word_window();
+    // Item 1206 closed the third map at its trace's end, 24000, so its
+    // row names its endpoint and no window, and only the second pair's
+    // East Indies word is open.
     let seen = compared::stop();
-    let (Some(mut w), Some(third)) = (walked, third) else {
+    let Some(w) = walked else {
         eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };
     assert!(w.blocks >= 4, "the word's window is {} blocks", w.blocks);
-    assert!(
-        third.blocks >= 4,
-        "the third map's window is {} blocks",
-        third.blocks
-    );
-    w.blocks += third.blocks;
     assert!(
         !seen.is_empty(),
         "the instrument registered nothing on {} blocks",
