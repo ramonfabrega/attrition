@@ -8265,7 +8265,7 @@ callers): `is_flying_low`, `is_flying_high`, `Ammo::init_crash`,
 `ObjectData::is_siege@0046ef90`, `UnitData::get_speed@006086f0`,
 `ObjectData::is_in_range@0064e4a0`, `SpellType::cast_civilian@006704a0`,
 `cast_to_arms@00670880` and `cast_create_decoy@00674370`, nine tied by
-their callers; ~~the other four are not recoverable from CENSUS~~ (named off their callers, §50's table) — the nearest
+their callers; ~~the other four are not recoverable from CENSUS~~ (§50) — the nearest
 by caller, `MoveOrder::is_fleeing@004889a0` (`target_opportunity`'s),
 `Unit::resolve_block@005fccc0` (`do_move`'s), `Units::make_valid@0061a960`
 and `UnitBalance::next@009b8ac0`, are on no air path.
@@ -8274,12 +8274,12 @@ and `UnitBalance::next@009b8ac0`, are on no air path.
 flak round asks it, and its answer picks the roll: a failure teaches the
 flak's whole hit model), **`init_crash`** (the kill: a draw and a round),
 **`is_flying_high`** (the Infantry's ladder; it may not fire, below).
-Dropped: ~~`get_speed`~~ (read and staged, §50, item 1182) — its one caller is `Object::do_launch`'s sortie arm,
+Dropped: ~~`get_speed`~~ (§50) — its one caller is `Object::do_launch`'s sortie arm,
 which searches every player's objects and orders an idle plane out; its
-gate is unread, a reading before a chapter. ~~`is_siege`~~ (the first arm read and staged, §50: a spill onto a building's hands, not a responder) — its two calls in
+gate is unread, a reading before a chapter. ~~`is_siege`~~ (§50) — its two calls in
 `Object::do_damage@0064a480` are a sea-domain responder to a struck friend
 and a computer's siege unit in an army charging a city (the navy's and the
-AI's). `is_in_range` — the tracer cannot hook it (`RESIDUE`, §50) (a branch target inside
+AI's). `is_in_range` — the tracer cannot hook it (a branch target inside
 the displaced range); no capture takes it off. The three spells — the
 City's alarm (`Group::action_alarm` and `SpellType::cast`) and a General's
 decoy — share nothing with the air line; they want a chapter of the spell
