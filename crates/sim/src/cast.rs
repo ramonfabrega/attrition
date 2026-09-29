@@ -17,6 +17,12 @@ use crate::group::Group;
 use crate::orders::{Body, CastOrder, MoveKind, Order, QueuePos, flag, spell};
 use crate::{Player, Pos, Sim};
 
+/// `TypeIndex` rows the three untargeted crafts name (`enums/TypeIndex.txt`).
+const PEASANTS: i32 = 0x32;
+const MILITIA: i32 = 0x42;
+const MINUTEMAN: i32 = 0x43;
+const PARTISAN: i32 = 0x44;
+
 /// `SpellTypeData::spell_flags` letters the cast reads, as bits `a`..`m`.
 pub mod craft {
     /// `b`, `c`, `d`: a unit, a building, an area — the targeted craft.
@@ -67,13 +73,65 @@ impl Sim {
     /// player's unit can be handed — the head's lineage test: the caster
     /// `is` the row's `FROM` or `FROM2`.
     ///
-    /// SEAM: the tribe and graft substitutions, and every craft's own case
-    /// below the head; the Spy's three have none.
+    /// Past the head, `@00675d19`: a unit that is a decoy (`unit_masks & 1`)
+    /// casts nothing but a pack or an unpack. Then the craft's own case;
+    /// the ones this crate carries:
+    ///
+    /// ```text
+    /// TO_ARMS (0x294): the caster on the map; the player holding MILITIA,
+    ///   MINUTEMAN or PARTISAN (`has_tech`: the preq and the type's own
+    ///   bit, which `library` does not set — run424); and the cell under
+    ///   it no one's, or the caster's, or an ally's
+    /// anything else this crate issues:            3
+    /// ```
+    ///
+    /// SEAM: the tribe and graft substitutions (the head's and To Arms'
+    /// `tribe_can_type`), and every other craft's own case; the Spy's three
+    /// and the General's and the Militia's have none.
     pub(crate) fn spell_castable(&self, s: i32, u: usize) -> bool {
         let Some(d) = self.spell(s) else {
             return false;
         };
-        d.from.iter().flatten().any(|&t| self.unit_line_is(u, t))
+        if !d.from.iter().flatten().any(|&t| self.unit_line_is(u, t)) {
+            return false;
+        }
+        if self.units[u].decoy && !spell::is_pack(s) && !spell::is_unpack(s) {
+            return false;
+        }
+        match s {
+            spell::TO_ARMS => self.to_arms_castable(u),
+            _ => true,
+        }
+    }
+
+    /// `is_castable`'s `0x294` case (`00675fd1`..`0067607c`).
+    fn to_arms_castable(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        if !unit.on_map {
+            return false;
+        }
+        let who = unit.owner;
+        let had = [MILITIA, MINUTEMAN, PARTISAN].iter().any(|&ti| {
+            self.unit_rec_of_index(ti)
+                .and_then(|r| self.unit_types[r].tree)
+                .is_some_and(|t| {
+                    self.tech_tree
+                        .has_tech(&self.setup, &self.tech[who as usize], t)
+                })
+        });
+        if !had {
+            return false;
+        }
+        match self.world.owner_at(unit.pos) {
+            crate::world::Owner::Player(p) => p == who || self.is_ally(who, p),
+            _ => true,
+        }
+    }
+
+    /// The unit record whose `TypeIndex` is `ti`, the first when a nation's
+    /// twin shares it.
+    pub(crate) fn unit_rec_of_index(&self, ti: i32) -> Option<usize> {
+        self.unit_types.iter().position(|t| t.type_index == ti)
     }
 
     /// `SpellTypeData::is_valid_target@006763c0(spell, who, o, whom)` for a
@@ -161,12 +219,18 @@ impl Sim {
         let Some(d) = self.spell(s) else {
             return 0;
         };
-        let Some(t) = target else {
+        // An untargeted craft (`spell_flags & 0xe` clear) comes with
+        // `(ox, whom)` = `(−1, −1)`, the button's own `target_spell(type,
+        // −1, −1, 0, 0)` (`Options::do_spell@0071d7a0:189`), and
+        // `is_valid_target` answers 1 for it (`006763c0`'s first test).
+        if target.is_none() && d.targeted() {
             return 0;
-        };
+        }
         // `validate_spell`'s `DOUBLE_AGENT` arm: an object already
         // infiltrated by the caster's player refuses the Informer.
-        if s == spell::INFORMER && self.infiltrated_of(t) & Self::who_bit(g.who) != 0 {
+        if s == spell::INFORMER
+            && target.is_some_and(|t| self.infiltrated_of(t) & Self::who_bit(g.who) != 0)
+        {
             return 0;
         }
         let on_map = |s: &Sim, u: usize| s.units[u].alive() && s.units[u].on_map;
@@ -205,16 +269,20 @@ impl Sim {
             if d.mana != 0 && left < d.mana {
                 continue;
             }
-            if !self.spell_valid_target(s, g.who, t) {
+            if target.is_some_and(|t| !self.spell_valid_target(s, g.who, t)) {
                 continue;
             }
             // `is_busy@0060a370`: a head cast (group.rs's reading).
             if matches!(self.current_order(u).map(|o| o.body), Some(Body::Cast(_))) {
                 continue;
             }
-            if self.units[u].cast_target != Some(t) {
+            // `(ox, whom)` against `(cavarch_o, cavarch_who)`: a change
+            // restarts the clock and writes the pair.
+            let whom = target.map_or(-1, |t| self.owner_of(t) as i8);
+            if self.units[u].cast_target != target || self.units[u].cavarch_who != whom {
                 self.units[u].spell_time = 0;
-                self.units[u].cast_target = Some(t);
+                self.units[u].cast_target = target;
+                self.units[u].cavarch_who = whom;
             }
             let pos = if d.flags & craft::FIRST != 0 {
                 while matches!(self.current_order(u).map(|o| o.body), Some(Body::Cast(_))) {
@@ -224,7 +292,7 @@ impl Sim {
             } else {
                 QueuePos::New
             };
-            self.add_cast_order_on(u, s, Some(t), at, pos, true);
+            self.add_cast_order_on(u, s, target, at, pos, true);
             laid += 1;
         }
         laid
@@ -311,6 +379,7 @@ impl Sim {
             return;
         }
         self.units[u].cast_target = Some(t);
+        self.units[u].cavarch_who = self.owner_of(t) as i8;
         let (centre, radius) = if d.flags & craft::AREA == 0 {
             let radius = match t {
                 Obj::Building(b) => self.buildings[b].ty.map_or(0, |ty| {
@@ -404,6 +473,66 @@ impl Sim {
             Obj::Unit(v) => self.units[v].infiltrated |= bit,
             Obj::Building(b) => self.buildings[b].infiltrated |= bit,
         }
+    }
+
+    /// `SpellType::cast_to_arms@00670880`: a Citizen made the player's
+    /// current Militia. `rare` (`+0x54`) keeps the type it was, the damage
+    /// keeps its fraction of the hits, and `form` is 0 (read off the
+    /// listing, end to end, and run under the emulator on a damage sweep —
+    /// `docs/GOLDEN.md` §48).
+    pub(crate) fn cast_to_arms(&mut self, u: usize) {
+        let former = self.units[u].type_index;
+        let who = self.units[u].owner;
+        let Some(rec) = self.upgrade_record(who, MILITIA) else {
+            return;
+        };
+        self.units[u].rare = former;
+        self.convert_keeping_fraction(u, rec);
+        self.units[u].form = 0;
+    }
+
+    /// `SpellType::cast_civilian@006704a0`: a Militia made back into the
+    /// player's current upgrade of the type `rare` holds — the Citizen
+    /// (`PEASANTS`) when `rare` is 0, which it then keeps; `rare` is never
+    /// cleared. `form` is 9, `Unit::init`'s for a civilian.
+    ///
+    /// SEAM: the Citizen's tribe substitution (`tribe_can_type` and the
+    /// type's `+0x68`), which no nation here takes.
+    pub(crate) fn cast_civilian(&mut self, u: usize) {
+        if self.units[u].rare == 0 {
+            self.units[u].rare = PEASANTS;
+        }
+        let who = self.units[u].owner;
+        let Some(rec) = self.upgrade_record(who, self.units[u].rare) else {
+            return;
+        };
+        self.convert_keeping_fraction(u, rec);
+        self.units[u].form = 9;
+    }
+
+    /// `SpellType::cast_create_decoy@00674370` — built from run422
+    /// (`docs/GOLDEN.md` §48).
+    pub(crate) fn cast_create_decoy(&mut self, _u: usize) {}
+
+    /// `LeaderData::current_upgrade(who, ti)` as a unit record.
+    fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
+        let t = self.unit_types[self.unit_rec_of_index(ti)?].tree?;
+        let up = self
+            .tech_tree
+            .current_upgrade(&self.setup, &self.tech[who as usize], t);
+        self.unit_record(up)
+    }
+
+    /// The two casts' shared tail: `frac = (damage << 8) / hits` before
+    /// `set_type(t, 0)`, then `damage = new_hits × frac / 256` rounded
+    /// toward zero (`cltd; andl $0xff; addl; sarl $8`).
+    fn convert_keeping_fraction(&mut self, u: usize, rec: usize) {
+        let hits = self.units[u].max_health.max(1);
+        let frac = ((self.units[u].max_health - self.units[u].health) << 8) / hits;
+        self.unit_set_type(u, rec);
+        let new_hits = self.units[u].max_health;
+        let damage = (new_hits * frac) / 256;
+        self.units[u].health = new_hits - damage;
     }
 
     /// Is the object still standing?

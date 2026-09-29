@@ -1393,12 +1393,27 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
                 return;
             }
             // `run_cmd`'s `tech` case names its argument through
-            // `parse_type(·, ·, 2)` (`007dd966`..`007dd9b4`), the same
+            // `parse_type(·, "tubs", 2)` (`007dd966`..`007dd9b4`), the same
             // underscore-to-space, exact-then-prefix rule as `add`'s
-            // (item 1078: `missile_shield` is Missile Shield).
-            match type_named(&loaded.tech_names, &name) {
+            // (item 1078: `missile_shield` is Missile Shield). The category
+            // string, read off run424's packet, is `tubs`, and `parse_type`
+            // walks the unit types ahead of the technologies: `militia` is
+            // the Militia's own bit, which `has_tech` reads for a unit
+            // (item 1111, `docs/GOLDEN.md` §48). SEAM: the buildings and
+            // the crafts of the same string, and the shorter prefixes
+            // `parse_type` tries before it gives up.
+            let exact = |names: &[String]| {
+                let want = name.replace('_', " ").to_ascii_lowercase();
+                names.iter().position(|n| n.to_ascii_lowercase() == want)
+            };
+            let tree = exact(&loaded.unit_type_names)
+                .map(|u| loaded.unit_tree[u])
+                .or_else(|| exact(&loaded.tech_names).map(|t| loaded.tech_tree[t]))
+                .or_else(|| type_named(&loaded.tech_names, &name).map(|t| loaded.tech_tree[t]))
+                .or_else(|| named_unit(loaded, &name).map(|u| loaded.unit_tree[u]));
+            match tree {
                 Some(t) => {
-                    built.sim.gain_tech(who as sim::Player, loaded.tech_tree[t]);
+                    built.sim.gain_tech(who as sim::Player, t);
                     done.ran += 1;
                 }
                 None => done.skip(&word, "no technology of that name"),

@@ -8219,7 +8219,14 @@ fn run245_s_cast_is_the_original_s_field_for_field() {
                 get("spell_time"),
             );
             note(them.who, them.o, "cavarch_o", to, get("cavarch_o"));
-            note(them.who, them.o, "cavarch_who", tw, get("cavarch_who"));
+            let _ = tw;
+            note(
+                them.who,
+                them.o,
+                "cavarch_who",
+                i64::from(un.cavarch_who),
+                get("cavarch_who"),
+            );
             note(
                 them.who,
                 them.o,

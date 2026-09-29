@@ -258,8 +258,14 @@ pub struct Unit {
     /// **`UnitData::cavarch_o`/`cavarch_who` (`+0xa2`/`+0xa8`)** and the
     /// uid beside them (`+0xa6`) — a caster's target, written by
     /// `Group::action_spell` and again by each frame of `do_cast`'s
-    /// targeted arm (`docs/GOLDEN.md` §27). `None` is `(-1, -1)`.
+    /// targeted arm (`docs/GOLDEN.md` §27). `None` is `cavarch_o` −1.
     pub cast_target: Option<combat::Obj>,
+    /// **`cavarch_who` (`+0xa8`) itself**: 0 from `Unit::init`, the
+    /// target's owner once `action_spell` or `do_cast` writes a target, and
+    /// −1 after an untargeted press — `action_spell` writes the pair
+    /// `(ox, whom)` = `(−1, −1)` whenever it differs from what is held
+    /// (`docs/GOLDEN.md` §48).
+    pub cavarch_who: i8,
     /// **`unit_masks & 0x20000`** — "the cast has started": set on a
     /// targeted cast's first in-range frame, cleared by
     /// `kill_current_order`, and one of the three bits that stop mana
@@ -862,6 +868,7 @@ impl Unit {
             spell_time: 0,
             mana_burn: 0,
             cast_target: None,
+            cavarch_who: 0,
             casting: false,
             infiltrated: 0,
             airframe: air::Airframe::default(),
