@@ -2056,13 +2056,19 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Item 1194 moved it to run449's 17622..17626**, where neither an
     // attack nor a cast stands and a guard order does: the attack row and
     // the cast pair return to this pin, and the guard's six leave it.
+    // **Item 1206 closed the third map at its trace's end**, so only East
+    // Indies' run439 window is walked: it holds no group move, no guard
+    // and no move whose `coll` pair has left `(0, 0)`, so the group row
+    // (`group_id`, `group_angle`, `in_group`, `form_id`, `oxx`, `whose`),
+    // the guard's six and `coll_x`/`coll_y` return to this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
-         ever_in_range garrison_search in_range mandatory metric new_ord \
-         non_flat_gather orig_x orig_y patrol_x patrol_y retry returning sharp_turn \
-         strafe_xx strafe_yy tolerance uid waypoint",
+         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x \
+         def_y defensive ever_in_range form_id garrison_search group_angle group_id \
+         guard_dx guard_dy guard_idle guard_retry guard_x guard_y in_group in_range \
+         mandatory metric new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y \
+         retry returning sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,
@@ -2079,11 +2085,12 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 1127), so `job_counter` stays off. **Item 1185 moved East Indies'
     // window to run439's 8518..8522**, where no unfinished site stands;
     // one does on the third map's run428 window (item 1177), so
-    // `job_counter` stays off.
+    // `job_counter` stays off. **Item 1206 closed the third map**, and
+    // with only run439's window walked `job_counter` returns to this pin.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+         job_counter max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -2095,9 +2102,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 ];
 
 /// **Every field the parser carries is compared by the shared instrument
-/// on every open word's own window, or pinned above.** The windows are
-/// the third map's (`third::sahara_word_window`, the nineteenth pass) and
-/// `second::east_indies_word_window` since item 1106 — the second pair's
+/// on every open word's own window, or pinned above.** The window is
+/// `second::east_indies_word_window` since item 1106 (the third map's,
+/// `third::sahara_word_window`, was walked beside it from the nineteenth
+/// pass until item 1206 closed that map at its end) — the second pair's
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item

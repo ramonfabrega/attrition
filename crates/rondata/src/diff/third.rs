@@ -373,12 +373,13 @@ pub(crate) const SAHARA_GAP_17493_BLOCK: i64 = 17_493;
 pub(crate) const SAHARA_17623_BLOCK: i64 = 17_624;
 
 /// run458: run383's game at run449's detail over its last blocks,
-/// 23744..24000, and the closing dump 24001 (item 1206) — the word 24000
-/// is the trace's last frame, which writes block 24001, and no block
-/// follows it.
+/// 23744..24000 (item 1206). The word 24000 is the trace's last frame and
+/// writes block 24001, which run458 does not print: run383's closing dump
+/// holds it, and `endpoint::great_sahara_endpoint_is_pinned` scores it.
 pub(crate) const SAHARA_END: &str = "gamelog-run458-greatsahara-end.txt";
 
-/// **run458's window** (item 1206): blocks 23744..24001.
+/// **run458's window** (item 1206): blocks 23744..24000, and the word's
+/// block 24001 closes it.
 pub(crate) const WIDENING_GREAT_SAHARA_END: (i64, i64) = (23_744, 24_001);
 
 /// run458's blocks over [`WIDENING_GREAT_SAHARA_END`], walked from
@@ -1220,8 +1221,9 @@ mod tests {
     }
 
     /// **The third map's word at its end, widened whole** (item 1206):
-    /// [`sahara_end_window`] over run458's blocks 23744..24000 and the
-    /// closing dump 24001. The word 24000 is run383's trace's last frame.
+    /// [`sahara_end_window`] over run458's blocks 23744..24000. The word
+    /// 24000 is run383's trace's last frame; its block, 24001, is run383's
+    /// closing dump, which the endpoint scores (0 off).
     #[test]
     fn run458_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -1241,18 +1243,25 @@ mod tests {
             }
             eprintln!("  missing {:?}", w.missing);
         }
-        pin_eq!(w.blocks, 0, "run458 whole: blocks 23744..24001");
+        pin_eq!(w.blocks, 257, "run458 whole: blocks 23744..24000");
         pin!(
             w.missing.is_empty(),
             "run458 carries every key: {:?}",
             w.missing
         );
+        // **Block 23744 stands on 154 keys**, run442's families: the
+        // census, who=1's make list and food, the army groups' ids and
+        // roles, the SITE and `form` rows. Past it, the same families
+        // only — the human's `production_step` on 23801, who=1's
+        // `MAKE[1].city` on 23981 and its `gather_stamp` (23983 against
+        // 23879) on 23984 — and **no unit's position or order parts** over
+        // the game's last 257 blocks.
         pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [],
+            [(23744, 154), (23801, 1), (23981, 1), (23984, 1)],
             "the blocks keys first part on"
         );
-        pin_eq!(w.firsts.len(), 0, "every key parted on run458");
+        pin_eq!(w.firsts.len(), 157, "every key parted on run458");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

@@ -1032,7 +1032,7 @@ curr_x = off_x·48·sin(θ + 90°) + off_y·48·sin(θ)
 curr_y = off_x·48·sin(θ)       − off_y·48·sin(θ + 90°)
 ```
 
-Its only caller is `Unit::do_group_move@005e79a0`. `UNITDATA` logs the
+Its callers are `Unit::do_group_move@005e79a0` and §6.8's tail. `UNITDATA` logs the
 heading as `angle`, so run29's group `id 66` is reproduced **to the bit**
 from its leader's logged `angle` through the sim's own
 `sin_component`/`cos_component` (§12's check 9). ~~The y-flip alone stays
@@ -1194,7 +1194,9 @@ What the call does, in order:
    **quantised** offsets, the record's own small numbers, so it is exact;
 4. `Unit::modify_group_order` on every valid on-map member — this is what
    re-points `oxx` and rewrites the destinations;
-5. `update_positions`, now off the **taking** unit's heading.
+5. ~~off the taking unit's heading~~ `update_positions` whole (`713b94`),
+   waypoint arm included; step 4 writes only `oxx` and `whose` (item 1206,
+   `run457_s_gap_is_widened_whole`).
 
 So `GroupOrder::oxx` is *the block's current origin*, which starts as
 `find_leader`'s pick and moves. That is the whole of §4.4's old question
@@ -1209,11 +1211,8 @@ Nothing about the *shape* differs between them —
 `run31_s_thirty_six_member_table_is_reproduced_from_the_install_s_own_columns`
 reproduces all three from one computation.
 
-The simulation implements step 3 and step 5 (`GroupState::reorigin`,
-`Sim::group_refresh_order`). Steps 1, 2 and 4 need the group-order layer
-§12's third seam stands in for, and the **trigger** with them: no simulated
-group has ever lost its origin, because every member gets a plain
-`MoveOrder` that names nobody.
+`do_group_move`'s follower arm fires it: `Sim::group_refresh_order`, then
+`group_rewrite_leader` for step 4.
 
 ## 7. `Group::action_halt(mask)@0070d0c0`
 
