@@ -663,6 +663,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r426 = crate::testenv::dump(super::third::SAHARA_WORD_15586);
     let r428 = crate::testenv::dump(super::third::SAHARA_WORD_15982);
     let r442 = crate::testenv::dump(super::third::SAHARA_WORD_16681);
+    let r449 = crate::testenv::dump(super::third::SAHARA_WORD_17623);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1240,10 +1241,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run428 carries the old word's blocks");
         frames += n;
     }
+    // Item 1194 moved it to 17623, on run449, and run442's window stays
+    // as the move's.
     if let Some(p) = &r442 {
+        let b = super::third::SAHARA_16681_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run442 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r449 {
         let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run442 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run449 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1998,13 +2007,16 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `in_group`) are compared there, and left this pin. **Item 1171 moved
     // it to run426's 15585..15589**, where a cast order stands:
     // `cast_paid` and `cast_spell` are compared there, and left it.
+    // **Item 1194 moved it to run449's 17622..17626**, where neither an
+    // attack nor a cast stands and a guard order does: the attack row and
+    // the cast pair return to this pin, and the guard's six leave it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt garrison_search guard_dx \
-         guard_dy guard_idle guard_retry guard_x guard_y metric non_flat_gather orig_x \
-         orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx strafe_yy \
-         tolerance uid waypoint",
+         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
+         ever_in_range garrison_search in_range mandatory metric new_ord \
+         non_flat_gather orig_x orig_y patrol_x patrol_y retry returning sharp_turn \
+         strafe_xx strafe_yy tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

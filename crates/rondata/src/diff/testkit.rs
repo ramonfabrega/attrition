@@ -1181,7 +1181,22 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// frame 16681, ours 11 draws against 8, at index 4 ours `Guy::set_anim+
 /// 0xf2f < Guy::inc_time+0x271` and theirs `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`, widened on run442.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 16_681;
+///
+/// **16681 → 17623 on item 1194, and the mechanism was the Javelineers'
+/// release node** (`docs/COMBAT.md` §70.2): `launch::BAYS` had no row for
+/// piece 33, so every javelin left the unit's own square and flew one
+/// frame long, and on 16680 the human's Farm `0/2004` outlived the round
+/// that killed it in the original. **The word's delta**: on frame 16681
+/// ours 11 draws against 8, `1/30`'s `Guy::set_anim+0xf2f` and its round's
+/// `Ammo::init+0xcd9`/`+0xd0b` more → 8 against 8. The value diff is
+/// run442's block 16681 (`run442_s_word_frame_is_widened_whole`): the
+/// Farm's `build:extra` "this crate holds it alone" → gone on both sides,
+/// and on 16682 `1/28`'s `order:kind` 10 against 19 → 19; and run428's
+/// block 15978, the Farm's `damage` 130 against 134 → 134. **The new
+/// word's delta**: frame 17623, ours 7 draws against 8, at index 2 ours
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, widened on run449.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 17_623;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -7067,13 +7082,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the move's value diff on 15585. Item 1189 moved it to **16681**,
     // past run428's last block, and took run442 over 16676..16932;
     // run418's test keeps the move's value diff on 14661 and run428's on
-    // 15983.
+    // 15983. Item 1194 moved it to **17623**, past run442's last block,
+    // and took run449 over 17618..17874; run442's test keeps the move's
+    // value diff on 16681 and 16682, and run428's on 15978.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run442_s_word_frame_is_widened_whole"),
-        1189,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_16681),
+        Some("run449_s_word_frame_is_widened_whole"),
+        1194,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_17623),
     ),
 ];
 

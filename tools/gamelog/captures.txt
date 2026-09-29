@@ -9137,6 +9137,19 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   run442 window blocks: 257 (16676..16932)
 # ==== TAKEN 2026-09-29, one take, 13:22–13:41, no wait ====
 
+# ==== item 1194: the Javelineers' release node, and the long word 17623 widened ====
+#
+# run448 and run449 are not stanzas. Both ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the commands in `docs/RUNS.md`).
+# run448: a RON_STATE_FRAME=16681 packet on run383's game, AMMO=5 over
+# blocks 16660..16683, `!quit` at 16690. run449: run442's shape, blocks
+# 17618..17874, `!quit` at 17888. Their checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log <run448 rontrace.log>  -> 0 differing, 16,691 identical
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log rontrace-run449.log    -> 0 differing, 17,889 identical
+#   grep -a -m1 'MAP_STYLE' / ' DIFFICULTY ' / '(int)seed' -> 7, 0, 12345
+#   run449 window blocks: 257 (17618..17874)
+# ==== TAKEN 2026-09-29: run448 14:46, 85 s; run449 14:55–15:13; no wait ====
+
 # ==== item 1156: East Indies at Toughest, the gap 6573..6603 before the word 6609 ====
 #
 # run421 is not a stanza. It ran on the click-free lane

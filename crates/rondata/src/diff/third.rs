@@ -300,10 +300,40 @@ pub(crate) fn sahara_16681_window() -> Option<crate::diff::harness::tests::Widen
         &[(SAHARA_WORD_16681, WIDENING_GREAT_SAHARA_16681.0)],
         WIDENING_GREAT_SAHARA_16681,
         1,
+        &[SAHARA_16681_BLOCK],
+        true,
+    )
+}
+
+/// run449: run383's game at run442's detail over blocks 17618..17874, the
+/// long word 17623's widening (item 1194) — six blocks before the word's
+/// block 17624 and 250 after, on the click-free lane.
+pub(crate) const SAHARA_WORD_17623: &str = "gamelog-run449-greatsahara-17623.txt";
+
+/// **run449's window** (item 1194): blocks 17618..17874.
+pub(crate) const WIDENING_GREAT_SAHARA_17623: (i64, i64) = (17_618, 17_874);
+
+/// run449's blocks over [`WIDENING_GREAT_SAHARA_17623`], walked from
+/// run383's start with run381's head, as [`sahara_16681_window`] walks
+/// run442. `None` when the captures are not on this machine.
+pub(crate) fn sahara_17623_window() -> Option<crate::diff::harness::tests::Widened> {
+    crate::diff::harness::tests::widen_on_siblings(
+        &[SAHARA_START],
+        true,
+        SAHARA_LONG,
+        "run449",
+        &[(SAHARA_WORD_17623, WIDENING_GREAT_SAHARA_17623.0)],
+        WIDENING_GREAT_SAHARA_17623,
+        1,
         &[LONG_WORD_GREAT_SAHARA + 1],
         true,
     )
 }
+
+/// **The old word 16681's block, 16682** (item 1194): the word moved to
+/// 17623, past run442's last block, and this block stays the move's value
+/// diff.
+pub(crate) const SAHARA_16681_BLOCK: i64 = 16_682;
 
 /// **The old word 15982's block, 15983** (item 1189): the word moved to
 /// 16681, past run428's last block, and this block stays the move's value
@@ -330,7 +360,7 @@ pub(crate) fn sahara_15982_window() -> Option<crate::diff::harness::tests::Widen
 /// **The compared pin's window on the third map** (item 1133, parked
 /// 1067): the long word's block and two on either side — frame
 /// [`LONG_WORD_GREAT_SAHARA`] writes its block, and the walk reads
-/// `first..=tail + 1` — on run442 since item 1189 (run428 from item 1177, run426 from item 1171, run418 from item 1163,
+/// `first..=tail + 1` — on run449 since item 1194 (run442 from item 1189, run428 from item 1177, run426 from item 1171, run418 from item 1163,
 /// run417 from item 1147, run416 before it),
 /// walked from run383's start with the group record and the attack order's
 /// row. `coverage`'s compared pin walks it. Until item 1133 it was run382's
@@ -343,7 +373,7 @@ pub(crate) fn sahara_word_window() -> Option<crate::diff::harness::tests::Widene
         true,
         SAHARA_LONG,
         "the third map's word's window",
-        &[(SAHARA_WORD_16681, word - 1)],
+        &[(SAHARA_WORD_17623, word - 1)],
         (word - 1, word + 2),
         1,
         &[word + 1],
@@ -859,12 +889,15 @@ mod tests {
             None,
             "who=1's wealth agrees"
         );
-        // **15978: the human's city `0/2004`**, under who=1's archers,
-        // takes a shot's damage apart.
+        // **15978: the human's Farm `0/2004`**, under who=1's archers,
+        // took a javelin's damage a block early in the original, 130
+        // against 134: every Javelineers round left the unit's own square
+        // here until item 1194 gave piece 33 its bays, and flew one frame
+        // long. It agrees now, on every block of the window.
         pin_eq!(
-            row(0, 2004, "build:damage").as_deref(),
-            Some("15978: ours 130 theirs 134"),
-            "the city's damage"
+            row(0, 2004, "build:damage"),
+            None,
+            "the Farm's damage, since item 1194"
         );
         // **15982: who=1's make list**, an offer's value and its city.
         pin_eq!(
@@ -897,14 +930,14 @@ mod tests {
                 .filter(|(b, _)| **b <= SAHARA_15982_BLOCK)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(15977, 144), (15978, 3), (15982, 9)],
+            [(15977, 144), (15982, 9)],
             "the blocks keys first part on, to the old word's"
         );
         // What the window still parts on past it: the human's
         // `production_step` on 16001, the army group's id on 16123 (stamped
         // six frames apart again) and a make offer's value on 16182, 56700
         // against 48600 — the 15982 pair's ratio.
-        pin_eq!(w.firsts.len(), 167, "every key parted on run428");
+        pin_eq!(w.firsts.len(), 164, "every key parted on run428");
     }
 
     /// **The third map's long word, 16681, widened whole** (item 1189):
@@ -956,39 +989,118 @@ mod tests {
             None,
             "who=1's wealth agrees, since item 1189"
         );
-        // **16681: the human's building `0/2004`**, at `damage` 397 of
-        // 400 on both sides through block 16680, is gone in the original
-        // and held here; its chain's `city_down` and the human's roads
-        // part with it, and who=1's food, 146 against 166.
+        // **16681: the human's Farm `0/2004`**, at `damage` 397 of 400 on
+        // both sides through block 16680, was gone in the original and
+        // held here until item 1194 (its chain's `city_down`, the human's
+        // roads and who=1's food, 146 against 166, parted with it). The
+        // Javelineers `1/67`'s round launched on tick 16664 left the
+        // unit's own square here, (6120, 28248), and the release node
+        // there, (6028, 28300) (run448's `AMMO`): `total_time` 18 against
+        // 17, and the Farm fell a tick late. Piece 33's bays close it.
         pin_eq!(
-            row(0, 2004, "build:extra").as_deref(),
-            Some("16681: this crate holds it alone"),
-            "the human's building"
+            row(0, 2004, "build:extra"),
+            None,
+            "the Farm falls on the original's tick, since item 1194"
         );
         pin_eq!(
             row(1, -1, "leader:bucket[0:food]").as_deref(),
-            Some("16681: ours 146 theirs 166"),
-            "who=1's food"
+            Some("16783: ours 118 theirs 125"),
+            "who=1's food, beside `1/2024`'s queue price 70 against 63"
         );
-        // **The word's block, 16682** (frame 16681, ours 11 draws against
-        // 8, at index 4 ours `Guy::set_anim+0xf2f < Guy::inc_time+0x271`
-        // and theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`): the
-        // archer `1/28` still fires here, on the building the original
-        // has lost.
+        // **The old word's block, 16682** (item 1194, the move's value
+        // diff): frame 16681 spent ours 11 draws against 8, `1/30`'s
+        // release and its round's scatter pair on the Farm the original
+        // had lost. The archer `1/28` held `order:kind` 10 against 19;
+        // it agrees now.
         pin_eq!(
-            row(1, 28, "order:kind").as_deref(),
-            Some("16682: Kind { ours: 10, theirs: 19 }"),
-            "the word's block: 1/28's order"
+            row(1, 28, "order:kind"),
+            None,
+            "the old word's block: 1/28's order"
+        );
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SAHARA_16681_BLOCK)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [(16676, 163)],
+            "the blocks keys first part on, to the old word's"
+        );
+        // What the window still parts on past it: a make offer's value on
+        // 16782 (the 15982 pair's 7/6), who=1's food and `1/2024`'s queue
+        // price on 16783, the human's `free_peasants` on 16801, and the
+        // army group's id on 16891, stamped six frames apart again.
+        pin_eq!(w.firsts.len(), 177, "every key parted on run442");
+    }
+
+    /// **The third map's long word, 17623, widened whole** (item 1194):
+    /// [`sahara_17623_window`] over run449's blocks 17618..17874. The
+    /// word's frame writes block 17624.
+    #[test]
+    fn run449_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        use std::collections::BTreeMap;
+        let Some(w) = sahara_17623_window() else {
+            return;
+        };
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        if std::env::var("RON_FIRSTS").is_ok() {
+            let mut rows: Vec<_> = w.firsts.iter().collect();
+            rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+            for ((who, o, what), (f, r)) in rows {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+            eprintln!("  missing {:?}", w.missing);
+        }
+        pin_eq!(w.blocks, 257, "run449 whole: blocks 17618..17874");
+        pin!(
+            w.missing.is_empty(),
+            "run449 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **Block 17618 stands on 189 keys**: run442's families (the
+        // human's census rows, who=1's make list, the army groups' ids and
+        // roles) and **four of who=1's soldiers' positions**, `1/46`,
+        // `1/48`, `1/51` and `1/52`, parted in the gap after run442's
+        // last block.
+        pin_eq!(
+            row(1, 52, "pos").as_deref(),
+            Some("17618: ours (28322,20471) theirs (28344,20484)"),
+            "1/52 stands off its place"
+        );
+        // **The word's block, 17624** (frame 17623, ours 7 draws against
+        // 8, at index 2 ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+        // and theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`): `1/52`
+        // goes idle there and walks on here, and `1/46`, `1/51` hold an
+        // order the original has finished.
+        pin_eq!(
+            row(1, 52, "idle").as_deref(),
+            Some("17624: ours 0 theirs 1"),
+            "the word's block: 1/52 idles there"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= LONG_WORD_GREAT_SAHARA + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(16676, 163), (16681, 11), (16682, 24)],
+            [
+                (17618, 189),
+                (17619, 1),
+                (17620, 4),
+                (17622, 2),
+                (17623, 13),
+                (17624, 18)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 920, "every key parted on run442");
+        pin_eq!(w.firsts.len(), 1352, "every key parted on run449");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

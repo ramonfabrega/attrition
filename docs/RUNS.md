@@ -11263,3 +11263,95 @@ and who=1's food parts (146 against 166). On the word's block 16682 the
 archer `1/28` parts on its order. The compared pin and the coverage driver
 walk 16680..16684.
 
+
+## run448 — Great Sahara's word 16681, a packet at logger frame 16681: the Javelineers' release node (2026-09-29, item 1194)
+
+**What it is.** A `RON_STATE_FRAME=16681` packet over run383's game (map 7,
+`DIFFICULTY 0`, seed 12345, `cover=0`) on the click-free lane, using item
+597's plan. Blocks 16660..16683 are dumped with `AMMO=5`, and `!quit` is at
+16690.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run448 \
+    --map 7 --end-frame 16690 --timeout 3600 --log-window 16660 16683 \
+    --detail end:MISC,UNITS=3,BUILDS=7,GUYS=4,AMMO=5,DEATHS=1 \
+    --tracer-def RON_STATE_FRAME=16681 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** Every Javelineers
+hit on the human's Farm landed a block earlier in the original than in
+ours, from run428's 15978 on. Our javelins left the unit's own square,
+because `launch::BAYS` had no row for piece 33. No capture on disk prints
+a javelin's `AMMO`:
+
+- run383, run428 and run442 carry no `AMMO` category;
+- chapter twenty-seven (GOLDEN §36, run300), which stages Javelineers, neither
+  printed one nor fought.
+
+No packet on disk holds piece 33's `AttachPos` entries, because none is of
+a game that fields it.
+
+**Taken** 14:46, one take. An earlier launch at 14:45 refused before
+staging anything, because I had created the output directory by hand
+(`FileExistsError`). `success: true`, exit 0, 85 s launch to exit, 16,691
+frames. The packet is 844,651,820 bytes, and the dump is 11.1 MB. The lane
+lock named a dead pid, and I waited on no other lane. The outputs stay in
+the capture directory's `map-7/`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 16,691 identical |
+| `GAME INFO` | `MAP_STYLE 7`; the receipt reads back seed 12345 and map 7 |
+
+**What it answered.** `1/67`'s javelin leaves at (6028, 28300), not the
+unit's (6120, 28248), and flies `total_time` 17. `1/66`'s leaves at
+(6289, 28517). Unicorn's `get_position` for piece 33 on the packet
+(`~/ron-data/lab-experiments/2026-09-29-item-1194/oracle.py`) gives both
+points, and over 360 degrees it gives the three `Bay` rows of
+`docs/COMBAT.md` §70.2.
+
+## run449 — run383's game at run442's detail over blocks 17618..17874: Great Sahara's long word 17623 widened (2026-09-29, item 1194)
+
+**What it is.** run442's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+17618..17874, and `!quit` at 17888. The word's frame 17623 writes block
+17624, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run449 \
+    --map 7 --end-frame 17888 --timeout 12000 --log-window 17618 17875 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run442 ends at block
+16932, and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 14:55–15:13 in one take, with no wait. The lane lock named my own
+finished run448. I waited on the capture with `waitrun.sh` (exit 0). The
+receipt: `success: true`, exit 0, 1,105 s from launch to exit, 17,889
+frames, map 7 and seed 12345 verified. The dump (530.7 MB, 257 blocks and
+the closing one) and the trace (67.5 MB) were moved into `Logs` as
+`gamelog-run449-greatsahara-17623.txt` and `rontrace-run449.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 17,889 identical |
+| window blocks | 257, 17618..17874 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run449_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head, finds 1,352 keys parted:
+
+- Block 17618 stands on 189 keys: run442's families, and the positions of
+  four of who=1's soldiers (`1/46`, `1/48`, `1/51` and `1/52`), which
+  parted in the gap after run442.
+- On the word's block 17624, `1/52` is idle in the original and still
+  walking here, and `1/46` and `1/51` hold an order the original has
+  finished.
+
+The compared pin and the coverage driver walk 17622..17626.
