@@ -120,16 +120,21 @@ crate keeps it; the Air Defense Gun's and the SAM's launch vectors,
 unmeasured, and the three Radar rounds that print no `AMMO`; and no
 widening compares a round's `accuracy`.
 
+## Parked by item 1117, 2026-09-28 — the turret's other edges
+
+(1125) **The Battery's turret edges beside chapter thirty-eight's word**
+(COMBAT §85): its release vectors (`launch`/`pivot::RELEASES`; `0/7`'s
+hits part from 784); its pivot `NODES` row, the aim 2,359,296 off from
+743; `set_pivot_angle`'s inline copy of `move_step`; and
+`Guy::process`'s `guy_flags & 0x100` gate.
+
 ## Parked by item 1109, 2026-09-28 — the speed's other edges
 
-(1113) **Chapter thirty-eight's speed and army rows beside its word**:
-the army's `ATTACKTO` points for `1/7` and `1/8` on 765 stand one cell
-(48) past the original's (`off_y` 360 against 312) — 1102's speed
-hypothesis is killed, `myspeed` agrees and the rows stay, so it is
-army/group code; and the other `update_speed` arms 1109's disk scan saw
-change a speed after birth, unread: types 83 (28 → 29), 341 (42 → 44),
-324 (56 → 60), and one with no guy type (28 → 29). `ai_speed` reads 1 in
-all eleven packets on disk.
+(1124) **The other `update_speed` arms** (1113's second half, kept here
+when 1113 was promoted on 794): 1109's disk scan saw types 83 (28 → 29),
+341 (42 → 44), 324 (56 → 60), and one with no guy type (28 → 29) change
+a speed after birth, unread. `ai_speed` reads 1 in all eleven packets
+on disk.
 
 ## Parked by item 1102, 2026-09-28 — the air line's other edges
 
@@ -1983,6 +1988,13 @@ neighbouring stack pushes** (1115's Loop line): `ecx`/`edx` read as the
 pushes beside the call, and two documents carried a literal facing for a
 month from it (CARAVAN §4.1, closed by 1115). A guard could list every
 literal `find_angle(` in `docs/`.
+
+(1126) **A gate nested inside a measured-data lookup is silent for every
+key the table lacks** (1117's Loop line): the release gate was keyed on
+`pivot::release`, the one table that measures only the Chariot, so every
+other pivot piece fired through its turret; the gate's own test (COMBAT
+§55) used the Chariot's piece, and nothing held it against an
+unmeasured one.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
