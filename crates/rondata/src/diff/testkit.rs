@@ -1154,7 +1154,34 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// word's delta**: frame 15586, ours 7 draws against 6, at index 3 ours
 /// `Guy::set_anim+0xf2f < Guy::move+0x166` and theirs `Guy::set_anim+0x97a
 /// < Guy::inc_time+0x271`, widened on run426.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 15_586;
+///
+/// **15586 → 15982 on item 1177, and the mechanism was the building arm's
+/// `find_collision`** (`docs/COMBAT.md` §65.8): `do_move` ends a ranged
+/// chase on a building only when no other unit stands in the chaser's
+/// block, and ours never asked. **The word's delta**: on frame 15586 ours
+/// 7 draws against 6, one `Guy::set_anim+0xf2f < Guy::move+0x166` more
+/// (`1/29`'s arrival a frame early) → 6 against 6. The value diff is
+/// run426's block 15585 (`run426_s_word_frame_is_widened_whole`): `1/29`'s
+/// `order:kind` 10 against 1 → 1, and its `pos` (7292,27822) against
+/// (7269,27840) → the original's. **The new word's delta**: frame 15982,
+/// ours 17 draws against 16, at index 0 ours `Leader::use_market+0x1ed`
+/// and theirs `Leader::produce_building+0x1805`, widened on run428.
+///
+/// **15982 → 16681 on item 1189, and the mechanism was the Spice route**
+/// (`docs/CARAVAN.md` §4): `Caravan::trade_value` scales a route by
+/// `SPICE_CARAVAN_INCOME` when the computing city's owner holds Spice, and
+/// ours never read the rare. who=1's route read 22 against 26 from frame
+/// 14660, its wealth fell behind, and on 15982 `use_market`'s need for two
+/// Senates found 96 wealth against 104 and sold. **The word's delta**: on
+/// frame 15982 ours 17 draws against 16, one `Leader::use_market+0x1ed`
+/// more → 16 against 16. The value diff is run418's block 14661
+/// (`run418_s_word_frame_is_widened_whole`): `1/2000` and `1/2007`'s
+/// `trade_val` 176 against 208 → 208; and on run428's block 15977 who=1's
+/// `bucket[2:wealth]` 96 against 103 → 103. **The new word's delta**:
+/// frame 16681, ours 11 draws against 8, at index 4 ours `Guy::set_anim+
+/// 0xf2f < Guy::inc_time+0x271` and theirs `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`, widened on run442.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 16_681;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -1341,7 +1368,42 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 15_586;
 /// parting at index 0**: ours spends `Leader::use_market+0x1ed` where the
 /// original spends `Leader::make_stuff+0x221`. Past run420's window (its
 /// last block 6860), widened on run425 (block 7383).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 7_382;
+///
+/// **7382 → 7512 on item 1174** (`docs/AI.md` §98): `gain_tech`'s
+/// buildings cascade runs `check_upgrade` on every city when the gain is a
+/// prerequisite of the Large City (`0x6dec2f`), and `do_gather` feeds the
+/// escrow the producers then draw on (`006ce450`'s tail; `Build::queue_up`'s
+/// `pay_cost(…, escrow, …)`). **The move's value diff (the word's delta,
+/// here; its block is `run425_s_word_frame_is_widened_whole`'s):** on
+/// run425's first block 7377 who=1's `pop` ours 3 against 7 → agreeing and
+/// its `escrow` 0/0/0/0/0 against 39/44/15/47/36 → agreeing; on 7379 its
+/// `MAKE[0].val` ours 1800000 against 4194000 → agreeing (every slot was
+/// three sevenths), its buckets agreeing on both sides before and after
+/// (93, 183, 58, 306, 208 there); on 7383 its buckets ours 43/39/118/109
+/// against 34/124/8/149 → agreeing. run425's keys went 1182 → 614, and each
+/// earlier widening of the game lost the five `escrow` rows from its first
+/// block. Frame 7382's draws went 15 against 9 → agreeing. **The new word's
+/// delta: ours 39 draws and the original 3243 on frame 7512, parting at
+/// index 30**: ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where
+/// the original spends `PathFinder::calc_road_cost+0x46`, 3206 times under
+/// `astar_caravan_road`. Inside run425's window (block 7513).
+///
+/// **7512 → 8519 on item 1185** (`docs/ROADS.md` §9.5):
+/// `World::set_blocked_at@006b4900` takes the road off every tile it
+/// blocks, `set_road_at(x, y, 0, 0, 0)` through the mesh's door. The Temple
+/// `1/2025`, started on 7479 over the caravan road, kept its road under the
+/// blocked tile (200, 202) here, so on 7512 the caravan `1/15` taking that
+/// tile's waypoint did not verify its route. **The move's value diff (the
+/// word's delta, here; its block is `run425_s_word_frame_is_widened_whole`'s):**
+/// on run425's block 7513 `1/15`'s `path[0].flags` ours 33 against 1 →
+/// agreeing, and `path[1..22].flags` 32 against 0 → agreeing; the window's
+/// keys went 614 → 317. Frame 7512's draws went 39 against 3243 →
+/// agreeing. **The new word's delta: ours 2 draws and the original 3 on
+/// frame 8519, parting at index 0**: ours spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` where the original spends `Guy::set_anim+0x97a <
+/// Guy::move+0x19f`. Past run425's window (its last block 7633), widened on
+/// run439 (block 8520).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_519;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1777,8 +1839,12 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_6609: (i64, i64) = (6_604, 6_860);
 
 /// `run425_s_word_frame_is_widened_whole`'s window (item 1164): run425 over
 /// run346's game, blocks 7377..7633 — six blocks before the word 7382's
-/// block 7383 and 250 past it.
+/// block 7383 and 250 past it; the word 7512's block 7513 since item 1174.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_7382: (i64, i64) = (7_377, 7_633);
+/// **run439's window** (item 1185): the second pair's East Indies at
+/// run425's detail, blocks 8514..8770 — six blocks before the word 8519's
+/// block 8520 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_8519: (i64, i64) = (8_514, 8_770);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -6994,13 +7060,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // widened on run414, and item 1120 to 6151, inside run414's window.
     // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
     // 6609, past that, widened on run420; item 1156 to 6743, inside it;
-    // item 1164 to 7382, past it, widened on run425.
+    // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
+    // inside it; item 1185 to 8519, past it, widened on run439.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run425_s_word_frame_is_widened_whole"),
-        1164,
-        Some(WIDENING_SECOND_EAST_INDIES_7382),
+        Some("run439_s_word_frame_is_widened_whole"),
+        1185,
+        Some(WIDENING_SECOND_EAST_INDIES_8519),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",
@@ -7021,13 +7088,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run418 over 14582..14838; run416's test keeps the move's value diff
     // on 12784. Item 1171 moved it to **15586**, past run418's last block,
     // and took run426 over 15581..15837; run418's test keeps the move's
-    // value diff on 14587.
+    // value diff on 14587. Item 1177 moved it to **15982**, past run426's
+    // last block, and took run428 over 15977..16233; run426's test keeps
+    // the move's value diff on 15585. Item 1189 moved it to **16681**,
+    // past run428's last block, and took run442 over 16676..16932;
+    // run418's test keeps the move's value diff on 14661 and run428's on
+    // 15983.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run426_s_word_frame_is_widened_whole"),
-        1171,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_15586),
+        Some("run442_s_word_frame_is_widened_whole"),
+        1189,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_16681),
     ),
 ];
 

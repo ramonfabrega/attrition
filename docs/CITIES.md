@@ -2308,7 +2308,8 @@ lost the flat-gather `NO_RESOURCES` test; `snap_center`'s oil snap and its
 80-offset dock/mine search are absent, and §11 does not record that;
 `Wall::swap_team` does not run the new owner's `current_upgrade`;
 `num_buildings` counts a finished building that belongs to no city;
-`check_upgrade` has no `gain_tech` trigger ~~and `find_buildings` no Civic-tech
+~~`check_upgrade` has no `gain_tech` trigger~~ (landed with item 1174,
+`docs/AI.md` §98) ~~and `find_buildings` no Civic-tech
 trigger~~ (the Civic arm landed with item 661, `docs/AI.md` §63); `capture_city` does not swap the loser's units in the radius on an
 allied hand-over; `update_hits`' tower exclusions are a **type identity**
 where the original asks `is(TOWER, 0)`, so a Keep takes the Senate bonus

@@ -658,12 +658,15 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r419 = crate::testenv::dump("gamelog-run419-islands-toughest-6321.txt");
     let r420 = crate::testenv::dump("gamelog-run420-islands-toughest-6609.txt");
     let r425 = crate::testenv::dump("gamelog-run425-islands-toughest-7382.txt");
+    let r439 = crate::testenv::dump("gamelog-run439-islands-toughest-8519.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
     let r417 = crate::testenv::dump(super::third::SAHARA_WORD_13182);
     let r418 = crate::testenv::dump(super::third::SAHARA_WORD_14587);
     let r426 = crate::testenv::dump(super::third::SAHARA_WORD_15586);
+    let r428 = crate::testenv::dump(super::third::SAHARA_WORD_15982);
+    let r442 = crate::testenv::dump(super::third::SAHARA_WORD_16681);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1154,6 +1157,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             "run425 carries the second pair's East Indies word 7382's blocks"
         );
         frames += n;
+        // Item 1174 moved it to 7512 (block 7513), inside run425.
+        let n = drive_capture(p, 7_512, 7_515, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run425 carries the second pair's East Indies word 7512's blocks"
+        );
+        frames += n;
+    }
+    // Item 1185 moved it to 8519 (block 8520), past run425: run439 is its
+    // widening.
+    if let Some(p) = &r439 {
+        let n = drive_capture(p, 8_519, 8_522, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run439 carries the second pair's East Indies word 8519's blocks"
+        );
+        frames += n;
     }
     if let Some(p) = &r356 {
         let n = drive_capture(p, 4_555, 4_558, &mut paths);
@@ -1208,10 +1228,26 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run418 carries the old word's blocks");
         frames += n;
     }
+    // Item 1177 moved it to 15982, on run428, and run426's window stays
+    // as the move's.
     if let Some(p) = &r426 {
+        let b = super::third::SAHARA_15586_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run426 carries the old word's blocks");
+        frames += n;
+    }
+    // Item 1189 moved it to 16681, on run442, and run428's window stays
+    // as the move's.
+    if let Some(p) = &r428 {
+        let b = super::third::SAHARA_15982_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run428 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r442 {
         let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run426 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run442 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1921,7 +1957,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // and run419's 6320..6324 since item 1127 moved it to 6321, and run420's
     // 6608..6612 since item 1143 moved it to 6609, and run420's 6742..6746
     // since item 1156 moved it to 6743, and run425's 7381..7385 since item
-    // 1164 moved it to 7382. Item 1061 first pinned it on
+    // 1164 moved it to 7382, and run425's 7511..7515 since item 1174 moved
+    // it to 7512, and run439's 8518..8522 since item 1185 moved it to 8519.
+    // Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
@@ -1997,7 +2035,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // returned with the word four times in one tranche (items 1061, 1086,
     // 1106, 1120). Item 1133 moved the third map's window to run416's
     // 12782..12786, where none is; one is on East Indies' 6321 window (item
-    // 1127), so `job_counter` stays off.
+    // 1127), so `job_counter` stays off. **Item 1185 moved East Indies'
+    // window to run439's 8518..8522**, where no unfinished site stands;
+    // one does on the third map's run428 window (item 1177), so
+    // `job_counter` stays off.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
@@ -2019,7 +2060,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item
-/// 1156; run425 at 7382 since item 1164) walked from run346's start —
+/// 1156; run425 at 7382 since item 1164, and at 7512 since item 1174;
+/// run439 at 8519 since item 1185)
+/// walked from run346's start —
 /// walked with the
 /// recorder on; a machine without the
 /// captures says so. What this checks that the `UNREAD` pin cannot: that a key

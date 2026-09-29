@@ -353,6 +353,7 @@ impl Sim {
         rec: usize,
         near: usize,
         city: Option<usize>,
+        escrow: bool,
     ) -> bool {
         let bt = self.build_types[rec].clone();
         let ident = bt.ident;
@@ -810,7 +811,13 @@ impl Sim {
         if frame != 0 {
             let charges = self.building_price(who, rec);
             let available = self.holdings[who as usize].available;
-            cost::pay(&charges, &mut self.ledgers[who as usize], &available, false);
+            // `pay_cost(who, −1, city, escrow, 0)` (`produce_building:1024`).
+            cost::pay(
+                &charges,
+                &mut self.ledgers[who as usize],
+                &available,
+                escrow,
+            );
             self.economy_changed(who);
         }
         let o = self.init_build(who, rec, cand, false);

@@ -1109,7 +1109,37 @@ world at 5565 has **no surface difference anywhere** — the residue is bit
 `rondata::diff::tests::run73_s_caravan_road_is_the_original_s_node_for_node`
 is that, and it pins the surface residue at zero as well as the search.
 
-**What it has not established.** No capture has reached the **laying** arm
+**And the third door is `set_blocked_at`'s** (item 1185).
+`World::set_blocked_at@006b4900`'s blocking arm (`param_3 != 0`) sets
+`0x4000`, clears the tile's own `0x2000`, and then calls
+`set_road_at(x, y, 0, 0, 0)` — every time, whether or not the tile was
+blocked before — ahead of the halo loop. So a tile that becomes blocked
+loses its road through the same door, **whatever the type**: the blocked
+template tiles of a type that connects to roads keep no road, although
+neither of `mask_me`'s own arms takes it. The unblocking arm lays nothing.
+Its other callers go through the same door: `SpellType::cast_unpack` (a
+merchant's four tiles), `Good::init`, the mountains and the cliffs. This
+crate had the blocked bit and the counts (`World::set_blocked_at`) and a
+`SEAM` where the road went; the clearing is `Sim::set_blocked_at`, which
+`mask_building` and `merchant_footprint` now call.
+
+**What it was worth.** East Indies at Toughest: the Temple `1/2025`,
+placed on 7385 over the caravan road at (200, 202), started on 7479. Here
+its blocked tile stayed road, under the building and blocked; there it was
+plain ground, so on 7512 the caravan `1/15`, taking that tile's waypoint,
+found a building and no road (`docs/CARAVAN.md` §10.1), verified its route
+and planned it again — 3,206 `calc_road_cost` draws, and every waypoint's
+`0x20` stripped. With the arm in, run425's block 7513 agrees on all 23
+`path[].flags`, and the second pair's East Indies word runs **7512 →
+8519**
+(`rondata::diff::second::tests::run425_s_word_frame_is_widened_whole`;
+`crate::mesh`'s two unit tests).
+
+**What it has not established.** The dump prints no tile mask, so the
+original's (200, 202) is read off the caravan's verification, not seen.
+`Good::init`, the mountains and the cliffs still write the blocked bit
+here without the clearing: none of them runs over a road in any capture
+this crate walks. No capture has reached the **laying** arm
 with a visible consequence: on Great Lakes at 5565 and at 4802 the world is
 tile for tile the original's with it running, which says it lays nothing
 the original does not, but no tile on disk is one it laid. The teardown

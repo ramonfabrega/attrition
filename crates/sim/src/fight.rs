@@ -5038,6 +5038,94 @@ mod tests {
         );
     }
 
+    /// **A chase on a building holds while another unit stands in the
+    /// chaser's block** (`do_move@005f7b30`, `5f7f73`–`5f7f9d`: the
+    /// building arm's last conjunct is `Objects::find_collision(my spot,
+    /// o, who, 1) == 0`; `docs/COMBAT.md` §65.8). The fifth argument set
+    /// skips the land shortcut, so the query is the nine world cells'
+    /// chains at current positions, Chebyshev in unit cells against the
+    /// two `coll_size`s. run426's Longbowman `1/29` reaches the human's
+    /// city at `attack_dist` 2284 with its squad-mate `1/30` two unit
+    /// cells off, walks one more step, and ends the chase there (Great
+    /// Sahara 15586).
+    ///
+    /// Three arms: a mate two cells off holds the chase; three cells off
+    /// ends it; gaia two cells off is not asked. Made to fail on purpose
+    /// by dropping the conjunct: the first arm ends its chase.
+    #[test]
+    fn a_unit_in_the_chaser_s_block_holds_its_chase_on_a_building() {
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 15,
+                max_range: 4,
+                uber_size: 1,
+                block_radius: 48,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        sim.nation[0].human = true;
+        sim.nation[1].human = false;
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 2,
+            y_size: 2,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let city = sim.add_building(0, at, 0);
+        sim.buildings[city].ty = Some(bt);
+        sim.buildings[city].hits = 800;
+        sim.buildings[city].health = 800;
+        sim.buildings[city].combat = Some(Profile::default());
+        let me = put(&mut sim, 1, ty, at);
+        // `put` chains a unit where it is born; the chaser is taken off
+        // the chain while its spot is sought, and put back there.
+        sim.chain_remove(me);
+        let reach = sim.max_range_of(Obj::Unit(me)) * 0xc0 + 6;
+        // A unit-cell centre east of the target, inside the reach.
+        let inside = (0..0x1000)
+            .map(|dx| Pos::new(at.x + dx * 48 + 24, at.y))
+            .find(|&p| {
+                sim.units[me].pos = p;
+                let d = sim.attack_dist(Obj::Unit(me), Obj::Building(city));
+                (reach - 0x8f..=reach).contains(&d)
+            })
+            .expect("a spot inside the reach");
+        let chase = |sim: &Sim, who: Player, cells: i32| {
+            let mut s = sim.clone();
+            s.units[me].pos = inside;
+            s.chain_add(me);
+            put(&mut s, who, ty, Pos::new(inside.x, inside.y + cells * 48));
+            s.add_attack_order(
+                me,
+                Obj::Building(city),
+                crate::orders::QueuePos::First,
+                false,
+                true,
+            );
+            s.add_move_order(
+                me,
+                Pos::new(at.x - 0x400, at.y),
+                crate::orders::MoveKind::MoveTo,
+                crate::orders::QueuePos::First,
+                false,
+            );
+            s.work(me, 0);
+            s.units[me].orders.iter().any(crate::orders::Order::is_move)
+        };
+        assert!(
+            chase(&sim, 1, 2),
+            "a mate two unit cells off let the chase end"
+        );
+        assert!(
+            !chase(&sim, 1, 3),
+            "a mate three unit cells off held the chase"
+        );
+        assert!(!chase(&sim, 8, 2), "gaia in the block held the chase");
+    }
+
     /// **A fleeing target re-aims the chase** (`check_target_path@005e22d0`,
     /// the listing `5e24e2`–`5e2873`; `docs/COMBAT.md` §67). On the review's
     /// phase, a ranged chaser whose unit target is walking away from it asks

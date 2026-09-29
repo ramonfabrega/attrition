@@ -152,6 +152,11 @@ pub const RUBBER: usize = 15;
 /// unit's research before the premium (`docs/COSTS.md`, "Researching an
 /// upgrade is not building a unit"; `docs/AI.md` §94).
 pub const WINE: usize = 8;
+/// `TypeIndex::SPICE` — the rare `Caravan::trade_value@0073d9d0` reads:
+/// `leaders.list[who] +0x6da4 & 0x40`, else the same at `+0x6dcc`, byte 0
+/// bit 6 of `rare` or of `rare_conquest`, which is bit `12 - `[`BASE_RARE`]`
+/// = 6`; `resourcerules.xml`'s thirteenth `RESOURCE` is Spice.
+pub const SPICE: usize = 12;
 /// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
 ///
 /// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &
@@ -351,6 +356,12 @@ pub struct Holdings {
     /// **AI leaders only.** A human earns 100% of their capped rate unless the
     /// multiplayer handicap option is on. See [`gather_handicap`].
     pub handicap: i32,
+    /// `LeaderData::escrow_rate` (`+0x480`), the percent of the paid rate
+    /// that [`pay`] reserves into [`Ledger::escrow`]. Written every frame
+    /// from the census, and zero for a human: `do_gather`'s escrow arm is
+    /// guarded by `(leader_flags & 0xc) != 4`, the human bit (`docs/AI.md`
+    /// §98).
+    pub escrow_rate: [i32; RESOURCES],
     /// Whether each good type is available yet. Oil is not, before the
     /// Industrial age, and an unavailable resource takes no part at all: no
     /// rate, no cap, no accrual.
@@ -401,8 +412,8 @@ pub struct Ledger {
     /// A reservation held back from ordinary spending, fed at `escrow_rate`
     /// percent of income. `crates/sim/src/cost.rs` is what reads it: a payment
     /// may not dip into it, and a payment that needs to abandons the whole
-    /// reservation rather than consuming part of it. What sets the rate is
-    /// still unread; see `docs/COSTS.md`.
+    /// reservation rather than consuming part of it. [`pay`] feeds it at
+    /// [`Holdings::escrow_rate`] (`docs/AI.md` §98).
     pub escrow: [i32; RESOURCES],
     /// Fractional carry between frames, in rate-frames.
     pub leftover: [i32; RESOURCES],
@@ -894,7 +905,7 @@ pub const fn gather_handicap(difficulty: u8) -> i32 {
 /// Pays one frame of income into the stockpile — `Leader::do_gather`.
 ///
 /// `ledger.rate` and `ledger.cap` must already hold this frame's values.
-pub fn pay(t: &Tuning, ledger: &mut Ledger, h: &Holdings) {
+pub fn pay(t: &Tuning, ledger: &mut Ledger, h: &Holdings, frame: i64) {
     let denom = t.gather_rate * RATE_SCALE;
     for r in Resource::ALL {
         let i = r.index();
@@ -950,6 +961,25 @@ pub fn pay(t: &Tuning, ledger: &mut Ledger, h: &Holdings) {
 
         ledger.bucket[i] += whole;
         ledger.collected[i] += whole;
+
+        // The escrow, `do_gather`'s tail (`006ce450`, `docs/ECONOMY.md`,
+        // "Escrow"): `escrow_rate` percent of the same paid rate, over
+        // `GATHER_RATE × 1600`. It is not an accumulator: the remainder is
+        // thrown away and bought back one frame in `n`.
+        let e = h.escrow_rate[i];
+        if e != 0 {
+            let d = t.gather_rate * 1600;
+            let v = e.wrapping_mul(rate);
+            let mut q = v / d;
+            let r = v % d;
+            if r != 0 {
+                let n = ((d + r / 2) / r).max(2);
+                if frame % i64::from(n) == 0 {
+                    q += 1;
+                }
+            }
+            ledger.escrow[i] += q;
+        }
     }
 }
 
@@ -964,7 +994,7 @@ pub fn process(t: &Tuning, ledger: &mut Ledger, h: &Holdings, who: Player, frame
         ledger.dirty = false;
     }
     ledger.cap = caps(t, h);
-    pay(t, ledger, h);
+    pay(t, ledger, h, frame);
 }
 
 #[cfg(test)]
@@ -1378,6 +1408,46 @@ mod tests {
         assert_eq!(l.bucket[Resource::Food.index()] as i64, expected);
     }
 
+    /// `do_gather`'s escrow (`docs/AI.md` §98), on run357's who=1: food
+    /// income 2240 at the Toughest handicap pays 3360 a frame, so escrow
+    /// takes `40 × 3360 / 720000` = 0 remainder 134400 and rounds up one
+    /// frame in `(720000 + 67200) / 134400` = 5; timber's 1280 pays 1920
+    /// and rounds up one in 9. The dump's escrow climbs on exactly those
+    /// frames (blocks 5606, 5611, … and 5608, 5617, …), and it is **not**
+    /// an accumulator: nothing carries between frames. A human escrows
+    /// nothing.
+    #[test]
+    fn escrow_takes_its_rate_of_the_paid_income_one_frame_in_n() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.available = [true; RESOURCES];
+        h.handicap = gather_handicap(5);
+        h.escrow_rate = [40; RESOURCES];
+        let mut l = Ledger {
+            cap: [999 * RATE_SCALE; RESOURCES],
+            rate: [2240, 1280, 0, 0, 0, 0],
+            ..Ledger::default()
+        };
+        let mut food = Vec::new();
+        let mut timber = Vec::new();
+        for frame in 5600..5620 {
+            let before = l.escrow;
+            pay(&t, &mut l, &h, frame);
+            if l.escrow[0] != before[0] {
+                food.push(frame);
+            }
+            if l.escrow[1] != before[1] {
+                timber.push(frame);
+            }
+        }
+        assert_eq!(food, [5600, 5605, 5610, 5615]);
+        assert_eq!(timber, [5607, 5616]);
+        h.escrow_rate = [0; RESOURCES];
+        let kept = l.escrow;
+        pay(&t, &mut l, &h, 5620);
+        assert_eq!(l.escrow, kept, "a zero rate, a human's, escrows nothing");
+    }
+
     #[test]
     fn a_negative_rate_is_shown_and_never_charged() {
         let t = Tuning::RON;
@@ -1389,7 +1459,7 @@ mod tests {
             ..Ledger::default()
         };
         for _ in 0..1000 {
-            pay(&t, &mut l, &h);
+            pay(&t, &mut l, &h, 0);
         }
         assert_eq!(l.bucket, [100; RESOURCES]);
         assert_eq!(l.income, [-160; RESOURCES]);

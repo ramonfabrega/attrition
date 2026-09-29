@@ -242,12 +242,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// 1167: chapter forty at `cover=1`, `docs/GOLDEN.md` §49;
 /// `Group::action_gather@00700b90` on 650 and `Group::action_alarm@0070ec30`
 /// on 880, the two issuers its staging named, and `CommandManager::
-/// issue_gather@00941a20`, [`ENTERED_BY_THE_DLL_ONLY`]).
-/// **136** with run438 (item 1182: chapter forty-one at `cover=1`,
-/// `docs/GOLDEN.md` §50; `UnitData::get_speed@006086f0` on 778, the
-/// computer's sortie, and `ObjectData::is_siege@0046ef90` on 1088, the
-/// trireme's spill onto the repairing Citizen — the two rows of CENSUS
-/// row 7 a staging reaches; three more of the row are [`RESIDUE`]).
+/// issue_gather@00941a20`, [`ENTERED_BY_THE_DLL_ONLY`]); **140** with item
+/// 1174's escrow writers no capture reaches, `Leader::action_respond@006d03c0`
+/// and `Leader::pay_dow@006d2b10` (`docs/AI.md` §98.6); **138** with run438
+/// (item 1182: chapter forty-one at `cover=1`, `docs/GOLDEN.md` §50;
+/// `UnitData::get_speed@006086f0` on 778, the computer's sortie, and
+/// `ObjectData::is_siege@0046ef90` on 1088, the trireme's spill onto the
+/// repairing Citizen — the two rows of CENSUS row 7 a staging reaches;
+/// three more of the row are [`RESIDUE`]).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -265,7 +267,8 @@ pub const NEVER: &[u32] = &[
     0x0064_e4a0,
     0x0065_cfd0, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
-    0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
+    0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10,
+    0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
     0x006f_49a0, 0x006f_4af0,
     0x0070_0010, 0x0070_20c0,

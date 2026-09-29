@@ -923,12 +923,13 @@ impl Sim {
     /// `good_merchant_spot` vetted — blocked by `cast_unpack`'s merchant
     /// arm and released by `Unit::close@0060ee50` (and by
     /// `SpellType::cast_pack@00670be0`, which nothing here casts), each
-    /// through [`crate::world::World::set_blocked_at`] in the original's
+    /// through `World::set_blocked_at` ([`Sim::set_blocked_at`], road and
+    /// all) in the original's
     /// order: `(x, y)`, `(x−1, y)`, `(x, y−1)`, `(x−1, y−1)`.
     pub(crate) fn merchant_footprint(&mut self, u: usize, on: bool) {
         let t = self.units[u].pos.tile();
         for (dx, dy) in [(0, 0), (-1, 0), (0, -1), (-1, -1)] {
-            self.world.set_blocked_at(Pos::new(t.x + dx, t.y + dy), on);
+            self.set_blocked_at(Pos::new(t.x + dx, t.y + dy), on);
         }
     }
 

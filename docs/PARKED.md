@@ -116,6 +116,44 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1189, 2026-09-29 — the make list's standing rows, and the Indian arm
+
+(1195) **who=1's make list stands on every Great Sahara window**
+(CARAVAN §8): the Mine offer's `MAKE[].val` is 7/6 of the original's
+(59500 against 51000 on 15982, 56700 against 48600 on 16182 and 16676),
+spending no draw on either window; and `MAKE[].city` is ours' global
+city index against the original's per-leader one
+(`cities.field_0x10 + who · 0x1c`, `compute_trade`'s listing).
+
+(1196) **`trade_value`'s Indian arm and a foreign pair's leader choice
+are a reading only** (CARAVAN §7.2): 1189's M2 removed the arm and no
+walk held it — no capture on disk reaches a leader with the caravans'
+power, or a route with a foreign end.
+
+## Parked by item 1185, 2026-09-29 — the blocked bit's other writers
+
+(1192) **`Good::init`, the mountains and the cliffs write the blocked
+bit without the road clearing here** (ROADS §9.5); no capture runs one
+over a road. And `merchant_footprint`'s clearing and the re-block arm
+are built and held by no walk (1185's mutations C and B).
+
+## Parked by item 1177, 2026-09-29 — the collision arms left
+
+(1190) **The unit arm's `find_collision(my spot, …, 1)` at `5f7f11`, and
+`valid_target@00648ba0` in the building arm, are unmodelled** (COMBAT
+§65.6): 1177 built the building arm's conjunct alone. No walk on disk
+parts on either; `debug_unit`'s reach tuple now prints the forced
+collision, which would name the unit arm's.
+
+## Parked by item 1174, 2026-09-29 — escrow's unheld arms
+
+(1186) **Escrow's other writers and draws** (AI §98.6, §98.7):
+`Leader::action_respond@006d03c0` and `Leader::pay_dow@006d2b10` write
+`+0x468` and are not modelled (both on `NEVER`); the script host's
+`queue_up`/`produce_building` (`ai_host.rs`) pass no escrow flag; and
+`do_repair`'s escrow draw is built and no walk holds it — no capture
+reaches a repair while escrow stands.
+
 ## Parked by item 1167, 2026-09-29 — chapter forty's standing rows
 
 (1183) **The human City's census** (GOLDEN §49): `busy`, `filled`,
@@ -2176,13 +2214,40 @@ a container, for a reading of the container's exit. One reach.
 (1180) **A lane lock whose two pids are dead reads as a busy lane**
 (1171's Loop line): 1167's `longtrace.sh` lock stood after both its
 pids had exited, and only `ps` said so; the launch took it over. A
-waiter that reads the lock could say "stale" by itself. One reach.
+waiter that reads the lock could say "stale" by itself. **And the
+other way** (1177's message, 2026-09-29): run426's lock named pid 15593,
+recycled by an unrelated `next-server`, so run428's takeover read it
+live and refused with no wine running. The liveness test should check
+the pid's command, not only that the pid exists (1177's journal: or its
+start time). Two reaches.
 
 (1181) **A move's waypoint is compared only under `dest 1`** (1171's
 Loop line): the original printed the follower's waypoint (28614, 20246)
 under `dest 0`, and that value named Great Sahara's 14587 mechanism,
 one `eprintln` away. Compared as a field of its own, it would have been
 the first row. One reach.
+
+(1187) **A widening's "standing" keys hid two causes for five
+widenings** (1174's Loop line): who=1's `pop` from run425's 7377 and
+`escrow` from run357's 5601 stood among the first block's 238 standing
+keys, read as noise. A guard listing each key a widening pins as
+standing whose field has a live reader in `sim`, with that reader, at
+the widening's run, would have put both in front. **Again**
+(1189): who=1's wealth and `trade_val` stood on two widenings' first
+blocks; the Spice route was the cause. Two reaches.
+
+(1188) **A queue item whose bold title wraps fails the booking gate,
+unseen by the reflex** (booking 1174): `test_brief.py` wants the title
+on one line, and `tools/guard.sh` does not run the offline tests, so
+the guard run was green and the gate on `6b117410` red at its first
+step. `guard.sh` taking `test_brief.py` would have caught it. One reach.
+
+(1193) **A `SEAM` that leaves an arm out because its door is not built
+outlives the door** (1185's Loop line): `World::set_blocked_at`'s road
+clearing stood as a `SEAM` four days after item 695 landed the mesh's
+clearing door, and it was East Indies' 7512. A guard listing every
+`SEAM` whose text names a function this crate now carries would have
+put it in front. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

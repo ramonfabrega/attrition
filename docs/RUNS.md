@@ -11207,3 +11207,126 @@ command the DLL hands to `parse_cmd`, so the DLL needed no rebuild.
 | `report.py … functions` | `ObjectData::is_siege` f1088, `UnitData::get_speed` f778 |
 
 The two leave `NEVER`: 138 → 136 (`crates/rondata/src/blind.rs`).
+## run439 — run346's game at run425's detail over blocks 8514..8770: the second pair's East Indies word 8519 widened (2026-09-29, item 1185)
+
+**What it is.** run425's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8514..8770, `!quit` at 8784. The word's frame 8519 writes block
+8520: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run439 \
+    --map 18 --end-frame 8784 --timeout 4800 --log-window 8514 8771 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run425 ends at block
+7633; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 12:55–13:17 in one take, after a 9-minute wait behind item
+1182's chapter-forty-one capture on the capture lane (the first launch, at
+12:46, was refused by the lane's lock). It was waited on with
+`waitrun.sh`: `success: true`, exit 0, 1,337 s from launch to exit, 8,785
+frames, map 18 and seed 12345 verified, five files restored. The dump
+(607.6 MB) and the trace (87.0 MB) were moved into `Logs` as
+`gamelog-run439-islands-toughest-8519.txt` and `rontrace-run439.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 8,785 identical |
+| window blocks | 257, 8514..8770, and the closing block 8785 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run439_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 8514 stands on 481 keys, from the gap
+7634..8513. `1/69`'s and `1/68`'s moves part on `dest` on 8516 and 8519,
+and the word's block 8520 on `1/21`'s figure clock. The window parts on
+1,243 keys. The coverage driver and the compared pin walk 8519..8522.
+
+## run428 — run383's game at run414's detail over blocks 15977..16233: Great Sahara's long word 15982 widened (2026-09-29, item 1177)
+
+**What it is.** run426's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+15977..16233, and `!quit` at 16247. The word's frame 15982 writes block
+15983, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run428 \
+    --map 7 --end-frame 16247 --timeout 12000 --log-window 15977 16234 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run426 ends at block
+15837 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 12:11–12:31 in one take. The first launch, at 12:07, was
+refused. The lane lock still named run426's pid 15593, and a `next-server`
+had since taken that pid, so the lock read as live. The launch went through
+at 12:11, once that process had exited. The refused launch's staging
+directory is kept beside it as `2026-09-29-run428-refused`. The capture
+was waited on with `waitrun.sh` (exit 0). The receipt: `success: true`,
+exit 0, 1,153 s from launch to exit, 16,248 frames, map 7 and seed 12345
+verified, five files restored. The dump (531.2 MB, 257 blocks and the
+closing one) and the trace (56.4 MB) were moved into `Logs` as
+`gamelog-run428-greatsahara-15982.txt` and `rontrace-run428.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 16,248 identical |
+| window blocks | 257, 15977..16233 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run428_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. Block 15977 stands on 151
+keys. The human's city `0/2004` parts on its `damage` on 15978, who=1's
+make list on 15982, and the word's block 15983 on who=1's new site
+`1/2024`, 192 east of the original's (`docs/COMBAT.md` §65.8). The compared
+pin and the coverage driver walk 15981..15985.
+
+
+## run442 — run383's game at run414's detail over blocks 16676..16932: Great Sahara's long word 16681 widened (2026-09-29, item 1189)
+
+**What it is.** run428's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+16676..16932, and `!quit` at 16946. The word's frame 16681 writes block
+16682, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run442 \
+    --map 7 --end-frame 16946 --timeout 12000 --log-window 16676 16933 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run428 ends at block
+16233 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 13:22–13:41 in one take, with no wait. The lane lock named a pid
+that was no longer alive. The capture was waited on with `waitrun.sh`
+(exit 0). The receipt: `success: true`, exit 0, 1,168 s from launch to
+exit, 16,947 frames, map 7 and seed 12345 verified, five files restored.
+The dump (534.2 MB, 257 blocks and the closing one) and the trace
+(58.9 MB) were moved into `Logs` as `gamelog-run442-greatsahara-16681.txt`
+and `rontrace-run442.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 16,947 identical |
+| window blocks | 257, 16676..16932 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run442_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. Block 16676 stands on 163
+keys, and who=1's wealth is not among them (`docs/CARAVAN.md` §4). On
+16681 the human's building `0/2004` is gone in the original and held here,
+and who=1's food parts (146 against 166). On the word's block 16682 the
+archer `1/28` parts on its order. The compared pin and the coverage driver
+walk 16680..16684.
+

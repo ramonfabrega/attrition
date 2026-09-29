@@ -2206,6 +2206,15 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
                 built.sim.is_in_range_at_margin(me, u.pos, t, false),
                 built.sim.is_in_range_at_margin(me, u.pos, t, true),
                 u.combat.mandatory,
+                built.sim.find_collision_forced(
+                    built
+                        .sim
+                        .units
+                        .iter()
+                        .position(|x| std::ptr::eq(x, u))
+                        .unwrap_or(usize::MAX),
+                    u.pos,
+                ),
             )
         }),
         u.path,
