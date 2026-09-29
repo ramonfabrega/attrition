@@ -11010,3 +11010,41 @@ walked from run346's start. Block 7377 stands on 238 keys, from the gap
 ours 1800000 against 4194000), its `city` on 7381, and on the word's block
 7383 its buckets and `1/12`'s order. The window parts on 1,182 keys. The
 coverage driver drives 7382..7385.
+## run418 — run383's game at run414's detail over blocks 14582..14838: Great Sahara's long word 14587 widened (2026-09-29, item 1163)
+
+**What it is.** run417's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+14582..14838, and `!quit` at 14852. The word's frame 14587 writes block
+14588, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run418 \
+    --map 7 --end-frame 14852 --timeout 11000 --log-window 14582 14839 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run417 ends at block
+13433 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 09:39–09:58 in one take, after a 15-minute wait behind item
+1164's run425 on the capture lane. It was waited on with `waitrun.sh`
+(exit 0). The receipt: `success: true`, exit 0, 1,064 s from launch to
+exit, 14,853 frames, map 7 and seed 12345 verified, five files restored.
+The dump (529.1 MB, 257 blocks) and the trace (49.2 MB) were moved into
+`Logs` as `gamelog-run418-greatsahara-14587.txt` and `rontrace-run418.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 14,853 identical |
+| window blocks | 257, 14582..14838 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run418_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. On the tree merged with
+item 1111, block 14582 stands on 155 keys, and the word's block 14588
+parts on 6, led by `1/52`'s collision with `1/30` in the original
+(`docs/AI.md` §94.6). The compared pin and the coverage driver walk
+14586..14590.

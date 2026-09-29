@@ -116,6 +116,12 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1163, 2026-09-29 — the rares' count
+
+(1172) **who=1's `known_rares` on run417's 13184, 7 here against 6**
+(AI §94): the first non-standing parting after the make list agrees;
+nothing in this crate reads it for a draw.
+
 ## Parked by item 1111, 2026-09-29 — the casts' standing rows
 
 (1168) **The pool's speed refresh off the cursor's frame** (GOLDEN §48):
@@ -2092,8 +2098,10 @@ falls back to a raw merge** (1147's Loop line): two sections side by
 side in `docs/AI.md` (§90 beside §91) and two stanzas at the end of
 `tools/gamelog/captures.txt` stopped `ccc update att-1147`; a raw merge
 kept both sides. The append-only files could merge by union, as
-`docs/RUNS.md` does. **Two reaches** (1147, 1156: the same pair of
-files, §91 beside §93 the second time).
+`docs/RUNS.md` does. **Three reaches** (1147, 1156: the same pair of
+files, §91 beside §93 the second time; 1163: `diff/third.rs`, where two
+lanes re-pinned the same widening counts — a count two lanes re-pin is
+always a conflict).
 
 (1162) **A pinned uncompared field with a live reader in `sim` is not
 asked for** (1147's Loop line): `pop_cap` was parsed and uncompared,
@@ -2115,6 +2123,13 @@ wasted on the script's own lines, and `cmdsran.py` and `issuesmatch.py`
 said "ran" for both. A staging-walk check that the script's lines parse
 into something before the capture, and the harness reading a bare `tech`
 as the report it is, would each have saved a take. One reach.
+
+(1173) **`RON_DEBUG_LEADER` prints the make list's values and not
+`check_income`'s factor** (1163's Loop line): the make-list cause sat
+behind a positive wrap, an unaffordable offer valued below an affordable
+one, the second time after AI §49 that the tail's wrap direction was the
+mechanism. The factor printed beside each value would have shown it on
+the first read. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
