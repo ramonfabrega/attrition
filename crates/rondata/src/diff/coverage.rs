@@ -654,6 +654,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r419 = crate::testenv::dump("gamelog-run419-islands-toughest-6321.txt");
     let r420 = crate::testenv::dump("gamelog-run420-islands-toughest-6609.txt");
     let r425 = crate::testenv::dump("gamelog-run425-islands-toughest-7382.txt");
+    let r439 = crate::testenv::dump("gamelog-run439-islands-toughest-8519.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
@@ -1155,6 +1156,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(
             n, 4,
             "run425 carries the second pair's East Indies word 7512's blocks"
+        );
+        frames += n;
+    }
+    // Item 1185 moved it to 8519 (block 8520), past run425: run439 is its
+    // widening.
+    if let Some(p) = &r439 {
+        let n = drive_capture(p, 8_519, 8_522, &mut paths);
+        assert_eq!(
+            n, 4,
+            "run439 carries the second pair's East Indies word 8519's blocks"
         );
         frames += n;
     }
@@ -1912,7 +1923,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // 6608..6612 since item 1143 moved it to 6609, and run420's 6742..6746
     // since item 1156 moved it to 6743, and run425's 7381..7385 since item
     // 1164 moved it to 7382, and run425's 7511..7515 since item 1174 moved
-    // it to 7512. Item 1061 first pinned it on
+    // it to 7512, and run439's 8518..8522 since item 1185 moved it to 8519.
+    // Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
@@ -1988,11 +2000,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // returned with the word four times in one tranche (items 1061, 1086,
     // 1106, 1120). Item 1133 moved the third map's window to run416's
     // 12782..12786, where none is; one is on East Indies' 6321 window (item
-    // 1127), so `job_counter` stays off.
+    // 1127), so `job_counter` stays off. **Item 1185 moved East Indies'
+    // window to run439's 8518..8522**, where no unfinished site stands,
+    // and none does on the third map's window: `job_counter` is back on
+    // the pin, the second kind — a site the windows never reached.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         max_age mining_size mtn orig_type",
+         job_counter max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -2010,7 +2025,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120; run419 at 6321 since
 /// item 1127; run420 at 6609 since item 1143, and at 6743 since item
-/// 1156; run425 at 7382 since item 1164, and at 7512 since item 1174)
+/// 1156; run425 at 7382 since item 1164, and at 7512 since item 1174;
+/// run439 at 8519 since item 1185)
 /// walked from run346's start —
 /// walked with the
 /// recorder on; a machine without the

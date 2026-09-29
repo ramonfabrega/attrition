@@ -11140,3 +11140,40 @@ walked from run383's start with run381's head. Block 15581 stands on 159
 keys, and the word's block 15587 parts on `1/29`'s figure clock, after its
 head order parted on 15585 (`docs/AI.md` §97.5). The compared pin and the
 coverage driver walk 15585..15589.
+## run439 — run346's game at run425's detail over blocks 8514..8770: the second pair's East Indies word 8519 widened (2026-09-29, item 1185)
+
+**What it is.** run425's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8514..8770, `!quit` at 8784. The word's frame 8519 writes block
+8520: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run439 \
+    --map 18 --end-frame 8784 --timeout 4800 --log-window 8514 8771 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run425 ends at block
+7633; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 12:55–13:17 in one take, after a 9-minute wait behind item
+1182's chapter-forty-one capture on the capture lane (the first launch, at
+12:46, was refused by the lane's lock). It was waited on with
+`waitrun.sh`: `success: true`, exit 0, 1,337 s from launch to exit, 8,785
+frames, map 18 and seed 12345 verified, five files restored. The dump
+(607.6 MB) and the trace (87.0 MB) were moved into `Logs` as
+`gamelog-run439-islands-toughest-8519.txt` and `rontrace-run439.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 8,785 identical |
+| window blocks | 257, 8514..8770, and the closing block 8785 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run439_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 8514 stands on 481 keys, from the gap
+7634..8513. `1/69`'s and `1/68`'s moves part on `dest` on 8516 and 8519,
+and the word's block 8520 on `1/21`'s figure clock. The window parts on
+1,243 keys. The coverage driver and the compared pin walk 8519..8522.
