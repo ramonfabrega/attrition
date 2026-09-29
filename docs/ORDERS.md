@@ -7086,8 +7086,11 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
   seventeen's word, 821.~~ Released, and diff-backed on run235, by
   item 770: §35.
 - **Reading only**: the leash (run223's target is its patrol's point),
-  §34.4's re-target (it runs on 784 and 816 and re-points the strike at
-  the Barracks it holds), the look (never reached before the strike),
+  ~~§34.4's re-target (it runs on 784 and 816 and re-points the strike at
+  the Barracks it holds)~~ (diff-backed on run404 by item 1131: `0/7`'s and
+  `0/6`'s strikes stay on the Barracks through every re-target to their
+  deaths, once `compare_target` gives an armed building's ×5 to a computer
+  alone, `docs/COMBAT.md` §12.3), the look (never reached before the strike),
   the arrival, the refused strike with an order behind it, ~~the escort's
   ally arm~~ (built, item 976: `docs/GOLDEN.md` §42, run358's four planes
   on `0/1` from 2307, their positions diff-backed to 2336; the escort's
