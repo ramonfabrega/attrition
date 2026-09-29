@@ -13333,6 +13333,33 @@ fn run436_s_other_seat_s_commands_are_dropped_at_the_pump() {
     );
 }
 
+/// **An issuer line for another seat is refused where it is written**
+/// (`tracer.c`'s refusal 1, item 1182): with no `be`, run436's flight
+/// for who=1 is refused on its own frame and never reaches the pump. Made
+/// to fail with [`crate::golden::Script::apply`]'s seat test removed —
+/// the pump's drop then takes the line instead, under its own reason.
+#[test]
+fn an_issuer_line_for_another_seat_is_refused_as_the_dll_refuses_it() {
+    let Some(mut s) = stage_script("ch41-run436", "chapter41") else {
+        return;
+    };
+    s.script = Script::parse(
+        "0 !ai off\n606 add airbase who=1 212,104\n608 add biplane who=1 212,118\n620 @flight 1 2006 1 6\n",
+    );
+    let mut done = crate::golden::Applied::default();
+    while s.built.sim.frame <= 622 {
+        done.merge(&s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded));
+        s.built.tick();
+    }
+    let why: Vec<&str> = done.skipped.keys().map(|(_, w)| *w).collect();
+    assert_eq!(
+        why,
+        vec!["not the console's seat (refusal 1)"],
+        "{:?}",
+        done.skipped
+    );
+}
+
 /// **run437 whole, both directions** (item 1182, `docs/GOLDEN.md` §50):
 /// every dumped record on every block of the capture. No pool: the
 /// capture prints no `GROUPS`, which its verifier refuses when no block
