@@ -1125,12 +1125,13 @@ crate had the blocked bit and the counts (`World::set_blocked_at`) and a
 
 **What it was worth.** East Indies at Toughest: the Temple `1/2025`,
 placed on 7385 over the caravan road at (200, 202), started on 7479. Here
-its blocked tile stayed road (`0x6113`); there it was plain ground, so on
-7512 the caravan `1/15`, taking that tile's waypoint, found a building and
-no road (`docs/CARAVAN.md` §10.1), verified its route and planned it again
-— 3,206 `calc_road_cost` draws, and every waypoint's `0x20` stripped. With
-the arm in, run425's block 7513 agrees on all 23 `path[].flags`, and the
-second pair's East Indies word runs **7512 → 8519**
+its blocked tile stayed road, under the building and blocked; there it was
+plain ground, so on 7512 the caravan `1/15`, taking that tile's waypoint,
+found a building and no road (`docs/CARAVAN.md` §10.1), verified its route
+and planned it again — 3,206 `calc_road_cost` draws, and every waypoint's
+`0x20` stripped. With the arm in, run425's block 7513 agrees on all 23
+`path[].flags`, and the second pair's East Indies word runs **7512 →
+8519**
 (`rondata::diff::second::tests::run425_s_word_frame_is_widened_whole`;
 `crate::mesh`'s two unit tests).
 
