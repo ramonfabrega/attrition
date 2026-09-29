@@ -1812,6 +1812,11 @@ mod tests {
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
+        // Chapter forty: To Arms refused off the Militia line and on
+        // who=1's land, both conversions wounded, three Militia's `@repair`,
+        // `@build` and `@gather`, and `@alarm` twice over a garrisoned
+        // Militia — the casts' other arms (item 1167, `docs/GOLDEN.md` §49).
+        ("chapter40.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

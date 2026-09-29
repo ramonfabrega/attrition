@@ -12553,11 +12553,12 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
 // and from the word, 740, `0/11` idle here and walking there, and the
 // stream's cascade. **The arms built** (item 955, `docs/PRODUCTION.md`
 // "The gather point"): 811 → 15 rows, the word closed at 1400. What
-// stands: the births' `form` (parked 646); the group moves' ids, ours `64 +`
-// a pushed index and theirs `who·64 +` the slot (parked 676's first); and
-// 1144, the builder `0/11`'s `group`, ours 1 against −1 on the block its
-// finished `BuildOrder` gives way to a `GATHERORDER` (the build line's, not
-// the gather point's; it stood on the first walk on 1134, named, not built).
+// stands: the births' `form` (parked 646); and the group moves' ids, ours
+// `64 +` a pushed index and theirs `who·64 +` the slot (parked 676's
+// first). 1144, the builder `0/11`'s `group` (ours 1 against −1 as its
+// finished `BuildOrder` gave way to a `GATHERORDER`), agrees since item
+// 1167: the builder's gather clears `+0x80` (`docs/GOLDEN.md` §49). 15 →
+// 14 rows.
 const WANT_CH31: &[&str] = &[
     "611 0/6 form",
     "615 0/7 form",
@@ -12573,7 +12574,6 @@ const WANT_CH31: &[&str] = &[
     "953 0/17 order:group.id",
     "953 0/18 order:group.id",
     "953 0/19 order:group.id",
-    "1144 0/11 group",
 ];
 
 // **What parts in the pool** on run338: the first seats' `ox`/`oy`
