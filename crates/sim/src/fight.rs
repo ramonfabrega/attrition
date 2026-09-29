@@ -436,6 +436,18 @@ impl Sim {
         if !self.active(target) {
             return false;
         }
+        // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
+        // tile under the point asked from — `div_3_table[x >> 6]`, the
+        // tile, of the eight-argument overload's own `x/y` — answers no
+        // when its surface is forest (`TData.mask & 0x30 == 0x30`). It
+        // asks no domain, so a plane over a wood holds its fire:
+        // chapter forty-one's Biplane on 839, at `0x7138` (`docs/GOLDEN.md`
+        // §50).
+        if self.world.tile_mask(at.tile()) & crate::world::tile::SURFACE
+            == crate::world::tile::SURFACE_FOREST
+        {
+            return false;
+        }
         let ap = self.profile(attacker);
         // `attack_dist` is called at the quarter-tile centre of the position.
         let centre = Pos::new(
@@ -1771,7 +1783,11 @@ impl Sim {
             );
         }
         let _ = frame;
-        let rolling = land_unit;
+        // **A strafer's round never rolls** (`67c548`..`67c557`, item
+        // 1200): the unit-strafer test jumps past `67c633`, where flag `4`
+        // and the `0x4b` over a land unit are set. Chapter forty-one's
+        // Biplane on 1529, whose round lands behind it, short of `0/9`.
+        let rolling = land_unit && !strafes;
         let ez = match target {
             Some(t) => self.aim_z(t, rolling),
             None => self.ground_z(target_pos).max(0),
@@ -3707,9 +3723,23 @@ impl Sim {
                 (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
             })
             .filter(|&o| {
+                // **The round's own target skips the team test**
+                // (`6787d9`..`6787e1`, item 1200): the shooter itself is
+                // left out and a player past seven, and then only an
+                // object that is not the round's target is asked whether
+                // it is the shooter's own or its mutual ally. So a round
+                // that `check_hit` put on one of its own side's buildings
+                // strikes it: chapter forty-one's Biplane on who=1's
+                // `1/2003`, 858 (`docs/GOLDEN.md` §50). SEAM: a neutral
+                // object, neither allied nor at war, is struck there and
+                // left out here.
                 let owner = self.owner_of(o);
-                owner != p.owner
-                    && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner))
+                if o == p.shooter || owner >= crate::world::PLAYER_SLOTS {
+                    return false;
+                }
+                target == Some(o)
+                    || (owner != p.owner
+                        && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner)))
             })
             .collect();
         for o in candidates {
@@ -3756,9 +3786,22 @@ impl Sim {
     /// in the ammo's domain class — any player's — else a building on the
     /// tile.
     fn check_hit(&self, p: &combat::Projectile) -> Option<Obj> {
+        // **An aircraft's round passes over its own side** (`678db9`..
+        // `678dcc`, item 1200): a shooter of the air domain that is not a
+        // missile searches `SEARCH_NON_FRIENDLY` (6), which
+        // `Search::valid_search@0067daa0`'s case 6 reads as "not the
+        // searcher's own player" — allies are found. Every other shooter
+        // searches `SEARCH_ALL`. Unasked while [`Sim::land`] left the
+        // shooter's side out of the splash; it is asked since the round's
+        // own target skips that test.
+        let sp = self.profile(p.shooter);
+        let own_passed = matches!(sp.domain, Domain::Air) && !sp.has(mask::MISSILE);
         let mut best: Option<(i32, usize)> = None;
         for (i, u) in self.units.iter().enumerate() {
             if !(u.alive() && u.on_map) || Obj::Unit(i) == p.shooter {
+                continue;
+            }
+            if own_passed && u.owner == p.owner {
                 continue;
             }
             // `check_hit` is a `find_unit`, whose leader loop stops at eight:
@@ -3873,6 +3916,101 @@ mod tests {
         u.on_map = true;
         u.kind = sim.unit_types[ty].kind;
         sim.add_unit(u)
+    }
+
+    /// A round of `shooter`'s landing at `at`, on `target`, done.
+    fn round(
+        sim: &Sim,
+        shooter: usize,
+        target: Option<Obj>,
+        at: Pos,
+        splash: i32,
+    ) -> combat::Projectile {
+        combat::Projectile {
+            shooter: Obj::Unit(shooter),
+            owner: sim.units[shooter].owner,
+            target,
+            launch: sim.units[shooter].pos,
+            landing: at,
+            cur_time: 1,
+            total_time: 1,
+            accuracy: 100,
+            angle: Angle(0),
+            splash_area: splash,
+            num_guys: 1,
+            air: false,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            sz: 0,
+            ez: 0,
+            v1z: combat::arc_v1z(0, 0, 1),
+            slot: 0,
+        }
+    }
+
+    /// **A splash round strikes its own target whoever owns it**
+    /// (`Ammo::do_damage`, `6787d9`..`6787e1`, item 1200): the team test
+    /// is asked only of an object that is not the round's target. Chapter
+    /// forty-one's Biplane on 858, whose round `check_hit` put on who=1's
+    /// own `1/2003`: the original spends that building's first-wound roll.
+    /// Another of the shooter's buildings in the splash is left out, and
+    /// so is an enemy's standing clear of it. Made to fail with the
+    /// target's exemption dropped.
+    #[test]
+    fn a_splash_round_strikes_its_own_target_whoever_owns_it() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+        let building = |sim: &mut Sim, who: Player, p: Pos| {
+            let b = sim.add_building(who, p, 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 1,
+                y_size: 1,
+                ..Profile::default()
+            });
+            sim.buildings[b].health = 500;
+            b
+        };
+        let mine = building(&mut sim, 1, Pos::new(2016, 2016));
+        let other = building(&mut sim, 1, Pos::new(2208, 2016));
+        let p = round(&sim, me, Some(Obj::Building(mine)), Pos::new(2016, 2016), 1);
+        sim.land(p, 858);
+        let struck: Vec<Obj> = sim.hits.iter().map(|h| h.target).collect();
+        assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
+        assert!(!sim.hits[0].splash, "at the full count");
+        let _ = other;
+    }
+
+    /// **An aircraft's round passes over its own side** (`Ammo::check_hit`,
+    /// `678db9`..`678dcc`, item 1200): an air shooter that is not a
+    /// missile searches `SEARCH_NON_FRIENDLY`, which leaves out its own
+    /// player's units and nothing else; any other shooter searches them
+    /// all. Chapter forty-one's Biplane on 969, whose round came down
+    /// beside who=1's `1/1`. Made to fail with the test dropped.
+    #[test]
+    fn an_aircraft_s_round_passes_over_its_own_side() {
+        for air in [true, false] {
+            let (mut sim, ty) = at_war();
+            let mut t = sim.unit_types[ty].clone();
+            t.combat.domain = if air { Domain::Air } else { Domain::Land };
+            let shooter_ty = sim.add_unit_type(t);
+            let mut foot = sim.unit_types[ty].clone();
+            foot.combat.target_size = 300;
+            let foot = sim.add_unit_type(foot);
+            let me = put(&mut sim, 1, shooter_ty, Pos::new(1000, 1000));
+            let own = put(&mut sim, 1, foot, Pos::new(3050, 3000));
+            let foe = put(&mut sim, 0, foot, Pos::new(3100, 3000));
+            let p = round(&sim, me, None, Pos::new(3000, 3000), 0);
+            sim.land(p, 969);
+            let want = if air { foe } else { own };
+            assert_eq!(
+                sim.hits.last().map(|h| h.target),
+                Some(Obj::Unit(want)),
+                "air {air}"
+            );
+        }
     }
 
     /// **A ship that attacks sideways turns broadside, to the nearer side**

@@ -1189,7 +1189,13 @@ pub fn load_tables(
             crew_size: c.crew_size,
             target_size: c.target_size,
             circle_radius: c.circle_radius,
-            guy_radius: 0,
+            // `ObjectType +0x23c` — `UnitType::init@0061ab50` stores
+            // `unit_block_radius × BLOCK_RADIUS` to `+0x23c` and `+0x240`
+            // alike (`:753`, item 1200), so a unit type's `guy_radius` is
+            // its `block_radius`. `Ammo::do_damage`'s splash takes it off
+            // a unit's distance (`678a94`): chapter forty-one's Biplane
+            // on 858 (`docs/GOLDEN.md` §50).
+            guy_radius: c.block_radius,
             domain: c.domain,
             fly_high: c.fly_high,
             fly_low: c.fly_low,

@@ -1980,8 +1980,15 @@ impl Sim {
     /// an `AirPatrolOrder`'s search at its last point — and is re-pointed
     /// at a valid one, or killed.
     ///
-    /// SEAM: the fuel test at its head (`type +0x2ec` and `mana_left`),
-    /// and an order behind that is not a patrol (`+0x100`'s arm, which
+    /// **Its head kills three strikes** (`5eb642`..`5eb673`, item 1200):
+    /// past the count and `mandatory`, a type with a tank (`type +0x2ec`,
+    /// `MANA`) whose `mana_left` is 0, a strike with no target and one
+    /// flying home each go to `5eb395` — `kill_current_order` and
+    /// `CHAR_WALK` — and the order behind flies. Chapter forty-one's
+    /// Biplane on 1108, its `mana_burn` at 300 of 300 (`docs/GOLDEN.md`
+    /// §50): the patrol turns for home on 1109 alone.
+    ///
+    /// SEAM: an order behind that is not a patrol (`+0x100`'s arm, which
     /// kills and walks).
     fn strafe_retarget(&mut self, u: usize, frame: i64) {
         if self.units[u].orders.len() < 2 {
@@ -1990,7 +1997,13 @@ impl Sim {
         let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
-        if sf.mandatory || sf.returning || sf.target.is_none() {
+        if sf.mandatory {
+            return;
+        }
+        let dry = self.unit_mana(u) != 0 && self.mana_left(u) == 0;
+        if dry || sf.target.is_none() || sf.returning {
+            self.kill_current_order(u);
+            self.set_anim(u, crate::anim::WALK, true, true);
             return;
         }
         if (frame + 2 * i64::from(self.units[u].index)) & 31 != 0 {
@@ -1999,10 +2012,14 @@ impl Sim {
         let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) else {
             return;
         };
+        // A non-bomber asks `find_new_air_target(x, y, −1, −1)`
+        // (`0x5eb7a3`, item 1200) — the patrol's own search, at its last
+        // point: chapter forty-one's Biplane re-points from `0/8` to
+        // `0/7` on 852 (`docs/GOLDEN.md` §50).
         let found = if self.is_bomber(u) {
             self.find_new_bomber_target(u, p.last())
         } else {
-            None
+            self.find_new_air_target(u, p.last())
         };
         let me = crate::combat::Obj::Unit(u);
         match found.filter(|&t| self.valid_target(me, t)) {

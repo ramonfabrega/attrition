@@ -190,85 +190,6 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             radius: 97,
             dz: 178,
         },
-    ), // **The Trireme, piece 290: run127's three rounds** (`docs/COMBAT.md`
-    // §50.2, item 542). Its `<RELEASEEVENT>`s are `400`, `666` and `1200`
-    // ms on node 0, frames 5, 9 and 17, and node 0 walks down the keel as
-    // the swing plays. The first round leaves 45 units ahead of the hull's
-    // centre, dead on its facing. The second and third leave 13 and 65
-    // behind it. Every round both ships fire in run127 leaves from one of
-    // these three points, 16 volley rounds over 622..720 alone, each to
-    // the unit, `sz` 88, 88 and 87 over the water's 0.
-    //
-    // **One facing only.** Both hulls hold `671481856` broadside for the
-    // whole capture (§49), so the dump fixes each offset in the world but
-    // cannot show it turn. The rotation is §22.2's, read, not measured
-    // for this piece. At that facing the first node is the keel exactly;
-    // for the other two no stern bearing reproduces both integers, and
-    // the row is the solution nearest the keel, 1.3° off it.
-    //
-    // `CHAR_ATTACK2` plays the same file, `Trireme Attack1`, with the same
-    // three events, so it takes the same rows. run127 prints no
-    // `cur_anim` at `GUYS=2`, and which slot the original swings is not
-    // on this disk.
-    (
-        290,
-        crate::anim::ATTACK1,
-        5,
-        Node {
-            bearing: 0,
-            radius: 45,
-            dz: 88,
-        },
-    ),
-    (
-        290,
-        crate::anim::ATTACK1,
-        9,
-        Node {
-            bearing: -2_131_755_008,
-            radius: 13,
-            dz: 88,
-        },
-    ),
-    (
-        290,
-        crate::anim::ATTACK1,
-        17,
-        Node {
-            bearing: -2_131_755_008,
-            radius: 65,
-            dz: 87,
-        },
-    ),
-    (
-        290,
-        crate::anim::ATTACK2,
-        5,
-        Node {
-            bearing: 0,
-            radius: 45,
-            dz: 88,
-        },
-    ),
-    (
-        290,
-        crate::anim::ATTACK2,
-        9,
-        Node {
-            bearing: -2_131_755_008,
-            radius: 13,
-            dz: 88,
-        },
-    ),
-    (
-        290,
-        crate::anim::ATTACK2,
-        17,
-        Node {
-            bearing: -2_131_755_008,
-            radius: 65,
-            dz: 87,
-        },
     ),
 ];
 
@@ -439,6 +360,79 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **The Trireme, piece 290** (`docs/COMBAT.md` §50.2, items 542 and
+    // 1200). Its `<RELEASEEVENT>`s are `400`, `666` and `1200` ms on node
+    // 0, frames 5, 9 and 17, and node 0 walks down the keel as the swing
+    // plays: 45 ahead of the hull's centre, then 14 and 66 behind it,
+    // `sz` 88, 88 and 87 over the water's 0. run127 fixed each point at
+    // one whole degree, 56 (both hulls broadside at `671481856`, seven
+    // rounds a key), and item 542 wrote them as planar `Node`s. run437's
+    // trireme `0/6` fires the same three at 176 (`2100559872`, 29 rounds
+    // a key), where those rows put the third node's round a unit or two
+    // off and one flight on 1448 a frame long — 1400.7 against 1399.6
+    // at `PROJ_SPEED` 100. Each row is the centroid of the region that
+    // reproduces both facings to the unit under the whole-degree
+    // rotation. `CHAR_ATTACK2` plays the same file with the same events.
+    (
+        290,
+        crate::anim::ATTACK1,
+        5,
+        Bay {
+            right: -259,
+            fwd: 45_488,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK1,
+        9,
+        Bay {
+            right: -777,
+            fwd: -14_523,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: -2_166,
+            fwd: -66_602,
+            dz: 87,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK2,
+        5,
+        Bay {
+            right: -259,
+            fwd: 45_488,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: -777,
+            fwd: -14_523,
+            dz: 88,
+        },
+    ),
+    (
+        290,
+        crate::anim::ATTACK2,
+        17,
+        Bay {
+            right: -2_166,
+            fwd: -66_602,
+            dz: 87,
+        },
+    ),
     // **Piece 120, a British player's Bowmen: run256's twelve arrows**
     // (`docs/GOLDEN.md` §29, item 813). Its release events are 472's —
     // frame 12 on `CHAR_ATTACK1`, 9 on `CHAR_ATTACK2`, 15 on
@@ -696,6 +690,36 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             right: 73_493,
             fwd: 39_462,
             dz: 1,
+        },
+    ),
+    // **Piece 237, the Biplane's two guns** (item 1200, `docs/GOLDEN.md`
+    // §50): run437 dumps 26 of its rounds, thirteen a node, at eleven
+    // whole-degree headings between 101 and 291 (blocks 965–1614). Each
+    // row is the centre of the region that reproduces every round of its
+    // node to the unit — `right` −13,120..−12,900 and `fwd`
+    // 101,150..101,390 for node 0, `right` 11,260..11,420 and `fwd`
+    // 101,180..101,280 for node 1 — and both leave 39 over the figure.
+    // Nose guns a tile's half ahead: from the figure's own point the
+    // second pass's pair on 966 flew six frames where the original's flew
+    // five.
+    (
+        237,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -13_010,
+            fwd: 101_270,
+            dz: 39,
+        },
+    ),
+    (
+        237,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 11_340,
+            fwd: 101_230,
+            dz: 39,
         },
     ),
 ];
@@ -1182,11 +1206,12 @@ mod tests {
     ///
     /// Piece **127** is the Longbowman's six (run109, §22.1); **472** and
     /// **384** are chapter two's bowmen and slingers, three keys and two,
-    /// from run112's own `AMMO` records (item 485, §41.3); **290** is the
-    /// Trireme's three, in both attack slots, from run127's (item 542,
-    /// §50.2). Its keys are 5, 9 and 17 because the frame is `starttime /
-    /// 67` (§50.1): under the old `× 3 / 200` the first and third would be
-    /// 6 and 18, keys the event walk never reaches.
+    /// from run112's own `AMMO` records (item 485, §41.3). The Trireme's
+    /// three, **290**, were rows here from run127's (item 542, §50.2) and
+    /// are [`BAYS`] rows since run437 turned them (item 1200); their keys
+    /// are 5, 9 and 17 because the frame is `starttime / 67` (§50.1):
+    /// under the old `× 3 / 200` the first and third would be 6 and 18,
+    /// keys the event walk never reaches.
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -1201,12 +1226,6 @@ mod tests {
                 (127, crate::anim::ATTACK2, 22),
                 (127, crate::anim::ATTACK3, 10),
                 (127, crate::anim::ATTACK3, 24),
-                (290, crate::anim::ATTACK1, 5),
-                (290, crate::anim::ATTACK1, 9),
-                (290, crate::anim::ATTACK1, 17),
-                (290, crate::anim::ATTACK2, 5),
-                (290, crate::anim::ATTACK2, 9),
-                (290, crate::anim::ATTACK2, 17),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),
@@ -1367,7 +1386,8 @@ mod tests {
     /// dump's own: the hull's position and angle from its `UNITDATA`, and
     /// `sx, sy, sz` from the `AMMO` record on the block each round first
     /// prints. Both ships hold the same broadside facing, so this pins the
-    /// three nodes at one facing, exactly.
+    /// three nodes at one facing, exactly; run437's rows below turn them
+    /// (item 1200).
     #[test]
     fn run127_trireme_rounds_leave_from_the_keel() {
         /// `(block, hull x, hull y, starttime, sx, sy, sz)`.
@@ -1383,8 +1403,59 @@ mod tests {
             for anim in [crate::anim::ATTACK1, crate::anim::ATTACK2] {
                 let got = launch_point(Pos::new(x, y), Angle(671_481_856), 290, anim, t, 0);
                 assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
-                assert_eq!(node(290, anim, t).map(|n| n.dz), Some(sz), "block {block}");
+                assert_eq!(release_dz(290, anim, t, 0), Some(sz), "block {block}");
             }
+        }
+    }
+
+    /// **run437's trireme `0/6` at 176°** (item 1200, `docs/GOLDEN.md`
+    /// §50): the same three nodes on another whole degree, `(block, guy x,
+    /// guy y, starttime, sx, sy)` off the `GUY` record and the `AMMO`
+    /// record on the round's first block — every one of its 87 rounds is
+    /// one of these three offsets. The planar rows put the third a unit or
+    /// two off here (`(−1, +2)` on block 1449), and one of its flights on
+    /// 1448 a frame long. Made to fail with the rows back in `MEASURED`.
+    #[test]
+    fn run437_trireme_rounds_turn_with_the_hull() {
+        const M: &[(i32, i32, i32, u32, i32, i32)] = &[
+            (1437, 34872, 15864, 5, 34875, 15909),
+            (1441, 34872, 15864, 9, 34872, 15850),
+            (1449, 34872, 15864, 17, 34870, 15798),
+        ];
+        for &(block, x, y, t, sx, sy) in M {
+            let got = launch_point(
+                Pos::new(x, y),
+                Angle(2_100_559_872),
+                290,
+                crate::anim::ATTACK2,
+                t,
+                0,
+            );
+            assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
+        }
+    }
+
+    /// **The Biplane's two guns, piece 237** (item 1200, `docs/GOLDEN.md`
+    /// §50): run437's rounds at four of the eleven whole degrees,
+    /// `(block, guy x, guy y, guy angle, node, sx, sy)` — the `GUY` record
+    /// and the `AMMO` record on the round's first block. Made to fail with
+    /// the rows out of `GUNS`: the rounds leave from the figure.
+    #[test]
+    fn run437_biplane_rounds_leave_from_its_nose_guns() {
+        const M: &[(i32, i32, i32, i32, i8, i32, i32)] = &[
+            (965, 42715, 17577, -816_583_618, 0, 42616, 17553),
+            (965, 42715, 17577, -816_583_618, 1, 42625, 17531),
+            (1055, 40013, 17031, 1_393_562_276, 0, 40109, 17065),
+            (1055, 40013, 17031, 1_393_562_276, 1, 40098, 17087),
+            (1608, 42763, 17091, -1_234_463_660, 0, 42668, 17128),
+            (1608, 42763, 17091, -1_234_463_660, 1, 42663, 17104),
+            (1614, 42500, 17145, -1_224_702_464, 0, 42405, 17180),
+            (1614, 42500, 17145, -1_224_702_464, 1, 42399, 17156),
+        ];
+        for &(block, x, y, a, node, sx, sy) in M {
+            let got = launch_point(Pos::new(x, y), Angle(a), 237, crate::anim::ATTACK2, 1, node);
+            assert_eq!((got.x, got.y), (sx, sy), "block {block} node {node}");
+            assert_eq!(release_dz(237, crate::anim::ATTACK2, 1, node), Some(39));
         }
     }
 }
