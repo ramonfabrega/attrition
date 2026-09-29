@@ -88,6 +88,9 @@ pub enum Cheat {
         good: Option<usize>,
         amount: i32,
     },
+    /// `be [who]`, chat table case 43: the console's seat, which
+    /// [`Script`] carries ([`Script::apply`] acts on it; item 1182).
+    Be(Option<i32>),
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -1416,6 +1419,7 @@ fn parse(text: &str) -> Cheat {
             }
         }
         "bird" => Cheat::Bird,
+        "be" => Cheat::Be(rest.first().and_then(|t| parse_who(t, true))),
         "resource" => {
             // The token walk is `run_cmd`'s (`7dd73f`..`7dd7e8`): an optional
             // `parse_who(·, −1)`, so only `who=`; then the good by
@@ -1587,6 +1591,9 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
             }
         }
         Cheat::Add { num, name, who, at } => add(&word, num, &name, who, at, built, loaded, done),
+        // `Script::apply` takes `be` before `run` is reached: the seat is
+        // the script's, not the simulation's.
+        Cheat::Be(_) => done.skip(&word, "the seat is the script's (Script::apply)"),
         Cheat::Bird => {
             // `run_cmd` case `0x52`: `Objects::init_unit(objects, 9,
             // BASE_GAIATYPES, x, y, −1, −1, −1)` on the raw cursor — no
@@ -1890,6 +1897,12 @@ mod tests {
         // `@build` and `@gather`, and `@alarm` twice over a garrisoned
         // Militia — the casts' other arms (item 1167, `docs/GOLDEN.md` §49).
         ("chapter40.cmd", &[]),
+        // Chapter forty-one: a computer's Airbase and Biplane flown home
+        // through `be 1` and the pump, its sortie over its City under
+        // attack, and a trireme's hits on a Barracks spilling onto the
+        // Citizen repairing it — CENSUS row 7's last seven (item 1182,
+        // `docs/GOLDEN.md` §50).
+        ("chapter41.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

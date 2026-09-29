@@ -835,8 +835,8 @@ impl Sim {
     ///   standing on the waypoint's own tile that this player has ever
     ///   seen is pushed the same way with `mandatory 1`.
     ///
-    /// SEAM: a non-bomber's `find_new_air_target` (a Fighter's patrol),
-    /// the `semaphore & 2` fallback between the two searches, a
+    /// SEAM: the `semaphore & 2` fallback between the two searches (the
+    /// unit-balance mode's), a
     /// `FIGHTERBOMBER`'s carrier-relative point, and a patrol going home.
     pub(crate) fn do_air_patrol(&mut self, u: usize, frame: i64) {
         let Some(crate::orders::Body::AirPatrol(mut p)) = self.current_order(u).map(|o| o.body)
@@ -874,16 +874,23 @@ impl Sim {
             }
         }
         let phase = i64::from(self.units[u].index) + frame;
-        if phase & 15 == 0 && self.is_bomber(u) {
+        if phase & 15 == 0 {
             let me = crate::combat::Obj::Unit(u);
             // The search is round the **last** point (`x_pos[length − 1]`),
-            // and a building it finds is struck only from the last leg
-            // (`waypoint == length − 1`); an air target from any.
-            if let Some(t) = self
-                .find_new_bomber_target(u, p.last())
-                .filter(|&t| self.valid_target(me, t))
-                .filter(|_| p.waypoint + 1 == usize::from(p.len))
-            {
+            // and a target it finds is struck from the last leg (`waypoint
+            // == length − 1`), or from any when it flies (`5ea8f4`: the
+            // target's type `domain == 2`). A Bomber asks
+            // `find_new_bomber_target`, anything else `find_new_air_target`
+            // (item 1182: `is(BOMBER)` at `5ea86a`).
+            let found = if self.is_bomber(u) {
+                self.find_new_bomber_target(u, p.last())
+            } else {
+                self.find_new_air_target(u, p.last())
+            };
+            if let Some(t) = found.filter(|&t| self.valid_target(me, t)).filter(|&t| {
+                p.waypoint + 1 == usize::from(p.len)
+                    || matches!(self.profile(t).domain, crate::attrition::Domain::Air)
+            }) {
                 self.add_strafe_order(
                     u,
                     Some(t),
@@ -955,6 +962,98 @@ impl Sim {
                 && self.is_enemy(who, bd.owner)
                 && self.covers_tile(b, tile)
         })
+    }
+
+    /// **`Unit::find_new_air_target(x, y, −1, −1)@005ebc70`** (item 1182,
+    /// `docs/GOLDEN.md` §50), the arm a non-bomber's patrol search takes,
+    /// off the listing (`5ebc70`..`5ebfd6`). `r` is
+    /// `AIRCRAFT_RESPOND_RANGE · 0xc0`; best starts at −1 and a strictly
+    /// greater `compare_target(t, 1, 0)` replaces it, in
+    /// `Objects::find_units`' order:
+    ///
+    /// ```text
+    /// a computer's plane (unit_masks & 0x40000) searches round itself
+    /// find_units(me, SEARCH_ENEMY, r, FILTER_DOMAIN air): each valid
+    ///   target within r of the plane; one found is the answer
+    /// the plane more than AIRCRAFT_RESPOND_RANGE · 0x3c0 from the point: none
+    /// find_units(point, SEARCH_ENEMY, r, FILTER_ALL): each valid target
+    ///   within r of the point
+    /// ```
+    ///
+    /// SEAM: the `param_3 ≥ 0` arm between them (a search round a current
+    /// target), which the patrol never asks.
+    pub(crate) fn find_new_air_target(&self, u: usize, at: Pos) -> Option<crate::combat::Obj> {
+        let r = self.tuning.aircraft_respond_range * 0xc0;
+        let me = self.units[u].pos;
+        let who = self.units[u].owner;
+        let at = if self.ai_driven(who) { me } else { at };
+        let plane = crate::combat::Obj::Unit(u);
+        let mut best: Option<(i32, crate::combat::Obj)> = None;
+        let take = |s: &Self, o: usize, from: Pos, best: &mut Option<(i32, crate::combat::Obj)>| {
+            let t = crate::combat::Obj::Unit(o);
+            if !s.valid_target(plane, t) {
+                return;
+            }
+            let p = s.units[o].pos;
+            if vector_dist(p.x - from.x, p.y - from.y) > r {
+                return;
+            }
+            let v = s.compare_target(plane, t, true, false);
+            if v > best.map_or(-1, |(w, _)| w) {
+                *best = Some((v, t));
+            }
+        };
+        for o in self.find_units_round(me, r, who) {
+            if matches!(
+                self.profile(crate::combat::Obj::Unit(o)).domain,
+                crate::attrition::Domain::Air
+            ) {
+                take(self, o, me, &mut best);
+            }
+        }
+        if let Some((_, t)) = best {
+            return Some(t);
+        }
+        let range = self.tuning.aircraft_respond_range;
+        if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
+            return None;
+        }
+        for o in self.find_units_round(at, r, who) {
+            take(self, o, at, &mut best);
+        }
+        best.map(|(_, t)| t)
+    }
+
+    /// `Objects::find_units@0065a620(at, SEARCH_ENEMY, who, range, …)`'s
+    /// walk: the cell circle to ring `(range + 0x2ff) / 0x300` round the
+    /// point's cell, each cell's chain in order, when that ring holds no
+    /// more points than there are units; the unit list otherwise. Units
+    /// alive, on the map, and an enemy of `who`'s.
+    fn find_units_round(&self, at: Pos, range: i32, who: crate::Player) -> Vec<usize> {
+        let circle = crate::ai_place::circle();
+        let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
+        let live = self.units.iter().filter(|x| x.alive()).count();
+        let mut out = Vec::new();
+        let keep = |o: usize, out: &mut Vec<usize>| {
+            let x = &self.units[o];
+            if x.alive() && x.on_map && self.is_enemy(x.owner, who) {
+                out.push(o);
+            }
+        };
+        if circle.radius[ring] <= live {
+            let c0 = at.cell();
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                for o in self.cell_chain(c) {
+                    keep(o, &mut out);
+                }
+            }
+        } else {
+            for o in 0..self.units.len() {
+                keep(o, &mut out);
+            }
+        }
+        out
     }
 
     /// **`Unit::find_new_bomber_target(x, y, −1, …)@005eb960`**

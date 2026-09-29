@@ -324,10 +324,13 @@ const UNREAD: &[(&str, &str)] = &[
     // planes' stacks. **Item 1167's run430 windows `process_alarm`**
     // (`frame`) and **`process_gather`** (`ox queued frame`), the City's
     // alarm and the first player's gather; what they lay is read off the
-    // City's `city_flags` and the units' stacks.
+    // City's `city_flags` and the units' stacks. **Item 1182's run437
+    // windows `console.play`**, the line `be` logs as it moves the
+    // console's seat; the harness carries the seat on its script
+    // (`golden::Script`), and no field of the simulation reads it.
     (
         "GAME",
-        "process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        "console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -613,6 +616,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch38 = golden_dump("ch38");
     let ch39 = golden_dump("ch39");
     let ch40 = golden_dump("ch40");
+    let ch41 = golden_dump("ch41");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1755,6 +1759,19 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         for w in [608, 614, 632, 642, 652, 806, 846, 882, 902, 1075, 1147] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty carries the window's five blocks");
+            frames += n;
+        }
+    }
+    // **Chapter forty-one's word, on run437** (item 1182): the computer's
+    // sortie and the build-site spill. 622, the Biplane's flight home
+    // through `be 1`; 742 and 779, its landing and the sortie; 827, the
+    // patrol's strafe; 840, the word's release; 1080 and 1130, the
+    // Citizen's repair and its first spill; 1767, the last blocks.
+    if let Some(p) = &ch41 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_ONE;
+        for w in [622, 742, 779, 827, 840, 1080, 1130, 1767] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-one carries the window's five blocks");
             frames += n;
         }
     }

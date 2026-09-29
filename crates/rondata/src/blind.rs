@@ -129,6 +129,9 @@ pub const TRACES: &[&str] = &[
     // Item 1167: chapter forty at `cover=1` on the queue lane to 910
     // (`docs/RUNS.md` run431), run430's game on every frame.
     "rontrace-run431.log", // ch40
+    // Item 1182: chapter forty-one at `cover=1` on the queue lane to 1140
+    // (`docs/RUNS.md` run438), run437's game on every frame.
+    "rontrace-run438.log", // ch41
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -240,18 +243,23 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Group::action_gather@00700b90` on 650 and `Group::action_alarm@0070ec30`
 /// on 880, the two issuers its staging named, and `CommandManager::
 /// issue_gather@00941a20`, [`ENTERED_BY_THE_DLL_ONLY`]).
+/// **136** with run438 (item 1182: chapter forty-one at `cover=1`,
+/// `docs/GOLDEN.md` §50; `UnitData::get_speed@006086f0` on 778, the
+/// computer's sortie, and `ObjectData::is_siege@0046ef90` on 1088, the
+/// trireme's spill onto the repairing Citizen — the two rows of CENSUS
+/// row 7 a staging reaches; three more of the row are [`RESIDUE`]).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0046_cec0, 0x0046_ed70, 0x0046_ee80, 0x0046_ef90,
+    0x0046_cec0, 0x0046_ed70, 0x0046_ee80,
     0x0047_0e50, 0x0047_11e0,
     0x0047_80c0, 0x0047_fff0, 0x0048_45c0, 0x0048_5140, 0x0048_5a60, 0x0048_89a0,
     0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
     0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005d_8fc0, 0x005e_1f20, 0x005e_3310, 0x005e_3400,
     0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
     0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
-    0x0060_3470, 0x0060_4550, 0x0060_86f0, 0x0060_8850,
+    0x0060_3470, 0x0060_4550, 0x0060_8850,
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,
     0x0064_e4a0,

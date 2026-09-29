@@ -4835,8 +4835,12 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
 
 /// Chapter forty-one's golden word (item 1182, `docs/GOLDEN.md` §50,
-/// run436): provisional.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 0;
+/// run437): **839**, ours 4 draws against 3 — the Biplane's strafe on
+/// the Hoplites releases on 839 where the original's holds to 858
+/// (`recharging` 31 against 0 on block 840): a non-bomber's release and
+/// its reach, `do_strafe`'s SEAM. Under it the computer's sortie on 778
+/// and the patrol's first strafe from `find_new_air_target` on 826 agree.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 839;
 
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
@@ -5334,6 +5338,11 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter forty-one (item 1182): the Biplane's two EXITs from its
+    // Airbase on the computer's sorties, 808 and 1470, each a read of the
+    // ground under the base's point.
+    ("chapter_forty_one_holds_to_the_golden_word", 2),
+    ("chapter_forty_one_s_word_frame_is_widened_whole", 2),
     ("chapter_seventeen_holds_to_the_golden_word", 34),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
@@ -6901,6 +6910,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("chapter_thirty_nine_s_word_frame_is_widened_whole"),
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
+    ),
+    // Item 1182: run437, chapter forty-one, the computer's sortie and the
+    // build-site spill. The widening is run437 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_ONE",
+        GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        Some("chapter_forty_one_s_word_frame_is_widened_whole"),
+        1182,
+        Some(WIDENING_CHAPTER_FORTY_ONE),
     ),
     // Item 1167: run430, chapter forty, the casts' other arms. The
     // widening is run430 whole.
