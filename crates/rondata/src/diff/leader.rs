@@ -155,6 +155,17 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         out.push((format!("diplos[{i}]"), d));
         let met = i64::from(built.sim.has_met(who as sim::Player, i));
         out.push((format!("treaties[{i}]"), met));
+        // `agendas[i]` (`+0xb4`, item 1209): the one bit written here is
+        // `Unit::resolve_block`'s `2`, a building of `i`'s across one of
+        // `who`'s armed walks while the two are not at war.
+        let agenda = built
+            .sim
+            .agendas
+            .get(who)
+            .and_then(|r| r.get(i))
+            .copied()
+            .unwrap_or(0);
+        out.push((format!("agendas[{i}]"), i64::from(agenda)));
     }
     // The AI's own step machine and its biases.
     out.push(("production_step".to_string(), i64::from(a.step.number())));
@@ -529,7 +540,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // against a `gather_slots` of `10 12 1 0 0 0`, so the good's own
     // high-water mark is at stride two and the six-in-a-row reading
     // reported five of the six goods as divergences on every frame.
-    for key in ["diplos", "treaties"] {
+    for key in ["diplos", "treaties", "agendas"] {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }

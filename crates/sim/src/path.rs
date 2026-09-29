@@ -2844,6 +2844,57 @@ mod tests {
         );
     }
 
+    /// A walker of player 0 armed (`attack` 40, a Citizen's) or not, and a
+    /// building of player 1 whose one footprint tile is blocked, `(10,
+    /// 10)`. `add_building` leaves the type unset, so `covers_tile`
+    /// answers the building's own tile alone.
+    fn ring_tile(armed: bool) -> (Sim, usize, usize, Pos) {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let mut ty = crate::UnitType::default();
+        ty.combat.domain = crate::attrition::Domain::Land;
+        ty.combat.attack = if armed { 40 } else { 0 };
+        let t = sim.add_unit_type(ty);
+        sim.units[u].ty = Some(t);
+        let tile_at = Pos::new(10, 10);
+        sim.world
+            .set_tile_mask(tile_at, tile::OBJECT_BUILDING | tile::BLOCKED);
+        let b = sim.add_building(1, Pos::new(10 * 0xc0, 10 * 0xc0), 0);
+        (sim, u, b, tile_at)
+    }
+
+    /// **`invalid_loc`'s armed arm** (item 1209, `00607fb6`..`0060800a`):
+    /// under `param_5` a walker whose type is armed passes a blocked,
+    /// built tile when the building found there is **not its own**, and
+    /// when none is found; its own refuses, as does any building to an
+    /// unarmed walker or without `param_5`. Made to fail first on the seam
+    /// it replaces, which refused every blocked tile.
+    #[test]
+    fn an_armed_walker_passes_another_player_s_footprint_and_not_its_own() {
+        let (mut sim, u, b, t) = ring_tile(true);
+        let tile_search = |sim: &Sim| sim.invalid_loc(u, t, false, true, true, true, false);
+        assert_eq!(tile_search(&sim), loc::VALID, "player 1's footprint");
+        assert_eq!(
+            sim.invalid_loc(u, t, false, true, false, true, false),
+            loc::BUILDING,
+            "without `param_5` every footprint refuses"
+        );
+        sim.buildings[b].owner = 0;
+        assert_eq!(tile_search(&sim), loc::BUILDING, "its own refuses");
+        sim.buildings[b].alive = false;
+        assert_eq!(
+            tile_search(&sim),
+            loc::VALID,
+            "nothing found: `find_who` −1 is not the walker's"
+        );
+        let (sim, u, _, t) = ring_tile(false);
+        assert_eq!(
+            sim.invalid_loc(u, t, false, true, true, true, false),
+            loc::BUILDING,
+            "an unarmed walker is refused whoever owns it"
+        );
+    }
+
     /// **`invalid_loc`'s cell arm** (item 776, `00607e6f`–`00607ead`): on
     /// the land domain, a tile whose **cell** carries mountain, forest or
     /// `0x40` (`WData.flags & 0x70`) refuses with 2 when the caller passes

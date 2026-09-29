@@ -15132,6 +15132,33 @@ fn stage_walk() {
     // on the last frame, one character a cell (`.` unowned, `?` a claim
     // the original writes −2, else the player), and every live building
     // with its cell, so a target can be placed by who owns its landing.
+    if let Ok(win) = std::env::var("RON_STAGE_TILES") {
+        let v: Vec<i32> = win.split(',').map(|x| x.parse().unwrap()).collect();
+        let s = &built.sim;
+        for y in v[1]..v[3] {
+            let row: String = (v[0]..v[2])
+                .map(|x| {
+                    let m = s.world.tile_mask(sim::world::Pos::new(x, y));
+                    if m & sim::world::tile::BLOCKED != 0 {
+                        '#'
+                    } else if m & 0x30 == 0x20 {
+                        '~'
+                    } else if m & 0x30 == 0x30 {
+                        'T'
+                    } else if m & 3 == 2 {
+                        'M'
+                    } else if m & 3 == 1 {
+                        'C'
+                    } else if m & 3 == 3 {
+                        'b'
+                    } else {
+                        '.'
+                    }
+                })
+                .collect();
+            eprintln!("tile {y:3} {row}");
+        }
+    }
     if std::env::var_os("RON_STAGE_MAP").is_some() {
         let s = &built.sim;
         for y in 0..s.world.height() {
