@@ -1240,10 +1240,17 @@ fn parse(text: &str) -> Cheat {
                     && t.parse::<i32>().is_err()
             });
             match named {
-                Some(name) => Cheat::Tech {
-                    who,
-                    name: (*name).to_string(),
-                    on: !rest.iter().any(|t| t.eq_ignore_ascii_case("off")),
+                // The token after the name is `parse_binary`'s: `on` gains,
+                // anything else loses, and **no token only reports** the
+                // state (`tell_tech`) — run422's first take wrote `tech
+                // who=0 militia` and nothing changed (item 1111).
+                Some(name) => match rest.iter().skip_while(|t| *t != name).nth(1) {
+                    None => Cheat::Unmapped(word),
+                    Some(flag) => Cheat::Tech {
+                        who,
+                        name: (*name).to_string(),
+                        on: flag.eq_ignore_ascii_case("on"),
+                    },
                 },
                 None => Cheat::Unmapped(word),
             }
@@ -1710,6 +1717,11 @@ mod tests {
         // Defense, an Anti-Aircraft Battery and an Infantry squad: the air
         // line under fire (item 1102, `docs/GOLDEN.md` §47).
         ("chapter38.cmd", &[]),
+        // Chapter thirty-nine: a Citizen's To Arms and a Militia's Civilian
+        // both ways, and a General's Create Decoys beside two squads, behind
+        // `tech who=0 militia on` — the spell issuer's untargeted crafts
+        // (item 1111, `docs/GOLDEN.md` §48).
+        ("chapter39.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),

@@ -12,7 +12,7 @@
 #     0 `!ai off`                                  every chapter's
 #   600 `library who=0 1`                          the Classical Age: To
 #                                                  Arms' `has_preq(MILITIA)`
-#   604 `tech who=0 militia`                       Militia's own tech bit:
+#   604 `tech who=0 militia on`                    Militia's own tech bit:
 #                                                  `has_tech` reads it, and
 #                                                  neither the library nor
 #                                                  the age sets it (run424)
@@ -86,7 +86,7 @@
 
 0 !ai off
 600 library who=0 1
-604 tech who=0 militia
+604 tech who=0 militia on
 606 add citizen who=0 30,150
 608 add citizen who=0 34,150
 610 add militia who=0 38,150

@@ -2862,7 +2862,7 @@ impl Sim {
             let index = self
                 .find_free(who, UNIT_BASE, BUILD_BASE)
                 .unwrap_or(i16::MAX);
-            let mut unit = Unit::new(who, index, pos, self.unit_types[ty].hits);
+            let mut unit = Unit::new(who, index, pos, self.type_hits(who, ty));
             unit.kind = self.unit_types[ty].kind;
             unit.ty = Some(ty);
             unit.type_index = self.unit_types[ty].type_index;
@@ -3121,7 +3121,7 @@ impl Sim {
             self.track_unit_type(who, old, -1);
         }
         let damage = self.units[u].max_health - self.units[u].health;
-        let hits = self.unit_types[rec].hits;
+        let hits = self.type_hits(who, rec);
         {
             let unit = &mut self.units[u];
             unit.ty = Some(rec);
@@ -3358,6 +3358,14 @@ impl Sim {
         // reassembled at the next dirty-grid frame, which is what reads a
         // Commerce level into the caps.
         self.economy_changed(who);
+        // `Object::update_hits`'s Citizen arm reads the Militia line's bits
+        // (`docs/GOLDEN.md` §48).
+        if self
+            .unit_record(t)
+            .is_some_and(|r| matches!(self.unit_types[r].type_index, 0x42..=0x44))
+        {
+            self.refresh_citizen_hits(who);
+        }
         // Step 7's **object** half, in the order the cascade set the bits:
         // every standing unit of the line converts in place.
         for e in &events {

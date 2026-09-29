@@ -22,6 +22,8 @@ const PEASANTS: i32 = 0x32;
 const MILITIA: i32 = 0x42;
 const MINUTEMAN: i32 = 0x43;
 const PARTISAN: i32 = 0x44;
+/// `LeaderData::get_general_upgrade`, which no staged leader raises.
+const GENERAL_UPGRADE: i32 = 0;
 
 /// `SpellTypeData::spell_flags` letters the cast reads, as bits `a`..`m`.
 pub mod craft {
@@ -125,6 +127,55 @@ impl Sim {
         match self.world.owner_at(unit.pos) {
             crate::world::Owner::Player(p) => p == who || self.is_ally(who, p),
             _ => true,
+        }
+    }
+
+    /// The leader's own bit for the unit type `ti` (`LeaderData +0x6c18`,
+    /// the `BitMask` `has_tech` reads for a unit) — without the
+    /// prerequisite half, as `Object::update_hits` and `Unit::update_los`
+    /// read it (`leader +0x6c20 & 4/8/0x10`, bits 0x42..0x44).
+    pub(crate) fn holds_unit_bit(&self, who: Player, ti: i32) -> bool {
+        self.unit_rec_of_index(ti)
+            .and_then(|r| self.unit_types[r].tree)
+            .is_some_and(|t| self.tech[who as usize].tech[t])
+    }
+
+    /// `Object::update_hits@00647010`: a unit's base `myhits` — the type's
+    /// `HITS`, except that a Citizen (`PEASANTS`, `PEASANTSKOREAN`) takes the
+    /// hits of the newest of MILITIA, MINUTEMAN and PARTISAN its leader holds
+    /// (`docs/GOLDEN.md` §48: run422's Citizens are 50, the Militia's, from
+    /// the block after `tech who=0 militia on`).
+    ///
+    /// SEAM: `Unit::update_hits`'s national and wonder terms, which no
+    /// staged nation takes.
+    pub(crate) fn type_hits(&self, who: Player, rec: usize) -> i32 {
+        let ti = self.unit_types[rec].type_index;
+        if matches!(ti, PEASANTS | 0x33) {
+            for line in [PARTISAN, MINUTEMAN, MILITIA] {
+                if self.holds_unit_bit(who, line)
+                    && let Some(r) = self.unit_rec_of_index(line)
+                {
+                    return self.unit_types[r].hits;
+                }
+            }
+        }
+        self.unit_types[rec].hits
+    }
+
+    /// A gain of a Militia-line bit re-reads every Citizen's `myhits`, as
+    /// `update_hits` would: the damage is kept, the pool is the new one
+    /// (run422's `0/1`..`0/5` at 50 on block 605, the block after the line).
+    pub(crate) fn refresh_citizen_hits(&mut self, who: Player) {
+        for u in 0..self.units.len() {
+            let unit = &self.units[u];
+            if unit.owner != who || !unit.alive() || !matches!(unit.type_index, PEASANTS | 0x33) {
+                continue;
+            }
+            let Some(rec) = unit.ty else { continue };
+            let hits = self.type_hits(who, rec);
+            let damage = self.units[u].max_health - self.units[u].health;
+            self.units[u].max_health = hits;
+            self.units[u].health = hits - damage;
         }
     }
 
@@ -510,9 +561,101 @@ impl Sim {
         self.units[u].form = 9;
     }
 
-    /// `SpellType::cast_create_decoy@00674370` — built from run422
-    /// (`docs/GOLDEN.md` §48).
-    pub(crate) fn cast_create_decoy(&mut self, _u: usize) {}
+    /// `SpellType::cast_create_decoy@00674370` (`docs/GOLDEN.md` §48):
+    /// the General `g` copies the armed land squads standing near it.
+    ///
+    /// ```text
+    /// limit = (general_upgrade + 2) × 5
+    /// made  = who's captains already decoys
+    /// for o from who's last object down to 0:
+    ///     a live captain, not a decoy, of the land (`+0x218` 0), armed
+    ///     (`UnitData::attack`), not PEASANTS..SCHOLARSKOREAN, not a
+    ///     caravan, not a merchant (`is(MERCHANT)`), not `g` itself, and
+    ///     within `get_radius × 0xc0` of `g`:
+    ///         spot = find_nearby_spot(its type, g, 0x180, −1, 0, 0,
+    ///                                 FILTER_NOT_ME g)      else stop
+    ///         init_unit(who, its type, spot)                 else stop
+    ///         its population handed back (`track_unit_type −1`)
+    ///         every figure: `unit_masks |= 1`, `mana_burn` 0
+    ///         made += 1; stop at `limit`
+    /// none made: the craft's mana handed back
+    /// ```
+    ///
+    /// run422's block 821: the Slingers' copy `0/16`..`0/18` at (7800,
+    /// 34296), 384 due north of the General, then the Hoplites'
+    /// `0/19`..`0/21`; six `Guy::init_real` draws, and the new figures'
+    /// `do_idle` on the same frame.
+    ///
+    /// SEAM: `general_upgrade` (0: `get_general_upgrade` counts the three
+    /// `GENERALS_UPGRADE_n` prerequisites, none held here); Porus's and
+    /// Kutosov's multiples; the army the copy joins when the General is a
+    /// computer's (`unit_masks & 0x40000`); the leader's other two counters
+    /// (`+0x93c`, `+0x808`); `is_caravan` as the two caravan ids; the sound.
+    pub(crate) fn cast_create_decoy(&mut self, g: usize) {
+        let who = self.units[g].owner;
+        let limit = (GENERAL_UPGRADE + 2) * 5;
+        let mut made = self
+            .units
+            .iter()
+            .filter(|x| x.alive() && x.owner == who && x.captain && x.decoy)
+            .count() as i32;
+        let radius = crate::supply::general_radius(
+            &self.tuning,
+            &crate::supply::General {
+                upgrades: GENERAL_UPGRADE,
+                ..Default::default()
+            },
+        ) * 0xc0;
+        let centre = self.units[g].pos;
+        let mut list: Vec<usize> = (0..self.units.len())
+            .filter(|&u| self.units[u].owner == who)
+            .collect();
+        list.sort_by_key(|&u| std::cmp::Reverse(self.units[u].index));
+        let mut any = false;
+        for u in list {
+            let unit = &self.units[u];
+            if !unit.alive() || !unit.captain || unit.decoy || u == g {
+                continue;
+            }
+            let Some(ty) = unit.ty else { continue };
+            if self.unit_domain_of(u) != crate::attrition::Domain::Land
+                || self.profile(Obj::Unit(u)).attack == 0
+                || (PEASANTS..=0x35).contains(&unit.type_index)
+                || matches!(unit.type_index, 0x3b | 0x3c)
+                || self.is_merchant(u)
+            {
+                continue;
+            }
+            let d = crate::world::vector_dist(unit.pos.x - centre.x, unit.pos.y - centre.y);
+            if d >= radius {
+                continue;
+            }
+            let Some(spot) =
+                self.find_nearby_spot_type(ty, centre, 0x180, -1, 0, crate::movement::Angle(0))
+            else {
+                break;
+            };
+            let head = self.init_unit(who, ty, spot);
+            any = true;
+            if self.unit_types[ty].price.pop != 0 {
+                self.track_unit_type(who, ty, -1);
+            }
+            let mut at = Some(head);
+            while let Some(x) = at {
+                self.units[x].decoy = true;
+                self.units[x].mana_burn = 0;
+                at = self.units[x].o_down;
+            }
+            made += 1;
+            if made >= limit {
+                break;
+            }
+        }
+        if !any && let Some(d) = self.spell(spell::CREATE_DECOY) {
+            let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
+            self.units[g].mana_burn -= back.min(self.units[g].mana_burn);
+        }
+    }
 
     /// `LeaderData::current_upgrade(who, ti)` as a unit record.
     fn upgrade_record(&self, who: Player, ti: i32) -> Option<usize> {
@@ -554,8 +697,17 @@ impl Sim {
             self.burn_fuel(u);
             return;
         }
+        // `Unit::process@00610bc0`'s other arm, `unit_masks & 1`: a decoy's
+        // `mana_burn` is its age, one a frame from 0 (run422: 1 on its first
+        // block). SEAM: the close at `(general_upgrade + 2) × DECOY_TIME /
+        // 2` (2,500 frames here, past every window) and the attrition it
+        // takes every seventh frame on another's ground.
+        if self.units[u].decoy {
+            self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
+            return;
+        }
         let unit = &self.units[u];
-        if unit.mana_burn == 0 || unit.decoy || unit.casting {
+        if unit.mana_burn == 0 || unit.casting {
             return;
         }
         let step = i16::try_from(((frame & 1) + 2) / 2).unwrap_or(1);
