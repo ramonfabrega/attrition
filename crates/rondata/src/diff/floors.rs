@@ -194,67 +194,120 @@ mod tests {
     /// constants are the worker's to re-pin; the line is the commander's**
     /// (`tools/release_gate.py`'s `COMMANDERS_LINES` names this test).
     /// Made to fail first on the queue with no such line, and on a line
-    /// whose word is not the pin ([`second_pair_verdict`]'s own test).
+    /// whose word is not the pin ([`ai_line_verdict`]'s own test). **The
+    /// length is read too** (the nineteenth pass): the rows are
+    /// [`AI_WORDS`]', and a word of its game's length is a closed game.
     #[test]
     fn the_handoff_s_second_pair_is_the_pinned_words() {
+        the_handoff_carries("Second pair");
+    }
+
+    /// **The third map's line is its pinned word** (parked 1080, the
+    /// nineteenth pass): item 1066 pinned `LONG_WORD_GREAT_SAHARA` and the
+    /// commander wrote a `Third map:` line that no guard read. Made to
+    /// fail first on the line with its word moved by one.
+    #[test]
+    fn the_handoff_s_third_map_is_the_pinned_word() {
+        the_handoff_carries("Third map");
+    }
+
+    fn the_handoff_carries(prefix: &str) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
-        let line = q.lines().find(|l| l.starts_with("Second pair:")).expect(
-            "docs/QUEUE.md has no `Second pair:` line in the handoff; write \
-             `Second pair: EastIndies w<word> of <length> \u{b7} GreatLakes \
-             w<word> of <length>` beside `Long captures:`",
-        );
-        if let Err(e) = second_pair_verdict(line, SECOND_WORD_EAST_INDIES, SECOND_WORD_GREAT_LAKES)
-        {
+        let head = format!("{prefix}:");
+        let line = q.lines().find(|l| l.starts_with(&head)).unwrap_or_else(|| {
+            panic!(
+                "docs/QUEUE.md has no `{head}` line in the handoff; write \
+                 `{head} <map> w<word> of <length>`, one part per row of \
+                 `AI_WORDS` on that line, in order, parted by a middle dot"
+            )
+        });
+        let rows: Vec<(&str, i64, i64)> = AI_WORDS
+            .iter()
+            .filter(|w| w.line == prefix)
+            .map(|w| (w.map, w.word, w.length))
+            .collect();
+        if let Err(e) = ai_line_verdict(line, prefix, &rows) {
             panic!("{e}");
         }
     }
 
-    /// The `Second pair:` line read part by part against two words.
-    fn second_pair_verdict(line: &str, east: i64, great: i64) -> Result<(), String> {
+    /// One of the AI track's lines read part by part against its rows:
+    /// `<map> w<word> of <length>`, the length with or without its comma.
+    fn ai_line_verdict(line: &str, prefix: &str, rows: &[(&str, i64, i64)]) -> Result<(), String> {
         let mut said = Vec::new();
-        for part in line.trim_start_matches("Second pair:").split('\u{b7}') {
+        let body = line
+            .strip_prefix(prefix)
+            .and_then(|l| l.strip_prefix(':'))
+            .ok_or_else(|| format!("not a `{prefix}:` line: {line:?}"))?;
+        for part in body.split('\u{b7}') {
             let t: Vec<&str> = part.split_whitespace().collect();
             let word = t
                 .get(1)
                 .and_then(|w| w.strip_prefix('w'))
                 .and_then(|w| w.parse::<i64>().ok())
-                .ok_or_else(|| format!("unreadable second-pair part {part:?}"))?;
-            said.push((t[0].to_string(), word));
+                .ok_or_else(|| format!("unreadable part {part:?} on the `{prefix}:` line"))?;
+            let length = (t.get(2) == Some(&"of"))
+                .then(|| t.get(3))
+                .flatten()
+                .and_then(|n| n.replace(',', "").parse::<i64>().ok())
+                .ok_or_else(|| {
+                    format!("part {part:?} on the `{prefix}:` line names no `of <length>`")
+                })?;
+            said.push((t[0].to_string(), word, length));
         }
-        let pinned = vec![
-            ("EastIndies".to_string(), east),
-            ("GreatLakes".to_string(), great),
-        ];
+        let pinned: Vec<(String, i64, i64)> = rows
+            .iter()
+            .map(|(m, w, l)| (m.to_string(), *w, *l))
+            .collect();
         if said == pinned {
             Ok(())
         } else {
             Err(format!(
-                "the handoff's second-pair words are not the pins: the queue's \
-                 line says {said:?}, SECOND_WORD_EAST_INDIES and \
-                 SECOND_WORD_GREAT_LAKES say {pinned:?}"
+                "the handoff's `{prefix}:` line is not the pins: the queue's \
+                 line says {said:?}, `AI_WORDS` says {pinned:?}"
             ))
         }
     }
 
     #[test]
-    fn a_second_pair_line_is_read_against_both_pins() {
-        let ok = "Second pair: EastIndies w612 of 24,000 \u{b7} GreatLakes w700 of 24,000";
-        assert_eq!(second_pair_verdict(ok, 612, 700), Ok(()));
+    fn an_ai_line_is_read_against_its_rows() {
+        let rows = [("EastIndies", 612, 18_140), ("GreatLakes", 700, 5_930)];
+        let ok = "Second pair: EastIndies w612 of 18,140 \u{b7} GreatLakes w700 of 5,930";
+        assert_eq!(ai_line_verdict(ok, "Second pair", &rows), Ok(()));
+        let stale = [("EastIndies", 613, 18_140), ("GreatLakes", 700, 5_930)];
         assert!(
-            second_pair_verdict(ok, 613, 700).is_err(),
+            ai_line_verdict(ok, "Second pair", &stale).is_err(),
             "a stale East Indies word"
         );
+        let stale = [("EastIndies", 612, 18_140), ("GreatLakes", 699, 5_930)];
         assert!(
-            second_pair_verdict(ok, 612, 699).is_err(),
+            ai_line_verdict(ok, "Second pair", &stale).is_err(),
             "a stale Great Lakes word"
         );
-        let swapped = "Second pair: GreatLakes w700 of 24,000 \u{b7} EastIndies w612 of 24,000";
+        // The length: entry 53 wrote 24,000 for a game that ends on 5,930.
+        let long = "Second pair: EastIndies w612 of 18,140 \u{b7} GreatLakes w700 of 24,000";
         assert!(
-            second_pair_verdict(swapped, 612, 700).is_err(),
+            ai_line_verdict(long, "Second pair", &rows).is_err(),
+            "a length that is not the game's"
+        );
+        let bare = "Second pair: EastIndies w612 \u{b7} GreatLakes w700";
+        assert!(
+            ai_line_verdict(bare, "Second pair", &rows).is_err(),
+            "no length"
+        );
+        let swapped = "Second pair: GreatLakes w700 of 5,930 \u{b7} EastIndies w612 of 18,140";
+        assert!(
+            ai_line_verdict(swapped, "Second pair", &rows).is_err(),
             "East Indies first"
         );
-        assert!(second_pair_verdict("Second pair: none pinned", 0, 0).is_err());
+        assert!(ai_line_verdict("Second pair: none pinned", "Second pair", &rows).is_err());
+        let third = "Third map: GreatSahara w8 of 24,000";
+        assert_eq!(
+            ai_line_verdict(third, "Third map", &[("GreatSahara", 8, 24_000)]),
+            Ok(())
+        );
+        assert!(ai_line_verdict(third, "Third map", &[("GreatSahara", 9, 24_000)]).is_err());
     }
 
     /// **The rules track's headline has the guard the AI track's has** —
@@ -647,19 +700,144 @@ mod tests {
         // **The newest pair's lower word** (DECISIONS 53 §2, item 971): the
         // first pair closed at 24,000 on both maps, so its words no longer
         // choose a map; the second pair's do.
-        let lower = if SECOND_WORD_EAST_INDIES <= SECOND_WORD_GREAT_LAKES {
-            "East Indies"
-        } else {
-            "Great Lakes"
-        };
+        //
+        // **And a closed game chooses nothing** (parked 1121, the
+        // nineteenth pass): Great Lakes' 5,930 is its game's end, and when
+        // East Indies passed it on 5975 this guard asked the queue to name
+        // the map no item can move. The lower word is the lower *open* one.
+        let pair: Vec<(&str, i64, i64)> = AI_WORDS
+            .iter()
+            .filter(|w| w.line == NEWEST_PAIR)
+            .map(|w| (w.named, w.word, w.length))
+            .collect();
+        let lower = default_map(&pair);
         assert!(
             named.starts_with(lower),
-            "docs/QUEUE.md says `lower map first — {named}` and the second pair's lower word \
-             is {lower}'s (East Indies {SECOND_WORD_EAST_INDIES}, Great Lakes \
-             {SECOND_WORD_GREAT_LAKES}). \
+            "docs/QUEUE.md says `lower map first — {named}` and the newest pair's lower \
+             open word is {lower}'s ({pair:?}, as map, word, length). \
              Rewrite the line, and book that map's widening first — WIDENINGS names the \
              item that owes it"
         );
+    }
+
+    /// The lower open word's map, the first row winning a tie; `closed`
+    /// when every game of the pair has reached its end, which is the day
+    /// the next pair is owed (`docs/DECISIONS.md` 53 §2).
+    fn default_map<'a>(pair: &[(&'a str, i64, i64)]) -> &'a str {
+        pair.iter()
+            .filter(|(_, word, length)| word < length)
+            .min_by_key(|(_, word, _)| *word)
+            .map_or("closed", |(map, _, _)| *map)
+    }
+
+    #[test]
+    fn the_default_map_is_the_lower_open_word() {
+        let open = [
+            ("East Indies", 5_606, 18_140),
+            ("Great Lakes", 4_924, 5_930),
+        ];
+        assert_eq!(default_map(&open), "Great Lakes");
+        let tie = [("East Indies", 10, 18_140), ("Great Lakes", 10, 5_930)];
+        assert_eq!(default_map(&tie), "East Indies");
+        // 1121's day: the lower word is a closed game's.
+        let passed = [
+            ("East Indies", 5_975, 18_140),
+            ("Great Lakes", 5_930, 5_930),
+        ];
+        assert_eq!(default_map(&passed), "East Indies");
+        let done = [
+            ("East Indies", 18_140, 18_140),
+            ("Great Lakes", 5_930, 5_930),
+        ];
+        assert_eq!(default_map(&done), "closed");
+    }
+
+    /// **A closed game names the test that scored its end** (parked 1108,
+    /// the nineteenth pass): the city's capture spends no draw, and
+    /// run347's last event was wrong under a stream that agreed to the
+    /// game's last frame; a closing whole-map state was on disk and
+    /// nothing scored it until item 1099 did. And an open game names the
+    /// function that walks its word's window, which the compared pin is
+    /// held to below. Made to fail first with Great Lakes' endpoint taken
+    /// out of its row.
+    #[test]
+    fn a_closed_ai_word_names_its_endpoint_and_an_open_one_its_window() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff");
+        let mut source = String::new();
+        for entry in std::fs::read_dir(root).expect("src/diff") {
+            let path = entry.expect("entry").path();
+            if path.extension().is_some_and(|e| e == "rs") {
+                source.push_str(&std::fs::read_to_string(&path).expect("read"));
+            }
+        }
+        let mut wrong = Vec::new();
+        for w in AI_WORDS {
+            let (owed, what) = if w.closed() {
+                (w.endpoint, "is closed and names no endpoint test")
+            } else {
+                (w.window, "is open and names no window")
+            };
+            match owed {
+                None => wrong.push(format!("{} w{} of {} {what}", w.map, w.word, w.length)),
+                Some(f) if !source.contains(&format!("fn {f}(")) => wrong.push(format!(
+                    "{} names `{f}`, and no `fn {f}(` exists under src/diff/",
+                    w.map
+                )),
+                Some(_) => {}
+            }
+        }
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+    }
+
+    /// **The compared pin walks every open word's window** (parked 1067
+    /// and 1080, the nineteenth pass). The pin held ninety-four fields as
+    /// uncompared on a window closed since item 899 while the second
+    /// pair's word stood on a group's order (DECISIONS 54), and what moved
+    /// it to the word was an item, held there by a comment. The pin's test
+    /// calls each open row's window function and no other. Made to fail
+    /// first on the third map's window, which the pin did not walk.
+    #[test]
+    fn the_compared_pin_walks_every_open_ai_word() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff/coverage.rs");
+        let source = std::fs::read_to_string(path).expect("coverage.rs");
+        let lines: Vec<&str> = source.lines().collect();
+        let head = "fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {";
+        let at = lines
+            .iter()
+            .position(|l| l.trim_start() == head)
+            .expect("the compared pin's test");
+        let body: Vec<&str> = lines[at + 1..]
+            .iter()
+            .take_while(|l| **l != "}")
+            .map(|l| l.split("//").next().unwrap_or(""))
+            .collect();
+        let walked: Vec<&str> = AI_WORDS
+            .iter()
+            .filter(|w| !w.closed())
+            .filter_map(|w| w.window)
+            .collect();
+        let mut wrong = Vec::new();
+        for f in &walked {
+            if !body.iter().any(|l| l.contains(&format!("{f}()"))) {
+                wrong.push(format!(
+                    "`{f}` is an open word's window and the compared pin does not walk it"
+                ));
+            }
+        }
+        for l in &body {
+            if let Some(i) = l.find("_word_window()") {
+                let name = l[..i + "_word_window".len()]
+                    .rsplit(|c: char| !(c.is_alphanumeric() || c == '_'))
+                    .next()
+                    .unwrap_or("");
+                if !walked.contains(&name) {
+                    wrong.push(format!(
+                        "the compared pin walks `{name}()`, which no open row of AI_WORDS names"
+                    ));
+                }
+            }
+        }
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
     }
 
     /// **A word is pinned with its widening** (`docs/DECISIONS.md` 43):
@@ -717,5 +895,73 @@ mod tests {
                 ),
             }
         }
+    }
+
+    /// **A widening's test holds its pins under the guard** (parked 973,
+    /// the nineteenth pass): every test [`WIDENINGS`] names takes
+    /// `Pins::hold()` and pins with `pin_eq!`, `pin_ne!` and `pin!`, so one
+    /// failing run prints every pin that moved. A bare `assert` in such a
+    /// test stops it on the first, and the pins behind it cost a second
+    /// gate (items 882, 904, 989, 1034, 1072). The test's body is read to
+    /// the closing brace at its own indentation, as `rustfmt` leaves it.
+    /// Made to fail first on all forty-six, before any was converted.
+    #[test]
+    fn a_widening_s_test_holds_its_pins_under_the_guard() {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/src/diff");
+        let mut bare = Vec::new();
+        let mut found = 0;
+        for entry in std::fs::read_dir(root).expect("src/diff") {
+            let path = entry.expect("entry").path();
+            if path.extension().is_none_or(|e| e != "rs") {
+                continue;
+            }
+            let source = std::fs::read_to_string(&path).expect("read");
+            let lines: Vec<&str> = source.lines().collect();
+            for (_, _, test, _, _) in WIDENINGS {
+                let Some(t) = test else { continue };
+                let head = format!("fn {t}() {{");
+                let Some(at) = lines.iter().position(|l| l.trim_start() == head) else {
+                    continue;
+                };
+                found += 1;
+                let indent = lines[at].len() - lines[at].trim_start().len();
+                let close = format!("{}}}", " ".repeat(indent));
+                let body: Vec<&str> = lines[at + 1..]
+                    .iter()
+                    .take_while(|l| **l != close)
+                    .copied()
+                    .collect();
+                if !body.iter().any(|l| l.contains("Pins::hold()")) {
+                    bare.push(format!("{t}: takes no `Pins::hold()`"));
+                }
+                for (n, l) in body.iter().enumerate() {
+                    let code = l.split("//").next().unwrap_or("");
+                    for mac in ["assert!(", "assert_eq!(", "assert_ne!("] {
+                        let stands = code.match_indices(mac).any(|(i, _)| {
+                            !code[..i]
+                                .chars()
+                                .next_back()
+                                .is_some_and(|c| c.is_alphanumeric() || c == '_')
+                        });
+                        if stands {
+                            bare.push(format!("{t}, line {}: a bare `{mac}`", at + 2 + n));
+                        }
+                    }
+                }
+            }
+        }
+        let named = WIDENINGS.iter().filter(|w| w.2.is_some()).count();
+        assert_eq!(
+            found, named,
+            "a test WIDENINGS names was not found by its head"
+        );
+        assert!(
+            bare.is_empty(),
+            "{} of a widening's pins stand outside the guard — take `let _pins = \
+             Pins::hold();` first and pin with `pin_eq!`, `pin_ne!`, `pin!` \
+             (`diff::testkit::pins`):\n  {}",
+            bare.len(),
+            bare.join("\n  ")
+        );
     }
 }

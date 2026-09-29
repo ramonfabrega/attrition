@@ -2149,6 +2149,7 @@ fn chapter_one_s_squad_is_handed_its_captain_s_target() {
 /// chapter two does with run118.
 #[test]
 fn chapter_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     /// run110's window (`docs/RUNS.md` run110): its clocks cover these
     /// blocks and nothing else.
     const RUN110: (i64, i64) = (610, 630);
@@ -2509,7 +2510,7 @@ fn chapter_one_s_word_frame_is_widened_whole() {
                     Some(c) => {
                         // Every key run105 prints on a `GUY` block at
                         // `GUYS=2`; `des` is not one of them.
-                        assert_eq!(
+                        pin_eq!(
                             (g.pos, g.angle, g.des.or(c.des)),
                             (c.pos, c.angle, c.des),
                             "block {n}, {who}/{o} guy {k}: run110 is not run105's game"
@@ -2621,13 +2622,13 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     // shape and not a truncation.
     const RUN105_NO_BLOCK: i64 = 900;
     let absent = usize::from((FIRST..LAST).contains(&RUN105_NO_BLOCK));
-    assert_eq!(
+    pin_eq!(
         blocks,
         (LAST - FIRST) as usize - absent,
         "run105 no longer carries every block of [{FIRST}, {LAST})"
     );
     if clocks.is_some() {
-        assert_eq!(
+        pin_eq!(
             clock_blocks,
             (RUN110.1 - RUN110.0) as usize,
             "run110 no longer carries every block of [{}, {})",
@@ -2636,7 +2637,7 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         );
         // 379 when it was written: sixteen to nineteen living figures on
         // each of run110's twenty blocks.
-        assert!(
+        pin!(
             clock_rows >= 350,
             "only {clock_rows} guy records came from run110; the clock rows compare nothing"
         );
@@ -2644,13 +2645,13 @@ fn chapter_one_s_word_frame_is_widened_whole() {
     if clocks.is_some() {
         // Item 530: who=1's army group on each of run110's blocks from its
         // muster at 615: fourteen.
-        assert!(
+        pin!(
             group_blocks >= 14,
             "only {group_blocks} army groups came from run110's pool; the group rows compare nothing"
         );
     }
     // 2993 when it was written: every unit of both players on every block.
-    assert!(
+    pin!(
         near_read >= 2_500,
         "only {near_read} unit-frames carried a near pair; the raw read found nothing"
     );
@@ -2660,8 +2661,9 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         .iter()
         .filter(|u| u.owner < 2 && u.index >= 6)
         .count();
-    assert_eq!(
-        staged, 6,
+    pin_eq!(
+        staged,
+        6,
         "the window does not hold chapter one's six hoplites"
     );
     // **The map, and its shape is the finding** (item 445). Before the
@@ -2749,7 +2751,7 @@ fn chapter_one_s_word_frame_is_widened_whole() {
         ("group:new_speed 1/army0", 616),
         ("group:speed 1/army0", 616),
     ];
-    assert_eq!(
+    pin_eq!(
         got,
         measured.to_vec(),
         "chapter one's word frame no longer widens the way item 445 \
@@ -3247,6 +3249,7 @@ fn chapter_two_s_hoplite_captain_refused_a_cell_three_searches_reached() {
 /// (`FrameResult::extra_units`).
 #[test]
 fn chapter_two_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     /// run112's one missing block inside its own window: 605..899, then
     /// the `!quit` block at 901.
     const RUN112_NO_BLOCK: i64 = 900;
@@ -3480,7 +3483,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
                 // print is read from it.
                 let g = match g4.and_then(|x| x.guys.get(k)) {
                     Some(c) => {
-                        assert_eq!(
+                        pin_eq!(
                             (g.pos, g.angle),
                             (c.pos, c.angle),
                             "block {n}, {who}/{o} guy {k}: run118 is not run112's game"
@@ -3548,7 +3551,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // window runs to the capture's end, so that one absence is the
     // dump's own shape and not a truncation.
     let absent = usize::from((FIRST..LAST).contains(&RUN112_NO_BLOCK));
-    assert_eq!(
+    pin_eq!(
         blocks,
         (LAST - FIRST) as usize - absent,
         "run112's dump no longer carries every frame of [{FIRST}, {LAST})"
@@ -3568,13 +3571,13 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         // past it to run112's end: the clock rows cover `[FIRST, 847)` and
         // the frames above are compared on run112's own `GUYS=2` fields.
         let clocked = LAST.min(RUN118_LAST_BLOCK + 1);
-        assert_eq!(
+        pin_eq!(
             clock_blocks,
             (clocked - FIRST) as usize,
             "run118 no longer carries every block of [{FIRST}, {clocked}); it is \
              truncated at {RUN118_LAST_BLOCK}"
         );
-        assert!(
+        pin!(
             clock_rows >= 2000,
             "only {clock_rows} guy records came from run118; the clock rows \
              are comparing nothing"
@@ -3605,7 +3608,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
     // block run112 does not have.
     let carried =
         |from: i64| (LAST - from) as usize - usize::from((from..LAST).contains(&RUN112_NO_BLOCK));
-    assert_eq!(
+    pin_eq!(
         deaths,
         3 * (carried(684) + carried(730) + carried(744) + carried(817)),
         "the death-object comparison's own width moved; 1/8 dies on 683          and the dump carries its record on every block from 684 to the          end of run112"
@@ -3618,8 +3621,9 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         .iter()
         .filter(|u| u.owner < 2 && u.index >= 6)
         .count();
-    assert_eq!(
-        ninth, 9,
+    pin_eq!(
+        ninth,
+        9,
         "the window does not hold chapter two's nine staged figures"
     );
     // **The map the widening exists to pin**, and its shape is the
@@ -3846,7 +3850,7 @@ fn chapter_two_s_word_frame_is_widened_whole() {
         ("g.gpiece[0] 1/5", 606),
     ];
     let got: Vec<(&str, i64)> = first.iter().map(|(k, &n)| (k.as_str(), n)).collect();
-    assert_eq!(
+    pin_eq!(
         got,
         measured.to_vec(),
         "chapter two's word frame no longer widens the way item 523 \
@@ -4946,6 +4950,7 @@ fn every_rolled_shot_comes_down_where_the_original_s_does() {
 /// for the ships, before any quiet row is trusted.
 #[test]
 fn chapter_five_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     use std::collections::{BTreeMap, BTreeSet};
     const FIRST: i64 = WIDENING_CHAPTER_FIVE.0;
     const LAST: i64 = WIDENING_CHAPTER_FIVE.1;
@@ -5168,7 +5173,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         "ch5: {} leader keys not printed at LEADERS=2",
         missing.len()
     );
-    assert_eq!(
+    pin_eq!(
         leader_rows,
         2 * LEADERS_TWO_KEYS * blocks,
         "the leader rows LEADERS=2 prints ({LEADERS_TWO_KEYS} a player) are not compared on \
@@ -5176,8 +5181,8 @@ fn chapter_five_s_word_frame_is_widened_whole() {
     );
     // **Anti-vacuity for the `AMMO` record**: run127's 506 live rounds
     // are all read, and this crate's side is not empty.
-    assert_eq!(ammo_theirs, 506, "run127's live rounds are not all read");
-    assert!(ammo_ours > 0, "this crate fired no round in the window");
+    pin_eq!(ammo_theirs, 506, "run127's live rounds are not all read");
+    pin!(ammo_ours > 0, "this crate fired no round in the window");
     // **The map's shape.** Three standing families from the capture's
     // first block, none of them the water's: `build:extra` (the end
     // detail prints no `BUILDDATA`), the unmodelled `form`, and two
@@ -5190,7 +5195,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == FIRST)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run127's first block moved: {at_floor:?}"
     );
@@ -5220,7 +5225,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         .filter(|((_, _, what), (f, _))| *f <= GOLDEN_WORD_CHAPTER_FIVE && !standing(what))
         .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
-    assert_eq!(
+    pin_eq!(
         under,
         Vec::<String>::new(),
         "what parts at or under the word moved"
@@ -5234,13 +5239,14 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         .filter(|((_, _, what), _)| what.starts_with("ammo["))
         .map(|(_, (f, _))| *f)
         .min();
-    assert_eq!(
-        first_ammo, None,
+    pin_eq!(
+        first_ammo,
+        None,
         "a round of the capture parts: first ammo row on {first_ammo:?}"
     );
-    assert_eq!(ammo_ours, 506, "this crate's rounds are not run127's 506");
+    pin_eq!(ammo_ours, 506, "this crate's rounds are not run127's 506");
     let absent = usize::from((FIRST..LAST).contains(&RUN127_NO_BLOCK));
-    assert_eq!(
+    pin_eq!(
         blocks,
         (LAST - FIRST) as usize - absent,
         "run127's dump no longer carries every frame of [{FIRST}, {LAST})"
@@ -5355,6 +5361,7 @@ fn chapter_four_s_two_captures_are_one_game() {
 /// cells a frame) and this crate recomputes wholesale.
 #[test]
 fn chapter_four_s_border_is_widened_cell_for_cell() {
+    let _pins = Pins::hold();
     use std::collections::BTreeMap;
     const FIRST: i64 = WIDENING_CHAPTER_FOUR_BORDER.0;
     const LAST: i64 = WIDENING_CHAPTER_FOUR_BORDER.1;
@@ -5399,7 +5406,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         };
         let fields = world.fields().to_vec();
         let theirs = crate::gamelog::world_cells(&fields);
-        assert_eq!(
+        pin_eq!(
             theirs.len(),
             3_600,
             "run132's block {n} is not a whole WORLD scan"
@@ -5479,7 +5486,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
          {} keys parted",
         firsts.len()
     );
-    assert_eq!(
+    pin_eq!(
         blocks,
         (LAST - FIRST) as usize,
         "run132's dump no longer carries every frame of [{FIRST}, {LAST})"
@@ -5506,7 +5513,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
     // as the original's does, so the blocks where the original's count is
     // mid-sweep (276, 282, 285 after the Temple; 308 … 319 after Religion;
     // 346 … 406 after Civic 3) agree cell for cell as well.
-    assert_eq!(
+    pin_eq!(
         settled,
         vec![
             (295, 266),
@@ -5529,7 +5536,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         ],
         "the blocks on which every owner agrees, with the original's count"
     );
-    assert!(
+    pin!(
         counts.iter().all(|c| c.2[1] == 261 && c.1[1] == 261),
         "player 1's 261 cells moved on one side"
     );
@@ -5546,7 +5553,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         .filter(|((w, _, what), (f, _))| *w == -3 && !(what.ends_with(".who") && sweeping(*f)))
         .map(|((_, _, what), (f, row))| format!("{f} {what}: {row}"))
         .collect();
-    assert_eq!(
+    pin_eq!(
         cell_rows,
         Vec::<String>::new(),
         "a cell parts outside the sweep: the Temple's footprint, `who2`, or \
@@ -5562,7 +5569,7 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         .filter(|((w, _, _), (f, _))| *w != -3 && *f != FIRST)
         .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
-    assert_eq!(other, Vec::<String>::new(), "a building or city row parts");
+    pin_eq!(other, Vec::<String>::new(), "a building or city row parts");
     // ~~**run132's first parting is 301**, the Temple's frame, and it is the
     // sweep's: 30 cells this crate owns a sweep early.~~ **Since item 1106
     // nothing parts past the first block**: the border pass writes the
@@ -5574,8 +5581,8 @@ fn chapter_four_s_border_is_widened_cell_for_cell() {
         .filter(|(_, (f, _))| *f != FIRST)
         .map(|(_, (f, _))| *f)
         .min();
-    assert_eq!(first_parting, None, "run132's first parting moved");
-    assert_eq!(
+    pin_eq!(first_parting, None, "run132's first parting moved");
+    pin_eq!(
         firsts.iter().filter(|(_, (f, _))| *f == FIRST).count(),
         14,
         "the standing rows on run132's first block moved"
@@ -5620,6 +5627,7 @@ fn chapter_four_holds_to_the_golden_word() {
 /// owner changes on either side.
 #[test]
 fn chapter_four_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     use std::collections::BTreeMap;
     const FIRST: i64 = WIDENING_CHAPTER_FOUR.0;
     const LAST: i64 = WIDENING_CHAPTER_FOUR.1;
@@ -5736,7 +5744,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
             );
             eprintln!("  route 1101 1/10 theirs {theirs:?}");
             eprintln!("  route 1101 1/10 ours   {ours:?}");
-            assert_eq!(
+            pin_eq!(
                 theirs,
                 vec![
                     (7, 45),
@@ -5751,7 +5759,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                 ],
                 "run133's wagon route on 1101"
             );
-            assert_eq!(ours, theirs, "this crate's wagon route on 1101");
+            pin_eq!(ours, theirs, "this crate's wagon route on 1101");
         }
         // **The escort's own row on the block it is issued** (item 567,
         // `docs/ORDERS.md` §24), read off both sides by name rather than
@@ -5776,7 +5784,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                     them.guard_idle,
                     them.guard_retry,
                 );
-                assert_eq!(theirs, (Some(10), Some(dx), Some(264), Some(0), Some(0)));
+                pin_eq!(theirs, (Some(10), Some(dx), Some(264), Some(0), Some(0)));
                 // **And the post itself since item 569**: the wagon walks
                 // the original's line, so the wagon's position plus the
                 // offset is the original's point on all three figures.
@@ -5797,8 +5805,8 @@ fn chapter_four_s_word_frame_is_widened_whole() {
                     Some(i64::from(g.idle)),
                     Some(i64::from(g.retry)),
                 );
-                assert_eq!(ours, theirs, "1/{o}'s guard row");
-                assert_eq!(
+                pin_eq!(ours, theirs, "1/{o}'s guard row");
+                pin_eq!(
                     Some((i64::from(g.guard.x), i64::from(g.guard.y))),
                     post,
                     "1/{o}'s post on 1277"
@@ -5867,13 +5875,13 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         firsts.len(),
         missing.len()
     );
-    assert_eq!(
+    pin_eq!(
         blocks,
         (LAST - FIRST) as usize - 1,
         "run133's dump no longer carries every frame of [{FIRST}, {LAST}) \
          but 1500, the block its `!quit` replaces"
     );
-    assert_eq!(
+    pin_eq!(
         leader_rows,
         2 * LEADERS_TWO_KEYS * blocks,
         "the leader rows LEADERS=2 prints ({LEADERS_TWO_KEYS} a player) are not compared on \
@@ -5891,7 +5899,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == FIRST)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 27,
         "the standing rows on run133's first block moved: {at_floor:?}"
     );
@@ -5918,8 +5926,9 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         .filter(|((_, _, what), _)| bleed(what))
         .map(|((w, o, what), (f, row))| (*f, format!("{w}/{o} {what}: {row}")))
         .min();
-    assert_eq!(
-        first_bleed, None,
+    pin_eq!(
+        first_bleed,
+        None,
         "the namesake's record parts somewhere new"
     );
     // **What parts under the word**, none of it a draw, and the word is
@@ -5956,7 +5965,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
     let mut under_sorted = under.clone();
     under_sorted.sort();
     want.sort();
-    assert_eq!(under_sorted, want, "what parts under the word moved");
+    pin_eq!(under_sorted, want, "what parts under the word moved");
     // **The move's block, 1416** (item 569; its delta is in
     // `GOLDEN_WORD_CHAPTER_FOUR`'s comment). Item 567 left two rows here:
     // the wagon's `pause`, 15 in the original and 0 here, and `1/8`'s half
@@ -5969,7 +5978,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f > 1173)
         .map(|((w, o, what), (f, row))| format!("{f} {w}/{o} {what}: {row}"))
         .collect();
-    assert_eq!(
+    pin_eq!(
         above,
         Vec::<String>::new(),
         "a row parts above 1173, where run133 agrees to its end"
@@ -6817,6 +6826,7 @@ fn widen_civilians(
 /// out on every block; it is keyed on `o` now.
 #[test]
 fn chapter_seven_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     const FIRST: i64 = WIDENING_CHAPTER_SEVEN.0;
     const LAST: i64 = WIDENING_CHAPTER_SEVEN.1;
     /// The window is 605..1199 and the `!quit` block is 1201.
@@ -6868,7 +6878,7 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
             .filter(|(_, (f, _))| *f == FIRST)
             .map(|((_, _, what), _)| what)
             .collect();
-        assert!(
+        pin!(
             at_floor
                 .iter()
                 .all(|w| standing(w) || (*run == "ch7c" && control_standing(w)))
@@ -6907,10 +6917,10 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
             .collect();
         got.sort();
         want.sort();
-        assert_eq!(got, want, "{run}: what parts under the word moved");
+        pin_eq!(got, want, "{run}: what parts under the word moved");
         // **The `GOOD` list agrees whole** on every block, `ever_seen`
         // included, bar the one good the dump cannot print.
-        assert!(
+        pin!(
             !firsts
                 .keys()
                 .any(|(w, _, what)| *w == 255 || what.starts_with("good")),
@@ -6932,6 +6942,7 @@ fn chapter_seven_s_word_frame_is_widened_whole() {
 /// crate's pool slot shifted by one: eight `ammo[·]` rows parted.
 #[test]
 fn chapter_six_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch6",
         "chapter6",
@@ -6958,7 +6969,7 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch6: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -6978,7 +6989,7 @@ fn chapter_six_s_word_frame_is_widened_whole() {
         .collect();
     got.sort();
     let want = vec!["611 0/6 form".to_string(), "616 1/6 form".to_string()];
-    assert_eq!(got, want, "ch6: what parts under the word moved");
+    pin_eq!(got, want, "ch6: what parts under the word moved");
 }
 
 /// **Chapter six-b's word, widened whole, both directions** (item 651).
@@ -6989,6 +7000,7 @@ fn chapter_six_s_word_frame_is_widened_whole() {
 /// `LEADERS=2`, and every live round.
 #[test]
 fn chapter_six_b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch6b",
         "chapter6b",
@@ -7015,7 +7027,7 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIX_B.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 13,
         "ch6b: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7064,7 +7076,7 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch6b: what parts under the word moved");
+    pin_eq!(got, want, "ch6b: what parts under the word moved");
 }
 
 /// **Chapter eleven's word, widened whole, both directions** (item 696).
@@ -7076,6 +7088,7 @@ fn chapter_six_b_s_word_frame_is_widened_whole() {
 /// no `AMMO`.
 #[test]
 fn chapter_eleven_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch11",
         "chapter11",
@@ -7099,7 +7112,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_ELEVEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch11: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7197,7 +7210,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch11: what parts under the word moved");
+    pin_eq!(got, want, "ch11: what parts under the word moved");
 }
 
 /// **Chapter twelve's word, widened whole, both directions** (item 714).
@@ -7208,6 +7221,7 @@ fn chapter_eleven_s_word_frame_is_widened_whole() {
 /// leaders at `LEADERS=2`. run204 dumps no `AMMO`.
 #[test]
 fn chapter_twelve_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch12",
         "chapter12",
@@ -7231,7 +7245,7 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWELVE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch12: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7271,7 +7285,7 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch12: what parts under the word moved");
+    pin_eq!(got, want, "ch12: what parts under the word moved");
 }
 
 /// **Chapter thirteen's word, widened whole, both directions** (item
@@ -7282,6 +7296,7 @@ fn chapter_twelve_s_word_frame_is_widened_whole() {
 /// among them, both leaders at `LEADERS=2`. run208 dumps no `AMMO`.
 #[test]
 fn chapter_thirteen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch13",
         "chapter13",
@@ -7305,7 +7320,7 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 13,
         "ch13: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7348,7 +7363,7 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch13: what parts under the word moved");
+    pin_eq!(got, want, "ch13: what parts under the word moved");
 }
 
 /// **Chapter fourteen's word, widened whole, both directions** (item
@@ -7359,6 +7374,7 @@ fn chapter_thirteen_s_word_frame_is_widened_whole() {
 /// `AMMO`, and its `GROUPDATA` pool did not come out (`docs/RUNS.md`).
 #[test]
 fn chapter_fourteen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch14",
         "chapter14",
@@ -7382,7 +7398,7 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_FOURTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 13,
         "ch14: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7433,7 +7449,7 @@ fn chapter_fourteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch14: what parts under the word moved");
+    pin_eq!(got, want, "ch14: what parts under the word moved");
 }
 
 /// **One golden capture's `GROUPDATA` pool, widened whole, both
@@ -7577,6 +7593,7 @@ fn widen_pool(
 /// run215). run215 dumps no `AMMO` and no `DEATHS`.
 #[test]
 fn chapter_fifteen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch15",
         "chapter15",
@@ -7600,7 +7617,7 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_FIFTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch15: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7659,7 +7676,7 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch15: what parts under the word moved");
+    pin_eq!(got, want, "ch15: what parts under the word moved");
     // **What parts in the pool: nothing**, on all 645 blocks. Slot 1 is
     // the pushed selection from 621. The first pin had its `stamp`
     // (`GroupData +0x14`) 621 in the dump and 0 here from 622, until
@@ -7667,7 +7684,7 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
     // does; and on 736 and 738 the skipped attack's `order_num`,
     // `facing` and `curr`.
     let want_pool: Vec<String> = Vec::new();
-    assert_eq!(got_pool, want_pool, "ch15: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch15: what parts in the pool moved");
 }
 
 /// **Chapter sixteen's word, widened whole, both directions** (item
@@ -7679,6 +7696,7 @@ fn chapter_fifteen_s_word_frame_is_widened_whole() {
 /// box leg's pushed group sits. run219 dumps no `AMMO` and no `DEATHS`.
 #[test]
 fn chapter_sixteen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch16",
         "chapter16",
@@ -7702,7 +7720,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SIXTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch16: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7752,7 +7770,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch16: what parts under the word moved");
+    pin_eq!(got, want, "ch16: what parts under the word moved");
     // **What parts in the pool.** Slot 0 is the squad's explore (641),
     // slot 1 the chariot's (621); the chariot's box leg on 684 frees slot
     // 1 and takes slot 2, and the squad's on 803 takes slot 1 back.
@@ -7780,7 +7798,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch16: what parts in the pool moved");
 }
 
 /// **Chapter nineteen's word, widened whole, both directions** (item
@@ -7792,6 +7810,7 @@ fn chapter_sixteen_s_word_frame_is_widened_whole() {
 /// dumps no `AMMO` and no `DEATHS`.
 #[test]
 fn chapter_nineteen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch19",
         "chapter19",
@@ -7818,7 +7837,7 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_NINETEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch19: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7841,10 +7860,10 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH19.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch19: what parts under the word moved");
+    pin_eq!(got, want, "ch19: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH19_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch19: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch19: what parts in the pool moved");
 }
 
 /// **Chapter twenty's word, widened whole, both directions** (item 803).
@@ -7857,6 +7876,7 @@ fn chapter_nineteen_s_word_frame_is_widened_whole() {
 /// pushed selection sits. run249 dumps no `AMMO` and no `DEATHS`.
 #[test]
 fn chapter_twenty_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch20",
         "chapter20",
@@ -7883,7 +7903,7 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch20: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7906,10 +7926,10 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH20.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch20: what parts under the word moved");
+    pin_eq!(got, want, "ch20: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH20_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch20: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch20: what parts in the pool moved");
 }
 
 /// **Chapter twenty-one's word, widened whole, both directions** (item
@@ -7922,6 +7942,7 @@ fn chapter_twenty_s_word_frame_is_widened_whole() {
 /// selection sits.
 #[test]
 fn chapter_twenty_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch21",
         "chapter21",
@@ -7948,7 +7969,7 @@ fn chapter_twenty_one_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_ONE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch21: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -7971,10 +7992,10 @@ fn chapter_twenty_one_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH21.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch21: what parts under the word moved");
+    pin_eq!(got, want, "ch21: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH21_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch21: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch21: what parts in the pool moved");
 }
 
 // **What parts under the word** on run255, the draw word closed at 1300.
@@ -8593,6 +8614,7 @@ const WANT_CH19_POOL: &[&str] = &["622 slot 1 ox", "622 slot 1 oy"];
 /// run241 dumps no `AMMO` and no `DEATHS`.
 #[test]
 fn chapter_eighteen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch18",
         "chapter18",
@@ -8619,7 +8641,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_EIGHTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch18: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -8667,7 +8689,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch18: what parts under the word moved");
+    pin_eq!(got, want, "ch18: what parts under the word moved");
     // **What parts in the pool.** The first pin had each command's pushed
     // selection missing here — slot 1 `0/6` on 622 and slot 0 the three
     // on 642 — and the entry seats both. What stands is `ox`/`oy` on each:
@@ -8684,7 +8706,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch18: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch18: what parts in the pool moved");
 }
 
 /// **Chapter seventeen's word, widened whole, both directions** (item
@@ -8700,6 +8722,7 @@ fn chapter_eighteen_s_word_frame_is_widened_whole() {
 /// [`WIDENING_CHAPTER_TWENTY_TWO`], and who=0's pool.
 #[test]
 fn chapter_twenty_two_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch22",
         "chapter22",
@@ -8726,7 +8749,7 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_TWO.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch22: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -8749,10 +8772,10 @@ fn chapter_twenty_two_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH22.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch22: what parts under the word moved");
+    pin_eq!(got, want, "ch22: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH22_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch22: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch22: what parts in the pool moved");
 }
 
 // **What parts under the word** on run265, chapter twenty-two. ~~The
@@ -8818,6 +8841,7 @@ const WANT_CH22_POOL: &[&str] = &[
 /// [`WIDENING_CHAPTER_TWENTY_THREE`], and who=0's pool.
 #[test]
 fn chapter_twenty_three_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch23",
         "chapter23",
@@ -8845,7 +8869,7 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_THREE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch23: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -8868,10 +8892,10 @@ fn chapter_twenty_three_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH23.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch23: what parts under the word moved");
+    pin_eq!(got, want, "ch23: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH23_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch23: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch23: what parts in the pool moved");
 }
 
 // **What parts under the word** on run281, chapter twenty-three. ~~The
@@ -8920,6 +8944,7 @@ const WANT_CH23_POOL: &[&str] = &[
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_twenty_four_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch24",
         "chapter24",
@@ -8947,7 +8972,7 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_FOUR.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch24: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -8970,10 +8995,10 @@ fn chapter_twenty_four_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH24.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch24: what parts under the word moved");
+    pin_eq!(got, want, "ch24: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH24_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch24: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch24: what parts in the pool moved");
 }
 
 // **What parts under the word** on run285, chapter twenty-four. ~~The
@@ -9057,6 +9082,7 @@ const WANT_CH24_POOL: &[&str] = &[
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_twenty_five_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch25",
         "chapter25",
@@ -9084,7 +9110,7 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_FIVE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch25: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9107,10 +9133,10 @@ fn chapter_twenty_five_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH25.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch25: what parts under the word moved");
+    pin_eq!(got, want, "ch25: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH25_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch25: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch25: what parts in the pool moved");
 }
 
 // **What parts under the word** on run292, chapter twenty-five. ~~The
@@ -9179,6 +9205,7 @@ const WANT_CH25_POOL: &[&str] = &[
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_twenty_six_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch26",
         "chapter26",
@@ -9206,7 +9233,7 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_SIX.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch26: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9229,10 +9256,10 @@ fn chapter_twenty_six_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH26.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch26: what parts under the word moved");
+    pin_eq!(got, want, "ch26: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH26_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch26: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch26: what parts in the pool moved");
 }
 
 // **What parts under the word** on run296, chapter twenty-six. ~~The
@@ -9286,6 +9313,7 @@ const WANT_CH26_POOL: &[&str] = &[
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch27",
         "chapter27",
@@ -9313,7 +9341,7 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_SEVEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch27: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9336,10 +9364,10 @@ fn chapter_twenty_seven_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH27.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch27: what parts under the word moved");
+    pin_eq!(got, want, "ch27: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH27_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch27: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch27: what parts in the pool moved");
 }
 
 // **What parts under the word** on run300, chapter twenty-seven. ~~The
@@ -9419,6 +9447,7 @@ fn chapter_twenty_eight_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch28",
         "chapter28",
@@ -9446,7 +9475,7 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_EIGHT.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch28: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9469,10 +9498,10 @@ fn chapter_twenty_eight_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH28.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch28: what parts under the word moved");
+    pin_eq!(got, want, "ch28: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH28_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch28: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch28: what parts in the pool moved");
 }
 
 // **What parts under the word** on run304, chapter twenty-eight. ~~The
@@ -9571,6 +9600,7 @@ fn chapter_twenty_nine_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch29",
         "chapter29",
@@ -9598,7 +9628,7 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TWENTY_NINE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch29: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9621,10 +9651,10 @@ fn chapter_twenty_nine_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH29.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch29: what parts under the word moved");
+    pin_eq!(got, want, "ch29: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH29_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch29: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch29: what parts in the pool moved");
 }
 
 // **What parts under the word** on run308, chapter twenty-nine. ~~The first
@@ -9675,6 +9705,7 @@ const WANT_CH29_POOL: &[&str] = &[
 
 #[test]
 fn chapter_seventeen_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch17",
         "chapter17",
@@ -9704,7 +9735,7 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_SEVENTEEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch17: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9807,7 +9838,7 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch17: what parts under the word moved");
+    pin_eq!(got, want, "ch17: what parts under the word moved");
     // **What parts in the pool.** The first pin had each command's
     // pushed selection missing here — the refused strike's pair in slot 1
     // on 622, the Fighter's flight in slot 0 on 642 — and the entry seats
@@ -9835,7 +9866,7 @@ fn chapter_seventeen_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch17: what parts in the pool moved");
 }
 
 /// **run223's air orders, read whole** (item 746, `docs/ORDERS.md` §11.1
@@ -9905,6 +9936,7 @@ fn run223_s_air_orders_are_read_whole() {
 /// `LEADERS=2`. run184 dumps no `AMMO`.
 #[test]
 fn chapter_ten_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch10",
         "chapter10",
@@ -9928,7 +9960,7 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_TEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch10: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -9991,7 +10023,7 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch10: what parts under the word moved");
+    pin_eq!(got, want, "ch10: what parts under the word moved");
 }
 
 /// **Chapter nine's word, widened whole, both directions** (item 676).
@@ -10003,6 +10035,7 @@ fn chapter_ten_s_word_frame_is_widened_whole() {
 /// both sides on the word's blocks.
 #[test]
 fn chapter_nine_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch9",
         "chapter9",
@@ -10030,7 +10063,7 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_NINE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch9: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -10081,7 +10114,7 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch9: what parts under the word moved");
+    pin_eq!(got, want, "ch9: what parts under the word moved");
 }
 
 /// **Chapter eight's word, widened whole, both directions** (item 660).
@@ -10092,6 +10125,7 @@ fn chapter_nine_s_word_frame_is_widened_whole() {
 /// eight staged units are printed both sides on the word's two blocks.
 #[test]
 fn chapter_eight_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch8",
         "chapter8",
@@ -10121,7 +10155,7 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_EIGHT.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)) && floor.len() == 26,
         "ch8: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -10165,7 +10199,7 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
     .map(|r| r.to_string())
     .collect();
     want.sort();
-    assert_eq!(got, want, "ch8: what parts under the word moved");
+    pin_eq!(got, want, "ch8: what parts under the word moved");
 }
 
 /// **Chapter seven-b's words, widened whole, both directions, on both
@@ -10173,6 +10207,7 @@ fn chapter_eight_s_word_frame_is_widened_whole() {
 /// block of [`WIDENING_CHAPTER_SEVEN_B`], by [`widen_civilians`].
 #[test]
 fn chapter_seven_b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     for (run, stem, window, print) in [
         ("ch7b", "chapter7b", WIDENING_CHAPTER_SEVEN_B, (1199, 1200)),
         (
@@ -10218,7 +10253,7 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // who=1's building groups take a pool slot first (a05f90a6, item
         // 870; `docs/GROUPS.md` §29).
         let floor = if run == "ch7b" { 27 } else { 30 };
-        assert!(
+        pin!(
             at_floor
                 .iter()
                 .all(|w| standing(w) || (run == "ch7bc" && control(w)))
@@ -10269,8 +10304,8 @@ fn chapter_seven_b_s_word_frame_is_widened_whole() {
         // building groups take their pool slots first, as the original's
         // do (`docs/GROUPS.md` §29).
         let want: &[&str] = &[];
-        assert_eq!(got, want, "{run}: what parts under the word moved");
-        assert!(
+        pin_eq!(got, want, "{run}: what parts under the word moved");
+        pin!(
             !firsts
                 .keys()
                 .any(|(w, _, what)| *w == 255 || what.starts_with("good")),
@@ -10690,6 +10725,7 @@ fn ammo_flag_rows(
 /// which run146 shares.
 #[test]
 fn chapter_three_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     const FIRST: i64 = WIDENING_CHAPTER_THREE.0;
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE;
     let Some(w) = widen_chapter_three(
@@ -10705,8 +10741,8 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
     // **Anti-vacuity for the `AMMO` record**: run145's live rounds are all
     // read — the chariots' from 651 — and this crate's side is not empty.
-    assert_eq!(ammo_theirs, 89, "run145's live rounds are not all read");
-    assert!(ammo_ours > 0, "this crate fired no round in the window");
+    pin_eq!(ammo_theirs, 89, "run145's live rounds are not all read");
+    pin!(ammo_ours > 0, "this crate fired no round in the window");
     // **The standing families on the capture's first block**, none of
     // them the chapter's: the unmodelled `form` (also every staged unit's
     // birth row), `build:extra` (the end detail prints no `BUILDDATA`)
@@ -10723,7 +10759,7 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == FIRST)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run145's first block moved: {at_floor:?}"
     );
@@ -10781,8 +10817,8 @@ fn chapter_three_s_word_frame_is_widened_whole() {
     //   this crate's is 0° (`des` 0.06° from the node). Its 729 round,
     //   under the pool-slot row, is the same: `946, 8156` against
     //   `947, 8158`. `GUYS=2` prints no turret (§55.5).
-    assert_eq!(first, Some(678), "run145's first value parting moved");
-    assert_eq!(
+    pin_eq!(first, Some(678), "run145's first value parting moved");
+    pin_eq!(
         rows_on(FIRST + 1, WORD + 1),
         vec![
             "705 0/6 ammo[1].ox: ours -1 theirs 7",
@@ -10807,12 +10843,12 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         ],
         "a row past run145's first rounds moved"
     );
-    assert_eq!(
+    pin_eq!(
         whole_on(651, 652),
         Vec::<&String>::new(),
         "the first rounds' launch blocks part again"
     );
-    assert_eq!(
+    pin_eq!(
         whole_on(753, 754),
         vec![
             "753 0/8 ammo[0].angle: ours 740622336 theirs 739377152",
@@ -10826,7 +10862,7 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         ],
         "the turned chariot's round moved"
     );
-    assert_eq!(
+    pin_eq!(
         whole_on(WORD, WORD + 1),
         Vec::<&String>::new(),
         "the capture's last block parts"
@@ -10836,7 +10872,7 @@ fn chapter_three_s_word_frame_is_widened_whole() {
         .filter(|((w, o, what), _)| (*w, *o) == (0, 9) && !standing(what))
         .map(|((_, _, what), (f, row))| format!("{f} {what}: {row}"))
         .collect();
-    assert!(
+    pin!(
         catapult.is_empty(),
         "the catapult parts from the dump again: {catapult:?}"
     );
@@ -11500,6 +11536,7 @@ fn chapter_three_s_restage_holds_to_its_word() {
 /// catapult `0/6` both sides on the word's two blocks.
 #[test]
 fn chapter_three_s_restage_is_widened_whole() {
+    let _pins = Pins::hold();
     const WORD: i64 = GOLDEN_WORD_CHAPTER_THREE_RESTAGE;
     let Some(w) = widen_chapter_three(
         "ch3b",
@@ -11512,8 +11549,8 @@ fn chapter_three_s_restage_is_widened_whole() {
         return;
     };
     let firsts = w.firsts;
-    assert_eq!(w.ammo_theirs, 89, "run146's live rounds are not all read");
-    assert!(w.ammo_ours > 0, "this crate fired no round in the window");
+    pin_eq!(w.ammo_theirs, 89, "run146's live rounds are not all read");
+    pin!(w.ammo_ours > 0, "this crate fired no round in the window");
     // The standing families on the first block are run145's, the same 26.
     let standing = |what: &str| {
         what == "form" || what == "build:extra" || what.starts_with("leader:filled_gather_slots")
@@ -11523,7 +11560,7 @@ fn chapter_three_s_restage_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THREE_RESTAGE.0)
         .map(|((_, _, what), _)| what)
         .collect::<Vec<_>>();
-    assert!(
+    pin!(
         at_floor.iter().all(|w| standing(w)) && at_floor.len() == 26,
         "the standing rows on run146's first block moved: {at_floor:?}"
     );
@@ -11589,8 +11626,8 @@ fn chapter_three_s_restage_is_widened_whole() {
     // capture's end. What stands, past the first rounds, is three
     // families and no draw: a round's target (736), a round's pool slot
     // (798) and the scout's move facing (847).
-    assert_eq!(first, Some(736), "run146's first value parting moved");
-    assert_eq!(
+    pin_eq!(first, Some(736), "run146's first value parting moved");
+    pin_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
             "798 0/6 ammo[0]: this crate holds it alone",
@@ -11637,7 +11674,7 @@ fn chapter_three_s_restage_is_widened_whole() {
     // it, as well as the capture's `!quit` block, 1001. Every `0/6` row
     // is gone from them; the scout's `facing` row stands on each until it
     // ends, and 1001 is quiet.
-    assert_eq!(
+    pin_eq!(
         whole,
         vec![
             "865 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
@@ -12284,6 +12321,7 @@ fn chapter_thirty_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch30",
         "chapter30",
@@ -12311,7 +12349,7 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch30: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -12334,10 +12372,10 @@ fn chapter_thirty_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH30.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch30: what parts under the word moved");
+    pin_eq!(got, want, "ch30: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH30_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch30: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch30: what parts in the pool moved");
 }
 
 // **What parts under the word** on run312, chapter thirty. **The first
@@ -12444,6 +12482,7 @@ fn chapter_thirty_one_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch31",
         "chapter31",
@@ -12472,7 +12511,7 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_ONE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch31: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -12495,10 +12534,10 @@ fn chapter_thirty_one_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH31.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch31: what parts under the word moved");
+    pin_eq!(got, want, "ch31: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH31_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch31: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch31: what parts in the pool moved");
 }
 
 // **What parts under the word** on run338, chapter thirty-one. **The
@@ -12575,6 +12614,7 @@ fn chapter_thirty_two_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_two_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch32",
         "chapter32",
@@ -12602,7 +12642,7 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_TWO.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch32: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -12625,10 +12665,10 @@ fn chapter_thirty_two_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH32.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch32: what parts under the word moved");
+    pin_eq!(got, want, "ch32: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH32_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch32: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch32: what parts in the pool moved");
 }
 
 // **What parts under the word** on run344, chapter thirty-two. **The
@@ -12714,6 +12754,7 @@ fn chapter_thirty_three_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_three_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch33",
         "chapter33",
@@ -12741,7 +12782,7 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_THREE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch33: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -12764,10 +12805,10 @@ fn chapter_thirty_three_s_word_frame_is_widened_whole() {
     got_pool.sort();
     let mut want: Vec<String> = WANT_CH33.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch33: what parts under the word moved");
+    pin_eq!(got, want, "ch33: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH33_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch33: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch33: what parts in the pool moved");
 }
 
 // **What parts under the word** on run358, chapter thirty-three. **The
@@ -12883,6 +12924,7 @@ fn chapter_thirty_five_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_five_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch35",
         "chapter35",
@@ -12910,7 +12952,7 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_FIVE.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch35: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -12934,10 +12976,10 @@ fn chapter_thirty_five_s_word_frame_is_widened_whole() {
     eprintln!("ch35: {} rows, {} pool rows", got.len(), got_pool.len());
     let mut want: Vec<String> = WANT_CH35.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch35: what parts under the word moved");
+    pin_eq!(got, want, "ch35: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH35_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch35: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch35: what parts in the pool moved");
 }
 
 /// **Chapter thirty-six, pinned** — the missile's other arms
@@ -12969,6 +13011,7 @@ fn chapter_thirty_six_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_six_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch36",
         "chapter36",
@@ -12996,7 +13039,7 @@ fn chapter_thirty_six_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_SIX.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch36: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -13020,10 +13063,10 @@ fn chapter_thirty_six_s_word_frame_is_widened_whole() {
     eprintln!("ch36: {} rows, {} pool rows", got.len(), got_pool.len());
     let mut want: Vec<String> = WANT_CH36.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch36: what parts under the word moved");
+    pin_eq!(got, want, "ch36: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH36_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch36: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch36: what parts in the pool moved");
 }
 
 /// **Chapter thirty-seven, pinned** — the nuke (`docs/GOLDEN.md` §46,
@@ -13053,6 +13096,7 @@ fn chapter_thirty_seven_holds_to_the_golden_word() {
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch37",
         "chapter37",
@@ -13079,7 +13123,7 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_SEVEN.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch37: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -13103,10 +13147,10 @@ fn chapter_thirty_seven_s_word_frame_is_widened_whole() {
     eprintln!("ch37: {} rows, {} pool rows", got.len(), got_pool.len());
     let mut want: Vec<String> = WANT_CH37.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch37: what parts under the word moved");
+    pin_eq!(got, want, "ch37: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH37_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch37: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch37: what parts in the pool moved");
 }
 
 /// Chapter thirty-seven's widening rows (item 1091): run397 whole, the
@@ -13172,6 +13216,7 @@ fn chapter_thirty_eight_holds_to_the_golden_word() {
 /// pool (`DEATHS=1` beside `GROUPS=1`), so there is none to compare.
 #[test]
 fn chapter_thirty_eight_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch38",
         "chapter38",
@@ -13198,7 +13243,7 @@ fn chapter_thirty_eight_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_EIGHT.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch38: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -13212,7 +13257,7 @@ fn chapter_thirty_eight_s_word_frame_is_widened_whole() {
     eprintln!("ch38: {} rows", got.len());
     let mut want: Vec<String> = WANT_CH38.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch38: what parts under the word moved");
+    pin_eq!(got, want, "ch38: what parts under the word moved");
 }
 
 /// **The word's block, the Battery's turret** (item 1117, `docs/COMBAT.md`
@@ -14545,6 +14590,7 @@ const WANT_CH35_POOL: &[&str] = &[
 /// every dumped record on every block of the capture, and the pool.
 #[test]
 fn chapter_thirty_four_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
     let Some(firsts) = widen_civilians(
         "ch34",
         "chapter34",
@@ -14572,7 +14618,7 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
         .filter(|(_, (f, _))| *f == WIDENING_CHAPTER_THIRTY_FOUR.0)
         .map(|((_, _, what), _)| what)
         .collect();
-    assert!(
+    pin!(
         floor.iter().all(|w| standing(w)),
         "ch34: the standing rows on the first block moved ({}): {floor:?}",
         floor.len()
@@ -14596,10 +14642,10 @@ fn chapter_thirty_four_s_word_frame_is_widened_whole() {
     eprintln!("ch34: {} rows, {} pool rows", got.len(), got_pool.len());
     let mut want: Vec<String> = WANT_CH34.iter().map(|r| r.to_string()).collect();
     want.sort();
-    assert_eq!(got, want, "ch34: what parts under the word moved");
+    pin_eq!(got, want, "ch34: what parts under the word moved");
     let mut want_pool: Vec<String> = WANT_CH34_POOL.iter().map(|r| r.to_string()).collect();
     want_pool.sort();
-    assert_eq!(got_pool, want_pool, "ch34: what parts in the pool moved");
+    pin_eq!(got_pool, want_pool, "ch34: what parts in the pool moved");
 }
 
 // **What parts under the word** on run362, chapter thirty-four. **The

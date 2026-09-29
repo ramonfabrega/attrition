@@ -181,6 +181,34 @@ impl Script {
         }
     }
 
+    /// Every line written on a frame below its predecessor's, as `(line
+    /// number, frame as written, the frame it is clamped to)`. The clamp
+    /// is the tracer's own and is kept; a checked-in chapter that leans on
+    /// it is refused by its test (parked 1094): chapter thirty-six's
+    /// staging walk appended lines after the chapter's last, and they ran
+    /// on its last frame in silence.
+    pub fn backwards(text: &str) -> Vec<(usize, i64, i64)> {
+        let mut out = Vec::new();
+        let mut last = 0i64;
+        for (n, raw) in text.lines().enumerate() {
+            let line = raw.split('#').next().unwrap_or("").trim();
+            let Some((head, rest)) = line.split_once(char::is_whitespace) else {
+                continue;
+            };
+            let Ok(frame) = head.trim().parse::<i64>() else {
+                continue;
+            };
+            if rest.trim().trim_start_matches('!').trim().is_empty() {
+                continue;
+            }
+            if frame < last {
+                out.push((n + 1, frame, last));
+            }
+            last = last.max(frame);
+        }
+        out
+    }
+
     pub fn read(path: &std::path::Path) -> std::io::Result<Script> {
         Ok(Script::parse(&std::fs::read_to_string(path)?))
     }
@@ -2197,6 +2225,42 @@ mod tests {
         assert_eq!(parse_amount("+2000"), Some(2000));
         assert_eq!(parse_amount("-50"), Some(-50));
         assert_eq!(parse_amount("x"), None);
+    }
+
+    /// **No chapter's script writes a frame below its predecessor's**
+    /// (parked 1094, the nineteenth pass). The interpreter clamps such a
+    /// line up, as the tracer does, so a chapter built by appending to its
+    /// predecessor runs the appended lines on the last frame and says
+    /// nothing. Made to fail first on a line appended to chapter
+    /// thirty-eight.
+    #[test]
+    fn no_chapter_script_writes_a_frame_below_its_predecessor() {
+        assert_eq!(
+            Script::backwards("0 !ai off\n600 age who=0 8 # c\n599 war\n610 add\n605 die\n"),
+            vec![(3, 599, 600), (5, 605, 610)]
+        );
+        let dir = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../tools/gamelog/golden"
+        );
+        let mut wrong = Vec::new();
+        let mut read = 0;
+        for entry in std::fs::read_dir(dir).expect("tools/gamelog/golden") {
+            let path = entry.expect("entry").path();
+            if path.extension().is_none_or(|e| e != "cmd") {
+                continue;
+            }
+            read += 1;
+            let text = std::fs::read_to_string(&path).expect("read");
+            for (n, frame, clamped) in Script::backwards(&text) {
+                wrong.push(format!(
+                    "{}:{n}: frame {frame} is below {clamped} and runs on it",
+                    path.file_name().unwrap().to_string_lossy()
+                ));
+            }
+        }
+        assert!(read >= 38, "{read} chapter scripts were read");
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
     }
 
     /// The script format, including the two rules a reader gets wrong:

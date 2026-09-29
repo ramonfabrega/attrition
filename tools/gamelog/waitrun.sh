@@ -28,8 +28,10 @@
 # receipts is judged by them.
 #
 # Exit status: 0 — the banner arrived and every check passed, or the runner
-# has exited and every receipt says `"success": true`; 1 — the banner arrived
-# and a check FAILED, or a receipt says `"success": false`; 2 — no runner is
+# has exited and every receipt says `"success": true`, or a lone capture
+# script said `=== captured: `; 1 — the banner arrived and a check FAILED,
+# or a receipt says `"success": false`, or the script said `=== capture
+# failed: `; 2 — no runner is
 # alive and neither a banner nor a receipt came (the queue died, or was never
 # started; read the log's tail this prints); 64 — usage.
 set -u
@@ -41,7 +43,12 @@ if [ -z "$log" ]; then
 fi
 banner='=== the queue, as it went ==='
 receipt='^{"map_requested"'
-runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py'}
+runner_pattern=${WAITRUN_RUNNER:-'gamelog/runqueue.sh|unattended_capture.py|gamelog/startcapture.sh'}
+# A capture script launched on its own, with no queue around it, ends on one
+# of these (`startcapture.sh`; parked 1080, the nineteenth pass): run381
+# finished and this script called it a dead runner.
+captured='^=== captured: '
+failed='^=== capture failed: '
 
 # `run_in_background` reports a task the moment it exits, so a launch that
 # has not written its log yet is waited for too — but only for a while: a
@@ -53,6 +60,14 @@ while :; do
     if sed -n "/$banner/,\$p" "$log" | grep -q 'checks FAILED'; then
       exit 1
     fi
+    exit 0
+  fi
+  if [ -r "$log" ] && grep -qE -- "$failed" "$log"; then
+    grep -E -- "$failed" "$log"
+    exit 1
+  fi
+  if [ -r "$log" ] && grep -qE -- "$captured" "$log"; then
+    grep -E -- "$captured" "$log"
     exit 0
   fi
   if ! pgrep -f -- "$runner_pattern" >/dev/null 2>&1; then

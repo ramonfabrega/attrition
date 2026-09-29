@@ -6795,3 +6795,242 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::third::WIDENING_GREAT_SAHARA),
     ),
 ];
+
+/// **A test that holds several pins reports every one that moved** (parked
+/// 973, built by the nineteenth pass). `assert_eq!` stops its test at the
+/// first pin that moved, so a re-pin read off one failing run leaves the
+/// test's later pins unseen: items 882, 904, 989, 1034 and 1072 each paid a
+/// second gate for a pin that sat behind an earlier one's panic, and one
+/// of 1072's nine made a killer look as if it had fired.
+///
+/// A test takes the guard first — `let _pins = Pins::hold();` — and pins
+/// with [`pin_eq!`], [`pin_ne!`] and [`pin!`], which read as the `assert`
+/// macros do. A pin that moved is recorded and the test goes on; the guard
+/// fails the test once, when it drops, with every one. **With no guard on
+/// the thread a pin panics where it stands**, so a test that pins and
+/// forgot the guard fails as it always did and can never pass on a moved
+/// pin. A test that panics past a moved pin prints what it had collected.
+pub(crate) mod pins {
+    use std::cell::RefCell;
+
+    thread_local! {
+        static HELD: RefCell<Option<Vec<String>>> = const { RefCell::new(None) };
+    }
+
+    /// The guard. One to a test, taken on its first line.
+    pub(crate) struct Pins(());
+
+    impl Pins {
+        pub(crate) fn hold() -> Pins {
+            let was = HELD.with(|h| h.borrow_mut().replace(Vec::new()));
+            assert!(was.is_none(), "a second `Pins::hold()` on one thread");
+            Pins(())
+        }
+    }
+
+    /// Record a pin that moved, or panic where no guard holds.
+    pub(crate) fn moved(what: String) {
+        let unheld = HELD.with(|h| match h.borrow_mut().as_mut() {
+            Some(held) => {
+                held.push(what);
+                None
+            }
+            None => Some(what),
+        });
+        if let Some(what) = unheld {
+            panic!("{what}");
+        }
+    }
+
+    impl Drop for Pins {
+        fn drop(&mut self) {
+            let moved = HELD.with(|h| h.borrow_mut().take()).unwrap_or_default();
+            if moved.is_empty() {
+                return;
+            }
+            let report = format!(
+                "{} pin{} moved:\n{}",
+                moved.len(),
+                if moved.len() == 1 { "" } else { "s" },
+                moved.join("\n")
+            );
+            if std::thread::panicking() {
+                eprintln!("before the panic, {report}");
+            } else {
+                panic!("{report}");
+            }
+        }
+    }
+
+    #[test]
+    fn a_test_that_holds_several_pins_reports_every_one_that_moved() {
+        use crate::diff::testkit::{pin, pin_eq, pin_ne};
+        let caught = std::panic::catch_unwind(|| {
+            let _pins = Pins::hold();
+            pin_eq!((1, 2, 3), (1, 2, 4), "the floor");
+            pin_eq!(7, 7, "a pin that holds");
+            pin!(1 + 1 == 3, "every row standing on block {}", 20_800);
+            pin_ne!(5, 5);
+        })
+        .expect_err("three pins moved and the guard let the test pass");
+        let said = caught.downcast_ref::<String>().cloned().unwrap_or_default();
+        assert!(said.starts_with("3 pins moved:"), "{said}");
+        for want in [
+            "the floor",
+            "got  (1, 2, 3)",
+            "want (1, 2, 4)",
+            "every row standing on block 20800",
+            "both 5",
+        ] {
+            assert!(said.contains(want), "the report names no {want:?}: {said}");
+        }
+        assert!(!said.contains("a pin that holds"), "{said}");
+        // The guard is gone with its test: a pin with none panics in place.
+        let bare = std::panic::catch_unwind(|| pin_eq!(1, 2, "no guard"))
+            .expect_err("a pin with no guard passed");
+        let bare = bare.downcast_ref::<String>().cloned().unwrap_or_default();
+        assert!(
+            bare.contains("no guard") && !bare.contains("pins moved"),
+            "{bare}"
+        );
+        // A guard whose pins all hold says nothing.
+        let _pins = Pins::hold();
+        pin_eq!(2 + 2, 4, "arithmetic");
+    }
+}
+
+pub(crate) use pins::Pins;
+
+/// [`pins`]' `assert_eq!`: both sides by reference, printed when they part.
+macro_rules! pin_eq {
+    ($got:expr, $want:expr $(,)?) => {
+        $crate::diff::testkit::pin_eq!($got, $want, "pin_eq")
+    };
+    ($got:expr, $want:expr, $($arg:tt)+) => {{
+        match (&$got, &$want) {
+            (got, want) => {
+                if *got != *want {
+                    $crate::diff::testkit::pins::moved(format!(
+                        "  {}:{}: {}\n    got  {:?}\n    want {:?}",
+                        file!(),
+                        line!(),
+                        format_args!($($arg)+),
+                        got,
+                        want
+                    ));
+                }
+            }
+        }
+    }};
+}
+pub(crate) use pin_eq;
+
+/// [`pins`]' `assert_ne!`.
+macro_rules! pin_ne {
+    ($got:expr, $not:expr $(,)?) => {
+        $crate::diff::testkit::pin_ne!($got, $not, "pin_ne")
+    };
+    ($got:expr, $not:expr, $($arg:tt)+) => {{
+        match (&$got, &$not) {
+            (got, not) => {
+                if *got == *not {
+                    $crate::diff::testkit::pins::moved(format!(
+                        "  {}:{}: {}\n    both {:?}",
+                        file!(),
+                        line!(),
+                        format_args!($($arg)+),
+                        got
+                    ));
+                }
+            }
+        }
+    }};
+}
+pub(crate) use pin_ne;
+
+/// [`pins`]' `assert!`.
+macro_rules! pin {
+    ($ok:expr $(,)?) => {
+        $crate::diff::testkit::pin!($ok, "{}", stringify!($ok))
+    };
+    ($ok:expr, $($arg:tt)+) => {{
+        if !$ok {
+            $crate::diff::testkit::pins::moved(format!(
+                "  {}:{}: {}",
+                file!(),
+                line!(),
+                format_args!($($arg)+)
+            ));
+        }
+    }};
+}
+pub(crate) use pin;
+
+/// **The AI track's words, one row a game** (parked 1121, 1080 and 1108;
+/// the nineteenth pass). Until this table the handoff's guards each read
+/// two constants by name, and none of them knew a game's length: when East
+/// Indies' second word passed Great Lakes' 5,930 — that game's **end**,
+/// closed by item 1099 — the default-map guard asked the queue to name the
+/// map no item can move; nothing read the third map's line at all; and
+/// the compared pin's window was held to the word by a comment.
+///
+/// A row is *closed* when its word is its game's length. A closed row owes
+/// the test that scored its closing whole-map state: a draw stream that
+/// agrees to a game's end says nothing of the end itself (run347's last
+/// event was wrong under an agreeing stream, item 1099). An open row names
+/// the function that walks its word's window with the recorder on, and
+/// `coverage`'s compared pin walks every one.
+pub(crate) struct AiWord {
+    /// The handoff line that carries it, without its colon.
+    pub line: &'static str,
+    /// The map as that line spells it, and as the queue's prose does.
+    pub map: &'static str,
+    pub named: &'static str,
+    pub word: i64,
+    /// The trace's last frame, or the frame the game ends on.
+    pub length: i64,
+    /// Owed once the row is closed: the closing state's own test.
+    pub endpoint: Option<&'static str>,
+    /// Owed while the row is open: the word's window, under `src/diff/`.
+    pub window: Option<&'static str>,
+}
+
+impl AiWord {
+    pub(crate) fn closed(&self) -> bool {
+        self.word >= self.length
+    }
+}
+
+/// The pair whose lower open word is the AI track's default
+/// (`docs/DECISIONS.md` 41 §1, 53 §2).
+pub(crate) const NEWEST_PAIR: &str = "Second pair";
+
+pub(crate) const AI_WORDS: &[AiWord] = &[
+    AiWord {
+        line: "Second pair",
+        map: "EastIndies",
+        named: "East Indies",
+        word: SECOND_WORD_EAST_INDIES,
+        length: 18_140,
+        endpoint: None,
+        window: Some("east_indies_word_window"),
+    },
+    AiWord {
+        line: "Second pair",
+        map: "GreatLakes",
+        named: "Great Lakes",
+        word: SECOND_WORD_GREAT_LAKES,
+        length: 5_930,
+        endpoint: Some("run347_is_great_lakes_at_toughest_and_its_word_holds"),
+        window: None,
+    },
+    AiWord {
+        line: "Third map",
+        map: "GreatSahara",
+        named: "Great Sahara",
+        word: LONG_WORD_GREAT_SAHARA,
+        length: 24_000,
+        endpoint: None,
+        window: Some("sahara_word_window"),
+    },
+];

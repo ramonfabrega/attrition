@@ -155,11 +155,12 @@ mod tests {
     /// (DECISIONS 54 §3); the rows below are the value diff.
     #[test]
     fn run382_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = sahara_word_window() else {
             return;
         };
-        assert_eq!(w.blocks, 259, "run382 over blocks 1..259");
+        pin_eq!(w.blocks, 259, "run382 over blocks 1..259");
         let first = |who: i64, o: i64, what: &str| {
             w.firsts
                 .get(&(who, o, what.to_string()))
@@ -172,8 +173,8 @@ mod tests {
         // **What run10's detail does not print** is a key unprinted, never
         // a parting: the leader's long record (`LEADERS=1` prints the short
         // one) and gaia's clocks (`GUYS=2` prints no `cur_anim`).
-        assert_eq!(w.missing.len(), 1_060, "the keys run382 does not print");
-        assert!(
+        pin_eq!(w.missing.len(), 1_060, "the keys run382 does not print");
+        pin!(
             w.missing.contains("gaia:cur_anim") && w.missing.contains("resources[0:food]"),
             "gaia's clocks and the long leader record are unprinted"
         );
@@ -182,7 +183,7 @@ mod tests {
         // §33.4) — `form` on the ten citizens and the scout, and the human
         // capital's city record, which this crate does not fill for player
         // 0. None is who=1's economy.
-        assert!(
+        pin!(
             w.firsts.iter().all(|((who, o, what), (f, _))| *f > 1
                 || what == "form"
                 || (*who, *o) == (0, 2000) && what.starts_with("city:")),
@@ -204,7 +205,7 @@ mod tests {
             ),
             ("path:length", "PathLength { ours: 1, theirs: 2 }"),
         ] {
-            assert_eq!(
+            pin_eq!(
                 first(1, 2, what),
                 Some((6, want.to_string())),
                 "1/2's {what}, the first parting"
@@ -213,7 +214,7 @@ mod tests {
         // Its position parts on block 7, (38352, 15814) against (38328,
         // 15768), and on block 8 the two destinations have swapped sides:
         // the original takes the side-step two frames after ours.
-        assert_eq!(
+        pin_eq!(
             first(1, 2, "pos"),
             Some((7, "ours (38352,15814) theirs (38328,15768)".to_string())),
             "1/2's position"
@@ -225,30 +226,30 @@ mod tests {
         // sides (ours from block 8, the original's from block 10). The
         // original spends `Guy::set_anim+0x97a < Unit::move_step+0x823`
         // first on frame 8 and ours `Farms::inc_time+0x1ae`.
-        assert_eq!(
+        pin_eq!(
             first(1, 2, "collide_frame"),
             Some((9, "ours 6 theirs 8".to_string())),
             "the word's block: the collision's frame"
         );
-        assert_eq!(
+        pin_eq!(
             first(1, 2, "angle:Facing"),
             Some((9, "ours -328728576 theirs -1925840896".to_string())),
             "the word's block: the facing"
         );
-        assert_eq!(
+        pin_eq!(
             by.iter().take(5).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(1, 22), (6, 4), (7, 8), (8, 2), (9, 3)],
             "the blocks keys first part on, the first five"
         );
         // Gaia's herds hold until block 31 (`8/2`'s position).
-        assert!(
+        pin!(
             w.firsts
                 .iter()
                 .filter(|((who, _, _), _)| *who >= 8)
                 .all(|(_, (f, _))| *f >= 31),
             "gaia's animals agree to block 30"
         );
-        assert_eq!(w.firsts.len(), 244, "keys parted over the window");
+        pin_eq!(w.firsts.len(), 244, "keys parted over the window");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

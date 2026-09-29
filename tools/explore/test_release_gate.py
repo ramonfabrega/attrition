@@ -337,6 +337,19 @@ class GateTests(unittest.TestCase):
         guard=(root/'tools/guard.sh').read_text()
         self.assertIn('RON_LANE', guard)
 
+    def test_every_test_that_reads_the_handoff_is_one_of_the_commander_s_lines(self):
+        # The other direction (the nineteenth pass): a handoff guard added
+        # and left off the list turns every lane's gate red on a line the
+        # worker may not write.
+        import re
+        root=Path(__file__).resolve().parents[2]
+        source='\n'.join(p.read_text() for p in [
+            root/'crates/rondata/src/diff/floors.rs',
+            root/'crates/rondata/src/diff/endpoint.rs'])
+        reads=set(re.findall(r'fn (the_handoff_s_\w+)\(\)', source))
+        self.assertGreaterEqual(len(reads), 5)
+        self.assertEqual(reads - set(gate.COMMANDERS_LINES), set())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -47,6 +47,19 @@ perm_probe "$T/permprobe$N.png" || exit 1
 source "$W/tools/gamelog/lobby.sh"
 lobby_init "$T/probe$N.png" || exit 1
 
+# --- the lobby, saved whole and put back whole, as `longtrace.sh` does
+# (parked 987 there; parked 1080 here, the nineteenth pass): run381 wrote
+# map 7 into the profile and left it, and its worker put it back by hand.
+save_lobby () {
+  cp "$B/PlayerProfile/Player.dat" "$T/Player.dat.run$N"
+  cp "$G/check.ini" "$T/check.ini.run$N"
+}
+restore_lobby () {
+  cp "$T/Player.dat.run$N" "$B/PlayerProfile/Player.dat"
+  cp "$T/check.ini.run$N" "$G/check.ini"
+}
+save_lobby
+
 python3 "$W/tools/gamelog/mapstyle.py" "$MAPSTYLE"
 python3 "$W/tools/fuzz/seedini.py" 12345
 python3 "$W/tools/gamelog/window.py" stage 0 2
@@ -57,7 +70,17 @@ source "$W/tools/gamelog/winelaunch.sh"
 ron_wine "$T/wine$N.log" "$G/$P" ${=CFG} -automation
 echo "launched pid $RON_WINE_PID"
 
-zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"
+# A game that never shows its window has written nothing worth a name:
+# restore what the stage wrote and stop (parked 937, `longtrace.sh`'s).
+# The banner is what `waitrun.sh` reads; without one it calls the script a
+# dead runner, success or not.
+if ! zsh "$W/tools/gamelog/waitwin.sh" "$T/r$N-menu.png"; then
+  pkill -f $P || true
+  python3 "$W/tools/gamelog/window.py" restore
+  restore_lobby
+  echo "=== capture failed: run$N, no window — nothing archived, the INIs and the lobby restored ==="
+  exit 1
+fi
 sleep 4
 lobby_click solo 4 "$T/r$N-solo.png"
 lobby_click quick 8 "$T/r$N-quick.png"
@@ -78,7 +101,9 @@ sleep 4
 mv "$L/gamelog.txt" "$L/gamelog-run$N-$TAG.txt"
 cp "$G/rontrace.log" "$L/rontrace-run$N.log"
 python3 "$W/tools/gamelog/window.py" restore
+restore_lobby
 ls -la "$L/gamelog-run$N-$TAG.txt" "$L/rontrace-run$N.log"
 grep -a -m1 "MAP_STYLE" "$L/gamelog-run$N-$TAG.txt"
 grep -a -m1 "(int)seed" "$L/gamelog-run$N-$TAG.txt"
 echo "run$N archived — expect MAP_STYLE $MAPSTYLE and seed 12345"
+echo "=== captured: run$N ($TAG) ==="

@@ -490,6 +490,7 @@ mod tests {
     /// value diff; East Indies' next word, 10, is inside its window.
     #[test]
     fn run349_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = widen_east_indies_on(
             (
@@ -509,8 +510,8 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        assert_eq!(w.blocks, 250, "run349 whole: blocks 1..250");
-        assert!(
+        pin_eq!(w.blocks, 250, "run349 whole: blocks 1..250");
+        pin!(
             w.missing.is_empty(),
             "run349 carries every key: {:?}",
             w.missing
@@ -528,13 +529,13 @@ mod tests {
         // one, the scout's walk parting (`orders_x` 38136 against 41976 on
         // block 97) closed too; its first row now is its sight count on
         // block 202.
-        assert_eq!(row(1, 0, "orders_x"), None, "the scout's walk agrees");
-        assert_eq!(
+        pin_eq!(row(1, 0, "orders_x"), None, "the scout's walk agrees");
+        pin_eq!(
             row(1, 0, "mylos").as_deref(),
             Some("202: ours 6 theirs 4"),
             "the scout's first parting"
         );
-        assert!(
+        pin!(
             !w.firsts
                 .iter()
                 .any(|((who, o, _), (f, _))| (*who, *o) == (1, 0) && *f < 202),
@@ -543,8 +544,8 @@ mod tests {
         // **And run38's clocks**: block 1's 46 gaia `cur_anim` rows and
         // `1/1`'s `g.end_time[0]` 232 against 33 were the sibling's
         // figures, installed at frame 0's end; both closed with the words.
-        assert_eq!(row(1, 1, "g.end_time[0]"), None, "an AI citizen's clock");
-        assert!(
+        pin_eq!(row(1, 1, "g.end_time[0]"), None, "an AI citizen's clock");
+        pin!(
             !w.firsts
                 .iter()
                 .any(|((who, _, what), _)| *who == 8 && what == "gaia:cur_anim"),
@@ -555,12 +556,12 @@ mod tests {
         // families) and block 2's tech stamps, `tech_frame` and two
         // `tech_cat_frame`s, which the original's `Build::queue_up` writes
         // and this crate does not (§33.4's named unmodelled state).
-        assert_eq!(
+        pin_eq!(
             row(1, -1, "leader:tech_frame").as_deref(),
             Some("2: ours 0 theirs 1"),
             "the original's tech stamp, standing"
         );
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(1, 67), (2, 3), (184, 1)],
             "the blocks keys first part on, the first three"
@@ -573,6 +574,7 @@ mod tests {
     /// which writes block 2.
     #[test]
     fn run350_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
             (
@@ -592,8 +594,8 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        assert_eq!(w.blocks, 250, "run350 whole: blocks 1..250");
-        assert!(
+        pin_eq!(w.blocks, 250, "run350 whole: blocks 1..250");
+        pin!(
             w.missing.is_empty(),
             "run350 carries every key: {:?}",
             w.missing
@@ -620,9 +622,9 @@ mod tests {
             "leader:bucket[2:wealth]",
             "leader:gatherers",
         ] {
-            assert_eq!(row(1, -1, what), None, "who=1's {what} agrees");
+            pin_eq!(row(1, -1, what), None, "who=1's {what} agrees");
         }
-        assert!(
+        pin!(
             !w.firsts.iter().any(|((who, o, _), (f, _))| *who == 1
                 && *f >= 2
                 && [2, 2001, 2005, 2006, 2007].contains(o)),
@@ -634,17 +636,17 @@ mod tests {
         // pools of the script's buildings, the library `2005` in 64 and the
         // city `2000` in 66, which this crate never seats. No draw reads
         // either before the word.
-        assert_eq!(
+        pin_eq!(
             row(1, -1, "leader:tech_frame").as_deref(),
             Some("2: ours 0 theirs 1"),
             "the Art of War's stamp"
         );
-        assert_eq!(
+        pin_eq!(
             row(1, -2, "pool:64").as_deref(),
             Some("2: ours [] theirs [2005]"),
             "the original's pool 64"
         );
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(1, 55), (2, 4), (8, 1)],
             "the blocks keys first part on, the first three"
@@ -657,6 +659,7 @@ mod tests {
     /// run346's own start. The word's frame writes block 1577.
     #[test]
     fn run352_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = widen_east_indies_on(
             (
@@ -676,8 +679,8 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        assert_eq!(w.blocks, 257, "run352 whole: blocks 1571..1827");
-        assert!(
+        pin_eq!(w.blocks, 257, "run352 whole: blocks 1571..1827");
+        pin!(
             w.missing.is_empty(),
             "run352 carries every key: {:?}",
             w.missing
@@ -702,13 +705,13 @@ mod tests {
         // block now agrees, and so does capital `2000`'s `ter[1]` on 1571,
         // 0 against 2 → 2 on both: the census's `gather_at` had read the
         // dead camp's marks.
-        assert!(
+        pin!(
             !w.firsts.iter().any(|((who, o, _), (f, _))| *who == 1
                 && [2, 2009].contains(o)
                 && (1_572..=1_577).contains(f)),
             "the camp and the citizen agree from 1572 through the word's block"
         );
-        assert_eq!(row(1, 2000, "city:ter[1]"), None, "the capital's timber");
+        pin_eq!(row(1, 2000, "city:ter[1]"), None, "the capital's timber");
         // **What stands, drawing nothing before the next word** (5606):
         // city `2007`'s site picture, one cell apart from its sweep of 1575
         // — `filled` one high here and the three `space` counts one low, so
@@ -716,12 +719,12 @@ mod tests {
         // (block 1571), the same city counted by the original while still a
         // site (`land` 9, `reg_cities[11]` 2) and not here. No mechanism is
         // named (DECISIONS 42).
-        assert_eq!(
+        pin_eq!(
             row(1, -1, "leader:reg_land[11]").as_deref(),
             Some("1576: ours 102 theirs 103"),
             "the block before the word"
         );
-        assert_eq!(
+        pin_eq!(
             row(1, 2007, "city:space[0]").as_deref(),
             Some("1576: ours 64 theirs 65"),
             "the city's site picture"
@@ -731,12 +734,12 @@ mod tests {
         // frame it is made, which the note above had read as a site the
         // original counted — and who=0's `gather_stamp`, 1424 against 1432
         // (`docs/AI.md` §84).
-        assert_eq!(
+        pin_eq!(
             row(1, -1, "leader:reg_cities[11]"),
             None,
             "the new city counts at once"
         );
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(1571, 80), (1576, 5), (1601, 1)],
             "the blocks keys first part on, the first three"
@@ -749,6 +752,7 @@ mod tests {
     /// run347's start. The word's frame writes block 3777.
     #[test]
     fn run355_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
             (
@@ -771,8 +775,8 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        assert_eq!(w.blocks, 257, "run355 whole: blocks 3771..4027");
-        assert!(
+        pin_eq!(w.blocks, 257, "run355 whole: blocks 3771..4027");
+        pin!(
             w.missing.is_empty(),
             "run355 carries every key: {:?}",
             w.missing
@@ -792,33 +796,33 @@ mod tests {
         // script destroyed kept its ground marked here — and the same dead
         // site linked in place of the live `2010`. All 127 keys of the
         // word's block agree now, and nothing parts on 3772..3804.
-        assert!(
+        pin!(
             !w.firsts
                 .iter()
                 .any(|((who, _, _), (f, _))| *who == 1 && (3772..3805).contains(f)),
             "who=1 agrees from the window's second block through 3804"
         );
-        assert_eq!(row(1, 2000, "city:gatherers"), None, "the city's census");
-        assert_eq!(row(1, 6, "orders_x"), None, "a citizen's order");
+        pin_eq!(row(1, 2000, "city:gatherers"), None, "the city's census");
+        pin_eq!(row(1, 6, "orders_x"), None, "a citizen's order");
         // **What parts next, drawing nothing before the next word**
         // (4555): a city site `1/2009` the original counts in its sweep of
         // 3804 (`land` 9, `filled` 1) and this crate does not, and who=1's
         // `territory` 488 here against 290 — East Indies' `2007` on its
         // block 1571 has the same shape. No mechanism is named (DECISIONS
         // 42).
-        assert_eq!(
+        pin_eq!(
             row(1, 2009, "city:land").as_deref(),
             Some("3805: ours 0 theirs 9"),
             "the city site's sweep"
         );
         // **Closed by item 1106**: who=1's `territory` is summed when the
         // border pass ends (`docs/AI.md` §84), and agrees on 3805.
-        assert_eq!(
+        pin_eq!(
             row(1, -1, "leader:territory"),
             None,
             "and who=1's territory"
         );
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(3771, 78), (3801, 1), (3805, 3)],
             "the blocks keys first part on, the first three"
@@ -831,6 +835,7 @@ mod tests {
     /// block 5607.
     #[test]
     fn run357_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = widen_east_indies_on(
             (
@@ -856,8 +861,8 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
-        assert_eq!(w.blocks, 257, "run357 whole: blocks 5601..5857");
-        assert!(
+        pin_eq!(w.blocks, 257, "run357 whole: blocks 5601..5857");
+        pin!(
             w.missing.is_empty(),
             "run357 carries every key: {:?}",
             w.missing
@@ -875,7 +880,7 @@ mod tests {
         // move on 5521, when the border pass reaches its cell, and not on
         // 5518 (run407's packet).
         for what in ["order:move.dest", "path[2].to", "pos", "order:move.y"] {
-            assert_eq!(row(1, 14, what), None, "`1/14`'s {what}");
+            pin_eq!(row(1, 14, what), None, "`1/14`'s {what}");
         }
         // **Since item 1106 the walk compares the group record and the
         // attack order's row** (`widen_records`). Every pool slot reads
@@ -884,9 +889,9 @@ mod tests {
         // (`docs/GROUPS.md` §33.2). **Slot 67 is `1/14`'s alone**: before
         // the border pass it stood on 5601 with `ox` 29568 against 30336
         // and `stamp` 5518 against 5521, and now agrees but for `form`.
-        assert_eq!(row(1, -3, "group:67.ox"), None, "`1/14`'s group's point");
-        assert_eq!(row(1, -3, "group:67.stamp"), None, "and its frame");
-        assert_eq!(
+        pin_eq!(row(1, -3, "group:67.ox"), None, "`1/14`'s group's point");
+        pin_eq!(row(1, -3, "group:67.stamp"), None, "and its frame");
+        pin_eq!(
             row(1, -3, "group:67.form").as_deref(),
             Some("5601: ours 0 theirs 9"),
             "the family's row stands"
@@ -905,9 +910,9 @@ mod tests {
             "order:move.angle",
             "dest_angle",
         ] {
-            assert_eq!(row(1, 33, what), None, "`1/33`'s {what}");
+            pin_eq!(row(1, 33, what), None, "`1/33`'s {what}");
         }
-        assert_eq!(
+        pin_eq!(
             row(1, 2017, "city:vans.length"),
             None,
             "and the new city's caravan list"
@@ -916,7 +921,7 @@ mod tests {
         // original counts a caravan in `caras` at `Unit::set_type`
         // (`0x980` +1), this crate at its next census sweep, so who=1 reads
         // 1 against 2 on blocks 5772..5774 and agrees from 5775.
-        assert_eq!(
+        pin_eq!(
             row(1, -1, "leader:caras").as_deref(),
             Some("5772: ours 1 theirs 2"),
             "the census lags the birth"
@@ -927,9 +932,9 @@ mod tests {
         // rows (`order:move.angle`, `dest_angle`, `order:flags`,
         // `order:action`) closed with `1/33`'s, 139 → 135.
         for what in ["order:move.angle", "dest_angle", "order:flags"] {
-            assert_eq!(row(1, 15, what), None, "`1/15`'s {what}");
+            pin_eq!(row(1, 15, what), None, "`1/15`'s {what}");
         }
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(5601, 135), (5682, 5), (5704, 2)],
             "the blocks keys first part on, the first three"
@@ -944,6 +949,7 @@ mod tests {
     /// so this capture is its widening too.
     #[test]
     fn run414_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = widen_east_indies_on(
             (
@@ -968,8 +974,8 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        assert_eq!(w.blocks, 257, "run414 whole: blocks 5970..6226");
-        assert!(
+        pin_eq!(w.blocks, 257, "run414 whole: blocks 5970..6226");
+        pin!(
             w.missing.is_empty(),
             "run414 carries every key: {:?}",
             w.missing
@@ -985,9 +991,9 @@ mod tests {
         // (91, 81) with it, and the AI sea scout `1/35`'s region scan
         // accepts 45 cells, as the original's does. The newborn `1/40`'s
         // figure clocks, which read one seed late on 5976, agree.
-        assert_eq!(row(1, 35, "pos"), None, "the scout itself agrees");
+        pin_eq!(row(1, 35, "pos"), None, "the scout itself agrees");
         for g in 0..3 {
-            assert_eq!(
+            pin_eq!(
                 row(1, 40, &format!("g.cur_time[{g}]")),
                 None,
                 "the newborn's figure {g}"
@@ -998,12 +1004,12 @@ mod tests {
         // Caravan `1/15`'s rows part: ours stands it against the Caravan
         // `1/33` (`collide_o` 33, every figure `stopped`) where the original
         // walks it on to (35617, 37267).
-        assert_eq!(
+        pin_eq!(
             row(1, 15, "pos").as_deref(),
             Some("6152: ours (35597,37251) theirs (35617,37267)"),
             "the caravan stands here and walks there"
         );
-        assert_eq!(
+        pin_eq!(
             row(1, 15, "collide_o").as_deref(),
             Some("6152: ours 33 theirs -1"),
             "against the other caravan"
@@ -1016,7 +1022,7 @@ mod tests {
         // 74's `form` (6071), `1/31`'s `path_recursion` (6074), the
         // newborn `1/41`'s `form`, figure angle and `orders_x/y` (6111),
         // and group 72's speed (6135).
-        assert_eq!(
+        pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
@@ -1037,7 +1043,7 @@ mod tests {
             ],
             "the blocks keys first part on, to the word's"
         );
-        assert_eq!(w.firsts.len(), 327, "every key parted on run414");
+        pin_eq!(w.firsts.len(), 327, "every key parted on run414");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item
@@ -1057,6 +1063,7 @@ mod tests {
     /// 4847, past this window: run373 is its widening.
     #[test]
     fn run356_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
             (
@@ -1079,8 +1086,8 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
-        assert_eq!(w.blocks, 257, "run356 whole: blocks 4550..4806");
-        assert!(
+        pin_eq!(w.blocks, 257, "run356 whole: blocks 4550..4806");
+        pin!(
             w.missing.is_empty(),
             "run356 carries every key: {:?}",
             w.missing
@@ -1096,7 +1103,7 @@ mod tests {
         // sides until the army's attack on 4605, and since item 1012 its
         // order agrees through that too; it first parted again on 4761
         // until item 1028, and since then not in the window.
-        assert_eq!(
+        pin_eq!(
             row(1, 21, "order:kind"),
             None,
             "the unit's order, which parted on 4555 until item 997"
@@ -1108,12 +1115,12 @@ mod tests {
         // until block 4605, where both sides drop it; since item 1012 the
         // army's attack puts it back on the city on 4605 on both sides, and
         // neither its order nor its position parts again in the window.
-        assert_eq!(
+        pin_eq!(
             row(1, 26, "order:kind"),
             None,
             "the unit's order, which parted on 4592 until item 1002"
         );
-        assert_eq!(row(1, 26, "pos"), None, "and where it stands");
+        pin_eq!(row(1, 26, "pos"), None, "and where it stands");
         // **The old word, 4605, agrees** (item 1012, `docs/COMBAT.md` §66):
         // the army group's attack-move looks on 4605 (`1/15`, `(4605 + 15)
         // % 15 == 0`), finds the human's city, and hands it to the whole
@@ -1123,7 +1130,7 @@ mod tests {
         // re-issued `GROUP_ATTACK_TO` on block 4606 on both sides; `1/9`
         // first parted on 4771 until item 1014, and since then its order
         // agrees through the window.
-        assert_eq!(
+        pin_eq!(
             row(1, 9, "order:kind"),
             None,
             "an army member's order, which parted on 4606 until item 1012"
@@ -1141,18 +1148,18 @@ mod tests {
         // scout's order agrees through the window. Which read of the city
         // moved it is not established: the fix changed only the city's
         // three flags and its heal (`docs/COMBAT.md` §69).
-        assert_eq!(
+        pin_eq!(
             row(1, 0, "order:move.x"),
             None,
             "the scout's target, which parted on 4550 until item 1014 and on \
              4737 until item 1034"
         );
-        assert_eq!(
+        pin_eq!(
             row(1, 0, "group"),
             None,
             "the scout's group, 4619 until 1014"
         );
-        assert_eq!(
+        pin_eq!(
             row(1, 7, "order:gather.wait"),
             None,
             "the gatherer's wait, 4619 until item 1014"
@@ -1166,7 +1173,7 @@ mod tests {
         // `stopped` (4674) no longer part; its rows agree from 4605 to 4688.
         // Its order parted again on 4722 until item 1028, and since then
         // not in the window.
-        assert_eq!(
+        pin_eq!(
             row(1, 24, "order:kind"),
             None,
             "the chaser's order, which parted on 4673 until item 1023"
@@ -1181,12 +1188,12 @@ mod tests {
         // 31608), **until item 1099** (`docs/COMBAT.md` §80): the re-search
         // is `find_new_target`, which kills the attack and adds it fresh,
         // and `fight` snaps the unit to its cell centre under the new order.
-        assert_eq!(
+        pin_eq!(
             row(1, 24, "recharging"),
             None,
             "the chaser's strike, on 4689 until item 1028"
         );
-        assert_eq!(
+        pin_eq!(
             row(1, 24, "orders_x"),
             None,
             "and its spot, which parted on 4617 until item 1023 and on 4689 \
@@ -1200,7 +1207,7 @@ mod tests {
         // `take_damage+0xe1`. The three bits now agree through the window,
         // `0x4`'s clear on 4801 (`(4800 + 2000) % 200 == 0`) included.
         for bit in ["0x2", "0x4", "0x8"] {
-            assert_eq!(
+            pin_eq!(
                 row(0, 2000, &format!("city:city_flags[{bit}]")),
                 None,
                 "the human city's {bit}, which 1034 carries"
@@ -1210,7 +1217,7 @@ mod tests {
         // (item 1040, `docs/COMBAT.md` §70.6): `1/22`'s facing stood parted
         // from 4758 (ours the centre's bearing, 0x959a0000, against
         // 0x80000000) until the side arm.
-        assert_eq!(
+        pin_eq!(
             row(1, 22, "g.angle[0]"),
             None,
             "the Hoplite's facing, which parted on 4758 until item 1040"
@@ -1221,7 +1228,7 @@ mod tests {
         // left the Slinger's own square, not its bay (`launch::BAYS`, piece
         // 32, `docs/COMBAT.md` §70), and flew a frame long across a
         // boundary. Now every strike lands on the original's frame.
-        assert_eq!(
+        pin_eq!(
             row(0, 2000, "build:damage"),
             None,
             "the city's damage, one strike behind on 4690 until item 1040"
@@ -1233,7 +1240,7 @@ mod tests {
         // sides, where ours held 3/5 (4723's row, ours 3 against 2, until
         // 1072).
         for what in ["hits:damage", "hits:damage_frac", "hits_left"] {
-            assert_eq!(
+            pin_eq!(
                 row(0, 3, what),
                 None,
                 "the citizen's {what}, which parted on 4723 until item 1072"
@@ -1247,7 +1254,7 @@ mod tests {
         // turn on the Slinger (`600863`): no `ATTACK` on 4780, no
         // `fight+0x9b0` on 4781. None of `0/4`'s rows parts in the window.
         for what in ["damage_frame", "order:kind", "pos"] {
-            assert_eq!(
+            pin_eq!(
                 row(0, 4, what),
                 None,
                 "the citizen's {what}, which parted on 4780 until item 1040"
@@ -1264,7 +1271,7 @@ mod tests {
         // parted **until item 1099** (`docs/COMBAT.md` §80): the one-in-five
         // re-search adds its order fresh, as the original's does (parked
         // 1073).
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(4550, 79), (4585, 1), (4598, 1)],
             "the blocks keys first part on, the first three ((4550, 76) until \
@@ -1281,14 +1288,14 @@ mod tests {
                 "4600: ours Some((190, 414)) theirs Some((192, 414))",
             ),
         ] {
-            assert_eq!(
+            pin_eq!(
                 row(who, o, what).as_deref(),
                 Some(want),
                 "{who}/{o} {what}, the record item 1061 compares"
             );
         }
         for what in ["attack[0].ever_in_range", "attack[0].new_ord"] {
-            assert_eq!(
+            pin_eq!(
                 row(1, 24, what),
                 None,
                 "1/24 {what}, which parted on 4753 until item 1099"
@@ -1313,6 +1320,7 @@ mod tests {
     /// This window keeps what it has always held, every old word's block.
     #[test]
     fn run373_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
             (
@@ -1347,8 +1355,8 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
-        assert_eq!(w.blocks, 257, "run373 whole: blocks 4841..5097");
-        assert!(
+        pin_eq!(w.blocks, 257, "run373 whole: blocks 4841..5097");
+        pin!(
             w.missing.is_empty(),
             "run373 carries every key: {:?}",
             w.missing
@@ -1366,7 +1374,7 @@ mod tests {
         // parts on the army's tick, 4861, until item 1052, on 4989 until
         // item 1072 (a chase that ended on `0/2`'s early death), on 5085
         // until item 1074, and not in the window since.
-        assert_eq!(
+        pin_eq!(
             first(1, 19, "g.angle[0]").map(|(f, _)| f),
             None,
             "the Hoplite's facing, which parted on 4847 until item 1040, \
@@ -1379,7 +1387,7 @@ mod tests {
         // wraps on 4854; its clock no longer parts, and its figure first
         // parts on the army's tick too.
         for what in ["g.cur_time[0]", "g.last_time[0]", "g.end_time[0]"] {
-            assert!(
+            pin!(
                 first(1, 24, what).is_none_or(|(f, _)| f > 4_853),
                 "the Slinger's {what}, which parted on 4853 until item 1040: {:?}",
                 first(1, 24, what)
@@ -1408,7 +1416,7 @@ mod tests {
         ] {
             // Past item 1061's word's block, 4979: `1/13`'s move now
             // parts on 5012 (item 1072).
-            assert!(
+            pin!(
                 first(1, o, what).is_none_or(|(f, _)| f > 4_979),
                 "1/{o}'s {what}, which parted on the army's tick, 4861, until \
                  item 1052: {:?}",
@@ -1428,7 +1436,7 @@ mod tests {
             ("pos", 4_985),
             ("attack[0].in_range", 4_985),
         ] {
-            assert!(
+            pin!(
                 first(1, 11, what).is_none_or(|(f, _)| f >= block),
                 "1/11's {what}, which parted on 4923 or 4924 until item 1061: {:?}",
                 first(1, 11, what)
@@ -1453,7 +1461,7 @@ mod tests {
             "hits:hold_frames",
         ] {
             for o in [1, 2, 3, 4, 5] {
-                assert!(
+                pin!(
                     first(0, o, what).is_none_or(|(f, _)| f > 5_000),
                     "0/{o}'s {what}, which parted from 4841, 4901 or 4905 \
                      until item 1072: {:?}",
@@ -1461,7 +1469,7 @@ mod tests {
                 );
             }
         }
-        assert_eq!(
+        pin_eq!(
             (first(0, 2, "death:extra"), first(0, 3, "death:extra")),
             (
                 Some((5_001, "ours 1 theirs 0".to_string())),
@@ -1486,7 +1494,7 @@ mod tests {
             "hits_left",
             "damage_frame",
         ] {
-            assert_eq!(
+            pin_eq!(
                 first(0, 1, what),
                 None,
                 "0/1's {what}, which parted on 5041 (5077 for damage_frame) \
@@ -1504,7 +1512,7 @@ mod tests {
         // part on 5068, where the chase on `0/4` is aimed at (2136, 31608)
         // against ours (3384, 31464).
         for what in ["pos", "order:kind", "order:move.dest_x", "path:length"] {
-            assert!(
+            pin!(
                 first(1, 13, what).is_none_or(|(f, _)| f >= 5_068),
                 "1/13's {what}, which parted on 5012 (5066 for the order) \
                  until item 1086: {:?}",
@@ -1522,15 +1530,15 @@ mod tests {
         // sides, and nothing parts from 5073 to 5089 but `1/0`'s figure.
         // The next rows are `1/35`'s `form` on 5090 and `1/21`'s move on
         // 5091 (no mechanism is named).
-        assert_eq!(first(1, 20, "collide"), None, "1/20's collide on 1/18");
+        pin_eq!(first(1, 20, "collide"), None, "1/20's collide on 1/18");
         for o in [10, 11, 18, 19, 20] {
-            assert_eq!(
+            pin_eq!(
                 first(1, o, "order:kind"),
                 None,
                 "1/{o}'s chase, which ended on 5075 on ours alone until item 1074"
             );
         }
-        assert!(
+        pin!(
             w.firsts
                 .iter()
                 .filter(|(_, (f, _))| (5_073..=5_089).contains(f))
@@ -1543,7 +1551,7 @@ mod tests {
         // `0/4`, where ours searched and took `0/5`. Its move parted from
         // 5068 and refused `1/21`'s spot on 5090 through
         // `find_ordered_collision`, until then.
-        assert_eq!(
+        pin_eq!(
             (
                 first(1, 35, "form").map(|(f, _)| f),
                 first(1, 21, "order:move.x"),
@@ -1564,7 +1572,7 @@ mod tests {
         // re-pointed in place where the original's `find_new_target` adds it
         // fresh (parked 1073). The next rows are the leader's `peasants` and
         // `1/34`'s `form` on 4909 (no mechanism is named).
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(4_841, 102), (4_909, 2), (4_912, 1)],
             "the blocks keys first part on, the first three ((4841, 104), \
@@ -1580,7 +1588,7 @@ mod tests {
             (24, "attack[0].in_range"),
             (24, "attack[0].new_ord"),
         ] {
-            assert_eq!(
+            pin_eq!(
                 first(1, o, what),
                 None,
                 "1/{o}'s {what}, which parted on 4841 or 4853 until item 1099"
@@ -1597,7 +1605,7 @@ mod tests {
         // 203 → 156 on item 1089 (`1/13`'s rows from 5067 and `1/21`'s from
         // 5091 go), and 156 → 128 on item 1099 (the re-search's fresh
         // order, and what it moved).
-        assert_eq!(w.firsts.len(), 128, "every key parted on run373");
+        pin_eq!(w.firsts.len(), 128, "every key parted on run373");
     }
 
     /// **The second pair's Great Lakes word, 5105, widened whole** (item
@@ -1610,6 +1618,7 @@ mod tests {
     /// words' blocks.
     #[test]
     fn run396_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
             (
@@ -1643,8 +1652,8 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
-        assert_eq!(w.blocks, 257, "run396 whole: blocks 5100..5356");
-        assert!(
+        pin_eq!(w.blocks, 257, "run396 whole: blocks 5100..5356");
+        pin!(
             w.missing.is_empty(),
             "run396 carries every key: {:?}",
             w.missing
@@ -1660,9 +1669,9 @@ mod tests {
         // there, `ever_in_range` 1 against 0 and `new_ord` 0 against 1 from
         // `1/21`'s retarget (parked 1073's shape), is gone too since item
         // 1099: the one-in-five re-search adds its order fresh.
-        assert_eq!(first(1, 21, "order:kind"), None, "the old word's row");
-        assert_eq!(first(1, 21, "order:move.x"), None, "1/21's chase goal");
-        assert_eq!(
+        pin_eq!(first(1, 21, "order:kind"), None, "the old word's row");
+        pin_eq!(first(1, 21, "order:move.x"), None, "1/21's chase goal");
+        pin_eq!(
             first(1, 21, "attack[0].new_ord"),
             None,
             "the attack row's fresh-order shape, on 5105 until item 1099"
@@ -1676,7 +1685,7 @@ mod tests {
         // `hold_attack` 1) and its follower `1/26` holds `0/0`, on both
         // sides, where ours re-pointed the attack at the city.
         for (o, what) in [(24, "recharging"), (24, "g.hold_attack[0]")] {
-            assert_eq!(
+            pin_eq!(
                 first(1, o, what),
                 None,
                 "1/{o}'s {what}, which parted on 5162 until item 1099"
@@ -1685,13 +1694,13 @@ mod tests {
         // Their `order:target` parted on 5162 until item 1099; since, it
         // first parts on 5195, the attack-move's standing family below.
         for o in [24, 26] {
-            assert_eq!(
+            pin_eq!(
                 first(1, o, "order:target").map(|(f, _)| f),
                 Some(5_195),
                 "1/{o}'s target, on 5162 until item 1099"
             );
         }
-        assert!(
+        pin!(
             w.firsts.values().all(|(f, _)| *f != 5_162),
             "nothing first parts on block 5162"
         );
@@ -1702,7 +1711,7 @@ mod tests {
         // attack-move's `order:target` as each unit takes the city (the
         // standing family run373 carries from 4841), and the AI scout
         // `1/0`'s second figure, (3081, 20587) against (3065, 20580) on 5240.
-        assert_eq!(
+        pin_eq!(
             (first(1, 36, "form"), first(1, 0, "g.x[1]"),),
             (
                 Some((5_165, "ours -1 theirs 0".to_string())),
@@ -1710,14 +1719,14 @@ mod tests {
             ),
             "the value rows beneath the draws"
         );
-        assert_eq!(
+        pin_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [(5_100, 90), (5_147, 2), (5_149, 1)],
             "the blocks keys first part on, the first three ((5100, 92), \
              (5105, 2), (5128, 1) until item 1099)"
         );
         // Keys parted: 1,253 → 737 on item 1089, 737 → 131 on item 1099.
-        assert_eq!(w.firsts.len(), 127, "every key parted on run396");
+        pin_eq!(w.firsts.len(), 127, "every key parted on run396");
     }
 
     /// **The second pair's Great Lakes word, 5930, the game's end, widened**
@@ -1729,6 +1738,7 @@ mod tests {
     /// whole; run403's quit block prints no record.
     #[test]
     fn run403_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
         use std::collections::BTreeMap;
         let Some(w) = crate::diff::harness::tests::widen_great_lakes_on(
             (
@@ -1761,8 +1771,8 @@ mod tests {
                 eprintln!("  first {f} {who}/{o} {what}: {r}");
             }
         }
-        assert_eq!(w.blocks, 6, "run403 whole: blocks 5925..5930");
-        assert!(
+        pin_eq!(w.blocks, 6, "run403 whole: blocks 5925..5930");
+        pin!(
             w.missing.is_empty(),
             "run403 carries every key: {:?}",
             w.missing
@@ -1779,19 +1789,19 @@ mod tests {
         // the move's `angle`). No `pos`, no figure, and no draw. **Item
         // 1115: 112 → 108**: `1/36` is the caravan, and its trade order's
         // bit 4 and its leg's facing agree (`docs/CARAVAN.md` §11.3).
-        assert_eq!(
+        pin_eq!(
             by.into_iter().collect::<Vec<_>>(),
             [(WIDENING_SECOND_GREAT_LAKES_5930.0, 108)],
             "the blocks keys first part on, and how many"
         );
-        assert!(
+        pin!(
             w.firsts.keys().all(|(_, _, what)| what != "pos"
                 && !what.starts_with("g.x")
                 && !what.starts_with("g.y")),
             "a position parts at the game's end"
         );
         // Item 1115 took the caravan's four rows here (112 → 108; `docs/CARAVAN.md` §11.3).
-        assert_eq!(w.firsts.len(), 108, "every key parted on run403");
+        pin_eq!(w.firsts.len(), 108, "every key parted on run403");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the
