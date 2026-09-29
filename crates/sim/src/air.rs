@@ -3511,3 +3511,66 @@ mod flak_tests {
         }
     }
 }
+
+/// **The Modern Infantry's step** (item 1109): `Unit::do_move`'s
+/// `5f88b5`..`5f88cb`, `× 5 / 4` truncating on `get_speed`'s answer for a
+/// type `is_modern_infantry` answers. It lives beside the air line because
+/// chapter thirty-eight is where a Modern Infantry first walked in a
+/// capture (run404's `1/6`, a first step of 42 on a speed of 34).
+#[cfg(test)]
+mod infantry_step_tests {
+    use crate::world::Pos;
+    use crate::{Sim, Unit, UnitType, movement};
+
+    fn walker(age: i32, flags: u32) -> (Sim, usize) {
+        let mut s = Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(128, 128),
+            2,
+        );
+        let mut ty = UnitType {
+            hits: 50,
+            moves: 34,
+            ..UnitType::default()
+        };
+        ty.cols.unit_flags = flags;
+        ty.combat.age = age;
+        let ty = s.add_unit_type(ty);
+        let mut u = Unit::new(1, 0, Pos::new(0x60 * 20 + 0x30, 0x60 * 20 + 0x30), 50);
+        u.ty = Some(ty);
+        u.on_map = true;
+        let u = s.add_unit(u);
+        let m = &mut s.units[u].movement;
+        m.speed = 34;
+        m.turning = movement::Turning {
+            type_turn_speed: movement::degrees_to_angle(45).0,
+            packed: false,
+            instant_from_stop: true,
+            wide_limit: false,
+        };
+        m.set_facing(movement::Angle::EAST);
+        (s, u)
+    }
+
+    fn first_step(age: i32, flags: u32) -> i32 {
+        let (mut s, u) = walker(age, flags);
+        let from = s.units[u].pos;
+        s.order_move(u, Pos::new(from.x + 0x60 * 20, from.y));
+        for _ in 0..8 {
+            s.tick();
+            if s.units[u].pos != from {
+                break;
+            }
+        }
+        s.units[u].pos.x - from.x
+    }
+
+    #[test]
+    fn a_modern_infantry_steps_five_quarters_of_its_speed() {
+        // The step east is the trig component of the step, one short of it:
+        // 42 walks 41 and 34 walks 33.
+        assert_eq!(first_step(6, 0x100), 41, "34 x 5 / 4 = 42, truncated");
+        assert_eq!(first_step(5, 0x100), 33, "not past age 5: 34");
+        assert_eq!(first_step(6, 0), 33, "not the flag: 34");
+    }
+}
