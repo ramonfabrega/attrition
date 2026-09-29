@@ -1552,14 +1552,25 @@ impl Sim {
     /// state the wrap's `set_anim` leaves and not the state
     /// `Guy::init_real` does (`docs/SYNC.md` §3.16).
     pub(crate) fn guys_inc_time(&mut self) {
-        let mut visit: Vec<usize> = Vec::with_capacity(self.units.len());
+        // `Objects::inc_time@0065db70` walks the leaders in order, and each
+        // leader's units and then **its buildings** (`Wall::inc_time`,
+        // vslot `+0xa0` of a `Build`) before the next leader's: an
+        // anti-air building's round lands between its owner's units and
+        // the next player's (`crate::air`'s `walls_inc_time`,
+        // `docs/COMBAT.md` §84).
         for who in 0..10u8 {
             let mut mine: Vec<usize> = (0..self.units.len())
                 .filter(|&i| self.units[i].owner == who)
                 .collect();
             mine.sort_by_key(|&i| self.units[i].index);
-            visit.extend(mine);
+            self.units_inc_time(mine);
+            self.walls_inc_time(who);
         }
+    }
+
+    /// One leader's share of [`Sim::guys_inc_time`]: its units, in index
+    /// order.
+    fn units_inc_time(&mut self, visit: Vec<usize>) {
         for u in visit {
             // The site fold's unit attribution (`rondata::diff`'s
             // `attributed_sites`) is the unit loop's mark, and this phase

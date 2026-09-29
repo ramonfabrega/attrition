@@ -2905,6 +2905,14 @@ pub const CAT_AIR: i32 = 8;
 pub const JAM_UNIT_RADAR_PROB: i32 = 50;
 
 impl Sim {
+    /// **`Wall::inc_time@0063fb60` for one leader's buildings**, which
+    /// `Objects::inc_time@0065db70` runs after that leader's units and
+    /// before the next leader's ([`Sim::guys_inc_time`]). Only its
+    /// anti-air arm changes the simulation (`docs/COMBAT.md` §84).
+    pub(crate) fn walls_inc_time(&mut self, who: u8) {
+        let _ = who;
+    }
+
     /// A unit of the air domain that is neither a Helicopter nor a missile —
     /// `is_flying_low`'s and `Ammo::init`'s three type tests (`+0x218` 2,
     /// `+0x2b4 & 0x20` clear, `+0x1e4 & 0x8000000` clear).
