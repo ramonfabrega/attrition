@@ -7004,9 +7004,11 @@ pub(crate) mod tests {
             "run97's order residue reached a unit item 368 did not leave it on"
         );
         // The count is floored beneath the set, so a known unit growing
-        // a new kind of row is caught too. It may only come down.
-        assert!(
-            scoring.len() <= ORDER_RESIDUE_RUN97,
+        // a new kind of row is caught too. It may only come down, and since
+        // item 1115 it is at zero, so the floor is exact.
+        assert_eq!(
+            scoring.len(),
+            ORDER_RESIDUE_RUN97,
             "run97's order residue grew past {ORDER_RESIDUE_RUN97}: {} rows, first {:?}",
             scoring.len(),
             scoring.first()
