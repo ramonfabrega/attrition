@@ -1166,7 +1166,22 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// (7269,27840) → the original's. **The new word's delta**: frame 15982,
 /// ours 17 draws against 16, at index 0 ours `Leader::use_market+0x1ed`
 /// and theirs `Leader::produce_building+0x1805`, widened on run428.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 15_982;
+///
+/// **15982 → 16681 on item 1189, and the mechanism was the Spice route**
+/// (`docs/CARAVAN.md` §4): `Caravan::trade_value` scales a route by
+/// `SPICE_CARAVAN_INCOME` when the computing city's owner holds Spice, and
+/// ours never read the rare. who=1's route read 22 against 26 from frame
+/// 14660, its wealth fell behind, and on 15982 `use_market`'s need for two
+/// Senates found 96 wealth against 104 and sold. **The word's delta**: on
+/// frame 15982 ours 17 draws against 16, one `Leader::use_market+0x1ed`
+/// more → 16 against 16. The value diff is run418's block 14661
+/// (`run418_s_word_frame_is_widened_whole`): `1/2000` and `1/2007`'s
+/// `trade_val` 176 against 208 → 208; and on run428's block 15977 who=1's
+/// `bucket[2:wealth]` 96 against 103 → 103. **The new word's delta**:
+/// frame 16681, ours 11 draws against 8, at index 4 ours `Guy::set_anim+
+/// 0xf2f < Guy::inc_time+0x271` and theirs `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271`, widened on run442.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 16_681;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -7072,13 +7087,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // and took run426 over 15581..15837; run418's test keeps the move's
     // value diff on 14587. Item 1177 moved it to **15982**, past run426's
     // last block, and took run428 over 15977..16233; run426's test keeps
-    // the move's value diff on 15585.
+    // the move's value diff on 15585. Item 1189 moved it to **16681**,
+    // past run428's last block, and took run442 over 16676..16932;
+    // run418's test keeps the move's value diff on 14661 and run428's on
+    // 15983.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run428_s_word_frame_is_widened_whole"),
-        1177,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_15982),
+        Some("run442_s_word_frame_is_widened_whole"),
+        1189,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_16681),
     ),
 ];
 

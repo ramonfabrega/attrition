@@ -663,6 +663,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r418 = crate::testenv::dump(super::third::SAHARA_WORD_14587);
     let r426 = crate::testenv::dump(super::third::SAHARA_WORD_15586);
     let r428 = crate::testenv::dump(super::third::SAHARA_WORD_15982);
+    let r442 = crate::testenv::dump(super::third::SAHARA_WORD_16681);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1242,10 +1243,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run426 carries the old word's blocks");
         frames += n;
     }
+    // Item 1189 moved it to 16681, on run442, and run428's window stays
+    // as the move's.
     if let Some(p) = &r428 {
+        let b = super::third::SAHARA_15982_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run428 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r442 {
         let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run428 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run442 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the

@@ -116,6 +116,20 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1189, 2026-09-29 — the make list's standing rows, and the Indian arm
+
+(1195) **who=1's make list stands on every Great Sahara window**
+(CARAVAN §8): the Mine offer's `MAKE[].val` is 7/6 of the original's
+(59500 against 51000 on 15982, 56700 against 48600 on 16182 and 16676),
+spending no draw on either window; and `MAKE[].city` is ours' global
+city index against the original's per-leader one
+(`cities.field_0x10 + who · 0x1c`, `compute_trade`'s listing).
+
+(1196) **`trade_value`'s Indian arm and a foreign pair's leader choice
+are a reading only** (CARAVAN §7.2): 1189's M2 removed the arm and no
+walk held it — no capture on disk reaches a leader with the caravans'
+power, or a route with a foreign end.
+
 ## Parked by item 1185, 2026-09-29 — the blocked bit's other writers
 
 (1192) **`Good::init`, the mountains and the cliffs write the blocked
@@ -2218,15 +2232,15 @@ widenings** (1174's Loop line): who=1's `pop` from run425's 7377 and
 `escrow` from run357's 5601 stood among the first block's 238 standing
 keys, read as noise. A guard listing each key a widening pins as
 standing whose field has a live reader in `sim`, with that reader, at
-the widening's run, would have put both in front. One reach.
+the widening's run, would have put both in front. **Again**
+(1189): who=1's wealth and `trade_val` stood on two widenings' first
+blocks; the Spice route was the cause. Two reaches.
 
 (1188) **A queue item whose bold title wraps fails the booking gate,
-and the commander's reflex cannot see it** (the commander, booking
-1174): `test_brief.py`'s `test_the_live_queue_composes` wants the
-title whole on one line; `tools/guard.sh` does not run the offline
-tests, so the booking's guard run was green and the gate on `6b117410`
-was red at its first step. `guard.sh` taking `test_brief.py`, or the
-queue guard reading the title's line, would have caught it. One reach.
+unseen by the reflex** (booking 1174): `test_brief.py` wants the title
+on one line, and `tools/guard.sh` does not run the offline tests, so
+the guard run was green and the gate on `6b117410` red at its first
+step. `guard.sh` taking `test_brief.py` would have caught it. One reach.
 
 (1193) **A `SEAM` that leaves an arm out because its door is not built
 outlives the door** (1185's Loop line): `World::set_blocked_at`'s road

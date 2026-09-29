@@ -1511,9 +1511,11 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 1163 raised two, and it is not a build**: AI 36 → 38, `0x6da4`
 /// and `0x6dcc`, the `rare` and `rare_conquest` bytes `get_cost`'s research
 /// arm tests for Wine (`00664edd`), quoted as the listing prints them, as
-/// item 1147's two were; `economy::WINE` is the bit they carry.
+/// item 1147's two were; `economy::WINE` is the bit they carry. **Item
+/// 1189 banked them** (38 → 36): `economy::SPICE` quotes the same two
+/// bytes for `Caravan::trade_value`'s Spice test, and is built.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 38),
+    ("AI.md", 36),
     ("ANIM.md", 4),
     ("ARMY.md", 9),
     ("ATTRITION.md", 1),
@@ -2069,7 +2071,6 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("sim/src/air.rs", 2),
     ("sim/src/airbase.rs", 1),
     ("sim/src/anim.rs", 1),
-    ("sim/src/caravan.rs", 1),
     ("sim/src/cast.rs", 2),
     ("sim/src/collide.rs", 1),
     ("sim/src/fight.rs", 6),

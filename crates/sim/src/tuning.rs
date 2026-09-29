@@ -686,6 +686,13 @@ pub struct Tuning {
     pub versailles_building_speed: i32,
     /// Percent faster construction with the Tobacco rare.
     pub tobacco_building_speed: i32,
+    /// Percent more a trade route is worth with the Spice rare —
+    /// `Caravan::trade_value@0073d9d0`'s tail (`docs/CARAVAN.md` §4).
+    /// Ships as `20%`.
+    pub spice_caravan_income: i32,
+    /// Percent more a trade route is worth to the nation whose power is
+    /// the caravans' (`has_tribe_bonus(0x15)`), in the same function.
+    pub indians_caravan: i32,
     /// Percent faster British ship creation — `ObjectData::train_time`'s
     /// British arm, on any type whose domain is the sea
     /// (`docs/PRODUCTION.md`, "The tail").
@@ -1095,6 +1102,8 @@ impl Tuning {
         maya_building_speed: 20,
         versailles_building_speed: 0,
         tobacco_building_speed: 10,
+        spice_caravan_income: 20,
+        indians_caravan: 15,
         british_ship_speed: 33,
         british_archer_speed: 0,
         british_aa_speed: 33,
@@ -1156,7 +1165,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 321] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 323] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1694,6 +1703,8 @@ impl Tuning {
                 "TOBACCO_BUILDING_SPEED",
                 Slot::Value(T.tobacco_building_speed),
             ),
+            ("SPICE_CARAVAN_INCOME", Slot::Value(T.spice_caravan_income)),
+            ("INDIANS_CARAVAN", Slot::Value(T.indians_caravan)),
             ("BRITISH_SHIP_SPEED", Slot::Value(T.british_ship_speed)),
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
