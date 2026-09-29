@@ -291,6 +291,18 @@ impl Sim {
             self.kill_current_order(u);
             return;
         }
+        // **The caravan and its home city in two regions** (the
+        // `get_tregion` pair returning at `005ed483`): a caravan that cannot
+        // `can_transport` gives the order up; one that can walks on. The
+        // original's three region tests (`docs/CARAVAN.md` §11) each ask
+        // `can_transport` only when the two regions differ.
+        let at = self.world.tregion_alt(self.units[u].pos.tile());
+        let home_at = self.world.tregion_alt(self.cities[ord.home].pos.tile());
+        let transport = self.unit_can_transport(u);
+        if at != home_at && !transport {
+            self.kill_current_order(u);
+            return;
+        }
         if ord.dest.is_none() {
             let Some(dest) = self.pick_trade_partner(u, ord.home) else {
                 // "No trade route available": the order dies and the unit
@@ -303,6 +315,14 @@ impl Sim {
             self.set_trade_order(u, ord);
         }
         let Some(dest) = ord.dest else { return };
+        // **The pair, on every call** (`get_tregion` returning at
+        // `005ed920`): the caravan off its home's region, or the far city
+        // off it, needs `can_transport`.
+        let dest_at = self.world.tregion_alt(self.cities[dest].pos.tile());
+        if (at != home_at || home_at != dest_at) && !transport {
+            self.kill_current_order(u);
+            return;
+        }
         if ord.started {
             self.trade_legs(u, v, ord);
             return;
@@ -617,18 +637,20 @@ impl Sim {
     /// home city is the caravan owner's own.
     fn pick_trade_partner(&mut self, u: usize, home: usize) -> Option<usize> {
         let who = self.units[u].owner;
+        let home_at = self.world.tregion_alt(self.cities[home].pos.tile());
+        let transport = self.unit_can_transport(u);
         let mine = self.cities[home].owner == who;
         let mut best: Option<(usize, i32)> = None;
         for other in 0..self.cities.len() {
             if other == home || !self.trade_pair_free(who, home, other) {
                 continue;
             }
-            // SEAM: the cross-region arm. The original admits a partner in
-            // another region only when the caravan `can_transport`; no
-            // capture has a route that crosses water (`docs/CARAVAN.md` §6).
-            if self.world.tregion(self.cities[other].pos.tile())
-                != self.world.tregion(self.cities[home].pos.tile())
-            {
+            // **The cross-region arm** (`docs/CARAVAN.md` §11, the
+            // `get_tregion` returning at `005ed631`): a partner in another
+            // region than the **home city's** is admitted when the caravan
+            // `can_transport`. East Indies' London and
+            // Newcastle are regions 11 and 5, and the AI's caravan crosses.
+            if self.world.tregion_alt(self.cities[other].pos.tile()) != home_at && !transport {
                 continue;
             }
             let mut v = self.trade_value(home, other);
