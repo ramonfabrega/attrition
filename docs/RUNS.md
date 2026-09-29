@@ -11221,3 +11221,43 @@ make list on 15982, and the word's block 15983 on who=1's new site
 `1/2024`, 192 east of the original's (`docs/COMBAT.md` §65.8). The compared
 pin and the coverage driver walk 15981..15985.
 
+
+## run445 — run346's game at run439's detail over blocks 8815..9071: the second pair's East Indies word 8820 widened (2026-09-29, item 1191)
+
+**What it is.** run439's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8815..9071, `!quit` at 9085. The word's frame 8820 writes block
+8821: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run445 \
+    --map 18 --end-frame 9085 --timeout 4800 --log-window 8815 9072 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run439 ends at block
+8770; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 14:16–14:44 in one take. The first launch, at 14:10, was refused:
+item 1182's chapter capture held the game from 14:05:57, and mine queued
+behind it for **6 minutes**. It was waited on with `waitrun.sh`:
+`success: true`, exit 0, 1,598 s from launch to exit, 9,086 frames, map 18
+and seed 12345 verified, five files restored. The dump (612.5 MB) and the
+trace (88.1 MB) were moved into `Logs` as
+`gamelog-run445-islands-toughest-8820.txt` and `rontrace-run445.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 9,086 identical |
+| window blocks | 257, 8815..9071, and the closing block 9086 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run445_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 8815 stands on 504 keys, from the gap
+8771..8814; nothing new parts through the word's block 8821, and the first
+new parting is on 8823. The original wraps `1/68`, `1/7`, `1/70` and `1/8`
+on 8820, and `1/68`'s and `1/70`'s figure clocks are among the standing
+keys. The window parts on 1,176 keys. The coverage driver and the compared
+pin walk 8820..8823.
