@@ -16,8 +16,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty; the
 first pair stays closed at 24,000, endpoints 0 off. Chapters to
-thirty-seven are closed; thirty-eight is open at 777 (1102, 1109). Two
-lanes run; the count is at fifteen.*
+thirty-seven are closed; thirty-eight is open at 779 (1102, 1109, 1112).
+Two lanes run; the count is at sixteen.*
 
 - **Great Lakes' second game is closed at 5,930, its end**, in seven
   landings from 4924 (1061 … 1099), endpoint 0 off: the pass's measure,
@@ -30,16 +30,16 @@ lanes run; the count is at fifteen.*
   its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 25 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116).
+- **Fable backlog: 26 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116, 1119).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w5773 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w8 of 24,000
-Golden: ch38 w777 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1112 next
+Golden: ch38 w779 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1117 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1115 and 1112 run.**
+**Opener: the commander resumes — 1115 and 1117 run.**
 
 ## The queue
 
@@ -56,12 +56,12 @@ backlog is `docs/PARKED.md`, and an item returns only when a score names it.
     `orders.len` 0 against 2 — theirs plans a road ours never starts.
     No mechanism is named.
 
-1112. **Chapter thirty-eight's word: frame 777** (1109: the speed arms
-    and an anti-air shooter's angle built). The Radar Air Defense fires
-    on acquisition here, four draws against none: 1109 read the
-    original's `recharging` wind-up 1..19 and its fire on
-    `Wall::inc_time`'s anim 0xc cycle (COMBAT §83.2), a hypothesis.
-    `process_building_combat` in `fight.rs` is the AI lane's, by spot.
+1117. **Chapter thirty-eight's word: frame 779, ours 9 draws against 6**
+    (1112: the anti-air building's cycle built). The Battery `1/9`'s
+    frame-4 node-0 release: ours fires, theirs holds, its turret short
+    of its aim (`node_flags` 14, bit 0 clear, block 780). **The
+    instrument first**: GUY's `node_flags`, `des_node_flags`,
+    `turret_angles`, `des_turret_angles` are parsed and uncompared.
 
 ## How to maintain this file
 

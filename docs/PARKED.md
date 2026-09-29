@@ -102,6 +102,16 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1112, 2026-09-28 — the anti-air building's edges
+
+(1118) **The anti-air building cycle's four edges** (COMBAT §84): a
+building's `near_o` (the cycle gates on the target's sign as a stated
+`SEAM`; `Building` and `find_nearby_target` were outside 1112's grant);
+`do_attack`'s out-of-range arm clears the target at `622c1c` and this
+crate keeps it; the Air Defense Gun's and the SAM's launch vectors,
+unmeasured, and the three Radar rounds that print no `AMMO`; and no
+widening compares a round's `accuracy`.
+
 ## Parked by item 1109, 2026-09-28 — the speed's other edges
 
 (1113) **Chapter thirty-eight's speed and army rows beside its word**:
@@ -1943,6 +1953,13 @@ border pass down on 2026-08-20 and this crate carried the
 simplification for five weeks, "until a diff says it matters". A guard
 could list every such sentence in `docs/` with the first word frame
 each could reach.
+
+(1119) **A field no widening compares stays wrong silently** (1112's
+Loop line): the golden widening had dropped every building's round, and
+a round's `accuracy` is compared nowhere, so a building's `ATTENUATE`
+sign had been wrong since the first loader (`BuildType::init` keeps it
+signed where `UnitType::init` takes abs). Fixed by 1112, and it moved no
+floor. The compared pin could name a round's `accuracy`.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

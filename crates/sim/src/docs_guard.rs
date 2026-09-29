@@ -1492,6 +1492,9 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// COSTS, ORDERS and PRODUCTION 1 each — none a mechanism carried. 135 →
 /// 152; the arrivals are listed in `docs/audit/2026-09-28-fable-pass-18.md`
 /// and parked with 802's and 820's.
+/// **Item 1112 banked one**: CITIES 9 → 8, `0x20b`, `AIRDEFENSE`, which
+/// `crate::air` carries beside `LOOKOUT`, `OBSERVATIONPOST`, `RADAR` and
+/// `SAM` (the anti-air building's cycle, `docs/COMBAT.md` §84).
 /// **Item 1115 banked one**: PATHFINDER 1 → 0, `0x8c`, `avoid_sea`, which
 /// `crate::roads`' shore surcharge now cites; the row is gone.
 const UNBUILT: &[(&str, usize)] = &[
@@ -1499,7 +1502,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("ANIM.md", 4),
     ("ARMY.md", 9),
     ("ATTRITION.md", 1),
-    ("CITIES.md", 9),
+    ("CITIES.md", 8),
     ("COLLISION.md", 1),
     ("COMBAT.md", 9),
     ("COSTS.md", 5),

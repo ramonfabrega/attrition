@@ -3278,13 +3278,19 @@ impl Sim {
         if !self.active(me) || self.attack_of(me) == 0 {
             return;
         }
+        // **An anti-air building's `recharging` is its `Wall::inc_time`
+        // cycle's, not this countdown** (item 1112, `docs/COMBAT.md`
+        // §84): `Build::do_attack@006228f0`'s head (`6228fe`..`622946`) skips the countdown for
+        // an `ANTI_AIR` building that is neither a Lookout nor an
+        // Observation Post, and it never reaches `Object::fire_ammo`.
+        let cycles = self.wall_cycle_of(b).is_some();
         let bd = &self.buildings[b];
         let phase = bd.phase(frame) & 0x1f;
         // Without a target, `do_attack` runs every 32nd frame.
         if bd.target.is_none() && phase != 0 {
             return;
         }
-        if bd.recharging > 0 {
+        if !cycles && bd.recharging > 0 {
             self.buildings[b].recharging -= 1;
             return;
         }
@@ -3323,6 +3329,12 @@ impl Sim {
             return;
         };
         if !self.is_in_range(me, target) {
+            return;
+        }
+        // `do_attack`'s in-range arm returns before `fire_ammo` for the
+        // same buildings (`622b52`..`622ba3`, to the return at `622c2e`): their round is the cycle's
+        // release event ([`Sim::walls_inc_time`]).
+        if cycles {
             return;
         }
         // Fire: `ammo_per_att` ammo at random points in the footprint.

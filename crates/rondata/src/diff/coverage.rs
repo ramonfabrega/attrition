@@ -161,9 +161,11 @@ const UNREAD: &[(&str, &str)] = &[
     // pair (`PtrLinkListAbstract<GatherPoint>::log_data`), `type` 0 and
     // `metric` the node's key, 0 on every node `add_gather_point` makes.
     // The points themselves are read (`GATHERPOINT`, `BuildDump::gather`).
+    // **Item 1112 read `attack_ox attack_whom recharging`**: the golden
+    // widening's anti-air cycle rows (`golden::cycle_rows`).
     (
         "GAME/FRAME/BUILDDATA",
-        "attack_ox attack_whom dock flags fort founder healing increment infiltrate infiltrate2 metric oil_well recharging stance type wonder",
+        "dock flags fort founder healing increment infiltrate infiltrate2 metric oil_well stance type wonder",
     ),
     ("GAME/FRAME/BUILDDATA/BUILDQUEUE", "queue_size"),
     (
@@ -453,6 +455,8 @@ fn drive(text: &str, out: &mut Paths) {
             let _ = crate::gamelog::groups(frame);
             let _ = crate::gamelog::last_group(frame);
             let _ = crate::gamelog::farms_of(frame);
+            // The golden widening's anti-air cycle rows (item 1112).
+            let _ = super::golden::cycle_rows(frame);
             // The leader widening's reader (item 520): run117's and
             // run123's tests compare the whole record through it.
             // Item 592 added the census's per-region arrays beside it:
