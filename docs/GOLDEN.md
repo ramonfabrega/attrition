@@ -1409,6 +1409,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 397 | thirty-seven, the nuke | `[605, 3490)` | a cast of its own on the golden start (1094): a Missile Silo `0/2007` (610), the nuke's research there (615) and its train (2300), who=1's Barracks T at ground zero and F at a building distance of 1824 (2940, 2942), four of who=0's Elite Special Forces at 518, 1039, 1804 and 1870 (2950..2956), `@launchstrike` on T (3050) and `tech who=1 missile_shield on` in the countdown (3060); at `cover=0` on the click-free lane, run398 the same at `cover=1` on the queue lane (`Nuke::add_nuke`, a `NEVER` row), with `GROUPS=1` at `GUYS=4` and `AMMO=5`; the staging walked by this crate's `stage_walk` on run390's start (§46) — **run 2026-09-28 (item 1091), 1.12 GB, 3,380 s; no falsifier fired (7's leader half could not: `LEADERS=2` prints no `nuke_stamp`): the research done by 2237, the nuke launched on 3081 through the shield, the silo's `visible` −1, the round on the point with no draw, the ring striking on 3217, 3226 and 3239, 1870 never; word 3081, then 3490, closed** |
 | 404 | thirty-eight, the air line under fire | `[605, 1762)` | a cast of its own on the golden start (1094): an Airbase `0/2007` and two Bombers `0/6`, `0/7` (606..612), who=1's Barracks T `1/2006`, a Radar Air Defense R `1/2007`, an Infantry squad I `1/6`..`1/8` and an Anti-Aircraft Battery A `1/9` (616..622), `@flight` home (640) and `@strike` on T in flight (644); at `cover=0` on the click-free lane, run405 the same at `cover=1` on the queue lane (`is_flying_low`, `is_flying_high`, `Ammo::init_crash`, `NEVER` rows), with `GROUPS=1` at `GUYS=4`, `AMMO=5` and `DEATHS=1`; the staging walked by this crate's `stage_walk` on run397's start (§47) — **run 2026-09-28 (item 1102), 321 MB, 895 s; the receipt refused it: `DEATHS=1` beside `GROUPS=1` printed no pool; no falsifier fired, 6 could not: 43 flak rounds one draw each, every matched flag its roll's, both Bombers shot down on 1006 and 1019 with a crash round and no death object; word 742 (the jam roll), then 776, open (item 1102: the jam roll, the flak roll and the crash built); then 777, open (item 1109: the foot line's speed, the anti-air angle and the Modern Infantry's step); then 779, open (item 1112: the anti-air building's `Wall::inc_time` cycle, `docs/COMBAT.md` §84); then 794, open (item 1117: the release gate is the event's, `docs/COMBAT.md` §85); then 878, open (item 1113: the Modern Infantry squad's scatter and pack, `docs/GROUPS.md` §34); then 1762, closed (item 1131: an armed building's ×5 a computer's, an object's `z` clamped, a building's `damage_o`, and `do_attack`'s target flow, `docs/COMBAT.md` §8.6)** |
 | 422 | thirty-nine, the spell issuer's untargeted crafts | `[605, 1100)` | a cast of its own on the golden start: `library who=0 1` and `tech who=0 militia on`, two Citizens, a Militia, a General beside a Hoplite and a Slinger squad (606..616); To Arms on each Citizen (620, 640), Civilian on the Militia (660) and on the first Citizen (700), Create Decoys (720); at `cover=0` on the click-free lane, run423 the same at `cover=1` on the queue lane (the three casts, `NEVER` rows), with `GROUPS=1` at `GUYS=4`; the predicates read on run424's packet at 619 (§48) — **run 2026-09-29 (item 1111), 224 MB, 651 s, the third take (the first staged nothing, the second's `tech` line only reported); no falsifier fired: both Citizens Militia on 626 and 646 with `rare` 50, back on 666 and 706 with `rare` 50 kept, two decoy squads on 821 aging a frame; word 820 with the conversions built, then 1100, closed (item 1111: the decoy, and a Citizen's hits and LOS from the Militia line)** |
+| 430 | forty, the casts' other arms | `[605, 1150)` | a cast of its own on the golden start: `peace 1`, To Arms refused before the Militia (606) and on who=1's land (612), D bled there and walked out (700), converted both ways wounded (800, 840); three Militia's `@repair`, `@build` and `@gather` (630..650, the last the DLL's new verb 25); a Militia garrisoned in the City (660) and `@alarm` twice (880, 900, verb 24); at `cover=0` on the click-free lane, run431 the same at `cover=1` on the queue lane (`action_alarm`, `action_gather`, `NEVER` rows), with `CITIES=5`, `GROUPS=1` at `GUYS=4`; the staging walked off run422's dump and this crate's walk (§49) — **run 2026-09-29 (item 1167), 231 MB, 757 s; no falsifier fired; word 900 (the all-clear's draw on the pump's frame), then 1150, closed** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -8643,13 +8644,212 @@ Great Lakes, East Indies and Great Sahara widening. The floors went down
 and no word moved. run248's sixteen fog half-cells at 17146 and run240's
 priced step at 15986 agree now (`crates/rondata/src/diff/world.rs`).
 
-**What is not established.** The damage fraction and the refusal without
+**What is not established.** ~~The damage fraction and the refusal without
 the Militia rest on the listing, the emulator and the sim tests: no capture
-wounds a converting unit or presses To Arms on enemy land. The decoy's close
+wounds a converting unit or presses To Arms on enemy land.~~ Diff-backed by
+run430 (§49, item 1167): D wounded both ways, To Arms refused before the
+Militia and on who=1's land. The decoy's close
 at 2,500 frames and its attrition every seventh frame on another's ground
 are read, not built. The Citizen's LOS takes the nomad term as before;
 PARTISAN's share of it and the tribe substitutions are unreached.
 `get_general_upgrade` is 0 throughout; Porus's and Kutosov's multiples and
-a computer General's army are SEAMs. The alarm's all-clear and a Militia's
+a computer General's army are SEAMs. ~~The alarm's all-clear and a Militia's
 own Civilian ahead of a repair or a build (`Group::action_swarm_around`,
-`action_gather`, `action_repair`) are issuers no chapter stages.
+`action_gather`, `action_repair`) are issuers no chapter stages.~~ Staged
+and built by chapter forty (§49, item 1167); `action_repair`'s arm is
+unreachable.
+
+## 49. Chapter forty — the casts' other arms: To Arms refused off the Militia line and on who=1's land, both conversions wounded, a Militia's Civilian ahead of a repair, a build and a gather, and the City's alarm rung and cleared over a garrisoned Militia (item 1167)
+
+**Premise.** §48's killer table left two mutations no chapter-thirty-nine
+pin holds — the conversions' damage carried whole (run422 wounds no
+converting unit) and To Arms without the Militia test (run422 holds the
+Militia) — and §48's last paragraph named the casts' unstaged issuers: the
+City's alarm, `Group::action_alarm@0070ec30`, whose all-clear calls
+`SpellType::cast_civilian@006704a0` on a garrisoned Militia, and the
+Militia's own Civilian (`0x293`) laid by `Unit::add_cast_order@005e4a60`
+in `Group::action_swarm_around@0070fbe0` (REPAIR and BUILD_AT),
+`Group::action_repair@007020c0` and `Group::action_gather@00700b90`.
+
+**The readings**, each off the decompile and, where a value turned on it,
+the listing:
+- **`is_castable@00675bc0`**: `0x293` has no case of its own — a Militia
+  casts Civilian wherever it stands; `0x294`'s land arm refuses a cell whose
+  owner is another player and not an ally.
+- **`action_repair`'s cast arm is unreachable**: it takes only `0x32`/`0x33`
+  members, and a Citizen cannot cast Civilian. The player's repair is
+  `action_swarm_around` (§29).
+- **`action_swarm_around`'s member arm** (REPAIR, BUILD_AT): a member is a
+  builder when it is a Citizen, holds Citizens (`count_inside`), or can
+  cast `0x293`; a builder takes the approach, then — castable — the
+  Civilian untargeted (`−1, −1`) at its own point at `QUEUE_LAST`
+  (`00710520`, `007105a3`), then the order.
+- **`action_gather`**: `QUEUE_FIRST` taken as `QUEUE_NEW`; the members
+  walked from the last; a Citizen or a Civilian caster (or a computer's
+  transport of Citizens) is a gatherer, a Scholar and anything else join
+  the movers. Each gatherer takes the next offset of `move_x/move_y`
+  (`world::MOVE_289`) round the building, the offset carried across members
+  and reset on an assignment, past `0x78` every member left a mover; a
+  human's probe out of the building's region is passed over. On the probe
+  cell's first active gather building of the player's: `+0x80` −1, and at
+  `QUEUE_LAST` the Civilian then the gather, both `QUEUE_LAST`; otherwise
+  the gather at `QUEUE_NEW`, then the Civilian at `QUEUE_FIRST`; then
+  `Group::kill`. The movers `action_move_near` the building.
+- **`action_alarm`** on a group of buildings: every press sets the leader's
+  `0x2000000` (`0070ed27`, the economy's dirty bit, `crate::holdings`);
+  then, per member that is a city with `city_flags & 1`, **the bell** when
+  `0x40` is clear (and no all-clear this press), **the all-clear** when set
+  (and no bell). The bell: the room — `num_inside` and the garrison limits
+  of the City and of every member a Citizen can garrison; the circle of
+  `(get_radius + 3) / 4` cells round the City's cell, each cell
+  `find_city_at` names this city, its object chain: a Citizen of the
+  player's on the map within `get_radius` tiles by `vector_dist` (listing
+  `70f62e`..`70f67e`), while room is short; the taken garrison with
+  `action_garrison(city, QUEUE_NEW, search 1)`; `0x40` set when any was
+  taken. The all-clear: the walking Citizens in the radius whose action is
+  a GARRISON `repath` and `kill_current_order`; every finished building of
+  the City's chain has each Militia inside `cast_civilian`ed, then
+  `Object::eject_contents(0, PEASANTS, 0, 0)` (listing `70f20e`..`70f227`);
+  `0x40` cleared.
+- **`eject_contents@0064cd20` with a type** is immediate — only a negative
+  type defers through the building's `0x4000` — and it has a Civilian arm
+  of its own: a Militia it puts out takes a Civilian at `QUEUE_FIRST` on the
+  building's point.
+- **`action_garrison`'s fifth argument**: `search` 1 sends each member to
+  `Unit::find_garrison_build@00605040`'s building of the city, and at
+  `QUEUE_NEW` a **worker** (`ObjectData::is_worker@0046fa10`, `0x32`..
+  `0x35`) takes its GARRISON at `QUEUE_FIRST`, in front of its gather, with
+  the same `search` (`00700a05`..`00700a13`: `edx` is still `param_4`).
+- **The two new issuers** (`tools/trace/tracer.c`): `CommandManager::
+  issue_alarm@00941d00(group)`, one byte of type 0x1b, prologue `push ecx`;
+  `issue_gather@00941a20(group, ox, QUEUE_NEW)`, nine bytes of type 0x13.
+  The DLL skips `GroupOut::issue_alarm`'s semaphore test and
+  `GroupOut::issue_gather`'s full-building feedback.
+
+**The staging, walked before the capture.** Every predicate was a printed
+field on run422's dump or answered by run422, so no packet was taken (run
+432 unused): the City's `city_flags` 18449 (bit 0 set, 0x40 clear);
+who=0's timber 242 on 640 against the Barracks' 120; who=1's land at cells
+(45..46, 26) beside no one's at (38..44, 26), no feature on either; a
+Militia's Civilian (run422's C). This crate's walk on run422's start: D at
+peace bleeds 1 a frame in 8 (`PEASANTS` a lone figure, `PEACE_ATTRITION`)
+and leaves at 34/50.
+
+**The cast and the lines** (`chapter40.cmd`), on the golden start: `!ai
+off`; `library who=0 1` (600); `peace 1` (602); A `0/6` at home (604) and
+To Arms on it (606); `tech who=0 militia on` (608); D `0/7` at tile
+(186, 106), cell (46, 26), who=1's (610), and To Arms on it (612); Militia
+M1..M4 `0/8`..`0/11` (614..620); `@repair 0 2006 0 8` (630), `@build 0 7296
+34176 427 9` (640), `@gather 0 2001 10` (650), `@garrison 0 2000 0 11`
+(660); D to (33408, 20448), cell (43, 26), no one's (700); To Arms (800)
+and Civilian (840) on D; `@alarm 0 2000` twice (880, 900). The window is
+`[605, 1150)`: 250 blocks past the all-clear. The capture dumps `end:UNITS=3,
+GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,GROUPS=1` and `misc:COMMANDMANAGER=1`.
+
+**What would falsify it** (a call on trace frame F is on block F+2): the
+issues not reaching the pump; A or D holding a `CASTORDER` on 608 or 614;
+D not bleeding on who=1's land; D's conversions carrying the damage; M1 and
+M2 without the Civilian between approach and order, M3 without it in front
+of the gather; M4 not inside by 700; the City's `0x40` not set on 882 or
+not cleared on 902; M4 not a Citizen with `rare` 50 out of the City.
+
+**Run 2026-09-29 as run430 (item 1167)** (`docs/RUNS.md`). **No falsifier
+fired**:
+- The refusals: A and D hold nothing on 608 and 614.
+- D: `attrition` 8 on who=1's land, `damage` 9 by 700 and 16 when it
+  leaves; To Arms on 806 makes it a Militia (66) at **damage 15**, `rare`
+  50, `form` 0 (frac `(16 << 8) / 50` = 81, `50 × 81 / 256` = 15); Civilian
+  on 846 a Citizen at **damage 14**, `rare` 50 kept, `form` 9.
+- M1 on 632: the approach, a `CASTORDER` of 659 at its own point (3960,
+  29304), the `REPAIRORDER` on 2006. M2 on 642: 0/2007 a Barracks site, the
+  approach, the Civilian at (6648, 33912), the `BUILDORDER`. M3 on 652: the
+  Civilian at (5496, 27480) in front of the `GATHERORDER` on 2001, a Citizen
+  with `rare` 50 by 660.
+- The bell: `city_flags` 18449 → 18513 on 882, the Citizens in the radius
+  under GARRISONs in front of their gathers; the all-clear: back to 18449
+  on 902, M4 out at (3192, 31800) a Citizen with `rare` 50 and `form` 9.
+
+**run431**, the same script at `cover=1` to 910: eleven issues, 911 frames
+identical to run430's draws, `Group::action_gather` entered on 650 and
+`Group::action_alarm` on 880 — off `NEVER` with `CommandManager::
+issue_gather`, the DLL's own, 141 → 138 (`crates/rondata/src/blind.rs`).
+
+**Where this crate parted, and what closed it:
+`GOLDEN_WORD_CHAPTER_FORTY` = 1150, closed** (item 1167).
+- Built (`crate::alarm`, `crate::group`, `crate::orders`): the swarm's
+  Militia builder and its Civilian; `action_gather` on a group; the alarm's
+  bell and all-clear, with the immediate typed eject; `action_garrison`'s
+  `search` and a worker's `QUEUE_FIRST`. The harness: `@alarm` and
+  `@gather` (`crate::input::group_alarm`, `group_gather`).
+- With those the walk agreed to **900**, the all-clear's frame. There the
+  original spends `cast_civilian`'s `set_type` draw (`Guy::init_real+0x52`)
+  last on trace frame 900, after the frame's farms: **the turn pump walks
+  the package between one `do_frame` entry and the next, so its draws are
+  the issuing frame's**. This harness had put an issuer line's draws at the
+  head of the next frame; no command before this chapter's drew inside the
+  pump. `Script::pump` now runs them first and appends their marks to the
+  issuing frame's record, and a walk reads each frame's opening word after
+  it: **1150**, sequence and values.
+- **The value diff on 900's frame**, both sides: M4 `0/11` inside the City
+  a Militia on 901, a Citizen with `rare` 50 and `form` 9 out at (3192,
+  31800) on 902; the City's `city_flags` 18513 → 18449.
+
+**The widening is run430 whole**, both directions, with the pool. Four
+rows of the chapter's parted and were built, each a writer this crate
+lacked:
+- the leader's `income`/`resources`/`leftover` on 889 (640 against 160):
+  the alarm's dirty bit, so the recount on 889 sees the Citizens under their
+  GARRISONs;
+- `0/9`'s `group` on 1075 (3 against −1): `Unit::build_done`'s human gather
+  clears `+0x80` (`00603cb5`), as `Unit::do_build`'s `LAB_005eed5f` does
+  (`005eed9c`, both entries) — M2 finished the Barracks and took a
+  Woodcutter's Camp;
+- `0/5`'s `avg_speed` on 902 (0 against 11): `come_out` rebuilt the body at
+  rest, and the original's snap leaves both speeds — `0/5` went in at 15.
+
+What stands is three families and nothing of the chapter's: the birth
+`form` (parked 1169) on every unit of the start and every one added; the
+first block's `filled_gather_slots`; and **the human City's census** —
+`CITIES=5` is new to a golden widening, and this crate keeps `busy`,
+`filled`, `gatherers`, `land`, `space`, `ter`, `peasant_dist` and `free`
+for a computer's cities only, so `0/2000` reads 0 (`free` from 801) and
+`1/2000` is one off on `filled` and `land`. The pool: the pushed
+selections' `ox`/`oy`, the cursor-frame speed refreshes (§48's parked
+pair) and D's group's `form` 9. `run430_s_casts_are_the_original_s_field_
+for_field` reads the casts' own fields raw: 68,589 rows, none parted.
+
+**Mutations**, each on the committed build, `git diff --stat` non-empty
+first, scored against `sim`'s tests and `cargo test --release -p rondata
+chapter_forty run430_s_casts`, restored from git and `touch`ed:
+
+| mutation | sim | ch40's pins |
+| --- | --- | --- |
+| the damage carried whole | both conversion tests | widening (D's damage) |
+| To Arms without the Militia test | the To Arms test | word 611; widening; field test |
+| To Arms without the land test | the land test | word 617; widening; field test |
+| the swarm's Militia not a builder | the swarm test | word 650; widening; field test |
+| the swarm's Civilian dropped | the swarm test | word 650; widening; field test |
+| the gather's Civilian dropped | the gather test | word 655; widening; field test |
+| the alarm's dirty bit dropped | the alarm test | widening (the income on 889) |
+| the all-clear's `cast_civilian` dropped | the alarm test | word 900; widening; field test |
+| a worker's GARRISON at `QUEUE_NEW` | the alarm test | word 901; widening |
+| the bell's `search` 0 | the alarm test | widening |
+| the pump's draws on the next frame | — | word 900 |
+| `build_done`'s `group` pointer kept | **none** (the test holds `do_build`'s arm) | widening (`0/9` on 1075) |
+| `come_out`'s body at rest | the `come_out` test | widening (`0/5` on 902) |
+| the all-clear's eject deferred | the alarm test | word 901; widening |
+| the bell's ring `r / 8` cells, not `(r + 3) / 4` | **none** | word 886; widening |
+
+§48's two unheld killers are held now: the damage by the widening, the
+Militia test by the word.
+
+**What is not established.** The gather's Scholar and University arms,
+the probe's walk past the target's own cell, the movers' `action_move_near`
+and the non-castable arm's oil-rig boarding are read, not reached: M3 is
+one member, assigned at offset 0. The bell's Citizens inside other
+buildings (this crate's cell chain threads units only), the tribe's
+Citizen, and `action_alarm_peasant` (a group of units' alarm) are
+SEAMs. `find_garrison_build`'s room test is `num_inside < limit` here,
+`num_inside + control_cost <= limit` in the listing — one for a pop-1
+Citizen. `eject_contents`' own Civilian arm (a Militia put out unconverted)
+is read and built, and unreached: the all-clear converts first.

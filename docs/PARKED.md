@@ -116,6 +116,23 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1167, 2026-09-29 — chapter forty's standing rows
+
+(1183) **The human City's census** (GOLDEN §49): `busy`, `filled`,
+`gatherers`, `land`, `space`, `ter`, `peasant_dist` and `free` read 0 on
+`0/2000` here, and `1/2000` is one off on `filled` and `land` from the
+first block; this crate keeps the census for a computer's cities only
+(`crate::ai`). `WANT_CH40`'s standing rows; any capture that prints a
+human's City at `CITIES=5` carries them.
+
+(1184) **Chapter forty's built and unreached arms** (`crate::alarm`'s
+SEAMs): the gather's Scholars and University, a probe past the target's
+own cell, the movers' `action_move_near` and the oil-rig boarding;
+`eject_contents`' own Civilian arm, which the all-clear's conversion
+pre-empts; and `find_garrison_build`'s room test (`num_inside < limit`
+against the listing's `+ control_cost <=`) and walk (`buildings` against
+the city chain), equal for a pop-1 Citizen. No draw on disk reads them.
+
 ## Parked by item 1171, 2026-09-29 — the group's other shifts
 
 (1178) **`Sim::army_normalize` rewrites an army's list without shifting
@@ -2159,7 +2176,11 @@ a container, for a reading of the container's exit. One reach.
 (1180) **A lane lock whose two pids are dead reads as a busy lane**
 (1171's Loop line): 1167's `longtrace.sh` lock stood after both its
 pids had exited, and only `ps` said so; the launch took it over. A
-waiter that reads the lock could say "stale" by itself. One reach.
+waiter that reads the lock could say "stale" by itself. **And the
+other way** (1177's message, 2026-09-29): run426's lock named pid 15593,
+recycled by an unrelated `next-server`, so run428's takeover read it
+live and refused with no wine running. The liveness test should check
+the pid's command, not only that the pid exists. Two reaches.
 
 (1181) **A move's waypoint is compared only under `dest 1`** (1171's
 Loop line): the original printed the follower's waypoint (28614, 20246)
