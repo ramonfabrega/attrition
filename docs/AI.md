@@ -10638,7 +10638,8 @@ live `2009` was compared with ours' dead frame-976 site.
 
 - **A city still a site, counted by the original's sweep and not here.**
   East Indies' `2007` on run352's block 1571 reads `land` 9, `filled` 1
-  there and 0 here, with `reg_cities[11]` 2 against 1. Great Lakes'
+  there and 0 here, ~~with `reg_cities[11]` 2 against 1~~ (that row was
+  `City::init`'s count, which ours lacked: closed by §84). Great Lakes'
   `2009` on run355's block 3805 has the same shape, beside who=1's
   `territory` 488 here against 290.
 - **`2007`'s site picture one cell apart** from its sweep of 1575:
@@ -10916,15 +10917,46 @@ sweep's recount** (step 8). The original has two more: `City::init`
   Inside run357 (block 5774): the Caravan `1/33`, trained on 5772, holds a
   route of two orders there and none here. The cities `1/2000` and
   `1/2017` each list one caravan fewer here.
-- **Keys close on every other widening the pass reaches, and none opens.**
-  The first pair's widenings run149 … run299, run96 and the two leader
-  windows (run91, run107) each lose one or two keys, who=0's
-  `gather_stamp` or a wealth row (parked 851's among them). run352's block
-  1571 goes 82 → 80. run355's who=1 `territory`, 488 against 290 on block
-  3805, closes. Chapter four's border agrees cell for cell on 17 blocks
-  where it did on 4.
+- **The pass reproduces the original's own transient.** Chapter four's
+  border widening (`chapter_four_s_border_is_widened_cell_for_cell`,
+  run132) agreed cell for cell on 4 blocks, the settled ones after each
+  lever. It agrees on 17 now. The 13 new blocks are the ones where the
+  original's owner count is mid-sweep: 276, 282 and 285 after the Temple,
+  308 … 319 after Religion, 346 … 406 after Civic 3.
+- **Keys close on every other widening the pass reaches, and none opens**
+  (the rows named in each pin, measured against the mutation below):
+  - who=0's `gather_stamp` on run143, run149, run178, run192, run196,
+    run202, run211, run218, run226, run227, the leader windows run91 and
+    run107, and run352. A region's end raises the economy flag, and the
+    reassembly now falls on the original's frame.
+  - who=1's wealth `leftover` or `bucket` on run253, run257, run261, run269,
+    run277, run289 (parked 851's standing row) and run96.
+  - who=1's `territory` on run355's block 3805, 488 against 290, and on
+    run227's 16528. `territory` is summed at the pass's end.
+  - who=1's `reg_cities[11]` on run352's block 1571, 1 against 2. It is
+    `City::init`'s count, not a site the original counted (§82.5).
 - **The first pair holds at 24,000**, Great Lakes' second game at its end
   (5930), the third map at 8, and every golden chapter's walk.
+
+### 84.6a The killers
+
+Each ran on a committed tree with `git diff --stat` non-empty, and was
+restored from git and `touch`ed after.
+
+- **The pass wholesale in play** (`start_border_pass` lands the target
+  at once), on `54aa9d20`:
+  - both unit tests fail;
+  - run346's walk falls back to 5606;
+  - run357's `1/14` rows return;
+  - run352's block 1571 reads 81.
+  - **Diff-backed.**
+- **`reg_cities`' lifecycle writers off** (`bump_reg_cities` a no-op), on
+  `54aa9d20`:
+  - the city test fails;
+  - run346's walk falls to **5518**: the colonist gate refuses there and
+    the tail scouts;
+  - run352, run355 and run357 fail, and run352's `reg_cities[11]` returns.
+  - **Diff-backed.**
 
 ### 84.7 What this has *not* established
 

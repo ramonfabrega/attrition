@@ -1756,18 +1756,19 @@ const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
 /// added here with the item that owes it.
 const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // **Re-pinned 2026-09-28, item 1106** (DECISIONS 54 §2), on the second
-    // pair's East Indies word's window — run357's blocks 5605..5609,
-    // walked from run346's start with the group record and the attack
-    // order's row (`second::widen_records`). Item 1061 first pinned it on
+    // pair's East Indies word's window — the word's block and two either
+    // side on run357, walked from run346's start with the group record and
+    // the attack order's row (`second::widen_records`): 5605..5609 when the
+    // item moved the walk here, 5772..5776 since it moved the word to 5773. Item 1061 first pinned it on
     // Great Lakes' word, run373's 4977..4981, and it followed that word to
     // run403's 5927..5930 until item 1099 closed the map at its end. **A
     // site gated on the window's content registers only when it runs**, so
     // a row here is one of two things and the comment says which: a field
-    // no site compares, or a site the window never reached. On these five
-    // blocks the dump holds no death, no `ATTACKORDER` and no army's group
-    // (every `GROUPDATA` slot reads `army -1`); its order blocks are
-    // `UNITORDER`, `MOVEORDER`, `TARGETORDER`, `GATHERORDER`,
-    // `BUILDORDER`, `EXPLORETOORDER` and `TRADEORDER` only. The second
+    // no site compares, or a site the window never reached. On both
+    // windows the dump holds no death and no `ATTACKORDER`; its order
+    // blocks are `UNITORDER`, `MOVEORDER`, `TARGETORDER`, `GATHERORDER`,
+    // `BUILDORDER`, `EXPLORETOORDER` and `TRADEORDER` only. 5772..5776
+    // holds an army's group (slot 72), which 5605..5609 did not. The second
     // kind leaves this pin the day a window that reaches it is driven here.
     //
     // `UnitDump`: `uid` is the identity behind `o` (ledger); `flags`,
@@ -1819,9 +1820,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
     // The group record is compared whole since item 1061
     // (`second::widen_records`) but for `think_frame`, which this crate
-    // does not carry, and `role`, compared on an army's group alone, of
-    // which none stands here.
-    ("GroupDump", "role think_frame"),
+    // does not carry. `role` is compared on an army's group alone, and
+    // registers on 5772..5776 (slot 72, ours 0 against 599056).
+    ("GroupDump", "think_frame"),
 ];
 
 /// **Every field the parser carries is compared by the shared instrument

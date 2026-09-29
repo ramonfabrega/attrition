@@ -4653,8 +4653,9 @@ Its pinned rows were re-read against that window's dump:
   `BUILDORDER`, `EXPLORETOORDER` and `FLEETOORDER` only.
 
 **Since item 1106 the walk is East Indies'**, `second::east_indies_word_window`:
-run357's 5605..5609, the second pair's East Indies word's block with two on
-either side, walked from run346's start. Item 1099 closed Great Lakes at
+the second pair's East Indies word's block with two on either side on
+run357, walked from run346's start — 5605..5609 when the walk moved, and
+5772..5776 once the item moved the word to 5773. Item 1099 closed Great Lakes at
 its end (the walk had followed it to run403's 5927..5930), and East Indies
 is the pair's open word. `widen_east_indies_on` takes the `records` flag
 `widen_great_lakes_on` has, and run357's widening sets it.
@@ -4663,9 +4664,11 @@ is the pair's open word. `widen_east_indies_on` takes the `records` flag
   - left: `BuildDump.job_counter`. An unfinished site stands on the window.
   - arrived: the attack row's seven fields (no `ATTACKORDER` stands on
     the five blocks), `OrderDump`'s `coll_x`/`coll_y` (no move's pair has
-    left `(0, 0)`), `UnitDump`'s `damage_o`/`damage_who` (no unit holds a
-    live wound window), and `GroupDump.role` (every slot reads `army −1`).
-    These are sites the window never reached, not fields nobody compares.
+    left `(0, 0)`), and `UnitDump`'s `damage_o`/`damage_who` (no unit holds
+    a live wound window). These are sites the window never reached, not
+    fields nobody compares. `GroupDump.role` arrived on 5605..5609, where
+    every slot reads `army −1`, and left again on 5772..5776, where the army
+    group of slot 72 stands (ours 0 against 599056, `docs/GROUPS.md` §33.4).
   - `GroupDump`'s `id`, `who` and `members`, and `GroupMemberDump.o`, are
     registered by `widen_records` itself now, beside the list it compares.
     On Great Lakes they had come from the walk's separate pool-list pass,

@@ -712,9 +712,19 @@ mod tests {
             Some("1576: ours 64 theirs 65"),
             "the city's site picture"
         );
+        // Item 1106 closed two on 1571 (82 → 80): who=1's
+        // `reg_cities[11]`, 1 against 2 — `City::init` counts a city on the
+        // frame it is made, which the note above had read as a site the
+        // original counted — and who=0's `gather_stamp`, 1424 against 1432
+        // (`docs/AI.md` §84).
+        assert_eq!(
+            row(1, -1, "leader:reg_cities[11]"),
+            None,
+            "the new city counts at once"
+        );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(1571, 82), (1576, 5), (1601, 1)],
+            [(1571, 80), (1576, 5), (1601, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -787,14 +797,16 @@ mod tests {
             Some("3805: ours 0 theirs 9"),
             "the city site's sweep"
         );
+        // **Closed by item 1106**: who=1's `territory` is summed when the
+        // border pass ends (`docs/AI.md` §84), and agrees on 3805.
         assert_eq!(
-            row(1, -1, "leader:territory").as_deref(),
-            Some("3805: ours 488 theirs 290"),
+            row(1, -1, "leader:territory"),
+            None,
             "and who=1's territory"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(3771, 78), (3801, 1), (3805, 4)],
+            [(3771, 78), (3801, 1), (3805, 3)],
             "the blocks keys first part on, the first three"
         );
     }
