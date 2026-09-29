@@ -12,15 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, twenty-one landings from `c78abbbe` — **the twentieth pass
-is due**: East Indies 6151 → 8907 (seven); **Great Sahara closed**, long
-word 8 → 24000, endpoint 0 off (eight); chapters thirty-eight to
-forty-one closed (1131, 1111, 1167, 1182, 1200).*
+*2026-09-29, twenty-two landings from `c78abbbe` — **the twentieth
+pass is due**: East Indies 6151 → 8907 (seven); **Great Sahara closed**,
+long word 8 → 24000, endpoint 0 off (eight); chapters thirty-eight to
+forty-two closed (seven).*
 
-- **Lanes at the stop, none refilled**: 1209 (chapter forty-two,
-  measuring closed at 1160) lands into the pass; 1214 waits. What
-  succeeds the closed third map is the pass's (DECISIONS 53, 54).
-  One capture lane still; a lane that waits on it says for how long.
+- **No lanes are live.** 1214 (East Indies' 8907) waits for the pass;
+  the rules track's next chapter and what succeeds the closed third map
+  are the pass's (DECISIONS 53, 54). One capture lane still.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
 - **Code is not fenced** (DECISIONS 55 §5): a brief reserves run and
@@ -37,11 +36,11 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w8907 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w24000 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · 1209 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · ch41 closed · ch42 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: the twentieth Fable pass — twenty landings from `c78abbbe`;
-land 1209 unrefilled, then the pass; 1214 after it.**
+no lane is live; 1214 and the rules' next chapter after it.**
 
 ## The queue
 
@@ -57,14 +56,6 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     widened on run445 (block 8908), which parts `1/35` alone — eight
     keys, its `group` (65 against 79) and `order:kind` (10 against 3)
     among them. No mechanism is named. Not yet spawned: the pass first.
-
-1209. **Chapter forty-two: a Gate across a path — no capture yet**
-    (1200 closed forty-one at 1770; CENSUS row 7's last two).
-    `Unit::resolve_block`, which `do_move` asks where
-    `PathFinder::astar_path` flags a passable building tile: a wall with a
-    Gate across an enemy's path, both sides' walkers. Which arms a staging reaches is the item's
-    first finding. The emulator first; **run460** the capture, run461 at
-    `cover=1`. GOLDEN §51.
 
 ## How to maintain this file
 

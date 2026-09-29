@@ -116,6 +116,21 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1209, 2026-09-29 — the ring's other arms
+
+(1218) **`do_move`'s sites 1 and 3, held by no walk** (GOLDEN §51): site
+1 wants a flagged top taken after the first `TAKE` (a crossing deeper in
+a longer plan), site 3 a failed near line whose top is unflagged but
+still a footprint. And a crossing from outside a ring, which the work
+cap forbids on this ground; a bigger pocket or a ring against a cliff
+might let one through.
+
+(1219) **`agendas`' other bits** (run16's `0x40`, the AI's diplomacy):
+compared since 1209, and nothing here writes them.
+
+(1220) **`build_masks & 1` and the orphan check's disband arm are dead by
+the listing** — a CENSUS verdict owed, not a staging.
+
 ## Parked by item 1206, 2026-09-29 — Great Sahara's closing rows
 
 (1216) **Great Sahara's standing leader rows, past its close**: who=1's
@@ -2359,7 +2374,10 @@ killed** (1200's Loop line): 1182 named the reach and `fire_ammo` for
 839, and the cause was a wood's cell test; the widening's value rows
 (`recharging`, `cur_anim`) named the release, not its predicate, which
 needed the release's inputs printed frame by frame. A booking that
-names an arm could carry its predicate's listing lines. One reach.
+names an arm could carry its predicate's listing lines. **Again**
+(1209): the commander booked chapter forty-two as "a Gate", which no
+type in the rules carries; one `cmovne` in `invalid_loc`'s listing made
+it "any armed walker, any other player's footprint". Two reaches.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
