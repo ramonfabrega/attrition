@@ -367,9 +367,14 @@ impl Sim {
                 z: self.world.object_z(self.units[i].pos.tile()),
                 ..Side::default()
             },
+            // `ObjectData::get_captain@00472400` is the object's own `o`,
+            // which `do_damage` step 2 writes as the target's `damage_o`
+            // (item 1131: run404's `0/7` reads 2007 from the Radar's hit
+            // on 828).
             Obj::Building(b) => Side {
                 building: true,
                 build_proper: true,
+                captain: i32::from(self.buildings[b].index),
                 z: self.world.object_z(self.buildings[b].pos.tile()),
                 ..Side::default()
             },
