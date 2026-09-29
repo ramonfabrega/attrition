@@ -10807,3 +10807,39 @@ walked from run346's start. Block 6604 stands on 263 keys, from the gap
 13 keys: the original stands `1/28` against the animal `8/3`, and ours
 walks on (`docs/AI.md` §90.3). The compared pin walks its 6608..6612, and
 the coverage driver drives 6609..6612.
+
+## run421 — run346's game at run420's detail over blocks 6567..6610: the gap before the second pair's East Indies word 6609 (2026-09-29, item 1156)
+
+**What it is.** run420's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 6567..6610, `!quit` at 6624.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run421 \
+    --map 18 --end-frame 6624 --timeout 4000 --log-window 6567 6611 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run419 ends at block
+6572 and run420 starts at 6604; `1/28` agrees on the one and is apart on
+the other, so the frame it parts on and the order it took were in the gap
+6573..6603 that no dump covers.
+
+**Taken** 08:22–08:26, after waiting 530 s for item 1111's capture to free
+the lane; waited on with `waitrun.sh`: `success: true`, exit 0, 225 s from
+launch to exit. The dump (99.4 MB) and the trace (49.8 MB) were moved into
+`Logs` as `gamelog-run421-islands-toughest-gap6573.txt` and
+`rontrace-run421.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 6,625 identical |
+| window blocks | 44, 6567..6610 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run421_s_gap_is_walked_whole` (`diff::second`), walked
+from run346's start. On block 6577 the original's `1/28` holds `orders_x/y`
+(26616,22776), its leg to (26592,22752), cell (34,29); the old tree sent it
+to (28920,25080), and since item 1156 it agrees (`docs/AI.md` §93,
+`docs/SCOUT.md` §8.1).

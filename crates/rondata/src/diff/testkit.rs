@@ -1266,7 +1266,25 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 12_783;
 /// `Animal::do_idle+0x83` where the original spends `Guy::set_anim+0x97a <
 /// Unit::move_step+0x823`. Past run419's window, widened on run420
 /// (`run420_s_word_frame_is_widened_whole`, block 6610).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_609;
+///
+/// **6609 → 6743 on item 1156** (`docs/SCOUT.md` §8.1, `docs/AI.md` §93):
+/// `find_unit_ordered` measures a sibling's `orders_x`/`orders_y`, not its
+/// body (`0065be35`), so the citizen `1/28`'s region scan on 6576 counts
+/// `1/22` by its walk's end (27384,25080), rejects cell (37,32) and takes
+/// (34,29). **The
+/// move's value diff (the word's delta, here; its block is
+/// `run420_s_word_frame_is_widened_whole`'s):** on run420's first block
+/// 6604 `1/28`'s `pos` ours (29017,24361) against (28893,24233) → agreeing,
+/// its move's `angle` -969342976 against -1046609920 → agreeing, and group
+/// 65's `o_angle` with it; on 6610 its `collide_o` -1 against 3 → agreeing,
+/// and on 6611 the animal `8/3`'s `pos` (28661,24120) against (28680,24120)
+/// → agreeing. run420's first block went 263 → 249 keys, the window's
+/// 1444 → 963. Frame 6609's draws went 9 against 7 → agreeing. **The new
+/// word's delta: ours 4 draws and the original 8 on frame 6743, parting at
+/// index 2**: ours spends `Guy::set_anim+0x104b` where the original spends
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run420's window
+/// (block 6744, 140 blocks after its first and 116 before its last).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_743;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1696,8 +1714,15 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_6321: (i64, i64) = (6_316, 6_572);
 
 /// `run420_s_word_frame_is_widened_whole`'s window (item 1143): run420 over
 /// run346's game, blocks 6604..6860 — six blocks before the word 6609's
-/// block 6610 and 250 past it.
+/// block 6610 and 250 past it. **Since item 1156 the word is 6743**, block
+/// 6744, inside it (140 blocks after its first and 116 before its last).
 pub(crate) const WIDENING_SECOND_EAST_INDIES_6609: (i64, i64) = (6_604, 6_860);
+
+/// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
+/// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
+/// last block and run420's first, where the word 6609's `1/28` first parted,
+/// with six blocks of run419 before it and run420's first seven after.
+pub(crate) const GAP_SECOND_EAST_INDIES_6573: (i64, i64) = (6_567, 6_610);
 
 /// `run356_s_word_frame_is_widened_whole`'s window (item 989): run356 over
 /// run347's game, blocks 4550..4806 — six blocks before the word 4555's
@@ -6846,12 +6871,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // window, and re-pinned the word's block there. Item 1115 moved it to 5975,
     // widened on run414, and item 1120 to 6151, inside run414's window.
     // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
-    // 6609, past that, widened on run420.
+    // 6609, past that, widened on run420; item 1156 to 6743, inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run420_s_word_frame_is_widened_whole"),
-        1143,
+        1156,
         Some(WIDENING_SECOND_EAST_INDIES_6609),
     ),
     (

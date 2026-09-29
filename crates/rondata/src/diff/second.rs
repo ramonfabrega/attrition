@@ -162,7 +162,8 @@ pub(crate) fn walk_second_probed(
 /// moved the walk here (`docs/GROUPS.md` §33.3); item 1115 moved the word
 /// to 5975, and the walk to run414; item 1120 moved the word to 6151,
 /// inside it; item 1127 moved it to 6321, and the walk to run419; item 1143
-/// moved it to 6609, and the walk to run420. `None` when the captures are
+/// moved it to 6609, and the walk to run420; item 1156 moved it to 6743,
+/// inside it. `None` when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
@@ -1131,7 +1132,8 @@ mod tests {
     /// **The second pair's East Indies word, 6609, widened whole** (item
     /// 1143): run420 is run346's game at run419's detail over blocks
     /// 6604..6860, walked from run346's own start. The word's frame writes
-    /// block 6610.
+    /// block 6610. **Since item 1156 the word is 6743**, block 6744, inside
+    /// the same window (140 blocks after its first and 116 before its last).
     #[test]
     fn run420_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -1170,41 +1172,160 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The first block stands on 263 keys**: 31 frames past run419's
-        // last block, the gap 6573..6603 no dump covers. Among them the AI
-        // unit `1/28`, whose `pos` agrees through run419's 6572 and here
-        // walks apart: (29017,24361) against (28893,24233).
+        // **The first block stands on 249 keys**: 31 frames past run419's
+        // last block, the gap 6573..6603 no dump covers.
+        //
+        // **The word 6609** (item 1143) **closed on item 1156**
+        // (`docs/SCOUT.md` §8.1): the AI citizen `1/28` arrived at
+        // (29568,24192) on 6576 and its region scan took cell (37,32) at 38,
+        // because `find_unit_ordered` asked about `1/22` by its body; the
+        // original measures a sibling's `orders_x`/`orders_y` (`0065be35`),
+        // (27384,25080), which rejects (37,32), and takes (34,29) at 128. Its `pos` stood apart on 6604 — (29017,24361)
+        // against (28893,24233) — its move's `angle` with it, and on 6610
+        // the original stood it against the animal `8/3` (`collide_o` 3)
+        // where ours walked on. All of it agrees.
+        for what in ["pos", "order:move.angle", "collide_o", "path:length"] {
+            pin_eq!(row(1, 28, what), None, "`1/28`'s {what}");
+        }
         pin_eq!(
-            row(1, 28, "pos").as_deref(),
-            Some("6604: ours (29017,24361) theirs (28893,24233)"),
-            "`1/28` walks apart in the gap"
-        );
-        // **The word 6609** (item 1143; no mechanism is named): ours 9
-        // draws against 7, at index 2, ours `Animal::do_idle+0x83`, the
-        // original `Guy::set_anim+0x97a < Unit::move_step+0x823`. On the
-        // word's block 6610 the original stands `1/28` against the animal
-        // `8/3` (`collide_o` 3, `collide_who` 8, `order:coll` (28743,
-        // 24227), seven waypoints), and ours walks on with one; on 6611 the
-        // animal stands at (28661,24120) here and (28680,24120) there.
-        pin_eq!(
-            row(1, 28, "collide_o").as_deref(),
-            Some("6610: ours -1 theirs 3"),
-            "the original stands it against an animal"
+            row(1, -3, "group:65.o_angle"),
+            None,
+            "its one-member group's angle"
         );
         pin_eq!(
             row(8, 3, "gaia:pos").as_deref(),
-            Some("6611: ours (28661,24120) theirs (28680,24120)"),
-            "which stands apart a block later"
+            Some("6791: ours (28699,24120) theirs (28680,24120)"),
+            "the animal stands apart 180 blocks later than it did"
+        );
+        // **The word 6743** (item 1156; no mechanism is named): ours 4
+        // draws against 8, at index 2, ours `Guy::set_anim+0x104b`, the
+        // original `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The
+        // citizen `1/33`, carried in the barge that is `1/36` here and
+        // `1/38` there (apart since 6604's `inside`), is put ashore: its
+        // `orders_x/y` (37439,33407) against (38952,24840) on 6735, its
+        // `pos` (38944,24864) against (38952,24840) on the word's block.
+        pin_eq!(
+            row(1, 33, "orders_x").as_deref(),
+            Some("6735: ours 37439 theirs 38952"),
+            "the passenger's walk, ashore"
+        );
+        pin_eq!(
+            row(1, 33, "pos").as_deref(),
+            Some("6743: ours (38944,24864) theirs (38952,24840)"),
+            "and its body, on the block before the word's"
         );
         pin_eq!(
             by.iter()
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(6604, 263), (6610, 13)],
+            [
+                (6604, 249),
+                (6614, 2),
+                (6615, 2),
+                (6626, 2),
+                (6633, 1),
+                (6658, 6),
+                (6660, 2),
+                (6670, 2),
+                (6671, 3),
+                (6685, 4),
+                (6718, 22),
+                (6735, 7),
+                (6736, 6),
+                (6742, 2),
+                (6743, 26),
+                (6744, 5)
+            ],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1444, "every key parted on run420");
+        pin_eq!(w.firsts.len(), 963, "every key parted on run420");
+    }
+
+    /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
+    /// (item 1156): run421 is run346's game at run420's detail over blocks
+    /// 6567..6610, walked from run346's own start — the frames between
+    /// run419's last block and run420's first, where the word 6609's `1/28`
+    /// first parted.
+    #[test]
+    fn run421_s_gap_is_walked_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run421",
+            "gamelog-run421-islands-toughest-gap6573.txt",
+            GAP_SECOND_EAST_INDIES_6573,
+            &[6_577],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 44, "run421 whole: blocks 6567..6610");
+        pin!(
+            w.missing.is_empty(),
+            "run421 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 6609's first parting** (item 1156, `docs/SCOUT.md`
+        // §8.1): the AI citizen `1/28`, idle at (29568,24192) on 6576,
+        // takes its region scan's cell. The original's block 6577 holds
+        // `orders_x/y` (26616,22776), its leg to (26592,22752) — cell
+        // (34,29), 128 — where ours sent it to (28920,25080), cell (37,32),
+        // until `find_unit_ordered` measured `1/22` by its walk's end
+        // (27384,25080) rather than its body. All of it agrees, and so does
+        // the goody look's re-aim on 6588.
+        for what in [
+            "orders_x",
+            "orders_y",
+            "pos",
+            "order:move.angle",
+            "path:length",
+        ] {
+            pin_eq!(row(1, 28, what), None, "`1/28`'s {what}");
+        }
+        // What is left on the gap is standing or known: the first block's
+        // 263 keys (run420's first block held the same families); groups'
+        // `speed`/`form`, which this crate writes on no one-member group;
+        // the barge identities `1/36`/`1/38` (6574, parked since item 1143);
+        // and `1/42`'s `path[16].flags` 4 against 0 on 6576.
+        pin_eq!(
+            row(1, 42, "path[16].flags").as_deref(),
+            Some("6576: PathField { slot: 16, field: \"flags\", ours: 4, theirs: 0 }"),
+            "a flag on a slot the original leaves clear"
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        pin_eq!(
+            by.into_iter().collect::<Vec<_>>(),
+            [
+                (6567, 263),
+                (6570, 3),
+                (6574, 2),
+                (6576, 4),
+                (6577, 4),
+                (6582, 1),
+                (6587, 4),
+                (6601, 1)
+            ],
+            "the blocks keys first part on, the whole window"
+        );
+        pin_eq!(w.firsts.len(), 282, "every key parted on run421");
     }
 
     /// **The second pair's Great Lakes word, 4555, widened whole** (item

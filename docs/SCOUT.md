@@ -419,7 +419,7 @@ score += (owner != who) ? 4 : 0;
 if      (leaders[who].city_num == 0 && (goods(wx, wy) & 0x02)) score /= 2;
 else if (leaders[who].city_num == 1 && (goods(wx, wy) & 0x10)) score /= 2;
 if (score >= best) continue;
-if (find_unit_ordered(<same basic type, mine, not me, within 0x600>) >= 0) continue;
+if (find_unit_ordered(<same basic type, mine, not me, headed within 0x600>) >= 0) continue;
 best = score; target = (4*wx + 2, 4*wy + 2); best_ring = min(best_ring, ring);
 ```
 
@@ -435,9 +435,9 @@ is the arithmetic halving (`cltd; sub; sar`), rounding toward zero.
 frames this mechanic has been observed at.~~ It is not: §8.2.
 
 `find_unit_ordered` is what stops two scouts converging: a unit of the same
-`basic_type`, of the scout's own leader, that is not the scout, within
-`0x600` (two cells) of the candidate's centre, rejects the candidate
-outright.
+`basic_type`, of the scout's own leader, that is not the scout, **headed**
+within `0x600` (two cells) of the candidate's centre — its `orders_x`/
+`orders_y`, not its body (§8.1) — rejects the candidate outright.
 
 ### 8.2 The danger term was routed to zero, and Great Lakes paid a hundred frames for it
 
@@ -514,11 +514,30 @@ about:
 
 The distance test is last and is `<= 0x600` against the running best, so
 the function answers the *nearest* qualifying unit rather than the first.
+**And it is measured to where the unit is going** (item 1156, 2026-09-29):
+the listing at `0065be35` loads `UnitData +0x70/+0x74` — `orders_x`/
+`orders_y`, `types.txt`'s own names — off the unit list (`0xc0aec0`) and
+subtracts the candidate's centre; the object's XOR-ed position
+(`+0x10/+0x14` under `0x63637`, off `0xc0ab84`) is read only for the
+`0x200` region test above. The decompiler prints the call as
+`vector_dist(unaff_EDI, unaff_ESI)`, which is how this stood as the body's
+distance for four weeks; `Sim::merchant_refused` had read the same listing
+right (`docs/MERCHANT.md` §2.2.1).
 
-Corrected in `scout_unit_near` on 2026-09-01. **It moves no number**: on
-every capture on disk the only unit that ever shares a scout's type is the
-scout, so the whole predicate is vacuous there and all 175 diff assertions
-are unchanged. What it removes is a standing-unit false positive that no
+Corrected in `scout_unit_near` on 2026-09-01, and its distance on
+2026-09-29. ~~**It moves no number**: on every capture on disk the only
+unit that ever shares a scout's type is the scout, so the whole predicate
+is vacuous there and all 175 diff assertions are unchanged.~~ It is not
+vacuous: `think_peasant` sends every AI citizen down the region scan, and
+East Indies' AI citizen `1/28`, idle at (29568,24192) on 6576, scanned 26
+cells and took (37,32) at 38, because the only sibling it asked about was
+`1/22`'s body at (27221,25195), more than `0x600` from that cell's centre.
+Measured to `1/22`'s `orders_x/y`, (27384,25080), the same sibling
+rejects (37,32) and the row-31 cells beside the goody box, and the scan
+takes (34,29) at 128; `do_explore_to`'s look re-aims it onto the box on
+6587 on both sides (`docs/GOODY.md` §7), from where the original was.
+`1/28`'s walk agrees on run420, and the second pair's East Indies word
+moved 6609 → 6743 (`docs/AI.md` §93). What it removes is a standing-unit false positive that no
 capture has yet reached —
 `a_sibling_blocks_a_cell_only_while_it_is_ordered_into_that_region` is
 the guard, and it was made to fail first.
