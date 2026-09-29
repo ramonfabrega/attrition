@@ -702,6 +702,56 @@ impl Sim {
         self.coll_paint(u, at, false);
     }
 
+    /// **A starting citizen's birth, on the occupancy index**
+    /// (`docs/COLLISION.md` §20). `Setup::build_units@005aafc0` creates
+    /// each of them with `Objects::init_unit` at its building's own point —
+    /// `Unit::init@00612100:69` snaps it to the 48-grid, and its
+    /// `set_new_location(·, ·, 1, 1)` at `:549` puts guy 0 there — and then
+    /// `Unit::come_out@00617c10` steps it off the footprint with a second
+    /// `set_new_location(·, ·, 1, 1)` (`:518`). That second move is
+    /// `CollCheck::move_unit(birth, here)`, whose clear pass takes every
+    /// cell of the birth disc the new disc does not cover — **including the
+    /// cells of a citizen born there before it**, because the bits are not
+    /// refcounted (§2). So the second citizen out of a woodcutter's camp
+    /// leaves a hole in the first one's block, and the first frames of a
+    /// game walk past it.
+    ///
+    /// Called after every unit is painted at stand-up, citizen by citizen
+    /// in creation order: a cell is cleared unless a unit in `later` covers
+    /// it, since that unit's own birth paints it again after this exit.
+    pub fn birth_come_out(&mut self, u: usize, birth: Pos, later: &[usize]) {
+        let size = self.coll_size(u);
+        if size == 0 || self.is_air(u) || !(self.units[u].alive() && self.units[u].on_map) {
+            return;
+        }
+        let here = self.units[u].coll_at.unwrap_or(self.units[u].pos);
+        let (a, b) = (ucell(birth), ucell(here));
+        let region = self.world.tregion_alt(birth.tile());
+        for (dx, dy) in spiral(size) {
+            let p = Pos::new(a.x + dx, a.y + dy);
+            if (p.x - b.x).abs() <= size && (p.y - b.y).abs() <= size {
+                continue;
+            }
+            if !self.coll_region_ok(region, p) {
+                continue;
+            }
+            let covered = later.iter().any(|&v| {
+                let r = self.coll_size(v);
+                r != 0
+                    && !self.is_air(v)
+                    && self.units[v].alive()
+                    && self.units[v].on_map
+                    && self.units[v].coll_at.is_some_and(|at| {
+                        let c = ucell(at);
+                        (p.x - c.x).abs() <= r && (p.y - c.y).abs() <= r
+                    })
+            });
+            if !covered {
+                self.coll.set(p.x, p.y, false);
+            }
+        }
+    }
+
     fn coll_paint(&mut self, u: usize, at: Pos, on: bool) {
         let size = self.coll_size(u);
         if size == 0 || self.is_air(u) {
@@ -2322,6 +2372,61 @@ mod tests {
     /// fills its own world cell — which is what pushed a disembarking
     /// passenger four hundred units inland (`docs/TRANSPORT.md` §6.4).
     /// Put `tregion` back in `coll_paint` and the second half fails.
+    /// **Born at the building, then out** (`docs/COLLISION.md` §20, item
+    /// 1133): Great Sahara's AI camp `1/2001`, scaled down. Two citizens are
+    /// born on one unit cell and come out to either side; the second's exit
+    /// clears every cell of the birth disc its own disc does not cover,
+    /// including the first citizen's, and a unit born after both keeps what
+    /// it covers. run382's frame 5 turns on the hole: `1/2`'s sidestep
+    /// probe finds the cell diagonal to `1/1` clear.
+    #[test]
+    fn the_second_citizen_out_of_a_camp_leaves_a_hole_in_the_first_s_block() {
+        let mut world = World::new(8, 8);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+        let mut sim = Sim::new(Tuning::RON, world, 2);
+        let ty = sim.add_unit_type(UnitType {
+            hits: 40,
+            combat: crate::combat::Profile {
+                block_radius: 48,
+                uber_size: 1,
+                ..crate::combat::Profile::default()
+            },
+            ..UnitType::default()
+        });
+        let centre = |x: i32, y: i32| Pos::new(x * 48 + 24, y * 48 + 24);
+        let mut add = |o: i16, at: Pos| {
+            let mut u = Unit::new(1, o, at, 40);
+            u.ty = Some(ty);
+            let u = sim.add_unit(u);
+            sim.coll_add(u);
+            u
+        };
+        // `1/1` out on the cell south of the birth, `1/2` three east, and a
+        // third unit born after both whose block reaches the birth's top row.
+        let a = add(1, centre(4, 5));
+        let b = add(2, centre(7, 4));
+        let c = add(3, centre(4, 2));
+        let birth = centre(4, 4);
+        assert!(sim.coll.get(5, 5), "the control: 1/1's block covers (5, 5)");
+        sim.birth_come_out(a, birth, &[b, c]);
+        sim.birth_come_out(b, birth, &[c]);
+        for x in 3..=5 {
+            for y in 4..=5 {
+                assert!(!sim.coll.get(x, y), "1/2's exit cleared ({x}, {y})");
+            }
+            assert!(
+                sim.coll.get(x, 6),
+                "1/1's row out of the birth stands ({x}, 6)"
+            );
+            assert!(sim.coll.get(x, 3), "the later unit's cell stands ({x}, 3)");
+        }
+        for x in 6..=8 {
+            for y in 3..=5 {
+                assert!(sim.coll.get(x, y), "1/2's own block is whole ({x}, {y})");
+            }
+        }
+    }
+
     #[test]
     fn a_boat_on_a_coastal_cell_s_water_marks_no_collision_cells() {
         let mut world = World::new(8, 8);
