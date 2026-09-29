@@ -2980,6 +2980,21 @@ impl Sim {
         roll < JAM_UNIT_RADAR_PROB && self.is_jammed(u)
     }
 
+    /// **An `ANTI_AIR` unit shoots at an aircraft without turning**
+    /// (item 1109, `docs/COMBAT.md` §83): `Unit::fight@005fd4d0`, past
+    /// `Unit::set_attack` (`5fe7f4`), sets the "keep `this->angle`" answer
+    /// to 1 when the **target's** type is of the air domain (`+0x218 == 2`,
+    /// `5fe81f`) and the shooter `has_objmask(0x80000000)` (`5fe82a`..
+    /// `5fe855`, a `cmovne`), so `5febb0` keeps the unit's angle whatever
+    /// its pivots answered. run404's Battery re-attacks Bomber `0/7` on 773
+    /// while its hull is still turning, keeps its heading, and swings on
+    /// 776 when the turn ends.
+    pub(crate) fn anti_air_keeps_angle(&self, u: usize, target: crate::combat::Obj) -> bool {
+        use crate::combat::{Obj, mask};
+        self.profile(Obj::Unit(u)).has(mask::ANTI_AIR)
+            && matches!(self.profile(target).domain, crate::attrition::Domain::Air)
+    }
+
     /// **`Objects::kill_guy@00659410`'s plane arm** (item 1102,
     /// `docs/COMBAT.md` §81): a guy whose type's `CAT` is Air and that is
     /// not a missile (`659473` → `659613`) takes a free `Ammo` and
@@ -3160,6 +3175,63 @@ mod flak_tests {
                 at: None,
             }),
         }
+    }
+
+    /// **An anti-air unit keeps its angle at an aircraft, and only there**
+    /// (item 1109): the Battery at a Bomber does; at a ground unit it does
+    /// not, and a shooter without `ANTI_AIR` does not at a Bomber.
+    #[test]
+    fn an_anti_air_unit_keeps_its_angle_at_an_aircraft_only() {
+        let mut s = sim();
+        let aa = combat::Profile {
+            obj_masks: mask::ANTI_AIR,
+            max_range: 17,
+            ..combat::Profile::default()
+        };
+        let battery = unit(&mut s, 1, Pos::new(21384, 17256), aa);
+        let rifle = unit(
+            &mut s,
+            1,
+            Pos::new(21384, 17456),
+            combat::Profile::default(),
+        );
+        let plane = unit(&mut s, 0, Pos::new(22000, 16000), bomber());
+        let foot = unit(
+            &mut s,
+            0,
+            Pos::new(22000, 18000),
+            combat::Profile::default(),
+        );
+        assert!(s.anti_air_keeps_angle(battery, Obj::Unit(plane)));
+        assert!(!s.anti_air_keeps_angle(battery, Obj::Unit(foot)));
+        assert!(!s.anti_air_keeps_angle(rifle, Obj::Unit(plane)));
+    }
+
+    /// **The strike keeps the heading** (item 1109, the call site): a
+    /// Battery facing away from a Bomber and with no pivots fires without
+    /// turning, where it turns to a ground target.
+    #[test]
+    fn an_anti_air_strike_at_a_plane_does_not_turn_the_unit() {
+        let mut s = sim();
+        let aa = combat::Profile {
+            obj_masks: mask::ANTI_AIR,
+            max_range: 17,
+            ..combat::Profile::default()
+        };
+        let battery = unit(&mut s, 1, Pos::new(21384, 17256), aa);
+        let plane = unit(&mut s, 0, Pos::new(19000, 17256), bomber());
+        let foot = unit(
+            &mut s,
+            0,
+            Pos::new(19000, 17256),
+            combat::Profile::default(),
+        );
+        let east = crate::movement::Angle::EAST;
+        s.units[battery].movement.heading = east;
+        s.fight_pub(battery, Obj::Unit(plane), 0);
+        assert_eq!(s.units[battery].movement.heading, east, "kept at a plane");
+        s.fight_pub(battery, Obj::Unit(foot), 1);
+        assert_ne!(s.units[battery].movement.heading, east, "turned to a man");
     }
 
     /// **`is_flying_low` is a distance to the strike** (item 1102): the

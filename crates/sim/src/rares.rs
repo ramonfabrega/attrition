@@ -48,6 +48,13 @@
 //!   `calc_anti_attrition` and `Unit::update_armor`.
 
 use crate::economy::{self, RESOURCES};
+
+/// The gunpowder foot line's `TypeIndex`es, the four `update_speed` tests
+/// by identity (`enums/TypeIndex.txt`: 98, 100, 102, 104).
+const ARQUEBUSIERS: i32 = 0x62;
+const RIFLEMAN: i32 = 0x64;
+const INFANTRY: i32 = 0x66;
+const MECH_INFANTRY: i32 = 0x68;
 use crate::tech::TypeId;
 use crate::world::Player;
 use crate::{Sim, orders};
@@ -172,14 +179,30 @@ impl Sim {
     }
 
     /// `Unit::update_speed@006055c0`, as much of it as this crate models:
-    /// the type's `MOVES` and the **Whales** arm.
+    /// the type's `MOVES`, the **Whales** arm, and the **gunpowder foot
+    /// line's** hardcoded correction after it (`docs/MOVEMENT.md` §1a).
+    ///
+    /// The foot line is four identity tests, `is(t, 0)` through the type's
+    /// vslot `0x60` — `TypeData::is@004771c0`, `type == t` and nothing else,
+    /// so a type is never its predecessor here — and one scale each, every
+    /// division truncating toward zero (the listing, `605700`..`6057d6`):
+    /// Mechanized Infantry `×36/32`, Infantry `×34/32`, Rifleman `×32/27`,
+    /// Arquebusiers `×30/24`. run404 prints Infantry at **34** on a `MOVES`
+    /// of 32 from its birth on 621 (item 1109).
     pub(crate) fn type_speed(&self, who: Player, ty: usize) -> i32 {
         let mut speed = self.unit_types[ty].moves;
         let naval = self.unit_types[ty].combat.obj_masks & crate::combat::mask::NAVAL != 0;
         if naval && self.has_rare(who, economy::WHALES) {
             speed = (self.tuning.whales_ships_move + 100) * speed / 100;
         }
-        speed
+        let (num, den) = match self.unit_types[ty].type_index {
+            MECH_INFANTRY => (36, 32),
+            INFANTRY => (34, 32),
+            RIFLEMAN => (32, 27),
+            ARQUEBUSIERS => (30, 24),
+            _ => return speed,
+        };
+        speed * num / den
     }
 
     /// `LeaderData::has_rare@006e0770` — a good's bit in the player's
@@ -701,6 +724,34 @@ mod tests {
         assert_eq!(s.type_speed(1, boat_ty), 40 * 120 / 100);
         assert_eq!(s.type_speed(1, foot_ty), 25, "a foot type is not naval");
         assert_eq!(s.type_speed(0, boat_ty), 40, "and it is the owner's rare");
+    }
+
+    /// **The gunpowder foot line, by identity and truncating** (item 1109):
+    /// Infantry's `MOVES` 32 is 34, as run404 prints from 621; each sibling
+    /// takes its own scale and no other; a whale does not reach a foot type.
+    #[test]
+    fn the_gunpowder_foot_line_takes_its_own_scale() {
+        let (mut s, _) = sea_sim();
+        let foot = |s: &mut Sim, type_index: i32, moves: i32| {
+            s.add_unit_type(crate::UnitType {
+                hits: 20,
+                moves,
+                type_index,
+                ..crate::UnitType::default()
+            })
+        };
+        let inf = foot(&mut s, INFANTRY, 32);
+        let mech = foot(&mut s, MECH_INFANTRY, 32);
+        let rifle = foot(&mut s, RIFLEMAN, 32);
+        let arq = foot(&mut s, ARQUEBUSIERS, 30);
+        let other = foot(&mut s, INFANTRY + 1, 32);
+        assert_eq!(s.type_speed(1, inf), 34, "run404's 621: 32 x 34 / 32");
+        assert_eq!(s.type_speed(1, mech), 36);
+        assert_eq!(s.type_speed(1, rifle), 37, "32 x 32 / 27 truncates");
+        assert_eq!(s.type_speed(1, arq), 37, "30 x 30 / 24 truncates");
+        assert_eq!(s.type_speed(1, other), 32, "identity, not a lineage");
+        s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+        assert_eq!(s.type_speed(1, inf), 34, "a whale is the navy's");
     }
 
     /// The truncation is the original's: `38 × 120 / 100` is **45**, which
