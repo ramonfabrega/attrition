@@ -322,8 +322,9 @@ impl Sim {
                     facing: u.movement.facing,
                     trench_facing: u.movement.facing,
                     // The object's own `z` (`+0xc`), which `Unit::update_z`
-                    // writes as `find_tcoord_z` at its tile (§46.2).
-                    z: self.world.tile_z(u.pos.tile()),
+                    // writes as `find_tcoord_z` at its tile, clamped at zero
+                    // (§46.2, item 1131).
+                    z: self.world.object_z(u.pos.tile()),
                     damage_frame: u.combat.damage_frame,
                     damage_o: u.combat.damage_o,
                     captain: u.combat.captain,
@@ -345,7 +346,7 @@ impl Sim {
                     build_proper: true,
                     under_construction: !bd.active,
                     attacks: self.attack_of(o) != 0,
-                    z: self.world.tile_z(bd.pos.tile()),
+                    z: self.world.object_z(bd.pos.tile()),
                     tile_owned_by_attacker: self
                         .world
                         .owner_at(bd.pos)
@@ -363,13 +364,13 @@ impl Sim {
             Obj::Unit(i) => Side {
                 unit: true,
                 captain: self.units[i].combat.captain,
-                z: self.world.tile_z(self.units[i].pos.tile()),
+                z: self.world.object_z(self.units[i].pos.tile()),
                 ..Side::default()
             },
             Obj::Building(b) => Side {
                 building: true,
                 build_proper: true,
-                z: self.world.tile_z(self.buildings[b].pos.tile()),
+                z: self.world.object_z(self.buildings[b].pos.tile()),
                 ..Side::default()
             },
         }
