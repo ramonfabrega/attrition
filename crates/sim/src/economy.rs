@@ -152,6 +152,11 @@ pub const RUBBER: usize = 15;
 /// unit's research before the premium (`docs/COSTS.md`, "Researching an
 /// upgrade is not building a unit"; `docs/AI.md` §94).
 pub const WINE: usize = 8;
+/// `TypeIndex::SPICE` — the rare `Caravan::trade_value@0073d9d0` reads:
+/// `leaders.list[who] +0x6da4 & 0x40`, else the same at `+0x6dcc`, byte 0
+/// bit 6 of `rare` or of `rare_conquest`, which is bit `12 - `[`BASE_RARE`]`
+/// = 6`; `resourcerules.xml`'s thirteenth `RESOURCE` is Spice.
+pub const SPICE: usize = 12;
 /// `TypeIndex::TOBACCO` — the rare `Wall::update_construct_time` reads.
 ///
 /// `0063d560:32` tests `LeaderData +0x6da5 & 0x20` **or** `+0x6dcd &

@@ -11184,3 +11184,45 @@ make list on 15982, and the word's block 15983 on who=1's new site
 `1/2024`, 192 east of the original's (`docs/COMBAT.md` §65.8). The compared
 pin and the coverage driver walk 15981..15985.
 
+
+## run442 — run383's game at run414's detail over blocks 16676..16932: Great Sahara's long word 16681 widened (2026-09-29, item 1189)
+
+**What it is.** run428's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+16676..16932, and `!quit` at 16946. The word's frame 16681 writes block
+16682, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run442 \
+    --map 7 --end-frame 16946 --timeout 12000 --log-window 16676 16933 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run428 ends at block
+16233 and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 13:22–13:41 in one take, with no wait. The lane lock named a pid
+that was no longer alive. The capture was waited on with `waitrun.sh`
+(exit 0). The receipt: `success: true`, exit 0, 1,168 s from launch to
+exit, 16,947 frames, map 7 and seed 12345 verified, five files restored.
+The dump (534.2 MB, 257 blocks and the closing one) and the trace
+(58.9 MB) were moved into `Logs` as `gamelog-run442-greatsahara-16681.txt`
+and `rontrace-run442.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 16,947 identical |
+| window blocks | 257, 16676..16932 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run442_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head. Block 16676 stands on 163
+keys, and who=1's wealth is not among them (`docs/CARAVAN.md` §4). On
+16681 the human's building `0/2004` is gone in the original and held here,
+and who=1's food parts (146 against 166). On the word's block 16682 the
+archer `1/28` parts on its order. The compared pin and the coverage driver
+walk 16680..16684.
+

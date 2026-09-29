@@ -128,6 +128,21 @@ if the Indian tribe bonus:  v = v·(indians_caravan + 100)/100
 if the spice rare:          v = v·(spice_caravan_income + 100)/100
 ```
 
+**Which leader the two bonuses ask** (item 1189, off the listing).
+`trade_value` takes one end in `ecx`/`edx`, city and owner, and the
+decompiler drops both. The foreign test and both bonuses read
+`leaders.list[edx]`. `do_trade` (`005ed65a`) passes the home there when
+the caravan is the home owner's, and the partner otherwise.
+`compute_trade` (`007396f4`) passes the end whose owner is the computing
+city's, so there it is always that city's own owner. The rare test is
+`+0x6da4 & 0x40` or `+0x6dcc & 0x40`: `rare` and `rare_conquest` are
+`BitMask<44>`s at `+0x6d98` and `+0x6dc0` whose bytes open at `+0xc`, so
+this is bit 6, good 12, **Spice**. `SPICE_CARAVAN_INCOME` ships as `20%`
+and `INDIANS_CARAVAN` as 15 (`rules.xml`). Neither was read here until
+item 1189. Great Sahara's who=1 holds Spice (`rares_collected[6]`), and
+from frame 14660 its two Villages' route is worth 22 · 120/100 = 26, so
+`trade_val` is 208 at each end where this crate read 176.
+
 `CityData::get_trade_value@007363f0` is the city's building count, plus
 two for a Large City (`TOWN`) and four for a Major City or the Forbidden
 City. **The count is `CityData::num_buildings@00738190`** — the member
@@ -392,8 +407,8 @@ trade_val = 0
 for link in city.vans:
     van = caravans[link.who][link.cara]
     if van.caravan_flags & 4 and both cities alive:
-        other = the end that is not me
-        trade_val += trade_value(other, me) · 16 / 2
+        mine = the end whose owner is my owner    (ecx/edx, §4)
+        trade_val += trade_value(mine, the other) · 16 / 2
 if trade_val changed: leader_flags |= 0x2000000     ← the economy is dirty
 ```
 
@@ -415,6 +430,14 @@ level**: `0073979f` loads `LeaderDataEncrypt +0xf0`, and `epoch` opens at
 `+0xe8` (§9, item 573). Nothing is paid the second time.
 
 ## 8. Coverage
+
+**The Spice multiplier is diff-backed** (item 1189,
+`run418_s_word_frame_is_widened_whole`). On run418's block 14661 both of
+Great Sahara's who=1 cities' `trade_val` go 176 → 208 on a caravan's
+return home. They agree here now, and who=1's wealth rows agree from
+14664. **The Indian arm and the leader choice for a foreign pair are a
+reading only.** No capture's route has a foreign end, and none has a
+leader with the caravans' power.
 
 **Diff-backed** (`rondata::diff::tests::run64_s_caravan_road_is_the_
 original_s_node_for_node`, and its Great Lakes sibling on run73):
