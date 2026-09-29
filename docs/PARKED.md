@@ -116,6 +116,13 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1185, 2026-09-29 — the blocked bit's other writers
+
+(1192) **`Good::init`, the mountains and the cliffs write the blocked
+bit without the road clearing here** (ROADS §9.5); no capture runs one
+over a road. And `merchant_footprint`'s clearing and the re-block arm
+are built and held by no walk (1185's mutations C and B).
+
 ## Parked by item 1177, 2026-09-29 — the collision arms left
 
 (1190) **The unit arm's `find_collision(my spot, …, 1)` at `5f7f11`, and
@@ -2220,6 +2227,13 @@ title whole on one line; `tools/guard.sh` does not run the offline
 tests, so the booking's guard run was green and the gate on `6b117410`
 was red at its first step. `guard.sh` taking `test_brief.py`, or the
 queue guard reading the title's line, would have caught it. One reach.
+
+(1193) **A `SEAM` that leaves an arm out because its door is not built
+outlives the door** (1185's Loop line): `World::set_blocked_at`'s road
+clearing stood as a `SEAM` four days after item 695 landed the mesh's
+clearing door, and it was East Indies' 7512. A guard listing every
+`SEAM` whose text names a function this crate now carries would have
+put it in front. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

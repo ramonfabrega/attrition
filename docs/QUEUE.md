@@ -12,13 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, thirteen landings since the nineteenth pass (DECISIONS 55):
-East Indies 6151 → 7512 (1127, 1143, 1156, 1164, 1174); Great Sahara
-6/5 → 1850/1850, long word 8 → 15982 (1133, 1147, 1163, 1171, 1177);
-chapters thirty-eight to forty closed (1131, 1111, 1167).*
+*2026-09-29, fourteen landings since the nineteenth pass (DECISIONS 55):
+East Indies 6151 → 8519 (1127, 1143, 1156, 1164, 1174, 1185); Great
+Sahara 6/5 → 1850/1850, long word 8 → 15982 (1133, 1147, 1163, 1171,
+1177); chapters thirty-eight to forty closed (1131, 1111, 1167).*
 
 - **Three lanes, on the user's word** (DECISIONS 55, amended): the
-  second pair's — 1185, East Indies' 7512; **the third map's** — 1189,
+  second pair's — 1191, East Indies' 8519; **the third map's** — 1189,
   Great Sahara's frame 15982; the rules' — 1182, chapter forty-one.
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
@@ -31,17 +31,17 @@ chapters thirty-eight to forty closed (1131, 1111, 1167).*
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 25 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188).
+- **Fable backlog: 26 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w7512 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w8519 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w15982 of 24,000
 Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · 1182 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander resumes on three live lanes, `att-<item>` —
-1185, 1189 and 1182; the twentieth pass at twenty landings, seven to go.**
+1191, 1189 and 1182; the twentieth pass at twenty landings, six to go.**
 
 ## The queue
 
@@ -60,12 +60,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     value pair are 1174's East Indies 7382's; that cause is on this base
     and did not close it. No mechanism is named.
 
-1185. **East Indies' second word: frame 7512, ours 39 draws against 3243**
-    (1174), at index 30: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    theirs `PathFinder::calc_road_cost+0x46`, 3206 times under
-    `astar_caravan_road`, widened on run425 (block 7513), where the
-    caravan `1/15`'s `path[].flags` part and who=1's `caras` stands 3
-    against 2 from 7478. No mechanism is named.
+1191. **East Indies' second word: frame 8519, ours 2 draws against 3**
+    (1185), at index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    theirs `Guy::set_anim+0x97a < Guy::move+0x19f`, widened on run439
+    (block 8520), where `1/21`'s `g.cur_anim[0]` and `g.end_time[0]`
+    part, after `1/69`'s and `1/68`'s move `dest` on 8516 and 8519; block
+    8514 stands on 481 keys from the gap. No mechanism is named.
 
 1182. **Chapter forty-one: CENSUS row 7's last seven — no capture yet**
     (1167 closed forty at 1150). `UnitData::get_speed`, `Object::do_launch`'s
