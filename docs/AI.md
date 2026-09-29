@@ -11105,3 +11105,80 @@ and the fog grid on the word's frame (run415). **Listing-backed**: the
 facing and the region calls. **Pinned capture-free**:
 `a_caravan_trades_across_regions_only_when_it_can_transport` and
 `a_sea_crossing_between_regions_pays_once_at_the_shore`.
+
+## 86. A barge lights its disc on the water, and the second pair's East Indies word moves to 6151 (2026-09-28, item 1120)
+
+Item 1120 was booked on East Indies' frame 5975 at Toughest: ours 63 draws
+against the original's 61, parting at index 49, ours
+`Unit::think_scout+0xaba`, the original `Guy::init_real+0x52`. §85.5 had
+the AI sea scout `1/35`'s region scan accepting 46 cells to 45, and run415's
+fog grid holding cell (45, 40)'s probe point (91, 81) and its neighbour
+(90, 80) seen there and not here, lit between 5776 and 5975. **No mechanism
+was named**, and the booking's direction was open (parked 1076). The brief
+phrased it as a sight ours grants and theirs does not. §85.5's grid says the
+opposite, and it is right: the original sees both half-cells, and this crate
+does not.
+
+### 86.1 The instances, and the rule
+
+- **Every who=1 unit that could reach (91, 81)** on run414's first blocks:
+  the Explorer `1/18`, six rows short; the citizen `1/22`, cargo; the barge
+  `1/36`. Its `los_x/los_y`, written only by `Unit::init`, is its birth
+  point (33912, 32280), half-cell (88, 84). Ours then puts it on the water
+  at (34076, 32173), half-cell (88, 83), on tick 5878.
+- **§3's octagonal distance** puts both half-cells at 3 from (88, 83) and
+  at 4 from (88, 84). A radius-3 disc at the spot lights them, and the
+  birth disc does not.
+- **The rule** (`docs/VISION.md` §11): `cast_transport`'s
+  `set_new_location(boat, x, y, 1, 1)`, read off the pushes at
+  `671027`..`67102f`, crosses a half-cell and calls `update_seen(0)`, the
+  whole disc at the spot. This crate moved the boat without a reveal.
+- **No packet was taken.** The disk and run415 answered it. With the
+  reveal built, ours' `seen2` equals run415's on all 14,400 half-cells
+  after tick 5974, and run413's after 5775. So 1115's packet at logger
+  5879 (run418) was not needed, and run418..run420 are unused.
+
+### 86.2 What moved
+
+- **East Indies 5975 → 6151.**
+  - Frame 5975's draws agree, since the scan's `+0xaba` count is the
+    original's.
+  - **Value diff**: run415's `seen2` on (90, 80), (91, 81) and (45, 73):
+    ours 0 against 2 → 0 of 14,400 apart. (45, 73) is the barge `1/21`'s,
+    born on tick 4444 at (16128, 28960).
+  - Block 5976's `1/40` `g.cur_time[0..2]` (ours 1 against 0) closed.
+  - run414's keys went 675 → 327.
+  - No key parts earlier than it did before the fix: every key the fix
+    makes part is on block 6152 or later.
+- **The new word, 6151** (no mechanism is named): ours 9 draws, the
+  original 8, parting at index 0.
+  - Ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, the original
+    `Guy::set_anim+0x97a < Unit::do_non_flat_gather+0x10f`.
+  - It is inside run414 (block 6152), so run414 is its widening.
+  - On 6152 only the Caravan `1/15`'s 35 rows part. Ours stands it at
+    (35597, 37251) against the Caravan `1/33` (`collide_o 33`, every figure
+    `stopped`). The original walks it on to (35617, 37267).
+- **Standing before the word**, on the same blocks as before the fix:
+  - 5976: the census's newborn lag (parked 1122) and `1/40`'s `form`;
+  - 5982: who=1's `MAKE[7].city`; 5984: `gather_stamp`;
+  - 6001: who=0's `production_step`;
+  - 6026 and 6069: `1/23`'s and `1/22`'s figure `avg_speed` and `mirror`;
+  - 6071: group 74's `form`; 6074: `1/31`'s `path_recursion`;
+  - 6111: the newborn `1/41`'s `form`, figure angle and `orders_x/y`;
+  - 6135: group 72's `speed`/`new_speed`.
+- **The compared pin** walks 6150..6154. It pins `BuildDump.job_counter`
+  as a site the window never reaches, since no building is under
+  construction there.
+
+### 86.3 What this has *not* established
+
+- The rest of `set_new_location`'s callers (`docs/VISION.md` §11.5).
+- The value rows standing before 6151, above. Each needs its own reading.
+- What stops `1/15` on 6151 here and not there.
+
+### 86.4 Coverage
+
+**Packet-backed**: the fog grids (`run413_s_and_run415_s_fog_grids_are_ours`).
+**Diff-backed**: the word's move and run414's block 6152.
+**Listing-backed**: the call's pushes. **Pinned capture-free**:
+`a_boat_born_on_the_shore_lights_its_disc_on_the_water`.

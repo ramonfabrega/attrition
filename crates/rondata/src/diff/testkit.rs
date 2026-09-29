@@ -1200,7 +1200,26 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 8;
 /// `Guy::init_real+0x52`. The AI sea scout `1/35`'s region scan accepts 46
 /// cells here against 45 there; past run357's window, widened on run414
 /// (`run414_s_word_frame_is_widened_whole`, block 5976).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_975;
+///
+/// **5975 → 6151 on item 1120** (`docs/VISION.md` §11, `docs/AI.md` §86):
+/// `cast_transport`'s `set_new_location(boat, x, y, 1, 1)` crosses a
+/// half-cell onto the water and throws the barge's whole disc at the spot.
+/// **The move's value diff (the word's delta, here; its block is
+/// `run414_s_word_frame_is_widened_whole`'s):** no dump prints fog, so the
+/// value is run415's packet at logger 5975 — `seen2` on half-cells (90, 80)
+/// and (91, 81) ours 0 against 2 and (45, 73) ours 0 against 2 → all
+/// 14,400 half-cells agreeing after tick 5974, and run413's at 5776
+/// agreeing (`run413_s_and_run415_s_fog_grids_are_ours`). The sea scout
+/// `1/35`'s scan accepts 45 cells to 45, and block 5976's newborn `1/40`'s
+/// three `g.cur_time` rows (ours 1 against 0) closed; run414's keys went
+/// 675 → 327. Frame 5975's draws went 63 against 61 → agreeing. **The new
+/// word's delta: ours 9 draws and the original 8 on frame 6151, parting at
+/// index 0**: ours spends `Guy::set_anim+0x97a < Unit::move_step+0x823`
+/// where the original spends `Guy::set_anim+0x97a <
+/// Unit::do_non_flat_gather+0x10f`. Inside run414 (block 6152, 182 blocks
+/// after its first and 74 before its last), where the Caravan `1/15`
+/// stands against `1/33` here and walks on there.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_151;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1618,7 +1637,9 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_5606: (i64, i64) = (5_601, 5_857);
 
 /// `run414_s_word_frame_is_widened_whole`'s window (item 1115): run414 over
 /// run346's game, blocks 5970..6226 — six blocks before the word 5975's
-/// block 5976 and 250 past it.
+/// block 5976 and 250 past it. **Since item 1120 the word is 6151**,
+/// block 6152, inside it (182 blocks after its first and 74 before its
+/// last).
 pub(crate) const WIDENING_SECOND_EAST_INDIES_5975: (i64, i64) = (5_970, 6_226);
 
 /// `run356_s_word_frame_is_widened_whole`'s window (item 989): run356 over
@@ -6746,12 +6767,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // inside run396's window, and item 1099 to 5930, the game's end,
     // widened on run403 (its last six blocks) and scored whole on run347's
     // closing state. Item 1106 moved East Indies to 5773, inside run357's
-    // window, and re-pinned the word's block there.
+    // window, and re-pinned the word's block there. Item 1115 moved it to 5975,
+    // widened on run414, and item 1120 to 6151, inside run414's window.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run414_s_word_frame_is_widened_whole"),
-        1115,
+        1120,
         Some(WIDENING_SECOND_EAST_INDIES_5975),
     ),
     (
