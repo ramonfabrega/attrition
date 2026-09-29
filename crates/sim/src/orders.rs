@@ -4009,9 +4009,17 @@ impl Sim {
                     // on the human's city, stops at (5079, 31628) at
                     // `attack_dist` 1128 against a reach of 1158.
                     //
-                    // SEAM: `Objects::find_collision(my own spot, o, who,
-                    // 1) == 0` (`5f7f9d`) is not modelled, as in the unit
-                    // arm; it only makes the kill rarer.
+                    // **And no other unit in my block** (item 1177,
+                    // `docs/COMBAT.md` §65.8): `Objects::find_collision(my
+                    // own spot, o, who, 1) == 0` at `5f7f9d`, the fifth
+                    // argument set, so the chain walk rather than the
+                    // land grid. run426's Longbowman `1/29` stands in
+                    // reach of the human's city at 2284 with its mate
+                    // `1/30` two unit cells off, and walks one more step.
+                    //
+                    // SEAM: `valid_target@00648ba0` (`5f7f71`), between
+                    // the two, is not modelled; it refuses only a
+                    // capturable building.
                     if self.profile(me).max_range != 0
                         && let crate::combat::Obj::Building(_) = t
                     {
@@ -4020,6 +4028,7 @@ impl Sim {
                         });
                         if !(siege && self.ai_driven(self.units[u].owner))
                             && self.is_in_range(me, t)
+                            && !self.find_collision_forced(u, self.units[u].pos)
                         {
                             self.kill_current_order(u);
                             return Did::Something;

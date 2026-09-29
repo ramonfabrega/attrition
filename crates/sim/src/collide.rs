@@ -1681,6 +1681,18 @@ impl Sim {
         self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
     }
 
+    /// `Objects::find_collision(x, y, o, who, 1)@0065b1b0` — the same
+    /// query with its fifth argument **set**, which skips the land
+    /// shortcut (`param_5 == 0 && type +0x218 == 0` → `collide_here`) for
+    /// every domain: the nine world cells' chains, every other player's
+    /// live on-map unit with a block, Chebyshev in unit cells against the
+    /// two `coll_size`s at their **current** positions. `do_move@005f7b30`
+    /// asks it at the chaser's own spot before it ends a chase
+    /// (`5f7f9d` on a building, `5f7f11` on a unit).
+    pub fn find_collision_forced(&self, u: usize, at: Pos) -> bool {
+        self.chain_hit(u, at, |s, o| ucell(s.units[o].pos))
+    }
+
     /// `ObjectsData::find_unit_with_radius(x, y, ·, -1, r_coll, ·,
     /// FILTER_NOT_ME, -1, -1)@00659890` — the query
     /// `UnitType::find_nearby_spot` asks when its `not_o`/`not_who` are

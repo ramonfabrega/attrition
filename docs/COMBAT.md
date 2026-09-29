@@ -10959,8 +10959,13 @@ margin and the captain retarget). The unit test is
 
 - **The siege gate** (`5f7f34`) has no capture: `is_siege` is this
   crate's `uflags::SIEGE` on the type, as §64.2's word reads it.
-- **`find_collision`** at the attacker's own spot is not modelled in
-  either arm. It only makes the kill rarer.
+- ~~**`find_collision`** at the attacker's own spot is not modelled in
+  either arm. It only makes the kill rarer.~~ **The building arm's is
+  built** (item 1177, §65.8). The unit arm's (`5f7f11`) is still not
+  modelled.
+- **`valid_target@00648ba0`** (`5f7f71`), the building arm's third
+  conjunct, is not modelled. It refuses only a capturable building the
+  attacker cannot capture, which no capture on disk has shown.
 - **A wall target** takes the building arm by the vslot. This crate's
   walls are buildings, so it does too, and no capture shows one.
 
@@ -10968,10 +10973,63 @@ margin and the captain retarget). The unit test is
 
 - **Diff-backed**: the building arm's kill, by run356's blocks 4592 and
   4593 and frame 4593's draws. It is a floor, and it falls back under the
-  mutation.
+  mutation. Its `find_collision` conjunct, by run426's `1/29` on blocks
+  15585..15587 and the third map's long word (§65.8).
 - **Listing-backed**: `5f7f1a`–`5f7faa` and `00648d70`.
 - **Unit-backed only**: the siege gate, and the unit arm's margin at the
   same distance.
+
+### 65.8 Another unit in the chaser's block holds the kill (item 1177, 2026-09-29)
+
+Item 1177 was booked on Great Sahara's long word: frame 15586 of run383,
+ours 7 draws against the original's 6, ours spending one extra
+`Guy::set_anim+0xf2f < Guy::move+0x166` at index 3. No mechanism was
+named.
+
+- **The frame, from the disk.** run426's widening shows `1/29`, a who=1
+  Longbowman (type record 127, `GUY.type` 177, reach 12, so `12 × 0xc0 +
+  6 = 2310`), quiet on every field through block 15584. It chases the
+  human's city `0/2004` with a `mandatory` `ATTACK` under a `MOVE_TO`
+  (the harness's reach print, `RON_DEBUG_UNIT`). On block 15584 it stands
+  at (7292, 27822) at `attack_dist` 2284, inside the reach.
+- **Ours** ended the chase on frame 15584. On block 15585 it stood with
+  the `ATTACK` at its head, and on frame 15586 its arrival spent the
+  extra draw.
+- **The original** took one more step, to (7269, 27840), and ended the
+  chase on frame 15585. Its kind is 1 against ours' 10 on 15585, and its
+  figure clock is 9 against ours' 13 on 15587.
+- **The listing**, `5f7f69`–`5f7fa4`. After `is_in_range` the arm calls
+  `valid_target@00648ba0`, then `pushl $0x1` and
+  `find_collision@0065b1b0(x, y, o, who, 1)` at the unit's own position.
+  Non-zero goes to `5f82c1`, the planner. With the fifth argument set,
+  `find_collision` skips its land shortcut (`param_5 == 0 && type +0x218
+  == 0` → `collide_here`). It walks the nine world cells' chains instead:
+  every other player's (`who < 8`) live, on-map unit with a block, and
+  hits when that unit is Chebyshev-within the two types' `+0x248` blocks
+  in unit cells, at current positions. That is `Sim::chain_hit`, the sea
+  and air arm of §5.2's `find_collision` (`docs/COLLISION.md`).
+- **The collider** is `1/29`'s squad-mate `1/30` at (7176, 27720): two
+  unit cells off on both axes against two blocks of one each. One step on,
+  the gap is three and the kill fires.
+
+**The fix**: `Sim::find_collision_forced` (`sim::collide`) is the forced
+query, and the building arm asks it last (`sim::orders`). The unit test
+is `a_unit_in_the_chaser_s_block_holds_its_chase_on_a_building`: a mate
+two cells off holds the chase, three cells off ends it, and gaia is not
+asked.
+
+**What it moved**:
+
+- **Great Sahara's long word: 15586 → 15982.** Frame 15586's draws go
+  7/6 → 6/6.
+- **The value diff**: run426's block 15585. `1/29`'s `order:kind` 10
+  against 1 → 1, and its `pos` (7292,27822) against (7269,27840) → the
+  original's. Every `1/29` row agrees across 15581..15837, and run426's
+  parted keys fall 741 → 183
+  (`run426_s_word_frame_is_widened_whole`).
+- **The unit arm** (`5f7f11`) makes the same call, and it is left
+  unmodelled here. No word on disk parts on it, and building it would
+  change frames this item does not test.
 
 ## 66. An army group's attack-move looks, and hands its find to the group (item 1012, 2026-09-27)
 
