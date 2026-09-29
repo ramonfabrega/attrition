@@ -1999,10 +1999,14 @@ impl Sim {
         let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) else {
             return;
         };
+        // A non-bomber asks `find_new_air_target(x, y, −1, −1)`
+        // (`0x5eb7a3`, item 1200) — the patrol's own search, at its last
+        // point: chapter forty-one's Biplane re-points from `0/8` to
+        // `0/7` on 852 (`docs/GOLDEN.md` §50).
         let found = if self.is_bomber(u) {
             self.find_new_bomber_target(u, p.last())
         } else {
-            None
+            self.find_new_air_target(u, p.last())
         };
         let me = crate::combat::Obj::Unit(u);
         match found.filter(|&t| self.valid_target(me, t)) {

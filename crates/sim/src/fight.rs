@@ -436,6 +436,18 @@ impl Sim {
         if !self.active(target) {
             return false;
         }
+        // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
+        // tile under the point asked from — `div_3_table[x >> 6]`, the
+        // tile, of the eight-argument overload's own `x/y` — answers no
+        // when its surface is forest (`TData.mask & 0x30 == 0x30`). It
+        // asks no domain, so a plane over a wood holds its fire:
+        // chapter forty-one's Biplane on 839, at `0x7138` (`docs/GOLDEN.md`
+        // §50).
+        if self.world.tile_mask(at.tile()) & crate::world::tile::SURFACE
+            == crate::world::tile::SURFACE_FOREST
+        {
+            return false;
+        }
         let ap = self.profile(attacker);
         // `attack_dist` is called at the quarter-tile centre of the position.
         let centre = Pos::new(
@@ -3707,9 +3719,23 @@ impl Sim {
                 (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
             })
             .filter(|&o| {
+                // **The round's own target skips the team test**
+                // (`6787d9`..`6787e1`, item 1200): the shooter itself is
+                // left out and a player past seven, and then only an
+                // object that is not the round's target is asked whether
+                // it is the shooter's own or its mutual ally. So a round
+                // that `check_hit` put on one of its own side's buildings
+                // strikes it: chapter forty-one's Biplane on who=1's
+                // `1/2003`, 858 (`docs/GOLDEN.md` §50). SEAM: a neutral
+                // object, neither allied nor at war, is struck there and
+                // left out here.
                 let owner = self.owner_of(o);
-                owner != p.owner
-                    && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner))
+                if o == p.shooter || owner >= crate::world::PLAYER_SLOTS {
+                    return false;
+                }
+                target == Some(o)
+                    || (owner != p.owner
+                        && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner)))
             })
             .collect();
         for o in candidates {
@@ -3756,9 +3782,22 @@ impl Sim {
     /// in the ammo's domain class — any player's — else a building on the
     /// tile.
     fn check_hit(&self, p: &combat::Projectile) -> Option<Obj> {
+        // **An aircraft's round passes over its own side** (`678db9`..
+        // `678dcc`, item 1200): a shooter of the air domain that is not a
+        // missile searches `SEARCH_NON_FRIENDLY` (6), which
+        // `Search::valid_search@0067daa0`'s case 6 reads as "not the
+        // searcher's own player" — allies are found. Every other shooter
+        // searches `SEARCH_ALL`. Unasked while [`Sim::land`] left the
+        // shooter's side out of the splash; it is asked since the round's
+        // own target skips that test.
+        let sp = self.profile(p.shooter);
+        let own_passed = matches!(sp.domain, Domain::Air) && !sp.has(mask::MISSILE);
         let mut best: Option<(i32, usize)> = None;
         for (i, u) in self.units.iter().enumerate() {
             if !(u.alive() && u.on_map) || Obj::Unit(i) == p.shooter {
+                continue;
+            }
+            if own_passed && u.owner == p.owner {
                 continue;
             }
             // `check_hit` is a `find_unit`, whose leader loop stops at eight:

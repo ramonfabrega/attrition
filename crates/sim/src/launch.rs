@@ -657,6 +657,36 @@ const GUNS: &[(i32, i8, i8, Bay)] = &[
             dz: 1,
         },
     ),
+    // **Piece 237, the Biplane's two guns** (item 1200, `docs/GOLDEN.md`
+    // §50): run437 dumps 26 of its rounds, thirteen a node, at eleven
+    // whole-degree headings between 101 and 291 (blocks 965–1614). Each
+    // row is the centre of the region that reproduces every round of its
+    // node to the unit — `right` −13,120..−12,900 and `fwd`
+    // 101,150..101,390 for node 0, `right` 11,260..11,420 and `fwd`
+    // 101,180..101,280 for node 1 — and both leave 39 over the figure.
+    // Nose guns a tile's half ahead: from the figure's own point the
+    // second pass's pair on 966 flew six frames where the original's flew
+    // five.
+    (
+        237,
+        crate::anim::ATTACK2,
+        0,
+        Bay {
+            right: -13_010,
+            fwd: 101_270,
+            dz: 39,
+        },
+    ),
+    (
+        237,
+        crate::anim::ATTACK2,
+        1,
+        Bay {
+            right: 11_340,
+            fwd: 101_230,
+            dz: 39,
+        },
+    ),
 ];
 
 /// The bay a piece releases from, or `None` when none is measured: a
