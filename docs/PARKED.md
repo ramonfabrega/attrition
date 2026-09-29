@@ -116,6 +116,18 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1127, 2026-09-29 — the soft row's other orders
+
+(1144) **Every order class's `+0x14`, the `is_moving` the soft row asks**
+(COLLISION §19.4): only `MoveOrder`'s (`mov eax,1`, behind a `vtordisp`
+thunk) and `UnitOrder`'s (`xor eax,eax`) were read off the PE; the
+other order classes' slots are unread, and each decides whether a unit
+standing under that order is soft to a moving neighbour.
+
+(1145) **`MAKE[4].val` parts on run414's block 6182** (1127's window):
+still apart after the caravan row closed `1/15`, inside the window and
+before the word; no score names it while 6321 stands.
+
 ## Parked by item 915, 2026-09-27 — the repeat launch's edges
 
 (929) **The helicopter's over-the-limit arm** in `Build::train`
@@ -1986,6 +1998,13 @@ second copy of the install and its own user-data directory;
 `~/ron-capture-lane-2` holds a profile backup of 2026-09-18 and nothing
 else. Not built: the lane was not what the tranche waited on. Returns
 when three lanes' journals say they waited on it, with the minutes.
+
+(1146) **A `SEAM` that says no capture has entered its arm carries no
+`scan:`, and one was a word's whole mechanism** (1127's Loop line):
+`soft_collision`'s `TRADE_ROUTE` seam held East Indies at 6151, and its
+`scan:` would have been a one-line grep for the half-step bit on two
+`TRADEORDER` units. A guard that asks every such seam for a `scan:` line
+would have found the word a tranche earlier. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
