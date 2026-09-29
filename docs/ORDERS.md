@@ -827,8 +827,11 @@ different terrain region) — and it **also relaxes `invalid_loc`**, letting the
 leg cross terrain the unit would otherwise refuse; `8` = a
 `go_around_building` mid-detour point, which **suppresses the collision test
 entirely** (both R2); `0x10` = a block to
-`resolve_block` (a building's tile: own → mark, allied → a diplomacy bit,
-enemy → `add_attack_order`); `0x20` = a caravan road waypoint.
+`resolve_block` (a building's tile: ~~own → mark, allied → a diplomacy bit,
+enemy → `add_attack_order`~~ **an armed walker's tile plan across another
+player's footprint; not at war → `agendas[owner] |= 2`, at war →
+`add_attack_order(QUEUE_FIRST)`, and the own arm dead** — item 1209,
+`docs/GOLDEN.md` §51, run460); `0x20` = a caravan road waypoint.
 
 ### 4.3 Lifecycle
 
@@ -982,7 +985,7 @@ if !(unit_masks & 8):
         if !(top.flags & 1): pop (and flag the next for a turn-in-place if needed); dest = 0; return 1
         pop; flags &= ~1; fallthrough to KILL
     elif r != −1:
-     TAKE: last_x/y = −1; dest = 1; top = peek
+     TAKE: last_x/y = −1; dest = 1; top = peek          // dest_x/y, tolerance: not yet (item 1209)
         if (top.flags & 0x10) and resolve_block(): return 1
         path_recursion = 0; r2 = find_path(top)
         if r2 == 0: masks |= 8  elif r2 == 2: return 1

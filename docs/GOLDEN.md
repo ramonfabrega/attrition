@@ -8870,7 +8870,7 @@ branch that reaches the call:
 | `ObjectData::is_in_range@0064e4a0` | `Unit::do_air_attack_ground+0x92` (`5ea4b2`), `do_attack_ground` twice | **entered and unseen**: the tracer cannot hook it; run372's strike on 2701 fires only past its answer. `RESIDUE` |
 | `MoveOrder::is_fleeing@004889a0` | its two vtordisp thunks, vslot `+0x28` of the move orders | **undispatched**: no instruction calls the slot on an order (`docs/ORDERS.md` §1.3). `RESIDUE` |
 | `UnitBalance::next@009b8ac0` | `Game::check_victory`, `Setup::build_empire`, `TurnControl::toggle_pause` | **the unit-balance mode**: all three sit under semaphore byte 1's bit 2, which `Game::run_unit_balance` alone sets (`GAME_UNIT_BALANCE`, not a match). `RESIDUE` |
-| `Unit::resolve_block@005fccc0` | `Unit::do_move` three times, on a waypoint with flag `0x10` | **a gate's staging**: `PathFinder::astar_path` sets the flag on a passable building tile, a Gate. No wall has been staged; a chapter of its own |
+| `Unit::resolve_block@005fccc0` | `Unit::do_move` three times, on a waypoint with flag `0x10` | ~~**a gate's staging**: `PathFinder::astar_path` sets the flag on a passable building tile, a Gate. No wall has been staged; a chapter of its own~~ **staged** (item 1209, §51): there is no Gate — the flag is an armed walker's tile plan across another player's footprint; run460, a ring of Barracks |
 | `Units::make_valid@0061a960` | `Objects::find_free`'s allocate arms, `SubObject::walk_data`, `ScenarioRead::load_unit_chunk` | **a registry's staging**: `Objects::init` preallocates `num_def_units` = 200 slots a player (`Game::init_data`), so only a player past 200 unit slots reaches it |
 
 **The readings**, each off the listing:
@@ -9096,8 +9096,126 @@ Item 1200's nine, on `f937c042`, the same way:
 - `is_siege`'s second arm, a computer's siege attacker at a City at zero
   (`Army::charge`). The console's `damage` verb would stage it and is not
   modelled.
-- `resolve_block` and `make_valid`, as the table says.
+- ~~`resolve_block` and~~ `make_valid`, as the table says
+  (`resolve_block`: §51).
 - The death-object cull (`docs/COMBAT.md` §59.7), measured here and not
   built; a splash's neutral object (neither allied nor at war), struck
   there and left out here; the escort's non-bomber search; a plane that is
   neither Bomber nor strafer, whose release is `fire_ammo` (`5eb4bc`).
+
+## 51. Chapter forty-two — a ring of who=1's Barracks and four walkers inside it: `Unit::resolve_block` at war, at peace, unarmed and on its own side (item 1209)
+
+**Premise.** Item 1182 named `Unit::resolve_block@005fccc0` from its
+caller, `do_move`, "on a waypoint with flag `0x10`", and read the flag as
+a Gate's (§50's table). **There is no Gate.** No type in the rules is
+one, and the flag is not a type's:
+
+- `astar_path`'s tile grid (`0xc0`) marks a node whose tile is blocked
+  and a building footprint (`& 0x4000`, `& 3 == 3`), and roots the walk
+  at the one nearest the start (`astar_path:620`..`634`); the waypoint
+  carries `0x10` ([`path_flag::BLOCK`]). `calc_cost` prices such a tile
+  4000 (`calc_cost:118`).
+- The search lets a walker onto one only through `invalid_loc`'s
+  `param_5` arm, which the tile grid passes (`astar_path:812`,
+  `valid_tcoord`, `0,1,1,1,0`): a type whose base attack (`+0x1e8`) is
+  not zero, over a tile `is_built_at`, asks
+  `find_any_building_at(t, who)` and refuses (4) **only when the building
+  is its own** (`607fb6`..`60800a`, read off the listing). Another
+  player's footprint, and a tile where nothing is found, are valid. This
+  crate had that arm as a SEAM with the direction written backwards.
+
+`resolve_block` reads the path's top (`5fccc0`..`5fce11`, the listing
+whole): the tile refused plainly (`invalid_loc(t,0,0,0,0,0)`) and passed
+under `param_5` (`…0,0,1,0,0`), the building found, then its owner:
+
+| owner | branch | effect |
+|---|---|---|
+| the walker's own | `5fcd72`..`5fcdb4` | `build_masks \|= 1` on a non-gather type, 0 — **dead**: the second test refuses an own building, and both finds are the same call on the same frame |
+| not at war (`is_enemy` no) | `5fcdc2`..`5fcde8` | `agendas[owner] \|= 2` (`LeaderData +0xb4`, the walker's leader only), 0 |
+| at war | `5fcde9`..`5fce11` | `add_attack_order(it, QUEUE_FIRST, 0, 0)`, 1 |
+
+`do_move` asks it three times (`docs/ORDERS.md` §4.4): on a flagged
+waypoint taken (`005f8844`), on a flagged top at `TAKE`, before
+`dest_x`/`dest_y` are written, and — unflagged — after a near plan whose
+line to the new top fails (`do_move:691`). An own building's arm being
+dead, **`build_masks & 1` has no live writer**, and
+`Leader::check_orphaned_buildings`' disband arm that reads it is dead
+with it (`docs/AI.md` §13, B7-b).
+
+**Which arms a staging reaches.** The enemy arm and the peace arm, and
+the refusals on either side of the armed predicate and the own
+building. Two things decided the cast:
+
+- **From outside a footprint the search never pays to cross.** A walker
+  outside a ring of seven Barracks, its goal in the pocket, runs out
+  the tile grid's 3,200-probe cap (`50 × 64`) exploring the open ground
+  before a 4000 step is cheapest, and a goal on a footprint is pulled
+  out of it by `find_path` (`invalid_loc` without `param_5`). From
+  **inside** the pocket the open list empties in a few dozen probes and
+  the crossing is all that is left.
+- **Water is not a wall** to the golden start's units (auto-transport):
+  a ring closed by the lake was left by boat. The ring is seven
+  Barracks on who=1's open ground, with one single-tile crossing at
+  `1/2007`'s corner (220, 107).
+- The walker's goal is seven tiles out, under the grid draw's 2-cell
+  threshold: a world plan from inside the ring answers −1 and kills the
+  move (the draw's 20 % arm), and an idle armed walker then takes the
+  ring on its own. A Knight, one unit (`UBER_SIZE` 1); Hoplites are
+  squads of three and each draws.
+
+**The cast and the lines** (`chapter42.cmd`), on the golden start:
+- `!ai off`; seven who=1 Barracks `1/2006..1/2012` round the pocket x
+  216..219, y 108..111 (606..612);
+- who=0's Knight `0/6` in the pocket (614), `@move` out to (222, 104)
+  (620);
+- who=0's Scout `0/7`, unarmed, in the pocket (700), the same move (706);
+- `peace 1` (800), and the Knight's move again (810);
+- who=1's Knight `1/6` in the pocket (900), `be 1` / its move (906),
+  `be 0` (907).
+
+The window is `[605, 1160)`, 250 blocks past the last line.
+
+**Run 2026-09-29 as run460 (item 1209)**, click-free lane, `cover=0`,
+180 MB, 507 s. `LEADERS=5` at the end, the lowest level chapter eight
+has shown to print `agendas[scan]`. **No falsifier fired**:
+- block 622: `0/6`'s path is `[(42720, 20064) flags 1, (42360, 20664)
+  flags 16]` and its stack `[ATTACK 1/2007, MOVE]` — the `TAKE` on the
+  flagged corner; on 623 the attack alone, as the collision ladder's
+  `find_new_target` leaves it here;
+- the Scout's and the own Knight's moves die the frame they are taken;
+  neither leaves the pocket;
+- who=0's `agendas[1]` is 2 from block 812 to the end, who=1's row 0.
+
+**run461**, the same lines at `cover=1` on the queue lane to 920, for
+`resolve_block` off `NEVER`.
+
+**Where this crate parted, and what closed it:**
+1. **Built from the reading before the capture**: `invalid_loc`'s armed
+   arm (`crate::path`), `find_any_building_at` and `resolve_block` with
+   `do_move`'s three calls (`crate::orders`), `agendas` on the `Sim`, and
+   the leader diff reading `agendas[scan]` (it left the coverage pin).
+   Chapter eight's compared keys went 99 → 101 a leader, and agree.
+2. **819, a value word on the first take** (sequence to 1160): the peace
+   walk's move `dest_x`/`dest_y` ours (42234, 20790) against (42720,
+   20064), tolerance 96 against 0. `TAKE` wrote the new top into the move
+   before `find_path`; the original writes it only past a verified line
+   (`do_move:694`..`698`), so a near plan whose line fails keeps its old
+   waypoint. Built.
+3. **Closed at 1160**, sequence and values.
+
+**The widening is run460 whole**, both directions, no pool (no
+`GROUPS`, parked 735): 36 rows on the first take, 33 at the close, every
+one a standing family — the birth `form` (parked 1169), the first
+block's `filled_gather_slots`, the human City's census (parked 1183), the
+Knight's attack `order:target` kept on the unit, and chapter eight's
+`treaties[·]` 3 on the first blow (623).
+
+**What is not established.**
+- The own arm and `build_masks & 1`: dead by the listing; no staging can
+  reach them.
+- A walk across a footprint from outside a ring, which the work cap
+  forbids here; a larger pocket or a longer ring might let it through.
+- `resolve_block` on an empty stack, where the original reads the list's
+  stale first slot: no caller here reaches it empty.
+- `agendas`' other bits (`0x40` in run16, the AI's diplomacy): read,
+  compared, and written by nothing here.
