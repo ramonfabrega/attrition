@@ -1418,7 +1418,24 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 17_623;
 /// Guy::inc_time+0x271` where the original spends `Guy::set_anim+0x97a <
 /// Guy::move+0x19f`. Past run425's window (its last block 7633), widened on
 /// run439 (block 8520).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_519;
+///
+/// **8519 → 8820 on item 1191** (`docs/TRANSPORT.md` §6.4): a boat that steps
+/// ashore and dies in its own think still takes its figures' `Guy::move`,
+/// because `Unit::process@00610bc0` runs `Guy::process` after the think and
+/// `Object::die(0)` leaves the guy array alone. The boat `1/56` (carrying
+/// `1/55`) stood on its `des` on the walk with `stopped` set on run439's
+/// block 8519 and is gone on 8520; the original's index 0 on 8519 is its
+/// arrival stand, which ours gave to `1/21`'s wrap. **The move's value diff
+/// (the word's delta, here; its block is
+/// `run439_s_word_frame_is_widened_whole`'s):** on run439's block 8520
+/// `1/21`'s `g.cur_anim[0]` ours 26 against 25 → agreeing and
+/// `g.end_time[0]` 100 against 30 → agreeing; run439's keys went 1243 → 608.
+/// Frame 8519's draws went 2 against 3 → agreeing. **The new word's delta:
+/// ours 2 draws and the original 3 on frame 8820, parting at index 2**: the
+/// original spends a third `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+/// where ours has none. Past run439's window (its last block 8770), widened
+/// on run445 (block 8821).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_820;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1860,6 +1877,11 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_7382: (i64, i64) = (7_377, 7_633);
 /// run425's detail, blocks 8514..8770 — six blocks before the word 8519's
 /// block 8520 and 250 past it.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_8519: (i64, i64) = (8_514, 8_770);
+
+/// **run445's window** (item 1191): the second pair's East Indies at
+/// run439's detail, blocks 8815..9071 — six blocks before the word 8820's
+/// block 8821 and 250 past it.
+pub(crate) const WIDENING_SECOND_EAST_INDIES_8820: (i64, i64) = (8_815, 9_071);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
 /// run346's game, blocks 6567..6610 — the gap 6573..6603 between run419's
@@ -4915,6 +4937,18 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
 /// the casts' other arms.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
 
+/// Chapter forty-one's golden word (item 1182, `docs/GOLDEN.md` §50,
+/// run437): **839**, ours 4 draws against 3 — the Biplane's strafe on
+/// the Hoplites releases on 839 where the original's holds to 858
+/// (`recharging` 31 against 0 on block 840): a non-bomber's release and
+/// its reach, `do_strafe`'s SEAM. Under it the computer's sortie on 778
+/// and the patrol's first strafe from `find_new_air_target` on 826 agree.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 839;
+
+/// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
+/// whole, 605 to its end.
+pub(crate) const WIDENING_CHAPTER_FORTY_ONE: (i64, i64) = (605, 1771);
+
 /// `chapter_forty_s_word_frame_is_widened_whole`'s window: run430 whole,
 /// (605, 1151).
 pub(crate) const WIDENING_CHAPTER_FORTY: (i64, i64) = (605, 1151);
@@ -5407,6 +5441,11 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter forty-one (item 1182): the Biplane's two EXITs from its
+    // Airbase on the computer's sorties, 808 and 1470, each a read of the
+    // ground under the base's point.
+    ("chapter_forty_one_holds_to_the_golden_word", 2),
+    ("chapter_forty_one_s_word_frame_is_widened_whole", 2),
     ("chapter_seventeen_holds_to_the_golden_word", 34),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
@@ -6975,6 +7014,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Item 1182: run437, chapter forty-one, the computer's sortie and the
+    // build-site spill. The widening is run437 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_ONE",
+        GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        Some("chapter_forty_one_s_word_frame_is_widened_whole"),
+        1182,
+        Some(WIDENING_CHAPTER_FORTY_ONE),
+    ),
     // Item 1167: run430, chapter forty, the casts' other arms. The
     // widening is run430 whole.
     (
@@ -7050,13 +7098,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
     // 6609, past that, widened on run420; item 1156 to 6743, inside it;
     // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
-    // inside it; item 1185 to 8519, past it, widened on run439.
+    // inside it; item 1185 to 8519, past it, widened on run439; item 1191
+    // to 8820, past it, widened on run445.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
-        Some("run439_s_word_frame_is_widened_whole"),
-        1185,
-        Some(WIDENING_SECOND_EAST_INDIES_8519),
+        Some("run445_s_word_frame_is_widened_whole"),
+        1191,
+        Some(WIDENING_SECOND_EAST_INDIES_8820),
     ),
     (
         "SECOND_WORD_GREAT_LAKES",

@@ -1744,6 +1744,60 @@ mod tests {
         assert!(f.sim.units[rider].on_map);
     }
 
+    /// **A boat that steps ashore in its own work still takes its figures'
+    /// `Guy::move`** (item 1191, `docs/TRANSPORT.md` §6.4):
+    /// `Unit::process@00610bc0` runs the `+0x188` think and then
+    /// `Guy::process` over the guy array whatever the think did, and the
+    /// boat's `Object::die(0)` → `Unit::close` leaves that array alone. A
+    /// boat standing on its `des` on the walk with `stopped` set pays the
+    /// arrival stand on the frame it dies — East Indies' `1/56` on 8519.
+    ///
+    /// Made to fail by returning from `process_unit` on the dead boat before
+    /// `process_movement`: the figure keeps the walk.
+    #[test]
+    fn a_boat_that_steps_ashore_in_its_own_work_still_pays_its_arrival() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        // A step short of the shore, on the water side of the line.
+        let at = Pos::new(32 * UNITS_PER_TILE + 4, tile_pos(32, 14).y);
+        let boat = unit(&mut f.sim, 1, b, at);
+        f.sim.units[boat].auto_transport = true;
+        f.sim.init_guys(boat, Some(b));
+        f.sim.board(rider, boat);
+        f.sim.add_move_order(
+            boat,
+            tile_pos(30, 14),
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        // The state `1/56` stood in on block 8519: the body on its unit,
+        // facing its waypoint, at its base speed on average, the figure on
+        // the walk with `stopped` set.
+        let bearing = crate::movement::Angle(-1_130_299_392);
+        let u = &mut f.sim.units[boat];
+        u.movement.speed = 25;
+        u.movement.turning.type_turn_speed = i32::MAX;
+        u.movement.facing = bearing;
+        u.movement.heading = bearing;
+        u.movement.body.pos = at;
+        u.movement.body.avg_speed = 25;
+        u.guys[0].anim = crate::anim::WALK;
+        u.guys[0].stopped = true;
+        f.sim.process_unit(boat, 1, &mut Vec::new());
+        assert!(
+            !f.sim.units[boat].alive(),
+            "the boat stepped ashore and died"
+        );
+        assert!(f.sim.units[rider].on_map, "its passenger is out");
+        assert_eq!(
+            f.sim.units[boat].guys[0].anim,
+            crate::anim::DEFAULT,
+            "and its figure took the arrival stand on the way out"
+        );
+    }
+
     /// §6.4 whole: the passenger comes out on `come_out`'s **host** ring —
     /// the boat's `block_radius` out to `+ UNIT_DISEMBARK_DISTANCE`, swept
     /// from the boat's own angle — keeps its speed, throws the scout arm's

@@ -9173,3 +9173,37 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   run425 window blocks: 257 (7377..7633)
 #   receipt: map_style 18, seed 12345, success true, settings restored
 # ==== TAKEN 2026-09-29, one take, 09:17–09:39 ====
+
+run: 438
+tag: ch41-cover
+item: 1182
+why: the blind list for chapter forty-one — chapter41.cmd at cover=1 on the queue lane (golden run437, cover=0 on the click-free lane), to take UnitData::get_speed@006086f0 (the computer's sortie, 778) and ObjectData::is_siege@0046ef90 (the trireme's spill onto the repairing Citizen, from 1128) off
+# `~/ron-golden/ch41/map-14/rontrace.cmd` line for line to 1140, as run431
+# is run430's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+# `cover=1`, ending twelve frames past the first spill on 1128. `be` is a
+# chat command the DLL hands to parse_cmd; no new verb.
+frames: 1140
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 606 add airbase who=1 212,104
+cmd: 608 add biplane who=1 212,118
+cmd: 610 add barracks who=1 190,82
+cmd: 612 add citizen who=1 198,82
+cmd: 614 add trireme who=0 181,82
+cmd: 616 add hoplite who=0 204,88
+cmd: 620 be 1
+cmd: 620 @flight 1 2006 1 6
+cmd: 621 be 0
+cmd: 630 @attack 0 2007 1 6
+cmd: 700 @attack 0 2002 1 7
+cmd: 900 be 1
+cmd: 900 @repair 1 2007 1 7
+cmd: 901 be 0
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch41/map-14/rontrace.log" rontrace-run438.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch41/map-14/rontrace.log" rontrace-run438.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=1140)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run438.log" functions 2>/dev/null | grep -E "^006086f0 |^0046ef90 " | tee /dev/stderr | awk 'END{exit !(NR==2)}'

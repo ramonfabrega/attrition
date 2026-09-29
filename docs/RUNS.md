@@ -11140,6 +11140,73 @@ walked from run383's start with run381's head. Block 15581 stands on 159
 keys, and the word's block 15587 parts on `1/29`'s figure clock, after its
 head order parted on 15585 (`docs/AI.md` §97.5). The compared pin and the
 coverage driver walk 15585..15589.
+## run436 — chapter forty-one's first take: `be 0` on the issuing frame (2026-09-29, item 1182)
+
+`docs/GOLDEN.md` §50. The chapter's first script:
+- who=1's Airbase, Biplane, Barracks and Citizen;
+- who=0's trireme, Hoplites and a Catapult;
+- `be 1` / `@flight 1 2006 1 6` / `be 0`, all on 620;
+- the trireme's and the Catapult's `@attack` on the Barracks;
+- `be 1` / `@repair 1 2007 1 7` / `be 0` on 720.
+
+It ran on the click-free lane at `cover=0`, `--end-frame 1600`, with
+`GROUPS=1` in its `end:` detail. It took 1,601 frames and wrote 286 MB of
+dump and 11 MB of trace. The verifier then refused the take, because
+`GROUPS` was asked for and no `GROUPDATA` block printed (parked 735). The
+dump and the trace are whole, and they are kept at
+`~/ron-golden/ch41-run436`.
+
+**What it holds.** The DLL issued both who=1 commands with no refusal,
+and the dump logs `process_flight 621` and `process_swarm_around 2007 1 2
+13 721`. Yet the Biplane holds no order on any block to 1600, and the
+Citizen never takes the repair. `CommandManager::process_turn` stamps the
+package with `console->play` as the pump walks it, and by then `be 0` has
+put the seat back. `CommandPackage::process_group` then drops a group
+that is not that player's. This is what
+`run436_s_other_seat_s_commands_are_dropped_at_the_pump` (`diff::golden`)
+walks, with run436's own lines.
+
+## run437 — chapter forty-one, CENSUS row 7's last seven (2026-09-29, item 1182)
+
+`docs/GOLDEN.md` §50, `tools/gamelog/golden/chapter41.cmd`: run436's cast
+without the Catapult. `be 0` comes a frame after each who=1 command (621,
+901), and the repair is at 900.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch41 \
+    --map 14 --end-frame 1770 --log-window 605 1770 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter41.cmd
+```
+
+13:42–13:57, 888 s from launch to exit, `success: true`, 1,771 frames,
+321 MB. It waited fifteen minutes for the lane, which another lane's
+run442 held from 13:22 to 13:42.
+
+**What the disk could not answer.** No capture on this disk sends a
+computer's plane on a sortie, or strikes a building while an enemy of
+the attacker repairs it. `get_speed` and `is_siege` are `NEVER` rows.
+
+**What it holds**:
+- `chapter_forty_one_holds_to_the_golden_word` (839);
+- `chapter_forty_one_s_word_frame_is_widened_whole` (513 rows);
+- the coverage driver's windows (`diff::coverage`).
+
+## run438 — chapter forty-one at `cover=1`, to 1140 (2026-09-29, item 1182)
+
+run437's script line for line on the queue lane, `cover=1`, to 1140
+(`tools/gamelog/captures.txt`, `run: 438`), 14:06–14:16. `be` is a chat
+command the DLL hands to `parse_cmd`, so the DLL needed no rebuild.
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run437 | every record as in the golden run, none refused |
+| `rngcmp.py` vs run437 | 1,141 frames identical, none differing |
+| `report.py … functions` | `ObjectData::is_siege` f1088, `UnitData::get_speed` f778 |
+
+The two leave `NEVER`: 138 → 136 (`crates/rondata/src/blind.rs`).
 ## run439 — run346's game at run425's detail over blocks 8514..8770: the second pair's East Indies word 8519 widened (2026-09-29, item 1185)
 
 **What it is.** run425's shape on the click-free lane: run346's lobby,
@@ -11222,6 +11289,45 @@ make list on 15982, and the word's block 15983 on who=1's new site
 pin and the coverage driver walk 15981..15985.
 
 
+## run445 — run346's game at run439's detail over blocks 8815..9071: the second pair's East Indies word 8820 widened (2026-09-29, item 1191)
+
+**What it is.** run439's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 8815..9071, `!quit` at 9085. The word's frame 8820 writes block
+8821: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run445 \
+    --map 18 --end-frame 9085 --timeout 4800 --log-window 8815 9072 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run439 ends at block
+8770; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 14:16–14:44 in one take. The first launch, at 14:10, was refused:
+item 1182's chapter capture held the game from 14:05:57, and mine queued
+behind it for **6 minutes**. It was waited on with `waitrun.sh`:
+`success: true`, exit 0, 1,598 s from launch to exit, 9,086 frames, map 18
+and seed 12345 verified, five files restored. The dump (612.5 MB) and the
+trace (88.1 MB) were moved into `Logs` as
+`gamelog-run445-islands-toughest-8820.txt` and `rontrace-run445.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 9,086 identical |
+| window blocks | 257, 8815..9071, and the closing block 9086 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run445_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 8815 stands on 504 keys, from the gap
+8771..8814; nothing new parts through the word's block 8821, and the first
+new parting is on 8823. The original wraps `1/68`, `1/7`, `1/70` and `1/8`
+on 8820, and `1/68`'s and `1/70`'s figure clocks are among the standing
+keys. The window parts on 1,176 keys. The coverage driver and the compared
+pin walk 8820..8823.
 ## run442 — run383's game at run414's detail over blocks 16676..16932: Great Sahara's long word 16681 widened (2026-09-29, item 1189)
 
 **What it is.** run428's shape on the click-free lane: `--map 7`,

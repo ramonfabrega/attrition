@@ -619,6 +619,13 @@ either `set_new_location`, so the passenger lands at the average the ride
 froze, and its first turns ashore are `turn_speed`'s divided ones
 (`docs/AI.md` §95 has run420's measurement).
 
+**And the boat's figures move on the frame it dies** (item 1191).
+`Object::die(boat, 0)` → `Unit::close` → `Object::close` writes neither the
+guy array nor its counts, and `Unit::process@00610bc0` runs `Guy::process`
+right after the think it died in: a boat standing on its `des` on the walk
+with `stopped` set pays the arrival stand on its last frame — a draw no dump
+shows. East Indies' `1/56` on 8519 (the journal, item 1191).
+
 `crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
 own order. What is **not** established: step 5's `is(0x45)` clause and the
 `leader_options` bit (the crate's `auto_transport` is never cleared by

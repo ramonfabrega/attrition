@@ -88,6 +88,9 @@ pub enum Cheat {
         good: Option<usize>,
         amount: i32,
     },
+    /// `be [who]`, chat table case 43: the console's seat, which
+    /// [`Script`] carries ([`Script::apply`] acts on it; item 1182).
+    Be(Option<i32>),
     /// A line the channel has and this interpreter does not model, or one
     /// whose arguments did not parse. The string is the command word.
     Unmapped(String),
@@ -141,6 +144,14 @@ pub struct Script {
     /// Issuer lines run on an earlier frame, each with the frame whose
     /// tick first sees its command (see [`Script::apply`]).
     pending: Vec<(i64, Staged)>,
+    /// **The console's seat**, `MiscAccess::console->who` and `->play`,
+    /// which `be` moves (item 1182). The DLL refuses an issuer line whose
+    /// player is not `console->play` (`tracer.c`, its refusal 1), and the
+    /// pump drops one whose player is not the seat's when it walks the
+    /// package ([`Script::pump`]), so a command to another player's units
+    /// is staged as `be N` and the `@` line on one frame and `be 0` on the
+    /// next.
+    seat: i32,
 }
 
 impl Script {
@@ -178,6 +189,7 @@ impl Script {
             lines,
             next: 0,
             pending: Vec::new(),
+            seat: CONSOLE_WHO,
         }
     }
 
@@ -268,6 +280,16 @@ impl Script {
         for (f, line) in due {
             if f < frame {
                 done.skip(&command_word(&line.text), "the frame was stepped past");
+            } else if issued_who(&line.text).is_some_and(|w| w != self.seat) {
+                // `CommandManager::process_turn@0093ef10:154` stamps the
+                // package with `console->play` as the pump walks it, and
+                // `CommandPackage::process_group@0094a0c0:117` drops a
+                // group whose player is not that player's: run436's
+                // `be 0` on the issuing frame (item 1182).
+                done.skip(
+                    &command_word(&line.text),
+                    "not the seat at the pump (process_group)",
+                );
             } else {
                 issue(&line, built, &mut done);
             }
@@ -316,13 +338,67 @@ impl Script {
             let line = self.lines[self.next].clone();
             self.next += 1;
             if line.text.starts_with('@') {
+                // The DLL's refusal 1: the line's player is not the
+                // console's (`console->play`), and nothing is issued.
+                if issued_who(&line.text).is_some_and(|w| w != self.seat) {
+                    done.skip(
+                        &command_word(&line.text),
+                        "not the console's seat (refusal 1)",
+                    );
+                    continue;
+                }
                 self.pending.push((frame + 1, line));
+                continue;
+            }
+            if command_word(&line.text) == "be" {
+                self.be(&line, built, &mut done);
+                continue;
+            }
+            // Every other cheat reads `console->who` for its default
+            // player, and this interpreter's defaults are player 0's.
+            if self.seat != CONSOLE_WHO {
+                done.skip(&command_word(&line.text), "a cheat under another seat");
                 continue;
             }
             run(&line, built, loaded, &mut done);
         }
         done
     }
+}
+
+impl Script {
+    /// **`be [who]`**, chat table case 43 (`ConsoleWin::run_cmd@007d6a70`,
+    /// the arm that writes `console->who` and `console->play`): the
+    /// argument is `parse_who(·, console->who)`, so a bare number is a
+    /// player; a live leader other than the seat takes it, and `play` is
+    /// `LeaderData::get_player`, that leader's slot. The rest of the arm is
+    /// the interface's — the selection cleared, the camera, the fog's
+    /// redraw bit — and reaches no field a walk compares. A bare `be`
+    /// prints the leaders and changes nothing.
+    fn be(&mut self, line: &Staged, built: &Built, done: &mut Applied) {
+        if line.console {
+            done.skip("be", "the wrong half of run_cmd's two switches");
+            return;
+        }
+        let who = line
+            .text
+            .split_whitespace()
+            .nth(1)
+            .and_then(|t| parse_who(t, true));
+        match who {
+            Some(w) if (w as usize) < built.sim.players.len() => {
+                self.seat = w;
+                done.ran += 1;
+            }
+            _ => done.skip("be", "no live leader named"),
+        }
+    }
+}
+
+/// The player an issuer line names, its first argument (`tracer.c`'s
+/// `issue_int(&t, &who)`).
+fn issued_who(text: &str) -> Option<i32> {
+    text.split_whitespace().nth(1)?.parse().ok()
 }
 
 /// An issuer line, parsed the way `tools/trace/tracer.c`'s `issue_line`
@@ -1343,6 +1419,7 @@ fn parse(text: &str) -> Cheat {
             }
         }
         "bird" => Cheat::Bird,
+        "be" => Cheat::Be(rest.first().and_then(|t| parse_who(t, true))),
         "resource" => {
             // The token walk is `run_cmd`'s (`7dd73f`..`7dd7e8`): an optional
             // `parse_who(·, −1)`, so only `who=`; then the good by
@@ -1514,6 +1591,9 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
             }
         }
         Cheat::Add { num, name, who, at } => add(&word, num, &name, who, at, built, loaded, done),
+        // `Script::apply` takes `be` before `run` is reached: the seat is
+        // the script's, not the simulation's.
+        Cheat::Be(_) => done.skip(&word, "the seat is the script's (Script::apply)"),
         Cheat::Bird => {
             // `run_cmd` case `0x52`: `Objects::init_unit(objects, 9,
             // BASE_GAIATYPES, x, y, −1, −1, −1)` on the raw cursor — no
@@ -1817,6 +1897,12 @@ mod tests {
         // `@build` and `@gather`, and `@alarm` twice over a garrisoned
         // Militia — the casts' other arms (item 1167, `docs/GOLDEN.md` §49).
         ("chapter40.cmd", &[]),
+        // Chapter forty-one: a computer's Airbase and Biplane flown home
+        // through `be 1` and the pump, its sortie over its City under
+        // attack, and a trireme's hits on a Barracks spilling onto the
+        // Citizen repairing it — CENSUS row 7's last seven (item 1182,
+        // `docs/GOLDEN.md` §50).
+        ("chapter41.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

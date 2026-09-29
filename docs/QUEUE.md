@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, fifteen landings since the nineteenth pass (DECISIONS 55):
-East Indies 6151 → 8519 (1127, 1143, 1156, 1164, 1174, 1185); Great
-Sahara 6/5 → 1850/1850, long word 8 → 16681 (1133, 1147, 1163, 1171,
-1177, 1189); chapters thirty-eight to forty closed (1131, 1111, 1167).*
+*2026-09-29, seventeen landings since the nineteenth pass: East Indies
+6151 → 8820 (1127, 1143, 1156, 1164, 1174, 1185, 1191); Great Sahara
+6/5 → 1850/1850, long word 8 → 16681 (1133, 1147, 1163, 1171, 1177,
+1189); chapters thirty-eight to forty closed, forty-one open at 839.*
 
 - **Three lanes, on the user's word** (DECISIONS 55, amended): the
-  second pair's — 1191, East Indies' 8519; **the third map's** — 1194,
-  Great Sahara's frame 16681; the rules' — 1182, chapter forty-one.
+  second pair's — 1197, East Indies' 8820; **the third map's** — 1194,
+  Great Sahara's frame 16681; the rules' — 1200, chapter forty-one's 839.
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
@@ -31,17 +31,17 @@ Sahara 6/5 → 1850/1850, long word 8 → 16681 (1133, 1147, 1163, 1171,
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 26 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193).
+- **Fable backlog: 28 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139, 1140, 1141, 1142, 1146, 1150, 1151, 1155, 1159, 1161, 1162, 1166, 1170, 1173, 1176, 1180, 1181, 1187, 1188, 1193, 1199, 1205).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w8519 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w8820 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w16681 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · 1182 next
+Golden: ch41 w839 of 1,771 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander resumes on three live lanes, `att-<item>` —
-1191, 1194 and 1182; the twentieth pass at twenty landings, five to go.**
+1197, 1194 and 1200; the twentieth pass at twenty landings, three to go.**
 
 ## The queue
 
@@ -59,20 +59,20 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     food parts (146 against 166), and on 16682 `1/28`'s order (10
     against 19). No mechanism is named.
 
-1191. **East Indies' second word: frame 8519, ours 2 draws against 3**
-    (1185), at index 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    theirs `Guy::set_anim+0x97a < Guy::move+0x19f`, widened on run439
-    (block 8520), where `1/21`'s `g.cur_anim[0]` and `g.end_time[0]`
-    part, after `1/69`'s and `1/68`'s move `dest` on 8516 and 8519; block
-    8514 stands on 481 keys from the gap. No mechanism is named.
+1197. **East Indies' second word: frame 8820, ours 2 draws against 3**
+    (1191), at index 2: theirs a third `Guy::set_anim+0x97a <
+    Guy::inc_time+0x271 < Unit::inc_time+0x3e`, ours none, widened on
+    run445 (block 8821, quiet beyond the standing keys through 8822);
+    block 8815 stands on 504 keys, among them the figure clocks of `1/68`
+    and `1/70`, two of the four figures the original wraps on 8820. No
+    mechanism is named.
 
-1182. **Chapter forty-one: CENSUS row 7's last seven — no capture yet**
-    (1167 closed forty at 1150). `UnitData::get_speed`, `Object::do_launch`'s
-    sortie arm, unread; `is_siege`, a sea responder and a computer's
-    siege charge; `is_in_range`, unhookable; and four the row never
-    named, to be named off `NEVER` first. Which of them a staging can
-    reach is the item's first finding. The emulator first; **run436**
-    the capture, run437 at `cover=1`. GOLDEN §50.
+1200. **Chapter forty-one's word: frame 839, ours 4 draws against 3**
+    (1182), the Biplane's strafe release on who=0's Hoplites 19 frames
+    early here, through `do_strafe`'s non-bomber arm — its reach and
+    `fire_ammo` — widened whole on run437 (605..1771,
+    `chapter_forty_one_s_word_frame_is_widened_whole`). That arm is
+    1182's reading, not a mechanism. GOLDEN §50.
 
 ## How to maintain this file
 

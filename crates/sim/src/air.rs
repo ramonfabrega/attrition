@@ -835,8 +835,8 @@ impl Sim {
     ///   standing on the waypoint's own tile that this player has ever
     ///   seen is pushed the same way with `mandatory 1`.
     ///
-    /// SEAM: a non-bomber's `find_new_air_target` (a Fighter's patrol),
-    /// the `semaphore & 2` fallback between the two searches, a
+    /// SEAM: the `semaphore & 2` fallback between the two searches (the
+    /// unit-balance mode's), a
     /// `FIGHTERBOMBER`'s carrier-relative point, and a patrol going home.
     pub(crate) fn do_air_patrol(&mut self, u: usize, frame: i64) {
         let Some(crate::orders::Body::AirPatrol(mut p)) = self.current_order(u).map(|o| o.body)
@@ -874,16 +874,23 @@ impl Sim {
             }
         }
         let phase = i64::from(self.units[u].index) + frame;
-        if phase & 15 == 0 && self.is_bomber(u) {
+        if phase & 15 == 0 {
             let me = crate::combat::Obj::Unit(u);
             // The search is round the **last** point (`x_pos[length − 1]`),
-            // and a building it finds is struck only from the last leg
-            // (`waypoint == length − 1`); an air target from any.
-            if let Some(t) = self
-                .find_new_bomber_target(u, p.last())
-                .filter(|&t| self.valid_target(me, t))
-                .filter(|_| p.waypoint + 1 == usize::from(p.len))
-            {
+            // and a target it finds is struck from the last leg (`waypoint
+            // == length − 1`), or from any when it flies (`5ea8f4`: the
+            // target's type `domain == 2`). A Bomber asks
+            // `find_new_bomber_target`, anything else `find_new_air_target`
+            // (item 1182: `is(BOMBER)` at `5ea86a`).
+            let found = if self.is_bomber(u) {
+                self.find_new_bomber_target(u, p.last())
+            } else {
+                self.find_new_air_target(u, p.last())
+            };
+            if let Some(t) = found.filter(|&t| self.valid_target(me, t)).filter(|&t| {
+                p.waypoint + 1 == usize::from(p.len)
+                    || matches!(self.profile(t).domain, crate::attrition::Domain::Air)
+            }) {
                 self.add_strafe_order(
                     u,
                     Some(t),
@@ -955,6 +962,98 @@ impl Sim {
                 && self.is_enemy(who, bd.owner)
                 && self.covers_tile(b, tile)
         })
+    }
+
+    /// **`Unit::find_new_air_target(x, y, −1, −1)@005ebc70`** (item 1182,
+    /// `docs/GOLDEN.md` §50), the arm a non-bomber's patrol search takes,
+    /// off the listing (`5ebc70`..`5ebfd6`). `r` is
+    /// `AIRCRAFT_RESPOND_RANGE · 0xc0`; best starts at −1 and a strictly
+    /// greater `compare_target(t, 1, 0)` replaces it, in
+    /// `Objects::find_units`' order:
+    ///
+    /// ```text
+    /// a computer's plane (unit_masks & 0x40000) searches round itself
+    /// find_units(me, SEARCH_ENEMY, r, FILTER_DOMAIN air): each valid
+    ///   target within r of the plane; one found is the answer
+    /// the plane more than AIRCRAFT_RESPOND_RANGE · 0x3c0 from the point: none
+    /// find_units(point, SEARCH_ENEMY, r, FILTER_ALL): each valid target
+    ///   within r of the point
+    /// ```
+    ///
+    /// SEAM: the `param_3 ≥ 0` arm between them (a search round a current
+    /// target), which the patrol never asks.
+    pub(crate) fn find_new_air_target(&self, u: usize, at: Pos) -> Option<crate::combat::Obj> {
+        let r = self.tuning.aircraft_respond_range * 0xc0;
+        let me = self.units[u].pos;
+        let who = self.units[u].owner;
+        let at = if self.ai_driven(who) { me } else { at };
+        let plane = crate::combat::Obj::Unit(u);
+        let mut best: Option<(i32, crate::combat::Obj)> = None;
+        let take = |s: &Self, o: usize, from: Pos, best: &mut Option<(i32, crate::combat::Obj)>| {
+            let t = crate::combat::Obj::Unit(o);
+            if !s.valid_target(plane, t) {
+                return;
+            }
+            let p = s.units[o].pos;
+            if vector_dist(p.x - from.x, p.y - from.y) > r {
+                return;
+            }
+            let v = s.compare_target(plane, t, true, false);
+            if v > best.map_or(-1, |(w, _)| w) {
+                *best = Some((v, t));
+            }
+        };
+        for o in self.find_units_round(me, r, who) {
+            if matches!(
+                self.profile(crate::combat::Obj::Unit(o)).domain,
+                crate::attrition::Domain::Air
+            ) {
+                take(self, o, me, &mut best);
+            }
+        }
+        if let Some((_, t)) = best {
+            return Some(t);
+        }
+        let range = self.tuning.aircraft_respond_range;
+        if vector_dist(at.x - me.x, at.y - me.y) > range * 0x3c0 {
+            return None;
+        }
+        for o in self.find_units_round(at, r, who) {
+            take(self, o, at, &mut best);
+        }
+        best.map(|(_, t)| t)
+    }
+
+    /// `Objects::find_units@0065a620(at, SEARCH_ENEMY, who, range, …)`'s
+    /// walk: the cell circle to ring `(range + 0x2ff) / 0x300` round the
+    /// point's cell, each cell's chain in order, when that ring holds no
+    /// more points than there are units; the unit list otherwise. Units
+    /// alive, on the map, and an enemy of `who`'s.
+    fn find_units_round(&self, at: Pos, range: i32, who: crate::Player) -> Vec<usize> {
+        let circle = crate::ai_place::circle();
+        let ring = ((range.max(0) + 0x2ff) / 0x300).min(0x40) as usize;
+        let live = self.units.iter().filter(|x| x.alive()).count();
+        let mut out = Vec::new();
+        let keep = |o: usize, out: &mut Vec<usize>| {
+            let x = &self.units[o];
+            if x.alive() && x.on_map && self.is_enemy(x.owner, who) {
+                out.push(o);
+            }
+        };
+        if circle.radius[ring] <= live {
+            let c0 = at.cell();
+            for i in 0..circle.radius[ring] {
+                let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
+                for o in self.cell_chain(c) {
+                    keep(o, &mut out);
+                }
+            }
+        } else {
+            for o in 0..self.units.len() {
+                keep(o, &mut out);
+            }
+        }
+        out
     }
 
     /// **`Unit::find_new_bomber_target(x, y, −1, …)@005eb960`**
@@ -1234,6 +1333,128 @@ impl Sim {
                 }
             }
         }
+        self.computer_sortie(b);
+    }
+
+    /// **The computer's sortie** (`Object::do_launch@0064f3b0`, `64f81c`..
+    /// `6508a7`, item 1182, `docs/GOLDEN.md` §50): past the chain walk, on
+    /// every call that reached it, for a base whose owner is not human.
+    ///
+    /// ```text
+    /// (frame + base id) % 32 == 0, and not leader_flags2 & 8
+    /// a base that is(MISSILESILO): the silo's arm (SEAM, below)
+    /// else, over the eight leaders L with leader_flags & 3 == 3 that the
+    ///   owner is not at peace with, best = -1, strictly greater replaces:
+    ///   L's cities with city_flags & 3 == 3 (alive and under attack):
+    ///     skipped when the owner lacks STEALTHBOMBER and an AIRDEFENSE of
+    ///     an enemy's stands within 0x900 (find_building, SEARCH_ENEMY);
+    ///     (damage / 100 + 1000), doubled when L is_ally the owner,
+    ///     / (vector_dist(city building - base) / 768 + 1)
+    ///   and, when L is an enemy, its forts and its wonders (SEAM, below)
+    /// a target: each unit of the base's chain whose type is of the air
+    ///   domain is cleared (Unit::clear_orders), and when
+    ///   vector_dist(target - base) < get_speed(it, 1) * mana(it)
+    ///   (UnitData::get_speed@006086f0, the vslot 0x17c at its point) and,
+    ///   for a friend's city, it is(BIPLANE), it takes
+    ///   add_air_patrol_order(target, the base, action 0)
+    /// ```
+    ///
+    /// SEAM: `leader_flags2 & 8`, the combat AI's scenario switch, which
+    /// no staging sets; the silo's arm (`64fdcd`: every 128 frames, a
+    /// strike from the missile at the chain's head, with a draw); the
+    /// forts' and wonders' loops (`64fa71`..`64fda4`), which this crate
+    /// keeps no list for; the AIRDEFENSE search's radius, read as twelve
+    /// tiles from `find_building`'s tile arithmetic and not run.
+    fn computer_sortie(&mut self, b: usize) {
+        let owner = self.buildings[b].owner;
+        if self.nation.get(owner as usize).is_none_or(|n| n.human) {
+            return;
+        }
+        let id = i64::from(self.buildings[b].index);
+        if (self.frame + id) % 32 != 0 {
+            return;
+        }
+        if self.building_ident(b) == crate::build::Ident::MissileSilo {
+            return;
+        }
+        let base = self.buildings[b].pos;
+        // A tree that does not carry the tech (the harness's small
+        // fixtures) answers no.
+        let stealth = STEALTHBOMBER < self.tech_tree.types.len()
+            && self
+                .tech
+                .get(owner as usize)
+                .is_some_and(|p| self.tech_tree.has_tech(&self.setup, p, STEALTHBOMBER));
+        let mut best = -1;
+        let mut target: Option<(crate::Player, usize)> = None;
+        for l in 0..self.players.len() as crate::Player {
+            if self.defeated[l as usize] || self.is_peace(owner, l) {
+                continue;
+            }
+            for c in 0..self.cities.len() {
+                let city = &self.cities[c];
+                if city.owner != l || !city.alive || !city.no_heal {
+                    continue;
+                }
+                let cb = city.building;
+                if !stealth && self.enemy_air_defense_near(owner, self.buildings[cb].pos) {
+                    continue;
+                }
+                let bd = &self.buildings[cb];
+                let mut v = (bd.hits - bd.health) / 100 + 1000;
+                if self.is_ally(l, owner) {
+                    v *= 2;
+                }
+                let p = bd.pos;
+                v /= vector_dist(p.x - base.x, p.y - base.y) / 768 + 1;
+                if v > best {
+                    best = v;
+                    target = Some((l, cb));
+                }
+            }
+        }
+        let Some((l, t)) = target else {
+            return;
+        };
+        let at = self.buildings[t].pos;
+        let d = vector_dist(at.x - base.x, at.y - base.y);
+        for u in self.buildings[b].garrison.clone() {
+            if self.unit_domain_of(u) != crate::attrition::Domain::Air {
+                continue;
+            }
+            self.clear_orders(u);
+            if d >= self.get_speed(u, 1) * self.unit_mana(u) {
+                continue;
+            }
+            if self.is_ally(l, owner) && !self.air_line_is(u, crate::airbase::BIPLANE) {
+                continue;
+            }
+            self.add_air_patrol_order(u, at, Some(b), false);
+        }
+    }
+
+    /// `LeaderData::is_peace@006e1200`: two players, a treaty each way,
+    /// and not an alliance both ways.
+    pub(crate) fn is_peace(&self, a: crate::Player, b: crate::Player) -> bool {
+        a != b && !self.is_enemy(a, b) && !self.is_ally(a, b)
+    }
+
+    /// `ObjectsData::find_building(x, y, SEARCH_ENEMY, who, 0x900, 0,
+    /// FILTER_TYPE, AIRDEFENSE, 0)@0065d260 >= 0`, as the sortie asks it:
+    /// a live building of the AIRDEFENSE line whose owner is an enemy of
+    /// `who`'s, within twelve tiles. SEAM: the radius's unit, read and not
+    /// run (no staging has put one beside a city).
+    fn enemy_air_defense_near(&self, who: crate::Player, at: Pos) -> bool {
+        let a = at.tile();
+        self.buildings.iter().enumerate().any(|(x, bd)| {
+            bd.alive
+                && self.is_enemy(bd.owner, who)
+                && self.building_ident(x) == crate::build::Ident::AirDefense
+                && {
+                    let p = bd.pos.tile();
+                    vector_dist(p.x - a.x, p.y - a.y) <= 0x900 / 0xc0
+                }
+        })
     }
 
     /// **`Build::do_missile_launch@00622670`** (item 1050): at a building
@@ -2304,6 +2525,74 @@ mod launch_tests {
         }
     }
 
+    /// **A computer's base sends its plane over a city under attack**
+    /// (`Object::do_launch@0064f3b0`'s sortie, item 1182, `docs/GOLDEN.md`
+    /// §50): on `(frame + id) % 32 == 0` a plane inside a computer's base
+    /// is cleared and patrolled over an enemy city with `city_flags & 3 ==
+    /// 3`; nothing for a human's base, off the cadence, or over a city not
+    /// under attack. run437's Biplane on 778. Made to fail with the city's
+    /// attack bit not read, and with the owner's human bit not read.
+    #[test]
+    fn a_computer_s_base_sends_its_plane_over_a_city_under_attack() {
+        for (human, under_attack, on_cadence, sorties) in [
+            (false, true, true, true),
+            (true, true, true, false),
+            (false, false, true, false),
+            (false, true, false, false),
+        ] {
+            let mut s = sim();
+            s.nation[0].human = human;
+            let (base, target) = base_and_target(&mut s);
+            let u = fighter_inside(&mut s, base, 400);
+            s.units[u].orders.clear();
+            let pos = s.buildings[target].pos;
+            s.cities.push(crate::city::City {
+                alive: true,
+                owner: 1,
+                race: Some(1),
+                founder: 1,
+                building: target,
+                members: Vec::new(),
+                reg: None,
+                pos,
+                capital: true,
+                founding_capital: true,
+                was_founding_capital: false,
+                unassimilated: false,
+                no_heal: under_attack,
+                attacking: under_attack,
+                ever_attacked: under_attack,
+                alarm: false,
+                no_muster: false,
+                was_capital: 0,
+                capture_stamp: 0,
+                assimilation_timer: 0,
+                attack_stamp: 0,
+                capture_strength: 0,
+                pop: 1,
+                has_citizen: false,
+                source: None,
+                trade_val: 0,
+                traded_with: [0; 8],
+            });
+            let id = i64::from(s.buildings[base].index);
+            s.frame = 32 * 30 - id + if on_cadence { 0 } else { 1 };
+            s.do_launch(base);
+            let patrol = s.units[u].orders.front().and_then(|o| match o.body {
+                crate::orders::Body::AirPatrol(p) => Some(p.current()),
+                _ => None,
+            });
+            if sorties {
+                assert_eq!(patrol, Some(pos), "no sortie over the city");
+            } else {
+                assert_eq!(
+                    patrol, None,
+                    "human {human}, attacked {under_attack}: a sortie"
+                );
+            }
+        }
+    }
+
     /// **`do_launch` keeps an unflagged order only under a repeating
     /// base** (`Object::do_launch@0064f3b0`, `has_repeat_air() || flags &
     /// 4`; `docs/GOLDEN.md` §32): at a full tank the kept patrol is
@@ -2917,6 +3206,9 @@ pub const OBSERVATIONPOST: i32 = 0x20a;
 /// `unit_graphics.xml` — rather than `init_build_data`, so their packet
 /// has the unit's slots (§84.2).
 pub const AIRDEFENSE: i32 = 0x20b;
+/// `TypeIndex` `STEALTHBOMBER` (`0x132`): the tech that lets the
+/// computer's sortie ([`Sim::computer_sortie`]) over an air defense.
+pub const STEALTHBOMBER: crate::tech::TypeId = 0x132;
 pub const RADAR: i32 = 0x20c;
 pub const SAM: i32 = 0x20d;
 
