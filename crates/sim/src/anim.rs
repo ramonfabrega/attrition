@@ -2297,10 +2297,17 @@ impl Sim {
         for g in 1..self.units[u].guys.len() {
             let piece = self.units[u].guys[g].gpiece;
             let track = self.art.tracks.get(&piece).copied();
+            // `Guy::set_new_location@005d86f0` writes the guy's `x`/`y` and
+            // `last_*`, never its `last_speed`/`avg_speed` (`+0x80`/`+0x84`):
+            // a guy seated again keeps what it had (item 1164).
+            let had = self.units[u].guys[g].follow.map(|f| f.body);
             let follow = track.map(|track| {
                 let des = crate::movement::follower_des(pos, facing, track, bound);
                 Follow {
-                    body: crate::movement::Body::at(des),
+                    body: crate::movement::Body {
+                        pos: des,
+                        ..had.unwrap_or(crate::movement::Body::at(des))
+                    },
                     des,
                     facing,
                     des_angle: facing,

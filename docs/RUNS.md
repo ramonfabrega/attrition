@@ -10974,6 +10974,42 @@ from run346's start. On block 6577 the original's `1/28` holds `orders_x/y`
 to (28920,25080), and since item 1156 it agrees (`docs/AI.md` §93,
 `docs/SCOUT.md` §8.1).
 
+## run425 — run346's game at run420's detail over blocks 7377..7633: the second pair's East Indies word 7382 widened (2026-09-29, item 1164)
+
+**What it is.** run420's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 7377..7633, `!quit` at 7647. The word's frame 7382 writes block
+7383: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run425 \
+    --map 18 --end-frame 7647 --timeout 4000 --log-window 7377 7634 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run420 ends at block
+6860; no dump of run346's game prints the word's blocks at detail.
+
+**Taken** 09:17–09:39 in one take, the lane lock stale (its holders
+exited). It was waited on with `waitrun.sh`: `success: true`, exit 0,
+1,270 s from launch to exit. The dump (589.6 MB) and the trace (69.9 MB)
+were moved into `Logs` as `gamelog-run425-islands-toughest-7382.txt` and
+`rontrace-run425.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 7,648 identical |
+| window blocks | 257, 7377..7633 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+| `GAME INFO` | `DIFFICULTY 5`, `MAP_STYLE 18` |
+
+**What it holds**: `run425_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 7377 stands on 238 keys, from the gap
+6861..7376. Player 1's make list parts first: `MAKE[].val` on 7379 (slot 0
+ours 1800000 against 4194000), its `city` on 7381, and on the word's block
+7383 its buckets and `1/12`'s order. The window parts on 1,182 keys. The
+coverage driver drives 7382..7385.
 ## run418 — run383's game at run414's detail over blocks 14582..14838: Great Sahara's long word 14587 widened (2026-09-29, item 1163)
 
 **What it is.** run417's shape on the click-free lane: `--map 7`,
