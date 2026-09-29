@@ -8453,3 +8453,12 @@ draws nothing; ours fires at once, four draws in `buildings` (ours 10,
 theirs 6). The army's `ATTACKTO` points for `1/7` and `1/8` on 765 stay one
 cell (48) past theirs, which is not the word's frame. Widening: **671
 rows**.
+
+**Mutations** (item 1109), each on the committed build (`f29ec5db`), `git
+diff --stat` non-empty first, restored from git and `touch`ed:
+
+| mutation | sim | ch38's pins |
+| --- | --- | --- |
+| the foot line's `×34/32` dropped | `the_gunpowder_foot_line_takes_its_own_scale` | widening (word 777 still) |
+| the anti-air angle's call dropped | `an_anti_air_strike_at_a_plane_does_not_turn_the_unit` | word 776; widening |
+| the Modern Infantry's `×5/4` dropped | `a_modern_infantry_steps_five_quarters_of_its_speed` | widening (word 777 still) |
