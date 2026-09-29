@@ -1731,10 +1731,11 @@ impl World {
     ///   cleared when it unblocks and the neighbour has no other blocked
     ///   neighbour left — with the cell's `bad` count beside it.
     ///
-    /// **SEAM**: the original also clears the tile's road
-    /// (`set_road_at(t, 0, 0, 0)`) when a tile becomes blocked. Only the
-    /// laying half of `set_road_at` is modelled (`crate::roads`), so the
-    /// clearing half is left out here rather than guessed at.
+    /// ~~**SEAM**: the original also clears the tile's road
+    /// (`set_road_at(t, 0, 0, 0)`) when a tile becomes blocked.~~ It does,
+    /// and the road's removal is the mesh's, so it lives on the `Sim`:
+    /// `Sim::set_blocked_at` is this plus the clearing (`docs/ROADS.md`
+    /// §11, item 1185). This half alone is for the map loader and tests.
     pub fn set_blocked_at(&mut self, t: Pos, on: bool) {
         let Some(i) = self.tile_index(t) else { return };
         let had = self.tiles[i] & tile::BLOCKED != 0;

@@ -1517,15 +1517,16 @@ impl Sim {
                 // Through `set_blocked_at`, never by hand: the bit is only
                 // half of it — the containing cell's `blocked`/`solid`
                 // counts are the pathfinder's terrain cost
-                // (`docs/PATHFINDER.md` §5), and they move nowhere else.
+                // (`docs/PATHFINDER.md` §5), and they move nowhere else —
+                // and a tile it blocks loses its road (`docs/ROADS.md` §9.5).
                 let blocks = self.build_types[ty].blocks(u, v);
-                self.world.set_blocked_at(t, blocks);
+                self.set_blocked_at(t, blocks);
                 if !blocks && lays {
                     self.world_set_road_at(t, true, 0, 0);
                 }
             } else {
                 self.world.set_tile_field(t, tile::OBJECT, 0);
-                self.world.set_blocked_at(t, false);
+                self.set_blocked_at(t, false);
                 self.world
                     .clear_tile_bits(t, tile::PLACED | tile::PLACED_TWICE);
             }
