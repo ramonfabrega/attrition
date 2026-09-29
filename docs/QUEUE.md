@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-29, ten landings since the nineteenth pass (DECISIONS 55):
+*2026-09-29, eleven landings since the nineteenth pass (DECISIONS 55):
 East Indies 6151 → 7382 (1127, 1143, 1156, 1164); Great Sahara 6/5 →
 1850/1850, long word 8 → 15586 (1133, 1147, 1163, 1171); chapters
-thirty-eight and thirty-nine closed (1131, 1111). The commander clears.*
+thirty-eight to forty closed (1131, 1111, 1167).*
 
 - **Three lanes, on the user's word** (DECISIONS 55, amended): the
   second pair's — 1174, East Indies' 7382; **the third map's** — 1177,
-  Great Sahara's frame 15586; the rules' — 1167, chapter forty.
+  Great Sahara's frame 15586; the rules' — 1182, chapter forty-one.
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first.
@@ -37,11 +37,11 @@ Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSah
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w7382 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w15586 of 24,000
-Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · 1167 next
+Golden: every chapter closed · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · ch38 closed · ch39 closed · ch40 closed · 1182 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
 **Opener: the commander resumes on three live lanes, `att-<item>` —
-1174, 1177 and 1167; the twentieth pass at twenty landings, ten to go.**
+1174, 1177 and 1182; the twentieth pass at twenty landings, nine to go.**
 
 ## The queue
 
@@ -66,13 +66,13 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     the original's in every slot (1800000 against 4194000), and its
     `city` on 7381 — the block's reading. No mechanism is named.
 
-1167. **Chapter forty: the casts' other arms — no capture yet** (1111
-    closed thirty-nine at 1100; two of its killers are held by `sim`'s
-    tests alone). A Citizen wounded before its To Arms press, and one
-    pressed on who=1's land; the unstaged issuers of the same casts, the
-    City's alarm (`Group::action_alarm`'s all-clear) and a Militia's
-    Civilian ahead of a repair, a build or a gather. The emulator first;
-    **run430** the capture, run431 at `cover=1`. GOLDEN §49.
+1182. **Chapter forty-one: CENSUS row 7's last seven — no capture yet**
+    (1167 closed forty at 1150). `UnitData::get_speed`, `Object::do_launch`'s
+    sortie arm, unread; `is_siege`, a sea responder and a computer's
+    siege charge; `is_in_range`, unhookable; and four the row never
+    named, to be named off `NEVER` first. Which of them a staging can
+    reach is the item's first finding. The emulator first; **run436**
+    the capture, run437 at `cover=1`. GOLDEN §50.
 
 ## How to maintain this file
 
