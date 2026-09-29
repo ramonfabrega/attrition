@@ -397,6 +397,10 @@ pub struct Tuning {
     /// (`docs/AI.md` §62).
     pub horses_stable_cost: i32,
     pub rubber_autoplant_cost: i32,
+    /// Percentage off a unit's **research** when the player holds Wine —
+    /// `get_cost`'s research arm, before `RESEARCH_PREMIUM` (`00664eef`;
+    /// `docs/AI.md` §94). Ships as `20%`.
+    pub wine_unit_upgrades: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -957,6 +961,7 @@ impl Tuning {
         military_upgrade_discount: 10,
         horses_stable_cost: 15,
         rubber_autoplant_cost: 15,
+        wine_unit_upgrades: 20,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1151,7 +1156,7 @@ impl Tuning {
     /// This is what lets a tool re-derive [`Tuning::RON`] from a real install
     /// and report a drift, rather than us asserting numbers into the void. The
     /// two entries with no constant behind them are absent by design.
-    pub const fn ron_slots() -> [(&'static str, Slot); 320] {
+    pub const fn ron_slots() -> [(&'static str, Slot); 321] {
         const T: Tuning = Tuning::RON;
         [
             ("ATTRITION", Slot::Value(T.attrition)),
@@ -1422,6 +1427,7 @@ impl Tuning {
                 "RUBBER_AUTOPLANT_COST",
                 Slot::Value(T.rubber_autoplant_cost),
             ),
+            ("WINE_UNIT_UPGRADES", Slot::Value(T.wine_unit_upgrades)),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),

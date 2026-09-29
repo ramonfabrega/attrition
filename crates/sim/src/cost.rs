@@ -265,17 +265,22 @@ pub struct Modifiers {
 /// building a unit"; `docs/AI.md` §56). In the original's order, after the
 /// scaled base and its pre-ramp tail and in place of the ramp:
 ///
-/// 1. `× RESEARCH_PREMIUM >> 8`, then `× RESEARCH_PREMIUM_COST >> 8`, each
+/// 1. `WINE_UNIT_UPGRADES` off when the player holds Wine (`get_cost:427`–
+///    `428`, `00664edd`..`00664f11`: `(100 − wine) × cost / 100`, toward
+///    zero; `docs/AI.md` §94);
+/// 2. `× RESEARCH_PREMIUM >> 8`, then `× RESEARCH_PREMIUM_COST >> 8`, each
 ///    truncating toward zero (`get_cost:430`–`432`);
-/// 2. the refit surcharge, already multiplied out per resource;
-/// 3. `MILITARY_UPGRADE_DISCOUNT`, clamped at zero (`get_cost:507`–`525`).
+/// 3. the refit surcharge, already multiplied out per resource;
+/// 4. `MILITARY_UPGRADE_DISCOUNT`, clamped at zero (`get_cost:507`–`525`).
 ///
-/// Not carried, and each is a seam: Wine's `WINE_UNIT_UPGRADES` before the
-/// premium, `SPECIAL_UPGRADE` (every one of the shipped 364 records has an
+/// Not carried, and each is a seam: `SPECIAL_UPGRADE` (every one of the shipped 364 records has an
 /// empty `<UPGRADE/>`), and the American and Dutch nation discounts after
 /// the military one.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Research {
+    /// `WINE_UNIT_UPGRADES` when the player holds Wine, else zero — the
+    /// percentage the arm takes off before the premium.
+    pub wine: i32,
     /// `RESEARCH_PREMIUM_COST`, 8.8 (`UnitTypeData +0x2e0`).
     pub premium_cost: i32,
     /// The refit surcharge by resource, `UNIT_COST_FACTOR × n × d` summed
@@ -379,6 +384,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
 
     if let Some(rs) = m.research {
         // The research arm, in place of the ramp and the military discount.
+        if rs.wine != 0 {
+            cost = (100 - rs.wine) * cost / 100;
+        }
         cost = cost * t.research_premium / 256;
         cost = cost * rs.premium_cost / 256;
         cost += rs.refit[r.index()];
