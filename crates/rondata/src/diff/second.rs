@@ -1414,7 +1414,7 @@ mod tests {
             "run439",
             "gamelog-run439-islands-toughest-8519.txt",
             WIDENING_SECOND_EAST_INDIES_8519,
-            &[SECOND_WORD_EAST_INDIES + 1],
+            &[8_520],
             true,
             true,
         ) else {
@@ -1468,11 +1468,11 @@ mod tests {
         }
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .filter(|(b, _)| **b <= 8_520)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [(8514, 481), (8516, 1), (8519, 1)],
-            "the blocks keys first part on, to the word's"
+            "the blocks keys first part on, to the old word's block 8520"
         );
         // Item 1191: 1243 → 608.
         pin_eq!(w.firsts.len(), 608, "every key parted on run439");
