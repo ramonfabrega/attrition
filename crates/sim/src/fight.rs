@@ -1165,6 +1165,7 @@ impl Sim {
             return false;
         }
         self.units[i].guys[g].turret.node_flags = 0;
+        self.units[i].guys[g].turret.des_flags = 0;
         let Some(target) = target.filter(|&t| self.active(t)) else {
             return true;
         };
@@ -1197,6 +1198,7 @@ impl Sim {
             if inside && let Some(k) = usize::try_from(node - 4).ok().filter(|&k| k < 4) {
                 let t = &mut self.units[i].guys[g].turret;
                 t.des[k] = bearing.0.wrapping_sub(facing.0);
+                t.des_flags |= 1 << k;
                 if turret_near(t.des[k], t.angles[k]) {
                     t.node_flags |= 1 << k;
                 }

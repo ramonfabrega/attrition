@@ -5144,6 +5144,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // chapter seventeen's reads on other ground (pinned at 40, it fails).
     ("chapter_thirty_eight_holds_to_the_golden_word", 41),
     ("chapter_thirty_eight_s_word_frame_is_widened_whole", 41),
+    // Item 1117's word block stops at 780, before the bombs: one read, by
+    // 780 (pinned at 0, it fails).
+    (
+        "chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_block",
+        1,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or

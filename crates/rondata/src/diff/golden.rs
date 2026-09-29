@@ -5001,6 +5001,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&built, &frame, players, n, &mut firsts);
         rows += k;
+        rows += widen_turrets(&built, &frame, players, n, &mut firsts);
         let raw = ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
         for who in 0..2usize {
@@ -5644,6 +5645,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
         rows += k;
+        rows += widen_turrets(&s.built, &frame, players, n, &mut firsts);
         let raw = s.ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
         for who in 0..2usize {
@@ -6392,6 +6394,72 @@ pub(super) fn cycle_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64), [
         .collect()
 }
 
+/// **A pivot figure's turret, every figure, both directions** (item
+/// 1117, `docs/COMBAT.md` §55.3): `GUY`'s `turret_angles[4]`,
+/// `des_turret_angles[4]`, `node_flags` and `des_node_flags` against
+/// `sim::anim::Turret`, on every figure of every unit both sides hold.
+/// `widen_block` compares the rest of the record; these four were parsed
+/// by nothing until this item (parked 1119), and a pivot piece's release
+/// waits on `node_flags`. A figure whose dump does not print them — a
+/// capture below `GUYS=4` — is counted, not compared. Returns the rows
+/// compared.
+fn widen_turrets(
+    built: &Built,
+    frame: &crate::gamelog::Frame,
+    players: usize,
+    n: i64,
+    firsts: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+) -> usize {
+    use crate::diff::compared;
+    let mut rows = 0;
+    for them in &frame.units {
+        if !(0..players as i64).contains(&them.who) {
+            continue;
+        }
+        let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+            continue;
+        };
+        let Some(u) = built.sim.unit_by_o(w, o) else {
+            continue;
+        };
+        for (k, g) in them.guys.iter().enumerate() {
+            let Some(t) = built.sim.units[u].guys.get(k).map(|x| x.turret) else {
+                continue;
+            };
+            let mut here: Vec<(String, i64, i64)> = Vec::new();
+            if let Some(v) = g.node_flags {
+                compared::note("Guy", &["node_flags"]);
+                here.push((format!("g.node_flags[{k}]"), i64::from(t.node_flags), v));
+            }
+            if let Some(v) = g.des_node_flags {
+                compared::note("Guy", &["des_node_flags"]);
+                here.push((format!("g.des_node_flags[{k}]"), i64::from(t.des_flags), v));
+            }
+            if let Some(a) = g.turret_angles {
+                compared::note("Guy", &["turret_angles"]);
+                for (j, v) in a.into_iter().enumerate() {
+                    here.push((format!("g.turret{j}[{k}]"), i64::from(t.angles[j]), v));
+                }
+            }
+            if let Some(a) = g.des_turret_angles {
+                compared::note("Guy", &["des_turret_angles"]);
+                for (j, v) in a.into_iter().enumerate() {
+                    here.push((format!("g.des_turret{j}[{k}]"), i64::from(t.des[j]), v));
+                }
+            }
+            for (what, ours, theirs) in here {
+                rows += 1;
+                if ours != theirs {
+                    firsts
+                        .entry((them.who, them.o, what))
+                        .or_insert((n, format!("ours {ours} theirs {theirs}")));
+                }
+            }
+        }
+    }
+    rows
+}
+
 /// **One golden capture of the civilians' chapters, widened whole**
 /// (items 578 and 628): every record on every block of `[first, last)` —
 /// [`crate::diff::harness::widen_block`] on every unit, figure, building
@@ -6444,6 +6512,7 @@ fn widen_civilians(
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
         rows += k;
+        rows += widen_turrets(&s.built, &frame, players, n, &mut firsts);
         // `RON_ROW_WALK=who/o,…` — every key that parts on this block for
         // the units named, not only its first parting: a key whose first
         // parting is a birth seat hides everything after it (parked 1046,
@@ -6451,6 +6520,7 @@ fn widen_civilians(
         if let Ok(spec) = std::env::var("RON_ROW_WALK") {
             let mut here = BTreeMap::new();
             crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut here);
+            widen_turrets(&s.built, &frame, players, n, &mut here);
             for ((w, o, what), (_, row)) in &here {
                 if spec.split(',').any(|u| u.trim() == format!("{w}/{o}")) {
                     eprintln!("  walk f{n} {w}/{o} {what}: {row}");
@@ -10299,6 +10369,7 @@ fn widen_chapter_three(
         let mut blk: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut blk);
         rows += k;
+        rows += widen_turrets(&s.built, &frame, players, n, &mut blk);
         let raw = s.ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
         for who in 0..2usize {
@@ -13144,6 +13215,61 @@ fn chapter_thirty_eight_s_word_frame_is_widened_whole() {
     assert_eq!(got, want, "ch38: what parts under the word moved");
 }
 
+/// **The word's block, the Battery's turret** (item 1117, `docs/COMBAT.md`
+/// §85): run404's block 780, the frame after the word. The Battery `1/9`
+/// is on `CHAR_ATTACK2`'s frame 4, the frame of its node-0 release, and
+/// its turret 0 is still short of its aim — `node_flags` 14 (bit 0 clear:
+/// turrets 1–3 sit on their zero aims), `des_node_flags` 1 (one
+/// `<RESTRICTION>` row, node 4). Both sides' four fields, read off the
+/// block and off the figure, and the dump's own values pinned so the test
+/// cannot pass on an empty record.
+#[test]
+fn chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_block() {
+    const BLOCK: i64 = 780;
+    let Some(mut s) = stage_script("ch38", "chapter38") else {
+        return;
+    };
+    for _ in 0..BLOCK {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+    }
+    let at =
+        s.ix.frames()
+            .iter()
+            .position(|x| x.number == BLOCK)
+            .expect("run404 carries block 780");
+    let frame = s.ix.frame_state(at).unwrap();
+    let them = frame
+        .units
+        .iter()
+        .find(|u| (u.who, u.o) == (1, 9))
+        .expect("the Battery on 780");
+    let g = &them.guys[0];
+    assert_eq!(
+        (g.cur_anim, g.cur_time, g.node_flags, g.des_node_flags),
+        (Some(12), Some(4), Some(14), Some(1)),
+        "run404's block 780 is not the one this test was written from"
+    );
+    assert_eq!(g.turret_angles, Some([1_476_220_240, 0, 0, 0]));
+    assert_eq!(g.des_turret_angles, Some([-1_978_269_696, 0, 0, 0]));
+    let u = s.built.sim.unit_by_o(1, 9).expect("ours holds the Battery");
+    let t = s.built.sim.units[u].guys[0].turret;
+    // Both sides: the bits agree, and so does the step the turret is on
+    // (its aim is 2,359,296 off theirs from 743, the node's vector —
+    // `pivot::NODES` has no row for the Battery's piece).
+    assert_eq!(
+        (i64::from(t.node_flags), i64::from(t.des_flags)),
+        (14, 1),
+        "ours: node_flags / des_node_flags on 780"
+    );
+    let og = s.built.sim.units[u].guys[0];
+    assert_eq!(
+        (i64::from(og.anim), i64::from(og.cur_time)),
+        (12, 4),
+        "ours: the Battery's clock on 780"
+    );
+}
+
 /// Chapter thirty-eight's widening rows (items 1102, 1109, 1112): run404
 /// whole, the jam roll, the flak roll, the crash, the foot line's speed,
 /// the anti-air angle, the Modern Infantry's step and the Radar Air
@@ -13156,6 +13282,12 @@ fn chapter_thirty_eight_s_word_frame_is_widened_whole() {
 /// the Bombers' flight and bombs touch after it — the Radar's cycle rows
 /// first part on 837 (`attack_ox`).
 const WANT_CH38: &[&str] = &[
+    // Item 1117's turret rows: the Battery's aim, 2,359,296 off from its
+    // first on 743 (the node's vector is unmeasured for its piece), and
+    // its bits on 801, after the stream has parted.
+    "743 1/9 g.des_turret0[0]",
+    "743 1/9 g.turret0[0]",
+    "801 1/9 g.node_flags[0]",
     "1007 0/6 extra",
     "1008 1/2007 ammo[8]",
     "1021 1/6 path[19].to",

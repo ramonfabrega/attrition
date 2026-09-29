@@ -1551,6 +1551,20 @@ pub struct Guy {
     pub last_bank: Option<i64>,
     pub pitch: Option<i64>,
     pub last_pitch: Option<i64>,
+    /// `GuyData::turret_angles[4]` / `des_turret_angles[4]` (`+0x20` /
+    /// `+0x30`) — **a pivot figure's turret**, where each of its four
+    /// pivots points relative to the figure and where `set_all_pivots`
+    /// last told it to (`docs/COMBAT.md` §55.3). Zero on a figure whose
+    /// piece has no `<RESTRICTION>` row. Parsed by item 1117.
+    pub turret_angles: Option<[i64; 4]>,
+    pub des_turret_angles: Option<[i64; 4]>,
+    /// `GuyData::node_flags` / `des_node_flags` (`+0x96` / `+0x98`) — bit
+    /// `k` once turret `k` has reached its aim, and bit `k` where
+    /// `set_all_pivots` found node `k + 4`'s range holding the bearing. A
+    /// pivot piece's release on node `n` waits on `node_flags` bit `n & 3`
+    /// (`execute_game_events`' gate). Parsed by item 1117.
+    pub node_flags: Option<i64>,
+    pub des_node_flags: Option<i64>,
 }
 
 /// One of `GuyData::log_data`'s `*((dword*) &name)` lines, by `name`:
@@ -1561,6 +1575,16 @@ fn dword_of(g: &Block<'_>, name: &str) -> Option<i64> {
     g.all("*((dword*)")
         .into_iter()
         .find_map(|v| v.trim().strip_prefix(tag.as_str())?.trim().parse().ok())
+}
+
+/// A four-slot array the record prints as `name[0]` … `name[3]`, whole
+/// or not at all.
+fn four_of(g: &Block<'_>, name: &str) -> Option<[i64; 4]> {
+    let mut out = [0; 4];
+    for (k, v) in out.iter_mut().enumerate() {
+        *v = g.int(&format!("{name}[{k}]"))?;
+    }
+    Some(out)
 }
 
 impl Guy {
@@ -3054,6 +3078,10 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
             last_bank: dword_of(&g, "last_bank"),
             pitch: dword_of(&g, "pitch"),
             last_pitch: dword_of(&g, "last_pitch"),
+            turret_angles: four_of(&g, "turret_angles"),
+            des_turret_angles: four_of(&g, "des_turret_angles"),
+            node_flags: g.int("node_flags"),
+            des_node_flags: g.int("des_node_flags"),
         })
         .collect();
     // `myhits`, `damage` and `damage_frac` sit on the `OBJECT` level, one

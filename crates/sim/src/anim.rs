@@ -370,6 +370,11 @@ pub struct Turret {
     pub des: [i32; 4],
     /// `node_flags`: bit `k` once `angles[k]` has reached `des[k]`.
     pub node_flags: u16,
+    /// `des_node_flags` (`+0x98`): bit `k` where `set_all_pivots` last
+    /// found node `k + 4`'s range holding the bearing (`005d8bc0:129`).
+    /// Cleared with `node_flags` in the one 32-bit store; nothing here
+    /// reads it.
+    pub des_flags: u16,
 }
 
 impl Turret {
@@ -378,6 +383,7 @@ impl Turret {
         angles: [0; 4],
         des: [0; 4],
         node_flags: 0,
+        des_flags: 0,
     };
 
     /// `Guy::process@005e0230:30–56`, one frame: each turret on its
