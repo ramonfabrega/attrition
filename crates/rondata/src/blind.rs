@@ -126,6 +126,9 @@ pub const TRACES: &[&str] = &[
     // Item 1111: chapter thirty-nine at `cover=1` on the queue lane to 830
     // (`docs/RUNS.md` run423), run422's game on every frame.
     "rontrace-run423.log", // ch39
+    // Item 1167: chapter forty at `cover=1` on the queue lane to 910
+    // (`docs/RUNS.md` run431), run430's game on every frame.
+    "rontrace-run431.log", // ch40
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
