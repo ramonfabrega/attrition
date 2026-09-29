@@ -1317,8 +1317,9 @@ ey − sy), num_guys, index, 0x100, 0, 0)` (§47.3).
 splash_area / 4 + 1` capped at 10 (the `(2k+1)²` cells within Chebyshev
 distance `k` of the landing cell — 3×3 for a splash of up to three tiles;
 *second reading: the first draft had a circle of `splash_area / 4`*), walking
-each cell's object chain through `down/down_who`, skipping the shooter's own
-team and allies, **damaging the intended target with `splash
+each cell's object chain through `down/down_who`, skipping the shooter,
+players past 7 and, **for a non-target**, its side and allies
+(`6787d9`), **damaging the intended target with `splash
 = 0` and everything else with `splash = 1`**: a unit that is active, on the
 map, in the same air/ground class as the ammo's domain, not a missile:
 `d = max(0, vector_dist(landing, unit) − 0xc0 − unit.type.guy_radius)`;
@@ -1338,7 +1339,8 @@ the footprint, `|ex − T.x| ≤ x_size × 0x60` and `|ey − T.y| ≤ y_size ×
 Hit → 1; miss → forget the target, 0.
 
 `check_hit(domain)`: `ObjectsData::find_unit` at the landing point, radius
-`0x180` (two tiles), non-friendly only if the shooter is an aircraft, and
+`0x180` (two tiles), not its own for an aircraft
+(search 6), and
 filtered to the ammo's domain class (AIR → only air; land/sea → not air);
 a found unit whose `target_size` is less than the search's own distance
 is rejected; failing a unit, `find_building_at` on the landing tile; failing
@@ -6992,6 +6994,11 @@ has come down, spends — and Great Lakes' three puncture frames (10237,
 10242, 10249, §39.2) are untouched by this landing, because their target
 is a farm and a building target never sets flag 4.
 
+
+**A unit strafer's round never takes flag 4** (`Ammo::init`, `67c548`..
+`67c557`, item 1200): the `w` test jumps past `67c633`, where the flag and
+the `0x4b` over a land unit are set. The Biplane's round on 1529 lands
+where it lands, short of `0/9` (`docs/GOLDEN.md` §50).
 ### 42.3 `hold_frames` is the shooter's, and it is zero on every living unit
 
 `Ammo::inc_time` opens its loop with
@@ -8697,9 +8704,12 @@ round they fire. They also hold one facing, `671481856`, broadside, for
 the whole capture (§49), so the table is exact at that facing and the
 rotation is §22.2's, read rather than measured for this piece. At that
 facing no stern bearing reproduces the last two rows' integers, so each
-row is the solution nearest the keel, 1.3° off it. `sim::launch`'s table
-carries piece 290's rows, and `run127_trireme_rounds_leave_from_the_keel`
-holds all six launches. `CHAR_ATTACK2` plays the same file with the same
+row is the solution nearest the keel, 1.3° off it. ~~`sim::launch`'s table
+carries piece 290's rows~~ run437's trireme fires the same three at 176°,
+where those rows put the third a unit or two off and one flight a frame
+long; the rows are whole-degree `BAYS` since item 1200, each reproducing
+both facings (`run437_trireme_rounds_turn_with_the_hull`), and
+`run127_trireme_rounds_leave_from_the_keel` holds all six launches. `CHAR_ATTACK2` plays the same file with the same
 events and takes the same rows. ~~Which slot the original swings is not
 printed at `GUYS=2`.~~ Whichever slot the roll gives, the swing plays
 `Trireme Attack1`: the packet names no `CHAR_ATTACK3`, and `Guy::set_anim`
@@ -10155,7 +10165,12 @@ now links arena A's hoplites and shows what the numbering had hidden:
   death piece's animation packet (`gpiece`, which this crate does not
   load) and `+0x44` from `DeathObj::init`. run146's three records stay
   live 263 blocks or more, which rules out 135 plus a short animation.
-  So the hoplite has a corpse piece. No golden window has a birth that a
+  So the hoplite has a corpse piece. run437 is the first capture on disk to
+  reach a cull (item 1200): `0/7`'s record (`cur_anim` 17, first frame
+  978) leaves the list on frame 1621 and `0/8`'s (`cur_anim` 18, 1068) on
+  1724, 643 and 656 frames on, so over `corpse_fade_end`'s 627 the Hoplite
+  death piece's two packets run 16 and 29 frames. Chapter forty-one's
+  widening carries both as `death:extra`. No golden window has a birth that a
   cull would have freed a number for. The long captures' words hold under
   the grow-only hold (the item's journal has the gate).
 - **`o_up`**, the third term of `find_free`'s test: a dead squad member
@@ -11340,8 +11355,9 @@ arms:
   building, as before.
 - **The `DEFENSIVE` leash, the `is_on_map` exit and the melee path-length
   exit** have no capture. They are built from the listing.
-- **`is_in_range@006486b0`'s world-cell test** (`& 0x30 == 0x30` answers
-  no) is not in `Sim::is_in_range_at`.
+- ~~**`is_in_range@006486b0`'s world-cell test** (`& 0x30 == 0x30` answers
+  no) is not in `Sim::is_in_range_at`.~~ Built by item 1200 (`docs/GOLDEN.md`
+  §50): the tile under the point asked from, any attacker.
 
 ### 67.7 Coverage
 

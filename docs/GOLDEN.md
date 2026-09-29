@@ -1410,7 +1410,7 @@ each can invalidate work that would otherwise be done on top of it.
 | 404 | thirty-eight, the air line under fire | `[605, 1762)` | a cast of its own on the golden start (1094): an Airbase `0/2007` and two Bombers `0/6`, `0/7` (606..612), who=1's Barracks T `1/2006`, a Radar Air Defense R `1/2007`, an Infantry squad I `1/6`..`1/8` and an Anti-Aircraft Battery A `1/9` (616..622), `@flight` home (640) and `@strike` on T in flight (644); at `cover=0` on the click-free lane, run405 the same at `cover=1` on the queue lane (`is_flying_low`, `is_flying_high`, `Ammo::init_crash`, `NEVER` rows), with `GROUPS=1` at `GUYS=4`, `AMMO=5` and `DEATHS=1`; the staging walked by this crate's `stage_walk` on run397's start (§47) — **run 2026-09-28 (item 1102), 321 MB, 895 s; the receipt refused it: `DEATHS=1` beside `GROUPS=1` printed no pool; no falsifier fired, 6 could not: 43 flak rounds one draw each, every matched flag its roll's, both Bombers shot down on 1006 and 1019 with a crash round and no death object; word 742 (the jam roll), then 776, open (item 1102: the jam roll, the flak roll and the crash built); then 777, open (item 1109: the foot line's speed, the anti-air angle and the Modern Infantry's step); then 779, open (item 1112: the anti-air building's `Wall::inc_time` cycle, `docs/COMBAT.md` §84); then 794, open (item 1117: the release gate is the event's, `docs/COMBAT.md` §85); then 878, open (item 1113: the Modern Infantry squad's scatter and pack, `docs/GROUPS.md` §34); then 1762, closed (item 1131: an armed building's ×5 a computer's, an object's `z` clamped, a building's `damage_o`, and `do_attack`'s target flow, `docs/COMBAT.md` §8.6)** |
 | 422 | thirty-nine, the spell issuer's untargeted crafts | `[605, 1100)` | a cast of its own on the golden start: `library who=0 1` and `tech who=0 militia on`, two Citizens, a Militia, a General beside a Hoplite and a Slinger squad (606..616); To Arms on each Citizen (620, 640), Civilian on the Militia (660) and on the first Citizen (700), Create Decoys (720); at `cover=0` on the click-free lane, run423 the same at `cover=1` on the queue lane (the three casts, `NEVER` rows), with `GROUPS=1` at `GUYS=4`; the predicates read on run424's packet at 619 (§48) — **run 2026-09-29 (item 1111), 224 MB, 651 s, the third take (the first staged nothing, the second's `tech` line only reported); no falsifier fired: both Citizens Militia on 626 and 646 with `rare` 50, back on 666 and 706 with `rare` 50 kept, two decoy squads on 821 aging a frame; word 820 with the conversions built, then 1100, closed (item 1111: the decoy, and a Citizen's hits and LOS from the Militia line)** |
 | 430 | forty, the casts' other arms | `[605, 1150)` | a cast of its own on the golden start: `peace 1`, To Arms refused before the Militia (606) and on who=1's land (612), D bled there and walked out (700), converted both ways wounded (800, 840); three Militia's `@repair`, `@build` and `@gather` (630..650, the last the DLL's new verb 25); a Militia garrisoned in the City (660) and `@alarm` twice (880, 900, verb 24); at `cover=0` on the click-free lane, run431 the same at `cover=1` on the queue lane (`action_alarm`, `action_gather`, `NEVER` rows), with `CITIES=5`, `GROUPS=1` at `GUYS=4`; the staging walked off run422's dump and this crate's walk (§49) — **run 2026-09-29 (item 1167), 231 MB, 757 s; no falsifier fired; word 900 (the all-clear's draw on the pump's frame), then 1150, closed** |
-| 437 | forty-one, CENSUS row 7's last seven | `[605, 1770)` | a cast of its own on the golden start: who=1's Airbase and Biplane, flown home through `be 1` held across the pump (620, 621), a sortie over who=1's City under attack from who=0's Hoplites (700); a trireme at a who=1 Barracks (630) whose Citizen repairs under its rounds (900, 901); at `cover=0` on the click-free lane, run438 the same to 1140 at `cover=1` on the queue lane (`get_speed`, `is_siege`, `NEVER` rows), with `CITIES=5` and `AMMO=5` at `GUYS=4`; run436 the first take, `be 0` on the issuing frame (§50) — **run 2026-09-29 (item 1182), 321 MB, 888 s; no falsifier fired; word 623, 964, then 839 (the Biplane's strafe released 19 frames early)** |
+| 437 | forty-one, CENSUS row 7's last seven | `[605, 1770)` | a cast of its own on the golden start: who=1's Airbase and Biplane, flown home through `be 1` held across the pump (620, 621), a sortie over who=1's City under attack from who=0's Hoplites (700); a trireme at a who=1 Barracks (630) whose Citizen repairs under its rounds (900, 901); at `cover=0` on the click-free lane, run438 the same to 1140 at `cover=1` on the queue lane (`get_speed`, `is_siege`, `NEVER` rows), with `CITIES=5` and `AMMO=5` at `GUYS=4`; run436 the first take, `be 0` on the issuing frame (§50) — **run 2026-09-29 (item 1182), 321 MB, 888 s; no falsifier fired; word 623, 964, then 839 (the Biplane's strafe released 19 frames early), closed at 1770 by item 1200** |
 
 ## 15. Coverage — what a diff backs, and what rests on a reading
 
@@ -9004,16 +9004,43 @@ on 778 and `is_siege` on 1088. `NEVER` 138 → 136.
      against 8;
    - two rounds this crate holds alone.
 
-   The original holds its fire at 711 units from its target on 855 and at
+   ~~The original holds its fire at 711 units from its target on 855 and at
    603 on 857, both on the nose, and fires at 549. The Biplane's `RANGE`
    is `2-7`. `do_strafe`'s release for a non-bomber — its reach through
    `attack_dist`'s plane arm (vslot `0xc0`), and its `fire_ammo` in place
-   of `CHAR_ATTACK2` — is the SEAM the word stands on.
+   of `CHAR_ATTACK2` — is the SEAM the word stands on.~~ Neither (item
+   1200): the Biplane carries `w`, so it plays `CHAR_ATTACK2` as the
+   Fighter does, and `attack_dist`'s plane arm is the plain snapped
+   distance (`648b7f`), 1307 against a reach of 1350. On 839 the Biplane
+   is over a wood (its tile's surface bits `0x30`), and `is_in_range@006486b0` refuses
+   any attacker standing on one (`64871a`..`64875b`), which this crate
+   did not ask. It leaves the wood on 858.
+4. **Closed at 1770** (item 1200), sequence and values. Each parting in
+   turn, walked back to its first parted field:
+   - **852**: the strike on `0/8` dies here, where the original's tail
+     re-points it at `0/7` (`find_new_air_target` at the patrol's last
+     point, `5eb7a3`).
+   - **858**: who=1's `1/2003` takes 6 sixteenths and spends its
+     first-wound roll there: the round `check_hit` put on it is struck
+     whoever owns it (`6787d9`); `0/7` takes 21 against 11 — `guy_radius`
+     (48 for a Hoplite) is the loader's 0 here (`UnitType::init:753`).
+   - **969**: our round struck who=1's own `1/1`: an aircraft's
+     `check_hit` passes its own side (`SEARCH_NON_FRIENDLY`, `678dcc`).
+   - **970**: the second pass's pair lands a frame late — five frames'
+     flight there, six here. The Biplane's guns sit 101 ahead of the
+     figure (run437's 26 rounds, `launch::GUNS`).
+   - **1108**: `mana_burn` reaches the `MANA` of 300; the tail kills a dry
+     strike and the patrol turns home alone (`5eb642`).
+   - **1460**: the trireme's round flies 13 frames there, 14 here — its
+     third node, measured at run127's one facing, is two units out at
+     176°; the three nodes are whole-degree bays over both.
+   - **1529**: a strafer's round never rolls (`67c548`), and lands short
+     of `0/9` at once.
 
 **The widening is run437 whole**, both directions, with no pool: the
 capture prints no `GROUPS`, which its verifier refuses when no block
-prints one (parked 735). It gives 513 rows. Under the word, 35 rows, all
-standing families:
+prints one (parked 735). It gave 513 rows, and 40 at the close (item
+1200). Under item 1182's word, 35 rows, all standing families:
 - the birth `form` (parked 1169);
 - the first block's `filled_gather_slots`;
 - the human City's census (parked 1183);
@@ -9021,7 +9048,11 @@ standing families:
 - **`1/2000`'s `raid_stamp`, written on 671 as who=0's Hoplites stand on
   who=1's land**, which this crate has no writer for.
 
-From 840, the word's cascade.
+~~From 840, the word's cascade.~~ At the close (item 1200) those stand,
+with `1/6`'s and `1/7`'s `group` from 902 and `1/0`'s from 968 (numbers
+handed out in another order), and the death-object cull
+(`docs/COMBAT.md` §59.7): `0/7`'s record leaves the list on 1621, 643
+frames after its death, and `0/8`'s on 1724, 656 after; here both stay.
 
 **Mutations**, each on the committed build, `git diff --stat` non-empty,
 restored from git and touched — the table below.
@@ -9041,6 +9072,20 @@ restored from git and touched — the table below.
 | the pump's seat drop off | run436's test |
 | the DLL's refusal 1 off | `an_issuer_line_for_another_seat_is_refused_as_the_dll_refuses_it` |
 
+Item 1200's nine, on `f937c042`, the same way:
+
+| mutation | held by |
+|---|---|
+| the wood's cell test off | the word (839), the widening, its unit test |
+| the tail's non-bomber search answers none | the word (859), the widening |
+| a round's own target asked the team test | the word (858), the widening, its unit test |
+| an aircraft's `check_hit` finds its own side | the word (1054), the widening, its unit test |
+| `guy_radius` read as 0 | the word (978), the widening, chapter thirty-eight's widening |
+| the Biplane's guns out of `GUNS` | the word (980), the widening, the launch test |
+| the tail's dry and home-flying kills off | the widening (1109), its unit test |
+| the trireme's planar rows back | the widening (1461) |
+| a strafer's round rolls | the widening (1530), its unit test |
+
 **What is not established.**
 - The silo's sortie arm, the forts' and wonders' values, the
   `AIRDEFENSE` search's radius and `STEALTHBOMBER`: no staging reaches
@@ -9052,3 +9097,7 @@ restored from git and touched — the table below.
   (`Army::charge`). The console's `damage` verb would stage it and is not
   modelled.
 - `resolve_block` and `make_valid`, as the table says.
+- The death-object cull (`docs/COMBAT.md` §59.7), measured here and not
+  built; a splash's neutral object (neither allied nor at war), struck
+  there and left out here; the escort's non-bomber search; a plane that is
+  neither Bomber nor strafer, whose release is `fire_ammo` (`5eb4bc`).

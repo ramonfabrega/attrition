@@ -565,7 +565,7 @@ this is the unit table's rule alone.
 ### Fields the loader leaves at their defaults
 
 No reading names a column for these; each is recorded as an input:
-`Profile::guy_radius` and `big_radius`; ~~`Profile::combat_role` (`role &
+`big_radius`; ~~`Profile::combat_role` (`role &
 0x10000` — the `role` word's source is unread; the loader uses `ATTACK ≠ 0`
 and not `OBJ_MASK C`)~~ — **closed 2026-08-25**: the word is derived above and
 `combat_role` is `role & 0x10000` exactly, which moves two of the 364 (the
@@ -1005,7 +1005,7 @@ and could be the same tool.
   recording replays the AI by re-simulating it (`docs/INPUT.md` §1), and
   this entry's opening claim needs that qualification: the score cannot move
   past player 0 until the AI is implemented.
-- **The `role & 0x10000` word, `guy_radius`, `big_radius`**, the graft tables
+- **The `role & 0x10000` word, `big_radius`**, the graft tables
   and barbarian flags, the free-tech rules, `is_list` — the defaults above.
 - **Which duplicate a duplicated `CONSTANTS` tag resolves to** under by-name
   lookup (`get_item` → `XMLNode::get_element`, presumably the first). The

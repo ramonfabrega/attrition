@@ -7026,16 +7026,26 @@ reloading and still valid:
   (`0xaaaaaaa`) of the heading — 60° for the `0x127` line. A Bomber
   plays `set_anim(CHAR_ATTACK2, 0, 1)` (the draw at `do_strafe+0x9d0`)
   and reloads `recharge() + 1`; `BOMBING_MANA_COST` is 0 in the rules.
+  **A strafer (`w`) plays `CHAR_ATTACK2` too** (`5eb47b`..`5eb485`); only a
+  plane that is neither, with an ammo piece (`type +0x2cc`), takes
+  `fire_ammo`. **`is_in_range` refuses a plane over a wood**: its
+  world-cell test reads the tile under the point asked from and asks no
+  domain (item 1200, `docs/GOLDEN.md` §50, the Biplane's 839).
 
 Reloading, or refused: a target within 30° of the heading (90° for
 `0x127`), or any Bomber, skips the `CHAR_WALK`.
 
 ### 34.4 The tail, `0x5eb62b`
 
-A strike that is not alone and not `mandatory`, with fuel and a target,
-on `(frame + 2·o) & 31 == 0`, asks the order behind it: an
-`AirPatrolOrder`'s `find_new_bomber_target` at its last point re-points
-the strike (`ox/whom/uid`, `returning 0`) at a valid answer, or kills it.
+A strike that is not alone and not `mandatory` is **killed, with
+`CHAR_WALK`, when its type's tank (`type +0x2ec`) has `mana_left` 0, when
+its target index is below zero or when it flies home** (`5eb642`..`5eb673`
+to `5eb395`; item 1200, the Biplane's 1108). Otherwise, on `(frame + 2·o)
+& 31 == 0`, it asks the order behind it: an `AirPatrolOrder`'s search at
+its last point — `find_new_bomber_target` for a Bomber,
+`find_new_air_target(x, y, −1, −1)` for any other (`5eb7a3`, item 1200,
+the Biplane's re-point on 852) — re-points the strike (`ox/whom/uid`,
+`returning 0`) at a valid answer, or kills it.
 
 ### 34.5 `Unit::do_air_patrol@005ea620` and the search
 
@@ -7097,8 +7107,9 @@ the returning arm overwrites it with the distance (`0x5e8fae`). run223's
   on `0/1` from 2307, their positions diff-backed to 2336; the escort's
   search stays reading only), a flying target's lead and `local_20`'s
   doubled bank.
-- SEAMs: a non-bomber's `find_new_air_target` and the `semaphore & 2`
-  fallback; the `FIGHTERBOMBER` and carrier-relative points;
+- SEAMs: ~~a non-bomber's `find_new_air_target`~~ (built for the patrol by
+  item 1182 and the tail by item 1200; the escort's stays) and the
+  `semaphore & 2` fallback; the `FIGHTERBOMBER` and carrier-relative points;
   `find_new_bomber_target`'s `param_3 ≥ 0` arm and its `0x40000` arm;
   `find_builds`' ring order, taken here as building order; ~~the
   `0x400000` pitch arm (the Bomber has only `h`)~~ (§39.1: the Fighter

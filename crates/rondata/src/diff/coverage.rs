@@ -1821,11 +1821,16 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     // **Chapter forty-one's word, on run437** (item 1182): the computer's
     // sortie and the build-site spill. 622, the Biplane's flight home
     // through `be 1`; 742 and 779, its landing and the sortie; 827, the
-    // patrol's strafe; 840, the word's release; 1080 and 1130, the
-    // Citizen's repair and its first spill; 1767, the last blocks.
+    // patrol's strafe; 840, item 1182's word's release; 859, the first
+    // strafe's hits (item 1200); 970, the second pass's; 1080 and 1130,
+    // the Citizen's repair and its first spill; 1109, the dry tank's
+    // kill; 1461 and 1530, the trireme's short flight and the strafer's
+    // round that does not roll; 1767, the last blocks.
     if let Some(p) = &ch41 {
         let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_ONE;
-        for w in [622, 742, 779, 827, 840, 1080, 1130, 1767] {
+        for w in [
+            622, 742, 779, 827, 840, 859, 970, 1080, 1109, 1130, 1461, 1530, 1767,
+        ] {
             let n = drive_capture(p, w - 2, w + 2, &mut paths);
             assert_eq!(n, 5, "chapter forty-one carries the window's five blocks");
             frames += n;

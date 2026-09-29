@@ -3041,6 +3041,114 @@ mod launch_tests {
         assert_eq!(plain.units[v].airframe.pitch.to_i32(), 40, "no w, it holds");
     }
 
+    /// **A plane over a wood holds its fire** (`is_in_range@006486b0`'s
+    /// world-cell test, `6486b0`..`64875b`, item 1200, `docs/GOLDEN.md`
+    /// §50): the tile under the point asked from answers no when its
+    /// surface is forest, and the test asks no domain. Chapter forty-one's
+    /// Biplane on 839, over `TData` `0x7138`. A wood under the target
+    /// alone does not. Made to fail with the test dropped.
+    #[test]
+    fn a_plane_over_a_wood_holds_its_fire() {
+        use crate::world::tile;
+        let mut s = sim();
+        let (u, target, _, _) = striking_fighter(&mut s, true);
+        let to = s.buildings[target].pos;
+        s.units[u].pos = Pos::new(to.x - 600, to.y);
+        let me = Obj::Unit(u);
+        assert!(s.is_in_range(me, Obj::Building(target)), "in reach");
+        s.world
+            .set_tile_field(to.tile(), tile::SURFACE, tile::SURFACE_FOREST);
+        assert!(
+            s.is_in_range(me, Obj::Building(target)),
+            "a wood under the target"
+        );
+        let under = s.units[u].pos.tile();
+        s.world
+            .set_tile_field(under, tile::SURFACE, tile::SURFACE_FOREST);
+        assert!(
+            !s.is_in_range(me, Obj::Building(target)),
+            "a wood under the plane"
+        );
+    }
+
+    /// **A dry strike with a patrol behind it dies in the tail** (`do_strafe`
+    /// `5eb642`..`5eb673`, item 1200): the tank at `mana_burn` = `MANA`
+    /// turns the strike for home (`check_fuel`'s arm, in the flight), and
+    /// the tail kills a dry strike and one flying home when an order stands
+    /// behind it, so the patrol flies alone — chapter forty-one's Biplane
+    /// on 1108. Made to fail with the tail's early return for a strike
+    /// flying home back and its dry test dropped.
+    #[test]
+    fn a_dry_strike_with_a_patrol_behind_it_dies_in_the_tail() {
+        let mut s = sim();
+        let (base, target) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        let point = s.buildings[target].pos;
+        s.add_air_patrol_order(u, point, Some(base), false);
+        s.add_strafe_order(
+            u,
+            Some(Obj::Building(target)),
+            Some(base),
+            false,
+            crate::orders::QueuePos::First,
+            false,
+        );
+        assert_eq!(s.units[u].orders.len(), 2);
+        assert!(matches!(
+            s.units[u].orders.front().map(|o| o.body),
+            Some(Body::Strafe(_))
+        ));
+        s.units[u].mana_burn = 400;
+        s.work(u, 767);
+        assert_eq!(s.units[u].orders.len(), 1, "the strike is killed");
+        assert!(matches!(
+            s.units[u].orders.front().map(|o| o.body),
+            Some(Body::AirPatrol(_))
+        ));
+    }
+
+    /// **A strafer's round never rolls** (`Ammo::init`, `67c548`..`67c557`,
+    /// item 1200): the unit-strafer arm jumps past `67c633`, where flag `4`
+    /// and the `0x4b` over a land unit are set, so its round at a land
+    /// unit lands where it lands — chapter forty-one's Biplane on 1529,
+    /// short of `0/9`. A type without `w` rolls. Made to fail with the
+    /// strafer test dropped from `rolling`.
+    #[test]
+    fn a_strafers_round_at_a_land_unit_does_not_roll() {
+        for strafes in [true, false] {
+            let mut s = sim();
+            let (u, _, _, _) = striking_fighter(&mut s, strafes);
+            let foot = s.add_unit_type(UnitType {
+                hits: 100,
+                combat: combat::Profile {
+                    domain: Domain::Land,
+                    ..combat::Profile::default()
+                },
+                ..UnitType::default()
+            });
+            let index = i16::try_from(s.units.len()).unwrap();
+            let mut t = Unit::new(1, index, Pos::new(21120, 16800), 100);
+            t.ty = Some(foot);
+            t.on_map = true;
+            t.kind = s.unit_types[foot].kind;
+            let t = s.add_unit(t);
+            let at = s.units[u].pos;
+            s.fire_ammo_pub(
+                Obj::Unit(u),
+                Obj::Unit(t),
+                Angle(0),
+                1529,
+                at,
+                1231,
+                0,
+                false,
+            );
+            let p = s.projectiles.last().unwrap();
+            assert_eq!(p.rolling, !strafes, "strafes {strafes}");
+        }
+    }
+
     /// **A strafer's round is exact** (`Ammo::init@0067bbf0`, `0x67c33a`):
     /// no scatter, so neither of the two draws a land shot spends. run265's
     /// 923: the original's Fighter plays its attack and spends nothing
