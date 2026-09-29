@@ -9115,6 +9115,17 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   run426 window blocks: 257 (15581..15837)
 # ==== TAKEN 2026-09-29, one take, 11:03–11:24, no wait (a stale lane lock) ====
 
+# ==== item 1177: the third map's long word 15982 widened ====
+#
+# run428 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run428):
+# run426's shape, blocks 15977..16233, `!quit` at 16247.
+# Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log rontrace-run428.log   -> 0 differing, 16,248 identical
+#   grep -a -m1 'MAP_STYLE' / ' DIFFICULTY ' / '(int)seed' -> 7, 0, 12345
+#   run428 window blocks: 257 (15977..16233)
+# ==== TAKEN 2026-09-29, one take, 12:11–12:31, after a refused launch (a lane lock whose pid had been recycled) ====
+
 # ==== item 1156: East Indies at Toughest, the gap 6573..6603 before the word 6609 ====
 #
 # run421 is not a stanza. It ran on the click-free lane

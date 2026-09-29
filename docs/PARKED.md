@@ -116,6 +116,14 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1177, 2026-09-29 — the collision arms left
+
+(1190) **The unit arm's `find_collision(my spot, …, 1)` at `5f7f11`, and
+`valid_target@00648ba0` in the building arm, are unmodelled** (COMBAT
+§65.6): 1177 built the building arm's conjunct alone. No walk on disk
+parts on either; `debug_unit`'s reach tuple now prints the forced
+collision, which would name the unit arm's.
+
 ## Parked by item 1174, 2026-09-29 — escrow's unheld arms
 
 (1186) **Escrow's other writers and draws** (AI §98.6, §98.7):
@@ -2189,7 +2197,8 @@ waiter that reads the lock could say "stale" by itself. **And the
 other way** (1177's message, 2026-09-29): run426's lock named pid 15593,
 recycled by an unrelated `next-server`, so run428's takeover read it
 live and refused with no wine running. The liveness test should check
-the pid's command, not only that the pid exists. Two reaches.
+the pid's command, not only that the pid exists (1177's journal: or its
+start time). Two reaches.
 
 (1181) **A move's waypoint is compared only under `dest 1`** (1171's
 Loop line): the original printed the follower's waypoint (28614, 20246)
