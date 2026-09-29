@@ -1783,7 +1783,11 @@ impl Sim {
             );
         }
         let _ = frame;
-        let rolling = land_unit;
+        // **A strafer's round never rolls** (`67c548`..`67c557`, item
+        // 1200): the unit-strafer test jumps past `67c633`, where flag `4`
+        // and the `0x4b` over a land unit are set. Chapter forty-one's
+        // Biplane on 1529, whose round lands behind it, short of `0/9`.
+        let rolling = land_unit && !strafes;
         let ez = match target {
             Some(t) => self.aim_z(t, rolling),
             None => self.ground_z(target_pos).max(0),
