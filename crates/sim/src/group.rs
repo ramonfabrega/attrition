@@ -2002,10 +2002,14 @@ impl Sim {
     /// (`local_40 = ~(leader_flags >> 1) & 2 | 1`) and a `MOVE_TO`
     /// otherwise.
     ///
+    /// A member that can cast `0x293` (a Militia) is a builder too, and
+    /// takes the Civilian between its approach and its order
+    /// ([`Sim::swarm_around_last`], item 1167, `docs/GOLDEN.md` §49).
+    ///
     /// SEAM, none reached by a capture on file: the non-builders, which
     /// the original gathers into a scratch group and sends `MOVE_TO` the
     /// site at `QUEUE_NEW`; a builder already inside a building
-    /// (`count_inside`) or able to cast `0x293`, which goes with them;
+    /// (`count_inside`), which goes with them;
     /// the gather filter (`local_30`, the group's idle citizens, against a
     /// member whose action is a gather); and `is_busy`, a member mid-cast
     /// or boarding. `finish_insert`'s one reach on file is a goody box's
@@ -2039,7 +2043,13 @@ impl Sim {
                 let domain = self.units[u]
                     .ty
                     .map_or(Domain::Land, |t| self.unit_types[t].kind.domain);
-                if domain != layer || self.worker_of(u) != crate::orders::Worker::Citizen {
+                // The builders: a Citizen (`0x32`/`0x33`), or a member
+                // that can cast the Civilian (`is_castable(0x293)`, a
+                // Militia), which goes with them and converts on arrival
+                // (`0070ff60`, item 1167, `docs/GOLDEN.md` §49).
+                let builder = self.worker_of(u) == crate::orders::Worker::Citizen
+                    || self.spell_castable(crate::orders::spell::CIVILIAN, u);
+                if domain != layer || !builder {
                     continue;
                 }
                 if pos == QueuePos::First {
@@ -2893,12 +2903,29 @@ impl Sim {
     /// dance (`set_up_insert`, `action_halt`, the garrison at
     /// `QUEUE_NEW`, `finish_insert`), taken here as `QUEUE_NEW`; the
     /// scenario's `ignore_orders` sweep; the zero-limit arm's second test
-    /// (a type vslot `+0x60`), taken as a refusal; `search`'s
-    /// `find_garrison_build`, which the command never asks for; the
-    /// editor's instant `go_inside` (`Game::semaphore` bit `0xb`); a
-    /// worker's `QUEUE_FIRST` and a packing type's arms;
+    /// (a type vslot `+0x60`), taken as a refusal; the editor's instant
+    /// `go_inside` (`Game::semaphore` bit `0xb`); a packing type's arm;
     /// `is_entering_or_exiting`.
     pub fn group_action_garrison(&mut self, g: &Group, b: usize, queue: QueuePos) {
+        self.group_action_garrison_search(g, b, queue, false);
+    }
+
+    /// [`Self::group_action_garrison`] with its fifth argument, `search`,
+    /// which the City's alarm passes as 1 (item 1167, `docs/GOLDEN.md`
+    /// §49): each member is sent to `Unit::find_garrison_build@00605040`'s
+    /// building of the city when it finds one, the building `b` otherwise,
+    /// and the order carries `search`. At `QUEUE_NEW` a **worker**
+    /// (`ObjectData::is_worker@0046fa10`: `0x32`..`0x35`) takes its order
+    /// at `QUEUE_FIRST`, in front of what it holds, with the same `search`
+    /// (`00700a05`..`00700a13`: `edx` is still `param_4` from `007008c4`
+    /// or `00700909`).
+    pub fn group_action_garrison_search(
+        &mut self,
+        g: &Group,
+        b: usize,
+        queue: QueuePos,
+        search: bool,
+    ) {
         let queue = if queue == QueuePos::First {
             QueuePos::New
         } else {
@@ -2939,8 +2966,25 @@ impl Sim {
             if !self.units[m].ty.is_some_and(|t| self.can_garrison(t, bty)) {
                 continue;
             }
-            self.add_garrison_order(m, b, false, queue, true);
+            let target = if search {
+                self.find_garrison_build(m, self.buildings[b].city, g.who)
+                    .unwrap_or(b)
+            } else {
+                b
+            };
+            let pos = if queue == QueuePos::New && self.is_worker(m) {
+                QueuePos::First
+            } else {
+                queue
+            };
+            self.add_garrison_order(m, target, search, pos, true);
         }
+    }
+
+    /// `ObjectData::is_worker@0046fa10`: the type is `0x32`..`0x35` — the
+    /// Citizen, its tribe's, and the two Scholars.
+    pub(crate) fn is_worker(&self, u: usize) -> bool {
+        (0x32..=0x35).contains(&self.units[u].type_index)
     }
 
     /// `Group::action_eject_all(back_to_work, who, eject_o, eject_who)

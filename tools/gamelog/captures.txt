@@ -8882,6 +8882,47 @@ check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch39/map-14/rontra
 check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch39/map-14/rontrace.log" rontrace-run423.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=830)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run423.log" functions 2>/dev/null | grep -E "SpellType::cast_to_arms$|SpellType::cast_civilian$|SpellType::cast_create_decoy$" | tee /dev/stderr | awk 'END{exit !(NR==3)}'
 
+run: 431
+tag: ch40-cover
+item: 1167
+why: the blind list for chapter forty — chapter40.cmd at cover=1 on the queue lane (golden run430, cover=0 on the click-free lane), to take Group::action_alarm@0070ec30 and Group::action_gather@00700b90 off
+# `~/ron-golden/ch40/map-14/rontrace.cmd` line for line to 910, as run423
+# is run422's: the golden lobby (`cfg: -`), the chapter's own `!ffwd`,
+# `cover=1`, ending ten frames past the all-clear on 900. `@alarm` and
+# `@gather` are verbs of this tree's DLL (item 1167): the queue lane builds
+# the DLL from the tree it runs in.
+frames: 910
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+end: MISC,UNITS=3,BUILDS=7,GROUPS=1
+cmd: 0 !ai off
+cmd: 37 !ffwd 2
+cmd: 600 library who=0 1
+cmd: 602 peace 1
+cmd: 604 add citizen who=0 30,150
+cmd: 606 @spell 0 660 -1 -1 0 0 6
+cmd: 608 tech who=0 militia on
+cmd: 610 add citizen who=0 186,106
+cmd: 612 @spell 0 660 -1 -1 0 0 7
+cmd: 614 add militia who=0 20,152
+cmd: 616 add militia who=0 34,176
+cmd: 618 add militia who=0 26,146
+cmd: 620 add militia who=0 20,160
+cmd: 630 @repair 0 2006 0 8
+cmd: 640 @build 0 7296 34176 427 9
+cmd: 650 @gather 0 2001 10
+cmd: 660 @garrison 0 2000 0 11
+cmd: 700 @move 0 33408 20448 7
+cmd: 800 @spell 0 660 -1 -1 0 0 7
+cmd: 840 @spell 0 659 -1 -1 0 0 7
+cmd: 880 @alarm 0 2000
+cmd: 900 @alarm 0 2000
+check: python3 tools/gamelog/issuesmatch.py "$HOME/ron-golden/ch40/map-14/rontrace.log" rontrace-run431.log
+check: python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch40/map-14/rontrace.log" rontrace-run431.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=910)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run431.log" functions 2>/dev/null | grep -E "Group::action_alarm$|Group::action_gather$" | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
 # run381 (item 1066) is not a stanza: it is `startcapture.sh 381 7
 # greatsahara-start` under `viadriver.sh`, run38's `DUMP_ALL` start on Great
 # Sahara — the height table, the checksum trace, the herds and the frame

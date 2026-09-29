@@ -1184,6 +1184,59 @@ fn a_city_levels_up_on_five_kinds_and_grows_its_radius() {
     let _ = t.fort;
 }
 
+/// `Leader::gain_tech`'s buildings cascade, the city arm (`0x6dec2f`,
+/// `docs/AI.md` §98): a city that already holds its kinds while the Large
+/// City is still locked levels up **on the gain** of the Large City's
+/// prerequisite, not at its next building's completion. East Indies'
+/// London and Norwich did so with the Medieval Age in the original and
+/// stood Small here until a building finished, which put the AI's `pop` at
+/// 3 against 7 and every research offer at three sevenths.
+#[test]
+fn the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let classical = tree.add(TypeDef::age("Classical Age", 0));
+    let medieval = tree.add(TypeDef::age("Medieval Age", 1));
+    let town = tree.add(TypeDef::building("Large City").needs(0, medieval));
+    tree.ages[0] = Some(classical);
+    tree.ages[1] = Some(medieval);
+    tree.roles.town = Some(town);
+    tree.add_tribe(tech::Tribe::default());
+    tree.finalize();
+    sim.build_types[t.town].tree = Some(town);
+    sim.tech_tree = tree;
+    for w in 0..sim.tech.len() {
+        sim.tech[w] = tech::PlayerTech::new(&sim.tech_tree);
+    }
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let sites = [
+        (t.barracks, tile_pos(40, 40)),
+        (t.library, tile_pos(24, 40)),
+        (t.market, tile_pos(40, 24)),
+        (t.temple, tile_pos(24, 24)),
+        (t.farm, tile_pos(44, 32)),
+    ];
+    for (ty, pos) in sites {
+        let p = sim.place_building(0, ty, pos).unwrap();
+        finish(&mut sim, p);
+    }
+    assert_eq!(sim.num_kinds(c), 6, "the kinds are there");
+    assert_eq!(sim.city_level_of(c), 1, "the Large City is locked");
+    assert_eq!(sim.ai[0].census.pop, 1);
+    sim.gain_tech(0, classical);
+    assert_eq!(
+        sim.city_level_of(c),
+        1,
+        "an age the Large City does not need"
+    );
+    sim.gain_tech(0, medieval);
+    assert_eq!(sim.city_level_of(c), 2, "levelled up on the gain");
+    assert_eq!(sim.buildings[b].ty, Some(t.town));
+    assert_eq!(sim.ai[0].census.pop, 3, "and `pop` follows it");
+}
+
 /// `LeaderData::pop` and `reg_pop` — `CityData::get_pop_value@00738450`,
 /// which is **1, 3, 5** and not the level, summed over the leader's live
 /// cities. The number is `create_units`' and `research_techs`' whole `base`
@@ -4803,4 +4856,228 @@ fn a_general_s_decoys_copy_the_armed_land_captains_near_it() {
     let age = sim.units[d].mana_burn;
     sim.tick();
     assert_eq!(sim.units[d].mana_burn, age + 1, "a decoy ages a frame");
+}
+
+/// Chapter forty's fixture (item 1167, `docs/GOLDEN.md` §49):
+/// [`untargeted_sim`]'s types with a city's buildings beside them, the
+/// Citizen trained at the city (so it garrisons one) and the Militia a
+/// fortifying type (so it does too). Returns the sim, the build types and
+/// the Citizen's and the Militia's records.
+fn alarm_sim() -> (Sim, Types, usize, usize) {
+    let (mut sim, [citizen, militia, _, _], _) = untargeted_sim();
+    let t = install_types(&mut sim);
+    sim.unit_types[citizen].garrison.trained_at = Some(t.village);
+    sim.unit_types[citizen].price.pop = 1;
+    sim.unit_types[militia].garrison.fortify = true;
+    sim.unit_types[militia].price.pop = 1;
+    (sim, t, citizen, militia)
+}
+
+/// **A Militia in a repair swarm is a builder, and takes the Civilian
+/// between its approach and the repair** (item 1167, `docs/GOLDEN.md`
+/// §49; `Group::action_swarm_around@0070fbe0`'s member arm, run430's M1
+/// on block 632: a `MOVEORDER`, a `CASTORDER` of 659 at its own point,
+/// `ox` −1, then the `REPAIRORDER` on 2006).
+///
+/// Made to fail with the member filter back at Citizens alone, and with
+/// the cast dropped.
+#[test]
+fn a_militia_in_a_repair_swarm_takes_the_civilian_between_its_approach_and_the_repair() {
+    use crate::orders::{Body, QueuePos, index, spell};
+    let (mut sim, t, _, militia) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    finish(&mut sim, b);
+    let m = sim.init_unit(0, militia, tile_pos(40, 52));
+    let at = sim.units[m].pos;
+    let mut g = crate::group::Group::stack(0);
+    sim.group_add(&mut g, m);
+    assert!(sim.push_group(&mut g, true));
+    assert!(sim.group_swarm_around(&g, b, QueuePos::New, index::REPAIR));
+    let kinds: Vec<u8> = sim.units[m].orders.iter().map(|o| o.index()).collect();
+    assert_eq!(
+        kinds,
+        vec![index::MOVE_TO, index::CAST_SPELL, index::REPAIR],
+        "the approach, the Civilian, the repair"
+    );
+    match sim.units[m].orders[1].body {
+        Body::Cast(c) => {
+            assert_eq!(c.spell, spell::CIVILIAN);
+            assert_eq!(c.target, None, "untargeted: (−1, −1)");
+            assert_eq!(c.at, at, "on the point it stood on at the swarm");
+        }
+        other => panic!("not a cast: {other:?}"),
+    }
+}
+
+/// **A Militia's gather puts the Civilian in front of the gather**
+/// (item 1167, `docs/GOLDEN.md` §49; `Group::action_gather@00700b90` at
+/// `QUEUE_NEW`: `add_gather_order(QUEUE_NEW)`, then `add_cast_order(0x293,
+/// QUEUE_FIRST)` — run430's M3 on block 652, a `CASTORDER` at its own
+/// point ahead of the `GATHERORDER` on 2001, a Citizen by 657).
+///
+/// Made to fail with the cast dropped, and with it laid behind the
+/// gather.
+#[test]
+fn a_militia_s_gather_puts_the_civilian_in_front_of_the_gather() {
+    use crate::orders::{Body, QueuePos, index, spell};
+    let (mut sim, t, citizen, militia) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    finish(&mut sim, farm);
+    assert!(sim.is_gather_type(farm));
+    let m = sim.init_unit(0, militia, tile_pos(44, 40));
+    let mut g = crate::group::Group::stack(0);
+    sim.group_add(&mut g, m);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_gather(&g, farm, QueuePos::New);
+    let u = &sim.units[m];
+    assert_eq!(u.orders.len(), 2);
+    assert!(matches!(u.orders[0].body, Body::Cast(c) if c.spell == spell::CIVILIAN));
+    assert_eq!(u.orders[1].index(), index::GATHER);
+    for _ in 0..6 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[m].ty, Some(citizen), "a Citizen five frames on");
+}
+
+/// **The alarm rings, then sounds the all-clear** (item 1167,
+/// `docs/GOLDEN.md` §49; `Group::action_alarm@0070ec30`, run430's blocks
+/// 882 and 902: `city_flags` 18449 → 18513 → 18449). The bell sends every
+/// Citizen within the city's radius to garrison, a worker's order at
+/// `QUEUE_FIRST` with `search` 1, and a Citizen past the radius nowhere;
+/// the all-clear kills the walking Citizens' GARRISONs, makes the Militia
+/// inside a Citizen (`cast_civilian`: `rare` `PEASANTS`) and puts it out
+/// at once. Each press marks the economy dirty.
+///
+/// Made to fail with the bell's worker arm at `QUEUE_NEW`, with the
+/// all-clear's `cast_civilian` dropped, with the dirty bit dropped, and
+/// with the eject deferred.
+#[test]
+fn the_city_s_alarm_rings_then_sounds_the_all_clear() {
+    use crate::orders::{Body, QueuePos, index};
+    let (mut sim, t, citizen, militia) = alarm_sim();
+    let (b, c) = city_at(&mut sim, &t, 0, 32, 32);
+    let near = sim.init_unit(0, citizen, tile_pos(38, 32));
+    let far = sim.init_unit(0, citizen, tile_pos(60, 60));
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    assert_eq!(sim.units[m].inside, Some(b), "a Militia inside the city");
+    // A walk already held: the GARRISON goes in front of it.
+    sim.add_move_order(
+        near,
+        tile_pos(39, 33),
+        crate::orders::MoveKind::MoveTo,
+        QueuePos::New,
+        true,
+    );
+    sim.ledgers[0].dirty = false;
+
+    sim.action_alarm(0, &[b]);
+    assert!(sim.cities[c].alarm, "city_flags | 0x40");
+    assert!(sim.ledgers[0].dirty, "the press marks the economy dirty");
+    let kinds: Vec<u8> = sim.units[near].orders.iter().map(|o| o.index()).collect();
+    assert_eq!(kinds[0], index::GARRISON, "in front: {kinds:?}");
+    assert!(
+        kinds.contains(&index::MOVE_TO),
+        "the walk kept behind: {kinds:?}"
+    );
+    assert!(
+        sim.units[near]
+            .orders
+            .iter()
+            .any(|o| matches!(o.body, Body::Garrison { building, search: true } if building == b))
+    );
+    assert!(sim.units[far].orders.is_empty(), "past the radius");
+
+    sim.ledgers[0].dirty = false;
+    sim.action_alarm(0, &[b]);
+    assert!(!sim.cities[c].alarm, "city_flags & ~0x40");
+    assert!(sim.ledgers[0].dirty);
+    assert!(
+        !sim.units[near]
+            .orders
+            .iter()
+            .any(|o| o.index() == index::GARRISON),
+        "the walking Citizen's GARRISON is killed"
+    );
+    let u = &sim.units[m];
+    assert_eq!(u.ty, Some(citizen), "the Militia inside is a Citizen");
+    assert_eq!((u.rare, u.form), (0x32, 9));
+    assert_eq!(u.inside, None, "and out at once");
+    assert!(sim.buildings[b].garrison.is_empty());
+}
+
+/// **A unit comes out with the body's speeds it froze at the door**
+/// (item 1167, `docs/GOLDEN.md` §49; run430's `0/5` on 902, out of the
+/// City at `avg_speed` 11 from the 15 it went in with). `set_new_location
+/// (·, ·, 1, 1)` moves the guys and writes neither speed.
+///
+/// Made to fail with the body rebuilt at rest.
+#[test]
+fn a_unit_comes_out_with_the_speeds_it_went_in_with() {
+    let (mut sim, t, _, militia) = alarm_sim();
+    let (b, _) = city_at(&mut sim, &t, 0, 32, 32);
+    let m = sim.init_unit(0, militia, tile_pos(36, 36));
+    sim.go_inside(m, b);
+    sim.units[m].movement.body.avg_speed = 15;
+    sim.units[m].movement.body.last_speed = 3;
+    assert!(sim.come_out(m));
+    let body = sim.units[m].movement.body;
+    assert_eq!((body.avg_speed, body.last_speed), (15, 3));
+    assert_eq!(
+        body.pos, sim.units[m].pos,
+        "and it stands where it came out"
+    );
+}
+
+/// **A builder that takes the gather of the site it finished drops its
+/// group pointer** (item 1167, `docs/GOLDEN.md` §49; `Unit::do_build`'s
+/// `LAB_005eed5f`, `+0x80 = −1` at `005eed9c`, and `Unit::build_done`'s
+/// human gather at `00603cb5`: run430's `0/9` on 1075, `group` 3 → −1).
+///
+/// Made to fail with the pointer kept.
+#[test]
+fn a_builder_that_gathers_at_its_finished_site_drops_its_group_pointer() {
+    use crate::orders::{Body, QueuePos, index};
+    let (mut sim, t, citizen, _) = alarm_sim();
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    sim.nation[0].human = true;
+    let farm = sim.place_building(0, t.farm, tile_pos(44, 32)).unwrap();
+    finish(&mut sim, farm);
+    let u = sim.init_unit(0, citizen, tile_pos(44, 36));
+    sim.add_build_order(u, farm, QueuePos::New, true);
+    sim.units[u].group_ptr = Some(3);
+    sim.tick();
+    assert_eq!(
+        sim.units[u].orders.front().map(|o| o.index()),
+        Some(index::GATHER)
+    );
+    assert!(matches!(sim.units[u].orders[0].body, Body::Gather { .. }));
+    assert_eq!(sim.units[u].group_ptr, None);
+}
+
+/// **To Arms is refused on another player's land and taken on no one's**
+/// (item 1167, `docs/GOLDEN.md` §49; `is_castable`'s `0x294` case, the
+/// cell under the caster no one's, its own or an ally's: run430's D,
+/// refused on 612 at cell (46, 26), who=1's, and converted on 800 at
+/// (43, 26), no one's).
+///
+/// Made to fail with the land test dropped.
+#[test]
+fn to_arms_is_refused_on_another_player_s_land() {
+    use crate::orders::spell;
+    let (mut sim, [citizen, militia, _, _], militia_t) = untargeted_sim();
+    sim.gain_tech(0, militia_t);
+    let c = sim.init_unit(0, citizen, tile_pos(20, 20));
+    let cell = sim.units[c].pos.cell();
+    sim.world.set_owner(cell, Owner::Player(1), Owner::None);
+    assert_eq!(press(&mut sim, c, spell::TO_ARMS), 0, "who=1's land");
+    assert!(sim.units[c].orders.is_empty());
+    sim.world.set_owner(cell, Owner::None, Owner::None);
+    assert_eq!(press(&mut sim, c, spell::TO_ARMS), 1, "no one's");
+    for _ in 0..5 {
+        sim.tick();
+    }
+    assert_eq!(sim.units[c].ty, Some(militia));
 }

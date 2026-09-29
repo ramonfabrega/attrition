@@ -237,9 +237,49 @@ impl Script {
     /// `add hoplite` spends three `Guy::init_real+0x52` draws and without
     /// this they were the frame's first three and invisible.
     pub fn stage(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
+        let mut done = self.pump(frame, built);
         built.sim.phase_marks.clear();
-        let done = self.apply(frame, built, loaded);
+        done.merge(&self.apply(frame, built, loaded));
         built.sim.staged_marks = std::mem::take(&mut built.sim.phase_marks);
+        done
+    }
+
+    /// **The turn pump**: the issuer lines written on `frame − 1`, run
+    /// before the tick of `frame` ([`Script::apply`] says why), with their
+    /// draws put at the **tail of `frame − 1`'s record** — the trace's
+    /// frame runs from one `do_frame` entry to the next, and the pump
+    /// walks the package between them (item 1167: run430's all-clear
+    /// spends `cast_civilian`'s `set_type` draw, `Guy::init_real+0x52`,
+    /// last on trace frame 900, after the frame's farms). No command
+    /// before chapter forty's drew inside the pump. [`Script::stage`]
+    /// calls it first; a walk that records each frame's opening word
+    /// calls it before reading the word, which is the word the trace
+    /// holds at `do_frame`'s entry.
+    pub fn pump(&mut self, frame: i64, built: &mut Built) -> Applied {
+        let mut done = Applied::default();
+        let (due, later): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending)
+            .into_iter()
+            .partition(|(f, _)| *f <= frame);
+        self.pending = later;
+        if due.is_empty() {
+            return done;
+        }
+        built.sim.phase_marks.clear();
+        for (f, line) in due {
+            if f < frame {
+                done.skip(&command_word(&line.text), "the frame was stepped past");
+            } else {
+                issue(&line, built, &mut done);
+            }
+        }
+        let marks = std::mem::take(&mut built.sim.phase_marks);
+        if built.sim.trace_phases
+            && let Some(sites) = crate::diff::mark_sites(&marks, built.sim.rng.seed)
+            && let Some((f, v)) = built.frame_sites.last_mut()
+            && *f == frame - 1
+        {
+            v.extend(sites);
+        }
         done
     }
 
@@ -266,18 +306,7 @@ impl Script {
     /// `f` is run here before the tick of `f + 1`, ahead of any cheat line
     /// staged on `f + 1`, as the pump runs ahead of `do_frame`'s entry.
     pub fn apply(&mut self, frame: i64, built: &mut Built, loaded: &Loaded) -> Applied {
-        let mut done = Applied::default();
-        let (due, later): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending)
-            .into_iter()
-            .partition(|(f, _)| *f <= frame);
-        self.pending = later;
-        for (f, line) in due {
-            if f < frame {
-                done.skip(&command_word(&line.text), "the frame was stepped past");
-            } else {
-                issue(&line, built, &mut done);
-            }
-        }
+        let mut done = self.pump(frame, built);
         while self.next < self.lines.len() && self.lines[self.next].frame < frame {
             let word = command_word(&self.lines[self.next].text);
             done.skip(&word, "the frame was stepped past");
@@ -449,6 +478,22 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@alarm <who> <b>…` — `issue_alarm@00941d00(group)` on a group of
+    /// the player's own buildings: the City's alarm button, a one-byte
+    /// `alarm` (0x1b). `Group::action_alarm@0070ec30` rings or sounds the
+    /// all-clear off the city's `0x40` bit (item 1167, `docs/GOLDEN.md`
+    /// §49).
+    Alarm { who: i32, buildings: Vec<i16> },
+    /// `@gather <who> <ox> <o>…` — `issue_gather@00941a20(group, ox,
+    /// QUEUE_NEW)`: a right-click on a building of one's own that takes
+    /// gatherers, a 9-byte `gather` (0x13, `[ox][queued]`), item 1167,
+    /// `docs/GOLDEN.md` §49. The building is the player's own: the
+    /// command carries no `whom`.
+    Gather {
+        who: i32,
+        ox: i32,
+        objects: Vec<i16>,
+    },
     /// `@buildmask <who> <mask> <b>…` — `issue_buildmask@00941f80(group,
     /// mask, 1)` on a group of the player's own buildings: the repeat
     /// button's 0x80 (`Options::set_air_repeat@0071c740`), item 867,
@@ -586,6 +631,8 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "launchstrikectrl"
             | "launchstrikealt"
             | "launchmove"
+            | "alarm"
+            | "gather"
     ) {
         return None;
     }
@@ -603,6 +650,37 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Eject { who, buildings });
+    }
+    // `@alarm` has no number but `who`, as `@eject`, and its objects are
+    // buildings.
+    if verb == "alarm" {
+        let [who, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Alarm { who, buildings });
+    }
+    // `@gather`'s one number is the building's id.
+    if verb == "gather" {
+        let [who, ox, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        let objects: Vec<i16> = objects
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if objects.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Gather { who, ox, objects });
     }
     // `@buildmask`'s one number is the mask, and its objects are buildings.
     if verb == "buildmask" {
@@ -980,6 +1058,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_swarm_around(built, who, &objects, ox, whom, 2, 13),
+        // `@alarm` is `issue_alarm@00941d00` on a group of buildings, a
+        // `group` and an `alarm`, whose entry is [`crate::input::group_alarm`];
+        // `@gather` is `issue_gather@00941a20` with `QUEUE_NEW`, a `group` and
+        // a `gather`, [`crate::input::group_gather`] (item 1167,
+        // `docs/GOLDEN.md` §49).
+        Some(Issued::Alarm { who, buildings }) => crate::input::group_alarm(built, who, &buildings),
+        Some(Issued::Gather { who, ox, objects }) => {
+            crate::input::group_gather(built, who, &objects, ox, 2)
+        }
         // `@buildmask` is `issue_buildmask@00941f80` on a group of
         // buildings, a `group` and a `buildmask`, whose entry is
         // [`crate::input::group_buildmask`] (item 867, `docs/GOLDEN.md`
@@ -1725,6 +1812,11 @@ mod tests {
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
+        // Chapter forty: To Arms refused off the Militia line and on
+        // who=1's land, both conversions wounded, three Militia's `@repair`,
+        // `@build` and `@gather`, and `@alarm` twice over a garrisoned
+        // Militia — the casts' other arms (item 1167, `docs/GOLDEN.md` §49).
+        ("chapter40.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).
@@ -2072,6 +2164,31 @@ mod tests {
             })
         );
         assert_eq!(parse_issuer("@repair 0 2006 0"), None);
+    }
+
+    /// **An alarm line names buildings and a gather line one building**
+    /// (item 1167): `@alarm`'s numbers are `who` and the buildings, as
+    /// `@eject`'s; `@gather`'s are `who`, the building's id and the
+    /// objects. A line with no object is the DLL's refusal 5.
+    #[test]
+    fn an_alarm_line_and_a_gather_line_are_the_dll_s() {
+        assert_eq!(
+            parse_issuer("@alarm 0 2000"),
+            Some(Issued::Alarm {
+                who: 0,
+                buildings: vec![2000],
+            })
+        );
+        assert_eq!(parse_issuer("@alarm 0"), None);
+        assert_eq!(
+            parse_issuer("@gather 0 2001 10"),
+            Some(Issued::Gather {
+                who: 0,
+                ox: 2001,
+                objects: vec![10],
+            })
+        );
+        assert_eq!(parse_issuer("@gather 0 2001"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,

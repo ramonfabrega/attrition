@@ -1353,7 +1353,26 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 15_982;
 /// parting at index 0**: ours spends `Leader::use_market+0x1ed` where the
 /// original spends `Leader::make_stuff+0x221`. Past run420's window (its
 /// last block 6860), widened on run425 (block 7383).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 7_382;
+///
+/// **7382 → 7512 on item 1174** (`docs/AI.md` §98): `gain_tech`'s
+/// buildings cascade runs `check_upgrade` on every city when the gain is a
+/// prerequisite of the Large City (`0x6dec2f`), and `do_gather` feeds the
+/// escrow the producers then draw on (`006ce450`'s tail; `Build::queue_up`'s
+/// `pay_cost(…, escrow, …)`). **The move's value diff (the word's delta,
+/// here; its block is `run425_s_word_frame_is_widened_whole`'s):** on
+/// run425's first block 7377 who=1's `pop` ours 3 against 7 → agreeing and
+/// its `escrow` 0/0/0/0/0 against 39/44/15/47/36 → agreeing; on 7379 its
+/// `MAKE[0].val` ours 1800000 against 4194000 → agreeing (every slot was
+/// three sevenths), its buckets agreeing on both sides before and after
+/// (93, 183, 58, 306, 208 there); on 7383 its buckets ours 43/39/118/109
+/// against 34/124/8/149 → agreeing. run425's keys went 1182 → 614, and each
+/// earlier widening of the game lost the five `escrow` rows from its first
+/// block. Frame 7382's draws went 15 against 9 → agreeing. **The new word's
+/// delta: ours 39 draws and the original 3243 on frame 7512, parting at
+/// index 30**: ours spends `Guy::set_anim+0x97a < Guy::inc_time+0x271` where
+/// the original spends `PathFinder::calc_road_cost+0x46`, 3206 times under
+/// `astar_caravan_road`. Inside run425's window (block 7513).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 7_512;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1789,7 +1808,7 @@ pub(crate) const WIDENING_SECOND_EAST_INDIES_6609: (i64, i64) = (6_604, 6_860);
 
 /// `run425_s_word_frame_is_widened_whole`'s window (item 1164): run425 over
 /// run346's game, blocks 7377..7633 — six blocks before the word 7382's
-/// block 7383 and 250 past it.
+/// block 7383 and 250 past it; the word 7512's block 7513 since item 1174.
 pub(crate) const WIDENING_SECOND_EAST_INDIES_7382: (i64, i64) = (7_377, 7_633);
 
 /// `run421_s_gap_is_walked_whole`'s window (item 1156): run421 over
@@ -4842,6 +4861,14 @@ pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_NINE: i64 = 1100;
 /// whole, (605, 1101).
 pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
 
+/// **Chapter forty's word** (item 1167, `docs/GOLDEN.md` §49, run430):
+/// the casts' other arms.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
+
+/// `chapter_forty_s_word_frame_is_widened_whole`'s window: run430 whole,
+/// (605, 1151).
+pub(crate) const WIDENING_CHAPTER_FORTY: (i64, i64) = (605, 1151);
+
 /// `run265_s_rounds_are_the_original_s_record_for_record`'s window
 /// (item 853): run265's blocks from the Fighter's first release, 923, to
 /// the capture's end.
@@ -6898,6 +6925,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Item 1167: run430, chapter forty, the casts' other arms. The
+    // widening is run430 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY",
+        GOLDEN_WORD_CHAPTER_FORTY,
+        Some("chapter_forty_s_word_frame_is_widened_whole"),
+        1167,
+        Some(WIDENING_CHAPTER_FORTY),
+    ),
     // Item 660: run171, chapter eight's first walk, on the Spy's birth.
     (
         "GOLDEN_WORD_CHAPTER_EIGHT",
@@ -6963,12 +6999,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // widened on run414, and item 1120 to 6151, inside run414's window.
     // Item 1127 moved it to 6321, past it, widened on run419; item 1143 to
     // 6609, past that, widened on run420; item 1156 to 6743, inside it;
-    // item 1164 to 7382, past it, widened on run425.
+    // item 1164 to 7382, past it, widened on run425; item 1174 to 7512,
+    // inside it.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run425_s_word_frame_is_widened_whole"),
-        1164,
+        1174,
         Some(WIDENING_SECOND_EAST_INDIES_7382),
     ),
     (

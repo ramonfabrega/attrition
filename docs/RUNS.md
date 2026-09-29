@@ -10974,6 +10974,58 @@ from run346's start. On block 6577 the original's `1/28` holds `orders_x/y`
 to (28920,25080), and since item 1156 it agrees (`docs/AI.md` §93,
 `docs/SCOUT.md` §8.1).
 
+## run430 — chapter forty, the casts' other arms (2026-09-29, item 1167)
+
+`docs/GOLDEN.md` §49, `tools/gamelog/golden/chapter40.cmd`: a cast of its
+own on the golden start — `library who=0 1`, `peace 1`, To Arms on a
+Citizen before `tech who=0 militia on` (606) and on a Citizen D added on
+who=1's land (612); four Militia (614..620); `@repair`, `@build` and
+`@gather` on three of them (630, 640, 650), `@garrison` of the fourth into
+the City (660); D walked off who=1's land (700), To Arms and Civilian on it
+(800, 840); `@alarm` on the City twice (880, 900). `@alarm` and `@gather`
+are the DLL's new verbs 24 and 25, built from item 1167's tree.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch40 \
+    --map 14 --end-frame 1150 --log-window 605 1150 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,GROUPS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter40.cmd
+```
+
+10:20–10:33, 739 s launch to exit, `success: true`, 1,151 frames, 231 MB;
+the lane lock was stale. Eleven issue records, none refused.
+
+**What the disk could not answer.** No capture wounds a converting unit,
+presses To Arms off the Militia line or on another's land, issues a
+Militia into a repair, a build or a gather, or presses the City's alarm.
+The staging's predicates were printed fields on run422's dump — the City's
+`city_flags` 18449 (bit 0 set, 0x40 clear), who=0's timber 242 on 640,
+who=1's land at cells (45..46, 26) — or answered by run422 (a Militia takes
+Civilian), so no packet was taken.
+
+**What it holds**: `chapter_forty_holds_to_the_golden_word` (1150, the
+capture's end), `chapter_forty_s_word_frame_is_widened_whole` and
+`run430_s_casts_are_the_original_s_field_for_field` (`diff::golden`).
+
+## run431 — chapter forty at `cover=1`, to 910 (2026-09-29, item 1167)
+
+run430's script line for line on the queue lane, `cover=1`, to 910
+(`tools/gamelog/captures.txt`, `run: 431`), 10:50–10:59. The first launch
+refused before the game: the install's DLL predated the two verbs, and
+`runqueue.sh`'s tracer guard said so; `tools/trace/build.sh` rebuilt it
+from item 1167's tree.
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run430 | eleven issue records, none refused; golden 11 |
+| `rngcmp.py` vs run430 | 911 frames identical, none differing |
+| `report.py … functions` | `Group::action_gather` f650, `Group::action_alarm` f880 |
+
+The two issuers leave `NEVER`, and `CommandManager::issue_gather` with them
+(`ENTERED_BY_THE_DLL_ONLY`): 141 → 138 (`crates/rondata/src/blind.rs`).
+Run 432, reserved for a packet, was not taken.
 ## run425 — run346's game at run420's detail over blocks 7377..7633: the second pair's East Indies word 7382 widened (2026-09-29, item 1164)
 
 **What it is.** run420's shape on the click-free lane: run346's lobby,

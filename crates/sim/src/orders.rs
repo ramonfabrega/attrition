@@ -6382,9 +6382,15 @@ impl Sim {
             pos
         };
         self.add_move_facing_order(u, spot, kind, pos, false, facing, None, false);
-        // SEAM: `is_castable(0x293)` and its `add_cast_order` ahead of the
-        // order, and `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`.
-        // The spell is castable by no unit a capture on file stages.
+        // `is_castable(0x293)`: a Militia takes the Civilian at
+        // `QUEUE_LAST` between the approach and the order, untargeted
+        // (`−1, −1`) at the point it stands on at the swarm
+        // (`00710520`/`007105a3`, item 1167, `docs/GOLDEN.md` §49).
+        // SEAM: `BUILD_AT`'s clear of the site's `+0x60 & 0x2000`.
+        if self.spell_castable(spell::CIVILIAN, u) {
+            let at = self.units[u].pos;
+            self.add_cast_order_on(u, spell::CIVILIAN, None, at, QueuePos::Last, action);
+        }
         match body {
             Body::Repair(_) => self.add_repair_order(u, b, QueuePos::Last, action),
             _ => self.add_build_order(u, b, QueuePos::Last, action),
@@ -6435,6 +6441,9 @@ impl Sim {
                 return;
             }
             self.add_gather_order(u, b, QueuePos::New, false);
+            // `LAB_005eed5f`: the gather clears the unit's `+0x80`
+            // (`group`), the pointer only (`005eed9c`, item 1167).
+            self.units[u].group_ptr = None;
             return;
         }
         let inside =
@@ -6488,6 +6497,8 @@ impl Sim {
             && self.building_ident(b) != Ident::University;
         if gather {
             self.add_gather_order(u, b, QueuePos::New, false);
+            // The same `LAB_005eed5f` (entered at `005ef12b`'s `je`).
+            self.units[u].group_ptr = None;
             return;
         }
         self.build_done(u, Some(b));
@@ -6608,6 +6619,11 @@ impl Sim {
             return;
         }
         if stance <= 1 && self.find_gather_spot(u, self.tuning.unit_gather_respond_range * TILE) {
+            // The human arm's gather clears the unit's `+0x80` (`group`),
+            // and only the pointer: the pool keeps it listed (`00603cb5`;
+            // run430's `0/9` on 1075, a Barracks finished and a Woodcutter's
+            // Camp taken — item 1167).
+            self.units[u].group_ptr = None;
             return;
         }
         if let Some(b) = site
@@ -6936,7 +6952,12 @@ impl Sim {
 
     /// `Unit::find_garrison_build`: the city's nearest active building with
     /// room that the unit may enter.
-    fn find_garrison_build(&self, u: usize, city: Option<usize>, who: Player) -> Option<usize> {
+    pub(crate) fn find_garrison_build(
+        &self,
+        u: usize,
+        city: Option<usize>,
+        who: Player,
+    ) -> Option<usize> {
         let city = city?;
         let here = self.units[u].pos;
         let uty = self.units[u].ty?;

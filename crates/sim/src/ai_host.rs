@@ -1018,7 +1018,7 @@ impl ScriptHost<'_> {
         if self.affordable(w, t) == 0 {
             return NO;
         }
-        int(self.sim.produce_building(w, rec, near, city) as i32)
+        int(self.sim.produce_building(w, rec, near, city, false) as i32)
     }
 
     // ---- training and research ----

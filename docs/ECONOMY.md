@@ -1414,8 +1414,9 @@ escrow[t] += q
 remainder is; a remainder of half the denominator rounds up every other frame.
 Nothing is stored between frames, so it is approximate where the stockpile is
 exact — which is affordable precisely because escrow is a reservation rather
-than a balance. `pay()` does not implement it; when it does, it must not be
-written as the accumulator next to it.
+than a balance. ~~`pay()` does not implement it; when it does, it must not be
+written as the accumulator next to it.~~ `pay()` implements it since item
+1174, not as the accumulator (`docs/AI.md` §98).
 
 ## Support was removed
 
