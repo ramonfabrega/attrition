@@ -1100,7 +1100,21 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// **The third map's long word** (DECISIONS 54 §3, item 1066): run383,
 /// Great Sahara's draw stream to 24,000 at `cover=0`, walked from its own
 /// start with run381's `DUMP_ALL` head (`diff::third`).
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 8;
+///
+/// **8 → 12783 on item 1133, and the mechanism was the setup's birth**
+/// (`docs/COLLISION.md` §20, `docs/AI.md` §88): a starting citizen is born
+/// at its building's point and `Unit::come_out` clears the birth disc behind
+/// it, so the AI camp `1/2001`'s second citizen `1/2` left a hole in `1/1`'s
+/// block. **The word's delta**: on frame 8 ours 6 draws against 7, at index
+/// 0 theirs `Guy::set_anim+0x97a < Unit::move_step+0x823` and ours
+/// `Farms::inc_time+0x1ae` → 7 against 7. The value diff is run382's block
+/// 6 (`run382_s_word_frame_is_widened_whole`): `1/2`'s `collide` 1 against
+/// 0, `dest` (38232, 16056) against (38328, 15768) and `path.length` 1
+/// against 2 → the original's on both. run382 now walks all 1,850 frames
+/// (6/5 → 1850/1850). **The new word's delta**: frame 12783, ours 12 draws
+/// against 11, at index 9 ours `Leader::make_stuff+0x63d` and theirs
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 12_783;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -6829,15 +6843,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(WIDENING_SECOND_GREAT_LAKES_5930),
     ),
     // **The third map, Great Sahara** (DECISIONS 54 §3, item 1066): its
-    // word is frame 8 on both run382 and run383, and run382 carries every
-    // block from 1 to 259 at run10's detail, so the score capture is its
-    // own widening (`diff::third`).
+    // word was frame 8 on both run382 and run383, and run382 carries every
+    // block from 1 to 259 at run10's detail, so the score capture was its
+    // own widening (`diff::third`). Item 1133 moved it to **12783**, past
+    // every block run382 holds, and took run416 over 12778..13034; run382's
+    // test keeps the move's value diff on block 6.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run382_s_word_frame_is_widened_whole"),
-        1066,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA),
+        Some("run416_s_word_frame_is_widened_whole"),
+        1133,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_12783),
     ),
 ];
 

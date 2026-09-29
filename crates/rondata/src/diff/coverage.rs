@@ -649,6 +649,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r420 = crate::testenv::dump("gamelog-run420-islands-toughest-6609.txt");
     let r373 = crate::testenv::dump("gamelog-run373-greatlakes-toughest-4846.txt");
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
+    let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1141,13 +1142,23 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         );
         frames += n;
     }
-    // **The third map's word, on run382** (item 1066): Great Sahara's frame
-    // 8 writes block 9, and the window is it with two either side. run10's
+    // **The third map's first word, on run382** (item 1066): Great Sahara's
+    // frame 8 writes block 9, and the window is it with two either side.
+    // Item 1133 moved the word past run382; the block stays driven. run10's
     // detail on a map no other window here is on.
     if let Some(p) = &r382 {
-        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let b = crate::diff::third::SAHARA_FIRST_WORD_BLOCK;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
         assert_eq!(n, 5, "run382 carries the third map's word's blocks");
+        frames += n;
+    }
+    // **The third map's word, on run416** (item 1133): frame 12783 writes
+    // block 12784, and the window is it with two either side, at run414's
+    // detail.
+    if let Some(p) = &r416 {
+        let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run416 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1860,9 +1871,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // compared since item 1061 on every slot both sides hold an attack,
     // and no attack stands on these blocks. `coll_x`/`coll_y` are compared
     // on a move once the original's pair has left its `(0, 0)` start: no
-    // move's has on East Indies' blocks, and one has on the third map's,
-    // so the pair left this pin when the nineteenth pass walked that
-    // window too.
+    // move's has on East Indies' blocks, and one had on the third map's
+    // run382 window, so the pair left this pin when the nineteenth pass
+    // walked that window too. Item 1133 moved the third map's window to
+    // run416's 12782..12786, where none has; East Indies' word at 6321
+    // (item 1127) has one, so the pair stays off.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
@@ -1879,10 +1892,12 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // build is queued. `job_counter` is compared only on an unfinished
     // site (`!active && flags & 4 == 0`, item 1086), and one stood on
     // 5974..5978; since item 1120 none does on run414's 6150..6154. **One
-    // stands on the third map's window**, walked here since the nineteenth
-    // pass, so `job_counter` is compared and off this pin; it had left and
+    // stood on the third map's run382 window**, walked here since the
+    // nineteenth pass, so `job_counter` was compared and off this pin; it had left and
     // returned with the word four times in one tranche (items 1061, 1086,
-    // 1106, 1120).
+    // 1106, 1120). Item 1133 moved the third map's window to run416's
+    // 12782..12786, where none is; one is on East Indies' 6321 window (item
+    // 1127), so `job_counter` stays off.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
@@ -1916,9 +1931,10 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     let walked = super::second::east_indies_word_window();
     // **Every open word's window** (parked 1067 and 1080, the nineteenth
     // pass; `floors::the_compared_pin_walks_every_open_ai_word` holds the
-    // list to `AI_WORDS`): the third map's, run382's blocks 1..259 at
-    // run10's detail, is walked under the same recorder, and a field is
-    // compared when a site on either window compared it.
+    // list to `AI_WORDS`): the third map's, run416's blocks around its word
+    // at run414's detail since item 1133 (run382's blocks 1..259 before), is
+    // walked under the same recorder, and a field is compared when a site on
+    // either window compared it.
     let third = super::third::sahara_word_window();
     let seen = compared::stop();
     let (Some(mut w), Some(third)) = (walked, third) else {

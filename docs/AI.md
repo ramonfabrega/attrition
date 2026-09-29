@@ -10774,9 +10774,14 @@ animals agree until block 31.
 
 ### 83.6 What this has *not* established
 
-- **Why `1/2` collides two frames early.** The rows above are the value
-  diff. No reading was done and no mechanism is named, by the entry's rule.
-- **Whether the parting is the map's.** Nobody has checked whether the
+- ~~**Why `1/2` collides two frames early.** The rows above are the value
+  diff. No reading was done and no mechanism is named, by the entry's rule.~~
+  **Answered by item 1133 (§88, `docs/COLLISION.md` §20)**: ours collided
+  on the same frame as the original and refused the sidestep the
+  original took, on a corner of `1/1`'s block that `1/2`'s own exit from
+  the camp at setup had cleared in the original.
+- ~~**Whether the parting is the map's.**~~ It is the start's: the two
+  citizens born at the camp `1/2001` (§88). Nobody has checked whether the
   first pair's early frames hold a collision between the capital's first
   two AI citizens. Both of those maps are closed, so if they do, the
   question becomes which rule this map's geometry reaches that theirs did
@@ -11241,6 +11246,66 @@ Caravan `1/33`. **No mechanism was named.**
 **Diff-backed**: the move and run414's block 6152. **Listing-backed**: the
 row (`docs/COLLISION.md` §19.2). **Pinned capture-free**:
 `two_caravans_on_their_legs_pass_through_each_other`.
+
+## 88. A starting citizen is born at its camp, and Great Sahara's word moves to 12783 (2026-09-29, item 1133)
+
+§83's first word was frame 8, ours 6 draws against 7. The original's extra
+draw was the blocked stand of the AI citizen `1/2`
+(`Guy::set_anim+0x97a < Unit::move_step+0x823`). The mechanism is the
+collision index, and it is `docs/COLLISION.md` §20: `Setup::build_units`
+creates the two citizens of the camp `1/2001` on the camp's own cell, and
+`1/2`'s `come_out` clears the corner of `1/1`'s block that ours kept. On
+frame 5 that corner was the only thing refusing the sidestep the original
+took.
+
+### 88.1 The move, and its value diff
+
+- **run382: ticks 6, orders 5 → 1850, 1850**, and the word 8 → 1850: the
+  whole capture walks.
+- **run383's long word: 8 → 12783.**
+- **The value diff, run382's block 6** (`run382_s_word_frame_is_widened_whole`):
+  `1/2`'s `collide` ours 1 against 0, `order:move.dest` (38232, 16056)
+  against (38328, 15768) and `path:length` 1 against 2 → the original's
+  values on both. Block 9's `collide_frame` 6 against 8 and facing
+  −328728576 against −1925840896 agree too. Over blocks 1..259 the parted
+  keys fall 244 → 23: block 1's 22 standing rows, and the AI scout
+  `1/0`'s `mylos`, ours 6 against 4, on block 202.
+
+### 88.2 The new word, 12783, widened
+
+**Frame 12783: ours 12 draws against 11, at index 9** — ours
+`Leader::make_stuff+0x63d`, theirs `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. run416 (`docs/RUNS.md`) is run383's game at run414's
+detail over blocks 12778..13034, and `run416_s_word_frame_is_widened_whole`
+walks it from run383's start, both directions, every record the capture
+prints. None of its keys is left unprinted.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 12778 | both | 133 standing keys (§33.4's families, `tech_cat_frame`) | | |
+| 12780 | `1/-1` | `MAKE[1].val`, `MAKE[10].val` | 9999999 | 1632000 |
+| 12782 | `1/-1` | `MAKE[2].cat` / `num` / `t` | 10 / 1 / 573 | 6 / 3 / 132 |
+| **12784** | `1/-1` | `bucket[0:food]` | 149 | 86 |
+| **12784** | `1/-1` | `num_queued[82]` | 0 | 3 |
+| **12784** | `1/39` | `g.cur_anim[0]` | 31 | 29 |
+
+**No mechanism is named.** The AI's make list parts two blocks before the
+word, and this window cannot say when it first parted: run382 stops at
+1851.
+
+### 88.3 What this has *not* established
+
+- Whether the make list's parting on 12780 is the first thing to part
+  between blocks 1851 and 12778. No dump covers those frames.
+- Whether the first pair's maps have a camp hole. Their starts have two
+  citizens at `2001` too, and every one of their floors held, so no pinned
+  value moved there.
+
+### 88.4 Coverage
+
+**Diff-backed**: §88.1 by the third map's four tests; §88.2 by
+`run416_s_word_frame_is_widened_whole`. The compared pin walks run416's
+12782..12786, and the coverage driver drives the same blocks.
 
 ## 90. A barge keeps its goal ashore, and the second pair's East Indies word moves to 6609 (2026-09-29, item 1143)
 
