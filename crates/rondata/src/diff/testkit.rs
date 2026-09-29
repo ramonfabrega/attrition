@@ -4922,13 +4922,18 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
 /// the casts' other arms.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
 
-/// Chapter forty-one's golden word (item 1182, `docs/GOLDEN.md` §50,
-/// run437): **839**, ours 4 draws against 3 — the Biplane's strafe on
-/// the Hoplites releases on 839 where the original's holds to 858
-/// (`recharging` 31 against 0 on block 840): a non-bomber's release and
-/// its reach, `do_strafe`'s SEAM. Under it the computer's sortie on 778
-/// and the patrol's first strafe from `find_new_air_target` on 826 agree.
-pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 839;
+/// Chapter forty-one's golden word (items 1182 and 1200,
+/// `docs/GOLDEN.md` §50, run437): **1770, closed** — 839 → 1770 (item
+/// 1200), sequence and values. 839 was ours 4 draws against 3: the
+/// Biplane over a wood (`TData` `0x7138`), where `is_in_range@006486b0`'s
+/// world-cell test answers no. Past it the strafe's re-point on 852
+/// (`find_new_air_target`), the round's own target struck whoever owns it
+/// (`1/2003`'s first wound, 858), `guy_radius` in the splash (`0/7` 21
+/// sixteenths, not 11), an aircraft's `check_hit` passing its own side
+/// (969), the Biplane's nose guns (970's flight, five frames not six),
+/// the tail's dry-tank kill (1108), the trireme's turned nodes (1460)
+/// and a strafer's round that never rolls (1529).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 1770;
 
 /// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
 /// whole, 605 to its end.
@@ -6999,8 +7004,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
-    // Item 1182: run437, chapter forty-one, the computer's sortie and the
-    // build-site spill. The widening is run437 whole.
+    // Items 1182 and 1200: run437, chapter forty-one, the computer's
+    // sortie, the build-site spill and the Biplane's strafes; closed at
+    // 1770. The widening is run437 whole.
     (
         "GOLDEN_WORD_CHAPTER_FORTY_ONE",
         GOLDEN_WORD_CHAPTER_FORTY_ONE,
