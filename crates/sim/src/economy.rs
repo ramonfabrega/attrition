@@ -175,6 +175,16 @@ pub const AMBER: usize = 17;
 /// (`docs/ATTRITION.md`, "Territory").
 pub const GEMS: usize = 29;
 
+/// `TypeIndex::PEACOCKS` — the one rare the **population cap** reads.
+///
+/// `Leader::calc_pop_cap@006dc490`'s tail, `006dc656`: `testb $0x8,
+/// 0x6da6(%esi)`, else the same at `0x6dce` — byte 2 bit 3 of `rare` or of
+/// `rare_conquest`, which is bit `25 - `[`BASE_RARE`]` = 19` — and then
+/// `cap × (PEACOCKS_POP + 100) / 100`, on every path through the function,
+/// the scenario and ignore-cap ones included (`docs/COSTS.md`, the cap;
+/// item 1147).
+pub const PEACOCKS: usize = 25;
+
 /// What one `resourcerules.xml` record pays whoever stands on it —
 /// `GoodTypeData`'s two `(BONUS_TYPE, BONUS_NUM)` pairs, which is the whole
 /// of what `LeaderData::calc_rare@006e08d0` reads off the good.

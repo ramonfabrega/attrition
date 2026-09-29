@@ -1114,7 +1114,20 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// (6/5 → 1850/1850). **The new word's delta**: frame 12783, ours 12 draws
 /// against 11, at index 9 ours `Leader::make_stuff+0x63d` and theirs
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 12_783;
+///
+/// **12783 → 13182 on item 1147, and the mechanism was the AI's Peacocks**
+/// (`docs/AI.md` §91, `docs/ECONOMY.md` "What an owned rare does"): the
+/// rare mask's change recomputes the pop cap, and the cap takes a tenth for
+/// Peacocks, which the AI's merchant `1/18` holds. **The word's delta**: on
+/// frame 12783 ours 12 draws against 11, eight `Leader::make_stuff+0x63d`
+/// against seven → 11 against 11. The value diff is run416's block 12780
+/// (`run416_s_word_frame_is_widened_whole`): who=1's `pop_cap` 50 against
+/// 55, so the Mercenaries offer's `cap × 5 / 6 < effective_pop` read 41 <
+/// 44 and took `×20`, and `MAKE[1].val` 9999999 against 1632000 → the
+/// original's on both. **The new word's delta**: frame 13182, ours 9 draws
+/// against 8, at index 3 ours `Leader::make_stuff+0x63d` and theirs
+/// `GameAccess::rnd+0x20 < Unit::do_job+0x67`, widened on run417.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 13_182;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -6866,13 +6879,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // block from 1 to 259 at run10's detail, so the score capture was its
     // own widening (`diff::third`). Item 1133 moved it to **12783**, past
     // every block run382 holds, and took run416 over 12778..13034; run382's
-    // test keeps the move's value diff on block 6.
+    // test keeps the move's value diff on block 6. Item 1147 moved it to
+    // **13182**, past run416's last block, and took run417 over
+    // 13177..13433; run416's test keeps the move's value diff on 12780.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run416_s_word_frame_is_widened_whole"),
-        1133,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_12783),
+        Some("run417_s_word_frame_is_widened_whole"),
+        1147,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_13182),
     ),
 ];
 
