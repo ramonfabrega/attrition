@@ -11188,6 +11188,65 @@ does not.
 **Listing-backed**: the call's pushes. **Pinned capture-free**:
 `a_boat_born_on_the_shore_lights_its_disc_on_the_water`.
 
+## 87. Two caravans pass through each other, and the second pair's East Indies word moves to 6321 (2026-09-29, item 1127)
+
+Item 1127 was booked on East Indies' frame 6151 at Toughest: ours 9 draws
+against the original's 8, parting at index 0, ours `Unit::move_step+0x823`,
+the original `Unit::do_non_flat_gather+0x10f`. §86.2 had only the Caravan
+`1/15`'s rows parting on block 6152, with ours standing it against the
+Caravan `1/33`. **No mechanism was named.**
+
+### 87.1 The frame, both sides
+
+- **The draw delta** (`report.py … draws 6151`): the original's eight are
+  `1/31`'s two gather draws, a bird's idle, three `Guy::inc_time` wraps
+  and the two farm rolls. Ours spends `1/15`'s blocked stand first
+  (seed `175a6b05`, the original's `1/31` draw), then the same eight.
+- **The event**: on block 6152 the original's `1/15` holds the half-step
+  bit (`unit_masks & 0x100000`), the only instance on run414 for either
+  caravan, with `collide_o` −1. Both caravans' stacks are `MOVEORDER` over
+  `TRADEORDER` on both sides.
+- **The rule** is `detect_unit_collision`'s first soft row
+  (`docs/COLLISION.md` §19). This crate had written it as a SEAM since the
+  table was first read: "no capture has entered either".
+
+### 87.2 What moved
+
+- **East Indies 6151 → 6321.** On run414 block 6152, `1/15`'s `pos`,
+  `collide_o`, `half_step` and figures closed (35 rows). The window's keys
+  went 327 → 176, and none parts earlier.
+- **The new word, 6321** (no mechanism is named): ours 9 draws and the
+  original 8, parting at index 2. Ours spends `Guy::set_anim+0x97a <
+  Unit::do_idle+0x7d` on the barge `1/42`. The original spends
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+- **run419 is its widening** (blocks 6316..6572,
+  `run419_s_word_frame_is_widened_whole`). No dump covers 6227..6315, and
+  its first block stands on 169 keys.
+  - Among them is `1/42`, born on 6190 (run414) and carrying the citizen
+    `1/32` (`inside_down` 32). It is already apart on 6316: `pos`
+    (38028,11677) against (38016,11689). Its leg ends at (38028,11542)
+    here and at (38016,11136) there.
+  - On 6321 ours holds it with no order, and the original with one to
+    (38040,11160).
+  - On 6322 the original has landed `1/32` at (38040,11400) and closed the
+    barge. Ours still carries both: `1/32`'s `inside` is 42 against −1,
+    and `1/42` is this crate's alone.
+  - Its `form` is −1 against 0, the newborn row that stands on 5976, 6111,
+    6191 and 6218.
+
+### 87.3 What this has *not* established
+
+- Why the barge's leg ends short, or where in 6227..6315 it parts. The
+  barge's landing point is the next item's frame, not its mechanism.
+- The value rows standing before 6321 (§86.2's list, and 6182's
+  `MAKE[4].val`). Each names no score yet.
+
+### 87.4 Coverage
+
+**Diff-backed**: the move and run414's block 6152. **Listing-backed**: the
+row (`docs/COLLISION.md` §19.2). **Pinned capture-free**:
+`two_caravans_on_their_legs_pass_through_each_other`.
+
 ## 88. A starting citizen is born at its camp, and Great Sahara's word moves to 12783 (2026-09-29, item 1133)
 
 §83's first word was frame 8, ours 6 draws against 7. The original's extra
