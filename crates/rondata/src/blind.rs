@@ -228,7 +228,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// on 820, the three rows its staging named); **141** with the two §48
 /// cites that no trace enters: `Group::action_alarm@0070ec30`, the City's
 /// alarm, an issuer no chapter stages, and `Options::do_spell@0071d7a0`,
-/// the button the DLL's `@spell` stands in for.
+/// the button the DLL's `@spell` stands in for. **143** with item 1174's
+/// escrow writers no capture reaches, `Leader::action_respond@006d03c0` and
+/// `Leader::pay_dow@006d2b10` (`docs/AI.md` §98.6).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -246,7 +248,8 @@ pub const NEVER: &[u32] = &[
     0x0064_e4a0,
     0x0065_cfd0, 0x0068_3730,
     0x0068_8310, 0x0068_d1a0, 0x0069_5050, 0x006b_22e0, 0x006b_4230, 0x006b_46b0,
-    0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_18a0, 0x006d_5230, 0x006d_6740,
+    0x006b_81e0, 0x006b_88b0, 0x006d_0370, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10,
+    0x006d_5230, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006e_0c60, 0x006e_c170, 0x006f_0230, 0x006f_2c90,
     0x006f_49a0, 0x006f_4af0,
     0x0070_0010, 0x0070_0b90, 0x0070_20c0,
