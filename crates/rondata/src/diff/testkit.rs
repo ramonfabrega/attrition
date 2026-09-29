@@ -1388,7 +1388,24 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 15_982;
 /// Guy::inc_time+0x271` where the original spends `Guy::set_anim+0x97a <
 /// Guy::move+0x19f`. Past run425's window (its last block 7633), widened on
 /// run439 (block 8520).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_519;
+///
+/// **8519 → 8820 on item 1191** (`docs/TRANSPORT.md` §6.4): a boat that steps
+/// ashore and dies in its own think still takes its figures' `Guy::move`,
+/// because `Unit::process@00610bc0` runs `Guy::process` after the think and
+/// `Object::die(0)` leaves the guy array alone. The boat `1/56` (carrying
+/// `1/55`) stood on its `des` on the walk with `stopped` set on run439's
+/// block 8519 and is gone on 8520; the original's index 0 on 8519 is its
+/// arrival stand, which ours gave to `1/21`'s wrap. **The move's value diff
+/// (the word's delta, here; its block is
+/// `run439_s_word_frame_is_widened_whole`'s):** on run439's block 8520
+/// `1/21`'s `g.cur_anim[0]` ours 26 against 25 → agreeing and
+/// `g.end_time[0]` 100 against 30 → agreeing; run439's keys went 1243 → 608.
+/// Frame 8519's draws went 2 against 3 → agreeing. **The new word's delta:
+/// ours 2 draws and the original 3 on frame 8820, parting at index 2**: the
+/// original spends a third `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+/// where ours has none. Past run439's window (its last block 8770), widened
+/// on run445 (block 8821).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 8_820;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).

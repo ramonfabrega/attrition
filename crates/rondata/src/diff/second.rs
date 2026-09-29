@@ -1436,13 +1436,17 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The word 8519** (item 1185; no mechanism is named): ours 2 draws
-        // against 3, at index 0, ours `Guy::set_anim+0x97a <
+        // **The word 8519** (item 1185; no mechanism was named): ours 2
+        // draws against 3, at index 0, ours `Guy::set_anim+0x97a <
         // Guy::inc_time+0x271`, the original `Guy::set_anim+0x97a <
         // Guy::move+0x19f`. The first block stands on 481 keys from the gap
         // 7634..8513, among them `1/68` and `1/69` each on the other's walk;
-        // their moves' `dest` part on 8516 and 8519, and on the word's
-        // block 8520 `1/21`'s figure clock.
+        // their moves' `dest` part on 8516 and 8519. **Item 1191 closed it**:
+        // the original's extra draw is the boat `1/56`'s arrival stand on
+        // the frame it steps ashore and dies (`docs/TRANSPORT.md` §6.4), and
+        // ours gave the roll to `1/21`'s wrap — on the word's block 8520
+        // `1/21`'s `g.cur_anim[0]` ours 26 against 25 and `g.end_time[0]`
+        // 100 against 30 → agreeing.
         pin_eq!(
             row(1, 69, "order:move.dest").as_deref(),
             Some("8516: Move { field: \"dest\", ours: 0, theirs: 1 }"),
@@ -1455,8 +1459,8 @@ mod tests {
         );
         pin_eq!(
             row(1, 21, "g.cur_anim[0]").as_deref(),
-            Some("8520: ours 26 theirs 25"),
-            "the word's block: `1/21`'s figure clock"
+            None,
+            "the word's block: `1/21`'s figure clock agrees (item 1191)"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for (f, _) in w.firsts.values() {
@@ -1467,10 +1471,11 @@ mod tests {
                 .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(8514, 481), (8516, 1), (8519, 1), (8520, 2)],
+            [(8514, 481), (8516, 1), (8519, 1)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 1243, "every key parted on run439");
+        // Item 1191: 1243 → 608.
+        pin_eq!(w.firsts.len(), 608, "every key parted on run439");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

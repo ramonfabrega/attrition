@@ -4615,10 +4615,10 @@ impl Sim {
             // a unit's own work; it leaves the boat dead and off the map.
             // SEAM: a unit killed in its own work with a death animation
             // (`Unit::close`'s `param_1 != 0`) has its figures handed to
-            // `Objects::kill_guy` first; nothing here dies that way yet.
-            // And `coll_follow` and `coll_repaint` skip the dead boat, where
-            // the original's `Guy::process` repaints its disc on its
-            // sixty-fourth frame regardless; no capture holds that frame.
+            // `Objects::kill_guy` first, and this crate kills none that way
+            // there. And `coll_follow` and `coll_repaint` skip the dead
+            // boat, where the original's `Guy::process` repaints its disc on
+            // its sixty-fourth frame regardless: not modelled.
             if self.units[i].kind.domain == attrition::Domain::Sea && !self.units[i].on_map {
                 self.process_movement(i);
             }

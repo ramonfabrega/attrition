@@ -619,29 +619,12 @@ either `set_new_location`, so the passenger lands at the average the ride
 froze, and its first turns ashore are `turn_speed`'s divided ones
 (`docs/AI.md` §95 has run420's measurement).
 
-**And the boat's figures still move on the frame it dies** (item 1191).
-`Unit::set_new_location`'s sea arm ends in `Object::die(boat, 0)`, which is
-`Unit::close` → `Object::close`: the boat leaves the world and its object
-list, but neither close writes the guy array (`+0xf4`) or its counts
-(`+0xb5`, `+0xe8`), and `param_1 == 0` skips `kill_guy`. The death is inside
-the boat's think (`+0x188`), and `Unit::process@00610bc0` runs `Guy::process`
-over the array right after it with no test between. So a boat that reaches
-the shore standing on its `des`, facing its waypoint, on `CHAR_WALK` with
-`stopped` set pays `Guy::move`'s arrival stand — one idle roll
-(`Guy::set_anim+0x97a < Guy::move+0x19f < Guy::process+0x13`) — on its last
-frame. **The draw is invisible in every dump**, because the boat is gone on
-the next block: East Indies' `1/56`, carrying `1/55`, prints exactly that
-state on run439's block 8519 and is absent on 8520, and the original's
-frame 8519 spends the draw at index 0. Ours returned from `process_unit` on
-the dead boat and the idle roll went to `1/21`'s wrap instead (its
-`cur_anim` 26 against 25 on 8520). `Sim::process_unit` now runs
-`process_movement` for it, and East Indies moved 8519 → 8820. Diff-backed by
-run439's widening (block 8520) and the second pair's walk; held by
-`a_boat_that_steps_ashore_in_its_own_work_still_pays_its_arrival`.
-Not established: the sixty-fourth-frame repaint `Guy::process` would give
-the dead boat's disc (ours' `coll_repaint` skips a dead unit), and a unit
-killed in its own work *with* a death animation, whose figures go to
-`kill_guy` first — nothing in this crate dies that way.
+**And the boat's figures move on the frame it dies** (item 1191).
+`Object::die(boat, 0)` → `Unit::close` → `Object::close` writes neither the
+guy array nor its counts, and `Unit::process@00610bc0` runs `Guy::process`
+right after the think it died in: a boat standing on its `des` on the walk
+with `stopped` set pays the arrival stand on its last frame — a draw no dump
+shows. East Indies' `1/56` on 8519 (the journal, item 1191).
 
 `crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
 own order. What is **not** established: step 5's `is(0x45)` clause and the
