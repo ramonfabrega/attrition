@@ -11729,41 +11729,22 @@ radii to the unit (97 and 125) and bearings 1.4° and 1.1° short of them:
 the same sling model under another piece number, fitted there as a planar
 `Node` from three stones.
 
-**Piece 33, the Javelineers (type 83), from the original's own
-`get_position`** (item 1194). The `Spear` leaves node 0 on frame 12 of
-`CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3` (833, 433
-and 1833 ms). Great Sahara's long word 16681 was this row missing: every
-javelin left the unit's own square and flew one frame long, so the
-human's Farm `0/2004` fell a tick late and `1/30` loosed one more volley
-at it. The evidence comes from **run448**, a packet at logger frame 16681
-on run383's game, with `AMMO=5` over blocks 16660..16683:
+**Piece 33, the Javelineers (type 83)** (item 1194; the evidence is
+`docs/journal/2026-09-29-item-1194.md`). The `Spear` leaves node 0 on
+frame 12 of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
+The rows come from `GraphicPieces::get_position@0090b750(33, 0, anim,
+frame, deg)`, run under unicorn on run448's packet at every whole degree.
+`deg` is `whole_degrees(facing) − 180`. Each row reproduces all 360
+truncated points and run448's two `AMMO` rounds exactly:
 
-- The log prints two javelins. `1/67`'s leaves (6028, 28300) at `sz` 741
-  from a figure at (6120, 28248), `z` 578, facing −1661468672, with
-  `total_time` 17. `1/66`'s leaves (6289, 28517) at `sz` 782 from
-  (6360, 28488), `z` 626, facing −1532166144.
-- `GraphicPieces::get_position@0090b750(33, node 0, anim, frame, deg,
-  NULL, 0, &v, &dir)`, run under unicorn on the packet, gives
-  (−92.686, 52.573, 163.598) at 39° and (−71.529, 29.914, 156.136) at 51°.
-  Truncated, those are both rounds exactly.
-- The degree is `angle_to_degrees(angle − 0x8000_0000)`, which is
-  `launch::whole_degrees(facing) − 180`.
+| key | `(right, fwd)`, thousandths | `dz` |
+|---|---|---|
+| `CHAR_ATTACK1`, 12 | (38,941, 99,188) | 163 |
+| `CHAR_ATTACK2`, 6 | (1,649, 89,737) | 170 |
+| `CHAR_ATTACK3`, 27 | (21,769, 74,413) | 156 |
 
-The packet was swept over all 360 degrees for each key (the tables are in
-`~/ron-data/lab-experiments/2026-09-29-item-1194/`, not in git). One
-integer `Bay` row per key reproduces **every** truncated point, and `dz`
-is the same at every degree:
-
-| key | `(right, fwd)`, thousandths | `dz` | region |
-|---|---|---|---|
-| `CHAR_ATTACK1`, 12 | (38,941, 99,188) | 163 | 180 points |
-| `CHAR_ATTACK2`, 6 | (1,649, 89,737) | 170 | 152 |
-| `CHAR_ATTACK3`, 27 | (21,769, 74,413) | 156 | 76 |
-
-A packet holds a piece's `AttachPos` entries only when its game built the
-piece's events (item 603). The sweep is therefore the cheaper instrument
-for any piece a packet's game fields: it answers every heading, where
-`AMMO` answers only the headings a fight happens to show.
+A packet holds a piece's entries only if its game fielded the piece (item
+603).
 
 ### 70.3 `on_duty`'s return, from the listing
 
@@ -11936,10 +11917,8 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
 - **The planar fallback for an unmeasured piece** still launches from the
   unit's square. The next ranged type a word reaches will ask the same
   question: run17's method needs only `AMMO=5` and the unit's `recharging`.
-  ~~Piece 33 was the next~~: item 1194 took the Javelineers' three rows
-  from a packet's `get_position` sweep (§70.2). The other civilizations'
-  javelineer pieces (`JAVELINEERS-ARAB`, `-AMERICAN` and the rest) are
-  still unmeasured.
+  ~~Piece 33 was the next~~: its rows are §70.2's. Other civilizations'
+  javelineer pieces are still unmeasured.
 - **A Slinger at a heading run17 never shows.** The bays are exact on
   twenty headings. The rotation is `get_position`'s, and it is read, not
   measured, between them.
@@ -11959,10 +11938,9 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
   - the frozen mark, by run373's block 4853 and frame 4852's draws.
 
   Each is a floor that falls back under its mutation (§70.5).
-  - piece 33's bays (item 1194), by run448's two rounds, which
-    `run448_s_javelins_leave_from_the_measured_bays` pins, and by run442's
-    Farm on block 16681 and run428's on 15978. With the rows keyed away,
-    the long walk falls back to 16681.
+  - piece 33's bays, by run448's two rounds
+    (`run448_s_javelins_leave_from_the_measured_bays`) and run442's Farm
+    on 16681. Without them, the long walk falls to 16681.
 - **Listing-backed**: `600863`–`600871`, the branches into it, and
   `600516`; `5fe8a7`–`5feb51`; `5fde80`–`5fdfea`.
 - **Decompile-read**: `on_duty@005fff70`, `get_activity@00608370`,
