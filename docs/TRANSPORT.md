@@ -481,7 +481,9 @@ to the water; the caster never enters it.
 3. `set_new_location(boat, spot, 1, 1)` — onto the water the spot search
    found. run57 block 3609: the barge `1/14` at `(41112, 33695)`, whose
    `los_x/los_y` `(40872, 33720)` is the snapped birth point it was moved
-   from;
+   from. The pushes are `x, y, 1, 1` (`671027`..`67102f`), so a move that
+   crosses a half-cell lights the boat's **whole disc at the spot**
+   (`docs/VISION.md` §11);
 4. `set_angle(boat, caster.angle, ·, 1)` — the snapping form, guy included;
 5. the caster's **whole order list** moves onto the boat, in order, and the
    boat `kill_current_order`s the cast at its head;

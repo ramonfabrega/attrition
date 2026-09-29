@@ -300,7 +300,8 @@ latter calls `update_seen(param_3 == 0)`. Since a half-cell is two tiles,
 the outer test is subsumed by the inner one. `Unit::move_step` passes
 `param_3 = 0`, so ordinary movement is always the **ring** case;
 `Unit::init`, `Unit::work` and `find_path`'s pull-back pass `1`, so a unit
-arriving on the map gets the **whole disc**.
+arriving on the map gets the **whole disc** — and so does
+`SpellType::cast_transport`'s move of a newborn barge onto the water (§11).
 
 **Every hundredth frame.** `GameDaemon::process_all@00732700` calls
 `update_all_seen` when `frame % 100 == 0x21` — frames 33, 133, 233 — and
@@ -704,7 +705,7 @@ the human's census at zero forever. It belongs to `docs/AI.md` §43's
 | 3, 4 | `Sim::seen_sweep` — the radius, the forward projection **along `UnitData::angle`**, and the four index ranges | `vision.rs` |
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |
 | 5 | `Sim::update_seen` | `vision.rs` |
-| 6 | `Sim::moved_to` at the move step and at the gather stand, `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `city.rs`, `lib.rs` |
+| 6 | `Sim::moved_to` at the move step, at the gather stand and at a barge's birth (§11), `Sim::update_seen` at ejection, `Sim::update_seen_build` from `Sim::activate`, `Sim::update_all_seen` — now units **and** buildings — from `tick` | `orders.rs`, `garrison.rs`, `transport.rs`, `city.rs`, `lib.rs` |
 | 6.1 | `Sim::check_ever_seen` and `Sim::update_local_seen_build` — the footprint scan, the grown rectangle, the `seen2`-only write | `vision.rs` |
 | 6.2 | the meet loop, `Sim::treaty_on`, `Sim::meet`, `Sim::has_met` — first contact and the met bit | `vision.rs`, `lib.rs`, `ai_census.rs` |
 
@@ -1187,3 +1188,94 @@ buildings' arm, which this crate carried before and does not change.
   refuse further here.
 - Which who=0 building stands on (5, 81) is not named; the probe printed
   the cell, and the diff is the word holding.
+
+## 11. A barge born on the shore lights its disc on the water (item 1120, 2026-09-28)
+
+East Indies' second word stood at **5975** (`docs/AI.md` §85): the AI sea
+scout `1/35`'s region scan (`docs/SCOUT.md` §11) accepted 46 cells here
+against 45 there. run415, a packet at logger 5975, held two half-cells seen
+for who=1 there and not here: **(90, 80) and (91, 81)**, the second the
+probe point of the extra cell (45, 40). run413 held both unseen at 5776.
+
+### 11.1 The instances on the disk first
+
+- **Who could have lit them.** Every who=1 unit within ten half-cells of
+  (91, 81) on run414's 5970..5976: the Explorer `1/18` at (93, 75), whose
+  disc (`mylos 6`, radius 3) stops six rows short; the citizen `1/22`,
+  cargo; and the barge `1/36`, `mylos 6`, sailing west from (83, 79).
+  run357 ends at 5857, before the barge; nothing prints 5858..5969.
+- **The barge's birth, from its own record.** `los_x/los_y` has one writer,
+  `Unit::init` (`docs/ORACLE.md`), so `1/36`'s (33912, 32280) is the point
+  it was born on: half-cell (88, 84), `1/22`'s own. Ours puts the barge on
+  the water at (34076, 32173), half-cell **(88, 83)**, on tick 5878.
+- **The arithmetic.** §3's circle table is octagonal: `vector_dist(3, 2)`
+  is `2·2 / (2·3) + 3 = 3`. Both half-cells are at distance 3 from (88, 83)
+  — inside a radius-3 disc — and at 4 from (88, 84). So a disc at the spot
+  lights them and the birth disc does not.
+
+### 11.2 The rule, read off the listing
+
+`SpellType::cast_transport@00670db0` moves the newborn boat with
+`Unit::set_new_location` at `671030`; the pushes at `671027`..`67102f` are
+`1, 1, y, x`, so `param_3 = 1` and `param_4 = 1` (the decompiler prints the
+coordinates as `CVar6, CStack_3c`). `005f8d20`'s tile arm, when the unit is
+on the map and its tile changes, compares the old half-cell (`tile >> 1`)
+with the new (`div_3_table[p >> 7]`), and on a difference calls vslot
+`+0x174` with `param_3 == 0` — **`update_seen(0)`, the whole disc at the
+spot** — after the one `add_to_world` threw at the caster's point from
+`Unit::init`.
+
+This crate's `Sim::set_new_location` carries no reveal; its move step does
+it through `Sim::moved_to`. `Sim::cast_transport` now calls
+`moved_to(boat, birth point, false)` after the move.
+
+### 11.3 What moved, and the value diff
+
+| | before | after |
+| --- | --- | --- |
+| run415 (after tick 5974), `seen2` | 3 half-cells apart: (90, 80), (91, 81), (45, 73), ours 0 against 2 | **0 of 14,400** |
+| run413 (after tick 5775), `seen2` | (45, 73), ours 0 against 2 | **0 of 14,400** |
+| frame 5975's draws | 63 against 61, at index 49 | agree |
+| East Indies' second word | 5975 | **6151** |
+| run414's parted keys | 675 | 327 |
+
+(45, 73) is the same rule, earlier: the barge `1/21`, born on tick 4444 at
+(16128, 28960), lights it here only with the fix. Block 5976's three
+`1/40` `g.cur_time` rows (ours 1 against 0), which read the draw after the
+scan, closed. **Packet-backed** in
+`diff::second::run413_s_and_run415_s_fog_grids_are_ours`, every half-cell
+and every player's bit.
+
+### 11.4 The killer
+
+On committed `1c24946e`, the one `moved_to` line removed (`git diff --stat`
+naming `transport.rs`), restored from git and `touch`ed after:
+
+| pin | result |
+| --- | --- |
+| `transport::a_boat_born_on_the_shore_lights_its_disc_on_the_water` | fails |
+| run346's walk | falls to 5975 |
+| `run413_s_and_run415_s_fog_grids_are_ours` | four half-cells: (45, 73) on 5775 and 5974, (90, 80), (91, 81) |
+| `run414_s_word_frame_is_widened_whole` | `1/40`'s `g.cur_time[0]` returns on 5976 |
+| the compared pin | its window parts |
+
+The unit test first passed without the fix. Its barge carried
+`combat.domain` Sea and not `kind.domain`, so vision projected its birth
+disc a half-cell ahead (§3), onto the spot. With the kind a sea unit's it
+fails without the line.
+
+### 11.5 What is not established
+
+- **The other callers.** This crate's `set_new_location` has eight
+  callers that move a unit and throw no disc: `rally.rs` (the captain's
+  spot), `gaia.rs`, `lib.rs`'s placement, `collide.rs`'s push and snap,
+  `orders.rs`' snap, and `transport.rs`' and `garrison.rs`' seats. In the original each one
+  lights a disc when it crosses a half-cell with the unit on the map.
+  Not built: none of them sits on the word's frame. A capture that holds
+  one crossing a half-cell, on a frame whose fog a later read reaches,
+  would settle each of them.
+- `update_ceo_position`, the same arm's tail on `UnitData +0x6c &
+  0x10000`, is not carried.
+
+**Coverage.** Packet-backed: the two fog grids. Diff-backed: the word's
+move and run414's block. Listing-backed: the pushes at `671027`..`67102f`.
