@@ -4834,6 +4834,14 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
 /// the casts' other arms.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
 
+/// Chapter forty-one's golden word (item 1182, `docs/GOLDEN.md` §50,
+/// run436): provisional.
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 0;
+
+/// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
+/// whole, 605 to its end.
+pub(crate) const WIDENING_CHAPTER_FORTY_ONE: (i64, i64) = (605, 1771);
+
 /// `chapter_forty_s_word_frame_is_widened_whole`'s window: run430 whole,
 /// (605, 1151).
 pub(crate) const WIDENING_CHAPTER_FORTY: (i64, i64) = (605, 1151);

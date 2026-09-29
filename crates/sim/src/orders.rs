@@ -8170,6 +8170,9 @@ impl Sim {
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
+            if self.packed_unpacks(u, a) {
+                return;
+            }
             // **Siege fire at a unit is ground fire** (`docs/COMBAT.md`
             // §57.2): the arm returns before the strike's tail, so the
             // attack keeps `new_ord 1` under the order it pushes, as
@@ -8280,16 +8283,45 @@ impl Sim {
         }
     }
 
+    /// **A packed packer in range unpacks** (`Unit::fight@005fd4d0:512`–
+    /// `543`, item 1182, `docs/GOLDEN.md` §50): in the attack's in-range
+    /// branch, for a type that packs (`unit_flags2 & 4`) and is not the
+    /// Dutch merchant, still packed (`unit_masks & 0x80000`),
+    /// `add_cast_order(−1, −1, −1, −1, UNPACK, QUEUE_FIRST, 0)` and the
+    /// frame ends — no strike, and the attack keeps `new_ord 1` with
+    /// `in_range` and `ever_in_range` written. run436's human Catapult
+    /// `0/10`, on its `@attack` at a Barracks in range: the `CASTORDER`
+    /// of spell 652 beside its attack on block 624.
+    ///
+    /// SEAM: the computer's siege arm ahead of it (`unit_masks & 0x40000`
+    /// and `is_siege`): against an armed building whose range is under its
+    /// own less one and which reaches it, a better spot from
+    /// `find_attack_pos`, moved to at `QUEUE_NEW` instead. No staging puts
+    /// a computer's packed engine at an armed building.
+    fn packed_unpacks(&mut self, u: usize, a: AttackOrder) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if !self.unit_types[t].combat.packs
+            || !self.units[u].combat.packed
+            || self
+                .unit_tree(u)
+                .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+        {
+            return false;
+        }
+        self.store_attack(u, a);
+        self.add_cast_order(u, spell::UNPACK);
+        true
+    }
+
     /// **`Unit::fight@005fd4d0`'s siege arm** (`fight:496`–`572`,
     /// `docs/COMBAT.md` §57.2), in the attack's in-range branch and
     /// ahead of the strike. For an attacker whose type packs
     /// (`unit_flags2 & 4`) and is not the Dutch merchant:
     ///
-    /// - packed, the original unpacks here or moves to a better spot.
-    ///   SEAM: not carried. No human's packed engine holds an attack
-    ///   (its think returns before the search, §51.1), and no capture on
-    ///   disk has a computer's packed engine in range of one; this crate
-    ///   falls through to the strike as it always has.
+    /// - packed, the original unpacks here or moves to a better spot:
+    ///   [`Sim::packed_unpacks`], ahead of this (item 1182).
     /// - unpacked, a **unit** target (the target's vslot `+0x18`,
     ///   `is_unit`) and a **siege** type (vslot `+0x10c`, `is_siege`):
     ///   `set_attacking`, then an `ATTACK_GROUND` order at the head

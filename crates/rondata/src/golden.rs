@@ -143,9 +143,11 @@ pub struct Script {
     pending: Vec<(i64, Staged)>,
     /// **The console's seat**, `MiscAccess::console->who` and `->play`,
     /// which `be` moves (item 1182). The DLL refuses an issuer line whose
-    /// player is not `console->play` (`tracer.c`, its refusal 1), so a
-    /// command to another player's units is staged as `be N`, the `@`
-    /// line, `be 0`, all on one frame.
+    /// player is not `console->play` (`tracer.c`, its refusal 1), and the
+    /// pump drops one whose player is not the seat's when it walks the
+    /// package ([`Script::pump`]), so a command to another player's units
+    /// is staged as `be N` and the `@` line on one frame and `be 0` on the
+    /// next.
     seat: i32,
 }
 
@@ -275,6 +277,16 @@ impl Script {
         for (f, line) in due {
             if f < frame {
                 done.skip(&command_word(&line.text), "the frame was stepped past");
+            } else if issued_who(&line.text).is_some_and(|w| w != self.seat) {
+                // `CommandManager::process_turn@0093ef10:154` stamps the
+                // package with `console->play` as the pump walks it, and
+                // `CommandPackage::process_group@0094a0c0:117` drops a
+                // group whose player is not that player's: run436's
+                // `be 0` on the issuing frame (item 1182).
+                done.skip(
+                    &command_word(&line.text),
+                    "not the seat at the pump (process_group)",
+                );
             } else {
                 issue(&line, built, &mut done);
             }

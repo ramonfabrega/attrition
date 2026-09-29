@@ -307,6 +307,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          dispatches; the image's one call or jmp through +0x1ac is a Window thunk",
     ),
     (
+        0x0048_89a0,
+        "MoveOrder::is_fleeing: reached only through vslot +0x28 of the move \
+         orders' vtables (its two vtordisp thunks), and no instruction \
+         dispatches that slot on an order (docs/ORDERS.md §1.3, two readings); \
+         the live predicate is UnitData::is_fleeing@0046efa0 (item 1182)",
+    ),
+    (
         0x0059_30c0,
         "Game::action_cheat_ai_toggle: no reference in the executable; \
          CommandPackage::process_cheat_ai_toggle flips ai_off inline",
@@ -353,6 +360,14 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0063_3390,
         "BuildType::set_domain: no reference in the executable",
+    ),
+    (
+        0x0064_e4a0,
+        "ObjectData::is_in_range: entered, and no instrument sees it — the \
+         tracer cannot hook it (rontrace.funcs.excluded.txt, a branch target \
+         inside the displaced range); Unit::do_air_attack_ground+0x92 calls it \
+         on every missile step past its first three tests, and run372's \
+         strike on 2701 fires only past its answer (item 1182)",
     ),
     (
         0x0065_cfd0,
@@ -436,6 +451,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0094_c1c0,
         "CommandPackage::clear: no reference in the executable",
+    ),
+    (
+        0x009b_8ac0,
+        "UnitBalance::next: its three callers (Game::check_victory, \
+         Setup::build_empire, TurnControl::toggle_pause) reach it only under \
+         game semaphore byte 1's bit 2, which Game::run_unit_balance alone \
+         sets — the GAME_UNIT_BALANCE shell mode, not a match (item 1182)",
     ),
     (
         0x00a4_69f0,

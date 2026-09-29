@@ -13259,6 +13259,80 @@ fn chapter_forty_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-one, pinned** — CENSUS row 7's last seven
+/// (`docs/GOLDEN.md` §50, item 1182, run436): the computer's sortie and
+/// the build-site spill. Fifteen staged lines on the golden start.
+#[test]
+fn chapter_forty_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch41", "chapter41", 41, 15, 1769) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-one: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        "chapter forty-one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        "chapter forty-one's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §50"
+    );
+}
+
+/// **run436 whole, both directions** (item 1182, `docs/GOLDEN.md` §50):
+/// every dumped record on every block of the capture, and the pool.
+#[test]
+fn chapter_forty_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch41",
+        "chapter41",
+        WIDENING_CHAPTER_FORTY_ONE,
+        1769,
+        0,
+        (620, 626),
+        true,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch41 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    let pool = widen_pool("ch41", "chapter41", WIDENING_CHAPTER_FORTY_ONE, 0)
+        .expect("run436 is on disk when its units were");
+    for ((slot, key), (f, row)) in &pool {
+        eprintln!("  ch41 pool f{f} slot {slot} {key}: {row}");
+    }
+    let mut got_pool: Vec<String> = pool
+        .iter()
+        .map(|((slot, key), (f, _))| format!("{f} slot {slot} {key}"))
+        .collect();
+    got_pool.sort();
+    eprintln!("ch41: {} rows, {} pool rows", got.len(), got_pool.len());
+    let mut want: Vec<String> = WANT_CH41.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch41: what parts under the word moved");
+    let mut want_pool: Vec<String> = WANT_CH41_POOL.iter().map(|r| r.to_string()).collect();
+    want_pool.sort();
+    pin_eq!(got_pool, want_pool, "ch41: what parts in the pool moved");
+}
+
+/// Chapter forty-one's widening rows (item 1182).
+const WANT_CH41: &[&str] = &[];
+
+/// Chapter forty-one's pool rows (item 1182).
+const WANT_CH41_POOL: &[&str] = &[];
+
 /// **run430 whole, both directions** (item 1167, `docs/GOLDEN.md` §49):
 /// every dumped record on every block of the capture, and the pool.
 #[test]
