@@ -349,11 +349,14 @@ it); and "`CHAR_TURN_LEFT`/`CHAR_TURN_RIGHT` … which this crate does not
 model at all" is stale (`Sim::guy_do_turn_anim`, `guy_flags & 8` gate and
 all).
 
-**Two are stated, unimplemented and unreached.** The modern-infantry × 5/4
+**Two are stated, unimplemented and unreached.** ~~The modern-infantry × 5/4
 on the unit's step is stated twice here and implemented nowhere —
 `do_move` hands `get_speed`'s answer straight to `unit_step`, and no caller
 of `is_modern_infantry` scales a speed; the corpus is openings, so nothing
-reaches the predicate's true arm. And a crew guy's step speed is the cached
+reaches the predicate's true arm.~~ **Built 2026-09-28 (item 1109)**, with
+`ai_speed` beside it (`5f8893`..`5f88cb`): run404's Modern Infantry is the
+first a capture walked, a first step of 42 on a speed of 34
+(`docs/GOLDEN.md` §47). And a crew guy's step speed is the cached
 layer-1/2 value rather than `get_speed`, so it skips the action scale and
 the river halving as well; run56's scout and run67's merchant walk plain
 ground under a plain move, which is why both their tests pass.
@@ -1025,6 +1028,15 @@ that is landed was the one arm the barge never saw. run86 is the measurement
 7448 → 7529 is what it was worth. A new spawn site is a new place to forget
 it; the crate has one function, [`Sim::type_speed`], and no other line may
 read `moves` directly.
+**The gunpowder foot line's correction is landed too** (2026-09-28, item
+1109): run404's three Modern-age Infantry print `myspeed` 34 from their
+birth on a `MOVES` of 32 (`docs/GOLDEN.md` §47), and `Sim::type_speed` now
+takes all four rows of the table below. No other capture on disk (299 dumps
+scanned) is born with an Arquebusier, Rifleman or Mechanized Infantry, so
+those three scales rest on the listing (`605700`..`6057d6`) alone. The only
+writer of `+0x9a` (`myspeed`) is `update_speed` itself, and the constructor's
+0 before it; its callers are `Unit::init`, `Unit::set_type`,
+`Leader::calc_unit_stats`, `cast_transport` and `cast_create_decoy`.
 The rest of the pipeline below is still an input. From the type's move value: the transport bonus (`MILITARY_TRANSPORT_BONUS`, 0) and the
 American marine bonus (`AMERICANS_MARINE_SPEED_BONUS`, 2) scaled by
 `LeaderDataEncrypt::epoch[0]` — the owner's **Military library level**, not
@@ -1035,7 +1047,11 @@ general and supply upgrade counts, and last `+AZTEC_MOVE_SPEED%` for two
 Aztec types. The result is propagated down a linked chain of units.
 
 **The gunpowder foot line carries a hardcoded speed correction**, tested most
-advanced first because each type also *is* its predecessor:
+advanced first ~~because each type also *is* its predecessor~~ — **each test
+is identity**: `ObjectData::is` forwards to the type's vslot `0x60`, which is
+`TypeData::is@004771c0` (`type == t`) on every type vtable, so each row
+scales its own type and no other (item 1109). Every division truncates
+toward zero (the listing's `sar`/`imul` magic):
 
 | Type | Scale |
 | --- | --- |

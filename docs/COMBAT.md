@@ -13099,3 +13099,62 @@ down with no draw from the game's stream.
   draw by its site on the stream (§47's table), and by the killer.
 - **Listing-backed**: every gate above; `kill_guy`'s arm.
 - **Emulator-backed**: `is_flying_low` whole; the air arm's thresholds.
+
+## 83. An anti-air unit shoots without turning; an anti-air building winds up (item 1109, 2026-09-28)
+
+Chapter thirty-eight's word 776 (`docs/GOLDEN.md` §47) was the Battery's
+swing, not the Infantry's walk: `Guy::move+0x166` is the queued attack's
+`set_anim(CHAR_ATTACK1, 0, 1)`.
+
+### 83.1 The angle kept (built)
+
+`Unit::fight@005fd4d0`, right after `Unit::set_attack` (`5fe7f4`), whose
+answer is "the pivots can bear": when the **target's** type has `+0x218 == 2`
+(the air domain, `5fe81f`) and the shooter `has_objmask(0x80000000)`
+(`ANTI_AIR`, `5fe82a`..`5fe855`, a `cmovne`), the answer becomes 1 whatever
+the pivots said. `5febb0` then keeps `this->angle`, and the unit fires
+without turning. Its guys still turn to the unit's heading, and the swing
+waits in `hold_attack` until they arrive (`Guy::move`'s `+0x9e` arm).
+
+run404, both sides: the Battery `1/9` stands at (21384, 17256) with its
+heading at 1222246400 from 766, its guy turning to it at about −190,887,424
+a frame. It re-attacks `0/7` on 773. Theirs keeps 1222246400 and holds
+(`hold_attack` 1 from 773), the guy arrives on 776, and 777 prints
+`cur_anim` 12, `stopped` 1. Ours had failed the pivot test and re-headed to
+the target (−819789824), so it never swung. **Built** as
+`Sim::anti_air_keeps_angle` (`crate::air`), or'd after `set_attack` in
+`Sim::fight`. Tests: `an_anti_air_unit_keeps_its_angle_at_an_aircraft_only`,
+and `an_anti_air_strike_at_a_plane_does_not_turn_the_unit`, which exercises
+the call site. **Diff-backed** on run404's 773..777.
+
+### 83.2 The Radar Air Defense's cycle (read, unbuilt: the word 777)
+
+`Build::do_attack@006228f0`: a building with `ANTI_AIR` that is neither
+`LOOKOUT` nor `OBSERVATIONPOST` (`TypeIndex` 521 and 522; neither is
+carried here yet) skips the recharge
+countdown at its head, and returns **before** `Object::fire_ammo` when its
+target is in range. So a Radar Air Defense never fires from `do_attack`.
+Its cycle lives in `Wall::inc_time@0063fb60`'s anti-air arm, on the same
+`recharging` short (`+0x7a`, the dump's `BUILDDATA recharging`). As read
+from the decompile, on its main branch: from 0 it counts up while under
+`get_game_frames(8) − 1`. At the top, with a target (`+0x7c ≥ 0`), it goes
+to 0 and then −1, and counts down to `−get_game_frames(0xc)`, where it goes
+back to −1. With no target at the top, it is set to `get_game_frames(8) − 1`.
+While it is negative, the arm builds a guy-like packet with `cur_anim` 0xc
+and `cur_time = −recharging`. The other branch (`+0x34 < 0` or `+0x60 < 0`)
+and the early returns above it are not read, and the dump's 0 before
+acquisition says one of them holds there.
+
+run404 prints exactly that: `1/2007` takes `attack_ox` 7 on block 778
+(trace frame 777), then `recharging` 1..19 to 796, then −1..−10 repeating.
+It spends no draw on 777. Ours fires on acquisition through
+[`Sim::process_building_combat`]'s footprint scatter: four draws in
+`buildings` on 777, where theirs has none (ours 10, theirs 6).
+
+**Not established**: where the round leaves (the packet's animation event is
+the obvious reading; the arm's tail past `LAB_006402b4` was not read); the
+two game-frame counts (20 and 10 fit the dump, but `get_game_frames` on the
+Radar Air Defense's piece is not read); and whether the flak roll (§81) runs
+on the building's round the same way. Next: read the arm to its end and
+the packet's consumer, then build it in `process_building_combat` (fenced
+to another lane at this landing).

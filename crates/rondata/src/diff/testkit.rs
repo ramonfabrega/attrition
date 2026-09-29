@@ -4554,8 +4554,20 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
 /// it: the Battery's first two rounds, misses on 753 and 755, agree field
 /// for field with their flags.
 ///
-/// **The delta**, this constant's: 742 → 776.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 776;
+/// **777, open** (item 1109). 776's draw was the **Battery's**, not the
+/// Infantry's: `Guy::move+0x166` is the queued attack's
+/// `set_anim(CHAR_ATTACK1, 0, 1)`. On 773 the Battery re-attacks Bomber
+/// `0/7` while its hull is still turning, and theirs keeps the unit's angle
+/// (`Unit::fight`'s `5fe81f`: an `ANTI_AIR` shooter at an air-domain target),
+/// where ours' pivot test failed and re-headed it. Built with it: the
+/// gunpowder foot line's `×34/32` in `Unit::update_speed` (the Infantry's
+/// `myspeed` 34 from 621) and `do_move`'s Modern Infantry `×5/4` (its first
+/// step 42 on 765). 777: the Radar Air Defense acquires `0/7` and theirs
+/// winds up (`recharging` 1..19, `Wall::inc_time`), drawing nothing, where
+/// ours fires at once — ours 10 draws, theirs 6, four `buildings` first.
+///
+/// **The delta**, this constant's: 776 → 777.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 777;
 
 /// `chapter_thirty_eight_s_word_frame_is_widened_whole`'s window: run404
 /// whole, (605, 1763).
