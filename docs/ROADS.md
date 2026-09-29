@@ -487,11 +487,14 @@ that run72's 921,600 tiles already back. Six are the code lagging this
 document, and each is **stated, unimplemented, and unreached** by any
 capture on disk:
 
-- **§5.2's ocean arm**, whose `parent not ocean` test the code does not
+- ~~**§5.2's ocean arm**, whose `parent not ocean` test the code does not
   have: `crate::roads` charges the 100 on every ocean node rather than on
   the entry to a run of them. Unreached because both constants are 100 and
   every ocean node on the corpus takes the `avoid_sea` arm, where the
-  parent is not consulted.
+  parent is not consulted.~~ **Built and packet-backed** (item 1115,
+  `docs/CARAVAN.md` §11.2): East Indies' AI route to its second island is
+  the first on the corpus to take the other arm, and the search parted
+  on its fourth frame without it.
 - **§1's second `regen_roads` caller**, `Build::remove_from_city`: the
   sim's `remove_from_city` flags nothing, so no replan follows a building
   leaving its city. Unreached — no capture removes one.
