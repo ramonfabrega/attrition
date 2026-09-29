@@ -163,7 +163,8 @@ pub(crate) fn walk_second_probed(
 /// to 5975, and the walk to run414; item 1120 moved the word to 6151,
 /// inside it; item 1127 moved it to 6321, and the walk to run419; item 1143
 /// moved it to 6609, and the walk to run420; item 1156 moved it to 6743,
-/// inside it. `None` when the captures are
+/// inside it; item 1164 moved it to 7382, and the walk to run425. `None`
+/// when the captures are
 /// not on this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
@@ -174,7 +175,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run420-islands-toughest-6609.txt",
+        "gamelog-run425-islands-toughest-7382.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -1257,6 +1258,83 @@ mod tests {
             "the blocks keys first part on, the whole window"
         );
         pin_eq!(w.firsts.len(), 303, "every key parted on run420");
+    }
+
+    /// **The second pair's East Indies word, 7382, widened whole** (item
+    /// 1164): run425 is run346's game at run420's detail over blocks
+    /// 7377..7633, walked from run346's own start. The word's frame writes
+    /// block 7383.
+    #[test]
+    fn run425_s_word_frame_is_widened_whole() {
+        let _pins = Pins::hold();
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run425",
+            "gamelog-run425-islands-toughest-7382.txt",
+            WIDENING_SECOND_EAST_INDIES_7382,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        pin_eq!(w.blocks, 257, "run425 whole: blocks 7377..7633");
+        pin!(
+            w.missing.is_empty(),
+            "run425 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 7382** (item 1164; no mechanism is named): ours 15
+        // draws against 9, at index 0, ours `Leader::use_market+0x1ed`, the
+        // original `Leader::make_stuff+0x221`; ours spends two `use_market`
+        // and three `produce_building+0x1805` the original does not. The
+        // first block stands on 238 keys from the gap 6861..7376. On this
+        // window player 1's make list parts first: its `MAKE[].val` on 7379,
+        // ours 1800000 against 4194000 in slot 0, and its `city` on 7381;
+        // on the word's block 7383 its buckets and `1/12`'s order.
+        pin_eq!(
+            row(1, -1, "leader:MAKE[0].val").as_deref(),
+            Some("7379: ours 1800000 theirs 4194000"),
+            "the make list's value, first"
+        );
+        pin_eq!(
+            row(1, -1, "leader:MAKE[4].city").as_deref(),
+            Some("7381: ours 1 theirs -1"),
+            "and its city"
+        );
+        let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        pin_eq!(
+            by.iter()
+                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .map(|(b, n)| (*b, *n))
+                .collect::<Vec<_>>(),
+            [
+                (7377, 238),
+                (7379, 9),
+                (7380, 1),
+                (7381, 7),
+                (7382, 16),
+                (7383, 39)
+            ],
+            "the blocks keys first part on, to the word's"
+        );
+        pin_eq!(w.firsts.len(), 1182, "every key parted on run425");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**
