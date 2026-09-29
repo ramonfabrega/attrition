@@ -428,8 +428,8 @@ scanning:
 
 | when | soft |
 |---|---|
-| my action is `TRADE_ROUTE` and its action is `0xf`, and both are moving | yes |
-| its action is `0xc` and that order's target is me | yes — **built** (item 696, `Sim::soft_collision`): run190's wagon passes through its walking guard on tick 726, and the original's scan there reaches `is_here` on the guard and never `is_corner` (run191's third take). The first row, the caravan pair, is still not carried |
+| my action is `TRADE_ROUTE` and its action is `0xf`, and both are moving | yes — **built** (item 1127, §19): `0xf` *is* `TRADE_ROUTE`, and "moving" is the front order's `is_moving`. East Indies' 6151 is the frame: `1/15` walks through `1/33` and takes the half step on block 6152 |
+| its action is `0xc` and that order's target is me | yes — **built** (item 696, `Sim::soft_collision`): run190's wagon passes through its walking guard on tick 726, and the original's scan there reaches `is_here` on the guard and never `is_corner` (run191's third take). ~~The first row, the caravan pair, is still not carried~~ — it is, since item 1127 (§19) |
 | its action is `ATTACK`, mine is too, same player, both `coll_size 1`, both moving, and my target is more than `0x300` beyond my range | yes |
 | we share a `group` (≠ −1), I am not attacking, it has no suspended search (`+0x104 == 0`), and either it has no order or its order is a spell in `{0x28b, 0x28d, 0x28f, 0x291}` or a passable kind — `0` and `0xc` unconditionally, `1, 2, 3, 4, 0x12, 0x13, 0x15` also needing its action ≠ `ATTACK` | yes |
 
@@ -1024,7 +1024,7 @@ pay for it exactly there — Great Lakes 6848 → 6862.
 Not modelled, each listed in §9: ~~`detect_boat_collision` (no ships)~~
 its sea half is modelled (§13); step 1
 (`+0x2b4 & 0x2000`) and step 3 (the enemy ladder); the
-`TRADE_ROUTE`, `0xc` and group arms of §4.3; §5.2's own group arm and its
+~~`TRADE_ROUTE`,~~ ~~`0xc`~~ and group arms of §4.3 (the caravan pair built in §19, the escort by item 696); §5.2's own group arm and its
 general `find_unit_with_radius` path;
 `do_move`'s own collision arm — the every-other-frame re-probe of
 `coll_x/coll_y` while a search is pending, and the `repaths[who] += 1` in
@@ -1251,7 +1251,7 @@ buildings join the chain, which is why §8 does not claim it.
 
 **Reading-only** — no capture has executed these:
 
-- §4.3's `TRADE_ROUTE` and `0xc` arms. ~~The group arm~~ — landed
+- ~~§4.3's `TRADE_ROUTE` and `0xc` arms~~ — both built: the `0xc` arm by item 696, the caravan pair diff-backed by item 1127 (§19). ~~The group arm~~ — landed
   2026-09-04, §9. ~~The soft half-step flag~~ — landed 2026-09-06, and it
   is **diff-backed twice**: run76's three Archers march 6652 → 6861 on the
   original's own points and run53's word moved 6848 → 6862, and run79's
@@ -2343,8 +2343,9 @@ three clauses rests on `get_action@00608450` read against the dump's own
   call. Named by slot, not by identity. ~~`+0x94`~~ is settled: it is
   `BuildTypeData::is_flat` (§6 step 2, item 64), and reading it as `true`
   cost the score for a week.
-- **The action indices `0xc` and `0xf`** in §4.3. `0xf` sits next to
-  `TRADE_ROUTE` in the same arm, so one of the two is the caravan's.
+- ~~**The action indices `0xc` and `0xf`** in §4.3. `0xf` sits next to
+  `TRADE_ROUTE` in the same arm, so one of the two is the caravan's.~~
+  Settled: `0xf` is `TRADE_ROUTE` (§19), `0xc` is `GUARD` (item 696).
 - **`WData::block == −1`.** Where the sentinel is written is unread; this
   crate marks every cell. *Capture:* a `WORLD ≥ 6` dump does not print it,
   so this needs a reading, not a run.
@@ -3436,4 +3437,99 @@ with `top_only`. `Sim::do_move`'s suspended block asks it.
 - **Listing and decompile**: `005f7d99`–`005f7dab`,
   `detect_unit_collision@00617060:60-96, 443-467`, `do_move@005f7b30`'s
   suspended block.
+- **Unit-tested, made to fail on purpose**: the test above.
+
+## 19. Two caravans on their legs pass through each other: §4.3's first row — East Indies 6151 → 6321 (item 1127, 2026-09-29)
+
+East Indies' second-pair word was **6151**. On 6151 ours spent 9 draws and
+the original 8, parting at index 0: ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, the blocked stand of §5, on the AI Caravan `1/15`;
+the original the gatherer `1/31`'s `Unit::do_non_flat_gather+0x10f`, which
+is ours' next draw. Every draw after the extra one agrees, one seed late.
+
+### 19.1 The frame
+
+- **Both caravans, both sides.** `1/15` (London → Norwich) walks north-east
+  at (35597, 37251) on 6151. `1/33` (London → Newcastle) walked the other
+  way and has stood at (35751, 37239) since block 6148, its leg ended and
+  its next leg's `MOVEORDER` already at the head of its stack, above its
+  `TRADEORDER`. It walks again on 6153 in the original. Both dumps print
+  the same two stacks for both units, and ours holds the same.
+- **The parting, on block 6152** (run414): ours' `1/15` stands with
+  `collide` 1, `collide_o` 33, its three figures `stopped`. The original's
+  walks on to (35617, 37267) with `collide_o` −1 and **`unit_masks &
+  0x100000` set** — the one-shot half step (§4.3, §12), which is set only
+  when the nine-cell scan passes a soft candidate and meets no hard one.
+  It is the only frame of run414's 257 on which either caravan holds the
+  bit.
+- **The direction** is ours: this crate found `1/33` hard, and the
+  original found it soft.
+
+### 19.2 The row
+
+`detect_unit_collision@00617060`, the listing:
+
+- `617214`–`61721d`: `sete` of `action_type(this) == 0xf` into
+  `-0x40(%ebp)`, beside the `== 0xa` flag the attack row reads.
+- `6173f2`–`617402`: the flag is tested, then the candidate's action type
+  (`get_action`'s vfunc `+0x10`) against `0xf`. Either failing goes to
+  `6174ef`, the `0xc` row.
+- `617408`–`6174dd`: **both units' `is_moving`**, vfunc `+0xd8`. Unit's
+  slot is `UnitData::is_moving@00610af0` (read off the PE at
+  `Unit::vftable + 0xd8`), inlined here: the front order's vfunc `+0x14`,
+  0 with no order. `MoveOrder`'s slot is a `vtordisp` thunk to `0041e0e0`,
+  `mov eax,1; ret` (a folded body the export names
+  `Buffer::is_pending_load`); `UnitOrder`'s is `0041bff0`, `xor eax,eax`.
+  Either answering 0 goes to `617667`, the group row. Both answering 1
+  sets `local_8 = 1`, the soft flag, and continues the scan (`6174e3`).
+
+So `0xf` is `TRADE_ROUTE`, and "moving" is a move at the head of the
+stack, not a unit in motion: `1/33`, standing between legs, is moving. No
+owner is compared.
+
+This crate built the row in `Sim::soft_collision`
+(`crates/sim/src/collide.rs`) on the two helpers the attack row already
+uses: `action_of`'s index for the action, and `Order::is_move` on the
+front for `is_moving`.
+
+### 19.3 What it moved
+
+- **East Indies 6151 → 6321.** Frame 6151's draws went 9 against 8 →
+  agreeing.
+- **The value diff, run414 block 6152**
+  (`run414_s_word_frame_is_widened_whole`): `1/15`'s `pos` (35597,37251)
+  against (35617,37267), `collide_o` 33 against −1, `half_step` 0 against
+  1 and `g.stopped[0..2]` 1 against 0 → all 35 of its rows agreeing.
+  run414's keys went 327 → 176. No key parts earlier than before. What
+  still parts in the window is three rows: who=1's `MAKE[4].val` on 6182
+  and the newborns `1/42`'s and `1/43`'s `form` on 6191 and 6218.
+- **Nothing else moved**: the whole rondata suite on the fix is green
+  except the lines the move owns. That covers the first pair's two maps
+  to 24,000 with their caravans' windows, Great Lakes' 5930, Great
+  Sahara's 8 and every golden chapter.
+- **The new word, 6321**: ours 9 draws and the original 8, parting at
+  index 2. Ours spends `Guy::set_anim+0x97a < Unit::do_idle+0x7d` on the
+  barge `1/42`; the original a `Guy::inc_time+0x271` wrap. The word is past
+  run414, so run419 was captured over it (`docs/AI.md` §87).
+- `collide::tests::two_caravans_on_their_legs_pass_through_each_other`
+  pins the row and its three refusals: a stranger on a leg, a caravan
+  with no leg at its head, and a caravan standing on its route. It was made
+  to fail by deleting the row.
+
+### 19.4 What is not established
+
+- **Every order class's `+0x14`.** Only `MoveOrder`'s and `UnitOrder`'s
+  were read off the PE. This crate answers `is_moving` for every
+  `Body::Move`, as the attack row already did. A move-family class that
+  overrides the slot is not ruled out, and none stands at the head of a
+  caravan here.
+- **The row between two players' caravans.** There is no owner test in
+  the listing. Every instance on the disk is who=1's own pair.
+
+### 19.5 Coverage
+
+- **Diff-backed**: §19.1's block 6152, by
+  `run414_s_word_frame_is_widened_whole`; the move, by
+  `run346_is_east_indies_at_toughest_and_its_word_holds`.
+- **Listing and PE**: §19.2's addresses and the three vtable slots.
 - **Unit-tested, made to fail on purpose**: the test above.
