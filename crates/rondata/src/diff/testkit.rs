@@ -1297,7 +1297,24 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 13_182;
 /// index 2**: ours spends `Guy::set_anim+0x104b` where the original spends
 /// `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Inside run420's window
 /// (block 6744, 140 blocks after its first and 116 before its last).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 6_743;
+///
+/// **6743 → 7382 on item 1164** (`docs/TRANSPORT.md` §6.4, `docs/AI.md`
+/// §95): a passenger comes ashore at the `avg_speed` it boarded with —
+/// `Guy +0x84` has no writer in either `set_new_location` — and a computer
+/// player's takes `come_out`'s tail `update_action` from the spot
+/// (`618813`..`618836`). **The move's value diff (the word's delta, here;
+/// its block is `run420_s_word_frame_is_widened_whole`'s):** on run420's
+/// block 6735 the AI merchant `1/33`'s `g.avg_speed[0..2]` ours 0 against
+/// 12 → agreeing, and its `orders_x/y` (37439,33407) against (38952,24840)
+/// → agreeing; on 6736 its guys' `angle` -120852736 against 93895616 →
+/// agreeing; on 6743 its `pos` (38944,24864) against (38952,24840) →
+/// agreeing, the original still turning to face its path. The window's
+/// keys went 963 → 303. Frame 6743's draws went 4 against 8 → agreeing.
+/// **The new word's delta: ours 15 draws and the original 9 on frame 7382,
+/// parting at index 0**: ours spends `Leader::use_market+0x1ed` where the
+/// original spends `Leader::make_stuff+0x221`. Past run420's window (its
+/// last block 6860), widened on run425 (block 7383).
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 7_382;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).

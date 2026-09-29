@@ -1159,15 +1159,48 @@ impl Sim {
             // and a unit put ashore with no speed stands there for ever;
             // `come_out`'s building arm carries the same two across.
             // `dest_angle` (`+0x58`) is step 1's, below.
+            //
+            // **And the body keeps its speeds** (item 1164, `docs/TRANSPORT.md`
+            // §6.4): `Guy::last_speed`/`avg_speed` (`+0x80`/`+0x84`) have
+            // three writers, `Guy::move`, `Guy::clear` and `Guy::init_real`,
+            // and neither `Unit::set_new_location@005f8d20` nor
+            // `Guy::set_new_location@005d86f0` is one. A passenger comes
+            // ashore at the average it boarded with, and [`turn_speed`]
+            // divides its first turn by it: run420's `1/33` lands on 6734
+            // at 12 and takes nine frames to face its path, not seven.
+            //
+            // [`turn_speed`]: crate::movement::turn_speed
+            let body = self.units[r].movement.body;
             self.units[r].movement = crate::Movement {
                 speed: self.units[r].movement.speed,
                 turning: self.units[r].movement.turning,
                 des_angle: self.units[r].movement.des_angle,
+                body: crate::movement::Body { pos: at, ..body },
                 ..crate::Movement::at(at)
             };
             self.units[r].on_map = true;
             self.coll_add(r);
             self.chain_add(r);
+            // **`come_out`'s own tail, for a computer player's unit** (item
+            // 1164, `docs/TRANSPORT.md` §6.4): past `set_new_location` at
+            // `6186c1`, `6187c8` tests `leaders.list[who] & 4`
+            // (`is_human`) and skips on it; a plane, and the four
+            // `0x32..=0x35` citizen types (`6187ff`..`618811`), skip too.
+            // Everyone else takes `path.length = 0`, `close_orders(0)`,
+            // `clear_partial_path` and `update_action` at `618813`..`618836`
+            // — step 1's four again, **from the spot**. Path and list are
+            // already empty, so what it writes is `orders_x/y`: run420's AI
+            // merchant `1/33` prints its landing point (38952, 24840) on
+            // 6735, where the human scout of run249 keeps its boarding
+            // point. `update_action`'s `+0x58 = +0x50` is the boarding
+            // heading still — the dump's `dest_angle` 292814848 against
+            // `angle` 165478400 on the same block says `set_angle` comes
+            // after — which is step 1's value, kept below.
+            if !self.nation[usize::from(self.units[r].owner)].human
+                && !(0x32..=0x35).contains(&self.units[r].type_index)
+            {
+                self.units[r].orders_pos = at;
+            }
             // `come_out@6191f4`: with a **unit** for a host the passenger is
             // turned to the host's own `angle` (`+0x50`) in `set_angle`'s
             // snapping form, guys included — which is what puts the scout's
@@ -1778,15 +1811,95 @@ mod tests {
             "the boat's stack, in order, with the top's `flags & 4` gone"
         );
         assert!(!f.sim.units[boat].alive());
-        // `update_action` is step 1's (item 803): on the passenger at its
-        // boarding point with an empty list, so `orders_x/y` stay that
-        // point once the boat's move comes back, and `dest_angle` the
-        // heading it boarded on while `come_out` snaps its facing west.
-        assert_eq!(f.sim.units[rider].orders_pos, boarded);
+        // `update_action` is step 1's (item 803) and, for a computer
+        // player's unit, `come_out`'s tail's again from the spot (item
+        // 1164): `orders_x/y` are the landing point, not the boarding one,
+        // and `dest_angle` the heading it boarded on while `come_out` snaps
+        // its facing west.
+        assert_ne!(spot, boarded);
+        assert_eq!(f.sim.units[rider].orders_pos, spot);
         assert_eq!(f.sim.units[rider].movement.heading, west);
         assert_eq!(
             f.sim.units[rider].movement.des_angle,
             crate::movement::Angle::INITIAL
+        );
+    }
+
+    /// A passenger put ashore on `come_out`'s ring, for a human or a
+    /// computer player: the rider's `orders_x/y` and its guys' speeds.
+    fn ashore(human: bool, avg: i32) -> (Fix, usize, Pos) {
+        let mut f = fix();
+        f.sim.nation[1].human = human;
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[f.scout].combat.uber_size = 1;
+        f.sim.unit_types[f.scout].combat.block_radius = 48;
+        let rider = unit(&mut f.sim, 1, f.scout, tile_pos(30, 14));
+        f.sim.units[rider].movement.speed = 34;
+        f.sim.units[rider].guys = vec![crate::anim::Guy::fresh(1), crate::anim::Guy::fresh(2)];
+        f.sim.art.tracks.insert(2, (-48, -192));
+        f.sim.seat_guys(rider);
+        f.sim.units[rider].movement.body.avg_speed = avg;
+        f.sim.units[rider].guys[1]
+            .follow
+            .as_mut()
+            .unwrap()
+            .body
+            .avg_speed = avg;
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        f.sim.units[boat].auto_transport = true;
+        f.sim.units[boat]
+            .movement
+            .set_facing(crate::movement::Angle::WEST);
+        let boarded = f.sim.units[rider].pos;
+        f.sim.board(rider, boat);
+        assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
+        assert_eq!(f.sim.units[rider].inside_unit, None, "ashore");
+        (f, rider, boarded)
+    }
+
+    /// **`come_out`'s tail, for a computer player's unit** (item 1164,
+    /// §6.4): past `set_new_location`, `6187c8` skips a human's unit and
+    /// `618813`..`618836` run `update_action` on everyone else's from the
+    /// spot. run420's AI merchant `1/33` prints its landing point
+    /// (38952, 24840) as `orders_x/y` on 6735; a human's keeps the point it
+    /// boarded at, step 1's (run249's `0/6`, item 803).
+    #[test]
+    fn a_computer_player_s_passenger_is_ordered_where_it_lands_and_a_human_s_where_it_boarded() {
+        let (ai, r, boarded) = ashore(false, 0);
+        let spot = ai.sim.units[r].pos;
+        assert_ne!(spot, boarded);
+        assert_eq!(
+            ai.sim.units[r].orders_pos, spot,
+            "the AI's: the landing point"
+        );
+        let (me, r, boarded) = ashore(true, 0);
+        assert_eq!(
+            me.sim.units[r].orders_pos, boarded,
+            "a human's: the boarding point"
+        );
+    }
+
+    /// **A passenger comes ashore at the average it boarded with** (item
+    /// 1164, §6.4): `Guy::last_speed`/`avg_speed` (`+0x80`/`+0x84`) are
+    /// written by `Guy::move`, `Guy::clear` and `Guy::init_real` alone,
+    /// and neither `set_new_location` is one. So the first turn ashore is
+    /// [`crate::movement::turn_speed`]'s divided one: run420's `1/33` lands
+    /// at 12 and turns a quarter, a third, a half … of its rate, facing its
+    /// path on 6745 where a zeroed average faced it on 6743.
+    #[test]
+    fn a_passenger_comes_ashore_at_the_average_it_boarded_with() {
+        let (f, r, _) = ashore(false, 12);
+        let u = &f.sim.units[r];
+        assert_eq!(u.movement.body.avg_speed, 12, "guy 0's body");
+        assert_eq!(
+            u.guys[1].follow.map(|g| g.body.avg_speed),
+            Some(12),
+            "and the tracked crew guy's, seated on its offset again"
+        );
+        assert_eq!(
+            u.guys[1].follow.map(|g| g.body.pos),
+            u.guys[1].follow.map(|g| g.des),
+            "seated on its offset"
         );
     }
 
