@@ -148,9 +148,7 @@ mod tests {
         sim.in_play = true;
         let before = sim.world.owners();
         let mut target = before.clone();
-        for t in &mut target {
-            *t = (Owner::Player(1), Owner::None);
-        }
+        target.fill((Owner::Player(1), Owner::None));
         sim.world.set_owners(&target);
         sim.start_border_pass(before);
         assert_eq!(
