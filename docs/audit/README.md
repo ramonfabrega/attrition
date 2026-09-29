@@ -245,13 +245,17 @@ three measurements of its own.
 
 The rows continue, and everything the first section's opening paragraph
 says applies. The nineteenth pass (2026-09-29) added these from the
-tranche's "for the Loop" lines and five measurements of its own. **Parked
-1137 regroups all three sections by the kind of brief that reads them.**
+tranche's "for the Loop" lines and five measurements of its own. **The
+rows are regrouped by the kind of brief that reads them in
+`tools/brief/frame.md`** (parked 1137, built the same day), which is
+what a brief is composed from; this list keeps each row's story, and
+`tools/explore/test_brief.py` fails on a row here that no section there
+carries.
 
 - **Code is not fenced** (the pass's own, DECISIONS 55 §5): a brief
-  reserves the run numbers, the section numbers where another lane is
-  in the same document and the item numbers it may mint, and it says
-  where the other lane's word sits as information. A worker touches
+  reserves the run numbers and the section numbers where another lane
+  is in the same document, and it says where the other lanes' words sit
+  as information. A worker touches
   what its word needs, takes `ccc update` before its gate, and measures
   on the merged tree; **it never hands its word over for where the code
   sits**. Nine grants and five handovers in one tranche, and the three

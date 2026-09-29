@@ -410,11 +410,14 @@ reminder alone, which has been wrong. A commander may land a **one-clause safety
 when its evidence is measured and its source named, filing a `FABLE:` row
 the same day; everything else in this file waits for the pass.
 
-**A brief is composed against the checklist in `docs/audit/README.md`**
-("The brief checklist"): what a brief cites, reserves and sizes, one line
-each, every line a landing that paid for it. The checklist is the pass's
-to grow; a worker's "for the Loop" line that names a brief's omission is
-a candidate row.
+**A brief is composed by `tools/brief.py`**: the frame
+(`tools/brief/frame.md`), the item in the queue's own words, what is
+reserved, and the commander's note of what the item alone needs — never
+the previous brief, copied and edited. The frame and the checklist
+behind it (`docs/audit/README.md`, "The brief checklist") are the pass's
+to write, and a test holds every row of the one to a section of the
+other; a worker's "for the Loop" line that names a brief's omission is a
+candidate row.
 
 **A worker's landing is verified by refs and announced by the worker.**
 Before reporting, a worker states its tip SHA and that `git log
@@ -448,11 +451,12 @@ book and to write on the scoreboard line. **A number a worker reports is
 measured on the tree after its last `ccc update`**, or the report says
 which tree it was measured on — an attribution taken against a moving
 base is unreliable in both directions. On the commander's side, **merge,
-gate, push, reap and the next spawn are one chain**; a reap left for "before the next
+book, spawn, gate, push and reap are one chain**; a reap left for "before the next
 spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
---no-ff`, the booking commit, the gate to a file, `ccc push <ref> --base`,
+--no-ff`, the booking commit, **the spawn that refills the lane, cut off
+that commit**, the gate to a file, `ccc push <ref> --base`,
 `ccc rm <ref>`, and `git push origin --delete <the lane's branch>` — a
 worker pushes its branch, `ccc rm` deletes only the worktree and the local
 branch, and thirty-seven merged `origin/worktree-att-*` stood on 2026-09-25
@@ -463,9 +467,9 @@ a gate runs**: the handoff is rewritten before the gate, not during it.
 **A reap that refuses is a lane with work on the floor**: a killed lane
 looks exactly like one that never started, so a handoff never says a lane
 produced nothing until `git status` in that lane has said so. **A brief
-reserves what two lanes could take in silence** — the run number, the
-section number when another lane is in the same document, the item
-numbers it may mint — **and code is not fenced**: two lanes in one
+reserves what two lanes could take in silence** — the run number and
+the section number when another lane is in the same document — **and
+code is not fenced**: two lanes in one
 module merge, or conflict out loud at `ccc update` or at the gate; the
 lane that lands second takes the update before its gate; a brief says
 where the other lane's word sits as information, no grant is asked or
@@ -483,10 +487,15 @@ id lore's lineage reads is not the one the commander reads. **A booking
 commit is never amended once another lane is live**: a lane merges the
 base it sees, and a rewritten base leaves that merge parented on a commit
 that no longer exists; a red gate on the booking commit is a second
-commit. **The chain's last link is the spawn.** A reap frees a lane, and
-the same turn refills it with the queue's first unstarted item on that
-track; the turn does not end with a lane empty and the queue not, and it
-never asks whether to continue — the queue's opener is the answer.
+commit. **The spawn follows the booking commit, and the gate runs
+beside the new worker**: a landing frees a lane, and the turn that books
+it refills it with the queue's first unstarted item on that track,
+before its own gate — a lane stood empty through every booking gate of a
+tranche. A red booking gate is a second commit and one line to every
+live lane to take `ccc update`; **a landing that arrives while a gate
+runs is merged at the gate's exit**, never under it. The turn does not
+end with a lane empty and the queue not, and it never asks whether to
+continue — the queue's opener is the answer.
 **Lanes are independent.** Lanes are throughput, not a pair — **one to
 an open word, and the queue's handoff says how many**: each lands, is
 chained and is refilled without reference to another's state, and the

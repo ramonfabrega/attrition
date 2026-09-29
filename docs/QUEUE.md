@@ -23,14 +23,15 @@ every floor holds. No lane is live.*
   One capture lane still; a lane that waits on it says for how long.
 - **The commander clears at the seam after every tenth landing**, the
   handoff written first (631 k at the last tranche's end, no clear taken).
-- **Code is not fenced** (DECISIONS 55 §5): a brief reserves run,
-  section and item numbers and says where the other lane's word sits.
-  No grant is asked or given; no word is handed over for where the code is.
+- **Code is not fenced** (DECISIONS 55 §5): a brief reserves run and
+  section numbers and says where the other lanes' words sit. **A brief
+  is `python3 tools/brief.py <item> --kind residue|chapter`** plus a note.
+- **The spawn follows the booking commit**; the gate runs beside it.
 - **A floor test reports every pin that moved** (`Pins::hold()`,
   `pin_eq!`); a widening `WIDENINGS` names is held to it.
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk: 64 GB free.
-- **Fable backlog: 8 Loop items** (685, 1101, 1105, 1114, 1119, 1137, 1138, 1139).
+- **Fable backlog: 7 Loop items** (685, 1101, 1105, 1114, 1119, 1138, 1139).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -89,7 +90,7 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
   `docs/JOURNAL.md`.** It reports; the commander books and writes these
   lines; the story is `docs/journal/<date>-item-<N>.md`. **A pinned
   constant is the worker's to re-pin; the line is the commander's.** The
-  chain — merge, book, gate, push, reap, spawn — is `CLAUDE.md`'s.
+  chain — merge, book, spawn, gate, push, reap — is `CLAUDE.md`'s.
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
   `GOLDEN_WORD_*`, `ENDPOINTS`, `AI_WORDS` with `Scoreboard:`, `Long captures:`,
   `Golden:` (`<name> closed`, or `every chapter closed` first), `Endpoint <frame>:`,

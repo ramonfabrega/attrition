@@ -56,7 +56,7 @@ is append-only and amended in place, as it always was.
 - 42 extended by 43 and 55 — The frame is the item; the loop's holes become guards
 - 43 extended by 44 — A word is pinned with its widening, and a landing is committed before it is gated
 - 44 extended by 50 — The instrument that agrees because it is not looking: four guards, and the lab merged beside the sim
-- 45 extended by 50 — The chain's last link is the spawn, and lanes are throughput, not a pair
+- 45 extended by 50, amended by 55 — The chain's last link is the spawn, and lanes are throughput, not a pair
 - 46 standing — A printed field is read or pinned, and struck text is not live text
 - 47 amended by 55 — The lower map is a guard, a closed chapter is named closed, and the ledger checks its own list
 - 48 standing — A booking cites the ledger, a falsifier names where it fires, and the second map is open
@@ -3527,7 +3527,7 @@ No `FABLE:` row stood.
    was tried and is not built (parked 1119).
 5. **Code is not fenced.** A brief reserves what two lanes could take
    in silence: the run number, the section number where another lane is
-   in the same document, the item numbers it may mint. Two lanes in one
+   in the same document. Two lanes in one
    module merge, or conflict out loud at `ccc update` or at the gate;
    the lane that lands second takes the update before its gate and
    measures on the merged tree, which the rules already ask. **A worker
@@ -3596,3 +3596,21 @@ a tranche, where a compaction lands wherever the chain happens to be.
 What was measured for the user's questions — a landing's 76 minutes
 against 44, half of it waiting on the machine — is in the pass's record
 and parked as 1138.
+
+**Amended again 2026-09-29, the pass's own, after the user asked how a
+brief is made.** Measured: the commander's seventh call of the tranche
+searched the transcripts for the last `ccc spawn`, its next read the
+last commander's briefs from the job's scratch directory, and eight of
+its twenty-one briefs were the lane's previous one copied and edited. A
+brief grew from 4,700 characters to 11,000 in ten days, a quarter of it
+shared by every brief of the day and a third of the newest one fences.
+**A brief is composed by `tools/brief.py`** from `tools/brief/frame.md`,
+the item in the queue's own words, what is reserved, and the
+commander's note; the frame is the pass's, the checklist's rows are
+regrouped in it by the kind of brief that reads them (parked 1137,
+built), and a test fails on a row no section carries. **And the spawn
+follows the booking commit** (entry 45 amended): the lane is refilled
+before the booking's gate, which runs beside the new worker; a landing
+that arrives under a gate is merged at its exit. §5's "the item numbers
+it may mint" is struck: a worker mints none.
+

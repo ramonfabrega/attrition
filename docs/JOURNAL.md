@@ -20865,3 +20865,11 @@ of it is waiting on a gate or a suite (parked, item 1138); the capture
 lane stays one (item 1139). The commander reached 631 k of context with
 no clear taken and clears at every tenth landing's seam from here. The
 count stays twenty.
+
+**And on the user's question of how a brief is made**: the commander
+had been copying the last commander's from the job's scratch directory,
+and a brief had grown from 4,700 characters to 11,000 in ten days. A
+brief is composed by `tools/brief.py` from a frame the pass writes
+(item 1137, built), and the spawn follows the booking commit so a lane
+is not empty through the booking's gate. The backlog is seven.
+

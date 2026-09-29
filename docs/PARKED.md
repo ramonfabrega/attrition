@@ -1795,7 +1795,10 @@ moved eight Loop lines into the brief checklist (1076, 1079, 1083,
 1085, 1088, 1090, 1097, 1126) with three rows of its own, **closed
 1071** on its measurement and **677, 894, 900, 927, 953, 954 and 960**
 on two tranches without a reach, **lifted the fences on code**, and
-filed 1137; 685, 1101, 1105, 1114 and 1119 stay
+filed 1137, **which it built the same day** on the user's question —
+`tools/brief.py` and `tools/brief/frame.md`, the checklist regrouped by
+the kind of brief that reads it and held to the frame by a test — with
+1138 and 1139 filed beside it; 685, 1101, 1105, 1114 and 1119 stay
 (`docs/audit/2026-09-29-fable-pass-19.md`, DECISIONS 55).
 341 closed 2026-09-18 by item 363.
 
@@ -1898,9 +1901,11 @@ went. Three lanes gate at twelve threads of sixteen. **And the
 commander's chain is serial**: a lane stood empty fourteen minutes a
 landing, 4.6 hours of the tranche's 15.1, between its landing and its
 refill, which is the booking gate; at three lanes that is the loop's
-narrowest point. The next pass reads the three-lane tranche's split
-first; the shapes are a spawn that follows the booking commit with the
-gate beside it, a wider gate under a higher cap on a machine of 128 GB,
+narrowest point. **The spawn follows the booking commit now, with
+the gate beside it** (DECISIONS 55, amended). The next pass reads the
+three-lane tranche's split first; the shapes left are a booking gate
+that is the guard reflex where the merge added nothing the lane's gate
+had not seen, a wider gate under a higher cap on a machine of 128 GB,
 and a suite that says which tests a change can reach — none is chosen.
 
 (1139) **The capture lane is one prefix, one install and one profile**
@@ -1912,14 +1917,6 @@ second copy of the install and its own user-data directory;
 `~/ron-capture-lane-2` holds a profile backup of 2026-09-18 and nothing
 else. Not built: the lane was not what the tranche waited on. Returns
 when three lanes' journals say they waited on it, with the minutes.
-
-(1137) **The brief checklist is three sections and fifty-five rows, read
-whole by every brief** (the nineteenth pass): it took a dozen rows at
-each of three passes, and the commander's session cost 4.4 USD a landing
-against 2.9. Regrouped by the kind of brief that reads it — a residue
-item on the AI lane, a chapter, a capture, a packet, a blind-list
-staging — a brief reads its own kind's rows. No row is dropped; struck
-rows leave with their successors named.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 

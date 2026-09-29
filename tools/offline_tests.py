@@ -25,6 +25,7 @@ SUITES = (
     'test_waitwin',
     'test_runqueue',
     'test_startcapture',
+    'test_brief',
     'test_gamelog_checks',
     'test_tracer_stamp',
     'test_census',
