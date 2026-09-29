@@ -583,6 +583,13 @@ pub mod tile {
     pub const BLOCKED: u16 = 0x4000;
 }
 
+/// `WorldData::is_built_at@0046f880`: a building footprint's tile, or one a
+/// building is placed on and not yet started — `(mask & 3) == 3 ||
+/// mask & 0x80`.
+pub const fn is_built_at(mask: u16) -> bool {
+    mask & tile::OBJECT == tile::OBJECT_BUILDING || mask & tile::PLACED != 0
+}
+
 /// `Region.flags`' `0x10`: every active non-flat gather building in the
 /// region runs `Build::find_gather_tiles` again from `Build::process`
 /// (`docs/ECONOMY.md` §17). Only [`World::cycle_gather_flags`] sets it.

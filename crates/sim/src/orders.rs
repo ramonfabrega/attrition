@@ -432,6 +432,12 @@ pub mod path_flag {
     /// the lane the unit is in and the one it is stepping into. It
     /// suppresses the collision test entirely (`docs/ORDERS.md` §4.1).
     pub const DETOUR: u8 = 0x8;
+    /// **This waypoint crosses a building's footprint** — `astar_path`'s
+    /// tile grid sets it on a node over a blocked building tile, which
+    /// only an armed walker's search admits, and only for a building not
+    /// its owner's (`docs/PATHFINDER.md` §7). `do_move` asks
+    /// `Unit::resolve_block` on it (`docs/ORDERS.md` §4.4).
+    pub const BLOCK: u8 = 0x10;
     /// **A road was laid on this waypoint's tile.** Only
     /// `Caravan::build_road@0073db10` writes it, on every node of a trade
     /// route's plan that is not open water, and the road stack carries it
@@ -4384,6 +4390,12 @@ impl Sim {
                 return Did::Nothing;
             }
             self.store_move(u, mo, flags);
+            // **A building across the leg** (`5f8844`..`5f8859`): a top the
+            // tile grid flagged as crossing a footprint asks
+            // [`Sim::resolve_block`], and an attack it queues ends the frame.
+            if top.flags & path_flag::BLOCK != 0 && self.resolve_block(u) {
+                return Did::Something;
+            }
         }
 
         // The speed, and the straight-line check. `do_move` takes it from
@@ -4453,15 +4465,15 @@ impl Sim {
                 };
                 let far = (mo.waypoint.x - here.x).abs() + (mo.waypoint.y - here.y).abs() > thr;
                 // `wflag` (which grid planned) only matters to the
-                // resolve-block branch below, which is a seam; kept for the
-                // shape.
+                // resolve-block call below: a world plan waits a frame,
+                // a near one asks [`Sim::resolve_block`].
                 //
                 // The length a positive return is compared against is read
                 // **per arm**, and in the near arm *after* every pop: the
                 // original captures `field_0xc0` beside each planner call,
                 // and re-reads it once the unwind loop has run. Reading it
                 // before the pops made "unchanged" nearly unreachable.
-                let (r, len_before, _wflag) = if far {
+                let (r, len_before, wflag) = if far {
                     let len_before = self.units[u].path.len();
                     (self.find_wpath(u), len_before, true)
                 } else {
@@ -4545,20 +4557,40 @@ impl Sim {
                 };
                 mo.last = None;
                 mo.has_waypoint = true;
-                mo.waypoint = top.to;
-                self.units[u].tolerance = top.tolerance;
+                // **The new top across a footprint** (`5f8bf0`..`5f8c05`):
+                // asked before `dest_x`/`dest_y` are written, so an attack
+                // it queues leaves the move's old waypoint under it.
+                if top.flags & path_flag::BLOCK != 0 {
+                    self.store_move(u, mo, flags);
+                    if self.resolve_block(u) {
+                        return Did::Something;
+                    }
+                    if let Some(m) = self.current_move(u) {
+                        mo = m;
+                    }
+                }
+                // `dest_x`/`dest_y` and the unit's `+0x60` tolerance are
+                // **not** the new top's yet: `TAKE` hands `find_path` the
+                // top itself and writes the move only once the line is
+                // verified (`do_move:694`..`698`, below). A near plan whose
+                // line fails keeps the old waypoint — run460's Knight at
+                // peace, looping on the ring's corner from 811, holds its
+                // goal (42720, 20064) and tolerance 0 (item 1209).
                 self.units[u].path_recursion = 0;
-                let goal = mo.waypoint;
-                let r2 = self.find_path(u, &mut mo, goal);
+                let r2 = self.find_path(u, &mut mo, top.to);
                 if r2 == 0 {
                     self.units[u].line_ok = true;
                 }
                 if !self.units[u].line_ok {
                     // The line to the new top failed too: with a world-grid
-                    // plan, wait for the next frame; the tile-grid case
-                    // falls into collision resolution (SEAM: `do_move`'s own
-                    // arm, `docs/COLLISION.md` §9 — the step's is modelled).
+                    // plan, wait for the next frame; a near plan asks
+                    // [`Sim::resolve_block`] of whatever top the stack has
+                    // now, flagged or not, and returns either way
+                    // (`5f8c19`..`5f8c2f`).
                     self.store_move(u, mo, flags);
+                    if !wflag {
+                        self.resolve_block(u);
+                    }
                     return Did::Something;
                 }
                 // **The verified line reads the stack again** (`5f8c3d`–
@@ -4602,6 +4634,64 @@ impl Sim {
             return Did::Something;
         }
         self.unit_step(u, mo, speed)
+    }
+
+    /// `Unit::resolve_block@005fccc0` (`docs/ORDERS.md` §4.4, item 1209):
+    /// what an armed walker does about a building across its near plan.
+    /// It reads the path's top and nothing else:
+    ///
+    /// 1. the top's tile refuses the unit plainly (`invalid_loc(t, 0, 0,
+    ///    0, 0, 0)`) **and** passes it under `param_5` (`invalid_loc(t, 0,
+    ///    0, 1, 0, 0)`) — which is [`Sim::invalid_loc`]'s armed arm, so the
+    ///    walker is armed and the tile another player's footprint;
+    /// 2. `find_any_building_at(t, who, FILTER_ALL)` finds its building;
+    /// 3. the owner decides (`5fcd6e`..`5fce11`):
+    ///    - **not at war** (`LeaderData::is_enemy` no): the walker's
+    ///      leader ors `2` into `agendas[owner]` and the move goes on
+    ///      (0);
+    ///    - **at war**: `add_attack_order(building, QUEUE_FIRST, 0, 0)`,
+    ///      and `do_move` returns (1).
+    ///
+    /// The **own** arm (`5fcd72`..`5fcdb4`: `build_masks |= 1` on a
+    /// non-gather type) is dead: step 1's second test refuses a building
+    /// of the walker's own (`invalid_loc`'s arm answers 4 on
+    /// `find_who == who`), and both finds are the same call on the same
+    /// frame. It is not built. `AI.md` §13 names this the only writer of
+    /// `build_masks & 1`, so the orphan check's disband arm is dead too.
+    ///
+    /// An empty stack reads the list's stale first slot in the original;
+    /// here it answers 0 (SEAM: no caller here reaches it empty).
+    pub(crate) fn resolve_block(&mut self, u: usize) -> bool {
+        let Some(top) = self.units[u].path.last().copied() else {
+            return false;
+        };
+        let t = top.to.tile();
+        if self.invalid_loc(u, t, false, false, false, false, false) == crate::path::loc::VALID {
+            return false;
+        }
+        if self.invalid_loc(u, t, false, false, true, false, false) != crate::path::loc::VALID {
+            return false;
+        }
+        let who = self.units[u].owner;
+        let Some(b) = self.find_any_building_at(t, who) else {
+            return false;
+        };
+        let owner = self.buildings[b].owner;
+        if owner == who {
+            return false;
+        }
+        if !self.is_enemy(who, owner) {
+            if let Some(x) = self
+                .agendas
+                .get_mut(usize::from(who))
+                .and_then(|r| r.get_mut(usize::from(owner)))
+            {
+                *x |= 2;
+            }
+            return false;
+        }
+        self.add_attack_order(u, Obj::Building(b), QueuePos::First, false, false);
+        true
     }
 
     /// `Unit::do_group_move@005e79a0` (`docs/ORDERS.md` §8.3) — the
@@ -5916,6 +6006,22 @@ impl Sim {
         };
         let a_ext = combat::extent(&self.profile(Obj::Unit(u)), false);
         combat::attack_dist(self.units[u].pos, bd.pos, a_ext, t_ext, false) < ADJACENT
+    }
+
+    /// `ObjectsData::find_any_building_at(t, …, who, FILTER_ALL)`
+    /// (`00659180`): the building whose footprint covers the tile, over
+    /// the chains of the nine cells round it. A candidate is a player's
+    /// (`owner < 8`), in use, and **started, or `who`'s own** (vslot
+    /// `+0x50`, `is_started`): another player's placed site is not found.
+    /// Footprints do not overlap, so the walk's order does not choose.
+    pub(crate) fn find_any_building_at(&self, t: Pos, who: Player) -> Option<usize> {
+        (0..self.buildings.len()).find(|&b| {
+            let bd = &self.buildings[b];
+            bd.alive
+                && bd.owner < crate::world::PLAYER_SLOTS
+                && (bd.started || bd.owner == who)
+                && self.covers_tile(b, t)
+        })
     }
 
     /// `WallData::covers_tile`: the tile is inside the footprint.
@@ -8805,6 +8911,69 @@ mod chase_tests {
         };
         assert!(chase(false), "a living target out of sight ended the chase");
         assert!(!chase(true), "a dead target kept the chase");
+    }
+}
+
+#[cfg(test)]
+mod resolve_block_tests {
+    use super::*;
+    use crate::world::{Cell, Terrain, World, tile};
+
+    /// Player 0's armed walker whose path top is a flagged waypoint over
+    /// player 1's building, one blocked footprint tile at `(10, 10)`.
+    fn blocked_top() -> (Sim, usize, usize) {
+        let mut world = World::new(10, 10);
+        world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(9, 9));
+        let mut sim = Sim::new(crate::Tuning::RON, world, 2);
+        let mut ty = crate::UnitType::default();
+        ty.combat.domain = crate::attrition::Domain::Land;
+        ty.combat.attack = 160;
+        let t = sim.add_unit_type(ty);
+        let mut unit = crate::Unit::new(0, 1, Pos::new(0x180, 0x180), 10);
+        unit.ty = Some(t);
+        let u = sim.units.len();
+        sim.units.push(unit);
+        let at = Pos::new(10, 10);
+        sim.world
+            .set_tile_mask(at, tile::OBJECT_BUILDING | tile::BLOCKED);
+        let b = sim.add_building(1, Pos::new(10 * 0xc0, 10 * 0xc0), 0);
+        sim.units[u].path.push(PathData {
+            to: Pos::new(10 * 0xc0 + 0x60, 10 * 0xc0 + 0x60),
+            tolerance: 0x60,
+            flags: path_flag::BLOCK,
+        });
+        (sim, u, b)
+    }
+
+    /// **`Unit::resolve_block@005fccc0`, both live arms** (item 1209,
+    /// `5fcdc2`..`5fce11`): at war the walker takes the building as an
+    /// attack in front of what it holds and `do_move` returns; at peace
+    /// the walker's leader ors `2` into `agendas[owner]`, one direction,
+    /// and the walk goes on. A top on open ground asks nothing. Made to
+    /// fail first with each arm answering the other's.
+    #[test]
+    fn a_building_across_the_walk_is_attacked_at_war_and_noted_at_peace() {
+        let (mut sim, u, b) = blocked_top();
+        sim.at_war[0][1] = true;
+        assert!(sim.resolve_block(u), "at war the walk stops");
+        assert!(matches!(
+            sim.units[u].orders.front().map(|o| o.body),
+            Some(Body::Attack(_))
+        ));
+        assert_eq!(sim.units[u].combat.target, Some(Obj::Building(b)));
+        assert_eq!(sim.agendas[0][1], 0);
+
+        let (mut sim, u, _) = blocked_top();
+        assert!(!sim.resolve_block(u), "at peace the walk goes on");
+        assert!(sim.units[u].orders.is_empty(), "no order at peace");
+        assert_eq!(sim.agendas[0][1], 2, "the walker's leader's slot");
+        assert_eq!(sim.agendas[1][0], 0, "one direction only");
+
+        let (mut sim, u, _) = blocked_top();
+        sim.at_war[0][1] = true;
+        sim.units[u].path.last_mut().expect("a top").to = Pos::new(0x480, 0x480);
+        assert!(!sim.resolve_block(u), "open ground asks nothing");
+        assert!(sim.units[u].orders.is_empty());
     }
 }
 

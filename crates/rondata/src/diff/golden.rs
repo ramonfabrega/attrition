@@ -13285,6 +13285,31 @@ fn chapter_forty_one_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-two** — a ring of who=1's Barracks and four walkers
+/// inside it (`docs/GOLDEN.md` §51, item 1209, run460):
+/// `Unit::resolve_block`'s arms. Eighteen staged lines on the golden
+/// start.
+#[test]
+fn chapter_forty_two_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch42", "chapter42", 42, 18, 1159) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-two: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_TWO,
+        "chapter forty-two's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_TWO}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_TWO,
+        "chapter forty-two's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §51"
+    );
+}
+
 /// **run436: a command for another seat is dropped at the pump** (item
 /// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
 /// `be 0` on the issuing frame: the DLL issued both who=1 commands (its
@@ -13394,6 +13419,83 @@ fn chapter_forty_one_s_word_frame_is_widened_whole() {
     want.sort();
     pin_eq!(got, want, "ch41: what parts under the word moved");
 }
+
+/// **run460 whole, both directions** (item 1209, `docs/GOLDEN.md` §51):
+/// every dumped record on every block of the capture, the leaders at
+/// `LEADERS=5`, whose record prints `agendas[·]`. No pool: the capture
+/// prints no `GROUPS` (parked 735).
+#[test]
+fn chapter_forty_two_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch42",
+        "chapter42",
+        WIDENING_CHAPTER_FORTY_TWO,
+        1159,
+        0,
+        (620, 626),
+        true,
+        CHAPTER_EIGHT_LEADER_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch42 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch42: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH42.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch42: what parts under the word moved");
+}
+
+/// Chapter forty-two's widening rows (item 1209): run460 whole, the
+/// chapter **closed** at 1160 (`docs/GOLDEN.md` §51). Every row is a
+/// standing family: the birth `form` (parked 1169) on every unit, the
+/// first block's `filled_gather_slots`, the human City's census (parked
+/// 1183), the Knight's attack `order:target`, which this crate keeps on
+/// the unit, and chapter eight's `treaties[·]` 3 on the first blow (623).
+/// `agendas[·]` is compared on every block and agrees: who=0's slot for
+/// who=1 turns 2 on 812.
+const WANT_CH42: &[&str] = &[
+    "605 0/-1 leader:filled_gather_slots[0:food]",
+    "605 0/-1 leader:filled_gather_slots[1:timber]",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/2000 city:busy",
+    "605 0/2000 city:filled",
+    "605 0/2000 city:gatherers",
+    "605 0/2000 city:land",
+    "605 0/2000 city:peasant_dist",
+    "605 0/2000 city:space[0]",
+    "605 0/2000 city:space[1]",
+    "605 0/2000 city:space[2]",
+    "605 0/2000 city:ter[0]",
+    "605 0/2000 city:ter[1]",
+    "605 0/2000 city:ter[3]",
+    "605 0/2000 city:ter[4]",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/2000 city:filled",
+    "605 1/2000 city:land",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "615 0/6 form",
+    "622 0/6 order:target",
+    "623 0/-1 leader:treaties[1]",
+    "623 1/-1 leader:treaties[0]",
+    "701 0/7 form",
+    "901 1/6 form",
+];
 
 /// Chapter forty-one's widening rows (items 1182, 1200): run437 whole,
 /// the chapter **closed** at 1770 (`docs/GOLDEN.md` §50). What stands is
@@ -15132,6 +15234,33 @@ fn stage_walk() {
     // on the last frame, one character a cell (`.` unowned, `?` a claim
     // the original writes −2, else the player), and every live building
     // with its cell, so a target can be placed by who owns its landing.
+    if let Ok(win) = std::env::var("RON_STAGE_TILES") {
+        let v: Vec<i32> = win.split(',').map(|x| x.parse().unwrap()).collect();
+        let s = &built.sim;
+        for y in v[1]..v[3] {
+            let row: String = (v[0]..v[2])
+                .map(|x| {
+                    let m = s.world.tile_mask(sim::world::Pos::new(x, y));
+                    if m & sim::world::tile::BLOCKED != 0 {
+                        '#'
+                    } else if m & 0x30 == 0x20 {
+                        '~'
+                    } else if m & 0x30 == 0x30 {
+                        'T'
+                    } else if m & 3 == 2 {
+                        'M'
+                    } else if m & 3 == 1 {
+                        'C'
+                    } else if m & 3 == 3 {
+                        'b'
+                    } else {
+                        '.'
+                    }
+                })
+                .collect();
+            eprintln!("tile {y:3} {row}");
+        }
+    }
     if std::env::var_os("RON_STAGE_MAP").is_some() {
         let s = &built.sim;
         for y in 0..s.world.height() {

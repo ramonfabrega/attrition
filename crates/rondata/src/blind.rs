@@ -132,6 +132,9 @@ pub const TRACES: &[&str] = &[
     // Item 1182: chapter forty-one at `cover=1` on the queue lane to 1140
     // (`docs/RUNS.md` run438), run437's game on every frame.
     "rontrace-run438.log", // ch41
+    // Item 1209: chapter forty-two at `cover=1` on the queue lane to 920
+    // (`docs/RUNS.md` run461), run460's game on every frame.
+    "rontrace-run461.log", // ch42
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -249,7 +252,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `UnitData::get_speed@006086f0` on 778, the computer's sortie, and
 /// `ObjectData::is_siege@0046ef90` on 1088, the trireme's spill onto the
 /// repairing Citizen — the two rows of CENSUS row 7 a staging reaches;
-/// three more of the row are [`RESIDUE`]).
+/// three more of the row are [`RESIDUE`]); **137** with run461 (item
+/// 1209: chapter forty-two at `cover=1`, `docs/GOLDEN.md` §51;
+/// `Unit::resolve_block@005fccc0` on 621, the Knight's `TAKE` on the
+/// ring's corner).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -260,7 +266,7 @@ pub const NEVER: &[u32] = &[
     0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_60c0, 0x0058_6440, 0x0058_7060,
     0x0059_30c0, 0x005a_ac70, 0x005a_bc70, 0x005d_8fc0, 0x005e_1f20, 0x005e_3310, 0x005e_3400,
     0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670,
-    0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_ccc0, 0x005f_d080,
+    0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_79c0, 0x005f_d080,
     0x0060_3470, 0x0060_4550, 0x0060_8850,
     0x0060_a600, 0x0061_a960, 0x0062_2ce0, 0x0062_3310, 0x0062_9e70,
     0x0062_d430, 0x0063_0590, 0x0063_0b10, 0x0063_3390, 0x0063_e390, 0x0064_40c0,

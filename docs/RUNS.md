@@ -11462,6 +11462,45 @@ walked from run383's start with run381's head, finds 1,352 keys parted:
 
 The compared pin and the coverage driver walk 17622..17626.
 
+## run460 — chapter forty-two, a ring of Barracks and `Unit::resolve_block` (2026-09-29, item 1209)
+
+`docs/GOLDEN.md` §51, `tools/gamelog/golden/chapter42.cmd`: seven who=1
+Barracks round a pocket, and four walkers in it — who=0's Knight at war
+and again at peace, who=0's Scout, and who=1's own Knight.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch42 \
+    --map 14 --end-frame 1160 --log-window 605 1160 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter42.cmd
+```
+
+17:14–17:23, 507 s, `success: true`, 1,161 frames, 180 MB. The lane was
+free (its lock's holder had exited).
+
+**What the disk could not answer.** No capture on this disk plans a tile
+path across a footprint: `resolve_block` was a `NEVER` row, and no dump
+before it printed `agendas[scan]` non-zero on a golden start.
+
+**What it holds**:
+- `chapter_forty_two_holds_to_the_golden_word` (1160, closed);
+- `chapter_forty_two_s_word_frame_is_widened_whole` (33 rows);
+- the coverage driver's windows (`diff::coverage`).
+
+## run461 — chapter forty-two at `cover=1`, to 920 (2026-09-29, item 1209)
+
+run460's script line for line on the queue lane, `cover=1`, to 920
+(`tools/gamelog/captures.txt`, `run: 461`), 17:26–17:35.
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run460 | every record as in the golden run, none refused |
+| `rngcmp.py` vs run460 | 921 frames identical, none differing |
+| `report.py … functions` | `Unit::resolve_block` f621 |
+
+It leaves `NEVER`: 138 → 137 (`crates/rondata/src/blind.rs`).
 ## run457 — run383's game at run449's detail over blocks 17140..17618: the gap before Great Sahara's word 17623 (2026-09-29, item 1206)
 
 **What it is.** run449's shape on the click-free lane: `--map 7`,

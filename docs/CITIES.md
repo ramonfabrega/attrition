@@ -151,7 +151,7 @@ A building has three states: *placed* (`0x1`), *started* (`0x3`), *active*
 
 | bit | meaning | set | read |
 | --- | --- | --- | --- |
-| `0x1` | marked blocking by `Unit::resolve_block` | movement | — |
+| `0x1` | marked blocking by `Unit::resolve_block` — ~~movement~~ **no live writer**: that arm is dead (item 1209, `docs/GOLDEN.md` §51) | movement | — |
 | `0x4` | explicit attack order | `Build::add_attack_order` | `docs/COMBAT.md` §8.6 |
 | `0x8` | launch pending (airbase/carrier/silo) | `Build::init` (`|0x88` for `can_carry(AIR)`) | `Build::process` → `Object::do_launch` |
 | `0x10`, `0x20` | **under attack**, two-stage | `Object::take_damage` ors `0x30` on a hit by another player | `is_under_attack` = `& 0x20`; `Wall::process` every 32 frames (phased by `o`): `0x10` set → clear it, else clear `0x20` — so "under attack" lasts 32–64 frames after the last hit; `do_build`/`do_repair` quarter their rate on it |

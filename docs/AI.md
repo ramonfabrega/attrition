@@ -1900,7 +1900,10 @@ folded back into §2's prose.
   **Closed by the second reading (B7-b): the only writer is
   `Unit::resolve_block@005fccc0`**, and it is not a sell mark — it means "one
   of my units was blocked by this building of mine, and it isn't a gatherer".
-  Read-and-clear, one-shot. The orphan check's disband arm is still
+  Read-and-clear, one-shot. **And that arm is dead** (item 1209,
+  `docs/GOLDEN.md` §51): `invalid_loc`'s `param_5` refuses a walker's own
+  building, so `resolve_block` never finds one; the bit has no live
+  writer. The orphan check's disband arm is still
   unmodelled. **`city_flags 0x8/0x1000`** — no writer.
   **`CityData.ocean_filled`/`bordering`** — on `CityAi`, never written.
 - **Meeting** (§2.3 step 6) is skipped whole; every other active leader

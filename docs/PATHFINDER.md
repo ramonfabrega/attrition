@@ -521,8 +521,11 @@ terrain/domain refusal, `3` a sea unit over shallows/river (`tile &
 blocked by a building. The flags: `p3` skips the building check; `p4`
 enables the fog shortcut — a flag-4 (**human**) leader's probe returns
 valid when **all four** fog half-cells of the tile's cell are unseen; `p5`
-lets an armed unit pass its own side's buildings (`find_any_building_at`
-owner test); `p6`/`p7` relax the water refusal for a transport-forced unit
+lets an armed unit pass ~~its own side's buildings~~ **a building that is
+not its own**, and a built tile where none is found (`find_any_building_at`
+owner test, `607fb6`..`60800a`: `find_who == who` → 4, else 0; item 1209,
+`docs/GOLDEN.md` §51) — the tile grid passes it, and `astar_path` flags
+such a node `0x10` for `Unit::resolve_block`; `p6`/`p7` relax the water refusal for a transport-forced unit
 (`unit_masks & 0x800000`), and `p6` is also forced on when the unit's path
 top carries flag 4. Dispatch is on the type's domain (`+0x218`: 0 land, 1
 sea, 2 air — air is always valid); the land arm refuses forest (except

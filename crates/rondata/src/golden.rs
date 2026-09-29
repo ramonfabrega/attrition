@@ -1903,6 +1903,7 @@ mod tests {
         // Citizen repairing it — CENSUS row 7's last seven (item 1182,
         // `docs/GOLDEN.md` §50).
         ("chapter41.cmd", &[]),
+        ("chapter42.cmd", &[]),
         ("chapter5.cmd", &[]),
         // `bird`, the one console command that issues an order, is staged
         // at the channel's cursor since item 652 (`docs/GOLDEN.md` §10).

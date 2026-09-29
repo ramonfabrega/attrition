@@ -827,8 +827,9 @@ different terrain region) — and it **also relaxes `invalid_loc`**, letting the
 leg cross terrain the unit would otherwise refuse; `8` = a
 `go_around_building` mid-detour point, which **suppresses the collision test
 entirely** (both R2); `0x10` = a block to
-`resolve_block` (a building's tile: own → mark, allied → a diplomacy bit,
-enemy → `add_attack_order`); `0x20` = a caravan road waypoint.
+`resolve_block` (~~a building's tile: own → mark, allied → a diplomacy bit,
+enemy → `add_attack_order`~~ an armed walker's tile plan across another
+player's footprint, `docs/GOLDEN.md` §51); `0x20` = a caravan road waypoint.
 
 ### 4.3 Lifecycle
 

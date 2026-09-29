@@ -410,11 +410,31 @@ impl Sim {
             && !(surface == tile::SURFACE_FOREST && forest_walker)
             && self.world.tile_mask(self.units[u].pos.tile()) & tile::BLOCKED == 0
         {
-            // With `enemy_builds_only`, an armed unit passes its own side's
-            // buildings. SEAM: building ownership at a tile is not indexed;
-            // every blocked tile refuses. The original returns 0 here for
-            // an armed unit over its own building.
-            let _ = enemy_builds_only;
+            // **`enemy_builds_only`: an armed unit passes a building that
+            // is not its owner's** (`00607fb6`..`0060800a`, item 1209). With
+            // the caller's `param_5`, a type whose base attack (`+0x1e8`)
+            // is non-zero, over a tile `is_built_at`, asks
+            // `find_any_building_at(t, who)` and refuses (4) only when the
+            // building found is its own: another player's, and a tile
+            // where nothing is found (`find_who` −1), are valid. The tile
+            // grid passes it (`valid_tcoord`), so an armed walker's near
+            // plan may cross another player's footprint at `calc_cost`'s
+            // 4000 a tile, and those nodes carry `astar_path`'s building
+            // flag into `resolve_block` ([`Sim::resolve_block`]). A
+            // Citizen is armed here: its `attack` is 40.
+            if enemy_builds_only
+                && self.profile(crate::combat::Obj::Unit(u)).attack != 0
+                && crate::world::is_built_at(mask)
+            {
+                let found = self
+                    .find_any_building_at(t, owner)
+                    .map(|b| self.buildings[b].owner);
+                return if found == Some(owner) {
+                    loc::BUILDING
+                } else {
+                    loc::VALID
+                };
+            }
             return loc::BUILDING;
         }
         loc::VALID
@@ -1320,7 +1340,7 @@ impl Sim {
                 0
             };
             if n.building {
-                flags |= 0x10;
+                flags |= path_flag::BLOCK;
             }
             if n.transport {
                 flags |= path_flag::TRANSPORT;
@@ -2821,6 +2841,57 @@ mod tests {
         assert_eq!(
             sim.invalid_loc(u, t, true, true, false, true, false),
             loc::TERRAIN
+        );
+    }
+
+    /// A walker of player 0 armed (`attack` 40, a Citizen's) or not, and a
+    /// building of player 1 whose one footprint tile is blocked, `(10,
+    /// 10)`. `add_building` leaves the type unset, so `covers_tile`
+    /// answers the building's own tile alone.
+    fn ring_tile(armed: bool) -> (Sim, usize, usize, Pos) {
+        let mut sim = flat_sim(10);
+        let u = walker(&mut sim, Pos::new(0x180, 0x180));
+        let mut ty = crate::UnitType::default();
+        ty.combat.domain = crate::attrition::Domain::Land;
+        ty.combat.attack = if armed { 40 } else { 0 };
+        let t = sim.add_unit_type(ty);
+        sim.units[u].ty = Some(t);
+        let tile_at = Pos::new(10, 10);
+        sim.world
+            .set_tile_mask(tile_at, tile::OBJECT_BUILDING | tile::BLOCKED);
+        let b = sim.add_building(1, Pos::new(10 * 0xc0, 10 * 0xc0), 0);
+        (sim, u, b, tile_at)
+    }
+
+    /// **`invalid_loc`'s armed arm** (item 1209, `00607fb6`..`0060800a`):
+    /// under `param_5` a walker whose type is armed passes a blocked,
+    /// built tile when the building found there is **not its own**, and
+    /// when none is found; its own refuses, as does any building to an
+    /// unarmed walker or without `param_5`. Made to fail first on the seam
+    /// it replaces, which refused every blocked tile.
+    #[test]
+    fn an_armed_walker_passes_another_player_s_footprint_and_not_its_own() {
+        let (mut sim, u, b, t) = ring_tile(true);
+        let tile_search = |sim: &Sim| sim.invalid_loc(u, t, false, true, true, true, false);
+        assert_eq!(tile_search(&sim), loc::VALID, "player 1's footprint");
+        assert_eq!(
+            sim.invalid_loc(u, t, false, true, false, true, false),
+            loc::BUILDING,
+            "without `param_5` every footprint refuses"
+        );
+        sim.buildings[b].owner = 0;
+        assert_eq!(tile_search(&sim), loc::BUILDING, "its own refuses");
+        sim.buildings[b].alive = false;
+        assert_eq!(
+            tile_search(&sim),
+            loc::VALID,
+            "nothing found: `find_who` −1 is not the walker's"
+        );
+        let (sim, u, _, t) = ring_tile(false);
+        assert_eq!(
+            sim.invalid_loc(u, t, false, true, true, true, false),
+            loc::BUILDING,
+            "an unarmed walker is refused whoever owns it"
         );
     }
 

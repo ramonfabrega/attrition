@@ -155,6 +155,17 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         out.push((format!("diplos[{i}]"), d));
         let met = i64::from(built.sim.has_met(who as sim::Player, i));
         out.push((format!("treaties[{i}]"), met));
+        // `agendas[i]` (`+0xb4`, item 1209): the one bit written here is
+        // `Unit::resolve_block`'s `2`, a building of `i`'s across one of
+        // `who`'s armed walks while the two are not at war.
+        let agenda = built
+            .sim
+            .agendas
+            .get(who)
+            .and_then(|r| r.get(i))
+            .copied()
+            .unwrap_or(0);
+        out.push((format!("agendas[{i}]"), i64::from(agenda)));
     }
     // The AI's own step machine and its biases.
     out.push(("production_step".to_string(), i64::from(a.step.number())));
@@ -529,7 +540,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
     // against a `gather_slots` of `10 12 1 0 0 0`, so the good's own
     // high-water mark is at stride two and the six-in-a-row reading
     // reported five of the six goods as divergences on every frame.
-    for key in ["diplos", "treaties"] {
+    for key in ["diplos", "treaties", "agendas"] {
         for (i, x) in all(&format!("{key}[scan]")).iter().enumerate().take(8) {
             out.insert(format!("{key}[{i}]"), *x);
         }
@@ -1112,7 +1123,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 169_600,
+            compared, 169_920,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1215,7 +1226,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 182_320,
+            compared, 182_664,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1409,7 +1420,7 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 38_160,
+            compared, 38_232,
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1547,7 +1558,7 @@ mod tests {
         assert_eq!(blocks, 260, "130 blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 275_600,
+            compared, 276_120,
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1733,7 +1744,7 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 63_600,
+            compared, 63_720,
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3085,7 +3096,7 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
-            compared, 519_400,
+            compared, 520_380,
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
