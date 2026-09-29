@@ -116,6 +116,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1174, 2026-09-29 — escrow's unheld arms
+
+(1186) **Escrow's other writers and draws** (AI §98.6, §98.7):
+`Leader::action_respond@006d03c0` and `Leader::pay_dow@006d2b10` write
+`+0x468` and are not modelled (both on `NEVER`); the script host's
+`queue_up`/`produce_building` (`ai_host.rs`) pass no escrow flag; and
+`do_repair`'s escrow draw is built and no walk holds it — no capture
+reaches a repair while escrow stands.
+
 ## Parked by item 1167, 2026-09-29 — chapter forty's standing rows
 
 (1183) **The human City's census** (GOLDEN §49): `busy`, `filled`,
@@ -2187,6 +2196,13 @@ Loop line): the original printed the follower's waypoint (28614, 20246)
 under `dest 0`, and that value named Great Sahara's 14587 mechanism,
 one `eprintln` away. Compared as a field of its own, it would have been
 the first row. One reach.
+
+(1187) **A widening's "standing" keys hid two causes for five
+widenings** (1174's Loop line): who=1's `pop` from run425's 7377 and
+`escrow` from run357's 5601 stood among the first block's 238 standing
+keys, read as noise. A guard listing each key a widening pins as
+standing whose field has a live reader in `sim`, with that reader, at
+the widening's run, would have put both in front. One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
