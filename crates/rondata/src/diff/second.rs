@@ -1033,8 +1033,8 @@ mod tests {
                 (5982, 1),
                 (5984, 1),
                 (6001, 1),
-                (6026, 2),
-                (6069, 2),
+                (6026, 1),
+                (6069, 1),
                 (6071, 1),
                 (6074, 1),
                 (6111, 4),
@@ -1045,7 +1045,10 @@ mod tests {
             ],
             "the blocks keys first part on, the whole window"
         );
-        pin_eq!(w.firsts.len(), 176, "every key parted on run414");
+        // Item 1164 took the passengers' figure `avg_speed` (6026, 6069;
+        // 176 → 174): put ashore at the average they boarded with
+        // (`docs/TRANSPORT.md` §6.4); their `mirror` stands.
+        pin_eq!(w.firsts.len(), 174, "every key parted on run414");
     }
 
     /// **The second pair's East Indies word, 6321, widened whole** (item
@@ -1100,9 +1103,10 @@ mod tests {
         // (38016,11689) on 6316, its leg (38028,11542) against (38016,
         // 11136) — stood with no order on 6321, and still carried `1/32` on
         // 6322 where the original had landed it at (38040,11400). All of it
-        // agrees; the barge's `form` -1 against 0 stands from run414's 6191,
-        // and the passenger's figure `avg_speed` 0 against 11 on 6322 is
-        // what is left of the landing.
+        // agrees; the barge's `form` -1 against 0 stands from run414's 6191.
+        // The passenger's figure `avg_speed`, 0 against 11 on 6322, was what
+        // was left of the landing until item 1164 put it ashore at the
+        // average it boarded with (`docs/TRANSPORT.md` §6.4): it agrees.
         for what in ["pos", "orders.len", "extra"] {
             pin_eq!(row(1, 42, what), None, "`1/42`'s {what}");
         }
@@ -1110,23 +1114,24 @@ mod tests {
             pin_eq!(row(1, 32, what), None, "`1/32`'s {what}");
         }
         pin_eq!(
-            row(1, 32, "g.avg_speed[0]").as_deref(),
-            Some("6322: ours 0 theirs 11"),
+            row(1, 32, "g.avg_speed[0]"),
+            None,
             "the passenger's figure speed, put ashore"
         );
         pin_eq!(
             by.iter().take(6).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (6316, 160),
-                (6322, 1),
-                (6331, 2),
+                (6331, 1),
                 (6334, 1),
-                (6337, 4),
-                (6338, 2)
+                (6381, 1),
+                (6385, 1),
+                (6388, 1)
             ],
             "the blocks keys first part on, the first six"
         );
-        pin_eq!(w.firsts.len(), 317, "every key parted on run419");
+        // Item 1164: 317 → 304, the landing's rows and what followed them.
+        pin_eq!(w.firsts.len(), 304, "every key parted on run419");
     }
 
     /// **The second pair's East Indies word, 6609, widened whole** (item
@@ -1134,6 +1139,8 @@ mod tests {
     /// 6604..6860, walked from run346's own start. The word's frame writes
     /// block 6610. **Since item 1156 the word is 6743**, block 6744, inside
     /// the same window (140 blocks after its first and 116 before its last).
+    /// **Since item 1164 it is 7382**, past the window's last block 6860,
+    /// widened on run425.
     #[test]
     fn run420_s_word_frame_is_widened_whole() {
         let _pins = Pins::hold();
@@ -1193,53 +1200,63 @@ mod tests {
             "its one-member group's angle"
         );
         pin_eq!(
-            row(8, 3, "gaia:pos").as_deref(),
-            Some("6791: ours (28699,24120) theirs (28680,24120)"),
-            "the animal stands apart 180 blocks later than it did"
+            row(8, 3, "gaia:pos"),
+            None,
+            "the animal agrees through the window since item 1164"
         );
-        // **The word 6743** (item 1156; no mechanism is named): ours 4
-        // draws against 8, at index 2, ours `Guy::set_anim+0x104b`, the
-        // original `Guy::set_anim+0x97a < Guy::inc_time+0x271`. The
-        // citizen `1/33`, carried in the barge that is `1/36` here and
-        // `1/38` there (apart since 6604's `inside`), is put ashore: its
-        // `orders_x/y` (37439,33407) against (38952,24840) on 6735, its
-        // `pos` (38944,24864) against (38952,24840) on the word's block.
+        // **The word 6743** (item 1156) **closed on item 1164**
+        // (`docs/TRANSPORT.md` §6.4, `docs/AI.md` §95): the AI merchant
+        // `1/33`, carried in the barge that is `1/36` here and `1/38` there,
+        // comes ashore on 6734. The original kept its guys' `avg_speed` 12
+        // through the ride, ours zeroed it (6735: 0 against 12), and the
+        // turn rate divides by it: the original turns to its path over nine
+        // frames and faces it on 6745, ours on 6743, and walked on (`pos`
+        // (38944,24864) against (38952,24840) on 6743). Its `orders_x/y`,
+        // (37439,33407) against (38952,24840) on 6735, is `come_out`'s tail
+        // `update_action` for a computer player's unit. All of it agrees.
+        for what in [
+            "orders_x",
+            "orders_y",
+            "pos",
+            "g.avg_speed[0]",
+            "g.angle[0]",
+            "path:length",
+        ] {
+            pin_eq!(row(1, 33, what), None, "`1/33`'s {what}");
+        }
+        // What stands: the first block's 249 keys, the barge identities
+        // `1/36`/`1/38` (6718; 6735's unlinked/extra, the one that landed
+        // `1/33` on each side), one-member groups' `speed`, and from 6781
+        // player 1's make list (`MAKE[].city`), `gather_stamp` (6792) and
+        // player 0's `production_step` (6801), ahead of the word 7382's
+        // `Leader::use_market` against `Leader::make_stuff`.
         pin_eq!(
-            row(1, 33, "orders_x").as_deref(),
-            Some("6735: ours 37439 theirs 38952"),
-            "the passenger's walk, ashore"
-        );
-        pin_eq!(
-            row(1, 33, "pos").as_deref(),
-            Some("6743: ours (38944,24864) theirs (38952,24840)"),
-            "and its body, on the block before the word's"
-        );
-        pin_eq!(
-            by.iter()
-                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
-                .map(|(b, n)| (*b, *n))
-                .collect::<Vec<_>>(),
+            by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
                 (6604, 249),
-                (6614, 2),
+                (6614, 1),
                 (6615, 2),
                 (6626, 2),
                 (6633, 1),
-                (6658, 6),
-                (6660, 2),
+                (6658, 2),
                 (6670, 2),
                 (6671, 3),
                 (6685, 4),
                 (6718, 22),
-                (6735, 7),
-                (6736, 6),
+                (6735, 2),
                 (6742, 2),
-                (6743, 26),
-                (6744, 5)
+                (6769, 2),
+                (6778, 2),
+                (6781, 1),
+                (6782, 1),
+                (6784, 1),
+                (6789, 2),
+                (6792, 1),
+                (6801, 1)
             ],
-            "the blocks keys first part on, to the word's"
+            "the blocks keys first part on, the whole window"
         );
-        pin_eq!(w.firsts.len(), 963, "every key parted on run420");
+        pin_eq!(w.firsts.len(), 303, "every key parted on run420");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

@@ -605,8 +605,35 @@ half of a coastal cell those differ — so the boat's `BLOCK_RADIUS 3` disc
 marks nothing at all. With the crate's earlier plain `region_of` the barge
 filled its own cell and the first three rings were refused.
 
+**`come_out`'s tail, for a computer player's unit** (item 1164). Past
+`set_new_location(passenger, spot, 1, 1)` at `6186c1`, `6187c8` tests
+`leaders.list[who] & 4` — `is_human` — and skips on it; a plane without
+`+0x2b4 & 0x20` (`6187e4`..`6187f7`) and the four citizen types
+`0x32..0x35` (`6187ff`..`618811`) skip too. Every other unit takes
+`unit_masks &= ~0x4000000`, `path.length = 0`, `close_orders(0)`,
+`clear_partial_path` and `update_action` (`618813`..`618836`): step 1's
+four, again, **from the spot**. The list and the path are empty by then, so
+what it writes is `orders_x/y` = the landing point and `dest_angle` =
+`+0x50`, which is still the boarding heading — the `set_angle` to the
+host's angle comes after, as run420's block 6735 shows (`dest_angle`
+292814848 against `angle` 165478400 on the AI merchant `1/33`). So an AI's
+passenger prints its landing point, (38952, 24840) there, and a human's
+keeps the point it boarded at (run249's `0/6`, item 803).
+
+**And the passenger keeps its speeds** (item 1164). `Guy::last_speed` and
+`avg_speed` (`GuyData +0x80`/`+0x84`) have three writers — `Guy::move`,
+`Guy::clear`, `Guy::init_real` — and neither `Unit::set_new_location@005f8d20`
+nor `Guy::set_new_location@005d86f0` is one. A passenger comes ashore at the
+average it boarded with, which the ride froze, and `docs/MOVEMENT.md`'s
+turn rate divides the first turns ashore by `avg_speed / 4 + 1`: run420's
+`1/33` lands at 12, turns by a quarter, a third, a half, a half and then
+its whole rate while the average decays 9, 6, 4, 3, 2, 1, 0, and faces its
+path on 6745. With the average zeroed it faced it on 6743 and walked two
+frames early — the second pair's East Indies word 6743 (`docs/AI.md` §95).
+
 `crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
-own order. What is **not** established: step 5's `is(0x45)` clause and the
+own order, with the tail's `orders_x/y` between the placement and the
+turn. What is **not** established: step 5's `is(0x45)` clause and the
 `leader_options` bit (the crate's `auto_transport` is never cleared by
 boarding, so the passenger keeps the flag either way and no capture
 separates them); the `uber_size > 1` arm; and the placement's own
