@@ -648,9 +648,20 @@ the **predecessors**, the army the research upgrades. Item 545 read it at
 
 **Built, 2026-09-22 (item 545)**: `cost::Research` and
 `Sim::research_modifiers`, with `MILITARY_UPGRADE_DISCOUNT` after the refit
-(§The discounts). Wine, `SPECIAL_UPGRADE` and the American and Dutch
+(§The discounts). ~~Wine,~~ `SPECIAL_UPGRADE` and the American and Dutch
 discounts are not carried. Diff-backed on one purchase: Great Lakes' Phalanx
 research at `1/2016` on 11582, 90 food and 54 metal on both sides.
+
+**Wine is built, 2026-09-29 (item 1163)**: `cost::Research::wine`, set by
+`Sim::research_modifiers` from `economy::WINE`. The listing at `00664edd`
+tests `rare` byte 0 bit 2 (`8 − BASE_RARE`), or the same bit of
+`rare_conquest`, only on the research arm and only for a type without the
+`h` flag. It then computes `(100 − WINE_UNIT_UPGRADES) × cost / 100`,
+toward zero, before `RESEARCH_PREMIUM`. `WINE_UNIT_UPGRADES` ships as 20%.
+No other function but the description text reads the constant. Diff-backed
+on one purchase: Great Sahara's Militia research at `1/2014` on run416's
+12784, 64 food and 64 metal on both sides, where this crate charged 80
+(`docs/AI.md` §94).
 
 `UNIT_REFIT_MAX_COST` is 40 per resource per unit. So upgrading is not free of
 your existing army's size: refitting thirty knights into cuirassiers is charged

@@ -653,6 +653,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r382 = crate::testenv::dump(super::third::SAHARA_SCORE.0);
     let r416 = crate::testenv::dump(super::third::SAHARA_WORD_12783);
     let r417 = crate::testenv::dump(super::third::SAHARA_WORD_13182);
+    let r418 = crate::testenv::dump(super::third::SAHARA_WORD_14587);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1171,10 +1172,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run416 carries the old word's blocks");
         frames += n;
     }
+    // Item 1163 moved the word to 14587, on run418, and run417's window
+    // stays as the move's.
     if let Some(p) = &r417 {
+        let b = super::third::SAHARA_13182_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run417 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r418 {
         let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run417 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run418 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1905,14 +1914,18 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // walked that window too. Item 1133 moved the third map's window to
     // run416's 12782..12786, where none has; East Indies' word at 6321
     // (item 1127) has one, so the pair stays off.
+    // **Item 1163 moved the third map's window to run418's
+    // 14586..14590**, where the AI's army stands in a group with an
+    // attack order on its members: the attack row, `whose`/`oxx`,
+    // `form_id` and the group row (`group_id`, `group_angle`,
+    // `in_group`) are compared there, and left this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell cruising_alt def_x def_y \
-         defensive ever_in_range form_id garrison_search group_angle group_id guard_dx \
-         guard_dy guard_idle guard_retry guard_x guard_y in_group in_range mandatory metric \
-         new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry returning \
-         sharp_turn strafe_xx strafe_yy tolerance uid waypoint whose",
+         attempts build_type cast_paid cast_spell cruising_alt garrison_search guard_dx \
+         guard_dy guard_idle guard_retry guard_x guard_y metric non_flat_gather orig_x \
+         orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx strafe_yy \
+         tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

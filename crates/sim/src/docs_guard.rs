@@ -1507,8 +1507,13 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 1111 banked six, one each**: AI 37 → 36, COSTS, GOLDEN and
 /// GROUPS 5 → 4, PRODUCTION 10 → 9, TECH 16 → 15 — the Militia line's and
 /// the Citizen's `TypeIndex`es `crate::cast` names (`docs/GOLDEN.md` §48).
+///
+/// **Item 1163 raised two, and it is not a build**: AI 36 → 38, `0x6da4`
+/// and `0x6dcc`, the `rare` and `rare_conquest` bytes `get_cost`'s research
+/// arm tests for Wine (`00664edd`), quoted as the listing prints them, as
+/// item 1147's two were; `economy::WINE` is the bit they carry.
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 36),
+    ("AI.md", 38),
     ("ANIM.md", 4),
     ("ARMY.md", 9),
     ("ATTRITION.md", 1),
