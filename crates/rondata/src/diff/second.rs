@@ -147,8 +147,9 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
 /// pin walks these blocks with the recorder on. Item 1061 moved it to
 /// Great Lakes' word on run373, and it followed that word to run403's last
 /// blocks; item 1099 closed Great Lakes at its end, 5930, and item 1106
-/// moved the walk here (`docs/GROUPS.md` §33.3). `None` when the captures
-/// are not on this machine.
+/// moved the walk here (`docs/GROUPS.md` §33.3); item 1115 moved the word
+/// to 5975, and the walk to run414. `None` when the captures are not on
+/// this machine.
 pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::Widened> {
     let word = SECOND_WORD_EAST_INDIES;
     // Frame `f` writes block `f + 1`, and the walk reads `first..=tail + 1`.
@@ -158,7 +159,7 @@ pub(crate) fn east_indies_word_window() -> Option<crate::diff::harness::tests::W
             "rontrace-run346.log",
         ),
         "the second pair's word's window",
-        "gamelog-run357-islands-toughest-5606.txt",
+        "gamelog-run414-islands-toughest-5975.txt",
         (word - 1, word + 2),
         &[word + 1],
         true,
@@ -836,6 +837,12 @@ mod tests {
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
         }
+        // `RON_FIRSTS=1` prints every key's first parting on the window.
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
         assert_eq!(w.blocks, 257, "run357 whole: blocks 5601..5857");
         assert!(
             w.missing.is_empty(),
@@ -871,27 +878,107 @@ mod tests {
             Some("5601: ours 0 theirs 9"),
             "the family's row stands"
         );
-        // **The word 5773's block, 5774** (item 1106; no mechanism is
-        // named): the Caravan `1/33`, trained on 5772 (who=1's `caras` 1
-        // here against 2), has its `action` flag on 5773 here and not
-        // there, and on 5774 idles here (`idle` 99, no order) where the
-        // original holds a route of two orders to (39288, 40056); the
-        // cities `1/2000` and `1/2017` each list one caravan fewer here.
-        // The original's frame 5773 spends 3,209 draws, the first
-        // `PathFinder::calc_road_cost+0x46`.
+        // **The word 5773's block, 5774** (item 1106): the Caravan `1/33`,
+        // trained on 5772, idled here (`idle` 99, no order) where the
+        // original held a route of two orders to (39288, 40056). **Since
+        // item 1115 none of its rows part** (`docs/CARAVAN.md` §11):
+        // `do_trade` takes Newcastle across the water when the caravan
+        // `can_transport`, the trade order carries no bit 4, and the move
+        // to London faces its bearing, 546111488.
+        for what in [
+            "orders.len",
+            "order:flags",
+            "order:action",
+            "order:move.angle",
+            "dest_angle",
+        ] {
+            assert_eq!(row(1, 33, what), None, "`1/33`'s {what}");
+        }
         assert_eq!(
-            row(1, 33, "orders.len").as_deref(),
-            Some("5774: ours 0 theirs 2"),
-            "the Caravan's route, the word's block"
-        );
-        assert_eq!(
-            row(1, 2017, "city:vans.length").as_deref(),
-            Some("5774: ours 0 theirs 1"),
+            row(1, 2017, "city:vans.length"),
+            None,
             "and the new city's caravan list"
+        );
+        // **Standing: the census's newborn lag** (item 1115, parked): the
+        // original counts a caravan in `caras` at `Unit::set_type`
+        // (`0x980` +1), this crate at its next census sweep, so who=1 reads
+        // 1 against 2 on blocks 5772..5774 and agrees from 5775.
+        assert_eq!(
+            row(1, -1, "leader:caras").as_deref(),
+            Some("5772: ours 1 theirs 2"),
+            "the census lags the birth"
+        );
+        // **And the first caravan's** (item 1115): `1/15`, London to Norwich,
+        // walked its legs facing `find_angle(1, 1)` here and its bearing
+        // there, and carried the trade order's bit 4; block 5601's four
+        // rows (`order:move.angle`, `dest_angle`, `order:flags`,
+        // `order:action`) closed with `1/33`'s, 139 → 135.
+        for what in ["order:move.angle", "dest_angle", "order:flags"] {
+            assert_eq!(row(1, 15, what), None, "`1/15`'s {what}");
+        }
+        assert_eq!(
+            by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
+            [(5601, 135), (5682, 5), (5704, 2)],
+            "the blocks keys first part on, the first three"
+        );
+    }
+
+    /// **The second pair's East Indies word, 5975, widened whole** (item
+    /// 1115): run414 is run346's game at run357's detail over blocks
+    /// 5970..6226, walked from run346's own start. The word's frame writes
+    /// block 5976.
+    #[test]
+    fn run414_s_word_frame_is_widened_whole() {
+        use std::collections::BTreeMap;
+        let Some(w) = widen_east_indies_on(
+            (
+                "gamelog-run346-islands-toughest-24k-trace.txt",
+                "rontrace-run346.log",
+            ),
+            "run414",
+            "gamelog-run414-islands-toughest-5975.txt",
+            WIDENING_SECOND_EAST_INDIES_5975,
+            &[SECOND_WORD_EAST_INDIES + 1],
+            true,
+            true,
+        ) else {
+            return;
+        };
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
+        }
+        let mut by: BTreeMap<i64, usize> = BTreeMap::new();
+        for (f, _) in w.firsts.values() {
+            *by.entry(*f).or_default() += 1;
+        }
+        assert_eq!(w.blocks, 257, "run414 whole: blocks 5970..6226");
+        assert!(
+            w.missing.is_empty(),
+            "run414 carries every key: {:?}",
+            w.missing
+        );
+        let row = |who: i64, o: i64, what: &str| {
+            w.firsts
+                .get(&(who, o, what.to_string()))
+                .map(|(f, r)| format!("{f}: {r}"))
+        };
+        // **The word 5975** (item 1115; no mechanism is named): the AI sea
+        // scout `1/35`'s region scan accepts 46 cells here against 45
+        // there, one `Unit::think_scout+0xaba` draw more, and every draw
+        // after it on the frame reads the next seed. None of `1/35`'s rows
+        // part — its target agrees. The first to part is `1/40`, born on
+        // the frame: its three figures' clocks start at 1 here and 0 there.
+        assert_eq!(row(1, 35, "pos"), None, "the scout itself agrees");
+        assert_eq!(
+            row(1, 40, "g.cur_time[0]").as_deref(),
+            Some("5976: ours 1 theirs 0"),
+            "the newborn's figure, the word's block"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5601, 139), (5682, 5), (5704, 2)],
+            [(5970, 156), (5976, 5), (5977, 1)],
             "the blocks keys first part on, the first three"
         );
     }
@@ -1573,7 +1660,7 @@ mod tests {
              (5105, 2), (5128, 1) until item 1099)"
         );
         // Keys parted: 1,253 → 737 on item 1089, 737 → 131 on item 1099.
-        assert_eq!(w.firsts.len(), 131, "every key parted on run396");
+        assert_eq!(w.firsts.len(), 127, "every key parted on run396");
     }
 
     /// **The second pair's Great Lakes word, 5930, the game's end, widened**
@@ -1632,10 +1719,12 @@ mod tests {
         // rows and the gather chains they left, the group record (parked
         // 1075), the attack-move's `order:target` and the army's `form`,
         // and `1/36`'s order from its birth on 5165 (`action`, `flags`,
-        // the move's `angle`). No `pos`, no figure, and no draw.
+        // the move's `angle`). No `pos`, no figure, and no draw. **Item
+        // 1115: 112 → 108**: `1/36` is the caravan, and its trade order's
+        // bit 4 and its leg's facing agree (`docs/CARAVAN.md` §11.3).
         assert_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 112)],
+            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 108)],
             "the blocks keys first part on, and how many"
         );
         assert!(
@@ -1644,7 +1733,8 @@ mod tests {
                 && !what.starts_with("g.y")),
             "a position parts at the game's end"
         );
-        assert_eq!(w.firsts.len(), 112, "every key parted on run403");
+        // Item 1115 took the caravan's four rows here (112 → 108; `docs/CARAVAN.md` §11.3).
+        assert_eq!(w.firsts.len(), 108, "every key parted on run403");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

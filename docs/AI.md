@@ -10979,3 +10979,129 @@ backed**: the cell's owner and the regions' indices on 5518 (run407).
 **Listing-backed**: the budget and the order, which the dump's
 `reg_terr[5]` of 34 on 5521 confirms, and `City::init`/`City::close`'s
 `reg_cities` writers.
+
+## 85. A caravan crosses the water, and the second pair's East Indies word moves to 5975 (2026-09-28, item 1115)
+
+Item 1115 was booked on East Indies' frame 5773 at Toughest: ours 4 draws
+against the original's 3,209, parting at index 0, ours `Guy::set_anim+0x97a
+< Guy::inc_time+0x271`, the original `PathFinder::calc_road_cost+0x46`. On
+run357's block 5774 the Caravan `1/33` held a route of two orders there and
+none here. **No mechanism was named**, and the booking's direction was open:
+ours might refuse the trade, or take it and fail the plan.
+
+### 85.1 The parting's instances first
+
+- **`1/33`'s fields walked back.** It is trained on 5772 on both sides
+  (`Guy::init_real` on 5771). On block 5773 the original holds a
+  `TRADE_ROUTE` with `ox 2000` (London) and `oxx −1`, `flags 0`; ours the
+  same order with `flags 4`. On block 5774 the original's order has `oxx
+  2017` (Newcastle), a move to (39288, 40056) ahead of it, and the route
+  links the two cities (`CARAVANLINK cara 1` on London and Newcastle); ours
+  has no order and `idle 99`.
+- **Every trade route on the disk.** who=1 has two: `cara 0`, London ↔
+  Norwich, carried by `1/15`, laid long before run357's window; and `cara
+  1`, `1/33`'s. London and Norwich are region 11, **Newcastle region 5**,
+  the island `1/14` founded on 5518 (§84). London's one route is taken, so
+  Newcastle is the only free partner.
+- **So ours refused the trade.** `idle 99` is `do_trade`'s no-partner arm,
+  and ours' selection skipped every candidate in another region, a stated
+  SEAM (`docs/CARAVAN.md` §11.1).
+
+### 85.2 Three corrections, each read off the listing
+
+- **The region tests** (`do_trade@005ed270`, `get_tregion` returning at
+  `005ed483`, `005ed631`, `005ed920`): each difference is forgiven by
+  `can_transport`, and `1/33` has it (`unit_masks 0x840000`). The word moved
+  5773 → 5776: the search now runs, its per-frame counts agree for three
+  frames (3,203, 3,206, 3,205), and 5776 parts at 3,201 against 3,206.
+- **The shore surcharge** (`calc_road_cost@00686300`): with the ends in two
+  regions, `+0xa8` is added only when the parent's tile is land.
+  **run413** is a packet at logger frame 5776. The original's parked
+  search, read from `CaravanData +0x28`/`+0x30`, held 171 nodes apart from
+  ours with the surcharge on every sea tile, and **none of 1,437** with the
+  parent test. The word moved 5776 → 5975, and the search's sixteen frames
+  to 5788 agree.
+- **The bearing** (`add_move_order@00616ed0`, `616edc`..`616f1f`): the
+  facing is `find_angle(dest − here)` in `ecx`/`edx`, not the decompiler's
+  literal pair. With it, and the trade order's cleared bit 4
+  (`add_trade_order@005e4dc0`'s last argument 0), `1/33`'s move angle
+  agrees on 5774, and so does the first caravan `1/15`'s leg on block 5601.
+
+### 85.3 The killers
+
+Each was a mutation on a committed tree, with `git diff --stat` naming the
+one file, and was restored from git and `touch`ed after. The tests the
+re-pin touches ran green first.
+
+| mutation | unit test | run346's walk | run357 | run414 |
+|---|---|---|---|---|
+| the region skip unconditional | fails | 5773 | `1/33 orders.len` 0 against 2 returns | `1/35`'s `pos` parts on 5970 |
+| the surcharge on every sea tile | fails | 5776 | `1/33`'s leg angle parts on 5820 | `1/35`'s `pos` parts on 5970 |
+| the literal `find_angle(1, 0)` | fails | holds at 5975 | `1/33`'s `order:move.angle` returns | holds |
+
+The first two are **diff-backed**. The third is a value only: the facing
+moves no draw by 5975.
+
+### 85.4 What moved
+
+- **East Indies 5773 → 5975.** On run357 the window's keys went 472 → 167
+  (after the first fix → after all three). They include block 5774's `1/33`
+  rows (`orders.len`, `order:flags`, `order:action`, `order:move.angle`,
+  `dest_angle`), `1/2017`'s and `1/2000`'s `city:vans.length`, and block
+  5601's four `1/15` rows (139 → 135).
+- **The new word, 5975** (no mechanism is named): ours 63 draws, the
+  original 61, parting at index 49, ours `Unit::think_scout+0xaba` where the
+  original spends `Guy::init_real+0x52`. It is past run357, so **run414**
+  widens it (blocks 5970..6226). Block 5970 stands on 156 keys, all standing
+  families. The word's block 5976 parts on the newborn `1/40`'s figure
+  clocks, which read one seed later here.
+- **Holds** on the gate: the first pair, Great Lakes' 5930, Great Sahara's
+  8 and every chapter (the gate's own line is in the journal).
+
+### 85.5 The word's scan, read on run415
+
+The AI sea scout `1/35` scans sea region 0 (1,931 cells, stride 27): 72
+cells, 46 accepted here and 45 there. Nothing on run414 parts a unit's
+position before the word, so the extra cell is state that no dump prints.
+**run415** is a packet at logger frame 5975, the state before the scan's
+tick. Its fog grid (`WorldData +0x160`, 120 × 120) differs from ours after
+tick 5974 on **three half-cells**, each seen there and not here:
+
+- (45, 73), old: seen there already on run407 (logger 5518), off every scan;
+- **(91, 81), cell (45, 40)'s probe point**, one of the scan's cells — the
+  extra one ours accepts;
+- (90, 80), its neighbour.
+
+run413's grid holds (90, 80) and (91, 81) unseen at logger 5776, so the
+original revealed them between 5776 and 5975. In ours the nearest who=1
+unit in that span is the transport barge `1/36`, born on tick 5878 when the
+citizen `1/22` (sight 2) boards at (33901, 32257). Ours puts the barge at
+(34076, 32173), sight 6, a radius-3 disc from fog cell (88, 83), and both
+half-cells lie at √13 from it. The trace has the barge born on 5878 there
+too, and by 5970 both sides hold it at the same point. **What reveals the
+two half-cells there is not established**: the barge's spot, its birth
+reveal at the caster's point, or the disc's edge. No dump prints
+5858..5969. A packet at logger 5879 would settle it. It is parked
+(`docs/journal/2026-09-28-item-1115.md`), since it is a reveal mechanism
+the booking did not name.
+
+### 85.6 What this has *not* established
+
+- **The census's newborn lag.** `Unit::set_type@00612fa0` adds 1 to
+  `LeaderData +0x980` (`caras`) for a caravan type, and `Unit::close` takes
+  1 off. This crate counts caravans only at its census sweep, so who=1
+  reads 1 against 2 on run357's blocks 5772..5774 and 2 against 3 on
+  run414's 5976. `create_units` and `Build::process` both read it. The same
+  shape is in `peasants` (5704) and `scholars` (5682). Parked.
+- **`do_trade`'s AI tail on no partner** (`go_to_city`), and
+  **`add_trade_order`'s transport tail**: unreached by any capture.
+- **The fog reveal above.**
+
+### 85.7 Coverage
+
+**Diff-backed**: the word's move, run357's closed rows, run414's block, and
+the killers above. **Packet-backed**: the search node for node (run413)
+and the fog grid on the word's frame (run415). **Listing-backed**: the
+facing and the region calls. **Pinned capture-free**:
+`a_caravan_trades_across_regions_only_when_it_can_transport` and
+`a_sea_crossing_between_regions_pays_once_at_the_shore`.

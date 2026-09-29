@@ -1495,6 +1495,8 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 1112 banked one**: CITIES 9 → 8, `0x20b`, `AIRDEFENSE`, which
 /// `crate::air` carries beside `LOOKOUT`, `OBSERVATIONPOST`, `RADAR` and
 /// `SAM` (the anti-air building's cycle, `docs/COMBAT.md` §84).
+/// **Item 1115 banked one**: PATHFINDER 1 → 0, `0x8c`, `avoid_sea`, which
+/// `crate::roads`' shore surcharge now cites; the row is gone.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 35),
     ("ANIM.md", 4),
@@ -1510,7 +1512,6 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GROUPS.md", 5),
     ("MERCHANT.md", 2),
     ("ORDERS.md", 12),
-    ("PATHFINDER.md", 1),
     ("PRODUCTION.md", 10),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),

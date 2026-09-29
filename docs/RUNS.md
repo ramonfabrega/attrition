@@ -10584,3 +10584,108 @@ index. Those are the colonist gate's input (`think_civilian_transport`'s
 The packet stays outside git under `~/ron-data/lab-captures/`. The probe
 and its output are at `~/ron-data/lab-experiments/2026-09-28-item-1106/`.
 
+
+## run413 — East Indies at Toughest, a packet at logger frame 5776: the Caravan `1/33`'s parked road search (2026-09-28, item 1115)
+
+**What it is.** A `RON_STATE_FRAME=5776` packet on the click-free lane over
+run346's game (East Indies, `DIFFICULTY 5`), with blocks 5772..5778 dumped
+at run407's detail and `!quit` at 5785.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run413 \
+    --map 18 --end-frame 5785 --timeout 2400 --log-window 5772 5778 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=5776 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 20:28–20:29, one take, waited on with `waitrun.sh`. `success:
+true`, exit 0, 54 s from launch to exit. The packet is 811,948,992 bytes. The
+lane lock was stale (run407's pid), no driver was running, and 60 GB were
+free.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 5,786 identical |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**Why 5776.** With `do_trade`'s region tests built, ours' road search kept
+the original's per-frame draw counts on 5773..5775 and parted on 5776. The
+draw labels are all one site, so they cannot say which nodes a frame
+priced. A packet at logger 5776 is the state after three search frames.
+
+**The booking cites what the disk could not answer.** No dump prints a
+parked search: the `CARAVAN` block prints the laid road only, and run346's
+trace proxies no `calc_road_cost`.
+
+**What it settled** (`docs/CARAVAN.md` §11.2, `docs/AI.md` §85):
+- `road_probe.py` reads `caravans` (VA `0xE3A290`), who=1's slot 1 (`city2`
+  0, `city3` 2, `o` 33, `making_road` 1) and walks the open `Tree` and the
+  closed `BRTree`. They hold 158 open and 1,279 closed nodes.
+- Against ours after tick 5775: 171 nodes apart with the surcharge on every
+  sea tile, and **1,437 against 1,437, none apart**, with the parent test.
+
+## run414 — run346's game at run357's detail over blocks 5970..6226: the second pair's East Indies word 5975 widened (2026-09-28, item 1115)
+
+**What it is.** run357's shape on the click-free lane: run346's lobby, `cover=0`,
+the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 5970..6226, `!quit` at 6240. The word's frame 5975 writes block
+5976: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run414 \
+    --map 18 --end-frame 6240 --timeout 4000 --log-window 5970 6227 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run357 ends at block
+5857. No dump prints the word's blocks.
+
+**Taken** 20:35–20:54, one take, waited on with `waitrun.sh`. `success:
+true`, exit 0, 1,153 s from launch to exit. The dump (577.3 MB) and the
+trace (48.3 MB) were moved into `Logs` as
+`gamelog-run414-islands-toughest-5975.txt` and `rontrace-run414.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 6,241 identical |
+| window blocks | 257, 5970..6226 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run414_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 5970 stands on 156 keys, all standing
+families. The word's block 5976 parts on 5: the newborn `1/40`'s figure
+clocks. The compared pin walks its 5974..5978, and the coverage driver
+drives 5975..5978.
+
+## run415 — East Indies at Toughest, a packet at logger frame 5975: the sea scout's region scan (2026-09-28, item 1115)
+
+**What it is.** run413's shape at `RON_STATE_FRAME=5975`, blocks 5972..5977,
+`!quit` at 5980. The number was the commander's, on request.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-28-run415 \
+    --map 18 --end-frame 5980 --timeout 2400 --log-window 5972 5978 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --tracer-def RON_STATE_FRAME=5975 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=5
+```
+
+**Taken** 20:58–20:59, one take. `success: true`, exit 0, 56 s. `rngcmp.py`
+against run346: **0 differing**, 5,981 identical.
+
+**Why 5975.** The scan is tick 5975's, and a packet at logger 5975 is the
+state before it. **The booking cites what the disk could not answer**: the
+scan's refusals are fog and `invalid_loc`, and no dump prints `seen2`.
+
+**What it settled** (`docs/AI.md` §85.5): `fog_probe.py` reads `WorldData
++0x160`, 120 × 120. Against ours after tick 5974, three half-cells are seen
+there and not here: (45, 73), already on run407, and **(90, 80) and
+(91, 81)**. The last is the probe point of cell (45, 40), the scan's extra
+accepted cell. run413 holds both unseen at logger 5776.
+
+The packets stay outside git under `~/ron-data/lab-captures/`. The probes
+and their outputs are at `~/ron-data/lab-experiments/2026-09-28-item-1115/`.

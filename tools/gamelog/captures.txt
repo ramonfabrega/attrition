@@ -8955,3 +8955,19 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   receipt: map_style 18, seed 12345, success true, settings restored
 # ==== TAKEN 2026-09-28, one take, 18:38–18:39 ====
 
+
+# ==== item 1115: East Indies at Toughest, two packets and a window ====
+#
+# run413, run414 and run415 are not stanzas. They ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the commands in `docs/RUNS.md`):
+# run346's lobby (`--map 18`, `--profile DIFFICULTY=5`), `cover=0`.
+#   run413: blocks 5772..5777, `!quit` at 5785, `RON_STATE_FRAME=5776`
+#   run414: blocks 5970..6226, `!quit` at 6240 (the word 5975's widening)
+#   run415: blocks 5972..5977, `!quit` at 5980, `RON_STATE_FRAME=5975`
+# Their checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run346.log <run413>/rontrace.log   -> 0 differing, 5,786 identical
+#   python3 tools/gamelog/rngcmp.py rontrace-run346.log rontrace-run414.log     -> 0 differing, 6,241 identical
+#   python3 tools/gamelog/rngcmp.py rontrace-run346.log <run415>/rontrace.log   -> 0 differing, 5,981 identical
+#   run414 window blocks: 257 (5970..6226)
+#   receipts: map_style 18, seed 12345, success true, settings restored
+# ==== TAKEN 2026-09-28, one take each: 20:28, 20:35–20:54, 20:58 ====

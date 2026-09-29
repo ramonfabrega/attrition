@@ -4566,3 +4566,70 @@ fn a_city_hit_by_another_player_stops_healing_for_two_decay_ticks() {
     assert_eq!(flags(&sim), (false, false, true), "the second: 0x2");
     assert_eq!(sim.buildings[b].damage, 9, "and the heal, the same frame");
 }
+
+/// **A caravan trades across water when it `can_transport`**
+/// (`docs/CARAVAN.md` §11, item 1115). `Unit::do_trade@005ed270` asks
+/// `can_transport` wherever two regions differ: the caravan's and its home
+/// city's, each candidate's and the home's, and the chosen pair's. East
+/// Indies' AI caravan `1/33` has London in region 11 and its only free
+/// partner, Newcastle, in region 5; this crate refused every cross-region
+/// partner, found none, and idled it (`idle` 99) where the original laid a
+/// road. Its move to the near city faces the **bearing** there, the
+/// `ecx`/`edx` pair `add_move_order@00616ed0` loads.
+#[test]
+fn a_caravan_trades_across_regions_only_when_it_can_transport() {
+    let build = |transport: bool| {
+        let mut w = World::new(40, 40);
+        w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(17, 39));
+        w.fill_region(Terrain::Sea, Cell::new(18, 0), Cell::new(21, 39));
+        w.fill_region(Terrain::Land, Cell::new(22, 0), Cell::new(39, 39));
+        let mut sim = Sim::new(Tuning::RON, w, 2);
+        for l in &mut sim.ledgers {
+            l.bucket = [10_000; economy::RESOURCES];
+        }
+        let t = install_types(&mut sim);
+        sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+        let (_, home) = city_at(&mut sim, &t, 1, 40, 60);
+        let (_, far) = city_at(&mut sim, &t, 1, 96, 40);
+        assert_ne!(
+            sim.world.tregion(sim.cities[home].pos.tile()),
+            sim.world.tregion(sim.cities[far].pos.tile()),
+            "two regions"
+        );
+        let ty = sim.add_unit_type(citizen_type(t.village));
+        let u = spawn(&mut sim, 1, ty, tile_pos(46, 70));
+        sim.units[u].auto_transport = transport;
+        let v = sim.init_caravan(1, u).expect("a slot");
+        sim.units[u].caravan = Some(v);
+        sim.caravans[1].slots[v].unit = Some(u);
+        // The human arm's threshold under the default option.
+        sim.units[u].idle = 12;
+        assert!(sim.think_caravan(u), "the order is given");
+        sim.do_trade(u);
+        (sim, u, v, home, far)
+    };
+
+    let (sim, u, v, ..) = build(false);
+    assert_eq!(sim.units[u].idle, 99, "no partner: the order dies");
+    assert!(sim.units[u].orders.is_empty());
+    assert!(!sim.caravans[1].slots[v].linked);
+
+    let (sim, u, v, home, far) = build(true);
+    let van = &sim.caravans[1].slots[v];
+    assert!(van.linked, "the route is taken");
+    assert_eq!((van.city_a, van.city_b), (Some(home), Some(far)));
+    // The search stops at its budget here, so `do_trade`'s failure arm
+    // sends the caravan to the near city — `home` — with the bearing to
+    // its own point (the order's `dest` is that point snapped).
+    assert!(van.making_road, "the plan spans frames");
+    let (here, to) = (sim.units[u].pos, sim.cities[home].pos);
+    let Some(orders::Body::Move(m)) = sim.units[u].orders.front().map(|o| o.body) else {
+        panic!("a move leads: {:?}", sim.units[u].orders);
+    };
+    assert_eq!(
+        m.angle,
+        movement::find_angle(to.x - here.x, to.y - here.y),
+        "the move faces its bearing"
+    );
+    assert_ne!(m.angle, movement::find_angle(1, 0), "and not due east");
+}
