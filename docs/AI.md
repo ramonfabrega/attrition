@@ -11381,8 +11381,8 @@ Built in `Sim::do_move`.
 
 - The region check's `TRADE_ROUTE` arm on a non-final leg: built from the
   listing, and no capture has been read on it.
-- The passenger's figure `avg_speed` after the landing (6322), and where
-  in 6573..6603 `1/28` parts.
+- The passenger's figure `avg_speed` after the landing (6322). ~~And where
+  in 6573..6603 `1/28` parts.~~ On 6577, its region scan's cell: §93.
 
 ### 90.5 Coverage
 
