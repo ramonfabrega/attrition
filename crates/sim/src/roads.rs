@@ -127,6 +127,26 @@ pub struct RoadSearch {
     goal: (i32, i32),
 }
 
+impl RoadSearch {
+    /// Every node on the open and closed lists, for a comparison against
+    /// the original's parked search (`CaravanData +0x28`, `+0x30`):
+    /// `(open, x, y, length, value, z_val, parent's point)`.
+    pub fn nodes_listed(&self) -> Vec<(bool, i32, i32, i32, i32, i32, Option<(i32, i32)>)> {
+        let row = |open: bool, id: u32| {
+            let n = self.nodes[id as usize];
+            let par = n
+                .parent
+                .map(|p| (self.nodes[p as usize].x, self.nodes[p as usize].y));
+            (open, n.x, n.y, n.length, n.value, n.z_val, par)
+        };
+        self.open
+            .values()
+            .map(|&id| row(true, id))
+            .chain(self.closed.values().map(|&id| row(false, id)))
+            .collect()
+    }
+}
+
 /// What one call of the search came back with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RoadPlan {
@@ -466,7 +486,8 @@ impl Sim {
                     continue;
                 }
                 traversed += 1;
-                let (mut cost, z_val) = self.calc_road_cost(p, cur.z_val, who, d, avoid_sea);
+                let from = Pos::new(cur.x, cur.y);
+                let (mut cost, z_val) = self.calc_road_cost(p, from, cur.z_val, who, d, avoid_sea);
                 if self.trace_costs {
                     self.road_marks.push(RoadCostMark {
                         to: (nx, ny),
@@ -628,6 +649,7 @@ impl Sim {
     fn calc_road_cost(
         &mut self,
         p: Pos,
+        from: Pos,
         parent_z: i32,
         who: (Player, Player),
         dir: usize,
@@ -648,11 +670,18 @@ impl Sim {
             // Reachable only for a caravan whose `can_transport` admitted
             // the tile. `avoid_sea` is "both endpoints in one region", and
             // it is what run64's ocean nodes price at 155 + jitter.
-            total += if avoid_sea {
-                weight::SEA_AVOIDED
-            } else {
-                weight::SEA_ENTER
-            };
+            //
+            // **Without it, only the step off land pays** (`00686300`, the
+            // `pathfinder +0x8c == 0` arm): `+0xa8` is added when the
+            // **parent's** tile is not ocean, so a crossing between two
+            // regions pays the surcharge once, at the shore, and every sea
+            // tile after it costs the base and the jitter (run413's packet,
+            // `docs/CARAVAN.md` §11).
+            if avoid_sea {
+                total += weight::SEA_AVOIDED;
+            } else if self.world.tile_mask(from.tile()) & tile::SURFACE != tile::SURFACE_OCEAN {
+                total += weight::SEA_ENTER;
+            }
         } else {
             let c = Cell::new(t.x.div_euclid(4), t.y.div_euclid(4));
             let friendly = match self.world.owner(c) {

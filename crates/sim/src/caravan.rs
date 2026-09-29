@@ -29,7 +29,7 @@
 //! A trade route between two of East Indies' cities costs 12,965 road draws
 //! over five frames, and until 2026-09-02 this crate spent none of them.
 
-use crate::orders::{Body, PathData, QueuePos, TradeOrder, flag, index, path_flag};
+use crate::orders::{Body, PathData, QueuePos, TradeOrder, index, path_flag};
 use crate::roads::{RoadPlan, RoadSearch};
 use crate::world::Pos;
 use crate::{Player, Sim};
@@ -248,8 +248,12 @@ impl Sim {
     /// `Unit::add_trade_order@005e4dc0` with `QUEUE_NEW` and no far city:
     /// the order list is cleared and one `TRADE_ROUTE` put on it.
     fn add_trade_order(&mut self, u: usize, home: usize) {
+        // `think_caravan` passes 0 as `add_trade_order`'s last argument,
+        // which clears the order's bit 4 (`005e4dc0`); run357's block 5773
+        // prints `flags 0`. A trade order is never a transit move, so
+        // `get_action` finds it either way.
         let order = crate::orders::Order {
-            flags: flag::ACTION,
+            flags: 0,
             body: Body::Trade(TradeOrder {
                 home,
                 dest: None,
@@ -358,22 +362,19 @@ impl Sim {
         // walking animation, and their clocks are two of run54's frame
         // 6169 draws (`docs/CARAVAN.md` §4.1).
         //
-        // **The facing is the literal pair, not a bearing.**
-        // `Unit::add_move_order@00616ed0` opens with
-        // `find_angle(param_3, param_4)` — the two arguments that are the
-        // *order kind* and the pathed flag, not a direction — so every
-        // caller's arrival angle is a constant. `do_trade`'s failure arm
-        // passes `(1, 0)`, which is due east; its leg passes `(1, 1)`.
+        // ~~**The facing is the literal pair, not a bearing.**~~ **The
+        // facing is the bearing** (`docs/CARAVAN.md` §11): the decompiler
+        // prints `find_angle(param_3, param_4)`, but `find_angle@0092d130`
+        // takes `ecx` and `edx`, and `add_move_order`'s listing loads them
+        // with the destination less the unit's own point (`616edc`..`616f1f`).
+        // run357's block 5774 reads it: 546111488 on `1/33`'s move.
         if self.caravan_build_road(who, v) < 0 {
             let to = self.cities[a].pos;
-            self.add_move_facing_order(
+            self.add_move_order(
                 u,
                 to,
                 crate::orders::MoveKind::MoveTo,
                 QueuePos::First,
-                false,
-                crate::movement::find_angle(1, 0),
-                None,
                 false,
             );
             return;
@@ -486,13 +487,16 @@ impl Sim {
         self.units[u].path = path;
         self.units[u].path.pop();
         let goal = self.units[u].path[0].to;
+        // `add_move_order`'s facing is the bearing to the goal (§4.1's
+        // listing), and its fourth argument, 1 here, is the pathed flag.
+        let facing = crate::movement::find_angle(goal.x - here.x, goal.y - here.y);
         self.add_move_facing_order(
             u,
             goal,
             crate::orders::MoveKind::MoveTo,
             QueuePos::First,
             false,
-            crate::movement::find_angle(1, 1),
+            facing,
             None,
             true,
         );
@@ -526,14 +530,11 @@ impl Sim {
         if crate::world::vector_dist((to.x - here.x).abs(), (to.y - here.y).abs()) > span + 0xc6 {
             return;
         }
-        self.add_move_facing_order(
+        self.add_move_order(
             u,
             to,
             crate::orders::MoveKind::MoveTo,
             QueuePos::First,
-            false,
-            crate::movement::find_angle(1, 0),
-            None,
             false,
         );
     }

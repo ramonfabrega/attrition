@@ -28,6 +28,75 @@ pub(crate) struct Walk {
     pub endpoint: Option<crate::diff::endpoint::EndpointResult>,
 }
 
+thread_local! {
+    static SCRATCH: std::cell::RefCell<Option<(Vec<(sim::world::Owner, sim::world::Owner)>, Vec<u8>)>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+fn scratch_road(sim: &sim::Sim, f: i64) {
+    for (w, l) in sim.caravans.iter().enumerate() {
+        for (v, van) in l.slots.iter().enumerate() {
+            if let Some(st) = van.search.as_ref() {
+                let rows = st.nodes_listed();
+                eprintln!(
+                    "  scratch f{f} search who {w} slot {v}: {} nodes",
+                    rows.len()
+                );
+                if let Ok(path) = std::env::var("RON_SCRATCH_ROAD_OUT") {
+                    use std::io::Write;
+                    let mut out = std::fs::File::create(format!("{path}-f{f}.txt")).unwrap();
+                    for (open, x, y, ln, val, z, par) in rows {
+                        let (px, py) = par.unwrap_or((-1, -1));
+                        writeln!(
+                            out,
+                            "{} {x} {y} {ln} {val} {z} {px} {py}",
+                            if open { "open" } else { "closed" }
+                        )
+                        .unwrap();
+                    }
+                }
+            }
+        }
+    }
+    let owners = sim.world.owners();
+    let (w, h) = (sim.world.width() * 2, sim.world.height() * 2);
+    let mut fog = Vec::new();
+    for fy in 0..h {
+        for fx in 0..w {
+            fog.push(sim.world.seen2(fx, fy).unwrap_or(0xff));
+        }
+    }
+    SCRATCH.with(|c| {
+        let mut c = c.borrow_mut();
+        if let Some((po, pf)) = c.as_ref() {
+            let oc: Vec<usize> = (0..owners.len()).filter(|&i| owners[i] != po[i]).collect();
+            let fc: Vec<usize> = (0..fog.len()).filter(|&i| fog[i] != pf[i]).collect();
+            eprintln!(
+                "  scratch tick {f}: pass {:?}, owners changed {} (first {:?}), fog changed {} (first {:?})",
+                sim.border_pass.as_ref().map(|p| p.index.clone()),
+                oc.len(),
+                oc.iter().take(5).map(|i| (i % sim.world.width() as usize, i / sim.world.width() as usize)).collect::<Vec<_>>(),
+                fc.len(),
+                fc.iter().take(5).map(|i| (i % w as usize, i / w as usize)).collect::<Vec<_>>(),
+            );
+        }
+        if let Some((_, pf)) = c.as_ref() {
+            for i in (0..fog.len()).filter(|&i| fog[i] != pf[i]) {
+                let (fx, fy) = ((i % w as usize) as i32, (i / w as usize) as i32);
+                let near: Vec<String> = sim
+                    .units
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, u)| u.alive() && (u.pos.x / 384 - fx).abs() < 12 && (u.pos.y / 384 - fy).abs() < 12)
+                    .map(|(i, u)| format!("{}/{}@({},{})", u.owner, i, u.pos.x, u.pos.y))
+                    .collect();
+                eprintln!("    fog ({fx},{fy}) {:#x} -> {:#x} near {near:?}", pf[i], fog[i]);
+            }
+        }
+        *c = Some((owners, fog));
+    });
+}
+
 /// The two maps' setup differs in one borrow each, as run54's and run53's
 /// own tests do: East Indies takes run38's start dump and the pasture from
 /// its own trace, Great Lakes the sibling dumps.
@@ -67,6 +136,9 @@ pub(crate) fn walk_second(gamelog: &str, tracelog: &str, east_indies: bool) -> O
         // `RON_DEBUG_UNIT`, on every frame of the long walk: a unit's
         // history before a widening's first block (item 1106's `1/14`).
         debug_watch(&built, f + 1);
+        if std::env::var_os("RON_SCRATCH_ROAD").is_some() && (5766..5792).contains(&f) {
+            scratch_road(&built.sim, f);
+        }
         if window.is_some_and(|(lo, hi)| (lo..=hi).contains(&f)) {
             for (label, who) in attributed_sites(&built) {
                 eprintln!("  f{f} {who}: {label}");
@@ -835,6 +907,12 @@ mod tests {
         let mut by: BTreeMap<i64, usize> = BTreeMap::new();
         for (f, _) in w.firsts.values() {
             *by.entry(*f).or_default() += 1;
+        }
+        // `RON_FIRSTS=1` prints every key's first parting on the window.
+        if std::env::var("RON_FIRSTS").is_ok() {
+            for ((who, o, what), (f, r)) in &w.firsts {
+                eprintln!("  first {f} {who}/{o} {what}: {r}");
+            }
         }
         assert_eq!(w.blocks, 257, "run357 whole: blocks 5601..5857");
         assert!(
