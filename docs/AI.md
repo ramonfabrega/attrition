@@ -11702,16 +11702,69 @@ same 80 on the train arm, and another player's Wine gives nothing.
   metal buckets, 70 and 199 against 86 and 215, → the original's. Block
   12784 no longer parts, and run416's parted keys fall 258 → 254.
 - **run417** (`run417_s_word_frame_is_widened_whole`): the parted keys fall
-  935 → 277. The food bucket agrees over the window. The make list agrees
-  on 13181, Slingers at the head, except the city shift (§53.2), which is
-  all that parts on that block. The old word's block 13183 agrees. What
-  parts next is who=1's `known_rares` on 13184 (7 here against 6), and an
-  AI group of three on 13222 that the original stands up and this crate
-  does not.
-- Every other walk in the suite holds, with no re-pin: every floor, every
+  935 → 277 on this item's own tree. On the tree merged with item 1111,
+  which built a citizen's hits and line of sight, they fall 831 → 173
+  (run416's 254 → 250). The food bucket agrees over the window. The make
+  list agrees on 13181, with the Slingers at the head; the only thing that
+  parts on that block is the city shift (§53.2). The old word's block 13183
+  agrees. What parts next is who=1's `known_rares` on 13184 (7 here against
+  6), then an AI group of three on 13222 that the original stands up and
+  this crate does not.
+- Every other walk in the suite holds without a re-pin: every floor, every
   pair's word, every closed chapter, and run382's 1850/1850.
 
-**Mutation W**, the Wine term off in `research_modifiers` (committed first,
-then restored from git and touched): `run416_s_…` and `run417_s_…` fail,
-and so does the unit test. With the constant re-pinned, the long trace
-falls back to 13182.
+**Mutation W** turns the Wine term off in `research_modifiers`. It was
+committed first, run on the merged tree with the constant at 14587, then
+restored from git and touched. The long trace falls back to **13182, 9
+against 8, at `make_stuff+0x63d`**. `run416_s_…`, `run417_s_…`,
+`run418_s_…` and the unit test fail.
+
+### 94.6 The new word, 14587, widened
+
+**Frame 14587: ours 9 draws against 10, at index 3.** Both sides spend
+three `Guy::set_anim+0x97a < Unit::move_step+0x823`. The original then
+spends a fourth, and ours goes on to `Guy::set_anim+0x97a <
+Guy::inc_time+0x271`. run418 (`docs/RUNS.md`) is run383's game at run414's
+detail over blocks 14582..14838. `run418_s_word_frame_is_widened_whole`
+walks it from run383's start, both directions, and no key is left
+unprinted. The counts are on the merged tree.
+
+| block | who | field | ours | theirs |
+|---|---|---|---|---|
+| 14582 | both | 155 standing keys: run417's families and the AI's army group | | |
+| 14582 | 12 AI soldiers (`1/28` … `1/57`) | `order:group.id` | 14330130 | 14336430 |
+| 14582 | `1/-3` | `group:64.role` | 0 | 1379331 |
+| 14587 | `1/-3` | group 64's slots | 21 | 15 |
+| 14587 | `1/52` | `pos` | (28637, 20233) | (28623, 20241) |
+| **14588** | `1/52` | `collide_o` / `collide_who` | −1 / −1 | 30 / 1 |
+
+The original's `1/52` collides with `1/30` on the word's frame and stops
+through `move_step`; ours walks on. The army group's id is stamped with
+its frame, and the stamps are six frames apart (14330 against 14336). The
+compared pin now walks run418's 14586..14590, where this group's order row
+is compared (`coverage.rs`). **No mechanism is named.**
+
+### 94.7 What this has *not* established
+
+- `rare_conquest`'s arm of the test is not held by any capture apart.
+  `has_rare` folds it into `rare`, as for Horses and Tobacco.
+- The order of Wine against `RESEARCH_PREMIUM` is read off the listing, and
+  no run separates it: the Militia's `RESEARCH_PREMIUM_COST` is 1, so on
+  this purchase the two orders give the same number.
+- `known_rares` on run417's 13184, 7 here against 6. It is the first
+  non-standing parting after the make list agrees, and nothing here reads
+  it.
+- Why the army group forms six frames apart, and whether that is the new
+  word's cause.
+
+### 94.8 Coverage
+
+**Diff-backed**: §94.3's price and §94.5's value diff by
+`run416_s_word_frame_is_widened_whole`, and §94.1's list by
+`run417_s_word_frame_is_widened_whole`. Both fail under mutation W, and
+so does the long trace's floor. §94.6 is `run418_s_…`. **Read only**:
+§94.2's arithmetic. The probe printed its terms, and the wrap is
+`offer_value`'s, which Great Lakes' floor already holds. §94.3's listing,
+bit and offset are also read only, and one purchase on one map is the
+value that proves them. **Pinned capture-free**:
+`wine_takes_a_fifth_off_a_research_and_nothing_off_a_train`.

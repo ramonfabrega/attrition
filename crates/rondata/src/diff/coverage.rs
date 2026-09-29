@@ -1914,11 +1914,11 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // walked that window too. Item 1133 moved the third map's window to
     // run416's 12782..12786, where none has; East Indies' word at 6321
     // (item 1127) has one, so the pair stays off.
-        // **Item 1163 moved the third map's window to run418's
-        // 14586..14590**, where the AI's army stands in a group with an
-        // attack order on its members: the attack row, `whose`/`oxx`,
-        // `form_id` and the group row (`group_id`, `group_angle`,
-        // `in_group`) are compared there, and left this pin.
+    // **Item 1163 moved the third map's window to run418's
+    // 14586..14590**, where the AI's army stands in a group with an
+    // attack order on its members: the attack row, `whose`/`oxx`,
+    // `form_id` and the group row (`group_id`, `group_angle`,
+    // `in_group`) are compared there, and left this pin.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
