@@ -8995,3 +8995,14 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run382.log rontrace-run383.log |
 #   grep -a -m1 'MAP_STYLE' / ' DIFFICULTY ' / '(int)seed' -> 7, 0, 12345
 #   run416 window blocks: 257 (12778..13034)
 # ==== TAKEN 2026-09-29, the second take 06:25–06:42; the first died before frame 0 ====
+
+# ==== item 1147: the third map's long word 13182 widened ====
+#
+# run417 is not a stanza. It ran on the click-free lane
+# (`tools/explore/golden_capture.sh`, the command in `docs/RUNS.md` run417):
+# run416's shape, blocks 13177..13433, `!quit` at 13447.
+# Its checks, as a stanza would carry them:
+#   python3 tools/gamelog/rngcmp.py rontrace-run383.log rontrace-run417.log   -> 0 differing, 13,448 identical
+#   grep -a -m1 'MAP_STYLE' / ' DIFFICULTY ' / '(int)seed' -> 7, 0, 12345
+#   run417 window blocks: 257 (13177..13433)
+# ==== TAKEN 2026-09-29, one take, 07:28–07:46 ====

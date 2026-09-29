@@ -755,6 +755,55 @@ mod tests {
         assert_eq!(s.type_speed(1, inf), 34, "a whale is the navy's");
     }
 
+    /// **Peacocks, the one rare the population cap reads** (item 1147):
+    /// `calc_pop_cap` tests the mask on every call, so a recompute for any
+    /// cause sees it, and it is the owner's alone.
+    #[test]
+    fn peacocks_raise_the_owner_s_pop_cap_by_a_tenth() {
+        let (mut s, _) = sea_sim();
+        for m in &mut s.muster {
+            m.military_level = 1;
+        }
+        s.recompute_pop_caps();
+        assert_eq!((s.muster[0].cap, s.muster[1].cap), (50, 50));
+        s.ledgers[1].rare = 1 << (economy::PEACOCKS - economy::BASE_RARE);
+        s.recompute_pop_caps();
+        assert_eq!(
+            (s.muster[0].cap, s.muster[1].cap),
+            (50, 55),
+            "Great Sahara's 55: 50 x 110 / 100"
+        );
+        s.ledgers[1].rare = 1 << (economy::WHALES - economy::BASE_RARE);
+        s.recompute_pop_caps();
+        assert_eq!(s.muster[1].cap, 50, "no other rare moves it");
+    }
+
+    /// **And the mask's own change recomputes it** — `calc_gather`'s
+    /// `operator!=` arm calls `calc_pop_cap` after the assignment
+    /// (`006ceee0:353`), so the cap follows the Peacocks bit on the frame
+    /// the bit moves, with nothing else changing.
+    #[test]
+    fn the_rare_mask_s_change_recomputes_the_pop_cap() {
+        let (mut s, _) = sea_sim();
+        for m in &mut s.muster {
+            m.military_level = 1;
+        }
+        s.recompute_pop_caps();
+        let bit = 1u64 << (economy::PEACOCKS - economy::BASE_RARE);
+        s.holdings[1].rare_owned = bit;
+        s.ledgers[1].dirty = false;
+        s.ledgers[1].gather_stamp = s.frame;
+        assert!(!s.holdings_due(1, s.frame), "the walk does not rebuild it");
+        s.tick();
+        assert_eq!(s.ledgers[1].rare, bit);
+        assert_eq!(s.muster[1].cap, 55, "the bit arrived and the cap moved");
+        s.holdings[1].rare_owned = 0;
+        s.ledgers[1].dirty = false;
+        s.ledgers[1].gather_stamp = s.frame;
+        s.tick();
+        assert_eq!(s.muster[1].cap, 50, "and it goes when the bit goes");
+    }
+
     /// The truncation is the original's: `38 × 120 / 100` is **45**, which
     /// is what run63's dump prints for all three of the AI's Fishermen from
     /// frame 5552 — and 25 becomes 30 for its Transport Barge.

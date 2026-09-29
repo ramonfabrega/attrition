@@ -188,6 +188,11 @@ pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> V
         "control".to_string(),
         i64::from(built.sim.muster[who].control),
     ));
+    // **`pop_cap`, the cap `control` is measured against** (item 1147):
+    // `LeaderData +0x7e4`, which `Leader::calc_pop_cap` writes. It stood on
+    // the uncompared pin while the third map's AI held Peacocks, 50 here
+    // against 55 there, until the Mercenaries offer read it.
+    out.push(("pop_cap".to_string(), i64::from(built.sim.muster[who].cap)));
     // The census — `docs/AI.md` §2.3, under the PDB's names.
     for (k, v) in [
         ("active", c.active),
@@ -569,6 +574,7 @@ pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i6
         "attacked_by",
         "active",
         "control",
+        "pop_cap",
         "combat",
         "siege",
         "non_siege",
@@ -1106,7 +1112,7 @@ mod tests {
             .collect();
         assert!(clash.is_empty(), "UNMODELLED and rows both carry {clash:?}");
         assert_eq!(
-            compared, 169_440,
+            compared, 169_600,
             "160 blocks of the record, every field the mapping carries"
         );
         assert!(
@@ -1209,7 +1215,7 @@ mod tests {
         }
         assert_eq!(blocks, 172, "86 frames, two leaders");
         assert_eq!(
-            compared, 182_148,
+            compared, 182_320,
             "172 blocks of the record, every field the mapping carries"
         );
 
@@ -1403,7 +1409,7 @@ mod tests {
         assert_eq!(blocks, 36, "eighteen blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 38_124,
+            compared, 38_160,
             "36 blocks of the record, every field the mapping carries"
         );
         // **The scholar, on the frame `create_units` offers it.** 52 is
@@ -1541,7 +1547,7 @@ mod tests {
         assert_eq!(blocks, 260, "130 blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 275_340,
+            compared, 275_600,
             "130 blocks of the record, every field the mapping carries"
         );
         // **The item, in one line.** The original's met bit arrives on
@@ -1727,7 +1733,7 @@ mod tests {
         assert_eq!(blocks, 60, "thirty blocks, two leaders");
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(
-            compared, 63_540,
+            compared, 63_600,
             "60 blocks of the record, every field the mapping carries"
         );
         // **The head on the frame the sequence parts.** 573 is the
@@ -3079,7 +3085,7 @@ mod tests {
         assert!(missing.is_empty(), "the record does not carry {missing:?}");
         assert_eq!(blocks, 490, "245 blocks, two leaders");
         assert_eq!(
-            compared, 518_910,
+            compared, 519_400,
             "490 blocks of the record, every field the mapping carries"
         );
         // **The frame the item is**, read off the comparison so the dump
