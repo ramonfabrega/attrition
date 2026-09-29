@@ -102,6 +102,14 @@ chain walk, the shield over ocean, and a missile's shift press; and
 646's family gains two rows, the spotter's and the V2s' `form` (0
 against −1) and the V2s' seats inside a silo (+24, +24).
 
+## Parked by item 1115, 2026-09-28 — the caravan's edges
+
+(1122) **The trade route's unreached and lagging edges** (AI §85,
+CARAVAN §11): the census's newborn lag — `caras` +1 at
+`Unit::set_type`, likewise `peasants` and `scholars`; and `do_trade`'s
+AI `go_to_city` tail and `add_trade_order`'s transport tail, both
+unreached on disk.
+
 ## Parked by item 1112, 2026-09-28 — the anti-air building's edges
 
 (1118) **The anti-air building cycle's four edges** (COMBAT §84): a
@@ -1960,6 +1968,21 @@ a round's `accuracy` is compared nowhere, so a building's `ATTENUATE`
 sign had been wrong since the first loader (`BuildType::init` keeps it
 signed where `UnitType::init` takes abs). Fixed by 1112, and it moved no
 floor. The compared pin could name a round's `accuracy`.
+
+(1121) **The default-map guard does not know a closed map** (the
+commander, at 1115's merge): `the_handoff_s_default_map_is_the_lower_word`
+picks the lower of `SECOND_WORD_EAST_INDIES` and `SECOND_WORD_GREAT_LAKES`,
+and Great Lakes' 5930 is its game's end, closed by 1099. When East Indies
+passed it on 5975 the guard asked the queue to name Great Lakes, the map
+no item can move. The line now names both; the guard could skip a word
+that stands at its game's end, as the golden line's does at its
+window's.
+
+(1123) **The decompiler prints `find_angle`'s register arguments as the
+neighbouring stack pushes** (1115's Loop line): `ecx`/`edx` read as the
+pushes beside the call, and two documents carried a literal facing for a
+month from it (CARAVAN §4.1, closed by 1115). A guard could list every
+literal `find_angle(` in `docs/`.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
