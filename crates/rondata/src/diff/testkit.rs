@@ -1156,7 +1156,32 @@ pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 8;
 /// spends `Unit::do_move+0xe84`. **Now the higher word of the pair**
 /// (Great Lakes' is 4555); widened on run357
 /// (`run357_s_word_frame_is_widened_whole`).
-pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_606;
+///
+/// **5606 → 5773 on item 1106** (`docs/AI.md` §84): a border fix reaches
+/// the map at the daemon's 256 cells a frame (`sim::border_pass`), and a
+/// city counts in its region's `reg_cities` on the frame `City::init` makes
+/// it. **The move's value diff (the word's delta, here; its block is
+/// `run357_s_word_frame_is_widened_whole`'s):** the AI citizen `1/14`
+/// finishes the city `1/2017` on tick 5517 on both sides; ours had seated
+/// it in pool group 67 on 5518 with its colonist move to (29568, 23424),
+/// where the original's group is stamped 5521 with (30336, 24960) — run407's
+/// packet reads its cell (48, 29) unowned and every region's index 0 on
+/// logger frame 5518, and the pass reaches the cell on 5521. On run357's
+/// block 5601 the keys went 172 → 139 and none arrived: `1/14`'s 27 rows
+/// (`pos` (36525, 23051) against (36908, 23630), `order:move.y` 23304
+/// against 23352), group 67's four (`ox` 29568 against 30336, `stamp` 5518
+/// against 5521), who=0's `gather_stamp` 5520 against 5528 (a region's
+/// completion raises the economy flag) and `1/2017`'s `city:peasant_dist`
+/// 2 against 1. Blocks 5605 and 5607 part on nothing: `1/14`'s
+/// `order:move.dest` and `path[2].to` rows are gone. Frame 5606's draws went 4 against 5 →
+/// agreeing. **The new word's delta: ours 4 draws and the original 3,209
+/// on frame 5773, parting at index 0**: ours spends `Guy::set_anim+0x97a <
+/// Guy::inc_time+0x271` where the original spends
+/// `PathFinder::calc_road_cost+0x46`. Inside run357's window (block 5774,
+/// 173 blocks after its first and 83 before its last), where the Caravan
+/// `1/33`, trained on 5772, holds a route of two orders there and none
+/// here.
+pub(crate) const SECOND_WORD_EAST_INDIES: i64 = 5_773;
 
 /// **The second pair's Great Lakes word** (item 971): run347, run53's game
 /// at Toughest (its second take, without `-config`).
@@ -1568,7 +1593,8 @@ pub(crate) const WIDENING_SECOND_GREAT_LAKES_3776: (i64, i64) = (3_771, 4_027);
 
 /// `run357_s_word_frame_is_widened_whole`'s window (item 989): run357 over
 /// run346's game, blocks 5601..5857 — six blocks before the word 5606's
-/// block 5607 and 250 past it.
+/// block 5607 and 250 past it. **Since item 1106 the word is 5773**, block
+/// 5774, inside it (173 blocks after its first and 83 before its last).
 pub(crate) const WIDENING_SECOND_EAST_INDIES_5606: (i64, i64) = (5_601, 5_857);
 
 /// `run356_s_word_frame_is_widened_whole`'s window (item 989): run356 over
@@ -6589,12 +6615,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // past run373's to 5105, widened on run396; item 1089 moved it to 5161,
     // inside run396's window, and item 1099 to 5930, the game's end,
     // widened on run403 (its last six blocks) and scored whole on run347's
-    // closing state.
+    // closing state. Item 1106 moved East Indies to 5773, inside run357's
+    // window, and re-pinned the word's block there.
     (
         "SECOND_WORD_EAST_INDIES",
         SECOND_WORD_EAST_INDIES,
         Some("run357_s_word_frame_is_widened_whole"),
-        989,
+        1106,
         Some(WIDENING_SECOND_EAST_INDIES_5606),
     ),
     (

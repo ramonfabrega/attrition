@@ -835,38 +835,51 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **The block before the word, 5605, parts on one key**
-        // (`docs/AI.md` §82.4): who=1's unit `1/14` has a move order whose
-        // `dest` reads 0 here against 1 there, and its path's third slot
-        // parts on the word's block. The original's extra draw on 5606 is
-        // `Unit::do_move+0xe84`. Block 5601 stands on 159 keys, the
-        // families the window opened on. No mechanism is named (DECISIONS
-        // 42).
-        assert_eq!(
-            row(1, 14, "order:move.dest").as_deref(),
-            Some(r#"5605: Move { field: "dest", ours: 0, theirs: 1 }"#),
-            "the unit's move, the block before the word"
-        );
+        // **Item 989's word, 5606: its block before, 5605, parted on one
+        // key** (`docs/AI.md` §82.4, §84): `1/14`'s move `dest` 0 here
+        // against 1, its path's third slot on 5607, and on 5601 its
+        // position and route. **Since item 1106 none parts**: the citizen
+        // that finished the city `1/2017` on tick 5517 takes its colonist
+        // move on 5521, when the border pass reaches its cell, and not on
+        // 5518 (run407's packet).
+        for what in ["order:move.dest", "path[2].to", "pos", "order:move.y"] {
+            assert_eq!(row(1, 14, what), None, "`1/14`'s {what}");
+        }
         // **Since item 1106 the walk compares the group record and the
-        // attack order's row** (`widen_records`), and block 5601 stands on
-        // 172: its thirteen new keys are who=1's pool slots. Every slot
-        // reads `form` 0 here against 9, the family the units' `form`
-        // rows are; slots 69 and 71's point is −1 against 0, a building
-        // group's (`docs/GROUPS.md` §33.2); and **slot 67 is `1/14`'s
-        // alone**, its order's point and stamp apart (`docs/AI.md` §84).
+        // attack order's row** (`widen_records`). Every pool slot reads
+        // `form` 0 here against 9, the family the units' `form` rows are,
+        // and slots 69 and 71's point −1 against 0, a building group's
+        // (`docs/GROUPS.md` §33.2). **Slot 67 is `1/14`'s alone**: before
+        // the border pass it stood on 5601 with `ox` 29568 against 30336
+        // and `stamp` 5518 against 5521, and now agrees but for `form`.
+        assert_eq!(row(1, -3, "group:67.ox"), None, "`1/14`'s group's point");
+        assert_eq!(row(1, -3, "group:67.stamp"), None, "and its frame");
         assert_eq!(
-            row(1, -3, "group:67.ox").as_deref(),
-            Some("5601: ours 29568 theirs 30336"),
-            "`1/14`'s group's point"
+            row(1, -3, "group:67.form").as_deref(),
+            Some("5601: ours 0 theirs 9"),
+            "the family's row stands"
+        );
+        // **The word 5773's block, 5774** (item 1106; no mechanism is
+        // named): the Caravan `1/33`, trained on 5772 (who=1's `caras` 1
+        // here against 2), has its `action` flag on 5773 here and not
+        // there, and on 5774 idles here (`idle` 99, no order) where the
+        // original holds a route of two orders to (39288, 40056); the
+        // cities `1/2000` and `1/2017` each list one caravan fewer here.
+        // The original's frame 5773 spends 3,209 draws, the first
+        // `PathFinder::calc_road_cost+0x46`.
+        assert_eq!(
+            row(1, 33, "orders.len").as_deref(),
+            Some("5774: ours 0 theirs 2"),
+            "the Caravan's route, the word's block"
         );
         assert_eq!(
-            row(1, -3, "group:67.stamp").as_deref(),
-            Some("5601: ours 5518 theirs 5521"),
-            "and the frame its order was given"
+            row(1, 2017, "city:vans.length").as_deref(),
+            Some("5774: ours 0 theirs 1"),
+            "and the new city's caravan list"
         );
         assert_eq!(
             by.iter().take(3).map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
-            [(5601, 172), (5605, 1), (5607, 1)],
+            [(5601, 139), (5682, 5), (5704, 2)],
             "the blocks keys first part on, the first three"
         );
     }
