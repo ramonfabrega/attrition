@@ -10689,3 +10689,39 @@ accepted cell. run413 holds both unseen at logger 5776.
 
 The packets stay outside git under `~/ron-data/lab-captures/`. The probes
 and their outputs are at `~/ron-data/lab-experiments/2026-09-28-item-1115/`.
+
+## run419 — run346's game at run414's detail over blocks 6316..6572: the second pair's East Indies word 6321 widened (2026-09-29, item 1127)
+
+**What it is.** run414's shape on the click-free lane: run346's lobby,
+`cover=0`, the detail `end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`,
+blocks 6316..6572, `!quit` at 6586. The word's frame 6321 writes block
+6322: six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run419 \
+    --map 18 --end-frame 6586 --timeout 4000 --log-window 6316 6573 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=5
+```
+
+**The booking cites what the disk could not answer.** run414 ends at block
+6226. No dump prints the word's blocks.
+
+**Taken** 05:55–06:15, one take, waited on with `waitrun.sh`. `success:
+true`, exit 0, 1,186 s from launch to exit. The dump (580.0 MB) and the
+trace (49.7 MB) were moved into `Logs` as
+`gamelog-run419-islands-toughest-6321.txt` and `rontrace-run419.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run346.log` | **0 differing**, 6,587 identical |
+| window blocks | 257, 6316..6572 |
+| receipt | `map_style 18`, seed 12345, lobby `DIFFICULTY=5`, five files restored |
+
+**What it holds**: `run419_s_word_frame_is_widened_whole` (`diff::second`),
+walked from run346's start. Block 6316 stands on 169 keys, from the gap
+6227..6315. Among them the barge `1/42`, carrying `1/32`, sails apart. The
+word's block 6322 parts on 15 keys: the original has landed `1/32` and
+closed the barge, and ours still carries both (`docs/AI.md` §87.2). The
+compared pin walks its 6320..6324, and the coverage driver drives
+6321..6324.
