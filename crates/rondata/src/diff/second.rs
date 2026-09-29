@@ -1660,7 +1660,7 @@ mod tests {
              (5105, 2), (5128, 1) until item 1099)"
         );
         // Keys parted: 1,253 → 737 on item 1089, 737 → 131 on item 1099.
-        assert_eq!(w.firsts.len(), 131, "every key parted on run396");
+        assert_eq!(w.firsts.len(), 127, "every key parted on run396");
     }
 
     /// **The second pair's Great Lakes word, 5930, the game's end, widened**
@@ -1719,10 +1719,12 @@ mod tests {
         // rows and the gather chains they left, the group record (parked
         // 1075), the attack-move's `order:target` and the army's `form`,
         // and `1/36`'s order from its birth on 5165 (`action`, `flags`,
-        // the move's `angle`). No `pos`, no figure, and no draw.
+        // the move's `angle`). No `pos`, no figure, and no draw. **Item
+        // 1115: 112 → 108**: `1/36` is the caravan, and its trade order's
+        // bit 4 and its leg's facing agree (`docs/CARAVAN.md` §11.3).
         assert_eq!(
             by.into_iter().collect::<Vec<_>>(),
-            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 112)],
+            [(WIDENING_SECOND_GREAT_LAKES_5930.0, 108)],
             "the blocks keys first part on, and how many"
         );
         assert!(
@@ -1731,7 +1733,8 @@ mod tests {
                 && !what.starts_with("g.y")),
             "a position parts at the game's end"
         );
-        assert_eq!(w.firsts.len(), 112, "every key parted on run403");
+        // Item 1115 took the caravan's four rows here (112 → 108; `docs/CARAVAN.md` §11.3).
+        assert_eq!(w.firsts.len(), 108, "every key parted on run403");
     }
 
     /// **run346 — East Indies at Toughest.** The lobby read back from the

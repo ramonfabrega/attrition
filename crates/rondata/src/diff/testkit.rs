@@ -3144,7 +3144,11 @@ pub(crate) const LONG_WORD_GREAT_LAKES: i64 = 24_000;
 /// the `army` mode, which the original leaves off for a walk home planned
 /// while the leader's current order is the `ATTACK` (`docs/PATHFINDER.md`
 /// §29). What stands is `1/23`'s `Action` and `move/angle` rows alone.
-pub(crate) const ORDER_RESIDUE_RUN97: usize = 2_634;
+///
+/// **2,634 → 0 on item 1115**: `1/23` is the caravan, and its trade order
+/// carries no bit 4 and its leg faces its bearing (`docs/CARAVAN.md`
+/// §11.3). run97's order records agree on every block.
+pub(crate) const ORDER_RESIDUE_RUN97: usize = 0;
 
 /// The frame Great Lakes' **second** squad joins the army on — 6994, the
 /// word's own parting from 2026-09-06 to 2026-09-07 and now a landed
