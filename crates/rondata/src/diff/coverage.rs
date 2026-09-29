@@ -324,10 +324,13 @@ const UNREAD: &[(&str, &str)] = &[
     // planes' stacks. **Item 1167's run430 windows `process_alarm`**
     // (`frame`) and **`process_gather`** (`ox queued frame`), the City's
     // alarm and the first player's gather; what they lay is read off the
-    // City's `city_flags` and the units' stacks.
+    // City's `city_flags` and the units' stacks. **Item 1182's run437
+    // windows `console.play`**, the line `be` logs as it moves the
+    // console's seat; the harness carries the seat on its script
+    // (`golden::Script`), and no field of the simulation reads it.
     (
         "GAME",
-        "process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
+        "console.play process_alarm process_attack process_build process_buildmask process_eject_all process_flight process_follow process_form process_gather process_gather_point process_garrison process_group, process_guard process_launch_patrol process_move_to process_move_to_2 process_patrol process_queue_up process_set_transport process_spell process_swarm_around process_unqueue",
     ),
     // **Item 746's run223 windows are the first to print a player's air
     // order**: the `STRAFEORDER` a flight home builds and the
@@ -613,6 +616,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch38 = golden_dump("ch38");
     let ch39 = golden_dump("ch39");
     let ch40 = golden_dump("ch40");
+    let ch41 = golden_dump("ch41");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -664,6 +668,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let r426 = crate::testenv::dump(super::third::SAHARA_WORD_15586);
     let r428 = crate::testenv::dump(super::third::SAHARA_WORD_15982);
     let r442 = crate::testenv::dump(super::third::SAHARA_WORD_16681);
+    let r449 = crate::testenv::dump(super::third::SAHARA_WORD_17623);
     let r44 = crate::testenv::dump("gamelog-run44-islands-turners.txt");
     if ch2.is_none() && r136.is_none() {
         eprintln!("skipping: neither the ch2 golden capture nor run136 is on disk");
@@ -1258,10 +1263,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
         assert_eq!(n, 5, "run428 carries the old word's blocks");
         frames += n;
     }
+    // Item 1194 moved it to 17623, on run449, and run442's window stays
+    // as the move's.
     if let Some(p) = &r442 {
+        let b = super::third::SAHARA_16681_BLOCK;
+        let n = drive_capture(p, b - 2, b + 2, &mut paths);
+        assert_eq!(n, 5, "run442 carries the old word's blocks");
+        frames += n;
+    }
+    if let Some(p) = &r449 {
         let b = super::testkit::LONG_WORD_GREAT_SAHARA + 1;
         let n = drive_capture(p, b - 2, b + 2, &mut paths);
-        assert_eq!(n, 5, "run442 carries the third map's word's blocks");
+        assert_eq!(n, 5, "run449 carries the third map's word's blocks");
         frames += n;
     }
     // **And on run139** (item 576): run99's line with `LEADERS=9`, over the
@@ -1812,6 +1825,24 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
             frames += n;
         }
     }
+    // **Chapter forty-one's word, on run437** (item 1182): the computer's
+    // sortie and the build-site spill. 622, the Biplane's flight home
+    // through `be 1`; 742 and 779, its landing and the sortie; 827, the
+    // patrol's strafe; 840, item 1182's word's release; 859, the first
+    // strafe's hits (item 1200); 970, the second pass's; 1080 and 1130,
+    // the Citizen's repair and its first spill; 1109, the dry tank's
+    // kill; 1461 and 1530, the trireme's short flight and the strafer's
+    // round that does not roll; 1767, the last blocks.
+    if let Some(p) = &ch41 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_FORTY_ONE;
+        for w in [
+            622, 742, 779, 827, 840, 859, 970, 1080, 1109, 1130, 1461, 1530, 1767,
+        ] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter forty-one carries the window's five blocks");
+            frames += n;
+        }
+    }
     // **run235** (item 770): run223's game again at `AMMO=5`, the first
     // capture on disk with a Bomber's round in it. 806, `0/8`'s first bomb
     // a frame out; 852, `0/7`'s.
@@ -2016,13 +2047,16 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `in_group`) are compared there, and left this pin. **Item 1171 moved
     // it to run426's 15585..15589**, where a cast order stands:
     // `cast_paid` and `cast_spell` are compared there, and left it.
+    // **Item 1194 moved it to run449's 17622..17626**, where neither an
+    // attack nor a cast stands and a guard order does: the attack row and
+    // the cast pair return to this pin, and the guard's six leave it.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cruising_alt garrison_search guard_dx \
-         guard_dy guard_idle guard_retry guard_x guard_y metric non_flat_gather orig_x \
-         orig_y patrol_x patrol_y retry returning sharp_turn strafe_xx strafe_yy \
-         tolerance uid waypoint",
+         attempts build_type cast_paid cast_spell cruising_alt def_x def_y defensive \
+         ever_in_range garrison_search in_range mandatory metric new_ord \
+         non_flat_gather orig_x orig_y patrol_x patrol_y retry returning sharp_turn \
+         strafe_xx strafe_yy tolerance uid waypoint",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
     // pin's first catch); `flags`, `max_age`, `mtn`, `cliff`,

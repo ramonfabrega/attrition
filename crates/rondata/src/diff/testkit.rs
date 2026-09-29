@@ -1181,7 +1181,22 @@ pub(crate) const LONG_WORD_EAST_INDIES: i64 = 24_000;
 /// frame 16681, ours 11 draws against 8, at index 4 ours `Guy::set_anim+
 /// 0xf2f < Guy::inc_time+0x271` and theirs `Guy::set_anim+0x97a <
 /// Guy::inc_time+0x271`, widened on run442.
-pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 16_681;
+///
+/// **16681 → 17623 on item 1194, and the mechanism was the Javelineers'
+/// release node** (`docs/COMBAT.md` §70.2): `launch::BAYS` had no row for
+/// piece 33, so every javelin left the unit's own square and flew one
+/// frame long, and on 16680 the human's Farm `0/2004` outlived the round
+/// that killed it in the original. **The word's delta**: on frame 16681
+/// ours 11 draws against 8, `1/30`'s `Guy::set_anim+0xf2f` and its round's
+/// `Ammo::init+0xcd9`/`+0xd0b` more → 8 against 8. The value diff is
+/// run442's block 16681 (`run442_s_word_frame_is_widened_whole`): the
+/// Farm's `build:extra` "this crate holds it alone" → gone on both sides,
+/// and on 16682 `1/28`'s `order:kind` 10 against 19 → 19; and run428's
+/// block 15978, the Farm's `damage` 130 against 134 → 134. **The new
+/// word's delta**: frame 17623, ours 7 draws against 8, at index 2 ours
+/// `Guy::set_anim+0x97a < Guy::inc_time+0x271` and theirs
+/// `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, widened on run449.
+pub(crate) const LONG_WORD_GREAT_SAHARA: i64 = 17_623;
 
 /// **The second pair's East Indies word** (DECISIONS 53 §2, item 971):
 /// run346, run54's game with the lobby at Toughest, walked from its own
@@ -4942,6 +4957,23 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_NINE: (i64, i64) = (605, 1101);
 /// the casts' other arms.
 pub(crate) const GOLDEN_WORD_CHAPTER_FORTY: i64 = 1150;
 
+/// Chapter forty-one's golden word (items 1182 and 1200,
+/// `docs/GOLDEN.md` §50, run437): **1770, closed** — 839 → 1770 (item
+/// 1200), sequence and values. 839 was ours 4 draws against 3: the
+/// Biplane over a wood (`TData` `0x7138`), where `is_in_range@006486b0`'s
+/// world-cell test answers no. Past it the strafe's re-point on 852
+/// (`find_new_air_target`), the round's own target struck whoever owns it
+/// (`1/2003`'s first wound, 858), `guy_radius` in the splash (`0/7` 21
+/// sixteenths, not 11), an aircraft's `check_hit` passing its own side
+/// (969), the Biplane's nose guns (970's flight, five frames not six),
+/// the tail's dry-tank kill (1108), the trireme's turned nodes (1460)
+/// and a strafer's round that never rolls (1529).
+pub(crate) const GOLDEN_WORD_CHAPTER_FORTY_ONE: i64 = 1770;
+
+/// `chapter_forty_one_s_word_frame_is_widened_whole`'s window: run437
+/// whole, 605 to its end.
+pub(crate) const WIDENING_CHAPTER_FORTY_ONE: (i64, i64) = (605, 1771);
+
 /// `chapter_forty_s_word_frame_is_widened_whole`'s window: run430 whole,
 /// (605, 1151).
 pub(crate) const WIDENING_CHAPTER_FORTY: (i64, i64) = (605, 1151);
@@ -5434,6 +5466,11 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Chapter forty-one (item 1182): the Biplane's two EXITs from its
+    // Airbase on the computer's sorties, 808 and 1470, each a read of the
+    // ground under the base's point.
+    ("chapter_forty_one_holds_to_the_golden_word", 2),
+    ("chapter_forty_one_s_word_frame_is_widened_whole", 2),
     ("chapter_seventeen_holds_to_the_golden_word", 34),
     ("chapter_seventeen_s_word_frame_is_widened_whole", 34),
     ("run235_s_bombs_are_the_original_s_record_for_record", 34),
@@ -7002,6 +7039,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1111,
         Some(WIDENING_CHAPTER_THIRTY_NINE),
     ),
+    // Items 1182 and 1200: run437, chapter forty-one, the computer's
+    // sortie, the build-site spill and the Biplane's strafes; closed at
+    // 1770. The widening is run437 whole.
+    (
+        "GOLDEN_WORD_CHAPTER_FORTY_ONE",
+        GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        Some("chapter_forty_one_s_word_frame_is_widened_whole"),
+        1182,
+        Some(WIDENING_CHAPTER_FORTY_ONE),
+    ),
     // Item 1167: run430, chapter forty, the casts' other arms. The
     // widening is run430 whole.
     (
@@ -7110,13 +7157,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // the move's value diff on 15585. Item 1189 moved it to **16681**,
     // past run428's last block, and took run442 over 16676..16932;
     // run418's test keeps the move's value diff on 14661 and run428's on
-    // 15983.
+    // 15983. Item 1194 moved it to **17623**, past run442's last block,
+    // and took run449 over 17618..17874; run442's test keeps the move's
+    // value diff on 16681 and 16682, and run428's on 15978.
     (
         "LONG_WORD_GREAT_SAHARA",
         LONG_WORD_GREAT_SAHARA,
-        Some("run442_s_word_frame_is_widened_whole"),
-        1189,
-        Some(crate::diff::third::WIDENING_GREAT_SAHARA_16681),
+        Some("run449_s_word_frame_is_widened_whole"),
+        1194,
+        Some(crate::diff::third::WIDENING_GREAT_SAHARA_17623),
     ),
 ];
 

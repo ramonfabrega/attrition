@@ -1980,8 +1980,15 @@ impl Sim {
     /// an `AirPatrolOrder`'s search at its last point — and is re-pointed
     /// at a valid one, or killed.
     ///
-    /// SEAM: the fuel test at its head (`type +0x2ec` and `mana_left`),
-    /// and an order behind that is not a patrol (`+0x100`'s arm, which
+    /// **Its head kills three strikes** (`5eb642`..`5eb673`, item 1200):
+    /// past the count and `mandatory`, a type with a tank (`type +0x2ec`,
+    /// `MANA`) whose `mana_left` is 0, a strike with no target and one
+    /// flying home each go to `5eb395` — `kill_current_order` and
+    /// `CHAR_WALK` — and the order behind flies. Chapter forty-one's
+    /// Biplane on 1108, its `mana_burn` at 300 of 300 (`docs/GOLDEN.md`
+    /// §50): the patrol turns for home on 1109 alone.
+    ///
+    /// SEAM: an order behind that is not a patrol (`+0x100`'s arm, which
     /// kills and walks).
     fn strafe_retarget(&mut self, u: usize, frame: i64) {
         if self.units[u].orders.len() < 2 {
@@ -1990,7 +1997,13 @@ impl Sim {
         let Some(Body::Strafe(sf)) = self.current_order(u).map(|o| o.body) else {
             return;
         };
-        if sf.mandatory || sf.returning || sf.target.is_none() {
+        if sf.mandatory {
+            return;
+        }
+        let dry = self.unit_mana(u) != 0 && self.mana_left(u) == 0;
+        if dry || sf.target.is_none() || sf.returning {
+            self.kill_current_order(u);
+            self.set_anim(u, crate::anim::WALK, true, true);
             return;
         }
         if (frame + 2 * i64::from(self.units[u].index)) & 31 != 0 {
@@ -1999,10 +2012,14 @@ impl Sim {
         let Some(Body::AirPatrol(p)) = self.units[u].orders.get(1).map(|o| o.body) else {
             return;
         };
+        // A non-bomber asks `find_new_air_target(x, y, −1, −1)`
+        // (`0x5eb7a3`, item 1200) — the patrol's own search, at its last
+        // point: chapter forty-one's Biplane re-points from `0/8` to
+        // `0/7` on 852 (`docs/GOLDEN.md` §50).
         let found = if self.is_bomber(u) {
             self.find_new_bomber_target(u, p.last())
         } else {
-            None
+            self.find_new_air_target(u, p.last())
         };
         let me = crate::combat::Obj::Unit(u);
         match found.filter(|&t| self.valid_target(me, t)) {
@@ -8179,6 +8196,9 @@ impl Sim {
         a.in_range = in_range;
         if in_range {
             a.ever_in_range = true;
+            if self.packed_unpacks(u, a) {
+                return;
+            }
             // **Siege fire at a unit is ground fire** (`docs/COMBAT.md`
             // §57.2): the arm returns before the strike's tail, so the
             // attack keeps `new_ord 1` under the order it pushes, as
@@ -8289,16 +8309,45 @@ impl Sim {
         }
     }
 
+    /// **A packed packer in range unpacks** (`Unit::fight@005fd4d0:512`–
+    /// `543`, item 1182, `docs/GOLDEN.md` §50): in the attack's in-range
+    /// branch, for a type that packs (`unit_flags2 & 4`) and is not the
+    /// Dutch merchant, still packed (`unit_masks & 0x80000`),
+    /// `add_cast_order(−1, −1, −1, −1, UNPACK, QUEUE_FIRST, 0)` and the
+    /// frame ends — no strike, and the attack keeps `new_ord 1` with
+    /// `in_range` and `ever_in_range` written. run436's human Catapult
+    /// `0/10`, on its `@attack` at a Barracks in range: the `CASTORDER`
+    /// of spell 652 beside its attack on block 624.
+    ///
+    /// SEAM: the computer's siege arm ahead of it (`unit_masks & 0x40000`
+    /// and `is_siege`): against an armed building whose range is under its
+    /// own less one and which reaches it, a better spot from
+    /// `find_attack_pos`, moved to at `QUEUE_NEW` instead. No staging puts
+    /// a computer's packed engine at an armed building.
+    fn packed_unpacks(&mut self, u: usize, a: AttackOrder) -> bool {
+        let Some(t) = self.units[u].ty else {
+            return false;
+        };
+        if !self.unit_types[t].combat.packs
+            || !self.units[u].combat.packed
+            || self
+                .unit_tree(u)
+                .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true))
+        {
+            return false;
+        }
+        self.store_attack(u, a);
+        self.add_cast_order(u, spell::UNPACK);
+        true
+    }
+
     /// **`Unit::fight@005fd4d0`'s siege arm** (`fight:496`–`572`,
     /// `docs/COMBAT.md` §57.2), in the attack's in-range branch and
     /// ahead of the strike. For an attacker whose type packs
     /// (`unit_flags2 & 4`) and is not the Dutch merchant:
     ///
-    /// - packed, the original unpacks here or moves to a better spot.
-    ///   SEAM: not carried. No human's packed engine holds an attack
-    ///   (its think returns before the search, §51.1), and no capture on
-    ///   disk has a computer's packed engine in range of one; this crate
-    ///   falls through to the strike as it always has.
+    /// - packed, the original unpacks here or moves to a better spot:
+    ///   [`Sim::packed_unpacks`], ahead of this (item 1182).
     /// - unpacked, a **unit** target (the target's vslot `+0x18`,
     ///   `is_unit`) and a **siege** type (vslot `+0x10c`, `is_siege`):
     ///   `set_attacking`, then an `ATTACK_GROUND` order at the head

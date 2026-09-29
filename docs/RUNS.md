@@ -11140,6 +11140,73 @@ walked from run383's start with run381's head. Block 15581 stands on 159
 keys, and the word's block 15587 parts on `1/29`'s figure clock, after its
 head order parted on 15585 (`docs/AI.md` §97.5). The compared pin and the
 coverage driver walk 15585..15589.
+## run436 — chapter forty-one's first take: `be 0` on the issuing frame (2026-09-29, item 1182)
+
+`docs/GOLDEN.md` §50. The chapter's first script:
+- who=1's Airbase, Biplane, Barracks and Citizen;
+- who=0's trireme, Hoplites and a Catapult;
+- `be 1` / `@flight 1 2006 1 6` / `be 0`, all on 620;
+- the trireme's and the Catapult's `@attack` on the Barracks;
+- `be 1` / `@repair 1 2007 1 7` / `be 0` on 720.
+
+It ran on the click-free lane at `cover=0`, `--end-frame 1600`, with
+`GROUPS=1` in its `end:` detail. It took 1,601 frames and wrote 286 MB of
+dump and 11 MB of trace. The verifier then refused the take, because
+`GROUPS` was asked for and no `GROUPDATA` block printed (parked 735). The
+dump and the trace are whole, and they are kept at
+`~/ron-golden/ch41-run436`.
+
+**What it holds.** The DLL issued both who=1 commands with no refusal,
+and the dump logs `process_flight 621` and `process_swarm_around 2007 1 2
+13 721`. Yet the Biplane holds no order on any block to 1600, and the
+Citizen never takes the repair. `CommandManager::process_turn` stamps the
+package with `console->play` as the pump walks it, and by then `be 0` has
+put the seat back. `CommandPackage::process_group` then drops a group
+that is not that player's. This is what
+`run436_s_other_seat_s_commands_are_dropped_at_the_pump` (`diff::golden`)
+walks, with run436's own lines.
+
+## run437 — chapter forty-one, CENSUS row 7's last seven (2026-09-29, item 1182)
+
+`docs/GOLDEN.md` §50, `tools/gamelog/golden/chapter41.cmd`: run436's cast
+without the Catapult. `be 0` comes a frame after each who=1 command (621,
+901), and the repair is at 900.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch41 \
+    --map 14 --end-frame 1770 --log-window 605 1770 --timeout 3600 \
+    --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=2,AMMO=5,DEATHS=1 \
+    --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 \
+    --detail misc:COMMANDMANAGER=1 \
+    --cmd-file tools/gamelog/golden/chapter41.cmd
+```
+
+13:42–13:57, 888 s from launch to exit, `success: true`, 1,771 frames,
+321 MB. It waited fifteen minutes for the lane, which another lane's
+run442 held from 13:22 to 13:42.
+
+**What the disk could not answer.** No capture on this disk sends a
+computer's plane on a sortie, or strikes a building while an enemy of
+the attacker repairs it. `get_speed` and `is_siege` are `NEVER` rows.
+
+**What it holds**:
+- `chapter_forty_one_holds_to_the_golden_word` (839);
+- `chapter_forty_one_s_word_frame_is_widened_whole` (513 rows);
+- the coverage driver's windows (`diff::coverage`).
+
+## run438 — chapter forty-one at `cover=1`, to 1140 (2026-09-29, item 1182)
+
+run437's script line for line on the queue lane, `cover=1`, to 1140
+(`tools/gamelog/captures.txt`, `run: 438`), 14:06–14:16. `be` is a chat
+command the DLL hands to `parse_cmd`, so the DLL needed no rebuild.
+
+| check | result |
+|---|---|
+| `issuesmatch.py` vs run437 | every record as in the golden run, none refused |
+| `rngcmp.py` vs run437 | 1,141 frames identical, none differing |
+| `report.py … functions` | `ObjectData::is_siege` f1088, `UnitData::get_speed` f778 |
+
+The two leave `NEVER`: 138 → 136 (`crates/rondata/src/blind.rs`).
 ## run439 — run346's game at run425's detail over blocks 8514..8770: the second pair's East Indies word 8519 widened (2026-09-29, item 1185)
 
 **What it is.** run425's shape on the click-free lane: run346's lobby,
@@ -11302,3 +11369,95 @@ and who=1's food parts (146 against 166). On the word's block 16682 the
 archer `1/28` parts on its order. The compared pin and the coverage driver
 walk 16680..16684.
 
+
+## run448 — Great Sahara's word 16681, a packet at logger frame 16681: the Javelineers' release node (2026-09-29, item 1194)
+
+**What it is.** A `RON_STATE_FRAME=16681` packet over run383's game (map 7,
+`DIFFICULTY 0`, seed 12345, `cover=0`) on the click-free lane, using item
+597's plan. Blocks 16660..16683 are dumped with `AMMO=5`, and `!quit` is at
+16690.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run448 \
+    --map 7 --end-frame 16690 --timeout 3600 --log-window 16660 16683 \
+    --detail end:MISC,UNITS=3,BUILDS=7,GUYS=4,AMMO=5,DEATHS=1 \
+    --tracer-def RON_STATE_FRAME=16681 \
+    --tracer-def 'RON_STATE_PLAN="/Users/rf-studio/ron-data/lab-experiments/2026-09-23-item-597/plan/plan.h"' \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** Every Javelineers
+hit on the human's Farm landed a block earlier in the original than in
+ours, from run428's 15978 on. Our javelins left the unit's own square,
+because `launch::BAYS` had no row for piece 33. No capture on disk prints
+a javelin's `AMMO`:
+
+- run383, run428 and run442 carry no `AMMO` category;
+- chapter twenty-seven (GOLDEN §36, run300), which stages Javelineers, neither
+  printed one nor fought.
+
+No packet on disk holds piece 33's `AttachPos` entries, because none is of
+a game that fields it.
+
+**Taken** 14:46, one take. An earlier launch at 14:45 refused before
+staging anything, because I had created the output directory by hand
+(`FileExistsError`). `success: true`, exit 0, 85 s launch to exit, 16,691
+frames. The packet is 844,651,820 bytes, and the dump is 11.1 MB. The lane
+lock named a dead pid, and I waited on no other lane. The outputs stay in
+the capture directory's `map-7/`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 16,691 identical |
+| `GAME INFO` | `MAP_STYLE 7`; the receipt reads back seed 12345 and map 7 |
+
+**What it answered.** `1/67`'s javelin leaves at (6028, 28300), not the
+unit's (6120, 28248), and flies `total_time` 17. `1/66`'s leaves at
+(6289, 28517). Unicorn's `get_position` for piece 33 on the packet
+(`~/ron-data/lab-experiments/2026-09-29-item-1194/oracle.py`) gives both
+points, and over 360 degrees it gives the three `Bay` rows of
+`docs/COMBAT.md` §70.2.
+
+## run449 — run383's game at run442's detail over blocks 17618..17874: Great Sahara's long word 17623 widened (2026-09-29, item 1194)
+
+**What it is.** run442's shape on the click-free lane: `--map 7`,
+`--profile DIFFICULTY=0`, seed 12345, `cover=0`, the detail
+`end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1`, blocks
+17618..17874, and `!quit` at 17888. The word's frame 17623 writes block
+17624, with six blocks before it and 250 after.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-data/lab-captures/2026-09-29-run449 \
+    --map 7 --end-frame 17888 --timeout 12000 --log-window 17618 17875 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 \
+    --profile DIFFICULTY=0
+```
+
+**The booking cites what the disk could not answer.** run442 ends at block
+16932, and run383 prints no record past its start, so no dump prints the
+word's blocks.
+
+**Taken** 14:55–15:13 in one take, with no wait. The lane lock named my own
+finished run448. I waited on the capture with `waitrun.sh` (exit 0). The
+receipt: `success: true`, exit 0, 1,105 s from launch to exit, 17,889
+frames, map 7 and seed 12345 verified. The dump (530.7 MB, 257 blocks and
+the closing one) and the trace (67.5 MB) were moved into `Logs` as
+`gamelog-run449-greatsahara-17623.txt` and `rontrace-run449.log`.
+
+| check | result |
+|---|---|
+| `rngcmp.py` against `rontrace-run383.log` | **0 differing**, 17,889 identical |
+| window blocks | 257, 17618..17874 |
+| `GAME INFO` | `MAP_STYLE 7`, `DIFFICULTY 0`, seed 12345 |
+
+**What it holds**: `run449_s_word_frame_is_widened_whole` (`diff::third`),
+walked from run383's start with run381's head, finds 1,352 keys parted:
+
+- Block 17618 stands on 189 keys: run442's families, and the positions of
+  four of who=1's soldiers (`1/46`, `1/48`, `1/51` and `1/52`), which
+  parted in the gap after run442.
+- On the word's block 17624, `1/52` is idle in the original and still
+  walking here, and `1/46` and `1/51` hold an order the original has
+  finished.
+
+The compared pin and the coverage driver walk 17622..17626.

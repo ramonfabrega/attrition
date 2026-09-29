@@ -13259,6 +13259,196 @@ fn chapter_forty_holds_to_the_golden_word() {
     );
 }
 
+/// **Chapter forty-one, closed** — CENSUS row 7's last seven
+/// (`docs/GOLDEN.md` §50, items 1182 and 1200, run437): the computer's
+/// sortie and the build-site spill, and the Biplane's strafes on who=0's
+/// Hoplites to the chapter's end. Fifteen staged lines on the golden
+/// start.
+#[test]
+fn chapter_forty_one_holds_to_the_golden_word() {
+    let Some(w) = walk_script("ch41", "chapter41", 41, 15, 1769) else {
+        return;
+    };
+    eprintln!(
+        "chapter forty-one: word {}, sequence {}, values {:?}",
+        w.word, w.sequence, w.value
+    );
+    assert!(
+        w.word >= GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        "chapter forty-one's golden word fell to {} from {GOLDEN_WORD_CHAPTER_FORTY_ONE}",
+        w.word
+    );
+    assert_eq!(
+        w.word, GOLDEN_WORD_CHAPTER_FORTY_ONE,
+        "chapter forty-one's golden word moved; re-pin it here and say so in \
+         docs/GOLDEN.md §50"
+    );
+}
+
+/// **run436: a command for another seat is dropped at the pump** (item
+/// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
+/// `be 0` on the issuing frame: the DLL issued both who=1 commands (its
+/// INFO records carry them, no refusal), and `CommandManager::
+/// process_turn` stamped the package with `console->play` — back to 0 —
+/// as the pump walked it, so `CommandPackage::process_group` dropped
+/// both groups. The Biplane `1/6` holds no order on any block to 1600
+/// and the Citizen `1/7` never repairs. Staged here with run436's own
+/// lines; made to fail with [`crate::golden::Script::pump`]'s seat test
+/// removed.
+#[test]
+fn run436_s_other_seat_s_commands_are_dropped_at_the_pump() {
+    const RUN436: &str = "0 !ai off\n606 add airbase who=1 212,104\n608 add biplane who=1 212,118\n\
+        610 add barracks who=1 190,82\n612 add citizen who=1 198,82\n614 add trireme who=0 181,82\n\
+        616 add hoplite who=0 204,88\n618 add catapult who=0 194,92\n620 be 1\n\
+        620 @flight 1 2006 1 6\n620 be 0\n622 @attack 0 2007 1 10\n630 @attack 0 2007 1 6\n\
+        700 @attack 0 2002 1 7\n720 be 1\n720 @repair 1 2007 1 7\n720 be 0\n";
+    let Some(mut s) = stage_script("ch41-run436", "chapter41") else {
+        return;
+    };
+    s.script = Script::parse(RUN436);
+    let mut done = crate::golden::Applied::default();
+    while s.built.sim.frame <= 725 {
+        done.merge(&s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded));
+        s.built.tick();
+    }
+    let dropped = done
+        .skipped
+        .iter()
+        .filter(|((_, why), _)| why.contains("not the seat at the pump"))
+        .map(|(_, n)| *n)
+        .sum::<usize>();
+    assert_eq!(
+        dropped, 2,
+        "the flight and the repair are dropped at the pump"
+    );
+    let biplane = s
+        .built
+        .sim
+        .units
+        .iter()
+        .position(|u| u.owner == 1 && u.index == 6)
+        .expect("who=1's Biplane");
+    assert!(
+        s.built.sim.units[biplane].orders.is_empty(),
+        "the Biplane took the dropped flight: {:?}",
+        s.built.sim.units[biplane].orders
+    );
+}
+
+/// **An issuer line for another seat is refused where it is written**
+/// (`tracer.c`'s refusal 1, item 1182): with no `be`, run436's flight
+/// for who=1 is refused on its own frame and never reaches the pump. Made
+/// to fail with [`crate::golden::Script::apply`]'s seat test removed —
+/// the pump's drop then takes the line instead, under its own reason.
+#[test]
+fn an_issuer_line_for_another_seat_is_refused_as_the_dll_refuses_it() {
+    let Some(mut s) = stage_script("ch41-run436", "chapter41") else {
+        return;
+    };
+    s.script = Script::parse(
+        "0 !ai off\n606 add airbase who=1 212,104\n608 add biplane who=1 212,118\n620 @flight 1 2006 1 6\n",
+    );
+    let mut done = crate::golden::Applied::default();
+    while s.built.sim.frame <= 622 {
+        done.merge(&s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded));
+        s.built.tick();
+    }
+    let why: Vec<&str> = done.skipped.keys().map(|(_, w)| *w).collect();
+    assert_eq!(
+        why,
+        vec!["not the console's seat (refusal 1)"],
+        "{:?}",
+        done.skipped
+    );
+}
+
+/// **run437 whole, both directions** (item 1182, `docs/GOLDEN.md` §50):
+/// every dumped record on every block of the capture. No pool: the
+/// capture prints no `GROUPS`, which its verifier refuses when no block
+/// prints one (parked 735).
+#[test]
+fn chapter_forty_one_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(firsts) = widen_civilians(
+        "ch41",
+        "chapter41",
+        WIDENING_CHAPTER_FORTY_ONE,
+        1769,
+        0,
+        (620, 626),
+        true,
+        LEADERS_TWO_KEYS,
+    ) else {
+        return;
+    };
+    for ((w, o, what), (f, row)) in &firsts {
+        eprintln!("  ch41 f{f} {w}/{o} {what}: {row}");
+    }
+    let mut got: Vec<String> = firsts
+        .iter()
+        .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
+        .collect();
+    got.sort();
+    eprintln!("ch41: {} rows", got.len());
+    let mut want: Vec<String> = WANT_CH41.iter().map(|r| r.to_string()).collect();
+    want.sort();
+    pin_eq!(got, want, "ch41: what parts under the word moved");
+}
+
+/// Chapter forty-one's widening rows (items 1182, 1200): run437 whole,
+/// the chapter **closed** at 1770 (`docs/GOLDEN.md` §50). What stands is
+/// chapter forty's families — the birth `form` (parked 1169) on every
+/// unit, the first block's `filled_gather_slots`, the human City's census
+/// (parked 1183), the trireme's attack `order:target`, which this crate
+/// keeps on the unit rather than the order — and three of the chapter's
+/// own: `1/2000`'s `raid_stamp` on 671, which nothing here writes; the
+/// `group` numbers from 902, which this crate hands out in another order;
+/// and the death-object cull (`docs/COMBAT.md` §59.7), which this crate
+/// does not have — the original clears `0/7`'s record 643 frames after
+/// its death and `0/8`'s 656 after, and here both stay.
+const WANT_CH41: &[&str] = &[
+    "1622 0/7 death:extra",
+    "1725 0/8 death:extra",
+    "605 0/-1 leader:filled_gather_slots[0:food]",
+    "605 0/-1 leader:filled_gather_slots[1:timber]",
+    "605 0/0 form",
+    "605 0/1 form",
+    "605 0/2 form",
+    "605 0/2000 city:busy",
+    "605 0/2000 city:filled",
+    "605 0/2000 city:gatherers",
+    "605 0/2000 city:land",
+    "605 0/2000 city:peasant_dist",
+    "605 0/2000 city:space[0]",
+    "605 0/2000 city:space[1]",
+    "605 0/2000 city:space[2]",
+    "605 0/2000 city:ter[0]",
+    "605 0/2000 city:ter[1]",
+    "605 0/2000 city:ter[3]",
+    "605 0/2000 city:ter[4]",
+    "605 0/3 form",
+    "605 0/4 form",
+    "605 0/5 form",
+    "605 1/1 form",
+    "605 1/2 form",
+    "605 1/2000 city:filled",
+    "605 1/2000 city:land",
+    "605 1/3 form",
+    "605 1/4 form",
+    "605 1/5 form",
+    "609 1/6 form",
+    "613 1/7 form",
+    "615 0/6 form",
+    "617 0/7 form",
+    "617 0/8 form",
+    "617 0/9 form",
+    "632 0/6 order:target",
+    "672 1/2000 city:raid_stamp",
+    "902 1/6 group",
+    "902 1/7 group",
+    "968 1/0 group",
+];
+
 /// **run430 whole, both directions** (item 1167, `docs/GOLDEN.md` §49):
 /// every dumped record on every block of the capture, and the pool.
 #[test]
@@ -13934,12 +14124,14 @@ fn chapter_thirty_eight_s_squad_stands_on_its_points_and_packs_on_its_phase() {
 /// golden start (`form`, `g.gpiece`, the gather slots, the idle clocks);
 /// the Radar Air Defense's `constr_time` (30000 against 22556); the
 /// Battery's aim (743), its bits (801) and its node-1 round's launch point
-/// (784, `0/7`'s hit a frame late, parked 1125); the Battery's own wounds
-/// from 940; the two crash rounds (1007, 1020: their fall, parked 1110);
+/// (784, `0/7`'s hit a frame late, parked 1125); the two crash rounds (1007, 1020: their fall, parked 1110);
 /// one Battery round the dump holds alone (1015); the Barracks' and the
 /// Radar's damage fractions on 1036; and the Battery's group id on 1277.
 /// Item 1131 took 455 → 36: every Bomber row, the Radar's target and the
-/// strikes' re-targets agree.
+/// strikes' re-targets agree. Item 1200 took 36 → 30: the Battery's own
+/// wounds from 940 agree once a unit type's `guy_radius` is its
+/// `block_radius` (`UnitType::init@0061ab50:753`), the splash's inner
+/// radius the loader had left at 0.
 const WANT_CH38: &[&str] = &[
     "611 0/6 form",
     "613 0/7 form",
@@ -13963,12 +14155,6 @@ const WANT_CH38: &[&str] = &[
     "784 0/7 hits_left",
     "784 1/9 ammo[0]",
     "801 1/9 g.node_flags[0]",
-    "940 1/9 damage_frac",
-    "940 1/9 damage_frame",
-    "940 1/9 hits:damage_frac",
-    "988 1/9 damage_o",
-    "993 1/9 hits:damage",
-    "993 1/9 hits_left",
     "1007 0/6 ammo[1]",
     "1015 1/9 ammo[2]",
     "1020 0/7 ammo[2]",
@@ -14916,6 +15102,25 @@ fn stage_walk() {
             "leader0".into(),
             format!("L 0 buckets {:?}", s.ledgers[0].bucket),
         ));
+        // Item 1182: each city's members and its attack bits, which the
+        // computer's sortie reads (`city_flags & 3`).
+        if all {
+            for (c, city) in s.cities.iter().enumerate() {
+                let members: Vec<i16> =
+                    city.members.iter().map(|&m| s.buildings[m].index).collect();
+                now.push((
+                    format!("c{c}"),
+                    format!(
+                        "C {}/{} alive={} under_attack={} attacking={} members={members:?}",
+                        city.owner,
+                        s.buildings[city.building].index,
+                        city.alive,
+                        city.no_heal,
+                        city.attacking
+                    ),
+                ));
+            }
+        }
         for (k, v) in now {
             if seen.get(&k) != Some(&v) {
                 eprintln!("f{f} {v}");
@@ -14932,6 +15137,17 @@ fn stage_walk() {
         for y in 0..s.world.height() {
             let row: String = (0..s.world.width())
                 .map(|x| match s.world.owner(sim::world::Cell { x, y }) {
+                    // Item 1182: the sea, so a hull and a shore can be
+                    // placed off the same print.
+                    sim::world::Owner::None
+                        if s.world
+                            .region_of(sim::world::Cell { x, y })
+                            .is_some_and(|r| {
+                                matches!(s.world.terrain(r), sim::world::Terrain::Sea)
+                            }) =>
+                    {
+                        '~'
+                    }
                     sim::world::Owner::None => '.',
                     sim::world::Owner::Ambiguous => '?',
                     sim::world::Owner::Player(p) => char::from(b'0' + p),

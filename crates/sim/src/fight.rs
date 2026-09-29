@@ -436,6 +436,18 @@ impl Sim {
         if !self.active(target) {
             return false;
         }
+        // **The world-cell test** (`6486b0`..`64875b`, item 1200): the
+        // tile under the point asked from — `div_3_table[x >> 6]`, the
+        // tile, of the eight-argument overload's own `x/y` — answers no
+        // when its surface is forest (`TData.mask & 0x30 == 0x30`). It
+        // asks no domain, so a plane over a wood holds its fire:
+        // chapter forty-one's Biplane on 839, at `0x7138` (`docs/GOLDEN.md`
+        // §50).
+        if self.world.tile_mask(at.tile()) & crate::world::tile::SURFACE
+            == crate::world::tile::SURFACE_FOREST
+        {
+            return false;
+        }
         let ap = self.profile(attacker);
         // `attack_dist` is called at the quarter-tile centre of the position.
         let centre = Pos::new(
@@ -1771,7 +1783,11 @@ impl Sim {
             );
         }
         let _ = frame;
-        let rolling = land_unit;
+        // **A strafer's round never rolls** (`67c548`..`67c557`, item
+        // 1200): the unit-strafer test jumps past `67c633`, where flag `4`
+        // and the `0x4b` over a land unit are set. Chapter forty-one's
+        // Biplane on 1529, whose round lands behind it, short of `0/9`.
+        let rolling = land_unit && !strafes;
         let ez = match target {
             Some(t) => self.aim_z(t, rolling),
             None => self.ground_z(target_pos).max(0),
@@ -1945,7 +1961,104 @@ impl Sim {
         if !killed && let Obj::Unit(t) = target {
             self.units[t].combat.entrenched = false;
         }
+        if let Obj::Building(b) = target {
+            self.spill_onto_builders(attacker, b, angle, ammo, count, frame);
+        }
         Some(taken)
+    }
+
+    /// **A hit on a building spills onto the hands at work on it**
+    /// (`Object::do_damage@0064a480`'s tail, `64c10c`..`64c4e3`, item
+    /// 1182, `docs/GOLDEN.md` §50). Reached for a building target only
+    /// (`64bec5`, `is_build`), after `take_damage`, whether it killed or
+    /// not. For each cell of `circle_x/y[..circle_radius[1]]` round the
+    /// building's cell, its object chain, in chain order:
+    ///
+    /// ```text
+    /// an enemy of the attacker's (Search::valid_search mode 3), active and
+    ///   on the map, whose FRONT order is BUILD_AT or REPAIR (valid_filter
+    ///   9, UnitData::order_type) and whose action's target is this
+    ///   building (valid_filter 10);
+    /// not a Korean's under KOREAN_BUILD_UNDER_FIRE (has_tribe_bonus 0x10);
+    /// vector_dist(it, building) <= max(x_size, y_size) * 192;
+    /// the attacker: air, none; sea and is_siege, none (`64c3b3`,
+    ///   ObjectData::is_siege@0046ef90);
+    ///   a land siege type: count / 4, no reach test;
+    ///   else vector_dist(it, building) <= max(max_range * 192, 0x180):
+    ///   count / 8;
+    /// do_damage(attacker, it, angle, ·, ammo, count', splash 0, quiet 1)
+    /// ```
+    ///
+    /// Both divisions are the sign-fixed shifts of the listing (`cdq; and
+    /// edx, 3|7; add; sar`), toward zero. SEAM: `num_guys` (§7.1), which
+    /// this crate's `do_damage` does not carry, is passed through there.
+    fn spill_onto_builders(
+        &mut self,
+        attacker: Obj,
+        b: usize,
+        angle: Angle,
+        ammo: bool,
+        count: i32,
+        frame: i64,
+    ) {
+        let ap = self.profile(attacker);
+        let bp = self.profile(Obj::Building(b));
+        let at = self.owner_of(attacker);
+        let centre = self.buildings[b].pos;
+        let home = centre.cell();
+        let circ = crate::ai_place::circle();
+        for k in 0..circ.radius[1] {
+            let cell = crate::Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
+            if cell.x < 0
+                || cell.y < 0
+                || cell.x >= self.world.width()
+                || cell.y >= self.world.height()
+            {
+                continue;
+            }
+            for u in self.cell_chain(cell) {
+                let unit = &self.units[u];
+                if !self.is_enemy(unit.owner, at) || !unit.alive() || !unit.on_map {
+                    continue;
+                }
+                let front = unit.orders.front().map(|o| o.body);
+                if !matches!(front, Some(crate::orders::Body::Build(x) | crate::orders::Body::Repair(x)) if x == b)
+                {
+                    continue;
+                }
+                if self.nation[unit.owner as usize].koreans
+                    && self.tuning.korean_build_under_fire != 0
+                {
+                    continue;
+                }
+                let d = vector_dist(unit.pos.x - centre.x, unit.pos.y - centre.y);
+                if d > bp.x_size.max(bp.y_size) * 192 {
+                    continue;
+                }
+                let share = match ap.domain {
+                    Domain::Air => continue,
+                    Domain::Sea if ap.siege => continue,
+                    Domain::Land if ap.siege => (count + ((count >> 31) & 3)) >> 2,
+                    _ => {
+                        let reach = (self.max_range_of(attacker) * 192).max(0x180);
+                        if d > reach {
+                            continue;
+                        }
+                        (count + ((count >> 31) & 7)) >> 3
+                    }
+                };
+                self.do_damage(
+                    attacker,
+                    Obj::Unit(u),
+                    angle,
+                    ammo,
+                    share,
+                    false,
+                    true,
+                    frame,
+                );
+            }
+        }
     }
 
     /// `Object::take_damage` (§7.2) on a unit figure or a building.
@@ -3626,9 +3739,23 @@ impl Sim {
                 (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
             })
             .filter(|&o| {
+                // **The round's own target skips the team test**
+                // (`6787d9`..`6787e1`, item 1200): the shooter itself is
+                // left out and a player past seven, and then only an
+                // object that is not the round's target is asked whether
+                // it is the shooter's own or its mutual ally. So a round
+                // that `check_hit` put on one of its own side's buildings
+                // strikes it: chapter forty-one's Biplane on who=1's
+                // `1/2003`, 858 (`docs/GOLDEN.md` §50). SEAM: a neutral
+                // object, neither allied nor at war, is struck there and
+                // left out here.
                 let owner = self.owner_of(o);
-                owner != p.owner
-                    && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner))
+                if o == p.shooter || owner >= crate::world::PLAYER_SLOTS {
+                    return false;
+                }
+                target == Some(o)
+                    || (owner != p.owner
+                        && (self.at_war_with(p.owner, owner) || self.at_war_with(owner, p.owner)))
             })
             .collect();
         for o in candidates {
@@ -3675,9 +3802,22 @@ impl Sim {
     /// in the ammo's domain class — any player's — else a building on the
     /// tile.
     fn check_hit(&self, p: &combat::Projectile) -> Option<Obj> {
+        // **An aircraft's round passes over its own side** (`678db9`..
+        // `678dcc`, item 1200): a shooter of the air domain that is not a
+        // missile searches `SEARCH_NON_FRIENDLY` (6), which
+        // `Search::valid_search@0067daa0`'s case 6 reads as "not the
+        // searcher's own player" — allies are found. Every other shooter
+        // searches `SEARCH_ALL`. Unasked while [`Sim::land`] left the
+        // shooter's side out of the splash; it is asked since the round's
+        // own target skips that test.
+        let sp = self.profile(p.shooter);
+        let own_passed = matches!(sp.domain, Domain::Air) && !sp.has(mask::MISSILE);
         let mut best: Option<(i32, usize)> = None;
         for (i, u) in self.units.iter().enumerate() {
             if !(u.alive() && u.on_map) || Obj::Unit(i) == p.shooter {
+                continue;
+            }
+            if own_passed && u.owner == p.owner {
                 continue;
             }
             // `check_hit` is a `find_unit`, whose leader loop stops at eight:
@@ -3792,6 +3932,101 @@ mod tests {
         u.on_map = true;
         u.kind = sim.unit_types[ty].kind;
         sim.add_unit(u)
+    }
+
+    /// A round of `shooter`'s landing at `at`, on `target`, done.
+    fn round(
+        sim: &Sim,
+        shooter: usize,
+        target: Option<Obj>,
+        at: Pos,
+        splash: i32,
+    ) -> combat::Projectile {
+        combat::Projectile {
+            shooter: Obj::Unit(shooter),
+            owner: sim.units[shooter].owner,
+            target,
+            launch: sim.units[shooter].pos,
+            landing: at,
+            cur_time: 1,
+            total_time: 1,
+            accuracy: 100,
+            angle: Angle(0),
+            splash_area: splash,
+            num_guys: 1,
+            air: false,
+            rolling: false,
+            missed: false,
+            harmless: false,
+            sz: 0,
+            ez: 0,
+            v1z: combat::arc_v1z(0, 0, 1),
+            slot: 0,
+        }
+    }
+
+    /// **A splash round strikes its own target whoever owns it**
+    /// (`Ammo::do_damage`, `6787d9`..`6787e1`, item 1200): the team test
+    /// is asked only of an object that is not the round's target. Chapter
+    /// forty-one's Biplane on 858, whose round `check_hit` put on who=1's
+    /// own `1/2003`: the original spends that building's first-wound roll.
+    /// Another of the shooter's buildings in the splash is left out, and
+    /// so is an enemy's standing clear of it. Made to fail with the
+    /// target's exemption dropped.
+    #[test]
+    fn a_splash_round_strikes_its_own_target_whoever_owns_it() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+        let building = |sim: &mut Sim, who: Player, p: Pos| {
+            let b = sim.add_building(who, p, 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 1,
+                y_size: 1,
+                ..Profile::default()
+            });
+            sim.buildings[b].health = 500;
+            b
+        };
+        let mine = building(&mut sim, 1, Pos::new(2016, 2016));
+        let other = building(&mut sim, 1, Pos::new(2208, 2016));
+        let p = round(&sim, me, Some(Obj::Building(mine)), Pos::new(2016, 2016), 1);
+        sim.land(p, 858);
+        let struck: Vec<Obj> = sim.hits.iter().map(|h| h.target).collect();
+        assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
+        assert!(!sim.hits[0].splash, "at the full count");
+        let _ = other;
+    }
+
+    /// **An aircraft's round passes over its own side** (`Ammo::check_hit`,
+    /// `678db9`..`678dcc`, item 1200): an air shooter that is not a
+    /// missile searches `SEARCH_NON_FRIENDLY`, which leaves out its own
+    /// player's units and nothing else; any other shooter searches them
+    /// all. Chapter forty-one's Biplane on 969, whose round came down
+    /// beside who=1's `1/1`. Made to fail with the test dropped.
+    #[test]
+    fn an_aircraft_s_round_passes_over_its_own_side() {
+        for air in [true, false] {
+            let (mut sim, ty) = at_war();
+            let mut t = sim.unit_types[ty].clone();
+            t.combat.domain = if air { Domain::Air } else { Domain::Land };
+            let shooter_ty = sim.add_unit_type(t);
+            let mut foot = sim.unit_types[ty].clone();
+            foot.combat.target_size = 300;
+            let foot = sim.add_unit_type(foot);
+            let me = put(&mut sim, 1, shooter_ty, Pos::new(1000, 1000));
+            let own = put(&mut sim, 1, foot, Pos::new(3050, 3000));
+            let foe = put(&mut sim, 0, foot, Pos::new(3100, 3000));
+            let p = round(&sim, me, None, Pos::new(3000, 3000), 0);
+            sim.land(p, 969);
+            let want = if air { foe } else { own };
+            assert_eq!(
+                sim.hits.last().map(|h| h.target),
+                Some(Obj::Unit(want)),
+                "air {air}"
+            );
+        }
     }
 
     /// **A ship that attacks sideways turns broadside, to the nearer side**
@@ -4242,6 +4477,130 @@ mod tests {
     /// **Made to fail on purpose**: with the arm's call taken out of
     /// `think`, the human's catapult takes the attack order on its first
     /// idle frame, which is 587's word.
+    /// **A hit on a building spills onto the enemy hands repairing it**
+    /// (`Object::do_damage@0064a480`'s tail, item 1182, `docs/GOLDEN.md`
+    /// §50): an eighth for a sea attacker that is not siege and a land one,
+    /// a quarter for a land siege type, nothing for a sea siege type (the
+    /// `is_siege` arm at `64c3b3`) or an aircraft, and nothing onto a
+    /// citizen of the building's side that is not at work on it. Made to
+    /// fail with the sea arm's `is_siege` test dropped, and with the
+    /// quarter read as an eighth.
+    #[test]
+    fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
+        use crate::orders::{Body, Order};
+        for (domain, siege, repairing, share) in [
+            (Domain::Sea, false, true, Some(8)),
+            (Domain::Sea, true, true, None),
+            (Domain::Land, true, true, Some(4)),
+            (Domain::Land, false, true, Some(8)),
+            (Domain::Air, false, true, None),
+            (Domain::Land, false, false, None),
+        ] {
+            let (mut sim, ty) = at_war();
+            let mut at = sim.unit_types[ty].clone();
+            at.combat.domain = domain;
+            at.combat.siege = siege;
+            at.kind.domain = domain;
+            let at = sim.add_unit_type(at);
+            let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].health = 1200;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 2,
+                y_size: 2,
+                ..Profile::default()
+            });
+            let hand = put(&mut sim, 1, ty, Pos::new(3300, 3000));
+            if repairing {
+                sim.units[hand].orders.push_back(Order {
+                    flags: 0,
+                    body: Body::Repair(b),
+                });
+            }
+            let me = put(&mut sim, 0, at, Pos::new(3600, 3000));
+            let count = 0x800;
+            sim.do_damage(
+                Obj::Unit(me),
+                Obj::Building(b),
+                Angle(0),
+                false,
+                count,
+                false,
+                false,
+                700,
+            );
+            let spilt: Vec<_> = sim
+                .hits
+                .iter()
+                .filter(|h| h.target == Obj::Unit(hand))
+                .copied()
+                .collect();
+            match share {
+                None => assert!(spilt.is_empty(), "{domain:?} siege {siege}: a spill"),
+                Some(k) => {
+                    assert_eq!(spilt.len(), 1, "{domain:?} siege {siege}: no spill");
+                    let ap = sim.profile(Obj::Unit(me));
+                    let want = combat::scale(
+                        spilt[0].damage,
+                        count / k,
+                        true,
+                        false,
+                        ap.ammo_per_att,
+                        ap.uber_size,
+                    );
+                    assert_eq!(spilt[0].dealt, want, "{domain:?} siege {siege}: the share");
+                }
+            }
+        }
+    }
+
+    /// **A packed packer in range of its attack unpacks first**
+    /// (`Unit::fight@005fd4d0:512`–`543`, item 1182): a human's packed
+    /// catapult holding an attack on a building in range is given the
+    /// unpack at the head and strikes nothing, where it used to fall through
+    /// to the strike. Made to fail with [`Sim::packed_unpacks`] answering
+    /// false.
+    #[test]
+    fn a_packed_packer_in_range_unpacks_before_it_strikes() {
+        use crate::orders::{Body, spell};
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                uber_size: 1,
+                siege: true,
+                packs: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+        assert!(sim.units[me].combat.packed);
+        let b = sim.add_building(1, Pos::new(0x4000 + 6 * 192, 0x4000), 0);
+        sim.buildings[b].started = true;
+        sim.buildings[b].active = true;
+        sim.buildings[b].health = 1200;
+        sim.buildings[b].combat = Some(Profile::default());
+        sim.add_attack_order(
+            me,
+            Obj::Building(b),
+            crate::orders::QueuePos::New,
+            true,
+            true,
+        );
+        let frame = sim.frame;
+        sim.work(me, frame);
+        assert!(
+            matches!(sim.units[me].orders.front().map(|o| o.body), Some(Body::Cast(c)) if c.spell == spell::UNPACK),
+            "no unpack at the head: {:?}",
+            sim.units[me].orders
+        );
+        assert!(sim.hits.is_empty(), "a packed engine struck");
+    }
+
     #[test]
     fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
         use crate::orders::{Body, spell};
