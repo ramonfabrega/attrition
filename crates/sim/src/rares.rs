@@ -180,7 +180,8 @@ impl Sim {
 
     /// `Unit::update_speed@006055c0`, as much of it as this crate models:
     /// the type's `MOVES`, the **Whales** arm, and the **gunpowder foot
-    /// line's** hardcoded correction after it (`docs/MOVEMENT.md` §1a).
+    /// line's** hardcoded correction after it (`docs/MOVEMENT.md`, "The speed
+    /// pipeline" §1).
     ///
     /// The foot line is four identity tests, `is(t, 0)` through the type's
     /// vslot `0x60` — `TypeData::is@004771c0`, `type == t` and nothing else,
