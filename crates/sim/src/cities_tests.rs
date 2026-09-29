@@ -1237,6 +1237,55 @@ fn the_age_the_large_city_needs_levels_a_ready_city_up_on_the_gain() {
     assert_eq!(sim.ai[0].census.pop, 3, "and `pop` follows it");
 }
 
+/// **The Spice rare and the caravans' nation power scale a route** —
+/// `Caravan::trade_value@0073d9d0`'s tail, on the leader of the end the
+/// original passes in `ecx`/`edx`, which `compute_trade` makes the city's
+/// own owner (`docs/CARAVAN.md` §4). Great Sahara's who=1 holds Spice,
+/// and its two Villages' routes read 26 where 22 is the bare sum (item
+/// 1189). Each city here is a Major City of one finished building, `1 + 4`
+/// a side, in opposite corners, and the pair is foreign so each owner's
+/// rare is its own: 10, doubled by band 3, half again foreign.
+#[test]
+fn spice_and_the_caravan_power_scale_a_route_on_the_computing_city_s_owner() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let (b0, c0) = city_at(&mut sim, &t, 0, 6, 6);
+    let (b1, c1) = city_at(&mut sim, &t, 1, 56, 56);
+    sim.buildings[b0].ty = Some(t.metropolis);
+    sim.buildings[b1].ty = Some(t.metropolis);
+    let v = sim.init_caravan(1, 0).expect("a slot");
+    let slot = &mut sim.caravans[1].slots[v];
+    slot.city_a = Some(c1);
+    slot.city_b = Some(c0);
+    slot.delivered = true;
+    assert_eq!(
+        sim.trade_value(c0, c1),
+        30,
+        "(5 + 5) · (3 + 3) / 3 · 3 / 2, bare"
+    );
+    sim.compute_trade(c0);
+    sim.compute_trade(c1);
+    assert_eq!(
+        (sim.cities[c0].trade_val, sim.cities[c1].trade_val),
+        (240, 240),
+        "30 · 16 / 2 at each end"
+    );
+    // Spice for who=1 alone: its own city's end is worth 30 · 120 / 100.
+    sim.ledgers[1].rare |= 1 << (economy::SPICE - economy::BASE_RARE);
+    sim.compute_trade(c0);
+    sim.compute_trade(c1);
+    assert_eq!(
+        (sim.cities[c0].trade_val, sim.cities[c1].trade_val),
+        (240, 288),
+        "the rare is the computing city's owner's"
+    );
+    // The caravans' power for who=0 alone: 30 · 115 / 100.
+    sim.tech[0].power = Some(0x15);
+    sim.tech[0].has_city = true;
+    sim.compute_trade(c0);
+    assert_eq!(sim.cities[c0].trade_val, 34 * 8, "and so is the power");
+}
+
 /// `LeaderData::pop` and `reg_pop` — `CityData::get_pop_value@00738450`,
 /// which is **1, 3, 5** and not the level, summed over the leader's live
 /// cities. The number is `create_units`' and `research_techs`' whole `base`

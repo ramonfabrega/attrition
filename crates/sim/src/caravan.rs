@@ -583,7 +583,10 @@ impl Sim {
                 } else {
                     continue;
                 };
-                val += self.trade_value(other, city) * 16 / 2;
+                // `00739705`: the end whose owner is this city's goes in
+                // `ecx`/`edx`, and that is the leader the bonuses ask —
+                // always this city's own.
+                val += self.trade_value(city, other) * 16 / 2;
             }
         }
         self.cities[city].trade_val = val;
@@ -654,10 +657,14 @@ impl Sim {
             if self.world.tregion_alt(self.cities[other].pos.tile()) != home_at && !transport {
                 continue;
             }
-            let mut v = self.trade_value(home, other);
-            if mine {
-                v <<= 2;
-            }
+            // `5ed65a`: the caravan's own home goes in `ecx`/`edx` when the
+            // home is its owner's, and the partner does otherwise — the end
+            // whose leader the bonuses ask.
+            let v = if mine {
+                self.trade_value(home, other) << 2
+            } else {
+                self.trade_value(other, home)
+            };
             if best.is_none_or(|(_, bv)| bv < v) {
                 best = Some((other, v));
             }
@@ -668,7 +675,11 @@ impl Sim {
     /// `Caravan::trade_value@0073d9d0`: the two cities' trade values, scaled
     /// by the distance band, by half again for a foreign partner, and by the
     /// two bonuses.
-    fn trade_value(&self, a: usize, b: usize) -> i32 {
+    ///
+    /// `a` is the end the original passes in `ecx`/`edx` — a register pair
+    /// the decompiler drops — and its **owner** is the leader both bonuses
+    /// ask. Everything before them is symmetric in the two ends.
+    pub(crate) fn trade_value(&self, a: usize, b: usize) -> i32 {
         let d = self.trade_distance(a, b);
         let mut v = self.city_trade_value(a) + self.city_trade_value(b);
         if d != 0 {
@@ -677,10 +688,21 @@ impl Sim {
         if self.cities[a].owner != self.cities[b].owner {
             v = v * 3 / 2;
         }
-        // SEAM: the Indian tribe bonus (`has_tribe_bonus(0x15)`,
-        // `indians_caravan`) and the spice rare (`leader_flags & 0x40`,
-        // `spice_caravan_income`) both scale the answer; neither is read
-        // here, and no capture has either.
+        // The two bonuses, on `a`'s owner: the caravans' nation power
+        // (`has_tribe_bonus(0x15)`), then the Spice rare (`rare` or
+        // `rare_conquest`, bit 6) — Great Sahara's who=1 holds Spice, and
+        // its two cities' routes went 22 → 26 on 14660 (`docs/CARAVAN.md`
+        // §4).
+        let lead = self.cities[a].owner;
+        if self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[lead as usize], 0x15)
+        {
+            v = (self.tuning.indians_caravan + 100) * v / 100;
+        }
+        if self.has_rare(lead, crate::economy::SPICE) {
+            v = (self.tuning.spice_caravan_income + 100) * v / 100;
+        }
         v
     }
 
