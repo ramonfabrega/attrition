@@ -608,6 +608,7 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
     let ch36 = golden_dump("ch36");
     let ch37 = golden_dump("ch37");
     let ch38 = golden_dump("ch38");
+    let ch39 = golden_dump("ch39");
     let ch17a = golden_dump("ch17-ammo");
     let r136 = crate::testenv::dump("gamelog-run136-greatlakes-detour.txt");
     let r163 = crate::testenv::dump("gamelog-run163-greatlakes-upgradeword.txt");
@@ -1695,6 +1696,18 @@ fn every_key_the_dump_prints_is_read_or_pinned() {
                 n, 5,
                 "chapter thirty-eight carries the window's five blocks"
             );
+            frames += n;
+        }
+    }
+    // **Chapter thirty-nine's word, on run422** (item 1111): the spell
+    // issuer's untargeted crafts. 626 and 646, To Arms; 666 and 706,
+    // Civilian; 722, the General's order; 821, the decoys; 1097, the last
+    // blocks.
+    if let Some(p) = &ch39 {
+        let _ = super::testkit::GOLDEN_WORD_CHAPTER_THIRTY_NINE;
+        for w in [626, 646, 666, 706, 722, 821, 1097] {
+            let n = drive_capture(p, w - 2, w + 2, &mut paths);
+            assert_eq!(n, 5, "chapter thirty-nine carries the window's five blocks");
             frames += n;
         }
     }

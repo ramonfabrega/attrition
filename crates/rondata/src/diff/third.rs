@@ -409,7 +409,7 @@ mod tests {
             Some("12979: ours 10000 theirs 40002"),
             "the make list's first value parting"
         );
-        pin_eq!(w.firsts.len(), 258, "every key parted on run416");
+        pin_eq!(w.firsts.len(), 254, "every key parted on run416");
     }
 
     /// **The third map's long word, 13182, widened whole** (item 1147):
@@ -445,12 +445,14 @@ mod tests {
                 .get(&(who, o, what.to_string()))
                 .map(|(f, r)| format!("{f}: {r}"))
         };
-        // **Block 13177 stands on 238 keys**: run416's standing families,
+        // **Block 13177 stands on 138 keys**: run416's standing families,
         // and what parted between the two captures — who=1's food and metal
         // buckets 16 short (run416's block 12784 queued `1/2014`'s unit at
-        // 80 each here against 64 there), and 25 AI citizens' `myhits` 40
+        // 80 each here against 64 there). ~~And 25 AI citizens' `myhits` 40
         // against 50 and `mylos` 2 against 4, which run416 first shows on
-        // 12945.
+        // 12945~~: item 1111 built a Citizen's hits and LOS off the Militia
+        // line (`docs/GOLDEN.md` §48), 238 → 138 and 935 → 831; run416's
+        // own four rows, 258 → 254.
         pin_eq!(
             row(1, -1, "leader:bucket[0:food]").as_deref(),
             Some("13177: ours 52 theirs 68"),
@@ -458,8 +460,8 @@ mod tests {
         );
         pin_eq!(
             row(1, 1, "myhits").as_deref(),
-            Some("13177: ours 40 theirs 50"),
-            "a citizen's hits, standing from run416's 12945"
+            None,
+            "a citizen's hits, agreeing since item 1111"
         );
         // **The make list parts on 13181**: slot 1 holds the Merchant
         // (61) at 211538 here, Longbowmen (177) at 9999999 there.
@@ -483,10 +485,10 @@ mod tests {
                 .filter(|(b, _)| **b <= LONG_WORD_GREAT_SAHARA + 1)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
-            [(13177, 238), (13181, 14), (13183, 18)],
+            [(13177, 138), (13181, 14), (13183, 18)],
             "the blocks keys first part on, to the word's"
         );
-        pin_eq!(w.firsts.len(), 935, "every key parted on run417");
+        pin_eq!(w.firsts.len(), 831, "every key parted on run417");
     }
 
     /// **The third map's score** (item 1066): run382 walked from run381's

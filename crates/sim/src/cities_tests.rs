@@ -4633,3 +4633,174 @@ fn a_caravan_trades_across_regions_only_when_it_can_transport() {
     );
     assert_ne!(m.angle, movement::find_angle(1, 0), "and not due east");
 }
+
+/// The untargeted crafts' fixture (item 1111, `docs/GOLDEN.md` §48): a
+/// Citizen (`PEASANTS`, 40 hits, LOS 2), the Militia (50), a General
+/// (`MANA 1000`) and an armed foot squad type, and the three rows as
+/// `craftrules.xml` has them — To Arms and Civilian with no flags and job
+/// 5, Create Decoys `lm`, job 100, `MANA 1000`. Returns the sim and the
+/// four unit records, plus the Militia's tree id.
+fn untargeted_sim() -> (Sim, [usize; 4], crate::tech::TypeId) {
+    use crate::orders::spell;
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    let citizen_t = tree.add(TypeDef::unit("Citizen", Traits::default()));
+    let militia_t = tree.add(TypeDef::unit("Militia", Traits::default()));
+    let general_t = tree.add(TypeDef::unit("General", Traits::default()));
+    let foot_t = tree.add(TypeDef::unit("Hoplites", Traits::default()));
+    sim.set_tech_tree(tree);
+    let ty = |sim: &mut Sim, ti: i32, hits: i32, los: i32, attack: i32, mana: i32, t| {
+        let mut u = UnitType {
+            hits,
+            los,
+            mana,
+            tree: Some(t),
+            type_index: ti,
+            ..UnitType::default()
+        };
+        u.combat.attack = attack;
+        sim.add_unit_type(u)
+    };
+    let citizen = ty(&mut sim, 0x32, 40, 2, 4, 0, citizen_t);
+    let militia = ty(&mut sim, 0x42, 50, 6, 10, 0, militia_t);
+    let general = ty(&mut sim, 0x36, 109, 8, 0, 1000, general_t);
+    let foot = ty(&mut sim, 0x84, 120, 6, 13, 0, foot_t);
+    for t in [citizen_t, foot_t, general_t] {
+        sim.tech[0].tech[t] = true;
+    }
+    let mut rows = vec![crate::orders::SpellType::default(); 55];
+    let row = |s: i32| (s - spell::FIRST) as usize;
+    rows[row(spell::TO_ARMS)] = crate::orders::SpellType {
+        job_time: 5,
+        from: [Some(citizen_t), None],
+        ..Default::default()
+    };
+    rows[row(spell::CIVILIAN)] = crate::orders::SpellType {
+        job_time: 5,
+        from: [Some(militia_t), None],
+        ..Default::default()
+    };
+    rows[row(spell::CREATE_DECOY)] = crate::orders::SpellType {
+        job_time: 100,
+        flags: 0x1800,
+        mana: 1000,
+        from: [Some(general_t), None],
+        ..Default::default()
+    };
+    sim.spells = rows;
+    (sim, [citizen, militia, general, foot], militia_t)
+}
+
+/// Press an untargeted craft on one unit, as the button does: `(ox, whom)`
+/// `(−1, −1)` and the point `(0, 0)`.
+fn press(sim: &mut Sim, u: usize, s: i32) -> usize {
+    let mut g = crate::group::Group::stack(sim.units[u].owner);
+    sim.group_add(&mut g, u);
+    assert!(sim.push_group(&mut g, true));
+    sim.group_action_spell(&g, s, None, Pos::new(0, 0))
+}
+
+/// **To Arms keeps the damage's fraction, `rare` the former type, and
+/// wants the Militia's own bit** (item 1111, `docs/GOLDEN.md` §48; the
+/// listing of `cast_to_arms@00670880` and the emulator's sweep: a Citizen
+/// at 7 of 40 is a Militia at 8 of 50). The press is refused while the
+/// player holds no Militia line (run422's first take: `tech … militia`
+/// without `on` changed nothing, and no order was laid), and a Citizen's
+/// own hits and LOS are the Militia line's once it does (`Object::
+/// update_hits`, `Unit::update_los`).
+///
+/// Made to fail with the damage carried whole (`set_type`'s rule: 7 of
+/// 50), with `rare` left 0, and with the castability's Militia test
+/// dropped.
+#[test]
+fn a_citizen_s_to_arms_keeps_its_damage_fraction_and_its_former_type() {
+    use crate::orders::spell;
+    let (mut sim, [citizen, militia, _, _], militia_t) = untargeted_sim();
+    let c = sim.init_unit(0, citizen, tile_pos(20, 20));
+    assert_eq!(press(&mut sim, c, spell::TO_ARMS), 0, "no Militia held");
+    assert!(sim.units[c].orders.is_empty());
+    assert_eq!((sim.units[c].max_health, sim.unit_los(c)), (40, 2));
+    sim.gain_tech(0, militia_t);
+    assert_eq!(
+        (sim.units[c].max_health, sim.unit_los(c)),
+        (50, 4),
+        "a Citizen's hits are the Militia's, and it sees two more"
+    );
+    sim.units[c].health = 50 - 9;
+    assert_eq!(press(&mut sim, c, spell::TO_ARMS), 1);
+    assert_eq!(sim.units[c].cavarch_who, -1, "an untargeted press");
+    for _ in 0..5 {
+        sim.tick();
+    }
+    let u = &sim.units[c];
+    assert_eq!(u.ty, Some(militia));
+    assert_eq!(u.rare, 0x32, "rare keeps the Citizen");
+    assert_eq!(u.form, 0);
+    // frac = (9 << 8) / 50 = 46; 50 × 46 / 256 = 8.
+    assert_eq!((u.max_health, u.max_health - u.health), (50, 8));
+    assert!(u.orders.is_empty(), "the cast is spent");
+}
+
+/// **Civilian reads `rare`: a Militia never converted becomes the
+/// Citizen and keeps `rare` at `PEASANTS`** (item 1111, `docs/GOLDEN.md`
+/// §48; run422's C, `rare` 0 → 50 on 666, and A's, 50 kept on 706).
+///
+/// Made to fail with `rare` cleared by the cast.
+#[test]
+fn a_militia_s_civilian_turns_back_to_what_rare_holds() {
+    use crate::orders::spell;
+    let (mut sim, [citizen, militia, _, _], militia_t) = untargeted_sim();
+    sim.gain_tech(0, militia_t);
+    let m = sim.init_unit(0, militia, tile_pos(20, 20));
+    assert_eq!(sim.units[m].rare, 0);
+    sim.units[m].health = 50 - 13;
+    assert_eq!(press(&mut sim, m, spell::CIVILIAN), 1);
+    for _ in 0..5 {
+        sim.tick();
+    }
+    let u = &sim.units[m];
+    assert_eq!(u.ty, Some(citizen));
+    assert_eq!((u.rare, u.form), (0x32, 9));
+    // frac = (13 << 8) / 50 = 66; the Citizen's hits are the Militia's 50
+    // now, so 50 × 66 / 256 = 12.
+    assert_eq!((u.max_health, u.max_health - u.health), (50, 12));
+}
+
+/// **Create Decoys copies the armed land captains within the General's
+/// radius, each figure a decoy of age 0 that sees one tile** (item 1111,
+/// `docs/GOLDEN.md` §48; run422's block 821). A squad of the foot type
+/// beside the General is copied; a Citizen beside it (a `PEASANTS`) and a
+/// squad eleven tiles off (past `GENERAL_RADIUS` 6 × 3/2 = 9) are not. The
+/// General pays its 1,000 once, and a decoy's `mana_burn` counts up.
+///
+/// Made to fail with the radius taken in tiles rather than × 0xc0, and
+/// with the decoy's ageing dropped.
+#[test]
+fn a_general_s_decoys_copy_the_armed_land_captains_near_it() {
+    use crate::orders::spell;
+    let (mut sim, [citizen, _, general, foot], _) = untargeted_sim();
+    let g = sim.init_unit(0, general, tile_pos(30, 30));
+    let near = sim.init_unit(0, foot, tile_pos(33, 30));
+    let _civ = sim.init_unit(0, citizen, tile_pos(30, 33));
+    let far = sim.init_unit(0, foot, tile_pos(41, 30));
+    let before = sim.units.len();
+    assert_eq!(press(&mut sim, g, spell::CREATE_DECOY), 1);
+    sim.tick();
+    assert_eq!(
+        sim.units[g].mana_burn, 1000,
+        "paid once, on the first frame"
+    );
+    for _ in 0..99 {
+        sim.tick();
+    }
+    let decoys: Vec<usize> = (before..sim.units.len()).collect();
+    assert_eq!(decoys.len(), 1, "one copy, of the near squad");
+    let d = decoys[0];
+    assert_eq!(sim.units[d].ty, sim.units[near].ty);
+    assert!(sim.units[d].decoy && !sim.units[near].decoy && !sim.units[far].decoy);
+    assert_eq!(sim.unit_los(d), 1);
+    let age = sim.units[d].mana_burn;
+    sim.tick();
+    assert_eq!(sim.units[d].mana_burn, age + 1, "a decoy ages a frame");
+}

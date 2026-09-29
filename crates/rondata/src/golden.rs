@@ -1240,10 +1240,17 @@ fn parse(text: &str) -> Cheat {
                     && t.parse::<i32>().is_err()
             });
             match named {
-                Some(name) => Cheat::Tech {
-                    who,
-                    name: (*name).to_string(),
-                    on: !rest.iter().any(|t| t.eq_ignore_ascii_case("off")),
+                // The token after the name is `parse_binary`'s: `on` gains,
+                // anything else loses, and **no token only reports** the
+                // state (`tell_tech`) — run422's first take wrote `tech
+                // who=0 militia` and nothing changed (item 1111).
+                Some(name) => match rest.iter().skip_while(|t| *t != name).nth(1) {
+                    None => Cheat::Unmapped(word),
+                    Some(flag) => Cheat::Tech {
+                        who,
+                        name: (*name).to_string(),
+                        on: flag.eq_ignore_ascii_case("on"),
+                    },
                 },
                 None => Cheat::Unmapped(word),
             }
@@ -1393,12 +1400,27 @@ fn run(line: &Staged, built: &mut Built, loaded: &Loaded, done: &mut Applied) {
                 return;
             }
             // `run_cmd`'s `tech` case names its argument through
-            // `parse_type(·, ·, 2)` (`007dd966`..`007dd9b4`), the same
+            // `parse_type(·, "tubs", 2)` (`007dd966`..`007dd9b4`), the same
             // underscore-to-space, exact-then-prefix rule as `add`'s
-            // (item 1078: `missile_shield` is Missile Shield).
-            match type_named(&loaded.tech_names, &name) {
+            // (item 1078: `missile_shield` is Missile Shield). The category
+            // string, read off run424's packet, is `tubs`, and `parse_type`
+            // walks the unit types ahead of the technologies: `militia` is
+            // the Militia's own bit, which `has_tech` reads for a unit
+            // (item 1111, `docs/GOLDEN.md` §48). SEAM: the buildings and
+            // the crafts of the same string, and the shorter prefixes
+            // `parse_type` tries before it gives up.
+            let exact = |names: &[String]| {
+                let want = name.replace('_', " ").to_ascii_lowercase();
+                names.iter().position(|n| n.to_ascii_lowercase() == want)
+            };
+            let tree = exact(&loaded.unit_type_names)
+                .map(|u| loaded.unit_tree[u])
+                .or_else(|| exact(&loaded.tech_names).map(|t| loaded.tech_tree[t]))
+                .or_else(|| type_named(&loaded.tech_names, &name).map(|t| loaded.tech_tree[t]))
+                .or_else(|| named_unit(loaded, &name).map(|u| loaded.unit_tree[u]));
+            match tree {
                 Some(t) => {
-                    built.sim.gain_tech(who as sim::Player, loaded.tech_tree[t]);
+                    built.sim.gain_tech(who as sim::Player, t);
                     done.ran += 1;
                 }
                 None => done.skip(&word, "no technology of that name"),
@@ -1695,6 +1717,11 @@ mod tests {
         // Defense, an Anti-Aircraft Battery and an Infantry squad: the air
         // line under fire (item 1102, `docs/GOLDEN.md` §47).
         ("chapter38.cmd", &[]),
+        // Chapter thirty-nine: a Citizen's To Arms and a Militia's Civilian
+        // both ways, and a General's Create Decoys beside two squads, behind
+        // `tech who=0 militia on` — the spell issuer's untargeted crafts
+        // (item 1111, `docs/GOLDEN.md` §48).
+        ("chapter39.cmd", &[]),
         // Chapter three restaged in two arenas (item 587, run146).
         ("chapter3b.cmd", &[]),
         ("chapter4.cmd", &[]),
