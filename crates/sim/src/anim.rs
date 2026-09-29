@@ -370,6 +370,11 @@ pub struct Turret {
     pub des: [i32; 4],
     /// `node_flags`: bit `k` once `angles[k]` has reached `des[k]`.
     pub node_flags: u16,
+    /// `des_node_flags` (`+0x98`): bit `k` where `set_all_pivots` last
+    /// found node `k + 4`'s range holding the bearing (`005d8bc0:129`).
+    /// Cleared with `node_flags` in the one 32-bit store; nothing here
+    /// reads it.
+    pub des_flags: u16,
 }
 
 impl Turret {
@@ -378,6 +383,7 @@ impl Turret {
         angles: [0; 4],
         des: [0; 4],
         node_flags: 0,
+        des_flags: 0,
     };
 
     /// `Guy::process@005e0230:30–56`, one frame: each turret on its
@@ -1694,16 +1700,22 @@ impl Sim {
                     // from `get_position`'s pivot branch — the pivot node
                     // at the figure's facing plus the release node at the
                     // facing **and the turret's angle**.
+                    //
+                    // **The gate is the event's, not the vectors'** (item
+                    // 1117, §85): `008e4c28`–`008e4c4c` read the event's
+                    // own node (`movsbl +0x23`, `& 3`) against the piece's
+                    // restriction count, then the package's `node_flags`,
+                    // so it holds a round on every pivot piece — the
+                    // Battery's among them, whose `get_position` entries
+                    // `pivot::RELEASES` has not measured.
                     let pivot = crate::pivot::release(guy.gpiece, guy.anim, start);
                     let pivots = self.units[u]
                         .ty
                         .and_then(|ty| self.art.pivots.get(&self.unit_types[ty].type_index))
                         .map_or(0, |n| n.len());
-                    if let Some(r) = pivot {
-                        let k = (r.node & 3) as usize;
-                        if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
-                            continue;
-                        }
+                    let k = (i32::from(node) & 3) as usize;
+                    if k < pivots && guy.turret.node_flags & (1 << k) == 0 {
+                        continue;
                     }
                     let facing = guy
                         .follow

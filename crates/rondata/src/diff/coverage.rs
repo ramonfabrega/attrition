@@ -134,6 +134,13 @@ const UNREAD: &[(&str, &str)] = &[
     // — are read by their tag now and compared (`docs/ORDERS.md` §33).
     // `turret_inc`, the fifth, rides the same key unread. Two keys leave;
     // no path does.
+    //
+    // **Item 1117 took the turret's four off both `UNITDATA/GUY` paths**
+    // — `turret_angles[4]`, `des_turret_angles[4]`, `node_flags` and
+    // `des_node_flags` — which the golden widening compares
+    // (`golden::widen_turrets`, `docs/COMBAT.md` §55.3): a pivot piece's
+    // release waits on `node_flags`, and chapter thirty-eight's word
+    // turned on one (parked 1119). Ten keys leave each path; no path does.
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
@@ -141,7 +148,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
+        "(int)off_x (int)off_y (int)variation last_angle o who",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/OBJECT",
@@ -239,7 +246,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",
-        "(int)off_x (int)off_y (int)variation des_node_flags des_turret_angles[0] des_turret_angles[1] des_turret_angles[2] des_turret_angles[3] last_angle node_flags o turret_angles[0] turret_angles[1] turret_angles[2] turret_angles[3] who",
+        "(int)off_x (int)off_y (int)variation last_angle o who",
     ),
     // **Item 571's run163 window is the first to print a grouped
     // attack-move** (`GROUPATTACKTOORDER`; run136 has none). Its
@@ -1799,8 +1806,16 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     ),
     // `Guy`: `ox`/`whom`, the figure's aim, are compared since item 1061;
     // `last_pos` is run86's widening's (item 271); `kind`, `guy_num` and
-    // `guy_flags` no site compares.
-    ("Guy", "guy_flags guy_num kind last_pos"),
+    // `guy_flags` no site compares. **The turret's four** — `node_flags`,
+    // `des_node_flags`, `turret_angles`, `des_turret_angles` — are
+    // compared by the golden widening since item 1117
+    // (`golden::widen_turrets`), on every figure of every golden window;
+    // the second pair's walk, whose window this is, does not compare them.
+    (
+        "Guy",
+        "des_node_flags des_turret_angles guy_flags guy_num kind last_pos node_flags \
+         turret_angles",
+    ),
     // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
     // and `orig_x`/`orig_y` to run29's field-table test on purpose
     // (`compare_orders`); the `GROUPORDER`, patrol, guard, garrison, cast,

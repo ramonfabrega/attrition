@@ -455,4 +455,79 @@ mod tests {
         assert!(rows >= 360, "{path}: {rows} rows");
         eprintln!("{rows} degrees agree");
     }
+
+    /// **The gate is the event's, whatever the vectors** (item 1117,
+    /// `docs/COMBAT.md` §85): `execute_game_events`' `008e4c28`–`008e4c4c`
+    /// hold a release on node `n` of a piece with restrictions while
+    /// `node_flags` lacks bit `n & 3`, and pass it once `n & 3` is past the
+    /// restriction count. run404's Battery `1/9` on 779: one `<RESTRICTION>`
+    /// (node 4), `CHAR_ATTACK2`'s node-0 event on frame 4 held with
+    /// `node_flags` 14, its node-1 event on frame 7 fired on 782. Its piece
+    /// has no [`RELEASES`] row, which is what the gate had been keyed on.
+    ///
+    /// Made to fail first: with the gate keyed on [`release`] again, the
+    /// held case fires a round (ours on 779, the word).
+    #[test]
+    fn a_turret_short_of_its_aim_holds_its_release_on_any_piece() {
+        use crate::combat::Obj;
+        use crate::world::{Pos, World};
+        const BATTERY: i32 = 282;
+        const PIECE: i32 = 12_345;
+        let fire = |node: i8, flags: u16| -> usize {
+            let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+            sim.at_war[0][1] = true;
+            sim.at_war[1][0] = true;
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                type_index: BATTERY,
+                combat: crate::combat::Profile {
+                    attack: 15,
+                    max_range: 8,
+                    uber_size: 1,
+                    ..crate::combat::Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            sim.art
+                .pivots
+                .insert(BATTERY, [(4, (-180, 180))].into_iter().collect());
+            sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 20);
+            sim.art.releases.insert(
+                PIECE,
+                [(crate::anim::ATTACK2, vec![(4, node, false)])]
+                    .into_iter()
+                    .collect(),
+            );
+            let put = |sim: &mut crate::Sim, who: u8, p: Pos| {
+                let index = i16::try_from(sim.units.len()).unwrap();
+                let mut u = crate::Unit::new(who, index, p, 100);
+                u.ty = Some(ty);
+                u.on_map = true;
+                sim.add_unit(u)
+            };
+            let me = put(&mut sim, 1, Pos::new(21384, 17256));
+            let foe = put(&mut sim, 0, Pos::new(21384, 16872));
+            sim.order_attack(me, Obj::Unit(foe));
+            sim.units[me].combat.target = Some(Obj::Unit(foe));
+            let mut g = crate::anim::Guy::fresh(PIECE);
+            g.anim = crate::anim::ATTACK2;
+            g.end_time = 20;
+            g.cur_time = 3;
+            g.last_time = 2;
+            g.stopped = false;
+            g.turret.node_flags = flags;
+            sim.units[me].guys = vec![g];
+            sim.guys_inc_time();
+            assert_eq!(
+                sim.units[me].guys[0].cur_time, 4,
+                "the clock reached the event"
+            );
+            sim.projectiles.len()
+        };
+        assert_eq!(release(PIECE, crate::anim::ATTACK2, 4), None);
+        assert_eq!(fire(0, 14), 0, "node 0, bit 0 clear: held (run404's 779)");
+        assert_eq!(fire(0, 15), 1, "node 0, bit 0 set: fired");
+        assert_eq!(fire(1, 14), 1, "node 1, past the one restriction: fired");
+        assert_eq!(fire(1, 0), 1, "whatever the bits");
+    }
 }

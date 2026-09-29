@@ -5001,6 +5001,7 @@ fn chapter_five_s_word_frame_is_widened_whole() {
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&built, &frame, players, n, &mut firsts);
         rows += k;
+        rows += widen_turrets(&built, &frame, players, n, &mut firsts);
         let raw = ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
         for who in 0..2usize {
@@ -5644,6 +5645,7 @@ fn chapter_four_s_word_frame_is_widened_whole() {
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
         rows += k;
+        rows += widen_turrets(&s.built, &frame, players, n, &mut firsts);
         let raw = s.ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
         for who in 0..2usize {
@@ -6392,6 +6394,72 @@ pub(super) fn cycle_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64), [
         .collect()
 }
 
+/// **A pivot figure's turret, every figure, both directions** (item
+/// 1117, `docs/COMBAT.md` §55.3): `GUY`'s `turret_angles[4]`,
+/// `des_turret_angles[4]`, `node_flags` and `des_node_flags` against
+/// `sim::anim::Turret`, on every figure of every unit both sides hold.
+/// `widen_block` compares the rest of the record; these four were parsed
+/// by nothing until this item (parked 1119), and a pivot piece's release
+/// waits on `node_flags`. A figure whose dump does not print them — a
+/// capture below `GUYS=4` — is counted, not compared. Returns the rows
+/// compared.
+fn widen_turrets(
+    built: &Built,
+    frame: &crate::gamelog::Frame,
+    players: usize,
+    n: i64,
+    firsts: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+) -> usize {
+    use crate::diff::compared;
+    let mut rows = 0;
+    for them in &frame.units {
+        if !(0..players as i64).contains(&them.who) {
+            continue;
+        }
+        let (Ok(w), Ok(o)) = (u8::try_from(them.who), i16::try_from(them.o)) else {
+            continue;
+        };
+        let Some(u) = built.sim.unit_by_o(w, o) else {
+            continue;
+        };
+        for (k, g) in them.guys.iter().enumerate() {
+            let Some(t) = built.sim.units[u].guys.get(k).map(|x| x.turret) else {
+                continue;
+            };
+            let mut here: Vec<(String, i64, i64)> = Vec::new();
+            if let Some(v) = g.node_flags {
+                compared::note("Guy", &["node_flags"]);
+                here.push((format!("g.node_flags[{k}]"), i64::from(t.node_flags), v));
+            }
+            if let Some(v) = g.des_node_flags {
+                compared::note("Guy", &["des_node_flags"]);
+                here.push((format!("g.des_node_flags[{k}]"), i64::from(t.des_flags), v));
+            }
+            if let Some(a) = g.turret_angles {
+                compared::note("Guy", &["turret_angles"]);
+                for (j, v) in a.into_iter().enumerate() {
+                    here.push((format!("g.turret{j}[{k}]"), i64::from(t.angles[j]), v));
+                }
+            }
+            if let Some(a) = g.des_turret_angles {
+                compared::note("Guy", &["des_turret_angles"]);
+                for (j, v) in a.into_iter().enumerate() {
+                    here.push((format!("g.des_turret{j}[{k}]"), i64::from(t.des[j]), v));
+                }
+            }
+            for (what, ours, theirs) in here {
+                rows += 1;
+                if ours != theirs {
+                    firsts
+                        .entry((them.who, them.o, what))
+                        .or_insert((n, format!("ours {ours} theirs {theirs}")));
+                }
+            }
+        }
+    }
+    rows
+}
+
 /// **One golden capture of the civilians' chapters, widened whole**
 /// (items 578 and 628): every record on every block of `[first, last)` —
 /// [`crate::diff::harness::widen_block`] on every unit, figure, building
@@ -6444,6 +6512,7 @@ fn widen_civilians(
         blocks += 1;
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut firsts);
         rows += k;
+        rows += widen_turrets(&s.built, &frame, players, n, &mut firsts);
         // `RON_ROW_WALK=who/o,…` — every key that parts on this block for
         // the units named, not only its first parting: a key whose first
         // parting is a birth seat hides everything after it (parked 1046,
@@ -6451,6 +6520,7 @@ fn widen_civilians(
         if let Ok(spec) = std::env::var("RON_ROW_WALK") {
             let mut here = BTreeMap::new();
             crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut here);
+            widen_turrets(&s.built, &frame, players, n, &mut here);
             for ((w, o, what), (_, row)) in &here {
                 if spec.split(',').any(|u| u.trim() == format!("{w}/{o}")) {
                     eprintln!("  walk f{n} {w}/{o} {what}: {row}");
@@ -10299,6 +10369,7 @@ fn widen_chapter_three(
         let mut blk: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
         let (_, k) = crate::diff::harness::widen_block(&s.built, &frame, players, n, &mut blk);
         rows += k;
+        rows += widen_turrets(&s.built, &frame, players, n, &mut blk);
         let raw = s.ix.read_frame(at).unwrap();
         let flog = Log::parse(&raw);
         for who in 0..2usize {
@@ -13144,20 +13215,135 @@ fn chapter_thirty_eight_s_word_frame_is_widened_whole() {
     assert_eq!(got, want, "ch38: what parts under the word moved");
 }
 
-/// Chapter thirty-eight's widening rows (items 1102, 1109, 1112): run404
-/// whole, the jam roll, the flak roll, the crash, the foot line's speed,
-/// the anti-air angle, the Modern Infantry's step and the Radar Air
-/// Defense's `Wall::inc_time` cycle built, the word open at 779. The
-/// standing rows of every golden start (`form`, `g.gpiece`, the gather
-/// slots); the Radar Air Defense's `constr_time` (30000 against 22556);
-/// the army's `ATTACKTO` points for `1/7` and `1/8` on 765, one cell (48)
-/// past theirs, and the two walks they steer; from 779, the Battery's
-/// round its turret holds in theirs (`780 1/9 ammo[0]`), and everything
-/// the Bombers' flight and bombs touch after it — the Radar's cycle rows
-/// first part on 837 (`attack_ox`).
+/// **The word's block, the Battery's turret** (item 1117, `docs/COMBAT.md`
+/// §85): run404's block 780, the frame after the word. The Battery `1/9`
+/// is on `CHAR_ATTACK2`'s frame 4, the frame of its node-0 release, and
+/// its turret 0 is still short of its aim — `node_flags` 14 (bit 0 clear:
+/// turrets 1–3 sit on their zero aims), `des_node_flags` 1 (one
+/// `<RESTRICTION>` row, node 4). Both sides' four fields, read off the
+/// block and off the figure, and the dump's own values pinned so the test
+/// cannot pass on an empty record.
+#[test]
+fn chapter_thirty_eight_s_battery_is_short_of_its_aim_on_the_word_s_block() {
+    const BLOCK: i64 = 780;
+    let Some(mut s) = stage_script("ch38", "chapter38") else {
+        return;
+    };
+    for _ in 0..BLOCK {
+        s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded);
+        s.built.tick();
+    }
+    let at =
+        s.ix.frames()
+            .iter()
+            .position(|x| x.number == BLOCK)
+            .expect("run404 carries block 780");
+    let frame = s.ix.frame_state(at).unwrap();
+    let them = frame
+        .units
+        .iter()
+        .find(|u| (u.who, u.o) == (1, 9))
+        .expect("the Battery on 780");
+    let g = &them.guys[0];
+    assert_eq!(
+        (g.cur_anim, g.cur_time, g.node_flags, g.des_node_flags),
+        (Some(12), Some(4), Some(14), Some(1)),
+        "run404's block 780 is not the one this test was written from"
+    );
+    assert_eq!(g.turret_angles, Some([1_476_220_240, 0, 0, 0]));
+    assert_eq!(g.des_turret_angles, Some([-1_978_269_696, 0, 0, 0]));
+    let u = s.built.sim.unit_by_o(1, 9).expect("ours holds the Battery");
+    let t = s.built.sim.units[u].guys[0].turret;
+    // Both sides: the bits agree, and so does the step the turret is on
+    // (its aim is 2,359,296 off theirs from 743, the node's vector —
+    // `pivot::NODES` has no row for the Battery's piece).
+    assert_eq!(
+        (i64::from(t.node_flags), i64::from(t.des_flags)),
+        (14, 1),
+        "ours: node_flags / des_node_flags on 780"
+    );
+    let og = s.built.sim.units[u].guys[0];
+    assert_eq!(
+        (i64::from(og.anim), i64::from(og.cur_time)),
+        (12, 4),
+        "ours: the Battery's clock on 780"
+    );
+    // **And the round is held on both sides** (§85): run404 prints no
+    // `AMMO` of `1/9` from 762 to 782, and ours holds none on 780 — the
+    // word's own row, `780 1/9 ammo[0]` ("this crate holds it alone"),
+    // until the gate stopped keying on the piece's measured vectors.
+    let mine = s
+        .built
+        .sim
+        .projectiles
+        .iter()
+        .filter(|p| p.shooter == sim::combat::Obj::Unit(u))
+        .count();
+    assert_eq!(mine, 0, "ours: the Battery's held round on 780");
+}
+
+/// Chapter thirty-eight's widening rows (items 1102, 1109, 1112, 1117):
+/// run404 whole, the jam roll, the flak roll, the crash, the foot line's
+/// speed, the anti-air angle, the Modern Infantry's step, the Radar Air
+/// Defense's `Wall::inc_time` cycle and the turret's release gate built,
+/// the word open at 794. The standing rows of every golden start (`form`,
+/// `g.gpiece`, the gather slots); the Radar Air Defense's `constr_time`
+/// (30000 against 22556); the army's `ATTACKTO` points for `1/7` and `1/8`
+/// on 765, one cell (48) past theirs, and the two walks they steer — `1/7`'s
+/// is the word's, walking into the Battery on 794 where theirs stands; the
+/// Battery's aim (743) and its node-1 round's launch point (784, `0/7`'s
+/// hit a frame late); and everything the Bombers' flight and bombs touch
+/// after it — the Radar's cycle rows first part on 837 (`attack_ox`).
 const WANT_CH38: &[&str] = &[
+    // Item 1117's turret rows: the Battery's aim, 2,359,296 off from its
+    // first on 743 (the node's vector is unmeasured for its piece), and
+    // its bits on 801. From 779 the Battery holds its node-0 round as
+    // theirs does; its node-1 round on 782 leaves from the figure's square
+    // (the piece's release vector is unmeasured), a frame longer in the
+    // air, so `0/7`'s hit rows part on 784. The word, 794, is `1/7`'s walk,
+    // parted since 765 (parked 1113).
+    "1002 0/3 order:move.angle",
+    "1006 1/2007 ammo[3]",
     "1007 0/6 extra",
-    "1008 1/2007 ammo[8]",
+    "1011 1/0 g.angle[0]",
+    "1011 1/0 g.angle[1]",
+    "1011 1/0 g.avg_speed[1]",
+    "1011 1/0 g.des_angle[0]",
+    "1011 1/0 g.des_angle[1]",
+    "1011 1/0 g.des_x[0]",
+    "1011 1/0 g.des_x[1]",
+    "1011 1/0 g.des_y[1]",
+    "1011 1/0 g.last_speed[1]",
+    "1011 1/0 g.x[0]",
+    "1011 1/0 g.x[1]",
+    "1011 1/0 g.y[1]",
+    "1011 1/0 heading",
+    "1011 1/0 order:move.dest_x",
+    "1011 1/0 pos",
+    "1015 1/0 g.des_y[0]",
+    "1015 1/0 g.y[0]",
+    "1016 1/0 g.cur_anim[1]",
+    "1018 1/0 g.last_speed[0]",
+    "1020 0/5 dest_angle",
+    "1020 0/5 order:move.angle",
+    "1020 0/5 order:move.off_x",
+    "1020 0/5 order:move.off_y",
+    "1020 0/5 order:move.x",
+    "1020 0/5 order:move.y",
+    "1020 0/5 orders_x",
+    "1020 0/5 orders_y",
+    "1021 0/5 g.angle[0]",
+    "1021 0/5 g.des_angle[0]",
+    "1021 0/5 g.des_x[0]",
+    "1021 0/5 g.des_y[0]",
+    "1021 0/5 g.last_speed[0]",
+    "1021 0/5 g.x[0]",
+    "1021 0/5 g.y[0]",
+    "1021 0/5 heading",
+    "1021 0/5 order:move.dest_x",
+    "1021 0/5 order:move.dest_y",
+    "1021 0/5 path[0].to",
+    "1021 0/5 pos",
     "1021 1/6 path[19].to",
     "1021 1/6 path[20].to",
     "1021 1/6 path[21].to",
@@ -13176,162 +13362,123 @@ const WANT_CH38: &[&str] = &[
     "1021 1/9 path[28].to",
     "1021 1/9 path[29].to",
     "1021 1/9 path[30].to",
-    "1027 1/9 dest_angle",
-    "1027 1/9 order:kind",
-    "1027 1/9 order:length",
-    "1027 1/9 orders.len",
-    "1027 1/9 orders_x",
-    "1027 1/9 orders_y",
-    "1028 1/9 g.angle[0]",
-    "1028 1/9 g.avg_speed[0]",
-    "1028 1/9 g.des_angle[0]",
-    "1028 1/9 g.des_x[0]",
-    "1028 1/9 g.des_y[0]",
-    "1028 1/9 g.end_time[0]",
-    "1028 1/9 g.last_speed[0]",
-    "1028 1/9 g.stopped[0]",
-    "1028 1/9 g.x[0]",
-    "1028 1/9 g.y[0]",
-    "1028 1/9 heading",
-    "1028 1/9 pos",
+    "1024 0/5 g.avg_speed[0]",
+    "1029 1/4 collide_o",
+    "1029 1/4 collide_who",
+    "1032 1/0 order:move.dest",
+    "1032 1/0 path:length",
+    "1033 1/0 order:move.dest_y",
     "1036 1/2007 build:damage",
     "1036 1/2007 build:damage_frac",
-    "1043 1/0 g.angle[0]",
-    "1043 1/0 g.angle[1]",
-    "1043 1/0 g.avg_speed[1]",
-    "1043 1/0 g.des_angle[0]",
-    "1043 1/0 g.des_angle[1]",
-    "1043 1/0 g.des_x[0]",
-    "1043 1/0 g.des_x[1]",
-    "1043 1/0 g.des_y[0]",
-    "1043 1/0 g.des_y[1]",
-    "1043 1/0 g.last_speed[0]",
-    "1043 1/0 g.last_speed[1]",
-    "1043 1/0 g.x[0]",
-    "1043 1/0 g.x[1]",
-    "1043 1/0 g.y[0]",
-    "1043 1/0 g.y[1]",
-    "1043 1/0 heading",
-    "1043 1/0 order:move.dest_x",
-    "1043 1/0 pos",
-    "1045 1/0 g.cur_anim[1]",
-    "1053 1/9 order:move.dest_x",
-    "1053 1/9 order:move.dest_y",
-    "1056 1/9 order:move.dest",
-    "1061 1/0 order:move.dest",
-    "1061 1/0 path:length",
-    "1062 1/0 order:move.dest_y",
+    "1041 1/4 angle:Facing",
+    "1041 1/4 angle:Heading",
+    "1043 0/5 order:kind",
+    "1043 0/5 order:length",
+    "1043 0/5 orders.len",
+    "1043 0/5 path:length",
+    "1043 1/5 mirror",
+    "1044 0/5 g.cur_time[0]",
+    "1044 0/5 g.last_time[0]",
+    "1044 1/5 order:flags",
+    "1044 1/5 order:move.dest",
+    "1045 0/5 g.cur_anim[0]",
+    "1045 0/5 g.end_time[0]",
+    "1045 0/5 g.stopped[0]",
+    "1056 1/0 order:move.last_x",
+    "1056 1/0 order:move.last_y",
+    "1056 1/0 path[3].tolerance",
+    "1056 1/0 path_recursion",
+    "1056 1/0 tolerance",
     "1069 1/0 g.avg_speed[0]",
-    "1072 0/3 dest_angle",
-    "1072 0/3 order:kind",
-    "1072 0/3 order:length",
-    "1072 0/3 orders.len",
-    "1072 0/3 orders_x",
-    "1072 0/3 orders_y",
-    "1073 0/3 g.angle[0]",
-    "1073 0/3 g.avg_speed[0]",
-    "1073 0/3 g.cur_anim[0]",
-    "1073 0/3 g.cur_time[0]",
-    "1073 0/3 g.des_angle[0]",
-    "1073 0/3 g.des_x[0]",
-    "1073 0/3 g.des_y[0]",
-    "1073 0/3 g.end_time[0]",
-    "1073 0/3 g.last_speed[0]",
-    "1073 0/3 g.last_time[0]",
-    "1073 0/3 g.stopped[0]",
-    "1073 0/3 g.x[0]",
-    "1073 0/3 g.y[0]",
-    "1073 0/3 heading",
-    "1073 0/3 mirror",
-    "1073 0/3 path:length",
-    "1073 0/3 pos",
+    "1085 1/0 mirror",
     "1087 1/2 order:gather.wait",
-    "1092 1/3 mirror",
-    "1093 0/4 angle:Facing",
-    "1093 1/3 order:flags",
-    "1093 1/3 order:move.dest",
-    "1113 1/0 tolerance",
-    "1160 0/5 angle:Facing",
-    "1160 0/5 angle:Heading",
-    "1167 1/0 mirror",
-    "1167 1/0 order:length",
-    "1167 1/0 orders.len",
-    "1167 1/0 orders_y",
-    "1168 1/0 g.cur_time[0]",
-    "1168 1/0 g.cur_time[1]",
-    "1168 1/0 g.last_time[0]",
-    "1168 1/0 g.last_time[1]",
-    "1168 1/0 idle",
-    "1168 1/0 order:move.facing",
-    "1168 1/0 order:move.y",
-    "1226 1/0 g.cur_anim[0]",
-    "1226 1/0 g.end_time[0]",
-    "1226 1/0 g.end_time[1]",
-    "1226 1/0 g.stopped[0]",
-    "1226 1/0 g.stopped[1]",
+    "1149 0/5 order:flags",
+    "1149 0/5 order:move.dest",
+    "1150 0/5 mirror",
+    "1170 1/0 order:length",
+    "1170 1/0 orders.len",
+    "1170 1/0 orders_y",
+    "1171 1/0 g.cur_time[0]",
+    "1171 1/0 g.cur_time[1]",
+    "1171 1/0 g.last_time[0]",
+    "1171 1/0 g.last_time[1]",
+    "1171 1/0 idle",
+    "1179 1/0 order:move.facing",
+    "1218 0/3 angle:Facing",
+    "1218 0/3 angle:Heading",
+    "1218 1/0 g.cur_anim[0]",
+    "1218 1/0 g.end_time[0]",
+    "1218 1/0 g.end_time[1]",
+    "1218 1/0 g.stopped[0]",
+    "1218 1/0 g.stopped[1]",
+    "1219 0/4 angle:Facing",
+    "1219 0/4 angle:Heading",
     "1228 1/1 order:gather.wait",
     "1254 0/2 order:gather.wait",
+    "1265 1/0 order:move.y",
+    "1271 1/9 g.angle[0]",
+    "1271 1/9 g.avg_speed[0]",
+    "1271 1/9 g.des_angle[0]",
+    "1271 1/9 g.des_x[0]",
+    "1271 1/9 g.last_speed[0]",
+    "1271 1/9 g.x[0]",
+    "1271 1/9 heading",
+    "1271 1/9 order:move.dest_y",
+    "1271 1/9 pos",
+    "1272 1/9 g.des_y[0]",
+    "1272 1/9 g.y[0]",
     "1277 1/6 path[10].to",
     "1277 1/6 path[9].to",
+    "1277 1/9 g.stopped[0]",
     "1277 1/9 order:group.id",
-    "1306 1/4 order:move.dest_x",
-    "1306 1/4 order:move.dest_y",
-    "1306 1/4 path[0].to",
-    "1337 0/1 dest_angle",
-    "1337 0/1 g.cur_anim[0]",
-    "1337 0/1 order:kind",
-    "1337 0/1 order:length",
-    "1337 0/1 orders.len",
-    "1338 0/1 order:gather.goto_build",
-    "1339 0/1 angle:Facing",
-    "1339 0/1 angle:Heading",
-    "1339 0/1 g.angle[0]",
-    "1339 0/1 g.des_angle[0]",
-    "1339 0/1 g.stopped[0]",
-    "1339 0/1 heading",
-    "1339 0/1 mirror",
+    "1294 1/9 order:move.dest",
+    "1295 1/9 order:move.dest_x",
+    "1366 0/1 dest_angle",
+    "1366 0/1 g.cur_anim[0]",
+    "1366 0/1 order:kind",
+    "1366 0/1 order:length",
+    "1366 0/1 orders.len",
+    "1367 0/1 order:gather.goto_build",
+    "1368 0/1 angle:Facing",
+    "1368 0/1 angle:Heading",
+    "1368 0/1 g.angle[0]",
+    "1368 0/1 g.des_angle[0]",
+    "1368 0/1 g.stopped[0]",
+    "1368 0/1 heading",
+    "1368 0/1 mirror",
     "1409 1/-1 leader:bucket[2:wealth]",
-    "1418 1/5 angle:Heading",
-    "1450 0/4 order:move.angle",
-    "1451 0/4 order:move.dest_x",
-    "1451 0/4 order:move.dest_y",
-    "1451 0/4 path[0].to",
     "1460 1/8 tolerance",
     "1504 1/8 order:length",
     "1504 1/8 orders.len",
     "1505 1/8 idle",
+    "1533 1/2 dest_angle",
+    "1533 1/2 g.cur_anim[0]",
+    "1533 1/2 g.cur_time[0]",
+    "1533 1/2 g.last_time[0]",
+    "1533 1/2 order:kind",
+    "1533 1/2 order:length",
+    "1533 1/2 orders.len",
     "1533 1/6 order:length",
     "1533 1/6 orders.len",
     "1533 1/6 orders_x",
     "1533 1/6 orders_y",
+    "1534 1/2 order:gather.goto_build",
     "1534 1/6 idle",
+    "1535 1/2 angle:Facing",
+    "1535 1/2 angle:Heading",
+    "1535 1/2 g.angle[0]",
+    "1535 1/2 g.des_angle[0]",
+    "1535 1/2 g.end_time[0]",
+    "1535 1/2 g.stopped[0]",
+    "1535 1/2 heading",
+    "1535 1/2 mirror",
+    "1538 1/5 angle:Facing",
+    "1538 1/5 angle:Heading",
     "1541 1/7 order:length",
     "1541 1/7 orders.len",
     "1541 1/7 orders_x",
     "1542 1/7 idle",
-    "1553 1/2 dest_angle",
-    "1553 1/2 g.cur_anim[0]",
-    "1553 1/2 g.cur_time[0]",
-    "1553 1/2 g.last_time[0]",
-    "1553 1/2 order:kind",
-    "1553 1/2 order:length",
-    "1553 1/2 orders.len",
-    "1554 1/2 order:gather.goto_build",
-    "1555 1/2 angle:Facing",
-    "1555 1/2 angle:Heading",
-    "1555 1/2 g.angle[0]",
-    "1555 1/2 g.des_angle[0]",
-    "1555 1/2 g.end_time[0]",
-    "1555 1/2 g.stopped[0]",
-    "1555 1/2 heading",
-    "1555 1/2 mirror",
-    "1582 0/3 angle:Facing",
-    "1582 0/3 angle:Heading",
-    "1596 1/3 angle:Facing",
-    "1596 1/3 angle:Heading",
-    "1628 1/0 order:move.last_x",
-    "1628 1/0 order:move.last_y",
-    "1628 1/0 path_recursion",
+    "1627 1/0 path[5].to",
     "1687 1/6 collide_frame",
     "1690 1/1 dest_angle",
     "1690 1/1 g.cur_anim[0]",
@@ -13383,6 +13530,8 @@ const WANT_CH38: &[&str] = &[
     "650 0/1 g.last_time[0]",
     "655 0/2 g.cur_time[0]",
     "655 0/2 g.last_time[0]",
+    "743 1/9 g.des_turret0[0]",
+    "743 1/9 g.turret0[0]",
     "761 1/9 ammo[1]",
     "765 1/7 g.angle[0]",
     "765 1/7 g.avg_speed[0]",
@@ -13501,46 +13650,16 @@ const WANT_CH38: &[&str] = &[
     "778 1/6 angle:Facing",
     "778 1/6 angle:Heading",
     "778 1/7 g.stopped[0]",
-    "780 1/9 ammo[0]",
     "781 1/7 order:move.dest",
     "781 1/7 path:length",
-    "782 0/7 damage_frac",
-    "782 0/7 damage_frame",
-    "782 0/7 hits:damage",
-    "782 0/7 hits:damage_frac",
-    "782 0/7 hits_left",
-    "787 1/5 dest_angle",
-    "787 1/5 order:move.angle",
-    "787 1/5 order:move.off_x",
-    "787 1/5 order:move.off_y",
-    "787 1/5 order:move.x",
-    "787 1/5 order:move.y",
-    "787 1/5 orders_x",
-    "787 1/5 orders_y",
+    "784 0/7 damage_frac",
+    "784 0/7 damage_frame",
+    "784 0/7 hits:damage",
+    "784 0/7 hits:damage_frac",
+    "784 0/7 hits_left",
+    "784 1/9 ammo[0]",
     "787 1/8 g.cur_anim[0]",
     "787 1/8 g.end_time[0]",
-    "788 1/5 g.angle[0]",
-    "788 1/5 g.avg_speed[0]",
-    "788 1/5 g.cur_anim[0]",
-    "788 1/5 g.cur_time[0]",
-    "788 1/5 g.des_angle[0]",
-    "788 1/5 g.des_x[0]",
-    "788 1/5 g.des_y[0]",
-    "788 1/5 g.end_time[0]",
-    "788 1/5 g.last_speed[0]",
-    "788 1/5 g.last_time[0]",
-    "788 1/5 g.stopped[0]",
-    "788 1/5 g.x[0]",
-    "788 1/5 g.y[0]",
-    "788 1/5 heading",
-    "788 1/5 mirror",
-    "788 1/5 order:kind",
-    "788 1/5 order:length",
-    "788 1/5 orders.len",
-    "788 1/5 path:length",
-    "788 1/5 pos",
-    "789 1/5 order:flags",
-    "789 1/5 order:move.dest",
     "792 1/6 g.cur_anim[0]",
     "792 1/6 g.cur_time[0]",
     "792 1/6 g.end_time[0]",
@@ -13554,56 +13673,23 @@ const WANT_CH38: &[&str] = &[
     "796 1/7 path[31].tolerance",
     "797 1/7 mirror",
     "797 1/7 tolerance",
-    "800 1/4 dest_angle",
-    "800 1/4 order:move.angle",
-    "800 1/4 order:move.off_x",
-    "800 1/4 order:move.off_y",
-    "800 1/4 order:move.x",
-    "800 1/4 order:move.y",
-    "800 1/4 orders_x",
-    "800 1/4 orders_y",
-    "801 1/4 collide_o",
-    "801 1/4 collide_who",
-    "801 1/9 g.cur_anim[0]",
+    "801 1/9 g.node_flags[0]",
+    "802 1/2007 ammo[6]",
     "802 1/6 collide",
     "802 1/6 collide_guy",
     "802 1/6 collide_o",
     "802 1/6 collide_who",
     "802 1/6 order:move.dest",
     "802 1/6 path:length",
-    "803 1/4 g.angle[0]",
-    "803 1/4 g.avg_speed[0]",
-    "803 1/4 g.cur_anim[0]",
-    "803 1/4 g.cur_time[0]",
-    "803 1/4 g.des_angle[0]",
-    "803 1/4 g.des_x[0]",
-    "803 1/4 g.des_y[0]",
-    "803 1/4 g.end_time[0]",
-    "803 1/4 g.last_speed[0]",
-    "803 1/4 g.last_time[0]",
-    "803 1/4 g.stopped[0]",
-    "803 1/4 g.x[0]",
-    "803 1/4 g.y[0]",
-    "803 1/4 heading",
-    "803 1/4 order:kind",
-    "803 1/4 order:length",
-    "803 1/4 orders.len",
-    "803 1/4 path:length",
-    "803 1/4 pos",
     "803 1/6 mirror",
     "803 1/6 order:move.dest_x",
     "803 1/6 tolerance",
-    "804 1/4 order:flags",
-    "804 1/4 order:move.dest",
     "805 1/6 order:move.dest_y",
-    "806 0/7 ammo[1]",
-    "806 0/7 ammo[6]",
-    "809 0/7 ammo[8]",
+    "809 1/2007 ammo[2]",
     "811 0/0 g.cur_anim[0]",
     "811 0/0 g.cur_anim[1]",
     "811 0/0 g.end_time[0]",
-    "814 1/9 ammo[2]",
-    "816 1/5 angle:Facing",
+    "818 0/7 damage_o",
     "818 1/7 order:coll",
     "820 0/7 g.bank[0]",
     "820 0/7 path[0].to",
@@ -13620,6 +13706,8 @@ const WANT_CH38: &[&str] = &[
     "822 0/7 g.y[0]",
     "822 0/7 orders_x",
     "823 0/7 orders_y",
+    "825 0/4 dest_angle",
+    "825 0/4 order:move.angle",
     "825 0/4 order:move.off_x",
     "825 0/4 order:move.off_y",
     "825 0/4 order:move.x",
@@ -13627,7 +13715,6 @@ const WANT_CH38: &[&str] = &[
     "825 0/4 orders_x",
     "825 0/4 orders_y",
     "825 0/7 g.avg_speed[0]",
-    "826 0/4 dest_angle",
     "826 0/4 g.angle[0]",
     "826 0/4 g.avg_speed[0]",
     "826 0/4 g.cur_anim[0]",
@@ -13642,26 +13729,72 @@ const WANT_CH38: &[&str] = &[
     "826 0/4 g.x[0]",
     "826 0/4 g.y[0]",
     "826 0/4 heading",
+    "826 0/4 mirror",
     "826 0/4 order:kind",
     "826 0/4 order:length",
     "826 0/4 orders.len",
     "826 0/4 path:length",
     "826 0/4 pos",
+    "826 1/9 g.cur_anim[0]",
     "827 0/4 order:flags",
     "827 0/4 order:move.dest",
+    "828 0/4 order:move.dest_x",
+    "828 0/4 order:move.dest_y",
+    "828 0/4 path[0].to",
     "828 1/6 order:coll",
     "828 1/6 path[33].to",
-    "829 0/7 damage_o",
     "829 1/2007 ammo[0]",
     "832 0/7 g.last_z[0]",
     "832 0/7 g.pitch[0]",
     "832 0/7 g.z[0]",
+    "833 0/6 ammo[1]",
+    "833 0/6 ammo[2]",
     "833 0/7 g.last_pitch[0]",
+    "833 1/9 ammo[3]",
     "837 1/2007 build:attack_ox",
+    "838 1/3 dest_angle",
+    "838 1/3 order:move.angle",
+    "838 1/3 order:move.off_x",
+    "838 1/3 order:move.off_y",
+    "838 1/3 order:move.x",
+    "838 1/3 order:move.y",
+    "838 1/3 orders_x",
+    "838 1/3 orders_y",
+    "839 0/6 ammo[3]",
+    "839 0/6 ammo[5]",
+    "839 1/3 g.angle[0]",
+    "839 1/3 g.avg_speed[0]",
+    "839 1/3 g.cur_anim[0]",
+    "839 1/3 g.cur_time[0]",
+    "839 1/3 g.des_angle[0]",
+    "839 1/3 g.des_x[0]",
+    "839 1/3 g.des_y[0]",
+    "839 1/3 g.end_time[0]",
+    "839 1/3 g.last_speed[0]",
+    "839 1/3 g.last_time[0]",
+    "839 1/3 g.stopped[0]",
+    "839 1/3 g.x[0]",
+    "839 1/3 g.y[0]",
+    "839 1/3 heading",
+    "839 1/3 mirror",
+    "839 1/3 order:kind",
+    "839 1/3 order:length",
+    "839 1/3 orders.len",
+    "839 1/3 path:length",
+    "839 1/3 pos",
+    "840 1/3 order:flags",
+    "840 1/3 order:move.dest",
+    "840 1/9 ammo[6]",
+    "841 0/6 ammo[7]",
+    "841 1/3 order:move.dest_x",
+    "841 1/3 order:move.dest_y",
+    "841 1/3 path[0].to",
     "843 1/2007 ammo[4]",
+    "844 0/6 ammo[4]",
     "844 0/6 damage_frame",
     "844 0/6 hits:damage",
     "844 0/6 hits_left",
+    "847 0/6 ammo[6]",
     "847 1/0 dest_angle",
     "847 1/0 order:move.angle",
     "847 1/0 order:move.x",
@@ -13670,7 +13803,11 @@ const WANT_CH38: &[&str] = &[
     "847 1/0 path[1].to",
     "847 1/0 path[2].to",
     "847 1/0 path[3].to",
-    "851 1/2007 ammo[6]",
+    "847 1/0 path[4].to",
+    "848 1/2007 ammo[7]",
+    "852 0/0 g.cur_time[0]",
+    "852 0/0 g.cur_time[1]",
+    "852 0/0 g.last_time[0]",
     "854 0/6 angle:Facing",
     "854 0/6 angle:Heading",
     "854 0/6 g.angle[0]",
@@ -13683,144 +13820,156 @@ const WANT_CH38: &[&str] = &[
     "855 0/6 g.last_bank[0]",
     "855 0/6 g.y[0]",
     "855 0/6 pos",
-    "855 1/9 ammo[6]",
+    "855 1/9 ammo[8]",
     "856 0/6 orders_y",
     "858 1/2007 ammo[5]",
     "858 1/9 ammo[5]",
-    "863 1/9 ammo[3]",
+    "862 0/7 unlinked",
+    "862 1/2007 build:attack_whom",
+    "863 1/2007 build:recharging",
     "864 0/6 g.des_x[0]",
     "864 0/6 g.x[0]",
     "865 0/6 orders_x",
-    "865 1/9 ammo[4]",
     "868 0/6 g.avg_speed[0]",
     "868 0/6 g.last_speed[0]",
-    "872 0/0 g.cur_time[0]",
-    "872 0/0 g.cur_time[1]",
-    "872 0/0 g.last_time[0]",
-    "878 1/2007 ammo[1]",
+    "873 1/9 g.cur_time[0]",
+    "873 1/9 g.queued_attack[0]",
+    "873 1/9 near",
+    "873 1/9 order:target",
+    "873 1/9 recharging",
+    "874 1/9 g.last_time[0]",
+    "878 0/3 order:move.off_x",
+    "878 0/3 order:move.off_y",
+    "878 0/3 order:move.x",
+    "878 0/3 order:move.y",
+    "878 0/3 orders_x",
+    "878 0/3 orders_y",
+    "879 0/3 dest_angle",
+    "879 0/3 g.angle[0]",
+    "879 0/3 g.avg_speed[0]",
+    "879 0/3 g.cur_anim[0]",
+    "879 0/3 g.cur_time[0]",
+    "879 0/3 g.des_angle[0]",
+    "879 0/3 g.des_x[0]",
+    "879 0/3 g.des_y[0]",
+    "879 0/3 g.end_time[0]",
+    "879 0/3 g.last_speed[0]",
+    "879 0/3 g.last_time[0]",
+    "879 0/3 g.stopped[0]",
+    "879 0/3 g.x[0]",
+    "879 0/3 g.y[0]",
+    "879 0/3 heading",
+    "879 0/3 mirror",
+    "879 0/3 order:kind",
+    "879 0/3 order:length",
+    "879 0/3 orders.len",
+    "879 0/3 path:length",
+    "879 0/3 pos",
+    "880 0/3 order:flags",
+    "880 0/3 order:move.dest",
+    "881 0/3 order:move.dest_x",
+    "881 0/3 order:move.dest_y",
+    "881 0/3 path[0].to",
     "884 0/6 g.last_z[0]",
     "884 0/6 g.pitch[0]",
     "884 0/6 g.z[0]",
     "885 0/6 g.last_pitch[0]",
+    "888 1/2007 ammo[1]",
     "889 1/8 g.stopped[0]",
-    "892 0/5 dest_angle",
-    "892 0/5 order:move.angle",
-    "892 0/5 order:move.off_x",
-    "892 0/5 order:move.off_y",
-    "892 0/5 order:move.x",
-    "892 0/5 order:move.y",
-    "892 0/5 orders_x",
-    "892 0/5 orders_y",
-    "893 0/5 g.angle[0]",
-    "893 0/5 g.avg_speed[0]",
-    "893 0/5 g.cur_anim[0]",
-    "893 0/5 g.cur_time[0]",
-    "893 0/5 g.des_angle[0]",
-    "893 0/5 g.des_x[0]",
-    "893 0/5 g.des_y[0]",
-    "893 0/5 g.end_time[0]",
-    "893 0/5 g.last_speed[0]",
-    "893 0/5 g.last_time[0]",
-    "893 0/5 g.stopped[0]",
-    "893 0/5 g.x[0]",
-    "893 0/5 g.y[0]",
-    "893 0/5 heading",
-    "893 0/5 mirror",
-    "893 0/5 order:kind",
-    "893 0/5 order:length",
-    "893 0/5 orders.len",
-    "893 0/5 path:length",
-    "893 0/5 pos",
-    "894 0/5 order:flags",
-    "894 0/5 order:move.dest",
-    "895 0/5 order:move.dest_x",
-    "895 0/5 order:move.dest_y",
-    "895 0/5 path[0].to",
+    "891 0/6 damage_o",
     "900 1/8 g.cur_time[0]",
     "900 1/8 g.last_time[0]",
     "903 1/8 order:move.dest",
     "903 1/8 path:length",
-    "908 1/2007 ammo[2]",
-    "908 1/2007 ammo[3]",
-    "912 1/4 mirror",
+    "909 1/9 ammo[2]",
     "915 0/7 ammo[0]",
-    "915 0/7 g.cur_anim[0]",
-    "915 0/7 g.cur_time[0]",
-    "915 0/7 g.end_time[0]",
-    "915 0/7 g.last_time[0]",
-    "915 0/7 recharging",
-    "916 0/7 unlinked",
-    "916 1/2007 build:attack_whom",
-    "917 1/2007 build:recharging",
+    "915 1/4 order:move.off_x",
+    "915 1/4 order:move.off_y",
+    "915 1/4 order:move.x",
+    "915 1/4 order:move.y",
+    "915 1/4 orders_x",
+    "915 1/4 orders_y",
+    "916 0/7 ammo[1]",
+    "916 1/4 dest_angle",
+    "916 1/4 g.angle[0]",
+    "916 1/4 g.avg_speed[0]",
+    "916 1/4 g.cur_anim[0]",
+    "916 1/4 g.cur_time[0]",
+    "916 1/4 g.des_angle[0]",
+    "916 1/4 g.des_x[0]",
+    "916 1/4 g.des_y[0]",
+    "916 1/4 g.end_time[0]",
+    "916 1/4 g.last_speed[0]",
+    "916 1/4 g.last_time[0]",
+    "916 1/4 g.stopped[0]",
+    "916 1/4 g.x[0]",
+    "916 1/4 g.y[0]",
+    "916 1/4 heading",
+    "916 1/4 mirror",
+    "916 1/4 order:kind",
+    "916 1/4 order:length",
+    "916 1/4 orders.len",
+    "916 1/4 path:length",
+    "916 1/4 pos",
+    "917 1/4 order:flags",
+    "917 1/4 order:move.dest",
+    "918 1/4 order:move.dest_x",
+    "918 1/4 order:move.dest_y",
+    "918 1/4 path[0].to",
+    "918 1/5 dest_angle",
+    "918 1/5 order:move.angle",
+    "918 1/5 order:move.off_x",
+    "918 1/5 order:move.off_y",
+    "918 1/5 order:move.x",
+    "918 1/5 order:move.y",
+    "918 1/5 orders_x",
+    "918 1/5 orders_y",
     "919 0/7 ammo[3]",
+    "919 1/5 g.angle[0]",
+    "919 1/5 g.des_angle[0]",
+    "919 1/5 g.des_x[0]",
+    "919 1/5 g.des_y[0]",
+    "919 1/5 g.last_speed[0]",
+    "919 1/5 g.x[0]",
+    "919 1/5 g.y[0]",
+    "919 1/5 heading",
     "919 1/5 order:move.dest_x",
     "919 1/5 order:move.dest_y",
     "919 1/5 path[0].to",
+    "919 1/5 pos",
+    "920 1/5 g.avg_speed[0]",
     "922 0/7 ammo[4]",
     "923 0/1 order:gather.wait",
-    "923 1/9 g.cur_time[0]",
-    "923 1/9 g.queued_attack[0]",
-    "923 1/9 near",
-    "923 1/9 order:target",
-    "923 1/9 recharging",
     "924 0/7 ammo[2]",
-    "924 1/9 g.last_time[0]",
     "927 0/7 ammo[5]",
     "930 0/7 ammo[7]",
     "931 1/2006 build:damage",
     "931 1/2006 build:damage_frac",
-    "937 0/6 damage_frac",
-    "937 0/6 damage_o",
-    "937 0/6 hits:damage_frac",
-    "939 0/4 mirror",
+    "940 1/5 order:kind",
+    "940 1/5 order:length",
+    "940 1/5 orders.len",
+    "940 1/5 path:length",
     "940 1/9 damage_frac",
     "940 1/9 damage_frame",
     "940 1/9 hits:damage_frac",
+    "941 1/5 g.cur_anim[0]",
+    "941 1/5 g.cur_time[0]",
+    "941 1/5 g.end_time[0]",
+    "941 1/5 g.last_time[0]",
+    "941 1/5 g.stopped[0]",
     "946 1/9 hits:damage",
     "946 1/9 hits_left",
-    "960 0/6 ammo[1]",
+    "959 0/6 damage_frac",
+    "959 0/6 hits:damage_frac",
     "960 0/6 g.cur_anim[0]",
     "960 0/6 g.cur_time[0]",
     "960 0/6 g.end_time[0]",
     "960 0/6 g.last_time[0]",
     "960 0/6 recharging",
-    "961 0/6 ammo[2]",
-    "964 0/6 ammo[3]",
-    "964 1/3 dest_angle",
-    "964 1/3 order:move.angle",
-    "964 1/3 order:move.off_x",
-    "964 1/3 order:move.off_y",
-    "964 1/3 order:move.x",
-    "964 1/3 order:move.y",
-    "964 1/3 orders_x",
-    "964 1/3 orders_y",
-    "965 1/3 g.angle[0]",
-    "965 1/3 g.des_angle[0]",
-    "965 1/3 g.des_x[0]",
-    "965 1/3 g.des_y[0]",
-    "965 1/3 g.last_speed[0]",
-    "965 1/3 g.x[0]",
-    "965 1/3 g.y[0]",
-    "965 1/3 heading",
-    "965 1/3 order:move.dest_x",
-    "965 1/3 order:move.dest_y",
-    "965 1/3 path[0].to",
-    "965 1/3 pos",
+    "964 1/9 ammo[4]",
     "967 0/6 ammo[0]",
-    "968 1/3 g.avg_speed[0]",
-    "969 0/6 ammo[6]",
-    "972 0/6 ammo[4]",
-    "975 0/6 ammo[5]",
-    "980 0/6 ammo[7]",
-    "987 1/3 order:kind",
-    "987 1/3 order:length",
-    "987 1/3 orders.len",
-    "987 1/3 path:length",
-    "988 1/3 g.cur_time[0]",
-    "988 1/3 g.last_time[0]",
-    "989 1/3 g.cur_anim[0]",
-    "989 1/3 g.end_time[0]",
-    "989 1/3 g.stopped[0]",
+    "991 1/3 angle:Facing",
+    "991 1/3 angle:Heading",
 ];
 
 /// Chapter thirty-six's widening rows (item 1078): run390 whole. Chapter
