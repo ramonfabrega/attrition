@@ -1817,6 +1817,11 @@ mod tests {
             return;
         };
         assert_eq!(w.difficulty, 5, "run346's GAME INFO reads DIFFICULTY 5");
+        assert_eq!(
+            w.last,
+            ai_word_length("EastIndies"),
+            "run346's last frame is the length `AI_WORDS` gives the game"
+        );
         assert!(
             w.count >= SECOND_WORD_EAST_INDIES && w.sequence >= SECOND_WORD_EAST_INDIES,
             "run346's word fell: count {}, sequence {} of {}; the floor is \
@@ -1909,6 +1914,11 @@ mod tests {
             return;
         };
         assert_eq!(w.difficulty, 5, "run347's GAME INFO reads DIFFICULTY 5");
+        assert_eq!(
+            w.last,
+            ai_word_length("GreatLakes"),
+            "run347's last frame is the length `AI_WORDS` gives the game"
+        );
         assert!(
             w.count >= SECOND_WORD_GREAT_LAKES && w.sequence >= SECOND_WORD_GREAT_LAKES,
             "run347's word fell: count {}, sequence {} of {}; the floor is \

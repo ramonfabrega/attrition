@@ -342,7 +342,11 @@ mod tests {
         let Some(w) = walk_sahara(SAHARA_LONG) else {
             return;
         };
-        assert_eq!(w.last, 24_000, "run383's trace runs to 24,000");
+        assert_eq!(
+            w.last,
+            ai_word_length("GreatSahara"),
+            "run383's trace runs to the length `AI_WORDS` gives the game"
+        );
         assert!(
             w.count >= LONG_WORD_GREAT_SAHARA && w.sequence >= LONG_WORD_GREAT_SAHARA,
             "the third map's long word fell: count {}, sequence {} — the floor is {}; {}",

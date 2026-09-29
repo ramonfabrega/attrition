@@ -2239,10 +2239,7 @@ mod tests {
             Script::backwards("0 !ai off\n600 age who=0 8 # c\n599 war\n610 add\n605 die\n"),
             vec![(3, 599, 600), (5, 605, 610)]
         );
-        let dir = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../tools/gamelog/golden"
-        );
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tools/gamelog/golden");
         let mut wrong = Vec::new();
         let mut read = 0;
         for entry in std::fs::read_dir(dir).expect("tools/gamelog/golden") {

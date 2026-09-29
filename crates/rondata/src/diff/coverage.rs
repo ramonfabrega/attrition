@@ -1835,12 +1835,14 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `in_range`, `ever_in_range`, `new_ord`, `def_x`, `def_y` — is
     // compared since item 1061 on every slot both sides hold an attack,
     // and no attack stands on these blocks. `coll_x`/`coll_y` are compared
-    // on a move once the original's pair has left its `(0, 0)` start, and
-    // no move's has here.
+    // on a move once the original's pair has left its `(0, 0)` start: no
+    // move's has on East Indies' blocks, and one has on the third map's,
+    // so the pair left this pin when the nineteenth pass walked that
+    // window too.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x def_y \
+         attempts build_type cast_paid cast_spell cruising_alt def_x def_y \
          defensive ever_in_range form_id garrison_search group_angle group_id guard_dx \
          guard_dy guard_idle guard_retry guard_x guard_y in_group in_range mandatory metric \
          new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry returning \
@@ -1852,12 +1854,15 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `ever_seen_completed` no site compares. `queue` registers here: a
     // build is queued. `job_counter` is compared only on an unfinished
     // site (`!active && flags & 4 == 0`, item 1086), and one stood on
-    // 5974..5978; **since item 1120 none does** on run414's 6150..6154, so
-    // `job_counter` is pinned as a site the window never reaches.
+    // 5974..5978; since item 1120 none does on run414's 6150..6154. **One
+    // stands on the third map's window**, walked here since the nineteenth
+    // pass, so `job_counter` is compared and off this pin; it had left and
+    // returned with the word four times in one tranche (items 1061, 1086,
+    // 1106, 1120).
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type",
+         max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
@@ -1869,7 +1874,8 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
 ];
 
 /// **Every field the parser carries is compared by the shared instrument
-/// on the newest word's own window, or pinned above.** The window is
+/// on every open word's own window, or pinned above.** The windows are
+/// the third map's (`third::sahara_word_window`, the nineteenth pass) and
 /// `second::east_indies_word_window` since item 1106 — the second pair's
 /// East Indies word's block and two on either side, on its widening
 /// (run414 since item 1115, at 6151 since item 1120) walked from run346's start — walked with the
@@ -1882,12 +1888,24 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
     use super::compared;
     compared::start();
     let walked = super::second::east_indies_word_window();
+    // **Every open word's window** (parked 1067 and 1080, the nineteenth
+    // pass; `floors::the_compared_pin_walks_every_open_ai_word` holds the
+    // list to `AI_WORDS`): the third map's, run382's blocks 1..259 at
+    // run10's detail, is walked under the same recorder, and a field is
+    // compared when a site on either window compared it.
+    let third = super::third::sahara_word_window();
     let seen = compared::stop();
-    let Some(w) = walked else {
-        eprintln!("skipping: the East Indies word's captures are not all on disk");
+    let (Some(mut w), Some(third)) = (walked, third) else {
+        eprintln!("skipping: the open words' captures are not all on disk");
         return;
     };
     assert!(w.blocks >= 4, "the word's window is {} blocks", w.blocks);
+    assert!(
+        third.blocks >= 4,
+        "the third map's window is {} blocks",
+        third.blocks
+    );
+    w.blocks += third.blocks;
     assert!(
         !seen.is_empty(),
         "the instrument registered nothing on {} blocks",

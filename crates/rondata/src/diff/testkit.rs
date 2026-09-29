@@ -7001,6 +7001,16 @@ impl AiWord {
     }
 }
 
+/// A game's length by its line's spelling of the map; the walks that read
+/// each trace to its end hold the table to it.
+pub(crate) fn ai_word_length(map: &str) -> i64 {
+    AI_WORDS
+        .iter()
+        .find(|w| w.map == map)
+        .unwrap_or_else(|| panic!("AI_WORDS has no row for {map}"))
+        .length
+}
+
 /// The pair whose lower open word is the AI track's default
 /// (`docs/DECISIONS.md` 41 §1, 53 §2).
 pub(crate) const NEWEST_PAIR: &str = "Second pair";
