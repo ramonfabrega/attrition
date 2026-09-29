@@ -720,6 +720,64 @@ pub fn group_swarm_around(
     g.list.len()
 }
 
+/// A `group` of buildings (0x00) and the `alarm` (0x1b) behind it —
+/// `CommandPackage::process_alarm@00947ef0`'s one call,
+/// `Group::action_alarm@0070ec30` ([`sim::Sim::action_alarm`]): the
+/// City's alarm button (item 1167, `docs/GOLDEN.md` §49). The command's
+/// `process_group` pushes the building group into the pool first
+/// ([`sim::Sim::push_command_buildings`]), as [`group_buildmask`]'s does.
+///
+/// Returns the number of the player's live buildings named.
+pub fn group_alarm(built: &mut Built, who: i32, buildings: &[i16]) -> usize {
+    let player = who as sim::Player;
+    let list: Vec<usize> = buildings
+        .iter()
+        .filter_map(|&o| built.sim.building_by_o(player, o))
+        .collect();
+    if list.is_empty() {
+        return 0;
+    }
+    built.sim.push_command_buildings(player, &list);
+    built.sim.action_alarm(player, &list);
+    list.len()
+}
+
+/// A `group` command (0x00) and the `gather` (0x13) behind it —
+/// [`group_swarm_around`]'s group, then `CommandPackage::process_gather@
+/// 009488b0`'s one call, `Group::action_gather(ox, queued)` when `ox` is
+/// negative or the player's building `ox` is active (`+8 & 1`)
+/// ([`sim::Sim::group_gather`]), item 1167, `docs/GOLDEN.md` §49. The
+/// building is the group's own player's: the command carries no `whom`.
+///
+/// Returns the group's size, 0 when no listed object is a live unit of
+/// `who` in the simulation.
+pub fn group_gather(built: &mut Built, who: i32, objects: &[i16], ox: i32, queued: i32) -> usize {
+    let player = who as sim::Player;
+    let mut g = sim::group::Group::stack(player);
+    for &o in objects {
+        let unit = built
+            .units
+            .iter()
+            .find(|l| l.who == i64::from(who) && l.o == i64::from(o))
+            .map(|l| l.unit)
+            .or_else(|| built.sim.unit_by_o(player, o));
+        if let Some(u) = unit {
+            built.sim.group_add(&mut g, u);
+        }
+    }
+    if g.list.is_empty() || !built.sim.push_group(&mut g, true) {
+        return 0;
+    }
+    let site = i16::try_from(ox)
+        .ok()
+        .and_then(|o| built.sim.building_by_o(player, o))
+        .filter(|&b| built.sim.buildings[b].alive);
+    if let Some(b) = site {
+        built.sim.group_gather(&g, b, queue_pos(queued));
+    }
+    g.list.len()
+}
+
 /// A `group` of buildings (0x00) and the `eject_all` (0x1a) behind it —
 /// `CommandPackage::process_eject_all@00947fe0`'s one call,
 /// `Group::action_eject_all(g, back_to_work, who, eject_o, eject_who)`

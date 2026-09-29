@@ -449,6 +449,22 @@ pub enum Issued {
         whom: i32,
         objects: Vec<i16>,
     },
+    /// `@alarm <who> <b>…` — `issue_alarm@00941d00(group)` on a group of
+    /// the player's own buildings: the City's alarm button, a one-byte
+    /// `alarm` (0x1b). `Group::action_alarm@0070ec30` rings or sounds the
+    /// all-clear off the city's `0x40` bit (item 1167, `docs/GOLDEN.md`
+    /// §49).
+    Alarm { who: i32, buildings: Vec<i16> },
+    /// `@gather <who> <ox> <o>…` — `issue_gather@00941a20(group, ox,
+    /// QUEUE_NEW)`: a right-click on a building of one's own that takes
+    /// gatherers, a 9-byte `gather` (0x13, `[ox][queued]`), item 1167,
+    /// `docs/GOLDEN.md` §49. The building is the player's own: the
+    /// command carries no `whom`.
+    Gather {
+        who: i32,
+        ox: i32,
+        objects: Vec<i16>,
+    },
     /// `@buildmask <who> <mask> <b>…` — `issue_buildmask@00941f80(group,
     /// mask, 1)` on a group of the player's own buildings: the repeat
     /// button's 0x80 (`Options::set_air_repeat@0071c740`), item 867,
@@ -586,6 +602,8 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "launchstrikectrl"
             | "launchstrikealt"
             | "launchmove"
+            | "alarm"
+            | "gather"
     ) {
         return None;
     }
@@ -603,6 +621,37 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Eject { who, buildings });
+    }
+    // `@alarm` has no number but `who`, as `@eject`, and its objects are
+    // buildings.
+    if verb == "alarm" {
+        let [who, ref buildings @ ..] = nums[..] else {
+            return None;
+        };
+        let buildings: Vec<i16> = buildings
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if buildings.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Alarm { who, buildings });
+    }
+    // `@gather`'s one number is the building's id.
+    if verb == "gather" {
+        let [who, ox, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        let objects: Vec<i16> = objects
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if objects.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::Gather { who, ox, objects });
     }
     // `@buildmask`'s one number is the mask, and its objects are buildings.
     if verb == "buildmask" {
@@ -980,6 +1029,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             whom,
             objects,
         }) => crate::input::group_swarm_around(built, who, &objects, ox, whom, 2, 13),
+        // `@alarm` is `issue_alarm@00941d00` on a group of buildings, a
+        // `group` and an `alarm`, whose entry is [`crate::input::group_alarm`];
+        // `@gather` is `issue_gather@00941a20` with `QUEUE_NEW`, a `group` and
+        // a `gather`, [`crate::input::group_gather`] (item 1167,
+        // `docs/GOLDEN.md` §49).
+        Some(Issued::Alarm { who, buildings }) => crate::input::group_alarm(built, who, &buildings),
+        Some(Issued::Gather { who, ox, objects }) => {
+            crate::input::group_gather(built, who, &objects, ox, 2)
+        }
         // `@buildmask` is `issue_buildmask@00941f80` on a group of
         // buildings, a `group` and a `buildmask`, whose entry is
         // [`crate::input::group_buildmask`] (item 867, `docs/GOLDEN.md`
@@ -2072,6 +2130,31 @@ mod tests {
             })
         );
         assert_eq!(parse_issuer("@repair 0 2006 0"), None);
+    }
+
+    /// **An alarm line names buildings and a gather line one building**
+    /// (item 1167): `@alarm`'s numbers are `who` and the buildings, as
+    /// `@eject`'s; `@gather`'s are `who`, the building's id and the
+    /// objects. A line with no object is the DLL's refusal 5.
+    #[test]
+    fn an_alarm_line_and_a_gather_line_are_the_dll_s() {
+        assert_eq!(
+            parse_issuer("@alarm 0 2000"),
+            Some(Issued::Alarm {
+                who: 0,
+                buildings: vec![2000],
+            })
+        );
+        assert_eq!(parse_issuer("@alarm 0"), None);
+        assert_eq!(
+            parse_issuer("@gather 0 2001 10"),
+            Some(Issued::Gather {
+                who: 0,
+                ox: 2001,
+                objects: vec![10],
+            })
+        );
+        assert_eq!(parse_issuer("@gather 0 2001"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,
