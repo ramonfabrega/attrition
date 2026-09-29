@@ -17,12 +17,12 @@ DECISIONS 54): **no score moved in the pass, and none was meant to.**
 The AI's word is the second pair's, at the lobby's top difficulty; the
 first pair stays closed at 24,000, endpoints 0 off. Chapters to
 thirty-seven are closed; thirty-eight is open at 794 (1102 … 1117).
-Two lanes run; the count is at eighteen.*
+One lane runs (1113); the count is at nineteen.*
 
 - **Great Lakes' second game is closed at 5,930, its end**, in seven
   landings from 4924 (1061 … 1099), endpoint 0 off: the pass's measure,
   inside one tranche where it priced two. **East Indies is the open
-  word**, 5606 → 5975: the border pass, trade across water (1106, 1115).
+  word**, 5606 → 6151: borders, water trade, a barge's sight (1106 … 1120).
 - **The instrument follows the word** (1061, GROUPS §33): the second
   pair's widening compares the group record and the attack row, and
   the compared pin walks the lower map's word window (1106 moves it).
@@ -30,16 +30,17 @@ Two lanes run; the count is at eighteen.*
   its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
 - **The user's**: whether phase 4 opens on the rules track alone. The
   disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 29 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116, 1119, 1121, 1123, 1126).
+- **Fable backlog: 30 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116, 1119, 1121, 1123, 1126, 1130).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
-Second pair: EastIndies w5975 of 18,140 · GreatLakes w5930 of 5,930
+Second pair: EastIndies w6151 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w8 of 24,000
 Golden: ch38 w794 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1113 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander resumes — 1120 and 1113 run.**
+**Opener: the commander lands 1113, the twentieth; then the steering
+pass is due. 1127 waits for the lane the count left empty.**
 
 ## The queue
 
@@ -49,12 +50,11 @@ lower map first — Great Lakes, closed at its end, so East Indies (1121).
 Take the first unstarted on either track unless a better order is obvious,
 and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
 
-1120. **East Indies' second word: frame 5975, ours 63 draws against 61**
-    (1115), at index 49: ours `Unit::think_scout+0xaba`, theirs
-    `Guy::init_real+0x52`, widened on run414 (block 5976). A sea scout's
-    region scan accepts 46 cells to 45: run415 has cell (45,40)'s probe
-    seen there, revealed after 5776, near the barge `1/36` born on 5878.
-    No mechanism is named; a packet at logger 5879 is 1115's next.
+1127. **East Indies' second word: frame 6151, ours 9 draws against 8**
+    (1120), at index 0: ours `Unit::move_step+0x823`, theirs
+    `Unit::do_non_flat_gather+0x10f`, widened on run414 (block 6152),
+    where only the Caravan `1/15` parts: ours stands it against `1/33`
+    — the block's reading, not a mechanism. No mechanism is named.
 
 1113. **Chapter thirty-eight's word: frame 794** (1117: the turret gate
     built; parked 1113, promoted). `1/7`'s walk, parted since 765,

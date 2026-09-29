@@ -120,6 +120,22 @@ crate keeps it; the Air Defense Gun's and the SAM's launch vectors,
 unmeasured, and the three Radar rounds that print no `AMMO`; and no
 widening compares a round's `accuracy`.
 
+## Parked by item 1120, 2026-09-28 — the reveal's other callers
+
+(1128) **`set_new_location`'s other eight callers move a unit with no
+reveal** (VISION §11.5): rally, gaia, `lib.rs`'s placement,
+`collide.rs`'s push and snap, `orders.rs`' snap, and the seats in
+`transport.rs` and `garrison.rs`. The original reveals on each one's
+half-cell crossing; moving the reveal into `set_new_location` itself is
+the likely end state, and it touches every window.
+
+(1129) **Value rows standing under East Indies' 6151** (AI §86.2), each
+naming no score yet: `MAKE[7].city` 5982, `gather_stamp` 5984, who=0's
+`production_step` 6001; the passengers' figure `avg_speed`/`mirror`
+6026/6069; group 74's `form` 6071, `1/31`'s `path_recursion` 6074;
+`1/41`'s birth rows 6111, group 72's speed 6135. The census's `caras`
+still parts on 5976 (1122).
+
 ## Parked by item 1117, 2026-09-28 — the turret's other edges
 
 (1125) **The Battery's turret edges beside chapter thirty-eight's word**
@@ -1995,6 +2011,11 @@ key the table lacks** (1117's Loop line): the release gate was keyed on
 other pivot piece fired through its turret; the gate's own test (COMBAT
 §55) used the Chariot's piece, and nothing held it against an
 unmeasured one.
+
+(1130) **A test fixture that sets `combat.domain` without `kind.domain`
+builds a unit vision and movement disagree about** (1120's Loop line):
+one let a killer pass. A fixture helper that sets both, or a debug
+assertion in `add_unit` that the two agree, would close the shape.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
