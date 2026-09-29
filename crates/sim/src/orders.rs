@@ -4148,12 +4148,42 @@ impl Sim {
             self.store_move(u, mo, flags);
             return Did::Something;
         }
+        // **The modern-infantry pack** (`5f82df`-`5f8390`, `docs/ORDERS.md`
+        // §3.2's `retry` row, `docs/GROUPS.md` §34): once every 128 frames,
+        // on the unit's own phase `(o * 0x11 + frame) & 0x7f == 0`, a
+        // modern-infantry unit not `in_danger` (`unit_masks & 4`, `5f8315`)
+        // squares its heading to guy 0's, is re-seated on guy 0's point
+        // (`set_new_location(x, y, 1, 1)`), plays `CHAR_PACK`, and waits
+        // out the animation: `retry` is guy 0's `end_time` read **after**
+        // the `set_anim` (`5f837b`), and `attempts` −3. Every later frame
+        // is the retry branch above; the frame it runs out, `attempts`
+        // goes back to 0.
+        //
+        // SEAM: `ObjectData::has_general(0x8000, -1) < 0` (`5f832f`) is
+        // taken as true — a General nearby would keep the squad walking,
+        // and nothing here places one.
+        if (i64::from(self.units[u].index) * 0x11 + self.frame) & 0x7f == 0
+            && !self.units[u].in_danger
+            && self.is_modern_infantry(u)
+        {
+            let facing = self.units[u].movement.facing;
+            self.unit_set_angle(u, facing);
+            let at = self.units[u].movement.body.pos;
+            self.set_new_location(u, at, true);
+            self.set_anim(u, crate::anim::PACK, false, true);
+            // A figure with no art has no length (`anim::UNKNOWN`): it
+            // does not wait, where the original always has one.
+            mo.retry = self.units[u]
+                .guys
+                .first()
+                .filter(|g| g.end_time != crate::anim::UNKNOWN)
+                .map_or(0, |g| g.end_time as i32);
+            mo.attempts = -3;
+            self.store_move(u, mo, flags);
+            return Did::Something;
+        }
         // And the decay, on every frame that reaches the planner
-        // (`005f7b30:369`). SEAM: the modern-infantry unpack between the
-        // two — `is_modern_infantry && !has_general(0x8000)` on a
-        // `(o * 0x11 + frame) & 0x7f == 0` phase, which sets `retry` from
-        // the type's `+0x78` and `attempts` to −3 — is not modelled; no
-        // capture has a packed type in it.
+        // (`005f7b30:369`).
         if mo.attempts != 0 {
             mo.attempts -= 1;
             self.store_move(u, mo, flags);
