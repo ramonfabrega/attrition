@@ -1640,13 +1640,7 @@ impl Sim {
         }
         self.relink_squad(u);
         let me = crate::combat::Obj::Unit(u);
-        let mut hold = self.units[u].hold_frames.max(1);
-        for p in &self.projectiles {
-            if p.shooter == me {
-                hold = hold.max(p.total_time - p.cur_time + 1);
-            }
-        }
-        self.units[u].hold_frames = hold;
+        self.hold_dead_slot(u);
         self.close_supply(u);
         self.forget(me);
     }

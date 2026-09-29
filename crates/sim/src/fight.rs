@@ -2447,8 +2447,16 @@ impl Sim {
     /// `Ammo::inc_time` reads for its own per-frame bump. `nuke_effect`'s
     /// term is an effect-table entry this crate does not load and is
     /// taken as zero (§42.5); no capture on disk has a nuke.
-    fn hold_dead_slot(&mut self, i: usize) {
-        let mut hold = self.units[i].hold_frames.max(1);
+    ///
+    /// **And the `hold_frames` it maxes against is already
+    /// [`Self::CLOSE_HOLD`]** (§59.3): `die` calls `close` through vslot
+    /// `+0x150` first, and `Unit::close` ends in `Object::close`, whose
+    /// last write to an active object is `hold_frames = 0x1e`. So every
+    /// death holds its number thirty frames, whatever `dtype` it carried —
+    /// the transport that dies putting its passenger ashore
+    /// ([`Sim::disembark`]), attrition, the upgrade's squad trim.
+    pub(crate) fn hold_dead_slot(&mut self, i: usize) {
+        let mut hold = Self::CLOSE_HOLD;
         for p in &self.projectiles {
             if p.shooter == Obj::Unit(i) {
                 hold = hold.max(p.total_time - p.cur_time + 1);
@@ -2456,6 +2464,14 @@ impl Sim {
         }
         self.units[i].hold_frames = hold;
     }
+
+    /// **`Object::close@00647160`'s hold**: the last write it makes to an
+    /// object that was active, after `Objects::remove`, is
+    /// `hold_frames = 0x1e` — on both of its arms, so on every close
+    /// (`docs/COMBAT.md` §59.3). `Objects::process_all` takes one off per
+    /// frame, and `Objects::find_free` will not hand the number out until
+    /// it is zero.
+    pub(crate) const CLOSE_HOLD: i32 = 0x1e;
 
     /// **`DeathObj::inc_time@008d5240`'s first statement**, and
     /// `Ammo::inc_time@0067d380`'s: every frame, a death object bumps its
@@ -6349,9 +6365,20 @@ mod tests {
             Some(2),
             "a held number is not handed out"
         );
-        // The death object's end: nothing bumps it, and the next pass of
-        // `process_all` takes the last frame off.
+        // The death object's end: nothing bumps it, and `process_all`
+        // takes one off a frame — from `Object::close`'s thirty, which the
+        // bump and the take have held level (§59.3).
+        assert_eq!(sim.units[a].hold_frames, Sim::CLOSE_HOLD);
         sim.deaths.clear();
+        for _ in 1..Sim::CLOSE_HOLD {
+            sim.tick();
+        }
+        assert_eq!(sim.units[a].hold_frames, 1, "one frame short");
+        assert_eq!(
+            sim.find_free(1, crate::UNIT_BASE, crate::BUILD_BASE),
+            Some(2),
+            "still held"
+        );
         sim.tick();
         assert_eq!(sim.units[a].hold_frames, 0);
         assert_eq!(
