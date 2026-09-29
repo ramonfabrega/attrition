@@ -1349,21 +1349,24 @@ mod tests {
             Some("7384: ours 61 theirs 417"),
             "the Units step's slot 4"
         );
-        // **The word 7512** (item 1174; no mechanism is named): ours 39
-        // draws against 3243, at index 30, ours `Guy::set_anim+0x97a <
-        // Guy::inc_time+0x271`, the original `PathFinder::calc_road_cost+0x46`
-        // under `astar_caravan_road` 3206 times. Between: the barges
-        // `1/36`/`1/38` (7419, parked 1157's swap), who=1's `caras` 3
-        // against 2 (7478) and a unit each side holds alone (7485); on the
-        // word's block 7513 the caravan `1/15`'s path flags.
+        // **The word 7512** (item 1174) **closed on item 1185**
+        // (`docs/ROADS.md` §9.5): `World::set_blocked_at@006b4900` takes the
+        // road off a tile it blocks, and this crate's did not. The Temple
+        // `1/2025`, placed over the caravan road on 7385, started on 7479,
+        // and its blocked tile (200, 202) kept its road here. On 7512 the
+        // caravan `1/15` takes that tile's waypoint (38560, 38816): the
+        // original finds plain ground under a building, verifies the route
+        // and plans it again (3206 `calc_road_cost` draws), and strips
+        // `0x20` from every waypoint — on block 7513 its 23 `path[].flags`
+        // ours 33/32… against 1/0… → agreeing.
         pin_eq!(
             row(1, -1, "leader:caras").as_deref(),
             Some("7478: ours 3 theirs 2"),
             "a caravan more here"
         );
         pin_eq!(
-            row(1, 15, "path[0].flags").as_deref(),
-            Some("7513: PathField { slot: 0, field: \"flags\", ours: 33, theirs: 1 }"),
+            row(1, 15, "path[0].flags"),
+            None,
             "the word's block: the caravan's path"
         );
         let mut by: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
@@ -1372,7 +1375,7 @@ mod tests {
         }
         pin_eq!(
             by.iter()
-                .filter(|(b, _)| **b <= SECOND_WORD_EAST_INDIES + 1)
+                .filter(|(b, _)| **b <= 7_513)
                 .map(|(b, n)| (*b, *n))
                 .collect::<Vec<_>>(),
             [
@@ -1387,13 +1390,12 @@ mod tests {
                 (7429, 2),
                 (7478, 2),
                 (7485, 3),
-                (7501, 1),
-                (7513, 23)
+                (7501, 1)
             ],
-            "the blocks keys first part on, to the word's"
+            "the blocks keys first part on, to the old word's"
         );
-        // Item 1174: 1182 → 614.
-        pin_eq!(w.firsts.len(), 614, "every key parted on run425");
+        // Item 1174: 1182 → 614. Item 1185: 614 → 317.
+        pin_eq!(w.firsts.len(), 317, "every key parted on run425");
     }
 
     /// **The gap 6573..6603 of the second pair's East Indies, walked whole**

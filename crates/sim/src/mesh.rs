@@ -524,6 +524,22 @@ impl Sim {
         self.world_set_road_at(t, false, 0, 0);
     }
 
+    /// **`World::set_blocked_at@006b4900`, whole** (`docs/ROADS.md` §9.5):
+    /// the counts and the halo bits are [`crate::world::World::set_blocked_at`]'s,
+    /// and the blocking arm's last statement before the halo loop is
+    /// `set_road_at(x, y, 0, 0, 0)` — **a tile that becomes blocked loses
+    /// its road**, through the mesh's door, on every call with `on` set,
+    /// whether or not the tile was blocked before. The unblocking arm lays
+    /// nothing. Every writer of the blocked bit in the simulation proper
+    /// goes through here; the world's own half stays for the map loader and
+    /// the tests, which have no mesh.
+    pub(crate) fn set_blocked_at(&mut self, t: Pos, on: bool) {
+        self.world.set_blocked_at(t, on);
+        if on && self.world.tile_in_bounds(t) {
+            self.world_set_road_at(t, false, 0, 0);
+        }
+    }
+
     /// `World::set_road_at@006b43b0` — the one door into the mesh.
     ///
     /// `p4` is the original's fourth argument, which only decides whether the
@@ -1159,5 +1175,71 @@ mod tests {
             "897..903 are this frame's"
         );
         assert!(road(&sim, 904), "904 is the next frame's");
+    }
+
+    /// **A tile that becomes blocked loses its road** (`World::set_blocked_at@006b4900`'s
+    /// `set_road_at(x, y, 0, 0, 0)`, `docs/ROADS.md` §9.5, item 1185). East
+    /// Indies' Temple `1/2025` started on 7479 over the caravan road's tile
+    /// (200, 202); the original's caravan found it plain ground on 7512 and
+    /// laid its road again, and this crate kept the road under the blocked
+    /// tile. Unblocking lays nothing back, and a neighbour keeps its road.
+    #[test]
+    fn a_tile_that_becomes_blocked_loses_its_road() {
+        let mut sim = bare();
+        lay(&mut sim, &[(20, 20), (21, 20), (22, 20)]);
+        assert!(is_road(&sim, 21, 20));
+        sim.set_blocked_at(Pos::new(21, 20), true);
+        assert!(!is_road(&sim, 21, 20), "the blocked tile's road goes");
+        assert!(
+            sim.world.tile_mask(Pos::new(21, 20)) & tile::BLOCKED != 0,
+            "and it is blocked"
+        );
+        assert!(
+            is_road(&sim, 20, 20) && is_road(&sim, 22, 20),
+            "its neighbours keep theirs"
+        );
+        sim.set_blocked_at(Pos::new(21, 20), false);
+        assert!(!is_road(&sim, 21, 20), "unblocking lays nothing");
+    }
+
+    /// **And a building that starts over a road takes it** — the same arm,
+    /// reached the way the Temple reached it: `Wall::start` →
+    /// `BuildType::mask_me` → `set_blocked_at` on each template tile of a
+    /// type that connects to roads, where `mask_me`'s own removal arm does
+    /// not fire.
+    #[test]
+    fn a_building_that_starts_over_a_road_takes_it_under_its_blocked_tiles() {
+        let mut sim = bare();
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 3,
+            y_size: 3,
+            ..crate::build::BuildType::default()
+        });
+        assert!(
+            crate::roads::connects_to_roads(&sim.build_types, bt),
+            "the type connects to roads, so mask_me's own arm lays rather than clears"
+        );
+        let at = Pos::new(30 * 0x300 + 0x180, 30 * 0x300 + 0x180);
+        let b = sim.add_building(0, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].started = false;
+        let corner = sim.tile_corner(bt, at);
+        let under = Pos::new(corner.x + 1, corner.y + 1);
+        lay(
+            &mut sim,
+            &[
+                (under.x - 3, under.y),
+                (under.x - 2, under.y),
+                (under.x - 1, under.y),
+                (under.x, under.y),
+            ],
+        );
+        assert!(is_road(&sim, under.x, under.y));
+        sim.start_building(b);
+        assert!(
+            sim.world.tile_mask(under) & tile::BLOCKED != 0,
+            "the footprint's middle is blocked"
+        );
+        assert!(!is_road(&sim, under.x, under.y), "and its road is gone");
     }
 }
