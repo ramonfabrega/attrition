@@ -561,6 +561,85 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
     out
 }
 
+/// `GRAPH → (get_game_frames(8), get_game_frames(0xc), slot 0xc's
+/// releases)` for an anti-air building whose piece is a unit's.
+pub type WallPackets = BTreeMap<String, (u32, u32, Vec<(u32, i8, bool)>)>;
+
+/// **The packet an anti-air building's `Wall::inc_time` reads** (item
+/// 1112, `docs/COMBAT.md` §84.2), for each `GRAPH` given.
+///
+/// `GraphicPieces::verify_load@00906550` loads a build piece of type
+/// `AIRDEFENSE`, `RADAR` or `SAM` (`0x20b`..`0x20d`) in the first `0x81`
+/// build pieces through `init_unit_data` rather than `init_build_data`:
+/// the piece is the `<UNIT>` of `unit_graphics.xml` named for the type's
+/// `GRAPH`, and its packet has the unit's slots. The name is read here
+/// as `GRAPH-DEFAULT-AGE0`, the only `<UNIT>` each of the three has; the
+/// string `verify_load` appends (`int_str_array +0x122f0`) is not read.
+///
+/// A slot the entry does not name is [`sim::anim::MISSING`] frames, as
+/// `get_game_frames` answers for it; a `GRAPH` with no such `<UNIT>` is
+/// absent. The releases are [`piece_releases`]' rows for slot `0xc`
+/// (`CHAR_ATTACK2`), in file order.
+pub fn wall_packets(install: &Install, graphs: &[String]) -> WallPackets {
+    let apath = install.data("anim_graphics.xml");
+    let upath = install.data("unit_graphics.xml");
+    let (Ok(atext), Ok(utext)) = (crate::read(&apath), crate::read(&upath)) else {
+        return WallPackets::new();
+    };
+    let (Ok(adoc), Ok(udoc)) = (crate::parse(&apath, &atext), crate::parse(&upath, &utext)) else {
+        return WallPackets::new();
+    };
+    let files = anim_files(&adoc);
+    let units = unit_anims(&udoc);
+    let harmless = harmless_ammo(install);
+    let length = |rows: &Vec<(i8, String)>, slot: i8| -> u32 {
+        rows.iter()
+            .find(|(s, _)| *s == slot)
+            .and_then(|(_, anim)| files.get(&anim_key(anim)))
+            .and_then(|(file, looping)| file_frames(install.root(), file, *looping))
+            .unwrap_or(sim::anim::MISSING)
+    };
+    let mut out = WallPackets::new();
+    for graph in graphs {
+        let name = format!("{}-DEFAULT-AGE0", graph.trim());
+        let Some(rows) = units.get(&name) else {
+            continue;
+        };
+        let mut releases = Vec::new();
+        if let Some(u) = udoc
+            .descendants()
+            .find(|n| n.has_tag_name("UNIT") && n.attribute("name").map(str::trim) == Some(&name))
+        {
+            for e in u.children().filter(|n| n.has_tag_name("RELEASEEVENT")) {
+                if e.attribute("anim").map(str::trim) != Some("CHAR_ATTACK2") {
+                    continue;
+                }
+                let Some(ms) = e
+                    .attribute("starttime")
+                    .and_then(|v| v.trim().parse::<u32>().ok())
+                else {
+                    continue;
+                };
+                let node = e
+                    .attribute("node")
+                    .and_then(|v| v.trim().parse::<i8>().ok())
+                    .unwrap_or(-1);
+                let quiet = e.attribute("type").is_some_and(|t| harmless.contains(t));
+                releases.push((release_frame(ms), node, quiet));
+            }
+        }
+        out.insert(
+            graph.trim().to_string(),
+            (
+                length(rows, sim::anim::WALK),
+                length(rows, sim::anim::ATTACK2),
+                releases,
+            ),
+        );
+    }
+    out
+}
+
 /// `guy_scale`, the executable's own `float` at `00c06244` — `Guy.obj`'s
 /// only exported datum in `rise_z.map`, initialised in `.data` to
 /// **4.8** and written nowhere but three `ConsoleWin::run_cmd` arms.

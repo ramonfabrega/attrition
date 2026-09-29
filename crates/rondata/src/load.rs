@@ -459,6 +459,31 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     loaded.piece_tracks = crate::artdata::piece_tracks(install, &graphs);
     loaded.piece_releases = crate::artdata::piece_releases(install, &graphs);
     loaded.pivot_restrictions = crate::artdata::pivot_restrictions(install, &graphs);
+    // An anti-air building's packet: the three `verify_load` draws as a
+    // unit take their `<UNIT>`'s slots and releases (`crate::artdata::
+    // wall_packets`, `docs/COMBAT.md` §84.2).
+    let build_graphs: Vec<String> = buildings
+        .records
+        .iter()
+        .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+        .collect();
+    let packets = crate::artdata::wall_packets(install, &build_graphs);
+    for (i, graph) in build_graphs.iter().enumerate() {
+        let t = BASE_BUILDTYPES + i as i32;
+        if !matches!(t, sim::air::AIRDEFENSE | sim::air::RADAR | sim::air::SAM) {
+            continue;
+        }
+        let (Some(&id), Some((wind, swing, releases))) =
+            (loaded.build_tree.get(i), packets.get(graph))
+        else {
+            continue;
+        };
+        if let Some(c) = loaded.tree.types[id].wall_cycle.as_mut() {
+            c.wind = *wind as i32;
+            c.swing = *swing as i32;
+            c.releases.clone_from(releases);
+        }
+    }
     // The mountain templates: the placed ranges' tiles and solid cells,
     // which a mine's reach and its gather list are measured on.
     loaded.mountain_templates = crate::mountains::templates(install);
@@ -793,6 +818,28 @@ pub fn load_tables(
         d.jump = c.jump.map(|j| build_tree[j]);
         d.obs = tech_key(r.text("OBSOLETE"), &mut warnings);
         d.tribe_mask = mask_bits(r.text("TRIBE_MASK"));
+        // **An `ANTI_AIR` building other than a Lookout or an Observation
+        // Post fires on its `Wall::inc_time` cycle** (item 1112,
+        // `docs/COMBAT.md` §84): the rule is the type's, the packet the
+        // art's, which [`load`] fills in. From the tables alone the cycle
+        // has `get_game_frames`' three-frame answers and no release, so it
+        // never fires.
+        let t = BASE_BUILDTYPES + i as i32;
+        if c.obj_masks & mask::ANTI_AIR != 0
+            && t != sim::air::LOOKOUT
+            && t != sim::air::OBSERVATIONPOST
+        {
+            let missing = sim::anim::MISSING as i32;
+            d.wall_cycle = Some(sim::air::WallCycle {
+                wind: missing,
+                swing: missing,
+                releases: Vec::new(),
+                launch: sim::air::WALL_LAUNCH
+                    .iter()
+                    .find(|(k, _)| *k == t)
+                    .map(|&(_, l)| l),
+            });
+        }
         let id = tree.add(d);
         debug_assert_eq!(id, build_tree[i]);
     }
@@ -2290,7 +2337,14 @@ impl BuildCols {
             los: int(r, "LOS").unwrap_or(0),
             science_los: int(r, "SCIENCE_LOS").unwrap_or(0),
             to_hit: int(r, "TO_HIT").unwrap_or(-1),
-            attenuate: int(r, "ATTENUATE").unwrap_or(0).abs(),
+            // **Signed, as `BuildType::init@00632340` keeps it** (item
+            // 1112, `docs/COMBAT.md` §84.4): it stores `ATTENUATE` at
+            // `+0x1f0` as read, where `UnitType::init@0061ab50` stores its
+            // absolute value, and `Ammo::init`'s `to_hit + (−dist / 192) ×
+            // +0x1f0` then *raises* a building's accuracy with distance.
+            // run404's Radar round on 797 prints `accuracy 310`: 300 and
+            // `−5 × −2`.
+            attenuate: int(r, "ATTENUATE").unwrap_or(0),
             min_range,
             max_range,
             splash_area: int(r, "SPLASH_AREA").unwrap_or(0),

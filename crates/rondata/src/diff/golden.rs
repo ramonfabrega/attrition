@@ -6385,6 +6385,28 @@ fn frame_goods(raw: &str) -> Vec<FrameGood> {
 /// dump `AMMO`, so for them it is off and a round of this crate's would
 /// be compared against nothing.
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
+/// **An anti-air building's cycle rows** (item 1112, `docs/COMBAT.md`
+/// §84): each `BUILDDATA`'s `recharging`, `attack_ox` and `attack_whom`,
+/// keyed on its `SUBOBJECT`'s `(who, o)`. The widening compares them on
+/// the buildings whose type carries the `Wall::inc_time` cycle, and the
+/// coverage driver runs this reader beside the harness's own.
+pub(super) fn cycle_rows(frame: crate::gamelog::Block<'_>) -> Vec<((i64, i64), [i64; 3])> {
+    frame
+        .kids("BUILDDATA")
+        .filter_map(|b| {
+            let sub = b.find("SUBOBJECT")?;
+            Some((
+                (sub.int("who")?, sub.int("o")?),
+                [
+                    b.int("recharging")?,
+                    b.int("attack_ox")?,
+                    b.int("attack_whom")?,
+                ],
+            ))
+        })
+        .collect()
+}
+
 fn widen_civilians(
     run: &str,
     stem: &str,
@@ -6475,6 +6497,53 @@ fn widen_civilians(
             }
         }
         let flog = Log::parse(&raw);
+        // **An anti-air building's cycle, both directions** (item 1112,
+        // `docs/COMBAT.md` §84): `recharging` and `attack_ox/attack_whom`
+        // on every building whose type carries the `Wall::inc_time`
+        // cycle — no other reader parses the three, and the cycle is
+        // nothing but them.
+        for (_, fb) in flog.frames() {
+            for ((w, o), [rech, ox, whom]) in cycle_rows(fb) {
+                let Some(b) =
+                    s.built.sim.buildings.iter().position(|b| {
+                        b.alive && i64::from(b.owner) == w && i64::from(b.index) == o
+                    })
+                else {
+                    continue;
+                };
+                let bd = &s.built.sim.buildings[b];
+                let cycles = bd
+                    .ty
+                    .and_then(|t| s.built.sim.build_types[t].tree)
+                    .is_some_and(|id| s.built.sim.tech_tree.types[id].wall_cycle.is_some());
+                if !cycles {
+                    continue;
+                }
+                let (to, tw) = match bd.target {
+                    Some(sim::combat::Obj::Unit(x)) => (
+                        i64::from(s.built.sim.units[x].index),
+                        i64::from(s.built.sim.units[x].owner),
+                    ),
+                    Some(sim::combat::Obj::Building(x)) => (
+                        i64::from(s.built.sim.buildings[x].index),
+                        i64::from(s.built.sim.buildings[x].owner),
+                    ),
+                    None => (-1, -1),
+                };
+                for (what, ours, theirs) in [
+                    ("recharging", i64::from(bd.recharging), rech),
+                    ("attack_ox", to, ox),
+                    ("attack_whom", tw, whom),
+                ] {
+                    rows += 1;
+                    if ours != theirs {
+                        firsts
+                            .entry((w, o, format!("build:{what}")))
+                            .or_insert((n, format!("ours {ours} theirs {theirs}")));
+                    }
+                }
+            }
+        }
         for who in 0..2usize {
             let Some(block) = flog.leader_block(n, who as i64) else {
                 continue;
@@ -6574,7 +6643,12 @@ fn widen_civilians(
                         let un = &s.built.sim.units[u];
                         Some((i64::from(un.owner), i64::from(un.index), i64::from(p.slot)))
                     }
-                    sim::combat::Obj::Building(_) => None,
+                    // A building's round too (item 1112): the dump's
+                    // `who`/`o` are the building's.
+                    sim::combat::Obj::Building(b) => {
+                        let bd = &s.built.sim.buildings[b];
+                        Some((i64::from(bd.owner), i64::from(bd.index), i64::from(p.slot)))
+                    }
                 })
                 .collect();
             ammo_rows += theirs.len().max(ours.len());
