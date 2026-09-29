@@ -4323,6 +4323,130 @@ mod tests {
     /// **Made to fail on purpose**: with the arm's call taken out of
     /// `think`, the human's catapult takes the attack order on its first
     /// idle frame, which is 587's word.
+    /// **A hit on a building spills onto the enemy hands repairing it**
+    /// (`Object::do_damage@0064a480`'s tail, item 1182, `docs/GOLDEN.md`
+    /// §50): an eighth for a sea attacker that is not siege and a land one,
+    /// a quarter for a land siege type, nothing for a sea siege type (the
+    /// `is_siege` arm at `64c3b3`) or an aircraft, and nothing onto a
+    /// citizen of the building's side that is not at work on it. Made to
+    /// fail with the sea arm's `is_siege` test dropped, and with the
+    /// quarter read as an eighth.
+    #[test]
+    fn a_building_s_hit_spills_onto_its_repairers_by_the_attacker_s_domain() {
+        use crate::orders::{Body, Order};
+        for (domain, siege, repairing, share) in [
+            (Domain::Sea, false, true, Some(8)),
+            (Domain::Sea, true, true, None),
+            (Domain::Land, true, true, Some(4)),
+            (Domain::Land, false, true, Some(8)),
+            (Domain::Air, false, true, None),
+            (Domain::Land, false, false, None),
+        ] {
+            let (mut sim, ty) = at_war();
+            let mut at = sim.unit_types[ty].clone();
+            at.combat.domain = domain;
+            at.combat.siege = siege;
+            at.kind.domain = domain;
+            let at = sim.add_unit_type(at);
+            let b = sim.add_building(1, Pos::new(3000, 3000), 0);
+            sim.buildings[b].started = true;
+            sim.buildings[b].active = true;
+            sim.buildings[b].health = 1200;
+            sim.buildings[b].combat = Some(Profile {
+                x_size: 2,
+                y_size: 2,
+                ..Profile::default()
+            });
+            let hand = put(&mut sim, 1, ty, Pos::new(3300, 3000));
+            if repairing {
+                sim.units[hand].orders.push_back(Order {
+                    flags: 0,
+                    body: Body::Repair(b),
+                });
+            }
+            let me = put(&mut sim, 0, at, Pos::new(3600, 3000));
+            let count = 0x800;
+            sim.do_damage(
+                Obj::Unit(me),
+                Obj::Building(b),
+                Angle(0),
+                false,
+                count,
+                false,
+                false,
+                700,
+            );
+            let spilt: Vec<_> = sim
+                .hits
+                .iter()
+                .filter(|h| h.target == Obj::Unit(hand))
+                .copied()
+                .collect();
+            match share {
+                None => assert!(spilt.is_empty(), "{domain:?} siege {siege}: a spill"),
+                Some(k) => {
+                    assert_eq!(spilt.len(), 1, "{domain:?} siege {siege}: no spill");
+                    let ap = sim.profile(Obj::Unit(me));
+                    let want = combat::scale(
+                        spilt[0].damage,
+                        count / k,
+                        true,
+                        false,
+                        ap.ammo_per_att,
+                        ap.uber_size,
+                    );
+                    assert_eq!(spilt[0].dealt, want, "{domain:?} siege {siege}: the share");
+                }
+            }
+        }
+    }
+
+    /// **A packed packer in range of its attack unpacks first**
+    /// (`Unit::fight@005fd4d0:512`–`543`, item 1182): a human's packed
+    /// catapult holding an attack on a building in range is given the
+    /// unpack at the head and strikes nothing, where it used to fall through
+    /// to the strike. Made to fail with [`Sim::packed_unpacks`] answering
+    /// false.
+    #[test]
+    fn a_packed_packer_in_range_unpacks_before_it_strikes() {
+        use crate::orders::{Body, spell};
+        let (mut sim, _) = at_war();
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 100,
+            combat: Profile {
+                attack: 40,
+                max_range: 15,
+                uber_size: 1,
+                siege: true,
+                packs: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+        assert!(sim.units[me].combat.packed);
+        let b = sim.add_building(1, Pos::new(0x4000 + 6 * 192, 0x4000), 0);
+        sim.buildings[b].started = true;
+        sim.buildings[b].active = true;
+        sim.buildings[b].health = 1200;
+        sim.buildings[b].combat = Some(Profile::default());
+        sim.add_attack_order(
+            me,
+            Obj::Building(b),
+            crate::orders::QueuePos::New,
+            true,
+            true,
+        );
+        let frame = sim.frame;
+        sim.work(me, frame);
+        assert!(
+            matches!(sim.units[me].orders.front().map(|o| o.body), Some(Body::Cast(c)) if c.spell == spell::UNPACK),
+            "no unpack at the head: {:?}",
+            sim.units[me].orders
+        );
+        assert!(sim.hits.is_empty(), "a packed engine struck");
+    }
+
     #[test]
     fn a_human_s_packed_siege_engine_unpacks_before_it_searches() {
         use crate::orders::{Body, spell};

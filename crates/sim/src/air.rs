@@ -1378,9 +1378,13 @@ impl Sim {
             return;
         }
         let base = self.buildings[b].pos;
-        let stealth =
-            self.tech_tree
-                .has_tech(&self.setup, &self.tech[owner as usize], STEALTHBOMBER);
+        // A tree that does not carry the tech (the harness's small
+        // fixtures) answers no.
+        let stealth = STEALTHBOMBER < self.tech_tree.types.len()
+            && self
+                .tech
+                .get(owner as usize)
+                .is_some_and(|p| self.tech_tree.has_tech(&self.setup, p, STEALTHBOMBER));
         let mut best = -1;
         let mut target: Option<(crate::Player, usize)> = None;
         for l in 0..self.players.len() as crate::Player {
@@ -2517,6 +2521,74 @@ mod launch_tests {
                 assert!(!p.returning, "and `returning` cleared");
             } else {
                 assert!(s.units[u].orders.is_empty(), "no repeat: closed");
+            }
+        }
+    }
+
+    /// **A computer's base sends its plane over a city under attack**
+    /// (`Object::do_launch@0064f3b0`'s sortie, item 1182, `docs/GOLDEN.md`
+    /// §50): on `(frame + id) % 32 == 0` a plane inside a computer's base
+    /// is cleared and patrolled over an enemy city with `city_flags & 3 ==
+    /// 3`; nothing for a human's base, off the cadence, or over a city not
+    /// under attack. run437's Biplane on 778. Made to fail with the city's
+    /// attack bit not read, and with the owner's human bit not read.
+    #[test]
+    fn a_computer_s_base_sends_its_plane_over_a_city_under_attack() {
+        for (human, under_attack, on_cadence, sorties) in [
+            (false, true, true, true),
+            (true, true, true, false),
+            (false, false, true, false),
+            (false, true, false, false),
+        ] {
+            let mut s = sim();
+            s.nation[0].human = human;
+            let (base, target) = base_and_target(&mut s);
+            let u = fighter_inside(&mut s, base, 400);
+            s.units[u].orders.clear();
+            let pos = s.buildings[target].pos;
+            s.cities.push(crate::city::City {
+                alive: true,
+                owner: 1,
+                race: Some(1),
+                founder: 1,
+                building: target,
+                members: Vec::new(),
+                reg: None,
+                pos,
+                capital: true,
+                founding_capital: true,
+                was_founding_capital: false,
+                unassimilated: false,
+                no_heal: under_attack,
+                attacking: under_attack,
+                ever_attacked: under_attack,
+                alarm: false,
+                no_muster: false,
+                was_capital: 0,
+                capture_stamp: 0,
+                assimilation_timer: 0,
+                attack_stamp: 0,
+                capture_strength: 0,
+                pop: 1,
+                has_citizen: false,
+                source: None,
+                trade_val: 0,
+                traded_with: [0; 8],
+            });
+            let id = i64::from(s.buildings[base].index);
+            s.frame = 32 * 30 - id + if on_cadence { 0 } else { 1 };
+            s.do_launch(base);
+            let patrol = s.units[u].orders.front().and_then(|o| match o.body {
+                crate::orders::Body::AirPatrol(p) => Some(p.current()),
+                _ => None,
+            });
+            if sorties {
+                assert_eq!(patrol, Some(pos), "no sortie over the city");
+            } else {
+                assert_eq!(
+                    patrol, None,
+                    "human {human}, attacked {under_attack}: a sortie"
+                );
             }
         }
     }

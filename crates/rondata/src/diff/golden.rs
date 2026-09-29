@@ -13283,6 +13283,56 @@ fn chapter_forty_one_holds_to_the_golden_word() {
     );
 }
 
+/// **run436: a command for another seat is dropped at the pump** (item
+/// 1182, `docs/GOLDEN.md` §50). The first take of chapter forty-one wrote
+/// `be 0` on the issuing frame: the DLL issued both who=1 commands (its
+/// INFO records carry them, no refusal), and `CommandManager::
+/// process_turn` stamped the package with `console->play` — back to 0 —
+/// as the pump walked it, so `CommandPackage::process_group` dropped
+/// both groups. The Biplane `1/6` holds no order on any block to 1600
+/// and the Citizen `1/7` never repairs. Staged here with run436's own
+/// lines; made to fail with [`crate::golden::Script::pump`]'s seat test
+/// removed.
+#[test]
+fn run436_s_other_seat_s_commands_are_dropped_at_the_pump() {
+    const RUN436: &str = "0 !ai off\n606 add airbase who=1 212,104\n608 add biplane who=1 212,118\n\
+        610 add barracks who=1 190,82\n612 add citizen who=1 198,82\n614 add trireme who=0 181,82\n\
+        616 add hoplite who=0 204,88\n618 add catapult who=0 194,92\n620 be 1\n\
+        620 @flight 1 2006 1 6\n620 be 0\n622 @attack 0 2007 1 10\n630 @attack 0 2007 1 6\n\
+        700 @attack 0 2002 1 7\n720 be 1\n720 @repair 1 2007 1 7\n720 be 0\n";
+    let Some(mut s) = stage_script("ch41-run436", "chapter41") else {
+        return;
+    };
+    s.script = Script::parse(RUN436);
+    let mut done = crate::golden::Applied::default();
+    while s.built.sim.frame <= 725 {
+        done.merge(&s.script.stage(s.built.sim.frame, &mut s.built, &s.loaded));
+        s.built.tick();
+    }
+    let dropped = done
+        .skipped
+        .iter()
+        .filter(|((_, why), _)| why.contains("not the seat at the pump"))
+        .map(|(_, n)| *n)
+        .sum::<usize>();
+    assert_eq!(
+        dropped, 2,
+        "the flight and the repair are dropped at the pump"
+    );
+    let biplane = s
+        .built
+        .sim
+        .units
+        .iter()
+        .position(|u| u.owner == 1 && u.index == 6)
+        .expect("who=1's Biplane");
+    assert!(
+        s.built.sim.units[biplane].orders.is_empty(),
+        "the Biplane took the dropped flight: {:?}",
+        s.built.sim.units[biplane].orders
+    );
+}
+
 /// **run437 whole, both directions** (item 1182, `docs/GOLDEN.md` §50):
 /// every dumped record on every block of the capture. No pool: the
 /// capture prints no `GROUPS`, which its verifier refuses when no block
