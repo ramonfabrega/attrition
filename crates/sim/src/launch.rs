@@ -618,6 +618,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 177,
         },
     ),
+    // **Piece 33, the Javelineers (type 83): the original's own
+    // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
+    // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
+    // Without these rows every javelin left the unit's own square, some
+    // 80 units behind the hand, and flew one frame long: Great Sahara's
+    // long word, 16681, where a Farm the original had lost a tick
+    // earlier drew one more Longbow volley here. run448 prints two
+    // rounds under `AMMO=5`, and its packet answers
+    // `GraphicPieces::get_position@0090b750(33, 0, anim, frame, deg)`
+    // under unicorn at every whole degree: each row reproduces all 360
+    // truncated points exactly, and `dz` is the same at every degree.
+    (
+        33,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 38_941,
+            fwd: 99_188,
+            dz: 163,
+        },
+    ),
+    (
+        33,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: 1_649,
+            fwd: 89_737,
+            dz: 170,
+        },
+    ),
+    (
+        33,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 21_769,
+            fwd: 74_413,
+            dz: 156,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -1042,6 +1083,30 @@ mod tests {
                 "piece 32 anim {anim} dz"
             );
         }
+    }
+
+    /// run448's two javelins, from the `GUY` and `AMMO` records on each
+    /// round's first block (`docs/COMBAT.md` §70.2): the figure's point,
+    /// facing and `z`, then the round's `sx, sy, sz`. The rows themselves
+    /// are the packet's sweep of `get_position`; these are the dump's own
+    /// check on them.
+    #[test]
+    fn run448_s_javelins_leave_from_the_measured_bays() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        #[rustfmt::skip]
+        const M: &[Row] = &[
+            (crate::anim::ATTACK1, 12, 6120, 28248, -1661468672, 578, 6028, 28300, 741),
+            (crate::anim::ATTACK3, 27, 6360, 28488, -1532166144, 626, 6289, 28517, 782),
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in M {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 33, anim, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "piece 33 anim {anim} t {t}");
+            assert_eq!(gz + release_dz(33, anim, t, 0).unwrap(), sz, "piece 33 dz");
+        }
+        assert!(
+            bay(33, crate::anim::ATTACK2, 6, 0).is_some(),
+            "all three of the piece's events have a row"
+        );
     }
 
     #[test]

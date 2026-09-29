@@ -11745,6 +11745,23 @@ radii to the unit (97 and 125) and bearings 1.4° and 1.1° short of them:
 the same sling model under another piece number, fitted there as a planar
 `Node` from three stones.
 
+**Piece 33, the Javelineers (type 83)** (item 1194; the evidence is
+`docs/journal/2026-09-29-item-1194.md`). The `Spear` leaves node 0 on
+frame 12 of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
+The rows come from `GraphicPieces::get_position@0090b750(33, 0, anim,
+frame, deg)`, run under unicorn on run448's packet at every whole degree.
+`deg` is `whole_degrees(facing) − 180`. Each row reproduces all 360
+truncated points and run448's two `AMMO` rounds exactly:
+
+| key | `(right, fwd)`, thousandths | `dz` |
+|---|---|---|
+| `CHAR_ATTACK1`, 12 | (38,941, 99,188) | 163 |
+| `CHAR_ATTACK2`, 6 | (1,649, 89,737) | 170 |
+| `CHAR_ATTACK3`, 27 | (21,769, 74,413) | 156 |
+
+A packet holds a piece's entries only if its game fielded the piece (item
+603).
+
 ### 70.3 `on_duty`'s return, from the listing
 
 `Unit::target_opportunity@005fffc0`, after the flee arm:
@@ -11916,6 +11933,8 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
 - **The planar fallback for an unmeasured piece** still launches from the
   unit's square. The next ranged type a word reaches will ask the same
   question: run17's method needs only `AMMO=5` and the unit's `recharging`.
+  ~~Piece 33 was the next~~: its rows are §70.2's. Other civilizations'
+  javelineer pieces are still unmeasured.
 - **A Slinger at a heading run17 never shows.** The bays are exact on
   twenty headings. The rotation is `get_position`'s, and it is read, not
   measured, between them.
@@ -11935,6 +11954,9 @@ to the idle. Both sides spend `1/24`'s `fight+0x9b0` first (roll 54128,
   - the frozen mark, by run373's block 4853 and frame 4852's draws.
 
   Each is a floor that falls back under its mutation (§70.5).
+  - piece 33's bays, by run448's two rounds
+    (`run448_s_javelins_leave_from_the_measured_bays`) and run442's Farm
+    on 16681. Without them, the long walk falls to 16681.
 - **Listing-backed**: `600863`–`600871`, the branches into it, and
   `600516`; `5fe8a7`–`5feb51`; `5fde80`–`5fdfea`.
 - **Decompile-read**: `on_duty@005fff70`, `get_activity@00608370`,

@@ -116,6 +116,15 @@ release), whose labels must agree after it and whose floors say what
 moved. Named in `trace::site_rows::UNROWED` until then; the guard
 refuses a second exception without a reason.
 
+## Parked by item 1194, 2026-09-29 — the food row and the other javelins
+
+(1207) **run442's 16783: who=1's `bucket[0:food]` 118 against 125**,
+beside `1/2024`'s `queue[0].cost[0]` 70 against 63, spending no draw in
+the window; its neighbour is parked 1195's `MAKE[].val` 7/6 row, which
+parts again on 16782. And the other civilizations' javelineer pieces
+are unmeasured (COMBAT §70.2's sweep on a packet of a game that fields
+them).
+
 ## Parked by item 1182, 2026-09-29 — row 7's other arms
 
 (1201) **Two of row 7's rows no golden staging reaches** (GOLDEN §50):
@@ -2292,6 +2301,14 @@ block N and absent on N + 1 beside its firsts would have. One reach.
 the pump when the package is walked; run436's take read the one it
 could see and lost both commands. `be` had never been staged. A staging
 walk that names each `@` line's seat at both reads would have. One reach.
+
+(1208) **The `get_position` sweep on a packet has been reached three
+times** (1194's Loop line): 603's pivot, 602's release and 1194's bays,
+each copy edited from the last one's scratch file in `~/ron-data`. It
+is the whole instrument for a release node, where `AMMO` answers only
+the headings a fight shows; it graduates into `tools/recomp/` as one
+script taking a piece, keys and a packet and printing `Bay` rows
+(CLAUDE.md, "a probe shape reached for a third time"). One reach.
 
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
