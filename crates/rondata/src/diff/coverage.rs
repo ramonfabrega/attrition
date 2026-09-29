@@ -1861,12 +1861,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // on a move once the original's pair has left its `(0, 0)` start: no
     // move's has on East Indies' blocks, and one had on the third map's
     // run382 window, so the pair left this pin when the nineteenth pass
-    // walked that window too. **Back on item 1133**: the third map's window
-    // is run416's 12782..12786 now, and no move there has left `(0, 0)`.
+    // walked that window too. Item 1133 moved the third map's window to
+    // run416's 12782..12786, where none has; East Indies' word at 6321
+    // (item 1127) has one, so the pair stays off.
     (
         "OrderDump",
         "ag_accuracy ag_att_x ag_att_y ag_attack_unit air_old air_oxx air_whose \
-         attempts build_type cast_paid cast_spell coll_x coll_y cruising_alt def_x def_y \
+         attempts build_type cast_paid cast_spell cruising_alt def_x def_y \
          defensive ever_in_range form_id garrison_search group_angle group_id guard_dx \
          guard_dy guard_idle guard_retry guard_x guard_y in_group in_range mandatory metric \
          new_ord non_flat_gather orig_x orig_y oxx patrol_x patrol_y retry returning \
@@ -1882,12 +1883,13 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // stood on the third map's run382 window**, walked here since the
     // nineteenth pass, so `job_counter` was compared and off this pin; it had left and
     // returned with the word four times in one tranche (items 1061, 1086,
-    // 1106, 1120). **Back on item 1133**: the third map's window moved to
-    // run416's 12782..12786, where no site is unfinished.
+    // 1106, 1120). Item 1133 moved the third map's window to run416's
+    // 12782..12786, where none is; one is on East Indies' 6321 window (item
+    // 1127), so `job_counter` stays off.
     (
         "BuildDump",
         "cliff construct_hits ever_seen ever_seen_completed flags \
-         job_counter max_age mining_size mtn orig_type",
+         max_age mining_size mtn orig_type",
     ),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
     ("DeathDump", "cur_anim first_frame gpiece o valid who"),
