@@ -4566,8 +4566,19 @@ pub(crate) const WIDENING_CHAPTER_THIRTY_SEVEN: (i64, i64) = (605, 3491);
 /// winds up (`recharging` 1..19, `Wall::inc_time`), drawing nothing, where
 /// ours fires at once — ours 10 draws, theirs 6, four `buildings` first.
 ///
-/// **The delta**, this constant's: 776 → 777.
-pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 777;
+/// **779, open** (item 1112, `docs/COMBAT.md` §84). The Radar Air
+/// Defense's round is its animation's: `Build::do_attack` neither counts
+/// down nor fires for an `ANTI_AIR` building other than a Lookout or an
+/// Observation Post, and `Wall::inc_time` winds `recharging` up to 19 and
+/// swings it −1..−10, the `<UNIT>`'s release on frame 2 a round. The value
+/// diff: block 778 prints `recharging 1`, `attack_ox 7`, `attack_whom 0`
+/// on both sides, and ours spends no draw on 777 (six, the farms', as
+/// theirs). 779: the Battery `1/9` releases `CHAR_ATTACK2`'s frame-4 round
+/// on node 0 in ours; theirs holds it, its turret short of its aim
+/// (`node_flags` 14, bit 0 clear) — ours 9 draws, theirs 6.
+///
+/// **The delta**, this constant's: 777 → 779.
+pub(crate) const GOLDEN_WORD_CHAPTER_THIRTY_EIGHT: i64 = 779;
 
 /// `chapter_thirty_eight_s_word_frame_is_widened_whole`'s window: run404
 /// whole, (605, 1763).

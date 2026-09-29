@@ -13127,7 +13127,7 @@ the target (−819789824), so it never swung. **Built** as
 and `an_anti_air_strike_at_a_plane_does_not_turn_the_unit`, which exercises
 the call site. **Diff-backed** on run404's 773..777.
 
-### 83.2 The Radar Air Defense's cycle (read, unbuilt: the word 777)
+### 83.2 The Radar Air Defense's cycle (read here; ~~unbuilt~~ built and read from the listing in §84)
 
 `Build::do_attack@006228f0`: a building with `ANTI_AIR` that is neither
 `LOOKOUT` nor `OBSERVATIONPOST` (`TypeIndex` 521 and 522; neither is
@@ -13151,10 +13151,189 @@ It spends no draw on 777. Ours fires on acquisition through
 [`Sim::process_building_combat`]'s footprint scatter: four draws in
 `buildings` on 777, where theirs has none (ours 10, theirs 6).
 
-**Not established**: where the round leaves (the packet's animation event is
-the obvious reading; the arm's tail past `LAB_006402b4` was not read); the
-two game-frame counts (20 and 10 fit the dump, but `get_game_frames` on the
-Radar Air Defense's piece is not read); and whether the flak roll (§81) runs
-on the building's round the same way. Next: read the arm to its end and
-the packet's consumer, then build it in `process_building_combat` (fenced
-to another lane at this landing).
+**Not established**: ~~where the round leaves; the two game-frame counts;
+and whether the flak roll runs on the building's round the same way~~ —
+all three answered in §84: the release event of slot `0xc` through
+`execute_game_events`, 20 and 10 from the same-named `<UNIT>`
+(`GraphicPieces::verify_load`), and the flak roll spent as a unit's.
+
+## 84. An anti-air building's round is its animation's: `Wall::inc_time`'s cycle (item 1112, 2026-09-28)
+
+Chapter thirty-eight's word 777 (`docs/GOLDEN.md` §47): the Radar
+Air Defense `1/2007` acquires Bomber `0/7`, and ours fired at once, four
+draws against none. §83.2 read the cycle from the decompile; this
+section reads it from the listing, reads the loader that gives it its
+numbers, and builds it.
+
+**Every instance on the disk first.** A scan of all 299 dumps under
+`~/ron-golden`, `~/ron-data` and the game's `Logs` for a `BUILDDATA`
+whose `orig_type` is 521..525 (the Lookout line) finds two captures:
+run404/run405 (the Radar, 1,143 blocks) and chapter thirty-one's Lookout
+(608 blocks), which only counts its construction and never acquires. So
+run404's Radar is the one instance of the event on disk: `recharging`
+0 through block 777; 1..19 on 778..796; then −1..−10 repeating to
+1020; 18 on 1021 when the target is gone, and down to 0. Its rounds are
+the three draws `Ammo::init+0x432`, `+0xcd9`, `+0xd0b` under
+`GraphicEvents::execute_game_events+0x40d` on every trace frame ≡ 7 mod
+10 from 797 to 1017. Twenty of the twenty-three print their `AMMO`
+record on the next block with `cur_time 1`. The three that do not (817,
+857, 867) are the five §47 found without a round, less two.
+
+### 84.1 The arm, from the listing
+
+`Build::do_attack@006228f0` (the listing, not the decompile's reading):
+- **The head** (`6228fe`..`622946`): the `recharging` countdown runs
+  unless the building `has_objmask(0x80000000)` (`ANTI_AIR`) and is
+  neither `LOOKOUT` (`0x209`) nor `OBSERVATIONPOST` (`0x20a`).
+  `TypeData::is`, the type vtable's slot `0x60`, is identity.
+- **In range** (`622b52`..`622ba3`): the same test returns at `622c2e`,
+  before `Object::fire_ammo` at `622bb8`. Out of range (`622b4c`), the
+  target is cleared at `622c1c`; this crate keeps it (§84.7).
+
+`Wall::inc_time@0063fb60`'s anti-air arm, on `BuildData::recharging`
+(`+0x7a`), past `is_active` (an unfinished building returns above it),
+`ANTI_AIR` (`63ff8b`), `LOOKOUT` (`63ff99`) and `OBSERVATIONPOST`
+(`63ffc5`), with `W = get_game_frames(8)` (`640020`):
+- `near_o` (`ObjectData +0x34`) negative or the jam bit (`build_masks &
+  0x8000`, `640025`, `640033`): a negative count goes to `W − 1`, then a
+  count of at least 1 goes down one. So it counts down to 0 and holds.
+- otherwise: from 0 it counts **up** while under `W − 1` (`6400c6`). At
+  the top, with no target (`attack_ox < 0`, `6400fa`), it holds at `W −
+  1`. With one, a non-negative count goes to 0. Then, with `S =
+  get_game_frames(0xc)` (`640160`), a count at or under `−S` goes to −1,
+  and any other goes down one (`6402ad`).
+- while the count is negative: a package with `cur_anim 0xc`, `cur_time
+  = −recharging`, `last_time` one under it, `ox`/`whom` the target's, and
+  `angle 0x20000000` (`64039d`), handed to `execute_game_events`
+  (`640414`) unless the jam bit is set (`640409`).
+
+**Its order** is `Objects::inc_time@0065db70`'s: per leader, each unit's
+`inc_time` and `execute_events`, then each building's `+0xa0`
+(`Wall::inc_time` on a `Build`), and then the ammo list. So a round
+leaves between its owner's units and the next leader's, and its first
+`Ammo::inc_time` is the same frame's, hence `cur_time 1` on the block.
+
+**Writers of `recharging`** (`+0x7a` on a `Build`, by offset): the
+constructor, `Build::init` and `Build::activate` (0); `Wall::do_construct`
+(+1 while building); `do_attack`'s countdown and reload; `Wall::inc_time`;
+and three that other types own (the Kremlin's and the Terracotta Army's
+arms of `Build::process`, `Object::do_launch`'s airbase,
+`Build::do_missile_launch`). `Unit::*` and `Guy::move` write `UnitData
++0x7a`, a different field.
+
+### 84.2 The packet: the building is drawn as a unit
+
+`GraphicPieces::verify_load@00906550` loads a build piece of type
+`AIRDEFENSE` (`0x20b`), `RADAR` (`0x20c`) or `SAM` (`0x20d`) that is
+among the first `0x81` build pieces through **`init_unit_data`**, not
+`init_build_data`, whose packet has only the nine `BuildAnimNames`
+slots (`get_game_frames` answers 3 past them). run404's Radar piece is
+50804, the same base as the Airbase's 50727 (`type − 0x19e` apart), so
+it is in that first slice. Its `<UNIT>` is `RADARAIRDEFENSE-DEFAULT-AGE0`
+in `unit_graphics.xml`: `CHAR_WALK` (slot 8) is *RadarDefGun Unpack*, 20
+frames not looping; `CHAR_ATTACK2` (slot `0xc`) is *RadarDefGun Attack1*,
+10 frames; and one `<RELEASEEVENT starttime="200" anim="CHAR_ATTACK2"
+type="FlakShell" node="0"/>` gives frame 2 (§50.1). **All three numbers
+are run404's**: 1..19, −1..−10, and the round on `recharging −2`. The Air
+Defense Gun's `<UNIT>` has the same 20, 10 and one release at 200; the
+SAM's has three releases (0, 333, 666 on nodes 0..2).
+
+### 84.3 The round
+
+Through the unit's release path: `execute_game_events+0x40d` →
+`Objects::add_ammo` → `Ammo::init`, so the flak roll (§81.2) is spent,
+then the scatter's two draws. The launch is the package's `x/y/z` plus
+the node vector at the package's fixed `angle`. So it does not turn with
+the target: all twenty printed rounds leave from (22408, 16376, 235), the
+building at (22272, 16512, 8) plus (136, −136, 227). The round's
+`num_guys` is 0, the building's.
+
+### 84.4 A building's `ATTENUATE` is signed
+
+`BuildType::init@00632340` stores `ATTENUATE` at `+0x1f0` as read, where
+`UnitType::init@0061ab50` stores its absolute value. `Ammo::init`'s
+accuracy is `to_hit + (−dist / 192) × +0x1f0`, clamped at 5. So a
+building's rises with distance: the Radar's first round prints `accuracy
+310` (300, and −5 × −2), and this crate's loader took `abs` for both and
+printed 290. Every city, tower and fort carries −3 and every Lookout-line
+building −1..−8. No widening had matched a building's round until this
+item (§84.5), so the field was compared nowhere.
+
+### 84.5 What this crate built
+
+- `sim::air::WallCycle` on the building type's `TypeDef::wall_cycle`: set
+  by `rondata::load::load_tables` for every `ANTI_AIR` building that is
+  not `LOOKOUT` or `OBSERVATIONPOST`, and filled by
+  `rondata::artdata::wall_packets` for `AIRDEFENSE`, `RADAR` and `SAM`.
+  `sim::air::WALL_LAUNCH` carries the measured vector.
+- `Sim::process_building_combat` skips the countdown and the fire for
+  such a building.
+- `Sim::walls_inc_time` (`crate::air`), called after each leader's units
+  in `Sim::guys_inc_time` (granted), runs the cycle and fires through
+  `fire_ammo_pub`.
+- The loader keeps a building's `ATTENUATE` signed.
+- The instrument: `golden::cycle_rows` compares `recharging`,
+  `attack_ox` and `attack_whom` on every cycle building (the three leave
+  the coverage pin), and the golden widening matches a building's rounds,
+  which it had dropped.
+
+Tests: `an_anti_air_building_takes_its_target_and_does_not_fire_it` (the
+call site), `an_anti_air_building_winds_up_and_fires_on_its_swing`.
+
+### 84.6 What moved
+
+**The word goes 777 → 779.** The value diff, both sides: `1/2007` on block
+778 is `recharging 1`, `attack_ox 7`, `attack_whom 0` in each; ours spends
+no draw on 777 (six, the farms', as theirs). The cycle rows agree from 778
+to 836. They first part on 837, `attack_ox` 7 against 6, downstream of
+779. The first round, block 798, agrees in launch (22408, 16376), `t 1/5`
+and `angle` −1137246208.
+
+**779** is the Battery `1/9`'s release of `CHAR_ATTACK2` frame 4 on node
+0: ours fires, theirs does not. Block 780 prints the guy at `cur_anim 12`,
+`cur_time 4`, `node_flags 14` (bit 0 clear), `turret_angles[0]`
+1476220240 against `des_turret_angles[0]` −1978269696: the turret has not
+arrived, and theirs releases node 1's frame 7 on 782. `FLAKGUN` carries a
+`<RESTRICTION>` on node 4 (−180..180). This crate's gate (§55) is the one
+for the event, but `node_flags` and `turret_angles` are parsed by nothing
+here (the coverage pin lists them), so the turret's arrival is unwitnessed.
+That is the next item's frame, and a hypothesis.
+
+**Mutations**, each on the committed build (`08758cb9`), `git diff --stat`
+non-empty first, restored from git and `touch`ed, scored against `sim`'s
+two tests, the loader's `the_radar_air_defense_winds_up_on_its_unit_s_packet`
+and `cargo test --release -p rondata chapter_thirty_eight`:
+
+| mutation | sim | loader | ch38's pins |
+| --- | --- | --- | --- |
+| `do_attack`'s in-range return dropped | the call-site test | ok | word 777; widening 639 |
+| the head's countdown kept for a cycle building | the call-site test | ok | word test (the height-read pin); widening |
+| the cycle's call dropped | the cycle test | ok | word test (the height-read pin, 43 against 41); widening |
+| the swing one frame longer (`<` for `<=`) | the cycle test | ok | widening 674 (word 779 still) |
+| a building's `ATTENUATE` through `abs` again | ok | **fails** | both pass: no widening compares a round's `accuracy` |
+
+### 84.7 What is not established
+
+- **`near_o`** gates the cycle, and this crate holds it on units only; the
+  gate takes the target's sign. run404's two agree in sign on all 1,157
+  blocks, and a building whose search sees a candidate it does not take
+  would part.
+- The string `verify_load` appends (`int_str_array +0x122f0`) is read as
+  `-DEFAULT-AGE0`, and only the three numbers above back it.
+- The Air Defense Gun's and the SAM's launch vectors; a jammed building;
+  a piece outside the first `0x81` (not reachable with the shipped art).
+- `do_attack`'s out-of-range arm clears the target (`622c1c`), which
+  `process_building_combat` does not; nothing on disk parts on it yet.
+- The rounds of 817, 857 and 867 that print no `AMMO` record.
+- A round's `accuracy` is compared by no widening (the golden one matches
+  a round by `(who, o, slot)` only), so the sign rests on one printed
+  round and the loader's test; and past 779 the stream has parted, so
+  the Radar's landings cannot be value-compared on run404.
+
+### 84.8 Coverage
+
+Diff-backed on run404: the cycle (`recharging`, `attack_ox`,
+`attack_whom` on 778..836 in the widening), the round's frame (the draw
+stream), its launch, time and angle (block 798), and the accuracy's sign
+(one round). Read alone: `verify_load`'s type list and slice, the jam
+arm, the out-of-range clear.

@@ -187,6 +187,12 @@ pub struct TypeDef {
     /// tech unlocks — [`crate::ai_load::compute_ai_values`]. Zero on
     /// everything that is not a tech, and `ai[7]` is never written at all.
     pub ai: [i16; crate::ai_load::AI_WEIGHTS],
+    /// **An anti-air building's `Wall::inc_time` cycle** (item 1112,
+    /// `docs/COMBAT.md` §84): `Some` on every building that
+    /// `Build::do_attack@006228f0` does not fire itself — `ANTI_AIR` and
+    /// neither [`crate::air::LOOKOUT`] nor [`crate::air::OBSERVATIONPOST`]
+    /// — with the packet its round leaves on. `None` on everything else.
+    pub wall_cycle: Option<crate::air::WallCycle>,
 }
 
 impl TypeDef {
@@ -209,6 +215,7 @@ impl TypeDef {
             cost: [0; crate::economy::RESOURCES],
             job_time: 0,
             ai: [0; crate::ai_load::AI_WEIGHTS],
+            wall_cycle: None,
         }
     }
 

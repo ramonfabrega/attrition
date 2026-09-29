@@ -2904,7 +2904,179 @@ pub const CAT_AIR: i32 = 8;
 /// `JAM_UNIT_RADAR_PROB`, rules.xml's `50%`: `Constants +0x21c`.
 pub const JAM_UNIT_RADAR_PROB: i32 = 50;
 
+/// `TypeIndex` `LOOKOUT`: an `ANTI_AIR` building (`OBJ_MASKS` `Z6`) that
+/// `Build::do_attack@006228f0` fires itself, through `Object::fire_ammo`,
+/// on its `recharging` countdown (`docs/COMBAT.md` §84).
+pub const LOOKOUT: i32 = 0x209;
+/// `TypeIndex` `OBSERVATIONPOST`, the Lookout's successor: fired by
+/// `do_attack` as the Lookout is.
+pub const OBSERVATIONPOST: i32 = 0x20a;
+/// `TypeIndex` `AIRDEFENSE`, `RADAR` and `SAM`: the rest of the line, and
+/// the three build pieces `GraphicPieces::verify_load@00906550` loads
+/// through `init_unit_data` — the same-named `<UNIT>` of
+/// `unit_graphics.xml` — rather than `init_build_data`, so their packet
+/// has the unit's slots (§84.2).
+pub const AIRDEFENSE: i32 = 0x20b;
+pub const RADAR: i32 = 0x20c;
+pub const SAM: i32 = 0x20d;
+
+/// **The packet an anti-air building's `Wall::inc_time` cycle reads**
+/// (item 1112, `docs/COMBAT.md` §84): `get_game_frames(8)` and
+/// `get_game_frames(0xc)` of its piece, the `<RELEASEEVENT>`s of slot
+/// `0xc` (`CHAR_ATTACK2`) as `(frame, node, harmless)` in file order, and
+/// where the round leaves from.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct WallCycle {
+    /// `get_game_frames(8)`: `recharging` winds up to one under it.
+    pub wind: i32,
+    /// `get_game_frames(0xc)`: the swing, `recharging` −1 down to −it.
+    pub swing: i32,
+    /// Slot `0xc`'s release events, `rondata::artdata::PieceReleases`'
+    /// shape.
+    pub releases: Vec<(u32, i8, bool)>,
+    /// The launch point's offset from the building's own `x/y/z`, as
+    /// measured ([`WALL_LAUNCH`]); `None` leaves from the building itself.
+    pub launch: Option<(i32, i32, i32)>,
+}
+
+/// **Where an anti-air building's round leaves from, measured** (item
+/// 1112, `docs/COMBAT.md` §84.3). `execute_game_events` adds
+/// `GraphicPieces::get_position`'s node vector to the package's `x/y/z`,
+/// and `Wall::inc_time`'s package carries a fixed `angle` of
+/// `0x20000000`, so the vector does not turn with the target: all twenty
+/// of run404's Radar rounds leave from (22408, 16376, 235), the building at
+/// (22272, 16512, 8) plus this row. The Air Defense Gun's and the SAM's
+/// are not measured.
+pub const WALL_LAUNCH: &[(i32, (i32, i32, i32))] = &[(RADAR, (136, -136, 227))];
+
 impl Sim {
+    /// **`Wall::inc_time@0063fb60` for one leader's buildings**, which
+    /// `Objects::inc_time@0065db70` runs after that leader's units and
+    /// before the next leader's ([`Sim::guys_inc_time`]), in object order
+    /// from 2000. Only its anti-air arm changes the simulation
+    /// ([`Sim::wall_anti_air`], `docs/COMBAT.md` §84).
+    pub(crate) fn walls_inc_time(&mut self, who: u8) {
+        let mut mine: Vec<usize> = (0..self.buildings.len())
+            .filter(|&b| self.buildings[b].owner == who && self.buildings[b].alive)
+            .collect();
+        mine.sort_by_key(|&b| self.buildings[b].index);
+        for b in mine {
+            self.wall_anti_air(b);
+        }
+    }
+
+    /// The [`WallCycle`] of a building's type, `None` for one
+    /// `Build::do_attack` fires itself.
+    pub(crate) fn wall_cycle_of(&self, b: usize) -> Option<&WallCycle> {
+        let bt = self.buildings[b].ty?;
+        let id = self.build_types.get(bt)?.tree?;
+        self.tech_tree.types.get(id)?.wall_cycle.as_ref()
+    }
+
+    /// **`Wall::inc_time`'s anti-air arm** (item 1112, `docs/COMBAT.md`
+    /// §84.1), from the listing: past `is_active` (an unfinished building
+    /// returns above it), `has_objmask(ANTI_AIR)` and the Lookout's and
+    /// the Observation Post's own returns, on `BuildData::recharging`.
+    ///
+    /// - `near_o` (`+0x34`) negative, or the jam bit (`build_masks &
+    ///   0x8000`): a negative count goes to `wind − 1`, and a positive one
+    ///   counts down to 0 and holds.
+    /// - otherwise, from 0 it counts **up** while under `wind − 1`; at the
+    ///   top with no target (`attack_ox < 0`) it holds at `wind − 1`; with
+    ///   one it goes to 0 and then −1, and down to `−swing`, where the next
+    ///   frame is −1 again.
+    ///
+    /// While the count is negative the arm hands `execute_game_events` a
+    /// package with `cur_anim 0xc`, `cur_time = −recharging` and
+    /// `last_time` one under it, at the building's target, and a release
+    /// event the clock crosses is a round (`Objects::add_ammo`), exactly as
+    /// a unit's is — unless the jam bit is set.
+    ///
+    /// SEAM: the building's `near_o` is not held here; its sign is taken
+    /// as the target's. run404 prints both on all 1,157 blocks of the
+    /// Radar, and they agree in sign on every one. SEAM: no building here
+    /// is ever jammed.
+    fn wall_anti_air(&mut self, b: usize) {
+        if !self.buildings[b].active {
+            return;
+        }
+        let Some(cycle) = self.wall_cycle_of(b).cloned() else {
+            return;
+        };
+        let target = self.buildings[b].target;
+        let near = target.is_some();
+        let top = cycle.wind - 1;
+        let r = &mut self.buildings[b].recharging;
+        if !near {
+            if *r < 0 {
+                *r = top;
+            }
+            if *r >= 1 {
+                *r -= 1;
+            }
+        } else if *r >= 0 && *r < top {
+            *r += 1;
+        } else if target.is_none() {
+            *r = top;
+        } else {
+            if *r >= 0 {
+                *r = 0;
+            }
+            if *r <= -cycle.swing {
+                *r = -1;
+            } else {
+                *r -= 1;
+            }
+        }
+        let r = self.buildings[b].recharging;
+        if r >= 0 {
+            return;
+        }
+        // `execute_game_events` refuses a package whose `ox`/`whom` is
+        // negative; SEAM, as for a unit's (`guy_release_events`): a target
+        // that is no longer active is refused too.
+        let Some(t) = target.filter(|&t| self.active(t)) else {
+            return;
+        };
+        let cur = -r;
+        let last = if cur == 0 { -1 } else { cur - 1 };
+        for &(at, node, harmless) in &cycle.releases {
+            let at = i32::try_from(at).unwrap_or(i32::MAX);
+            if last < at && at <= cur {
+                self.wall_round(b, t, cycle.launch, node, harmless);
+            }
+        }
+    }
+
+    /// One anti-air building's round: `execute_game_events+0x40d` →
+    /// `Objects::add_ammo` → `Ammo::init` ([`Sim::fire_ammo_pub`]), from
+    /// the building's own `x/y/z` plus the measured node vector
+    /// ([`WALL_LAUNCH`]). The package's `num_guys` is the building's 0,
+    /// which run404's rounds print.
+    fn wall_round(
+        &mut self,
+        b: usize,
+        t: crate::combat::Obj,
+        launch: Option<(i32, i32, i32)>,
+        node: i8,
+        harmless: bool,
+    ) {
+        let me = crate::combat::Obj::Building(b);
+        let at = self.buildings[b].pos;
+        let z = self.world.tile_z(at.tile());
+        let (dx, dy, dz) = launch.unwrap_or((0, 0, 0));
+        let from = Pos::new(at.x + dx, at.y + dy);
+        let to = self.pos_of(t);
+        let angle = find_angle(to.x - from.x, to.y - from.y);
+        let frame = self.frame;
+        self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless);
+        for p in self.projectiles.iter_mut() {
+            if p.shooter == me && p.cur_time == 0 {
+                p.num_guys = 0;
+            }
+        }
+    }
+
     /// A unit of the air domain that is neither a Helicopter nor a missile —
     /// `is_flying_low`'s and `Ammo::init`'s three type tests (`+0x218` 2,
     /// `+0x2b4 & 0x20` clear, `+0x1e4 & 0x8000000` clear).
@@ -3175,6 +3347,122 @@ mod flak_tests {
                 at: None,
             }),
         }
+    }
+
+    /// run404's Radar Air Defense: the tower columns of `harness_tests`'
+    /// tower, `ANTI_AIR`, range 10, FLY 33/75, and its type's cycle — the
+    /// Unpack's 20 frames, the Attack1's 10, the one release at frame 2 on
+    /// node 0, and the measured launch vector.
+    fn radar(s: &mut Sim, with_cycle: bool) -> usize {
+        let b = building(
+            s,
+            1,
+            Pos::new(22272, 16512),
+            combat::Profile {
+                obj_masks: mask::ANTI_AIR,
+                attack: 80,
+                recharge: 60,
+                max_range: 10,
+                to_hit: 400,
+                proj_speed: 200,
+                ammo_per_att: 1,
+                base_arrows: 1,
+                most_shots: 4,
+                x_size: 2,
+                y_size: 2,
+                big_radius: 96,
+                fly_high: 33,
+                fly_low: 75,
+                ..combat::Profile::default()
+            },
+        );
+        if with_cycle {
+            let mut d = crate::tech::TypeDef::building("Radar Air Defense");
+            d.wall_cycle = Some(crate::air::WallCycle {
+                wind: 20,
+                swing: 10,
+                releases: vec![(2, 0, false)],
+                launch: Some((136, -136, 227)),
+            });
+            let id = s.tech_tree.add(d);
+            let bt = s.add_build_type(crate::build::BuildType {
+                tree: Some(id),
+                ..crate::build::BuildType::default()
+            });
+            s.buildings[b].ty = Some(bt);
+        }
+        b
+    }
+
+    /// **An anti-air building does not fire from `do_attack`** (item 1112,
+    /// the call site): `Build::do_attack`'s in-range arm returns before
+    /// `Object::fire_ammo` for an `ANTI_AIR` building that is neither a
+    /// Lookout nor an Observation Post, and its head leaves `recharging`
+    /// alone. The same building without the cycle fires at once.
+    #[test]
+    fn an_anti_air_building_takes_its_target_and_does_not_fire_it() {
+        for with_cycle in [true, false] {
+            let mut s = sim();
+            let r = radar(&mut s, with_cycle);
+            let plane = unit(&mut s, 0, Pos::new(21600, 16400), bomber());
+            s.buildings[r].recharging = 5;
+            s.buildings[r].target = Some(Obj::Unit(plane));
+            s.process_building_combat(r, 16);
+            if with_cycle {
+                assert_eq!(s.buildings[r].target, Some(Obj::Unit(plane)));
+                assert!(s.projectiles.is_empty(), "no round from do_attack");
+                assert_eq!(s.buildings[r].recharging, 5, "no countdown");
+            } else {
+                assert_eq!(s.buildings[r].recharging, 4, "the countdown");
+                s.buildings[r].recharging = 0;
+                s.process_building_combat(r, 16);
+                assert_eq!(s.projectiles.len(), 1, "fired from do_attack");
+            }
+        }
+    }
+
+    /// **The Radar Air Defense's cycle** (item 1112, `docs/COMBAT.md`
+    /// §84): run404's `1/2007` from its acquisition on trace frame 777 —
+    /// `recharging` 1..19, then −1..−10 and round again, a round on each
+    /// frame the swing's clock crosses 2 (trace frames 797, 807, …), from
+    /// (22408, 16376, 235) with `num_guys` 0; with the target gone, −4
+    /// becomes 18 (block 1021) and counts down to 0.
+    #[test]
+    fn an_anti_air_building_winds_up_and_fires_on_its_swing() {
+        let mut s = sim();
+        let r = radar(&mut s, true);
+        let plane = unit(&mut s, 0, Pos::new(21600, 16400), bomber());
+        s.walls_inc_time(1);
+        assert_eq!(s.buildings[r].recharging, 0, "no target: held at 0");
+        s.buildings[r].target = Some(Obj::Unit(plane));
+        let mut seen = Vec::new();
+        let mut rounds = Vec::new();
+        for f in 0..33 {
+            s.frame = f;
+            let before = s.projectiles.len();
+            s.walls_inc_time(1);
+            seen.push(s.buildings[r].recharging);
+            if s.projectiles.len() > before {
+                rounds.push(f);
+            }
+        }
+        assert_eq!(seen[..19], (1..=19).collect::<Vec<i32>>()[..]);
+        assert_eq!(seen[19..29], (1..=10).map(|k| -k).collect::<Vec<i32>>()[..]);
+        assert_eq!(seen[29..33], [-1, -2, -3, -4]);
+        assert_eq!(rounds, [20, 30], "on the swing's frame 2");
+        let p = s.projectiles[0];
+        assert_eq!(p.launch, Pos::new(22408, 16376));
+        assert_eq!(p.num_guys, 0);
+        assert_eq!(p.shooter, Obj::Building(r));
+        s.buildings[r].target = None;
+        s.walls_inc_time(1);
+        assert_eq!(s.buildings[r].recharging, 18, "−4 to 19, and down one");
+        for _ in 0..30 {
+            s.walls_inc_time(1);
+        }
+        assert_eq!(s.buildings[r].recharging, 0, "down to 0, and held");
+        s.walls_inc_time(0);
+        assert_eq!(s.buildings[r].recharging, 0, "another leader's pass");
     }
 
     /// **An anti-air unit keeps its angle at an aircraft, and only there**
