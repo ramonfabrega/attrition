@@ -3614,3 +3614,15 @@ before the booking's gate, which runs beside the new worker; a landing
 that arrives under a gate is merged at its exit. §5's "the item numbers
 it may mint" is struck: a worker mints none.
 
+**The measure, for what the amendments changed** (the same day): the
+tranche's wall clock at three lanes against 15.1 hours; a lane's idle
+minutes between a landing and its refill against fourteen; the
+commander's clears against none and its peak against 631 k; journals
+that found the item before in their brief against ten, and a booking's
+direction wrong against three; a landing's 76 minutes, 37 working and
+38 waiting; the minutes waited on the capture lane. Five rules changed
+in one tranche, so the next pass says which numbers have one cause and
+which do not. Parked 1140 (a worker's clear at the seam, as an A/B) and
+1141 (a loop that hands itself to its pass and back) are filed and
+neither is built.
+

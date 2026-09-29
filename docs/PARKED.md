@@ -1896,7 +1896,12 @@ a suite or a capture, where the tranches after the eleventh and twelfth
 passes ran 43 and 45, with 12 and 19 waiting. The rondata release suite
 is 618 s at four threads alone and gained twenty-eight tests in the
 tranche; every landing pays it whole at least once and nine paid it
-twice. Captures were taken on nine of twenty and are not where the time
+twice. **It is a long tail and not a few tests**: three of the 599 run
+over a minute, the suite is some 41 minutes of processor at four
+seconds a test, and its memory peaks at 17 GB of a 20 GB cap on a
+machine of 128 — a chapter's whole walk is under three seconds, so the
+time is read as the dumps' parsing, which is a reading until the
+modules are timed apart. Captures were taken on nine of twenty and are not where the time
 went. Three lanes gate at twelve threads of sixteen. **And the
 commander's chain is serial**: a lane stood empty fourteen minutes a
 landing, 4.6 hours of the tranche's 15.1, between its landing and its
@@ -1907,6 +1912,37 @@ three-lane tranche's split first; the shapes left are a booking gate
 that is the guard reflex where the merge added nothing the lane's gate
 had not seen, a wider gate under a higher cap on a machine of 128 GB,
 and a suite that says which tests a change can reach — none is chosen.
+
+(1140) **A worker's spend is the square of its length** (the
+nineteenth pass, measured on the user's question, `lore trace --steps`
+over the twenty): 1,154 M tokens of cache read against 2.4 M of output;
+a worker's context 105 k at its tenth request, 187 k at its fiftieth,
+276 k at its hundredth; **56 per cent of the workers' spend at a context
+above 300 k**. Two workers of a hundred requests cost about a third
+less than one of two hundred. The seam is the working agreement's own:
+the document written and committed, then a clear, then the build from
+the document. **Not tried in the tranche that changed five rules.** The
+shape is an A/B across three lanes, one lane's briefs asking for the
+clear and two not, read at the pass after: the price a landing, and
+whether the cleared lane's landings kept their value diffs and their
+killers. Parked 1071 asked this of the rules lane and closed on a
+tranche where the depth had fallen by itself.
+
+(1141) **The loop waits on a person twice a cycle, and could hand
+itself over** (the nineteenth pass, on the user's question): the
+commander stops at twenty and a person clears it, switches the model
+and says "continue", at the pass's start and at its end. This cycle the
+loop stood idle three and a half hours before the pass and the one
+before twenty-two minutes. `ccc clear <ref> --then` arms a clear with a
+prompt and `ccc spawn --model` starts a job on a named model; whether a
+model can be switched through either is not tested. **The smallest of
+the three costs, and the one with a risk**: a pass with no reader
+changes its own rules unread, and three of this pass's changes came
+from the user's questions. If built: the commander arms the pass and
+the pass re-arms the commander; every pass's rule changes are one
+commit a person can revert; **after two passes nobody read, the loop
+stops and waits**; and what is the user's — spend, the irreversible,
+what the project is — is never decided by either.
 
 (1139) **The capture lane is one prefix, one install and one profile**
 (the nineteenth pass, on the user's question): `~/wine-ron`'s lock,
