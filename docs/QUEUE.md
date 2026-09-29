@@ -12,35 +12,33 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-09-28, the eighteenth Fable pass (`docs/audit/2026-09-28-fable-pass-18.md`,
-DECISIONS 54): **no score moved in the pass, and none was meant to.**
-The AI's word is the second pair's, at the lobby's top difficulty; the
-first pair stays closed at 24,000, endpoints 0 off. Chapters to
-thirty-seven are closed; thirty-eight is open at 794 (1102 … 1117).
-One lane runs (1113); the count is at nineteen.*
+*2026-09-29, the commander after the eighteenth pass: **twenty landings
+from `7e9025da`, and the steering pass is due.** Both headlines moved;
+every floor held on every gate; the first pair stays closed at 24,000,
+endpoints 0 off. No lane is live.*
 
-- **Great Lakes' second game is closed at 5,930, its end**, in seven
-  landings from 4924 (1061 … 1099), endpoint 0 off: the pass's measure,
-  inside one tranche where it priced two. **East Indies is the open
-  word**, 5606 → 6151: borders, water trade, a barge's sight (1106 … 1120).
-- **The instrument follows the word** (1061, GROUPS §33): the second
-  pair's widening compares the group record and the attack row, and
-  the compared pin walks the lower map's word window (1106 moves it).
-- **A third map is scored** (1066, AI §83): Great Sahara, all land,
-  its word 8; no item opens on it until a pass says so (DECISIONS 54 §3).
+- **The AI track**: Great Lakes 4924 → 5930, closed at its game's end,
+  endpoint 0 off, in seven landings (1061 … 1099) — one tranche where
+  DECISIONS 54 priced two. East Indies 5606 → 6151 in four (1106 … 1120).
+- **The rules track**: chapters thirty-five to thirty-seven closed (the
+  V2, the missile's arms, the nuke); thirty-eight, the air line under
+  fire, open at 878 after five landings; the blind list 143 → 141.
+- **A third map is scored** (1066, AI §83): Great Sahara, word 8.
+- **For the pass**: the default-map guard asks for a closed map (1121);
+  some twenty spot grants let two lanes share `fight.rs`, `orders.rs`, `anim.rs`.
 - **The user's**: whether phase 4 opens on the rules track alone. The
-  disk is not: 73 GB free, after 55 GB of debug build.
-- **Fable backlog: 30 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116, 1119, 1121, 1123, 1126, 1130).
+  disk: 56 GB free, from 73 at the tranche's start.
+- **Fable backlog: 31 Loop items** (677, 685, 894, 900, 927, 953, 954, 960, 973, 1067, 1071, 1076, 1079, 1080, 1083, 1085, 1088, 1090, 1094, 1097, 1101, 1105, 1108, 1114, 1116, 1119, 1121, 1123, 1126, 1130, 1132).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 6/5 w8
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
 Second pair: EastIndies w6151 of 18,140 · GreatLakes w5930 of 5,930
 Third map: GreatSahara w8 of 24,000
-Golden: ch38 w794 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1113 next
+Golden: ch38 w878 of 1763 · ch1 closed · ch2 closed · ch3 closed · ch4 closed · ch5 closed · ch6 closed · ch7 closed · ch8 closed · restage closed · ch7b closed · ch7b-control closed · ch6b closed · ch9 closed · ch10 closed · ch11 closed · ch12 closed · ch13 closed · ch14 closed · ch15 closed · ch16 closed · ch17 closed · ch18 closed · ch19 closed · ch20 closed · ch21 closed · ch22 closed · ch23 closed · ch24 closed · ch25 closed · ch26 closed · ch27 closed · ch28 closed · ch29 closed · ch30 closed · ch31 closed · ch32 closed · ch33 closed · ch34 closed · ch35 closed · ch36 closed · ch37 closed · 1131 next
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked
 
-**Opener: the commander lands 1113, the twentieth; then the steering
-pass is due. 1127 waits for the lane the count left empty.**
+**Opener: the nineteenth Fable pass, over landings 1061 to 1113; then
+the commander resumes — 1127 on the AI lane, 1131 on the rules lane.**
 
 ## The queue
 
@@ -56,12 +54,12 @@ and say so; the backlog is `docs/PARKED.md`, back only when a score names it.
     where only the Caravan `1/15` parts: ours stands it against `1/33`
     — the block's reading, not a mechanism. No mechanism is named.
 
-1113. **Chapter thirty-eight's word: frame 794** (1117: the turret gate
-    built; parked 1113, promoted). `1/7`'s walk, parted since 765,
-    where the army's `ATTACKTO` points for `1/7` and `1/8` stand one
-    cell (48) past the original's, `off_y` 360 against 312; `myspeed`
-    agrees. No mechanism is named; the army and group code is the AI
-    lane's, granted by spot.
+1131. **Chapter thirty-eight's word: frame 878, ours 7 draws against 5**
+    (1113: the follower scatter and the pack built): `0/7` is shot down
+    in ours. Walked back: 837 the Radar's `attack_ox`, 820 `0/7`'s
+    patrol leg, 784 its hit a frame late — parked 1125's release
+    vectors, and 1118's building `near_o` may be the 837 row. No
+    mechanism is named.
 
 ## How to maintain this file
 

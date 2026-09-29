@@ -2017,6 +2017,14 @@ builds a unit vision and movement disagree about** (1120's Loop line):
 one let a killer pass. A fixture helper that sets both, or a debug
 assertion in `add_unit` that the two agree, would close the shape.
 
+(1132) **A `SEAM` that says "no capture has X" names the scan that found
+none** (1113's Loop line): `form.rs` called the object number "not a
+quantity the simulation can reproduce" and `orders.rs` said "no capture
+has a packed type"; both were read as reasons and neither was checked
+against the disk once run404 existed. A one-line scan (a `GUY` type with
+the flag) would have named both mechanisms at 1102; a seam that names
+its scan can be rerun by the next capture.
+
 ## Parked by the fourteenth Fable pass, 2026-09-25 — names no score
 
 (728) **A building's `orig_type`, `damage` and `damage_frac` are compared
