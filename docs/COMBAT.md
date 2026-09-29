@@ -1045,7 +1045,7 @@ whenever the object adjacent to it (`near_o`) is in range. `do_attack`:
   is not a `role & 0x10000` spellcaster: the tower prefers a moving target
   and re-looks for one every two seconds. An invalid target → `find_target`.~~
   **The listing, `622a37`–`622c1c` (item 1131)**: without an explicit attack
-  order (`build_masks & 4`, set only by `Build::add_attack_order@00622ce0`),
+  order (`build_masks & 4`, which `Group::action_attack` sets at `712654`),
   `Build::find_target@00622c80` — `find_nearby_target((max(x_size, y_size) +
   2 × max_range) × 0x60)` (§12), clearing the order bit — runs on **every**
   call (`622a3f`). `compare_target`'s current-target ×2 (or /2 with two
